@@ -103,6 +103,7 @@ resolve_impl_member :: fn(
     target_type: Type,
     trait_key: string,
     name: string,
+    own_args: Type[] | null = null,
 ) -> UfcsMember | null {
     if type_surface_name(target_type) == "" { return null }
     target :: impl_base_key(target_type)
@@ -114,7 +115,7 @@ resolve_impl_member :: fn(
         decl :: entry.decl
         m :: select_member(entry, name) ?? continue
         if !impl_is_intrinsic(decl) {
-            return build_ufcs_member(ctx, target_type, m, entry, is_identity_member(m))
+            return member_or_instance(ctx, target_type, m, entry, own_args)
         }
         // An `@intrinsic` fallback is bodyless → never an inlineable identity.
         if fallback == null { fallback = ImplMemberMatch { .entry = entry, .member = m } }
@@ -139,16 +140,17 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
     resolve_impl_member(ctx, target_type, "", method_name)
 
 /// The vtable slot an impl member of `trait_key` fills ; null for a static member,
-/// which is reached through a type and never dispatched on a value.
+/// which is reached through a type and never dispatched on a value, and for a
+/// member with type parameters of its own, which has one body per call (T3107).
 ///
 /// @param trait_key  the trait the impl implements.
 /// @param member     the impl member.
-member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null =
-    if has_self_param(member) {
-        VtableSlot { .trait_key = trait_key, .method = member.name }
-    } else {
-        null
+member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null {
+    if !has_self_param(member) || member.type_params.len() > 0 {
+        return null
     }
+    return VtableSlot { .trait_key = trait_key, .method = member.name }
+}
 
 // The instance suffix of the member `entry` materialises for `target_type`. A
 // generic-struct receiver picks up the materialised member's instance suffix. The
@@ -156,7 +158,8 @@ member_vtable_slot :: fn(trait_key: string, member: FnDecl) -> VtableSlot | null
 // `count__Any`) so the shared erased body's sibling self-calls resolve to one
 // name ; an impl on one instance keeps the concrete suffix (`Wrapper<i32>` →
 // `count__i32`). Primitive receivers (`string implements Display`) have no args →
-// empty suffix.
+// empty suffix. A member with type parameters of its own keeps the concrete args
+// (`member_instance`).
 // @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
 receiver_suffix :: fn(ctx: FnLowerCtx, entry: ImplEntry, target_type: Type) -> string =
     @partial match target_type {
@@ -228,19 +231,31 @@ build_ufcs_member :: fn(
     if target_type is StructType {
         if entry.is_generic { queue_generic_impl_receiver(ctx, target_type) }
     }
-    return UfcsMember {
-        .symbol = Symbol {
-            .id         = 0,
-            .kind       = .Fn,
-            .name       = mangled,
-            .module     = ctx.typed.resolved.path,
-            .module_name = ctx.typed.resolved.path,
-            .visibility = .Private,
-            .defined_at = null,
-        },
-        .is_identity = is_identity,
-        .arg_types = impl_member_arg_types(ctx, target_type, member, entry),
-    }
+    return ufcs_member_named(
+        ctx, mangled, is_identity, impl_member_arg_types(ctx, target_type, member, entry),
+    )
+}
+
+/// A call to the impl member named `mangled` : a symbol carrying the mangle, whose
+/// `id = 0` placeholder the call emit never reads (it resolves by mangle first).
+///
+/// @param mangled      the member's name.
+/// @param is_identity  whether the member returns its receiver unchanged.
+/// @param arg_types    its arguments' types, receiver excluded.
+ufcs_member_named :: fn(
+    ctx: FnLowerCtx, mangled: string, is_identity: bool, arg_types: Type[],
+) -> UfcsMember = UfcsMember {
+    .symbol = Symbol {
+        .id         = 0,
+        .kind       = .Fn,
+        .name       = mangled,
+        .module     = ctx.typed.resolved.path,
+        .module_name = ctx.typed.resolved.path,
+        .visibility = .Private,
+        .defined_at = null,
+    },
+    .is_identity = is_identity,
+    .arg_types = arg_types,
 }
 
 // Declared types of the member's arguments, receiver EXCLUDED.
@@ -341,9 +356,21 @@ member_named :: fn(
     entry: ImplEntry,
     receiver: Type,
     name: string,
+    own_args: Type[] | null = null,
 ) -> UfcsMember | null {
     m :: select_member(entry, name) ?? return null
-    return build_ufcs_member(ctx, receiver, m, entry, is_identity_member(m))
+    return member_or_instance(ctx, receiver, m, entry, own_args)
+}
+
+// The member `m` of `entry`'s impl on `target`, at `own_args` when it has type
+// parameters of its own.
+member_or_instance :: fn(
+    ctx: FnLowerCtx, target: Type, m: FnDecl, entry: ImplEntry, own_args: Type[] | null,
+) -> UfcsMember | null {
+    if m.type_params.len() > 0 {
+        return member_instance(ctx, target, m, entry, own_args ?? [])
+    }
+    return build_ufcs_member(ctx, target, m, entry, is_identity_member(m))
 }
 
 /// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in

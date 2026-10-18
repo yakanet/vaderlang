@@ -55,6 +55,9 @@ export BoundMember :: struct {
     /// The trait's arguments as the bound names them (`T: Mul<f64>` → `[f64]`) :
     /// what picks among several impls of the trait on the instance.
     trait_args: Type[] = []
+    /// The type each type parameter of the member's own takes at a call, in the
+    /// order the trait declares them (`conv<U>` called on `1.5` → `[f64]`).
+    own_args: Type[] = []
 }
 
 /// A member of a trait value, or of a union whose every variant implements the
@@ -293,15 +296,52 @@ file_in_fn :: fn(typed: TypedProgram, node: usize) -> void {
 note_call_bindings :: fn(
     typed: TypedProgram,
     c: AST.CallExpr,
+    quantifier: TypeParamType[],
     bindings: MutableMap<i32, Type>,
 ) -> void {
     default_free_bindings(bindings)
     callee :: typed.call_sites.calls[c.id] ?? return
-    if callee !is DirectFn || bindings.len() == 0 {
+    if bindings.len() == 0 {
+        return
+    }
+    if callee is BoundMember {
+        own_args :: in_order(quantifier, bindings)
+        typed.call_sites.calls[c.id] = BoundMember { ...callee, .own_args = own_args }
+        return
+    }
+    if callee !is DirectFn {
         return
     }
     typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
     typed.call_sites.instantiation_spans[c.id] = c.span
+    if typed.enclosing_impl != 0 && names_impl_param(bindings, typed.enclosing_impl_params) {
+        typed.impl_param_forwards[c.id] = c.span
+    }
+}
+
+// Whether a binding names one of `impl_params`.
+names_impl_param :: fn(bindings: MutableMap<i32, Type>, impl_params: MutableSet<i32>) -> bool {
+    if impl_params.is_empty() {
+        return false
+    }
+    for [_, bound] in bindings {
+        for tp in type_params_in(bound) {
+            if tp.id in impl_params {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// The type `bindings` gives each of `quantifier`, in order ; unresolved for one it
+// leaves unbound.
+in_order :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> Type[] {
+    out: Type[]: []
+    for tp in quantifier {
+        out.push(bindings[tp.symbol.id] ?? TY_UNRESOLVED)
+    }
+    return out
 }
 
 // Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).

@@ -187,6 +187,7 @@ lower_project_impl :: fn(
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
         cur_total :: project_ctx.fn_instances_order.len() +
             project_ctx.pending_generic_impl_recv.len() +
+            project_ctx.member_instances.len() +
             project_ctx.nongeneric_imported_order.len() +
             project_ctx.nongeneric_imported_const_order.len() +
             project_ctx.enum_table_order.len() +

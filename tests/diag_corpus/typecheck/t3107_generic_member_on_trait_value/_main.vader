@@ -1,0 +1,37 @@
+// A trait method with type parameters of its own has one body per instance, which
+// no vtable holds : it is not called on a trait value.
+
+module "snippet"
+
+import "std/io"
+
+Conv :: trait {
+    conv :: fn<U>(self, x: U) -> string
+}
+
+Box :: struct {
+    v: i32
+}
+
+Box implements Conv {
+    conv :: fn<U>(self, x: U) -> string = @type_name(U)
+}
+
+main :: fn() -> i32 {
+    value: Conv: Box { .v = 1 }
+    println(value.conv(5))
+    return 0
+}
+
+Holder :: struct<T> {
+    item: T
+}
+
+Show :: trait {
+    show :: fn(self) -> string
+}
+
+// The impl's instances share this body : `T` is erased in it.
+Holder<T> implements<T: Conv> Show {
+    show :: fn(self) -> string = self.item.conv(5)
+}

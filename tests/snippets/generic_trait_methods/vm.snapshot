@@ -1,0 +1,9 @@
+# stdout
+1 i32 4
+1 string 4
+1 i64 8
+1
+1 f64 8
+string i32
+# exit
+0

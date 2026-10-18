@@ -1,0 +1,62 @@
+# Typecheck
+
+## tests/snippets/generic_trait_methods
+  StructDecl     Bag                  :: Bag<T>
+  StructDecl     Box                  :: Box
+  TraitDecl      Conv                 :: Conv
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         through_bound        :: fn(T) -> string
+  expr 20:43    StringLitExpr  :: string
+  expr 20:46    FieldExpr      :: i32
+  expr 20:46    IdentExpr      :: Box
+  expr 20:56    IntrinsicCallExpr :: string
+  expr 20:73    IntrinsicCallExpr :: usize
+  expr 20:82    IdentExpr      :: U
+  expr 21:34    StructLitExpr  :: Box
+  expr 21:45    CallExpr       :: i32
+  expr 21:45    IdentExpr      :: type
+  expr 21:49    IntrinsicCallExpr :: usize
+  expr 21:58    IdentExpr      :: U
+  expr 29:43    StringLitExpr  :: string
+  expr 29:46    IntrinsicCallExpr :: string
+  expr 29:63    IntrinsicCallExpr :: string
+  expr 30:37    StructLitExpr  :: Bag<T>
+  expr 30:55    SeqLitExpr     :: T[]
+  expr 33:48    CallExpr       :: string
+  expr 33:48    FieldExpr      :: fn(U) -> string
+  expr 33:48    IdentExpr      :: T
+  expr 36:10    StructLitExpr  :: Box
+  expr 37:13    CallExpr       :: string
+  expr 37:13    FieldExpr      :: fn(U) -> string
+  expr 37:13    IdentExpr      :: Box
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 38:13    CallExpr       :: string
+  expr 38:13    FieldExpr      :: fn(U) -> string
+  expr 38:13    IdentExpr      :: Box
+  expr 38:20    StringLitExpr  :: string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    CallExpr       :: string
+  expr 39:13    FieldExpr      :: fn(U) -> string
+  expr 39:13    IdentExpr      :: Box
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    CallExpr       :: Box
+  expr 40:13    FieldExpr      :: fn(U) -> Box
+  expr 40:13    FieldExpr      :: i32
+  expr 40:13    IdentExpr      :: Box
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    CallExpr       :: string
+  expr 41:13    IdentExpr      :: fn(T) -> string
+  expr 41:27    IdentExpr      :: Box
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:12    StructLitExpr  :: Bag<string>
+  expr 42:35    SeqLitExpr     :: string[]
+  expr 43:13    CallExpr       :: string
+  expr 43:13    FieldExpr      :: fn(U) -> string
+  expr 43:13    IdentExpr      :: Bag<string>
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void

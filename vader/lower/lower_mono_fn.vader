@@ -20,7 +20,8 @@ import "toolchain/span"
 
 /// Build phase of generic-fn-instance materialisation. Drains the
 /// `fn_instances_order` + `pending_generic_impl_recv` queues into
-/// `project_ctx.generic_collected`, lowering each instance body against a
+/// `project_ctx.generic_collected`, and lowers each queued impl member instance
+/// (`member_instances`) straight into its module, lowering each instance body against a
 /// fresh `Substitution` binding the fn's typeParams to the call site's
 /// concrete types. Resumes from the persistent `generic_fn_cursor` /
 /// `generic_recv_cursor` so `lower_project`'s generic↔stdlib joint fixpoint
@@ -40,15 +41,15 @@ drain_generic_fn_instances :: fn(
     // re-processing earlier ones. `generic_processed` dedups duplicate
     // `(symbol, args)` discoveries. Re-indexing by position is safe across
     // reallocs.
-    // Joint fixpoint over fn instances AND erased generic-struct impl
-    // receivers (`pending_generic_impl_recv`). Both cursors only grow ;
-    // materialising a receiver's impl members harvests transitive free fns
-    // (`MutableMap.contains` → `contains_key`) into `fn_instances_order`, and
-    // building a fn instance body can queue further erased receivers, so the
-    // two drain to a shared fixpoint via a single growing-cursor loop.
+    // Joint fixpoint over fn instances, erased generic-struct impl receivers
+    // (`pending_generic_impl_recv`) and impl member instances
+    // (`member_instances`). Every cursor only grows ; lowering any of them can
+    // queue more of the others (`MutableMap.contains` → `contains_key`), so the
+    // three drain to a shared fixpoint via a single growing-cursor loop.
     i := project_ctx.generic_fn_cursor
     ri := project_ctx.generic_recv_cursor
-    for i < project_ctx.fn_instances_order.len() || ri < project_ctx.pending_generic_impl_recv.len() {
+    mi := project_ctx.member_instance_cursor
+    for pending_instances(project_ctx, i, ri, mi) {
         for i < project_ctx.fn_instances_order.len() {
             inst :: project_ctx.fn_instances_order[i]
             i += 1
@@ -79,10 +80,22 @@ drain_generic_fn_instances :: fn(
                     recv, owner_typed, project_ctx, project, loaded, typed, diags)
             }
         }
+        for mi < project_ctx.member_instances.len() {
+            inst :: project_ctx.member_instances[mi]
+            mi += 1
+            materialize_member_instance(inst, project_ctx, project)
+        }
     }
     project_ctx.generic_fn_cursor = i
     project_ctx.generic_recv_cursor = ri
+    project_ctx.member_instance_cursor = mi
 }
+
+// Whether a queue still holds what the cursors `i`, `ri` and `mi` have not reached.
+pending_instances :: fn(project_ctx: LowerProjectCtx, i: usize, ri: usize, mi: usize) -> bool =
+    i < project_ctx.fn_instances_order.len()
+        || ri < project_ctx.pending_generic_impl_recv.len()
+        || mi < project_ctx.member_instances.len()
 
 /// Flush phase of generic-fn-instance materialisation. Sorts every instance
 /// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
@@ -97,7 +110,8 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
     // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
     // Impl-member instances never reach `fn_instances` (they route through
-    // the mono / vtable path), so this only collapses free generic fns.
+    // the mono / vtable path, or `member_instances`), so this only collapses
+    // free generic fns.
     //
     // A trait-dispatching free generic fn (GATE A : `dispatches`, built
     // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`

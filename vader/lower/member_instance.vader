@@ -1,0 +1,128 @@
+// vader/lower/member_instance — an impl member with type parameters of its own.
+//
+// Such a member (`conv :: fn<U>(self, x: U)`) runs one instance per call, at the
+// types the call gives its parameters and, on a generic impl, those the receiver
+// gives the impl's : the call names the instance after them and queues it once,
+// and the generic-instance fixpoint lowers it (`drain_generic_fn_instances`). No
+// vtable holds one : the typecheck refuses such a call on a trait value (T3107).
+// docs/adr/0074-a-generic-member-runs-one-instance-per-call.md
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "vader/comptime"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// The type each type parameter of the member `callee` names takes at the call, in
+/// the order the member declares them. Null for a member that declares none.
+///
+/// @param callee  a call's record of an impl member.
+/// @param entry   the impl that declares it.
+own_args_of :: fn(ctx: FnLowerCtx, callee: DirectFn, entry: ImplEntry) -> Type[] | null {
+    if callee.decl.type_params.len() == 0 {
+        return null
+    }
+    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
+    params :: declared_type_params(callee.decl, owner) ?? return null
+    recorded :: callee.bindings ?? return null
+    out: Type[]: []
+    for tp in params {
+        out.push(recorded[tp.id] ?? return null)
+    }
+    return out
+}
+
+/// The instance of `member` at `own_args`, the types a call gives its own
+/// parameters in order : named after them and after the receiver's arguments, and
+/// queued for materialisation once. Null when one is not concrete at this instance.
+///
+/// @param target    the receiver the impl is written for.
+/// @param member    the member, with type parameters of its own.
+/// @param entry     the impl that declares it.
+/// @param own_args  the types the call gives the member's parameters.
+member_instance :: fn(
+    ctx: FnLowerCtx,
+    target: Type,
+    member: FnDecl,
+    entry: ImplEntry,
+    own_args: Type[],
+) -> UfcsMember | null {
+    if own_args.len() != member.type_params.len() {
+        return null
+    }
+    owner :: typed_by_display_path(ctx.project, entry.module) ?? return null
+    type_args: Type[]: []
+    for a in own_args {
+        type_args.push(ctx.types.apply(a))
+    }
+    receiver_args :: type_arguments(target)
+    if !all_concrete(type_args) || !all_concrete(receiver_args) {
+        return null
+    }
+    bindings :: type_param_bindings(member.type_params, type_args, owner)
+    for [id, bound] in impl_bindings_at(entry, target) {
+        bindings[id] = bound
+    }
+    suffix :: "${args_suffix(receiver_args)}${entry.overload_suffix}${args_suffix(type_args)}"
+    mangled :: impl_member_name(entry.module, target, entry.trait_symbol, member.name, suffix)
+    note_member_origin(ctx, mangled, member, entry.trait_key)
+    if claim_impl_member(ctx.project, mangled) {
+        ctx.project.member_instances.push(
+            MemberInstance {
+                .entry = entry,
+                .member = member,
+                .target = target,
+                .type_args = type_args,
+                .bindings = bindings,
+                .mangled = mangled,
+                .owner = owner,
+            },
+        )
+    }
+    arg_types: Type[]: []
+    for t in impl_member_arg_types(ctx, target, member, entry) {
+        arg_types.push(substitute_map(t, bindings))
+    }
+    return ufcs_member_named(ctx, mangled, false, arg_types)
+}
+
+/// Lower the impl member `inst` names at its types, and push it to the module
+/// that declares the impl, with the lambdas its body spawned.
+///
+/// @param inst         a queued instance.
+/// @param project_ctx  the project being lowered.
+/// @param project      receives the lowered member.
+materialize_member_instance :: fn(
+    inst: MemberInstance,
+    project_ctx: LowerProjectCtx,
+    project: LoweredProject,
+) -> void {
+    synth_start :: project_ctx.synth_decls.len()
+    owner :: inst.owner
+    subst :: substitution_of(inst.bindings)
+    types :: make_entry_types(owner, subst)
+    params :: build_impl_member_params(inst.member, inst.target, types, owner, project_ctx)
+    return_type :: return_type_of(inst.member, types)
+    entry :: MonoEntry {
+        ...synth_impl_entry(inst.member, owner, inst.mangled, inst.entry.trait_key),
+        .subst = subst,
+        .type_arguments = inst.type_args,
+    }
+    body :: lower_body_of(inst.member, owner, project_ctx, entry, subst, params, return_type)
+    module_id :: owner.resolved.path
+    push_to_module(
+        project,
+        module_id,
+        LoweredFnDecl {
+            .mangled = inst.mangled,
+            .params = params,
+            .return_type = return_type,
+            .body = body,
+            .origin = entry,
+        },
+    )
+    drain_synth_since(project, module_id, project_ctx, synth_start)
+}

@@ -538,6 +538,13 @@ export TypedProgram :: struct {
     /// keys it ; 0 outside one. Among several impls of one trait offering a member,
     /// its own is the one a body of it reaches (a default method's `self.tag()`).
     enclosing_impl: u64 = 0
+    /// The symbol ids of the type parameters of the impl whose member bodies are
+    /// being walked : what such a body shares between the impl's instances.
+    enclosing_impl_params: MutableSet<i32> = MutableSet<i32> {}
+    /// The calls in a generic impl's members that hand the impl's type parameters
+    /// on, by node id : an impl's instances share such a body, so the callee must
+    /// not observe them (T3087).
+    impl_param_forwards: MutableMap<usize, Span> = MutableMap<usize, Span> {}
 
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so

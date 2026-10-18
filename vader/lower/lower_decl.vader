@@ -31,8 +31,8 @@ lower_impl_members :: fn(
     for m in members { project_ctx.synth_decls.push(m) }
 }
 
-// Claim the single emission of the non-generic impl member `mangled`; false when
-// another path already lowered it. Every path that lowers such a member claims it
+// Claim the single emission of the impl member `mangled`, or of an instance of one
+// (`member_instance`); false when another path already lowered it. Every path that lowers such a member claims it
 // here first, or the function ends up with two bodies in one slot downstream.
 claim_impl_member :: fn(project_ctx: LowerProjectCtx, mangled: string) -> bool =
     project_ctx.materialized_impl_keys.add("impl_member::${mangled}")
@@ -56,6 +56,8 @@ lower_impl_member_list :: fn(
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
     self_type :: impl_entry.for_type
     for member in impl_decl.members {
+        // A member with type parameters of its own is lowered per call
+        // (`member_instance`).
         if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_entry, member, self_type)
         if !claim_impl_member(project_ctx, mangled) {

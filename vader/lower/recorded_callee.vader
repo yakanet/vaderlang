@@ -119,12 +119,12 @@ settled_direct_member :: fn(
 ) -> UfcsMember | null {
     entry :: ctx.project.impls.member_entry(callee.decl) ?? return null
     target :: impl_receiver(entry, receiver)
+    own_args :: own_args_of(ctx, callee, entry)
     if !callee.per_instance {
-        identity :: is_identity_member(callee.decl)
-        return build_ufcs_member(ctx, target, callee.decl, entry, identity)
+        return member_or_instance(ctx, target, callee.decl, entry, own_args)
     }
     serving :: ctx.project.impls.serving_impl(entry, target)
-    return member_named(ctx, serving, target, callee.decl.name)
+    return member_named(ctx, serving, target, callee.decl.name, own_args)
 }
 
 /// The trait the site `role` plays at `node` dispatches through at run time, as
@@ -182,10 +182,10 @@ settled_bound_member :: fn(
         }
         entry :: ctx.project.impls.impl_at_args(receiver, callee.trait_key, args)
         if entry != null {
-            return member_named(ctx, entry, receiver, callee.member)
+            return member_named(ctx, entry, receiver, callee.member, callee.own_args)
         }
     }
-    own :: resolve_impl_member(ctx, receiver, callee.trait_key, callee.member)
+    own :: resolve_impl_member(ctx, receiver, callee.trait_key, callee.member, callee.own_args)
     if own != null || receiver !is EnumType || callee.trait_key != core_trait_key(TRAIT_HASH) {
         return own
     }

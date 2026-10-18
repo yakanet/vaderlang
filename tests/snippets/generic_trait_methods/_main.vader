@@ -1,0 +1,45 @@
+// A trait method with type parameters of its own runs as one instance per call,
+// at the types the call gives them : on a concrete receiver, through a bound in a
+// generic body, as a static member, written explicitly, and on a generic impl,
+// whose own parameters the receiver binds.
+
+module "snippet"
+
+import "std/io"
+
+Conv :: trait {
+    conv :: fn<U>(self, x: U) -> string
+    make :: fn<U>(v: U) -> Self
+}
+
+Box :: struct {
+    v: i32
+}
+
+Box implements Conv {
+    conv :: fn<U>(self, x: U) -> string = "${self.v} ${@type_name(U)} ${@size_of(U)}"
+    make :: fn<U>(v: U) -> Box = Box { .v = i32(@size_of(U)) }
+}
+
+Bag :: struct<T> {
+    items: T[]
+}
+
+Bag<T> implements<T> Conv {
+    conv :: fn<U>(self, x: U) -> string = "${@type_name(T)} ${@type_name(U)}"
+    make :: fn<U>(v: U) -> Bag<T> = Bag<T> { .items = [] }
+}
+
+through_bound :: fn<T: Conv>(t: T) -> string = t.conv(1.5)
+
+main :: fn() -> i32 {
+    b :: Box { .v = 1 }
+    println(b.conv(5))
+    println(b.conv("x"))
+    println(b.conv<i64>(5))
+    println(Box.make(true).v)
+    println(through_bound(b))
+    bag :: Bag<string> { .items = [] }
+    println(bag.conv(5))
+    return 0
+}

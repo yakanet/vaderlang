@@ -375,7 +375,29 @@ LowerProjectCtx :: struct {
     generic_fn_cursor:   usize
     generic_recv_cursor: usize
 
+    /// The impl members with type parameters of their own, at the types a call
+    /// gives them, queued by the call and materialised in the same fixpoint as
+    /// the generic fn instances.
+    member_instances: MemberInstance[] = []
+    member_instance_cursor: usize = 0
+
     diags:               Diagnostic[]
+}
+
+/// An impl member with type parameters of its own (`conv :: fn<U>(self, x: U)`),
+/// at the types one call gives them.
+MemberInstance :: struct {
+    entry:     ImplEntry
+    member:    FnDecl
+    /// The receiver the impl is written for.
+    target:    Type
+    /// The type each of the member's own type parameters takes, in order.
+    type_args: Type[]
+    /// The type each type parameter takes, the member's own and the impl's.
+    bindings:  MutableMap<i32, Type>
+    mangled:   string
+    /// The module that declares the impl.
+    owner:     TypedProgram
 }
 
 /// Per-(generic fn, concrete args) instance captured at a call site.

@@ -56,7 +56,7 @@ export check_project_with_bodies :: fn(
     // properly bound. It reports into `project.diags`.
     materialize_all_sams_pre_resolve(project, mod_index, core_seed)
     result :: check_project_modules(project, diags, dump_types, core_seed, mod_index)
-    propagate_type_param_observation(result.all_modules)
+    propagate_type_param_observation(result.all_modules, diags)
     return result
 }
 
@@ -2475,10 +2475,12 @@ walk_bodies :: fn(
                 // (`declare_and_check_impl`) so forward references resolve ;
                 // only the member bodies remain to walk here.
                 typed.enclosing_impl = decl.span.hash()
+                typed.enclosing_impl_params = impl_param_ids(decl, typed)
                 for m in decl.members {
                     walk_fn_body(m, typed, diags, mode)
                 }
                 typed.enclosing_impl = 0
+                typed.enclosing_impl_params = MutableSet<i32> {}
             }
             is AST.EnumDecl      -> { check_variant_data(decl, typed, diags) }
             // Body-less decl kinds — nothing to walk. Listed explicitly (not
@@ -2502,6 +2504,15 @@ walk_bodies :: fn(
     }
     settle_fn_references(typed, diags)
     zonk_module_tables(typed)
+}
+
+// The symbol ids of `decl`'s type parameters.
+impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32> {
+    out :: MutableSet<i32> {}
+    for tp in impl_type_params_of(decl, typed.resolved) {
+        out.add(tp.symbol.id)
+    }
+    return out
 }
 
 // Type each field's default against the field's declared type (`delta: isize = -1`

@@ -11,6 +11,7 @@
 module "vader/typecheck"
 
 import "std/collections"
+import "vader/diagnostics"
 import "vader/fixpoint"
 
 // The calls of a project that forward the caller's type parameters, and what each
@@ -26,7 +27,9 @@ ForwardingGraph :: struct {
 // Mark every function that hands its own type parameters to one observing them
 // (`TypedProgram.fn_observes_type_params`), in the module that lists its calls: the
 // one that walked its body, where `fn_instance_flavor` reads the mark.
-propagate_type_param_observation :: fn(modules: MutableMap<string, TypedProgram>) -> void {
+propagate_type_param_observation :: fn(
+    modules: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+) -> void {
     forwarding :: forwarding_graph(modules) ?? return
     solve_reachability(Graph { .successors = forwarding.successors }, forwarding.observing)
     for [_, typed] in modules {
@@ -35,6 +38,35 @@ propagate_type_param_observation :: fn(modules: MutableMap<string, TypedProgram>
             if forwarding.observing[node] {
                 typed.fn_observes_type_params[caller] = true
             }
+        }
+    }
+    reject_observing_impl_forwards(modules, forwarding, diags)
+}
+
+// T3087 on a call in a generic impl's member that hands the impl's type parameters
+// to a function observing them : the impl's instances share the member's body,
+// which keeps no instance of its own to observe them in.
+reject_observing_impl_forwards :: fn(
+    modules: MutableMap<string, TypedProgram>, forwarding: ForwardingGraph, diags: Diagnostic[],
+) -> void {
+    for [_, typed] in modules {
+        for [call, span] in typed.impl_param_forwards {
+            callee :: typed.call_sites.calls[call] ?? continue
+            if callee !is DirectFn {
+                continue
+            }
+            node :: forwarding.nodes[callee.decl.id] ?? continue
+            if !forwarding.observing[node] {
+                continue
+            }
+            diags.push(
+                typecheck_error(
+                    .IsTestOnSharedInstance,
+                    span,
+                    "`${callee.decl.name}` observes its type parameters, and an impl member"
+                        + " keeps no body per instance ; dispatch through a trait instead",
+                ),
+            )
         }
     }
 }

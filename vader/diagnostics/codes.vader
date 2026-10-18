@@ -120,7 +120,7 @@ export TypecheckCode :: enum(CodeInfo) {
     EnumDataNotStruct               { .id = "T3084", .message = "enum variant data must be a struct" },
     VariantDataWithoutEnumData      { .id = "T3085", .message = "variant data on an enum whose header declares none" },
     UnionLosesVariantIdentity       { .id = "T3086", .message = "a union holding an enum or a distinct cannot dispatch through a trait" },
-    IsTestOnSharedInstance          { .id = "T3087", .message = "an `is` test cannot tell apart the instances of a generic that share one body" },
+    IsTestOnSharedInstance          { .id = "T3087", .message = "the instances of a generic that share one body cannot be told apart" },
     NotIterable                     { .id = "T3088", .message = "value is not iterable" },
     AmbiguousLiteralInUnion         { .id = "T3089", .message = "literal could take several members of the union" },
     ArrayImplPartlyGeneric          { .id = "T3090", .message = "an impl on an array has a partly generic element" },
@@ -140,6 +140,7 @@ export TypecheckCode :: enum(CodeInfo) {
     GenericRecursionGrows           { .id = "T3104", .message = "a generic recursion cannot grow its type argument" },
     TypeArgumentCountMismatch       { .id = "T3105", .message = "wrong number of type arguments" },
     ReturnInDefer                   { .id = "T3106", .message = "`return` is not allowed in a `defer` body" },
+    GenericMemberAtRunTime          { .id = "T3107", .message = "a generic member cannot be called where its impl is picked at run time" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

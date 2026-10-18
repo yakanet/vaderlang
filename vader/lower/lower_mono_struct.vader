@@ -476,6 +476,9 @@ materialize_impl_for_instance :: fn(
     impl_key_prefix :: impl_decl.span.hash()
     impl_trait :: impl_entry.trait_key
     for member in impl_decl.members {
+        // A member with type parameters of its own is lowered per call
+        // (`member_instance`).
+        if member.type_params.len() > 0 { continue }
         // Erasure dedupe : every concrete-args instance of the same
         // (impl_decl, member) collapses to one emission. The first
         // instance wins ; the call sites land on the survivor via the

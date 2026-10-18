@@ -1029,15 +1029,25 @@ refuses_shared_argument :: fn(variant: StructType, span: Span, diags: Diagnostic
 }
 
 // Mark the fn whose body tests `tested`, a type parameter, as observing it ; T3087
-// inside an impl member.
+// inside an impl member, for a parameter of the impl. A member's own parameter is
+// bound at each call, which runs an instance of its own.
 observe_type_param_test :: fn(tested: Type, span: Span, typed: TypedProgram, diags: Diagnostic[]) -> void {
     if typed.enclosing_impl != 0 {
+        if tested is TypeParamType && tested.symbol.id !in typed.enclosing_impl_params {
+            return
+        }
         diags.push(typecheck_error(
             .IsTestOnSharedInstance, span,
             "`${display_type(tested)}` names a type parameter, and an impl member keeps "
                 + "no body per instance ; dispatch through a trait instead"))
         return
     }
+    observe_type_params(typed)
+}
+
+// Keep the instances of the fn whose body is being checked concrete, as one that
+// observes its type parameters, and those of the fns handing it theirs.
+observe_type_params :: fn(typed: TypedProgram) -> void {
     ctx :: typed.current_fn_ctx ?? return
     if ctx.fn_id != 0 {
         typed.fn_observes_type_params[ctx.fn_id] = true

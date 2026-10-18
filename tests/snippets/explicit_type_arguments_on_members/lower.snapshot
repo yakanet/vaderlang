@@ -9,9 +9,9 @@
       std.io.println<string>(snippet.widen<i64, string>(i64(5), "a"))
       std.io.println<string>(snippet.widen<u8, bool>(u8(5), true))
       std.io.println<i64>(i64(9000000000))
-      b: Bag<f64> = snippet$Bag$Make$make__f64(i64(1))
+      b: Bag<f64> = snippet$Bag$Make$make__f64__i64(i64(1))
       @array.push(b.items, 2.5)
-      inferred: Bag<f64> = snippet$Bag$Make$make__f64(i64(1))
+      inferred: Bag<f64> = snippet$Bag$Make$make__f64__i64(i64(1))
       @array.push(inferred.items, 1.5)
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(usize(41))
@@ -26,10 +26,10 @@
       return 0
   }
   snippet.Bag<f64> :: struct { items: f64[] }  // snippet$Bag__f64
-  snippet$Bag$Make$make__f64 :: fn(v: U) -> Bag<f64> {
+  snippet.Box<i64> :: struct { v: i64 }  // snippet$Box__i64
+  snippet$Bag$Make$make__f64__i64 :: fn(v: i64) -> Bag<f64> {
       Bag<f64> { .items = [] :f64[] }
   }
-  snippet.Box<i64> :: struct { v: i64 }  // snippet$Box__i64
   snippet.widen<i64, string> :: fn(x: i64, y: string) -> string {  // snippet$widen__i64__string
       "i64 string"
   }

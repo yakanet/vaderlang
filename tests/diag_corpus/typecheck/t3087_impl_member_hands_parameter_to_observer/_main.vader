@@ -1,0 +1,27 @@
+// A generic impl's member hands the impl's type parameter to a function that
+// tests it : the impl's instances share the member's body, which keeps no
+// instance of its own to test it in.
+
+module "snippet"
+
+import "std/io"
+
+holds :: fn<T>(x: i32 | string) -> bool = x is T
+
+Holder :: struct<T> {
+    item: T
+}
+
+Show :: trait {
+    show :: fn(self) -> string
+}
+
+Holder<T> implements<T> Show {
+    show :: fn(self) -> string = "${holds<T>(1)}"
+}
+
+main :: fn() -> i32 {
+    h :: Holder<i32> { .item = 1 }
+    println(h.show())
+    return 0
+}
