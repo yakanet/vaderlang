@@ -142,6 +142,7 @@ gb_retarget_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr = match e {
     }
     is LoweredIntrinsicCall -> LoweredIntrinsicCall { ...e, .args = gb_retarget_exprs(gb, e.args) }
     is LoweredFieldAccess -> LoweredFieldAccess { ...e, .target = gb_retarget_expr(gb, e.target) }
+    is LoweredUnionField -> LoweredUnionField { ...e, .target = gb_retarget_expr(gb, e.target) }
     is LoweredIndex -> LoweredIndex {
         ...e,
         .target = gb_retarget_expr(gb, e.target),

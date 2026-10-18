@@ -159,6 +159,7 @@ bare_expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string
     is LoweredCall          -> call_text(names, e, indent)
     is LoweredVirtualCall   -> virtual_call_text(names, e, indent)
     is LoweredFieldAccess   -> "${operand_text(names, e.target, indent)}.${e.field}"
+    is LoweredUnionField    -> "${operand_text(names, e.target, indent)}.${e.field}"
     is LoweredIndex         -> index_text(names, e, indent)
     is LoweredUnary         -> "${unary_symbol(e.op)}${operand_text(names, e.operand, indent)}"
     is LoweredBinary        -> binary_text(names, e, indent)

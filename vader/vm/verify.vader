@@ -214,7 +214,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
         is bc.CheckedNeg   -> if bc.is_integer_val(op.kind) { effect(1, 1) } else { null }
         is bc.I32Const | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const
          | bc.I64Const -> effect(0, 1)
-        is bc.StructGet | bc.ArrayLen | bc.RefCast | bc.Retag | bc.Convert
+        is bc.StructGet | bc.UnionFieldGet | bc.ArrayLen | bc.RefCast | bc.Retag | bc.Convert
          | bc.SizeOfType | bc.ArrayRemoveLast | bc.BufferNew | bc.I32Neg | bc.I32BitNot
          | bc.I64Neg | bc.I64BitNot | bc.F64Neg | bc.BoolNot | bc.F64ToBits | bc.BitsToF64
          | bc.F32ToBits | bc.BitsToF32 -> effect(1, 1)
@@ -231,7 +231,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
          | bc.RefEq | bc.RefNe | bc.ArrayGet | bc.ArrayRepeat | bc.LoadU8 | bc.LoadI32
          | bc.LoadI64 | bc.LoadF64 | bc.LoadSlotI32 | bc.LoadSlotI64 | bc.LoadSlotF64
          | bc.BufferToString -> effect(2, 1)
-        is bc.StructSet | bc.ArrayPush | bc.ArrayPushAll -> effect(2, 0)
+        is bc.StructSet | bc.UnionFieldSet | bc.ArrayPush | bc.ArrayPushAll -> effect(2, 0)
         is bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64 | bc.StoreSlotI32
          | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString -> effect(3, 0)
         is bc.ArraySlice -> effect(3, 1)

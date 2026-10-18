@@ -126,9 +126,12 @@ const C_PARITY = new Set<string>([
   // A small integer or an enum entering a union is tagged with its own type
   // natively (a constant reaches the C emitter as an `i32`).
   "union_small_int_and_enum",
-  // A field read straight off a union casts to the first variant: the reads of
-  // a `Dog` or a `Tag` are what a wrong native offset would garble.
+  // A field read straight off a union takes its offset from the first variant:
+  // the reads of a `Dog` or a `Tag` are what a wrong native offset would garble.
   "union_common_field",
+  // The same read around a write through a variant, and a write through the union:
+  // an optimised C build is where a read that ignores the write would show.
+  "union_field_read_after_write",
   "narrow_imported_map",
   // §9 C-emit audit (the walker now emits C for the whole compiler) :
   //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`

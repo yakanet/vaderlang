@@ -16,6 +16,7 @@ type 13 primitive i64
 type 14 array 10
 type 15 primitive void
 type 16 primitive isize
+type 17 union 5,6
 string 0 "-"
 string 1 " "
 string 2 "c"
@@ -58,8 +59,7 @@ fn 1 snippet$first_two (any,bool) -> i32
   local.get 1   ; arg 1
   if $L2 void
     local.get 0   ; arg 0
-    ref.cast 5   ; snippet$A
-    struct.get 5 0   ; snippet$A.n
+    union.get 17 0   ; union.n
     ref.cast 8   ; i32
     return
   end $L2

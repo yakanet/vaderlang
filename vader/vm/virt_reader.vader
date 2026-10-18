@@ -336,6 +336,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "struct.new"       { return parse_struct_new_after(cleaned, "struct.new ") }
     if head == "struct.get"       { return parse_struct_get(cleaned) }
     if head == "local.field"      { return parse_local_field(cleaned) }
+    if head == "union.get"        { return parse_union_field_get(cleaned) }
+    if head == "union.set"        { return parse_union_field_set(cleaned) }
     if head == "return.lit"       { return parse_return_lit(cleaned) }
     if head == "struct.set_stack" { return parse_struct_set_after(cleaned, "struct.set_stack ") }
     if head == "struct.set"       { return parse_struct_set_after(cleaned, "struct.set ") }
@@ -803,6 +805,18 @@ parse_struct_get :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "struct.get ") ?? return null
     [tid, fi] :: pair
     return bc.StructGet { .type_id = tid, .field_index = fi }
+}
+
+parse_union_field_get :: fn(line: string) -> bc.Op | null {
+    pair :: parse_int_pair_after_prefix(line, "union.get ") ?? return null
+    [tid, fi] :: pair
+    return bc.UnionFieldGet { .type_id = tid, .field_index = fi }
+}
+
+parse_union_field_set :: fn(line: string) -> bc.Op | null {
+    pair :: parse_int_pair_after_prefix(line, "union.set ") ?? return null
+    [tid, fi] :: pair
+    return bc.UnionFieldSet { .type_id = tid, .field_index = fi }
 }
 
 /// Parse `local.field SLOT TYPE FIELD` — three whitespace-separated

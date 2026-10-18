@@ -73,7 +73,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[15] = {
+const vader_type_info_t vader_type_info_table[16] = {
     [1] = { .slot_size = 16 },
     [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Point_t),
@@ -110,8 +110,9 @@ const vader_type_info_t vader_type_info_table[15] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [14] = { .slot_size = 8 },
+    [15] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 15;
+const size_t vader_type_info_count = 16;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -130,12 +131,10 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 }
 
 static vader_string_t snippet_label_of(vader_box_t l0) {
-    void* t0;
-    vader_string_t t1;
+    vader_string_t t0;
 #line 17 "tests/snippets/union_common_field/_main.vader"
-    t0 = l0.payload.obj;
-    t1 = ((vader_struct_snippet_Point_t*) t0)->f_label;
-    return t1;
+    t0 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Point_t, f_label, l0.payload.obj);
+    return t0;
 }
 
 static int32_t snippet_main(void) {
@@ -165,16 +164,14 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a1_obj;
     l0 = vader_ref_box(t0);
 #line 21 "tests/snippets/union_common_field/_main.vader"
-    t0 = l0.payload.obj;
-    l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
+    l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
     t1 = concat_2(2u, l1);
     std_io_println__string(t1);
 #line 22 "tests/snippets/union_common_field/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 27);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l2, l3, 3u);
-    t0 = l0.payload.obj;
-    t2 = ((vader_struct_snippet_Cat_t*) t0)->f_age;
+    t2 = VADER_UNION_FIELD(int32_t, vader_struct_snippet_Cat_t, f_age, l0.payload.obj);
     l4 = ((int64_t) (int32_t) t2);
     l3 = std_core_write_int(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);
@@ -187,16 +184,14 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a3_obj;
     l0 = vader_ref_box(t0);
 #line 25 "tests/snippets/union_common_field/_main.vader"
-    t0 = l0.payload.obj;
-    l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
+    l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
     t1 = concat_2(2u, l1);
     std_io_println__string(t1);
 #line 26 "tests/snippets/union_common_field/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 27);
     l3 = (size_t) 0;
     l3 = std_core_write_string_at(l2, l3, 3u);
-    t0 = l0.payload.obj;
-    t2 = ((vader_struct_snippet_Cat_t*) t0)->f_age;
+    t2 = VADER_UNION_FIELD(int32_t, vader_struct_snippet_Cat_t, f_age, l0.payload.obj);
     l4 = ((int64_t) (int32_t) t2);
     l3 = std_core_write_int(l2, l3, l4);
     t1 = std_core_finish_buffer(l2, l3);

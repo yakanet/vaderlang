@@ -665,6 +665,20 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
         })
         return
     }
+    if target is LoweredUnionField {
+        tgt :: build_expr(fn_ctx, target.target)
+        value :: build_expr(fn_ctx, s.value)
+        if tgt == null || value == null {
+            return
+        }
+        emit(fn_ctx, InstrUnionFieldSet {
+            .span = s.span,
+            .target = tgt,
+            .field = target.field,
+            .value = value,
+        })
+        return
+    }
     if target is LoweredIndex {
         tgt :: build_expr(fn_ctx, target.target)
         idx :: build_expr(fn_ctx, target.index)
@@ -804,6 +818,7 @@ build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
         is LoweredCall          -> { return build_call(fn_ctx, e) }
         is LoweredVirtualCall   -> { return build_virtual_call(fn_ctx, e) }
         is LoweredFieldAccess   -> { return build_field_access(fn_ctx, e) }
+        is LoweredUnionField    -> { return build_union_field(fn_ctx, e) }
         is LoweredIndex         -> { return build_index(fn_ctx, e) }
         is LoweredUnary         -> { return build_unary(fn_ctx, e) }
         is LoweredBinary        -> { return build_binary(fn_ctx, e) }
@@ -1009,6 +1024,19 @@ build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null
     dst :: fresh_tmp(fn_ctx, "field", e.type)
     emit(fn_ctx, InstrFieldGet {
         .dst = dst, .target = target, .field = e.field, .type = e.type, .span = e.span,
+    })
+    return dst
+}
+
+build_union_field :: fn(fn_ctx: FnCtx, e: LoweredUnionField) -> LocalId | null {
+    target :: build_expr(fn_ctx, e.target) ?? return null
+    dst :: fresh_tmp(fn_ctx, "field", e.type)
+    emit(fn_ctx, InstrUnionFieldGet {
+        .span = e.span,
+        .dst = dst,
+        .target = target,
+        .type = e.type,
+        .field = e.field,
     })
     return dst
 }

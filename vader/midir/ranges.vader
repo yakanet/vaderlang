@@ -193,7 +193,8 @@ transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
         is InstrArrayLen -> { transfer_length(ctx, s, ins) }
         // A value the analysis does not follow.
         is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
-            | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrArrayGet
+            | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrUnionFieldGet
+            | InstrUnionFieldSet | InstrArrayGet
             | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStructNew
             | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst | InstrCellNew
             | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush | InstrGlobalGet

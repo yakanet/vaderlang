@@ -120,13 +120,15 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
             return ins.callee }
         is InstrVirtualCall -> { if ins.args.len() > 0 { return ins.args[0] }
             return ins.receiver }
-        is InstrFieldGet    -> { return ins.target }
-        is InstrFieldSet    -> { return ins.target }
-        is InstrArrayGet    -> { return ins.target }
-        is InstrArraySet    -> { return ins.target }
-        is InstrArrayLen    -> { return ins.target }
-        is InstrArrayPush   -> { return ins.target }
-        is InstrArraySlice  -> { return ins.target }
+        is InstrFieldGet      -> { return ins.target }
+        is InstrFieldSet      -> { return ins.target }
+        is InstrUnionFieldGet -> { return ins.target }
+        is InstrUnionFieldSet -> { return ins.target }
+        is InstrArrayGet      -> { return ins.target }
+        is InstrArraySet      -> { return ins.target }
+        is InstrArrayLen      -> { return ins.target }
+        is InstrArrayPush     -> { return ins.target }
+        is InstrArraySlice    -> { return ins.target }
         is InstrStructNew   -> { if ins.fields.len() > 0 { return ins.fields[0] }
             return null }
         is InstrArrayNew -> { if ins.elements.len() > 0 { return ins.elements[0] }

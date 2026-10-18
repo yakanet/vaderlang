@@ -499,7 +499,7 @@ struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> CStruct
     fields: CField[]: [CField { .type = "vader_obj_header_t", .name = "header" }]
     for f in s.fields {
         ftype :: ctx.module.types[usize(f.type_index)]
-        fields.push(CField { .type = c_type_for(ftype), .name = "f_${sanitise(f.name)}" })
+        fields.push(CField { .type = c_type_for(ftype), .name = field_c_name(f.name) })
     }
     return CStructDefinition { .name = ctx.struct_c_names[type_index], .fields = fields }
 }
@@ -1329,8 +1329,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
     for i in 0..<s.fields.len() {
         f :: s.fields[i]
         ftype :: ctx.module.types[usize(f.type_index)]
-        sanitised :: sanitise(f.name)
-        offset :: "offsetof(${cname}, f_${sanitised})"
+        offset :: "offsetof(${cname}, ${field_c_name(f.name)})"
         // T12: the offset bucket MUST match the field's C type so the GC scans it
         // with the right reader — a raw `void*` (`.Ref`) via `ref_offsets` →
         // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` →

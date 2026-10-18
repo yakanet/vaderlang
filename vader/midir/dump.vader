@@ -85,13 +85,19 @@ dump_instr :: fn(ins: Instruction) -> string {
             extra :: if ins.args.len() > 0 { ", ${dump_args(ins.args)}" } else { "" }
             return "${dump_dst(ins.dst)}vcall ${ins.trait_name}.${ins.method}(recv=%${ins.receiver}${extra}) :${display_type(ins.type)}"
         }
-        is InstrFieldGet    -> { return "%${ins.dst} = field_get %${ins.target}.${ins.field} :${display_type(ins.type)}" }
-        is InstrFieldSet    -> { return "field_set %${ins.target}.${ins.field} = %${ins.value}" }
-        is InstrArrayGet    -> { return "%${ins.dst} = array_get %${ins.target}[%${ins.index}] :${display_type(ins.type)}" }
-        is InstrArraySet    -> { return "array_set %${ins.target}[%${ins.index}] = %${ins.value}" }
-        is InstrArrayLen    -> { return "%${ins.dst} = array_len %${ins.target}" }
-        is InstrArrayPush   -> { return "array_push %${ins.target}, %${ins.value}" }
-        is InstrArraySlice  -> { return "%${ins.dst} = array_slice %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
+        is InstrFieldGet      -> { return "%${ins.dst} = field_get %${ins.target}.${ins.field} :${display_type(ins.type)}" }
+        is InstrFieldSet      -> { return "field_set %${ins.target}.${ins.field} = %${ins.value}" }
+        is InstrUnionFieldGet -> {
+            return "%${ins.dst} = union_field_get %${ins.target}.${ins.field} :${display_type(ins.type)}"
+        }
+        is InstrUnionFieldSet -> {
+            return "union_field_set %${ins.target}.${ins.field} = %${ins.value}"
+        }
+        is InstrArrayGet      -> { return "%${ins.dst} = array_get %${ins.target}[%${ins.index}] :${display_type(ins.type)}" }
+        is InstrArraySet      -> { return "array_set %${ins.target}[%${ins.index}] = %${ins.value}" }
+        is InstrArrayLen      -> { return "%${ins.dst} = array_len %${ins.target}" }
+        is InstrArrayPush     -> { return "array_push %${ins.target}, %${ins.value}" }
+        is InstrArraySlice    -> { return "%${ins.dst} = array_slice %${ins.target}[%${ins.lo}..%${ins.hi}] :${display_type(ins.type)}" }
         is InstrStructNew   -> {
             tag :: if ins.stack { "[stack]" } else { "" }
             args :: dump_args(ins.fields)

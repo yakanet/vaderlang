@@ -393,3 +393,9 @@ export val_type_of_field :: fn(types: BcType[], type_index: i32) -> ValType =
 export struct_c_name :: fn(name: string) -> string {
     return "vader_struct_${sanitise(name)}_t"
 }
+
+/// C member name of a struct field, `f_<sanitised>` : what a struct definition
+/// declares and every access names, an `offsetof` included.
+///
+/// @param name  the source-level field name.
+export field_c_name :: fn(name: string) = "f_${sanitise(name)}"

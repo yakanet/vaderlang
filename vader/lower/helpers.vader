@@ -519,6 +519,7 @@ is_stable_operand :: fn(value: LoweredExpr) -> bool = value is LoweredIdent || i
 // @partial: every other expression may do work.
 is_effect_free_read :: fn(value: LoweredExpr) -> bool = @partial match value {
     is LoweredFieldAccess -> is_effect_free_read(value.target)
+    is LoweredUnionField  -> is_effect_free_read(value.target)
     is LoweredCellGet     -> is_effect_free_read(value.target)
     is LoweredArrayLen    -> is_effect_free_read(value.target)
     _                     -> is_stable_operand(value)

@@ -139,6 +139,7 @@ expr_may_disturb :: fn(ctx: PurityCtx, e: LoweredExpr) -> bool = match e {
     is LoweredTypeConst | LoweredGlobalGet -> false
     // Composites that allocate nothing themselves: their parts decide.
     is LoweredFieldAccess -> expr_may_disturb(ctx, e.target)
+    is LoweredUnionField  -> expr_may_disturb(ctx, e.target)
     is LoweredIndex       -> expr_may_disturb(ctx, e.target) || expr_may_disturb(ctx, e.index)
     is LoweredUnary       -> expr_may_disturb(ctx, e.operand)
     is LoweredBinary      -> expr_may_disturb(ctx, e.left) || expr_may_disturb(ctx, e.right)

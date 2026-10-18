@@ -1,7 +1,7 @@
 // Common-field access on a union of structs. When the variants share a common
 // initial sequence up to the field (same position, same type for it and for
-// every field before it), `u.field` reads it with no outer `match`: one cast to
-// the first variant and a plain field read, whichever variant the value holds.
+// every field before it), `u.field` reads it with no outer `match`, at the offset
+// the first variant gives it, whichever variant the value holds.
 // The names of the earlier fields may differ, as in `Point` and `Tag`.
 
 module "snippet"

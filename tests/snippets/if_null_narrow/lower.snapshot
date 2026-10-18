@@ -5,7 +5,7 @@
   snippet.Dog :: struct { name: string, age: i32 }  // snippet$Dog
   snippet.greet :: fn(a: Cat | Dog | null) -> string {  // snippet$greet
       if !(a is null) {
-          return concat_2("hello ", Cat((Cat | Dog)(a)).name)
+          return concat_2("hello ", (Cat | Dog)(a).name)
       }
       return "no animal"
   }
@@ -13,18 +13,18 @@
       if a is null {
           return "no animal"
       }
-      return concat_2("hi ", Cat((Cat | Dog)(a)).name)
+      return concat_2("hi ", (Cat | Dog)(a).name)
   }
   snippet.greet_v3 :: fn(a: Cat | Dog | null) -> string {  // snippet$greet_v3
       if !(a is null) {
-          return concat_2("yo ", Cat((Cat | Dog)(a)).name)
+          return concat_2("yo ", (Cat | Dog)(a).name)
       }
       return "nada"
   }
   snippet.greet_v4 :: fn(a: Cat | Dog | null) -> string {  // snippet$greet_v4
       out: string = ""
       if !(a is null) {
-          out2: string = concat_2("ok ", Cat((Cat | Dog)(a)).name)
+          out2: string = concat_2("ok ", (Cat | Dog)(a).name)
           return out2
       } else {
           return "missing"
@@ -37,7 +37,7 @@
       if b is null {
           return "second missing"
       }
-      return concat_3(Cat((Cat | Dog)(a)).name, " & ", Cat((Cat | Dog)(b)).name)
+      return concat_3((Cat | Dog)(a).name, " & ", (Cat | Dog)(b).name)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       cat: Cat | Dog | null = Cat { .name = "Whiskers", .age = 3 }

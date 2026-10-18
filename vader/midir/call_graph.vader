@@ -130,6 +130,7 @@ instruction_callees :: fn(index: CalleeIndex, ins: Instruction) -> i32[] = match
     is InstrCallIndirect | InstrDeferPopExec -> [index.indirect]
     is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> []
     is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> []
+    is InstrUnionFieldGet | InstrUnionFieldSet -> []
     is InstrArraySlice | InstrStructNew | InstrArrayNew | InstrDataConst -> []
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> []
     is InstrCellSet | InstrMakeClosure | InstrIntrinsic | InstrMove | InstrDeferPush -> []
@@ -176,6 +177,7 @@ note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) ->
         }
         is InstrConst | InstrBinOp | InstrUnOp | InstrCall | InstrCallIndirect -> {}
         is InstrVirtualCall | InstrFieldGet | InstrFieldSet | InstrArrayGet -> {}
+        is InstrUnionFieldGet | InstrUnionFieldSet -> {}
         is InstrArraySet | InstrArrayLen | InstrArrayPush | InstrArraySlice -> {}
         is InstrStructNew | InstrArrayNew | InstrDataConst -> {}
         is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> {}

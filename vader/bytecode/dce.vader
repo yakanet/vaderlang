@@ -465,24 +465,26 @@ export remap_type_indices :: fn(remap: i32[], indices: i32[]) -> i32[] =
 ///
 /// @param op  a bytecode op.
 export type_index_of :: fn(op: Op) -> i32 = match op {
-    is StructNew    -> op.type_id
-    is StructGet    -> op.type_id
-    is StructSet    -> op.type_id
-    is ArrayNew     -> op.type_id
-    is ArrayGet     -> op.type_id
-    is ArraySet     -> op.type_id
-    is ArrayPush    -> op.type_id
-    is TypeCheck    -> op.type_id
-    is TypeConst    -> op.type_id
-    is CallIndirect -> op.type_id
-    is MakeClosure  -> op.env_type_id
-    is FnRef        -> op.type_id
-    is LocalField   -> op.type_id
-    is ArraySlice   -> op.type_id
-    is RefCast      -> op.type_id
-    is Retag        -> op.type_id
-    is DataConst    -> op.type_id
-    is TypelessOp   -> -1
+    is StructNew     -> op.type_id
+    is StructGet     -> op.type_id
+    is StructSet     -> op.type_id
+    is UnionFieldGet -> op.type_id
+    is UnionFieldSet -> op.type_id
+    is ArrayNew      -> op.type_id
+    is ArrayGet      -> op.type_id
+    is ArraySet      -> op.type_id
+    is ArrayPush     -> op.type_id
+    is TypeCheck     -> op.type_id
+    is TypeConst     -> op.type_id
+    is CallIndirect  -> op.type_id
+    is MakeClosure   -> op.env_type_id
+    is FnRef         -> op.type_id
+    is LocalField    -> op.type_id
+    is ArraySlice    -> op.type_id
+    is RefCast       -> op.type_id
+    is Retag         -> op.type_id
+    is DataConst     -> op.type_id
+    is TypelessOp    -> -1
 }
 
 // Every `Op` that carries no type-table index — what `type_index_of` and
@@ -534,22 +536,24 @@ visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void 
 /// @param op     a bytecode op.
 /// @param remap  old type index → new one (`-1` for a pruned slot).
 export remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op = match op {
-    is StructNew    -> StructNew    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is StructGet    -> StructGet    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is StructSet    -> StructSet    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is ArrayNew     -> ArrayNew     { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is ArrayGet     -> ArrayGet     { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is ArraySet     -> ArraySet     { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is ArrayPush    -> ArrayPush    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is TypeCheck    -> TypeCheck    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is TypeConst    -> TypeConst    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is CallIndirect -> CallIndirect { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is MakeClosure  -> MakeClosure  { ...op, .env_type_id = remap_idx(remap, op.env_type_id) }
-    is FnRef        -> FnRef        { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is LocalField   -> LocalField   { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is ArraySlice   -> ArraySlice   { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is RefCast      -> RefCast      { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is Retag        -> Retag        { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is DataConst    -> DataConst    { ...op, .type_id = remap_idx(remap, op.type_id) }
-    is TypelessOp   -> op
+    is StructNew     -> StructNew { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is StructGet     -> StructGet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is StructSet     -> StructSet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is UnionFieldGet -> UnionFieldGet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is UnionFieldSet -> UnionFieldSet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayNew      -> ArrayNew { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayGet      -> ArrayGet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArraySet      -> ArraySet { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArrayPush     -> ArrayPush { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypeCheck     -> TypeCheck { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypeConst     -> TypeConst { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is CallIndirect  -> CallIndirect { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is MakeClosure   -> MakeClosure { ...op, .env_type_id = remap_idx(remap, op.env_type_id) }
+    is FnRef         -> FnRef { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is LocalField    -> LocalField { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is ArraySlice    -> ArraySlice { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is RefCast       -> RefCast { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is Retag         -> Retag { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is DataConst     -> DataConst { ...op, .type_id = remap_idx(remap, op.type_id) }
+    is TypelessOp    -> op
 }

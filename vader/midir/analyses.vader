@@ -47,7 +47,8 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
 /// which runs at the `InstrDeferPopExec` reported here.
 export instruction_has_side_effect :: fn(ins: Instruction) -> bool =
     instruction_runs_code(ins) ||
-        ins is InstrFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet | InstrGlobalSet
+        ins is InstrFieldSet | InstrUnionFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet
+            | InstrGlobalSet
 
 /// True when executing the instruction runs code the CFG does not show: a
 /// call of any kind, an intrinsic, or the deferred blocks a scope exit pops.
@@ -57,6 +58,7 @@ export instruction_runs_code :: fn(ins: Instruction) -> bool = match ins {
     is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec -> true
     is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet -> false
     is InstrFieldSet | InstrArrayGet | InstrArraySet | InstrArrayLen | InstrArrayPush -> false
+    is InstrUnionFieldGet | InstrUnionFieldSet -> false
     is InstrArraySlice | InstrStructNew | InstrArrayNew | InstrDataConst -> false
     is InstrTypeCheck | InstrTypeConst | InstrCast | InstrCellNew | InstrCellGet -> false
     is InstrCellSet | InstrMakeClosure | InstrMove | InstrDeferPush -> false
@@ -86,8 +88,8 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
             visit(ins.receiver)
             for a in ins.args { visit(a) }
         }
-        is InstrFieldGet -> { visit(ins.target) }
-        is InstrFieldSet -> {
+        is InstrFieldGet | InstrUnionFieldGet -> { visit(ins.target) }
+        is InstrFieldSet | InstrUnionFieldSet -> {
             visit(ins.target)
             visit(ins.value)
         }
@@ -445,6 +447,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrBinOp             -> { return ins.dst }
         is InstrUnOp              -> { return ins.dst }
         is InstrFieldGet          -> { return ins.dst }
+        is InstrUnionFieldGet     -> { return ins.dst }
         is InstrArrayGet          -> { return ins.dst }
         is InstrArrayLen          -> { return ins.dst }
         is InstrArraySlice        -> { return ins.dst }
@@ -465,6 +468,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrVirtualCall       -> { return ins.dst }
         is InstrIntrinsic         -> { return ins.dst }
         is InstrFieldSet          -> { return null }
+        is InstrUnionFieldSet     -> { return null }
         is InstrArraySet          -> { return null }
         is InstrArrayPush         -> { return null }
         is InstrCellSet           -> { return null }

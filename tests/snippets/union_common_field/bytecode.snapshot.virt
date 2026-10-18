@@ -14,6 +14,7 @@ type 11 primitive i64
 type 12 array 8
 type 13 primitive void
 type 14 primitive isize
+type 15 union 6,7
 string 0 "Whiskers"
 string 1 "name = "
 string 2 "age  = "
@@ -30,28 +31,26 @@ export main 1
 
 fn 0 snippet$label_of (any) -> string
   local.get 0   ; arg 0
-  ref.cast 2   ; snippet$Point
-  struct.get 2 1   ; snippet$Point.label
+  union.get 1 1   ; union.label
   ref.cast 4   ; string
   return
 end
 
 fn 1 snippet$main () -> i32
   local a any
-  local $field_6 string
+  local $field_5 string
   local __buf_0 ref
   local __off_1 usize
-  local $cast_17 i64
+  local $cast_15 i64
   string.const 0   ; "Whiskers"
   i32.const 3
   struct.new_stack 6   ; snippet$Cat
   local.tee 0   ; a
-  ref.cast 6   ; snippet$Cat
-  struct.get 6 0   ; snippet$Cat.name
+  union.get 15 0   ; union.name
   ref.cast 4   ; string
-  local.set 1   ; $field_6
+  local.set 1   ; $field_5
   string.const 1   ; "name = "
-  local.get 1   ; $field_6
+  local.get 1   ; $field_5
   call 2   ; concat_2
   call 9   ; std_io$println__string
   i64.const 27
@@ -65,14 +64,13 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; a
-  ref.cast 6   ; snippet$Cat
-  struct.get 6 1   ; snippet$Cat.age
+  union.get 15 1   ; union.age
   ref.cast 5   ; i32
   i32.to_i64
-  local.set 4   ; $cast_17
+  local.set 4   ; $cast_15
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_17
+  local.get 4   ; $cast_15
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -83,12 +81,11 @@ fn 1 snippet$main () -> i32
   i32.const 7
   struct.new_stack 7   ; snippet$Dog
   local.tee 0   ; a
-  ref.cast 6   ; snippet$Cat
-  struct.get 6 0   ; snippet$Cat.name
+  union.get 15 0   ; union.name
   ref.cast 4   ; string
-  local.set 1   ; $field_6
+  local.set 1   ; $field_5
   string.const 1   ; "name = "
-  local.get 1   ; $field_6
+  local.get 1   ; $field_5
   call 2   ; concat_2
   call 9   ; std_io$println__string
   i64.const 27
@@ -102,14 +99,13 @@ fn 1 snippet$main () -> i32
   call 5   ; std_core$write_string_at
   local.set 3   ; __off_1
   local.get 0   ; a
-  ref.cast 6   ; snippet$Cat
-  struct.get 6 1   ; snippet$Cat.age
+  union.get 15 1   ; union.age
   ref.cast 5   ; i32
   i32.to_i64
-  local.set 4   ; $cast_17
+  local.set 4   ; $cast_15
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_17
+  local.get 4   ; $cast_15
   call 6   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -120,18 +116,18 @@ fn 1 snippet$main () -> i32
   string.const 5   ; "origin"
   struct.new 2   ; snippet$Point
   call 0   ; snippet$label_of
-  local.set 1   ; $field_6
+  local.set 1   ; $field_5
   string.const 4   ; "label = "
-  local.get 1   ; $field_6
+  local.get 1   ; $field_5
   call 2   ; concat_2
   call 9   ; std_io$println__string
   i32.const 2
   string.const 6   ; "second"
   struct.new 3   ; snippet$Tag
   call 0   ; snippet$label_of
-  local.set 1   ; $field_6
+  local.set 1   ; $field_5
   string.const 4   ; "label = "
-  local.get 1   ; $field_6
+  local.get 1   ; $field_5
   call 2   ; concat_2
   call 9   ; std_io$println__string
   return.lit i32.const 0

@@ -83,11 +83,7 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // struct whose slots are named `_0`, `_1`, … — rewrite the
             // numeric field so the dump shows `._0`.
             field_name :: if expr.is_numeric { "_${expr.field}" } else { expr.field }
-            // Union-typed receiver with a common field : the typecheck accepts
-            // it only when every variant places `f` at one offset, so a cast to
-            // the first variant and a regular field access serve them all. The
-            // boxed values share `ref` ValType so the cast is free at the
-            // bytecode level.
+            // Union-typed receiver with a common field.
             target_type :: ctx.types.expr_type(expr.target)
             shortcut :: try_lower_common_union_field(ctx, expr, type, target_type, field_name)
             if shortcut != null { return shortcut }
@@ -526,23 +522,21 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 try_lower_common_union_field :: fn(
     ctx: FnLowerCtx, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
 ) -> LoweredExpr | null {
-    if target_type is UnionType {
-        if target_type.variants.len() == 0 { return null }
-        first_variant :: target_type.variants[0]
-        // Only a union the typecheck refused can hold a variant that is no struct.
-        for v in target_type.variants {
-            if !(v is StructType) { return null }
-        }
-        cast_target :: LoweredCast {
-            .span = expr.span, .type = first_variant,
-            .value = lower_expr(ctx, expr.target),
-        }
-        return LoweredFieldAccess {
-            .span = expr.span, .type = expr_type,
-            .target = cast_target, .field = field_name,
+    if target_type !is UnionType || target_type.variants.len() == 0 {
+        return null
+    }
+    // Only a union the typecheck refused can hold a variant that is no struct.
+    for v in target_type.variants {
+        if v !is StructType {
+            return null
         }
     }
-    return null
+    return LoweredUnionField {
+        .span = expr.span,
+        .type = expr_type,
+        .target = lower_expr(ctx, expr.target),
+        .field = field_name,
+    }
 }
 
 // Read a captured binding's value back out of its cell.

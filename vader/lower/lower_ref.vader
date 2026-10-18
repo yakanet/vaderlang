@@ -84,7 +84,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
             for_each_lowered_expr(e.receiver, visit)
             for a in e.args { for_each_lowered_expr(a, visit) }
         }
-        is LoweredFieldAccess -> { for_each_lowered_expr(e.target, visit) }
+        is LoweredFieldAccess | LoweredUnionField -> { for_each_lowered_expr(e.target, visit) }
         is LoweredIndex -> {
             for_each_lowered_expr(e.target, visit)
             for_each_lowered_expr(e.index, visit)
@@ -234,7 +234,7 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
             ref_expr(e.receiver, visit_fn, visit_virtual)
             for a in e.args { ref_expr(a, visit_fn, visit_virtual) }
         }
-        is LoweredFieldAccess -> ref_expr(e.target, visit_fn, visit_virtual)
+        is LoweredFieldAccess | LoweredUnionField -> ref_expr(e.target, visit_fn, visit_virtual)
         is LoweredIndex -> {
             ref_expr(e.target, visit_fn, visit_virtual)
             ref_expr(e.index, visit_fn, visit_virtual)
@@ -361,6 +361,7 @@ stmt_node_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
             for a in e.args { stmt_node_expr(a, visit) }
         }
         is LoweredFieldAccess -> stmt_node_expr(e.target, visit)
+        is LoweredUnionField  -> stmt_node_expr(e.target, visit)
         is LoweredIndex       -> {
             stmt_node_expr(e.target, visit)
             stmt_node_expr(e.index, visit)

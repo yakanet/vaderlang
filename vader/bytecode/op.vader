@@ -42,6 +42,8 @@ export Op :: Unreachable
     | StructGet
     | StructSet
     | LocalField
+    | UnionFieldGet
+    | UnionFieldSet
     | ArrayNew
     | ArrayPush
     | ArrayGet
@@ -297,6 +299,13 @@ export StructSet :: struct { type_id: i32, field_index: i32, stack: bool }
 /// Fused `local.get N ; struct.get T F`. Reads `slots[slot]`, expects
 /// a `StructVal`, pushes its `fields[field_index]`.
 export LocalField :: struct { slot: i32, type_id: i32, field_index: i32 }
+/// Pop a value of the union type `type_id`, push field `field_index` : a field
+/// every variant of the union places at the same slot. The value may be any
+/// variant, so no backend reads it as one of them.
+export UnionFieldGet :: struct { type_id: i32, field_index: i32 }
+/// Pop the new field value, then a value of the union type `type_id` ; write
+/// field `field_index`, which every variant places at the same slot.
+export UnionFieldSet :: struct { type_id: i32, field_index: i32 }
 
 /// Allocate an `ArrayVal` of type `type_id`. If `length > 0`, pops
 /// `length` initial elements from the value stack (in caller-push

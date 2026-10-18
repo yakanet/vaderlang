@@ -164,7 +164,7 @@ cf_len_mentions :: fn(target: LoweredExpr, symbol_id: i32, kinds: CfMentionKinds
 cf_expr_mentions :: fn(e: LoweredExpr, symbol_id: i32, kinds: CfMentionKinds) -> bool = match e {
     is LoweredIdent -> e.symbol.id == symbol_id
     is LoweredArrayLen -> cf_len_mentions(e.target, symbol_id, kinds)
-    is LoweredFieldAccess | LoweredCellGet ->
+    is LoweredFieldAccess | LoweredUnionField | LoweredCellGet ->
         cf_expr_mentions(e.target, symbol_id, kinds)
     is LoweredCast | LoweredTypeCheck | LoweredCellNew ->
         cf_expr_mentions(e.value, symbol_id, kinds)

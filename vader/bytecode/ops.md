@@ -193,6 +193,14 @@ Pop a struct of type `<type>`, push its field `<field>`.
 ### `struct.set <type> <field>` `struct.set_stack <type> <field>`
 Pop a value, then a struct of type `<type>`; store the value in field `<field>`.
 
+### `union.get <type> <field>`
+Pop a value of the union `<type>`, push its field `<field>`, which every variant (all
+structs) places at the same slot. The value may be any variant.
+
+### `union.set <type> <field>`
+Pop a value, then a value of the union `<type>`; store the value in field `<field>`,
+which every variant places at the same slot.
+
 ## Arrays
 
 ### `array.new <type> <length>`

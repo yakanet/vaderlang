@@ -1264,10 +1264,10 @@ LayoutClash :: struct {
 // offset, a `LayoutClash` when every variant declares it but not at one offset,
 // null when a variant is no struct or lacks the field.
 //
-// The access lowers to ONE cast to the first variant plus a field read
-// (`lower_expr.vader::try_lower_common_union_field`). The variants must therefore
-// agree on the field's position, on its type, and on the type of every field
-// before it, since those types are what place it. The names before it may differ.
+// The access reads the field at its offset in the first variant (`LoweredUnionField`).
+// The variants must therefore agree on the field's position, on its type, and on
+// the type of every field before it, since those types are what place it. The
+// names before it may differ.
 union_field_read :: fn(
     u: UnionType,
     name: string,

@@ -5,13 +5,13 @@
   snippet.Dog :: struct { name: string }  // snippet$Dog
   snippet.greet_wildcard :: fn(p: Cat | Dog | null) -> string {  // snippet$greet_wildcard
       return {
-          if p is null { "no pet" } else { concat_2("hello ", Cat((Cat | Dog)(p)).name) } :string
+          if p is null { "no pet" } else { concat_2("hello ", (Cat | Dog)(p).name) } :string
       } :string
   }
   snippet.greet_binding :: fn(p: Cat | Dog | null) -> string {  // snippet$greet_binding
       return {
           pet: Cat | Dog | null = p
-          if p is null { "no pet" } else { concat_2("howdy ", Cat((Cat | Dog)(pet)).name) } :string
+          if p is null { "no pet" } else { concat_2("howdy ", (Cat | Dog)(pet).name) } :string
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main

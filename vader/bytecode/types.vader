@@ -537,6 +537,25 @@ export struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
     return -1
 }
 
+/// The struct whose layout a field access on the union `union_index` reads : its
+/// first variant, which the typecheck makes agree with every other up to the field.
+///
+/// @param types        the module's type table.
+/// @param union_index  the slot of a `BcUnion`.
+/// @return             the first variant's slot, or `null` when `union_index` is no
+///                     union or its first variant no struct.
+export union_layout_struct :: fn(types: BcType[], union_index: i32) -> i32 | null {
+    u :: types[usize(union_index)]
+    if u !is BcUnion || u.variants.len() == 0 {
+        return null
+    }
+    first :: u.variants[0]
+    if types[usize(first)] !is BcStruct {
+        return null
+    }
+    return first
+}
+
 export BcStruct :: struct {
     name: string
     fields: BcField[]

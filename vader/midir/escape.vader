@@ -278,7 +278,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
             @partial match ins {
                 is InstrMove -> { record_alias(alias_of, alias_from, ins.dst, ins.src) }
                 is InstrCast -> { record_alias(alias_of, alias_from, ins.dst, ins.value) }
-                is InstrFieldSet -> { escaping.add(ins.value) }
+                is InstrFieldSet | InstrUnionFieldSet -> { escaping.add(ins.value) }
                 is InstrArraySet -> {
                     // @partial: only reference-carrying instrs have an escape effect; others have none.
 
@@ -325,7 +325,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 // stack-origin (the field may hold a heap ref), so no
                 // alias_from edge — that would let the barrierless
                 // forward-prop skip a needed write barrier.
-                is InstrFieldGet | InstrArrayGet -> {
+                is InstrFieldGet | InstrUnionFieldGet | InstrArrayGet -> {
                     if read_may_carry_ref(ins.type) { append_alias(alias_of, ins.dst, ins.target) }
                 }
                 _ -> {}

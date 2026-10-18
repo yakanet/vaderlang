@@ -10,7 +10,7 @@
   }
   snippet.first_two :: fn(y: A | B | C, p: bool) -> i32 {  // snippet$first_two
       if ((y is A) || (y is B)) && p {
-          return A((A | B)(y)).n
+          return (A | B)(y).n
       }
       return 0
   }

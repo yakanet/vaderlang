@@ -371,6 +371,7 @@ export LoweredExpr ::
     | LoweredCall
     | LoweredVirtualCall
     | LoweredFieldAccess
+    | LoweredUnionField
     | LoweredIndex
     | LoweredUnary
     | LoweredBinary
@@ -475,6 +476,19 @@ export LoweredVirtualCall :: struct {
 export LoweredFieldAccess :: struct {
     span:   Span
     type:   Type
+    target: LoweredExpr
+    field:  string
+}
+
+/// A field read or written straight off a union of structs, `u.f`.
+///
+/// The typecheck accepts it only when every variant places `f` at one offset. No
+/// backend may read it by casting the union to one of its variants: the value may
+/// hold another.
+export LoweredUnionField :: struct {
+    span:   Span
+    type:   Type
+    /// A value of the union type.
     target: LoweredExpr
     field:  string
 }

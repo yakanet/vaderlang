@@ -1,0 +1,41 @@
+// A field read straight off a union of structs, around a write to the same object
+// through one of its variants, must see the write ; so must a read through the
+// variant after a write through the union. Reading the union as one variant's
+// struct type would let a C compiler assume the two struct types cannot alias,
+// and keep a stale value in an optimised build.
+
+module "snippet"
+
+import "std/io"
+
+Cat :: struct { name: string, age: i32 }
+Dog :: struct { name: string, age: i32 }
+
+name_around_write :: fn(d: Dog, u: Cat | Dog) -> string {
+    before :: u.name
+    d.name = "after"
+    return "${before} ${u.name}"
+}
+
+age_around_write :: fn(d: Dog, u: Cat | Dog) -> i32 {
+    before :: u.age
+    d.age = 40
+    return before + u.age
+}
+
+birthday :: fn(u: Cat | Dog) -> void {
+    u.age += 1
+    u.name = "older"
+}
+
+main :: fn() -> i32 {
+    dog :: Dog { .name = "before", .age = 1 }
+    println(name_around_write(dog, dog))
+    println("${age_around_write(dog, dog)}")
+    birthday(dog)
+    println("${dog.name} ${dog.age}")
+    cat :: Cat { .name = "tom", .age = 3 }
+    birthday(cat)
+    println("${cat.name} ${cat.age}")
+    return 0
+}

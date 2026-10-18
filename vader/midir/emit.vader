@@ -1188,6 +1188,36 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         push_emit(ctx, StructSet { .type_id = type_index, .field_index = i32(field_slot), .stack = ins.barrierless }, ins.span)
         return
     }
+    if ins is InstrUnionFieldGet {
+        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        type_index :: intern_type(target_type, ctx.project)
+        layout :: union_layout_struct(ctx.project.types, type_index)
+            ?? panic(no_common_field(ctx, ins.field, target_type))
+        field_slot :: find_struct_field_index(ctx.project, layout, ins.field)
+            ?? panic(no_common_field(ctx, ins.field, target_type))
+        emit_first_get(ctx, pos, ins.target, ins.span)
+        get :: UnionFieldGet { .type_id = type_index, .field_index = i32(field_slot) }
+        push_emit(ctx, get, ins.span)
+        if needs_ref_cast(ins.type) {
+            push_emit(ctx, RefCast { .type_id = intern_type(ins.type, ctx.project) }, ins.span)
+        }
+        emit_result(ctx, pos, ins.dst, ins.span)
+        return
+    }
+    if ins is InstrUnionFieldSet {
+        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        type_index :: intern_type(target_type, ctx.project)
+        layout :: union_layout_struct(ctx.project.types, type_index)
+            ?? panic(no_common_field(ctx, ins.field, target_type))
+        field_slot :: find_struct_field_index(ctx.project, layout, ins.field)
+            ?? panic(no_common_field(ctx, ins.field, target_type))
+        emit_first_get(ctx, pos, ins.target, ins.span)
+        emit_get(ctx, ins.value, ins.span)
+        emit_retag_into(ctx, ins.value, union_field(ctx.project, layout, field_slot), ins.span)
+        set :: UnionFieldSet { .type_id = type_index, .field_index = i32(field_slot) }
+        push_emit(ctx, set, ins.span)
+        return
+    }
     if ins is InstrArrayGet {
         target_type :: ctx.fn_.locals[usize(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
@@ -1582,6 +1612,10 @@ find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: stri
     }
     return null
 }
+
+// What a union field access whose field no variant layout holds panics with.
+no_common_field :: fn(ctx: FnEmitCfg, field: string, union_type: Type) -> string =
+    "midir/emit: no common field `${field}` on `${display_type(union_type)}` in '${ctx.fn_.mangled}'"
 
 emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
     v :: c.value

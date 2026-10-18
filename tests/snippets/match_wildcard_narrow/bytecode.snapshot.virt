@@ -11,6 +11,7 @@ type 8 array 6
 type 9 struct std_core$Buffer {  }
 type 10 primitive void
 type 11 primitive isize
+type 12 union 2,3
 string 0 "no pet"
 string 1 "hello "
 string 2 "howdy "
@@ -26,26 +27,25 @@ impl 9 std_core$ByteAccess
 export main 2
 
 fn 0 snippet$greet_wildcard (any) -> string
-  local $field_7 string
+  local $field_6 string
   local.get 0   ; arg 0
   type_check 0   ; null
   if $L0 void
     return.lit string.const 0   ; "no pet"
   end $L0
   local.get 0   ; arg 0
-  ref.cast 2   ; snippet$Cat
-  struct.get 2 0   ; snippet$Cat.name
+  union.get 12 0   ; union.name
   ref.cast 4   ; string
-  local.set 1   ; $field_7
+  local.set 1   ; $field_6
   string.const 1   ; "hello "
-  local.get 1   ; $field_7
+  local.get 1   ; $field_6
   call 3   ; concat_2
   return
 end
 
 fn 1 snippet$greet_binding (any) -> string
   local pet any
-  local $field_8 string
+  local $field_7 string
   local.get 0   ; arg 0
   local.set 1   ; pet
   local.get 0   ; arg 0
@@ -54,12 +54,11 @@ fn 1 snippet$greet_binding (any) -> string
     return.lit string.const 0   ; "no pet"
   end $L0
   local.get 1   ; pet
-  ref.cast 2   ; snippet$Cat
-  struct.get 2 0   ; snippet$Cat.name
+  union.get 12 0   ; union.name
   ref.cast 4   ; string
-  local.set 2   ; $field_8
+  local.set 2   ; $field_7
   string.const 2   ; "howdy "
-  local.get 2   ; $field_8
+  local.get 2   ; $field_7
   call 3   ; concat_2
   return
 end

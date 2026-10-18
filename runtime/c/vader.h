@@ -1163,6 +1163,12 @@ extern uint8_t*   vader_card_table;
 extern uintptr_t  vader_old_base;
 extern uintptr_t  vader_old_end;
 
+/* A field of a union of structs, as an lvalue : every variant places it at its
+ * offset in `S`, the first variant, but the object may be another variant. The
+ * access goes through the field's type `T`, not through `S`, whose struct type
+ * the object may not have (strict aliasing). */
+#define VADER_UNION_FIELD(T, S, f, p) (*(T*)((char*)(p) + offsetof(S, f)))
+
 #define VADER_WRITE_BARRIER(obj) do {                                          \
     uintptr_t __vb = (uintptr_t)(obj);                                         \
     if (__vb >= vader_old_base && __vb < vader_old_end) {                      \

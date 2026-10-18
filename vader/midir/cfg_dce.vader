@@ -211,172 +211,210 @@ remap_locals :: fn(m: i32[], ls: LocalId[]) -> LocalId[] {
 
 // Each rebuild lists its fields instead of spreading `ins`: an operand added
 // without a default then breaks the build here rather than escaping the remap.
-remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
-    if ins is InstrConst {
-        return InstrConst { .span = ins.span, .dst = remap_local(m, ins.dst), .value = ins.value, .type = ins.type }
+remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
+    is InstrConst         -> InstrConst {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .value = ins.value,
+        .type = ins.type,
     }
-    if ins is InstrMove {
-        return InstrMove { .span = ins.span, .dst = remap_local(m, ins.dst), .src = remap_local(m, ins.src) }
+    is InstrMove          -> InstrMove {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .src = remap_local(m, ins.src),
     }
-    if ins is InstrBinOp {
-        return InstrBinOp {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .op = ins.op,
-            .lhs = remap_local(m, ins.lhs), .rhs = remap_local(m, ins.rhs), .type = ins.type,
-        }
+    is InstrBinOp         -> InstrBinOp {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .op = ins.op,
+        .lhs = remap_local(m, ins.lhs),
+        .rhs = remap_local(m, ins.rhs),
+        .type = ins.type,
     }
-    if ins is InstrUnOp {
-        return InstrUnOp {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .op = ins.op,
-            .operand = remap_local(m, ins.operand), .type = ins.type,
-        }
+    is InstrUnOp          -> InstrUnOp {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .op = ins.op,
+        .operand = remap_local(m, ins.operand),
+        .type = ins.type,
     }
-    if ins is InstrCall {
-        return InstrCall {
-            .span = ins.span,
-            .dsts = remap_locals(m, ins.dsts),
-            .callee = ins.callee,
-            .args = remap_locals(m, ins.args),
-            .type = ins.type,
-        }
+    is InstrCall          -> InstrCall {
+        .span = ins.span,
+        .dsts = remap_locals(m, ins.dsts),
+        .callee = ins.callee,
+        .args = remap_locals(m, ins.args),
+        .type = ins.type,
     }
-    if ins is InstrCallIndirect {
-        return InstrCallIndirect {
-            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
-            .callee = remap_local(m, ins.callee), .args = remap_locals(m, ins.args),
-            .fn_type = ins.fn_type, .type = ins.type,
-        }
+    is InstrCallIndirect  -> InstrCallIndirect {
+        .span = ins.span,
+        .dst = remap_local_opt(m, ins.dst),
+        .callee = remap_local(m, ins.callee),
+        .args = remap_locals(m, ins.args),
+        .fn_type = ins.fn_type,
+        .type = ins.type,
     }
-    if ins is InstrVirtualCall {
-        return InstrVirtualCall {
-            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
-            .trait_name = ins.trait_name, .method = ins.method,
-            .receiver = remap_local(m, ins.receiver), .args = remap_locals(m, ins.args),
-            .type = ins.type, .param_types = ins.param_types,
-        }
+    is InstrVirtualCall   -> InstrVirtualCall {
+        .span = ins.span,
+        .dst = remap_local_opt(m, ins.dst),
+        .trait_name = ins.trait_name,
+        .method = ins.method,
+        .receiver = remap_local(m, ins.receiver),
+        .args = remap_locals(m, ins.args),
+        .type = ins.type,
+        .param_types = ins.param_types,
     }
-    if ins is InstrFnRef {
-        return InstrFnRef { .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol, .type = ins.type }
+    is InstrFnRef         -> InstrFnRef {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .fn_symbol = ins.fn_symbol,
+        .type = ins.type,
     }
-    if ins is InstrFnAddr {
-        return InstrFnAddr { .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol, .type = ins.type }
+    is InstrFnAddr        -> InstrFnAddr {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .fn_symbol = ins.fn_symbol,
+        .type = ins.type,
     }
-    if ins is InstrFieldGet {
-        return InstrFieldGet {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .target = remap_local(m, ins.target), .field = ins.field, .type = ins.type,
-        }
+    is InstrFieldGet      -> InstrFieldGet {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .target = remap_local(m, ins.target),
+        .field = ins.field,
+        .type = ins.type,
     }
-    if ins is InstrFieldSet {
-        return InstrFieldSet {
-            .span = ins.span, .target = remap_local(m, ins.target),
-            .field = ins.field, .value = remap_local(m, ins.value), .barrierless = ins.barrierless,
-        }
+    is InstrFieldSet      -> InstrFieldSet {
+        .span = ins.span,
+        .target = remap_local(m, ins.target),
+        .field = ins.field,
+        .value = remap_local(m, ins.value),
+        .barrierless = ins.barrierless,
     }
-    if ins is InstrArrayGet {
-        return InstrArrayGet {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .target = remap_local(m, ins.target), .index = remap_local(m, ins.index),
-            .type = ins.type,
-            .bounds_safe = ins.bounds_safe,
-        }
+    is InstrUnionFieldGet -> InstrUnionFieldGet {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .target = remap_local(m, ins.target),
+        .type = ins.type,
+        .field = ins.field,
     }
-    if ins is InstrArraySet {
-        return InstrArraySet {
-            .span = ins.span, .target = remap_local(m, ins.target),
-            .index = remap_local(m, ins.index), .value = remap_local(m, ins.value),
-            .bounds_safe = ins.bounds_safe,
-        }
+    is InstrUnionFieldSet -> InstrUnionFieldSet {
+        .span = ins.span,
+        .target = remap_local(m, ins.target),
+        .field = ins.field,
+        .value = remap_local(m, ins.value),
     }
-    if ins is InstrArrayLen {
-        return InstrArrayLen { .span = ins.span, .dst = remap_local(m, ins.dst), .target = remap_local(m, ins.target) }
+    is InstrArrayGet      -> InstrArrayGet {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .target = remap_local(m, ins.target),
+        .index = remap_local(m, ins.index),
+        .type = ins.type,
+        .bounds_safe = ins.bounds_safe,
     }
-    if ins is InstrArrayPush {
-        return InstrArrayPush {
-            .span = ins.span, .target = remap_local(m, ins.target),
-            .value = remap_local(m, ins.value), .cached = ins.cached,
-        }
+    is InstrArraySet      -> InstrArraySet {
+        .span = ins.span,
+        .target = remap_local(m, ins.target),
+        .index = remap_local(m, ins.index),
+        .value = remap_local(m, ins.value),
+        .bounds_safe = ins.bounds_safe,
     }
-    if ins is InstrArraySlice {
-        return InstrArraySlice {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
-            .target = remap_local(m, ins.target), .lo = remap_local(m, ins.lo), .hi = remap_local(m, ins.hi),
-        }
+    is InstrArrayLen      -> InstrArrayLen {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .target = remap_local(m, ins.target),
     }
-    if ins is InstrStructNew {
-        return InstrStructNew {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
-            .fields = remap_locals(m, ins.fields), .stack = ins.stack,
-        }
+    is InstrArrayPush     -> InstrArrayPush {
+        .span = ins.span,
+        .target = remap_local(m, ins.target),
+        .value = remap_local(m, ins.value),
+        .cached = ins.cached,
     }
-    if ins is InstrArrayNew {
-        return InstrArrayNew {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .type = ins.type,
-            .length = ins.length, .elements = remap_locals(m, ins.elements), .stack = ins.stack,
-        }
+    is InstrArraySlice    -> InstrArraySlice {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .type = ins.type,
+        .target = remap_local(m, ins.target),
+        .lo = remap_local(m, ins.lo),
+        .hi = remap_local(m, ins.hi),
     }
-    if ins is InstrDataConst {
-        return InstrDataConst { .span = ins.span, .dst = remap_local(m, ins.dst), .pool_index = ins.pool_index, .type = ins.type }
+    is InstrStructNew     -> InstrStructNew {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .type = ins.type,
+        .fields = remap_locals(m, ins.fields),
+        .stack = ins.stack,
     }
-    if ins is InstrGlobalGet {
-        return InstrGlobalGet { ...ins, .dst = remap_local(m, ins.dst) }
+    is InstrArrayNew      -> InstrArrayNew {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .type = ins.type,
+        .length = ins.length,
+        .elements = remap_locals(m, ins.elements),
+        .stack = ins.stack,
     }
-    if ins is InstrGlobalSet {
-        return InstrGlobalSet { ...ins, .value = remap_local(m, ins.value) }
+    is InstrDataConst     -> InstrDataConst {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .pool_index = ins.pool_index,
+        .type = ins.type,
     }
-    if ins is InstrTypeCheck {
-        return InstrTypeCheck {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .value = remap_local(m, ins.value), .check_type = ins.check_type,
-        }
+    is InstrGlobalGet     -> InstrGlobalGet { ...ins, .dst = remap_local(m, ins.dst) }
+    is InstrGlobalSet     -> InstrGlobalSet { ...ins, .value = remap_local(m, ins.value) }
+    is InstrTypeCheck     -> InstrTypeCheck {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .value = remap_local(m, ins.value),
+        .check_type = ins.check_type,
     }
-    if ins is InstrTypeConst {
-        return InstrTypeConst { .span = ins.span, .dst = remap_local(m, ins.dst), .value_type = ins.value_type, .type = ins.type }
+    is InstrTypeConst     -> InstrTypeConst {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .value_type = ins.value_type,
+        .type = ins.type,
     }
-    if ins is InstrCast {
-        return InstrCast {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .value = remap_local(m, ins.value), .type = ins.type,
-        }
+    is InstrCast          -> InstrCast {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .value = remap_local(m, ins.value),
+        .type = ins.type,
     }
-    if ins is InstrCellNew {
-        return InstrCellNew {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .value = remap_local(m, ins.value), .value_type = ins.value_type,
-        }
+    is InstrCellNew       -> InstrCellNew {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .value = remap_local(m, ins.value),
+        .value_type = ins.value_type,
     }
-    if ins is InstrCellGet {
-        return InstrCellGet {
-            .span = ins.span, .dst = remap_local(m, ins.dst),
-            .cell = remap_local(m, ins.cell), .value_type = ins.value_type,
-        }
+    is InstrCellGet       -> InstrCellGet {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .cell = remap_local(m, ins.cell),
+        .value_type = ins.value_type,
     }
-    if ins is InstrCellSet {
-        return InstrCellSet {
-            .span = ins.span, .cell = remap_local(m, ins.cell),
-            .value = remap_local(m, ins.value), .value_type = ins.value_type,
-        }
+    is InstrCellSet       -> InstrCellSet {
+        .span = ins.span,
+        .cell = remap_local(m, ins.cell),
+        .value = remap_local(m, ins.value),
+        .value_type = ins.value_type,
     }
-    if ins is InstrMakeClosure {
-        return InstrMakeClosure {
-            .span = ins.span, .dst = remap_local(m, ins.dst), .fn_symbol = ins.fn_symbol,
-            .env = remap_local(m, ins.env), .env_type = ins.env_type, .type = ins.type,
-        }
+    is InstrMakeClosure   -> InstrMakeClosure {
+        .span = ins.span,
+        .dst = remap_local(m, ins.dst),
+        .fn_symbol = ins.fn_symbol,
+        .env = remap_local(m, ins.env),
+        .env_type = ins.env_type,
+        .type = ins.type,
     }
-    if ins is InstrIntrinsic {
-        return InstrIntrinsic {
-            .span = ins.span, .dst = remap_local_opt(m, ins.dst),
-            .name = ins.name, .args = remap_locals(m, ins.args),
-        }
+    is InstrIntrinsic     -> InstrIntrinsic {
+        .span = ins.span,
+        .dst = remap_local_opt(m, ins.dst),
+        .name = ins.name,
+        .args = remap_locals(m, ins.args),
     }
     // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),
     // so `compact_locals` renumbers it and it MUST be remapped here too — else
     // the deferred thunk reads a stale slot after compaction.
-    if ins is InstrDeferPush {
-        return InstrDeferPush { .span = ins.span, .value = remap_local(m, ins.value) }
-    }
-    // `InstrDeferPopExec` carries no LocalId ; every remaining instruction has
-    // no operand to remap, so passing it through unchanged is correct.
-    return ins
+    is InstrDeferPush     -> InstrDeferPush { .span = ins.span, .value = remap_local(m, ins.value) }
+    // Carries no local.
+    is InstrDeferPopExec  -> ins
 }
 
 // Fields listed, not spread — same reason as `remap_instr`.
@@ -400,68 +438,32 @@ remap_terminator :: fn(t: Terminator, m: i32[]) -> Terminator {
 /// Rebuild an instruction with its `dst` changed to `new_dst`. Pure
 /// producers only — callers must check `instruction_has_side_effect`
 /// first. Returns the input unchanged when the variant has no dst.
-with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
-    if ins is InstrConst {
-        return InstrConst { ...ins, .dst = new_dst }
-    }
-    if ins is InstrMove {
-        return InstrMove { ...ins, .dst = new_dst }
-    }
-    if ins is InstrBinOp {
-        return InstrBinOp { ...ins, .dst = new_dst }
-    }
-    if ins is InstrUnOp {
-        return InstrUnOp { ...ins, .dst = new_dst }
-    }
-    if ins is InstrFieldGet {
-        return InstrFieldGet { ...ins, .dst = new_dst }
-    }
-    if ins is InstrArrayGet {
-        return InstrArrayGet { ...ins, .dst = new_dst }
-    }
-    if ins is InstrArrayLen {
-        return InstrArrayLen { ...ins, .dst = new_dst }
-    }
-    if ins is InstrArraySlice {
-        return InstrArraySlice { ...ins, .dst = new_dst }
-    }
-    if ins is InstrStructNew {
-        return InstrStructNew { ...ins, .dst = new_dst }
-    }
-    if ins is InstrArrayNew {
-        return InstrArrayNew { ...ins, .dst = new_dst }
-    }
-    if ins is InstrDataConst {
-        return InstrDataConst { ...ins, .dst = new_dst }
-    }
-    if ins is InstrGlobalGet {
-        return InstrGlobalGet { ...ins, .dst = new_dst }
-    }
-    if ins is InstrTypeCheck {
-        return InstrTypeCheck { ...ins, .dst = new_dst }
-    }
-    if ins is InstrTypeConst {
-        return InstrTypeConst { ...ins, .dst = new_dst }
-    }
-    if ins is InstrCast {
-        return InstrCast { ...ins, .dst = new_dst }
-    }
-    if ins is InstrCellNew {
-        return InstrCellNew { ...ins, .dst = new_dst }
-    }
-    if ins is InstrCellGet {
-        return InstrCellGet { ...ins, .dst = new_dst }
-    }
-    if ins is InstrMakeClosure {
-        return InstrMakeClosure { ...ins, .dst = new_dst }
-    }
-    if ins is InstrFnRef {
-        return InstrFnRef { ...ins, .dst = new_dst }
-    }
-    if ins is InstrFnAddr {
-        return InstrFnAddr { ...ins, .dst = new_dst }
-    }
-    return ins
+with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction = match ins {
+    is InstrConst           -> InstrConst { ...ins, .dst = new_dst }
+    is InstrMove            -> InstrMove { ...ins, .dst = new_dst }
+    is InstrBinOp           -> InstrBinOp { ...ins, .dst = new_dst }
+    is InstrUnOp            -> InstrUnOp { ...ins, .dst = new_dst }
+    is InstrFieldGet        -> InstrFieldGet { ...ins, .dst = new_dst }
+    is InstrUnionFieldGet   -> InstrUnionFieldGet { ...ins, .dst = new_dst }
+    is InstrArrayGet        -> InstrArrayGet { ...ins, .dst = new_dst }
+    is InstrArrayLen        -> InstrArrayLen { ...ins, .dst = new_dst }
+    is InstrArraySlice      -> InstrArraySlice { ...ins, .dst = new_dst }
+    is InstrStructNew       -> InstrStructNew { ...ins, .dst = new_dst }
+    is InstrArrayNew        -> InstrArrayNew { ...ins, .dst = new_dst }
+    is InstrDataConst       -> InstrDataConst { ...ins, .dst = new_dst }
+    is InstrGlobalGet       -> InstrGlobalGet { ...ins, .dst = new_dst }
+    is InstrTypeCheck       -> InstrTypeCheck { ...ins, .dst = new_dst }
+    is InstrTypeConst       -> InstrTypeConst { ...ins, .dst = new_dst }
+    is InstrCast            -> InstrCast { ...ins, .dst = new_dst }
+    is InstrCellNew         -> InstrCellNew { ...ins, .dst = new_dst }
+    is InstrCellGet         -> InstrCellGet { ...ins, .dst = new_dst }
+    is InstrMakeClosure     -> InstrMakeClosure { ...ins, .dst = new_dst }
+    is InstrFnRef           -> InstrFnRef { ...ins, .dst = new_dst }
+    is InstrFnAddr          -> InstrFnAddr { ...ins, .dst = new_dst }
+    // No `dst` to change : a store, a call or a scope op, which callers never pass.
+    is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrFieldSet
+        | InstrUnionFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet | InstrGlobalSet
+        | InstrDeferPush | InstrDeferPopExec -> ins
 }
 
 // ---- tests ----------------------------------------------------------------

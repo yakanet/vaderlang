@@ -72,7 +72,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[12] = {
+const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 16 },
     [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Cat_t), .slot_size = 8,
@@ -97,8 +97,9 @@ const vader_type_info_t vader_type_info_table[12] = {
         .slot_size = 8,
     },
     [11] = { .slot_size = 8 },
+    [12] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 12;
+const size_t vader_type_info_count = 13;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -118,22 +119,19 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 static vader_string_t snippet_greet(vader_box_t l0) {
     vader_string_t l1 = 0;
-    void* t0 = NULL;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 21 "tests/snippets/if_null_narrow/_main.vader"
     if (!(l0.tag == 0u)) {
 #line 22 "tests/snippets/if_null_narrow/_main.vader"
-        t0 = l0.payload.obj;
-        l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t1 = concat_2(1u, l1);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
+        t0 = concat_2(1u, l1);
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 21 "tests/snippets/if_null_narrow/_main.vader"
     }
 #line 24 "tests/snippets/if_null_narrow/_main.vader"
@@ -142,22 +140,19 @@ static vader_string_t snippet_greet(vader_box_t l0) {
 
 static vader_string_t snippet_greet_v2(vader_box_t l0) {
     vader_string_t l1 = 0;
-    void* t0 = NULL;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 29 "tests/snippets/if_null_narrow/_main.vader"
     if (!(l0.tag == 0u)) {
 #line 30 "tests/snippets/if_null_narrow/_main.vader"
-        t0 = l0.payload.obj;
-        l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t1 = concat_2(3u, l1);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
+        t0 = concat_2(3u, l1);
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 29 "tests/snippets/if_null_narrow/_main.vader"
     }
     { vader_gc_top = gc_frame.prev; return 2u; }
@@ -165,22 +160,19 @@ static vader_string_t snippet_greet_v2(vader_box_t l0) {
 
 static vader_string_t snippet_greet_v3(vader_box_t l0) {
     vader_string_t l1 = 0;
-    void* t0 = NULL;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 35 "tests/snippets/if_null_narrow/_main.vader"
     if (!(l0.tag == 0u)) {
 #line 36 "tests/snippets/if_null_narrow/_main.vader"
-        t0 = l0.payload.obj;
-        l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t1 = concat_2(4u, l1);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
+        t0 = concat_2(4u, l1);
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 35 "tests/snippets/if_null_narrow/_main.vader"
     }
 #line 38 "tests/snippets/if_null_narrow/_main.vader"
@@ -189,23 +181,20 @@ static vader_string_t snippet_greet_v3(vader_box_t l0) {
 
 static vader_string_t snippet_greet_v4(vader_box_t l0) {
     vader_string_t l1 = 0;
-    void* t0 = NULL;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t1 };
+    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 44 "tests/snippets/if_null_narrow/_main.vader"
     if (!(l0.tag == 0u)) {
 #line 45 "tests/snippets/if_null_narrow/_main.vader"
-        t0 = l0.payload.obj;
-        l1 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t1 = concat_2(6u, l1);
+        l1 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
+        t0 = concat_2(6u, l1);
 #line 46 "tests/snippets/if_null_narrow/_main.vader"
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 44 "tests/snippets/if_null_narrow/_main.vader"
     }
 #line 48 "tests/snippets/if_null_narrow/_main.vader"
@@ -215,13 +204,11 @@ static vader_string_t snippet_greet_v4(vader_box_t l0) {
 static vader_string_t snippet_combine(vader_box_t l0, vader_box_t l1) {
     vader_string_t l2 = 0;
     vader_string_t l3 = 0;
-    void* t0 = NULL;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
-    void** gc_raw_roots[1] = { &t0 };
-    vader_string_t* gc_atom_roots[3] = { &l2, &l3, &t1 };
+    vader_string_t* gc_atom_roots[3] = { &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 54 "tests/snippets/if_null_narrow/_main.vader"
@@ -231,12 +218,10 @@ static vader_string_t snippet_combine(vader_box_t l0, vader_box_t l1) {
 #line 55 "tests/snippets/if_null_narrow/_main.vader"
     if (!(l1.tag == 0u)) {
 #line 56 "tests/snippets/if_null_narrow/_main.vader"
-        t0 = l0.payload.obj;
-        l2 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t0 = l1.payload.obj;
-        l3 = ((vader_struct_snippet_Cat_t*) t0)->f_name;
-        t1 = concat_3(l2, 10u, l3);
-        { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        l2 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj);
+        l3 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l1.payload.obj);
+        t0 = concat_3(l2, 10u, l3);
+        { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 #line 55 "tests/snippets/if_null_narrow/_main.vader"
     }
     { vader_gc_top = gc_frame.prev; return 9u; }

@@ -330,13 +330,13 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             emit(t, pc, .GetField, dst, op.slot, op.field_index)
             push_register(t, dst)
         }
-        is bc.StructGet -> {
+        is bc.StructGet | bc.UnionFieldGet -> {
             obj :: operand(t, 1)
             dst :: pop_to(t, 1)
             emit(t, pc, .GetField, dst, obj, op.field_index)
             push_register(t, dst)
         }
-        is bc.StructSet -> {
+        is bc.StructSet | bc.UnionFieldSet -> {
             value :: operand(t, 1)
             obj :: operand(t, 2)
             pop_to(t, 2)

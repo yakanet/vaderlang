@@ -202,6 +202,8 @@ export Instruction ::
     | InstrVirtualCall
     | InstrFieldGet
     | InstrFieldSet
+    | InstrUnionFieldGet
+    | InstrUnionFieldSet
     | InstrArrayGet
     | InstrArraySet
     | InstrArrayLen
@@ -359,6 +361,26 @@ export InstrFieldSet :: struct {
     /// after forward-propagating stack-alloc origin through Move/Cast
     /// aliasing ; defaults to false (barrier emitted) when unset.
     barrierless: bool
+}
+
+/// `dst = target.field` on a union of structs : `LoweredUnionField`.
+export InstrUnionFieldGet :: struct {
+    span:   Span
+    dst:    LocalId
+    /// A local of the union type.
+    target: LocalId
+    type:   Type
+    field:  string
+}
+
+/// `target.field = value` on a union of structs. The object may be any variant,
+/// so the write always takes the barrier.
+export InstrUnionFieldSet :: struct {
+    span:   Span
+    /// A local of the union type.
+    target: LocalId
+    field:  string
+    value:  LocalId
 }
 
 export InstrArrayGet :: struct {

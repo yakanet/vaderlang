@@ -147,6 +147,10 @@ field_tags :: fn(ctx: TagContext, type_id: i32, field: i32) -> u8 {
         if t is bc.BcStruct && in_range(field, t.fields.len()) {
             return tags_of_type(ctx, t.fields[usize(field)].type_index)
         }
+        if t is bc.BcUnion {
+            layout :: bc.union_layout_struct(types, type_id) ?? return TAGS_ANY
+            return field_tags(ctx, layout, field)
+        }
     }
     return TAGS_ANY
 }
@@ -404,7 +408,7 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
         .F64  -> TAGS_F64
         .Char -> TAGS_CHAR
     }
-    is bc.StructGet -> field_tags(ctx, op.type_id, op.field_index)
+    is bc.StructGet | bc.UnionFieldGet -> field_tags(ctx, op.type_id, op.field_index)
     is bc.LocalField -> field_tags(ctx, op.type_id, op.field_index)
     is bc.ArrayGet -> element_tags(ctx, op.type_id)
     is bc.GlobalGet -> global_tags(ctx, op.index)
@@ -417,7 +421,8 @@ pushed_tags :: fn(ctx: TagContext, op: bc.Op, state: u8[], top: u8) -> u8 = matc
         if t != null { tags_of_type(ctx, t.return_type) } else { TAGS_ANY }
     }
     // Calls go through `call_results` ; the rest push nothing.
-    is bc.Call | bc.CallImport | bc.VirtualCall | bc.LocalSet | bc.StructSet | bc.ArrayPush
+    is bc.Call | bc.CallImport | bc.VirtualCall | bc.LocalSet | bc.StructSet | bc.UnionFieldSet
+     | bc.ArrayPush
      | bc.ArrayPushAll | bc.ArraySet | bc.StoreU8 | bc.StoreI32 | bc.StoreI64 | bc.StoreF64
      | bc.StoreSlotI32 | bc.StoreSlotI64 | bc.StoreSlotF64 | bc.BufferWriteString | bc.ArrayCopy
      | bc.MemoryCopy | bc.Drop | bc.ArrayClear | bc.DeferPush | bc.Block | bc.Loop | bc.End
@@ -463,7 +468,8 @@ accepted_tags :: fn(op: bc.Op, back: usize) -> u8 | null = match op {
     is bc.Unreachable | bc.I32Const | bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.StringConst
      | bc.NullConst | bc.BoolConst | bc.CharConst | bc.F64Const | bc.I64Const | bc.CallImport
      | bc.Call | bc.FnRef | bc.MakeClosure | bc.CallIndirect | bc.VirtualCall | bc.StructNew
-     | bc.StructGet | bc.StructSet | bc.LocalField | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen
+     | bc.StructGet | bc.StructSet | bc.LocalField | bc.UnionFieldGet | bc.UnionFieldSet
+     | bc.ArrayNew | bc.ArrayPush | bc.ArrayLen
      | bc.ArraySlice | bc.DataConst | bc.RefCast | bc.Retag | bc.Convert | bc.TypeCheck
      | bc.TypeConst | bc.DeferPush | bc.DeferPopExec | bc.SizeOfType | bc.BoolEq | bc.BoolNe
      | bc.BoolAnd | bc.BoolOr | bc.BoolNot | bc.StringEq | bc.StringNe | bc.StringCompare

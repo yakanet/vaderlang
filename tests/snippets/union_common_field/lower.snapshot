@@ -6,25 +6,25 @@
   snippet.Point :: struct { id: i32, label: string }  // snippet$Point
   snippet.Tag :: struct { rank: i32, label: string }  // snippet$Tag
   snippet.label_of :: fn(x: Point | Tag) -> string {  // snippet$label_of
-      Point(x).label
+      x.label
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       a: Cat | Dog = Cat { .name = "Whiskers", .age = 3 }
-      std.io.println<string>(concat_2("name = ", Cat(a).name))
+      std.io.println<string>(concat_2("name = ", a.name))
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
           __off_1: usize = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "age  = ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(Cat(a).age))
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(a.age))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       b: Cat | Dog = Dog { .name = "Rex", .age = 7 }
-      std.io.println<string>(concat_2("name = ", Cat(b).name))
+      std.io.println<string>(concat_2("name = ", b.name))
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(usize(27))
           __off_3: usize = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "age  = ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(Cat(b).age))
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(b.age))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>(concat_2("label = ", snippet.label_of(Point { .id = 1, .label = "origin" })))

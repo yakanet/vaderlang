@@ -142,7 +142,7 @@ is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
 // just get added here. `LocalSet` / `LocalTee` never reach this — they invalidate
 // precisely upstream. Slot stores stay safe : every access re-reads `->buf`.
 is_cache_safe :: fn(op: vm.Op) -> bool {
-    if op is vm.LocalGet | vm.LocalField | vm.StructGet                                                                        { return true }
+    if op is vm.LocalGet | vm.LocalField | vm.StructGet | vm.UnionFieldGet                                                     { return true }
     if op is vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64                                    { return true }
     if op is vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64                               { return true }
     if op is vm.ArrayGet | vm.ArraySet | vm.ArrayLen                                                                           { return true }
@@ -195,7 +195,7 @@ op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.CallImport -> import_may_collect[usize(op.index)]
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
     is vm.GlobalGet | vm.GlobalSet -> false
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
+    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.UnionFieldGet | vm.UnionFieldSet | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
@@ -534,6 +534,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StructNew             -> emit_struct_new(s, op)
         is vm.StructGet             -> emit_struct_get(s, op)
         is vm.StructSet             -> emit_struct_set(s, op)
+        is vm.UnionFieldGet         -> emit_union_field_get(s, op)
+        is vm.UnionFieldSet         -> emit_union_field_set(s, op)
         is vm.ArrayNew              -> emit_array_new(s, op)
         is vm.ArrayLen              -> emit_array_len(s)
         is vm.ArrayPush             -> emit_array_push(s, op)
@@ -1950,7 +1952,7 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
         init_object_header(s, obj, op.type_id)
         for i in 0..<n {
             f :: t.fields[usize(i)]
-            assign(s, verbatim("${obj}->f_${sanitise(f.name)}"), field_vals[usize(i)])
+            assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[usize(i)])
         }
         push_object(s, verbatim(obj))
     } else {
@@ -2134,7 +2136,7 @@ erased_sibling_field_read :: fn(
 
 // `((<c_name>*) pointer)->f_<field>`.
 field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpression =
-    pointer_member("${c_name}*", pointer, "f_${sanitise(field)}")
+    pointer_member("${c_name}*", pointer, field_c_name(field))
 
 /// `struct.set` / `struct.set_stack` — pop the field value then the
 /// receiver, write the body slot in place, then fire the generational write
@@ -2171,16 +2173,89 @@ emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
         value :: pop(s)
         obj :: pop(s)
         f :: t.fields[usize(op.field_index)]
-        rv :: coerced_as(s, value, val_type_of_field(s.ctx.module.types, f.type_index))
         // T12: `.Ref` receiver is a raw `void*` ; `.Any` is a box → `.payload.obj`.
         obj_ptr :: object_pointer_of(obj)
-        assign(s, field_of(cname, obj_ptr, f.name), rv)
-        if !op.stack && field_may_hold_reference(s.ctx.module.types, f.type_index) {
-            write_barrier(s, cast("${cname}*", obj_ptr))
-        }
+        place :: field_of(cname, obj_ptr, f.name)
+        store_field(s, place, value, f.type_index, struct_set_barrier(op, cname, obj_ptr))
     } else {
         todo("struct.set on non-struct type ${op.type_id}")
     }
+}
+
+// What `struct.set` fires the write barrier on : nothing for a stack struct.
+struct_set_barrier :: fn(
+    op: vm.StructSet,
+    c_name: string,
+    pointer: CExpression,
+) -> CExpression | null {
+    if op.stack {
+        return null
+    }
+    return cast("${c_name}*", pointer)
+}
+
+// Store `value` into the field `place` of type `field_type`, then fire the write
+// barrier on `barrier_object` when there is one and the field can hold a reference.
+store_field :: fn(
+    s: FnState,
+    place: CExpression,
+    value: StackVal,
+    field_type: i32,
+    barrier_object: CExpression | null,
+) -> void {
+    types :: s.ctx.module.types
+    assign(s, place, coerced_as(s, value, val_type_of_field(types, field_type)))
+    if barrier_object != null && field_may_hold_reference(types, field_type) {
+        write_barrier(s, barrier_object)
+    }
+}
+
+/// `union.get`: pop a value of a union of structs, push field `field_index`.
+emit_union_field_get :: fn(s: FnState, op: vm.UnionFieldGet) -> void {
+    obj :: pop(s)
+    field :: union_field_place(s, op.type_id, op.field_index, object_pointer_of(obj))
+    push_expr(s, val_type_of_field(s.ctx.module.types, field.type_index), field.place)
+}
+
+/// `union.set`: pop the field value, then a value of a union of structs ; write
+/// field `field_index`.
+emit_union_field_set :: fn(s: FnState, op: vm.UnionFieldSet) -> void {
+    value :: pop(s)
+    obj :: pop(s)
+    obj_ptr :: object_pointer_of(obj)
+    field :: union_field_place(s, op.type_id, op.field_index, obj_ptr)
+    store_field(s, field.place, value, field.type_index, obj_ptr)
+}
+
+// A field of a union of structs : a C lvalue, and the field's `BcType` slot.
+UnionFieldPlace :: struct {
+    place:      CExpression
+    type_index: i32
+}
+
+// Field `field_index` of the union `type_id` off `pointer`, as an lvalue through
+// `VADER_UNION_FIELD`.
+union_field_place :: fn(
+    s: FnState,
+    type_id: i32,
+    field_index: i32,
+    pointer: CExpression,
+) -> UnionFieldPlace {
+    types :: s.ctx.module.types
+    layout :: union_layout_struct(types, type_id)
+        ?? panic("c_emit: a union field access on type ${type_id}, no union of structs")
+    t :: types[usize(layout)]
+    if t !is BcStruct {
+        panic("c_emit: the layout of union ${type_id} is no struct")
+    }
+    f :: t.fields[usize(field_index)]
+    place :: call("VADER_UNION_FIELD", [
+        verbatim(c_type_for(types[usize(f.type_index)])),
+        verbatim(s.ctx.struct_c_names[usize(layout)]),
+        verbatim(field_c_name(f.name)),
+        pointer,
+    ])
+    return UnionFieldPlace { .place = place, .type_index = f.type_index }
 }
 
 /// `ref.cast` — re-tag the top value to `type_id`'s storage class :

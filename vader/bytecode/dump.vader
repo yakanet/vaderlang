@@ -762,6 +762,12 @@ write_op_refs :: fn(out: StringBuilder, refs: (OperandRef | null)[], op: Op) -> 
         is StructSet                -> printed(out, refs, if op.stack { "struct.set_stack" } else { "struct.set" }, [
             refer(.Type, op.type_id), refer_field(op.type_id, op.field_index),
         ])
+        is UnionFieldGet            -> printed(out, refs, "union.get", [
+            refer(.Type, op.type_id), refer_field(op.type_id, op.field_index),
+        ])
+        is UnionFieldSet            -> printed(out, refs, "union.set", [
+            refer(.Type, op.type_id), refer_field(op.type_id, op.field_index),
+        ])
         is ArrayNew                 -> {
             printed(out, refs, "array.new", [refer(.Type, op.type_id)])
             out.append(" ${op.length}")
@@ -990,6 +996,11 @@ field_label :: fn(module: BytecodeModule, type_id: i32, field_index: i32) -> str
     if t is BcStruct {
         if field_index < 0 || usize(field_index) >= t.fields.len() { return "<field #${field_index} out of range>" }
         return t.fields[usize(field_index)].name
+    }
+    // A field read off a union is named by the variant its layout comes from.
+    if t is BcUnion {
+        layout :: union_layout_struct(module.types, type_id) ?? return "<field #${field_index}>"
+        return field_label(module, layout, field_index)
     }
     return "<field #${field_index}>"
 }

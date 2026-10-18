@@ -156,7 +156,7 @@ analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
             for a in e.args { analyze_expr(a, ctx) }
         }
         is LoweredVirtualCall -> { analyze_expr(e.receiver, ctx)  for a in e.args { analyze_expr(a, ctx) } }
-        is LoweredFieldAccess -> { analyze_expr(e.target, ctx) }
+        is LoweredFieldAccess | LoweredUnionField -> { analyze_expr(e.target, ctx) }
         is LoweredIndex -> { analyze_expr(e.target, ctx) analyze_expr(e.index, ctx) }
         is LoweredUnary -> { analyze_expr(e.operand, ctx) }
         is LoweredBinary -> { analyze_expr(e.left, ctx) analyze_expr(e.right, ctx) }
@@ -270,7 +270,7 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
             }
         }
         is LoweredVirtualCall -> { rewrite_expr(e.receiver, ctx)  for a in e.args { rewrite_expr(a, ctx) } }
-        is LoweredFieldAccess -> { rewrite_expr(e.target, ctx) }
+        is LoweredFieldAccess | LoweredUnionField -> { rewrite_expr(e.target, ctx) }
         is LoweredIndex -> { rewrite_expr(e.target, ctx) rewrite_expr(e.index, ctx) }
         is LoweredUnary -> { rewrite_expr(e.operand, ctx) }
         is LoweredBinary -> { rewrite_expr(e.left, ctx) rewrite_expr(e.right, ctx) }
