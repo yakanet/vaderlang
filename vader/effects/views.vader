@@ -159,7 +159,7 @@ view_returners :: fn(
         if body.node < 0 || body.node in index.view_nodes || !body.roots.any_match(is_view) {
             continue
         }
-        ctx :: body_ctx(body, facts, index.paths, components)
+        ctx :: body_ctx(body, facts, index, components)
         effects :: evaluate_roots(body.skeleton, ctx)
         for r in body.roots {
             c :: root_case(body, r, effects, index.paths) ?? continue

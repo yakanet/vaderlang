@@ -47,6 +47,9 @@ PathNode :: struct {
     step: i32
     length: i32
     deeper: bool = false
+    /// The same path standing for deeper ones too: null until `cut` makes it, but
+    /// `first_paths` gives `ROOT` its own.
+    cut: i32 | null = null
 }
 
 /// Every path a summary names, each by an id.
@@ -60,17 +63,20 @@ export PathTable :: struct {
     /// (parent, step) → the path one step below the parent.
     @internal
     children: MutableMap<i64, i32> = MutableMap<i64, i32> {}
-    /// A path → the same path standing for deeper ones too.
-    @internal
-    cuts: MutableMap<i32, i32> = first_cuts()
     /// (p, q) → `p` then `q`.
     @internal
     joins: MutableMap<i64, i32> = MutableMap<i64, i32> {}
 }
 
-// `ROOT` and `EVERYWHERE`, the paths of every table.
+// `ROOT` and `EVERYWHERE`, the paths of every table: `EVERYWHERE` stands for `ROOT`
+// and everything below it.
 first_paths :: fn() -> PathNode[] = [
-    PathNode { .parent = ROOT, .step = 0, .length = 0 },
+    PathNode {
+        .parent = ROOT,
+        .step = 0,
+        .length = 0,
+        .cut = EVERYWHERE,
+    },
     PathNode {
         .parent = ROOT,
         .step = 0,
@@ -78,13 +84,6 @@ first_paths :: fn() -> PathNode[] = [
         .deeper = true,
     },
 ]
-
-// `EVERYWHERE` stands for `ROOT` and everything below it.
-first_cuts :: fn() -> MutableMap<i32, i32> {
-    cuts :: MutableMap<i32, i32> {}
-    cuts[ROOT] = EVERYWHERE
-    return cuts
-}
 
 // The id of the step `name`.
 step_id :: fn(t: PathTable, name: string) -> i32 {
@@ -127,13 +126,13 @@ cut :: fn(t: PathTable, p: i32) -> i32 {
     if node.deeper {
         return p
     }
-    known :: t.cuts[p]
+    known :: node.cut
     if known != null {
         return known
     }
     id :: i32(t.nodes.len())
     t.nodes.push(PathNode { ...node, .deeper = true })
-    t.cuts[p] = id
+    node.cut = id
     return id
 }
 
@@ -141,6 +140,10 @@ cut :: fn(t: PathTable, p: i32) -> i32 {
 joined :: fn(t: PathTable, p: i32, q: i32) -> i32 {
     if q == ROOT || t.nodes[p].deeper {
         return p
+    }
+    // The steps of `q` from the parameter lead back to `q`: paths are interned.
+    if p == ROOT {
+        return q
     }
     key :: pair_key(p, q)
     known :: t.joins[key]
@@ -195,7 +198,7 @@ extends :: fn(t: PathTable, p: i32, c: i32) -> bool {
     if t.nodes[at].length != length {
         return false
     }
-    return at == c || t.cuts[at] == c
+    return at == c || t.nodes[at].cut == c
 }
 
 // Where `p` sits on the chain of arrays that leads to an element widened `depth`
@@ -401,14 +404,15 @@ covered :: fn(t: PathTable, effects: ParamEffects, path: i32, effect: Effect) ->
     }
     at := path
     for {
-        standing :: t.cuts[at]
+        node :: t.nodes[at]
+        standing :: node.cut
         if standing != null && key_of(standing, effect) in keys {
             return true
         }
-        if t.nodes[at].length == 0 {
+        if node.length == 0 {
             return false
         }
-        at = t.nodes[at].parent
+        at = node.parent
     }
 }
 

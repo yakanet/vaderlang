@@ -43,6 +43,10 @@ export CalleeIndex :: struct {
     impls: ImplRegistry = ImplRegistry {}
     /// Every path the summary names.
     paths: PathTable = PathTable {}
+    /// What a callee nothing is known of does with each argument (`EvalCtx.any`).
+    /// Every evaluation reads this one set, so nothing includes into it: a fact
+    /// that starts as it is a fresh `any_effects()`.
+    any: ParamEffects = any_effects()
     /// The loaded project, whose modules hold the symbols a namespace alias names.
     project: LoadedProject
     /// `trait_key.member` → the members of that name of every impl of the trait.

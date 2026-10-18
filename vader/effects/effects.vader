@@ -63,7 +63,7 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
         if !clock.has_news(node, successors[node]) {
             return false
         }
-        ctx :: node_ctx(facts, index.paths, components, node)
+        ctx :: node_ctx(facts, index, components, node)
         return clock.noted(node, settle(skeletons[node], ctx))
     }
     unsettled :: solve_bottom_up(graph, step, SWEEP_CAP)
@@ -86,7 +86,7 @@ export summarise_effects :: fn(project: LoadedProject, checked: CheckResult) -> 
         .unsettled = unsettled,
         .frozen = frozen.sites,
         .fresh = frozen.fresh,
-        .widenings = settle_widenings(widenings, facts, index.paths),
+        .widenings = settle_widenings(widenings, facts, index),
     }
 }
 
@@ -119,14 +119,20 @@ initialiser_ctx :: fn(
     .widenings = widenings,
 }
 
-// What evaluating node `node` reads: the facts, the paths, and its component.
-node_ctx :: fn(facts: ParamEffects[][], paths: PathTable, components: i32[], node: i32) -> EvalCtx =
-    EvalCtx {
-        .facts = facts,
-        .paths = paths,
-        .components = components,
-        .node = node,
-    }
+// What evaluating node `node` reads: the facts, the index's paths and its `any`,
+// and the node's component.
+node_ctx :: fn(
+    facts: ParamEffects[][],
+    index: CalleeIndex,
+    components: i32[],
+    node: i32,
+) -> EvalCtx = EvalCtx {
+    .facts = facts,
+    .paths = index.paths,
+    .components = components,
+    .node = node,
+    .any = index.any,
+}
 
 // The nodes the calls of `s` may run.
 callee_nodes :: fn(s: Skeleton) -> i32[] {

@@ -85,16 +85,16 @@ note_widened :: fn(
 ///
 /// @param widenings  the widened arguments the walk noted.
 /// @param facts      per node, what each function does with its parameters.
-/// @param paths      the paths the facts name.
+/// @param index      the paths the facts name, and the set of a callee nothing is
+///                   known of.
 settle_widenings :: fn(
     widenings: PendingWidening[],
     facts: ParamEffects[][],
-    paths: PathTable,
+    index: CalleeIndex,
 ) -> WideningSite[] {
-    any :: any_effects()
     out: WideningSite[]: []
     for w in widenings {
-        out.push(widening_outcome(w, facts, paths, any))
+        out.push(widening_outcome(w, facts, index.paths, index.any))
     }
     return out
 }

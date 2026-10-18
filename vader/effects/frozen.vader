@@ -253,7 +253,7 @@ bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize | null, span: Span, sym:
 // Keep the walked body when it uses a frozen value, to decide its roots once the
 // summary is settled ; `initialises` is the constant it initialises, if any.
 note_frozen_body :: fn(ctx: WalkCtx, node: i32, initialises: i32 | null) -> void {
-    if ctx.s.seeds.is_empty() {
+    if ctx.s.seeds == null {
         return
     }
     body :: FrozenBody {
@@ -361,7 +361,7 @@ fields_may_be_written :: fn(
 /// @param components  per node, its strongly connected component.
 settle_frozen :: fn(frozen: FrozenSites, settled: TraceCtx, components: i32[]) -> void {
     for body in frozen.bodies {
-        ctx :: body_ctx(body, settled.facts, settled.index.paths, components)
+        ctx :: body_ctx(body, settled.facts, settled.index, components)
         effects :: evaluate_roots(body.skeleton, ctx)
         for r in body.roots {
             frozen.decide(body, r, effects, settled)
@@ -399,14 +399,15 @@ mark_fresh :: fn(frozen: FrozenSites, use: ConstantUse) -> bool {
 body_ctx :: fn(
     body: FrozenBody,
     facts: ParamEffects[][],
-    paths: PathTable,
+    index: CalleeIndex,
     components: i32[],
 ) -> EvalCtx {
     if body.node < 0 {
-        return EvalCtx { .facts = facts, .paths = paths }
+        return node_ctx(facts, index, [], 0)
     }
-    return node_ctx(facts, paths, components, body.node)
+    return node_ctx(facts, index, components, body.node)
 }
+
 // Record the outcome of root `r` of `body`, if it has one, and which uses read a
 // fresh value of their constant.
 decide :: fn(
