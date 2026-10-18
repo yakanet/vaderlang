@@ -1,0 +1,77 @@
+// vader/typecheck/integer_bounds — what the bounds of an integer type give.
+//
+// `x in Hour` tests an integer against the bounds of an integer type, a range or
+// a primitive, and narrows `x` where it holds (`narrow_value.vader`). `@min(T)`
+// and `@max(T)` are the least and the greatest value of such a type, values of
+// `T` the lowering writes as literals. A type with no integer bounds is T3110.
+
+module "vader/typecheck"
+
+import "vader/diagnostics"
+import "vader/integer"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The type of `x in T` or `x !in T`, `T` a type : a `bool`, `x` an integer
+/// tested against the bounds of the integer type `T`.
+///
+/// @param e     the test, its right operand a type expression.
+/// @param left  its left operand's type, as checked.
+/// @error       T3110 when `T` is no integer type, or `x` no integer.
+check_in_type :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    record_site(typed, e, .Operator, BUILTIN_CALLEE)
+    tested :: type_operand(e.right, typed, diags)
+    if tested is UnresolvedType {
+        return TY_BOOL
+    }
+    if integer_values(tested) == null {
+        diags.push(typecheck_error(.NotAnIntegerType, e.right.span,
+            "`in` takes an integer type, got `${display_type(tested)}`"))
+        return TY_BOOL
+    }
+    value :: settle_range_operand(e.left, left, typed, diags)
+    if !is_integer(value) {
+        diags.push(typecheck_error(.NotAnIntegerType, e.left.span,
+            "`in ${display_type(tested)}` tests an integer, got `${display_type(value)}`"))
+    }
+    return TY_BOOL
+}
+
+/// The type of `@min(T)` or `@max(T)` : `T` itself, an integer type.
+///
+/// @param e  the intrinsic call, its argument a type already recorded.
+/// @error    T3110 when `T` is no integer type.
+integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    t :: bounded_type(e, typed) ?? return TY_UNRESOLVED
+    if is_integer(t) {
+        return t
+    }
+    diags.push(typecheck_error(.NotAnIntegerType, e.args[0].span,
+        "`@${e.name}` takes an integer type, got `${display_type(t)}`"))
+    return TY_UNRESOLVED
+}
+
+/// The value `e` stands for when it is `@min(T)` or `@max(T)`, as a range of
+/// one value : what a comparison with it narrows to.
+///
+/// @return  null for any other expression, and for `@max(u64)`, past `i64`.
+integer_bound_value :: fn(e: AST.Expr, typed: TypedProgram) -> Interval | null {
+    if e !is AST.IntrinsicCallExpr || e.name != "min" && e.name != "max" {
+        return null
+    }
+    t :: bounded_type(e, typed) ?? return null
+    values :: integer_values(t) ?? return null
+    if e.name == "max" && values.hi_open {
+        return null
+    }
+    bound :: integer_bound(values, e.name == "max")
+    return interval(bound, bound)
+}
+
+// The type the one argument of `@min(T)` or `@max(T)` names, as recorded.
+bounded_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram) -> Type | null {
+    if e.args.len() != 1 {
+        return null
+    }
+    return typed.type_expr_types[e.args[0].span.hash()]
+}

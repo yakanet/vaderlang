@@ -97,8 +97,9 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 lowered_target,
                 field_name,
             )
-            if via_union != null {
-                return via_union
+            if via_union is LoweredUnionField {
+                held :: narrowed_field_width(ctx, expr, receiver, field_name, type) ?? return via_union
+                return as_use(expr.span, LoweredUnionField { ...via_union, .type = held }, held, type)
             }
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
@@ -118,10 +119,12 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                     }
                 }
             }
-            return LoweredFieldAccess {
+            access :: LoweredFieldAccess {
                 .span = expr.span, .type = type,
                 .target = lowered_target, .field = field_name,
             }
+            held :: narrowed_field_width(ctx, expr, receiver, field_name, type) ?? return access
+            return as_use(expr.span, LoweredFieldAccess { ...access, .type = held }, held, type)
         }
         is IndexExpr -> { return lower_index(ctx, expr, type) }
         is UnaryExpr -> {
@@ -270,20 +273,18 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // ident to the original const symbol via aliasing.
             folded :: fold_const_symbol(ctx, symbol, type, ident.span)
             if folded != null { return folded }
-            // Match-arm narrowing : the slot stores the declared union
-            // (e.g. `Error | string`), the typed-AST narrows this use to a
-            // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
-            // dump and the runtime unbox via the variant layout instead of
-            // the union slot.
-            declared :: declared_type_of_symbol(ctx, symbol)
-            if declared is UnionType {
-                if !equals_type(declared, type) {
-                    return LoweredCast {
-                        .span = ident.span, .type = type,
-                        .value = LoweredIdent {
-                            .span = ident.span, .type = declared, .symbol = symbol,
-                        },
-                    }
+            // A narrowed use : the slot stores the declared type, a union (e.g.
+            // `Error | string`) or an integer, and the typed-AST narrows this use
+            // to a variant (e.g. `string`) or to a narrower range held in another
+            // integer — emit a `LoweredCast` so the dump and the runtime read the
+            // slot as it is stored.
+            stored :: stored_read_type(declared_type_of_symbol(ctx, symbol), type)
+            if stored != null {
+                return LoweredCast {
+                    .span = ident.span, .type = type,
+                    .value = LoweredIdent {
+                        .span = ident.span, .type = stored, .symbol = symbol,
+                    },
                 }
             }
             // Named import-binding redirect : `import "p" { foo as bar }`
@@ -589,6 +590,34 @@ read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
     return type
 }
 
+// The integer the field `expr` is stored in, when the typecheck narrowed its read
+// to a range held in another integer : the read takes the field's width, as a
+// narrowed local's does (`stored_read_type`). Null otherwise.
+narrowed_field_width :: fn(
+    ctx: FnLowerCtx,
+    expr: FieldExpr,
+    receiver: Type,
+    field: string,
+    use_type: Type,
+) -> Type | null {
+    if use_type !is PrimitiveType || ctx.types.raw_expr_type(expr) !is RangeType {
+        return null
+    }
+    declared :: erase_ranges(receiver_field_type(ctx, receiver, field))
+    if !narrows_integer_width(declared, use_type) {
+        return null
+    }
+    return declared
+}
+
+// The declared type of `receiver.field`, a union's common field included.
+receiver_field_type :: fn(ctx: FnLowerCtx, receiver: Type, field: string) -> Type {
+    if receiver is UnionType {
+        return union_common_field_type(receiver, field, ctx.typed) ?? TY_UNRESOLVED
+    }
+    return struct_field_type(ctx, receiver, field)
+}
+
 // Read a captured binding's value back out of its cell.
 //
 // `lower_cell_init` built the cell at the binding's DECLARED type, so that is the
@@ -599,25 +628,46 @@ read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
 cell_value :: fn(
     ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr, span: Span, use_type: Type,
 ) -> LoweredExpr {
-    stored :: read_type(declared_type_of_symbol(ctx, symbol), use_type)
+    stored :: stored_read_type(declared_type_of_symbol(ctx, symbol), use_type)
+    read :: stored ?? use_type
     got :: LoweredCellGet {
-        .span = span, .type = stored, .target = cell_ref, .value_type = stored,
+        .span = span, .type = read, .target = cell_ref, .value_type = read,
     }
     return as_use(span, got, stored, use_type)
 }
 
-// The type to read a cell or env field holding `declared` at, for a use the typer
-// gave `use_type`: a union at its declared type, so the read sees its box ; anything
-// else at the use type, which shares its layout.
-read_type :: fn(declared: Type | null, use_type: Type) -> Type {
-    return if declared is UnionType { declared } else { use_type }
+// The type a slot holding `declared` is read at when a use the typer gave
+// `use_type` cannot read it as that : a union at its declared type, so the read
+// sees its box ; an integer at its declared one when the use narrows it to a range
+// held in another integer. Null when the use reads it as `use_type`, which shares
+// its layout.
+stored_read_type :: fn(declared: Type | null, use_type: Type) -> Type | null {
+    if declared is UnionType {
+        if equals_type(declared, use_type) {
+            return null
+        }
+        return declared
+    }
+    if declared != null && narrows_integer_width(declared, use_type) {
+        return declared
+    }
+    return null
 }
 
-// `value`, read at `read`, as the use of type `use_type` sees it: a cast to the
-// variant a narrowed use names. Only a union is read at a type other than the use's
-// (`read_type`).
-as_use :: fn(span: Span, value: LoweredExpr, read: Type, use_type: Type) -> LoweredExpr {
-    if read !is UnionType || equals_type(read, use_type) {
+// Whether a use of type `use_type` reads an integer slot of type `declared` held in
+// another width.
+narrows_integer_width :: fn(declared: Type, use_type: Type) -> bool {
+    if declared !is PrimitiveType || use_type !is PrimitiveType || declared.name == use_type.name {
+        return false
+    }
+    return is_int_name(declared.name) && is_int_name(use_type.name)
+}
+
+// `value`, read at `stored`, as the use of type `use_type` sees it : a cast to the
+// variant or the integer a narrowed use names, none for a slot read as the use
+// (`stored` null).
+as_use :: fn(span: Span, value: LoweredExpr, stored: Type | null, use_type: Type) -> LoweredExpr {
+    if stored == null {
         return value
     }
     return LoweredCast { .span = span, .type = use_type, .value = value }
@@ -630,10 +680,10 @@ try_route_through_env :: fn(
     slot :: lifted.captures[symbol.id] ?? return null
     // A capture nothing rebinds sits in the env as its value, at the type the env
     // literal wrote it.
-    stored :: slot.value_type
-    if stored != null {
-        read :: read_type(stored, type)
-        return as_use(span, env_field(lifted, slot.field, span, read), read, type)
+    value_type :: slot.value_type
+    if value_type != null {
+        stored :: stored_read_type(value_type, type)
+        return as_use(span, env_field(lifted, slot.field, span, stored ?? type), stored, type)
     }
     // Any other holds a `Cell<T>` ref, not a `T` ; type the field access as
     // `Unresolved` (≡ ref ValType) so downstream bytecode emit doesn't synthesise

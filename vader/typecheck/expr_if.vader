@@ -323,11 +323,7 @@ detect_is_narrow :: fn(
     if cond is AST.UnaryExpr {
         if cond.op == .Not {
             inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
-            return IsNarrow {
-                ...inner,
-                .then_ty = inner.else_ty,
-                .else_ty = inner.then_ty,
-            }
+            return swapped(inner)
         }
     }
     if !(cond is AST.BinaryExpr) { return null }

@@ -1,12 +1,16 @@
-// vader/typecheck/narrow_value — a comparison narrows a range.
+// vader/typecheck/narrow_value — a comparison or a bounds test narrows a range.
 //
 // `h < 12` on an `Hour` holds `0..=11` where it is true and `12..=23` where it is
 // false. The narrowed side is a binding or a field chain whose current type is a
 // range ; the value compared with is a literal or a value of a range, read by its
 // bounds. A side no value reaches is `never`. `==` and `!=` remove a value at a
 // bound only : a range with a hole would be a union of intervals, which a range
-// does not carry. An integer of a primitive type is not narrowed : it is no range
-// yet.
+// does not carry. An integer of a primitive type is not narrowed by a comparison :
+// it is no range yet.
+//
+// `x in T`, `T` an integer type or a range written with literal bounds, holds `x`
+// within `T` where it is true, an integer of a primitive type included, and
+// outside it where it is false, when that leaves a range.
 
 module "vader/typecheck"
 
@@ -22,16 +26,15 @@ AST :: import "toolchain/ast"
 detect_value_narrow :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow | null {
     if cond is AST.UnaryExpr && cond.op == .Not {
         inner :: detect_value_narrow(cond.operand, typed) ?? return null
-        return IsNarrow {
-            ...inner,
-            .then_ty = inner.else_ty,
-            .else_ty = inner.then_ty,
-        }
+        return swapped(inner)
     }
     if cond !is AST.BinaryExpr {
         return null
     }
     kind :: classify(cond.op)
+    if kind == .In {
+        return membership_narrowing(cond, typed)
+    }
     if kind != .Compare && kind != .Equality {
         return null
     }
@@ -55,10 +58,7 @@ narrowing_of :: fn(
     if typed.expr_types[subject.id] !is RangeType {
         return null
     }
-    compared :: typed.expr_types[other.id]
-    if compared !is RangeType {
-        return null
-    }
+    bounds :: compared_bounds(other, typed) ?? return null
     slot :: slot_of(subject, typed) ?? return null
     current :: slot.current
     if current !is RangeType {
@@ -67,10 +67,113 @@ narrowing_of :: fn(
     return IsNarrow {
         .sym_id = slot.sym_id,
         .static_ty = current,
-        .then_ty = holding(current, op, compared.bounds),
-        .else_ty = holding(current, opposite(op), compared.bounds),
+        .then_ty = holding(current, op, bounds),
+        .else_ty = holding(current, opposite(op), bounds),
         .field_key = slot.field_key,
     }
+}
+
+// `x in T` or `x !in T` read as a narrowing of `x`.
+membership_narrowing :: fn(e: AST.BinaryExpr, typed: TypedProgram) -> IsNarrow | null {
+    subject :: typed.expr_types[e.left.id]
+    if subject !is RangeType && subject !is PrimitiveType {
+        return null
+    }
+    tested :: tested_range(e.right, typed) ?? return null
+    slot :: slot_of(e.left, typed) ?? return null
+    current :: slot.current
+    inside :: inside_of(current, tested) ?? return null
+    narrowing :: IsNarrow {
+        .sym_id = slot.sym_id,
+        .static_ty = current,
+        .then_ty = inside,
+        .else_ty = outside_of(current, tested.bounds),
+        .field_key = slot.field_key,
+    }
+    if e.op == .NotIn {
+        return swapped(narrowing)
+    }
+    return narrowing
+}
+
+/// `n` with its two sides exchanged : what the negation of its test narrows.
+///
+/// @param n  a narrowing.
+swapped :: fn(n: IsNarrow) -> IsNarrow = IsNarrow {
+    ...n,
+    .then_ty = n.else_ty,
+    .else_ty = n.then_ty,
+}
+
+// The values `x in right` tests against, as a range : an integer type's (`in Hour`,
+// `in u8`), or a range written with literal bounds (`in 0..=23`).
+tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
+    if right is AST.RangeExpr {
+        if right.lower !is AST.IntLitExpr || right.upper !is AST.IntLitExpr {
+            return null
+        }
+        written :: range_type(right, diag_sink())
+        if written is RangeType {
+            return written
+        }
+        return null
+    }
+    recorded :: typed.expr_types[right.id] ?? return null
+    if recorded is RangeType {
+        return recorded
+    }
+    values :: integer_values(recorded) ?? return null
+    return RangeType { .bounds = values }
+}
+
+// What an integer of type `current` is where it lies within `tested` : `tested`
+// itself when that is all it holds, else the range of the values both hold. Null
+// when `current` is no integer.
+inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
+    values :: integer_values(current) ?? return null
+    met :: interval_meet(values, tested.bounds) ?? return TY_NEVER
+    if same_interval(met, values) {
+        return current
+    }
+    if same_interval(met, tested.bounds) {
+        return tested
+    }
+    return RangeType { .bounds = met }
+}
+
+// What `current` is where it lies outside `tested` : the part of a range past an
+// end `tested` covers, `never` when it covers the whole ; a primitive, or a range
+// `tested` would split, as it is.
+outside_of :: fn(current: Type, tested: Interval) -> Type {
+    if current !is RangeType {
+        return current
+    }
+    bounds :: current.bounds
+    met :: interval_meet(bounds, tested) ?? return current
+    if same_interval(met, bounds) {
+        return TY_NEVER
+    }
+    if met.lo == bounds.lo {
+        return RangeType { .bounds = interval(met.hi + 1, bounds.hi) }
+    }
+    if met.hi == bounds.hi {
+        return RangeType { .bounds = interval(bounds.lo, met.lo - 1) }
+    }
+    return current
+}
+
+// The values `other` may take : the one `@min(T)` or `@max(T)` stands for, else
+// those of its range, a literal's being its own.
+compared_bounds :: fn(other: AST.Expr, typed: TypedProgram) -> Interval | null {
+    bound :: integer_bound_value(other, typed)
+    if bound != null {
+        return bound
+    }
+    recorded :: typed.expr_types[other.id]
+    if recorded is RangeType {
+        return recorded.bounds
+    }
+    return null
 }
 
 // A binding or a field chain, and its type as narrowed so far.
@@ -101,10 +204,14 @@ slot_of :: fn(subject: AST.Expr, typed: TypedProgram) -> NarrowedSlot | null {
     return null
 }
 
-// What `current` holds where `x op other` is true, `other` within `bounds`.
+// What `current` holds where `x op other` is true, `other` within `bounds`. `!=`
+// rules out a value only when `other` has no other.
 holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
     if op == .Neq {
-        return without_end(current, bounds)
+        if bounds.lo != bounds.hi {
+            return current
+        }
+        return outside_of(current, bounds)
     }
     within :: within_for(op, bounds) ?? return TY_NEVER
     met :: interval_meet(current.bounds, within) ?? return TY_NEVER
@@ -138,26 +245,6 @@ above :: fn(x: i64) -> Interval | null {
         return null
     }
     return interval_from_ends(x + 1, null)
-}
-
-// `current` without the value `bounds` holds alone, when it sits at an end.
-without_end :: fn(current: RangeType, bounds: Interval) -> Type {
-    if bounds.lo != bounds.hi {
-        return current
-    }
-    value :: bounds.lo
-    lo :: current.bounds.lo
-    hi :: current.bounds.hi
-    if value == lo && value == hi {
-        return TY_NEVER
-    }
-    if value == lo {
-        return RangeType { .bounds = interval(lo + 1, hi) }
-    }
-    if value == hi {
-        return RangeType { .bounds = interval(lo, hi - 1) }
-    }
-    return current
 }
 
 // `op` with its operands swapped : `a < b` is `b > a`.

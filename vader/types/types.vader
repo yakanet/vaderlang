@@ -120,6 +120,21 @@ export primitive_interval :: fn(name: string) -> Interval | null {
     return unsigned_interval(bits)
 }
 
+/// The least value of an integer type holding `values`, or its greatest, as an
+/// `i64` carries it : the greatest `u64`, past `i64`, is its bit pattern, `-1`.
+///
+/// @param values    the type's values (`primitive_interval`, a range's bounds).
+/// @param greatest  the greatest rather than the least.
+export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
+    if !greatest {
+        return values.lo
+    }
+    if values.hi_open {
+        return -1
+    }
+    return values.hi
+}
+
 unsigned_interval :: fn(bits: i64) -> Interval {
     if bits == 64 {
         return Interval {

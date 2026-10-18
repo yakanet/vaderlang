@@ -1,0 +1,66 @@
+// `x in T` tests an integer against the bounds of an integer type and narrows it
+// where it holds : an `i64` read from the input becomes an `Hour` with no
+// conversion that could stop the program. `!in` leaves it narrowed past a guard ;
+// a range written with literal bounds narrows too. `@min(T)` and `@max(T)` are a
+// type's least and greatest values. A value narrowed to a range held in a smaller
+// integer is read from its wider slot.
+
+module "snippet"
+
+import "std/io"
+
+Hour   :: Int in 0..=23
+Offset :: Int in -12..=14
+
+Reading :: struct {
+    offset: Offset
+}
+
+parse_hour :: fn(n: i64) -> Hour | null {
+    if n in Hour {
+        return n
+    }
+    return null
+}
+
+hour_or_midnight :: fn(n: i64) -> Hour {
+    if n !in Hour {
+        return @min(Hour)
+    }
+    return n
+}
+
+half_of_day :: fn(h: Hour) -> string {
+    if h in 0..<12 {
+        first: 0..=11: h
+        return "am ${first}"
+    }
+    second: 12..=23: h
+    return "pm ${second}"
+}
+
+east_of_greenwich :: fn(r: Reading) -> u8 {
+    if r.offset in u8 {
+        return r.offset
+    }
+    return 0
+}
+
+wrapped :: fn(h: Hour) -> Hour {
+    if h == @max(Hour) {
+        return @min(Hour)
+    }
+    return h + 1
+}
+
+main :: fn() -> i32 {
+    println("${parse_hour(7) ?? 0} ${parse_hour(24) == null} ${parse_hour(-1) == null}")
+    println("${hour_or_midnight(19)} ${hour_or_midnight(99)}")
+    println("${half_of_day(9)} ${half_of_day(21)}")
+    east :: Reading { .offset = 9 }
+    west :: Reading { .offset = -5 }
+    println("${east_of_greenwich(east)} ${east_of_greenwich(west)}")
+    println("${wrapped(23)} ${wrapped(8)}")
+    println("${@min(Offset)} ${@max(Offset)} ${@min(i16)} ${@max(u32)}")
+    return 0
+}

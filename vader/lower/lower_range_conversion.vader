@@ -1,10 +1,12 @@
-// vader/lower/lower_range_conversion — `Hour(x)`, a value converted into a range.
+// vader/lower/lower_range_conversion — `Hour(x)` and `x in Hour`, a value against
+// the bounds of an integer type.
 //
-// The value is checked against the bounds its own type does not already keep —
-// `u8` into `-5..=5` needs no test below — and the program stops outside them, in
-// every build : a range's values are what its type promises, and the lowering
-// past here reads a range as the integer it is held in. A value its type keeps
-// within the range is converted as it is.
+// The value is tested against the bounds its own type does not already keep —
+// `u8` into `-5..=5` needs no test below. A conversion stops the program outside
+// them, in every build : a range's values are what its type promises, and the
+// lowering past here reads a range as the integer it is held in. A value its type
+// keeps within the range is converted as it is. `x in T` gives the test's
+// outcome, a constant where the type of `x` decides it.
 
 module "vader/lower"
 
@@ -30,8 +32,8 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
         call.args[0].value,
         value,
     ) ?? return cast_to_width(value, held, span)
-    below :: source_values.lo_open || source_values.lo < target.bounds.lo
-    above :: source_values.hi_open || source_values.hi > target.bounds.hi
+    below :: may_lie_below(source_values, target.bounds)
+    above :: may_lie_above(source_values, target.bounds)
     if !below && !above {
         return cast_to_width(value, held, span)
     }
@@ -64,6 +66,55 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
     )
     return with_prelude(stmts, cast_to_width(bound, held, span), span)
 }
+
+/// The test `binary`, `x in T` or `x !in T`, `T` an integer type.
+///
+/// @param binary  the test, its right operand the type the typecheck recorded.
+/// @return        whether `x` lies within `T`'s bounds, negated for `!in`.
+lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
+    observe_no_call(ctx, binary, .Operator, "bounds")
+    span :: binary.span
+    negated :: binary.op == .NotIn
+    value :: lower_expr(ctx, binary.left)
+    tested :: integer_values(ctx.types.raw_expr_type(binary.right))
+    source :: values_of(ctx, binary.left, value)
+    if tested == null || source == null {
+        return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
+    }
+    if interval_meet(source, tested) == null {
+        return decided(value, negated, span)
+    }
+    below :: may_lie_below(source, tested)
+    above :: may_lie_above(source, tested)
+    if !below && !above {
+        return decided(value, !negated, span)
+    }
+    compared :: comparison_type(source, tested, below, above)
+    stmts: LoweredStmt[]: []
+    tested_value: LoweredExpr = cast_to_width(value, compared.name, span)
+    if below && above {
+        tested_value = bind_unless_stable(ctx, tested_value, "in_x", span, stmts)
+    }
+    outside :: outside_test(tested_value, tested, below, above, compared, span)
+    return with_prelude(stmts, maybe_negate(outside, !negated, span), span)
+}
+
+// `outcome`, once `value` has run for what it does.
+decided :: fn(value: LoweredExpr, outcome: bool, span: Span) -> LoweredExpr {
+    known :: LoweredBoolLit { .span = span, .type = TY_BOOL, .value = outcome }
+    if is_effect_free_read(value) {
+        return known
+    }
+    return with_prelude([LoweredExprStmt { .span = span, .expr = value }], known, span)
+}
+
+// Whether a value of `source` may lie below `bounds`, and above them : an open
+// end of `bounds` holds every value past it.
+may_lie_below :: fn(source: Interval, bounds: Interval) -> bool =
+    !bounds.lo_open && (source.lo_open || source.lo < bounds.lo)
+
+may_lie_above :: fn(source: Interval, bounds: Interval) -> bool =
+    !bounds.hi_open && (source.hi_open || source.hi > bounds.hi)
 
 // The values the converted value can take : those of its type as the typecheck
 // recorded it, a range's bounds included, else of the type it is lowered at.

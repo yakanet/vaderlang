@@ -1,0 +1,20 @@
+// Only an integer type has bounds : `in` with a type tests an integer against an
+// integer type, and `@min` / `@max` read one.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export Weekday :: enum { Mon, Tue }
+
+export main :: fn() -> i32 {
+    n: i32: 4
+    a :: n in string
+    b :: "noon" in Hour
+    c :: n in Weekday
+    d :: @min(string)
+    e :: @max(bool)
+    if a || b || c {
+        return 1
+    }
+    return 0
+}

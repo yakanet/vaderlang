@@ -143,6 +143,7 @@ export TypecheckCode :: enum(CodeInfo) {
     GenericMemberAtRunTime          { .id = "T3107", .message = "a generic member cannot be called where its impl is picked at run time" },
     IntIsNoValueType                { .id = "T3108", .message = "`Int` only names the base of a range" },
     MalformedRangeType              { .id = "T3109", .message = "a range type takes integer literal bounds within 64 bits, the least first" },
+    NotAnIntegerType                { .id = "T3110", .message = "only an integer type has bounds" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

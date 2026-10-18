@@ -59,6 +59,9 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
     if e.name == "field" {
         return infer_field_intrinsic(e, typed, diags)
     }
+    if e.name == "min" || e.name == "max" {
+        return integer_bound_type(e, typed, diags)
+    }
     return type_for_result(spec.result, typed)
 }
 

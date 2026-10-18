@@ -62,6 +62,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         }
     }
     if binary.op == .In || binary.op == .NotIn {
+        // `x in T`, a type on the right : a bounds test, which calls nothing.
+        if recorded_callee(ctx, binary, .Operator) is Builtin {
+            return lower_in_type(ctx, binary)
+        }
         // Fast-path : `x in lo..=hi` / `x in lo..<hi` over a LITERAL range with a
         // scalar (a primitive, or a distinct over one), side-effect-free `x` →
         // inline `lo <= x && x <= hi` (or `< hi`), bypassing the `Range` heap

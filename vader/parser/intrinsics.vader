@@ -38,6 +38,10 @@ INTRINSICS: IntrinsicSpec[]: [
     IntrinsicSpec { .name = "variant_count", .args = [.Type],          .result = "usize"  },
     IntrinsicSpec { .name = "field_index",   .args = [.Type, .Value],  .result = "usize"  },
     IntrinsicSpec { .name = "satisfies",     .args = [.Type, .Type],   .result = "bool"   },
+    // `@min(T)` / `@max(T)` — the least and the greatest value of an integer type,
+    // a value of `T` itself.
+    IntrinsicSpec { .name = "min",           .args = [.Type],          .result = "self"   },
+    IntrinsicSpec { .name = "max",           .args = [.Type],          .result = "self"   },
     // `@file("path")` reads the file at compile time and bakes its UTF-8
     // contents as a string literal. The sandbox confines the path to the
     // project root.

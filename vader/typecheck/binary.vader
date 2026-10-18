@@ -35,25 +35,15 @@ infer_binary :: fn(
     left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
     record_site(typed, e, .Operator, operator_default(e.op))
     left := check_expr(e.left, left_ctx, typed, diags)
-    // `x is T` — right side is a type expression. Record its
-    // resolved type directly so dump entries show e.g. `i32`
-    // instead of the `type` metatype.
     if e.op == .Is {
-        rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
-        typed.expr_types[e.right.id] = rhs_ty
-        // `node_spans` / `expr_kinds` here are dump-only (the right side of
-        // `is` is a type ident, never lowered as a value). See `dump_types`.
-        if typed.dump_types {
-            typed.node_spans[e.right.id] = e.right.span
-            // Only IdentExpr's kind label is interesting at the dump level —
-            // the right side of `is` is almost always a type ident (`is i32`).
-            if e.right is AST.IdentExpr {
-                typed.expr_kinds[e.right.id] = "IdentExpr"
-            }
-        }
+        rhs_ty :: type_operand(e.right, typed, diags)
         check_is_overlap(e, left, rhs_ty, diags)
         check_is_test_target(rhs_ty, e.right.span, typed, diags)
         return TY_BOOL
+    }
+    // `x in T` : a bounds test (`integer_bounds.vader`).
+    if classify(e.op) == .In && is_type_expr(e.right, typed.resolved) {
+        return check_in_type(e, left, typed, diags)
     }
     right_ctx :: right_operand_context(e, left, typed)
     // A short-circuit's right operand runs only on one outcome of the left : true
@@ -106,6 +96,27 @@ infer_binary :: fn(
         .Is       -> { TY_BOOL }
         .In       -> { check_in(e, left, right, typed, diags) }
     }
+}
+
+/// The type the type expression `e`, the right operand of `x is T` or `x in T`,
+/// denotes, recorded as `e`'s own so that the dump shows `i32` rather than the
+/// `type` metatype and the lowering reads it back.
+///
+/// @param e  a type expression in operand position.
+type_operand :: fn(e: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    t :: type_from_expr(e, typed.resolved, diags)
+    typed.expr_types[e.id] = t
+    // `node_spans` / `expr_kinds` here are dump-only (the operand is a type, never
+    // lowered as a value). See `dump_types`.
+    if typed.dump_types {
+        typed.node_spans[e.id] = e.span
+        // Only IdentExpr's kind label is interesting at the dump level : the
+        // operand is almost always a type ident (`is i32`).
+        if e is AST.IdentExpr {
+            typed.expr_kinds[e.id] = "IdentExpr"
+        }
+    }
+    return t
 }
 
 // What an operator calls until its check settles it : nothing for one that never
