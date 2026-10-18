@@ -82,7 +82,6 @@ fn 1 snippet$Box$Conv$conv__i32 (ref,i32) -> string
   local $call_5 usize
   local __buf_1 ref
   local $cast_12 i64
-  local $cast_20 u64
   string.const 2   ; "i32"
   local.tee 2   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -118,12 +117,9 @@ fn 1 snippet$Box$Conv$conv__i32 (ref,i32) -> string
   string.const 3   ; " "
   call 13   ; std_core$write_string_at
   local.set 3   ; $call_5
-  i64.const 4
-  usize.to_i64
-  local.set 6   ; $cast_20
   local.get 4   ; __buf_1
   local.get 3   ; $call_5
-  local.get 6   ; $cast_20
+  i64.const 4
   call 15   ; std_core$write_unsigned
   local.set 3   ; $call_5
   local.get 4   ; __buf_1
@@ -137,7 +133,6 @@ fn 2 snippet$Box$Conv$conv__string (ref,string) -> string
   local $call_5 usize
   local __buf_1 ref
   local $cast_12 i64
-  local $cast_20 u64
   string.const 4   ; "string"
   local.tee 2   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -173,12 +168,9 @@ fn 2 snippet$Box$Conv$conv__string (ref,string) -> string
   string.const 3   ; " "
   call 13   ; std_core$write_string_at
   local.set 3   ; $call_5
-  i64.const 4
-  usize.to_i64
-  local.set 6   ; $cast_20
   local.get 4   ; __buf_1
   local.get 3   ; $call_5
-  local.get 6   ; $cast_20
+  i64.const 4
   call 15   ; std_core$write_unsigned
   local.set 3   ; $call_5
   local.get 4   ; __buf_1
@@ -192,7 +184,6 @@ fn 3 snippet$Box$Conv$conv__i64 (ref,i64) -> string
   local $call_5 usize
   local __buf_1 ref
   local $cast_12 i64
-  local $cast_20 u64
   string.const 5   ; "i64"
   local.tee 2   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -228,12 +219,9 @@ fn 3 snippet$Box$Conv$conv__i64 (ref,i64) -> string
   string.const 3   ; " "
   call 13   ; std_core$write_string_at
   local.set 3   ; $call_5
-  i64.const 8
-  usize.to_i64
-  local.set 6   ; $cast_20
   local.get 4   ; __buf_1
   local.get 3   ; $call_5
-  local.get 6   ; $cast_20
+  i64.const 8
   call 15   ; std_core$write_unsigned
   local.set 3   ; $call_5
   local.get 4   ; __buf_1
@@ -384,7 +372,6 @@ fn 8 snippet$Box$Conv$conv__f64 (ref,f64) -> string
   local $call_5 usize
   local __buf_1 ref
   local $cast_12 i64
-  local $cast_20 u64
   string.const 8   ; "f64"
   local.tee 2   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -420,12 +407,9 @@ fn 8 snippet$Box$Conv$conv__f64 (ref,f64) -> string
   string.const 3   ; " "
   call 13   ; std_core$write_string_at
   local.set 3   ; $call_5
-  i64.const 8
-  usize.to_i64
-  local.set 6   ; $cast_20
   local.get 4   ; __buf_1
   local.get 3   ; $call_5
-  local.get 6   ; $cast_20
+  i64.const 8
   call 15   ; std_core$write_unsigned
   local.set 3   ; $call_5
   local.get 4   ; __buf_1

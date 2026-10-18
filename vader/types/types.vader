@@ -80,10 +80,36 @@ export RangeType :: struct {
     origin: string = ""
 }
 
-/// The integer type a value of `r` is held in (`narrowest_integer`).
+/// The integer type a value of `r` is held in : the type it was narrowed out of
+/// where that holds it (`narrowed_origin`), since a narrowing changes no width ;
+/// else the narrowest holding it (`narrowest_integer`).
 ///
 /// @param r  a range.
-export range_representation :: fn(r: RangeType) -> PrimitiveType = narrowest_integer(r.bounds)
+export range_representation :: fn(r: RangeType) -> PrimitiveType =
+    narrowed_origin(r) ?? narrowest_integer(r.bounds)
+
+/// The integer type the range `r` was narrowed out of, where it holds `r`'s values :
+/// the width a narrowing keeps, for a mutable local, a bitwise operation and the
+/// value's storage alike.
+///
+/// @param r  a range.
+/// @return   null for a range with no origin, or one its origin does not hold.
+export narrowed_origin :: fn(r: RangeType) -> PrimitiveType | null {
+    if r.origin == "" {
+        return null
+    }
+    values :: primitive_interval(r.origin) ?? return null
+    if !interval_within(r.bounds, values) {
+        return null
+    }
+    return PrimitiveType { .name = r.origin }
+}
+
+/// `r` as a type argument holds it : without the integer it was narrowed out of,
+/// since every instance at one range shares one layout.
+///
+/// @param r  a range a type parameter is bound to.
+export without_origin :: fn(r: RangeType) -> RangeType = RangeType { ...r, .origin = "" }
 
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held

@@ -32,13 +32,13 @@ fn 0 snippet$main (ref) -> i32
   local __buf_0 ref
   local __off_1 usize
   local $cast_14 i64
-  local $cast_33 u8
-  local $cast_35 u64
-  local $cast_54 i8
+  local $cast_32 u8
+  local $cast_34 u64
+  local $cast_52 i8
   local wide u16
-  local $cast_91 u32
-  local $mul_111 u64
-  local $cast_121 i64
+  local $cast_87 u32
+  local $mul_106 u64
+  local $cast_116 i64
   local.get 0   ; arg 0
   array.len
   usize.to_i32
@@ -68,12 +68,9 @@ fn 0 snippet$main (ref) -> i32
   string.const 1   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  i32.const -2147483648
-  i32.to_i64
-  local.set 4   ; $cast_14
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_14
+  i64.const -2147483648
   call 5   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -96,17 +93,17 @@ fn 0 snippet$main (ref) -> i32
   i32.to_i32
   i32.const 255
   i32.bitand
-  local.set 5   ; $cast_33
+  local.set 5   ; $cast_32
   i32.const 250
-  local.get 5   ; $cast_33
+  local.get 5   ; $cast_32
   i32.add
   i32.const 255
   i32.bitand
   u8.to_i64
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -114,12 +111,9 @@ fn 0 snippet$main (ref) -> i32
   string.const 1   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  i32.const 4
-  u8.to_i64
-  local.set 6   ; $cast_35
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  i64.const 4
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -146,9 +140,9 @@ fn 0 snippet$main (ref) -> i32
   i32.bitxor
   i32.const 128
   i32.sub
-  local.set 7   ; $cast_54
+  local.set 7   ; $cast_52
   i32.const 120
-  local.get 7   ; $cast_54
+  local.get 7   ; $cast_52
   i32.add
   i32.const 255
   i32.bitand
@@ -168,12 +162,9 @@ fn 0 snippet$main (ref) -> i32
   string.const 1   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  i32.const -126
-  i8.to_i64
-  local.set 4   ; $cast_14
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 4   ; $cast_14
+  i64.const -126
   call 5   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -198,10 +189,10 @@ fn 0 snippet$main (ref) -> i32
   i32.const 65535
   i32.bitand
   u16.to_i64
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -209,12 +200,9 @@ fn 0 snippet$main (ref) -> i32
   string.const 1   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  i32.const 24464
-  u16.to_i64
-  local.set 6   ; $cast_35
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  i64.const 24464
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -233,15 +221,15 @@ fn 0 snippet$main (ref) -> i32
   local.set 3   ; __off_1
   local.get 1   ; one
   i32.to_i32
-  local.set 9   ; $cast_91
+  local.set 9   ; $cast_87
   i32.const 0
-  local.get 9   ; $cast_91
+  local.get 9   ; $cast_87
   i32.sub
   u32.to_i64
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -249,12 +237,9 @@ fn 0 snippet$main (ref) -> i32
   string.const 1   ; " "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  i32.const -1
-  u32.to_i64
-  local.set 6   ; $cast_35
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  i64.const 4294967295
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -262,7 +247,7 @@ fn 0 snippet$main (ref) -> i32
   call 3   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   i64.const -1
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   i64.const 45
   call 2   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
@@ -273,13 +258,13 @@ fn 0 snippet$main (ref) -> i32
   string.const 6   ; "u64 "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   i64.const 2
   i64.mul
-  local.set 10   ; $mul_111
+  local.set 10   ; $mul_106
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 10   ; $mul_111
+  local.get 10   ; $mul_106
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -289,14 +274,14 @@ fn 0 snippet$main (ref) -> i32
   local.set 3   ; __off_1
   local.get 1   ; one
   i32.to_i64
-  local.set 10   ; $mul_111
-  local.get 6   ; $cast_35
-  local.get 10   ; $mul_111
+  local.set 10   ; $mul_106
+  local.get 6   ; $cast_34
+  local.get 10   ; $mul_106
   i64.add
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
@@ -307,9 +292,9 @@ fn 0 snippet$main (ref) -> i32
   local.set 4   ; $cast_14
   local.get 1   ; one
   i32.to_i64
-  local.set 11   ; $cast_121
+  local.set 11   ; $cast_116
   local.get 4   ; $cast_14
-  local.get 11   ; $cast_121
+  local.get 11   ; $cast_116
   i64.add
   local.tee 4   ; $cast_14
   i64.const 2
@@ -335,10 +320,10 @@ fn 0 snippet$main (ref) -> i32
   call 3   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   i32.const -2128831035
-  local.tee 9   ; $cast_91
+  local.tee 9   ; $cast_87
   i32.const 16777619
   i32.mul
-  local.set 9   ; $cast_91
+  local.set 9   ; $cast_87
   i64.const 29
   call 2   ; std_core$new_byte_buffer
   local.set 2   ; __buf_0
@@ -349,12 +334,12 @@ fn 0 snippet$main (ref) -> i32
   string.const 8   ; "u32 hash "
   call 4   ; std_core$write_string_at
   local.set 3   ; __off_1
-  local.get 9   ; $cast_91
+  local.get 9   ; $cast_87
   u32.to_i64
-  local.set 6   ; $cast_35
+  local.set 6   ; $cast_34
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  local.get 6   ; $cast_35
+  local.get 6   ; $cast_34
   call 6   ; std_core$write_unsigned
   local.set 3   ; __off_1
   local.get 2   ; __buf_0

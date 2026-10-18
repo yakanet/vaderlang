@@ -131,14 +131,14 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 static int32_t snippet_main(void) {
     int32_t l0;
     void* l1 = NULL;
-    void* l5 = NULL;
-    void* l9 = NULL;
-    void* l13 = NULL;
-    size_t l2, l6, l10, l14;
-    int64_t l3, l4, l7, l8, l11, l12, l15;
+    void* l4 = NULL;
+    void* l7 = NULL;
+    void* l10 = NULL;
+    size_t l2, l5, l8, l11;
+    int64_t l3, l6, l9, l12;
     vader_string_t t0 = 0;
     void* t1 = NULL;
-    void** gc_raw_roots[5] = { &l1, &l5, &l9, &l13, &t1 };
+    void** gc_raw_roots[5] = { &l1, &l4, &l7, &l10, &t1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
@@ -156,43 +156,34 @@ static int32_t snippet_main(void) {
             l3 = ((int64_t) (int32_t) l0);
             l2 = std_core_write_int(l1, l2, l3);
             l2 = std_core_write_string_at(l1, l2, 2u);
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-            l4 = ((int64_t) 1);
-            l2 = std_core_write_int(l1, l2, l4);
+            l2 = std_core_write_int(l1, l2, INT64_C(1));
             t0 = std_core_finish_buffer(l1, l2);
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
         if (!(INT32_C(2) == INT32_C(2))) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-            l5 = std_core_new_byte_buffer((size_t) 51);
-            l6 = (size_t) 0;
-            l6 = std_core_write_string_at(l5, l6, 1u);
-            l7 = ((int64_t) (int32_t) l0);
-            l6 = std_core_write_int(l5, l6, l7);
-            l6 = std_core_write_string_at(l5, l6, 2u);
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-            l8 = ((int64_t) 2);
-            l6 = std_core_write_int(l5, l6, l8);
-            t0 = std_core_finish_buffer(l5, l6);
+            l4 = std_core_new_byte_buffer((size_t) 51);
+            l5 = (size_t) 0;
+            l5 = std_core_write_string_at(l4, l5, 1u);
+            l6 = ((int64_t) (int32_t) l0);
+            l5 = std_core_write_int(l4, l5, l6);
+            l5 = std_core_write_string_at(l4, l5, 2u);
+            l5 = std_core_write_int(l4, l5, INT64_C(2));
+            t0 = std_core_finish_buffer(l4, l5);
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
         if (!(INT32_C(3) == INT32_C(2))) {
 #line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-            l9 = std_core_new_byte_buffer((size_t) 51);
-            l10 = (size_t) 0;
-            l10 = std_core_write_string_at(l9, l10, 1u);
-            l11 = ((int64_t) (int32_t) l0);
-            l10 = std_core_write_int(l9, l10, l11);
-            l10 = std_core_write_string_at(l9, l10, 2u);
-#line 12 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 16 "tests/snippets/comptime_for_jumps/_main.vader"
-            l12 = ((int64_t) 3);
-            l10 = std_core_write_int(l9, l10, l12);
-            t0 = std_core_finish_buffer(l9, l10);
+            l7 = std_core_new_byte_buffer((size_t) 51);
+            l8 = (size_t) 0;
+            l8 = std_core_write_string_at(l7, l8, 1u);
+            l9 = ((int64_t) (int32_t) l0);
+            l8 = std_core_write_int(l7, l8, l9);
+            l8 = std_core_write_string_at(l7, l8, 2u);
+            l8 = std_core_write_int(l7, l8, INT64_C(3));
+            t0 = std_core_finish_buffer(l7, l8);
             std_io_println__string(t0);
 #line 13 "tests/snippets/comptime_for_jumps/_main.vader"
         }
@@ -226,10 +217,7 @@ static int32_t snippet_main(void) {
             l3 = ((int64_t) (int32_t) l0);
             l2 = std_core_write_int(l1, l2, l3);
             l2 = std_core_write_string_at(l1, l2, 2u);
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-            l4 = ((int64_t) 1);
-            l2 = std_core_write_int(l1, l2, l4);
+            l2 = std_core_write_int(l1, l2, INT64_C(1));
             t0 = std_core_finish_buffer(l1, l2);
             std_io_println__string(t0);
             vader_defer_pop_exec(1u);
@@ -251,17 +239,14 @@ static int32_t snippet_main(void) {
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
             } else {
-                l5 = std_core_new_byte_buffer((size_t) 48);
-                l6 = (size_t) 0;
-                l6 = std_core_write_string_at(l5, l6, 3u);
-                l7 = ((int64_t) (int32_t) l0);
-                l6 = std_core_write_int(l5, l6, l7);
-                l6 = std_core_write_string_at(l5, l6, 2u);
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                l8 = ((int64_t) 2);
-                l6 = std_core_write_int(l5, l6, l8);
-                t0 = std_core_finish_buffer(l5, l6);
+                l4 = std_core_new_byte_buffer((size_t) 48);
+                l5 = (size_t) 0;
+                l5 = std_core_write_string_at(l4, l5, 3u);
+                l6 = ((int64_t) (int32_t) l0);
+                l5 = std_core_write_int(l4, l5, l6);
+                l5 = std_core_write_string_at(l4, l5, 2u);
+                l5 = std_core_write_int(l4, l5, INT64_C(2));
+                t0 = std_core_finish_buffer(l4, l5);
                 std_io_println__string(t0);
                 vader_defer_pop_exec(1u);
 #line 21 "tests/snippets/comptime_for_jumps/_main.vader"
@@ -282,17 +267,14 @@ static int32_t snippet_main(void) {
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
 #line 25 "tests/snippets/comptime_for_jumps/_main.vader"
                 } else {
-                    l9 = std_core_new_byte_buffer((size_t) 48);
-                    l10 = (size_t) 0;
-                    l10 = std_core_write_string_at(l9, l10, 3u);
-                    l11 = ((int64_t) (int32_t) l0);
-                    l10 = std_core_write_int(l9, l10, l11);
-                    l10 = std_core_write_string_at(l9, l10, 2u);
-#line 20 "tests/snippets/comptime_for_jumps/_main.vader"
-#line 25 "tests/snippets/comptime_for_jumps/_main.vader"
-                    l12 = ((int64_t) 3);
-                    l10 = std_core_write_int(l9, l10, l12);
-                    t0 = std_core_finish_buffer(l9, l10);
+                    l7 = std_core_new_byte_buffer((size_t) 48);
+                    l8 = (size_t) 0;
+                    l8 = std_core_write_string_at(l7, l8, 3u);
+                    l9 = ((int64_t) (int32_t) l0);
+                    l8 = std_core_write_int(l7, l8, l9);
+                    l8 = std_core_write_string_at(l7, l8, 2u);
+                    l8 = std_core_write_int(l7, l8, INT64_C(3));
+                    t0 = std_core_finish_buffer(l7, l8);
                     std_io_println__string(t0);
                     vader_defer_pop_exec(1u);
 #line 22 "tests/snippets/comptime_for_jumps/_main.vader"
@@ -300,12 +282,12 @@ static int32_t snippet_main(void) {
             }
         }
 #line 27 "tests/snippets/comptime_for_jumps/_main.vader"
-        l13 = std_core_new_byte_buffer((size_t) 32);
-        l14 = (size_t) 0;
-        l14 = std_core_write_string_at(l13, l14, 4u);
-        l15 = ((int64_t) (int32_t) l0);
-        l14 = std_core_write_int(l13, l14, l15);
-        t0 = std_core_finish_buffer(l13, l14);
+        l10 = std_core_new_byte_buffer((size_t) 32);
+        l11 = (size_t) 0;
+        l11 = std_core_write_string_at(l10, l11, 4u);
+        l12 = ((int64_t) (int32_t) l0);
+        l11 = std_core_write_int(l10, l11, l12);
+        t0 = std_core_finish_buffer(l10, l11);
         std_io_println__string(t0);
 #line 19 "tests/snippets/comptime_for_jumps/_main.vader"
         l0 = (l0 + INT32_C(1));

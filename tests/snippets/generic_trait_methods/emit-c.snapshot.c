@@ -191,12 +191,10 @@ static vader_string_t snippet_Box_Conv_conv__i32(void* l0, int32_t l1) {
     size_t l3;
     void* l4 = NULL;
     int64_t l5;
-    uint64_t l6;
     int32_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
+    vader_string_t t1 = 0;
     void** gc_raw_roots[2] = { &l0, &l4 };
-    vader_string_t* gc_atom_roots[2] = { &l2, &t2 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -212,11 +210,9 @@ static vader_string_t snippet_Box_Conv_conv__i32(void* l0, int32_t l1) {
     l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
     l3 = std_core_write_string_at(l4, l3, 4u);
-    t1 = INT64_C(4);
-    l6 = (uint64_t) (int64_t) t1;
-    l3 = std_core_write_unsigned(l4, l3, l6);
-    t2 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = std_core_write_unsigned(l4, l3, (uint64_t) 4);
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_Box_Conv_conv__string(void* l0, vader_string_t l1) {
@@ -224,12 +220,10 @@ static vader_string_t snippet_Box_Conv_conv__string(void* l0, vader_string_t l1)
     size_t l3;
     void* l4 = NULL;
     int64_t l5;
-    uint64_t l6;
     int32_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
+    vader_string_t t1 = 0;
     void** gc_raw_roots[2] = { &l0, &l4 };
-    vader_string_t* gc_atom_roots[3] = { &l1, &l2, &t2 };
+    vader_string_t* gc_atom_roots[3] = { &l1, &l2, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
@@ -245,11 +239,9 @@ static vader_string_t snippet_Box_Conv_conv__string(void* l0, vader_string_t l1)
     l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
     l3 = std_core_write_string_at(l4, l3, 4u);
-    t1 = INT64_C(4);
-    l6 = (uint64_t) (int64_t) t1;
-    l3 = std_core_write_unsigned(l4, l3, l6);
-    t2 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = std_core_write_unsigned(l4, l3, (uint64_t) 4);
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_Box_Conv_conv__i64(void* l0, int64_t l1) {
@@ -257,12 +249,10 @@ static vader_string_t snippet_Box_Conv_conv__i64(void* l0, int64_t l1) {
     size_t l3;
     void* l4 = NULL;
     int64_t l5;
-    uint64_t l6;
     int32_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
+    vader_string_t t1 = 0;
     void** gc_raw_roots[2] = { &l0, &l4 };
-    vader_string_t* gc_atom_roots[2] = { &l2, &t2 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -278,11 +268,9 @@ static vader_string_t snippet_Box_Conv_conv__i64(void* l0, int64_t l1) {
     l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
     l3 = std_core_write_string_at(l4, l3, 4u);
-    t1 = INT64_C(8);
-    l6 = (uint64_t) (int64_t) t1;
-    l3 = std_core_write_unsigned(l4, l3, l6);
-    t2 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = std_core_write_unsigned(l4, l3, (uint64_t) 8);
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void* snippet_Box_Conv_make__bool(bool l0) {
@@ -380,12 +368,10 @@ static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1) {
     size_t l3;
     void* l4 = NULL;
     int64_t l5;
-    uint64_t l6;
     int32_t t0;
-    int64_t t1;
-    vader_string_t t2 = 0;
+    vader_string_t t1 = 0;
     void** gc_raw_roots[2] = { &l0, &l4 };
-    vader_string_t* gc_atom_roots[2] = { &l2, &t2 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
@@ -401,11 +387,9 @@ static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1) {
     l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
     l3 = std_core_write_string_at(l4, l3, 4u);
-    t1 = INT64_C(8);
-    l6 = (uint64_t) (int64_t) t1;
-    l3 = std_core_write_unsigned(l4, l3, l6);
-    t2 = std_core_finish_buffer(l4, l3);
-    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = std_core_write_unsigned(l4, l3, (uint64_t) 8);
+    t1 = std_core_finish_buffer(l4, l3);
+    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_through_bound__snippet_Box(void* l0) {

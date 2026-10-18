@@ -256,7 +256,6 @@ fn 0 snippet$main (ref) -> i32
 end
 
 fn 1 snippet$clamp_to__Int_in_0___23 (i64) -> u8
-  local $cast_7 i64
   local.get 0   ; arg 0
   i64.const 0
   i64.lt
@@ -274,11 +273,8 @@ fn 1 snippet$clamp_to__Int_in_0___23 (i64) -> u8
       return
     end $L1
   end $L0
-  i32.const 0
-  u8.to_i64
-  local.set 1   ; $cast_7
   local.get 0   ; arg 0
-  local.get 1   ; $cast_7
+  i64.const 0
   i64.lt
   if $L2 void
   else
@@ -288,7 +284,6 @@ fn 1 snippet$clamp_to__Int_in_0___23 (i64) -> u8
 end
 
 fn 2 snippet$clamp_to__Int_in_1___12 (i64) -> u8
-  local $cast_7 i64
   local.get 0   ; arg 0
   i64.const 1
   i64.lt
@@ -306,11 +301,8 @@ fn 2 snippet$clamp_to__Int_in_1___12 (i64) -> u8
       return
     end $L1
   end $L0
-  i32.const 1
-  u8.to_i64
-  local.set 1   ; $cast_7
   local.get 0   ; arg 0
-  local.get 1   ; $cast_7
+  i64.const 1
   i64.lt
   if $L2 void
   else
@@ -320,7 +312,6 @@ fn 2 snippet$clamp_to__Int_in_1___12 (i64) -> u8
 end
 
 fn 3 snippet$clamp_to__u8 (i64) -> u8
-  local $cast_7 i64
   local.get 0   ; arg 0
   i64.const 0
   i64.lt
@@ -338,11 +329,8 @@ fn 3 snippet$clamp_to__u8 (i64) -> u8
       return
     end $L1
   end $L0
-  i32.const 0
-  u8.to_i64
-  local.set 1   ; $cast_7
   local.get 0   ; arg 0
-  local.get 1   ; $cast_7
+  i64.const 0
   i64.lt
   if $L2 void
   else
@@ -352,60 +340,41 @@ fn 3 snippet$clamp_to__u8 (i64) -> u8
 end
 
 fn 4 snippet$wrap_next__Int_in_0___23 (u8) -> u8
-  local $cast_1 i64
-  local $cast_3 i64
-  local $cast_10 i64
+  local $add_checked_5 i64
+  local $add_checked_10 i64
   local or_res bool
   local.get 0   ; arg 0
   u8.to_i64
-  local.set 1   ; $cast_1
-  i32.const 0
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 0
   i64.checked_sub
   i64.const 1
   i64.checked_add
-  local.set 1   ; $cast_1
-  i32.const 23
-  u8.to_i64
-  local.set 2   ; $cast_3
-  i32.const 0
-  u8.to_i64
-  local.set 3   ; $cast_10
-  local.get 2   ; $cast_3
-  local.get 3   ; $cast_10
-  i64.checked_sub
+  local.set 1   ; $add_checked_5
+  i64.const 23
   i64.const 1
   i64.checked_add
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  local.set 2   ; $add_checked_10
+  local.get 1   ; $add_checked_5
+  local.get 2   ; $add_checked_10
   i64.rem
-  local.set 1   ; $cast_1
-  i32.const 0
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 0
   i64.checked_add
-  local.tee 1   ; $cast_1
+  local.tee 1   ; $add_checked_5
   i64.const 0
   i64.lt
   if $L0 void
     bool.const true
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.const 23
     i64.gt
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   end $L0
-  local.get 4   ; or_res
+  local.get 3   ; or_res
   if $L1 void
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.to_i32
     i32.const 255
     i32.bitand
@@ -415,60 +384,41 @@ fn 4 snippet$wrap_next__Int_in_0___23 (u8) -> u8
 end
 
 fn 5 snippet$wrap_next__Int_in_1___12 (u8) -> u8
-  local $cast_1 i64
-  local $cast_3 i64
-  local $cast_10 i64
+  local $add_checked_5 i64
+  local $add_checked_10 i64
   local or_res bool
   local.get 0   ; arg 0
   u8.to_i64
-  local.set 1   ; $cast_1
-  i32.const 1
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 1
   i64.checked_sub
   i64.const 1
   i64.checked_add
-  local.set 1   ; $cast_1
-  i32.const 12
-  u8.to_i64
-  local.set 2   ; $cast_3
-  i32.const 1
-  u8.to_i64
-  local.set 3   ; $cast_10
-  local.get 2   ; $cast_3
-  local.get 3   ; $cast_10
-  i64.checked_sub
+  local.set 1   ; $add_checked_5
+  i64.const 11
   i64.const 1
   i64.checked_add
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  local.set 2   ; $add_checked_10
+  local.get 1   ; $add_checked_5
+  local.get 2   ; $add_checked_10
   i64.rem
-  local.set 1   ; $cast_1
-  i32.const 1
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 1
   i64.checked_add
-  local.tee 1   ; $cast_1
+  local.tee 1   ; $add_checked_5
   i64.const 1
   i64.lt
   if $L0 void
     bool.const true
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.const 12
     i64.gt
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   end $L0
-  local.get 4   ; or_res
+  local.get 3   ; or_res
   if $L1 void
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.to_i32
     i32.const 255
     i32.bitand
@@ -478,60 +428,41 @@ fn 5 snippet$wrap_next__Int_in_1___12 (u8) -> u8
 end
 
 fn 6 snippet$wrap_next__u8 (u8) -> u8
-  local $cast_1 i64
-  local $cast_3 i64
-  local $cast_10 i64
+  local $add_checked_5 i64
+  local $add_checked_10 i64
   local or_res bool
   local.get 0   ; arg 0
   u8.to_i64
-  local.set 1   ; $cast_1
-  i32.const 0
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 0
   i64.checked_sub
   i64.const 1
   i64.checked_add
-  local.set 1   ; $cast_1
-  i32.const 255
-  u8.to_i64
-  local.set 2   ; $cast_3
-  i32.const 0
-  u8.to_i64
-  local.set 3   ; $cast_10
-  local.get 2   ; $cast_3
-  local.get 3   ; $cast_10
-  i64.checked_sub
+  local.set 1   ; $add_checked_5
+  i64.const 255
   i64.const 1
   i64.checked_add
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  local.set 2   ; $add_checked_10
+  local.get 1   ; $add_checked_5
+  local.get 2   ; $add_checked_10
   i64.rem
-  local.set 1   ; $cast_1
-  i32.const 0
-  u8.to_i64
-  local.set 2   ; $cast_3
-  local.get 1   ; $cast_1
-  local.get 2   ; $cast_3
+  i64.const 0
   i64.checked_add
-  local.tee 1   ; $cast_1
+  local.tee 1   ; $add_checked_5
   i64.const 0
   i64.lt
   if $L0 void
     bool.const true
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.const 255
     i64.gt
-    local.set 4   ; or_res
+    local.set 3   ; or_res
   end $L0
-  local.get 4   ; or_res
+  local.get 3   ; or_res
   if $L1 void
   else
-    local.get 1   ; $cast_1
+    local.get 1   ; $add_checked_5
     i64.to_i32
     i32.const 255
     i32.bitand
@@ -618,12 +549,9 @@ fn 9 snippet$show__Int_in_1___12 (u8) -> string
   string.const 6   ; " of "
   call 14   ; std_core$write_string_at
   local.set 2   ; __off_1
-  i32.const 1
-  u8.to_i64
-  local.set 3   ; $cast_6
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_6
+  i64.const 1
   call 16   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
@@ -631,12 +559,9 @@ fn 9 snippet$show__Int_in_1___12 (u8) -> string
   string.const 7   ; "..="
   call 14   ; std_core$write_string_at
   local.set 2   ; __off_1
-  i32.const 12
-  u8.to_i64
-  local.set 3   ; $cast_6
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 3   ; $cast_6
+  i64.const 12
   call 16   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0

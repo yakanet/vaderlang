@@ -400,15 +400,24 @@ bind_infer_var :: fn(
     }
     existing :: solutions[v.id]
     if existing == null {
-        solutions[v.id] = actual
+        solutions[v.id] = as_type_argument(actual)
         return
     }
     if held != null && v.id in held {
         return
     }
     if is_free_numeric(existing) && !is_free_numeric(actual) {
-        solutions[v.id] = actual
+        solutions[v.id] = as_type_argument(actual)
     }
+}
+
+// `t` as a type parameter is bound to it : a range without its origin, the width of
+// the one instance every caller at that range shares.
+as_type_argument :: fn(t: Type) -> Type {
+    if t is RangeType {
+        return without_origin(t)
+    }
+    return t
 }
 
 /// Whether `t` mentions the inference variable `id`.

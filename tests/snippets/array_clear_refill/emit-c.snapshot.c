@@ -138,9 +138,9 @@ static void* snippet_seen(void) {
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l2 = NULL;
-    void* l9 = NULL;
+    void* l8 = NULL;
     int32_t l1;
-    size_t l3, l8;
+    size_t l3;
     uint64_t l4;
     int64_t l5;
     vader_string_t l6 = 0;
@@ -150,7 +150,7 @@ static int32_t snippet_main(void) {
     int64_t t2;
     vader_string_t t3 = 0;
     vader_box_t* gc_roots[1] = { &l7 };
-    void** gc_raw_roots[4] = { &l0, &l2, &l9, &t0 };
+    void** gc_raw_roots[4] = { &l0, &l2, &l8, &t0 };
     vader_string_t* gc_atom_roots[2] = { &l6, &t3 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
@@ -258,28 +258,24 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(1);
     l0 = (void*) _a2_arr;
 #line 44 "tests/snippets/array_clear_refill/_main.vader"
-    t2 = ((int64_t) 1);
-    l3 = (size_t) (int64_t) t2;
-    t2 = ((int64_t) 3);
-    l8 = (size_t) (int64_t) t2;
-    vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l0, (size_t) l3, (size_t) l8);
+    vader_array_t* _a3_arr = vader_array_slice((vader_array_t*) l0, (size_t) INT64_C(1), (size_t) INT64_C(3));
     l2 = (void*) _a3_arr;
 #line 45 "tests/snippets/array_clear_refill/_main.vader"
     vader_array_clear((vader_array_t*) l0);
 #line 46 "tests/snippets/array_clear_refill/_main.vader"
-    l9 = std_core_new_byte_buffer((size_t) 50);
+    l8 = std_core_new_byte_buffer((size_t) 50);
     l3 = (size_t) 0;
-    l3 = std_core_write_string_at(l9, l3, 9u);
+    l3 = std_core_write_string_at(l8, l3, 9u);
     t1 = ((vader_array_t*) l2)->length;
     t2 = ((int64_t) (size_t) t1);
     l4 = (uint64_t) (int64_t) t2;
-    l3 = std_core_write_unsigned(l9, l3, l4);
-    l3 = std_core_write_string_at(l9, l3, 10u);
+    l3 = std_core_write_unsigned(l8, l3, l4);
+    l3 = std_core_write_string_at(l8, l3, 10u);
     t1 = ((vader_array_t*) l0)->length;
     t2 = ((int64_t) (size_t) t1);
     l4 = (uint64_t) (int64_t) t2;
-    l3 = std_core_write_unsigned(l9, l3, l4);
-    t3 = std_core_finish_buffer(l9, l3);
+    l3 = std_core_write_unsigned(l8, l3, l4);
+    t3 = std_core_finish_buffer(l8, l3);
     std_io_println__string(t3);
 #line 47 "tests/snippets/array_clear_refill/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }

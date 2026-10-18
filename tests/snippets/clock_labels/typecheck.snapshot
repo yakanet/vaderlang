@@ -1,0 +1,123 @@
+# Typecheck
+
+## tests/snippets/clock_labels
+  FnDecl         am                   :: fn(Morning) -> string
+  FnDecl         digit                :: fn(u8) -> i32
+  FnDecl         doubled              :: fn(i64, Hour) -> i64
+  FnDecl         either               :: fn(i64, Hour, bool) -> i64
+  FnDecl         from_input           :: fn(i64) -> string
+  FnDecl         head                 :: fn(T[]) -> T
+  ConstDecl      Hour                 :: type
+  FnDecl         label                :: fn(Hour) -> string
+  FnDecl         main                 :: fn(string[]) -> i32
+  FnDecl         millis               :: fn(Hour) -> i64
+  ConstDecl      Morning              :: type
+  expr 16:34    StringLitExpr  :: string
+  expr 16:37    IdentExpr      :: Morning
+  expr 18:34    MatchExpr      :: string
+  expr 18:40    IdentExpr      :: Hour
+  expr 19:16    StringLitExpr  :: string
+  expr 20:16    CallExpr       :: string
+  expr 20:16    IdentExpr      :: fn(Morning) -> string
+  expr 20:19    IdentExpr      :: 1..=11
+  expr 21:16    StringLitExpr  :: string
+  expr 22:16    StringLitExpr  :: string
+  expr 22:19    CallExpr       :: string
+  expr 22:19    IdentExpr      :: fn(Morning) -> string
+  expr 22:22    BinaryExpr     :: 1..=11
+  expr 22:22    IdentExpr      :: 13..=23
+  expr 25:38    MatchExpr      :: string
+  expr 25:44    IdentExpr      :: i64
+  expr 26:15    CallExpr       :: string
+  expr 26:15    IdentExpr      :: fn(Morning) -> string
+  expr 26:18    IdentExpr      :: 0..=11
+  expr 27:15    StringLitExpr  :: string
+  expr 30:29    MatchExpr      :: i32
+  expr 30:35    IdentExpr      :: u8
+  expr 31:18    CallExpr       :: i32
+  expr 31:18    IdentExpr      :: type
+  expr 31:22    BinaryExpr     :: 0..=9
+  expr 31:22    IdentExpr      :: 48..=57
+  expr 36:18    IdentExpr      :: Hour
+  expr 37:13    BinaryExpr     :: i64
+  expr 37:13    IdentExpr      :: i64
+  expr 37:5     IdentExpr      :: i64
+  expr 38:12    IdentExpr      :: i64
+  expr 42:14    IdentExpr      :: Hour
+  expr 42:5     IfExpr         :: void
+  expr 42:8     BinaryExpr     :: bool
+  expr 42:8     IdentExpr      :: i64
+  expr 45:15    IfExpr         :: Hour
+  expr 45:18    IdentExpr      :: bool
+  expr 45:26    IdentExpr      :: Hour
+  expr 45:37    IdentExpr      :: Hour
+  expr 46:12    BinaryExpr     :: i64
+  expr 46:12    CallExpr       :: i64
+  expr 46:12    IdentExpr      :: type
+  expr 46:16    IdentExpr      :: Hour
+  expr 49:31    IdentExpr      :: T[]
+  expr 49:31    IndexExpr      :: T
+  expr 52:14    IdentExpr      :: Hour
+  expr 52:5     IfExpr         :: void
+  expr 52:8     BinaryExpr     :: bool
+  expr 52:8     IdentExpr      :: i64
+  expr 55:12    BinaryExpr     :: i64
+  expr 55:12    BinaryExpr     :: i64
+  expr 55:12    CallExpr       :: i64
+  expr 55:12    IdentExpr      :: type
+  expr 55:16    CallExpr       :: Hour
+  expr 55:16    IdentExpr      :: fn(T[]) -> T
+  expr 55:21    SeqLitExpr     :: Hour[]
+  expr 55:22    IdentExpr      :: Hour
+  expr 55:25    IdentExpr      :: Hour
+  expr 55:38    CallExpr       :: i64
+  expr 55:38    IdentExpr      :: type
+  expr 55:42    CallExpr       :: Hour
+  expr 55:42    IdentExpr      :: fn(T[]) -> T
+  expr 55:47    SeqLitExpr     :: Hour[]
+  expr 55:48    IdentExpr      :: Hour
+  expr 55:51    IdentExpr      :: Hour
+  expr 60:13    StringLitExpr  :: string
+  expr 60:16    CallExpr       :: string
+  expr 60:16    IdentExpr      :: fn(Hour) -> string
+  expr 60:29    CallExpr       :: string
+  expr 60:29    IdentExpr      :: fn(Hour) -> string
+  expr 60:42    CallExpr       :: string
+  expr 60:42    IdentExpr      :: fn(Hour) -> string
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 60:56    CallExpr       :: string
+  expr 60:56    IdentExpr      :: fn(Hour) -> string
+  expr 60:62    IdentExpr      :: Hour
+  expr 61:13    StringLitExpr  :: string
+  expr 61:16    CallExpr       :: string
+  expr 61:16    IdentExpr      :: fn(i64) -> string
+  expr 61:34    CallExpr       :: string
+  expr 61:34    IdentExpr      :: fn(i64) -> string
+  expr 61:5     CallExpr       :: void
+  expr 61:5     IdentExpr      :: fn(T) -> void
+  expr 62:13    StringLitExpr  :: string
+  expr 62:16    CallExpr       :: i32
+  expr 62:16    IdentExpr      :: fn(u8) -> i32
+  expr 62:30    CallExpr       :: i32
+  expr 62:30    IdentExpr      :: fn(u8) -> i32
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:13    StringLitExpr  :: string
+  expr 63:16    CallExpr       :: i64
+  expr 63:16    IdentExpr      :: fn(Hour) -> i64
+  expr 63:23    IdentExpr      :: Hour
+  expr 63:32    CallExpr       :: i64
+  expr 63:32    IdentExpr      :: fn(i64, Hour, bool) -> i64
+  expr 63:42    IdentExpr      :: Hour
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 63:57    CallExpr       :: i64
+  expr 63:57    IdentExpr      :: fn(i64, Hour, bool) -> i64
+  expr 63:67    IdentExpr      :: Hour
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: i64
+  expr 64:16    IdentExpr      :: fn(i64, Hour) -> i64
+  expr 64:27    IdentExpr      :: Hour
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void

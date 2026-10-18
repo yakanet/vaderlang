@@ -289,11 +289,13 @@ is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
 // value it has, or into a union through one ; never into a distinct, which only
 // its own values enter.
 is_assignable_range :: fn(from: RangeType, to: Type) -> bool {
-    outer :: integer_values(to)
-    if outer != null && interval_within(from.bounds, outer) {
-        return true
-    }
-    return check_common(from, to)
+    return integer_holds_range(to, from) || check_common(from, to)
+}
+
+// Whether `t` is an integer type holding every value of the range `r`.
+integer_holds_range :: fn(t: Type, r: RangeType) -> bool {
+    outer :: integer_values(t) ?? return false
+    return interval_within(r.bounds, outer)
 }
 
 /// The values of `t` a `match` covers arm by arm : a range's, an integer

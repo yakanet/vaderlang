@@ -46,7 +46,6 @@ fn 0 snippet$main () -> i32
   local __off_1 usize
   local $cast_9 u64
   local $call_24 bool
-  local $cast_52 usize
   string.const 0   ; "  Hello, World!  "
   local.set 0   ; s
   i64.const 20
@@ -133,16 +132,8 @@ fn 0 snippet$main () -> i32
   call 17   ; std_io$println__string
   string.const 7   ; "hello world"
   call.import 5   ; std_core$bytes
-  local.set 1   ; __buf_0
-  i32.const 6
-  i32.to_i64
-  local.set 2   ; __off_1
-  i32.const 11
-  i32.to_i64
-  local.set 5   ; $cast_52
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 5   ; $cast_52
+  i64.const 6
+  i64.const 11
   array.slice 9   ; u8[]
   call.import 4   ; std_core$bytes_to_string
   call 17   ; std_io$println__string

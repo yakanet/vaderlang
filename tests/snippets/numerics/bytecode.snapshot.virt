@@ -38,24 +38,19 @@ export main 0
 fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 usize
-  local $cast_6 i64
   local __p_2 string
   local __p_3 string
   local __p_4 string
   local __p_5 string
-  local $call_48 usize
-  local $cast_64 u64
+  local $call_42 usize
   i64.const 125
   call 2   ; std_core$new_byte_buffer
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
-  i32.const 42
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 42
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -63,12 +58,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 1000000
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 1000000
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -76,12 +68,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 255
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 255
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -89,12 +78,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 65535
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 65535
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -102,12 +88,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 10
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 10
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -115,12 +98,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 493
-  i32.to_i64
-  local.set 2   ; $cast_6
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_6
+  i64.const 493
   call 5   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -129,38 +109,38 @@ fn 0 snippet$main () -> i32
   call 39   ; std_io$println__string
   f64.const 3.14 4614253070214989087
   call 8   ; std_core$f64$Display$to_string
-  local.set 3   ; __p_2
+  local.set 2   ; __p_2
   f64.const 1.5e-10 4459862875403570764
   call 8   ; std_core$f64$Display$to_string
-  local.set 4   ; __p_3
+  local.set 3   ; __p_3
   f64.const 3.14 4614253070214989087
   call 7   ; std_core$f32$Display$to_string
-  local.set 5   ; __p_4
+  local.set 4   ; __p_4
   f64.const 0.5 4602678819172646912
   call 8   ; std_core$f64$Display$to_string
-  local.set 6   ; __p_5
-  local.get 3   ; __p_2
+  local.set 5   ; __p_5
+  local.get 2   ; __p_2
   call.import 0   ; std_core$byte_len
   local.set 1   ; __off_1
-  local.get 4   ; __p_3
+  local.get 3   ; __p_3
   call.import 0   ; std_core$byte_len
-  local.set 7   ; $call_48
+  local.set 6   ; $call_42
   local.get 1   ; __off_1
-  local.get 7   ; $call_48
+  local.get 6   ; $call_42
   i64.add
   local.set 1   ; __off_1
-  local.get 5   ; __p_4
+  local.get 4   ; __p_4
   call.import 0   ; std_core$byte_len
-  local.set 7   ; $call_48
+  local.set 6   ; $call_42
   local.get 1   ; __off_1
-  local.get 7   ; $call_48
+  local.get 6   ; $call_42
   i64.add
   local.set 1   ; __off_1
-  local.get 6   ; __p_5
+  local.get 5   ; __p_5
   call.import 0   ; std_core$byte_len
-  local.set 7   ; $call_48
+  local.set 6   ; $call_42
   local.get 1   ; __off_1
-  local.get 7   ; $call_48
+  local.get 6   ; $call_42
   i64.add
   local.set 1   ; __off_1
   i64.const 45
@@ -180,12 +160,9 @@ fn 0 snippet$main () -> i32
   string.const 0   ; " "
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
-  i32.const 100
-  u32.to_i64
-  local.set 8   ; $cast_64
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 8   ; $cast_64
+  i64.const 100
   call 6   ; std_core$write_unsigned
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -195,7 +172,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 3   ; __p_2
+  local.get 2   ; __p_2
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -205,7 +182,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 4   ; __p_3
+  local.get 3   ; __p_3
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -215,7 +192,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 5   ; __p_4
+  local.get 4   ; __p_4
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -225,7 +202,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 6   ; __p_5
+  local.get 5   ; __p_5
   call 4   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0

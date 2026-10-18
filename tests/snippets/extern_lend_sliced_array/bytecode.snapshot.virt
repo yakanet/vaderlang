@@ -32,10 +32,9 @@ end
 
 fn 1 snippet$main () -> i32
   local ys ref
-  local $cast_11 usize
-  local $cast_13 usize
   local early ref
-  local $cast_27 i64
+  local __off_1 usize
+  local $cast_25 i64
   i32.const 5
   i32.const 3
   i32.const 9
@@ -45,18 +44,11 @@ fn 1 snippet$main () -> i32
   i32.const 8
   i32.const 4
   array.new 5 8   ; i32[]
-  local.set 0   ; ys
-  i32.const 2
-  i32.to_i64
-  local.set 1   ; $cast_11
-  i32.const 6
-  i32.to_i64
-  local.set 2   ; $cast_13
-  local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 2   ; $cast_13
+  local.tee 0   ; ys
+  i64.const 2
+  i64.const 6
   array.slice 5   ; i32[]
-  local.set 3   ; early
+  local.set 1   ; early
   fn.addr 0   ; snippet$churn
   call.import 0   ; snippet$slice_set_cb
   local.get 0   ; ys
@@ -66,69 +58,69 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$new_byte_buffer
   local.set 0   ; ys
   i64.const 0
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 0   ; "early="
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 0
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 1
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 2
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 3
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   i32.const 5
@@ -140,18 +132,11 @@ fn 1 snippet$main () -> i32
   i32.const 8
   i32.const 4
   array.new 5 8   ; i32[]
-  local.set 0   ; ys
-  i32.const 2
-  i32.to_i64
-  local.set 1   ; $cast_11
-  i32.const 6
-  i32.to_i64
-  local.set 2   ; $cast_13
-  local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 2   ; $cast_13
+  local.tee 0   ; ys
+  i64.const 2
+  i64.const 6
   array.slice 5   ; i32[]
-  local.set 3   ; early
+  local.set 1   ; early
   local.get 0   ; ys
   i64.const 8
   call.import 1   ; snippet$slice_fill
@@ -159,69 +144,69 @@ fn 1 snippet$main () -> i32
   call 3   ; std_core$new_byte_buffer
   local.set 0   ; ys
   i64.const 0
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 2   ; "view="
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 0
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 1
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 2
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   string.const 1   ; " "
   call 5   ; std_core$write_string_at
-  local.set 1   ; $cast_11
-  local.get 3   ; early
+  local.set 2   ; __off_1
+  local.get 1   ; early
   i32.const 3
   load_slot_i32
   i32.to_i64
-  local.set 4   ; $cast_27
+  local.set 3   ; $cast_25
   local.get 0   ; ys
-  local.get 1   ; $cast_11
-  local.get 4   ; $cast_27
+  local.get 2   ; __off_1
+  local.get 3   ; $cast_25
   call 6   ; std_core$write_int
-  local.set 1   ; $cast_11
+  local.set 2   ; __off_1
   local.get 0   ; ys
-  local.get 1   ; $cast_11
+  local.get 2   ; __off_1
   call 4   ; std_core$finish_buffer
   call 9   ; std_io$println__string
   return.lit i32.const 0

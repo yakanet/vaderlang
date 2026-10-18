@@ -34,8 +34,7 @@ fn 0 snippet$main () -> i32
   local x i32
   local x i32
   local x i32
-  local $cast_153 usize
-  local $cast_156 u64
+  local $cast_152 u64
   i32.const 1
   i32.const 2
   i32.const 3
@@ -220,15 +219,9 @@ fn 0 snippet$main () -> i32
   end $L9
   local.get 8   ; x
   local.set 7   ; x
-  i32.const 0
-  i32.to_i64
-  local.set 3   ; $len_23
-  i32.const 3
-  i32.to_i64
-  local.set 4   ; __fuse_i_1
   local.get 0   ; nums
-  local.get 3   ; $len_23
-  local.get 4   ; __fuse_i_1
+  i64.const 0
+  i64.const 3
   array.slice 11   ; i32[]
   local.set 1   ; __fuse_arr_0
   call 9   ; std_core$i32$Zero$zero
@@ -307,22 +300,16 @@ fn 0 snippet$main () -> i32
   string.const 0   ; "slice mid len="
   call 7   ; std_core$write_string_at
   local.set 3   ; $len_23
-  i32.const 3
-  i32.to_i64
-  local.set 4   ; __fuse_i_1
-  i32.const 7
-  i32.to_i64
-  local.set 12   ; $cast_153
   local.get 0   ; nums
-  local.get 4   ; __fuse_i_1
-  local.get 12   ; $cast_153
+  i64.const 3
+  i64.const 7
   array.slice 11   ; i32[]
   array.len
   usize.to_i64
-  local.set 13   ; $cast_156
+  local.set 12   ; $cast_152
   local.get 1   ; __fuse_arr_0
   local.get 3   ; $len_23
-  local.get 13   ; $cast_156
+  local.get 12   ; $cast_152
   call 8   ; std_core$write_unsigned
   local.set 3   ; $len_23
   local.get 1   ; __fuse_arr_0
@@ -339,22 +326,16 @@ fn 0 snippet$main () -> i32
   string.const 1   ; "slice over len="
   call 7   ; std_core$write_string_at
   local.set 3   ; $len_23
-  i32.const 100
-  i32.to_i64
-  local.set 4   ; __fuse_i_1
-  i32.const 200
-  i32.to_i64
-  local.set 12   ; $cast_153
   local.get 0   ; nums
-  local.get 4   ; __fuse_i_1
-  local.get 12   ; $cast_153
+  i64.const 100
+  i64.const 200
   array.slice 11   ; i32[]
   array.len
   usize.to_i64
-  local.set 13   ; $cast_156
+  local.set 12   ; $cast_152
   local.get 1   ; __fuse_arr_0
   local.get 3   ; $len_23
-  local.get 13   ; $cast_156
+  local.get 12   ; $cast_152
   call 8   ; std_core$write_unsigned
   local.set 3   ; $len_23
   local.get 1   ; __fuse_arr_0
@@ -371,22 +352,16 @@ fn 0 snippet$main () -> i32
   string.const 2   ; "slice tail len="
   call 7   ; std_core$write_string_at
   local.set 3   ; $len_23
-  i32.const 8
-  i32.to_i64
-  local.set 4   ; __fuse_i_1
-  i32.const 999
-  i32.to_i64
-  local.set 12   ; $cast_153
   local.get 0   ; nums
-  local.get 4   ; __fuse_i_1
-  local.get 12   ; $cast_153
+  i64.const 8
+  i64.const 999
   array.slice 11   ; i32[]
   array.len
   usize.to_i64
-  local.set 13   ; $cast_156
+  local.set 12   ; $cast_152
   local.get 1   ; __fuse_arr_0
   local.get 3   ; $len_23
-  local.get 13   ; $cast_156
+  local.get 12   ; $cast_152
   call 8   ; std_core$write_unsigned
   local.set 3   ; $len_23
   local.get 1   ; __fuse_arr_0

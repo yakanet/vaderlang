@@ -18,6 +18,7 @@ import "std/abort"
 
 import "toolchain/ast"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/resolver/symbol"
 import "vader/typecheck"
 import "vader/types"
@@ -352,7 +353,17 @@ cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExp
     if t is PrimitiveType && t.name == width {
         return inner
     }
+    // A literal the width holds is that width's literal : no conversion to run.
+    if inner is LoweredIntLit && literal_fits(inner.value, width) {
+        return LoweredIntLit { ...inner, .type = mk_primitive(width) }
+    }
     return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
+}
+
+// Whether the integer type `width` holds `value`.
+literal_fits :: fn(value: i64, width: string) -> bool {
+    values :: primitive_interval(width) ?? return false
+    return interval_within(interval(value, value), values)
 }
 
 // What renders the interpolated `value` of type `shown`, as the typecheck recorded

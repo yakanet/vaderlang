@@ -31,7 +31,7 @@
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "u8 ")
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(byte +% u8(one + 9)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(u8(4)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(4))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       small: i8 = 120
@@ -41,7 +41,7 @@
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "i8 ")
           __off_5 = std.core.write_int(__buf_4, __off_5, i64(small +% i8(one + 9)))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(i8(-126)))
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(-126))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       wide: u16 = 300
@@ -51,7 +51,7 @@
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "u16 ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(wide *% wide))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(u16(24464)))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(24464))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       zero: u32 = 0
@@ -61,7 +61,7 @@
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "u32 ")
           __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(zero -% u32(one)))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(u32(4294967295)))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(4294967295))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       big: u64 = 18446744073709551615

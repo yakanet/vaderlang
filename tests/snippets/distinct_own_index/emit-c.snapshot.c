@@ -261,11 +261,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_new_byte_buffer((size_t) 30);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 7u);
-    t3 = ((int64_t) 1);
-    l5 = (size_t) (int64_t) t3;
-    t3 = ((int64_t) 3);
-    l7 = (size_t) (int64_t) t3;
-    vader_array_t* _a6_arr = vader_array_slice((vader_array_t*) l0, (size_t) l5, (size_t) l7);
+    vader_array_t* _a6_arr = vader_array_slice((vader_array_t*) l0, (size_t) INT64_C(1), (size_t) INT64_C(3));
     t4 = (void*) _a6_arr;
     t5 = ((vader_array_t*) t4)->length;
     t3 = ((int64_t) (size_t) t5);

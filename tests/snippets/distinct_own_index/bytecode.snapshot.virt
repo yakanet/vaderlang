@@ -109,7 +109,7 @@ fn 4 snippet$main () -> i32
   local __for_i_10 usize
   local __buf_11 ref
   local __off_12 usize
-  local $cast_100 u64
+  local $cast_98 u64
   i32.const 1
   i32.const 2
   i32.const 3
@@ -271,22 +271,16 @@ fn 4 snippet$main () -> i32
   string.const 6   ; "log slice "
   call 8   ; std_core$write_string_at
   local.set 2   ; __off_1
-  i32.const 1
-  i32.to_i64
-  local.set 5   ; __for_i_10
-  i32.const 3
-  i32.to_i64
-  local.set 7   ; __off_12
   local.get 0   ; o
-  local.get 5   ; __for_i_10
-  local.get 7   ; __off_12
+  i64.const 1
+  i64.const 3
   array.slice 1   ; i32[]
   array.len
   usize.to_i64
-  local.set 8   ; $cast_100
+  local.set 8   ; $cast_98
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  local.get 8   ; $cast_100
+  local.get 8   ; $cast_98
   call 10   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0

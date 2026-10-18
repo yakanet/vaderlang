@@ -122,8 +122,7 @@ static int32_t snippet_main(void* l0) {
     l4 = ((int64_t) (int32_t) (INT32_C(2147483647) + l1));
     l3 = std_core_write_int(l2, l3, l4);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    l4 = ((int64_t) (int32_t) INT32_MIN);
-    l3 = std_core_write_int(l2, l3, l4);
+    l3 = std_core_write_int(l2, l3, INT64_C(-2147483648));
     t1 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t1);
 #line 20 "tests/snippets/wrapping_operators/_main.vader"
@@ -137,9 +136,7 @@ static int32_t snippet_main(void* l0) {
     l6 = (uint64_t) (int64_t) t4;
     l3 = std_core_write_unsigned(l2, l3, l6);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    t4 = ((int64_t) (uint32_t) INT32_C(4));
-    l6 = (uint64_t) (int64_t) t4;
-    l3 = std_core_write_unsigned(l2, l3, l6);
+    l3 = std_core_write_unsigned(l2, l3, (uint64_t) 4);
     t1 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t1);
 #line 22 "tests/snippets/wrapping_operators/_main.vader"
@@ -152,8 +149,7 @@ static int32_t snippet_main(void* l0) {
     l4 = ((int64_t) (int32_t) ((((INT32_C(120) + l7) & INT32_C(255)) ^ INT32_C(128)) - INT32_C(128)));
     l3 = std_core_write_int(l2, l3, l4);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    l4 = ((int64_t) -126);
-    l3 = std_core_write_int(l2, l3, l4);
+    l3 = std_core_write_int(l2, l3, INT64_C(-126));
     t1 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t1);
 #line 23 "tests/snippets/wrapping_operators/_main.vader"
@@ -166,9 +162,7 @@ static int32_t snippet_main(void* l0) {
     l6 = (uint64_t) (int64_t) t4;
     l3 = std_core_write_unsigned(l2, l3, l6);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    t4 = ((int64_t) (uint32_t) INT32_C(24464));
-    l6 = (uint64_t) (int64_t) t4;
-    l3 = std_core_write_unsigned(l2, l3, l6);
+    l3 = std_core_write_unsigned(l2, l3, (uint64_t) 24464);
     t1 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t1);
 #line 26 "tests/snippets/wrapping_operators/_main.vader"
@@ -181,9 +175,7 @@ static int32_t snippet_main(void* l0) {
     l6 = (uint64_t) (int64_t) t4;
     l3 = std_core_write_unsigned(l2, l3, l6);
     l3 = std_core_write_string_at(l2, l3, 2u);
-    t4 = ((int64_t) (uint32_t) INT32_C(-1));
-    l6 = (uint64_t) (int64_t) t4;
-    l3 = std_core_write_unsigned(l2, l3, l6);
+    l3 = std_core_write_unsigned(l2, l3, (uint64_t) 4294967295);
     t1 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t1);
 #line 27 "tests/snippets/wrapping_operators/_main.vader"

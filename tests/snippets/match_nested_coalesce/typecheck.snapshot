@@ -5,16 +5,16 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         sign                 :: fn(i32) -> i32
   expr 10:16    MatchExpr      :: i32
-  expr 10:22    IdentExpr      :: i32
+  expr 10:22    IdentExpr      :: 0..=9
   expr 14:16    IfExpr         :: i32
   expr 14:19    BinaryExpr     :: bool
-  expr 14:19    IdentExpr      :: i32
-  expr 15:15    IdentExpr      :: i32
+  expr 14:19    IdentExpr      :: 10..=19
+  expr 15:15    IdentExpr      :: 10..=14
   expr 15:9     MatchExpr      :: i32
-  expr 17:15    IdentExpr      :: i32
+  expr 17:15    IdentExpr      :: 15..=19
   expr 17:9     MatchExpr      :: i32
-  expr 19:16    BinaryExpr     :: i32
-  expr 19:16    IdentExpr      :: i32
+  expr 19:16    BinaryExpr     :: 0..=9
+  expr 19:16    IdentExpr      :: 20..=29
   expr 26:29    MatchExpr      :: i32
   expr 26:35    IdentExpr      :: i32
   expr 27:15    BinaryExpr     :: bool

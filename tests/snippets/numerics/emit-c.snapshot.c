@@ -909,17 +909,15 @@ static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t 
 
 static int32_t snippet_main(void) {
     void* l0 = NULL;
-    size_t l1, l7;
-    int64_t l2;
+    size_t l1, l6;
+    vader_string_t l2 = 0;
     vader_string_t l3 = 0;
     vader_string_t l4 = 0;
     vader_string_t l5 = 0;
-    vader_string_t l6 = 0;
-    uint64_t l8;
     vader_string_t t0 = 0;
     int64_t t1;
     void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[5] = { &l3, &l4, &l5, &l6, &t0 };
+    vader_string_t* gc_atom_roots[5] = { &l2, &l3, &l4, &l5, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
     };
@@ -927,55 +925,47 @@ static int32_t snippet_main(void) {
 #line 19 "tests/snippets/numerics/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 125);
     l1 = (size_t) 0;
-    l2 = ((int64_t) 42);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(42));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = ((int64_t) 1000000);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(1000000));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = ((int64_t) 255);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(255));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = ((int64_t) 65535);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(65535));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = ((int64_t) 10);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(10));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = ((int64_t) 493);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(493));
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
 #line 20 "tests/snippets/numerics/_main.vader"
-    l3 = std_core_f64_Display_to_string(3.14);
-    l4 = std_core_f64_Display_to_string(1.5e-10);
-    l5 = std_core_f32_Display_to_string((float) (double) 3.14);
-    l6 = std_core_f64_Display_to_string(0.5);
-    l1 = vader_host_std_core_byte_len(l3);
-    l7 = vader_host_std_core_byte_len(l4);
-    t1 = (l1 + l7);
+    l2 = std_core_f64_Display_to_string(3.14);
+    l3 = std_core_f64_Display_to_string(1.5e-10);
+    l4 = std_core_f32_Display_to_string((float) (double) 3.14);
+    l5 = std_core_f64_Display_to_string(0.5);
+    l1 = vader_host_std_core_byte_len(l2);
+    l6 = vader_host_std_core_byte_len(l3);
+    t1 = (l1 + l6);
     l1 = (size_t) (int64_t) t1;
-    l7 = vader_host_std_core_byte_len(l5);
-    t1 = (l1 + l7);
+    l6 = vader_host_std_core_byte_len(l4);
+    t1 = (l1 + l6);
     l1 = (size_t) (int64_t) t1;
-    l7 = vader_host_std_core_byte_len(l6);
-    t1 = (l1 + l7);
+    l6 = vader_host_std_core_byte_len(l5);
+    t1 = (l1 + l6);
     l1 = (size_t) (int64_t) t1;
     l0 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(45) + l1));
     l1 = (size_t) 0;
     l1 = std_core_write_int(l0, l1, INT64_C(42));
     l1 = std_core_write_string_at(l0, l1, 1u);
-    t1 = ((int64_t) (uint32_t) INT32_C(100));
-    l8 = (uint64_t) (int64_t) t1;
-    l1 = std_core_write_unsigned(l0, l1, l8);
+    l1 = std_core_write_unsigned(l0, l1, (uint64_t) 100);
+    l1 = std_core_write_string_at(l0, l1, 1u);
+    l1 = std_core_write_string_at(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
     l1 = std_core_write_string_at(l0, l1, l3);
     l1 = std_core_write_string_at(l0, l1, 1u);
     l1 = std_core_write_string_at(l0, l1, l4);
     l1 = std_core_write_string_at(l0, l1, 1u);
     l1 = std_core_write_string_at(l0, l1, l5);
-    l1 = std_core_write_string_at(l0, l1, 1u);
-    l1 = std_core_write_string_at(l0, l1, l6);
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
 #line 21 "tests/snippets/numerics/_main.vader"

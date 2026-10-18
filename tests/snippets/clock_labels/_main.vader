@@ -1,0 +1,66 @@
+// A literal or range arm narrows the scrutinee to its values, as `if h in 1..=11`
+// does : `1..=11` hands `am` a `Morning`, the wildcard after `0`, `1..=11` and `12`
+// sees `13..=23`, so `h - 12` is a `Morning` again, and an `i64` matched against
+// `0..=11` is one too. A `char` literal beside a narrowed byte stands for its code
+// point. A value takes the width of the slot it goes into : an `Hour` into an
+// `i64`, and the two branches of an `if` joining an `i64` narrowed into `Hour` with
+// an `Hour`. A type built from a narrowed `i64` holds an `Hour` as declared :
+// `[n, n]` is an array of bytes, `head` the instance every `Hour` shares.
+module "snippet"
+
+import "std/io"
+
+Hour    :: Int in 0..=23
+Morning :: Int in 0..=11
+
+am :: fn(m: Morning) -> string = "${m} am"
+
+label :: fn(h: Hour) -> string = match h {
+    0       -> "midnight"
+    1..=11  -> am(h)
+    12      -> "noon"
+    _       -> "${am(h - 12)} later"
+}
+
+from_input :: fn(n: i64) -> string = match n {
+    0..=11 -> am(n)
+    _      -> "out of the morning"
+}
+
+digit :: fn(b: u8) -> i32 = match b {
+    '0'..='9' -> i32(b - '0')
+    _         -> -1
+}
+
+millis :: fn(h: Hour) -> i64 {
+    total: i64 = h
+    total = total * 3_600_000
+    return total
+}
+
+either :: fn(n: i64, h: Hour, first: bool) -> i64 {
+    if n !in Hour {
+        return -1
+    }
+    chosen :: if first { n } else { h }
+    return i64(chosen) * 1000
+}
+
+head :: fn<T>(xs: T[]) -> T = xs[0]
+
+doubled :: fn(n: i64, h: Hour) -> i64 {
+    if n !in Hour {
+        return -1
+    }
+    return i64(head([n, n])) * 100 + i64(head([h, h]))
+}
+
+main :: fn(argv: string[]) -> i32 {
+    late: Hour: 15
+    println("${label(0)}, ${label(9)}, ${label(12)}, ${label(late)}")
+    println("${from_input(7)}, ${from_input(40)}")
+    println("${digit('7')} ${digit('x')}")
+    println("${millis(late)} ${either(7, late, true)} ${either(7, late, false)}")
+    println("${doubled(7, late)}")
+    return 0
+}

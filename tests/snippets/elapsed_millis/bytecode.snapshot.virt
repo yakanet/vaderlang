@@ -45,9 +45,9 @@ fn 1 snippet$main (ref) -> i32
   local scaled i32
   local wide u32
   local signed i32
-  local $cast_80 u8
-  local backward i64
-  local $cast_111 u64
+  local $cast_75 i64
+  local $cast_79 i64
+  local $cast_107 u64
   local.get 0   ; arg 0
   array.len
   usize.to_i64
@@ -66,12 +66,8 @@ fn 1 snippet$main (ref) -> i32
     return.lit i32.const 1
   end $L1
   local.get 1   ; n
-  i64.to_i32
-  i32.const 255
-  i32.bitand
-  u8.to_i32
-  i32.const 3600000
-  u32.checked_mul
+  i64.const 3600000
+  i64.checked_mul
   local.tee 2   ; micros
   i64.const 1000
   i64.checked_mul
@@ -83,12 +79,8 @@ fn 1 snippet$main (ref) -> i32
   call 0   ; snippet$is_morning
   if $L2 void
     local.get 1   ; n
-    i64.to_i32
-    i32.const 255
-    i32.bitand
-    u8.to_i32
-    i32.const 1000
-    u16.checked_mul
+    i64.const 1000
+    i64.checked_mul
     local.tee 3   ; early
     i64.const 1000000
     i64.checked_mul
@@ -114,10 +106,6 @@ fn 1 snippet$main (ref) -> i32
     call 10   ; std_io$println__string
   end $L2
   local.get 1   ; n
-  i64.to_i32
-  i32.const 255
-  i32.bitand
-  u8.to_i64
   i64.const 40
   i64.shl
   local.set 1   ; n
@@ -146,6 +134,7 @@ fn 1 snippet$main (ref) -> i32
       u8.to_i32
       i32.const 1000
       u16.checked_mul
+      u16.to_i32
       local.tee 8   ; scaled
       i32.const 1
       i32.checked_add
@@ -179,42 +168,35 @@ fn 1 snippet$main (ref) -> i32
             i32.le
             if $L8 void
               local.get 9   ; wide
-              u32.to_i32
-              i32.const 255
-              i32.bitand
-              local.set 6   ; b
-              local.get 10   ; signed
-              i32.to_i32
-              i32.const 255
-              i32.bitand
-              local.set 11   ; $cast_80
-              local.get 6   ; b
-              local.get 11   ; $cast_80
-              u8.checked_add
+              u32.to_i64
               local.set 3   ; early
               local.get 10   ; signed
-              i32.to_i32
-              i32.const 255
-              i32.bitand
-              local.set 6   ; b
+              i32.to_i64
+              local.set 11   ; $cast_75
+              local.get 3   ; early
+              local.get 11   ; $cast_75
+              i64.checked_add
+              local.set 3   ; early
+              local.get 10   ; signed
+              i32.to_i64
+              local.set 11   ; $cast_75
               local.get 9   ; wide
-              u32.to_i32
-              i32.const 255
-              i32.bitand
-              local.set 11   ; $cast_80
-              local.get 6   ; b
-              local.get 11   ; $cast_80
-              u8.checked_add
-              local.set 12   ; backward
+              u32.to_i64
+              local.set 12   ; $cast_79
+              local.get 11   ; $cast_75
+              local.get 12   ; $cast_79
+              i64.checked_add
+              local.set 11   ; $cast_75
               local.get 3   ; early
               i64.const 1000000000
               i64.checked_mul
               local.set 3   ; early
-              local.get 12   ; backward
+              local.get 11   ; $cast_75
               i64.const 1000000000
               i64.checked_mul
-              local.set 12   ; backward
+              local.set 11   ; $cast_75
               i32.const 24
+              u8.to_i32
               local.tee 10   ; signed
               i32.const 24
               i32.rem
@@ -251,10 +233,10 @@ fn 1 snippet$main (ref) -> i32
               local.set 5   ; __off_1
               local.get 7   ; count
               u8.to_i64
-              local.set 13   ; $cast_111
+              local.set 13   ; $cast_107
               local.get 4   ; __buf_0
               local.get 5   ; __off_1
-              local.get 13   ; $cast_111
+              local.get 13   ; $cast_107
               call 7   ; std_core$write_unsigned
               local.set 5   ; __off_1
               local.get 4   ; __buf_0
@@ -296,7 +278,7 @@ fn 1 snippet$main (ref) -> i32
               local.set 5   ; __off_1
               local.get 4   ; __buf_0
               local.get 5   ; __off_1
-              local.get 12   ; backward
+              local.get 11   ; $cast_75
               call 6   ; std_core$write_int
               local.set 5   ; __off_1
               local.get 4   ; __buf_0

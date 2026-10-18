@@ -4,7 +4,7 @@
   snippet.Reading :: struct { offset: i8 }  // snippet$Reading
   snippet.parse_hour :: fn(n: i64) -> null | u8 {  // snippet$parse_hour
       if !((n < i64(0)) || (n > i64(23))) {
-          return u8(n)
+          return n
       }
       return null
   }
@@ -90,13 +90,13 @@
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(usize(83))
           __off_10: usize = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(i8(-12)))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i64(-12))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(i8(14)))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i64(14))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(i16(-32768)))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i64(-32768))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u64(u32(4294967295)))
+          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u64(4294967295))
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       return 0

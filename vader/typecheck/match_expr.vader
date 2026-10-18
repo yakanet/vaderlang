@@ -106,10 +106,7 @@ infer_match :: fn(
         // so the wildcard arm sees only the still-possible
         // variants ("union − matched").
         bind_pattern_types(arm.pattern, remaining, typed, diags)
-        // Per-arm narrowing — `is T` arms see just T, the wildcard
-        // arm sees `remaining` (subset of `scrut_ty` after
-        // earlier arms removed their matched variants).
-        arm_narrow :: arm_narrow_for(arm.pattern, remaining, typed)
+        arm_narrow :: arm_narrow_for(arm.pattern, remaining, counted, uncovered, typed)
         prev_arm: NarrowSlot | null = null
         if scrut_sym_id != -1 {
             if arm_narrow !is null {
@@ -539,14 +536,58 @@ is_never :: fn(t: Type) -> bool {
 pattern_type_of :: fn(ty: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
     type_from_expr(ty, typed.resolved, diags)
 
-arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
-    // Only `is T` / wildcard arms narrow the scrutinee; literal / range /
-    // enum-variant / struct / or patterns carry no slot narrowing.
-    match p {
-        is AST.IsPattern -> { return pattern_type_of(p.ty, typed, scratch_diags()) }
-        is AST.WildcardPattern -> { return remaining }
-        is AST.StructPattern | AST.EnumVariantPattern | AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> { return null }
+arm_narrow_for :: fn(
+    p: AST.Pattern,
+    remaining: Type,
+    counted: Type | null,
+    uncovered: Interval[] | null,
+    typed: TypedProgram,
+) -> Type | null = match p {
+    // `is T` narrows to `T`, the wildcard to what the arms above leave, a literal or
+    // range arm an integer scrutinee to its values ; enum-variant and struct
+    // patterns carry no slot narrowing.
+    is AST.IsPattern -> pattern_type_of(p.ty, typed, scratch_diags())
+    is AST.WildcardPattern -> left_values(remaining, counted, uncovered)
+    is AST.LiteralPattern | AST.RangePattern | AST.OrPattern -> taken_values(p, counted)
+    is AST.StructPattern | AST.EnumVariantPattern -> null
+}
+
+// What a literal, range or or-pattern arm narrows an integer scrutinee to : the
+// values it takes within `counted`, the hull of an or-pattern's. Null for any
+// other scrutinee, and for a pattern taking no integer value ; `char` and a
+// distinct are not narrowed to a range (`inside_of`).
+taken_values :: fn(p: AST.Pattern, counted: Type | null) -> Type | null {
+    target :: counted ?? return null
+    taken :: arm_values(p) ?? return null
+    return inside_of(target, RangeType { .bounds = taken })
+}
+
+// The values `p` takes, as one interval : a literal's or a range's, the hull of an
+// or-pattern's alternatives ; null when one of them takes no integer value.
+arm_values :: fn(p: AST.Pattern) -> Interval | null {
+    if p !is AST.OrPattern {
+        return pattern_values(p)
     }
+    hull: Interval | null = null
+    for sub in p.patterns {
+        values :: pattern_values(sub) ?? return null
+        if hull == null {
+            hull = values
+        } else {
+            hull = interval_join(hull, values)
+        }
+    }
+    return hull
+}
+
+// What the wildcard narrows the scrutinee to : what the arms above leave, the one
+// interval of an integer scrutinee no arm took when that is all that is left.
+left_values :: fn(remaining: Type, counted: Type | null, uncovered: Interval[] | null) -> Type {
+    if counted == null || uncovered == null || uncovered.len() != 1
+        || !equals_type(remaining, counted) {
+        return remaining
+    }
+    return inside_of(counted, RangeType { .bounds = uncovered[0] }) ?? remaining
 }
 
 is_overlap_checkable :: fn(t: Type) -> bool {

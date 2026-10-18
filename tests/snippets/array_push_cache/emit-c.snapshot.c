@@ -575,11 +575,10 @@ static void* snippet_boxed(int32_t l0) {
 
 static void* snippet_into_view(void) {
     void* l0 = NULL;
-    size_t l1, l2;
-    int32_t l3, l4;
-    int64_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
+    int32_t l1, l2;
+    void* t0 = NULL;
+    void** gc_raw_roots[2] = { &l0, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 128 "tests/snippets/array_push_cache/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 5u, 7u, 1u);
@@ -588,22 +587,18 @@ static void* snippet_into_view(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
-    l0 = (void*) _a0_arr;
+    t0 = (void*) _a0_arr;
 #line 129 "tests/snippets/array_push_cache/_main.vader"
-    t0 = ((int64_t) 1);
-    l1 = (size_t) (int64_t) t0;
-    t0 = ((int64_t) 3);
-    l2 = (size_t) (int64_t) t0;
-    vader_array_t* _a1_arr = vader_array_slice((vader_array_t*) l0, (size_t) l1, (size_t) l2);
+    vader_array_t* _a1_arr = vader_array_slice((vader_array_t*) t0, (size_t) INT64_C(1), (size_t) INT64_C(3));
     l0 = (void*) _a1_arr;
 #line 130 "tests/snippets/array_push_cache/_main.vader"
-    l3 = INT32_C(0);
-    while ((l3 < INT32_C(3))) {
+    l1 = INT32_C(0);
+    while ((l1 < INT32_C(3))) {
 #line 131 "tests/snippets/array_push_cache/_main.vader"
-        l4 = vader_chk_add(i32, INT32_C(100), l3);
-        vader_array_push_i32((vader_array_t*) l0, l4);
+        l2 = vader_chk_add(i32, INT32_C(100), l1);
+        vader_array_push_i32((vader_array_t*) l0, l2);
 #line 130 "tests/snippets/array_push_cache/_main.vader"
-        l3 = (l3 + INT32_C(1));
+        l1 = (l1 + INT32_C(1));
     }
 #line 133 "tests/snippets/array_push_cache/_main.vader"
     { void* __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }

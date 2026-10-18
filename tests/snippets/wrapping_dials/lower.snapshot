@@ -62,7 +62,7 @@
       if !((n < i64(0)) || (n > i64(23))) {
           return u8(n)
       }
-      if n < i64(u8(0)) {
+      if n < i64(0) {
           return u8(0)
       }
       return u8(23)
@@ -71,7 +71,7 @@
       if !((n < i64(1)) || (n > i64(12))) {
           return u8(n)
       }
-      if n < i64(u8(1)) {
+      if n < i64(1) {
           return u8(1)
       }
       return u8(12)
@@ -80,14 +80,14 @@
       if !((n < i64(0)) || (n > i64(255))) {
           return u8(n)
       }
-      if n < i64(u8(0)) {
+      if n < i64(0) {
           return u8(0)
       }
       return u8(255)
   }
   snippet.wrap_next<Hour> :: fn(x: u8) -> u8 {  // snippet$wrap_next__Int_in_0___23
       {
-          __in_range_0: i64 = (((i64(x) - i64(u8(0))) + i64(1)) % ((i64(u8(23)) - i64(u8(0))) + i64(1))) + i64(u8(0))
+          __in_range_0: i64 = (((i64(x) - i64(0)) + i64(1)) % ((i64(23) - i64(0)) + i64(1))) + i64(0)
           if (__in_range_0 < i64(0)) || (__in_range_0 > i64(23)) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
@@ -96,7 +96,7 @@
   }
   snippet.wrap_next<Month> :: fn(x: u8) -> u8 {  // snippet$wrap_next__Int_in_1___12
       {
-          __in_range_0: i64 = (((i64(x) - i64(u8(1))) + i64(1)) % ((i64(u8(12)) - i64(u8(1))) + i64(1))) + i64(u8(1))
+          __in_range_0: i64 = (((i64(x) - i64(1)) + i64(1)) % ((i64(12) - i64(1)) + i64(1))) + i64(1)
           if (__in_range_0 < i64(1)) || (__in_range_0 > i64(12)) {
               @unreachable("value out of range: not in `Month` (1..=12)")
           }
@@ -105,7 +105,7 @@
   }
   snippet.wrap_next<u8> :: fn(x: u8) -> u8 {  // snippet$wrap_next__u8
       {
-          __in_range_0: i64 = (((i64(x) - i64(u8(0))) + i64(1)) % ((i64(u8(255)) - i64(u8(0))) + i64(1))) + i64(u8(0))
+          __in_range_0: i64 = (((i64(x) - i64(0)) + i64(1)) % ((i64(255) - i64(0)) + i64(1))) + i64(0)
           if (__in_range_0 < i64(0)) || (__in_range_0 > i64(255)) {
               @unreachable("value out of range: not in `u8` (0..=255)")
           }
@@ -138,9 +138,9 @@
           __off_1: usize = 0
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(x))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " of ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(1)))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(1))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "..=")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(12)))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(12))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }

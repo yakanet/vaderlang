@@ -9,10 +9,10 @@
       if (n < i64(0)) || (n > i64(23)) {
           return 1
       }
-      micros: i64 = u32(u8(n)) * u32(3600000)
+      micros: i64 = n * i64(3600000)
       micros = micros * i64(1000)
       if snippet.is_morning(u8(n)) {
-          early: i64 = u16(u8(n)) * u16(1000)
+          early: i64 = n * i64(1000)
           early = early * i64(1000000)
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
@@ -22,26 +22,26 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
-      shifted: i64 = i64(u8(n)) << i64(40)
+      shifted: i64 = n << i64(40)
       b: u8 = u8(@array.len(argv)) + u8(7)
       if !((u8(0) <= b) && (b <= u8(10))) {
           return 2
       }
       count: u8 = b
       count = count + u8(1)
-      scaled: i32 = u16(b) * u16(1000)
+      scaled: i32 = i32(u16(b) * u16(1000))
       scaled = scaled + 1
       wide: u32 = u32(@array.len(argv)) + u32(3)
       signed: i32 = i32(@array.len(argv)) + 2
       if (!((u32(0) <= wide) && (wide <= u32(9)))) || (!((0 <= signed) && (signed <= 9))) {
           return 3
       }
-      forward: i64 = u8(wide) + u8(signed)
-      backward: i64 = u8(signed) + u8(wide)
+      forward: i64 = i64(wide) + i64(signed)
+      backward: i64 = i64(signed) + i64(wide)
       forward = forward * i64(1000000000)
       backward = backward * i64(1000000000)
       h: u8 = 23
-      next: i32 = h + u8(1)
+      next: i32 = i32(h + u8(1))
       next = next % 24
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(usize(114))

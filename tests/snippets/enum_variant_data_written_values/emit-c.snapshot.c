@@ -214,7 +214,6 @@ static int32_t snippet_main(void) {
     vader_string_t l9 = 0;
     int64_t l7, l18, l19;
     bool l20;
-    uint64_t l21;
     vader_box_t t0 = vader_box_null();
     void* t1 = NULL;
     int64_t t2;
@@ -336,9 +335,7 @@ static int32_t snippet_main(void) {
     l20 = ((int32_t) t0.payload.i) == INT32_C(1);
     l2 = std_core_write_bool(l1, l2, l20);
     l2 = std_core_write_string_at(l1, l2, 4u);
-    t2 = INT64_C(1);
-    l21 = (uint64_t) (int64_t) t2;
-    l2 = std_core_write_unsigned(l1, l2, l21);
+    l2 = std_core_write_unsigned(l1, l2, (uint64_t) 1);
     t4 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t4);
 #line 43 "tests/snippets/enum_variant_data_written_values/_main.vader"

@@ -46,9 +46,9 @@
       std.io.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(usize(41))
           __off_8: usize = 0
-          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(usize(1)))
+          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(1))
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(usize(1)))
+          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(1))
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return 0

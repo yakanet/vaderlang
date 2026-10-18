@@ -83,7 +83,7 @@
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
           __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(i8(-128)))
+          __off_12 = std.core.write_int(__buf_11, __off_12, i64(-128))
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
           __off_12 = std.core.write_int(__buf_11, __off_12, i64(-9223372036854775808))
           std.core.finish_buffer(__buf_11, __off_12)

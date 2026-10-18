@@ -25,7 +25,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(usize(4)))
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(4))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string
   }
@@ -38,7 +38,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(usize(4)))
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(4))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string
   }
@@ -51,7 +51,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(usize(8)))
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(8))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string
   }
@@ -98,7 +98,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(usize(8)))
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(8))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string
   }

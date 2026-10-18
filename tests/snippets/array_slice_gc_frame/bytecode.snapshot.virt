@@ -23,12 +23,10 @@ export main 1
 fn 0 snippet$leaf (ref,ref) -> i32
   local acc i32
   local _ i32
-  local $cast_9 usize
-  local $cast_11 usize
   local s ref
-  local $field_14 i32
-  local $add_checked_15 i32
-  local $cast_17 i32
+  local $field_12 i32
+  local $add_checked_13 i32
+  local $cast_15 i32
   i32.const 0
   local.set 2   ; acc
   i32.const 0
@@ -38,30 +36,24 @@ fn 0 snippet$leaf (ref,ref) -> i32
     i32.const 5000
     i32.lt
     if $L1 void
-      i32.const 0
-      i32.to_i64
-      local.set 4   ; $cast_9
-      i32.const 3
-      i32.to_i64
-      local.set 5   ; $cast_11
       local.get 1   ; arg 1
-      local.get 4   ; $cast_9
-      local.get 5   ; $cast_11
+      i64.const 0
+      i64.const 3
       array.slice 2   ; i32[]
-      local.set 6   ; s
+      local.set 4   ; s
       local.field 0 1 0   ; arg 0 snippet$Foo.v
       ref.cast 3   ; i32
-      local.set 7   ; $field_14
+      local.set 5   ; $field_12
       local.get 2   ; acc
-      local.get 7   ; $field_14
+      local.get 5   ; $field_12
       i32.checked_add
-      local.set 8   ; $add_checked_15
-      local.get 6   ; s
+      local.set 6   ; $add_checked_13
+      local.get 4   ; s
       array.len
       usize.to_i32
-      local.set 9   ; $cast_17
-      local.get 8   ; $add_checked_15
-      local.get 9   ; $cast_17
+      local.set 7   ; $cast_15
+      local.get 6   ; $add_checked_13
+      local.get 7   ; $cast_15
       i32.checked_add
       local.set 2   ; acc
       local.get 3   ; _

@@ -115,8 +115,11 @@ lower_assign_one :: fn(
     // overwriting the slot.
     via_cell :: try_lower_cell_set_assign(ctx, target, value, span)
     if via_cell != null { return via_cell }
+    place :: lower_assign_target(ctx, target)
     return LoweredAssign {
-        .span = span, .target = lower_assign_target(ctx, target), .value = value,
+        .span = span,
+        .target = place,
+        .value = integer_held(value, place.type, span),
     }
 }
 
@@ -132,7 +135,7 @@ try_lower_cell_set_assign :: fn(
             return LoweredCellSet {
                 .span = span,
                 .target = env_cell(ctx, symbol, target_ident.span, value_type),
-                .value = value,
+                .value = integer_held(value, value_type, span),
                 .value_type = value_type,
             }
         }

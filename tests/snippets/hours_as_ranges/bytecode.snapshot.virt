@@ -66,12 +66,7 @@ fn 1 snippet$shifted (u8,i8) -> u8
   i32.const 128
   i32.sub
   i8.to_i32
-  local.set 2   ; $cast_2
   i32.const 24
-  u8.to_i32
-  local.set 3   ; $cast_3
-  local.get 2   ; $cast_2
-  local.get 3   ; $cast_3
   i16.checked_add
   i16.to_i32
   i32.const 255
@@ -85,6 +80,7 @@ fn 2 snippet$total (u8,u8) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   u8.checked_add
+  u8.to_i32
   return
 end
 
@@ -661,6 +657,7 @@ fn 9 snippet$main () -> i32
   ref.cast 1   ; u8
   i32.const 1
   u8.checked_add
+  u8.to_i32
   local.tee 13   ; count
   i32.const 1000
   i32.checked_mul

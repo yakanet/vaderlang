@@ -18,7 +18,8 @@ import "std/string_builder"
 
 /// Prepare the value of `node` for the slot of type `slot` it flows into : through
 /// the `into` the typecheck recorded for it, if any, telling the callee verifier
-/// (`verify_callees.vader`).
+/// (`verify_callees.vader`), then, an integer, held at the slot's width
+/// (`integer_held`).
 ///
 /// EVERY call-building path must route its args through here, receiver
 /// included, because nothing downstream converts : `midir/emit.vader` emits call
@@ -30,6 +31,18 @@ import "std/string_builder"
 /// @param slot  the declared type of the slot it flows into.
 /// @param span  span to attribute a synthesised `into` call to.
 prepare_node_for_slot :: fn(
+    ctx: FnLowerCtx, node: Expr, expr: LoweredExpr, slot: Type, span: Span,
+) -> LoweredExpr = integer_held(prepare_into(ctx, node, expr, slot, span), slot, span)
+
+/// `expr`, the value of `node`, through the `into` the typecheck recorded for it
+/// toward `slot`, told to the callee verifier ; no integer conversion, which a cast
+/// `T(x)` makes itself.
+///
+/// @param node  the value's AST node.
+/// @param expr  the lowered value.
+/// @param slot  the type the value converts into.
+/// @param span  span to attribute a synthesised `into` call to.
+prepare_into :: fn(
     ctx: FnLowerCtx, node: Expr, expr: LoweredExpr, slot: Type, span: Span,
 ) -> LoweredExpr {
     prepared :: recorded_conversion(ctx, node, .Into, expr, slot, span)

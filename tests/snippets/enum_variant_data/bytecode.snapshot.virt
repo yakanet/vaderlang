@@ -120,7 +120,6 @@ fn 1 snippet$main () -> i32
   local $cast_17 i64
   local __p_3 string
   local __p_4 string
-  local $cast_54 u64
   i32.const 0
   i32.const 1
   i32.const 2
@@ -224,12 +223,9 @@ fn 1 snippet$main () -> i32
   local.set 0   ; __for_arr_0
   i64.const 0
   local.set 1   ; __for_len_1
-  i64.const 1
-  usize.to_i64
-  local.set 6   ; $cast_54
   local.get 0   ; __for_arr_0
   local.get 1   ; __for_len_1
-  local.get 6   ; $cast_54
+  i64.const 1
   call 7   ; std_core$write_unsigned
   local.set 1   ; __for_len_1
   local.get 0   ; __for_arr_0
@@ -237,12 +233,9 @@ fn 1 snippet$main () -> i32
   string.const 0   ; " "
   call 5   ; std_core$write_string_at
   local.set 1   ; __for_len_1
-  i64.const 1
-  usize.to_i64
-  local.set 6   ; $cast_54
   local.get 0   ; __for_arr_0
   local.get 1   ; __for_len_1
-  local.get 6   ; $cast_54
+  i64.const 1
   call 7   ; std_core$write_unsigned
   local.set 1   ; __for_len_1
   local.get 0   ; __for_arr_0

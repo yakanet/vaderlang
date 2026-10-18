@@ -204,8 +204,8 @@ static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l4 = NULL;
     size_t l1;
-    int64_t l2;
-    int32_t l3;
+    int32_t l2;
+    int64_t l3;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     vader_box_t t2 = vader_box_null();
@@ -231,10 +231,7 @@ static int32_t snippet_main(void) {
     l0 = std_core_new_byte_buffer((size_t) 25);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 13 "tests/snippets/comptime_for_closures/_main.vader"
-    l2 = ((int64_t) 1);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(1));
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
     vader_defer_pop_exec(1u);
@@ -252,10 +249,7 @@ static int32_t snippet_main(void) {
     l0 = std_core_new_byte_buffer((size_t) 25);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 13 "tests/snippets/comptime_for_closures/_main.vader"
-    l2 = ((int64_t) 2);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(2));
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
     vader_defer_pop_exec(1u);
@@ -273,41 +267,38 @@ static int32_t snippet_main(void) {
     l0 = std_core_new_byte_buffer((size_t) 25);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 1u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 13 "tests/snippets/comptime_for_closures/_main.vader"
-    l2 = ((int64_t) 3);
-    l1 = std_core_write_int(l0, l1, l2);
+    l1 = std_core_write_int(l0, l1, INT64_C(3));
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
     vader_defer_pop_exec(1u);
 #line 15 "tests/snippets/comptime_for_closures/_main.vader"
-    l3 = INT32_C(0);
+    l2 = INT32_C(0);
 #line 17 "tests/snippets/comptime_for_closures/_main.vader"
     l0 = (void*) &vader_fn_static___lambda_snippet_6;
 #line 18 "tests/snippets/comptime_for_closures/_main.vader"
     vader_fn_t* _a6_fnobj = (vader_fn_t*) l0;
-    t2 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(1u, l3));
-    l3 = ((int32_t) t2.payload.i);
+    t2 = ((vader_fn_erased_sig_1_t) _a6_fnobj->code)(_a6_fnobj->env, vader_box_i32(1u, l2));
+    l2 = ((int32_t) t2.payload.i);
 #line 17 "tests/snippets/comptime_for_closures/_main.vader"
     l0 = (void*) &vader_fn_static___lambda_snippet_7;
 #line 18 "tests/snippets/comptime_for_closures/_main.vader"
     vader_fn_t* _a7_fnobj = (vader_fn_t*) l0;
-    t2 = ((vader_fn_erased_sig_1_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(1u, l3));
-    l3 = ((int32_t) t2.payload.i);
+    t2 = ((vader_fn_erased_sig_1_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(1u, l2));
+    l2 = ((int32_t) t2.payload.i);
 #line 20 "tests/snippets/comptime_for_closures/_main.vader"
     l0 = std_core_new_byte_buffer((size_t) 26);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l0, l1, 2u);
-    l2 = ((int64_t) (int32_t) l3);
-    l1 = std_core_write_int(l0, l1, l2);
+    l3 = ((int64_t) (int32_t) l2);
+    l1 = std_core_write_int(l0, l1, l3);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
 #line 21 "tests/snippets/comptime_for_closures/_main.vader"
-    l3 = INT32_C(100);
+    l2 = INT32_C(100);
 #line 23 "tests/snippets/comptime_for_closures/_main.vader"
     vader_struct___lambda_env_snippet_9_t* _a8_obj = (vader_struct___lambda_env_snippet_9_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_9_t));
     vader_obj_header_init(_a8_obj, 7u);
-    _a8_obj->f_cap_0 = l3;
+    _a8_obj->f_cap_0 = l2;
     t0 = (void*) _a8_obj;
     vader_fn_t* _a9_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a9_closure, 19u);
@@ -321,14 +312,14 @@ static int32_t snippet_main(void) {
     vader_fn_t* _a10_fnobj = (vader_fn_t*) l0;
     t2 = ((vader_fn_erased_sig_0_t) _a10_fnobj->code)(_a10_fnobj->env);
     t3 = ((int32_t) t2.payload.i);
-    l2 = ((int64_t) (int32_t) t3);
-    l1 = std_core_write_int(l4, l1, l2);
+    l3 = ((int64_t) (int32_t) t3);
+    l1 = std_core_write_int(l4, l1, l3);
     t1 = std_core_finish_buffer(l4, l1);
     std_io_println__string(t1);
 #line 23 "tests/snippets/comptime_for_closures/_main.vader"
     vader_struct___lambda_env_snippet_13_t* _a11_obj = (vader_struct___lambda_env_snippet_13_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_13_t));
     vader_obj_header_init(_a11_obj, 9u);
-    _a11_obj->f_cap_0 = l3;
+    _a11_obj->f_cap_0 = l2;
     t0 = (void*) _a11_obj;
     vader_fn_t* _a12_closure = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));
     vader_obj_header_init(_a12_closure, 19u);
@@ -342,8 +333,8 @@ static int32_t snippet_main(void) {
     vader_fn_t* _a13_fnobj = (vader_fn_t*) l0;
     t2 = ((vader_fn_erased_sig_0_t) _a13_fnobj->code)(_a13_fnobj->env);
     t3 = ((int32_t) t2.payload.i);
-    l2 = ((int64_t) (int32_t) t3);
-    l1 = std_core_write_int(l4, l1, l2);
+    l3 = ((int64_t) (int32_t) t3);
+    l1 = std_core_write_int(l4, l1, l3);
     t1 = std_core_finish_buffer(l4, l1);
     std_io_println__string(t1);
 #line 29 "tests/snippets/comptime_for_closures/_main.vader"
@@ -353,7 +344,6 @@ static int32_t snippet_main(void) {
 static void __defer_snippet_0(void* l0) {
     void* l1 = NULL;
     size_t l2;
-    int64_t l3;
     vader_string_t t0 = 0;
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -365,10 +355,7 @@ static void __defer_snippet_0(void* l0) {
     l1 = std_core_new_byte_buffer((size_t) 29);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 4u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 12 "tests/snippets/comptime_for_closures/_main.vader"
-    l3 = ((int64_t) 1);
-    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_int(l1, l2, INT64_C(1));
     t0 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t0);
     { vader_gc_top = gc_frame.prev; return; }
@@ -377,7 +364,6 @@ static void __defer_snippet_0(void* l0) {
 static void __defer_snippet_2(void* l0) {
     void* l1 = NULL;
     size_t l2;
-    int64_t l3;
     vader_string_t t0 = 0;
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -389,10 +375,7 @@ static void __defer_snippet_2(void* l0) {
     l1 = std_core_new_byte_buffer((size_t) 29);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 4u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 12 "tests/snippets/comptime_for_closures/_main.vader"
-    l3 = ((int64_t) 2);
-    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_int(l1, l2, INT64_C(2));
     t0 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t0);
     { vader_gc_top = gc_frame.prev; return; }
@@ -401,7 +384,6 @@ static void __defer_snippet_2(void* l0) {
 static void __defer_snippet_4(void* l0) {
     void* l1 = NULL;
     size_t l2;
-    int64_t l3;
     vader_string_t t0 = 0;
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -413,10 +395,7 @@ static void __defer_snippet_4(void* l0) {
     l1 = std_core_new_byte_buffer((size_t) 29);
     l2 = (size_t) 0;
     l2 = std_core_write_string_at(l1, l2, 4u);
-#line 11 "tests/snippets/comptime_for_closures/_main.vader"
-#line 12 "tests/snippets/comptime_for_closures/_main.vader"
-    l3 = ((int64_t) 3);
-    l2 = std_core_write_int(l1, l2, l3);
+    l2 = std_core_write_int(l1, l2, INT64_C(3));
     t0 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t0);
     { vader_gc_top = gc_frame.prev; return; }

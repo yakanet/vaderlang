@@ -52,7 +52,6 @@ fn 0 snippet$main () -> i32
   local __buf_2 ref
   local $mul_checked_65 f64
   local $call_69 string
-  local $cast_74 usize
   i32.const 1
   i32.const 2
   i32.const 3
@@ -192,15 +191,9 @@ fn 0 snippet$main () -> i32
   local.get 9   ; $call_69
   call 1   ; concat_2
   call 29   ; std_io$println__string
-  i32.const 1
-  i32.to_i64
-  local.set 4   ; __off_1
-  i32.const 3
-  i32.to_i64
-  local.set 10   ; $cast_74
   local.get 0   ; xs
-  local.get 4   ; __off_1
-  local.get 10   ; $cast_74
+  i64.const 1
+  i64.const 3
   array.slice 15   ; i32[]
   local.set 0   ; xs
   i64.const 46

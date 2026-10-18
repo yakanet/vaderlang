@@ -148,8 +148,9 @@ export union_of :: fn(variants: Type[]) -> Type {
 /// The type of a value one of several paths gave, of the types `reached` : their
 /// union, the ranges among them joined into the one range holding them all, since
 /// a range has no hole (`if h < 12 { h } else { h }` is an `Hour`, not two halves
-/// on which no arithmetic is defined). A union written in the source keeps its
-/// ranges apart (`union_of`).
+/// on which no arithmetic is defined), and that range into an integer type among
+/// the paths holding it (`0..=9` beside an `i32` is an `i32`). A union written in
+/// the source keeps its ranges apart (`union_of`).
 ///
 /// @param reached  the type of the value on each path.
 union_of_paths :: fn(reached: Type[]) -> Type {
@@ -162,10 +163,21 @@ union_of_paths :: fn(reached: Type[]) -> Type {
             rest.push(t)
         }
     }
-    if hull != null {
+    if hull != null && !holds_range(rest, hull) {
         rest.push(hull)
     }
     return union_of(rest)
+}
+
+// Whether one of `paths` is an integer type holding every value of `hull` : the
+// range goes into it there, as an operand into the primitive beside it.
+holds_range :: fn(paths: Type[], hull: RangeType) -> bool {
+    for t in paths {
+        if integer_holds_range(t, hull) {
+            return true
+        }
+    }
+    return false
 }
 
 // The one range holding `a` and `b`, `b` alone when `a` is null ; either of them,
@@ -190,34 +202,48 @@ joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
 /// a range is the integer it is held in. A union is rebuilt canonical, so
 /// `Hour | u8` is `u8`.
 ///
+/// A range narrowed out of an integer type is held in it only as a value of its
+/// own (`range_representation`) : inside another type, an array's element, a type
+/// argument, a union's variant, every range is held in the narrowest integer
+/// holding it, so that two types equal but for that origin share one layout.
+///
 /// @param t  a type the typecheck recorded.
 export erase_ranges :: fn(t: Type) -> Type {
+    if t is RangeType {
+        return range_representation(t)
+    }
+    return erase_nested(t)
+}
+
+// `t` erased where it sits inside another type : a range in the narrowest integer
+// holding it, whatever it was narrowed out of.
+erase_nested :: fn(t: Type) -> Type {
     if t is PrimitiveType || !contains_range(t) {
         return t
     }
     return match t {
-        is RangeType    -> range_representation(t)
-        is DistinctType -> mk_distinct(t.symbol, erase_ranges(t.backing))
-        is StructType   -> mk_struct(t.symbol, erase_ranges_each(t.args))
-        is TraitType    -> TraitType { ...t, .args = erase_ranges_each(t.args) }
-        is ArrayType    -> mk_array(erase_ranges(t.element))
-        is TupleType    -> mk_tuple(erase_ranges_each(t.elements))
+        is RangeType    -> narrowest_integer(t.bounds)
+        is DistinctType -> mk_distinct(t.symbol, erase_nested(t.backing))
+        is StructType   -> mk_struct(t.symbol, erase_nested_each(t.args))
+        is TraitType    -> TraitType { ...t, .args = erase_nested_each(t.args) }
+        is ArrayType    -> mk_array(erase_nested(t.element))
+        is TupleType    -> mk_tuple(erase_nested_each(t.elements))
         is FnType       -> FnType {
             ...t,
-            .params = erase_ranges_each(t.params),
-            .return_type = erase_ranges(t.return_type),
+            .params = erase_nested_each(t.params),
+            .return_type = erase_nested(t.return_type),
         }
-        is UnionType    -> union_of(erase_ranges_each(t.variants))
+        is UnionType    -> union_of(erase_nested_each(t.variants))
         is PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType | SelfType
          | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
          | AnyType -> t
     }
 }
 
-erase_ranges_each :: fn(types: Type[]) -> Type[] {
+erase_nested_each :: fn(types: Type[]) -> Type[] {
     out: Type[]: []
     for t in types {
-        out.push(erase_ranges(t))
+        out.push(erase_nested(t))
     }
     return out
 }

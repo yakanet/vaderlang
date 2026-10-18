@@ -13,6 +13,7 @@ module "vader/lower"
 
 import "toolchain/span"
 import "vader/integer"
+import "vader/typecheck"
 import "vader/types"
 
 /// The integer type an operation is computed in when the integer types it involves
@@ -82,6 +83,70 @@ computed_type :: fn(result: Type, width: PrimitiveType | null) -> Type {
 held_as :: fn(computed: LoweredExpr, result: Type, span: Span) -> LoweredExpr {
     as_integer :: integer_primitive(result) ?? return computed
     return cast_to_width(computed, as_integer.name, span)
+}
+
+/// `value` as the slot of type `slot` it goes into holds it : an integer converted to
+/// the slot's integer when the two differ (an `Hour` into an `i64`, an `i64`
+/// narrowed into `0..=23` into an `Hour`), any other value as it is. The C
+/// backend converts implicitly ; the VM computes on 32 or 64 bits and needs it
+/// said.
+///
+/// @param value  the value, lowered.
+/// @param slot   the slot's type, ranges read as integers.
+integer_held :: fn(value: LoweredExpr, slot: Type, span: Span) -> LoweredExpr {
+    held :: integer_primitive(value.type) ?? return value
+    target :: integer_member(erase_ranges(slot), held) ?? return value
+    return cast_to_width(value, target.name, span)
+}
+
+// The integer a slot of type `slot` holds a value of the integer `held` as : the
+// slot's own, or in a union the variant taking it, `held` itself if it is one,
+// else the narrowest holding its values. Null for a slot holding no integer.
+integer_member :: fn(slot: Type, held: PrimitiveType) -> PrimitiveType | null {
+    direct :: integer_primitive(slot)
+    if direct != null || slot !is UnionType {
+        return direct
+    }
+    values :: primitive_interval(held.name) ?? return null
+    found: PrimitiveType | null = null
+    for v in slot.variants {
+        candidate :: integer_primitive(v) ?? continue
+        if candidate.name == held.name {
+            return candidate
+        }
+        whole :: primitive_interval(candidate.name) ?? continue
+        if interval_within(values, whole) && narrower(candidate, found) {
+            found = candidate
+        }
+    }
+    return found
+}
+
+// Whether `candidate` is narrower than `found`, or `found` is none.
+narrower :: fn(candidate: PrimitiveType, found: PrimitiveType | null) -> bool {
+    if found == null {
+        return true
+    }
+    return primitive_size(candidate.name) < primitive_size(found.name)
+}
+
+/// `block`, a branch of a value `if` or `match`, its value held as `type`, the
+/// type of the whole one : every branch reaches one slot at one width.
+///
+/// @param block  the branch, lowered.
+/// @param type   the type of the `if` or `match`.
+held_block :: fn(block: LoweredBlock, type: Type) -> LoweredBlock {
+    value :: block.trailing ?? return block
+    held :: integer_primitive(value.type) ?? return block
+    target :: integer_primitive(type) ?? return block
+    if held.name == target.name {
+        return block
+    }
+    return LoweredBlock {
+        ...block,
+        .type = type,
+        .trailing = cast_to_width(value, target.name, value.span),
+    }
 }
 
 /// The unary operation `op` on `operand`, of type `result` : computed in an integer

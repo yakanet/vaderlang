@@ -375,15 +375,29 @@ lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr
     // `_0` / `_1` / ... fields ; the bytecode emit reads them off the same
     // struct layout the typer pins (distinct wrappers strip at the emit boundary).
     elements :: lower_in_order(ctx, lit.elements)
-    if tuple_backing(type) != null {
+    tuple :: tuple_backing(type)
+    if tuple != null {
         fields: LoweredStructLitField[]: []
         for i in 0..<elements.len() {
             fields.push(LoweredStructLitField {
                 .name = "_${i}",
-                .value = elements[i],
+                .value = held_element(elements[i], tuple.elements, i),
             })
         }
         return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
     }
+    if type is ArrayType {
+        for i in 0..<elements.len() {
+            elements[i] = integer_held(elements[i], type.element, elements[i].span)
+        }
+    }
     return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
+}
+
+// The element `i` of a tuple literal as its slot in `slots` holds it.
+held_element :: fn(value: LoweredExpr, slots: Type[], i: usize) -> LoweredExpr {
+    if i >= slots.len() {
+        return value
+    }
+    return integer_held(value, slots[i], value.span)
 }

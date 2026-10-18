@@ -25,9 +25,12 @@ substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution {
     integers :: MutableMap<i32, Type> {}
     ranges :: MutableMap<i32, RangeType> {}
     for [id, bound] in bindings {
-        integers[id] = erase_ranges(bound)
         if bound is RangeType {
-            ranges[id] = bound
+            argument :: without_origin(bound)
+            integers[id] = erase_ranges(argument)
+            ranges[id] = argument
+        } else {
+            integers[id] = erase_ranges(bound)
         }
     }
     return Substitution {

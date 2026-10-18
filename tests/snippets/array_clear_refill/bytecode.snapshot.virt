@@ -65,7 +65,6 @@ fn 1 snippet$main () -> i32
   local $cast_36 i64
   local $call_38 string
   local __coalesce_6 any
-  local $cast_97 usize
   local __buf_10 ref
   array.new 12 0   ; i32[]
   i64.const 200
@@ -253,26 +252,19 @@ fn 1 snippet$main () -> i32
   i32.const 4
   i32.const 5
   array.new 12 5   ; i32[]
-  local.set 0   ; local
-  i32.const 1
-  i32.to_i64
-  local.set 3   ; __off_1
-  i32.const 3
-  i32.to_i64
-  local.set 8   ; $cast_97
-  local.get 0   ; local
-  local.get 3   ; __off_1
-  local.get 8   ; $cast_97
+  local.tee 0   ; local
+  i64.const 1
+  i64.const 3
   array.slice 12   ; i32[]
   local.set 2   ; __buf_0
   local.get 0   ; local
   array.clear
   i64.const 50
   call 4   ; std_core$new_byte_buffer
-  local.set 9   ; __buf_10
+  local.set 8   ; __buf_10
   i64.const 0
   local.set 3   ; __off_1
-  local.get 9   ; __buf_10
+  local.get 8   ; __buf_10
   local.get 3   ; __off_1
   string.const 8   ; "view="
   call 6   ; std_core$write_string_at
@@ -281,12 +273,12 @@ fn 1 snippet$main () -> i32
   array.len
   usize.to_i64
   local.set 4   ; $cast_21
-  local.get 9   ; __buf_10
+  local.get 8   ; __buf_10
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
   call 8   ; std_core$write_unsigned
   local.set 3   ; __off_1
-  local.get 9   ; __buf_10
+  local.get 8   ; __buf_10
   local.get 3   ; __off_1
   string.const 9   ; " src="
   call 6   ; std_core$write_string_at
@@ -295,12 +287,12 @@ fn 1 snippet$main () -> i32
   array.len
   usize.to_i64
   local.set 4   ; $cast_21
-  local.get 9   ; __buf_10
+  local.get 8   ; __buf_10
   local.get 3   ; __off_1
   local.get 4   ; $cast_21
   call 8   ; std_core$write_unsigned
   local.set 3   ; __off_1
-  local.get 9   ; __buf_10
+  local.get 8   ; __buf_10
   local.get 3   ; __off_1
   call 5   ; std_core$finish_buffer
   call 11   ; std_io$println__string

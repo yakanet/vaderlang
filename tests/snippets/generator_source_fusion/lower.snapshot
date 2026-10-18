@@ -327,7 +327,7 @@
                   __buf_19: Buffer = std.core.new_byte_buffer(usize(36))
                   __off_20: usize = 0
                   __off_20 = std.core.write_string_at(__buf_19, __off_20, "comptime fused: ")
-                  __off_20 = std.core.write_unsigned(__buf_19, __off_20, u64(usize(3)))
+                  __off_20 = std.core.write_unsigned(__buf_19, __off_20, u64(3))
                   std.core.finish_buffer(__buf_19, __off_20)
               } :string)
               __self_21.state = 1

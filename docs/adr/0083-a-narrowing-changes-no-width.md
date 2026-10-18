@@ -28,6 +28,8 @@ computed in `i64`. Adding a test changed the width of a variable two lines below
   origins, whatever their order), and through an immutable copy (`k :: n` keeps it).
 - **A bitwise operation reads the origin too**, where it holds the range, rather
   than the integer the range is held in: `n << 8` past `n in Hour` stays an `i64`.
+  Amended by 0085: the narrowed value is held in its origin as well, so no read of it
+  converts.
 - **A declared range keeps the rule of 0075**: `h + 1` on an `h: Hour` has no origin,
   and `next := h + 1` is an `i32`.
 

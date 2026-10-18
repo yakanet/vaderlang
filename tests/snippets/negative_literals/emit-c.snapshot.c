@@ -896,8 +896,7 @@ static int32_t snippet_main(void) {
     l8 = ((int64_t) (int32_t) l0);
     l5 = std_core_write_int(l7, l5, l8);
     l5 = std_core_write_string_at(l7, l5, 4u);
-    l8 = ((int64_t) -5);
-    l5 = std_core_write_int(l7, l5, l8);
+    l5 = std_core_write_int(l7, l5, INT64_C(-5));
     l5 = std_core_write_string_at(l7, l5, 4u);
     l5 = std_core_write_string_at(l7, l5, l1);
     l5 = std_core_write_string_at(l7, l5, 4u);
@@ -982,8 +981,7 @@ static int32_t snippet_main(void) {
     l5 = std_core_write_string_at(l7, l5, 4u);
     l5 = std_core_write_string_at(l7, l5, l2);
     l5 = std_core_write_string_at(l7, l5, 4u);
-    l8 = ((int64_t) -128);
-    l5 = std_core_write_int(l7, l5, l8);
+    l5 = std_core_write_int(l7, l5, INT64_C(-128));
     l5 = std_core_write_string_at(l7, l5, 4u);
     l5 = std_core_write_int(l7, l5, INT64_MIN);
     t1 = std_core_finish_buffer(l7, l5);

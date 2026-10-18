@@ -356,14 +356,14 @@ static void snippet_bump(size_t l0) {
 
 static int32_t snippet_main(void) {
     vader_string_t l0 = 0;
+    vader_string_t l4 = 0;
     vader_string_t l5 = 0;
-    vader_string_t l6 = 0;
-    size_t l1, l7;
+    size_t l1, l6;
     void* l2 = NULL;
     void* l10 = NULL;
     void* l16 = NULL;
-    int64_t l3;
-    bool l4;
+    bool l3;
+    int64_t l7;
     vader_box_t l8 = vader_box_null();
     int32_t l9, l11, l13, l14, l15;
     uint64_t l12;
@@ -375,7 +375,7 @@ static int32_t snippet_main(void) {
     size_t t5;
     vader_box_t* gc_roots[2] = { &l8, &t2 };
     void** gc_raw_roots[4] = { &l2, &l10, &l16, &t1 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l5, &l6, &t0 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l4, &l5, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
@@ -385,13 +385,12 @@ static int32_t snippet_main(void) {
     l1 = vader_host_std_core_byte_len(l0);
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(27) + l1));
     l1 = (size_t) 0;
-    l3 = ((int64_t) 42);
-    l1 = std_core_write_int(l2, l1, l3);
+    l1 = std_core_write_int(l2, l1, INT64_C(42));
     l1 = std_core_write_string_at(l2, l1, 2u);
     l1 = std_core_write_string_at(l2, l1, l0);
     l1 = std_core_write_string_at(l2, l1, 2u);
-    l4 = INT32_C(0) == INT32_C(0);
-    l1 = std_core_write_bool(l2, l1, l4);
+    l3 = INT32_C(0) == INT32_C(0);
+    l1 = std_core_write_bool(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 39 "tests/snippets/module_storage/_main.vader"
@@ -409,20 +408,20 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(1))
     t1 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) INT32_C(1));
-    l5 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
+    l4 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
 #line 49 "tests/snippets/module_storage/_main.vader"
     t1 = (void*) &vader_data_3;
     vader_array_t* _a2_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     t1 = vader_array_ref_load_obj(_a2_slotarr->buf, _a2_slotarr->offset + (size_t) INT64_C(0));
 #line 73 "tests/snippets/module_storage/_main.vader"
-    l6 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
+    l5 = ((vader_struct_snippet_Spec_t*) t1)->f_name;
     l1 = vader_host_std_core_byte_len(l0);
-    l7 = vader_host_std_core_byte_len(l5);
-    t3 = (l1 + l7);
+    l6 = vader_host_std_core_byte_len(l4);
+    t3 = (l1 + l6);
     l1 = (size_t) (int64_t) t3;
-    l7 = vader_host_std_core_byte_len(l6);
-    t3 = (l1 + l7);
+    l6 = vader_host_std_core_byte_len(l5);
+    t3 = (l1 + l6);
     l1 = (size_t) (int64_t) t3;
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(23) + l1));
     l1 = (size_t) 0;
@@ -435,12 +434,12 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a3_slotarr, INT32_C(2))
     t4 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) INT32_C(2)];
-    l3 = ((int64_t) (int32_t) t4);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) t4);
+    l1 = std_core_write_int(l2, l1, l7);
+    l1 = std_core_write_string_at(l2, l1, 2u);
+    l1 = std_core_write_string_at(l2, l1, l4);
     l1 = std_core_write_string_at(l2, l1, 2u);
     l1 = std_core_write_string_at(l2, l1, l5);
-    l1 = std_core_write_string_at(l2, l1, 2u);
-    l1 = std_core_write_string_at(l2, l1, l6);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 74 "tests/snippets/module_storage/_main.vader"
@@ -449,8 +448,8 @@ static int32_t snippet_main(void) {
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(20) + l1));
     l1 = (size_t) 0;
     l8 = vader_box_i32(2u, INT32_C(7));
-    l3 = ((int64_t) l8.payload.i);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) l8.payload.i);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, l0);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
@@ -469,24 +468,24 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(0))
     t4 = ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) INT32_C(0)];
-    l3 = ((int64_t) (int32_t) t4);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) t4);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, 5u);
     t1 = snippet_counts();
     vader_array_t* _a5_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a5_slotarr, INT32_C(1))
     t4 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) INT32_C(1)];
-    l3 = ((int64_t) (int32_t) t4);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) t4);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, 5u);
     t1 = snippet_counts();
     vader_array_t* _a6_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a6_slotarr, INT32_C(2))
     t4 = ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) INT32_C(2)];
-    l3 = ((int64_t) (int32_t) t4);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) t4);
+    l1 = std_core_write_int(l2, l1, l7);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 84 "tests/snippets/module_storage/_main.vader"
@@ -498,8 +497,8 @@ static int32_t snippet_main(void) {
         l10 = std_core_new_byte_buffer((size_t) 33);
         l1 = (size_t) 0;
         l1 = std_core_write_string_at(l10, l1, 6u);
-        l3 = ((int64_t) (int32_t) l9);
-        l1 = std_core_write_int(l10, l1, l3);
+        l7 = ((int64_t) (int32_t) l9);
+        l1 = std_core_write_int(l10, l1, l7);
         l0 = std_core_finish_buffer(l10, l1);
         vader_array_t* _a7_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
@@ -526,10 +525,10 @@ static int32_t snippet_main(void) {
         l2 = std_core_new_byte_buffer((size_t) 33);
         l1 = (size_t) 0;
         l1 = std_core_write_string_at(l2, l1, 6u);
-        l3 = ((int64_t) (int32_t) l11);
-        l1 = std_core_write_int(l2, l1, l3);
-        l5 = std_core_finish_buffer(l2, l1);
-        if (l0 != l5) {
+        l7 = ((int64_t) (int32_t) l11);
+        l1 = std_core_write_int(l2, l1, l7);
+        l4 = std_core_finish_buffer(l2, l1);
+        if (l0 != l4) {
 #line 92 "tests/snippets/module_storage/_main.vader"
             l9 = vader_chk_add(i32, l9, INT32_C(1));
 #line 91 "tests/snippets/module_storage/_main.vader"
@@ -549,24 +548,24 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a10_slotarr, INT32_C(23))
     t2 = vader_array_box_slots(_a10_slotarr->buf)[_a10_slotarr->offset + (size_t) INT32_C(23)];
-    l5 = t2.payload.s;
+    l4 = t2.payload.s;
     l1 = vader_host_std_core_byte_len(l0);
-    l7 = vader_host_std_core_byte_len(l5);
-    t3 = (l1 + l7);
+    l6 = vader_host_std_core_byte_len(l4);
+    t3 = (l1 + l6);
     l1 = (size_t) (int64_t) t3;
     l2 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(52) + l1));
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 7u);
     l1 = std_core_write_string_at(l2, l1, l0);
     l1 = std_core_write_string_at(l2, l1, 8u);
-    l1 = std_core_write_string_at(l2, l1, l5);
+    l1 = std_core_write_string_at(l2, l1, l4);
     l1 = std_core_write_string_at(l2, l1, 9u);
-    l3 = ((int64_t) (int32_t) l9);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) l9);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, 10u);
     t4 = vader_host_std_runtime_collections();
-    l4 = (t4 > INT32_C(0));
-    l1 = std_core_write_bool(l2, l1, l4);
+    l3 = (t4 > INT32_C(0));
+    l1 = std_core_write_bool(l2, l1, l3);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 97 "tests/snippets/module_storage/_main.vader"
@@ -584,16 +583,16 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a12_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a12_slotarr, INT32_C(0))
     t2 = vader_box_bool(6u, ((uint8_t*) _a12_slotarr->buf->slots)[_a12_slotarr->offset + (size_t) INT32_C(0)]);
-    l4 = t2.payload.b;
-    l1 = std_core_write_bool(l2, l1, l4);
+    l3 = t2.payload.b;
+    l1 = std_core_write_bool(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, 5u);
     t1 = snippet_flags();
     vader_array_t* _a13_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a13_slotarr, INT32_C(2))
     t2 = vader_box_bool(6u, ((uint8_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) INT32_C(2)]);
-    l4 = t2.payload.b;
-    l1 = std_core_write_bool(l2, l1, l4);
+    l3 = t2.payload.b;
+    l1 = std_core_write_bool(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, 12u);
     t1 = snippet_flags();
     t5 = ((vader_array_t*) t1)->length;
@@ -640,8 +639,8 @@ static int32_t snippet_main(void) {
     l2 = std_core_new_byte_buffer((size_t) 54);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 13u);
-    l3 = ((int64_t) (int32_t) l9);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) l9);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, 14u);
     t1 = snippet_counts();
     t5 = ((vader_array_t*) t1)->length;
@@ -663,8 +662,8 @@ static int32_t snippet_main(void) {
     l10 = std_core_new_byte_buffer((size_t) 29);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l10, l1, 16u);
-    l3 = ((int64_t) 2);
-    l1 = std_core_write_int(l10, l1, l3);
+    l7 = ((int64_t) 2);
+    l1 = std_core_write_int(l10, l1, l7);
     t0 = std_core_finish_buffer(l10, l1);
     vader_struct_snippet_Spec_t* _a16_obj = (vader_struct_snippet_Spec_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Spec_t));
     vader_obj_header_init(_a16_obj, 8u);
@@ -687,8 +686,8 @@ static int32_t snippet_main(void) {
         l10 = std_core_new_byte_buffer((size_t) 22);
         l1 = (size_t) 0;
         l1 = std_core_write_string_at(l10, l1, 17u);
-        l3 = ((int64_t) (int32_t) l9);
-        l1 = std_core_write_int(l10, l1, l3);
+        l7 = ((int64_t) (int32_t) l9);
+        l1 = std_core_write_int(l10, l1, l7);
         l0 = std_core_finish_buffer(l10, l1);
         l11 = l9;
         vader_struct_snippet_Spec_t* _a18_obj = (vader_struct_snippet_Spec_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Spec_t));
@@ -730,10 +729,10 @@ static int32_t snippet_main(void) {
         l10 = std_core_new_byte_buffer((size_t) 22);
         l1 = (size_t) 0;
         l1 = std_core_write_string_at(l10, l1, 17u);
-        l3 = ((int64_t) (int32_t) l11);
-        l1 = std_core_write_int(l10, l1, l3);
-        l5 = std_core_finish_buffer(l10, l1);
-        if (l0 == l5) {
+        l7 = ((int64_t) (int32_t) l11);
+        l1 = std_core_write_int(l10, l1, l7);
+        l4 = std_core_finish_buffer(l10, l1);
+        if (l0 == l4) {
 #line 129 "tests/snippets/module_storage/_main.vader"
             l9 = vader_chk_add(i32, l9, INT32_C(1));
 #line 128 "tests/snippets/module_storage/_main.vader"
@@ -745,8 +744,8 @@ static int32_t snippet_main(void) {
     l2 = std_core_new_byte_buffer((size_t) 79);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 19u);
-    l3 = ((int64_t) (int32_t) l9);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) l9);
+    l1 = std_core_write_int(l2, l1, l7);
     l1 = std_core_write_string_at(l2, l1, 20u);
     t1 = snippet_queue();
     t5 = ((vader_array_t*) t1)->length;
@@ -760,8 +759,8 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_CHECK_INDEX(_a21_slotarr, INT32_C(0))
     t1 = vader_array_ref_load_obj(_a21_slotarr->buf, _a21_slotarr->offset + (size_t) INT32_C(0));
     t4 = ((vader_struct_snippet_Spec_t*) t1)->f_code;
-    l3 = ((int64_t) (int32_t) t4);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) t4);
+    l1 = std_core_write_int(l2, l1, l7);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 134 "tests/snippets/module_storage/_main.vader"
@@ -770,24 +769,24 @@ static int32_t snippet_main(void) {
     l2 = (void*) &vader_data_1;
 #line 135 "tests/snippets/module_storage/_main.vader"
     l1 = ((vader_array_t*) l2)->length;
-    l7 = (size_t) 0;
-    while ((l7 < l1)) {
+    l6 = (size_t) 0;
+    while ((l6 < l1)) {
         vader_array_t* _a22_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a22_slotarr)
-        VADER_ARRAY_CHECK_INDEX(_a22_slotarr, l7)
-        l11 = ((int32_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) l7];
+        VADER_ARRAY_CHECK_INDEX(_a22_slotarr, l6)
+        l11 = ((int32_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) l6];
 #line 136 "tests/snippets/module_storage/_main.vader"
         l9 = vader_chk_add(i32, l9, l11);
 #line 135 "tests/snippets/module_storage/_main.vader"
-        t3 = (l7 + INT64_C(1));
-        l7 = (size_t) (int64_t) t3;
+        t3 = (l6 + INT64_C(1));
+        l6 = (size_t) (int64_t) t3;
     }
 #line 138 "tests/snippets/module_storage/_main.vader"
     l2 = std_core_new_byte_buffer((size_t) 26);
     l1 = (size_t) 0;
     l1 = std_core_write_string_at(l2, l1, 22u);
-    l3 = ((int64_t) (int32_t) l9);
-    l1 = std_core_write_int(l2, l1, l3);
+    l7 = ((int64_t) (int32_t) l9);
+    l1 = std_core_write_int(l2, l1, l7);
     t0 = std_core_finish_buffer(l2, l1);
     std_io_println__string(t0);
 #line 139 "tests/snippets/module_storage/_main.vader"

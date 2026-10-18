@@ -129,12 +129,9 @@ fn 1 snippet$main () -> i32
   string.const 3   ; " "
   call 5   ; std_core$write_string_at
   local.set 5   ; $call_15
-  i32.const -5
-  i32.to_i64
-  local.set 8   ; $cast_27
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
-  local.get 8   ; $cast_27
+  i64.const -5
   call 6   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
@@ -397,12 +394,9 @@ fn 1 snippet$main () -> i32
   string.const 3   ; " "
   call 5   ; std_core$write_string_at
   local.set 5   ; $call_15
-  i32.const -128
-  i8.to_i64
-  local.set 8   ; $cast_27
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
-  local.get 8   ; $cast_27
+  i64.const -128
   call 6   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4

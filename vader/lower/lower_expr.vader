@@ -761,8 +761,11 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
         }
     }
     return LoweredIf {
-        .span = if_expr.span, .type = type,
-        .cond = cond, .then_block = then_block, .else_block = else_block,
+        .span = if_expr.span,
+        .type = type,
+        .cond = cond,
+        .then_block = held_block(then_block, type),
+        .else_block = held_block(else_block, type),
     }
 }
 

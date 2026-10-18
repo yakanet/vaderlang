@@ -93,7 +93,6 @@ fn 1 snippet$main () -> i32
   local $cast_34 i64
   local $cast_37 i64
   local $eq_101 bool
-  local $cast_106 u64
   i32.const 0
   i32.const 1
   i32.const 2
@@ -317,12 +316,9 @@ fn 1 snippet$main () -> i32
   string.const 3   ; " "
   call 6   ; std_core$write_string_at
   local.set 2   ; __for_len_1
-  i64.const 1
-  usize.to_i64
-  local.set 21   ; $cast_106
   local.get 1   ; __for_arr_0
   local.get 2   ; __for_len_1
-  local.get 21   ; $cast_106
+  i64.const 1
   call 8   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0

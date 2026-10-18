@@ -526,7 +526,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     // `Target(value)` runs the `into` the typecheck recorded at `value` when
     // `Source implements Into<Target>` ; the numeric-primitive cast then wraps the
     // converted value (`cast → i32 / call into(u)`).
-    inner :: prepare_node_for_slot(ctx, call.args[0].value, arg, type, call.span)
+    inner :: prepare_into(ctx, call.args[0].value, arg, type, call.span)
     if type is PrimitiveType {
         n :: type.name
         if n == "string" || n == "bool" || n == "void" || n == "null" {
