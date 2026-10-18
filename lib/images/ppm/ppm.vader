@@ -90,7 +90,7 @@ scan_uint :: fn(bs: u8[], from: usize) -> ScanInt {
     for p < n && is_digit_byte(bs[p]) {
         d :: u32(bs[p] - '0')
         // Bail (found = false) rather than wrap on a malformed huge run.
-        if v > (u32(4294967295) - d) / u32(10) {
+        if v > (u32(0xFFFF_FFFF) - d) / u32(10) {
             return ScanInt { .value = v, .pos = p, .found = false }
         }
         v = v * u32(10) + d

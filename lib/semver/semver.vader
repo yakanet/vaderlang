@@ -548,7 +548,7 @@ zero_pre :: fn(major: i32, minor: i32, patch: i32) -> Version {
 
 // Largest i32 — a version component that already sits here can't be bumped for
 // an exclusive upper bound without wrapping negative.
-I32_MAX :: 2147483647
+I32_MAX :: 0x7FFF_FFFF
 
 // Exclusive upper-bound version (bump one component by 1, zero the rest, carry
 // the `-0` pre-release marker), or `null` when the component is already i32.MAX

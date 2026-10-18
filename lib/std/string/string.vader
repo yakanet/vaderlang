@@ -440,9 +440,9 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
         }
         acc = acc * 10 + i64(b - '0')
         if neg {
-            if acc > 2147483647 + 1 { return ParseError { .msg = "parse_int: overflow" } }
+            if acc > 0x7FFF_FFFF + 1 { return ParseError { .msg = "parse_int: overflow" } }
         } else {
-            if acc > 2147483647 { return ParseError { .msg = "parse_int: overflow" } }
+            if acc > 0x7FFF_FFFF { return ParseError { .msg = "parse_int: overflow" } }
         }
         i = i + 1
     }

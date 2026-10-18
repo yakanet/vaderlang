@@ -336,16 +336,16 @@ import "std/testing"
 
 // ---- POC : structural hash key ---------------------------------------------
 
-FNV_OFFSET_64: u64: 14695981039346656037
-FNV_PRIME_64:  u64: 1099511628211
+FNV_OFFSET_64: u64: 0xCBF2_9CE4_8422_2325
+FNV_PRIME_64:  u64: 0x100_0000_01B3
 
 // A single FNV-1a step over 64-bit WORDS barely avalanches — the multiply only
 // carries bits upward, so structurally similar inputs (sequential symbol ids,
 // neighbouring name hashes) collide. Finalise each step instead.
 mix64 :: fn(h: u64, v: u64) -> u64 {
     x := (h ^ v) *% FNV_PRIME_64
-    x = (x ^ (x >> 33)) *% 18397679294719823053
-    x = (x ^ (x >> 29)) *% 14181476777654086739
+    x = (x ^ (x >> 33)) *% 0xFF51_AFD7_ED55_8CCD
+    x = (x ^ (x >> 29)) *% 0xC4CE_B9FE_1A85_EC53
     return x ^ (x >> 32)
 }
 

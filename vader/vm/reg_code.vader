@@ -264,7 +264,7 @@ import "std/testing"
 
 @test
 test_pack_operands_round_trip :: fn() -> void {
-    for [a, b, c] in [[-1, 0, 7], [2_097_151, -1_048_576, 1_048_575], [-2_097_152, 5, -1]] {
+    for [a, b, c] in [[-1, 0, 7], [0x1F_FFFF, -0x10_0000, 0xF_FFFF], [-0x20_0000, 5, -1]] {
         w :: pack_operands(a, b, c) ?? 0
         assert_eq(operand_a(w), a)
         assert_eq(operand_b(w), b)
@@ -274,6 +274,6 @@ test_pack_operands_round_trip :: fn() -> void {
 
 @test
 test_pack_operands_refuses_a_wide_operand :: fn() -> void {
-    assert(pack_operands(2_097_152, 0, 0) == null, "a past 22 bits")
-    assert(pack_operands(0, 1_048_576, 0) == null, "b past 21 bits")
+    assert(pack_operands(0x20_0000, 0, 0) == null, "a past 22 bits")
+    assert(pack_operands(0, 0x10_0000, 0) == null, "b past 21 bits")
 }

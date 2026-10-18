@@ -54,12 +54,12 @@ int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
     // The range table holds `i64` bounds: a negative magnitude reaches 2^63 at most
     // (the least `i64`), a positive one past `i64.MAX` fits only the 64-bit unsigned.
     if negative {
-        return value <= 9223372036854775808 && contains(repr_range(type_name), 0 -% i64(value))
+        return value <= 0x8000_0000_0000_0000 && contains(repr_range(type_name), 0 -% i64(value))
     }
     if type_name == "u64" || type_name == "usize" {
         return true
     }
-    return value <= 9223372036854775807 && contains(repr_range(type_name), i64(value))
+    return value <= 0x7FFF_FFFF_FFFF_FFFF && contains(repr_range(type_name), i64(value))
 }
 
 // True when `target` is one of `names`. A small shared membership helper.
@@ -1094,15 +1094,15 @@ test_int_fits_bounds :: fn() -> void {
     // Out of range → rejected (T3066 at the pin site).
     assert(!int_fits(9000000000, false, "i32"), "9e9 does not fit i32")
     assert(!int_fits(300, false, "u8"), "300 does not fit u8")
-    assert(!int_fits(18446744073709551615, false, "i64"), "u64.MAX does not fit i64")
+    assert(!int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "i64"), "u64.MAX does not fit i64")
     assert(!int_fits(128, false, "i8"), "128 does not fit i8")
-    assert(!int_fits(2147483648, false, "i32"), "2^31 does not fit i32")
-    assert(!int_fits(9223372036854775808, false, "i64"), "2^63 does not fit i64")
+    assert(!int_fits(0x8000_0000, false, "i32"), "2^31 does not fit i32")
+    assert(!int_fits(0x8000_0000_0000_0000, false, "i64"), "2^63 does not fit i64")
     // In-range values and maxima → accepted.
-    assert(int_fits(2147483647, false, "i32"), "i32.MAX fits i32")
+    assert(int_fits(0x7FFF_FFFF, false, "i32"), "i32.MAX fits i32")
     assert(int_fits(255, false, "u8"), "u8.MAX fits u8")
-    assert(int_fits(18446744073709551615, false, "u64"), "u64.MAX fits u64")
-    assert(int_fits(18446744073709551615, false, "usize"), "u64.MAX fits usize")
+    assert(int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "u64"), "u64.MAX fits u64")
+    assert(int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "usize"), "u64.MAX fits usize")
     // A non-integer target never accepts an integer literal via this path.
     assert(!int_fits(0, false, "f64"), "int literal never fits f64")
     assert(!int_fits(0, false, "bool"), "int literal never fits bool")
@@ -1112,9 +1112,9 @@ test_int_fits_bounds :: fn() -> void {
 test_int_fits_negative_literals :: fn() -> void {
     assert(int_fits(128, true, "i8"), "-128 fits i8")
     assert(!int_fits(129, true, "i8"), "-129 does not fit i8")
-    assert(int_fits(2147483648, true, "i32"), "i32.MIN fits i32")
-    assert(int_fits(9223372036854775808, true, "i64"), "i64.MIN fits i64")
-    assert(!int_fits(9223372036854775809, true, "isize"), "past isize.MIN")
+    assert(int_fits(0x8000_0000, true, "i32"), "i32.MIN fits i32")
+    assert(int_fits(0x8000_0000_0000_0000, true, "i64"), "i64.MIN fits i64")
+    assert(!int_fits(0x8000_0000_0000_0001, true, "isize"), "past isize.MIN")
     assert(!int_fits(1, true, "u32"), "-1 does not fit u32")
     assert(int_fits(0, true, "u8"), "-0 fits u8")
 }

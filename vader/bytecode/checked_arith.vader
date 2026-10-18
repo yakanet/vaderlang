@@ -103,9 +103,9 @@ import "std/testing"
 test_checked_arith_u32_cells :: fn() -> void {
     // 0xFFFF_FFFF sits as the cell -1.
     assert(checked_arith(.Add, .U32, -1, 1) == null, "u32 max + 1")
-    assert_eq(checked_arith(.Add, .U32, 0x7FFF_FFFF, 1) ?? 0, -2_147_483_648)
+    assert_eq(checked_arith(.Add, .U32, 0x7FFF_FFFF, 1) ?? 0, -0x8000_0000)
     assert(checked_arith(.Mul, .U32, -1, -1) == null, "u32 max * max")
-    assert_eq(checked_arith(.Mul, .U32, 65_536, 65_535) ?? 0, -65_536)
+    assert_eq(checked_arith(.Mul, .U32, 0x1_0000, 0xFFFF) ?? 0, -0x1_0000)
 }
 
 @test

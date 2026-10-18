@@ -1174,7 +1174,7 @@ value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
     if kind == .U16  { return I32Val(i32(bits & 0xffff)) }
     if kind == .I16  {
         v :: bits & 0xffff
-        return I32Val(if v >= 0x8000 { i32(v) - 65536 } else { i32(v) })
+        return I32Val(if v >= 0x8000 { i32(v) - 0x1_0000 } else { i32(v) })
     }
     if kind == .U32  { return I32Val(i32(u32(bits))) }
     if kind == .I32  { return I32Val(i32(u32(bits))) }
