@@ -89,27 +89,67 @@ settle_decl_read :: fn(cd: AST.ConstDecl, span: Span, typed: TypedProgram) -> vo
         }
         return
     }
-    // The reading fn's own state, which a module-level value must not see : its
-    // context, the callee and impl it is in, its enclosing loops and narrowings.
-    fn_ctx :: typed.current_fn_ctx
-    callee :: typed.callee_field_id
-    impl_key :: typed.enclosing_impl
-    depth :: typed.overloaded_arg_depth
-    loops :: typed.loop_stack
-    narrow :: typed.narrow
+    // The reading fn's own position, which a module-level value must not see.
+    position :: set_walk_aside(typed)
+    settle_with_reads(cd, typed, deferred)
+    resume_walk(typed, position)
+}
+
+/// Where a walk stands inside a fn body : what a value typed apart from it — a
+/// const read before its turn, a guard's body checked ahead of its own walk —
+/// must not see, and gets back once that value is typed. One list, so that a new
+/// piece of walk state is set aside everywhere or nowhere.
+WalkPosition :: struct {
+    /// The fn being walked.
+    fn_ctx: FnContext | null
+    /// The callee being typed (`TypedProgram.callee_field_id`).
+    callee_field_id: usize
+    /// The impl, and its type parameters, whose members are walked.
+    enclosing_impl: u64
+    enclosing_impl_params: MutableSet<i32>
+    /// How deep in an overloaded call's arguments the walk is.
+    overloaded_arg_depth: i32
+    /// The loops around the walk.
+    loop_stack: EnclosingLoop[]
+    /// The narrowings in force.
+    narrow: NarrowState
+}
+
+/// Set the walk's position aside, the walk then standing at module level ;
+/// `resume_walk` puts it back.
+///
+/// @return  the position set aside.
+set_walk_aside :: fn(typed: TypedProgram) -> WalkPosition {
+    position :: WalkPosition {
+        .fn_ctx = typed.current_fn_ctx,
+        .callee_field_id = typed.callee_field_id,
+        .enclosing_impl = typed.enclosing_impl,
+        .enclosing_impl_params = typed.enclosing_impl_params,
+        .overloaded_arg_depth = typed.overloaded_arg_depth,
+        .loop_stack = typed.loop_stack,
+        .narrow = typed.narrow,
+    }
     typed.current_fn_ctx = null
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
     typed.enclosing_impl = 0
+    typed.enclosing_impl_params = MutableSet<i32> {}
     typed.overloaded_arg_depth = 0
     typed.loop_stack = []
     typed.narrow = NarrowState {}
-    settle_with_reads(cd, typed, deferred)
-    typed.current_fn_ctx = fn_ctx
-    typed.callee_field_id = callee
-    typed.enclosing_impl = impl_key
-    typed.overloaded_arg_depth = depth
-    typed.loop_stack = loops
-    typed.narrow = narrow
+    return position
+}
+
+/// Put back the walk's position `set_walk_aside` set aside.
+///
+/// @param position  what `set_walk_aside` returned.
+resume_walk :: fn(typed: TypedProgram, position: WalkPosition) -> void {
+    typed.current_fn_ctx = position.fn_ctx
+    typed.callee_field_id = position.callee_field_id
+    typed.enclosing_impl = position.enclosing_impl
+    typed.enclosing_impl_params = position.enclosing_impl_params
+    typed.overloaded_arg_depth = position.overloaded_arg_depth
+    typed.loop_stack = position.loop_stack
+    typed.narrow = position.narrow
 }
 
 // Whether a read of the const `cd` (`key`), which is being typed, closes a cycle

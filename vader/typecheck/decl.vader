@@ -95,7 +95,12 @@ declare_decl :: fn(
     diags: Diagnostic[],
 ) -> void {
     match decl {
-        is AST.FnDecl     -> { declare_fn(decl, resolved, typed, diags) }
+        is AST.FnDecl     -> {
+            declare_fn(decl, resolved, typed, diags)
+            if is_guard_candidate(decl, typed) {
+                _ :: typed.guards.candidates.add(decl.id)
+            }
+        }
         is AST.StructDecl -> {
             sym :: symbol_declared_at(resolved, decl.name_span) ?? return
             declare_named_with_args(sym, decl.type_params, typed, mk_struct)

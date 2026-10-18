@@ -18,8 +18,8 @@ import "vader/integer"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// The narrowing a comparison `cond` gives the range it tests, `!` composed by
-/// swapping the sides.
+/// The narrowing a comparison `cond` gives the range it tests, or a call to a guard
+/// the argument it narrows (`guard.vader`), `!` composed by swapping the sides.
 ///
 /// @param cond  a condition, already type-checked.
 /// @return      null when `cond` compares no range with a literal or a range value.
@@ -27,6 +27,9 @@ detect_value_narrow :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow | nul
     if cond is AST.UnaryExpr && cond.op == .Not {
         inner :: detect_value_narrow(cond.operand, typed) ?? return null
         return swapped(inner)
+    }
+    if cond is AST.CallExpr {
+        return guard_narrowing(cond, typed)
     }
     if cond !is AST.BinaryExpr {
         return null

@@ -1510,6 +1510,9 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     // `NarrowState` is then reset here for free instead of being silently left
     // out of a hand-written list.
     typed.narrow = NarrowState {}
+    // What the guards prove is read off their checked bodies : the walk after
+    // the reset checks them again.
+    typed.guards = GuardState { .candidates = typed.guards.candidates }
 }
 
 // Register every type alias of one module (explicit `T :: type ...` or implicit

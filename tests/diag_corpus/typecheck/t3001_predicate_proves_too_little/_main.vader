@@ -1,0 +1,29 @@
+// A guard narrows to what its condition proves and no further : `is_late` proves
+// `21..=23`, not `22..=23`. A predicate with a block body is no guard, and a
+// comparison does not narrow a primitive parameter.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+is_late :: fn(h: Hour) -> bool = h > 20
+
+is_night :: fn(h: Hour) -> bool {
+    return h > 21
+}
+
+is_small :: fn(n: i32) -> bool = n < 10
+
+export main :: fn() -> i32 {
+    h: Hour: 23
+    if is_late(h) {
+        latest: 22..=23: h
+    }
+    if is_night(h) {
+        night: 22..=23: h
+    }
+    n: i32: 4
+    if is_small(n) {
+        digit: 0..=9: n
+    }
+    return 0
+}

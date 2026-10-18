@@ -1,0 +1,239 @@
+// vader/typecheck/guard — a predicate narrows the arguments it is called on.
+//
+// An expression-bodied function returning `bool` whose condition narrows its
+// parameters is a guard : `is_weekend :: fn(d: Weekday) -> bool = d >= 5` proves
+// `d` within `5..=6` where it returns true and within `0..=4` where it returns
+// false, so `if is_weekend(d)` narrows `d` at the call. What it proves is what the
+// narrowing machine gives its condition on each side, read for each parameter
+// once the body is checked ; a call written ahead of the guard checks that body
+// first, on its own. A guard holds in its own module : the facts live in its
+// `TypedProgram`, and another module calls it as a plain predicate.
+
+module "vader/typecheck"
+
+import "std/collections"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The guards of a module : the candidates among its fns, and what each checked
+/// one proves.
+export GuardState :: struct {
+    /// The module's top-level fns that may be guards (`is_guard_candidate`), by
+    /// node id.
+    candidates: MutableSet<usize> = MutableSet<usize> {}
+    /// What each checked candidate proves, by node id ; nothing while its body is
+    /// being checked.
+    facts: MutableMap<usize, GuardFact[]> = MutableMap<usize, GuardFact[]> {}
+}
+
+/// What a guard proves about one of its parameters.
+export GuardFact :: struct {
+    /// The parameter's position.
+    index: usize
+    /// The parameter's declared type.
+    declared: Type
+    /// What it holds where the guard returns true.
+    then_ty: Type
+    /// What it holds where the guard returns false.
+    else_ty: Type
+}
+
+/// Whether `fd`, a top-level fn of the module once declared, may be a guard : a
+/// predicate written as one expression, returning `bool` or an inferred type, not
+/// generic, with a parameter of a type a test can narrow.
+///
+/// @param fd  a function declaration whose signature is declared.
+is_guard_candidate :: fn(fd: AST.FnDecl, typed: TypedProgram) -> bool {
+    if !fd.is_expression_bodied || fd.params.len() == 0 || fd.type_params.len() > 0 {
+        return false
+    }
+    returned :: lookup_return_type(fd, typed)
+    if !is_bool(returned) && returned !is UnresolvedType {
+        return false
+    }
+    for p in fd.params {
+        declared :: typed.param_types[p.span.hash()] ?? continue
+        if is_narrowable(declared) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether a test can narrow a value of type `t` : a union, a trait value, an
+// integer a bounds test narrows, a range ; or an unresolved type, which says
+// nothing yet.
+is_narrowable :: fn(t: Type) -> bool =
+    t is UnionType || t is TraitType || t is UnresolvedType || integer_values(t) != null
+
+/// What the checked predicate `fd` proves about each parameter its condition
+/// narrows.
+///
+/// @param fd    a guard candidate (`is_guard_candidate`).
+/// @param body  its body, the condition its trailing expression.
+proved_facts :: fn(fd: AST.FnDecl, body: AST.BlockExpr, typed: TypedProgram) -> GuardFact[] {
+    facts: GuardFact[]: []
+    cond :: body.trailing ?? return facts
+    recorded :: typed.expr_types[cond.id] ?? return facts
+    if !is_bool(recorded) {
+        return facts
+    }
+    symbols: i32[]: []
+    declared: Type[]: []
+    for p in fd.params {
+        sym :: typed.resolved.idents[p.span.hash()] ?? return facts
+        symbols.push(sym.id)
+        declared.push(typed.param_types[p.span.hash()] ?? return facts)
+    }
+    then_tys :: narrowed_params(cond, true, symbols, declared, typed)
+    else_tys :: narrowed_params(cond, false, symbols, declared, typed)
+    for i in 0..<declared.len() {
+        if equals_type(then_tys[i], declared[i]) && equals_type(else_tys[i], declared[i]) {
+            continue
+        }
+        facts.push(GuardFact {
+            .index = i,
+            .declared = declared[i],
+            .then_ty = then_tys[i],
+            .else_ty = else_tys[i],
+        })
+    }
+    return facts
+}
+
+// What each parameter, the binding `symbols` names, holds where `cond` evaluates
+// to `truth`.
+narrowed_params :: fn(
+    cond: AST.Expr,
+    truth: bool,
+    symbols: i32[],
+    declared: Type[],
+    typed: TypedProgram,
+) -> Type[] {
+    pushed :: push_cond_narrows(cond, truth, typed, diag_sink())
+    out: Type[]: []
+    for i in 0..<declared.len() {
+        out.push(narrow_for_binding(typed, symbols[i], declared[i]))
+    }
+    pop_narrows(pushed, typed)
+    return out
+}
+
+/// The narrowings a call to a guard of this module gives the arguments it
+/// narrows, one per argument that is a binding or a field chain.
+///
+/// @param call  a call in a condition, already checked.
+/// @return      null when the callee is no guard here.
+guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | null {
+    decl :: recorded_decl(typed, call) ?? return null
+    if decl.id !in typed.guards.candidates {
+        return null
+    }
+    facts :: guard_facts(decl, typed) ?? return null
+    offset :: receiver_offset(call, decl, typed)
+    out: IsNarrow[]: []
+    for fact in facts {
+        arg :: guard_argument(call, offset, fact.index) ?? continue
+        slot :: slot_of(arg, typed) ?? continue
+        current :: slot.current
+        if current is UnresolvedType {
+            continue
+        }
+        out.push(IsNarrow {
+            .sym_id = slot.sym_id,
+            .static_ty = current,
+            .then_ty = fitted(current, fact.declared, fact.then_ty),
+            .else_ty = fitted(current, fact.declared, fact.else_ty),
+            .field_key = slot.field_key,
+        })
+    }
+    return out
+}
+
+/// The first narrowing a call to a guard gives : what a test read as one leaf
+/// narrows (`detect_value_narrow`). A condition pushes them all
+/// (`push_guard_call`).
+///
+/// @param call  a call in a condition, already checked.
+guard_narrowing :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow | null {
+    narrowings :: guard_narrowings(call, typed) ?? return null
+    if narrowings.len() == 0 {
+        return null
+    }
+    return narrowings[0]
+}
+
+/// Push what a call to a guard narrows where it evaluated to `truth`.
+///
+/// @param pushed  receives the records that unwind them (`pop_narrows`).
+push_guard_call :: fn(call: AST.CallExpr, truth: bool, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
+    narrowings :: guard_narrowings(call, typed) ?? return
+    for n in narrowings {
+        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, narrowed_side(n, truth)))
+    }
+}
+
+// What `n` narrows its slot to where its test evaluated to `truth`.
+narrowed_side :: fn(n: IsNarrow, truth: bool) -> Type {
+    if truth {
+        return n.then_ty
+    }
+    return n.else_ty
+}
+
+// What the guard `decl` proves : read off its checked body, which a call written
+// ahead of it checks now. Null while a const's value is typed : a fn body is
+// checked once every const it may read is set.
+guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
+    known :: typed.guards.facts[decl.id]
+    if known != null {
+        return known
+    }
+    if typed.const_walk.typing.len() > 0 {
+        return null
+    }
+    body :: decl.body ?? return null
+    position :: set_walk_aside(typed)
+    check_fn_body(decl, body, typed, diag_sink())
+    resume_walk(typed, position)
+    return typed.guards.facts[decl.id]
+}
+
+// The argument `call` passes the parameter `index` of a fn `offset` of whose
+// parameters its receiver fills ; the typecheck put the arguments in parameter
+// order.
+guard_argument :: fn(call: AST.CallExpr, offset: usize, index: usize) -> AST.Expr | null {
+    if index < offset {
+        callee :: call.callee
+        if callee is AST.FieldExpr {
+            return callee.target
+        }
+        return null
+    }
+    position :: index - offset
+    if position >= call.args.len() {
+        return null
+    }
+    return call.args[position].value
+}
+
+// What a value of type `current`, passed where `declared` is expected, holds where
+// the guard proved `proved` of its parameter : `proved` when the two types agree,
+// the values both hold for integers, `proved` again when it refines `current`, and
+// `current` itself when the fact says nothing of it.
+fitted :: fn(current: Type, declared: Type, proved: Type) -> Type {
+    if proved is NeverType || equals_type(current, declared) {
+        return proved
+    }
+    proved_values :: integer_values(proved)
+    if proved_values != null {
+        within :: inside_of(current, RangeType { .bounds = proved_values })
+        if within != null {
+            return within
+        }
+    }
+    if is_assignable(proved, current) {
+        return proved
+    }
+    return current
+}

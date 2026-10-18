@@ -255,6 +255,11 @@ push_cond_narrows_into :: fn(
             return
         }
     }
+    // A call to a guard narrows every argument it proves something of.
+    if cond is AST.CallExpr {
+        push_guard_call(cond, truth, typed, pushed)
+        return
+    }
     leaf :: detect_is_narrow(cond, typed, diags) ?? return
     side_ty :: if truth { leaf.then_ty } else { leaf.else_ty }
     pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
@@ -307,9 +312,9 @@ pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
 detect_is_narrow :: fn(
     cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> IsNarrow | null {
-    // A comparison narrowing a range (`h < 12`) ; under a `!`, reached by the
-    // swap below.
-    if cond is AST.BinaryExpr {
+    // A comparison narrowing a range (`h < 12`), a call to a guard ; under a `!`,
+    // reached by the swap below.
+    if cond is AST.BinaryExpr || cond is AST.CallExpr {
         by_value :: detect_value_narrow(cond, typed)
         if by_value != null {
             return by_value

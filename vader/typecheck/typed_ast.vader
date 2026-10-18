@@ -451,6 +451,11 @@ export TypedProgram :: struct {
     /// (for `sleep`), so it is always present when needed.
     run_async_main_symbol: Symbol | null = null
 
+    /// The module's guards : the predicates whose condition narrows a parameter,
+    /// and what each proves (`guard.vader`). A call in a condition narrows its
+    /// argument the same way.
+    guards: GuardState = GuardState {}
+
     /// Imported fn overloads, indexed by SOURCE FILE and then by simple name.
     /// Populated by the orchestrator after wiring imports. Consumed by
     /// `field.vader::try_free_fn_ufcs` so `x.method()` can dispatch to a fn

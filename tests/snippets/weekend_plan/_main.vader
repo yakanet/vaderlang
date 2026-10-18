@@ -1,0 +1,87 @@
+// A predicate written as one condition over its parameters is a guard in its
+// module : `is_weekend(d)` narrows `d` as `d >= 5` would, in the branch and past
+// a guard that leaves the block, called directly or as `d.is_weekend()`, written
+// before or after the guard, and through another guard built on it ; a guard over
+// two parameters narrows both arguments. It narrows a union member and a `null`
+// the same way.
+
+module "snippet"
+
+import "std/io"
+
+Weekday :: Int in 0..=6
+Weekend :: Int in 5..=6
+
+Walk :: struct {
+    km: i32
+}
+
+Swim :: struct {
+    laps: i32
+}
+
+Activity :: Walk | Swim
+
+rest :: fn(d: Weekend) -> string = "rest ${d}"
+
+work :: fn(d: 0..=4) -> string = "work ${d}"
+
+plan :: fn(d: Weekday) -> string {
+    if is_weekend(d) {
+        return rest(d)
+    }
+    return work(d)
+}
+
+early_out :: fn(d: Weekday) -> string {
+    if !d.is_weekend() {
+        return work(d)
+    }
+    return rest(d)
+}
+
+is_weekend :: fn(d: Weekday) -> bool = d >= 5
+
+is_sunday :: fn(d: Weekday) -> bool = is_weekend(d) && d == 6
+
+lie_in :: fn(d: Weekday) -> 6..=6 | null {
+    if is_sunday(d) {
+        return d
+    }
+    return null
+}
+
+both_off :: fn(a: Weekday, b: Weekday) -> bool = is_weekend(a) && is_weekend(b)
+
+shared_rest :: fn(a: Weekday, b: Weekday) -> string {
+    if !both_off(a, b) {
+        return "apart"
+    }
+    return "${rest(a)} ${rest(b)}"
+}
+
+is_walk :: fn(a: Activity) -> bool = a is Walk
+
+effort :: fn(a: Activity) -> i32 {
+    if is_walk(a) {
+        return a.km * 10
+    }
+    return a.laps * 3
+}
+
+has_name :: fn(name: string | null) -> bool = name != null
+
+greet :: fn(name: string | null) -> string {
+    if !has_name(name) {
+        return "hello"
+    }
+    return "hello ${name}"
+}
+
+main :: fn() -> i32 {
+    println("${plan(6)} ${plan(2)} ${early_out(5)} ${early_out(0)}")
+    println("${lie_in(6) ?? 6} ${lie_in(5) == null} ${shared_rest(5, 6)} ${shared_rest(5, 2)}")
+    println("${effort(Walk { .km = 4 })} ${effort(Swim { .laps = 12 })}")
+    println("${greet("Ada")} ${greet(null)}")
+    return 0
+}

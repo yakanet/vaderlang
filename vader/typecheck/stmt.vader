@@ -186,7 +186,15 @@ check_fn_body :: fn(
     }
     prev :: typed.current_fn_ctx
     typed.current_fn_ctx = ctx
+    guard :: fn_decl.is_expression_bodied && fn_decl.id in typed.guards.candidates
+    if guard {
+        // A call inside the body reads nothing of the guard yet.
+        typed.guards.facts[fn_decl.id] = []
+    }
     got :: check_block(body, expected, typed, diags, ctx)
+    if guard {
+        typed.guards.facts[fn_decl.id] = proved_facts(fn_decl, body, typed)
+    }
     if is_generator {
         // A generator returns its stream via `yield`, not the trailing
         // expression — skip the implicit-return obligation entirely.
@@ -1291,10 +1299,16 @@ push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarro
             return
         }
     }
-    // `!(a && b)` false is `a && b` true : both operands hold.
+    // A call to a guard narrows every argument it proves something of.
+    if cond is AST.CallExpr {
+        push_guard_call(cond, false, typed, stack)
+        return
+    }
+    // `!(a && b)` false is `a && b` true : both operands hold ; `!f(x)` false is
+    // `f(x)` true.
     if cond is AST.UnaryExpr && cond.op == .Not {
         inner :: cond.operand
-        if inner is AST.BinaryExpr && inner.op == .And {
+        if inner is AST.BinaryExpr && inner.op == .And || inner is AST.CallExpr {
             push_cond_narrows_into(inner, true, typed, diag_sink(), stack)
             return
         }

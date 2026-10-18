@@ -1,0 +1,180 @@
+# Lower
+
+## snippet
+  snippet.Walk :: struct { km: i32 }  // snippet$Walk
+  snippet.Swim :: struct { laps: i32 }  // snippet$Swim
+  snippet.rest :: fn(d: u8) -> string {  // snippet$rest
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "rest ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.work :: fn(d: u8) -> string {  // snippet$work
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "work ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.plan :: fn(d: u8) -> string {  // snippet$plan
+      if snippet.is_weekend(d) {
+          return snippet.rest(d)
+      }
+      return snippet.work(d)
+  }
+  snippet.early_out :: fn(d: u8) -> string {  // snippet$early_out
+      if !snippet.is_weekend(d) {
+          return snippet.work(d)
+      }
+      return snippet.rest(d)
+  }
+  snippet.is_weekend :: fn(d: u8) -> bool {  // snippet$is_weekend
+      d >= u8(5)
+  }
+  snippet.is_sunday :: fn(d: u8) -> bool {  // snippet$is_sunday
+      snippet.is_weekend(d) && (d == u8(6))
+  }
+  snippet.lie_in :: fn(d: u8) -> null | u8 {  // snippet$lie_in
+      if snippet.is_sunday(d) {
+          return d
+      }
+      return null
+  }
+  snippet.both_off :: fn(a: u8, b: u8) -> bool {  // snippet$both_off
+      snippet.is_weekend(a) && snippet.is_weekend(b)
+  }
+  snippet.shared_rest :: fn(a: u8, b: u8) -> string {  // snippet$shared_rest
+      if !snippet.both_off(a, b) {
+          return "apart"
+      }
+      return concat_3(snippet.rest(a), " ", snippet.rest(b))
+  }
+  snippet.is_walk :: fn(a: Swim | Walk) -> bool {  // snippet$is_walk
+      a is Walk
+  }
+  snippet.effort :: fn(a: Swim | Walk) -> i32 {  // snippet$effort
+      if snippet.is_walk(a) {
+          return Walk(a).km * 10
+      }
+      return Swim(a).laps * 3
+  }
+  snippet.has_name :: fn(name: null | string) -> bool {  // snippet$has_name
+      !(name is null)
+  }
+  snippet.greet :: fn(name: null | string) -> string {  // snippet$greet
+      if !snippet.has_name(name) {
+          return "hello"
+      }
+      return concat_2("hello ", string(name))
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>(concat_7(snippet.plan(u8(6)), " ", snippet.plan(u8(2)), " ", snippet.early_out(u8(5)), " ", snippet.early_out(u8(0))))
+      std.io.println<string>({
+          __p_1: string = snippet.shared_rest(u8(5), u8(6))
+          __p_2: string = snippet.shared_rest(u8(5), u8(2))
+          __buf_3: Buffer = std.core.new_byte_buffer(usize(28) +% (std.core.byte_len(__p_1) +% std.core.byte_len(__p_2)))
+          __off_4: usize = 0
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64({
+              __coalesce_0: null | u8 = snippet.lie_in(u8(6))
+              if __coalesce_0 is null { u8(6) } else { u8(__coalesce_0) } :u8
+          } :u8))
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.lie_in(u8(5)) is null)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_1)
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      std.io.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_6: usize = 0
+          __off_6 = std.core.write_int(__buf_5, __off_6, i64(snippet.effort(Walk { .km = 4 })))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, i64(snippet.effort(Swim { .laps = 12 })))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      std.io.println<string>(concat_3(snippet.greet("Ada"), " ", snippet.greet(null)))
+      return 0
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_7 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      c4: usize = c3 +% std.core.byte_len(p4)
+      c5: usize = c4 +% std.core.byte_len(p5)
+      c6: usize = c5 +% std.core.byte_len(p6)
+      buf: Buffer = std.core.usize.new_buffer(c6)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.write_string(buf, c4, p5)
+      std.core.Buffer.write_string(buf, c5, p6)
+      std.core.Buffer.intern_string(buf, c6)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo
