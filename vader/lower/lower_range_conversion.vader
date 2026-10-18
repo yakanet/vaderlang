@@ -1,5 +1,6 @@
 // vader/lower/lower_range_conversion — `Hour(x)` and `x in Hour`, a value against
-// the bounds of an integer type.
+// the bounds of an integer type, and the value a generic instance gets back through
+// a `T` it binds to a range.
 //
 // The value is tested against the bounds its own type does not already keep —
 // `u8` into `-5..=5` needs no test below. A conversion stops the program outside
@@ -24,14 +25,38 @@ import "vader/types"
 ///                converted to the integer the range is held in.
 lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType) -> LoweredExpr {
     observe_no_call(ctx, call, .Call, "range check")
-    span :: call.span
-    held :: range_representation(target).name
     value :: lower_expr(ctx, call.args[0].value)
-    source_values :: values_of(
-        ctx,
-        call.args[0].value,
-        value,
-    ) ?? return cast_to_width(value, held, span)
+    return checked_into(ctx, value, values_of(ctx, call.args[0].value, value), target, call.span)
+}
+
+/// `value`, the outcome of `e`, checked against the range its instance binds the
+/// type parameter `e` is a value of. A member reached through such a `T` is the
+/// integer's own (a range borrows its integer's impls), and what it hands back is
+/// a value of the integer : `a + b` of two `Hour` may be 30.
+///
+/// @param e      a call or an operator, its type as the typecheck recorded it.
+/// @param value  `e`, lowered.
+/// @return       `value`, unchanged when `e` is no value of a type parameter bound
+///               to a range.
+kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr {
+    if ctx.types.subst.ranges == null {
+        return value
+    }
+    target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return value
+    return checked_into(ctx, value, integer_values(value.type), target, e.span)
+}
+
+// `value` converted into `target`, the program stopped where it lies outside. Only
+// the bounds `source`, the values it can take, does not already keep are tested.
+checked_into :: fn(
+    ctx: FnLowerCtx,
+    value: LoweredExpr,
+    source: Interval | null,
+    target: RangeType,
+    span: Span,
+) -> LoweredExpr {
+    held :: range_representation(target).name
+    source_values :: source ?? return cast_to_width(value, held, span)
     below :: may_lie_below(source_values, target.bounds)
     above :: may_lie_above(source_values, target.bounds)
     if !below && !above {

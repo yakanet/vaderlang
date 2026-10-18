@@ -154,8 +154,13 @@ signed_interval :: fn(bits: i64) -> Interval {
     return interval(-half, half - 1)
 }
 
-// `r` as written : its declared name, else its bounds.
-write_range :: fn(sb: StringBuilder, r: RangeType) -> void {
+// `r` as written : its declared name, else its bounds. `qualified` writes its
+// bounds whatever its name, `Int in 0..=23`, so two ranges of one name differ.
+write_range :: fn(sb: StringBuilder, r: RangeType, qualified: bool) -> void {
+    if qualified {
+        sb.append("${INT_BASE_NAME} in ${display_bounds(r.bounds)}")
+        return
+    }
     if r.name != "" {
         sb.append(r.name)
         return
@@ -789,7 +794,7 @@ write_type :: fn(sb: StringBuilder, t: Type, qualified: bool) -> void {
         }
         is EnumType       -> { sb.append(nominal_name(t.symbol, qualified)) }
         is DistinctType   -> { sb.append(nominal_name(t.symbol, qualified)) }
-        is RangeType      -> { sb.write_range(t) }
+        is RangeType      -> { sb.write_range(t, qualified) }
         is TraitType      -> {
             sb.write_named(nominal_name(t.symbol, qualified), t.args, qualified)
         }
@@ -1050,7 +1055,9 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
 /// A primitive is kept, and so is a newtype over one, as its backing. An enum
 /// with variant data is kept as itself : it stores its variant's rank, so
 /// boxing it would leave `i64(v)` in the shared body reading the rank where
-/// the written value is meant. Every other type erases.
+/// the written value is meant. Every other type erases, a range included : a test
+/// at run time cannot tell it from its integer. The lowering alone keeps a range
+/// (`kept_argument`), for the instance at it to check what it gets back.
 ///
 /// @param t  a concrete type argument of the instance.
 export kept_type_argument :: fn(t: Type) -> Type | null {

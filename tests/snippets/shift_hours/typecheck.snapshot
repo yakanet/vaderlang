@@ -1,0 +1,69 @@
+# Typecheck
+
+## tests/snippets/shift_hours
+  FnDecl         first_month          :: fn(T) -> T
+  ConstDecl      Hour                 :: type
+  FnDecl         later                :: fn(T, T) -> T
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Month                :: type
+  FnDecl         total                :: fn(T[]) -> T
+  expr 15:49    BinaryExpr     :: T
+  expr 15:49    IdentExpr      :: T
+  expr 15:57    IdentExpr      :: T
+  expr 18:12    CallExpr       :: T
+  expr 18:12    FieldExpr      :: fn() -> T
+  expr 18:12    IdentExpr      :: T
+  expr 19:19    IdentExpr      :: T[]
+  expr 20:16    IdentExpr      :: T
+  expr 20:9     BinaryExpr     :: T
+  expr 20:9     IdentExpr      :: T
+  expr 22:12    IdentExpr      :: T
+  expr 25:40    CallExpr       :: T
+  expr 25:40    FieldExpr      :: fn() -> T
+  expr 25:40    IdentExpr      :: T
+  expr 30:13    StringLitExpr  :: string
+  expr 30:24    CallExpr       :: Hour
+  expr 30:24    IdentExpr      :: fn(T, T) -> T
+  expr 30:30    IdentExpr      :: Hour
+  expr 30:37    IdentExpr      :: Hour
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:22    SeqLitExpr     :: Hour[]
+  expr 32:13    StringLitExpr  :: string
+  expr 32:23    CallExpr       :: Hour
+  expr 32:23    FieldExpr      :: fn() -> Hour
+  expr 32:23    IdentExpr      :: Hour[]
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:28    CallExpr       :: Hour
+  expr 33:28    CallExpr       :: __genstate_filter<Hour>
+  expr 33:28    FieldExpr      :: fn() -> Hour
+  expr 33:28    FieldExpr      :: fn(fn(Hour) -> bool) -> Iterator<Hour>
+  expr 33:28    IdentExpr      :: Hour[]
+  expr 33:43    LambdaExpr     :: fn(Hour) -> bool
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:50    BinaryExpr     :: bool
+  expr 33:50    IdentExpr      :: Hour
+  expr 35:13    StringLitExpr  :: string
+  expr 35:28    CallExpr       :: Month
+  expr 35:28    FieldExpr      :: fn() -> Month
+  expr 35:28    IdentExpr      :: Month
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:22    CallExpr       :: u8
+  expr 37:22    IdentExpr      :: fn(T, T) -> T
+  expr 37:28    IdentExpr      :: u8
+  expr 37:35    BinaryExpr     :: u8
+  expr 37:35    IdentExpr      :: u8
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:24    CallExpr       :: Hour
+  expr 39:24    IdentExpr      :: fn(T, T) -> T
+  expr 39:30    IdentExpr      :: Hour
+  expr 39:37    IdentExpr      :: Hour
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void

@@ -42,6 +42,19 @@ export apply :: fn(self: EntryTypes, t: Type) -> Type {
     return erase_ranges(substitute(t, self.subst))
 }
 
+/// A type argument as an instance takes it : through the entry's substitution,
+/// a range kept where it is the argument itself (`Hour`, or a `T` the entry binds
+/// to `Hour`), so that instance checks against its bounds what it hands back.
+/// @param self  the entry-types view.
+/// @param t     a type argument the typecheck recorded.
+export instance_argument :: fn(self: EntryTypes, t: Type) -> Type {
+    if t is RangeType {
+        return t
+    }
+    bound :: bound_range(self.subst, t) ?? return apply(self, t)
+    return bound
+}
+
 // Apply the entry's substitution to a `Type | null` lookup result,
 // falling back to `TY_UNRESOLVED` on misses. The lookup-and-substitute
 // pattern repeats across every per-table accessor — centralised here

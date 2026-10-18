@@ -253,19 +253,19 @@ if_holds :: fn(e: AST.IfExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> b
 consumer_subst :: fn(
     ctx: FnLowerCtx, call: AST.CallExpr, callee: Symbol, shape: ConsumerShape,
 ) -> Substitution | null {
-    subst :: new_substitution()
     if shape.type_params.len() == 0 {
-        return subst
+        return new_substitution()
     }
     bound :: recorded_type_args(ctx, call, .Call, callee) ?? return null
     concrete :: strip_distinct_each(bound)
     if !all_concrete(concrete) {
         return null
     }
+    bindings :: MutableMap<i32, Type> {}
     for i in 0..<shape.type_params.len() {
-        subst.type_params[shape.type_params[i].id] = concrete[i]
+        bindings[shape.type_params[i].id] = concrete[i]
     }
-    return subst
+    return substitution_of(bindings)
 }
 
 // ---- the inlined body -------------------------------------------------------

@@ -7,15 +7,9 @@ type 4 primitive bool
 type 5 primitive usize
 type 6 struct std_core$Buffer {  }
 type 7 primitive u64
-type 8 primitive i8
-type 9 primitive i16
-type 10 primitive i64
-type 11 primitive isize
-type 12 primitive u16
-type 13 primitive u32
-type 14 primitive char
-type 15 array 1
-type 16 primitive void
+type 8 array 1
+type 9 primitive void
+type 10 primitive isize
 string 0 "rest "
 string 1 "work "
 string 2 "monday "
@@ -23,8 +17,8 @@ string 3 "day "
 string 4 " "
 string 5 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=15 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=3,15,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 1 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=3,8,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 6 std_core$ByteAccess
 export main 5
 
@@ -33,14 +27,14 @@ fn 0 snippet$rest (u8) -> string
   local __off_1 usize
   local $cast_8 u64
   i64.const 25
-  call 15   ; std_core$new_byte_buffer
+  call 9   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; "rest "
-  call 17   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
   u8.to_i64
@@ -48,11 +42,11 @@ fn 0 snippet$rest (u8) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_8
-  call 18   ; std_core$write_unsigned
+  call 12   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 16   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
@@ -61,14 +55,14 @@ fn 1 snippet$work (u8) -> string
   local __off_1 usize
   local $cast_8 u64
   i64.const 25
-  call 15   ; std_core$new_byte_buffer
+  call 9   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 1   ; "work "
-  call 17   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
   u8.to_i64
@@ -76,17 +70,17 @@ fn 1 snippet$work (u8) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_8
-  call 18   ; std_core$write_unsigned
+  call 12   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 16   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
 fn 2 snippet$plan (u8) -> string
   local.get 0   ; arg 0
-  call 36   ; snippet_days$is_weekend
+  call 13   ; snippet_days$is_weekend
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -100,7 +94,7 @@ end
 
 fn 3 snippet$shift (u8) -> string
   local.get 0   ; arg 0
-  call 37   ; snippet_days$is_workday
+  call 14   ; snippet_days$is_workday
   if $L0 void
   else
     local.get 0   ; arg 0
@@ -117,18 +111,18 @@ fn 4 snippet$greeting (u8) -> string
   local __off_1 usize
   local $cast_9 u64
   local.get 0   ; arg 0
-  call 38   ; snippet_days$is_monday
+  call 15   ; snippet_days$is_monday
   if $L0 void
   else
     i64.const 24
-    call 15   ; std_core$new_byte_buffer
+    call 9   ; std_core$new_byte_buffer
     local.set 1   ; __buf_0
     i64.const 0
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 3   ; "day "
-    call 17   ; std_core$write_string_at
+    call 11   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     u8.to_i64
@@ -136,22 +130,22 @@ fn 4 snippet$greeting (u8) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_9
-    call 18   ; std_core$write_unsigned
+    call 12   ; std_core$write_unsigned
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 16   ; std_core$finish_buffer
+    call 10   ; std_core$finish_buffer
     return
   end $L0
   i64.const 27
-  call 15   ; std_core$new_byte_buffer
+  call 9   ; std_core$new_byte_buffer
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 2   ; "monday "
-  call 17   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
   u8.to_i64
@@ -159,11 +153,11 @@ fn 4 snippet$greeting (u8) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_9
-  call 18   ; std_core$write_unsigned
+  call 12   ; std_core$write_unsigned
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 16   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
@@ -192,7 +186,7 @@ fn 5 snippet$main () -> i32
   string.const 4   ; " "
   local.get 3   ; $call_10
   call 6   ; concat_7
-  call 41   ; std_io$println__string
+  call 18   ; std_io$println__string
   i32.const 0
   call 4   ; snippet$greeting
   local.set 0   ; $call_1
@@ -203,7 +197,7 @@ fn 5 snippet$main () -> i32
   string.const 4   ; " "
   local.get 1   ; $call_4
   call 7   ; concat_3
-  call 41   ; std_io$println__string
+  call 18   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -366,92 +360,20 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$i32$Comparable$compare (i32,i32) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 10 std_core$i32$Step$step (i32) -> i32
-  local.get 0   ; arg 0
-  i32.const 1
-  i32.checked_add
-  return
-end
-
-fn 11 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 12 std_core$usize$Step$step (usize) -> usize
-  local.get 0   ; arg 0
-  i64.const 1
-  usize.checked_add
-  return
-end
-
-fn 13 std_core$u8$Comparable$compare (u8,u8) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 14 std_core$u8$Step$step (u8) -> u8
-  local.get 0   ; arg 0
-  i32.const 1
-  u8.checked_add
-  return
-end
-
-fn 15 std_core$new_byte_buffer (usize) -> ref
+fn 9 std_core$new_byte_buffer (usize) -> ref
   local.get 0   ; arg 0
   buffer.new
   return
 end
 
-fn 16 std_core$finish_buffer (ref,usize) -> string
+fn 10 std_core$finish_buffer (ref,usize) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 17 std_core$write_string_at (ref,usize,string) -> usize
+fn 11 std_core$write_string_at (ref,usize,string) -> usize
   local $call_3 usize
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -466,7 +388,7 @@ fn 17 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 18 std_core$write_unsigned (ref,usize,u64) -> usize
+fn 12 std_core$write_unsigned (ref,usize,u64) -> usize
   local ndigits usize
   local m u64
   local i usize
@@ -546,228 +468,14 @@ fn 18 std_core$write_unsigned (ref,usize,u64) -> usize
   return
 end
 
-fn 19 std_core$three_way (bool,bool) -> i32
-  local if_res i32
-  local.get 0   ; arg 0
-  if $L0 void
-    i32.const -1
-    local.tee 2   ; if_res
-    return
-  end $L0
-  local.get 1   ; arg 1
-  if $L1 void
-    i32.const 1
-    local.set 2   ; if_res
-  else
-    i32.const 0
-    local.set 2   ; if_res
-  end $L1
-  local.get 2   ; if_res
-  return
-end
-
-fn 20 std_core$i8$Comparable$compare (i8,i8) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 21 std_core$i16$Comparable$compare (i16,i16) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 22 std_core$i64$Comparable$compare (i64,i64) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 23 std_core$isize$Comparable$compare (isize,isize) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 24 std_core$u16$Comparable$compare (u16,u16) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 25 std_core$u32$Comparable$compare (u32,u32) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 26 std_core$u64$Comparable$compare (u64,u64) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  u64.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 27 std_core$char$Comparable$compare (char,char) -> i32
-  local $lt_2 bool
-  local $gt_3 bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.lt
-  local.set 2   ; $lt_2
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  i32.gt
-  local.set 3   ; $gt_3
-  local.get 2   ; $lt_2
-  local.get 3   ; $gt_3
-  call 19   ; std_core$three_way
-  return
-end
-
-fn 28 std_core$i8$Step$step (i8) -> i8
-  local.get 0   ; arg 0
-  i32.const 1
-  i8.checked_add
-  return
-end
-
-fn 29 std_core$i16$Step$step (i16) -> i16
-  local.get 0   ; arg 0
-  i32.const 1
-  i16.checked_add
-  return
-end
-
-fn 30 std_core$i64$Step$step (i64) -> i64
-  local.get 0   ; arg 0
-  i64.const 1
-  i64.checked_add
-  return
-end
-
-fn 31 std_core$isize$Step$step (isize) -> isize
-  local.get 0   ; arg 0
-  i64.const 1
-  isize.checked_add
-  return
-end
-
-fn 32 std_core$u16$Step$step (u16) -> u16
-  local.get 0   ; arg 0
-  i32.const 1
-  u16.checked_add
-  return
-end
-
-fn 33 std_core$u32$Step$step (u32) -> u32
-  local.get 0   ; arg 0
-  i32.const 1
-  u32.checked_add
-  return
-end
-
-fn 34 std_core$u64$Step$step (u64) -> u64
-  local.get 0   ; arg 0
-  i64.const 1
-  u64.checked_add
-  return
-end
-
-fn 35 std_core$char$Step$step (char) -> char
-  local.get 0   ; arg 0
-  char.to_i32
-  i32.const 1
-  u32.checked_add
-  u32.to_char
-  return
-end
-
-fn 36 snippet_days$is_weekend (u8) -> bool
+fn 13 snippet_days$is_weekend (u8) -> bool
   local.get 0   ; arg 0
   i32.const 5
   u32.ge
   return
 end
 
-fn 37 snippet_days$is_workday (u8) -> bool
+fn 14 snippet_days$is_workday (u8) -> bool
   local.get 0   ; arg 0
   i32.const 5
   u32.ge
@@ -778,14 +486,14 @@ fn 37 snippet_days$is_workday (u8) -> bool
   return.lit bool.const false
 end
 
-fn 38 snippet_days$is_monday (u8) -> bool
+fn 15 snippet_days$is_monday (u8) -> bool
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
   return
 end
 
-fn 39 std_io$write (u8,string) -> void
+fn 16 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -814,14 +522,14 @@ fn 39 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 15   ; u8[]
+      array.slice 8   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 40   ; std_io$write_bytes
+      call 17   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -841,7 +549,7 @@ fn 39 std_io$write (u8,string) -> void
   return
 end
 
-fn 40 std_io$write_bytes (u8,ref,usize) -> i32
+fn 17 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -861,7 +569,7 @@ fn 40 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 41 std_io$println__string (string) -> void
+fn 18 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 5   ; "\n"
@@ -869,13 +577,6 @@ fn 41 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 39   ; std_io$write
-  return
-end
-
-fn 42 std_core$string$Comparable$compare_vt (string,string) -> i32
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  string.compare
+  call 16   ; std_io$write
   return
 end

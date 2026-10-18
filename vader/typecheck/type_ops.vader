@@ -221,9 +221,11 @@ erase_ranges_each :: fn(types: Type[]) -> Type[] {
     return out
 }
 
-// Whether a range sits anywhere in `t`. Read on every type the lowering reads : a
-// plain walk, no iterator.
-contains_range :: fn(t: Type) -> bool = match t {
+/// Whether a range sits anywhere in `t`. Read on every type the lowering reads : a
+/// plain walk, no iterator.
+///
+/// @param t  a type the typecheck recorded.
+export contains_range :: fn(t: Type) -> bool = match t {
     is RangeType    -> true
     is DistinctType -> contains_range(t.backing)
     is StructType | TraitType -> any_contains_range(t.args)

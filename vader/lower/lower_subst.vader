@@ -15,9 +15,36 @@ import "vader/types"
 import "vader/comptime"
 import "vader/resolver/symbol"
 
-// A substitution of exactly `bindings`.
-substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution =
-    Substitution { .type_params = bindings, .self_type = null }
+// A substitution of exactly `bindings`, every range in them read as its integer :
+// the instance's types are read as integers. A binding that is a range is kept in
+// `ranges`, for its bounds.
+substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution {
+    if !binds_a_range(bindings) {
+        return Substitution { .type_params = bindings, .self_type = null }
+    }
+    integers :: MutableMap<i32, Type> {}
+    ranges :: MutableMap<i32, RangeType> {}
+    for [id, bound] in bindings {
+        integers[id] = erase_ranges(bound)
+        if bound is RangeType {
+            ranges[id] = bound
+        }
+    }
+    return Substitution {
+        .type_params = integers,
+        .self_type = null,
+        .ranges = ranges,
+    }
+}
+
+binds_a_range :: fn(bindings: MutableMap<i32, Type>) -> bool {
+    for [_, bound] in bindings {
+        if contains_range(bound) {
+            return true
+        }
+    }
+    return false
+}
 
 /// Each of `tps` bound to `args[i]`, the concrete instance (`Mono`).
 build_concrete_subst :: fn(tps: TypeParam[], args: Type[], typed: TypedProgram) -> Substitution =
@@ -172,6 +199,25 @@ merge_subst :: fn(base: Substitution, extra: Substitution) -> Substitution {
     out.self_type = base.self_type
     for [k, v] in base.type_params { out.type_params[k] = v }
     for [k, v] in extra.type_params { out.type_params[k] = v }
+    out.ranges = merged_ranges(base.ranges, extra.ranges)
+    return out
+}
+
+// The ranges of two substitutions merged, `extra`'s over `base`'s as for their
+// bindings ; null when neither binds one.
+merged_ranges :: fn(
+    base: MutableMap<i32, RangeType> | null,
+    extra: MutableMap<i32, RangeType> | null,
+) -> MutableMap<i32, RangeType> | null {
+    if base == null {
+        return extra
+    }
+    if extra == null {
+        return base
+    }
+    out :: MutableMap<i32, RangeType> {}
+    for [k, v] in base { out[k] = v }
+    for [k, v] in extra { out[k] = v }
     return out
 }
 
@@ -219,8 +265,12 @@ keep_concrete_or_erase :: fn(impls: ImplRegistry, t: Type) -> Type =
 // The type a generic instance keeps for the argument `t`, or null when it erases
 // it to `Any` : what `kept_type_argument` keeps, and an argument an impl on one
 // instance is built from (`is_specialized_arg`), so that instance gets its own tag
-// and reaches its own impl.
+// and reaches its own impl. A range is kept as itself, for its instance checks
+// what it gets back against its bounds (`Substitution.ranges`).
 kept_argument :: fn(impls: ImplRegistry, t: Type) -> Type | null {
+    if t is RangeType {
+        return t
+    }
     kept :: kept_type_argument(t)
     if kept != null || !impls.is_specialized_arg(t) {
         return kept

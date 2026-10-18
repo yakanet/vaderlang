@@ -16,9 +16,25 @@ import "vader/types"
 export Substitution :: struct {
     type_params: MutableMap<i32, Type>
     self_type:   Type | null
+    /// The range each type parameter an instance binds to one is bound to :
+    /// `type_params` holds its integer, what the instance's types are read as,
+    /// and this the bounds its values are checked against. Null when none is.
+    ranges:      MutableMap<i32, RangeType> | null = null
 }
 
-/// Build an empty substitution. Cheap — both fields start empty and
+/// The range `subst` binds `t` to, when `t` is a type parameter it binds to one.
+///
+/// @param subst  an instance's substitution.
+/// @param t      a type as the typecheck recorded it.
+export bound_range :: fn(subst: Substitution, t: Type) -> RangeType | null {
+    ranges :: subst.ranges ?? return null
+    if t !is TypeParamType {
+        return null
+    }
+    return ranges[t.symbol.id]
+}
+
+/// Build an empty substitution. Cheap — its maps start empty, `ranges` null, and
 /// `substitute` short-circuits when no entry matches.
 /// @return  a fresh substitution with no type-param bindings.
 export new_substitution :: fn() -> Substitution {

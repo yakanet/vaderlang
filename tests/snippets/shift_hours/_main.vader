@@ -1,0 +1,41 @@
+// A range borrows its integer's impls, so a generic fn adding two `Hour` through
+// `Add` adds two `u8`. Its instance at a range is an instance of its own, and what a
+// member reached through `T` hands back is checked against the range there, as
+// `Hour(x)` checks it : an operator, a static member (`T.zero()`), a compound
+// assignment, and a consumer inlined at the call (`sum`). The same fn at `u8` is
+// another instance, unchecked. The last shift ends past 23 and stops the run.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Hour  :: Int in 0..=23
+Month :: Int in 1..=12
+
+later :: fn<T: Add>(start: T, length: T) -> T = start + length
+
+total :: fn<T: Add & Zero>(lengths: T[]) -> T {
+    sum := T.zero()
+    for length in lengths {
+        sum += length
+    }
+    return sum
+}
+
+first_month :: fn<T: One>(m: T) -> T = T.one()
+
+main :: fn() -> i32 {
+    start: Hour: 20
+    short: Hour: 3
+    println("ends at ${later(start, short)}")
+    lengths: Hour[]: [2, 3, 4]
+    println("worked ${lengths.total()}")
+    println("long shifts ${lengths.filter((h) -> h > 2).sum()}")
+    march: Month: 3
+    println("first month ${march.first_month()}")
+    bytes: u8: 200
+    println("bytes ${later(bytes, bytes - 170)}")
+    long: Hour: 10
+    println("ends at ${later(start, long)}")
+    return 0
+}

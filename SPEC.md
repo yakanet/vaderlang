@@ -712,7 +712,9 @@ A mutable local takes the base of a range computed in place: `n := h + 1` is an 
 
 **Conversion.** `Hour(x)` converts an integer into a range: the value is checked against the bounds its own type does not already keep, and the program **stops** outside them, in every build, a release one included. A literal is checked at compile time (**T3066**), a value its type keeps within the range is converted as it is, and a source no value of which is in the range (`Below(b)` with `b: u8` and `Below :: Int in -9..=-1`), or a float, is **T3010**.
 
-A range is its integer to every impl: `"${h}"` prints the number, and its `Display`, `Equals` or `Hash` are those of the integer it is held in. A literal into a union of several integers and ranges (`u8 | Hour`) is ambiguous (**T3089**).
+A range is its integer to every impl: `"${h}"` prints the number, and its `Display`, `Equals` or `Hash` are those of the integer it is held in. A member returning `Self` returns the integer: `h.add(k)` is a `u8`. A literal into a union of several integers and ranges (`u8 | Hour`) is ambiguous (**T3089**).
+
+**In a generic function.** A generic function used at a range (`T` bound to `Hour`, written or handed on by an enclosing instance) has an instance of its own, apart from the one at the integer. There, what a call or an operator gives back as a `T` is checked against the range as `Hour(x)` checks it, and the program **stops** outside: `bump :: fn<T: Add>(a: T, b: T) -> T = a + b` at two `Hour` 20 and 10 stops rather than return a 30, and so do `T.zero()` at a `1..=12` and `sum` over `Hour` values past 23. A range inside an argument (`Hour[]` for `T[]` is `T` at `Hour`, but `Box<Hour>` for `T` is `Box<u8>`) is read as its integer; a member returning `Self` inside another type (`Self | null`) is not checked.
 
 ### Strings
 
