@@ -29,19 +29,18 @@ export main 5
 fn 0 snippet$parse_hour (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
-  i64.lt
+  i64.ge
   if $L0 void
+    local.get 0   ; arg 0
+    i64.const 23
+    i64.le
+    if $L1 void
+      local.get 0   ; arg 0
+      retag 1   ; i64
+      return
+    end $L1
     return.lit null.const
   end $L0
-  local.get 0   ; arg 0
-  i64.const 23
-  i64.gt
-  if $L1 void
-  else
-    local.get 0   ; arg 0
-    retag 1   ; i64
-    return
-  end $L1
   return.lit null.const
 end
 
@@ -135,17 +134,17 @@ fn 3 snippet$east_of_greenwich (ref) -> u8
   local.field 0 5 0   ; arg 0 snippet$Reading.offset
   ref.cast 7   ; i8
   i32.const 0
-  i32.lt
+  i32.ge
   if $L0 void
   else
-    local.field 0 5 0   ; arg 0 snippet$Reading.offset
-    ref.cast 7   ; i8
-    i8.to_i32
-    i32.const 255
-    i32.bitand
-    return
+    return.lit i32.const 0
   end $L0
-  return.lit i32.const 0
+  local.field 0 5 0   ; arg 0 snippet$Reading.offset
+  ref.cast 7   ; i8
+  i8.to_i32
+  i32.const 255
+  i32.bitand
+  return
 end
 
 fn 4 snippet$wrapped (u8) -> u8

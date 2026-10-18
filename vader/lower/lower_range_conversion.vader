@@ -1,13 +1,14 @@
 // vader/lower/lower_range_conversion — `Hour(x)` and `x in Hour`, a value against
-// the bounds of an integer type, and the value a generic instance gets back through
-// a `T` it binds to a range.
+// the bounds of an integer type ; `Weekday(x)` and `x in Weekday`, against the values
+// of an enum ; and the value a generic instance gets back through a `T` it binds to
+// a range.
 //
-// The value is tested against the bounds its own type does not already keep —
-// `u8` into `-5..=5` needs no test below. A conversion stops the program outside
-// them, in every build : a range's values are what its type promises, and the
-// lowering past here reads a range as the integer it is held in. A value its type
-// keeps within the range is converted as it is. `x in T` gives the test's
-// outcome, a constant where the type of `x` decides it.
+// The tested values are runs of integers : a range is one, an enum one per stretch
+// of consecutive values. A value is tested only against what its own type does not
+// already decide : `u8` into `-5..=5` needs no test below. A conversion stops the
+// program off them, in every build : a type's values are what it promises, and the
+// lowering past here reads a range or an enum as the integer it is held in. `x in T`
+// gives the test's outcome, a constant where the type of `x` decides it.
 
 module "vader/lower"
 
@@ -26,7 +27,22 @@ import "vader/types"
 lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType) -> LoweredExpr {
     observe_no_call(ctx, call, .Call, "range check")
     value :: lower_expr(ctx, call.args[0].value)
-    return checked_into(ctx, value, values_of(ctx, call.args[0].value, value), target, call.span)
+    source :: values_of(ctx, call.args[0].value, value)
+    return checked_into_range(ctx, value, source, target, call.span)
+}
+
+/// The conversion `call`, `E(value)`, into the enum `target`.
+///
+/// @param call    the conversion, its single argument the value.
+/// @param target  an enum without variant data.
+/// @return        the value, the program stopped where it is none of `target`'s
+///                values, held as the integer `target` stores.
+lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -> LoweredExpr {
+    observe_no_call(ctx, call, .Call, "enum check")
+    value :: lower_expr(ctx, call.args[0].value)
+    source :: values_of(ctx, call.args[0].value, value)
+    reason :: "value out of range: no value of `${target.symbol.name}`"
+    return checked_into(ctx, value, source, enum_value_runs(target), target.repr, reason, call.span)
 }
 
 /// `value`, the outcome of `e`, checked against the range its instance binds the
@@ -46,7 +62,7 @@ kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr
     if e is CallExpr && recorded_callee(ctx, e, .Call) is Builtin {
         return value
     }
-    return checked_into(ctx, value, integer_values(value.type), target, e.span)
+    return checked_into_range(ctx, value, integer_values(value.type), target, e.span)
 }
 
 /// The integer type `t`, as the typecheck recorded it, is at this instance, as a
@@ -67,9 +83,8 @@ instance_range :: fn(ctx: FnLowerCtx, t: Type) -> RangeType | null {
     return RangeType { .bounds = values, .name = held.name }
 }
 
-// `value` converted into `target`, the program stopped where it lies outside. Only
-// the bounds `source`, the values it can take, does not already keep are tested.
-checked_into :: fn(
+// `value` converted into the range `target` (`checked_into`).
+checked_into_range :: fn(
     ctx: FnLowerCtx,
     value: LoweredExpr,
     source: Interval | null,
@@ -77,73 +92,73 @@ checked_into :: fn(
     span: Span,
 ) -> LoweredExpr {
     held :: range_representation(target).name
-    source_values :: source ?? return cast_to_width(value, held, span)
-    below :: may_lie_below(source_values, target.bounds)
-    above :: may_lie_above(source_values, target.bounds)
-    if !below && !above {
+    reason :: "value out of range: not in ${display_range(target)}"
+    return checked_into(ctx, value, source, [target.bounds], held, reason, span)
+}
+
+// `value` converted into the integer `held`, the program stopped with `reason` where
+// it lies in none of `runs`. Only what `source`, the values it can take, does not
+// already decide is tested.
+checked_into :: fn(
+    ctx: FnLowerCtx,
+    value: LoweredExpr,
+    source: Interval | null,
+    runs: Interval[],
+    held: string,
+    reason: string,
+    span: Span,
+) -> LoweredExpr {
+    known :: source ?? return cast_to_width(value, held, span)
+    if decided_inside(known, runs) == true {
         return cast_to_width(value, held, span)
     }
-    compared :: comparison_type(source_values, target.bounds, below, above)
+    compared :: narrowest_integer(known)
     stmts: LoweredStmt[]: []
-    bound :: bind_to_local(
-        ctx,
-        cast_to_width(value, compared.name, span),
-        compared,
-        "in_range",
-        span,
-        stmts,
-    )
-    stmts.push(
-        LoweredExprStmt {
-            .span = span,
-            .expr = LoweredIf {
-                .span = span,
-                .type = TY_VOID,
-                .cond = outside_test(bound, target.bounds, below, above, compared, span),
-                .then_block = LoweredBlock {
-                    .span = span,
-                    .type = TY_VOID,
-                    .stmts = [stop_outside(target, span)],
-                    .trailing = null,
-                },
-                .else_block = null,
-            },
-        },
-    )
+    widened :: cast_to_width(value, compared.name, span)
+    bound :: bind_to_local(ctx, widened, compared, "in_range", span, stmts)
+    stmts.push(stop_if(outside_test(bound, known, runs, compared, span), reason, span))
     return with_prelude(stmts, cast_to_width(bound, held, span), span)
 }
 
-/// The test `binary`, `x in T` or `x !in T`, `T` an integer type.
+/// The test `binary`, `x in T` or `x !in T`, `T` an integer type or an enum.
 ///
 /// @param binary  the test, its right operand the type the typecheck recorded.
-/// @return        whether `x` lies within `T`'s bounds, negated for `!in`.
+/// @return        whether `x` lies within `T`'s bounds, or is one of the enum's
+///                values, negated for `!in` ; a constant where the type of `x`
+///                decides it.
 lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
     observe_no_call(ctx, binary, .Operator, "bounds")
     span :: binary.span
     negated :: binary.op == .NotIn
     value :: lower_expr(ctx, binary.left)
-    held :: instance_range(ctx, ctx.types.raw_expr_type(binary.right))
+    runs :: tested_runs(ctx, ctx.types.raw_expr_type(binary.right))
+        ?? return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
     source :: values_of(ctx, binary.left, value)
-    if held == null || source == null {
-        return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
+        ?? return stub(span, TY_BOOL, "`in` on a value of no integer type")
+    outcome :: decided_inside(source, runs)
+    if outcome != null {
+        return decided(value, outcome != negated, span)
     }
-    tested :: held.bounds
-    if interval_meet(source, tested) == null {
-        return decided(value, negated, span)
-    }
-    below :: may_lie_below(source, tested)
-    above :: may_lie_above(source, tested)
-    if !below && !above {
-        return decided(value, !negated, span)
-    }
-    compared :: comparison_type(source, tested, below, above)
+    compared :: narrowest_integer(source)
     stmts: LoweredStmt[]: []
-    tested_value: LoweredExpr = cast_to_width(value, compared.name, span)
-    if below && above {
-        tested_value = bind_unless_stable(ctx, tested_value, "in_x", span, stmts)
+    tested: LoweredExpr = cast_to_width(value, compared.name, span)
+    if comparison_count(source, runs) > 1 {
+        tested = bind_unless_stable(ctx, tested, "in_x", span, stmts)
     }
-    outside :: outside_test(tested_value, tested, below, above, compared, span)
-    return with_prelude(stmts, maybe_negate(outside, !negated, span), span)
+    if negated {
+        return with_prelude(stmts, outside_test(tested, source, runs, compared, span), span)
+    }
+    return with_prelude(stmts, inside_test(tested, source, runs, compared, span), span)
+}
+
+// The values `x in t` tests against, `t` as this instance reads it : an enum's runs of
+// values, an integer type's bounds ; null for any other type.
+tested_runs :: fn(ctx: FnLowerCtx, t: Type) -> Interval[] | null {
+    if t is EnumType && t.data == null {
+        return enum_value_runs(t)
+    }
+    held :: instance_range(ctx, t) ?? return null
+    return [held.bounds]
 }
 
 // `outcome`, once `value` has run for what it does.
@@ -163,9 +178,13 @@ may_lie_below :: fn(source: Interval, bounds: Interval) -> bool =
 may_lie_above :: fn(source: Interval, bounds: Interval) -> bool =
     !bounds.hi_open && (source.hi_open || source.hi > bounds.hi)
 
-// The values the converted value can take : those of its type as the typecheck
-// recorded it, a range's bounds included, else of the type it is lowered at.
+// The values the converted value can take : a literal's own, those of its type as
+// the typecheck recorded it, a range's bounds included, else of the type it is
+// lowered at.
 values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | null {
+    if lowered is LoweredIntLit {
+        return interval(lowered.value, lowered.value)
+    }
     recorded :: integer_values(ctx.types.raw_expr_type(arg))
     if recorded != null {
         return recorded
@@ -173,43 +192,122 @@ values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | 
     return integer_values(lowered.type)
 }
 
-// The integer type a value of `source` is compared in with the bounds of `target`
-// it is tested against : one holding both.
-comparison_type :: fn(source: Interval, target: Interval, below: bool, above: bool) -> PrimitiveType {
-    tested := source
-    if below {
-        tested = interval_join(tested, interval(target.lo, target.lo))
+// The parts of `runs` a value of `source` may lie in, each cut to `source`.
+reachable_runs :: fn(source: Interval, runs: Interval[]) -> Interval[] {
+    out: Interval[]: []
+    for run in runs {
+        met :: interval_meet(run, source) ?? continue
+        out.push(met)
     }
-    if above {
-        tested = interval_join(tested, interval(target.hi, target.hi))
-    }
-    return narrowest_integer(tested)
+    return out
 }
 
-// `value < lo || value > hi`, each side only where it is tested.
-outside_test :: fn(
+// Whether a value of `source` lies in one of `runs` whatever it is : false when none
+// is reachable, true when one holds all of `source` ; null when only the value tells.
+decided_inside :: fn(source: Interval, runs: Interval[]) -> bool | null {
+    reachable :: reachable_runs(source, runs)
+    if reachable.len() == 0 {
+        return false
+    }
+    if reachable.len() == 1 && same_interval(reachable[0], source) {
+        return true
+    }
+    return null
+}
+
+// How many comparisons `inside_test` makes on a value of `source`.
+comparison_count :: fn(source: Interval, runs: Interval[]) -> usize {
+    count: usize = 0
+    for run in reachable_runs(source, runs) {
+        if is_single_value(run) {
+            count += 1
+        } else {
+            count += ends_tested(source, run)
+        }
+    }
+    return count
+}
+
+// How many ends of `run`, within `source`, a value of `source` may pass.
+ends_tested :: fn(source: Interval, run: Interval) -> usize {
+    count: usize = 0
+    if may_lie_below(source, run) {
+        count += 1
+    }
+    if may_lie_above(source, run) {
+        count += 1
+    }
+    return count
+}
+
+is_single_value :: fn(run: Interval) -> bool = run.lo == run.hi && !run.lo_open && !run.hi_open
+
+// Whether `value`, of the integer type `compared` holding `source`, lies in one of
+// `runs` : one test per reachable run, each comparing only the ends `source` may
+// pass ; `false` when none is reachable. Every bound compared lies within `source`,
+// so `compared` holds it.
+inside_test :: fn(
     value: LoweredExpr,
-    bounds: Interval,
-    below: bool,
-    above: bool,
+    source: Interval,
+    runs: Interval[],
     compared: Type,
     span: Span,
 ) -> LoweredExpr {
-    under :: bound_test(value, .Lt, bounds.lo, compared, span)
-    over :: bound_test(value, .Gt, bounds.hi, compared, span)
-    if !below {
-        return over
+    parts: LoweredExpr[]: []
+    for run in reachable_runs(source, runs) {
+        parts.push(run_test(value, source, run, compared, span))
     }
-    if !above {
-        return under
+    return or_all(span, parts)
+}
+
+// Whether `value`, of the integer type `compared` holding `source`, lies in none of
+// `runs` : past an end of the one reachable run, or in none of several ; `true` when
+// none is reachable.
+outside_test :: fn(
+    value: LoweredExpr,
+    source: Interval,
+    runs: Interval[],
+    compared: Type,
+    span: Span,
+) -> LoweredExpr {
+    reachable :: reachable_runs(source, runs)
+    if reachable.len() != 1 {
+        return maybe_negate(inside_test(value, source, runs, compared, span), true, span)
     }
-    return LoweredBinary {
-        .span = span,
-        .type = TY_BOOL,
-        .op = .Or,
-        .left = under,
-        .right = over,
+    run :: reachable[0]
+    if is_single_value(run) {
+        return bound_test(value, .Neq, run.lo, compared, span)
     }
+    tests: LoweredExpr[]: []
+    if may_lie_below(source, run) {
+        tests.push(bound_test(value, .Lt, run.lo, compared, span))
+    }
+    if may_lie_above(source, run) {
+        tests.push(bound_test(value, .Gt, run.hi, compared, span))
+    }
+    return or_all(span, tests)
+}
+
+// Whether `value` lies in `run`, a run within `source` : is its one value, or passes
+// none of the ends `source` may pass.
+run_test :: fn(
+    value: LoweredExpr,
+    source: Interval,
+    run: Interval,
+    compared: Type,
+    span: Span,
+) -> LoweredExpr {
+    if is_single_value(run) {
+        return bound_test(value, .Eq, run.lo, compared, span)
+    }
+    tests: LoweredExpr[]: []
+    if may_lie_below(source, run) {
+        tests.push(bound_test(value, .Gte, run.lo, compared, span))
+    }
+    if may_lie_above(source, run) {
+        tests.push(bound_test(value, .Lte, run.hi, compared, span))
+    }
+    return and_all(span, tests)
 }
 
 // `value op bound`.
@@ -227,12 +325,25 @@ bound_test :: fn(
     .right = LoweredIntLit { .span = span, .type = compared, .value = bound },
 }
 
-// The stop a value outside `target` reaches.
-stop_outside :: fn(target: RangeType, span: Span) -> LoweredStmt = LoweredExprStmt {
+// `if stop { @unreachable(reason) }` : a value off its type stops the program, in
+// every build.
+stop_if :: fn(stop: LoweredExpr, reason: string, span: Span) -> LoweredStmt = LoweredExprStmt {
     .span = span,
-    .expr = LoweredUnreachable {
+    .expr = LoweredIf {
         .span = span,
         .type = TY_VOID,
-        .reason = "value out of range: not in ${display_range(target)}",
+        .cond = stop,
+        .then_block = LoweredBlock {
+            .span = span,
+            .type = TY_VOID,
+            .stmts = [
+                LoweredExprStmt {
+                    .span = span,
+                    .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = reason },
+                },
+            ],
+            .trailing = null,
+        },
+        .else_block = null,
     },
 }

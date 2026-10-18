@@ -1,16 +1,24 @@
-// Only an integer type has bounds : `in` with a type tests an integer against an
-// integer type, and `@min` / `@max` read one.
+// Only an integer type or an enum without variant data has bounds : `in` with a
+// type tests an integer against them, and `@min` / `@max` read them. An enum with
+// variant data stores its variant's rank, not a value.
 module "snippet"
 
 export Hour :: Int in 0..=23
 
-export Weekday :: enum { Mon, Tue }
+export Info :: struct {
+    code: i32
+}
+
+export Level :: enum(Info) {
+    Low { .code = 1 },
+    High { .code = 2 },
+}
 
 export main :: fn() -> i32 {
     n: i32: 4
     a :: n in string
     b :: "noon" in Hour
-    c :: n in Weekday
+    c :: n in Level
     d :: @min(string)
     e :: @max(bool)
     if a || b || c {

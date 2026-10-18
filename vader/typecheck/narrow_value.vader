@@ -135,7 +135,9 @@ swapped :: fn(n: IsNarrow) -> IsNarrow = IsNarrow {
 }
 
 // The values `x in right` tests against, as a range : an integer type's (`in Hour`,
-// `in u8`), or a range written with literal bounds (`in 0..=23`).
+// `in u8`), an enum's whose values follow one another (`in Weekday`), or a range
+// written with literal bounds (`in 0..=23`). An enum with a gap narrows nothing :
+// a value outside it may still lie between its values.
 tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
     if right is AST.RangeExpr {
         if right.lower !is AST.IntLitExpr || right.upper !is AST.IntLitExpr {
@@ -150,6 +152,13 @@ tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
     recorded :: typed.expr_types[right.id] ?? return null
     if recorded is RangeType {
         return recorded
+    }
+    if recorded is EnumType && recorded.data == null {
+        runs :: enum_value_runs(recorded)
+        if runs.len() != 1 {
+            return null
+        }
+        return RangeType { .bounds = runs[0] }
     }
     values :: integer_values(recorded) ?? return null
     return RangeType { .bounds = values }

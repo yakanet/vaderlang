@@ -891,11 +891,29 @@ bare_name_symbol :: fn(target: AST.Expr, typed: TypedProgram) -> Symbol | null {
     return declared_symbol(sym, typed)
 }
 
-/// Whether `target` is a bare name bound to a declaration of `kind`, through
-/// an import (`{ Info as I }`) included.
+/// Whether `target` names a declaration of `kind` : a bare name bound to one,
+/// through an import (`{ Info as I }`) included, or for an enum a namespace's member
+/// (`M.Weekday`).
 names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgram) -> bool {
+    if target is AST.FieldExpr {
+        member :: namespace_member_type(target, typed.resolved) ?? return false
+        return kind == .Enum && member is EnumType
+    }
     sym :: bare_name_symbol(target, typed) ?? return false
     return sym.kind == kind
+}
+
+/// The type a namespace's member names (`L.Info`), when `e` reaches one.
+///
+/// @param e         a field access, its target a namespace import's name.
+/// @param resolved  the module `e` is in.
+namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type | null {
+    if e.target !is AST.IdentExpr {
+        return null
+    }
+    namespace :: resolved.idents[e.target.span.hash()] ?? return null
+    members :: resolved.namespace_member_types[namespace.id] ?? return null
+    return members[e.field]
 }
 
 // True when `name` has UFCS free-fn candidates visible in `file` (declared by

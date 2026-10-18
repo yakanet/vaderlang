@@ -32,8 +32,9 @@ infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> T
     return target
 }
 
-/// The type a cast `T(x)` hands its operand as expected : the target, or the
-/// primitive under a primitive-backed distinct, unwrapped through every level.
+/// The type a cast `T(x)` hands its operand as expected : the target, an `i64` for
+/// an enum, or the primitive under a primitive-backed distinct, unwrapped through
+/// every level.
 /// `Wide(4000000000)` with `Wide :: i64` must see an `i64` slot — a distinct is
 /// no slot for a free literal, which would then default to `i32` and wrap before
 /// the conversion. A composite-backed distinct stays : it already forwards its
@@ -41,6 +42,9 @@ infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> T
 ///
 /// @param target  the cast's target type.
 cast_operand_expected :: fn(target: Type) -> Type {
+    if is_valued_enum(target) {
+        return PrimitiveType { .name = "i64" }
+    }
     if target is DistinctType {
         backing :: cast_operand_expected(target.backing)
         if backing is PrimitiveType {

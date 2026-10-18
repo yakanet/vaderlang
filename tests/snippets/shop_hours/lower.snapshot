@@ -1,0 +1,199 @@
+# Lower
+
+## snippet
+  snippet.day_of :: fn(n: i32) -> string {  // snippet$day_of
+      if (n < 0) || (n > 6) {
+          return {
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
+              __off_1: usize = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "no day ")
+              __off_1 = std.core.write_int(__buf_0, __off_1, i64(n))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      }
+      return snippet.Weekday.to_string(u8(n))
+  }
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      std.io.println<string>(concat_4("week ", snippet.Weekday.to_string(u8(0)), " to ", snippet.Weekday.to_string(u8(6))))
+      std.io.println<string>(concat_4("discounts ", snippet.Discount.to_string(u8(0)), " to ", snippet.Discount.to_string(u8(100))))
+      std.io.println<string>(concat_3(snippet.day_of(4), ", ", snippet.day_of(7)))
+      {
+          __for_v_0: u8 = 0
+          for __for_v_0 <= u8(6) {
+              d: Weekday = __for_v_0
+              std.io.print<string>(concat_2(snippet.Weekday.to_string(d), " "))
+          } @step {
+              __for_v_0 = __for_v_0 +% u8(1)
+          }
+      }
+      std.io.println<string>("")
+      {
+          __for_arr_1: Discount[] = [u8(100), u8(0), u8(50)] :Discount[]
+          __for_len_2: usize = @array.len(__for_arr_1)
+          __for_i_3: usize = 0
+          for __for_i_3 < __for_len_2 {
+              c: Discount = __for_arr_1[__for_i_3]
+              std.io.print<string>(concat_2(snippet.Discount.to_string(c), " "))
+          } @step {
+              __for_i_3 = __for_i_3 +% usize(1)
+          }
+      }
+      std.io.println<string>("")
+      rate: i64 = 50
+      std.io.println<string>({
+          __p_5: string = snippet.Discount.to_string({
+              __in_range_4: i64 = rate
+              if !(((__in_range_4 == i64(0)) || (__in_range_4 == i64(50))) || (__in_range_4 == i64(100))) {
+                  @unreachable("value out of range: no value of `Discount`")
+              }
+              u8(__in_range_4)
+          } :u8)
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(12) +% std.core.byte_len(__p_5))
+          __off_7: usize = 0
+          __off_7 = std.core.write_bool(__buf_6, __off_7, ((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100)))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, false)
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      hours: i32 = 0
+      {
+          __for_v_8: u8 = 9
+          for __for_v_8 <= u8(18) {
+              h: u8 = __for_v_8
+              hours = hours + i32(h)
+          } @step {
+              __for_v_8 = __for_v_8 +% u8(1)
+          }
+      }
+      bytes: i32 = 0
+      {
+          __for_v_9: u8 = 0
+          __more_turns_10: bool = __for_v_9 <= u8(255)
+          for __more_turns_10 {
+              b: u8 = __for_v_9
+              bytes = bytes + 1
+          } @step {
+              __more_turns_10 = __for_v_9 < u8(255)
+              __for_v_9 = __for_v_9 +% u8(1)
+          }
+      }
+      std.io.println<string>({
+          __buf_11: Buffer = std.core.new_byte_buffer(usize(41))
+          __off_12: usize = 0
+          __off_12 = std.core.write_int(__buf_11, __off_12, i64(hours))
+          __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
+          __off_12 = std.core.write_int(__buf_11, __off_12, i64(bytes))
+          std.core.finish_buffer(__buf_11, __off_12)
+      } :string)
+      return 0
+  }
+  snippet.Weekday.to_string :: fn(self: Weekday) -> string {  // snippet$Weekday$std_core_Display$to_string
+      {
+          if self == u8(0) {
+              "Mon"
+          } else if self == u8(1) {
+              "Tue"
+          } else if self == u8(2) {
+              "Wed"
+          } else if self == u8(3) {
+              "Thu"
+          } else if self == u8(4) {
+              "Fri"
+          } else if self == u8(5) {
+              "Sat"
+          } else if self == u8(6) {
+              "Sun"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  snippet.Discount.to_string :: fn(self: Discount) -> string {  // snippet$Discount$std_core_Display$to_string
+      {
+          if self == u8(100) {
+              "Full"
+          } else if self == u8(0) {
+              "None"
+          } else if self == u8(50) {
+              "Half"
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :string
+      } :string
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      c3: usize = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.usize.new_buffer(c3)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Display.to_string for Discount  snippet.Discount.to_string  // snippet$Discount$std_core_Display$to_string
+  vtable std.core.Display.to_string for Weekday  snippet.Weekday.to_string  // snippet$Weekday$std_core_Display$to_string
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.string.to_string  // std_core$string$Display$to_string
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.print<string>  // std_io$print__string
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

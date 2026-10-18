@@ -1781,19 +1781,16 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         if primitive_from_name(e.name) !is null {
             return true
         }
-        sym :: resolved.idents[e.span.hash()] ?? return false
+        named :: resolved.idents[e.span.hash()] ?? return false
+        // A renamed import (`{ Weekday as Day }`) names its target.
+        sym :: resolved.imports_to[named.id] ?? named
         if is_type_kind(sym.kind) {
             return true
         }
-        return resolved.alias_types[sym.id] !is null
+        return resolved.alias_types[sym.id] !is null || resolved.alias_types[named.id] !is null
     }
     if e is AST.FieldExpr {
-        if e.target !is AST.IdentExpr {
-            return false
-        }
-        namespace :: resolved.idents[e.target.span.hash()] ?? return false
-        members :: resolved.namespace_member_types[namespace.id] ?? return false
-        return members[e.field] !is null
+        return namespace_member_type(e, resolved) != null
     }
     if e is AST.BinaryExpr {
         // `Int in 0..=23` : a range type, its base a type. A range alone (`0..=23`)

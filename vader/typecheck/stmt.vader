@@ -1066,29 +1066,7 @@ check_for :: fn(
             }
         }
         is AST.InFor       -> {
-            iter_ty :: check_expr(w.iter, null, typed, diags)
-            retire_narrowings_entering_loop(s, typed)
-            elem :: for_in_element(iter_ty, typed)
-            // A `for` reaches `Iterator`, or the `Into` toward one, without its
-            // argument (T3097).
-            several :: several_iterators_trait(iter_ty, typed)
-            if several != null {
-                diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
-                record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
-            } else {
-                record_for_sites(typed, w.iter, iter_ty)
-            }
-            _ :: reject_unmet_impl_bounds(
-                iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
-                typed, diags,
-            )
-            if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
-                got :: display_type(iter_ty)
-                diags.push(typecheck_error(
-                    .NotIterable, w.iter.span,
-                    "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
-                record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
-            }
+            elem :: in_for_element(s, w, typed, diags)
             match w.loop_var as nv {
                 is AST.NamedVar       -> {
                     typed.local_types[nv.span.hash()] = elem
@@ -1132,6 +1110,76 @@ check_for :: fn(
     check_block(s.body, null, typed, diags, inner_ctx)
     typed.loop_stack.remove_last()
     return
+}
+
+// The element `for x in <iter>` binds `x` to, its iterable checked : a type's values
+// (`walked_type`), or what an array, a string or an `Iterator` yields.
+in_for_element :: fn(
+    s: AST.ForStmt,
+    w: AST.InFor,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if is_type_expr(w.iter, typed.resolved) {
+        retire_narrowings_entering_loop(s, typed)
+        return walked_type(w.iter, typed, diags)
+    }
+    iter_ty :: check_expr(w.iter, null, typed, diags)
+    retire_narrowings_entering_loop(s, typed)
+    elem :: for_in_element(iter_ty, typed)
+    // A `for` reaches `Iterator`, or the `Into` toward one, without its
+    // argument (T3097).
+    several :: several_iterators_trait(iter_ty, typed)
+    if several != null {
+        diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    } else {
+        record_for_sites(typed, w.iter, iter_ty)
+    }
+    _ :: reject_unmet_impl_bounds(
+        iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
+        typed, diags,
+    )
+    if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
+        got :: display_type(iter_ty)
+        diags.push(typecheck_error(
+            .NotIterable, w.iter.span,
+            "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    }
+    return elem
+}
+
+/// The type `for x in T` walks the values of, `T` a type : `T` itself when it is a
+/// range, an integer type within `i64`, a type parameter bounded by `Int` or an enum
+/// without variant data. The walk is noted on `iter` (`TypedProgram.walked_types`).
+///
+/// @param iter  the type expression the loop walks.
+/// @error       T3088 for any other type, `u64` and `usize` included, whose values
+///              reach past `i64`.
+walked_type :: fn(iter: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    t :: type_operand(iter, typed, diags)
+    if t is UnresolvedType {
+        return t
+    }
+    if walks_values(t, typed) {
+        record_site(typed, iter, .IterNext, BUILTIN_CALLEE)
+        typed.walked_types[iter.id] = true
+        return t
+    }
+    detail :: "a `for` over a type walks an integer type within `i64` or an enum"
+    diags.push(typecheck_error(.NotIterable, iter.span, "${detail}, got `${display_type(t)}`"))
+    record_site(typed, iter, .IterNext, ERRONEOUS_CALLEE)
+    return TY_UNRESOLVED
+}
+
+// Whether `for x in t` walks the values of the type `t` (`walked_type`).
+walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
+    if is_valued_enum(t) || is_integer_param(t, typed) {
+        return true
+    }
+    values :: integer_values(t) ?? return false
+    return !values.hi_open
 }
 
 check_loop_jump :: fn(

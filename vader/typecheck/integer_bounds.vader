@@ -5,6 +5,11 @@
 // and `@max(T)` are the least and the greatest value of such a type, values of
 // `T` the lowering writes as literals. A type with no integer bounds is T3110.
 //
+// An enum without variant data is a named set of integers : `x in E` tests an
+// integer against its values, `@min(E)` and `@max(E)` are its variants of the
+// least and the greatest value, `E(x)` converts an integer, stopping on any other
+// value. It stays nominal : no arithmetic, no widening into an integer.
+//
 // A type parameter bounded by `Int` is such a type whose bounds only its instances
 // know : `@min(T)`, `x in T` and `T(x)` read them there. Its values are computed on
 // as `i64`, which holds every one of them, and getting a `T` back takes `x in T`
@@ -12,26 +17,28 @@
 
 module "vader/typecheck"
 
+import "std/collections"
+import "std/sort"
 import "vader/diagnostics"
 import "vader/integer"
 import "vader/types"
 AST :: import "toolchain/ast"
 
 /// The type of `x in T` or `x !in T`, `T` a type : a `bool`, `x` an integer
-/// tested against the bounds of the integer type `T`.
+/// tested against the bounds of the integer type `T`, or the values of the enum `T`.
 ///
 /// @param e     the test, its right operand a type expression.
 /// @param left  its left operand's type, as checked.
-/// @error       T3110 when `T` is no integer type, or `x` no integer.
+/// @error       T3110 when `T` has no bounds (`has_bounds`), or `x` is no integer.
 check_in_type :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     record_site(typed, e, .Operator, BUILTIN_CALLEE)
     tested :: type_operand(e.right, typed, diags)
     if tested is UnresolvedType {
         return TY_BOOL
     }
-    if integer_values(tested) == null && !is_integer_param(tested, typed) {
-        diags.push(typecheck_error(.NotAnIntegerType, e.right.span,
-            "`in` takes an integer type, got `${display_type(tested)}`"))
+    if !has_bounds(tested, typed) {
+        detail :: no_bounds_detail("in", tested)
+        diags.push(typecheck_error(.NotAnIntegerType, e.right.span, detail))
         return TY_BOOL
     }
     value :: settle_range_operand(e.left, left, typed, diags)
@@ -42,19 +49,84 @@ check_in_type :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram, diags: D
     return TY_BOOL
 }
 
-/// The type of `@min(T)` or `@max(T)` : `T` itself, an integer type.
+/// The type of `@min(T)` or `@max(T)` : `T` itself, an integer type or an enum.
 ///
 /// @param e  the intrinsic call, its argument a type already recorded.
-/// @error    T3110 when `T` is no integer type.
+/// @error    T3110 when `T` has no bounds (`has_bounds`), or is an enum of no
+///           variant.
 integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     t :: bounded_type(e, typed) ?? return TY_UNRESOLVED
-    if is_integer_type(t, typed) {
+    if has_bounds(t, typed) && !(t is EnumType && t.indices.is_empty()) {
         return t
     }
-    diags.push(typecheck_error(.NotAnIntegerType, e.args[0].span,
-        "`@${e.name}` takes an integer type, got `${display_type(t)}`"))
+    detail :: no_bounds_detail("@${e.name}", t)
+    diags.push(typecheck_error(.NotAnIntegerType, e.args[0].span, detail))
     return TY_UNRESOLVED
 }
+
+/// Whether `t` is an enum without variant data : one whose stored integer is the
+/// value of its variant, where an enum with variant data stores a rank.
+///
+/// @param t  any type.
+export is_valued_enum :: fn(t: Type) -> bool = t is EnumType && t.data == null
+
+/// The values of the enum `e`, in runs of consecutive values, the least first :
+/// `enum { A = 1, B = 2, C = 5 }` is `1..=2` and `5..=5` ; none for an enum of no
+/// variant.
+///
+/// @param e  an enum without variant data (`is_valued_enum`).
+export enum_value_runs :: fn(e: EnumType) -> Interval[] {
+    runs: Interval[]: []
+    values :: sort(e.indices.values(), (a, b) -> a < b)
+    if values.len() == 0 {
+        return runs
+    }
+    lo := values[0]
+    hi := values[0]
+    for v in values {
+        // `v - 1`, not `hi + 1` : `hi` may be the greatest `i64`.
+        if v > hi && v - 1 > hi {
+            runs.push(interval(lo, hi))
+            lo = v
+        }
+        hi = v
+    }
+    runs.push(interval(lo, hi))
+    return runs
+}
+
+/// The least and the greatest value of the type `t` : an integer type's bounds, the
+/// hull of an enum's values.
+///
+/// @param t  any type.
+/// @return   null for a type with no integer values, an enum of no variant included.
+export type_bounds :: fn(t: Type) -> Interval | null {
+    if t is EnumType && t.data == null {
+        runs :: enum_value_runs(t)
+        if runs.len() == 0 {
+            return null
+        }
+        return interval(runs[0].lo, runs[runs.len() - 1].hi)
+    }
+    return integer_values(t)
+}
+
+// The detail of T3110 on `t`, the type `what` takes : an enum with variant data
+// stores a rank, not a value ; an enum of no variant has none.
+no_bounds_detail :: fn(what: string, t: Type) -> string {
+    if t is EnumType && t.data != null {
+        return "`${what}` takes an enum without variant data, got `${display_type(t)}`"
+    }
+    if t is EnumType {
+        return "`${display_type(t)}` has no variant"
+    }
+    return "`${what}` takes an integer type or an enum, got `${display_type(t)}`"
+}
+
+// Whether `t` has bounds an integer is tested against : an integer type, a type
+// parameter bounded by `Int`, an enum without variant data.
+has_bounds :: fn(t: Type, typed: TypedProgram) -> bool =
+    integer_values(t) != null || is_integer_param(t, typed) || is_valued_enum(t)
 
 /// The value `e` stands for when it is `@min(T)` or `@max(T)`, as a range of
 /// one value : what a comparison with it narrows to.

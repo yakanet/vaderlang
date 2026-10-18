@@ -34,17 +34,24 @@ export evaluate_intrinsic_call :: fn(
 }
 
 // `@min(T)` / `@max(T)` — the least or the greatest value of the integer type `T`,
-// held in the integer `T` is.
+// held in the integer `T` is ; of an enum, its variant of that value.
 intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
     if expr.args.len() != 1 { return arg_count_error(expr, expr.name, 1) }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "${expr.name}: argument is not a type") }
-    values :: integer_values(arg_type)
+    values :: type_bounds(arg_type)
     if values == null {
-        return arg_error(expr, "${expr.name}: `${display_type(arg_type)}` is no integer type")
+        return arg_error(expr, "${expr.name}: `${display_type(arg_type)}` has no bounds")
     }
-    held :: display_type(erase_ranges(arg_type))
-    return ok(int_val_typed(integer_bound(values, expr.name == "max"), held))
+    return ok(int_val_typed(integer_bound(values, expr.name == "max"), bound_holder(arg_type)))
+}
+
+// The integer a bound of `t` is held in : an enum's stored integer, else `t`'s own.
+bound_holder :: fn(t: Type) -> string {
+    if t is EnumType {
+        return t.repr
+    }
+    return display_type(erase_ranges(t))
 }
 
 // `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.

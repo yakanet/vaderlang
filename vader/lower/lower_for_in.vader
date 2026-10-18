@@ -18,6 +18,7 @@
 // a generator call, or an iterable whose `into` is a generator, as for
 // `MutableMap` and `string`: the generator's body becomes the loop),
 // `try_lower_for_in_int_range` (counter loop over `lo..<hi`),
+// `try_lower_for_over_type` (the values of a type, `for h in Hour`),
 // `try_lower_for_in_raw_array` (index loop over a raw `T[]`).
 
 module "vader/lower"
@@ -51,6 +52,8 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
     // slow path when the range bound isn't an integer.
     int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form)
     if int_range != null { return walked_in_place(ctx, in_form.iter, "counter", int_range) }
+    over_type :: try_lower_for_over_type(ctx, for_stmt, in_form)
+    if over_type != null { return walked_in_place(ctx, in_form.iter, "values", over_type) }
     iter_lowered_raw :: lower_expr(ctx, in_form.iter)
     iter_type_raw :: iter_lowered_raw.type
 
@@ -74,8 +77,9 @@ lower_for_in :: fn(ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor) -
         "stepping `${display_type(iter_type_raw)}` through its `Iterator` impl — "
         + "one `next()` per iteration instead of an inlined loop (the call itself "
         + "is usually devirtualised, and the step pair usually crosses in "
-        + "registers); the fast paths cover an int range, a raw `T[]`, a fusible "
-        + "combinator chain and a generator, called or reached through `into`")
+        + "registers); the fast paths cover an int range, a type's values, a raw "
+        + "`T[]`, a fusible combinator chain and a generator, called or reached "
+        + "through `into`")
 
     loop_var_key :: loop_var_type_key(in_form.loop_var, for_stmt.span)
     element_type :: resolve_element_type(ctx, iter_type_raw, loop_var_key)
@@ -492,6 +496,129 @@ try_lower_for_in_raw_array :: fn(
     }
 }
 
+// ---- a type's values ------------------------------------------------------
+
+// `for x in T`, `T` the type the typecheck walks the values of (`walked_types`) : a
+// counter over its values when they follow one another upward (a range, an integer
+// type, an enum declared in steps of one), else the enum's values in declaration
+// order, walked as an array of them. Null for any other iterable.
+try_lower_for_over_type :: fn(
+    ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
+) -> LoweredStmt | null {
+    if ctx.typed.walked_types[in_form.iter.id] == null {
+        return null
+    }
+    walked :: ctx.types.raw_expr_type(in_form.iter)
+    var_type :: ctx.types.apply(walked)
+    if walked is EnumType {
+        values :: walked.indices.values()
+        if values.len() > 0 && is_consecutive(values) {
+            bounds :: interval(values[0], values[values.len() - 1])
+            counter_type :: PrimitiveType { .name = walked.repr }
+            return counted_walk(ctx, for_stmt, in_form, bounds, counter_type, var_type)
+        }
+        return walk_enum_values(ctx, for_stmt, in_form, walked, values, var_type)
+    }
+    held :: instance_range(ctx, walked) ?? return null
+    return counted_walk(ctx, for_stmt, in_form, held.bounds, range_representation(held), var_type)
+}
+
+// A loop binding the user's variable, of `var_type`, to each value of `bounds` in
+// turn, counted in `counter_type` ; the last value may be the counter's maximum.
+// The counter is the loop's own, copied into the variable each turn : the body may
+// assign the variable without moving the walk.
+counted_walk :: fn(
+    ctx: FnLowerCtx,
+    for_stmt: AST.ForStmt,
+    in_form: AST.InFor,
+    bounds: Interval,
+    counter_type: PrimitiveType,
+    var_type: Type,
+) -> LoweredStmt {
+    span :: for_stmt.span
+    lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
+    lo :: LoweredIntLit { .span = span, .type = counter_type, .value = bounds.lo }
+    hi :: LoweredIntLit { .span = span, .type = counter_type, .value = bounds.hi }
+    user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
+    counter_symbol :: fresh_synthetic_symbol(ctx, "for_v")
+    counter_ref :: LoweredIdent { .span = span, .type = counter_type, .symbol = counter_symbol }
+    bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, var_type, span)
+    body :: prepend_stmts_to_block(bind_stmts, user_body)
+    return counted_loop(ctx, for_stmt, counter_symbol.name, counter_ref, lo, hi, true, body, [])
+}
+
+// The loop counting `counter`, named `name`, from `lo` up to `hi`, `body` run each
+// turn. The counter is bound first, its initial value evaluated before the upper
+// bound ; `prelude` (the upper bound's local, if any) follows it, then the loop,
+// whose test reads a flag where `hi` may be the counter's maximum
+// (`range_loop_control`).
+counted_loop :: fn(
+    ctx: FnLowerCtx,
+    for_stmt: AST.ForStmt,
+    name: string,
+    counter: LoweredIdent,
+    lo: LoweredExpr,
+    hi: LoweredExpr,
+    inclusive: bool,
+    body: LoweredBlock,
+    prelude: LoweredStmt[],
+) -> LoweredStmt {
+    span :: for_stmt.span
+    counter_init :: LoweredLet {
+        .span = span,
+        .name = name,
+        .symbol = counter.symbol,
+        .type = counter.type,
+        .value = lo,
+    }
+    control :: range_loop_control(ctx, counter, hi, inclusive, span, prelude)
+    loop_stmt :: LoweredLoop {
+        .span = span,
+        .label = resolve_loop_label(ctx, for_stmt),
+        .cond = control.cond,
+        .body = body,
+        .step = control.step,
+        .turns = LoopTurns {
+            .counter = counter.symbol,
+            .start = lo,
+            .bound = hi,
+            .inclusive = inclusive,
+        },
+    }
+    block_stmts: LoweredStmt[]: [counter_init]
+    block_stmts.push_all(prelude)
+    block_stmts.push(loop_stmt)
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span,
+            .type = TY_VOID,
+            .stmts = block_stmts,
+            .trailing = null,
+        },
+    }
+}
+
+// The values of the enum `walked`, in declaration order, walked as an array of them.
+walk_enum_values :: fn(
+    ctx: FnLowerCtx,
+    for_stmt: AST.ForStmt,
+    in_form: AST.InFor,
+    walked: EnumType,
+    values: i64[],
+    var_type: Type,
+) -> LoweredStmt | null {
+    span :: for_stmt.span
+    held :: mk_primitive(walked.repr)
+    elements: LoweredExpr[]: []
+    for v in values {
+        elements.push(LoweredIntLit { .span = span, .type = held, .value = v })
+    }
+    array_type :: mk_array(var_type)
+    table :: LoweredArrayLit { .span = span, .type = array_type, .elements = elements }
+    return try_lower_for_in_raw_array(ctx, for_stmt, in_form, table, array_type)
+}
+
 // ---- int-range fast path --------------------------------------------------
 
 
@@ -541,10 +668,6 @@ try_lower_for_in_int_range :: fn(
     // symbol itself, and a closure copies its value when it is made.
     in_cell :: lives_in_cell(ctx, lb.symbol.id)
     counter_symbol :: if in_cell { fresh_synthetic_symbol(ctx, lb.name) } else { lb.symbol }
-    counter_init :: LoweredLet {
-        .span = span, .name = lb.name, .symbol = counter_symbol,
-        .type = bound_type, .value = lo,
-    }
     counter_ref :: LoweredIdent {
         .span = span, .type = bound_type, .symbol = counter_symbol,
     }
@@ -567,33 +690,17 @@ try_lower_for_in_int_range :: fn(
         bind_to_local(ctx, hi_raw, bound_type, "for_hi", span, hoist_stmts)
     }
 
-    control :: range_loop_control(ctx, counter_ref, hi, range.inclusive, span, hoist_stmts)
-    loop_stmt :: LoweredLoop {
-        .span = span,
-        .label = resolve_loop_label(ctx, for_stmt),
-        .cond = control.cond,
-        .body = user_body,
-        .step = control.step,
-        .turns = LoopTurns {
-            .counter = counter_symbol,
-            .start = lo,
-            .bound = hi,
-            .inclusive = range.inclusive,
-        },
-    }
-
-    // The counter first : its initial value is the lower bound, which is
-    // evaluated before the upper one.
-    block_stmts: LoweredStmt[]: [counter_init]
-    block_stmts.push_all(hoist_stmts)
-    block_stmts.push(loop_stmt)
-    return LoweredExprStmt {
-        .span = span,
-        .expr = LoweredBlock {
-            .span = span, .type = TY_VOID,
-            .stmts = block_stmts, .trailing = null,
-        },
-    }
+    return counted_loop(
+        ctx,
+        for_stmt,
+        lb.name,
+        counter_ref,
+        lo,
+        hi,
+        range.inclusive,
+        user_body,
+        hoist_stmts,
+    )
 }
 
 extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {

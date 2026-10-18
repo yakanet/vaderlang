@@ -25,6 +25,7 @@ import "std/collections"
 import "std/iter"
 import "std/math"
 import "vader/diagnostics"
+import "vader/integer"
 AST :: import "toolchain/ast"
 import "vader/types"
 import "vader/resolver/symbol"
@@ -889,9 +890,10 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
 }
 
 // Whether `c` is a conversion `T(x)` rather than a call : its callee names a type in
-// value position, the metatype of a bare type name, or a struct's own name or a type
-// parameter bounded by `Int` called on one value (`Info(v)`, `T(n)`), which type as
-// themselves rather than as a metatype.
+// value position, the metatype of a bare type name, or a struct's own name, a type
+// parameter bounded by `Int` or an enum without variant data called on one value
+// (`Info(v)`, `T(n)`, `Weekday(n)`), which type as themselves rather than as a
+// metatype.
 converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) -> bool {
     if callee_ty is TypeMetaType {
         return true
@@ -901,6 +903,9 @@ converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) ->
     }
     if is_integer_param(callee_ty, typed) {
         return names_symbol_of_kind(c.callee, .TypeParam, typed)
+    }
+    if is_valued_enum(callee_ty) {
+        return names_symbol_of_kind(c.callee, .Enum, typed)
     }
     return callee_ty is StructType && names_symbol_of_kind(c.callee, .Struct, typed)
 }
@@ -962,6 +967,10 @@ cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]
         data :: enum_data_of(src, target)
         if data != null {
             result = data
+        } else if target is EnumType && target.data == null {
+            if !converts_into_enum(arg.value, src, target, typed, diags) {
+                site = ERRONEOUS_CALLEE
+            }
         } else if !cast_allowed(src, target, typed) {
             diags.push(
                 typecheck_error(
@@ -977,6 +986,44 @@ cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]
     }
     record_call_site(typed, c, site)
     return result
+}
+
+// Whether `E(value)`, `value` of type `src`, converts into the enum `target` : an
+// integer some value of which is one of `target`'s does, checked where it runs (a
+// literal here, T3066 off them), and so does a value of `target` itself ; anything
+// else is T3010, as for a range (`range_conversion_allowed`).
+converts_into_enum :: fn(
+    value: AST.Expr,
+    src: Type,
+    target: EnumType,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    if equals_type(src, target) || not_decidable(src) {
+        return true
+    }
+    if !is_integer(src) {
+        diags.push(typecheck_error(.InvalidCast, value.span,
+            "an enum converts from an integer, got ${display_type(src)}"))
+        return false
+    }
+    runs :: enum_value_runs(target)
+    literal :: int_literal_i64(value)
+    if literal != null {
+        if meets_any(runs, interval(literal, literal)) {
+            return true
+        }
+        diags.push(typecheck_error(.IntegerLiteralOutOfRange, value.span,
+            "`${literal}` is no value of `${display_type(target)}`"))
+        return false
+    }
+    values :: integer_values(src) ?? return true
+    if meets_any(runs, values) {
+        return true
+    }
+    diags.push(typecheck_error(.InvalidCast, value.span,
+        "no value of `${display_type(src)}` is one of `${display_type(target)}`"))
+    return false
 }
 
 // File the `into` a cast `T(x)` runs on `value`, as `emit_value_cast` decides it :

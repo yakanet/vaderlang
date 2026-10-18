@@ -3,7 +3,7 @@
 ## snippet
   snippet.Reading :: struct { offset: i8 }  // snippet$Reading
   snippet.parse_hour :: fn(n: i64) -> null | u8 {  // snippet$parse_hour
-      if !((n < i64(0)) || (n > i64(23))) {
+      if (n >= i64(0)) && (n <= i64(23)) {
           return n
       }
       return null
@@ -35,7 +35,7 @@
       } :string
   }
   snippet.east_of_greenwich :: fn(r: Reading) -> u8 {  // snippet$east_of_greenwich
-      if !(r.offset < i8(0)) {
+      if r.offset >= i8(0) {
           return u8(r.offset)
       }
       return u8(0)

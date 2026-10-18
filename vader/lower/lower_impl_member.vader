@@ -463,7 +463,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
 
 
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
-/// is a type-shaped symbol (builtin primitive, struct, or type alias) or a type
+/// is a type-shaped symbol (builtin primitive, struct, enum, or type alias) or a type
 /// written in place (`i32[](row)`, `(i32 | string)(x)`), with a single arg. For non-numeric targets the typer already routed the arg
 /// through `try_into` ; the lowered arg is then handed back verbatim only when
 /// the cast is a true identity — unwrapping a distinct still stamps its target,
@@ -486,6 +486,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         .Struct      -> true
         .TypeAlias   -> true
         .TypeParam   -> true
+        .Enum        -> true
         _            -> false
     }
     // A non-generic type alias (`Foo :: i64`) or a distinct newtype is a
@@ -508,6 +509,9 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
         if target_range != null {
             return lower_range_conversion(ctx, call, target_range)
         }
+    }
+    if target is EnumType && target.data == null {
+        return lower_enum_conversion(ctx, call, target)
     }
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     observe_no_call(ctx, call, .Call, "cast")

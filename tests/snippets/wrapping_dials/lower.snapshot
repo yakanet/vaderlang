@@ -59,7 +59,7 @@
       return 0
   }
   snippet.clamp_to<Hour> :: fn(n: i64) -> u8 {  // snippet$clamp_to__Int_in_0___23
-      if !((n < i64(0)) || (n > i64(23))) {
+      if (n >= i64(0)) && (n <= i64(23)) {
           return u8(n)
       }
       if n < i64(0) {
@@ -68,7 +68,7 @@
       return u8(23)
   }
   snippet.clamp_to<Month> :: fn(n: i64) -> u8 {  // snippet$clamp_to__Int_in_1___12
-      if !((n < i64(1)) || (n > i64(12))) {
+      if (n >= i64(1)) && (n <= i64(12)) {
           return u8(n)
       }
       if n < i64(1) {
@@ -77,7 +77,7 @@
       return u8(12)
   }
   snippet.clamp_to<u8> :: fn(n: i64) -> u8 {  // snippet$clamp_to__u8
-      if !((n < i64(0)) || (n > i64(255))) {
+      if (n >= i64(0)) && (n <= i64(255)) {
           return u8(n)
       }
       if n < i64(0) {

@@ -1,0 +1,51 @@
+// An enum without variant data is a named set of integers : `@min` and `@max` are
+// its first and last days, `n in Weekday` tests a number read from outside,
+// `Weekday(n)` converts it, and `for d in Weekday` walks the days in declaration
+// order. A sparse enum (`Discount`) walks its variants as declared and tests each
+// run of its values. A range and an integer type are walked too, the least value
+// first : `for h in Opening`, and `for b in u8`, whose 256 turns end on the
+// counter's maximum.
+module "snippet"
+
+import "std/io"
+
+@displayable
+Weekday :: enum { Mon, Tue, Wed, Thu, Fri, Sat, Sun }
+
+@displayable
+Discount :: enum { Full = 100, None = 0, Half = 50 }
+
+Opening :: Int in 9..=18
+
+day_of :: fn(n: i32) -> string {
+    if n !in Weekday {
+        return "no day ${n}"
+    }
+    return "${Weekday(n)}"
+}
+
+main :: fn(argv: string[]) -> i32 {
+    println("week ${@min(Weekday)} to ${@max(Weekday)}")
+    println("discounts ${@min(Discount)} to ${@max(Discount)}")
+    println("${day_of(4)}, ${day_of(7)}")
+    for d in Weekday {
+        print("${d} ")
+    }
+    println("")
+    for c in Discount {
+        print("${c} ")
+    }
+    println("")
+    rate: i64: 50
+    println("${rate in Discount} ${Discount(rate)} ${25 in Discount}")
+    hours: i32 = 0
+    for h in Opening {
+        hours += h
+    }
+    bytes: i32 = 0
+    for b in u8 {
+        bytes += 1
+    }
+    println("${hours} ${bytes}")
+    return 0
+}

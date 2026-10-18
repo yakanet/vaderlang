@@ -1,0 +1,16 @@
+// `E(x)` converts an integer into an enum, the program stopping on any other value ;
+// a literal is checked where it is written : `9` and `-1` are no `Weekday`, `4` of
+// `Level` lies between two of its values.
+module "snippet"
+
+export Weekday :: enum { Mon, Tue, Wed }
+
+export Level :: enum { Low = 1, Mid = 5 }
+
+export main :: fn() -> i32 {
+    a :: Weekday(9)
+    b :: Weekday(-1)
+    c :: Level(4)
+    d :: Weekday(2)
+    return 0
+}

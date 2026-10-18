@@ -1,0 +1,88 @@
+# Typecheck
+
+## tests/snippets/shop_hours
+  FnDecl         day_of               :: fn(i32) -> string
+  EnumDecl       Discount             :: Discount
+  FnDecl         main                 :: fn(string[]) -> i32
+  ConstDecl      Opening              :: type
+  EnumDecl       Weekday              :: Weekday
+  expr 21:14    IdentExpr      :: Weekday
+  expr 21:5     IfExpr         :: void
+  expr 21:8     BinaryExpr     :: bool
+  expr 21:8     IdentExpr      :: i32
+  expr 22:16    StringLitExpr  :: string
+  expr 22:26    IdentExpr      :: i32
+  expr 24:12    StringLitExpr  :: string
+  expr 24:15    CallExpr       :: Weekday
+  expr 24:15    IdentExpr      :: Weekday
+  expr 24:23    IdentExpr      :: 0..=6
+  expr 28:13    StringLitExpr  :: string
+  expr 28:21    IntrinsicCallExpr :: Weekday
+  expr 28:41    IntrinsicCallExpr :: Weekday
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:26    IntrinsicCallExpr :: Discount
+  expr 29:47    IntrinsicCallExpr :: Discount
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 2:39     MatchExpr      :: string
+  expr 2:39     MatchExpr      :: string
+  expr 2:45     IdentExpr      :: Discount
+  expr 2:45     IdentExpr      :: Weekday
+  expr 30:13    StringLitExpr  :: string
+  expr 30:16    CallExpr       :: string
+  expr 30:16    IdentExpr      :: fn(i32) -> string
+  expr 30:30    CallExpr       :: string
+  expr 30:30    IdentExpr      :: fn(i32) -> string
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:14    IdentExpr      :: Weekday
+  expr 32:15    StringLitExpr  :: string
+  expr 32:18    IdentExpr      :: Weekday
+  expr 32:9     CallExpr       :: void
+  expr 32:9     IdentExpr      :: fn(T) -> void
+  expr 34:13    StringLitExpr  :: string
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 35:14    IdentExpr      :: Discount
+  expr 36:15    StringLitExpr  :: string
+  expr 36:18    IdentExpr      :: Discount
+  expr 36:9     CallExpr       :: void
+  expr 36:9     IdentExpr      :: fn(T) -> void
+  expr 38:13    StringLitExpr  :: string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 3:17     StringLitExpr  :: string
+  expr 3:18     StringLitExpr  :: string
+  expr 40:13    StringLitExpr  :: string
+  expr 40:16    BinaryExpr     :: bool
+  expr 40:16    IdentExpr      :: i64
+  expr 40:24    IdentExpr      :: Discount
+  expr 40:36    CallExpr       :: Discount
+  expr 40:36    IdentExpr      :: Discount
+  expr 40:45    IdentExpr      :: i64
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 40:54    BinaryExpr     :: bool
+  expr 40:60    IdentExpr      :: Discount
+  expr 42:14    IdentExpr      :: Opening
+  expr 43:18    IdentExpr      :: Opening
+  expr 43:9     BinaryExpr     :: i32
+  expr 43:9     IdentExpr      :: i32
+  expr 46:14    IdentExpr      :: u8
+  expr 47:9     BinaryExpr     :: i32
+  expr 47:9     IdentExpr      :: i32
+  expr 49:13    StringLitExpr  :: string
+  expr 49:16    IdentExpr      :: i32
+  expr 49:25    IdentExpr      :: i32
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 4:17     StringLitExpr  :: string
+  expr 4:18     StringLitExpr  :: string
+  expr 5:17     StringLitExpr  :: string
+  expr 5:18     StringLitExpr  :: string
+  expr 6:17     StringLitExpr  :: string
+  expr 7:17     StringLitExpr  :: string
+  expr 8:17     StringLitExpr  :: string
+  expr 9:17     StringLitExpr  :: string
