@@ -1,0 +1,203 @@
+# Lower
+
+## snippet
+  snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
+      late: u8 = snippet.clamp_to<Hour>(i64(30))
+      early: u8 = snippet.clamp_to<Month>(i64(-4))
+      byte: u8 = snippet.clamp_to<u8>(i64(1000))
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(70))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "clamped ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(late))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(early))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(byte))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      december: u8 = 12
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(67))
+          __off_3: usize = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "next ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<Hour>(late)))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<Month>(december)))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<u8>(byte)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      hours: u8[] = [u8(9), u8(4), u8(12)] :u8[]
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(53))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "lowest ")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.lowest<Hour>(hours)))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " over ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.span_of<Hour>(late, snippet.lowest<Hour>(hours)))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>(snippet.show<Month>(december))
+      count: i64 = i64(@array.len(argv)) + i64(2)
+      may: u8 = snippet.exactly<Month>(count + i64(2))
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(26))
+          __off_7: usize = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "month ")
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(may))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      beyond: u8 = snippet.exactly<Month>(count * i64(20))
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(26))
+          __off_9: usize = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "month ")
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(beyond))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      return 0
+  }
+  snippet.clamp_to<Hour> :: fn(n: i64) -> u8 {  // snippet$clamp_to__Int_in_0___23
+      if !((n < i64(0)) || (n > i64(23))) {
+          return u8(n)
+      }
+      if n < i64(u8(0)) {
+          return u8(0)
+      }
+      return u8(23)
+  }
+  snippet.clamp_to<Month> :: fn(n: i64) -> u8 {  // snippet$clamp_to__Int_in_1___12
+      if !((n < i64(1)) || (n > i64(12))) {
+          return u8(n)
+      }
+      if n < i64(u8(1)) {
+          return u8(1)
+      }
+      return u8(12)
+  }
+  snippet.clamp_to<u8> :: fn(n: i64) -> u8 {  // snippet$clamp_to__u8
+      if !((n < i64(0)) || (n > i64(255))) {
+          return u8(n)
+      }
+      if n < i64(u8(0)) {
+          return u8(0)
+      }
+      return u8(255)
+  }
+  snippet.wrap_next<Hour> :: fn(x: u8) -> u8 {  // snippet$wrap_next__Int_in_0___23
+      {
+          __in_range_0: i64 = (((i64(x) - i64(u8(0))) + i64(1)) % ((i64(u8(23)) - i64(u8(0))) + i64(1))) + i64(u8(0))
+          if (__in_range_0 < i64(0)) || (__in_range_0 > i64(23)) {
+              @unreachable("value out of range: not in `Hour` (0..=23)")
+          }
+          u8(__in_range_0)
+      } :u8
+  }
+  snippet.wrap_next<Month> :: fn(x: u8) -> u8 {  // snippet$wrap_next__Int_in_1___12
+      {
+          __in_range_0: i64 = (((i64(x) - i64(u8(1))) + i64(1)) % ((i64(u8(12)) - i64(u8(1))) + i64(1))) + i64(u8(1))
+          if (__in_range_0 < i64(1)) || (__in_range_0 > i64(12)) {
+              @unreachable("value out of range: not in `Month` (1..=12)")
+          }
+          u8(__in_range_0)
+      } :u8
+  }
+  snippet.wrap_next<u8> :: fn(x: u8) -> u8 {  // snippet$wrap_next__u8
+      {
+          __in_range_0: i64 = (((i64(x) - i64(u8(0))) + i64(1)) % ((i64(u8(255)) - i64(u8(0))) + i64(1))) + i64(u8(0))
+          if (__in_range_0 < i64(0)) || (__in_range_0 > i64(255)) {
+              @unreachable("value out of range: not in `u8` (0..=255)")
+          }
+          u8(__in_range_0)
+      } :u8
+  }
+  snippet.span_of<Hour> :: fn(a: u8, b: u8) -> i64 {  // snippet$span_of__Int_in_0___23
+      i64(b) - i64(a)
+  }
+  snippet.lowest<Hour> :: fn(xs: u8[]) -> u8 {  // snippet$lowest__Int_in_0___23
+      best: u8 = 23
+      {
+          __for_arr_0: u8[] = xs
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              x: u8 = __for_arr_0[__for_i_2]
+              if x < best {
+                  best = x
+              }
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return best
+  }
+  snippet.show<Month> :: fn(x: u8) -> string {  // snippet$show__Int_in_1___12
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(67))
+          __off_1: usize = 0
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(x))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " of ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(1)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "..=")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(12)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.exactly<Month> :: fn(n: i64) -> u8 {  // snippet$exactly__Int_in_1___12
+      {
+          __in_range_0: i64 = n
+          if (__in_range_0 < i64(1)) || (__in_range_0 > i64(12)) {
+              @unreachable("value out of range: not in `Month` (1..=12)")
+          }
+          u8(__in_range_0)
+      } :u8
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

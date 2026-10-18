@@ -1,0 +1,14 @@
+// `T(x)` converts an integer into a type parameter bounded by `Int` ; a value of
+// any other type is no conversion, nor is a value of a type parameter that is no
+// integer.
+module "snippet"
+
+export parse_as :: fn<T: Int>(s: string) -> T = T(s)
+
+export from_any :: fn<T: Int, U>(y: U) -> T = T(y)
+
+export main :: fn() -> i32 {
+    n: i32: parse_as("4")
+    m: i32: from_any(4)
+    return n + m
+}

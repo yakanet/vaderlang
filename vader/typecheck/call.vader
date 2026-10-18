@@ -848,16 +848,20 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
 }
 
 // Whether `c` is a conversion `T(x)` rather than a call : its callee names a type in
-// value position — the metatype of a bare type name, or a struct's own name called on
-// one value (`Info(v)`), which types as the struct rather than as a metatype.
+// value position, the metatype of a bare type name, or a struct's own name or a type
+// parameter bounded by `Int` called on one value (`Info(v)`, `T(n)`), which type as
+// themselves rather than as a metatype.
 converts_by_name :: fn(c: AST.CallExpr, callee_ty: Type, typed: TypedProgram) -> bool {
     if callee_ty is TypeMetaType {
         return true
     }
-    if callee_ty !is StructType || c.args.len() != 1 {
+    if c.args.len() != 1 {
         return false
     }
-    return names_symbol_of_kind(c.callee, .Struct, typed)
+    if is_integer_param(callee_ty, typed) {
+        return names_symbol_of_kind(c.callee, .TypeParam, typed)
+    }
+    return callee_ty is StructType && names_symbol_of_kind(c.callee, .Struct, typed)
 }
 
 // The type a conversion `T(x)` converts to : the callee's, with the type arguments
@@ -946,9 +950,10 @@ note_cast_into :: fn(typed: TypedProgram, value: AST.Expr, source: Type, target:
 }
 
 /// T3006 enforcement : every type parameter the call bound must satisfy each
-/// trait of its bound, wherever the callee is declared and however it is called
-/// — direct, UFCS, through a namespace. Skips a parameter the call left unbound
-/// (it already reports T3001 or T3069).
+/// trait of its bound, and be an integer type within `i64` where the bound names
+/// `Int`, wherever the callee is declared and however it is called (direct, UFCS,
+/// through a namespace). Skips a parameter the call left unbound (it already
+/// reports T3001 or T3069).
 check_typeparam_bounds :: fn(
     site: Span,
     owner: string,
@@ -958,6 +963,11 @@ check_typeparam_bounds :: fn(
 ) -> void {
     for [id, bound_ty] in bindings {
         bound :: typed.type_param_bound_traits[id] ?? continue
+        if bound.integer && !fits_integer_bound(bound_ty, typed) {
+            diags.push(typecheck_error(.TraitNotSatisfied, site,
+                "type parameter `${bound.name}` of `${owner}` is an `Int`, an integer type "
+                    + "within `i64`, got `${display_type(bound_ty)}`"))
+        }
         for trait_ty in bound.traits {
             wanted :: bound_instance(trait_ty, bindings)
             reason :: unmet_bound_reason(bound_ty, wanted, typed) ?? continue

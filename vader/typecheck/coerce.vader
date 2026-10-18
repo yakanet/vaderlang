@@ -100,6 +100,11 @@ try_trait_widen :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool {
         }
         return false
     }
+    // A `T: Int` widens into an `i64` as a type parameter into the traits its bound
+    // names.
+    if widens_integer_param(got, expected, typed) {
+        return true
+    }
     if expected !is TraitType {
         return false
     }

@@ -57,6 +57,9 @@ infer_binary :: fn(
     right := check_expr(e.right, right_ctx, typed, diags)
     note_right_operand_calls(typed, e.id, calls_before)
     pop_narrows(pushed, typed)
+    // A value of a `T: Int` is computed on as an `i64`.
+    left = as_computed(left, typed)
+    right = as_computed(right, typed)
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
     // repinning its recorded type (and any inner shift / bitwise leaves) and

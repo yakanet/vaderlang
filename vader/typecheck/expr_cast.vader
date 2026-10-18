@@ -52,6 +52,10 @@ cast_operand_expected :: fn(target: Type) -> Type {
 
 /// True when `T(x)` is a conversion the lowerer / backends implement.
 cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
+    // `T(x)` into a type parameter bounded by `Int` converts an integer.
+    if is_integer_param(target, typed) {
+        return is_integer_type(src, typed)
+    }
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
     // opt out — never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }

@@ -182,11 +182,11 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
     if intrinsic.args.len() != 1 {
         return null
     }
-    values :: integer_values(ctx.types.raw_type_expr_type(intrinsic.args[0])) ?? return null
+    held :: instance_range(ctx, ctx.types.raw_type_expr_type(intrinsic.args[0])) ?? return null
     return LoweredIntLit {
         .span = intrinsic.span,
         .type = type,
-        .value = integer_bound(values, intrinsic.name == "max"),
+        .value = integer_bound(held.bounds, intrinsic.name == "max"),
     }
 }
 

@@ -20,7 +20,7 @@ import "vader/types"
 /// The conversion `call`, `T(value)`, into the range `target`.
 ///
 /// @param call    the conversion, its single argument the value.
-/// @param target  the range converted into, as the typecheck recorded it.
+/// @param target  the range converted into, at this instance (`instance_range`).
 /// @return        the value, checked where it may leave the range, then
 ///                converted to the integer the range is held in.
 lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType) -> LoweredExpr {
@@ -37,13 +37,34 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
 /// @param e      a call or an operator, its type as the typecheck recorded it.
 /// @param value  `e`, lowered.
 /// @return       `value`, unchanged when `e` is no value of a type parameter bound
-///               to a range.
+///               to a range, or a conversion `T(x)`, which checks its own.
 kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr {
     if ctx.types.subst.ranges == null {
         return value
     }
     target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return value
+    if e is CallExpr && recorded_callee(ctx, e, .Call) is Builtin {
+        return value
+    }
     return checked_into(ctx, value, integer_values(value.type), target, e.span)
+}
+
+/// The integer type `t`, as the typecheck recorded it, is at this instance, as a
+/// range : a range as it is, a type parameter the instance binds to one that range,
+/// else the integer it stands for, under its own name.
+///
+/// @param t  a type the typecheck recorded.
+/// @return   null when `t` is no integer type here.
+instance_range :: fn(ctx: FnLowerCtx, t: Type) -> RangeType | null {
+    held :: ctx.types.instance_argument(t)
+    if held is RangeType {
+        return held
+    }
+    if held !is PrimitiveType {
+        return null
+    }
+    values :: integer_values(held) ?? return null
+    return RangeType { .bounds = values, .name = held.name }
 }
 
 // `value` converted into `target`, the program stopped where it lies outside. Only
@@ -101,11 +122,12 @@ lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
     span :: binary.span
     negated :: binary.op == .NotIn
     value :: lower_expr(ctx, binary.left)
-    tested :: integer_values(ctx.types.raw_expr_type(binary.right))
+    held :: instance_range(ctx, ctx.types.raw_expr_type(binary.right))
     source :: values_of(ctx, binary.left, value)
-    if tested == null || source == null {
+    if held == null || source == null {
         return stub(span, TY_BOOL, "`in` over a type with no integer bounds")
     }
+    tested :: held.bounds
     if interval_meet(source, tested) == null {
         return decided(value, negated, span)
     }

@@ -21,7 +21,7 @@ infer_unary :: fn(
     // narrowing helpful.
     operand_hint: Type | null = null
     if e.op != .Not { operand_hint = expected }
-    operand :: check_expr(e.operand, operand_hint, typed, diags)
+    operand :: as_computed(check_expr(e.operand, operand_hint, typed, diags), typed)
     if operand is UnresolvedType { return TY_UNRESOLVED }
     match e.op {
         .Neg -> {

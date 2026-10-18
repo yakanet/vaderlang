@@ -1,0 +1,59 @@
+// A type parameter bounded by `Int` is an integer type whose bounds its instances
+// know : `@min(T)` and `@max(T)` read them, `x in T` narrows an `i64` into `T`, and
+// `T(x)` converts one, stopping the run outside. Its values are computed on as
+// `i64`, which a `T` widens into, so getting a `T` back takes one of the two :
+// `clamp_to` with `in`, `wrap_next` with `T(…)`. Each range is an instance of its
+// own, a primitive too (`u8`).
+module "snippet"
+
+import "std/io"
+
+Hour  :: Int in 0..=23
+Month :: Int in 1..=12
+
+clamp_to :: fn<T: Int>(n: i64) -> T {
+    if n in T {
+        return n
+    }
+    if n < @min(T) {
+        return @min(T)
+    }
+    return @max(T)
+}
+
+wrap_next :: fn<T: Int>(x: T) -> T =
+    T((x - @min(T) + 1) % (@max(T) - @min(T) + 1) + @min(T))
+
+span_of :: fn<T: Int>(a: T, b: T) -> i64 = b - a
+
+lowest :: fn<T: Int>(xs: T[]) -> T {
+    best := @max(T)
+    for x in xs {
+        if x < best {
+            best = x
+        }
+    }
+    return best
+}
+
+show :: fn<T: Int & Display>(x: T) -> string = "${x} of ${@min(T)}..=${@max(T)}"
+
+exactly :: fn<T: Int>(n: i64) -> T = T(n)
+
+main :: fn(argv: string[]) -> i32 {
+    late: Hour: clamp_to(30)
+    early: Month: clamp_to(-4)
+    byte: u8: clamp_to(1000)
+    println("clamped ${late} ${early} ${byte}")
+    december: Month: 12
+    println("next ${wrap_next(late)} ${wrap_next(december)} ${wrap_next(byte)}")
+    hours: Hour[]: [9, 4, 12]
+    println("lowest ${hours.lowest()} over ${span_of(late, hours.lowest())}")
+    println(show(december))
+    count :: i64(argv.len()) + 2
+    may: Month: exactly(count + 2)
+    println("month ${may}")
+    beyond: Month: exactly(count * 20)
+    println("month ${beyond}")
+    return 0
+}

@@ -1207,7 +1207,11 @@ with_struct_traits :: fn(
             traits.push(t)
         }
     }
-    return TypeParamBound { .name = name, .traits = traits }
+    return TypeParamBound {
+        .name = name,
+        .traits = traits,
+        .integer = own != null && own.integer,
+    }
 }
 
 names_trait :: fn(traits: TraitType[], t: TraitType) -> bool {
@@ -1232,7 +1236,11 @@ record_type_param_bounds :: fn(
         bound :: resolved.type_param_bounds[sym.id] ?? continue
         traits: TraitType[]: []
         collect_bound_trait_types(bound, resolved, traits)
-        out[sym.id] = TypeParamBound { .name = sym.name, .traits = traits }
+        out[sym.id] = TypeParamBound {
+            .name = sym.name,
+            .traits = traits,
+            .integer = bound_names_int(bound, resolved),
+        }
     }
 }
 
@@ -1247,6 +1255,14 @@ export collect_bound_traits :: fn(bound: AST.Expr, resolved: ResolvedModule, out
     for t in traits {
         out.push(trait_key_of(t.symbol))
     }
+}
+
+// Whether `bound` names `Int`, alone or in an `A & B` chain.
+bound_names_int :: fn(bound: AST.Expr, resolved: ResolvedModule) -> bool {
+    if bound is AST.BinaryExpr && bound.op == .BitAnd {
+        return bound_names_int(bound.left, resolved) || bound_names_int(bound.right, resolved)
+    }
+    return names_int_base(bound, resolved)
 }
 
 // The traits `bound` names, with their arguments (`Contains<i32>`), left to right.

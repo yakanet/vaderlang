@@ -716,6 +716,23 @@ A range is its integer to every impl: `"${h}"` prints the number, and its `Displ
 
 **In a generic function.** A generic function used at a range (`T` bound to `Hour`, written or handed on by an enclosing instance) has an instance of its own, apart from the one at the integer. There, what a call or an operator gives back as a `T` is checked against the range as `Hour(x)` checks it, and the program **stops** outside: `bump :: fn<T: Add>(a: T, b: T) -> T = a + b` at two `Hour` 20 and 10 stops rather than return a 30, and so do `T.zero()` at a `1..=12` and `sum` over `Hour` values past 23. A range inside an argument (`Hour[]` for `T[]` is `T` at `Hour`, but `Box<Hour>` for `T` is `Box<u8>`) is read as its integer; a member returning `Self` inside another type (`Self | null`) is not checked.
 
+**Generic over integers.** `fn<T: Int>` takes any integer type within `i64`, a range or a primitive; `u64`, `usize` and a non-integer are **T3006**. `Int` may stand beside traits (`T: Int & Display`). In the body, `T` is an integer type whose bounds only its instances know: `@min(T)` and `@max(T)` are values of `T` folded per instance, `x in T` tests an integer against them and narrows it to `T` where it holds, and `T(x)` converts an integer, the program **stopping** outside as for `Hour(x)` (a non-integer, a value of a type parameter that is no `Int` included, is **T3010**). A value of `T` is computed on as an `i64`: `a + b`, `-a` and `a < 5` take the values as `i64`, and a `T` goes where an `i64` goes (`i64`, `i64 | null`), as it is, and into no narrower slot. Getting a `T` back from a computation takes `x in T` or `T(x)`:
+
+```
+clamp_to :: fn<T: Int>(n: i64) -> T {
+    if n in T {
+        return n
+    }
+    if n < @min(T) {
+        return @min(T)
+    }
+    return @max(T)
+}
+
+wrap_next :: fn<T: Int>(x: T) -> T =
+    T((x - @min(T) + 1) % (@max(T) - @min(T) + 1) + @min(T))
+```
+
 ### Strings
 
 - Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
@@ -3293,7 +3310,7 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 | `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
-| `@min(T)`, `@max(T)` | `(T: type) -> T` | The least, the greatest value of the integer type `T`, a range or a primitive. | A literal of `T`. **T3110** for any other type (§Range types, *Bounds*). |
+| `@min(T)`, `@max(T)` | `(T: type) -> T` | The least, the greatest value of the integer type `T`, a range, a primitive, or a type parameter bounded by `Int`. | A literal of `T`, per instance for a type parameter. **T3110** for any other type (§Range types, *Bounds*). |
 | `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
 | `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |

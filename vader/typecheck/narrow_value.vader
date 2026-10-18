@@ -82,21 +82,47 @@ membership_narrowing :: fn(e: AST.BinaryExpr, typed: TypedProgram) -> IsNarrow |
     if subject !is RangeType && subject !is PrimitiveType {
         return null
     }
-    tested :: tested_range(e.right, typed) ?? return null
+    tested :: tested_type(e.right, typed) ?? return null
     slot :: slot_of(e.left, typed) ?? return null
     current :: slot.current
-    inside :: inside_of(current, tested) ?? return null
+    sides :: membership_sides(current, tested, typed) ?? return null
     narrowing :: IsNarrow {
         .sym_id = slot.sym_id,
         .static_ty = current,
-        .then_ty = inside,
-        .else_ty = outside_of(current, tested.bounds),
+        .then_ty = sides.0,
+        .else_ty = sides.1,
         .field_key = slot.field_key,
     }
     if e.op == .NotIn {
         return swapped(narrowing)
     }
     return narrowing
+}
+
+// What `x in tested` makes an integer of type `current` where it holds and where it
+// does not. A type parameter bounded by `Int` : that parameter, and `current` as it
+// is. An integer type or a range with literal bounds : the values within it, and
+// those past an end it covers.
+membership_sides :: fn(current: Type, tested: Type, typed: TypedProgram) -> [Type, Type] | null {
+    if tested !is RangeType {
+        return [tested, current]
+    }
+    inside :: inside_of(current, tested) ?? return null
+    return [inside, outside_of(current, tested.bounds)]
+}
+
+// The type `x in right` tests against : a range (`tested_range`), or a type
+// parameter bounded by `Int`. Null for anything else, a collection's `contains`.
+tested_type :: fn(right: AST.Expr, typed: TypedProgram) -> Type | null {
+    tested :: tested_range(right, typed)
+    if tested != null {
+        return tested
+    }
+    param :: typed.expr_types[right.id] ?? return null
+    if is_integer_param(param, typed) {
+        return param
+    }
+    return null
 }
 
 /// `n` with its two sides exchanged : what the negation of its test narrows.

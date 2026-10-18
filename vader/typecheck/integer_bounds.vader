@@ -4,6 +4,11 @@
 // a primitive, and narrows `x` where it holds (`narrow_value.vader`). `@min(T)`
 // and `@max(T)` are the least and the greatest value of such a type, values of
 // `T` the lowering writes as literals. A type with no integer bounds is T3110.
+//
+// A type parameter bounded by `Int` is such a type whose bounds only its instances
+// know : `@min(T)`, `x in T` and `T(x)` read them there. Its values are computed on
+// as `i64`, which holds every one of them, and getting a `T` back takes `x in T`
+// or `T(x)`.
 
 module "vader/typecheck"
 
@@ -24,13 +29,13 @@ check_in_type :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram, diags: D
     if tested is UnresolvedType {
         return TY_BOOL
     }
-    if integer_values(tested) == null {
+    if integer_values(tested) == null && !is_integer_param(tested, typed) {
         diags.push(typecheck_error(.NotAnIntegerType, e.right.span,
             "`in` takes an integer type, got `${display_type(tested)}`"))
         return TY_BOOL
     }
     value :: settle_range_operand(e.left, left, typed, diags)
-    if !is_integer(value) {
+    if !is_integer_type(value, typed) {
         diags.push(typecheck_error(.NotAnIntegerType, e.left.span,
             "`in ${display_type(tested)}` tests an integer, got `${display_type(value)}`"))
     }
@@ -43,7 +48,7 @@ check_in_type :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram, diags: D
 /// @error    T3110 when `T` is no integer type.
 integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     t :: bounded_type(e, typed) ?? return TY_UNRESOLVED
-    if is_integer(t) {
+    if is_integer_type(t, typed) {
         return t
     }
     diags.push(typecheck_error(.NotAnIntegerType, e.args[0].span,
@@ -67,6 +72,47 @@ integer_bound_value :: fn(e: AST.Expr, typed: TypedProgram) -> Interval | null {
     bound :: integer_bound(values, e.name == "max")
     return interval(bound, bound)
 }
+
+/// Whether `t` is a type parameter bounded by `Int`.
+is_integer_param :: fn(t: Type, typed: TypedProgram) -> bool {
+    if t !is TypeParamType {
+        return false
+    }
+    bound :: typed.type_param_bound_traits[t.symbol.id] ?? return false
+    return bound.integer
+}
+
+/// Whether `t` is an integer type : a primitive, a range, a free literal, or a type
+/// parameter bounded by `Int`.
+is_integer_type :: fn(t: Type, typed: TypedProgram) -> bool =
+    is_integer(t) || is_integer_param(t, typed)
+
+/// The type a value of `t` is computed on as : `i64` for a type parameter bounded
+/// by `Int`, `t` itself otherwise.
+as_computed :: fn(t: Type, typed: TypedProgram) -> Type {
+    if is_integer_param(t, typed) {
+        return COMPUTED_INTEGER
+    }
+    return t
+}
+
+/// Whether a value of `got`, a type parameter bounded by `Int`, fits a slot of
+/// `expected` : one an `i64` fits.
+widens_integer_param :: fn(got: Type, expected: Type, typed: TypedProgram) -> bool =
+    is_integer_param(got, typed) && is_assignable(COMPUTED_INTEGER, expected)
+
+/// Whether `t` may be the argument of a type parameter bounded by `Int` : an integer
+/// type within `i64`, a range or a primitive, or another such parameter.
+fits_integer_bound :: fn(t: Type, typed: TypedProgram) -> bool {
+    if t is UnresolvedType || is_integer_param(t, typed) {
+        return true
+    }
+    values :: integer_values(t) ?? return false
+    return !values.hi_open
+}
+
+// What the values of a type parameter bounded by `Int` are computed on as.
+COMPUTED_INTEGER :: PrimitiveType { .name = "i64" }
 
 // The type the one argument of `@min(T)` or `@max(T)` names, as recorded.
 bounded_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram) -> Type | null {

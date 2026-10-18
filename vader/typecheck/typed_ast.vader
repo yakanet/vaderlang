@@ -167,6 +167,9 @@ export TypeParamBound :: struct {
     /// The type parameter, as written.
     name: string
     traits: TraitType[]
+    /// Whether the bound names `Int` : the parameter is an integer type within
+    /// `i64`, whose values its body computes on as `i64`.
+    integer: bool = false
 }
 
 /// A static trait member reached through the type that owns it — `T.zero()`,

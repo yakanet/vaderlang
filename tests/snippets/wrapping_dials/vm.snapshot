@@ -1,0 +1,10 @@
+# stdout
+clamped 23 1 255
+next 0 1 0
+lowest 4 over -19
+12 of 1..=12
+month 5
+# stderr
+vader vm: reached unreachable: 
+# exit
+1
