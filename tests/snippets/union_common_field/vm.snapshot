@@ -5,5 +5,9 @@ name = Rex
 age  = 7
 label = origin
 label = second
+label = third
+id = 5
+id = 0
+id = 0
 # exit
 0

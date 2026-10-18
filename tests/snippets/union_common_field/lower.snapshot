@@ -8,6 +8,22 @@
   snippet.label_of :: fn(x: Point | Tag) -> string {  // snippet$label_of
       x.label
   }
+  snippet.label_by_name :: fn(x: Point | Tag) -> string {  // snippet$label_by_name
+      x.label
+  }
+  snippet.Pin :: struct { at: null | Point, weight: i32 }  // snippet$Pin
+  snippet.Flag :: struct { at: null | Point, raised: bool }  // snippet$Flag
+  snippet.id_or_zero :: fn(u: Flag | Pin) -> i32 {  // snippet$id_or_zero
+      if !(u.at is null) {
+          return u.at.id
+      }
+      return 0
+  }
+  snippet.unpin :: fn(u: Flag | Pin) -> void {  // snippet$unpin
+      if !(u.at is null) {
+          u.at = null
+      }
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       a: Cat | Dog = Cat { .name = "Whiskers", .age = 3 }
       std.io.println<string>(concat_2("name = ", a.name))
@@ -29,6 +45,30 @@
       } :string)
       std.io.println<string>(concat_2("label = ", snippet.label_of(Point { .id = 1, .label = "origin" })))
       std.io.println<string>(concat_2("label = ", snippet.label_of(Tag { .rank = 2, .label = "second" })))
+      std.io.println<string>(concat_2("label = ", snippet.label_by_name(Tag { .rank = 3, .label = "third" })))
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_5: usize = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "id = ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.id_or_zero(Flag { .at = Point { .id = 5, .label = "p" }, .raised = true })))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_7: usize = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "id = ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.id_or_zero(Pin { .at = null, .weight = 1 })))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      flag: Flag = Flag { .at = Point { .id = 6, .label = "q" }, .raised = false }
+      snippet.unpin(flag)
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_9: usize = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "id = ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.id_or_zero(flag)))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

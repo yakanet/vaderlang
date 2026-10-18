@@ -700,7 +700,7 @@ try_union_common_field_dispatch :: fn(
     if target_ty !is UnionType {
         return null
     }
-    read :: union_field_read(target_ty, e.field, typed)
+    read :: union_field_read(target_ty, e.field, typed) ?? return null
     if read is LayoutClash {
         diags.push(
             typecheck_error(
@@ -713,7 +713,27 @@ try_union_common_field_dispatch :: fn(
         )
         return TY_UNRESOLVED
     }
-    return read
+    check_internal_union_field(target_ty, e, typed, diags)
+    return narrow_field_if_active(e, read, typed)
+}
+
+// T3054, once, when a variant of `u` holds `e.field` as `@internal` : reading the
+// union reads that variant's field.
+check_internal_union_field :: fn(
+    u: UnionType,
+    e: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    for v in u.variants {
+        if v !is StructType {
+            continue
+        }
+        decl :: typed.struct_decls[v.symbol.id] ?? continue
+        if check_internal_field(v, decl, e.field, e.field_span, typed, diags) {
+            return
+        }
+    }
 }
 
 // A field access on an enum-typed receiver : `Direction.North` on the enum type
@@ -980,10 +1000,11 @@ report_gen_state_member :: fn(
 /// (mirrors `invalidate_narrow_on_assign`, which retires — not rejects —
 /// a write outside the current narrowing).
 ///
-/// @param recv_ty  the receiver's checked type (struct or struct-backed newtype).
+/// @param recv_ty  the receiver's checked type : a struct, a struct-backed
+///                 newtype, or a union of structs read through a common field.
 /// @param field    the field name being written.
 /// @return         the substituted field type, or `null` when `recv_ty`
-///                 isn't a struct, its decl isn't indexed, or the field
+///                 is none of those, its decl isn't indexed, or the field
 ///                 doesn't resolve — the caller then skips the write check
 ///                 (the read-side typing already surfaced any field error).
 export declared_struct_field_type :: fn(
@@ -991,6 +1012,9 @@ export declared_struct_field_type :: fn(
     field: string,
     typed: TypedProgram,
 ) -> Type | null {
+    if recv_ty is UnionType {
+        return union_common_field_type(recv_ty, field, typed)
+    }
     st :: struct_backing(recv_ty) ?? return null
     decl :: typed.struct_decls[st.symbol.id] ?? return null
     // Discard sink : the read-side check already emitted any field error.
@@ -1006,9 +1030,9 @@ export declared_struct_field_type :: fn(
 ///
 /// Same-module access is always allowed — the test mirrors the established
 /// cross-module comparison `sym.module != typed.resolved.path`
-/// (`vader/typecheck/expr_ident.vader`). Shared by the read site
-/// (`resolve_struct_field`), the construction site (`struct_lit.vader`), and
-/// the pattern site (`match_expr.vader`).
+/// (`vader/typecheck/expr_ident.vader`). Shared by the read sites (a struct's
+/// field, a union's common one, an enum's variant data), the construction site
+/// (`struct_lit.vader`), and the pattern site (`match_expr.vader`).
 ///
 /// @param st          the struct type whose field is being accessed.
 /// @param decl        the struct's AST decl, carrying per-field visibility
@@ -1016,6 +1040,7 @@ export declared_struct_field_type :: fn(
 ///                    `broadcast_struct_decls`).
 /// @param field_name  the field being touched.
 /// @param span        where to point the diagnostic.
+/// @return            true when it reported.
 /// @error             T3054 when `field_name` is `@internal` and the access is
 ///                    from a different module than `st.symbol.module`.
 check_internal_field :: fn(
@@ -1025,24 +1050,26 @@ check_internal_field :: fn(
     span: Span,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> void {
+) -> bool {
     if st.symbol.module == typed.resolved.path {
-        return
+        return false
     }
     for field in decl.fields {
         if field.name == field_name {
-            if field.visibility == .Private {
-                diags.push(
-                    typecheck_error(
-                        .InternalFieldAccess,
-                        span,
-                        "`${field_name}` is `@internal` to module `${st.symbol.module}`",
-                    ),
-                )
+            if field.visibility != .Private {
+                return false
             }
-            return
+            diags.push(
+                typecheck_error(
+                    .InternalFieldAccess,
+                    span,
+                    "`${field_name}` is `@internal` to module `${st.symbol.module}`",
+                ),
+            )
+            return true
         }
     }
+    return false
 }
 
 /// Look up `${root_sym.id}#path` for this FieldExpr's chain in
@@ -1253,6 +1280,25 @@ substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram
         return impl_ty
     }
     return substitute_struct_args(impl_ty, target_ty, typed)
+}
+
+/// Declared type of the field `name` every variant of `u` places at one offset.
+///
+/// @param u      a union.
+/// @param name   the field name.
+/// @param typed  the program whose struct tables are read.
+/// @return       `null` when a variant is no struct, lacks the field, or places it
+///               elsewhere : the field is no common one.
+export union_common_field_type :: fn(
+    u: UnionType,
+    name: string,
+    typed: TypedProgram,
+) -> Type | null {
+    read :: union_field_read(u, name, typed)
+    if read is LayoutClash {
+        return null
+    }
+    return read
 }
 
 // Why `u.name` does not read the same in every variant of `u`, for T3008.

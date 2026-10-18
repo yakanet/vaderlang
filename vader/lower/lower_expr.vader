@@ -83,11 +83,19 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // struct whose slots are named `_0`, `_1`, … — rewrite the
             // numeric field so the dump shows `._0`.
             field_name :: if expr.is_numeric { "_${expr.field}" } else { expr.field }
-            // Union-typed receiver with a common field.
-            target_type :: ctx.types.expr_type(expr.target)
-            shortcut :: try_lower_common_union_field(ctx, expr, type, target_type, field_name)
-            if shortcut != null { return shortcut }
             lowered_target :: lower_expr(ctx, expr.target)
+            receiver :: ctx.types.expr_type(expr.target)
+            via_union :: lower_union_field(
+                ctx,
+                expr.span,
+                type,
+                receiver,
+                lowered_target,
+                field_name,
+            )
+            if via_union != null {
+                return via_union
+            }
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
             // at lower time (typically via @comptime for substitution
@@ -519,24 +527,56 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     return ctx.types.apply(raw)
 }
 
-try_lower_common_union_field :: fn(
-    ctx: FnLowerCtx, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
+// `target.field` off a union of structs, or null when `receiver` is no union whose
+// variants all place `field` at one offset.
+lower_union_field :: fn(
+    ctx: FnLowerCtx,
+    span: Span,
+    type: Type,
+    receiver: Type,
+    target: LoweredExpr,
+    field: string,
 ) -> LoweredExpr | null {
-    if target_type !is UnionType || target_type.variants.len() == 0 {
+    if receiver !is UnionType {
         return null
     }
-    // Only a union the typecheck refused can hold a variant that is no struct.
-    for v in target_type.variants {
+    read :: union_field_read_type(ctx, type, receiver, field) ?? return null
+    return LoweredUnionField {
+        .span = span,
+        .type = read,
+        .target = target,
+        .field = field,
+    }
+}
+
+// The type of `receiver.field`. A type the typecheck resolved means it checked the
+// layout, a union holding a variant that is no struct having no field. An
+// unresolved one, a name `@comptime for` substitutes, is checked here.
+union_field_read_type :: fn(
+    ctx: FnLowerCtx,
+    type: Type,
+    receiver: UnionType,
+    field: string,
+) -> Type | null {
+    if type is UnresolvedType {
+        return union_common_field_type(receiver, field, ctx.typed)
+    }
+    for v in receiver.variants {
         if v !is StructType {
             return null
         }
     }
-    return LoweredUnionField {
-        .span = expr.span,
-        .type = expr_type,
-        .target = lower_expr(ctx, expr.target),
-        .field = field_name,
+    return type
+}
+
+// The typecheck's type for a field read, or the field's declared type where the
+// typecheck left it unresolved : a name `@comptime for` substitutes, a generic
+// instance.
+read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
+    if type is UnresolvedType {
+        return declared
     }
+    return type
 }
 
 // Read a captured binding's value back out of its cell.

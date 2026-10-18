@@ -1,0 +1,16 @@
+// T3054 through a union : `u.ekeys` off `MutableMap<i32, i32> | MutableMap<i32, bool>`
+// reads the field of whichever variant the value holds, and `ekeys` is `@internal`
+// to `std/collections` in both. One T3054, not one per variant. `@field(m, "size")`
+// with a literal name reads the field as `m.size` would, and is refused the same.
+module "snippet"
+
+import "std/collections"
+
+keys_of :: fn(u: MutableMap<i32, i32> | MutableMap<i32, bool>) -> usize = u.ekeys.len()
+
+size_of :: fn(m: MutableMap<i32, i32>) -> usize = @field(m, "size")
+
+main :: fn() -> i32 {
+    m :: MutableMap<i32, i32> {}
+    return i32(keys_of(m) + size_of(m))
+}

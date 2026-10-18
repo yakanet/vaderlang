@@ -3,47 +3,101 @@
 ## tests/snippets/union_common_field
   StructDecl     Cat                  :: Cat
   StructDecl     Dog                  :: Dog
+  StructDecl     Flag                 :: Flag
+  FnDecl         id_or_zero           :: fn(Flag | Pin) -> i32
+  FnDecl         label_by_name        :: fn(Point | Tag) -> string
   FnDecl         label_of             :: fn(Point | Tag) -> string
   FnDecl         main                 :: fn() -> i32
+  StructDecl     Pin                  :: Pin
   StructDecl     Point                :: Point
   StructDecl     Tag                  :: Tag
-  expr 17:44    FieldExpr      :: string
-  expr 17:44    IdentExpr      :: Point | Tag
-  expr 20:19    StructLitExpr  :: Cat
-  expr 20:33    StringLitExpr  :: string
-  expr 21:13    StringLitExpr  :: string
-  expr 21:23    FieldExpr      :: string
-  expr 21:23    IdentExpr      :: Cat | Dog
-  expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(T) -> void
-  expr 22:13    StringLitExpr  :: string
-  expr 22:23    FieldExpr      :: i32
-  expr 22:23    IdentExpr      :: Cat | Dog
-  expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(T) -> void
-  expr 24:19    StructLitExpr  :: Dog
-  expr 24:33    StringLitExpr  :: string
-  expr 25:13    StringLitExpr  :: string
-  expr 25:23    FieldExpr      :: string
-  expr 25:23    IdentExpr      :: Cat | Dog
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(T) -> void
-  expr 26:13    StringLitExpr  :: string
-  expr 26:23    FieldExpr      :: i32
-  expr 26:23    IdentExpr      :: Cat | Dog
-  expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(T) -> void
-  expr 28:13    StringLitExpr  :: string
-  expr 28:24    CallExpr       :: string
-  expr 28:24    IdentExpr      :: fn(Point | Tag) -> string
-  expr 28:33    StructLitExpr  :: Point
-  expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(T) -> void
-  expr 28:59    StringLitExpr  :: string
-  expr 29:13    StringLitExpr  :: string
-  expr 29:24    CallExpr       :: string
-  expr 29:24    IdentExpr      :: fn(Point | Tag) -> string
-  expr 29:33    StructLitExpr  :: Tag
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 29:59    StringLitExpr  :: string
+  FnDecl         unpin                :: fn(Flag | Pin) -> void
+  expr 18:44    FieldExpr      :: string
+  expr 18:44    IdentExpr      :: Point | Tag
+  expr 20:49    IntrinsicCallExpr :: string
+  expr 20:56    IdentExpr      :: Point | Tag
+  expr 20:59    StringLitExpr  :: string
+  expr 26:5     IfExpr         :: void
+  expr 26:8     BinaryExpr     :: bool
+  expr 26:8     FieldExpr      :: null | Point
+  expr 26:8     IdentExpr      :: Flag | Pin
+  expr 27:16    FieldExpr      :: Point
+  expr 27:16    FieldExpr      :: i32
+  expr 27:16    IdentExpr      :: Flag | Pin
+  expr 34:5     IfExpr         :: void
+  expr 34:8     BinaryExpr     :: bool
+  expr 34:8     FieldExpr      :: null | Point
+  expr 34:8     IdentExpr      :: Flag | Pin
+  expr 35:9     FieldExpr      :: Point
+  expr 35:9     IdentExpr      :: Flag | Pin
+  expr 40:19    StructLitExpr  :: Cat
+  expr 40:33    StringLitExpr  :: string
+  expr 41:13    StringLitExpr  :: string
+  expr 41:23    FieldExpr      :: string
+  expr 41:23    IdentExpr      :: Cat | Dog
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 42:13    StringLitExpr  :: string
+  expr 42:23    FieldExpr      :: i32
+  expr 42:23    IdentExpr      :: Cat | Dog
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 44:19    StructLitExpr  :: Dog
+  expr 44:33    StringLitExpr  :: string
+  expr 45:13    StringLitExpr  :: string
+  expr 45:23    FieldExpr      :: string
+  expr 45:23    IdentExpr      :: Cat | Dog
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 46:13    StringLitExpr  :: string
+  expr 46:23    FieldExpr      :: i32
+  expr 46:23    IdentExpr      :: Cat | Dog
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 48:13    StringLitExpr  :: string
+  expr 48:24    CallExpr       :: string
+  expr 48:24    IdentExpr      :: fn(Point | Tag) -> string
+  expr 48:33    StructLitExpr  :: Point
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 48:59    StringLitExpr  :: string
+  expr 49:13    StringLitExpr  :: string
+  expr 49:24    CallExpr       :: string
+  expr 49:24    IdentExpr      :: fn(Point | Tag) -> string
+  expr 49:33    StructLitExpr  :: Tag
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void
+  expr 49:59    StringLitExpr  :: string
+  expr 50:13    StringLitExpr  :: string
+  expr 50:24    CallExpr       :: string
+  expr 50:24    IdentExpr      :: fn(Point | Tag) -> string
+  expr 50:38    StructLitExpr  :: Tag
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:64    StringLitExpr  :: string
+  expr 51:13    StringLitExpr  :: string
+  expr 51:21    CallExpr       :: i32
+  expr 51:21    IdentExpr      :: fn(Flag | Pin) -> i32
+  expr 51:32    StructLitExpr  :: Flag
+  expr 51:45    StructLitExpr  :: Point
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 51:71    StringLitExpr  :: string
+  expr 52:13    StringLitExpr  :: string
+  expr 52:21    CallExpr       :: i32
+  expr 52:21    IdentExpr      :: fn(Flag | Pin) -> i32
+  expr 52:32    StructLitExpr  :: Pin
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:13    StructLitExpr  :: Flag
+  expr 53:26    StructLitExpr  :: Point
+  expr 53:52    StringLitExpr  :: string
+  expr 54:11    IdentExpr      :: Flag
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(Flag | Pin) -> void
+  expr 55:13    StringLitExpr  :: string
+  expr 55:21    CallExpr       :: i32
+  expr 55:21    IdentExpr      :: fn(Flag | Pin) -> i32
+  expr 55:32    IdentExpr      :: Flag
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void

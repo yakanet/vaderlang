@@ -40,15 +40,24 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
         target :: lower_expr(ctx, intrinsic.args[0])
         name_arg :: lower_expr(ctx, intrinsic.args[1])
         if name_arg is LoweredStringLit {
-            field_type := type
-            if field_type is UnresolvedType {
-                receiver :: ctx.types.expr_type(intrinsic.args[0])
-                refined :: struct_field_type(ctx, receiver, name_arg.value)
-                if !(refined is UnresolvedType) { field_type = refined }
+            receiver :: ctx.types.expr_type(intrinsic.args[0])
+            via_union :: lower_union_field(
+                ctx,
+                intrinsic.span,
+                type,
+                receiver,
+                target,
+                name_arg.value,
+            )
+            if via_union != null {
+                return via_union
             }
+            declared :: struct_field_type(ctx, receiver, name_arg.value)
             return LoweredFieldAccess {
-                .span = intrinsic.span, .type = field_type,
-                .target = target, .field = name_arg.value,
+                .span = intrinsic.span,
+                .type = read_type_or_declared(type, declared),
+                .target = target,
+                .field = name_arg.value,
             }
         }
     }

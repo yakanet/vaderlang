@@ -56,36 +56,43 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             check_expr(e.args[i], null, typed, diags)
         }
     }
-    // `@field(x, "name")` returns the named field's declared type when
-    // the name is a literal string ; otherwise it stays Unresolved (the
-    // lower pass re-validates once `@comptime for` substitutes the name).
-    if e.name == "field" { return infer_field_intrinsic(e, typed, diags) }
+    if e.name == "field" {
+        return infer_field_intrinsic(e, typed, diags)
+    }
     return type_for_result(spec.result, typed)
 }
 
+// `@field(x, "name")` with a literal name on a struct or a union of structs reads
+// the field as `x.name` would, `@internal` and narrowing included. A name only
+// `@comptime for` unrolls, or a receiver that is neither (a type parameter), types
+// as unresolved : lowering resolves it once the name or the type is known.
 infer_field_intrinsic :: fn(
     e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    if e.args.len() < 2 { return TY_UNRESOLVED }
+    if e.args.len() < 2 {
+        return TY_UNRESOLVED
+    }
     recv_ty :: typed.expr_types[e.args[0].id] ?? return TY_UNRESOLVED
-    if recv_ty is UnresolvedType { return TY_UNRESOLVED }
-    if !(recv_ty is StructType) { return TY_UNRESOLVED }
+    if recv_ty !is UnionType && struct_backing(recv_ty) == null {
+        return TY_UNRESOLVED
+    }
     name_arg :: e.args[1]
-    if !(name_arg is AST.StringLitExpr) { return TY_UNRESOLVED }
+    if name_arg !is AST.StringLitExpr {
+        return TY_UNRESOLVED
+    }
     field_name :: static_string_value(name_arg)
-    if field_name == "" { return TY_UNRESOLVED }
-    decl :: typed.struct_decls[recv_ty.symbol.id] ?? return TY_UNRESOLVED
-    fmap :: typed.struct_field_types[recv_ty.symbol.id]
-    if !(fmap is null) {
-        cached :: fmap[field_name]
-        if !(cached is null) { return cached }
+    if field_name == "" {
+        return TY_UNRESOLVED
     }
-    for f in decl.fields {
-        if f.name == field_name {
-            return type_from_expr(f.ty, typed.resolved, diags)
-        }
+    access :: AST.FieldExpr {
+        .span = e.span,
+        .target = e.args[0],
+        .field = field_name,
+        .field_span = name_arg.span,
+        .is_numeric = false,
     }
-    return TY_UNRESOLVED
+    return try_union_common_field_dispatch(recv_ty, access, typed, diags)
+        ?? resolve_struct_field(recv_ty, access, typed, diags)
 }
 
 static_string_value :: fn(e: AST.StringLitExpr) -> string {

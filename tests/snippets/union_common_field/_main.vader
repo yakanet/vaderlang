@@ -2,7 +2,8 @@
 // initial sequence up to the field (same position, same type for it and for
 // every field before it), `u.field` reads it with no outer `match`, at the offset
 // the first variant gives it, whichever variant the value holds.
-// The names of the earlier fields may differ, as in `Point` and `Tag`.
+// The names of the earlier fields may differ, as in `Point` and `Tag`. A literal
+// `@field(x, "label")` is the same read, and a test on `u.at` narrows `u.at`.
 
 module "snippet"
 
@@ -16,6 +17,25 @@ Tag :: struct { rank: i32, label: string }
 
 label_of :: fn(x: Point | Tag) -> string = x.label
 
+label_by_name :: fn(x: Point | Tag) -> string = @field(x, "label")
+
+Pin :: struct { at: Point | null, weight: i32 }
+Flag :: struct { at: Point | null, raised: bool }
+
+id_or_zero :: fn(u: Pin | Flag) -> i32 {
+    if u.at != null {
+        return u.at.id
+    }
+    return 0
+}
+
+// The write targets the declared field, `Point | null`, not its narrowing.
+unpin :: fn(u: Pin | Flag) -> void {
+    if u.at != null {
+        u.at = null
+    }
+}
+
 main :: fn() -> i32 {
     a: Cat | Dog: Cat { .name = "Whiskers", .age = 3 }
     println("name = ${a.name}")
@@ -27,5 +47,11 @@ main :: fn() -> i32 {
 
     println("label = ${label_of(Point { .id = 1, .label = "origin" })}")
     println("label = ${label_of(Tag { .rank = 2, .label = "second" })}")
+    println("label = ${label_by_name(Tag { .rank = 3, .label = "third" })}")
+    println("id = ${id_or_zero(Flag { .at = Point { .id = 5, .label = "p" }, .raised = true })}")
+    println("id = ${id_or_zero(Pin { .at = null, .weight = 1 })}")
+    flag :: Flag { .at = Point { .id = 6, .label = "q" }, .raised = false }
+    unpin(flag)
+    println("id = ${id_or_zero(flag)}")
     return 0
 }
