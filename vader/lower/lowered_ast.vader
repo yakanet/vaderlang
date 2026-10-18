@@ -149,9 +149,9 @@ export LoweredProject :: struct {
     /// them. Read by the lowered dump.
     const_routes: ConstRoute[] = []
     /// `Symbol.id → trait_key`s — the frontend's authoritative trait
-    /// membership (from `TypedProgram.struct_traits_by_sym`), threaded to the
+    /// membership (from `ImplTables.struct_traits_by_sym`), threaded to the
     /// bytecode emitter to seed `is Trait` impl_table rows per interned struct
-    /// tag. Replaces the `materialize_trait_check_impls` hook's membership role.
+    /// tag.
     trait_membership: MutableMap<i32, string[]>
 }
 

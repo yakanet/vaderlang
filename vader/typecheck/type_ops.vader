@@ -268,10 +268,10 @@ impl_side_key :: fn(for_ty: Type) -> string =
 // can cover `t` : it is no instance, or its base has none.
 own_impl_key :: fn(typed: TypedProgram, t: Type) -> string | null {
     key_ty :: default_if_free(t)
-    if typed.instance_impl_bases.is_empty() || !is_instance_receiver(key_ty) {
+    if typed.impl_tables.instance_impl_bases.is_empty() || !is_instance_receiver(key_ty) {
         return null
     }
-    if !(impl_base_key(key_ty) in typed.instance_impl_bases) {
+    if !(impl_base_key(key_ty) in typed.impl_tables.instance_impl_bases) {
         return null
     }
     return impl_type_key(key_ty)
@@ -280,7 +280,7 @@ own_impl_key :: fn(typed: TypedProgram, t: Type) -> string | null {
 /// What an impl side table holds for `t` : the entry of an impl on `t` itself,
 /// which wins, else its base's.
 ///
-/// @param typed   the module whose `table` it is.
+/// @param typed   a module of the project, whose impl tables `table` is one of.
 /// @param table   a table keyed by `impl_side_key`, followed by `suffix`.
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"` for `impl_methods`, `""` for
@@ -301,7 +301,7 @@ impl_side :: fn<V>(
 /// The entries `t`'s own instance impls and its base's gather — for tables that list
 /// several under one key (`struct_implemented_traits`, `impl_method_traits`).
 ///
-/// @param typed   the module whose `table` it is.
+/// @param typed   a module of the project, whose impl tables `table` is one of.
 /// @param table   a table keyed by `impl_side_key`, followed by `suffix`.
 /// @param t       the receiver asked about.
 /// @param suffix  appended to both keys : `"::member"`, or `""` for a key alone.
@@ -328,14 +328,14 @@ impl_side_list :: fn(
 /// Poke` hides `Wrapper<T> implements<T> Poke`), not of another one
 /// (`MonType[] implements Into<Label>` leaves `T[] implements<T> Into<Iterator<T>>`).
 ///
-/// @param typed   the module whose `impl_methods` it reads.
+/// @param typed   a module of the project, whose impl tables it reads.
 /// @param t       the receiver.
 /// @param suffix  `"::<member>"`.
 export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
-    found :: typed.impl_methods["${dispatch_key(t)}${suffix}"]
+    found :: typed.impl_tables.impl_methods["${dispatch_key(t)}${suffix}"]
     base: ImplMethod[]: if found == null { NO_IMPL_METHODS } else { found }
     own_key :: own_impl_key(typed, t) ?? return base
-    own :: typed.impl_methods["${own_key}${suffix}"] ?? return base
+    own :: typed.impl_tables.impl_methods["${own_key}${suffix}"] ?? return base
     out: ImplMethod[]: []
     out.push_all(own)
     for member in base {
@@ -394,7 +394,7 @@ hides_trait_instance :: fn(
 /// @param trait_key  the trait asked about.
 export has_instance_impl :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
     own_key :: own_impl_key(typed, t) ?? return false
-    own :: typed.struct_implemented_traits[own_key] ?? return false
+    own :: typed.impl_tables.struct_implemented_traits[own_key] ?? return false
     return trait_key in own
 }
 
@@ -423,7 +423,7 @@ into_impl_method :: fn(
     target: Type,
 ) -> ImplMethod | null {
     // One impl per (source, target) pair : a second is R2030.
-    found :: typed.impl_methods[into_impl_key(source, target)] ?? return null
+    found :: typed.impl_tables.impl_methods[into_impl_key(source, target)] ?? return null
     return found[0]
 }
 
@@ -443,22 +443,22 @@ into_method_toward :: fn(
     }
     // One generic impl per target base : two would overlap (R2030).
     key :: "${dispatch_key(source)}${into_toward_suffix(target)}"
-    found :: typed.impl_methods[key] ?? return null
+    found :: typed.impl_tables.impl_methods[key] ?? return null
     return found[0]
 }
 
 /// True iff an impl on `t` itself or on its base registers `trait_key` in
-/// `typed.struct_implemented_traits` — every argument of a generic impl
+/// `ImplTables.struct_implemented_traits`, every argument of a generic impl
 /// included, whatever its bounds.
 base_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool =
-    trait_key in impl_side_list(typed, typed.struct_implemented_traits, t, "")
+    trait_key in impl_side_list(typed, typed.impl_tables.struct_implemented_traits, t, "")
 
 /// True iff `t` implements `trait_key` : it has the impl built in
 /// (`has_builtin_impl`), or its nominal carrier
 /// has an impl of it (`base_implements_trait`), and a generic impl counts only
 /// for the arguments its bounds admit — `Box<T> implements<T: Display>
 /// Display` makes `Box<i32>` implement `Display`, not `Box<Point>` when `Point`
-/// has none (`TypedProgram.impl_bounds`). Shared by trait widening, the T3006 /
+/// has none (`ImplTables.impl_bounds`). Shared by trait widening, the T3006 /
 /// T3018 checks and UFCS dispatch.
 export struct_implements_trait :: fn(t: Type, trait_key: string, typed: TypedProgram) -> bool {
     if has_builtin_impl(t, trait_key) {
@@ -591,9 +591,9 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
     if args.len() == 0 || has_instance_impl(t, trait_key, typed) {
         return null
     }
-    impls :: typed.impl_bounds[dispatch_key(t)] ?? return null
+    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] ?? return null
     first: UnmetBound | null = null
-    for [_, impl_] in impls {
+    for impl_ in impls {
         if impl_.trait_key != trait_key {
             continue
         }
@@ -746,7 +746,7 @@ implements_more_than_once :: fn(t: Type, trait_key: string, typed: TypedProgram)
     struct_trait_arg_lists(t, trait_key, typed).len() > 1
 
 trait_arg_lists_at :: fn(typed: TypedProgram, key: string, trait_key: string) -> Type[][] {
-    per_type :: typed.struct_trait_args[key] ?? return NO_ARG_LISTS
+    per_type :: typed.impl_tables.struct_trait_args[key] ?? return NO_ARG_LISTS
     lists :: per_type[trait_key] ?? return NO_ARG_LISTS
     return lists
 }

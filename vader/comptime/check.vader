@@ -45,7 +45,7 @@ export evaluate_project :: fn(
     // `instances` is the concrete generic-instance set the lowerer's
     // struct path materialises (`lower_mono_struct`). The lowerer is the
     // authoritative monomorphizer — there is no separate comptime mono pass.
-    project.instances = harvest_instances(typed)
+    project.instances = harvest_instances(typed, loaded.entry)
     return project
 }
 
@@ -53,7 +53,7 @@ export evaluate_project :: fn(
 // and register each generic instance. The for-in / Into / fn-call passes
 // are not handled yet (those land alongside the
 // lowerer port when their downstream consumers exist).
-harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
+harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[] {
     registry :: InstanceRegistry {}
     for [_, module_typed] in typed.modules {
         for [_, t] in module_typed.decl_types {
@@ -71,16 +71,21 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
         for [_, t] in module_typed.type_expr_types {
             observe(registry, t)
         }
-        // Impl-method types live in `impl_methods` (mangled-name keyed)
-        // and `impl_method_decl_types` (span-keyed), not `decl_types`
+        // Impl-method types live in `impl_methods` (mangled-name keyed, read
+        // below) and `impl_method_decl_types` (span-keyed), not `decl_types`
         // (Symbol.id-keyed — impl methods aren't in `resolved.symbols`).
-        for [_, members] in module_typed.impl_methods {
+        for [_, t] in module_typed.impl_method_decl_types {
+            observe(registry, t)
+        }
+    }
+    // Every module reads the same impl tables : their members are observed once,
+    // through the entry's.
+    entry_typed :: typed.modules[entry]
+    if entry_typed != null {
+        for [_, members] in entry_typed.impl_tables.impl_methods {
             for im in members {
                 observe(registry, im.ty)
             }
-        }
-        for [_, t] in module_typed.impl_method_decl_types {
-            observe(registry, t)
         }
     }
     return sorted_instances(registry)

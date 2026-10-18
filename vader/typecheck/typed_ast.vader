@@ -202,6 +202,89 @@ export ImplMethod :: struct {
     generic:      bool = false
 }
 
+/// The impls of a whole project, as every module's typecheck reads them: one set,
+/// shared by every `TypedProgram`, each impl recorded into it once, by the module
+/// that declares it (`register_project_impls`), and the impls of the generators'
+/// states (`register_generator_iter_impls`).
+export ImplTables :: struct {
+    /// `type::method_name → ImplMethod[]`, every impl member of that name, under two
+    /// keys per member: the impl's own type (`impl_type_key`, arguments included)
+    /// and its side (`impl_side_key`); plus `into_impl_key` for an `Into` impl, and
+    /// the base of its target for a generic one (`into_method_toward`). Several
+    /// impls of one trait on one receiver (`Add<f64>`, `Add<Vec2>`) each have an
+    /// entry : a use site chooses among them (`impl_candidates`). Written by
+    /// `record_impl_members`.
+    impl_methods: MutableMap<string, ImplMethod[]> = MutableMap<string, ImplMethod[]> {}
+
+    /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
+    /// providing the same method on the same receiver. When the list
+    /// has 2+ entries, an unqualified `x.method()` is ambiguous —
+    /// `field.vader` emits T3032.
+    impl_method_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
+
+    /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
+    /// the run-time `is Trait` test sees. A generic impl
+    /// counts here for every argument ; `impl_bounds` narrows it to the arguments
+    /// its bounds admit (`struct_implements_trait`).
+    struct_implemented_traits: MutableMap<string, string[]> = MutableMap<string, string[]> {}
+
+    /// `Symbol.id → trait_key`s — the twin of `struct_implemented_traits` for
+    /// the types that have a declaration, populated in lockstep by
+    /// `record_struct_trait`. Symbol ids are project-global-unique (one
+    /// shared `SymbolFactory`). Threaded to the bytecode
+    /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
+    /// rows per interned struct tag.
+    struct_traits_by_sym: MutableMap<i32, string[]> = MutableMap<i32, string[]> {}
+
+    /// Per-impl trait args, keyed by `impl_side_key` then `trait_key`, one list
+    /// per impl of the trait : `Hello implements Greeter<i32>` records
+    /// `struct_trait_args[side of Hello]["main.Greeter"] = [[i32]]`, and
+    /// `Vec2 implements Add<f64>` beside `Add<Vec2>` two lists. Read by
+    /// `unify_struct_to_trait_infer` so a generic fn parametrised by
+    /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
+    struct_trait_args: MutableMap<string, MutableMap<string, Type[][]>> =
+        MutableMap<string, MutableMap<string, Type[][]>> {}
+
+    /// `impl_base_key` → each generic impl of that base, with the bounds it puts
+    /// on the type's arguments ; an impl for a type without arguments puts no
+    /// bound and is not recorded.
+    impl_bounds: MutableMap<string, BoundedImpl[]> = MutableMap<string, BoundedImpl[]> {}
+
+    /// `impl_base_key` of every base an impl on one instance is written for
+    /// (`Wrapper` for `Wrapper<MonType> implements …`) — the receivers whose
+    /// lookups ask their own type's key before their base's (`own_impl_key`).
+    instance_impl_bases: MutableSet<string> = MutableSet<string> {}
+
+    /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl,
+    /// and every `X implements Into<Iterator<T>>` of an `X` that is no iterator
+    /// itself: the impl's own `T`, which a reader substitutes against the
+    /// instance's arguments. Consumed by `stmt.vader::for_in_element` so `for c in
+    /// some_iter` binds `c` to T.
+    iter_element_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+
+    /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
+    /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
+    /// `m` is a user struct with an Index impl.
+    index_target_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+
+    /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
+    /// impl. Consumed by `expr_index.vader` / `stmt.vader` to pin a
+    /// free-literal index key (`m[9000000000]`) to the resolved key type
+    /// instead of letting it default to i32 and silently truncate.
+    index_key_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+
+    /// The same for every `X implements IndexSet<K, _>` impl : a write's key,
+    /// which need not be a read's (`Index<string, _>` beside `IndexSet<i32, _>`).
+    index_set_key_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+
+    /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
+    /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
+    /// index-set value (`m[k] = 9000000000`) to the declared value type.
+    /// Distinct from `index_target_types` (which records the nullable
+    /// `Index` *read* result `V | null`, not the write value `V`).
+    index_set_value_types: MutableMap<string, Type> = MutableMap<string, Type> {}
+}
+
 /// Per-module typechecker output. Every span-keyed side-table uses the
 /// `i64` key produced by `scope.node.span.hash()` — packed
 /// `(line << 32) | column`. Consumers walk the resolved AST and look
@@ -296,14 +379,8 @@ export TypedProgram :: struct {
     /// trait's Symbol id, populated and shared alongside `trait_decls`.
     trait_decl_owners: MutableMap<i32, ResolvedModule>
 
-    /// `type::method_name → ImplMethod[]`, every impl member of that name, under two
-    /// keys per member: the impl's own type (`impl_type_key`, arguments included)
-    /// and its side (`impl_side_key`); plus `into_impl_key` for an `Into` impl, and
-    /// the base of its target for a generic one (`into_method_toward`). Several
-    /// impls of one trait on one receiver (`Add<f64>`, `Add<Vec2>`) each have an
-    /// entry : a use site chooses among them (`impl_candidates`). Written by
-    /// `record_impl_members`.
-    impl_methods: MutableMap<string, ImplMethod[]>
+    /// The impls of the whole project, the same set in every module of it.
+    impl_tables: ImplTables = ImplTables {}
 
     /// Flow-sensitive narrowing state : the tables `narrow.vader` owns.
     /// Grouped because they are one machine: an entry in `bindings` is only
@@ -387,35 +464,6 @@ export TypedProgram :: struct {
     /// its entries does not count the module's files.
     imported_fn_overloads: MutableMap<string, MutableMap<string, FnCandidate[]>>
 
-    /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl
-    /// reached during type-checking, and every `X implements Into<Iterator<T>>` of an
-    /// `X` that is no iterator itself: the impl's own `T`, which a reader substitutes
-    /// against the instance's arguments. Consumed by `stmt.vader::for_in_element` so
-    /// `for c in some_iter` binds `c` to T.
-    iter_element_types: MutableMap<string, Type>
-
-    /// `impl_base_key(for_ty) → T` for every `X implements Index<I, T>`
-    /// impl. Consumed by `expr_index.vader` so `m[k]` returns T when
-    /// `m` is a user struct with an Index impl.
-    index_target_types: MutableMap<string, Type>
-
-    /// `impl_base_key(for_ty) → K` for every `X implements Index<K, _>`
-    /// impl. Consumed by `expr_index.vader` / `stmt.vader` to pin a
-    /// free-literal index key (`m[9000000000]`) to the resolved key type
-    /// instead of letting it default to i32 and silently truncate.
-    index_key_types: MutableMap<string, Type>
-
-    /// The same for every `X implements IndexSet<K, _>` impl : a write's key,
-    /// which need not be a read's (`Index<string, _>` beside `IndexSet<i32, _>`).
-    index_set_key_types: MutableMap<string, Type>
-
-    /// `impl_base_key(for_ty) → V` for every `X implements IndexSet<K, V>`
-    /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
-    /// index-set value (`m[k] = 9000000000`) to the declared value type.
-    /// Distinct from `index_target_types` (which records the nullable
-    /// `Index` *read* result `V | null`, not the write value `V`).
-    index_set_value_types: MutableMap<string, Type>
-
     /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
     /// curried away). `infer_call` unifies it against the receiver's
@@ -483,12 +531,6 @@ export TypedProgram :: struct {
     /// its own is the one a body of it reaches (a default method's `self.tag()`).
     enclosing_impl: u64 = 0
 
-    /// `"${impl_base_key}::${methodName}" → the `trait_key`s of every trait
-    /// providing the same method on the same receiver. When the list
-    /// has 2+ entries, an unqualified `x.method()` is ambiguous —
-    /// `field.vader` emits T3032.
-    impl_method_traits: MutableMap<string, string[]>
-
     /// `Struct.symbol.id → field_name → resolved Type`. Pre-resolved
     /// at declare-time using the OWNING module's resolved.idents so
     /// cross-module field lookups (`entry.value` where `entry`'s
@@ -502,40 +544,6 @@ export TypedProgram :: struct {
     /// is not listed. Shared across modules (`share_type_param_symbols`), so a
     /// substitution reaches the parameters of an imported declaration by id.
     type_param_symbols: MutableMap<u64, Symbol> = MutableMap<u64, Symbol> {}
-
-    /// `impl_base_key → trait_key`s for every `X implements Trait` impl — what
-    /// the run-time `is Trait` test sees. A generic impl
-    /// counts here for every argument ; `impl_bounds` narrows it to the arguments
-    /// its bounds admit (`struct_implements_trait`).
-    struct_implemented_traits: MutableMap<string, string[]>
-
-    /// `impl_base_key` → impl span hash → each generic impl of that base,
-    /// with the bounds it puts on the type's arguments. Keyed by the impl's span
-    /// because an impl is recorded again at every walk of its module ; an impl
-    /// for a type without arguments puts no bound and is not recorded.
-    impl_bounds: MutableMap<string, MutableMap<u64, BoundedImpl>>
-
-    /// `Symbol.id → trait_key`s — the twin of `struct_implemented_traits` for
-    /// the types that have a declaration, populated in lockstep by
-    /// `record_struct_trait`. Symbol ids are project-global-unique (one
-    /// shared `SymbolFactory`). Threaded to the bytecode
-    /// emitter (via `LoweredProject.trait_membership`) to seed `impl_table`
-    /// rows per interned struct tag — replacing the lowering force-hook's
-    /// membership role.
-    struct_traits_by_sym: MutableMap<i32, string[]>
-
-    /// Per-impl trait args, keyed by `impl_side_key` then `trait_key`, one list
-    /// per impl of the trait : `Hello implements Greeter<i32>` records
-    /// `struct_trait_args[side of Hello]["main.Greeter"] = [[i32]]`, and
-    /// `Vec2 implements Add<f64>` beside `Add<Vec2>` two lists. Read by
-    /// `unify_struct_to_trait_infer` so a generic fn parametrised by
-    /// `fn<T>(g: Greeter<T>)` called as `f(Hello {})` can bind T → i32.
-    struct_trait_args: MutableMap<string, MutableMap<string, Type[][]>>
-
-    /// `impl_base_key` of every base an impl on one instance is written for
-    /// (`Wrapper` for `Wrapper<MonType> implements …`) — the receivers whose
-    /// lookups ask their own type's key before their base's (`own_impl_key`).
-    instance_impl_bases: MutableSet<string> = MutableSet<string> {}
 
     /// Enclosing fn-body context, pushed by `check_fn_body` and
     /// popped when it returns. Lets `check_return` (called via the
@@ -757,7 +765,6 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .trait_decls     = MutableMap<i32, AST.TraitDecl> {},
     .fn_decls        = MutableMap<i32, AST.FnDecl> {},
     .trait_decl_owners = MutableMap<i32, ResolvedModule> {},
-    .impl_methods    = MutableMap<string, ImplMethod[]> {},
     .narrow          = NarrowState {},
     .expr_kinds      = MutableMap<usize, string> {},
     .import_targets  = null,
@@ -769,11 +776,6 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .async_symbol    = null,
     .equals_symbol   = null,
     .imported_fn_overloads = MutableMap<string, MutableMap<string, FnCandidate[]>> {},
-    .iter_element_types = MutableMap<string, Type> {},
-    .index_target_types = MutableMap<string, Type> {},
-    .index_key_types = MutableMap<string, Type> {},
-    .index_set_key_types = MutableMap<string, Type> {},
-    .index_set_value_types = MutableMap<string, Type> {},
     .ufcs_receiver_types = MutableMap<usize, Type> {},
     .chosen_fns = MutableMap<usize, FnCandidate> {},
     .chosen_impl_methods = MutableMap<usize, ImplMethod> {},
@@ -782,12 +784,7 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .static_members = MutableMap<usize, StaticMember> {},
     .type_param_bound_traits = MutableMap<i32, TypeParamBound> {},
     .struct_bounds = MutableMap<i32, ArgBound[]> {},
-    .impl_method_traits = MutableMap<string, string[]> {},
     .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
-    .struct_implemented_traits = MutableMap<string, string[]> {},
-    .impl_bounds = MutableMap<string, MutableMap<u64, BoundedImpl>> {},
-    .struct_traits_by_sym = MutableMap<i32, string[]> {},
-    .struct_trait_args = MutableMap<string, MutableMap<string, Type[][]>> {},
     .current_fn_ctx  = null,
     .node_spans      = MutableMap<usize, Span> {},
     .dump_types      = false,

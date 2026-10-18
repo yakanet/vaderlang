@@ -167,7 +167,7 @@ receiver_impl_members :: fn(key_ty: Type, field: string, typed: TypedProgram) ->
     if own.len() > 0 || array_backing(key_ty) !is ArrayType {
         return own
     }
-    found :: typed.impl_methods["[]${suffix}"] ?? return own
+    found :: typed.impl_tables.impl_methods["[]${suffix}"] ?? return own
     return found
 }
 
@@ -1181,7 +1181,7 @@ check_trait_ambiguity :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    traits :: impl_side_list(typed, typed.impl_method_traits, target_ty, "::${e.field}")
+    traits :: impl_side_list(typed, typed.impl_tables.impl_method_traits, target_ty, "::${e.field}")
     if traits.len() < 2 {
         return
     }
@@ -1461,7 +1461,8 @@ try_default_trait_method :: fn(
     name: string,
     typed: TypedProgram,
 ) -> Type | null {
-    for trait_key in impl_side_list(typed, typed.struct_implemented_traits, target_ty, "") {
+    implemented :: typed.impl_tables.struct_implemented_traits
+    for trait_key in impl_side_list(typed, implemented, target_ty, "") {
         trait_id :: find_trait_id(trait_key, typed) ?? continue
         decl :: typed.trait_decls[trait_id] ?? continue
         for m in decl.members {

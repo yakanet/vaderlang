@@ -61,7 +61,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
     }
     // A struct or a distinct indexes by its own `Index` impl.
     result_ty :: if route == .Impl {
-        index_param(target, typed.index_target_types, typed)
+        index_param(target, typed.impl_tables.index_target_types, typed)
     } else {
         null
     }
@@ -226,9 +226,9 @@ index_key_expected :: fn(
         return range_literal_key(index, members, target, typed)
     }
     keys :: if trait_key == core_trait_key(TRAIT_INDEX_SET) {
-        typed.index_set_key_types
+        typed.impl_tables.index_set_key_types
     } else {
-        typed.index_key_types
+        typed.impl_tables.index_key_types
     }
     return index_param(target, keys, typed)
 }
@@ -320,7 +320,7 @@ unpicked_index_error :: fn(
 /// Resolved write-value type V for an `m[k] = v` target, or null when
 /// the target isn't a struct or a distinct with a recorded `IndexSet` impl.
 index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null =
-    index_param(target, typed.index_set_value_types, typed)
+    index_param(target, typed.impl_tables.index_set_value_types, typed)
 
 /// What `receiver[k] = v` stores — an array's element, else the `IndexSet` value
 /// of a receiver dispatching through the trait or of its own impl — or null when

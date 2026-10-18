@@ -247,9 +247,8 @@ build_ufcs_member :: fn(
 //
 // Read from the frontend's `impl_methods` table — the very table the typer keyed
 // this dispatch on, so the slot types here are the ones it type-checked the call
-// against, and its `ty` is already receiver-dropped (`ufcs_method_type`). The
-// table is complete on the ENTRY module whatever the impl's own module :
-// `merge_external_impl_methods` broadcasts every foreign impl onto it. Keys
+// against, and its `ty` is already receiver-dropped (`ufcs_method_type`). Every
+// module reads the same table, which holds the impls of the whole project. Keys
 // mirror the typer's two probes — exact display key, then base name.
 //
 // Empty when the member has no entry (a receiver shape the typer keyed

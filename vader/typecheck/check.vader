@@ -30,8 +30,9 @@ export CheckResult :: struct {
     all_modules: MutableMap<string, TypedProgram>
 }
 
-/// Type-check `program` (parsed + resolved against `resolved`). Returns
-/// the populated `TypedProgram` + the project's `ImplRegistry`.
+/// Type-check `program` (parsed + resolved against `resolved`), a module checked
+/// alone: its declarations, and its impls recorded in its own impl tables.
+/// Returns the populated `TypedProgram` + the module's `ImplRegistry`.
 /// Diagnostics flow into `diags`.
 export check_module :: fn(
     program: Program,
@@ -41,6 +42,7 @@ export check_module :: fn(
     impls :: build_impl_registry(program.decls, resolved)
     typed :: new_typed_program(resolved)
     declare_module(program.decls, resolved, typed, diags)
+    register_module_impls(program.decls, typed, diags)
     return CheckResult {
         .typed = typed,
         .impls = impls,
