@@ -51,7 +51,7 @@ infer_field :: fn(
     }
     // Built-in array methods (`len`/`push`/…) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
-    // `try_impl_method_ufcs`'s `[]`-keyed lookup + `substitute_array_element`.
+    // `try_impl_method_ufcs`'s `[]`-keyed lookup + `impl_member_type`.
     candidate:= try_impl_method_ufcs(target_ty, e, typed, diags)
     if candidate !is null {
         return candidate
@@ -192,13 +192,33 @@ settle_impl_member :: fn(
     check_trait_ambiguity(e, target_ty, typed, diags)
     typed.chosen_impl_methods[e.id] = chosen
     note_callee(typed, e, member_callee(chosen.decl, target_ty))
-    if chosen.generic {
-        _ :: reject_unmet_impl_bounds(
-            default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
-            typed, diags,
-        )
+    if !chosen.generic {
+        return chosen.ty
     }
+    _ :: reject_unmet_impl_bounds(
+        default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
+        typed, diags,
+    )
+    note_receiver_instance(e, chosen, target_ty, typed)
     return impl_member_type(chosen, target_ty, typed)
+}
+
+// Note what the array receiver `target` gives the impl's parameters at the member
+// access `e`, when its element names a type parameter : an instance asked for
+// there, as at a call. A bodyless member calls nothing back, so it closes no cycle.
+note_receiver_instance :: fn(
+    e: AST.FieldExpr, chosen: ImplMethod, target: Type, typed: TypedProgram,
+) -> void {
+    member :: chosen.decl ?? return
+    arr :: array_backing(target) ?? return
+    if member.body == null || !type_contains_type_param(arr.element) {
+        return
+    }
+    typed.call_sites.receiver_instances[e.id] = DirectFn {
+        .decl = member,
+        .bindings = array_impl_bindings(chosen, arr.element, typed),
+    }
+    note_instantiation_site(typed, e.id, e.span)
 }
 
 // `chosen`'s signature on `target_ty` : a generic impl's parameters take the
@@ -207,7 +227,50 @@ impl_member_type :: fn(chosen: ImplMethod, target_ty: Type, typed: TypedProgram)
     if !chosen.generic {
         return chosen.ty
     }
-    return substitute_impl_method(chosen.ty, default_if_free(target_ty), typed)
+    target :: default_if_free(target_ty)
+    arr :: array_backing(target)
+    if arr != null {
+        return substitute_map(chosen.ty, array_impl_bindings(chosen, arr.element, typed))
+    }
+    if target !is StructType {
+        return chosen.ty
+    }
+    return substitute_struct_args(chosen.ty, target, typed)
+}
+
+// What an array receiver whose element is `element` gives the parameters of
+// `chosen`'s impl : every one the element, the member's own left for its call to
+// bind.
+array_impl_bindings :: fn(
+    chosen: ImplMethod, element: Type, typed: TypedProgram,
+) -> MutableMap<i32, Type> {
+    bindings :: MutableMap<i32, Type> {}
+    ty :: chosen.ty
+    if ty !is FnType {
+        return bindings
+    }
+    own :: own_params(chosen, typed)
+    for tp in ty.type_params {
+        if own == null || tp.symbol.id !in own {
+            bindings[tp.symbol.id] = element
+        }
+    }
+    return bindings
+}
+
+// The symbol ids of the type parameters `chosen`'s member declares itself ; null
+// for a member that declares none.
+own_params :: fn(chosen: ImplMethod, typed: TypedProgram) -> MutableSet<i32> | null {
+    decl :: chosen.decl ?? return null
+    if decl.type_params.len() == 0 {
+        return null
+    }
+    out :: MutableSet<i32> {}
+    for tp in decl.type_params {
+        sym :: typed.type_param_symbols[tp.span.hash()] ?? continue
+        out.add(sym.id)
+    }
+    return out
 }
 
 // T3032 : the members `sigs` several impls offer as `field` all `what`.
@@ -1263,23 +1326,6 @@ substitute_array_element :: fn(t: Type, element: Type) -> Type {
         }
         _ -> { return t }
     }
-}
-
-// Substitute the impl method's TypeParams against the receiver's
-// concrete type args. Lets `MutableSet<T> implements ... { contains
-// :: fn(self, value: T) -> bool }` produce `fn(i32) -> bool` when
-// called on `MutableSet<i32>`.
-substitute_impl_method :: fn(impl_ty: Type, target_ty: Type, typed: TypedProgram) -> Type {
-    // Blanket array impl (`T[] implements<T> ArrayOps<T>` / `Index` / `IndexSet`) :
-    // the receiver carries its element in `.element`, not `.args`, so bind the
-    // single param to the element. Also covers array-backed distinct newtypes.
-    if array_backing(target_ty) is ArrayType as arr {
-        return substitute_array_element(impl_ty, arr.element)
-    }
-    if target_ty !is StructType {
-        return impl_ty
-    }
-    return substitute_struct_args(impl_ty, target_ty, typed)
 }
 
 /// Declared type of the field `name` every variant of `u` places at one offset.

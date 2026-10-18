@@ -1,7 +1,7 @@
 // A trait method with type parameters of its own runs as one instance per call,
 // at the types the call gives them : on a concrete receiver, through a bound in a
 // generic body, as a static member, written explicitly, and on a generic impl,
-// whose own parameters the receiver binds.
+// whose own parameters the receiver binds, an array's element included.
 
 module "snippet"
 
@@ -30,6 +30,11 @@ Bag<T> implements<T> Conv {
     make :: fn<U>(v: U) -> Bag<T> = Bag<T> { .items = [] }
 }
 
+T[] implements<T> Conv {
+    conv :: fn<U>(self, x: U) -> string = "${@type_name(T)} ${@type_name(U)} ${self.len()}"
+    make :: fn<U>(v: U) -> T[] = []
+}
+
 through_bound :: fn<T: Conv>(t: T) -> string = t.conv(1.5)
 
 main :: fn() -> i32 {
@@ -41,5 +46,7 @@ main :: fn() -> i32 {
     println(through_bound(b))
     bag :: Bag<string> { .items = [] }
     println(bag.conv(5))
+    println([1, 2].conv(true))
+    println(["a"].conv<f64>(1.5))
     return 0
 }

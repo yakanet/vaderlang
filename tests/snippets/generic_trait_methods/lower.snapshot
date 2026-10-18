@@ -11,6 +11,8 @@
       std.io.println<string>(snippet.through_bound<Box>(b))
       bag: Bag<string> = Bag<string> { .items = [] :string[] }
       std.io.println<string>(snippet.Bag<string>.conv(bag, 5))
+      std.io.println<string>(snippet.i32[].conv([1, 2] :i32[], true))
+      std.io.println<string>(snippet.string[].conv(["a"] :string[], 1.5))
       return 0
   }
   snippet.Bag<string> :: struct { items: string[] }  // snippet$Bag__string
@@ -58,6 +60,34 @@
   }
   snippet.Bag<string>.conv :: fn(self: Bag<string>, x: i32) -> string {  // snippet$Bag$Conv$conv__string__i32
       "string i32"
+  }
+  snippet.i32[].conv :: fn(self: i32[], x: bool) -> string {  // snippet$[]$Conv$conv__i32__bool
+      {
+          __p_0: string = "i32"
+          __p_1: string = "bool"
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(22) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
+          __off_3: usize = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(@array.len(self)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
+  }
+  snippet.string[].conv :: fn(self: string[], x: f64) -> string {  // snippet$[]$Conv$conv__string__f64
+      {
+          __p_0: string = "string"
+          __p_1: string = "f64"
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(22) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
+          __off_3: usize = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(@array.len(self)))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
   }
   snippet$Box$Conv$conv__f64 :: fn(self: Box, x: f64) -> string {
       {

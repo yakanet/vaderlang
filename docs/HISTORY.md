@@ -1314,3 +1314,9 @@ Wall ~8 s, peak RSS 1.12 GB. Self-time is **~74 % substrate, not pass logic**: *
 The original TS-compiler bootstrap path was superseded by the C seed.
 
 ### 2.8 Freeze the TS compiler — done
+
+## Archived from TODO.md, 2026-10-18
+
+### Priority: next up
+
+- [x] **Type-system charter, step 5: the foundation (D1, D2)**, **closed 2026-10-18** (opened 2026-10-17): one symbol per type parameter, quantified function types instantiated afresh at each call (ADR 0070), a recursion that grows its type argument refused (T3104), written type arguments on every call form (ADR 0071), a generic function as a value instantiated where it is used (ADR 0072), types told apart by identity, and no interning: rendering, keying and comparing types cost about 2 % of a self-build (ADR 0073). A member with type parameters of its own runs one instance per call (ADR 0074), arrays included, and a recursion growing through an array receiver (`[self].depth(n - 1)` inside `T[]`'s impl) is T3104 too. A generic struct's receiver does not grow: its impl member runs once per written instance and once as a representative for the others.

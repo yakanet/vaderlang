@@ -94,7 +94,7 @@ instance_in_slot :: fn(
         unify_infer(instance, slot, solutions, held)
     }
     record_site(typed, site, .Reference, DirectFn { .decl = decl, .bindings = bindings })
-    typed.call_sites.instantiation_spans[site.id] = site.span
+    note_instantiation_site(typed, site.id, site.span)
     solved :: zonk(instance, solutions)
     // The slot of an enclosing call may still hold its variables : the tables are
     // then swept once the module's bodies are walked.

@@ -23,26 +23,30 @@ struct vader_struct_std_core_Buffer_t {
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
     "x" "\0"
+    "a" "\0"
     "i32" "\0"
     " " "\0"
     "string" "\0"
     "i64" "\0"
     "string i32" "\0"
+    "bool" "\0"
     "f64" "\0"
     "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[6] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[19] },
-    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[30] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[34] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[4] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[21] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[32] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[37] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[41] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 8u
+#define VADER_COMPTIME_ATOM_COUNT 10u
 
 static int32_t snippet_main(void);
 static vader_string_t snippet_Box_Conv_conv__i32(void* l0, int32_t l1);
@@ -50,6 +54,8 @@ static vader_string_t snippet_Box_Conv_conv__string(void* l0, vader_string_t l1)
 static vader_string_t snippet_Box_Conv_conv__i64(void* l0, int64_t l1);
 static void* snippet_Box_Conv_make__bool(bool l0);
 static vader_string_t snippet_Bag_Conv_conv__string__i32(void* l0, int32_t l1);
+static vader_string_t snippet____Conv_conv__i32__bool(void* l0, bool l1);
+static vader_string_t snippet____Conv_conv__string__f64(void* l0, double l1);
 static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1);
 static vader_string_t snippet_through_bound__snippet_Box(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
@@ -67,7 +73,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[16] = {
+const vader_type_info_t vader_type_info_table[17] = {
     [1] = { .slot_size = 4 },
     [2] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Box_t), .slot_size = 8,
@@ -81,25 +87,29 @@ const vader_type_info_t vader_type_info_table[16] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Bag__string_t, f_items) },
         .ref_count = 1,
     },
-    [7] = { .slot_size = 8 },
+    [7] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
     [8] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [9] = { .slot_size = 1 },
-    [10] = { .slot_size = 8 },
-    [11] = {
+    [9] = { .slot_size = 8 },
+    [10] = { .slot_size = 1 },
+    [11] = { .slot_size = 8 },
+    [12] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [12] = { .slot_size = 8 },
-    [13] = {
+    [13] = { .slot_size = 8 },
+    [14] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [15] = { .slot_size = 8 },
+    [16] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 16;
+const size_t vader_type_info_count = 17;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -109,7 +119,7 @@ static size_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 13u, 9u);
+    return (void*) vader_string_bytes_view(a0, 14u, 10u);
 }
 
 static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
@@ -128,38 +138,51 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 36 "tests/snippets/generic_trait_methods/_main.vader"
+#line 41 "tests/snippets/generic_trait_methods/_main.vader"
     vader_struct_snippet_Box_t* _a0_obj = (vader_struct_snippet_Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_v = INT32_C(1);
     l0 = (void*) _a0_obj;
-#line 37 "tests/snippets/generic_trait_methods/_main.vader"
+#line 42 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Box_Conv_conv__i32(l0, INT32_C(5));
     std_io_println__string(t0);
-#line 38 "tests/snippets/generic_trait_methods/_main.vader"
+#line 43 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Box_Conv_conv__string(l0, 1u);
     std_io_println__string(t0);
-#line 39 "tests/snippets/generic_trait_methods/_main.vader"
+#line 44 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Box_Conv_conv__i64(l0, INT64_C(5));
     std_io_println__string(t0);
-#line 40 "tests/snippets/generic_trait_methods/_main.vader"
+#line 45 "tests/snippets/generic_trait_methods/_main.vader"
     t1 = snippet_Box_Conv_make__bool(true);
     t2 = ((vader_struct_snippet_Box_t*) t1)->f_v;
     std_io_println__i32(t2);
-#line 41 "tests/snippets/generic_trait_methods/_main.vader"
+#line 46 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_through_bound__snippet_Box(l0);
     std_io_println__string(t0);
-#line 42 "tests/snippets/generic_trait_methods/_main.vader"
+#line 47 "tests/snippets/generic_trait_methods/_main.vader"
     vader_array_t* _a1_arr = vader_array_new(8u, 0u, 0u, 3u);
     t1 = (void*) _a1_arr;
     vader_struct_snippet_Bag__string_t* _a2_obj = (vader_struct_snippet_Bag__string_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Bag__string_t));
     vader_obj_header_init(_a2_obj, 6u);
     _a2_obj->f_items = t1;
     t1 = (void*) _a2_obj;
-#line 43 "tests/snippets/generic_trait_methods/_main.vader"
+#line 48 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Bag_Conv_conv__string__i32(t1, INT32_C(5));
     std_io_println__string(t0);
-#line 44 "tests/snippets/generic_trait_methods/_main.vader"
+#line 49 "tests/snippets/generic_trait_methods/_main.vader"
+    vader_array_t* _a3_arr = vader_array_new(7u, 2u, 7u, 1u);
+    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = (int32_t) INT32_C(2);
+    ((int32_t*) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = (int32_t) INT32_C(1);
+    t1 = (void*) _a3_arr;
+    t0 = snippet____Conv_conv__i32__bool(t1, true);
+    std_io_println__string(t0);
+#line 50 "tests/snippets/generic_trait_methods/_main.vader"
+    vader_array_t* _a4_arr = vader_array_new(8u, 1u, 0u, 3u);
+    vader_array_box_slots(_a4_arr->buf)[_a4_arr->offset + 0u] = vader_box_string(3u, 2u);
+    t1 = (void*) _a4_arr;
+    t0 = snippet____Conv_conv__string__f64(t1, 1.5);
+    std_io_println__string(t0);
+#line 51 "tests/snippets/generic_trait_methods/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -179,16 +202,16 @@ static vader_string_t snippet_Box_Conv_conv__i32(void* l0, int32_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/generic_trait_methods/_main.vader"
-    l2 = 2u;
+    l2 = 3u;
     l3 = vader_host_std_core_byte_len(l2);
     l4 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(42) + l3));
     l3 = (size_t) 0;
     t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l4, l3, l5);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     t1 = INT64_C(4);
     l6 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l4, l3, l6);
@@ -212,16 +235,16 @@ static vader_string_t snippet_Box_Conv_conv__string(void* l0, vader_string_t l1)
     };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/generic_trait_methods/_main.vader"
-    l2 = 4u;
+    l2 = 5u;
     l3 = vader_host_std_core_byte_len(l2);
     l4 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(42) + l3));
     l3 = (size_t) 0;
     t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l4, l3, l5);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     t1 = INT64_C(4);
     l6 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l4, l3, l6);
@@ -245,16 +268,16 @@ static vader_string_t snippet_Box_Conv_conv__i64(void* l0, int64_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/generic_trait_methods/_main.vader"
-    l2 = 5u;
+    l2 = 6u;
     l3 = vader_host_std_core_byte_len(l2);
     l4 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(42) + l3));
     l3 = (size_t) 0;
     t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l4, l3, l5);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     t1 = INT64_C(8);
     l6 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l4, l3, l6);
@@ -277,7 +300,79 @@ static void* snippet_Box_Conv_make__bool(bool l0) {
 
 static vader_string_t snippet_Bag_Conv_conv__string__i32(void* l0, int32_t l1) {
 #line 29 "tests/snippets/generic_trait_methods/_main.vader"
-    return 6u;
+    return 7u;
+}
+
+static vader_string_t snippet____Conv_conv__i32__bool(void* l0, bool l1) {
+    vader_string_t l2 = 0;
+    vader_string_t l3 = 0;
+    size_t l4, l5;
+    void* l6 = NULL;
+    uint64_t l7;
+    int64_t t0;
+    size_t t1;
+    vader_string_t t2 = 0;
+    void** gc_raw_roots[2] = { &l0, &l6 };
+    vader_string_t* gc_atom_roots[3] = { &l2, &l3, &t2 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+#line 34 "tests/snippets/generic_trait_methods/_main.vader"
+    l2 = 3u;
+    l3 = 8u;
+    l4 = vader_host_std_core_byte_len(l2);
+    l5 = vader_host_std_core_byte_len(l3);
+    t0 = (l4 + l5);
+    l4 = (size_t) (int64_t) t0;
+    l6 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(22) + l4));
+    l4 = (size_t) 0;
+    l4 = std_core_write_string_at(l6, l4, l2);
+    l4 = std_core_write_string_at(l6, l4, 4u);
+    l4 = std_core_write_string_at(l6, l4, l3);
+    l4 = std_core_write_string_at(l6, l4, 4u);
+    t1 = ((vader_array_t*) l0)->length;
+    t0 = ((int64_t) (size_t) t1);
+    l7 = (uint64_t) (int64_t) t0;
+    l4 = std_core_write_unsigned(l6, l4, l7);
+    t2 = std_core_finish_buffer(l6, l4);
+    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t snippet____Conv_conv__string__f64(void* l0, double l1) {
+    vader_string_t l2 = 0;
+    vader_string_t l3 = 0;
+    size_t l4, l5;
+    void* l6 = NULL;
+    uint64_t l7;
+    int64_t t0;
+    size_t t1;
+    vader_string_t t2 = 0;
+    void** gc_raw_roots[2] = { &l0, &l6 };
+    vader_string_t* gc_atom_roots[3] = { &l2, &l3, &t2 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+#line 34 "tests/snippets/generic_trait_methods/_main.vader"
+    l2 = 5u;
+    l3 = 9u;
+    l4 = vader_host_std_core_byte_len(l2);
+    l5 = vader_host_std_core_byte_len(l3);
+    t0 = (l4 + l5);
+    l4 = (size_t) (int64_t) t0;
+    l6 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(22) + l4));
+    l4 = (size_t) 0;
+    l4 = std_core_write_string_at(l6, l4, l2);
+    l4 = std_core_write_string_at(l6, l4, 4u);
+    l4 = std_core_write_string_at(l6, l4, l3);
+    l4 = std_core_write_string_at(l6, l4, 4u);
+    t1 = ((vader_array_t*) l0)->length;
+    t0 = ((int64_t) (size_t) t1);
+    l7 = (uint64_t) (int64_t) t0;
+    l4 = std_core_write_unsigned(l6, l4, l7);
+    t2 = std_core_finish_buffer(l6, l4);
+    { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1) {
@@ -296,16 +391,16 @@ static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1) {
     };
     vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/generic_trait_methods/_main.vader"
-    l2 = 7u;
+    l2 = 9u;
     l3 = vader_host_std_core_byte_len(l2);
     l4 = std_core_new_byte_buffer((size_t) (int64_t) (INT64_C(42) + l3));
     l3 = (size_t) 0;
     t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
     l5 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l4, l3, l5);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     l3 = std_core_write_string_at(l4, l3, l2);
-    l3 = std_core_write_string_at(l4, l3, 3u);
+    l3 = std_core_write_string_at(l4, l3, 4u);
     t1 = INT64_C(8);
     l6 = (uint64_t) (int64_t) t1;
     l3 = std_core_write_unsigned(l4, l3, l6);
@@ -321,7 +416,7 @@ static vader_string_t snippet_through_bound__snippet_Box(void* l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 33 "tests/snippets/generic_trait_methods/_main.vader"
+#line 38 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Box_Conv_conv__f64(l0, 1.5);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -593,7 +688,7 @@ static void std_io_println__i32(int32_t l0) {
     l2 = (size_t) 0;
     l3 = ((int64_t) (int32_t) l0);
     l2 = std_core_write_int(l1, l2, l3);
-    l2 = std_core_write_string_at(l1, l2, 8u);
+    l2 = std_core_write_string_at(l1, l2, 10u);
     l4 = std_core_finish_buffer(l1, l2);
     std_io_write((uint8_t) 0, l4);
     { vader_gc_top = gc_frame.prev; return; }
@@ -605,7 +700,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 236 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 8u);
+    l1 = concat_2(l0, 10u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

@@ -42,11 +42,15 @@ Two shapes were measured on a throwaway prototype of the typecheck before choosi
   would not terminate. It is detected on the graph of instantiations, as a cycle
   holding an edge that nests a parameter inside a larger type (the "expanding
   cycle" rule), over the calls that record their bindings. A member called on a
-  receiver binds the impl's parameters through the receiver's type and records
-  none, so growth through a receiver (`Box<T[]>` built and called inside
-  `Box<T>`'s impl) is not seen yet: it waits on a call record that carries every
-  instantiated parameter. Accepting a growing recursion when the body runs erased
-  waits on the representation analysis (D3).
+  receiver binds the impl's parameters through the receiver's type. An array
+  impl's member runs one instance per element type, so what its parameters take
+  at an array receiver is recorded (`receiver_instances`) and `[self].depth(…)`
+  inside `T[]`'s impl is refused too (added 2026-10-18). A generic struct's impl
+  member runs once per instance the program writes and once, as a representative,
+  for every other: a `Box<T[]>` built and called inside `Box<T>`'s impl asks for
+  no new instance, and is accepted. A member reached through a bound adds no edge
+  yet. Accepting a growing recursion when the body runs erased waits on the
+  representation analysis (D3).
 
 ## Consequences
 

@@ -41,9 +41,9 @@ export DirectFn :: struct {
     /// An impl member chosen against a type parameter of the enclosing body: an impl
     /// on the instance's own type wins over it there (impl specialization).
     per_instance: bool = false
-    /// The type each type parameter of a generic fn takes at a call, by the
-    /// parameter's symbol id ; null for a fn that takes none, and on any site but a
-    /// call.
+    /// The type each type parameter of a generic fn takes where it is instantiated
+    /// (a call, a reference, an array receiver), by the parameter's symbol id ; null
+    /// for a fn that takes none, and on any other site.
     bindings: MutableMap<i32, Type> | null = null
 }
 
@@ -126,8 +126,12 @@ export CallSites :: struct {
     calls_in_fn: MutableMap<usize, usize[]> = MutableMap<usize, usize[]> {}
     calls: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     /// Where each instantiation of a generic fn sits, by its node id : the calls
-    /// `calls` records with bindings, and every site `references` records.
+    /// `calls` records with bindings, every site `references` records, and every
+    /// member access `receiver_instances` records.
     instantiation_spans: MutableMap<usize, Span> = MutableMap<usize, Span> {}
+    /// The function each of those sites sits in, by its declaration's id ; none at
+    /// module level.
+    instantiation_callers: MutableMap<usize, usize> = MutableMap<usize, usize> {}
     operators: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     index_reads: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     index_writes: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
@@ -136,6 +140,31 @@ export CallSites :: struct {
     iterator_steps: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     displays: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
     references: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    /// The member accesses on an array receiver whose element names a type
+    /// parameter, by node id : the member, with what the receiver gives the impl's
+    /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).
+    receiver_instances: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+}
+
+/// Note that the site `id`, at `span`, instantiates a generic : the growing-recursion
+/// check reads it as an edge from the function it sits in.
+///
+/// @param typed  the module.
+/// @param id     the site's node id.
+/// @param span   where it is written.
+note_instantiation_site :: fn(typed: TypedProgram, id: usize, span: Span) -> void {
+    typed.call_sites.instantiation_spans[id] = span
+    caller :: current_fn_id(typed) ?? return
+    typed.call_sites.instantiation_callers[id] = caller
+}
+
+// The declaration id of the function being checked ; null at module level.
+current_fn_id :: fn(typed: TypedProgram) -> usize | null {
+    ctx :: typed.current_fn_ctx ?? return null
+    if ctx.fn_id == 0 {
+        return null
+    }
+    return ctx.fn_id
 }
 
 /// The table of the sites playing `role`.
@@ -277,13 +306,10 @@ record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: C
 // List the call `node` under the function being checked ; a module-level
 // initialiser is in none.
 file_in_fn :: fn(typed: TypedProgram, node: usize) -> void {
-    ctx :: typed.current_fn_ctx ?? return
-    if ctx.fn_id == 0 {
-        return
-    }
-    nodes :: typed.call_sites.calls_in_fn[ctx.fn_id]
+    fn_id :: current_fn_id(typed) ?? return
+    nodes :: typed.call_sites.calls_in_fn[fn_id]
     if nodes == null {
-        typed.call_sites.calls_in_fn[ctx.fn_id] = [node]
+        typed.call_sites.calls_in_fn[fn_id] = [node]
         return
     }
     nodes.push(node)
@@ -313,7 +339,7 @@ note_call_bindings :: fn(
         return
     }
     typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
-    typed.call_sites.instantiation_spans[c.id] = c.span
+    note_instantiation_site(typed, c.id, c.span)
     if typed.enclosing_impl != 0 && names_impl_param(bindings, typed.enclosing_impl_params) {
         typed.impl_param_forwards[c.id] = c.span
     }

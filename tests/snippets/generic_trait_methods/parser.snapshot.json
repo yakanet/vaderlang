@@ -475,6 +475,161 @@
         "decorators": []
       },
       {
+        "kind": "ImplDecl",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": null,
+            "isComptimeValue": false
+          }
+        ],
+        "forType": {
+          "kind": "ArrayTypeExpr",
+          "element": {
+            "kind": "IdentExpr",
+            "name": "T"
+          }
+        },
+        "traitName": "Conv",
+        "traitArgs": [],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "conv",
+            "visibility": "private",
+            "typeParams": [
+              {
+                "name": "U",
+                "bound": null,
+                "isComptimeValue": false
+              }
+            ],
+            "params": [
+              {
+                "name": "self",
+                "type": null,
+                "defaultValue": null,
+                "variadic": false
+              },
+              {
+                "name": "x",
+                "type": {
+                  "kind": "IdentExpr",
+                  "name": "U"
+                },
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "interp",
+                    "expr": {
+                      "kind": "IntrinsicCallExpr",
+                      "name": "type_name",
+                      "args": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "T"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": " "
+                  },
+                  {
+                    "kind": "interp",
+                    "expr": {
+                      "kind": "IntrinsicCallExpr",
+                      "name": "type_name",
+                      "args": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "U"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "text",
+                    "value": " "
+                  },
+                  {
+                    "kind": "interp",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "self"
+                        },
+                        "field": "len"
+                      },
+                      "args": []
+                    }
+                  }
+                ]
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          },
+          {
+            "kind": "FnDecl",
+            "name": "make",
+            "visibility": "private",
+            "typeParams": [
+              {
+                "name": "U",
+                "bound": null,
+                "isComptimeValue": false
+              }
+            ],
+            "params": [
+              {
+                "name": "v",
+                "type": {
+                  "kind": "IdentExpr",
+                  "name": "U"
+                },
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "T"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "SeqLitExpr",
+                "elements": []
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "through_bound",
         "visibility": "private",
@@ -828,6 +983,105 @@
                           "value": {
                             "kind": "IntLitExpr",
                             "value": "5n"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "1n"
+                            },
+                            {
+                              "kind": "IntLitExpr",
+                              "value": "2n"
+                            }
+                          ]
+                        },
+                        "field": "conv"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "BoolLitExpr",
+                            "value": true
+                          },
+                          "spread": false
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "SeqLitExpr",
+                          "elements": [
+                            {
+                              "kind": "StringLitExpr",
+                              "parts": [
+                                {
+                                  "kind": "text",
+                                  "value": "a"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        "field": "conv"
+                      },
+                      "typeArgs": [
+                        {
+                          "kind": "IdentExpr",
+                          "name": "f64"
+                        }
+                      ],
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "FloatLitExpr",
+                            "value": 1.5
                           },
                           "spread": false
                         }

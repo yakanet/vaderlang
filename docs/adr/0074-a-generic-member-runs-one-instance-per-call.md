@@ -49,5 +49,5 @@ Three ways to compile it were weighed:
 - A trait with a generic member can still be used as a bound and as a trait value
   for its other members.
 - On a union, a member with type parameters of its own is not found (T3008).
-- A generic member of an array impl (`T[] implements<T> Conv`) is not callable:
-  the array's element binds every type parameter, the member's own included.
+- On an array impl (`T[] implements<T> Conv`), the element binds the impl's
+  parameter only: the member's own stay quantified for each call.

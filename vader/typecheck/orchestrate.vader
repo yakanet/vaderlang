@@ -2796,7 +2796,7 @@ ufcs_method_type :: fn(
 }
 
 // The parameters an impl member quantifies over : the enclosing impl's, then its
-// own `<…>`. A receiver binds the impl's (`substitute_impl_method`) ; a static
+// own `<…>`. A receiver binds the impl's (`impl_member_type`) ; a static
 // call binds them at the call, as its own.
 impl_member_quantifier :: fn(
     impl_: AST.ImplDecl, fd: AST.FnDecl, resolved: ResolvedModule,

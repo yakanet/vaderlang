@@ -1,0 +1,50 @@
+// A member of `T[]`'s impl runs one instance per element type : calling it on
+// `[self]` asks for a larger instance at each call, as a function calling itself on
+// `[x]` would : T3104. `same` calls the member on `self` itself and passes. A member
+// of `Box<T>`'s impl runs once for every instance the program does not write, so
+// `nest` building a `Box<T[]>` and calling itself on it passes too.
+module "snippet"
+
+Depth :: trait {
+    depth :: fn(self, n: i32) -> i32
+    same  :: fn(self, n: i32) -> i32
+}
+
+T[] implements<T> Depth {
+    depth :: fn(self, n: i32) -> i32 {
+        if n == 0 {
+            return 0
+        }
+        inner :: [self]
+        return inner.depth(n - 1) + 1
+    }
+    same :: fn(self, n: i32) -> i32 {
+        if n == 0 {
+            return 0
+        }
+        return self.same(n - 1) + 1
+    }
+}
+
+Box :: struct<T> {
+    v: T
+}
+
+Nest :: trait {
+    nest :: fn(self, n: i32) -> i32
+}
+
+Box<T> implements<T> Nest {
+    nest :: fn(self, n: i32) -> i32 {
+        if n == 0 {
+            return 0
+        }
+        inner :: Box<T[]> { .v = [self.v] }
+        return inner.nest(n - 1) + 1
+    }
+}
+
+main :: fn() -> i32 {
+    b :: Box<i32> { .v = 1 }
+    return [1].depth(3) + [1].same(3) + b.nest(3)
+}
