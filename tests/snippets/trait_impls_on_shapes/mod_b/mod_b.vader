@@ -1,0 +1,5 @@
+module "snippet/mod_b"
+
+export Point :: struct {
+    label: string
+}

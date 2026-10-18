@@ -1,0 +1,162 @@
+# Lower
+
+## snippet
+  snippet.[i32, i32].shout :: fn(self: [i32, i32]) -> string {  // snippet$_i32__i32_$Shout$shout
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "ints ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self._0))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.[string, i32].shout :: fn(self: [string, i32]) -> string {  // snippet$_string__i32_$Shout$shout
+      concat_2("strings ", self._0)
+  }
+  snippet.[BlockId, i32].shout :: fn(self: [BlockId, i32]) -> string {  // snippet$_snippet_BlockId__i32_$Shout$shout
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "blocks ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self._1))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.fn(i32) -> i32.shout :: fn(self: fn(i32) -> i32) -> string {  // snippet$fn_i32_____i32$Shout$shout
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "int fn ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self(1)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.fn(string) -> i32.shout :: fn(self: fn(string) -> i32) -> string {  // snippet$fn_string_____i32$Shout$shout
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(30))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "string fn ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self("x")))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.bool | i32.shout :: fn(self: bool | i32) -> string {  // snippet$bool___i32$Shout$shout
+      "int or bool"
+  }
+  snippet.bool | string.shout :: fn(self: bool | string) -> string {  // snippet$bool___string$Shout$shout
+      "string or bool"
+  }
+  snippet$_snippet_mod_a_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(43))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "a ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self._0.x))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self._1))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet$_snippet_mod_b_Point__i32_$Shout$shout :: fn(self: [Point, i32]) -> string {
+      {
+          __p_0: string = self._0.label
+          __buf_1: Buffer = std.core.new_byte_buffer(usize(23) +% std.core.byte_len(__p_0))
+          __off_2: usize = 0
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, "b ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(self._1))
+          std.core.finish_buffer(__buf_1, __off_2)
+      } :string
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      ints: [i32, i32] = [4, 1] :[i32, i32]
+      strings: [string, i32] = ["s", 2] :[string, i32]
+      block: BlockId = BlockId(7)
+      blocks: [BlockId, i32] = [block, 3] :[BlockId, i32]
+      a: [Point, i32] = [Point { .x = 4 }, 1] :[Point, i32]
+      b: [Point, i32] = [Point { .label = "p" }, 2] :[Point, i32]
+      std.io.println<string>(snippet.[i32, i32].shout(ints))
+      std.io.println<string>(snippet.[string, i32].shout(strings))
+      std.io.println<string>(snippet.[BlockId, i32].shout(blocks))
+      std.io.println<string>(snippet$_snippet_mod_a_Point__i32_$Shout$shout(a))
+      std.io.println<string>(snippet$_snippet_mod_b_Point__i32_$Shout$shout(b))
+      int_fn: fn(i32) -> i32 = __lambda_snippet_0
+      string_fn: fn(string) -> i32 = __lambda_snippet_1
+      std.io.println<string>(snippet.fn(i32) -> i32.shout(int_fn))
+      std.io.println<string>(snippet.fn(string) -> i32.shout(string_fn))
+      int_or_bool: bool | i32 = 3
+      string_or_bool: bool | string = true
+      std.io.println<string>(snippet.bool | i32.shout(int_or_bool))
+      std.io.println<string>(snippet.bool | string.shout(string_or_bool))
+      return 0
+  }
+  __lambda_snippet_0 :: fn(x: i32) -> i32 {
+      x + 1
+  }
+  __lambda_snippet_1 :: fn(s: string) -> i32 {
+      7
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable snippet.Shout.shout for [BlockId, i32]  snippet.[BlockId, i32].shout  // snippet$_snippet_BlockId__i32_$Shout$shout
+  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod_a_Point__i32_$Shout$shout
+  vtable snippet.Shout.shout for [Point, i32]  snippet$_snippet_mod_b_Point__i32_$Shout$shout
+  vtable snippet.Shout.shout for [i32, i32]  snippet.[i32, i32].shout  // snippet$_i32__i32_$Shout$shout
+  vtable snippet.Shout.shout for [string, i32]  snippet.[string, i32].shout  // snippet$_string__i32_$Shout$shout
+  vtable snippet.Shout.shout for bool | i32  snippet.bool | i32.shout  // snippet$bool___i32$Shout$shout
+  vtable snippet.Shout.shout for bool | string  snippet.bool | string.shout  // snippet$bool___string$Shout$shout
+  vtable snippet.Shout.shout for fn(i32) -> i32  snippet.fn(i32) -> i32.shout  // snippet$fn_i32_____i32$Shout$shout
+  vtable snippet.Shout.shout for fn(string) -> i32  snippet.fn(string) -> i32.shout  // snippet$fn_string_____i32$Shout$shout
+
+## snippet/mod_a
+  snippet.mod_a.Point :: struct { x: i32 }  // snippet_mod_a$Point
+
+## snippet/mod_b
+  snippet.mod_b.Point :: struct { label: string }  // snippet_mod_b$Point
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

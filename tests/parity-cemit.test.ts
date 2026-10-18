@@ -613,6 +613,8 @@ const C_PARITY = new Set<string>([
   "generator_yield_in_value",
   // Two modules' same-named types name apart every instance and impl member.
   "same_name_types_from_two_modules",
+  // The impls of one trait on several tuples, fns and unions name apart.
+  "trait_impls_on_shapes",
   // An inlined generator of another module keeps its captured counter in a cell.
   "inlined_generator_captured_counter",
   // Declaration-shape snippets whose `main` runs what they declare.

@@ -1,0 +1,76 @@
+// Several tuples, fns and unions implement one trait, each impl told apart by its
+// whole shape : `[i32, i32]`, `[string, i32]`, `[BlockId, i32]` over a distinct
+// of `i32`, two tuples that print alike, `[Point, i32]`, over the `Point` of two
+// modules, `fn(i32) -> i32` and `fn(string) -> i32`, `i32 | bool` and
+// `string | bool`.
+
+module "snippet"
+
+import "std/io"
+A :: import "snippet/mod_a"
+B :: import "snippet/mod_b"
+
+BlockId :: i32
+
+Shout :: trait {
+    shout :: fn(self) -> string
+}
+
+[i32, i32] implements Shout {
+    shout :: fn(self) -> string = "ints ${self.0}"
+}
+
+[string, i32] implements Shout {
+    shout :: fn(self) -> string = "strings ${self.0}"
+}
+
+[BlockId, i32] implements Shout {
+    shout :: fn(self) -> string = "blocks ${self.1}"
+}
+
+fn(i32) -> i32 implements Shout {
+    shout :: fn(self) -> string = "int fn ${self(1)}"
+}
+
+fn(string) -> i32 implements Shout {
+    shout :: fn(self) -> string = "string fn ${self("x")}"
+}
+
+i32 | bool implements Shout {
+    shout :: fn(self) -> string = "int or bool"
+}
+
+string | bool implements Shout {
+    shout :: fn(self) -> string = "string or bool"
+}
+
+[A.Point, i32] implements Shout {
+    shout :: fn(self) -> string = "a ${self.0.x} ${self.1}"
+}
+
+[B.Point, i32] implements Shout {
+    shout :: fn(self) -> string = "b ${self.0.label} ${self.1}"
+}
+
+main :: fn() -> i32 {
+    ints: [i32, i32]: [4, 1]
+    strings: [string, i32]: ["s", 2]
+    block: BlockId: BlockId(7)
+    blocks: [BlockId, i32]: [block, 3]
+    a: [A.Point, i32]: [A.Point { .x = 4 }, 1]
+    b: [B.Point, i32]: [B.Point { .label = "p" }, 2]
+    println(ints.shout())
+    println(strings.shout())
+    println(blocks.shout())
+    println(a.shout())
+    println(b.shout())
+    int_fn: fn(i32) -> i32: (x: i32) -> x + 1
+    string_fn: fn(string) -> i32: (s: string) -> 7
+    println(int_fn.shout())
+    println(string_fn.shout())
+    int_or_bool: i32 | bool: 3
+    string_or_bool: string | bool: true
+    println(int_or_bool.shout())
+    println(string_or_bool.shout())
+    return 0
+}

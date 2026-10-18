@@ -408,6 +408,14 @@ export core_trait_key :: fn(name: string) -> string = "std_core\$${name}"
 export is_core_trait :: fn(t: TraitType, name: string) -> bool =
     trait_key_of(t.symbol) == core_trait_key(name)
 
+/// Whether `t` is the `std/core` struct `name`, told by its declaration rather
+/// than its spelling: a struct of the program named `Range` is not the core one.
+///
+/// @param t     a struct type.
+/// @param name  a `STRUCT_*` constant.
+export is_core_struct :: fn(t: StructType, name: string) -> bool =
+    t.symbol.module_name == "std/core" && t.symbol.name == name
+
 /// The argument of `t` when it is the one-argument `std/core` trait `name`:
 /// `E` for `Iterator<E>`, `T` for `Async<T>`.
 ///
@@ -618,9 +626,8 @@ nominal_name :: fn(sym: Symbol, qualified: bool) -> string {
 /// dispatch through the same entry as the underlying impl.
 export impl_base_key :: fn(t: Type) -> string {
     // @partial: only nominal types (Struct/Trait/Enum/Distinct) have a
-    // declaration ; every other Type variant (PrimitiveType, TupleType, FnType,
-    // UnionType, …) is its own base, so its rendering is the key — a primitive
-    // is unique by name.
+    // declaration ; every other Type variant is its own base, and the rest
+    // (primitives, sentinels) are unique by their printed name.
     //
     // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
     // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
@@ -631,6 +638,8 @@ export impl_base_key :: fn(t: Type) -> string {
     @partial match t {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }
+        // Two same-named types of two modules print alike inside one of these.
+        is TupleType | FnType | UnionType -> { return canonical_key(t) }
         _ -> { return display_type(t) }
     }
 }

@@ -10,9 +10,10 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/types"
 import "toolchain/span"
 import "vader/lower"
+import "vader/typecheck"
+import "vader/types"
 
 // ---- the nullable struct case ---------------------------------------------
 //
@@ -107,13 +108,12 @@ returns_fresh_composite :: fn(f: CFGFunction) -> NullableReturn | null {
 }
 
 // Whether two `struct.new`s build the same thing. A struct is its symbol; a
-// tuple, which has none, falls back to the canonical key — the tuple carriers
-// are few enough that the string it allocates never reaches a hot path.
+// tuple, which has none, is its elements.
 same_carrier :: fn(a: Type, b: Type) -> bool {
     if a is StructType && b is StructType {
         return a.symbol.id == b.symbol.id && a.args.len() == b.args.len()
     }
-    return display_type(a) == display_type(b)
+    return equals_type(a, b)
 }
 
 // What a returned local was defined by, within its own block.

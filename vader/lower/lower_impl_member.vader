@@ -378,8 +378,14 @@ impl_member_segment_name :: fn(
 
 // The target segment of an impl member's name : its nominal target's segment,
 // so impls of one trait for `pa.Point` and `pb.Point` written in the same module
-// name apart.
+// name apart. A concrete tuple, fn or union target, which `impl_base_key` keys
+// by its shape, is named by its shape, distincts kept : the impls of a trait on
+// `[i32, i32]`, `[string, i32]` and `[BlockId, i32]`, or on `fn(i32) -> i32` and
+// `fn(string) -> i32`, name apart too.
 impl_target_segment :: fn(impl_module: string, target: Type) -> string {
+    if is_structural(target) && !has_type_param(target) {
+        return sanitise_ident(qualified_display_type(target))
+    }
     sym :: type_to_target_symbol(target) ?? return type_surface_name(target)
     return impl_symbol_segment(impl_module, sym)
 }

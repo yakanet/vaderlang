@@ -370,6 +370,8 @@ is_integer_index :: fn(t: Type) -> bool {
 }
 
 is_range_type :: fn(t: Type) -> bool {
-    if t is StructType { return t.symbol.name == STRUCT_RANGE }
+    if t is StructType {
+        return is_core_struct(t, STRUCT_RANGE)
+    }
     return false
 }

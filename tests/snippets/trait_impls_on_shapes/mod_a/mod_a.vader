@@ -1,0 +1,5 @@
+module "snippet/mod_a"
+
+export Point :: struct {
+    x: i32
+}

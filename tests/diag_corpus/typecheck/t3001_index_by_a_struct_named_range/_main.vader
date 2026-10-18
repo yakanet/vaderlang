@@ -1,0 +1,15 @@
+// A struct of the program named `Range` is not core's `Range` : it does not slice
+// an array.
+
+module "main"
+
+Range :: struct {
+    lo: i32
+}
+
+main :: fn() -> i32 {
+    xs: i32[]: [1, 2, 3]
+    r :: Range { .lo = 1 }
+    first :: xs[r]
+    return first
+}

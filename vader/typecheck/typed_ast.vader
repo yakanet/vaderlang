@@ -255,6 +255,11 @@ export ImplTables :: struct {
     /// lookups ask their own type's key before their base's (`own_impl_key`).
     instance_impl_bases: MutableSet<string> = MutableSet<string> {}
 
+    /// Whether an impl is written for a tuple, a fn or a union. Until one is, a
+    /// member looked up on such a receiver has no impl to find, and its key is not
+    /// built.
+    has_structural_target: bool = false
+
     /// `impl_base_key(for_ty) → element` for every `X implements Iterator<T>` impl,
     /// and every `X implements Into<Iterator<T>>` of an `X` that is no iterator
     /// itself: the impl's own `T`, which a reader substitutes against the

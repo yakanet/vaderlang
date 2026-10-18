@@ -16,8 +16,8 @@ import "vader/resolver/symbol"
 import "vader/types"
 
 /// One registered instantiation. `args` carries the concrete (or
-/// possibly type-param) type arguments ; `display_key` is the
-/// canonical dedup key built from the symbol id + arg display form.
+/// possibly type-param) type arguments ; `display_key` is the dedup key :
+/// the symbol id and the arguments' `canonical_key`.
 export GenericInstance :: struct {
     symbol:      Symbol
     args:        Type[]
@@ -46,7 +46,7 @@ export add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -
     // raw instance as `MutableMap<i32>`, never a separate erased one. This is
     // the central struct/trait instance source (via `observe`/`walk_type`).
     args :: strip_distinct_each(raw_args)
-    key :: build_display_key(symbol, args)
+    key :: "${symbol.id}(${canonical_args_key(args)})"
     existing :: registry.by_key[key]
     match existing {
         is GenericInstance -> { return existing }
@@ -118,59 +118,6 @@ is_concrete_enough :: fn(t: Type) -> bool {
     }
 }
 
-build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
-    return "${symbol.id}(${instance_args_key(args)})"
-}
-
-// Stable, structure-anchored —
-// type-param symbol ids make `T_struct_A_t` and `T_struct_B_t` distinct
-// keys, so the same surface name `T` can register multiple instances.
-/// Canonical, structure-anchored stringification of a type-arg list.
-/// Stable across `display_type` rewrites (each variant prefixed with
-/// its type tag : `P:` primitives, `S:` structs, `T:` traits, `A:`
-/// arrays, `U:` tuples, `F:` fns, `M:` type-metas, `N:` unions, `R:`
-/// refs, `?` unresolved/free/never/self). Used to build the
-/// `InstanceRegistry` display-key so a generic instance dedups
-/// structurally, insensitive to display-name rewrites.
-///
-/// @param args  the concrete type arguments.
-/// @return      the canonical key ; empty when `args` is empty.
-export instance_args_key :: fn(args: Type[]) -> string {
-    out := ""
-    for i in 0..<args.len() {
-        if i > 0 { out = "${out}," }
-        out = "${out}${canonical_type_key(args[i])}"
-    }
-    return out
-}
-
-canonical_type_key :: fn(t: Type) -> string = match t {
-    is PrimitiveType -> "P:${t.name}"
-    is StructType    -> "S:${t.symbol.id}(${instance_args_key(t.args)})"
-    is EnumType      -> "E:${t.symbol.id}"
-    // A distinct has no backend identity — its dedup key is the backing's, so a
-    // display_key built from a distinct-bearing type reconciles with the
-    // source-stripped instance entries (no separate slot, no name desync).
-    is DistinctType  -> canonical_type_key(t.backing)
-    is TraitType     -> "T:${t.symbol.id}(${instance_args_key(t.args)})"
-    is ArrayType     -> "A:${canonical_type_key(t.element)}"
-    is TupleType     -> "U:(${instance_args_key(t.elements)})"
-    is FnType        -> "F:(${instance_args_key(t.params)})->${canonical_type_key(t.return_type)}"
-    is TypeParamType -> "X:${t.symbol.id}"
-    is InferVar      -> leaked_infer_var(t)
-    is UnionType     -> "N:(${instance_args_key(t.variants)})"
-    // Sentinel / metatype variants get a distinct constant key each — a single
-    // shared `_ -> "?"` collapsed all of them, colliding e.g. Never with Any
-    // and dropping the dedup distinction.
-    is TypeMetaType         -> "M:"
-    is SelfType             -> "Sf:"
-    is UnresolvedType       -> "Ur:"
-    is FreeIntType          -> "Fi:"
-    is FreeCharType         -> "Fc:"
-    is FreeFloatType        -> "Ff:"
-    is NeverType            -> "Nv:"
-    is AnyType              -> "Y:"
-}
 
 /// Return the registry's instances sorted alphabetically by
 /// `display_key`.

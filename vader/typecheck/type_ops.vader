@@ -129,7 +129,8 @@ export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
 
 /// Build a union from `variants`. Flattens nested unions, drops `Never`
 /// (absorbed — a value of that type doesn't exist), dedups, sorts by
-/// `display_type` output for stability. Empty / all-Never input
+/// `display_type` output, then, for two that print alike, by their
+/// module-qualified name, then by `canonical_key`. Empty / all-Never input
 /// collapses to `Never`.
 export union_of :: fn(variants: Type[]) -> Type {
     dedup: Type[]: []
@@ -142,16 +143,14 @@ export union_of :: fn(variants: Type[]) -> Type {
 }
 
 // Order `types` by their `display_type`, rendering each key ONCE: the
-// comparator reads a key already in hand rather than rendering its operands.
-//
-// Sorting the INDICES preserves `sort`'s stability, which is load bearing : two
-// types can share a key (two same-named types of different modules) and must keep
-// the order they arrived in. Do not swap this for an unstable sort.
+// comparator reads a key already in hand rather than rendering its operands. Two
+// types that print alike (same-named types of two modules) are ordered by their
+// module-qualified name, then by `canonical_key` : a union's order never depends
+// on the order its variants arrived in, and on symbol ids, which an unrelated edit
+// shifts, only between two that qualify alike.
 sort_by_display_key :: fn(types: Type[]) -> Type[] {
     // `T | null` and its kind are most of the unions built here ; at two
-    // variants the index detour buys nothing. Same key and the same STRICT
-    // comparator as the general path below — the two must move together, and
-    // swapping on a tie would break the stability above.
+    // variants the index detour buys nothing.
     //
     // The no-swap branch may ALIAS `types`, which `mk_union` keeps. Sound
     // because `union_of` builds `dedup` fresh and never writes to it again ; a
@@ -159,7 +158,7 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
     // array grown by `push`, so it carries up to twice its used slots — a few
     // bytes here, more as arity grows.
     if types.len() == 2 {
-        if compare_ascending_ci(display_type(types[1]), display_type(types[0])) {
+        if comes_before(types[1], display_type(types[1]), types[0], display_type(types[0])) {
             return [types[1], types[0]]
         }
         return types
@@ -171,10 +170,24 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
         order.push(i)
     }
     out: Type[]: []
-    for i in sort(order, (a: usize, b: usize) -> compare_ascending_ci(keys[a], keys[b])) {
+    in_union_order :: (a: usize, b: usize) -> comes_before(types[a], keys[a], types[b], keys[b])
+    for i in sort(order, in_union_order) {
         out.push(types[i])
     }
     return out
+}
+
+// Whether `a`, printed `a_key`, goes before `b`, printed `b_key`, in a union.
+comes_before :: fn(a: Type, a_key: string, b: Type, b_key: string) -> bool {
+    if a_key != b_key {
+        return compare_ascending_ci(a_key, b_key)
+    }
+    a_qualified :: qualified_display_type(a)
+    b_qualified :: qualified_display_type(b)
+    if a_qualified != b_qualified {
+        return a_qualified < b_qualified
+    }
+    return canonical_key(a) < canonical_key(b)
 }
 
 collect_variant :: fn(v: Type, into: Type[]) -> void {
@@ -245,6 +258,12 @@ default_free_members :: fn(t: Type) -> Type {
 /// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
 /// same as `i32` for impls like `i32 implements Doubler`.
 dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
+
+/// Whether `t` is a tuple, a fn or a union : a target keyed by its shape, having no
+/// declaration of its own.
+///
+/// @param t  a type.
+export is_structural :: fn(t: Type) -> bool = t is TupleType || t is FnType || t is UnionType
 
 /// The impl tables' key for a type itself, arguments included (`Wrapper<i32>`).
 impl_type_key :: fn(t: Type) -> string = canonical_key(t)
@@ -332,6 +351,11 @@ impl_side_list :: fn(
 /// @param t       the receiver.
 /// @param suffix  `"::<member>"`.
 export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> ImplMethod[] {
+    // A member access on a value of a union (an AST node, a `Type`) asks here
+    // first : with no impl for such a target, its key is not worth building.
+    if !typed.impl_tables.has_structural_target && is_structural(t) {
+        return NO_IMPL_METHODS
+    }
     found :: typed.impl_tables.impl_methods["${dispatch_key(t)}${suffix}"]
     base: ImplMethod[]: if found == null { NO_IMPL_METHODS } else { found }
     own_key :: own_impl_key(typed, t) ?? return base
@@ -1035,6 +1059,16 @@ test_union_of_flattens :: fn() -> void {
         is UnionType -> { assert_eq(u.variants.len(), 3) }
         _ -> { assert(false, "flattened union should have 3 variants") }
     }
+}
+
+@test
+test_union_of_orders_same_named_types_by_identity :: fn() -> void {
+    factory :: SymbolFactory {}
+    first: Type: mk_struct(factory.make(.Struct, "Point", "pa", "pa", .Public, null), [])
+    second: Type: mk_struct(factory.make(.Struct, "Point", "pb", "pb", .Public, null), [])
+    one_way :: union_of([first, second])
+    other_way :: union_of([second, first])
+    assert(equals_type(one_way, other_way), "the order the variants arrive in does not matter")
 }
 
 @test

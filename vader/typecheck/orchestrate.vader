@@ -895,6 +895,9 @@ record_impl_membership :: fn(
     if is_instance_receiver(for_ty) {
         owner.impl_tables.instance_impl_bases.add(impl_base_key(for_ty))
     }
+    if is_structural(for_ty) {
+        owner.impl_tables.has_structural_target = true
+    }
     record_struct_trait(owner.impl_tables, for_ty, trait_key)
     record_impl_bounds(owner, for_ty, trait_key)
 }

@@ -110,7 +110,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     sym_id: i32 = -1
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
-    // Key on the struct *type*'s intern key (display_type), not the
+    // Key on the struct *type*'s intern key (`type_intern_key`), not the
     // mangled name — `intern_type` for a `StructType` derives the same
     // key, so a referenced instance dedupes with this reserved
     // definition. Without this, a `ref` placeholder minted earlier under

@@ -82,7 +82,7 @@ any_leaves_of :: fn(t: Type) -> Type {
         seen :: MutableSet<string> {}
         for v in t.variants {
             erased :: any_leaves_of(v)
-            key :: qualified_display_type(erased)
+            key :: canonical_key(erased)
             if seen.contains(key) { continue }
             seen.add(key)
             new_vars.push(erased)

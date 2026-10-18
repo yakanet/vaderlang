@@ -1,0 +1,12 @@
+# stdout
+ints 4
+strings s
+blocks 3
+a 4 1
+b p 2
+int fn 2
+string fn 7
+int or bool
+string or bool
+# exit
+0

@@ -331,7 +331,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
     // `.inclusive`) share one evaluation, then emit the slice.
     idx_type :: ctx.types.expr_type(expr.index)
     if idx_type is StructType {
-        if idx_type.symbol.name != STRUCT_RANGE { return null }
+        if !is_core_struct(idx_type, STRUCT_RANGE) { return null }
         span :: expr.span
         stmts: LoweredStmt[]: []
         // The target is evaluated ahead of the range, as written.

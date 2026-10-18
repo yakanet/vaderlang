@@ -27,12 +27,11 @@ import "vader/diagnostics"
 /// @return   the key string ; pass to `MutableMap<string, i32>`.
 export type_intern_key :: fn(t: Type) -> string = match t {
     is PrimitiveType -> t.name
-    // Key structs / traits by source position (`symbol_key`) + recursive
-    // arg keys, NOT by `display_type` (bare name). Two import shapes of the
-    // same decl resolve to distinct symbols but share a source position, so
-    // they collapse to one slot — and `reserve_struct` keys identically, so
-    // a referenced struct dedupes with its reserved definition instead of
-    // minting an orphan `ref`.
+    // Key structs / traits by their declaration (`symbol_key`) + recursive
+    // arg keys, NOT by `display_type` (bare name), which two same-named types
+    // of two modules share. `reserve_struct` keys identically, so a referenced
+    // struct dedupes with its reserved definition instead of minting an orphan
+    // `ref`.
     is StructType -> "Struct#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
     is TraitType  -> "Trait#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
@@ -140,15 +139,13 @@ c_safe_key :: fn(key: string) -> string {
     return out
 }
 
-// Source-position identity for a symbol — file:offset when the decl has a
-// span, else a synthetic `id` fallback.
+// The identity of a declaration that stays the same from one build to the next,
+// unlike a symbol id : its module and its name, else a synthetic `id` fallback.
 // The MODULE, not the file. A module resolves to exactly one folder, which the
 // compiler guarantees, so `module + name` identifies a declaration everywhere —
 // a checkout, a `dist/` bundle where `lib/` sits beside the binary, a staged
-// temp directory. The source PATH identified the same thing, but only within one
-// machine's layout: it leaked absolute paths into C struct names
-// (`$Cell_Struct__private_var_folders_…`), which made the emitted C differ
-// between two build directories and pushed single identifiers past 2 KB.
+// temp directory. A source path would leak an absolute path into C struct names,
+// which must not differ between two build directories.
 symbol_key :: fn(sym: Symbol) -> string {
     if sym.module_name == "" {
         return "id${sym.id}"
@@ -157,7 +154,7 @@ symbol_key :: fn(sym: Symbol) -> string {
 }
 
 // Join each type's intern key with `sep`. Recurses through `type_intern_key`
-// so a struct nested in an arg / variant carries its source-position key.
+// so a struct nested in an arg / variant carries its declaration's key.
 type_key_join :: fn(args: Type[], sep: string) -> string {
     out := ""
     for i in 0..<args.len() {
