@@ -331,20 +331,31 @@ path_slot :: fn(ctx: WalkCtx, value: usize | null, path: i32) -> usize | null {
     return slot
 }
 
-// A slot holding what each of `values` holds.
+// A slot holding what each of `values` holds ; the value itself when only one holds
+// anything.
 union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
-    held :: values.filter_not_null().collect()
-    if held.len() == 0 {
-        return null
+    first: usize | null = null
+    count := 0
+    pure := true
+    for v in values {
+        held :: v ?? continue
+        if first == null {
+            first = held
+        }
+        count += 1
+        if held !in ctx.pure {
+            pure = false
+        }
     }
-    if held.len() == 1 {
-        return held[0]
+    if count < 2 {
+        return first
     }
     slot :: ctx.s.fresh_slot()
-    for v in held {
-        ctx.s.add_flow(slot, v)
+    for v in values {
+        held :: v ?? continue
+        ctx.s.add_flow(slot, held)
     }
-    if held.all_match((v) -> v in ctx.pure) {
+    if pure {
         ctx.pure.add(slot)
     }
     return slot

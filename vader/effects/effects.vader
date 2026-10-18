@@ -169,19 +169,5 @@ noted :: fn(clock: Clock, node: i32, grew: bool) -> bool {
 }
 
 // Add to the fact of `ctx.node` what its body does against its callees' facts ;
-// true when it grew. A fact still empty takes the fresh set as it is.
-settle :: fn(s: Skeleton, ctx: EvalCtx) -> bool {
-    fresh :: evaluate(s, ctx)
-    grew := false
-    for i in 0..<fresh.len() {
-        if ctx.facts[ctx.node][i].accesses.len() == 0 {
-            ctx.facts[ctx.node][i] = fresh[i]
-            if fresh[i].accesses.len() > 0 {
-                grew = true
-            }
-        } else if ctx.paths.include_all(ctx.facts[ctx.node][i], fresh[i]) {
-            grew = true
-        }
-    }
-    return grew
-}
+// true when it grew.
+settle :: fn(s: Skeleton, ctx: EvalCtx) -> bool = s.evaluate(ctx, ctx.facts[ctx.node])

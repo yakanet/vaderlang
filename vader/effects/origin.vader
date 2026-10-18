@@ -197,8 +197,8 @@ test_find_access_takes_the_cut_path_that_dropped_it :: fn() -> void {
     t :: PathTable {}
     deep :: Access { .path = path_of(t, ["a", "b"]), .effect = .Assigned }
     effects :: ParamEffects {}
-    t.include(effects, Access { .path = ROOT, .effect = .Stored })
-    t.include(effects, Access { .path = t.cut(path_of(t, ["a"])), .effect = .Assigned })
+    t.include(effects, ROOT, .Stored)
+    t.include(effects, t.cut(path_of(t, ["a"])), .Assigned)
     assert_eq(find_access(t, effects, access_key(deep)) ?? 99, 1)
     assert(find_access(t, effects, NO_ACCESS) == null, "no access to find")
 }
@@ -207,7 +207,7 @@ test_find_access_takes_the_cut_path_that_dropped_it :: fn() -> void {
 test_find_access_skips_an_ancestor_that_is_no_cut :: fn() -> void {
     t :: PathTable {}
     effects :: ParamEffects {}
-    t.include(effects, Access { .path = path_of(t, ["a"]), .effect = .Assigned })
+    t.include(effects, path_of(t, ["a"]), .Assigned)
     deep :: Access { .path = path_of(t, ["a", "b"]), .effect = .Assigned }
     assert(find_access(t, effects, access_key(deep)) == null, "`.a` does not stand for `.a.b`")
 }
