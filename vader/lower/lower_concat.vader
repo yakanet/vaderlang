@@ -87,7 +87,6 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it —
     // and `cc` cannot elide that, because the collector reads that global. So a
     // 13-byte concat used to push four nested frames to do one buffer's work.
-    nbuf_member :: find_impl_member_for(ctx, mk_primitive("usize"), "new_buffer") ?? return null
     intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
     // Harvest the free wrapper for materialisation — else the synthesised call has
@@ -130,14 +129,11 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     total_sym :: cum_syms[n - 1]
 
     buf_sym :: synth_entry_symbol(ctx, .Synthetic, "buf")
+    total :: synth_ident(total_sym, i64_type, span)
+    alloc :: allocate_buffer(ctx, total, buffer_type, span) ?? return null
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = build_member_call_or_inline(
-            nbuf_member,
-            [cast_to_width(synth_ident(total_sym, i64_type, span), "usize", span)],
-            buffer_type,
-            span,
-        ),
+        .value = alloc,
     })
     // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
@@ -168,6 +164,24 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     }
     ctx.project.entry_decls.push(decl)
     return fn_symbol
+}
+
+// The call allocating the concat's buffer of `total` bytes: the `new_buffer` member
+// of `usize` where the core library declares it, else the free `new_byte_buffer`.
+allocate_buffer :: fn(
+    ctx: FnLowerCtx,
+    total: LoweredExpr,
+    buffer_type: Type,
+    span: Span,
+) -> LoweredExpr | null {
+    member :: find_impl_member_for(ctx, mk_primitive("usize"), "new_buffer")
+    if member != null {
+        count :: cast_to_width(total, "usize", span)
+        return build_member_call_or_inline(member, [count], buffer_type, span)
+    }
+    alloc :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
+    register_nongeneric_imported_fn(ctx, alloc)
+    return mk_lowered_call(alloc, [total], buffer_type, span)
 }
 
 // Mint a synthetic symbol for a project-global fn (a `concat_N`, a field-default

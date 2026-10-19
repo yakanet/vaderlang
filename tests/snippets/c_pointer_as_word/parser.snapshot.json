@@ -324,6 +324,140 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "as_64_bits="
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "and",
+                            "left": {
+                              "kind": "BinaryExpr",
+                              "op": "eq",
+                              "left": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "i64"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "IdentExpr",
+                                      "name": "p"
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "i64"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "CallExpr",
+                                      "callee": {
+                                        "kind": "IdentExpr",
+                                        "name": "isize"
+                                      },
+                                      "args": [
+                                        {
+                                          "name": null,
+                                          "value": {
+                                            "kind": "IdentExpr",
+                                            "name": "p"
+                                          },
+                                          "spread": false
+                                        }
+                                      ]
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            },
+                            "right": {
+                              "kind": "BinaryExpr",
+                              "op": "eq",
+                              "left": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "u64"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "IdentExpr",
+                                      "name": "p"
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              },
+                              "right": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "u64"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "CallExpr",
+                                      "callee": {
+                                        "kind": "IdentExpr",
+                                        "name": "usize"
+                                      },
+                                      "args": [
+                                        {
+                                          "name": null,
+                                          "value": {
+                                            "kind": "IdentExpr",
+                                            "name": "p"
+                                          },
+                                          "spread": false
+                                        }
+                                      ]
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
                   "name": "c_free"
                 },
                 "args": [

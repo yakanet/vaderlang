@@ -1,5 +1,6 @@
 # stdout
 live=true
 widths_agree=true
+as_64_bits=true
 # exit
 0

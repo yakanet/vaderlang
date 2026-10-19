@@ -30,6 +30,28 @@
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
   expr 25:53    IdentExpr      :: CPointer
-  expr 26:12    IdentExpr      :: CPointer
-  expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(CPointer) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:27    BinaryExpr     :: bool
+  expr 27:27    BinaryExpr     :: bool
+  expr 27:27    CallExpr       :: i64
+  expr 27:27    IdentExpr      :: type
+  expr 27:31    IdentExpr      :: CPointer
+  expr 27:37    CallExpr       :: i64
+  expr 27:37    IdentExpr      :: type
+  expr 27:41    CallExpr       :: isize
+  expr 27:41    IdentExpr      :: type
+  expr 27:47    IdentExpr      :: CPointer
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 27:54    BinaryExpr     :: bool
+  expr 27:54    CallExpr       :: u64
+  expr 27:54    IdentExpr      :: type
+  expr 27:58    IdentExpr      :: CPointer
+  expr 27:64    CallExpr       :: u64
+  expr 27:64    IdentExpr      :: type
+  expr 27:68    CallExpr       :: usize
+  expr 27:68    IdentExpr      :: type
+  expr 27:74    IdentExpr      :: CPointer
+  expr 28:12    IdentExpr      :: CPointer
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(CPointer) -> void

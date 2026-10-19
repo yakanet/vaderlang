@@ -23,6 +23,8 @@ main :: fn() -> i32 {
     // readings hold — and both widths agree on the same address.
     println("live=${isize(p) != 0 && isize(p) != -1}")
     println("widths_agree=${usize(p) == usize(isize(p))}")
+    // A 64-bit integer holds the address on every target.
+    println("as_64_bits=${i64(p) == i64(isize(p)) && u64(p) == u64(usize(p))}")
     c_free(p)
     return 0
 }

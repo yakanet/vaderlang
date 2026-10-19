@@ -1,7 +1,7 @@
 // vader/bytecode/intrinsics — mangled name → dedicated bytecode op.
 //
-// Stdlib `@intrinsic` impl members map to a dedicated bytecode op
-// rather than a host-provided import — e.g. `a + b` on `i32` and
+// Stdlib `@intrinsic` impl members, and a few free fns, map to a dedicated
+// bytecode op rather than a host-provided import — e.g. `a + b` on `i32` and
 // `a.add(b)` both emit the same `i32.add` op ; the `Buffer` byte ops
 // (`load_u8` / `store_u8` / `memory_copy` / `intern_string` /
 // `write_string`) map to the Target-ABI memory opcodes.
@@ -45,10 +45,11 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
         return StringCompare {}
     }
     // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
-    // (`stdlib/std/core/buffer.vader`). `buffer.new` takes no operand — the
-    // allocated object is always a `Buffer`, so its type is the BUFFER sentinel
-    // by definition.
-    if mangled == r"std_core$usize$BufferAlloc$new_buffer" {
+    // (`stdlib/std/core/buffer.vader`), and its allocation `new_byte_buffer`.
+    // `buffer.new` takes no operand — the allocated object is always a `Buffer`,
+    // so its type is the BUFFER sentinel by definition.
+    if mangled == r"std_core$usize$BufferAlloc$new_buffer"
+        || mangled == r"std_core$new_byte_buffer" {
         return BufferNew {}
     }
     if mangled == r"std_core$Buffer$ByteAccess$load_u8" {
@@ -177,6 +178,10 @@ import "std/testing"
     assert(intrinsic_op_for_mangled(r"std_core$f32$Mul$mul") is F64Mul, "f32 mul → F64Mul")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Equals$equals") is F64Eq, "f32 equals → F64Eq")
     assert(intrinsic_op_for_mangled(r"std_core$u8$Equals$equals") is I32Eq, "u8 equals → I32Eq")
+}
+
+@test test_free_buffer_allocation_maps_to_buffer_new :: fn() -> void {
+    assert(intrinsic_op_for_mangled(r"std_core$new_byte_buffer") is BufferNew, "new_byte_buffer")
 }
 
 @test test_intrinsic_op_for_mangled_unknown_returns_null :: fn() -> void {

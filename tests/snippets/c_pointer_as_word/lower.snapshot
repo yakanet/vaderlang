@@ -19,6 +19,13 @@
           __off_3 = std.core.write_bool(__buf_2, __off_3, usize(p) == usize(isize(p)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(16))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "as_64_bits=")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, (i64(p) == i64(isize(p))) && (u64(p) == u64(usize(p))))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
       snippet.c_free(p)
       return 0
   }
