@@ -66,7 +66,6 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 //   }
 synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     string_type :: TY_STRING
-    i64_type :: mk_primitive("i64")
     span :: empty_span()
 
     // Resolve the std/core buffer API (force-loaded ; a miss is a broken
@@ -113,23 +112,23 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     stmts: LoweredStmt[]: []
     cum_syms: Symbol[]: []
     for i in 0..<n {
-        bl :: mk_lowered_call(blen_sym, [param_refs[i]], i64_type, span)
+        bl :: mk_lowered_call(blen_sym, [param_refs[i]], TY_I64, span)
         value :: if i == 0 { bl } else {
             LoweredBinary {
-                .span = span, .type = i64_type, .op = .Add,
-                .left = synth_ident(cum_syms[i - 1], i64_type, span), .right = bl,
+                .span = span, .type = TY_I64, .op = .Add,
+                .left = synth_ident(cum_syms[i - 1], TY_I64, span), .right = bl,
             }
         }
         c_sym :: synth_entry_symbol(ctx, .Synthetic, "c${i}")
         stmts.push(LoweredLet {
-            .span = span, .name = c_sym.name, .symbol = c_sym, .type = i64_type, .value = value,
+            .span = span, .name = c_sym.name, .symbol = c_sym, .type = TY_I64, .value = value,
         })
         cum_syms.push(c_sym)
     }
     total_sym :: cum_syms[n - 1]
 
     buf_sym :: synth_entry_symbol(ctx, .Synthetic, "buf")
-    total :: synth_ident(total_sym, i64_type, span)
+    total :: synth_ident(total_sym, TY_I64, span)
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
         .value = mk_lowered_call(alloc_sym, [total], buffer_type, span),
@@ -137,9 +136,9 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
         offset :: if i == 0 {
-            LoweredIntLit { .span = span, .type = i64_type, .value = 0 }
+            LoweredIntLit { .span = span, .type = TY_I64, .value = 0 }
         } else {
-            synth_ident(cum_syms[i - 1], i64_type, span)
+            synth_ident(cum_syms[i - 1], TY_I64, span)
         }
         call :: build_member_call_or_inline(
             wstr_member, [synth_ident(buf_sym, buffer_type, span), offset, param_refs[i]], TY_VOID, span,
@@ -150,7 +149,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
         .span = span, .type = string_type, .stmts = stmts,
         .trailing = build_member_call_or_inline(
             intern_member,
-            [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, i64_type, span)],
+            [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, TY_I64, span)],
             string_type, span,
         ),
     }

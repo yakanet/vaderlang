@@ -46,9 +46,9 @@ is_assignable :: fn(from: Type, to: Type) -> bool {
         is FnType        -> is_assignable_fn(from, from, to)
         is UnionType     -> is_assignable_union(from, from, to)
         is FreeIntType | FreeCharType | FreeFloatType -> is_assignable_free_literal(from, to)
-        // A range or an integer widens into an integer type holding it (never into
-        // a distinct, which only its own values enter), or into a union through one.
-        is RangeType | PrimitiveType -> holds_integer(to, from) || check_common(from, to)
+        // An integer widens into an integer type holding it (never into a distinct,
+        // which only its own values enter), or into a union through one.
+        is RangeType     -> holds_integer(to, from) || check_common(from, to)
         _                -> check_common(from, to)
     }
 }
@@ -334,8 +334,8 @@ holds_integer :: fn(wide: Type, narrow: Type) -> bool {
     return primitive_name(narrow) == "" && primitive_name(wide) == ""
 }
 
-/// The values of `t` a `match` covers arm by arm : a range's, an integer
-/// primitive's, the Unicode scalar values of `char`, those of a distinct over one.
+/// The values of `t` a `match` covers arm by arm : an integer's, the Unicode
+/// scalar values of `char`, those of a distinct over one.
 ///
 /// @return  null for any other type, and for one reaching past `i64` (`u64`,
 ///          `i64`), whose patterns are read within `i64`.
@@ -361,16 +361,12 @@ export CHAR_VALUES: Interval[]: [
     Interval { .lo = 0xE000, .hi = 0x10FFFF },
 ]
 
-/// The values of the integer type `t` : a range's bounds, an integer primitive's
-/// values.
+/// The values of the integer type `t`, the bounds of its range.
 ///
 /// @return  null for any other type, a distinct over an integer included.
 export integer_values :: fn(t: Type) -> Interval | null {
     if t is RangeType {
         return t.bounds
-    }
-    if t is PrimitiveType {
-        return primitive_interval(t.name)
     }
     return null
 }
@@ -450,8 +446,7 @@ slot_layout :: fn(t: Type) -> SlotLayout = match t {
     is StructType | ArrayType | FnType | TupleType | TraitType | AnyType -> .Dispatched
     is UnionType -> union_slot_layout(t)
     is DistinctType -> slot_layout(t.backing)
-    is RangeType -> slot_layout(range_representation(t))
-    is EnumType | TypeParamType | InferVar | SelfType | TypeMetaType -> .Raw
+    is RangeType | EnumType | TypeParamType | InferVar | SelfType | TypeMetaType -> .Raw
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> .Raw
 }
 
@@ -489,37 +484,37 @@ import "vader/resolver/symbol"
 
 @test
 test_assignable_identity :: fn() -> void {
-    assert(is_assignable(mk_primitive("i32"), mk_primitive("i32")), "i32 → i32")
+    assert(is_assignable(TY_I32, TY_I32), "i32 → i32")
 }
 
 @test
 test_assignable_free_int_to_primitive :: fn() -> void {
-    assert(is_assignable(TY_FREE_INT, mk_primitive("i64")), "FreeInt → i64")
-    assert(!is_assignable(TY_FREE_INT, mk_primitive("string")), "FreeInt → string forbidden")
+    assert(is_assignable(TY_FREE_INT, TY_I64), "FreeInt → i64")
+    assert(!is_assignable(TY_FREE_INT, TY_STRING), "FreeInt → string forbidden")
 }
 
 @test
 test_assignable_never_to_anything :: fn() -> void {
-    assert(is_assignable(TY_NEVER, mk_primitive("i32")), "Never → i32")
-    assert(is_assignable(TY_NEVER, mk_primitive("string")), "Never → string")
+    assert(is_assignable(TY_NEVER, TY_I32), "Never → i32")
+    assert(is_assignable(TY_NEVER, TY_STRING), "Never → string")
 }
 
 @test
 test_assignable_into_union :: fn() -> void {
-    i32_t: Type: mk_primitive("i32")
-    str_t: Type: mk_primitive("string")
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
     u :: mk_union([i32_t, str_t])
-    assert(is_assignable(mk_primitive("i32"), u), "i32 → i32 | string")
-    assert(!is_assignable(mk_primitive("bool"), u), "bool → i32 | string forbidden")
+    assert(is_assignable(TY_I32, u), "i32 → i32 | string")
+    assert(!is_assignable(TY_BOOL, u), "bool → i32 | string forbidden")
 }
 
 @test
 test_array_element_invariant :: fn() -> void {
     // Covariance of an array is unsound (reference aliasing) — reject both
     // directions ; only an exact element type flows.
-    i32_arr:    Type: mk_array(mk_primitive("i32"))
-    union_arr:  Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]))
-    union_arr2: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]))
+    i32_arr:    Type: mk_array(TY_I32)
+    union_arr:  Type: mk_array(mk_union([TY_I32, TY_STRING]))
+    union_arr2: Type: mk_array(mk_union([TY_I32, TY_STRING]))
     assert(!is_assignable(i32_arr, union_arr), "i32[] ↛ (i32 | string)[] (invariant)")
     assert(!is_assignable(union_arr, i32_arr), "(i32 | string)[] ↛ i32[] (invariant)")
     assert(is_assignable(union_arr, union_arr2),
@@ -531,8 +526,8 @@ test_struct_args_invariant :: fn() -> void {
     // Generic container type-args are invariant : the covariant widen of a
     // mutable container (`MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`)
     // is the reference-aliasing hole rejected here, as for an array.
-    i32_t: Type: mk_primitive("i32")
-    wide:  Type: mk_union([mk_primitive("i32"), mk_primitive("string")])
+    i32_t: Type: TY_I32
+    wide:  Type: mk_union([TY_I32, TY_STRING])
     assert(struct_args_compatible([i32_t], [i32_t]), "[i32] → [i32] (equal args)")
     assert(!struct_args_compatible([i32_t], [wide]), "[i32] ↛ [i32 | string] (invariant)")
     assert(!struct_args_compatible([wide], [i32_t]), "[i32 | string] ↛ [i32] (invariant)")
@@ -541,16 +536,16 @@ test_struct_args_invariant :: fn() -> void {
 @test
 test_array_widening_raw_into_boxed :: fn() -> void {
     // An `i32[]` stores raw words ; a `(i32 | string)[]` reads boxes.
-    i32_arr: Type: mk_array(mk_primitive("i32"))
-    union_arr: Type: mk_array(mk_union([mk_primitive("i32"), mk_primitive("string")]))
+    i32_arr: Type: mk_array(TY_I32)
+    union_arr: Type: mk_array(mk_union([TY_I32, TY_STRING]))
     typed :: empty_typed_program()
     assert(widening_depth(i32_arr, union_arr, typed) == null, "i32[] ↛ (i32 | string)[]")
 }
 
 @test
 test_array_widening_boxed_into_boxed :: fn() -> void {
-    string_arr: Type: mk_array(mk_primitive("string"))
-    nullable_arr: Type: mk_array(mk_union([mk_primitive("string"), mk_primitive("null")]))
+    string_arr: Type: mk_array(TY_STRING)
+    nullable_arr: Type: mk_array(mk_union([TY_STRING, TY_NULL]))
     typed :: empty_typed_program()
     assert(widening_depth(string_arr, nullable_arr, typed) == 1, "string[] → (string | null)[]")
 }
@@ -564,7 +559,7 @@ circle_type :: fn() -> Type {
 test_array_reference_element_invariant :: fn() -> void {
     // Only an argument widens an element, under the effect summary's check.
     circles: Type: mk_array(circle_type())
-    nullable: Type: mk_array(mk_union([circle_type(), mk_primitive("null")]))
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
     assert(!is_assignable(circles, nullable), "Circle[] ↛ (Circle | null)[]")
 }
 
@@ -572,7 +567,7 @@ test_array_reference_element_invariant :: fn() -> void {
 test_array_widening_reference_into_reference_union :: fn() -> void {
     // A union of references and `null` reads the source's references as they are.
     circles: Type: mk_array(circle_type())
-    nullable: Type: mk_array(mk_union([circle_type(), mk_primitive("null")]))
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
     typed :: empty_typed_program()
     assert(widening_depth(circles, nullable, typed) == 1, "Circle[] → (Circle | null)[]")
 }
@@ -580,24 +575,24 @@ test_array_widening_reference_into_reference_union :: fn() -> void {
 @test
 test_array_widening_reference_into_boxed_union :: fn() -> void {
     circles: Type: mk_array(circle_type())
-    mixed: Type: mk_array(mk_union([circle_type(), mk_primitive("string")]))
+    mixed: Type: mk_array(mk_union([circle_type(), TY_STRING]))
     typed :: empty_typed_program()
     assert(widening_depth(circles, mixed, typed) == null, "Circle[] ↛ (Circle | string)[]")
 }
 
 @test
 test_array_widening_tuple_is_a_reference :: fn() -> void {
-    pair: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
-    nullable: Type: mk_array(mk_union([pair, mk_primitive("null")]))
-    mixed: Type: mk_array(mk_union([pair, mk_primitive("null"), mk_primitive("string")]))
+    pair: Type: mk_tuple([TY_I32, TY_I32])
+    nullable: Type: mk_array(mk_union([pair, TY_NULL]))
+    mixed: Type: mk_array(mk_union([pair, TY_NULL, TY_STRING]))
     typed :: empty_typed_program()
     assert(widening_depth(nullable, mixed, typed) == null, "a tuple union ↛ a boxed union")
 }
 
 @test
 test_tuple_elements_invariant :: fn() -> void {
-    pair: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
-    wide: Type: mk_tuple([mk_union([mk_primitive("i32"), mk_primitive("string")]), mk_primitive("i32")])
+    pair: Type: mk_tuple([TY_I32, TY_I32])
+    wide: Type: mk_tuple([mk_union([TY_I32, TY_STRING]), TY_I32])
     assert(!is_assignable(pair, wide), "[i32, i32] ↛ [i32 | string, i32]")
 }
 
@@ -606,7 +601,7 @@ test_array_unresolved_element_wildcard :: fn() -> void {
     // An Unresolved element (what an empty `[]` literal carries) stays a
     // wildcard both ways, so invariance never rejects it.
     unresolved_arr: Type: mk_array(TY_UNRESOLVED)
-    i32_arr:        Type: mk_array(mk_primitive("i32"))
+    i32_arr:        Type: mk_array(TY_I32)
     assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (wildcard)")
     assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (wildcard)")
 }
@@ -621,7 +616,7 @@ test_type_param_is_opaque :: fn() -> void {
     // A generic body holds for every instance at once : only `T` fits a `T`, and a
     // `T` fits only a slot that names it.
     t :: type_param_named("T")
-    i64_t: Type: mk_primitive("i64")
+    i64_t: Type: TY_I64
     assert(is_assignable(t, t), "T → T")
     assert(!is_assignable(i64_t, t), "i64 ↛ T")
     assert(!is_assignable(t, i64_t), "T ↛ i64")
@@ -634,7 +629,7 @@ test_erased_type_param_fits_any_argument :: fn() -> void {
     // Matching against a signature nothing has instantiated yet erases its
     // parameters first.
     t :: type_param_named("T")
-    i32_arr: Type: mk_array(mk_primitive("i32"))
+    i32_arr: Type: mk_array(TY_I32)
     assert(!is_assignable(i32_arr, mk_array(t)), "i32[] ↛ T[]")
     assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] → erased T[]")
 }
@@ -656,7 +651,7 @@ test_widening_depth_of_rows :: fn() -> void {
 
 @test
 test_widening_depth_of_the_same_array :: fn() -> void {
-    ints: Type: mk_array(mk_primitive("i32"))
+    ints: Type: mk_array(TY_I32)
     typed :: empty_typed_program()
     assert(widening_depth(ints, ints, typed) == null, "i32[] → i32[] widens nothing")
 }

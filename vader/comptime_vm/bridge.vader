@@ -113,12 +113,12 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
 
 @test test_bridge_scalars :: fn() -> void {
     s :: empty_span()
-    assert_eq(display_bridged(Vm.I32Val(42), mk_primitive("i32"), s), "42_i32")
+    assert_eq(display_bridged(Vm.I32Val(42), TY_I32, s), "42_i32")
     // u32 collapses to I64Val in the VM ; the resolved type re-labels it.
     assert_eq(display_bridged(Vm.I64Val(4000000000), mk_primitive("u32"), s), "4000000000_u32")
-    assert_eq(display_bridged(Vm.F64Val(1.5), mk_primitive("f64"), s), "1.5_f64")
-    assert_eq(display_bridged(Vm.BoolVal(true), mk_primitive("bool"), s), "true")
-    assert_eq(display_bridged(Vm.StringVal("hi"), mk_primitive("string"), s), "\"hi\"")
+    assert_eq(display_bridged(Vm.F64Val(1.5), TY_F64, s), "1.5_f64")
+    assert_eq(display_bridged(Vm.BoolVal(true), TY_BOOL, s), "true")
+    assert_eq(display_bridged(Vm.StringVal("hi"), TY_STRING, s), "\"hi\"")
 }
 
 @test test_bridge_u32_high_bit :: fn() -> void {
@@ -145,6 +145,6 @@ display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
     bytes: u8[]: []
     slots: Vm.Value[]: []
     obj :: Vm.ObjVal { .handle = 0, .type_id = 0, .bytes = bytes, .slots = slots }
-    result :: value_to_comptime(obj, mk_primitive("i32"), s)
+    result :: value_to_comptime(obj, TY_I32, s)
     assert(result is Diagnostic, "obj value must be unsupported at comptime")
 }

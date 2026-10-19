@@ -74,12 +74,12 @@ may_hold_bytes :: fn(t: Type | null) -> bool = match t {
 may_be_byte :: fn(t: Type) -> bool = match t {
     // A range of other bounds than `u8`'s takes no byte by inclusion : no
     // container converts.
-    is PrimitiveType | RangeType -> primitive_name(t) == "u8"
+    is RangeType     -> primitive_name(t) == "u8"
     is UnionType     -> t.variants.any_match(may_be_byte)
     is DistinctType  -> may_be_byte(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType -> true
     is InferVar -> leaked_infer_var(t)
-    is StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType
+    is PrimitiveType | StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType
      | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 

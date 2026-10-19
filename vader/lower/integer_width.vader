@@ -24,7 +24,7 @@ import "vader/types"
 /// @param result  the operation's type : an integer, or the `bool` of a test,
 ///                which takes no part.
 /// @return        null when the integer types are one, or an operand is no integer.
-computation_width :: fn(left: Type, right: Type | null, result: Type) -> PrimitiveType | null {
+computation_width :: fn(left: Type, right: Type | null, result: Type) -> MachineInteger | null {
     l :: integer_representation(left) ?? return null
     as_integer :: integer_representation(result)
     r :: operand_width(right, l)
@@ -34,22 +34,16 @@ computation_width :: fn(left: Type, right: Type | null, result: Type) -> Primiti
     if r.name == l.name && (as_integer == null || as_integer.name == l.name) {
         return null
     }
-    values := join_values(primitive_interval(l.name) ?? return null, r) ?? return null
+    values := interval_join(l.values, r.values)
     if as_integer != null {
-        values = join_values(values, as_integer) ?? return null
+        values = interval_join(values, as_integer.values)
     }
-    return narrowest_integer(values)
+    return narrowest_machine_integer(values)
 }
 
-// `values` joined with those of the integer type `t`.
-join_values :: fn(values: Interval, t: PrimitiveType) -> Interval | null {
-    more :: primitive_interval(t.name) ?? return null
-    return interval_join(values, more)
-}
-
-// The integer type of the right operand ; `left`'s for a unary operation, null when
-// it is no integer.
-operand_width :: fn(right: Type | null, left: PrimitiveType) -> PrimitiveType | null {
+// The integer of the right operand ; `left`'s for a unary operation, null when it
+// is no integer.
+operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger | null {
     if right == null {
         return left
     }
@@ -60,7 +54,7 @@ operand_width :: fn(right: Type | null, left: PrimitiveType) -> PrimitiveType | 
 ///
 /// @param e      an operand, lowered.
 /// @param width  the computation's integer (`computation_width`), or null.
-in_width :: fn(e: LoweredExpr, width: PrimitiveType | null, span: Span) -> LoweredExpr {
+in_width :: fn(e: LoweredExpr, width: MachineInteger | null, span: Span) -> LoweredExpr {
     if width == null {
         return e
     }
@@ -69,11 +63,11 @@ in_width :: fn(e: LoweredExpr, width: PrimitiveType | null, span: Span) -> Lower
 
 /// The type of an operation of type `result` computed in `width` : that integer,
 /// or `result` itself for a test or when there is no other width.
-computed_type :: fn(result: Type, width: PrimitiveType | null) -> Type {
-    if width == null || integer_representation(result) == null {
+computed_type :: fn(result: Type, width: MachineInteger | null) -> Type {
+    if width == null || result !is RangeType {
         return result
     }
-    return width
+    return machine_integer_type(width)
 }
 
 /// `computed` held as `result`, the integer type its value is in.
@@ -105,20 +99,18 @@ integer_held :: fn(value: LoweredExpr, slot: Type, span: Span) -> LoweredExpr {
 // The integer a slot of type `slot` holds a value of the integer `held` as : the
 // slot's own, or in a union the variant taking it, `held` itself if it is one,
 // else the narrowest holding its values. Null for a slot holding no integer.
-integer_member :: fn(slot: Type, held: PrimitiveType) -> PrimitiveType | null {
+integer_member :: fn(slot: Type, held: MachineInteger) -> MachineInteger | null {
     direct :: integer_representation(slot)
     if direct != null || slot !is UnionType {
         return direct
     }
-    values :: primitive_interval(held.name) ?? return null
-    found: PrimitiveType | null = null
+    found: MachineInteger | null = null
     for v in slot.variants {
         candidate :: integer_representation(v) ?? continue
         if candidate.name == held.name {
             return candidate
         }
-        whole :: primitive_interval(candidate.name) ?? continue
-        if interval_within(values, whole) && narrower(candidate, found) {
+        if interval_within(held.values, candidate.values) && narrower(candidate, found) {
             found = candidate
         }
     }
@@ -126,11 +118,11 @@ integer_member :: fn(slot: Type, held: PrimitiveType) -> PrimitiveType | null {
 }
 
 // Whether `candidate` is narrower than `found`, or `found` is none.
-narrower :: fn(candidate: PrimitiveType, found: PrimitiveType | null) -> bool {
+narrower :: fn(candidate: MachineInteger, found: MachineInteger | null) -> bool {
     if found == null {
         return true
     }
-    return primitive_size(candidate.name) < primitive_size(found.name)
+    return candidate.bits < found.bits
 }
 
 /// `block`, a branch of a value `if` or `match`, its value held as `type`, the

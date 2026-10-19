@@ -53,7 +53,7 @@ range_context :: fn(
 ) -> RangeContext {
     types: (Interval | null)[]: []
     for l in locals {
-        types.push(type_interval(l.type))
+        types.push(held_values(l.type))
     }
     return RangeContext {
         .locals = locals,

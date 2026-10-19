@@ -52,7 +52,7 @@ zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
         // (a void `async` await binds a `null`-typed target). Falling through to
         // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
         if ty.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
-        // every integer / char width
+        // `char`, `CPointer` : a zero of their width
         return LoweredIntLit { .span = span, .type = ty, .value = 0 }
     }
     return LoweredNullLit { .span = span, .type = ty }
@@ -114,7 +114,6 @@ lower_generator_fn :: fn(
 ) -> LoweredBlock {
     span :: fn_decl.span
     element_ty :: generator_element_of(return_type)
-    i32_ty :: mk_primitive("i32")
 
     // Direction A : build the state struct under the symbol typecheck recorded for
     // this declaration, so an escaping generator — typed as that concrete struct —
@@ -143,7 +142,7 @@ lower_generator_fn :: fn(
 
     gb :: GenBuild {
         .self_sym = self_sym, .state_ty = state_ty,
-        .i32_ty = i32_ty, .step = shape, .span = span,
+        .step = shape, .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx,
     }
@@ -166,7 +165,7 @@ lower_generator_fn :: fn(
     if gb.has_defers {
         state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
     }
-    state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
+    state_fields.push(LoweredStructField { .name = "state", .type = TY_I32 })
     push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
 
     // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
@@ -192,7 +191,7 @@ lower_generator_fn :: fn(
         })
     }
     construct_fields.push(LoweredStructLitField {
-        .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },
+        .name = "state", .value = LoweredIntLit { .span = span, .type = TY_I32, .value = entry_state },
     })
     construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
     return LoweredBlock {

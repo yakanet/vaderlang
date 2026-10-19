@@ -476,7 +476,7 @@ test_if_both_branches_int_returns_int :: fn() -> void {
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[]: []
-    ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null)
+    ty :: infer_if(ifx, TY_I32, typed, diags, null)
     assert_eq(display_type(ty), "i32")
 }
 

@@ -183,7 +183,7 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     }
     return LoweredIf {
         .span = span,
-        .type = mk_primitive("i64"),
+        .type = TY_I64,
         .cond = in_range,
         .then_block = wrap_as_block(adjust_hi_inclusive(turned, inclusive, span), span),
         .else_block = wrap_as_block(count_lit(0, span), span),
@@ -196,7 +196,7 @@ count_between :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> Lower
     }
     return LoweredBinary {
         .span = span,
-        .type = mk_primitive("i64"),
+        .type = TY_I64,
         .op = .Sub,
         .left = cast_to_i64(bound, span),
         .right = cast_to_i64(start, span),
@@ -224,12 +224,12 @@ never_negative :: fn(bound: LoweredExpr) -> bool {
         return true
     }
     held :: integer_representation(bound.type) ?? return false
-    return is_unsigned_int_name(held.name)
+    return !held.is_signed
 }
 
 count_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
     .span = span,
-    .type = mk_primitive("i64"),
+    .type = TY_I64,
     .value = value,
 }
 

@@ -82,11 +82,11 @@ export RangeType :: struct {
 export storage_integer :: fn(r: RangeType) -> MachineInteger =
     narrowest_machine_integer(r.bounds)
 
-/// The integer type a value of `r` is held in (`storage_integer`).
+/// The integer type a value of `r` is held in (`storage_integer`), as the range of
+/// its values.
 ///
 /// @param r  a range.
-export range_representation :: fn(r: RangeType) -> PrimitiveType =
-    PrimitiveType { .name = storage_integer(r).name }
+export range_representation :: fn(r: RangeType) -> RangeType = narrowest_integer(r.bounds)
 
 /// The name a backend reads `t` by : the integer it is held in for an integer
 /// type (`integer_representation`), its display for any other.
@@ -97,19 +97,25 @@ export representation_name :: fn(t: Type) -> string {
     return integer.name
 }
 
-/// The integer type a value of `t` is held in : a machine integer primitive as
-/// itself, a range as its representation (`range_representation`) ; null for any
-/// other type.
+/// The machine integer a value of `t` is held in (`storage_integer`) ; null for a
+/// type that is no integer.
 ///
 /// @param t  any type.
-export integer_representation :: fn(t: Type) -> PrimitiveType | null {
+export integer_representation :: fn(t: Type) -> MachineInteger | null {
     if t is RangeType {
-        return range_representation(t)
-    }
-    if t is PrimitiveType && is_int_name(t.name) {
-        return t
+        return storage_integer(t)
     }
     return null
+}
+
+/// The values of the machine integer a value of `t` is held in, through any
+/// distinct : what a value of a range may hold where nothing proves it within the
+/// range ; null for a type that is no integer.
+///
+/// @param t  any type.
+export held_values :: fn(t: Type) -> Interval | null {
+    held :: integer_representation(strip_distinct(t)) ?? return null
+    return held.values
 }
 
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
@@ -117,8 +123,8 @@ export integer_representation :: fn(t: Type) -> PrimitiveType | null {
 /// in, and an enum's inferred width.
 ///
 /// @param values  the integers to hold ; past 64 bits, the widest of its kind.
-export narrowest_integer :: fn(values: Interval) -> PrimitiveType =
-    PrimitiveType { .name = narrowest_machine_integer(values).name }
+export narrowest_integer :: fn(values: Interval) -> RangeType =
+    machine_integer_type(narrowest_machine_integer(values))
 
 /// The name of the primitive `t` is : a primitive's own (`string`, `char`), the
 /// machine integer a range of its bounds is (`machine_integer_name`) ; "" for any
@@ -155,15 +161,6 @@ export refinement_of :: fn(t: Type | null) -> RangeType | null {
 ///
 /// @param t  any type, or none.
 export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
-
-/// The integer type `name` as the typecheck holds it : one of the eight machine
-/// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647`.
-///
-/// @param name  an integer type's name (`is_int_name`).
-export mk_integer :: fn(name: string) -> Type {
-    m :: machine_integer_named(name) ?? return PrimitiveType { .name = name }
-    return machine_integer_type(m)
-}
 
 /// The machine integer `m` as the typecheck holds it : the range of its values,
 /// named after it.
@@ -409,8 +406,9 @@ export primitive_meta :: fn(name: string) -> PrimitiveMeta | null {
     return null
 }
 
-/// Whether `name` spells a primitive or a machine integer.
-export is_primitive_name :: fn(name: string) -> bool =
+/// Whether `name` spells a scalar type the compiler knows by name : a primitive
+/// (`bool`, `string`, `f64`, …) or one of the eight machine integers.
+export is_scalar_type_name :: fn(name: string) -> bool =
     primitive_meta(name) != null || is_int_name(name)
 
 /// Whether `name` is a primitive the runtime reaches through a handle.
@@ -425,16 +423,16 @@ export is_reference_name :: fn(name: string) -> bool {
 /// Whether `name` spells a machine integer (`machine_integer_named`).
 export is_int_name :: fn(name: string) -> bool = machine_integer_named(name) != null
 
-/// Whether a range whose lower bound has type `t` counts in place: a primitive
-/// integer, or a free integer or `char` literal. A `for` over such a range written
-/// in place walks a counter instead of stepping a `Range`.
+/// Whether a range whose lower bound has type `t` counts in place: an integer, or
+/// a free integer or `char` literal. A `for` over such a range written in place
+/// walks a counter instead of stepping a `Range`.
 ///
 /// @param t  the lower bound's type.
 export is_counting_type :: fn(t: Type) -> bool = match t {
-    is PrimitiveType -> is_int_name(t.name)
     is FreeIntType | FreeCharType | RangeType -> true
-    is FreeFloatType | StructType | EnumType | DistinctType | ArrayType | TupleType -> false
-    is UnionType | FnType | TraitType | TypeParamType | InferVar | SelfType | AnyType -> false
+    is PrimitiveType | FreeFloatType | StructType | EnumType | DistinctType -> false
+    is ArrayType | TupleType | UnionType | FnType | TraitType | TypeParamType -> false
+    is InferVar | SelfType | AnyType -> false
     is NeverType | UnresolvedType | TypeMetaType -> false
 }
 
@@ -672,7 +670,15 @@ export METHOD_SET_AT    :: "set_at"
 
 // ---- constructors ---------------------------------------------------------
 
-export mk_primitive :: fn(name: string) -> Type = PrimitiveType { .name = name }
+/// The type the primitive `name` designates : one of the eight machine integers
+/// as the range of its values (`i32` is `Int in -2147483648..=2147483647`), any
+/// other primitive as itself.
+///
+/// @param name  a scalar type's name (`is_scalar_type_name`).
+export mk_primitive :: fn(name: string) -> Type {
+    m :: machine_integer_named(name) ?? return PrimitiveType { .name = name }
+    return machine_integer_type(m)
+}
 
 /// A nominal struct type.
 export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type =
@@ -728,10 +734,11 @@ export TY_VOID       :: PrimitiveType { .name = "void" }
 export TY_BOOL       :: PrimitiveType { .name = "bool" }
 export TY_STRING     :: PrimitiveType { .name = "string" }
 export TY_CHAR       :: PrimitiveType { .name = "char" }
+export TY_F64        :: PrimitiveType { .name = "f64" }
 export TY_NULL       :: PrimitiveType { .name = "null" }
 export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 
-/// `i32`, the range of its values (`mk_integer`) : what a free integer defaults to.
+/// `i32`, the range of its values (`mk_primitive`) : what a free integer defaults to.
 export TY_I32 :: RangeType {
     .bounds = Interval { .lo = -0x8000_0000, .hi = 0x7FFF_FFFF },
     .name = "i32",
@@ -949,8 +956,8 @@ export canonical_key :: fn(t: Type) -> string {
     }
 }
 
-// A machine integer's range keys as the primitive of its name, so that the
-// lowering's primitives and the typecheck's ranges reach one entry.
+// A machine integer's range keys by its name, as a primitive does : shorter to
+// build than its bounds, and no primitive has the name of an integer.
 range_key :: fn(r: RangeType) -> string {
     machine :: machine_integer_name(r.bounds)
     if machine != "" {
@@ -1057,9 +1064,10 @@ export contains_distinct :: fn(t: Type) -> bool {
 /// @return   the structurally-identical type with all distincts collapsed
 ///           (returns `t` unchanged when it carries none).
 export strip_distinct :: fn(t: Type) -> Type {
-    // Fast path : a primitive (the common type-arg) can't carry a distinct, so
-    // skip the structural `contains_distinct` walk on the hot classifier path.
-    if t is PrimitiveType { return t }
+    // Fast path : a primitive or an integer (the common type-arg) can't carry a
+    // distinct, so skip the structural `contains_distinct` walk on the hot
+    // classifier path.
+    if t is PrimitiveType | RangeType { return t }
     if !contains_distinct(t) { return t }
     if t is DistinctType { return strip_distinct(t.backing) }
     if t is StructType { return mk_struct(t.symbol, strip_distinct_each(t.args)) }
@@ -1113,14 +1121,13 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
     return null
 }
 
-/// The primitive `t` is represented as — `t` itself when it's a primitive, or
-/// the primitive a distinct newtype wraps, through any number of distinct
-/// layers (`Handle :: CPointer` → `CPointer`). `null` for anything else. What
-/// `==` compares two scalars by.
-export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
-    if t is PrimitiveType { return t }
+/// The scalar `t` is : `t` itself when it is a primitive or an integer, or the
+/// scalar a distinct newtype wraps, through any number of distinct layers
+/// (`Handle :: CPointer` → `CPointer`). `null` for anything else. Two scalars
+/// compare by their representation (`representation_name`).
+export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
+    if t is PrimitiveType | RangeType { return t }
     if t is DistinctType { return scalar_backing(t.backing) }
-    if t is RangeType { return range_representation(t) }
     return null
 }
 
@@ -1132,12 +1139,12 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
 /// so they always agree on the instance.
 ///
 /// A primitive is kept, and so is a newtype over one, as its backing, a machine
-/// integer as the primitive it is held in. An enum with variant data is kept as
-/// itself : it stores its variant's rank, so boxing it would leave `i64(v)` in the
-/// shared body reading the rank where the written value is meant. Every other type
-/// erases, any other range included : a test at run time cannot tell it from its
-/// integer. The lowering alone keeps such a range (`kept_argument`), for the
-/// instance at it to check what it gets back.
+/// integer under its integer's name (`range_representation`). An enum with
+/// variant data is kept as itself : it stores its variant's rank, so boxing it
+/// would leave `i64(v)` in the shared body reading the rank where the written value
+/// is meant. Every other type erases, any other range included : a test at run time
+/// cannot tell it from its integer. The lowering alone keeps such a range
+/// (`kept_argument`), for the instance at it to check what it gets back.
 ///
 /// @param t  a concrete type argument of the instance.
 export kept_type_argument :: fn(t: Type) -> Type | null {
@@ -1215,36 +1222,36 @@ import "toolchain/ast"
 
 @test
 test_display_primitive :: fn() -> void {
-    assert_eq(display_type(mk_primitive("i32")), "i32")
-    assert_eq(display_type(mk_primitive("string")), "string")
+    assert_eq(display_type(TY_I32), "i32")
+    assert_eq(display_type(TY_STRING), "string")
 }
 
 @test
 test_display_array :: fn() -> void {
-    assert_eq(display_type(mk_array(mk_primitive("i32"))), "i32[]")
-    assert_eq(display_type(mk_array(mk_array(mk_primitive("i32")))), "i32[][]")
+    assert_eq(display_type(mk_array(TY_I32)), "i32[]")
+    assert_eq(display_type(mk_array(mk_array(TY_I32))), "i32[][]")
 }
 
 @test
 test_display_tuple :: fn() -> void {
-    el0: Type: mk_primitive("i32")
-    el1: Type: mk_primitive("string")
+    el0: Type: TY_I32
+    el1: Type: TY_STRING
     t :: mk_tuple([el0, el1])
     assert_eq(display_type(t), "[i32, string]")
 }
 
 @test
 test_display_fn :: fn() -> void {
-    p0: Type: mk_primitive("i32")
-    p1: Type: mk_primitive("string")
-    f :: mk_fn([p0, p1], mk_primitive("bool"))
+    p0: Type: TY_I32
+    p1: Type: TY_STRING
+    f :: mk_fn([p0, p1], TY_BOOL)
     assert_eq(display_type(f), "fn(i32, string) -> bool")
 }
 
 @test
 test_display_union :: fn() -> void {
-    v0: Type: mk_primitive("i32")
-    v1: Type: mk_primitive("string")
+    v0: Type: TY_I32
+    v1: Type: TY_STRING
     u :: mk_union([v0, v1])
     assert_eq(display_type(u), "i32 | string")
 }
@@ -1253,8 +1260,8 @@ test_display_union :: fn() -> void {
 test_display_struct_with_args :: fn() -> void {
     factory :: SymbolFactory {}
     sym :: factory.make(.Struct, "MutableMap", "test", "test", .Public, null)
-    a0: Type: mk_primitive("string")
-    a1: Type: mk_primitive("i32")
+    a0: Type: TY_STRING
+    a1: Type: TY_I32
     s :: mk_struct(sym, [a0, a1])
     assert_eq(display_type(s), "MutableMap<string, i32>")
 }
@@ -1295,7 +1302,29 @@ test_integer_singletons_agree_with_the_machine_table :: fn() -> void {
 }
 
 @test
-test_machine_integer_range_reads_as_its_primitive :: fn() -> void {
+test_held_values_reads_the_storage :: fn() -> void {
+    u8_iv :: held_values(mk_primitive("u8")) ?? ANY_INTEGER
+    assert(same_interval(u8_iv, interval(0, 255)), "u8")
+    i8_iv :: held_values(mk_primitive("i8")) ?? ANY_INTEGER
+    assert(same_interval(i8_iv, interval(-128, 127)), "i8")
+    i64_iv :: held_values(TY_I64) ?? ANY_INTEGER
+    assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
+    u64_iv :: held_values(mk_primitive("u64")) ?? ANY_INTEGER
+    assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
+    hour_iv :: held_values(RangeType { .bounds = interval(0, 23) }) ?? ANY_INTEGER
+    assert(same_interval(hour_iv, interval(0, 255)), "a range is held in its u8")
+    assert(held_values(TY_CHAR) == null, "char is no integer")
+}
+
+@test
+test_mk_primitive_builds_an_integer_as_its_range :: fn() -> void {
+    byte :: mk_primitive("u8")
+    assert(byte is RangeType && same_interval(byte.bounds, interval(0, 255)), "u8 is a range")
+    assert(TY_BOOL is PrimitiveType, "bool is a primitive")
+}
+
+@test
+test_range_of_machine_bounds_reads_as_that_integer :: fn() -> void {
     byte :: RangeType { .bounds = interval(0, 255), .name = "Byte" }
     assert_eq(display_type(RangeType { .bounds = interval(0, 255) }), "u8")
     assert_eq(display_type(byte), "Byte")
@@ -1304,10 +1333,10 @@ test_machine_integer_range_reads_as_its_primitive :: fn() -> void {
 }
 
 @test
-test_is_primitive_name :: fn() -> void {
-    assert(is_primitive_name("i32"), "i32 is primitive")
-    assert(is_primitive_name("string"), "string is primitive")
-    assert(!is_primitive_name("MyStruct"), "user types are not primitive")
+test_is_scalar_type_name :: fn() -> void {
+    assert(is_scalar_type_name("i32"), "i32 is a scalar type")
+    assert(is_scalar_type_name("string"), "string is a scalar type")
+    assert(!is_scalar_type_name("MyStruct"), "a user type is no scalar type")
 }
 
 @test
@@ -1325,7 +1354,7 @@ test_primitive_meta_partition :: fn() -> void {
 test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
     // `typedef vader_atom_t vader_string_t` — a u32. The `{ptr, len}` fat
     // pointer this used to report went out of the runtime with T12.
-    assert_eq(slot_byte_size(mk_primitive("string")), 4)
+    assert_eq(slot_byte_size(TY_STRING), 4)
 }
 
 @test
@@ -1343,14 +1372,14 @@ test_slot_size_of_a_default_enum_is_four :: fn() -> void {
 @test
 test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
     // Since T12 a struct field emits `void*`, not a `vader_box_t`.
-    assert_eq(slot_byte_size(mk_array(mk_primitive("i32"))), REF_SLOT_BYTES)
+    assert_eq(slot_byte_size(mk_array(TY_I32)), REF_SLOT_BYTES)
 }
 
 @test
 test_slot_size_of_an_erased_slot_is_a_box :: fn() -> void {
     // A union has no single object header to recover a tag from, so it keeps
     // the boxed slot.
-    either :: mk_union([mk_primitive("i32"), mk_primitive("string")])
+    either :: mk_union([TY_I32, TY_STRING])
     assert_eq(slot_byte_size(either), BOX_SLOT_BYTES)
 }
 
@@ -1361,7 +1390,7 @@ test_slot_size_of_an_abstract_kind_is_zero :: fn() -> void {
 
 @test
 test_slot_align_caps_at_a_word :: fn() -> void {
-    either :: mk_union([mk_primitive("i32"), mk_primitive("string")])
+    either :: mk_union([TY_I32, TY_STRING])
     assert_eq(slot_byte_align(either), WORD_BYTES)
 }
 
@@ -1389,10 +1418,10 @@ slot_size_test_sym :: fn() -> Symbol = Symbol {
 @test
 test_display_nested :: fn() -> void {
     // fn(i32[], string) -> i32 | null
-    arr: Type: mk_array(mk_primitive("i32"))
-    str: Type: mk_primitive("string")
-    i32_t: Type: mk_primitive("i32")
-    null_t: Type: mk_primitive("null")
+    arr: Type: mk_array(TY_I32)
+    str: Type: TY_STRING
+    i32_t: Type: TY_I32
+    null_t: Type: TY_NULL
     ret :: mk_union([i32_t, null_t])
     f :: mk_fn([arr, str], ret)
     assert_eq(display_type(f), "fn(i32[], string) -> i32 | null")

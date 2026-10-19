@@ -16,23 +16,18 @@ import "vader/comptime"
 import "vader/resolver/symbol"
 
 // A substitution of exactly `bindings`, their unions laid out (`laid_out_unions`).
-// A binding that is a range of no machine integer's bounds is also kept in
-// `ranges`, for its bounds.
 substitution_of :: fn(bindings: MutableMap<i32, Type>) -> Substitution {
     if !binds_a_range(bindings) {
         return Substitution { .type_params = bindings, .self_type = null }
     }
     laid_out :: MutableMap<i32, Type> {}
-    ranges :: MutableMap<i32, RangeType> {}
     for [id, bound] in bindings {
         laid_out[id] = laid_out_unions(bound)
-        refined :: refinement_of(bound) ?? continue
-        ranges[id] = refined
     }
     return Substitution {
         .type_params = laid_out,
         .self_type = null,
-        .ranges = ranges,
+        .binds_refinement = true,
     }
 }
 
@@ -198,25 +193,7 @@ merge_subst :: fn(base: Substitution, extra: Substitution) -> Substitution {
     out.self_type = base.self_type
     for [k, v] in base.type_params { out.type_params[k] = v }
     for [k, v] in extra.type_params { out.type_params[k] = v }
-    out.ranges = merged_ranges(base.ranges, extra.ranges)
-    return out
-}
-
-// The ranges of two substitutions merged, `extra`'s over `base`'s as for their
-// bindings ; null when neither binds one.
-merged_ranges :: fn(
-    base: MutableMap<i32, RangeType> | null,
-    extra: MutableMap<i32, RangeType> | null,
-) -> MutableMap<i32, RangeType> | null {
-    if base == null {
-        return extra
-    }
-    if extra == null {
-        return base
-    }
-    out :: MutableMap<i32, RangeType> {}
-    for [k, v] in base { out[k] = v }
-    for [k, v] in extra { out[k] = v }
+    out.binds_refinement = base.binds_refinement || extra.binds_refinement
     return out
 }
 
@@ -265,7 +242,7 @@ keep_concrete_or_erase :: fn(impls: ImplRegistry, t: Type) -> Type =
 // it to `Any` : what `kept_type_argument` keeps, and an argument an impl on one
 // instance is built from (`is_specialized_arg`), so that instance gets its own tag
 // and reaches its own impl. A range is kept as itself, for its instance checks
-// what it gets back against its bounds (`Substitution.ranges`).
+// what it gets back against its bounds (`bound_range`).
 kept_argument :: fn(impls: ImplRegistry, t: Type) -> Type | null {
     if is_refinement(t) {
         return t

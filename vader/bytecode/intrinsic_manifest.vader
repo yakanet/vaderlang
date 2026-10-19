@@ -60,7 +60,7 @@ is_int_equals :: fn(mangled: string) -> bool {
 /// @param mangled  the host import's mangled name.
 export is_display_to_string :: fn(mangled: string) -> bool {
     kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
-    return kind != null && is_primitive_name(kind) && kind != "void" && kind != "null"
+    return kind != null && is_scalar_type_name(kind) && kind != "void" && kind != "null"
 }
 
 /// Subset of `is_display_to_string` covering the unsigned widths that overflow

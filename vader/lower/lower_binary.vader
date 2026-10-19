@@ -363,9 +363,9 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // OpShape.CompareCmp : `a < b` → `(compare(a, b)) < 0`, same
         // for <= / > / >=. The outer BinaryOp matches `binary.op`.
         compare_call :: LoweredCall {
-            .span = binary.span, .type = mk_primitive("i32"),
+            .span = binary.span, .type = TY_I32,
             .callee = LoweredIdent {
-                .span = binary.span, .type = mk_primitive("i32"), .symbol = target.symbol,
+                .span = binary.span, .type = TY_I32, .symbol = target.symbol,
             },
             .args = call_args,
         }
@@ -374,7 +374,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
             .op    = lower_binary_op(binary.op),
             .left  = compare_call,
             .right = LoweredIntLit {
-                .span = binary.span, .type = mk_primitive("i32"), .value = 0,
+                .span = binary.span, .type = TY_I32, .value = 0,
             },
         }
     }
@@ -428,7 +428,7 @@ lower_op_overload_via_vcall :: fn(
     result :: match oti.shape {
         .DirectCall -> type
         .NotCall    -> TY_BOOL
-        .CompareCmp -> mk_primitive("i32")
+        .CompareCmp -> TY_I32
     }
     method :: oti.method_name
     call :: virtual_call(ctx, oti.trait_key, method, lowered_left, args, result, binary.span)
@@ -444,7 +444,7 @@ lower_op_overload_via_vcall :: fn(
             .op    = lower_binary_op(binary.op),
             .left  = call,
             .right = LoweredIntLit {
-                .span = binary.span, .type = mk_primitive("i32"), .value = 0,
+                .span = binary.span, .type = TY_I32, .value = 0,
             },
         }
     }

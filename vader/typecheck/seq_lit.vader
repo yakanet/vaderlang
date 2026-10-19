@@ -299,7 +299,7 @@ test_seq_with_expected_array_narrows :: fn() -> void {
     src :: "f :: fn() -> i64[] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_array(mk_primitive("i64"))
+    expected: Type: mk_array(TY_I64)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags)
     assert_eq(display_type(ty), "i64[]")
 }
@@ -309,7 +309,7 @@ test_seq_empty_with_array_expected :: fn() -> void {
     src :: "f :: fn() -> i32[] { return [] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_array(mk_primitive("i32"))
+    expected: Type: mk_array(TY_I32)
     ty :: infer_seq_lit(es.sl, expected, es.typed, diags)
     assert_eq(display_type(ty), "i32[]")
 }
@@ -319,7 +319,7 @@ test_seq_tuple_arity_mismatch_emits_T3001 :: fn() -> void {
     src :: "f :: fn() -> [i32, i32] { return [1, 2, 3] }"
     es :: expect_seq(src)
     diags: Diagnostic[]: []
-    expected: Type: mk_tuple([mk_primitive("i32"), mk_primitive("i32")])
+    expected: Type: mk_tuple([TY_I32, TY_I32])
     infer_seq_lit(es.sl, expected, es.typed, diags)
     found := false
     for d in diags {

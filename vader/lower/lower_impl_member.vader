@@ -521,10 +521,10 @@ without_narrowed_read :: fn(source: Expr, arg: LoweredExpr, type: Type) -> Lower
     if source !is IdentExpr && source !is FieldExpr {
         return arg
     }
-    if arg !is LoweredCast || integer_representation(type) == null {
+    if arg !is LoweredCast || type !is RangeType {
         return arg
     }
-    if integer_representation(arg.value.type) == null {
+    if arg.value.type !is RangeType {
         return arg
     }
     return arg.value

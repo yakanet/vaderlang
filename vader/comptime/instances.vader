@@ -135,8 +135,7 @@ import "vader/parser"
 @test test_add_deduplicates :: fn() -> void {
     registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("Foo")
-    i32_type :: mk_primitive("i32")
-    args: Type[]: [i32_type]
+    args: Type[]: [TY_I32]
     registry.add(sym, args)
     registry.add(sym, args)
     assert_eq(registry.order.len(), 1)
@@ -145,7 +144,7 @@ import "vader/parser"
 @test test_observe_struct_instance :: fn() -> void {
     registry :: InstanceRegistry {}
     sym :: dummy_struct_symbol("List")
-    args: Type[]: [mk_primitive("i32")]
+    args: Type[]: [TY_I32]
     list_type :: mk_struct(sym, args)
     registry.observe(list_type)
     assert_eq(registry.order.len(), 1)

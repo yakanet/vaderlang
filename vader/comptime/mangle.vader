@@ -133,12 +133,12 @@ import "std/testing"
 }
 
 @test test_mangle_generic_one_arg :: fn() -> void {
-    args: Type[]: [mk_primitive("i32")]
+    args: Type[]: [TY_I32]
     assert_eq(mangle("Vec", "stdlib/std/vec", args), "stdlib_std_vec\$Vec__i32")
 }
 
 @test test_mangle_generic_two_args :: fn() -> void {
-    args: Type[]: [mk_primitive("string"), mk_primitive("i32")]
+    args: Type[]: [TY_STRING, TY_I32]
     assert_eq(
         mangle("Map", "stdlib/std/map", args),
         "stdlib_std_map\$Map__string__i32",

@@ -115,7 +115,7 @@ test_type_symbol_unwraps_nullable :: fn() -> void {
         .visibility = .Private, .defined_at = null,
     }
     no_args: Type[]: []
-    members: Type[]: [mk_struct(sym, no_args), mk_primitive("null")]
+    members: Type[]: [mk_struct(sym, no_args), TY_NULL]
     extracted :: type_symbol(mk_union(members))
     if extracted == null { assert(false, "T | null must resolve to T's symbol") }
     else { assert_eq(extracted.name, "User") }
@@ -130,7 +130,7 @@ test_type_symbol_distinct_jumps_to_newtype :: fn() -> void {
         .module_name = "t",
         .visibility = .Private, .defined_at = null,
     }
-    extracted :: type_symbol(mk_distinct(sym, mk_primitive("i64")))
+    extracted :: type_symbol(mk_distinct(sym, TY_I64))
     if extracted == null { assert(false, "distinct type must carry its newtype symbol") }
     else { assert_eq(extracted.name, "Mass") }
 }

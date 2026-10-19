@@ -6,6 +6,12 @@ Accepted (2026-10-19). Second phase of declaring the integers in `std/core` (P2)
 typecheck holds `i32` as a range, as decided by the user ("RangeType partout", against
 keeping the primitive as its canonical form). Builds on 0075 and 0091.
 
+**Completed (2026-10-19)**: no type holds an integer as a primitive any more, in the
+typecheck or after it. The equality bridge of the last decision is gone; a machine
+integer still keys by its name (`canonical_key`, the impl tables), as the primitive
+did. What a value of an integer type is stored in is a machine integer of
+`vader/integer` (`integer_representation`), not a type.
+
 ## Context
 
 Since 0075 an integer is a range of `Int`, and `i8`, `i16`, `i32`, `i64`, `u8`,

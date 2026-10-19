@@ -38,23 +38,7 @@ make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
 /// @param self  the entry-types view.
 /// @param t     the type to rewrite.
 /// @return      the rewritten type (may be `t` itself).
-export apply :: fn(self: EntryTypes, t: Type) -> Type {
-    if is_empty_substitution(self.subst) { return laid_out_unions(t) }
-    return laid_out_unions(substitute(t, self.subst))
-}
-
-/// A type argument as an instance takes it : through the entry's substitution,
-/// a range kept where it is the argument itself (`Hour`, or a `T` the entry binds
-/// to `Hour`), so that instance checks against its bounds what it hands back.
-/// @param self  the entry-types view.
-/// @param t     a type argument the typecheck recorded.
-export instance_argument :: fn(self: EntryTypes, t: Type) -> Type {
-    if is_refinement(t) {
-        return t
-    }
-    bound :: bound_range(self.subst, t) ?? return apply(self, t)
-    return bound
-}
+export apply :: fn(self: EntryTypes, t: Type) -> Type = laid_out_unions(substitute(t, self.subst))
 
 // ---- declaration-level reads ----------------------------------------------
 //
@@ -269,7 +253,7 @@ import "vader/resolver/symbol"
 @test test_apply_is_identity_under_empty_subst :: fn() -> void {
     typed :: empty_typed_program()
     view  :: make_entry_types(typed, new_substitution())
-    same  :: apply(view, mk_primitive("i64"))
+    same  :: apply(view, TY_I64)
     assert_eq(display_type(same), "i64")
 }
 
@@ -301,7 +285,7 @@ type_param_t :: fn() = Symbol {
     typed :: empty_typed_program()
     typed.local_types[LOOP_VAR_KEY] = mk_type_param(type_param_t())
     subst :: new_substitution()
-    subst.type_params[7] = mk_primitive("string")
+    subst.type_params[7] = TY_STRING
     view :: make_entry_types(typed, subst)
     got :: concrete_local_type(view, LOOP_VAR_KEY) ?? TY_UNRESOLVED
     assert_eq(display_type(got), "string")
@@ -331,7 +315,7 @@ type_param_t :: fn() = Symbol {
         .visibility = .Private,
         .defined_at = null,
     }
-    subst.type_params[11] = mk_primitive("string")
+    subst.type_params[11] = TY_STRING
     view :: make_entry_types(typed, subst)
     rewritten :: apply(view, mk_array(mk_type_param(symbol)))
     assert_eq(display_type(rewritten), "string[]")

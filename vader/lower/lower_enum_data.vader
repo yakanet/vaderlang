@@ -105,9 +105,8 @@ lower_enum_value :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
     values :: enum_type.values
-    i64_type :: mk_primitive("i64")
     if value is LoweredIntLit {
-        return LoweredIntLit { .span = span, .type = i64_type, .value = values[value.value] }
+        return LoweredIntLit { .span = span, .type = TY_I64, .value = values[value.value] }
     }
     if is_consecutive(values) {
         if values[0] == 0 {
@@ -115,10 +114,10 @@ lower_enum_value :: fn(
         }
         return LoweredBinary {
             .span  = span,
-            .type  = i64_type,
+            .type  = TY_I64,
             .op    = .Add,
             .left  = rank_of(value, span),
-            .right = LoweredIntLit { .span = span, .type = i64_type, .value = values[0] },
+            .right = LoweredIntLit { .span = span, .type = TY_I64, .value = values[0] },
         }
     }
     element :: mk_primitive(value_element_width(values))
@@ -135,7 +134,7 @@ lower_enum_value :: fn(
 }
 
 rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr =
-    LoweredCast { .span = span, .type = mk_primitive("i64"), .value = value }
+    LoweredCast { .span = span, .type = TY_I64, .value = value }
 
 is_consecutive :: fn(values: i64[]) -> bool {
     for rank in 0..<values.len() {

@@ -425,7 +425,6 @@ try_lower_for_in_raw_array :: fn(
     }
     span :: for_stmt.span
     lb :: resolve_loop_binding(ctx, in_form.loop_var, span)
-    i64_type :: mk_primitive("i64")
 
     arr_sym :: fresh_synthetic_symbol(ctx, "for_arr")
     len_sym :: fresh_synthetic_symbol(ctx, "for_len")
@@ -439,15 +438,15 @@ try_lower_for_in_raw_array :: fn(
     }
     arr_ref :: LoweredIdent { .span = span, .type = iter_type, .symbol = arr_sym }
     len_let :: LoweredLet {
-        .span = span, .name = len_sym.name, .symbol = len_sym, .type = i64_type,
-        .value = LoweredArrayLen { .span = span, .type = i64_type, .target = arr_ref },
+        .span = span, .name = len_sym.name, .symbol = len_sym, .type = TY_I64,
+        .value = LoweredArrayLen { .span = span, .type = TY_I64, .target = arr_ref },
     }
     idx_init :: LoweredLet {
-        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = i64_type,
-        .value = LoweredIntLit { .span = span, .type = i64_type, .value = 0 },
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = TY_I64,
+        .value = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
     }
-    idx_ref :: LoweredIdent { .span = span, .type = i64_type, .symbol = idx_sym }
-    len_ref :: LoweredIdent { .span = span, .type = i64_type, .symbol = len_sym }
+    idx_ref :: LoweredIdent { .span = span, .type = TY_I64, .symbol = idx_sym }
+    len_ref :: LoweredIdent { .span = span, .type = TY_I64, .symbol = len_sym }
 
     cond :: LoweredBinary {
         .span = span, .type = TY_BOOL, .op = .Lt,
@@ -461,9 +460,9 @@ try_lower_for_in_raw_array :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = i64_type, .op = .Add,
+            .span = span, .type = TY_I64, .op = .Add,
             .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = i64_type, .value = 1 },
+            .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
         },
     }
 
@@ -511,7 +510,7 @@ try_lower_for_over_type :: fn(
         values :: walked.indices.values()
         if values.len() > 0 && is_consecutive(values) {
             bounds :: interval(values[0], values[values.len() - 1])
-            counter_type :: PrimitiveType { .name = walked.repr }
+            counter_type :: mk_primitive(walked.repr)
             return counted_walk(ctx, for_stmt, in_form, bounds, counter_type, var_type)
         }
         return walk_enum_values(ctx, for_stmt, in_form, walked, values, var_type)
@@ -529,7 +528,7 @@ counted_walk :: fn(
     for_stmt: AST.ForStmt,
     in_form: AST.InFor,
     bounds: Interval,
-    counter_type: PrimitiveType,
+    counter_type: Type,
     var_type: Type,
 ) -> LoweredStmt {
     span :: for_stmt.span
@@ -846,10 +845,9 @@ compare_counter :: fn(
 // codepoint.
 may_be_type_max :: fn(hi: LoweredExpr, t: Type) -> bool {
     held :: integer_representation(t) ?? return false
-    m :: machine_integer_named(held.name) ?? return false
     if hi !is LoweredIntLit {
         return true
     }
-    return checked_add(m.bits, !m.is_signed, hi.value, 1) == null
+    return checked_add(held.bits, !held.is_signed, hi.value, 1) == null
 }
 

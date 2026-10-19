@@ -192,8 +192,8 @@ value_for_test :: fn(id: i64) -> AST.Expr = AST.IntLitExpr {
 @test
 test_try_into_records_array_to_iter :: fn() -> void {
     typed :: empty_typed_program()
-    arr :: mk_array(mk_primitive("i32"))
-    iter :: iter_trait_for_test(mk_primitive("i32"))
+    arr :: mk_array(TY_I32)
+    iter :: iter_trait_for_test(TY_I32)
     assert(try_into(arr, iter, typed, value_for_test(7)), "i32[] should coerce into Iterator<i32>")
     assert(typed.into_coercions[7] !is null, "coercion must be recorded under node id 7")
 }
@@ -205,7 +205,7 @@ test_try_into_records_array_to_iter :: fn() -> void {
 test_try_into_no_coercion_records_nothing :: fn() -> void {
     typed :: empty_typed_program()
     assert(
-        !try_into(mk_primitive("i32"), mk_primitive("string"), typed, value_for_test(9)),
+        !try_into(TY_I32, TY_STRING, typed, value_for_test(9)),
         "i32 does not coerce into string",
     )
     assert(typed.into_coercions[9] is null, "no coercion recorded when none applies")

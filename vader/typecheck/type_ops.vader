@@ -72,7 +72,9 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is FreeFloatType  -> b is FreeFloatType
     is FreeCharType   -> b is FreeCharType
     is AnyType        -> b is AnyType
-    is RangeType | PrimitiveType -> equals_scalar(a, b)
+    is PrimitiveType  -> b is PrimitiveType && a.name == b.name
+    // Two ranges are equal by their bounds, whatever their names.
+    is RangeType      -> b is RangeType && same_interval(a.bounds, b.bounds)
     is TypeParamType  -> if b is TypeParamType as bx { a.symbol.id == bx.symbol.id } else { false }
     is InferVar       -> if b is InferVar as bx { a.id == bx.id } else { false }
     // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
@@ -98,20 +100,6 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // type equals only itself, never its backing primitive nor another
     // distinct over the same backing — that's the whole point.
     is DistinctType  -> if b is DistinctType as bx { a.symbol.id == bx.symbol.id } else { false }
-}
-
-// Two ranges are equal by their bounds. A machine integer is the range of its
-// values, held as a range or as the primitive the lowering reads it as : `i32`
-// either way (`primitive_name`).
-equals_scalar :: fn(a: Type, b: Type) -> bool {
-    if a is PrimitiveType && b is PrimitiveType {
-        return a.name == b.name
-    }
-    if a is RangeType && b is RangeType {
-        return same_interval(a.bounds, b.bounds)
-    }
-    name :: primitive_name(a)
-    return name != "" && name == primitive_name(b)
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
@@ -256,8 +244,8 @@ export erase_ranges :: fn(t: Type) -> Type {
 }
 
 // `u` erased : variant by variant where its only ranges are machine integers, each
-// then the primitive it is, of the same name and so the same place ; else rebuilt
-// canonical, two ranges erasing to one integer (`Hour | u8`).
+// then under its integer's name, in the same place ; else rebuilt canonical, two
+// ranges erasing to one integer (`Hour | u8`).
 erase_union :: fn(u: UnionType) -> Type {
     if contains_range(u, true) {
         return union_of(erase_ranges_each(u.variants))
@@ -437,8 +425,8 @@ export default_if_free :: fn(t: Type) -> Type {
     // primitive; every other type is already concrete → returned unchanged.
     @partial match t {
         is FreeIntType   -> { return TY_I32 }
-        is FreeFloatType -> { return mk_primitive("f64") }
-        is FreeCharType  -> { return mk_primitive("char") }
+        is FreeFloatType -> { return TY_F64 }
+        is FreeCharType  -> { return TY_CHAR }
         _ -> { return t }
     }
 }
@@ -898,11 +886,10 @@ satisfies_bound :: fn(arg: Type, trait_key: string, typed: TypedProgram) -> bool
     is DistinctType  -> (struct_implements_trait(arg, trait_key, typed)
         || satisfies_bound(arg.backing, trait_key, typed))
     is ArrayType     -> trait_key != core_trait_key(TRAIT_DISPLAY) && struct_implements_trait(arg, trait_key, typed)
-    // A range is its integer to every impl.
-    is RangeType     -> satisfies_bound(range_representation(arg), trait_key, typed)
     is AnyType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
         | SelfType | InferVar -> true
-    is PrimitiveType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
+    // A range is its integer to every impl (`impl_base_key`).
+    is PrimitiveType | RangeType | StructType | EnumType | TupleType | FnType | TypeMetaType -> {
         struct_implements_trait(arg, trait_key, typed)
     }
 }
@@ -1236,16 +1223,16 @@ import "vader/resolver/symbol"
 import "vader/types"
 
 @test
-test_equals_primitive :: fn() -> void {
-    assert(equals_type(mk_primitive("i32"), mk_primitive("i32")), "i32 == i32")
-    assert(!equals_type(mk_primitive("i32"), mk_primitive("i64")), "i32 != i64")
+test_equals_integer :: fn() -> void {
+    assert(equals_type(TY_I32, TY_I32), "i32 == i32")
+    assert(!equals_type(TY_I32, TY_I64), "i32 != i64")
 }
 
 @test
 test_equals_array :: fn() -> void {
-    a1: Type: mk_array(mk_primitive("i32"))
-    a2: Type: mk_array(mk_primitive("i32"))
-    a3: Type: mk_array(mk_primitive("string"))
+    a1: Type: mk_array(TY_I32)
+    a2: Type: mk_array(TY_I32)
+    a3: Type: mk_array(TY_STRING)
     assert(equals_type(a1, a2), "i32[] == i32[]")
     assert(!equals_type(a1, a3), "i32[] != string[]")
 }
@@ -1254,8 +1241,8 @@ test_equals_array :: fn() -> void {
 
 @test
 test_union_of_dedup :: fn() -> void {
-    i32_t: Type: mk_primitive("i32")
-    str_t: Type: mk_primitive("string")
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
     // A | B | A should collapse to A | B
     u :: union_of([i32_t, str_t, i32_t])
     match u {
@@ -1266,33 +1253,24 @@ test_union_of_dedup :: fn() -> void {
 
 @test
 test_union_of_drops_never :: fn() -> void {
-    i32_t: Type: mk_primitive("i32")
+    i32_t: Type: TY_I32
     never_t: Type: TY_NEVER
     // i32 | Never should collapse to i32
     u :: union_of([i32_t, never_t])
-    match u {
-        is PrimitiveType -> { assert_eq(u.name, "i32") }
-        _ -> { assert(false, "Never should be absorbed") }
-    }
+    assert(equals_type(u, TY_I32), "Never should be absorbed")
 }
 
 @test
 test_union_of_flattens :: fn() -> void {
-    i32_t: Type: mk_primitive("i32")
-    str_t: Type: mk_primitive("string")
-    bool_t: Type: mk_primitive("bool")
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
+    bool_t: Type: TY_BOOL
     inner :: mk_union([i32_t, str_t])
     u :: union_of([inner, bool_t])
     match u {
         is UnionType -> { assert_eq(u.variants.len(), 3) }
         _ -> { assert(false, "flattened union should have 3 variants") }
     }
-}
-
-@test
-test_machine_integer_is_its_primitive :: fn() -> void {
-    assert(equals_type(TY_I32, mk_primitive("i32")), "the range `i32` is the primitive")
-    assert(!equals_type(TY_I32, mk_primitive("i64")), "`i32` is no `i64`")
 }
 
 @test
@@ -1309,16 +1287,9 @@ test_union_of_orders_same_named_types_by_identity :: fn() -> void {
 test_default_if_free :: fn() -> void {
     assert_eq(display_type(default_if_free(TY_FREE_INT)), "i32")
     assert(default_if_free(TY_FREE_INT) is RangeType, "FreeInt defaults to the range `i32`")
-    match default_if_free(TY_FREE_FLOAT) as p {
-        is PrimitiveType -> { assert_eq(p.name, "f64") }
-        _                -> { assert(false, "FreeFloat defaults to f64") }
-    }
+    assert(equals_type(default_if_free(TY_FREE_FLOAT), TY_F64), "FreeFloat defaults to f64")
     // Non-free types pass through.
-    i32_t :: mk_primitive("i32")
-    match default_if_free(i32_t) as p {
-        is PrimitiveType -> { assert_eq(p.name, "i32") }
-        _                -> { assert(false, "i32 should pass through") }
-    }
+    assert(equals_type(default_if_free(TY_I32), TY_I32), "i32 should pass through")
 }
 
 @test

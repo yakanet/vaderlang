@@ -86,12 +86,8 @@ integral_right_operand :: fn(e: AST.BinaryExpr, t: Type, diags: Diagnostic[]) ->
         return bitwise_operand(e.right, t, diags)
     }
     refined :: refinement_of(t) ?? return t
-    return held_integer(refined)
+    return range_representation(refined)
 }
-
-// The integer the range `r` is held in (`storage_integer`), as the typecheck holds
-// an integer type (`machine_integer_type`).
-held_integer :: fn(r: RangeType) -> Type = machine_integer_type(storage_integer(r))
 
 // `t` as an operation reads it : a range reaching past `i64` as the integer it is
 // held in, which the operation is then checked in, `i64` holding none of its values
@@ -101,7 +97,7 @@ held_beyond_i64 :: fn(t: Type) -> Type {
     if !refined.bounds.hi_open {
         return t
     }
-    return held_integer(refined)
+    return range_representation(refined)
 }
 
 // The operand `t` of a range operation as the operation reads it : a free value
@@ -238,7 +234,7 @@ free_range :: fn(e: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic
         return check_expr(e, RangeType { .bounds = interval(value, value) }, typed, diags)
     }
     if e is AST.IntLitExpr && is_past_i64(e) {
-        held :: mk_integer("u64")
+        held :: mk_primitive("u64")
         settle_free_value(e, held, typed, diags)
         return held
     }

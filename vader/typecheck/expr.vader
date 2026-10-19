@@ -461,7 +461,7 @@ test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
         .value = 42,
     }
     diags: Diagnostic[]: []
-    expected: Type: mk_primitive("i64")
+    expected: Type: TY_I64
     result :: check_expr(e, expected, typed, diags)
     assert_eq(display_type(result), "i64")
 }
@@ -495,6 +495,6 @@ test_check_expr_narrows_through_block :: fn() -> void {
         .stmts = [], .trailing = inner,
     }
     diags: Diagnostic[]: []
-    expected: Type: mk_primitive("i64")
+    expected: Type: TY_I64
     assert_eq(display_type(check_expr(block, expected, typed, diags)), "i64")
 }

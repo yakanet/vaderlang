@@ -31,7 +31,6 @@ DONE_STATE :: -1
 GenBuild :: struct {
     self_sym: Symbol
     state_ty: Type            // the `g$State` StructType (self's type)
-    i32_ty:   Type
     /// How this generator's `next` hands a step back. Null exactly when
     /// `is_async`: the async driver shares this builder but completes with
     /// `T | Suspended` rather than an iterator step.
@@ -141,16 +140,16 @@ gb_field :: fn(gb: GenBuild, name: string, ty: Type) -> LoweredExpr =
 gb_set_state :: fn(gb: GenBuild, n: i64) -> LoweredStmt =
     LoweredAssign {
         .span = gb.span,
-        .target = gb_field(gb, "state", gb.i32_ty),
-        .value = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
+        .target = gb_field(gb, "state", TY_I32),
+        .value = LoweredIntLit { .span = gb.span, .type = TY_I32, .value = n },
     }
 
 // `self.state == n` (bool).
 gb_state_eq :: fn(gb: GenBuild, n: i64) -> LoweredExpr =
     LoweredBinary {
         .span = gb.span, .type = TY_BOOL, .op = .Eq,
-        .left = gb_field(gb, "state", gb.i32_ty),
-        .right = LoweredIntLit { .span = gb.span, .type = gb.i32_ty, .value = n },
+        .left = gb_field(gb, "state", TY_I32),
+        .right = LoweredIntLit { .span = gb.span, .type = TY_I32, .value = n },
     }
 
 // `return <step carrying e>`.
@@ -201,7 +200,7 @@ gb_store_awaited :: fn(gb: GenBuild, awaited: LoweredExpr) -> LoweredStmt =
 // Drivers retire a finished child and never resume it, so only a stray resume
 // lands here; `0` (unknown) keeps such a driver from waiting on it forever.
 gb_suspend_return :: fn(gb: GenBuild) -> LoweredStmt {
-    wake_at :: LoweredIntLit { .span = gb.span, .type = mk_primitive("i64"), .value = 0 }
+    wake_at :: LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 }
     fields :: [LoweredStructLitField { .name = "wake_at", .value = wake_at }]
     return LoweredReturn {
         .span = gb.span,
@@ -510,7 +509,7 @@ gb_defers_field :: fn(gb: GenBuild) -> LoweredExpr = gb_field(gb, GB_DEFERS_FIEL
 // `self.__defers.len()` (i64). `span` attributes it — `dpe.span` at a
 // structured exit, `gb.span` for the teardown drain.
 gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
-    LoweredArrayLen { .span = span, .type = mk_primitive("i64"), .target = gb_defers_field(gb) }
+    LoweredArrayLen { .span = span, .type = TY_I64, .target = gb_defers_field(gb) }
 
 // Drain the top `count` defer thunks LIFO, then truncate. `count` is static (the
 // defers of the exiting scope[s]) — emit all calls before truncating so
@@ -518,14 +517,13 @@ gb_defers_len :: fn(gb: GenBuild, span: Span) -> LoweredExpr =
 gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[]) -> void {
     count :: i64(dpe.count)
     if count == 0 { return }
-    i64_type :: mk_primitive("i64")
     for k in 0..<count {
         // idx = self.__defers.len() - 1 - k  (len is loop-invariant : we defer the
         // single truncate until after all calls, so no call shrinks the array).
         idx :: LoweredBinary {
-            .span = dpe.span, .type = i64_type, .op = .Sub,
+            .span = dpe.span, .type = TY_I64, .op = .Sub,
             .left = gb_defers_len(gb, dpe.span),
-            .right = LoweredIntLit { .span = dpe.span, .type = i64_type, .value = 1 + k },
+            .right = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = 1 + k },
         }
         thunk :: LoweredIndex { .span = dpe.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
         call :: LoweredCall { .span = dpe.span, .type = TY_VOID, .callee = thunk, .args = [] }
@@ -533,13 +531,13 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
     }
     // self.__defers = self.__defers[0 ..< len - count]
     new_len :: LoweredBinary {
-        .span = dpe.span, .type = i64_type, .op = .Sub,
+        .span = dpe.span, .type = TY_I64, .op = .Sub,
         .left = gb_defers_len(gb, dpe.span),
-        .right = LoweredIntLit { .span = dpe.span, .type = i64_type, .value = count },
+        .right = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = count },
     }
     truncated :: LoweredArraySlice {
         .span = dpe.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
-        .lo = LoweredIntLit { .span = dpe.span, .type = i64_type, .value = 0 },
+        .lo = LoweredIntLit { .span = dpe.span, .type = TY_I64, .value = 0 },
         .hi = new_len,
     }
     out.push(LoweredAssign { .span = dpe.span, .target = gb_defers_field(gb), .value = truncated })
@@ -550,24 +548,23 @@ gb_defer_drain :: fn(gb: GenBuild, dpe: LoweredDeferPopExec, out: LoweredStmt[])
 // exit). At cancel time the pending count is dynamic (how far the coroutine ran
 // before it was abandoned), so loop `while len != 0 { call last ; truncate }`.
 gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
-    i64_type :: mk_primitive("i64")
     // idx = self.__defers.len() - 1 (recomputed each iteration — the truncate
     // below shrinks the array, so the last live thunk moves down every step).
     idx :: LoweredBinary {
-        .span = gb.span, .type = i64_type, .op = .Sub,
+        .span = gb.span, .type = TY_I64, .op = .Sub,
         .left = gb_defers_len(gb, gb.span),
-        .right = LoweredIntLit { .span = gb.span, .type = i64_type, .value = 1 },
+        .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 1 },
     }
     thunk :: LoweredIndex { .span = gb.span, .type = gb_defer_thunk_ty(), .target = gb_defers_field(gb), .index = idx }
     call :: LoweredCall { .span = gb.span, .type = TY_VOID, .callee = thunk, .args = [] }
     // self.__defers = self.__defers[0 ..< len - 1]
     truncated :: LoweredArraySlice {
         .span = gb.span, .type = gb_defers_ty(), .target = gb_defers_field(gb),
-        .lo = LoweredIntLit { .span = gb.span, .type = i64_type, .value = 0 },
+        .lo = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 },
         .hi = LoweredBinary {
-            .span = gb.span, .type = i64_type, .op = .Sub,
+            .span = gb.span, .type = TY_I64, .op = .Sub,
             .left = gb_defers_len(gb, gb.span),
-            .right = LoweredIntLit { .span = gb.span, .type = i64_type, .value = 1 },
+            .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 1 },
         },
     }
     body :: gb_block(gb, [LoweredExprStmt { .span = gb.span, .expr = call }, LoweredAssign { .span = gb.span, .target = gb_defers_field(gb), .value = truncated }])
@@ -575,7 +572,7 @@ gb_defer_drain_all :: fn(gb: GenBuild, out: LoweredStmt[]) -> void {
     cond :: LoweredBinary {
         .span = gb.span, .type = TY_BOOL, .op = .Neq,
         .left = gb_defers_len(gb, gb.span),
-        .right = LoweredIntLit { .span = gb.span, .type = i64_type, .value = 0 },
+        .right = LoweredIntLit { .span = gb.span, .type = TY_I64, .value = 0 },
     }
     out.push(LoweredLoop { .span = gb.span, .label = null, .cond = cond, .body = body, .step = [] })
 }

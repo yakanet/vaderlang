@@ -226,9 +226,8 @@ runs_builtin_equals :: fn(ctx: FnLowerCtx, call: CallExpr) -> bool {
 /// in its declaration's order, at this instance : those the typecheck recorded,
 /// and, for one a call left to the instance (`count(it)` with `it: I` and
 /// `I: Iterator<i32>`, which only the instance's own `I` settles), the binding the
-/// arguments' types give at this instance. A range is kept where it is the argument
-/// itself (`instance_argument`). Null for a fn that takes none, and when one stays
-/// unbound.
+/// arguments' types give at this instance. Null for a fn that takes none, and when
+/// one stays unbound.
 ///
 /// @param node    the call, or the name of a fn used as a value.
 /// @param role    `.Call` or `.Reference`.
@@ -245,7 +244,7 @@ recorded_type_args :: fn(
     recorded :: callee.bindings ?? MutableMap<i32, Type> {}
     bindings :: MutableMap<i32, Type> {}
     for [id, bound] in recorded {
-        bindings[id] = ctx.types.instance_argument(bound)
+        bindings[id] = ctx.types.apply(bound)
     }
     if node is CallExpr && leaves_unbound(declared, bindings) {
         bind_at_instance(ctx, node, fn_signature(owner, fn_sym), bindings)
@@ -316,7 +315,7 @@ bind_at_instance :: fn(
         if k >= callee_type.params.len() {
             break
         }
-        actual :: default_if_free(ctx.types.instance_argument(ctx.types.raw_expr_type(args[k])))
+        actual :: default_if_free(ctx.types.apply(ctx.types.raw_expr_type(args[k])))
         unify_params(callee_type.params[k], actual, bindings, ctx)
     }
 }

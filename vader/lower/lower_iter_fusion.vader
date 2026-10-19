@@ -584,21 +584,20 @@ emit_fused_array :: fn(
     span :: array_chain.span
     elem_type :: array_chain.element_type
     arr_ref :: array_chain.bound_source ?? panic(UNBOUND_CHAIN)
-    i64_type :: mk_primitive("i64")
 
     len_sym :: fresh_synthetic_symbol(ctx, "fuse_len")
     idx_sym :: fresh_synthetic_symbol(ctx, "fuse_i")
 
     len_let :: LoweredLet {
-        .span = span, .name = len_sym.name, .symbol = len_sym, .type = i64_type,
-        .value = LoweredArrayLen { .span = span, .type = i64_type, .target = arr_ref },
+        .span = span, .name = len_sym.name, .symbol = len_sym, .type = TY_I64,
+        .value = LoweredArrayLen { .span = span, .type = TY_I64, .target = arr_ref },
     }
     idx_init :: LoweredLet {
-        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = i64_type,
-        .value = LoweredIntLit { .span = span, .type = i64_type, .value = 0 },
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = TY_I64,
+        .value = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
     }
-    idx_ref :: LoweredIdent { .span = span, .type = i64_type, .symbol = idx_sym }
-    len_ref :: LoweredIdent { .span = span, .type = i64_type, .symbol = len_sym }
+    idx_ref :: LoweredIdent { .span = span, .type = TY_I64, .symbol = idx_sym }
+    len_ref :: LoweredIdent { .span = span, .type = TY_I64, .symbol = len_sym }
 
     cond :: LoweredBinary {
         .span = span, .type = TY_BOOL, .op = .Lt, .left = idx_ref, .right = len_ref,
@@ -610,8 +609,8 @@ emit_fused_array :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = i64_type, .op = .Add,
-            .left = idx_ref, .right = LoweredIntLit { .span = span, .type = i64_type, .value = 1 },
+            .span = span, .type = TY_I64, .op = .Add,
+            .left = idx_ref, .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
         },
     }
 

@@ -485,8 +485,6 @@ import "toolchain/span"
 // four things it reads — a block, the local types, the use counts, and the param
 // slots — instead of a whole CFGFunction with its MonoEntry.
 
-fm_i32 :: fn() -> Type = PrimitiveType { .name = "i32" }
-
 fm_sym :: fn() -> Symbol = Symbol {
     .id = 1, .kind = .Fn, .name = "f", .module = "test",
     .module_name = "test", .visibility = .Private, .defined_at = null,
@@ -494,7 +492,7 @@ fm_sym :: fn() -> Symbol = Symbol {
 
 fm_binop :: fn(dst: LocalId, lhs: LocalId, rhs: LocalId) -> Instruction = InstrBinOp {
     .span = empty_span(), .dst = dst, .op = .Add,
-    .lhs = lhs, .rhs = rhs, .type = fm_i32(),
+    .lhs = lhs, .rhs = rhs, .type = TY_I32,
 }
 
 fm_move :: fn(dst: LocalId, src: LocalId) -> Instruction = InstrMove {
@@ -506,7 +504,7 @@ fm_call :: fn(dst: LocalId, arg: LocalId) -> Instruction = InstrCall {
     .dsts = [dst],
     .callee = fm_sym(),
     .args = [arg],
-    .type = fm_i32(),
+    .type = TY_I32,
 }
 
 fm_block :: fn(instrs: Instruction[]) -> BasicBlock = BasicBlock {
@@ -528,12 +526,12 @@ fm_uses :: fn(pairs: [LocalId, i32][]) -> MutableMap<LocalId, i32> {
 fm_no_params :: fn() -> MutableSet<LocalId> = MutableSet<LocalId> {}
 
 /// Four `i32` locals, `t0` to `t3` — every fixture below stays within them.
-fm_locals :: fn() -> CFGLocal[] = fm_locals_typed(fm_i32(), fm_i32())
+fm_locals :: fn() -> CFGLocal[] = fm_locals_typed(TY_I32, TY_I32)
 
 /// `t0` and `t1` are `i32`, `t2` and `t3` take the given types.
 fm_locals_typed :: fn(t2: Type, t3: Type) -> CFGLocal[] = [
-    CFGLocal { .name = "t0", .type = fm_i32(), .symbol = null },
-    CFGLocal { .name = "t1", .type = fm_i32(), .symbol = null },
+    CFGLocal { .name = "t0", .type = TY_I32, .symbol = null },
+    CFGLocal { .name = "t1", .type = TY_I32, .symbol = null },
     CFGLocal { .name = "t2", .type = t2, .symbol = null },
     CFGLocal { .name = "t3", .type = t3, .symbol = null },
 ]
@@ -623,8 +621,8 @@ test_fold_moves_keeps_move_when_producer_has_a_side_effect :: fn() -> void {
 test_fold_moves_keeps_a_move_that_tags_a_scalar_into_a_union :: fn() -> void {
     // `t2` is a `u8`, `t3` a `u8 | string` : the Move is where the scalar is told
     // its type (`retag`), so the producer must not write `t3` directly.
-    byte :: PrimitiveType { .name = "u8" }
-    locals :: fm_locals_typed(byte, mk_union([byte, PrimitiveType { .name = "string" }]))
+    byte :: mk_primitive("u8")
+    locals :: fm_locals_typed(byte, mk_union([byte, TY_STRING]))
     out :: fold_moves_in_block(
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         locals, fm_uses([[LocalId(2), 1]]), fm_no_params(),

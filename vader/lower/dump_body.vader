@@ -284,7 +284,7 @@ binary_text :: fn(names: DumpNames, e: LoweredBinary, indent: string) -> string 
 // nothing to check.
 binary_symbol :: fn(op: LoweredBinaryOp, operand: Type) -> string {
     symbol :: binary_op_symbol(op)
-    if (op == .Add || op == .Sub || op == .Mul) && integer_representation(strip_distinct(operand)) != null {
+    if (op == .Add || op == .Sub || op == .Mul) && strip_distinct(operand) is RangeType {
         return "${symbol}%"
     }
     return symbol

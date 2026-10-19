@@ -392,14 +392,13 @@ import "std/testing"
 
 @test
 test_value_abi_takes_two_words :: fn() -> void {
-    i32_t :: mk_primitive("i32")
-    assert_eq(value_abi_type_size(mk_tuple([i32_t, i32_t])), 8)
+    assert_eq(value_abi_type_size(mk_tuple([TY_I32, TY_I32])), 8)
 }
 
 @test
 test_value_abi_takes_twelve_bytes :: fn() -> void {
     // `codepoint_at_byte`'s shape: the one an 8-byte bound would have missed.
-    decoded :: mk_tuple([mk_primitive("char"), mk_primitive("i64")])
+    decoded :: mk_tuple([TY_CHAR, TY_I64])
     assert_eq(value_abi_type_size(decoded), 12)
 }
 
@@ -413,26 +412,26 @@ test_value_abi_rejects_past_sixteen :: fn() -> void {
 test_value_abi_rejects_a_string_leaf :: fn() -> void {
     // An interned atom is a GC root : taking a local's address means rooting it
     // before the call, which the all-primitive first cut avoids.
-    named :: mk_tuple([mk_primitive("i32"), mk_primitive("string")])
+    named :: mk_tuple([TY_I32, TY_STRING])
     assert_eq(value_abi_type_size(named), -1)
 }
 
 @test
 test_value_abi_rejects_a_c_pointer_leaf :: fn() -> void {
     // Eight bytes like a `u64`, and the size is exactly what must not decide it.
-    holder :: mk_tuple([mk_primitive("i32"), mk_primitive("CPointer")])
+    holder :: mk_tuple([TY_I32, TY_CPOINTER])
     assert_eq(value_abi_type_size(holder), -1)
 }
 
 @test
 test_value_abi_rejects_an_array_leaf :: fn() -> void {
-    holder :: mk_tuple([mk_primitive("i32"), mk_array(mk_primitive("i32"))])
+    holder :: mk_tuple([TY_I32, mk_array(TY_I32)])
     assert_eq(value_abi_type_size(holder), -1)
 }
 
 @test
 test_value_abi_rejects_a_bare_primitive :: fn() -> void {
-    assert_eq(value_abi_type_size(mk_primitive("i32")), -1)
+    assert_eq(value_abi_type_size(TY_I32), -1)
 }
 
 @test
@@ -442,20 +441,19 @@ test_value_abi_rejects_an_empty_tuple :: fn() -> void {
 
 @test
 test_value_abi_sees_through_a_distinct :: fn() -> void {
-    i32_t :: mk_primitive("i32")
-    coord :: mk_distinct(value_abi_test_sym(), mk_tuple([i32_t, i32_t]))
+    coord :: mk_distinct(value_abi_test_sym(), mk_tuple([TY_I32, TY_I32]))
     assert_eq(value_abi_type_size(coord), 8)
 }
 
 @test
 test_value_abi_reads_through_a_nullable :: fn() -> void {
-    pair :: mk_tuple([mk_primitive("char"), mk_primitive("i64")])
+    pair :: mk_tuple([TY_CHAR, TY_I64])
     assert_eq(display_type(value_abi_payload(mk_union([pair, TY_NULL]))), "[char, i64]")
 }
 
 @test
 test_value_abi_keeps_a_three_way_union_whole :: fn() -> void {
-    wide :: mk_union([mk_primitive("i32"), mk_primitive("f64"), TY_NULL])
+    wide :: mk_union([TY_I32, TY_F64, TY_NULL])
     assert_eq(value_abi_type_size(value_abi_payload(wide)), -1)
 }
 
@@ -478,7 +476,7 @@ test_fresh_returns_accepts_a_built_struct :: fn() -> void {
             .span = empty_span(),
             .value = LoweredStructLit {
                 .span = empty_span(),
-                .type = mk_primitive("i32"),
+                .type = TY_I32,
                 .fields = [],
             },
         },
@@ -504,7 +502,7 @@ test_fresh_returns_refuses_a_forwarded_value :: fn() -> void {
             .span = empty_span(),
             .value = LoweredIdent {
                 .span = empty_span(),
-                .type = mk_primitive("i32"),
+                .type = TY_I32,
                 .symbol = value_abi_test_sym(),
             },
         },
@@ -519,7 +517,7 @@ test_fresh_returns_looks_inside_an_if :: fn() -> void {
         .span = empty_span(),
         .value = LoweredIdent {
             .span = empty_span(),
-            .type = mk_primitive("i32"),
+            .type = TY_I32,
             .symbol = value_abi_test_sym(),
         },
     }

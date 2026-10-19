@@ -116,7 +116,7 @@ primitive_arith_op :: fn(mangled: string) -> Op | null {
 // tagged `u8`, and the native build binds no host import for it.
 primitive_cmp_op :: fn(mangled: string) -> Op | null {
     eq :: strip_core_member(mangled, EQUALS_SUFFIX)
-    if eq != null && is_primitive_name(eq) {
+    if eq != null && is_scalar_type_name(eq) {
         return cmp_eq(val_type_of_primitive_name(eq))
     }
     return null

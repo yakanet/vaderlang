@@ -16,27 +16,27 @@ import "vader/types"
 export Substitution :: struct {
     type_params: MutableMap<i32, Type>
     self_type:   Type | null
-    /// The range each type parameter an instance binds to a range of no machine
-    /// integer's bounds is bound to, as `type_params` holds it : the bounds a
-    /// value handed back through it is checked against (`kept_in_range`). Null
-    /// when none is.
-    ranges:      MutableMap<i32, RangeType> | null = null
+    /// Whether a type parameter is bound to a type holding a range of no machine
+    /// integer's bounds : the lowering checks what such a parameter hands back
+    /// (`bound_range`), and nothing in an instance binding none.
+    binds_refinement: bool = false
 }
 
-/// The range `subst` binds `t` to, when `t` is a type parameter it binds to one.
+/// The range of no machine integer's bounds `subst` binds `t` to, when `t` is a
+/// type parameter it binds to one : the bounds a value handed back through it is
+/// checked against (`kept_in_range`).
 ///
 /// @param subst  an instance's substitution.
 /// @param t      a type as the typecheck recorded it.
 export bound_range :: fn(subst: Substitution, t: Type) -> RangeType | null {
-    ranges :: subst.ranges ?? return null
     if t !is TypeParamType {
         return null
     }
-    return ranges[t.symbol.id]
+    return refinement_of(subst.type_params[t.symbol.id])
 }
 
-/// Build an empty substitution. Cheap — its maps start empty, `ranges` null, and
-/// `substitute` short-circuits when no entry matches.
+/// Build an empty substitution. Cheap : its map starts empty, and `substitute`
+/// short-circuits when no entry matches.
 /// @return  a fresh substitution with no type-param bindings.
 export new_substitution :: fn() -> Substitution {
     return Substitution {
@@ -130,14 +130,14 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
 @test test_empty_substitution_is_identity :: fn() -> void {
     subst :: new_substitution()
     assert(is_empty_substitution(subst), "fresh substitution should be empty")
-    same :: substitute(mk_primitive("i32"), subst)
+    same :: substitute(TY_I32, subst)
     assert_eq(display_type(same), "i32")
 }
 
 @test test_substitute_type_param :: fn() -> void {
     sym :: fresh_type_param(7, "T")
     subst :: new_substitution()
-    subst.type_params[7] = mk_primitive("i64")
+    subst.type_params[7] = TY_I64
     rewritten :: substitute(mk_type_param(sym), subst)
     assert_eq(display_type(rewritten), "i64")
 }
@@ -145,7 +145,7 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
 @test test_substitute_into_array :: fn() -> void {
     sym :: fresh_type_param(3, "T")
     subst :: new_substitution()
-    subst.type_params[3] = mk_primitive("string")
+    subst.type_params[3] = TY_STRING
     rewritten :: substitute(mk_array(mk_type_param(sym)), subst)
     assert_eq(display_type(rewritten), "string[]")
 }

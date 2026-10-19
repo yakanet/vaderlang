@@ -404,7 +404,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
         value :: lower_for_slot(ctx, call.args[0].value, array.element, call.span)
         return LoweredArrayPush {
             .span = call.span,
-            .type = mk_primitive("void"),
+            .type = TY_VOID,
             .target = bind_one_before_hoisted(ctx, target, mark),
             .value = value,
         }

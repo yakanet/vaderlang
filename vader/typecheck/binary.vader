@@ -832,7 +832,7 @@ check_equality :: fn(
     left_scalar  :: scalar_backing(left)
     right_scalar :: scalar_backing(right)
     if left_scalar != null && right_scalar != null {
-        if left_scalar.name != right_scalar.name {
+        if representation_name(left_scalar) != representation_name(right_scalar) {
             diags.push(typecheck_error(.TypeMismatch, e.span,
                 "expected `${display_type(left)}`, got `${display_type(right)}`"))
         }
@@ -1396,14 +1396,7 @@ is_float :: fn(t: Type) -> bool {
     return false
 }
 
-is_numeric :: fn(t: Type) -> bool {
-    if t is UnresolvedType                                         { return true }
-    // suppress cascade
-    if t is FreeIntType || t is FreeFloatType || t is FreeCharType { return true }
-    if t is RangeType                                              { return true }
-    if t is PrimitiveType                                          { return is_numeric_name(t.name) }
-    return false
-}
+is_numeric :: fn(t: Type) -> bool = is_integer(t) || is_float(t)
 
 is_metatype :: fn(t: Type) -> bool = t is TypeMetaType
 
@@ -1411,7 +1404,6 @@ is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType                   { return true }
     if t is FreeIntType || t is FreeCharType { return true }
     if t is RangeType                        { return true }
-    if t is PrimitiveType                    { return is_int_name(t.name) }
     return false
 }
 

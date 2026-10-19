@@ -576,21 +576,21 @@ display_leftovers :: fn(pairs: UnionLeftover[]) -> string {
 @test
 test_union_leftovers_param_takes_every_other_variant :: fn() -> void {
     t :: mk_type_param(fresh_type_param(1, "T"))
-    pairs :: union_leftovers([t, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
+    pairs :: union_leftovers([t, TY_NULL], [TY_I32, TY_STRING, TY_NULL])
     assert_eq(display_leftovers(pairs), "T <- i32 | string")
 }
 
 @test
 test_union_leftovers_drops_a_concrete_variant_the_argument_lacks :: fn() -> void {
     t :: mk_type_param(fresh_type_param(1, "T"))
-    assert_eq(display_leftovers(union_leftovers([t, TY_NULL], [mk_primitive("i32")])), "T <- i32")
+    assert_eq(display_leftovers(union_leftovers([t, TY_NULL], [TY_I32])), "T <- i32")
 }
 
 @test
 test_union_leftovers_pairs_several_params_by_position :: fn() -> void {
     t :: mk_type_param(fresh_type_param(1, "T"))
     u :: mk_type_param(fresh_type_param(2, "U"))
-    pairs :: union_leftovers([t, u, TY_NULL], [mk_primitive("i32"), TY_STRING, TY_NULL])
+    pairs :: union_leftovers([t, u, TY_NULL], [TY_I32, TY_STRING, TY_NULL])
     assert_eq(display_leftovers(pairs), "T <- i32, U <- string")
 }
 
@@ -600,8 +600,8 @@ test_unify_infer_keeps_a_held_binding :: fn() -> void {
     solutions :: MutableMap<i32, Type> {}
     held :: MutableSet<i32> {}
     held.add(0)
-    solutions[0] = mk_array(mk_primitive("i64"))
-    unify_infer(v, mk_array(mk_primitive("i32")), solutions, held)
+    solutions[0] = mk_array(TY_I64)
+    unify_infer(v, mk_array(TY_I32), solutions, held)
     assert_eq(display_type(solutions[0] ?? TY_UNRESOLVED), "i64[]")
 }
 
@@ -609,7 +609,7 @@ test_unify_infer_keeps_a_held_binding :: fn() -> void {
 test_unify_infer_leaves_a_rigid_parameter_unbound :: fn() -> void {
     rigid :: mk_type_param(fresh_type_param(1, "T"))
     solutions :: MutableMap<i32, Type> {}
-    unify_infer(rigid, mk_primitive("i32"), solutions)
+    unify_infer(rigid, TY_I32, solutions)
     assert(solutions.is_empty(), "a type parameter binds nothing")
 }
 
@@ -619,6 +619,6 @@ test_zonk_follows_a_chain_of_solutions :: fn() -> void {
     b :: InferVar { .id = 1, .origin = fresh_type_param(2, "B") }
     solutions :: MutableMap<i32, Type> {}
     solutions[0] = mk_array(b)
-    solutions[1] = mk_primitive("i32")
+    solutions[1] = TY_I32
     assert_eq(display_type(zonk(mk_array(a), solutions)), "i32[][]")
 }

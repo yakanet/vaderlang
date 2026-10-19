@@ -16,6 +16,7 @@
 module "vader/bytecode"
 
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/resolver/symbol"
 import "vader/types"
 
@@ -317,8 +318,8 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
 
 import "std/testing"
 
-@test test_val_type_of_type_primitive :: fn() -> void {
-    v :: val_type_of_type(mk_primitive("i32"))
+@test test_val_type_of_type_integer :: fn() -> void {
+    v :: val_type_of_type(TY_I32)
     match v {
         .I32 -> {}
         _    -> assert_eq("expected I32", "")
@@ -333,8 +334,8 @@ import "std/testing"
     }
 }
 
-@test test_type_intern_key_primitive_uses_name :: fn() -> void {
-    key :: type_intern_key(mk_primitive("i32"))
+@test test_type_intern_key_integer_uses_its_name :: fn() -> void {
+    key :: type_intern_key(TY_I32)
     assert_eq(key, "i32")
 }
 
@@ -411,8 +412,13 @@ type_args_hash :: fn(seed: u64, args: Type[]) -> u64 {
 export same_intern_class :: fn(a: Type, b: Type) -> bool {
     if a is DistinctType { return same_intern_class(a.backing, b) }
     if b is DistinctType { return same_intern_class(a, b.backing) }
+    // Two ranges of one bounds are held alike : no storage to look up.
+    if a is RangeType && b is RangeType && same_interval(a.bounds, b.bounds) {
+        return true
+    }
     if a is PrimitiveType | EnumType | RangeType || b is PrimitiveType | EnumType | RangeType {
-        return bare_intern_name(a) == bare_intern_name(b) && bare_intern_name(a) != ""
+        name :: bare_intern_name(a)
+        return name != "" && name == bare_intern_name(b)
     }
     if a is StructType { return b is StructType && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }
     if a is TraitType  { return b is TraitType  && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }

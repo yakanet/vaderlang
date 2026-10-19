@@ -149,7 +149,7 @@ nullable_results :: fn(elements: Type[]) -> Type[] {
 }
 
 /// The tag a nullable return carries — 0 absent, 1 present.
-TY_TAG :: PrimitiveType { .name = "i32" }
+TY_TAG :: TY_I32
 
 rewrite_nullable_return :: fn(
     b: BasicBlock, elements: Type[], locals: CFGLocal[],

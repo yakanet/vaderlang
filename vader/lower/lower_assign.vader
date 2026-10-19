@@ -218,7 +218,7 @@ destructured_leaf :: fn(
         leaf :: build_leaf_access(src, backing, source_type, span, index, null)
         return prepare_node_for_slot(ctx, place, leaf, place_type, span)
     }
-    if integer_representation(source_type) == null {
+    if source_type !is RangeType {
         return build_leaf_access(src, backing, place_type, span, index, null)
     }
     leaf :: build_leaf_access(src, backing, source_type, span, index, null)
@@ -358,7 +358,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
             .type = idx_type, .value = range_value,
         }
         range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
-        bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { mk_primitive("i64") }
+        bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { TY_I64 }
         lo_value :: cast_to_i64(LoweredFieldAccess {
             .span = span, .type = bound_type, .target = range_ref, .field = "start",
         }, span)
@@ -384,20 +384,19 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
 }
 
 adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr {
-    i64_type :: mk_primitive("i64")
     delta :: LoweredIf {
-        .span = span, .type = i64_type, .cond = inclusive,
+        .span = span, .type = TY_I64, .cond = inclusive,
         .then_block = LoweredBlock {
-            .span = span, .type = i64_type, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = i64_type, .value = 1 },
+            .span = span, .type = TY_I64, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
         },
         .else_block = LoweredBlock {
-            .span = span, .type = i64_type, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = i64_type, .value = 0 },
+            .span = span, .type = TY_I64, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
         },
     }
     return LoweredBinary {
-        .span = span, .type = i64_type, .op = .Add,
+        .span = span, .type = TY_I64, .op = .Add,
         .left = hi, .right = delta,
     }
 }
@@ -407,9 +406,9 @@ cast_to_i64 :: fn(value: LoweredExpr, span: Span) = cast_to_width(value, "i64", 
 adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
     if !inclusive { return hi }
     return LoweredBinary {
-        .span = span, .type = mk_primitive("i64"), .op = .Add,
+        .span = span, .type = TY_I64, .op = .Add,
         .left = hi,
-        .right = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = 1 },
+        .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
     }
 }
 

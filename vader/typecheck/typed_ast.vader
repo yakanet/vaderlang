@@ -911,13 +911,9 @@ test_new_typed_program_has_empty_tables :: fn() -> void {
 @test
 test_typed_program_stores_and_recovers_type :: fn() -> void {
     tp :: new_typed_program(fresh_module())
-    tp.expr_types[42] = mk_primitive("i32")
-    hit :: tp.expr_types[42]
-    match hit {
-        is null -> { assert(false, "expected to recover the stored type") }
-        is PrimitiveType -> { assert_eq(hit.name, "i32") }
-        _ -> { assert(false, "expected a PrimitiveType") }
-    }
+    tp.expr_types[42] = TY_I32
+    hit :: tp.expr_types[42] ?? return assert(false, "expected to recover the stored type")
+    assert(equals_type(hit, TY_I32), "the stored type comes back")
 }
 
 @test

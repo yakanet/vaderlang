@@ -288,15 +288,15 @@ import "std/testing"
 
 @test test_intern_type_idempotent :: fn() -> void {
     ctx :: new_emitter_ctx()
-    a :: intern_type(mk_primitive("i32"), ctx)
-    b :: intern_type(mk_primitive("i32"), ctx)
+    a :: intern_type(TY_I32, ctx)
+    b :: intern_type(TY_I32, ctx)
     assert_eq(a, b)
 }
 
 @test test_intern_type_distinct_primitives_get_distinct_indices :: fn() -> void {
     ctx :: new_emitter_ctx()
-    i32_idx :: intern_type(mk_primitive("i32"), ctx)
-    str_idx :: intern_type(mk_primitive("string"), ctx)
+    i32_idx :: intern_type(TY_I32, ctx)
+    str_idx :: intern_type(TY_STRING, ctx)
     if i32_idx == str_idx { assert_eq("indices should differ", "") }
 }
 

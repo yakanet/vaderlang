@@ -131,7 +131,6 @@ lower_async_fn :: fn(
     lowered_body: LoweredBlock, result_type: Type, is_main: bool,
 ) -> LoweredBlock {
     span :: fn_decl.span
-    i32_ty :: mk_primitive("i32")
 
     // Frame struct symbol — async calls type as the erased `Async<T>`, so no
     // consumer needs a deterministic name (unlike generators, which type the
@@ -157,8 +156,7 @@ lower_async_fn :: fn(
     resume_ty :: union_of_result_suspended(async_result_arg(result_type), suspended_ty)
 
     gb :: GenBuild {
-        .self_sym = self_sym, .state_ty = state_ty, .i32_ty = i32_ty,
-        .span = span,
+        .self_sym = self_sym, .state_ty = state_ty, .span = span,
         .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
         .fn_ctx = fn_ctx, .is_async = true, .result_ty = result_type,
         .suspended_ty = suspended_ty, .async_any_ty = async_any_ty,
@@ -187,7 +185,7 @@ lower_async_fn :: fn(
         state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
     }
     state_fields.push(LoweredStructField { .name = "awaited", .type = async_any_ty })
-    state_fields.push(LoweredStructField { .name = "state", .type = i32_ty })
+    state_fields.push(LoweredStructField { .name = "state", .type = TY_I32 })
     push_async_decls(fn_ctx, state_sym, self_sym, state_ty, resume_ty, gb_next_body(gb), gb_cancel_body(gb), state_fields)
 
     // Rewrite `f`'s body: `return __asyncstate { <all fields>, .awaited = null,
@@ -216,7 +214,7 @@ lower_async_fn :: fn(
         .name = "awaited", .value = zero_value_lit(span, async_any_ty),
     })
     construct_fields.push(LoweredStructLitField {
-        .name = "state", .value = LoweredIntLit { .span = span, .type = i32_ty, .value = entry_state },
+        .name = "state", .value = LoweredIntLit { .span = span, .type = TY_I32, .value = entry_state },
     })
     construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
     // `async main` : inline the run-driver over the freshly built frame and

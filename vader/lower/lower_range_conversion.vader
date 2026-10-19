@@ -83,7 +83,7 @@ lower_runs_conversion :: fn(
 /// @return       `value`, unchanged when `e` is no value of a type parameter bound
 ///               to a range, or a conversion `T(x)`, which checks its own.
 kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr {
-    if ctx.types.subst.ranges == null {
+    if !ctx.types.subst.binds_refinement {
         return value
     }
     target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return value
@@ -93,22 +93,17 @@ kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr
     return checked_into_range(ctx, value, held_values(value.type), target, e.span)
 }
 
-/// The integer type `t`, as the typecheck recorded it, is at this instance, as a
-/// range : a range as it is, a type parameter the instance binds to one that range,
-/// else the integer it stands for, under its own name.
+/// The integer type `t`, as the typecheck recorded it, is at this instance : a
+/// range as it is, a type parameter the instance binds to one that range.
 ///
 /// @param t  a type the typecheck recorded.
 /// @return   null when `t` is no integer type here.
 instance_range :: fn(ctx: FnLowerCtx, t: Type) -> RangeType | null {
-    held :: ctx.types.instance_argument(t)
+    held :: ctx.types.apply(t)
     if held is RangeType {
         return held
     }
-    if held !is PrimitiveType {
-        return null
-    }
-    values :: integer_values(held) ?? return null
-    return RangeType { .bounds = values, .name = held.name }
+    return null
 }
 
 // `value` converted into the range `target` (`checked_into`).
@@ -119,7 +114,7 @@ checked_into_range :: fn(
     target: RangeType,
     span: Span,
 ) -> LoweredExpr {
-    held :: range_representation(target).name
+    held :: storage_integer(target).name
     reason :: "value out of range: not in ${display_range(target)}"
     return checked_into(ctx, value, source, [target.bounds], held, reason, span)
 }
@@ -257,17 +252,6 @@ values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | 
     return held_values(lowered.type)
 }
 
-// The values a lowered value of type `t` may take : those of the integer it is held
-// in. In an instance at a range, a value of the type parameter may come from a
-// member the range borrows from its integer, which knows nothing of the range.
-held_values :: fn(t: Type) -> Interval | null {
-    backing :: strip_distinct(t)
-    held :: integer_representation(backing)
-    if held != null {
-        return integer_values(held)
-    }
-    return integer_values(backing)
-}
 
 // The values of `e`, a literal or a cast widening an integer with no loss, through
 // any number of such casts ; null for any other expression.

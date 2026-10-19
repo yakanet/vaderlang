@@ -209,7 +209,7 @@ try_pool_struct :: fn(
         },
         .index       = LoweredIntLit {
             .span  = span,
-            .type  = mk_primitive("i64"),
+            .type  = TY_I64,
             .value = 0,
         },
         .bounds_safe = true,

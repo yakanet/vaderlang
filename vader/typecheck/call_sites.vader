@@ -557,8 +557,7 @@ counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
 /// @param t      the interpolated value's type, known to implement `Display`.
 display_callee :: fn(typed: TypedProgram, t: Type) -> Callee = match t {
     is PrimitiveType -> primitive_display(typed, t)
-    // A range renders as the integer it is held in.
-    is RangeType -> primitive_display(typed, range_representation(t))
+    is RangeType -> BUILTIN_CALLEE
     is FreeIntType | FreeFloatType | FreeCharType -> display_callee(typed, default_if_free(t))
     is TypeParamType | InferVar | SelfType | TraitType
      | UnionType | AnyType -> dispatched_display(t)
@@ -575,10 +574,10 @@ dispatched_display :: fn(t: Type) -> Callee =
 display_member :: fn(typed: TypedProgram, t: Type) -> Callee =
     first_member_callee(typed, t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
 
-// The interpolation writes an integer, a `bool` or a `string` itself ; any other
-// primitive renders through its `Display`.
+// The interpolation writes a `bool` or a `string` itself ; any other primitive
+// renders through its `Display`.
 primitive_display :: fn(typed: TypedProgram, t: PrimitiveType) -> Callee {
-    if is_int_name(t.name) || t.name == "bool" || t.name == "string" {
+    if t.name == "bool" || t.name == "string" {
         return BUILTIN_CALLEE
     }
     return display_member(typed, t)

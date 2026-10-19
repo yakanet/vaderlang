@@ -64,7 +64,7 @@ lower_singleton :: fn(
         .origin      = init_entry,
     })
     span :: fn_decl.span
-    state :: new_global(ctx, "${fn_decl.name}.state", mk_primitive("i32"), span)
+    state :: new_global(ctx, "${fn_decl.name}.state", TY_I32, span)
     instance :: instance_slot(ctx, fn_decl.name, return_type, span)
     reentered :: LoweredUnreachable {
         .span   = span,
@@ -133,7 +133,7 @@ keep_instance :: fn(
 
 state_value :: fn(span: Span, value: i64) -> LoweredExpr = LoweredIntLit {
     .span  = span,
-    .type  = mk_primitive("i32"),
+    .type  = TY_I32,
     .value = value,
 }
 

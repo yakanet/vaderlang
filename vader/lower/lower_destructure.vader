@@ -132,7 +132,7 @@ emit_array_destructure :: fn(
         if !(leaf is WildcardBinding) {
             access :: LoweredIndex {
                 .span = span, .type = elem_type, .target = target,
-                .index = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = i },
+                .index = LoweredIntLit { .span = span, .type = TY_I64, .value = i },
             }
             emit_let_leaf_array(ctx, leaf, access, elem_type, span, out)
         }
@@ -176,10 +176,10 @@ emit_tail_copy :: fn(
 ) -> void {
     idx_sym :: fresh_synthetic_symbol(ctx, "i")
     out.push(LoweredLet {
-        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = mk_primitive("i64"),
-        .value = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = rest_index },
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = TY_I64,
+        .value = LoweredIntLit { .span = span, .type = TY_I64, .value = rest_index },
     })
-    idx_ref :: LoweredIdent { .span = span, .type = mk_primitive("i64"), .symbol = idx_sym }
+    idx_ref :: LoweredIdent { .span = span, .type = TY_I64, .symbol = idx_sym }
     push_stmt :: LoweredExprStmt {
         .span = span,
         .expr = LoweredArrayPush {
@@ -190,9 +190,9 @@ emit_tail_copy :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = mk_primitive("i64"), .op = .Add,
+            .span = span, .type = TY_I64, .op = .Add,
             .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = 1 },
+            .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
         },
     }
     loop_stmts: LoweredStmt[]: []
@@ -206,7 +206,7 @@ emit_tail_copy :: fn(
         .cond = LoweredBinary {
             .span = span, .type = TY_BOOL, .op = .Lt,
             .left = idx_ref,
-            .right = LoweredArrayLen { .span = span, .type = mk_primitive("i64"), .target = target },
+            .right = LoweredArrayLen { .span = span, .type = TY_I64, .target = target },
         },
         .body = loop_body,
         .step = [],
@@ -339,7 +339,7 @@ build_leaf_access :: fn(
         return LoweredIndex {
             .span = span, .type = elem_type, .target = target,
             .index = LoweredIntLit {
-                .span = span, .type = mk_primitive("i64"), .value = index,
+                .span = span, .type = TY_I64, .value = index,
             },
         }
     }

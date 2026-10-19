@@ -12,21 +12,13 @@ import "vader/types"
 
 // ---- intervals ------------------------------------------------------------
 
-/// The values of the integer type `t`, a distinct over one included.
-///
-/// @return  null for a type that is no integer.
-type_interval :: fn(t: Type) -> Interval | null {
-    p :: scalar_backing(t) ?? return null
-    return primitive_interval(p.name)
-}
-
 /// The values a constant of the integer type `t` holds.
 ///
 /// @param bits  the constant as midir carries it: its value, or for a `u64`
 ///              past `i64.max`, its bits.
 /// @param t     its type.
 constant_interval :: fn(bits: i64, t: Type) -> Interval {
-    whole :: type_interval(t) ?? return interval(bits, bits)
+    whole :: held_values(t) ?? return interval(bits, bits)
     if bits < 0 && whole.hi_open {
         return Interval {
             .lo = I64_MAX,
@@ -88,26 +80,12 @@ widen_upper :: fn(old: Interval, new: Interval, thresholds: i64[]) -> i64 | null
 import "std/testing"
 
 @test
-test_type_interval_widths :: fn() -> void {
-    u8_iv :: type_interval(mk_primitive("u8")) ?? ANY_INTEGER
-    assert(same_interval(u8_iv, interval(0, 255)), "u8")
-    i8_iv :: type_interval(mk_primitive("i8")) ?? ANY_INTEGER
-    assert(same_interval(i8_iv, interval(-128, 127)), "i8")
-    i64_iv :: type_interval(mk_primitive("i64")) ?? ANY_INTEGER
-    assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
-    u64_iv :: type_interval(mk_primitive("u64")) ?? ANY_INTEGER
-    assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
-    assert(type_interval(mk_primitive("char")) == null, "char is no integer")
-}
-
-@test
 test_constant_interval_u64_past_i64 :: fn() -> void {
     u64_type :: mk_primitive("u64")
     assert(same_interval(constant_interval(7, u64_type), interval(7, 7)), "small")
     past :: constant_interval(-1, u64_type)
     assert(past.hi_open && !past.lo_open && past.lo == I64_MAX, "u64.max")
-    i64_type :: mk_primitive("i64")
-    assert(same_interval(constant_interval(-1, i64_type), interval(-1, -1)), "signed")
+    assert(same_interval(constant_interval(-1, TY_I64), interval(-1, -1)), "signed")
 }
 
 @test
