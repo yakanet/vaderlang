@@ -673,7 +673,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
 // indices). Each accessor re-derives from the obj on the stack — no base cached
 // across an op, since every access hits `obj.bytes` / `obj.slots` fresh.
 
-/// Body of the `buffer.new` arm. Pops `size` (usize) and pushes a zero-filled
+/// Body of the `buffer.new` arm. Pops `size` (i64) and pushes a zero-filled
 /// `ObjVal` of that byte length. `type_id` is the inline immediate (D2).
 /// `handle_cell[0]` is the monotonic synthetic-handle source (diagnostics).
 ///
@@ -715,7 +715,7 @@ build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
 /// @param bytes_len  length of the object's inline byte region.
 /// @param label      op label for trap messages.
 /// @param pc         current program counter, for trap provenance.
-/// @return           the validated `usize` offset.
+/// @return           the validated offset.
 /// @error            negative offset ; range past the byte length.
 check_byte_range :: fn(off: i32, width: i64, bytes_len: i64, label: string, pc: i32) -> i64 | Trap {
     if off < 0 {
@@ -1226,7 +1226,7 @@ apply_boxed :: fn(
             if len_unwrap is Trap { return len_unwrap }
             obj_unwrap :: read_obj(peek_val(frame, frame.sp - 2), frame.pc, "buffer_to_string receiver")
             if obj_unwrap is Trap { return obj_unwrap }
-            // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
+            // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the len.
             n :: check_byte_range(i32(len_unwrap), 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
             if n is Trap { return n }
             push_val(frame, frame.sp - 2, StringVal(obj_unwrap.bytes[0..<n].bytes_to_string()))

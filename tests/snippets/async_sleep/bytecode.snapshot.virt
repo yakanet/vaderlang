@@ -12,11 +12,10 @@ type 9 primitive u8
 type 10 primitive i64
 type 11 struct std_core$Buffer {  }
 type 12 array 9
-type 13 primitive usize
-type 14 primitive void
-type 15 ref std_core$Async
-type 16 struct std_async$Sleep { ms:10,deadline:10,armed:8 }
-type 17 union 0,5
+type 13 primitive void
+type 14 ref std_core$Async
+type 15 struct std_async$Sleep { ms:10,deadline:10,armed:8 }
+type 16 union 0,5
 string 0 "exit code = "
 string 1 "woke at 5"
 string 2 "woke at 2"
@@ -27,14 +26,14 @@ import 0 byte_len std_core$byte_len result_type=10 param_types=6 param_c_out= pa
 import 1 bytes std_core$bytes result_type=12 param_types=6 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,12,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 sched_now std_runtime$sched_now result_type=10 () -> i64
-import 4 sched_arm std_runtime$sched_arm result_type=14 param_types=10 param_c_out= param_by_address= (i64) -> void
+import 4 sched_arm std_runtime$sched_arm result_type=13 param_types=10 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=2 () -> i32
-import 6 panic std_abort$panic result_type=14 param_types=6 param_c_out= param_by_address= (string) -> void
+import 6 panic std_abort$panic result_type=13 param_types=6 param_c_out= param_by_address= (string) -> void
 impl 3 std_core$Async
 impl 11 std_core$ByteAccess
-impl 16 std_core$Async
+impl 15 std_core$Async
 vtable std_core$Async.resume 3 2
-vtable std_core$Async.resume 16 13
+vtable std_core$Async.resume 15 12
 export main 1
 
 fn 0 snippet$steps () -> any
@@ -55,17 +54,17 @@ fn 1 snippet$main () -> i32
   local __off_1 i64
   local $cast_10 i64
   call 0   ; snippet$steps
-  call 12   ; std_async$run_async_main
+  call 11   ; std_async$run_async_main
   local.set 0   ; code
   i64.const 32
-  call 4   ; std_core$new_byte_buffer
+  buffer.new
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; "exit code = "
-  call 6   ; std_core$write_string_at
+  call 5   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; code
   i32.to_i64
@@ -73,12 +72,12 @@ fn 1 snippet$main () -> i32
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_10
-  call 7   ; std_core$write_int
+  call 6   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 5   ; std_core$finish_buffer
-  call 10   ; std_io$println__string
+  call 4   ; std_core$finish_buffer
+  call 9   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -118,7 +117,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
     i32.eq
     if $L3 void
       string.const 1   ; "woke at 5"
-      call 10   ; std_io$println__string
+      call 9   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
       struct.set 3 3   ; __asyncstate_snippet_0.state
@@ -153,7 +152,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
         i32.eq
         if $L6 void
           i64.const 3
-          call 11   ; std_async$sleep
+          call 10   ; std_async$sleep
           local.set 3   ; $cast_31
           local.get 0   ; arg 0
           local.get 3   ; $cast_31
@@ -168,7 +167,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             string.const 2   ; "woke at 2"
-            call 10   ; std_io$println__string
+            call 9   ; std_io$println__string
             local.get 0   ; arg 0
             i32.const 4
             struct.set 3 3   ; __asyncstate_snippet_0.state
@@ -203,7 +202,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
               i32.eq
               if $L10 void
                 i64.const 2
-                call 11   ; std_async$sleep
+                call 10   ; std_async$sleep
                 local.set 6   ; $cast_54
                 local.get 0   ; arg 0
                 local.get 6   ; $cast_54
@@ -223,7 +222,7 @@ fn 2 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                   return
                 end $L11
                 string.const 3   ; "start"
-                call 10   ; std_io$println__string
+                call 9   ; std_io$println__string
                 local.get 0   ; arg 0
                 i32.const 7
                 struct.set 3 3   ; __asyncstate_snippet_0.state
@@ -251,7 +250,6 @@ fn 3 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -267,21 +265,14 @@ fn 3 concat_2 (string,string) -> string
   return
 end
 
-fn 4 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 5 std_core$finish_buffer (ref,i64) -> string
+fn 4 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 6 std_core$write_string_at (ref,i64,string) -> i64
+fn 5 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -296,7 +287,7 @@ fn 6 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 7 std_core$write_int (ref,i64,i64) -> i64
+fn 6 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -410,7 +401,7 @@ fn 7 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 8 std_io$write (u8,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -446,7 +437,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 9   ; std_io$write_bytes
+      call 8   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -466,7 +457,7 @@ fn 8 std_io$write (u8,string) -> void
   return
 end
 
-fn 9 std_io$write_bytes (u8,ref,i64) -> i32
+fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -486,7 +477,7 @@ fn 9 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 10 std_io$println__string (string) -> void
+fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 4   ; "\n"
@@ -494,37 +485,37 @@ fn 10 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 8   ; std_io$write
+  call 7   ; std_io$write
   return
 end
 
-fn 11 std_async$sleep (i64) -> any
+fn 10 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 16   ; std_async$Sleep
+  struct.new 15   ; std_async$Sleep
   return
 end
 
-fn 12 std_async$run_async_main (any) -> i32
+fn 11 std_async$run_async_main (any) -> i32
   local.get 0   ; arg 0
-  call 14   ; std_async$block_on__i32
+  call 13   ; std_async$block_on__i32
   return
 end
 
-fn 13 std_async$Sleep$std_core_Async$resume (ref) -> any
+fn 12 std_async$Sleep$std_core_Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 16 2   ; arg 0 std_async$Sleep.armed
+  local.field 0 15 2   ; arg 0 std_async$Sleep.armed
   ref.cast 8   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 16 2   ; std_async$Sleep.armed
+    struct.set 15 2   ; std_async$Sleep.armed
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 16 0   ; arg 0 std_async$Sleep.ms
+    local.field 0 15 0   ; arg 0 std_async$Sleep.ms
     ref.cast 10   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
@@ -533,14 +524,14 @@ fn 13 std_async$Sleep$std_core_Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 16 1   ; std_async$Sleep.deadline
-    local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+    struct.set 15 1   ; std_async$Sleep.deadline
+    local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 10   ; i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+  local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
   ref.cast 10   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
@@ -548,7 +539,7 @@ fn 13 std_async$Sleep$std_core_Async$resume (ref) -> any
   i64.ge
   if $L1 void
   else
-    local.field 0 16 1   ; arg 0 std_async$Sleep.deadline
+    local.field 0 15 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 10   ; i64
     struct.new 5   ; std_core$Suspended
     return
@@ -556,7 +547,7 @@ fn 13 std_async$Sleep$std_core_Async$resume (ref) -> any
   return.lit null.const
 end
 
-fn 14 std_async$block_on__i32 (any) -> i32
+fn 13 std_async$block_on__i32 (any) -> i32
   local r any
   loop $L0 void
     local.get 0   ; arg 0

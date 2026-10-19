@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io"
 
-// Reading a foreign pointer as a machine word. The point is the FAILURE
+// Reading a foreign pointer as an integer. The point is the FAILURE
 // sentinels that are not NULL: a Win32 `HANDLE` reports failure as
 // `INVALID_HANDLE_VALUE` (-1) and `mmap` as `MAP_FAILED` (-1), neither of which
 // a `CPointer | null` can see — it only ever narrows on zero.
@@ -11,7 +11,7 @@ import "std/io"
 // target has, MinGW included; the conversion under test is the same.
 @c_header("<stdlib.h>")
 @extern("malloc")
-c_malloc :: fn(n: usize) -> CPointer
+c_malloc :: fn(n: u64) -> CPointer
 
 @c_header("<stdlib.h>")
 @extern("free")
@@ -20,11 +20,9 @@ c_free :: fn(p: CPointer) -> void
 main :: fn() -> i32 {
     p :: c_malloc(16)
     // A successful `malloc` is neither NULL nor the -1 sentinel, so both
-    // readings hold — and both widths agree on the same address.
-    println("live=${isize(p) != 0 && isize(p) != -1}")
-    println("widths_agree=${usize(p) == usize(isize(p))}")
-    // A 64-bit integer holds the address on every target.
-    println("as_64_bits=${i64(p) == i64(isize(p)) && u64(p) == u64(usize(p))}")
+    // readings hold, and the signed and unsigned readings agree on the address.
+    println("live=${i64(p) != 0 && i64(p) != -1}")
+    println("readings_agree=${u64(p) == u64(i64(p))}")
     c_free(p)
     return 0
 }

@@ -11,11 +11,10 @@ type 8 struct std_core$Dec64 { mantissa:7,exp:1 }
 type 9 struct __Tuple_u64_u64_u64_2d035edd { _0:7,_1:7,_2:7 }
 type 10 struct std_core$Buffer {  }
 type 11 array 4
-type 12 primitive usize
-type 13 primitive void
+type 12 primitive void
+type 13 array 7
 type 14 array 6
 type 15 ref _
-type 16 array 7
 string 0 "pi = "
 string 1 ", sci = "
 string 2 " "
@@ -154,7 +153,6 @@ fn 1 concat_4 (string,string,string,string) -> string
   local.get 7   ; $call_12
   i64.add
   local.tee 7   ; $call_12
-  i64.to_i64
   buffer.new
   local.tee 8   ; buf
   i64.const 0
@@ -216,7 +214,6 @@ fn 2 concat_5 (string,string,string,string,string) -> string
   local.get 9   ; $call_16
   i64.add
   local.tee 9   ; $call_16
-  i64.to_i64
   buffer.new
   local.tee 10   ; buf
   i64.const 0
@@ -258,7 +255,6 @@ fn 3 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -485,11 +481,11 @@ fn 6 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 16   ; pool[0] u64[]
+    data.const 0 13   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 16   ; pool[0] u64[]
+    data.const 0 13   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -599,11 +595,11 @@ fn 6 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 16   ; pool[1] u64[]
+    data.const 1 13   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 16   ; pool[1] u64[]
+    data.const 1 13   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -980,7 +976,7 @@ fn 7 std_core$render (u64,i32,bool) -> string
   local exp i32
   local buf ref
   local off i64
-  local $call_22 i64
+  local $call_21 i64
   local.get 0   ; arg 0
   local.set 3   ; mantissa
   local.get 1   ; arg 1
@@ -1004,7 +1000,6 @@ fn 7 std_core$render (u64,i32,bool) -> string
     end $L1
   end $L0
   i64.const 25
-  i64.to_i64
   buffer.new
   local.set 5   ; buf
   i64.const 0
@@ -1022,9 +1017,9 @@ fn 7 std_core$render (u64,i32,bool) -> string
     local.get 3   ; mantissa
     local.get 4   ; exp
     call 16   ; std_core$write_decimal
-    local.set 7   ; $call_22
+    local.set 7   ; $call_21
     local.get 5   ; buf
-    local.get 7   ; $call_22
+    local.get 7   ; $call_21
     buffer_to_string
     return
   end $L2
@@ -1033,9 +1028,9 @@ fn 7 std_core$render (u64,i32,bool) -> string
   local.get 3   ; mantissa
   local.get 4   ; exp
   call 16   ; std_core$write_decimal
-  local.set 7   ; $call_22
+  local.set 7   ; $call_21
   local.get 5   ; buf
-  local.get 7   ; $call_22
+  local.get 7   ; $call_21
   buffer_to_string
   return
 end

@@ -40,7 +40,7 @@
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
       c2: i64 = c1 +% std.core.byte_len(p2)
-      buf: Buffer = std.core.usize.new_buffer(usize(c2))
+      buf: Buffer = std.core.new_byte_buffer(c2)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.write_string(buf, c1, p2)
@@ -49,7 +49,7 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
@@ -59,7 +59,7 @@
       c1: i64 = c0 +% std.core.byte_len(p1)
       c2: i64 = c1 +% std.core.byte_len(p2)
       c3: i64 = c2 +% std.core.byte_len(p3)
-      buf: Buffer = std.core.usize.new_buffer(usize(c3))
+      buf: Buffer = std.core.new_byte_buffer(c3)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.write_string(buf, c1, p2)
@@ -107,7 +107,6 @@
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
-    fn std.core.isize.to_string  // std_core$isize$Display$to_string
     fn std.core.log10_pow2  // std_core$log10_pow2
     fn std.core.log10_pow5  // std_core$log10_pow5
     fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
@@ -118,7 +117,6 @@
     fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
     fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
     fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
-    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.null.to_string  // std_core$null$Display$to_string
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5_factor_32  // std_core$pow5_factor_32
@@ -132,8 +130,6 @@
     fn std.core.u64.to_string  // std_core$u64$Display$to_string
     fn std.core.u8.to_string  // std_core$u8$Display$to_string
     fn std.core.umul128  // std_core$umul128
-    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.to_string  // std_core$usize$Display$to_string
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_decimal  // std_core$write_decimal

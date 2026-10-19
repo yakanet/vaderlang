@@ -1,0 +1,13 @@
+module "snippet"
+
+// `@c_type` on a declaration names the C type of an `@extern` result : a fn Vader
+// compiles has no C prototype, and a `string` result already crosses as a
+// `const char*`.
+@c_type("size_t")
+count :: fn() -> u64 = 0
+
+@c_type("char*")
+@extern("getenv")
+c_getenv :: fn(name: string) -> string
+
+main :: fn() -> i32 = i32(count()) + i32(c_getenv("HOME").byte_len())

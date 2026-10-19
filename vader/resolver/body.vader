@@ -513,6 +513,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "c_header"
         || name == "c_pointer"
         || name == "c_out"
+        || name == "c_type"
         || name == "c_struct"
         || name == "c_variadic"
         || name == "displayable"

@@ -69,7 +69,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
         return range_conversion_allowed(src, refined)
     }
     if enum_data_of(src, target) != null { return true }
-    // The `Convert` op domain — numeric / char / enum conversions (`usize(i32)`,
+    // The `Convert` op domain — numeric / char / enum conversions (`u64(i32)`,
     // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap
     // (`BlockId(-1)`, `i32(blockId)`). These are cheap tag-test gates and cover
     // the dominant cast case, so they run before the heavier `is_assignable` walk

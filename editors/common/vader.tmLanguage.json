@@ -245,7 +245,7 @@
       "patterns": [
         {
           "name": "support.type.primitive.vader",
-          "match": "\\b(bool|u8|u16|u32|u64|usize|isize|i8|i16|i32|i64|f32|f64|char|string|void|int|long|float|double|byte)\\b"
+          "match": "\\b(bool|u8|u16|u32|u64|i8|i16|i32|i64|f32|f64|char|string|void|int|long|float|double|byte)\\b"
         },
         {
           "comment": "Generic type parameter: $T",
@@ -281,17 +281,17 @@
         {
           "comment": "Hex literal with optional suffix",
           "name": "constant.numeric.hex.vader",
-          "match": "\\b0[xX][0-9A-Fa-f][0-9A-Fa-f_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64|usize))?\\b"
+          "match": "\\b0[xX][0-9A-Fa-f][0-9A-Fa-f_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64))?\\b"
         },
         {
           "comment": "Binary literal",
           "name": "constant.numeric.binary.vader",
-          "match": "\\b0[bB][01][01_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64|usize))?\\b"
+          "match": "\\b0[bB][01][01_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64))?\\b"
         },
         {
           "comment": "Octal literal",
           "name": "constant.numeric.octal.vader",
-          "match": "\\b0[oO][0-7][0-7_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64|usize))?\\b"
+          "match": "\\b0[oO][0-7][0-7_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64))?\\b"
         },
         {
           "comment": "Float literal with exponent",
@@ -311,7 +311,7 @@
         {
           "comment": "Integer literal with optional suffix",
           "name": "constant.numeric.integer.vader",
-          "match": "\\b[0-9][0-9_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64|usize))?\\b"
+          "match": "\\b[0-9][0-9_]*(?:_?(?:i8|i16|i32|i64|u8|u16|u32|u64))?\\b"
         }
       ]
     },

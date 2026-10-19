@@ -6,10 +6,10 @@
 // on the stack.
 //
 // Width-aliasing : narrow integer widths (`i8`, `i16`, `i32`, `u8`,
-// `u16`, `u32`) collapse onto the `I32X` op family ; the wider
-// 64-bit widths (`i64`, `u64`, `isize`, `usize`) use `I64X`. The
-// VM aliases every integer width to `I32Val` / `I64Val` accordingly
-// (see `op.vader` comments on the I32 / I64 op blocks). The checked
+// `u16`, `u32`) collapse onto the `I32X` op family ; the 64-bit
+// widths (`i64`, `u64`) use `I64X`. The VM aliases every integer width
+// to `I32Val` / `I64Val` accordingly (see `op.vader` comments on the
+// I32 / I64 op blocks). The checked
 // ops (`CheckedArith`, `CheckedNeg`) keep the exact type instead: it
 // is the range they check.
 //
@@ -259,7 +259,7 @@ SlotWidth :: enum(u8) { U8, I32, I64, F64, Boxed }
 /// (need a 2-byte slot op) and `f32` (needs a 4-byte float slot op — a 4-byte
 /// integer store would mis-type the operand-stack value). The lowerer must not
 /// route those element kinds onto the Vader array path until the op lands ;
-/// every kind the compiler's own arrays use (`i32`/`i64`/`usize`/`string`/
+/// every kind the compiler's own arrays use (`i32`/`i64`/`u64`/`string`/
 /// struct/`u8`) is covered.
 ///
 /// @param elem  the array's concrete element value class (from the materialised
@@ -279,8 +279,6 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
     .F32    -> null
     .I64    -> .I64
     .U64    -> .I64
-    .Isize  -> .I64
-    .Usize  -> .I64
     .F64    -> .F64
     .String -> .Boxed
     .Null   -> .Boxed
@@ -361,9 +359,9 @@ import "std/testing"
     assert(op is F64Add, "f64 + is F64Add")
 }
 
-@test test_neg_isize_is_checked :: fn() -> void {
-    op :: unary_op_for(.Neg, .Isize)
-    assert(op is CheckedNeg && op.kind == .Isize, "isize - is a checked neg on isize")
+@test test_neg_i64_is_checked :: fn() -> void {
+    op :: unary_op_for(.Neg, .I64)
+    assert(op is CheckedNeg && op.kind == .I64, "i64 - is a checked neg on i64")
 }
 
 @test test_div_unsigned_uses_u32div :: fn() -> void {
@@ -426,12 +424,12 @@ import "std/testing"
     assert_eq("expected StoreSlotI32 for i32", "")
 }
 
-@test test_slot_store_i64_and_usize :: fn() -> void {
+@test test_slot_store_i64_and_u64 :: fn() -> void {
     op_i64 :: slot_store_op_for(.I64, false)
     if !(op_i64 is StoreSlotI64) { assert_eq("expected StoreSlotI64 for i64", "") }
-    op_usize :: slot_store_op_for(.Usize, false)
-    if op_usize is StoreSlotI64 { return }
-    assert_eq("expected StoreSlotI64 for usize", "")
+    op_u64 :: slot_store_op_for(.U64, false)
+    if op_u64 is StoreSlotI64 { return }
+    assert_eq("expected StoreSlotI64 for u64", "")
 }
 
 @test test_slot_store_f64_uses_store_f64 :: fn() -> void {

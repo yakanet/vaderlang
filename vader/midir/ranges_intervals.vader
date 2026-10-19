@@ -95,9 +95,8 @@ test_type_interval_widths :: fn() -> void {
     assert(same_interval(i8_iv, interval(-128, 127)), "i8")
     i64_iv :: type_interval(mk_primitive("i64")) ?? ANY_INTEGER
     assert(same_interval(i64_iv, interval(I64_MIN, I64_MAX)), "i64")
-    usize_iv :: type_interval(mk_primitive("usize")) ?? ANY_INTEGER
-    assert(same_interval(usize_iv, primitive_interval("u64") ?? ANY_INTEGER), "usize")
-    assert(usize_iv.hi_open && !usize_iv.lo_open && usize_iv.lo == 0, "usize ends")
+    u64_iv :: type_interval(mk_primitive("u64")) ?? ANY_INTEGER
+    assert(u64_iv.hi_open && !u64_iv.lo_open && u64_iv.lo == 0, "u64 ends")
     assert(type_interval(mk_primitive("char")) == null, "char is no integer")
 }
 

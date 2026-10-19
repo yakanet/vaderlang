@@ -72,7 +72,6 @@ static bool snippet_same_pair__snippet_Point(void* l0, void* l1);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static bool snippet_Point_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
 static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1);
-static void* std_core_new_byte_buffer(int64_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2);
@@ -80,12 +79,10 @@ static bool std_core_i8_Equals_equals_guard(int8_t l0, vader_box_t l1);
 static bool std_core_i16_Equals_equals_guard(int16_t l0, vader_box_t l1);
 static bool std_core_i32_Equals_equals_guard(int32_t l0, vader_box_t l1);
 static bool std_core_i64_Equals_equals_guard(int64_t l0, vader_box_t l1);
-static bool std_core_isize_Equals_equals_guard(ptrdiff_t l0, vader_box_t l1);
 static bool std_core_u8_Equals_equals_guard(uint8_t l0, vader_box_t l1);
 static bool std_core_u16_Equals_equals_guard(uint16_t l0, vader_box_t l1);
 static bool std_core_u32_Equals_equals_guard(uint32_t l0, vader_box_t l1);
 static bool std_core_u64_Equals_equals_guard(uint64_t l0, vader_box_t l1);
-static bool std_core_usize_Equals_equals_guard(size_t l0, vader_box_t l1);
 static bool std_core_f32_Equals_equals_guard(float l0, vader_box_t l1);
 static bool std_core_f64_Equals_equals_guard(double l0, vader_box_t l1);
 static bool std_core_bool_Equals_equals_guard(bool l0, vader_box_t l1);
@@ -99,7 +96,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[28] = {
+const vader_type_info_t vader_type_info_table[26] = {
     [1] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Point_t),
         .slot_size = 8,
@@ -145,26 +142,24 @@ const vader_type_info_t vader_type_info_table[28] = {
     },
     [15] = { .slot_size = 1 },
     [16] = { .slot_size = 2 },
-    [17] = { .slot_size = 8 },
-    [18] = { .slot_size = 2 },
-    [19] = { .slot_size = 4 },
-    [20] = { .slot_size = 8 },
+    [17] = { .slot_size = 2 },
+    [18] = { .slot_size = 4 },
+    [19] = { .slot_size = 8 },
+    [20] = { .slot_size = 4 },
     [21] = { .slot_size = 8 },
     [22] = { .slot_size = 4 },
-    [23] = { .slot_size = 8 },
-    [24] = { .slot_size = 4 },
-    [25] = {
+    [23] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [27] = {
+    [25] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t, f__0) },
         .ref_count = 1,
     },
 };
-const size_t vader_type_info_count = 28;
+const size_t vader_type_info_count = 26;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -174,7 +169,7 @@ static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 25u, 12u);
+    return (void*) vader_string_bytes_view(a0, 23u, 12u);
 }
 
 static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -258,7 +253,7 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a3_obj;
     l6 = vader_ref_box(t0);
 #line 54 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(23));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(23));
     l8 = INT64_C(0);
     if (l3.tag == 3u) {
         l9 = l4.tag == 3u;
@@ -387,7 +382,7 @@ static int32_t snippet_main(void) {
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
 #line 55 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(17));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(17));
     l8 = INT64_C(0);
     if (l3.tag == 1u) {
         t0 = l3.payload.obj;
@@ -421,7 +416,7 @@ static int32_t snippet_main(void) {
 #line 58 "tests/snippets/union_value_equality/_main.vader"
     l13 = vader_box_string(10u, 3u);
 #line 59 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(11));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
     l9 = vader_box_eq(l5, l6);
     l8 = std_core_write_bool(l7, l8, l9);
@@ -437,7 +432,7 @@ static int32_t snippet_main(void) {
 #line 62 "tests/snippets/union_value_equality/_main.vader"
     l13 = vader_box_obj(0u, NULL);
 #line 63 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(17));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(17));
     l8 = INT64_C(0);
     if (l5.tag == 1u) {
         t0 = l5.payload.obj;
@@ -497,7 +492,7 @@ static int32_t snippet_main(void) {
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
 #line 64 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(17));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(17));
     l8 = INT64_C(0);
     l9 = snippet_same_opt__snippet_Point(vader_ref_box(l0), vader_ref_box(l1));
     l8 = std_core_write_bool(l7, l8, l9);
@@ -510,15 +505,15 @@ static int32_t snippet_main(void) {
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
 #line 65 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(11));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
     vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t* _a4_obj = (vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t));
-    vader_obj_header_init(_a4_obj, 27u);
+    vader_obj_header_init(_a4_obj, 25u);
     _a4_obj->f__0 = l0;
     _a4_obj->f__1 = INT32_C(1);
     l10 = (void*) _a4_obj;
     vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t* _a5_obj = (vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t));
-    vader_obj_header_init(_a5_obj, 27u);
+    vader_obj_header_init(_a5_obj, 25u);
     _a5_obj->f__0 = l1;
     _a5_obj->f__1 = INT32_C(1);
     l11 = (void*) _a5_obj;
@@ -526,12 +521,12 @@ static int32_t snippet_main(void) {
     l8 = std_core_write_bool(l7, l8, l9);
     l8 = std_core_write_string_at(l7, l8, 2u);
     vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t* _a6_obj = (vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t));
-    vader_obj_header_init(_a6_obj, 27u);
+    vader_obj_header_init(_a6_obj, 25u);
     _a6_obj->f__0 = l0;
     _a6_obj->f__1 = INT32_C(1);
     l10 = (void*) _a6_obj;
     vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t* _a7_obj = (vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t));
-    vader_obj_header_init(_a7_obj, 27u);
+    vader_obj_header_init(_a7_obj, 25u);
     _a7_obj->f__0 = l2;
     _a7_obj->f__1 = INT32_C(1);
     l11 = (void*) _a7_obj;
@@ -540,7 +535,7 @@ static int32_t snippet_main(void) {
     t1 = std_core_finish_buffer(l7, l8);
     std_io_println__string(t1);
 #line 68 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(5));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(5));
     l8 = INT64_C(0);
     if (INT32_C(1) == INT32_C(1)) {
         if (l3.tag == 3u) {
@@ -582,7 +577,7 @@ static int32_t snippet_main(void) {
 #line 69 "tests/snippets/union_value_equality/_main.vader"
     l3 = vader_box_i32(12u, INT32_C(0));
 #line 70 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(11));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
     l9 = vader_box_eq(l3, vader_box_i32(12u, INT32_C(0)));
     l8 = std_core_write_bool(l7, l8, l9);
@@ -594,16 +589,16 @@ static int32_t snippet_main(void) {
 #line 71 "tests/snippets/union_value_equality/_main.vader"
     t2 = 0.0 / 0.0;
 #line 72 "tests/snippets/union_value_equality/_main.vader"
-    l3 = vader_box_f64(23u, t2);
+    l3 = vader_box_f64(21u, t2);
 #line 73 "tests/snippets/union_value_equality/_main.vader"
-    l4 = vader_box_f64(23u, 0.0);
+    l4 = vader_box_f64(21u, 0.0);
 #line 74 "tests/snippets/union_value_equality/_main.vader"
-    l5 = vader_box_f64(23u, -0.0);
+    l5 = vader_box_f64(21u, -0.0);
 #line 75 "tests/snippets/union_value_equality/_main.vader"
-    l7 = std_core_new_byte_buffer(INT64_C(11));
+    l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
-    if ((l3.tag == 22u || l3.tag == 23u)) {
-        l9 = (l3.tag == 22u || l3.tag == 23u);
+    if ((l3.tag == 20u || l3.tag == 21u)) {
+        l9 = (l3.tag == 20u || l3.tag == 21u);
     } else {
         l9 = false;
     }
@@ -626,8 +621,8 @@ static int32_t snippet_main(void) {
     }
     l8 = std_core_write_bool(l7, l8, l9);
     l8 = std_core_write_string_at(l7, l8, 2u);
-    if ((l4.tag == 22u || l4.tag == 23u)) {
-        l9 = (l5.tag == 22u || l5.tag == 23u);
+    if ((l4.tag == 20u || l4.tag == 21u)) {
+        l9 = (l5.tag == 20u || l5.tag == 21u);
     } else {
         l9 = false;
     }
@@ -658,7 +653,7 @@ static int32_t snippet_main(void) {
     t0 = (void*) _a8_obj;
     l3 = vader_ref_box(t0);
 #line 77 "tests/snippets/union_value_equality/_main.vader"
-    l0 = std_core_new_byte_buffer(INT64_C(11));
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l8 = INT64_C(0);
     vader_struct_snippet_Box__Any_t* _a9_obj = (vader_struct_snippet_Box__Any_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box__Any_t));
     vader_obj_header_init(_a9_obj, 6u);
@@ -698,7 +693,7 @@ static int32_t snippet_main(void) {
     _a12_obj->f__1 = INT32_C(3);
     l1 = (void*) _a12_obj;
 #line 80 "tests/snippets/union_value_equality/_main.vader"
-    l2 = std_core_new_byte_buffer(INT64_C(5));
+    l2 = (void*) vader_buffer_new((size_t) INT64_C(5));
     l8 = INT64_C(0);
     l9 = snippet_Pair_std_core_Equals_equals(l0, l1);
     l8 = std_core_write_bool(l2, l8, l9);
@@ -745,11 +740,11 @@ static bool snippet_same_pair__snippet_Point(void* l0, void* l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 44 "tests/snippets/union_value_equality/_main.vader"
-    l2 = (((vader_obj_header_t*) l0)->type_index == 27u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__0);
-    t0 = vader_vt_std_core_Equals__equals(l2, (((vader_obj_header_t*) l1)->type_index == 27u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__0));
+    l2 = (((vader_obj_header_t*) l0)->type_index == 25u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__0);
+    t0 = vader_vt_std_core_Equals__equals(l2, (((vader_obj_header_t*) l1)->type_index == 25u ? vader_ref_box(((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__0) : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__0));
     if (t0) {
-        l3 = (((vader_obj_header_t*) l0)->type_index == 27u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__1);
-        l4 = (((vader_obj_header_t*) l1)->type_index == 27u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__1);
+        l3 = (((vader_obj_header_t*) l0)->type_index == 25u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l0)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l0)->f__1);
+        l4 = (((vader_obj_header_t*) l1)->type_index == 25u ? ((vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t*) l1)->f__1 : ((vader_struct___Tuple_Any_i32_ad92e87f_t*) l1)->f__1);
         { bool __vret = l3 == l4; vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_gc_top = gc_frame.prev; return false; }
@@ -797,16 +792,6 @@ static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1)
     return false;
 }
 
-static void* std_core_new_byte_buffer(int64_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 101 "lib/std/core/primitives.vader"
-    t0 = (void*) vader_buffer_new((size_t) l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -815,7 +800,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 104 "lib/std/core/primitives.vader"
+#line 100 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -823,9 +808,9 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 136 "lib/std/core/primitives.vader"
+#line 132 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 137 "lib/std/core/primitives.vader"
+#line 133 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -833,12 +818,12 @@ static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2)
 
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
-#line 188 "lib/std/core/primitives.vader"
+#line 184 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 189 "lib/std/core/primitives.vader"
+#line 185 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 5u);
         return t0;
-#line 188 "lib/std/core/primitives.vader"
+#line 184 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 4u);
     return t0;
@@ -880,15 +865,6 @@ static bool std_core_i64_Equals_equals_guard(int64_t l0, vader_box_t l1) {
     return false;
 }
 
-static bool std_core_isize_Equals_equals_guard(ptrdiff_t l0, vader_box_t l1) {
-    ptrdiff_t l2;
-    if (l1.tag == 17u) {
-        l2 = ((ptrdiff_t) l1.payload.i);
-        return l0 == l2;
-    }
-    return false;
-}
-
 static bool std_core_u8_Equals_equals_guard(uint8_t l0, vader_box_t l1) {
     uint8_t l2;
     if (l1.tag == 12u) {
@@ -900,7 +876,7 @@ static bool std_core_u8_Equals_equals_guard(uint8_t l0, vader_box_t l1) {
 
 static bool std_core_u16_Equals_equals_guard(uint16_t l0, vader_box_t l1) {
     uint16_t l2;
-    if (l1.tag == 18u) {
+    if (l1.tag == 17u) {
         l2 = ((uint16_t) l1.payload.i);
         return l0 == l2;
     }
@@ -909,7 +885,7 @@ static bool std_core_u16_Equals_equals_guard(uint16_t l0, vader_box_t l1) {
 
 static bool std_core_u32_Equals_equals_guard(uint32_t l0, vader_box_t l1) {
     uint32_t l2;
-    if (l1.tag == 19u) {
+    if (l1.tag == 18u) {
         l2 = ((uint32_t) l1.payload.i);
         return l0 == l2;
     }
@@ -918,17 +894,8 @@ static bool std_core_u32_Equals_equals_guard(uint32_t l0, vader_box_t l1) {
 
 static bool std_core_u64_Equals_equals_guard(uint64_t l0, vader_box_t l1) {
     uint64_t l2;
-    if (l1.tag == 20u) {
+    if (l1.tag == 19u) {
         l2 = ((uint64_t) l1.payload.i);
-        return l0 == l2;
-    }
-    return false;
-}
-
-static bool std_core_usize_Equals_equals_guard(size_t l0, vader_box_t l1) {
-    size_t l2;
-    if (l1.tag == 21u) {
-        l2 = ((size_t) l1.payload.i);
         return l0 == l2;
     }
     return false;
@@ -936,7 +903,7 @@ static bool std_core_usize_Equals_equals_guard(size_t l0, vader_box_t l1) {
 
 static bool std_core_f32_Equals_equals_guard(float l0, vader_box_t l1) {
     float l2;
-    if ((l1.tag == 22u || l1.tag == 23u)) {
+    if ((l1.tag == 20u || l1.tag == 21u)) {
         l2 = ((float) l1.payload.f);
         return l0 == l2;
     }
@@ -945,7 +912,7 @@ static bool std_core_f32_Equals_equals_guard(float l0, vader_box_t l1) {
 
 static bool std_core_f64_Equals_equals_guard(double l0, vader_box_t l1) {
     double l2;
-    if ((l1.tag == 22u || l1.tag == 23u)) {
+    if ((l1.tag == 20u || l1.tag == 21u)) {
         l2 = ((double) l1.payload.f);
         return l0 == l2;
     }
@@ -963,7 +930,7 @@ static bool std_core_bool_Equals_equals_guard(bool l0, vader_box_t l1) {
 
 static bool std_core_char_Equals_equals_guard(uint32_t l0, vader_box_t l1) {
     uint32_t l2;
-    if (l1.tag == 24u) {
+    if (l1.tag == 22u) {
         l2 = ((uint32_t) l1.payload.i);
         return l0 == l2;
     }
@@ -984,7 +951,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
     int32_t l8;
-    size_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -998,17 +964,14 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
     for (;;) {
 #line 209 "lib/std/io/io.vader"
-        t0 = ((vader_array_t*) l2)->length;
-        l4 = (int64_t) (size_t) t0;
+        l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
 #line 212 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l2)->length;
-            l5 = (int64_t) (size_t) t0;
+            l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
 #line 213 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l6)->length;
-            l7 = (int64_t) (size_t) t0;
+            l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
 #line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
@@ -1068,16 +1031,14 @@ static bool vader_vt_std_core_Equals__equals(vader_box_t recv, vader_box_t a0) {
         case 16u: return std_core_i16_Equals_equals_guard(((int16_t) recv.payload.i), a0);
         case 5u: return std_core_i32_Equals_equals_guard(((int32_t) recv.payload.i), a0);
         case 13u: return std_core_i64_Equals_equals_guard(((int64_t) recv.payload.i), a0);
-        case 17u: return std_core_isize_Equals_equals_guard(((ptrdiff_t) recv.payload.i), a0);
         case 12u: return std_core_u8_Equals_equals_guard(((uint8_t) recv.payload.i), a0);
-        case 18u: return std_core_u16_Equals_equals_guard(((uint16_t) recv.payload.i), a0);
-        case 19u: return std_core_u32_Equals_equals_guard(((uint32_t) recv.payload.i), a0);
-        case 20u: return std_core_u64_Equals_equals_guard(((uint64_t) recv.payload.i), a0);
-        case 21u: return std_core_usize_Equals_equals_guard(((size_t) recv.payload.i), a0);
-        case 22u: return std_core_f32_Equals_equals_guard(((float) recv.payload.f), a0);
-        case 23u: return std_core_f64_Equals_equals_guard(((double) recv.payload.f), a0);
+        case 17u: return std_core_u16_Equals_equals_guard(((uint16_t) recv.payload.i), a0);
+        case 18u: return std_core_u32_Equals_equals_guard(((uint32_t) recv.payload.i), a0);
+        case 19u: return std_core_u64_Equals_equals_guard(((uint64_t) recv.payload.i), a0);
+        case 20u: return std_core_f32_Equals_equals_guard(((float) recv.payload.f), a0);
+        case 21u: return std_core_f64_Equals_equals_guard(((double) recv.payload.f), a0);
         case 2u: return std_core_bool_Equals_equals_guard(recv.payload.b, a0);
-        case 24u: return std_core_char_Equals_equals_guard(((uint32_t) recv.payload.i), a0);
+        case 22u: return std_core_char_Equals_equals_guard(((uint32_t) recv.payload.i), a0);
         case 10u: return std_core_string_Equals_equals_guard(recv.payload.s, a0);
         case 4u: return snippet_Pair_std_core_Equals_equals(recv.payload.obj, a0.payload.obj);
         default: vader_unreachable("vtable miss in std_core$Equals.equals");

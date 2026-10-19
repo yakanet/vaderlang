@@ -383,7 +383,7 @@ POLL_SLICE_MS: u32 : 5
 @target(.Windows)
 poll_stdin :: fn(timeout_ms: i32) -> bool {
     h :: get_std_handle(STD_INPUT_HANDLE)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return true
     }
     waited: i32 = 0
@@ -477,7 +477,7 @@ read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
     h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
     // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return last_io_error("file not found")
     }
     out: u8[]: []
@@ -579,7 +579,7 @@ write_file_bytes :: fn(path: string, content: u8[]) -> null | IOError {
     // race this refuses.
     h :: create_file_w(to_wide(path), GENERIC_WRITE, FILE_SHARE_READ, null,
                        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return last_io_error("open failed")
     }
     if content.len() > 0 {
@@ -805,7 +805,7 @@ read_dir :: fn(path: string) -> string[] | IOError {
     sep :: glob_separator(path)
     data: u8[]: [0] * FIND_DATA_BYTES
     h :: find_first_file(to_wide("${path}${sep}*"), data)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return IOError { .msg = "read_dir: cannot open `${path}`" }
     }
     defer find_close(h)

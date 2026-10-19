@@ -69,10 +69,24 @@
         ],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "usize"
+          "name": "u64"
         },
         "body": null,
         "decorators": [
+          {
+            "name": "c_type",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "size_t"
+                  }
+                ]
+              }
+            ]
+          },
           {
             "name": "extern",
             "args": [
@@ -82,6 +96,83 @@
                   {
                     "kind": "text",
                     "value": "strlen"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "c_strnlen",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "s",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "defaultValue": null,
+            "variadic": false
+          },
+          {
+            "name": "max",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "u64"
+            },
+            "defaultValue": null,
+            "variadic": false,
+            "decorators": [
+              {
+                "name": "c_type",
+                "args": [
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "size_t"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "u64"
+        },
+        "body": null,
+        "decorators": [
+          {
+            "name": "c_type",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "size_t"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "extern",
+            "args": [
+              {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "strnlen"
                   }
                 ]
               }
@@ -168,6 +259,45 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "bounded"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "c_strnlen"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "hello, world"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "5n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "CallExpr",
@@ -201,6 +331,17 @@
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "n"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " strnlen="
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "bounded"
                           }
                         }
                       ]

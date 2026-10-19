@@ -20,18 +20,15 @@ module "std/core"
 /// Opaque handle to a GC-managed contiguous byte region. Carries no fields : the
 /// backing bytes live in a dedicated runtime object (the `BUFFER` sentinel
 /// type), addressed only through the `@intrinsic` methods below. Never built via
-/// a struct literal — allocate with `<byte-count>.new_buffer()`.
+/// a struct literal: allocate with `new_byte_buffer(n)`.
 export Buffer :: struct {}
 
 // ---- raw byte access (lowered to memory opcodes) --------------------------
 
-/// Allocator for `Buffer`, implemented on `usize` (the byte count) so the
-/// constructor stays an `@intrinsic`-marked impl member rather than an exported
-/// free function. `cap.new_buffer()` lowers to `object_new`.
-BufferAlloc :: trait {
-    /// Allocate `self` zeroed bytes and return the handle.
-    new_buffer :: fn(self) -> Buffer
-}
+/// Allocate a `Buffer` of `cap` zeroed bytes. Lowers to the `buffer.new` op.
+///
+/// @param cap  the byte count.
+@intrinsic export new_byte_buffer :: fn(cap: i64) -> Buffer
 
 /// Primitive byte read / write / copy over a `Buffer`. Each method lowers to a
 /// single memory opcode ; offsets are **caller-trusted** (no bounds check on the
@@ -58,5 +55,4 @@ ByteAccess :: trait {
     write_string :: fn(self, off: i64, s: string) -> void
 }
 
-@intrinsic usize  implements BufferAlloc
 @intrinsic Buffer implements ByteAccess

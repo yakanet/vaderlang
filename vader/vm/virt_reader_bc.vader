@@ -624,6 +624,8 @@ parse_import_decl_bc :: fn(
     param_types: i32[]: []
     param_c_out: bool[]: []
     param_by_address: bool[]: []
+    param_c_types: string[] = []
+    result_c_type := ""
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
         if attr.starts_with("header=") {
@@ -656,6 +658,12 @@ parse_import_decl_bc :: fn(
             for field in attr.trim_prefix("param_by_address=").split(",") {
                 param_by_address.push(field == "1")
             }
+        }
+        if attr.starts_with("param_c_types=") {
+            param_c_types = bc.c_type_from_token(attr.trim_prefix("param_c_types=")).split(",")
+        }
+        if attr.starts_with("result_c_type=") {
+            result_c_type = bc.c_type_from_token(attr.trim_prefix("result_c_type="))
         }
     }
     // The result's type index is carried as an attribute rather than by
@@ -702,6 +710,14 @@ parse_import_decl_bc :: fn(
         .c_library    = c_library,
         .c_header     = c_header,
         .c_variadic_fixed = c_variadic_fixed,
+        // Positional like the flags : a list that does not cover every
+        // parameter is not trusted.
+        .param_c_types = if param_c_types.len() == sig.params.len() {
+            param_c_types
+        } else {
+            []
+        },
+        .result_c_type = result_c_type,
     })
     return null
 }

@@ -13,8 +13,7 @@ type 10 primitive u64
 type 11 union 0,5
 type 12 struct std_core$Buffer {  }
 type 13 array 5
-type 14 primitive usize
-type 15 primitive void
+type 14 primitive void
 string 0 "u8 "
 string 1 "null"
 string 2 "other"
@@ -165,14 +164,14 @@ fn 3 snippet$optional (bool,bool) -> string
   type_check 5   ; u8
   if $L2 void
     i64.const 23
-    call 10   ; std_core$new_byte_buffer
+    buffer.new
     local.set 3   ; __buf_0
     i64.const 0
     local.set 4   ; __off_1
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
     string.const 0   ; "u8 "
-    call 12   ; std_core$write_string_at
+    call 11   ; std_core$write_string_at
     local.set 4   ; __off_1
     local.get 2   ; k
     ref.cast 5   ; u8
@@ -181,11 +180,11 @@ fn 3 snippet$optional (bool,bool) -> string
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
     local.get 5   ; $cast_16
-    call 14   ; std_core$write_unsigned
+    call 13   ; std_core$write_unsigned
     local.set 4   ; __off_1
     local.get 3   ; __buf_0
     local.get 4   ; __off_1
-    call 11   ; std_core$finish_buffer
+    call 10   ; std_core$finish_buffer
     return
   end $L2
   local.get 2   ; k
@@ -220,14 +219,14 @@ fn 4 snippet$beside_optional (bool,any) -> string
     return.lit string.const 2   ; "other"
   end $L1
   i64.const 23
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 3   ; __buf_0
   i64.const 0
   local.set 4   ; __off_1
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   string.const 0   ; "u8 "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 2   ; k
   ref.cast 5   ; u8
@@ -236,11 +235,11 @@ fn 4 snippet$beside_optional (bool,any) -> string
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
   local.get 5   ; $cast_13
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 4   ; __off_1
   local.get 3   ; __buf_0
   local.get 4   ; __off_1
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   return
 end
 
@@ -318,7 +317,7 @@ fn 6 snippet$main () -> i32
     local.set 3   ; if_res
   end $L1
   local.get 3   ; if_res
-  call 17   ; std_io$println__string
+  call 16   ; std_io$println__string
   array.new 13 0   ; u8[]
   local.tee 0   ; out
   array.len
@@ -345,7 +344,7 @@ fn 6 snippet$main () -> i32
     local.set 3   ; if_res
   end $L3
   local.get 3   ; if_res
-  call 17   ; std_io$println__string
+  call 16   ; std_io$println__string
   local.get 0   ; out
   array.len
   local.tee 2   ; $sub_checked_9
@@ -376,7 +375,7 @@ fn 6 snippet$main () -> i32
     local.set 3   ; if_res
   end $L5
   local.get 3   ; if_res
-  call 17   ; std_io$println__string
+  call 16   ; std_io$println__string
   i64.const 5000000000
   local.set 4   ; $sub_checked_38
   local.get 2   ; $sub_checked_9
@@ -390,14 +389,14 @@ fn 6 snippet$main () -> i32
     local.set 2   ; $sub_checked_9
   end $L6
   i64.const 39
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 5   ; __off_1
   local.get 0   ; out
   local.get 5   ; __off_1
   string.const 9   ; "match, i64 or int: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 5   ; __off_1
   local.get 2   ; $sub_checked_9
   local.get 4   ; $sub_checked_38
@@ -406,21 +405,21 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 5   ; __off_1
   local.get 2   ; $sub_checked_9
-  call 13   ; std_core$write_int
+  call 12   ; std_core$write_int
   local.set 5   ; __off_1
   local.get 0   ; out
   local.get 5   ; __off_1
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   i64.const 70
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 10   ; "nested: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   null.const
   bool.const true
@@ -431,12 +430,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   null.const
   bool.const false
@@ -447,12 +446,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   null.const
   bool.const false
@@ -463,21 +462,21 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   i64.const 49
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 10   ; "nested: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   null.const
   bool.const false
@@ -488,12 +487,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   string.const 12   ; "x"
   retag 2   ; string
@@ -505,21 +504,21 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   i64.const 36
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 13   ; "if, i64 or int: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   bool.const false
   call 1   ; snippet$wide_if
@@ -527,14 +526,14 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 4   ; $sub_checked_38
-  call 13   ; std_core$write_int
+  call 12   ; std_core$write_int
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   i64.const 41
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
@@ -545,12 +544,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   bool.const false
   struct.new 8   ; snippet$Probe
@@ -559,35 +558,35 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   local.tee 3   ; if_res
   call.import 0   ; std_core$byte_len
   local.set 2   ; $sub_checked_9
   i64.const 33
   local.get 2   ; $sub_checked_9
   i64.add
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 14   ; "arithmetic: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 3   ; if_res
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   i64.const 3
   struct.new 9   ; snippet$Wide
@@ -596,12 +595,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   bool.const true
   bool.const false
   call 3   ; snippet$optional
@@ -621,7 +620,7 @@ fn 6 snippet$main () -> i32
   string.const 11   ; " "
   local.get 8   ; $call_170
   call 7   ; concat_6
-  call 17   ; std_io$println__string
+  call 16   ; std_io$println__string
   bool.const false
   null.const
   call 4   ; snippet$beside_optional
@@ -636,9 +635,9 @@ fn 6 snippet$main () -> i32
   string.const 11   ; " "
   local.get 7   ; $call_166
   call 8   ; concat_4
-  call 17   ; std_io$println__string
+  call 16   ; std_io$println__string
   i64.const 41
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
@@ -650,12 +649,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   bool.const false
   bool.const false
@@ -665,35 +664,35 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
+  call 10   ; std_core$finish_buffer
   local.tee 3   ; if_res
   call.import 0   ; std_core$byte_len
   local.set 2   ; $sub_checked_9
   i64.const 32
   local.get 2   ; $sub_checked_9
   i64.add
-  call 10   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; out
   i64.const 0
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 17   ; "coalesced: "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 3   ; if_res
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   string.const 11   ; " "
-  call 12   ; std_core$write_string_at
+  call 11   ; std_core$write_string_at
   local.set 2   ; $sub_checked_9
   bool.const true
   bool.const true
@@ -703,12 +702,12 @@ fn 6 snippet$main () -> i32
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
   local.get 6   ; $cast_72
-  call 14   ; std_core$write_unsigned
+  call 13   ; std_core$write_unsigned
   local.set 2   ; $sub_checked_9
   local.get 0   ; out
   local.get 2   ; $sub_checked_9
-  call 11   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 10   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -758,7 +757,6 @@ fn 7 concat_6 (string,string,string,string,string,string) -> string
   local.get 11   ; $call_20
   i64.add
   local.tee 11   ; $call_20
-  i64.to_i64
   buffer.new
   local.tee 12   ; buf
   i64.const 0
@@ -820,7 +818,6 @@ fn 8 concat_4 (string,string,string,string) -> string
   local.get 7   ; $call_12
   i64.add
   local.tee 7   ; $call_12
-  i64.to_i64
   buffer.new
   local.tee 8   ; buf
   i64.const 0
@@ -858,7 +855,6 @@ fn 9 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -874,21 +870,14 @@ fn 9 concat_2 (string,string) -> string
   return
 end
 
-fn 10 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 11 std_core$finish_buffer (ref,i64) -> string
+fn 10 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$write_string_at (ref,i64,string) -> i64
+fn 11 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -903,7 +892,7 @@ fn 12 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 13 std_core$write_int (ref,i64,i64) -> i64
+fn 12 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -1017,7 +1006,7 @@ fn 13 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 14 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 13 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -1097,7 +1086,7 @@ fn 14 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 15 std_io$write (u8,string) -> void
+fn 14 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -1133,7 +1122,7 @@ fn 15 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 16   ; std_io$write_bytes
+      call 15   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1153,7 +1142,7 @@ fn 15 std_io$write (u8,string) -> void
   return
 end
 
-fn 16 std_io$write_bytes (u8,ref,i64) -> i32
+fn 15 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1173,7 +1162,7 @@ fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 17 std_io$println__string (string) -> void
+fn 16 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 18   ; "\n"
@@ -1181,6 +1170,6 @@ fn 17 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 15   ; std_io$write
+  call 14   ; std_io$write
   return
 end

@@ -86,6 +86,7 @@
     fn std.core.three_way  // std_core$three_way
     fn std_core$i32$Equals$equals$guard
     fn std_core$string$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64

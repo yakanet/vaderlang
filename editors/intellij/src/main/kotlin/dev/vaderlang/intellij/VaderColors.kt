@@ -12,7 +12,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 // Java, not references). Yielding to the TextMate grammar instead — the trick that
 // fixed call sites — does not work here either: IntelliJ only maps a SUBSET of
 // TextMate scopes onto its colour keys, and `support.type.primitive.vader` (the
-// grammar's scope for `i32` / `string` / `usize`) is not in it, so primitives stay
+// grammar's scope for `i32` / `string` / `u64`) is not in it, so primitives stay
 // white whichever side paints them.
 //
 // Declaring our own key with an explicit value is therefore the only

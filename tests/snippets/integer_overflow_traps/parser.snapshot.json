@@ -214,7 +214,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "u64"
               },
               "value": {
                 "kind": "IntLitExpr",
@@ -237,7 +237,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "usize in range: "
+                          "value": "u64 in range: "
                         },
                         {
                           "kind": "interp",
@@ -255,7 +255,7 @@
                                 "kind": "CallExpr",
                                 "callee": {
                                   "kind": "IdentExpr",
-                                  "name": "usize"
+                                  "name": "u64"
                                 },
                                 "args": [
                                   {

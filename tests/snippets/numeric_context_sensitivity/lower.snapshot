@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.Counter :: struct { n: usize, delta: isize }  // snippet$Counter
+  snippet.Counter :: struct { n: u64, delta: i64 }  // snippet$Counter
   snippet.main :: fn() -> i32 {  // snippet$main
       a8: i8 = 5
       b16: i16 = 100
@@ -11,8 +11,8 @@
       f16: u16 = 65000
       g32: u32 = 4000000000
       h64: u64 = 18446744073700000000
-      isz: isize = -50
-      usz: usize = 42
+      signed_wide: i64 = -50
+      unsigned_wide: u64 = 42
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(217))
           __off_1: i64 = 0
@@ -33,54 +33,54 @@
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, h64)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(isz))
+          __off_1 = std.core.write_int(__buf_0, __off_1, signed_wide)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(usz))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, unsigned_wide)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      isz2: isize = isz + isize(1)
-      usz2: usize = usz + usize(1)
+      signed_wide_next: i64 = signed_wide + i64(1)
+      unsigned_wide_next: u64 = unsigned_wide + u64(1)
       d64_2: i64 = d64 + i64(1)
       h64_2: u64 = h64 + u64(1)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(90))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "arith: ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(isz2))
+          __off_3 = std.core.write_int(__buf_2, __off_3, signed_wide_next)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(usz2))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, unsigned_wide_next)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_int(__buf_2, __off_3, d64_2)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, h64_2)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      neg: isize = -100
-      neg2: isize = neg - isize(1)
+      neg: i64 = -100
+      neg2: i64 = neg - i64(1)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(46))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "neg: ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(neg))
+          __off_5 = std.core.write_int(__buf_4, __off_5, neg)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(neg2))
+          __off_5 = std.core.write_int(__buf_4, __off_5, neg2)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      c: Counter = Counter { .n = usize(0), .delta = isize(-1) }
+      c: Counter = Counter { .n = u64(0), .delta = i64(-1) }
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(58))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "counter: n=")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(c.n))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, c.n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " delta=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(c.delta))
+          __off_7 = std.core.write_int(__buf_6, __off_7, c.delta)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      if usz == usize(42) {
+      if unsigned_wide == u64(42) {
           std.io.println<string>("eq ok")
       }
-      if isz <= isize(0) {
-          std.io.println<string>("isz_neg ok")
+      if signed_wide <= i64(0) {
+          std.io.println<string>("signed_neg ok")
       }
       arr: i32[] = [10, 20, 30, 40, 50] :i32[]
       n: i64 = @array.len(arr)
@@ -92,23 +92,23 @@
           __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(sub))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
-      forty_two: fn() -> usize = __lambda_snippet_0
+      forty_two: fn() -> u64 = __lambda_snippet_0
       std.io.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(30))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "returned: ")
-          __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(__lambda_snippet_0()))
+          __off_11 = std.core.write_unsigned(__buf_10, __off_11, __lambda_snippet_0())
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       return 0
   }
-  __lambda_snippet_0 :: fn() -> usize {
-      return usize(42)
+  __lambda_snippet_0 :: fn() -> u64 {
+      return u64(42)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
@@ -128,9 +128,7 @@
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

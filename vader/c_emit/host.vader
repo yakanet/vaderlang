@@ -65,6 +65,14 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         .comment = ["User @extern foreign symbols — resolved by the linker."],
         .items = extern_decls,
     })
+    // A `@c_type` renames a Vader integer for C : the VM hands the real callee
+    // the Vader width, in an integer register, so the C type must be an integer
+    // of that width. Asserted for every declaration, not once per symbol: two
+    // declarations of one symbol may spell it differently.
+    printer.print_section(CSection {
+        .comment = ["`@c_type` spellings, checked against the C types."],
+        .items = c_type_asserts(ctx.module.imports),
+    })
     // Layout assertions for every `@c_struct` a shim marshals. `cc` — which has
     // the real header — refuses to compile a mirror whose field width differs
     // from what the library declares, in EITHER direction, or whose offset does.
@@ -370,13 +378,9 @@ null_member :: fn(type: string, member: string) -> CExpression = pointer_member(
 extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
     parameters: CParameter[]: []
     for j in 0..<imp.signature.params.len() {
-        parameters.push(CParameter { .type = extern_parameter_type(imp.signature, types, j) })
+        parameters.push(CParameter { .type = extern_parameter_type(imp, types, j) })
     }
-    result :: if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
-        "void*"
-    } else {
-        extern_c_type(bc_single_result(imp.signature))
-    }
+    result :: extern_result_type(imp, types)
     signature :: CSignature {
         .storage = .Declaration,
         .result = result,
@@ -386,8 +390,9 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
     return CPrototype { .signature = signature }
 }
 
-// The C type the foreign symbol declares for parameter `j` of `sig`.
-extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: i64) -> string {
+// The C type the foreign symbol declares for parameter `j` of `imp`.
+extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
+    sig :: imp.signature
     writes :: param_is_c_out(sig, j)
     if is_abi_array(types, sig.param_types[j]) {
         // One Vader array = ONE C argument, a bare pointer. A length, when
@@ -410,12 +415,58 @@ extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: i64) -> string
     if param_is_by_address(sig, j) {
         // `@c_pointer`: the callee takes `T*`. `const` unless `@c_out` says it
         // writes through it.
-        return pointer_to(c_type_for_val_bare(sig.params[j]), writes)
+        return pointer_to(spilled_c_type(imp, j), writes)
     }
     if is_abi_nullable_pointer(types, sig.param_types[j]) {
         return "void*"
     }
-    return extern_c_type(sig.params[j])
+    return param_c_type(imp, j) ?? extern_c_type(sig.params[j])
+}
+
+// The C type the foreign symbol declares for the result of `imp`.
+extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
+    if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
+        return "void*"
+    }
+    return c_result_type(imp) ?? extern_c_type(bc_single_result(imp.signature))
+}
+
+// The C type of the temporary a `@c_pointer` scalar parameter is spilled to.
+spilled_c_type :: fn(imp: BcImport, j: i64) -> string =
+    param_c_type(imp, j) ?? c_type_for_val_bare(imp.signature.params[j])
+
+// One `_Static_assert` per distinct `@c_type` of the extern `imports` and the
+// Vader type it renames.
+c_type_asserts :: fn(imports: BcImport[]) -> CTopLevel[] {
+    out: CTopLevel[]: []
+    seen: string[]: []
+    for imp in imports {
+        sig :: imp.signature
+        for j in 0..<sig.params.len() {
+            spelling :: param_c_type(imp, j) ?? continue
+            push_c_type_assert(spelling, sig.params[j], seen, out)
+        }
+        spelling :: c_result_type(imp) ?? continue
+        push_c_type_assert(spelling, bc_single_result(sig), seen, out)
+    }
+    return out
+}
+
+// Push the assert that `spelling` is an integer as wide as the Vader `val`, unless
+// `seen` holds that pair already.
+push_c_type_assert :: fn(spelling: string, val: ValType, seen: string[], out: CTopLevel[]) -> void {
+    vader_type :: c_type_for_val_bare(val)
+    key :: "${spelling} ${vader_type}"
+    if key in seen {
+        return
+    }
+    seen.push(key)
+    c_width :: call("sizeof", [verbatim(spelling)])
+    wide :: binary(.Equal, c_width, call("sizeof", [verbatim(vader_type)]))
+    // An integer type truncates `0.5` to `0` ; a floating one keeps it.
+    integral :: binary(.Equal, cast(spelling, verbatim("0.5")), number(0))
+    message :: "@c_type(${spelling}) is an integer as wide as ${vader_type}"
+    out.push(static_assert(binary(.LogicalAnd, wide, integral), message))
 }
 
 // `type*`, or `const type*` when the callee may not write through it.
@@ -604,32 +655,31 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .SchedArm  -> { return [perform("vader_sched_arm", [a0])] }
     .SchedPark -> { return [returning("vader_sched_park", [])] }
 
-    // Dynamic foreign calls (vader/vm/ffi.vader). `ffi_open` / `ffi_symbol`
-    // return `CPointer | null`, so they hand back a box; the call shims take
-    // the argument slots through `vader_array_bytes`, which already owns the
-    // three-case array lend.
-    // Addresses ride `size_t` (see the note in `vader/vm/ffi.vader`), so each
-    // shim casts back to `void*` at the boundary.
+    // Dynamic foreign calls (vader/vm/ffi.vader). The call shims take the
+    // argument slots through `vader_array_bytes`, which already owns the
+    // three-case array lend. Addresses ride an `i64` (see the note in
+    // `vader/vm/ffi.vader`), so each shim converts through `intptr_t` at the
+    // boundary.
     .FfiOpen -> {
         return [
             declaration("const char*", "c0", call("vader_string_to_cstr", [a0])),
             declaration("void*", "r", call("vader_ffi_open", [verbatim("c0")])),
             perform("vader_cstr_free_for", [a0, verbatim("c0")]),
-            CReturn { .value = address_as_size(verbatim("r")) },
+            CReturn { .value = address_as_integer(verbatim("r")) },
         ]
     }
     .FfiSymbol -> {
-        symbol :: call("vader_ffi_symbol", [size_as_address(a0), verbatim("c1")])
+        symbol :: call("vader_ffi_symbol", [integer_as_address(a0), verbatim("c1")])
         return [
             declaration("const char*", "c1", call("vader_string_to_cstr", [a1])),
             declaration("void*", "r", symbol),
             perform("vader_cstr_free_for", [a1, verbatim("c1")]),
-            CReturn { .value = address_as_size(verbatim("r")) },
+            CReturn { .value = address_as_integer(verbatim("r")) },
         ]
     }
     .FfiCall -> {
         arguments: CExpression[]: [
-            size_as_address(a0),
+            integer_as_address(a0),
             cast("vader_array_t*", a1),
             cast("vader_array_t*", argument(2)),
             argument(3),
@@ -663,12 +713,12 @@ gc_statistic :: fn(field: string) -> CStatement = CReturn {
     .value = cast("int32_t", CMember { .base = call("vader_gc_get_stats", []), .member = field }),
 }
 
-// `(size_t) (uintptr_t) pointer` — an address riding a `usize` slot.
-address_as_size :: fn(pointer: CExpression) -> CExpression =
-    cast("size_t", cast("uintptr_t", pointer))
+// `(int64_t) (intptr_t) pointer`: an address riding an `i64` slot.
+address_as_integer :: fn(pointer: CExpression) -> CExpression =
+    cast("int64_t", cast("intptr_t", pointer))
 
-// `(void*) (uintptr_t) size` — the address a `usize` slot carries.
-size_as_address :: fn(size: CExpression) -> CExpression = cast("void*", cast("uintptr_t", size))
+// `(void*) (intptr_t) value`: the address an `i64` slot carries.
+integer_as_address :: fn(value: CExpression) -> CExpression = cast("void*", cast("intptr_t", value))
 
 // ---- @extern forwarding ---------------------------------------------------
 
@@ -739,7 +789,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // Spill to a stack temporary and hand over its address. The
             // temporary lives for the call and no longer — which is the whole
             // contract, and why no pointer type appears in Vader.
-            before.push(declaration(c_type_for_val_bare(sig.params[j]), "p${j}", a))
+            before.push(declaration(spilled_c_type(imp, j), "p${j}", a))
             // `(void*)` and not a bare `&p`: with `@c_header` the real prototype
             // is visible, and a Vader `u32` is `uint32_t` while Win32 spells the
             // same 32 bits `unsigned long` — distinct pointer types to C, which
@@ -762,7 +812,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             frees.push(perform("vader_cstr_free_for", [a, verbatim("c${j}")]))
             call_args.push(verbatim("c${j}"))
         } else {
-            call_args.push(a)
+            call_args.push(renamed_argument(imp, j, a))
         }
     }
     // C never receives a mirror's Vader address — it gets `&p{j}`, the shim's own
@@ -789,7 +839,8 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // Freeing first left `strlen` and the intern reading memory that had just
     // gone back to the allocator.
     direct :: after.len() == 0 && frees.len() == 0
-    handled :: forwarded_result(sig, types, call(imp.extern_name, call_args), direct)
+    forwarded :: read_back(imp, call(imp.extern_name, call_args))
+    handled :: forwarded_result(sig, types, forwarded, direct)
     if handled.returns {
         before.push(handled.capture)
         return before
@@ -802,6 +853,22 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     before.push_all(frees)
     before.push(CReturn { .value = handled.returned })
     return before
+}
+
+// The call `forwarded` as the shim's own result type : converted back from the
+// `@c_type` the callee declares, when it declares one.
+read_back :: fn(imp: BcImport, forwarded: CExpression) -> CExpression {
+    if c_result_type(imp) == null {
+        return forwarded
+    }
+    return cast(c_type_for_val_bare(bc_single_result(imp.signature)), forwarded)
+}
+
+// Argument `a` of parameter `j`, converted to the `@c_type` the callee declares
+// for it when it declares one.
+renamed_argument :: fn(imp: BcImport, j: i64, a: CExpression) -> CExpression {
+    spelling :: param_c_type(imp, j) ?? return a
+    return cast(spelling, a)
 }
 
 // How a forwarded call's result leaves the shim.

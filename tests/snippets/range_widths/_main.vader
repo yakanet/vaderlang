@@ -1,5 +1,5 @@
 // Range<T> supports every integer width that std/core ships an Iterator
-// impl for : i8 / i16 / i32 / i64 / isize / u8 / u16 / u32 / u64 / usize.
+// impl for : i8 / i16 / i32 / i64 / u8 / u16 / u32 / u64.
 // The bound type is picked from the first concrete operand, so a FreeInt
 // literal on the left adopts the upper bound's width.
 
@@ -19,12 +19,6 @@ main :: fn() -> i32 {
     si: i64 = 0
     for i in 0..<ni { si = si + i }
     println("i64 sum=${si}")
-
-    // isize.
-    nis: isize: 5
-    sis: isize = 0
-    for i in 0..<nis { sis = sis + i }
-    println("isize sum=${sis}")
 
     // u8 — both bounds explicit since no FreeInt → u8 narrowing happens
     // automatically without a concrete operand.

@@ -93,8 +93,8 @@ RegOp :: enum(i32) {
     // op r[c], or stop the run when the result leaves the integer type `kinds` gives
     // the op. The `I32`, `I64` and `U64` forms pass their type as a constant, which
     // the C compiler folds through `checked_arith`, so the check costs next to
-    // nothing ; `I64` also serves `isize`, `U64` serves `usize`, and a trap names the
-    // type `kinds` holds. The others decode it from `kinds` on every run.
+    // nothing, and a trap names the type `kinds` holds. The others decode it from
+    // `kinds` on every run.
     AddCheckedI32
     SubCheckedI32
     MulCheckedI32

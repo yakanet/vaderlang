@@ -19,9 +19,8 @@
 // then a DIRECT `write_string` intrinsic per part (resolved as the `Buffer` impl
 // member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`)
 // — NOT the offset-returning `write_string_at` free wrapper, which adds a call
-// layer + recomputes `byte_len`. `new_byte_buffer` / `byte_len` / `finish_buffer`
-// stay the force-loaded std/core free wrappers — expression-bodied one-liners
-// over their intrinsics, which `cc` inlines. Mirrors `lower_string_lit::lower_interp_buffer`,
+// layer + recomputes `byte_len`. `new_byte_buffer` and `byte_len` are force-loaded
+// std/core `@intrinsic` free fns, each an op. Mirrors `lower_string_lit::lower_interp_buffer`,
 // minus the int/bool `write_*` (those keep `write_string_at`'s off-threading).
 
 module "vader/lower"
@@ -72,27 +71,28 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 
     // Resolve the std/core buffer API (force-loaded ; a miss is a broken
     // toolchain). Separate checks so each narrows to a non-null Symbol.
-    // `new_byte_buffer` / `byte_len` / `finish_buffer` are the expression-bodied
-    // free wrappers over their intrinsics ; `write_string` is the `Buffer` impl
-    // member resolved directly, avoiding the `write_string_at` call layer + its
-    // redundant `byte_len`.
+    // `byte_len` and `new_byte_buffer` are `@intrinsic` free fns, each an op ;
+    // `write_string` is the `Buffer` impl member resolved directly, avoiding the
+    // `write_string_at` call layer + its redundant `byte_len`.
     blen_sym :: resolve_writer_fn(ctx, "byte_len") ?? return null
+    alloc_sym :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
     // `finish_buffer` is resolved for its SIGNATURE only — its first parameter is
     // where the `Buffer` type comes from. The call goes to the impl member below.
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
     buffer_type :: resolve_buffer_type(ctx, finish_sym) ?? return null
-    // The three `Buffer` operations are the impl members, not the expression-bodied
-    // free wrappers `new_byte_buffer` / `finish_buffer` around them. Each wrapper is
+    // The two other `Buffer` operations are the impl members, not the
+    // expression-bodied free wrappers around them (`finish_buffer`). Each wrapper is
     // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a
     // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it —
     // and `cc` cannot elide that, because the collector reads that global. So a
     // 13-byte concat used to push four nested frames to do one buffer's work.
     intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
-    // Harvest the free wrapper for materialisation — else the synthesised call has
-    // an unresolved (non-materialised) callee. The impl members are surfaced by
+    // Harvest the free fns for materialisation — else the synthesised call has an
+    // unresolved (non-materialised) callee. The impl members are surfaced by
     // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
     register_nongeneric_imported_fn(ctx, blen_sym)
+    register_nongeneric_imported_fn(ctx, alloc_sym)
 
     fn_symbol :: synth_entry_symbol(ctx, .Fn, "concat_${n}")
 
@@ -130,10 +130,9 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 
     buf_sym :: synth_entry_symbol(ctx, .Synthetic, "buf")
     total :: synth_ident(total_sym, i64_type, span)
-    alloc :: allocate_buffer(ctx, total, buffer_type, span) ?? return null
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = alloc,
+        .value = mk_lowered_call(alloc_sym, [total], buffer_type, span),
     })
     // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
@@ -164,24 +163,6 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     }
     ctx.project.entry_decls.push(decl)
     return fn_symbol
-}
-
-// The call allocating the concat's buffer of `total` bytes: the `new_buffer` member
-// of `usize` where the core library declares it, else the free `new_byte_buffer`.
-allocate_buffer :: fn(
-    ctx: FnLowerCtx,
-    total: LoweredExpr,
-    buffer_type: Type,
-    span: Span,
-) -> LoweredExpr | null {
-    member :: find_impl_member_for(ctx, mk_primitive("usize"), "new_buffer")
-    if member != null {
-        count :: cast_to_width(total, "usize", span)
-        return build_member_call_or_inline(member, [count], buffer_type, span)
-    }
-    alloc :: resolve_writer_fn(ctx, "new_byte_buffer") ?? return null
-    register_nongeneric_imported_fn(ctx, alloc)
-    return mk_lowered_call(alloc, [total], buffer_type, span)
 }
 
 // Mint a synthetic symbol for a project-global fn (a `concat_N`, a field-default

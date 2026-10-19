@@ -11,8 +11,8 @@ module "snippet"
 import "std/io"
 
 Counter :: struct {
-    n: usize = 0
-    delta: isize = -1
+    n: u64 = 0
+    delta: i64 = -1
 }
 
 main :: fn() -> i32 {
@@ -25,35 +25,35 @@ main :: fn() -> i32 {
     f16: u16: 65000
     g32: u32: 4000000000
     h64: u64: 18446744073700000000
-    isz: isize: -50
-    usz: usize: 42
-    println("widths: ${a8} ${b16} ${c32} ${d64} ${e8} ${f16} ${g32} ${h64} ${isz} ${usz}")
+    signed_wide: i64: -50
+    unsigned_wide: u64: 42
+    println("widths: ${a8} ${b16} ${c32} ${d64} ${e8} ${f16} ${g32} ${h64} ${signed_wide} ${unsigned_wide}")
 
     // (2) arithmetic with a literal — the literal adopts the operand width
-    isz2 :: isz + 1
-    usz2 :: usz + 1
+    signed_wide_next :: signed_wide + 1
+    unsigned_wide_next :: unsigned_wide + 1
     d64_2 :: d64 + 1
     h64_2 :: h64 + 1
-    println("arith: ${isz2} ${usz2} ${d64_2} ${h64_2}")
+    println("arith: ${signed_wide_next} ${unsigned_wide_next} ${d64_2} ${h64_2}")
 
-    // (3) negated literal into a signed slot — `-1` lowers as `isize.neg`
-    neg: isize: -100
+    // (3) negated literal into a signed slot — `-1` lowers as `i64.neg`
+    neg: i64: -100
     neg2 :: neg - 1
     println("neg: ${neg} ${neg2}")
 
-    // (4) struct field default of `usize` / `isize` adopts the type
+    // (4) struct field default of `u64` / `i64` adopts the type
     c :: Counter {}
     println("counter: n=${c.n} delta=${c.delta}")
 
     // (5) comparison with a literal on either side
-    if usz == 42 {
+    if unsigned_wide == 42 {
         println("eq ok")
     }
-    if isz <= 0 {
-        println("isz_neg ok")
+    if signed_wide <= 0 {
+        println("signed_neg ok")
     }
 
-    // (6) index-range bounds — the `0` and `n - 1` adopt `usize` from the
+    // (6) index-range bounds — the `0` and `n - 1` adopt `i64` from the
     // built-in `arr[start..<end]` slice's index context (no cast needed).
     arr: i32[]: [10, 20, 30, 40, 50]
     n: i64: arr.len()
@@ -61,7 +61,7 @@ main :: fn() -> i32 {
     println("slice_array: ${sub.len()}")
 
     // (7) return value with annotation
-    forty_two :: fn() -> usize { return 42 }
+    forty_two :: fn() -> u64 { return 42 }
     println("returned: ${forty_two()}")
 
     return 0

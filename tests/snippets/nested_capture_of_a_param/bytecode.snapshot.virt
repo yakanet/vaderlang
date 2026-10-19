@@ -16,9 +16,8 @@ type 13 primitive u8
 type 14 primitive i64
 type 15 struct std_core$Buffer {  }
 type 16 array 13
-type 17 primitive usize
-type 18 struct $Cell_i32 { value:3 }
-type 19 fn () -> 2
+type 17 struct $Cell_i32 { value:3 }
+type 18 fn () -> 2
 string 0 "n="
 string 1 "a param"
 string 2 "another param"
@@ -54,7 +53,7 @@ fn 2 snippet$shared_cell (i32) -> void
   local __off_2 i64
   local $cast_14 i64
   i32.const 0
-  struct.new 18   ; $Cell_i32
+  struct.new 17   ; $Cell_i32
   local.tee 1   ; n
   local.get 0   ; arg 0
   struct.new 9   ; __lambda_env_snippet_9
@@ -63,33 +62,33 @@ fn 2 snippet$shared_cell (i32) -> void
   local.get 2   ; mid
   call 10   ; __lambda_snippet_8
   i64.const 22
-  call 14   ; std_core$new_byte_buffer
+  buffer.new
   local.set 2   ; mid
   i64.const 0
   local.set 3   ; __off_2
   local.get 2   ; mid
   local.get 3   ; __off_2
   string.const 0   ; "n="
-  call 16   ; std_core$write_string_at
+  call 15   ; std_core$write_string_at
   local.set 3   ; __off_2
-  local.field 1 18 0   ; n $Cell_i32.value
+  local.field 1 17 0   ; n $Cell_i32.value
   i32.to_i64
   local.set 4   ; $cast_14
   local.get 2   ; mid
   local.get 3   ; __off_2
   local.get 4   ; $cast_14
-  call 17   ; std_core$write_int
+  call 16   ; std_core$write_int
   local.set 3   ; __off_2
   local.get 2   ; mid
   local.get 3   ; __off_2
-  call 15   ; std_core$finish_buffer
-  call 20   ; std_io$println__string
+  call 14   ; std_core$finish_buffer
+  call 19   ; std_io$println__string
   return
 end
 
 fn 3 snippet$writes_are_visible_to_the_defer (i32) -> void
   i32.const 0
-  struct.new 18   ; $Cell_i32
+  struct.new 17   ; $Cell_i32
   local.get 0   ; arg 0
   struct.new 11   ; __lambda_env_snippet_13
   call 12   ; __lambda_snippet_12
@@ -116,7 +115,7 @@ fn 5 __lambda_snippet_2 (ref) -> void
   string.const 3   ; "inner sees "
   local.get 1   ; $field_2
   call 13   ; concat_2
-  call 20   ; std_io$println__string
+  call 19   ; std_io$println__string
   return
 end
 
@@ -126,7 +125,7 @@ fn 6 __lambda_snippet_0 (ref) -> void
   struct.new 4   ; __lambda_env_snippet_3
   call 5   ; __lambda_snippet_2
   string.const 4   ; "mid ran"
-  call 20   ; std_io$println__string
+  call 19   ; std_io$println__string
   return
 end
 
@@ -138,7 +137,7 @@ fn 7 __defer_snippet_6 (ref) -> void
   string.const 5   ; "deferred sees "
   local.get 1   ; $field_2
   call 13   ; concat_2
-  call 20   ; std_io$println__string
+  call 19   ; std_io$println__string
   return
 end
 
@@ -146,10 +145,10 @@ fn 8 __lambda_snippet_4 (ref) -> void
   local.field 0 7 0   ; arg 0 __lambda_env_snippet_5.cap_0
   ref.cast 1   ; string
   struct.new 6   ; __defer_env_snippet_7
-  make_closure 7 19   ; __defer_snippet_6 fn
+  make_closure 7 18   ; __defer_snippet_6 fn
   defer.push
   string.const 6   ; "body ran"
-  call 20   ; std_io$println__string
+  call 19   ; std_io$println__string
   defer.pop_exec 1
   return
 end
@@ -161,7 +160,7 @@ fn 9 __lambda_snippet_10 (ref) -> void
   local.field 0 8 0   ; arg 0 __lambda_env_snippet_11.cap_0
   local.set 1   ; $field_1
   local.field 0 8 0   ; arg 0 __lambda_env_snippet_11.cap_0
-  struct.get 18 0   ; $Cell_i32.value
+  struct.get 17 0   ; $Cell_i32.value
   local.set 2   ; $cell_get_3
   local.field 0 8 1   ; arg 0 __lambda_env_snippet_11.cap_1
   ref.cast 3   ; i32
@@ -172,7 +171,7 @@ fn 9 __lambda_snippet_10 (ref) -> void
   local.set 2   ; $cell_get_3
   local.get 1   ; $field_1
   local.get 2   ; $cell_get_3
-  struct.set 18 0   ; $Cell_i32.value
+  struct.set 17 0   ; $Cell_i32.value
   return
 end
 
@@ -191,13 +190,13 @@ fn 10 __lambda_snippet_8 (ref) -> void
   local.field 0 9 0   ; arg 0 __lambda_env_snippet_9.cap_0
   local.set 1   ; $field_1
   local.field 0 9 0   ; arg 0 __lambda_env_snippet_9.cap_0
-  struct.get 18 0   ; $Cell_i32.value
+  struct.get 17 0   ; $Cell_i32.value
   i32.const 1
   i32.checked_add
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
-  struct.set 18 0   ; $Cell_i32.value
+  struct.set 17 0   ; $Cell_i32.value
   return
 end
 
@@ -206,28 +205,28 @@ fn 11 __defer_snippet_14 (ref) -> void
   local __off_1 i64
   local $cast_10 i64
   i64.const 36
-  call 14   ; std_core$new_byte_buffer
+  buffer.new
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 7   ; "deferred sees n="
-  call 16   ; std_core$write_string_at
+  call 15   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.field 0 10 0   ; arg 0 __defer_env_snippet_15.cap_0
-  struct.get 18 0   ; $Cell_i32.value
+  struct.get 17 0   ; $Cell_i32.value
   i32.to_i64
   local.set 3   ; $cast_10
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_10
-  call 17   ; std_core$write_int
+  call 16   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 15   ; std_core$finish_buffer
-  call 20   ; std_io$println__string
+  call 14   ; std_core$finish_buffer
+  call 19   ; std_io$println__string
   return
 end
 
@@ -236,7 +235,7 @@ fn 12 __lambda_snippet_12 (ref) -> void
   local $field_5 i32
   local.field 0 11 0   ; arg 0 __lambda_env_snippet_13.cap_0
   struct.new 10   ; __defer_env_snippet_15
-  make_closure 11 19   ; __defer_snippet_14 fn
+  make_closure 11 18   ; __defer_snippet_14 fn
   defer.push
   local.field 0 11 0   ; arg 0 __lambda_env_snippet_13.cap_0
   local.set 1   ; $field_4
@@ -245,7 +244,7 @@ fn 12 __lambda_snippet_12 (ref) -> void
   local.set 2   ; $field_5
   local.get 1   ; $field_4
   local.get 2   ; $field_5
-  struct.set 18 0   ; $Cell_i32.value
+  struct.set 17 0   ; $Cell_i32.value
   defer.pop_exec 1
   return
 end
@@ -264,7 +263,6 @@ fn 13 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -280,21 +278,14 @@ fn 13 concat_2 (string,string) -> string
   return
 end
 
-fn 14 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 15 std_core$finish_buffer (ref,i64) -> string
+fn 14 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 16 std_core$write_string_at (ref,i64,string) -> i64
+fn 15 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -309,7 +300,7 @@ fn 16 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 17 std_core$write_int (ref,i64,i64) -> i64
+fn 16 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -423,7 +414,7 @@ fn 17 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 18 std_io$write (u8,string) -> void
+fn 17 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -459,7 +450,7 @@ fn 18 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 19   ; std_io$write_bytes
+      call 18   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -479,7 +470,7 @@ fn 18 std_io$write (u8,string) -> void
   return
 end
 
-fn 19 std_io$write_bytes (u8,ref,i64) -> i32
+fn 18 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -499,7 +490,7 @@ fn 19 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 20 std_io$println__string (string) -> void
+fn 19 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 8   ; "\n"
@@ -507,6 +498,6 @@ fn 20 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 18   ; std_io$write
+  call 17   ; std_io$write
   return
 end

@@ -178,10 +178,10 @@ export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src
 
 // ---- files ----------------------------------------------------------------
 
-/// `INVALID_HANDLE_VALUE`, as the machine word `isize(handle)` yields. Win32
-/// reports a failed `CreateFileW` with this and NOT with NULL, which is why the
-/// handle is tested through `isize` rather than a `CPointer | null`.
-export INVALID_HANDLE: isize : -1
+/// `INVALID_HANDLE_VALUE`, as the integer `i64(handle)` yields. Win32 reports a
+/// failed `CreateFileW` with this and NOT with NULL, which is why the handle is
+/// tested through `i64` rather than a `CPointer | null`.
+export INVALID_HANDLE: i64 : -1
 
 /// `dwDesiredAccess` bits.
 export GENERIC_READ: u32 : 0x8000_0000
@@ -205,7 +205,7 @@ export OPEN_EXISTING: u32 : 3
 export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
 
 /// `CreateFileW`. Returns `INVALID_HANDLE_VALUE` on failure — test it with
-/// `isize(h) == INVALID_HANDLE`, never against null.
+/// `i64(h) == INVALID_HANDLE`, never against null.
 ///
 /// Unlike `fopen` there is no text mode, so nothing ever rewrites a `\n`.
 ///
@@ -233,7 +233,7 @@ export FIND_DATA_BYTES: i64: 1024
 /// `FindFirstFileW`. The pattern is a directory path with `\*` appended.
 ///
 /// Returns `INVALID_HANDLE_VALUE` on failure — test it with
-/// `isize(h) == INVALID_HANDLE`, never against null.
+/// `i64(h) == INVALID_HANDLE`, never against null.
 ///
 /// @param pattern  a NUL-terminated UTF-16 glob, from `to_wide`.
 /// @param data     `FIND_DATA_BYTES` of scratch the callee fills.
@@ -347,13 +347,13 @@ export WAIT_OBJECT_0: u32 : 0
 /// reported success. Native was unaffected — the shim copies by name — which is
 /// exactly what kept it invisible. The offset `_Static_assert` catches it now.
 ///
-/// `lpSecurityDescriptor` is a `usize` because it is RESERVED, never read: it
+/// `lpSecurityDescriptor` is a `u64` because it is RESERVED, never read: it
 /// only has to occupy its eight bytes and stay zero, which is the NULL the call
 /// wants.
 @c_struct("SECURITY_ATTRIBUTES")
 export SecurityAttributes :: struct {
     nLength:              u32
-    lpSecurityDescriptor: usize
+    lpSecurityDescriptor: u64
     bInheritHandle:       i32
 }
 
@@ -371,9 +371,9 @@ export SecurityAttributes :: struct {
 @c_struct("STARTUPINFOA")
 export StartupInfo :: struct {
     cb:              u32
-    lpReserved:      usize
-    lpDesktop:       usize
-    lpTitle:         usize
+    lpReserved:      u64
+    lpDesktop:       u64
+    lpTitle:         u64
     dwX:             u32
     dwY:             u32
     dwXSize:         u32
@@ -384,7 +384,7 @@ export StartupInfo :: struct {
     dwFlags:         u32
     wShowWindow:     u16
     cbReserved2:     u16
-    lpReserved2:     usize
+    lpReserved2:     u64
     hStdInput:       Handle
     hStdOutput:      Handle
     hStdError:       Handle
@@ -410,7 +410,7 @@ export ProcessInformation :: struct {
 /// @param size       suggested buffer size; 0 for the default.
 @c_header("<windows.h>")
 @extern("kernel32", "CreatePipe")
-export create_pipe :: fn(@c_out read_end: usize[], @c_out write_end: usize[],
+export create_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
                          @c_pointer attrs: SecurityAttributes, size: u32) -> bool
 
 /// The `i`-th pointer-sized word of a lent buffer, as a handle.
@@ -421,7 +421,7 @@ export create_pipe :: fn(@c_out read_end: usize[], @c_out write_end: usize[],
 /// @param base  the buffer the callee filled.
 /// @param i     the word index.
 @extern("vader_ptr_at")
-export ptr_at :: fn(base: usize[], i: i64) -> Handle
+export ptr_at :: fn(base: u64[], i: i64) -> Handle
 
 /// `HANDLE_FLAG_INHERIT`.
 export HANDLE_FLAG_INHERIT: u32 : 1

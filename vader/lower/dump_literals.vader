@@ -116,16 +116,16 @@ escaped :: fn(code: u32) -> string {
     return "\\u{${to_hex(u64(code))}}"
 }
 
-/// Print `value` as a decimal string ; for `u32` / `u64` / `usize` types
-/// reinterpret the i64 storage as the matching unsigned width so the
-/// snapshot keeps `18446744073700000000` rather than the sign-flipped
-/// `-9551616`.
+/// Print `value` as a decimal string ; for `u32` / `u64` types reinterpret the
+/// i64 storage as the matching unsigned width so the snapshot keeps
+/// `18446744073700000000` rather than the sign-flipped `-9551616`.
 format_int_value :: fn(value: i64, t: Type) -> string {
-    if value < 0 && t is PrimitiveType {
-        if t.name == "u64" || t.name == "usize" {
+    if value < 0 {
+        name :: primitive_name(t)
+        if name == "u64" {
             return "${u64(value)}"
         }
-        if t.name == "u32" {
+        if name == "u32" {
             return "${u32(value)}"
         }
     }

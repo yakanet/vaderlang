@@ -1169,9 +1169,8 @@ import "std/testing"
 }
 
 @test test_counted_bounds_rejected :: fn() -> void {
-    // Regression: `{2,1}` underflowed `m - n` (usize) and expanded ~1.8e19
-    // copies ; `{999999999}` was a compile-time memory bomb. Both must be
-    // clean RegexErrors.
+    // An upper bound below the lower one, and a count past `REPEAT_MAX`, are
+    // clean RegexErrors rather than an expansion.
     inverted :: compile("a{2,1}")
     assert(inverted is RegexError, "a{2,1} is rejected")
     huge :: compile("a{999999999}")

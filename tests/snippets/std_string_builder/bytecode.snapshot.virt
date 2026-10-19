@@ -7,10 +7,9 @@ type 4 primitive i64
 type 5 struct std_core$Buffer {  }
 type 6 primitive char
 type 7 array 3
-type 8 primitive usize
-type 9 primitive void
-type 10 struct std_string_builder$StringBuilder { parts:11 }
-type 11 array 2
+type 8 primitive void
+type 9 struct std_string_builder$StringBuilder { parts:10 }
+type 10 array 2
 string 0 "Hello"
 string 1 ", "
 string 2 "World"
@@ -27,7 +26,7 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 pa
 import 2 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 5 std_core$ByteAccess
-impl 10 std_core$Display
+impl 9 std_core$Display
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -36,64 +35,64 @@ fn 0 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
   local $cast_39 i64
-  array.new 11 0   ; string[]
-  struct.new 10   ; std_string_builder$StringBuilder
+  array.new 10 0   ; string[]
+  struct.new 9   ; std_string_builder$StringBuilder
   local.tee 0   ; sb
   string.const 0   ; "Hello"
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
   string.const 1   ; ", "
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
   string.const 2   ; "World"
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
   char.const 33
-  call 11   ; std_string_builder$append_char
+  call 10   ; std_string_builder$append_char
   local.get 0   ; sb
-  call 12   ; std_string_builder$StringBuilder$std_core_Display$to_string
-  call 9   ; std_io$println__string
-  array.new 11 0   ; string[]
-  struct.new 10   ; std_string_builder$StringBuilder
+  call 11   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 8   ; std_io$println__string
+  array.new 10 0   ; string[]
+  struct.new 9   ; std_string_builder$StringBuilder
   local.tee 0   ; sb
   string.const 3   ; "foo"
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
   string.const 4   ; "bar"
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
   string.const 5   ; "baz"
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
-  call 12   ; std_string_builder$StringBuilder$std_core_Display$to_string
-  call 9   ; std_io$println__string
-  array.new 11 0   ; string[]
-  struct.new 10   ; std_string_builder$StringBuilder
-  call 12   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 11   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 8   ; std_io$println__string
+  array.new 10 0   ; string[]
+  struct.new 9   ; std_string_builder$StringBuilder
+  call 11   ; std_string_builder$StringBuilder$std_core_Display$to_string
   local.set 1   ; $call_19
   string.const 6   ; "empty='"
   local.get 1   ; $call_19
   string.const 7   ; "'"
   call 1   ; concat_3
-  call 9   ; std_io$println__string
-  array.new 11 0   ; string[]
-  struct.new 10   ; std_string_builder$StringBuilder
+  call 8   ; std_io$println__string
+  array.new 10 0   ; string[]
+  struct.new 9   ; std_string_builder$StringBuilder
   local.tee 0   ; sb
   char.const 8364
-  call 11   ; std_string_builder$append_char
+  call 10   ; std_string_builder$append_char
   local.get 0   ; sb
   char.const 41
-  call 11   ; std_string_builder$append_char
+  call 10   ; std_string_builder$append_char
   local.get 0   ; sb
-  call 12   ; std_string_builder$StringBuilder$std_core_Display$to_string
-  call 9   ; std_io$println__string
-  array.new 11 0   ; string[]
-  struct.new 10   ; std_string_builder$StringBuilder
+  call 11   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 8   ; std_io$println__string
+  array.new 10 0   ; string[]
+  struct.new 9   ; std_string_builder$StringBuilder
   local.tee 0   ; sb
   string.const 8   ; "n="
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   i64.const 20
-  call 3   ; std_core$new_byte_buffer
+  buffer.new
   local.set 2   ; __buf_0
   i64.const 0
   local.set 3   ; __off_1
@@ -103,18 +102,18 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
   local.get 4   ; $cast_39
-  call 5   ; std_core$write_int
+  call 4   ; std_core$write_int
   local.set 3   ; __off_1
   local.get 2   ; __buf_0
   local.get 3   ; __off_1
-  call 4   ; std_core$finish_buffer
+  call 3   ; std_core$finish_buffer
   local.set 1   ; $call_19
   local.get 0   ; sb
   local.get 1   ; $call_19
-  call 10   ; std_string_builder$append
+  call 9   ; std_string_builder$append
   local.get 0   ; sb
-  call 12   ; std_string_builder$StringBuilder$std_core_Display$to_string
-  call 9   ; std_io$println__string
+  call 11   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 8   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -140,7 +139,6 @@ fn 1 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
-  i64.to_i64
   buffer.new
   local.tee 6   ; buf
   i64.const 0
@@ -174,7 +172,6 @@ fn 2 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -190,21 +187,14 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 4 std_core$finish_buffer (ref,i64) -> string
+fn 3 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$write_int (ref,i64,i64) -> i64
+fn 4 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -318,7 +308,7 @@ fn 5 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 6 std_core$utf8_encode (char) -> ref
+fn 5 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
   local $shr_13 u32
@@ -487,7 +477,7 @@ fn 6 std_core$utf8_encode (char) -> ref
   return
 end
 
-fn 7 std_io$write (u8,string) -> void
+fn 6 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -523,7 +513,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 8   ; std_io$write_bytes
+      call 7   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -543,7 +533,7 @@ fn 7 std_io$write (u8,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (u8,ref,i64) -> i32
+fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -563,7 +553,7 @@ fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 8 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 9   ; "\n"
@@ -571,24 +561,24 @@ fn 9 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 7   ; std_io$write
+  call 6   ; std_io$write
   return
 end
 
-fn 10 std_string_builder$append (ref,string) -> void
-  local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+fn 9 std_string_builder$append (ref,string) -> void
+  local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.get 1   ; arg 1
   array.push 2   ; string
   return
 end
 
-fn 11 std_string_builder$append_char (ref,char) -> void
+fn 10 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
-  local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.set 2   ; $field_2
   local.get 1   ; arg 1
-  call 6   ; std_core$utf8_encode
+  call 5   ; std_core$utf8_encode
   call.import 1   ; std_core$bytes_to_string
   local.set 3   ; $call_4
   local.get 2   ; $field_2
@@ -597,7 +587,7 @@ fn 11 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 11 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n i64
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -605,8 +595,8 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   local $call_23 i64
   local __for_arr_3 ref
   local p string
-  local $call_41 i64
-  local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local $call_40 i64
+  local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
   i64.const 0
@@ -618,15 +608,15 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   i64.const 1
   i64.eq
   if $L1 void
-    local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+    local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 11   ; string[]
+    array.get 10   ; string[]
     ref.cast 2   ; string
     return
   end $L1
   i64.const 0
   local.set 1   ; n
-  local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 2   ; __for_arr_0
   array.len
   local.set 3   ; __for_len_1
@@ -639,7 +629,7 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
     if $L3 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 11   ; string[]
+      array.get 10   ; string[]
       ref.cast 2   ; string
       call.import 0   ; std_core$byte_len
       local.set 5   ; $call_23
@@ -655,12 +645,11 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
     end $L3
   end $L2
   local.get 1   ; n
-  i64.to_i64
   buffer.new
   local.set 2   ; __for_arr_0
   i64.const 0
   local.set 3   ; __for_len_1
-  local.field 0 10 0   ; arg 0 std_string_builder$StringBuilder.parts
+  local.field 0 9 0   ; arg 0 std_string_builder$StringBuilder.parts
   local.tee 6   ; __for_arr_3
   array.len
   local.set 4   ; __for_i_2
@@ -673,7 +662,7 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
     if $L5 void
       local.get 6   ; __for_arr_3
       local.get 5   ; $call_23
-      array.get 11   ; string[]
+      array.get 10   ; string[]
       ref.cast 2   ; string
       local.set 7   ; p
       local.get 2   ; __for_arr_0
@@ -682,9 +671,9 @@ fn 12 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
       buffer_write_string
       local.get 7   ; p
       call.import 0   ; std_core$byte_len
-      local.set 8   ; $call_41
+      local.set 8   ; $call_40
       local.get 3   ; __for_len_1
-      local.get 8   ; $call_41
+      local.get 8   ; $call_40
       i64.checked_add
       local.set 3   ; __for_len_1
       local.get 5   ; $call_23

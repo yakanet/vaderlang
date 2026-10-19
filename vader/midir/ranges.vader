@@ -437,20 +437,20 @@ test_binop :: fn(op: LoweredBinaryOp, dst: i32, lhs: i32, rhs: i32) -> InstrBinO
     .op = op,
     .lhs = LocalId(lhs),
     .rhs = LocalId(rhs),
-    .type = mk_primitive("usize"),
+    .type = mk_primitive("u64"),
 }
 
 test_constant :: fn(dst: i32, value: i64) -> Instruction = InstrConst {
     .span = empty_span(),
     .dst = LocalId(dst),
     .value = ConstInt { .value = value },
-    .type = mk_primitive("usize"),
+    .type = mk_primitive("u64"),
 }
 
 @test
 test_ranges_index_below_length_steps_without_wrapping :: fn() -> void {
-    // l0 = i, l1 = n, l2 = 1, l3 = i + 1 (wrapping), all `usize`.
-    ctx :: test_context(["usize", "usize", "usize", "usize"])
+    // l0 = i, l1 = n, l2 = 1, l3 = i + 1 (wrapping), all `u64`.
+    ctx :: test_context(["u64", "u64", "u64", "u64"])
     s :: new_range_state()
     assert(learn_comparison(ctx, s, test_binop(.Lt, 9, 0, 1), true), "i < n can hold")
     transfer(ctx, s, test_constant(2, 1))
@@ -461,8 +461,8 @@ test_ranges_index_below_length_steps_without_wrapping :: fn() -> void {
 }
 
 @test
-test_ranges_unknown_usize_plus_one_may_wrap :: fn() -> void {
-    ctx :: test_context(["usize", "usize", "usize"])
+test_ranges_unknown_u64_plus_one_may_wrap :: fn() -> void {
+    ctx :: test_context(["u64", "u64", "u64"])
     s :: new_range_state()
     transfer(ctx, s, test_constant(1, 1))
     transfer(ctx, s, test_binop(.Add, 2, 0, 1))
@@ -472,7 +472,7 @@ test_ranges_unknown_usize_plus_one_may_wrap :: fn() -> void {
 
 @test
 test_ranges_checked_add_wraps_in_release :: fn() -> void {
-    debug :: test_context(["usize", "usize", "usize"])
+    debug :: test_context(["u64", "u64", "u64"])
     release :: RangeContext { ...debug, .checked_ops_trap = false }
     trapping :: new_range_state()
     transfer(debug, trapping, test_constant(1, 1))
@@ -488,7 +488,7 @@ test_ranges_checked_add_wraps_in_release :: fn() -> void {
 @test
 test_ranges_second_length_read_is_at_least_the_first :: fn() -> void {
     // l0 = n, at most the length of the array l2 and at least 1; l1 = len(l2).
-    ctx :: test_context(["usize", "usize", "usize"])
+    ctx :: test_context(["u64", "u64", "u64"])
     s :: new_range_state()
     s.lengths[LocalId(0)] = LocalId(2)
     set_interval(ctx, s, LocalId(0), interval(1, 5))
@@ -505,7 +505,7 @@ test_ranges_second_length_read_is_at_least_the_first :: fn() -> void {
 
 @test
 test_ranges_running_code_drops_length_facts :: fn() -> void {
-    ctx :: test_context(["usize", "usize"])
+    ctx :: test_context(["u64", "u64"])
     s :: new_range_state()
     s.lengths[LocalId(0)] = LocalId(1)
     push :: InstrArrayPush {

@@ -23,13 +23,13 @@ main :: fn() -> i32 {
     bi16 :: Box<i16>    { .v = -1000 }
     bu16 :: Box<u16>    { .v = 50000 }
     bi64 :: Box<i64>    { .v = 9000000000 }
-    bus  :: Box<usize>  { .v = 42 }
+    bu64 :: Box<u64>    { .v = 42 }
     bi32 :: Box<i32>    { .v = -7 }
     bs   :: Box<string> { .v = "hi" }
 
     // direct raw-field read
     println("u8=${bu8.v} bool=${bb.v} char=${bc.v} f32=${bf32.v} f64=${bf64.v}")
-    println("i16=${bi16.v} u16=${bu16.v} i64=${bi64.v} usize=${bus.v} i32=${bi32.v} str=${bs.v}")
+    println("i16=${bi16.v} u16=${bu16.v} i64=${bi64.v} u64=${bu64.v} i32=${bi32.v} str=${bs.v}")
     // via generic fn (cross-boundary)
     println("via=${unwrap(bu8)},${unwrap(bb)},${unwrap(bc)},${unwrap(bf32)},${unwrap(bi16)},${unwrap(bi64)},${unwrap(bs)}")
     return 0

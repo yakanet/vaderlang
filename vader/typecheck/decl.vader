@@ -240,6 +240,7 @@ declare_fn :: fn(
         // be checked here, or `@c_pointer` would pass unnoticed on a Vader body
         // where it means nothing.
         validate_param_decorators(decl, false, diags)
+        validate_result_c_type(decl, return_type, false, diags)
     }
     // A bodyless top-level free fn becomes a host import (`lower_decl.vader`
     // returns a null body → `call.import`). Host-ness must be *declared* :
@@ -514,11 +515,12 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.deco
 
 /// Check the decorators written on each of `decl`'s parameters.
 ///
-/// `@c_pointer` and `@c_out` are the only ones a parameter may carry, and only on
-/// an `@extern` declaration. `@c_pointer` says the foreign callee receives the
-/// parameter's ADDRESS rather than its value ; `@c_out` says C writes through the
-/// parameter — without it, C only reads. Neither means anything for a fn Vader
-/// compiles a body for.
+/// `@c_pointer`, `@c_out` and `@c_type` are the only ones a parameter may carry,
+/// and only on an `@extern` declaration. `@c_pointer` says the foreign callee
+/// receives the parameter's ADDRESS rather than its value ; `@c_out` says C writes
+/// through the parameter — without it, C only reads ; `@c_type` names the C type
+/// the callee declares for it. None means anything for a fn Vader compiles a body
+/// for.
 ///
 /// @param decl       the fn whose parameters to check.
 /// @param is_extern  whether the declaration carries `@extern`.
@@ -526,22 +528,87 @@ param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.deco
 validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
     for pm in decl.params {
         for d in pm.decorators {
-            if d.name != "c_pointer" && d.name != "c_out" {
+            if !is_parameter_decorator(d.name) {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
-                    "`@${d.name}` cannot decorate a parameter — only `@c_pointer` and `@c_out` can"))
+                    "`@${d.name}` cannot decorate a parameter: only `@c_pointer`, `@c_out` "
+                        + "and `@c_type` can"))
             } else if !is_extern {
                 diags.push(typecheck_error(
                     .InvalidParameterDecorator, pm.span,
                     "`@${d.name}` only means something on an `@extern` declaration"))
-            } else if d.args.len() != 0 {
-                diags.push(typecheck_error(
-                    .InvalidParameterDecorator, pm.span,
-                    "`@${d.name}` takes no argument"))
+            } else {
+                fault :: decorator_argument_fault(d)
+                if fault != null {
+                    diags.push(typecheck_error(.InvalidParameterDecorator, pm.span, fault))
+                }
             }
         }
     }
 }
+
+// Whether a parameter may carry the decorator `name`.
+is_parameter_decorator :: fn(name: string) -> bool =
+    name == "c_pointer" || name == "c_out" || name == "c_type"
+
+// What is wrong with the arguments of the C decorator `d`, or null : `@c_type`
+// takes one plain string, the others none.
+decorator_argument_fault :: fn(d: AST.Decorator) -> string | null {
+    if d.name == "c_type" {
+        if AST.c_type_of([d]) == "" {
+            return "`@c_type` takes one plain string, the C type : `@c_type(\"size_t\")`"
+        }
+        return null
+    }
+    if d.args.len() != 0 {
+        return "`@${d.name}` takes no argument"
+    }
+    return null
+}
+
+/// Check the `@c_type` written on `decl` itself, which names the C type of its
+/// result : only an `@extern` declaration returning an integer may carry one.
+///
+/// @param decl         the fn declaration.
+/// @param return_type  its declared result type.
+/// @param is_extern    whether the declaration carries `@extern`.
+/// @param diags        accumulator for T3050.
+validate_result_c_type :: fn(
+    decl: AST.FnDecl,
+    return_type: Type,
+    is_extern: bool,
+    diags: Diagnostic[],
+) -> void {
+    d :: AST.find_decorator(decl.decorators, "c_type") ?? return
+    fault :: result_c_type_fault(decl, d, return_type, is_extern) ?? return
+    diags.push(typecheck_error(.InvalidExternDecl, d.span, fault))
+}
+
+// What is wrong with the `@c_type` `d` written on `decl` itself, or null.
+result_c_type_fault :: fn(
+    decl: AST.FnDecl,
+    d: AST.Decorator,
+    return_type: Type,
+    is_extern: bool,
+) -> string | null {
+    if !is_extern {
+        return "`@c_type` names the C type of an `@extern` result ; `${decl.name}` has no `@extern`"
+    }
+    argument :: decorator_argument_fault(d)
+    if argument != null {
+        return argument
+    }
+    if !is_c_integer(return_type) {
+        return "`@c_type` respells an integer for C, got a `${display_type(return_type)}` result"
+    }
+    return null
+}
+
+// Whether `t` is an integer C may declare under another name of its width, a
+// distinct type over one included. An unresolved type passes : its own
+// diagnostic is enough.
+is_c_integer :: fn(t: Type) -> bool =
+    t is UnresolvedType || is_int_name(primitive_name(strip_distinct(t)))
 
 /// Check the field types of a `@c_struct` mirror that is about to cross to C.
 ///
@@ -679,6 +746,7 @@ validate_extern :: fn(
         )
     }
     validate_param_decorators(decl, true, diags)
+    validate_result_c_type(decl, return_type, true, diags)
     args :: extern_decorator_args(decl.decorators)
     if args.len() > 2 {
         diags.push(
@@ -718,6 +786,16 @@ validate_extern :: fn(
                     .InvalidExternDecl,
                     decl.params[i].span,
                     "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
+                ),
+            )
+            continue
+        }
+        if AST.decorators_have(decl.params[i].decorators, "c_type") && !is_c_integer(pt) {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_type` respells an integer for C, got `${display_type(pt)}`",
                 ),
             )
             continue

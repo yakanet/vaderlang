@@ -58,7 +58,7 @@ int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
     if negative {
         return value <= 0x8000_0000_0000_0000 && contains(repr_range(type_name), 0 -% i64(value))
     }
-    if type_name == "u64" || type_name == "usize" {
+    if type_name == "u64" {
         return true
     }
     return value <= 0x7FFF_FFFF_FFFF_FFFF && contains(repr_range(type_name), i64(value))
@@ -1258,7 +1258,6 @@ test_union_of_flattens :: fn() -> void {
 test_machine_integer_is_its_primitive :: fn() -> void {
     assert(equals_type(TY_I32, mk_primitive("i32")), "the range `i32` is the primitive")
     assert(!equals_type(TY_I32, mk_primitive("i64")), "`i32` is no `i64`")
-    assert(!equals_type(mk_integer("u64"), mk_primitive("usize")), "`u64` is no `usize`")
 }
 
 @test
@@ -1300,7 +1299,6 @@ test_int_fits_bounds :: fn() -> void {
     assert(int_fits(0x7FFF_FFFF, false, "i32"), "i32.MAX fits i32")
     assert(int_fits(255, false, "u8"), "u8.MAX fits u8")
     assert(int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "u64"), "u64.MAX fits u64")
-    assert(int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "usize"), "u64.MAX fits usize")
     // A non-integer target never accepts an integer literal via this path.
     assert(!int_fits(0, false, "f64"), "int literal never fits f64")
     assert(!int_fits(0, false, "bool"), "int literal never fits bool")
@@ -1312,7 +1310,7 @@ test_int_fits_negative_literals :: fn() -> void {
     assert(!int_fits(129, true, "i8"), "-129 does not fit i8")
     assert(int_fits(0x8000_0000, true, "i32"), "i32.MIN fits i32")
     assert(int_fits(0x8000_0000_0000_0000, true, "i64"), "i64.MIN fits i64")
-    assert(!int_fits(0x8000_0000_0000_0001, true, "isize"), "past isize.MIN")
+    assert(!int_fits(0x8000_0000_0000_0001, true, "i64"), "past i64.MIN")
     assert(!int_fits(1, true, "u32"), "-1 does not fit u32")
     assert(int_fits(0, true, "u8"), "-0 fits u8")
 }

@@ -8,8 +8,7 @@ type 5 primitive u8
 type 6 struct std_core$Buffer {  }
 type 7 array 1
 type 8 array 5
-type 9 primitive usize
-type 10 primitive void
+type 9 primitive void
 string 0 "number"
 string 1 "name"
 string 2 "other"
@@ -34,13 +33,13 @@ export main 5
 fn 0 snippet$kind (string) -> string
   data.const 0 7   ; pool[0] string[]
   local.get 0   ; arg 0
-  call 13   ; std_core$[]$Contains$contains__string
+  call 12   ; std_core$[]$Contains$contains__string
   if $L0 void
     return.lit string.const 0   ; "number"
   end $L0
   data.const 1 7   ; pool[1] string[]
   local.get 0   ; arg 0
-  call 13   ; std_core$[]$Contains$contains__string
+  call 12   ; std_core$[]$Contains$contains__string
   if $L1 void
   else
     return.lit string.const 2   ; "other"
@@ -104,7 +103,7 @@ end
 
 fn 4 snippet$limit_text () -> string
   i32.const 42
-  call 14   ; std_core$i32$Display$to_string
+  call 13   ; std_core$i32$Display$to_string
   return
 end
 
@@ -130,7 +129,7 @@ fn 5 snippet$main () -> i32
   string.const 6   ; " "
   local.get 2   ; $call_7
   call 7   ; concat_5
-  call 18   ; std_io$println__string
+  call 17   ; std_io$println__string
   call 2   ; snippet$first_name
   local.set 0   ; $call_1
   call 3   ; snippet$joined
@@ -157,7 +156,7 @@ fn 5 snippet$main () -> i32
   i64.const 23
   local.get 3   ; $call_16
   i64.add
-  call 9   ; std_core$new_byte_buffer
+  buffer.new
   local.set 5   ; __buf_3
   i64.const 0
   local.set 3   ; $call_16
@@ -166,42 +165,42 @@ fn 5 snippet$main () -> i32
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   local.get 4   ; $call_17
-  call 12   ; std_core$write_int
+  call 11   ; std_core$write_int
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   string.const 6   ; " "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   local.get 0   ; $call_1
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   string.const 6   ; " "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   local.get 1   ; $call_4
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   string.const 6   ; " "
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
   local.get 2   ; $call_7
-  call 11   ; std_core$write_string_at
+  call 10   ; std_core$write_string_at
   local.set 3   ; $call_16
   local.get 5   ; __buf_3
   local.get 3   ; $call_16
-  call 10   ; std_core$finish_buffer
-  call 18   ; std_io$println__string
+  call 9   ; std_core$finish_buffer
+  call 17   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -227,7 +226,6 @@ fn 6 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
-  i64.to_i64
   buffer.new
   local.tee 6   ; buf
   i64.const 0
@@ -285,7 +283,6 @@ fn 7 concat_5 (string,string,string,string,string) -> string
   local.get 9   ; $call_16
   i64.add
   local.tee 9   ; $call_16
-  i64.to_i64
   buffer.new
   local.tee 10   ; buf
   i64.const 0
@@ -327,7 +324,6 @@ fn 8 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -343,21 +339,14 @@ fn 8 concat_2 (string,string) -> string
   return
 end
 
-fn 9 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 10 std_core$finish_buffer (ref,i64) -> string
+fn 9 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 11 std_core$write_string_at (ref,i64,string) -> i64
+fn 10 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -372,7 +361,7 @@ fn 11 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 12 std_core$write_int (ref,i64,i64) -> i64
+fn 11 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -486,7 +475,7 @@ fn 12 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 13 std_core$[]$Contains$contains__string (ref,string) -> bool
+fn 12 std_core$[]$Contains$contains__string (ref,string) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -520,20 +509,20 @@ fn 13 std_core$[]$Contains$contains__string (ref,string) -> bool
   return.lit bool.const false
 end
 
-fn 14 std_core$i32$Display$to_string (i32) -> string
+fn 13 std_core$i32$Display$to_string (i32) -> string
   local.get 0   ; arg 0
   i32.to_i64
-  call 15   ; std_core$format_signed
+  call 14   ; std_core$format_signed
   return
 end
 
-fn 15 std_core$format_signed (i64) -> string
+fn 14 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits i64
   local m i64
   local buf ref
-  local $cast_34 u8
-  local $add_checked_35 u8
+  local $cast_33 u8
+  local $add_checked_34 u8
   local.get 0   ; arg 0
   i64.const 0
   i64.eq
@@ -583,7 +572,6 @@ fn 15 std_core$format_signed (i64) -> string
     local.set 3   ; m
   end $L4
   local.get 3   ; m
-  i64.to_i64
   buffer.new
   local.set 4   ; buf
   local.get 3   ; m
@@ -604,14 +592,14 @@ fn 15 std_core$format_signed (i64) -> string
       i64.to_i32
       i32.const 255
       i32.bitand
-      local.set 5   ; $cast_34
+      local.set 5   ; $cast_33
       i32.const 48
-      local.get 5   ; $cast_34
+      local.get 5   ; $cast_33
       u8.checked_add
-      local.set 6   ; $add_checked_35
+      local.set 6   ; $add_checked_34
       local.get 4   ; buf
       local.get 2   ; ndigits
-      local.get 6   ; $add_checked_35
+      local.get 6   ; $add_checked_34
       store_u8
       local.get 0   ; arg 0
       i64.const 10
@@ -637,7 +625,7 @@ fn 15 std_core$format_signed (i64) -> string
   return
 end
 
-fn 16 std_io$write (u8,string) -> void
+fn 15 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -673,7 +661,7 @@ fn 16 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 17   ; std_io$write_bytes
+      call 16   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -693,7 +681,7 @@ fn 16 std_io$write (u8,string) -> void
   return
 end
 
-fn 17 std_io$write_bytes (u8,ref,i64) -> i32
+fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -713,7 +701,7 @@ fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 18 std_io$println__string (string) -> void
+fn 17 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 10   ; "\n"
@@ -721,6 +709,6 @@ fn 18 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 16   ; std_io$write
+  call 15   ; std_io$write
   return
 end

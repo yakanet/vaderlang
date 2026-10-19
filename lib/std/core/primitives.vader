@@ -53,7 +53,7 @@ format_signed :: fn(n: i64) -> string {
         m = m / 10
     }
     total :: if neg { ndigits + 1 } else { ndigits }
-    buf :: usize(total).new_buffer()
+    buf :: new_byte_buffer(total)
     i: i64 = total
     for n != 0 {
         i = i - 1
@@ -75,7 +75,7 @@ format_unsigned :: fn(n: u64) -> string {
         ndigits = ndigits + 1
         m = m / 10
     }
-    buf :: usize(ndigits).new_buffer()
+    buf :: new_byte_buffer(ndigits)
     i: i64 = ndigits
     for n != 0 {
         i = i - 1
@@ -95,10 +95,6 @@ format_unsigned :: fn(n: u64) -> string {
 // `format_signed` / `format_unsigned`, targeting `self` at `off` instead of a
 // fresh per-value buffer. Offsets are caller-trusted (the lowering sizes the
 // Buffer to fit every part's max width).
-
-/// Allocate a byte `Buffer` of `cap` bytes — the free-fn wrapper the `${}` / `+`
-/// lowering resolves (the `new_buffer` impl member isn't reachable by name there).
-export new_byte_buffer :: fn(cap: i64) -> Buffer = usize(cap).new_buffer()
 
 /// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
 export finish_buffer :: fn(self: Buffer, len: i64) -> string = self.intern_string(len)
@@ -211,12 +207,10 @@ i8     implements Display -> format_signed(i64(self))
 i16    implements Display -> format_signed(i64(self))
 i32    implements Display -> format_signed(i64(self))
 i64    implements Display -> format_signed(self)
-isize  implements Display -> format_signed(i64(self))
 u8     implements Display -> format_unsigned(u64(self))
 u16    implements Display -> format_unsigned(u64(self))
 u32    implements Display -> format_unsigned(u64(self))
 u64    implements Display -> format_unsigned(self)
-usize  implements Display -> format_unsigned(u64(self))
 bool   implements Display -> if self { "true" } else { "false" }
 char   implements Display -> utf8_encode(self).bytes_to_string()
 string implements Display -> self
@@ -243,12 +237,10 @@ f64 implements Display -> format_f64(self)
 @intrinsic i16    implements Equals
 @intrinsic i32    implements Equals
 @intrinsic i64    implements Equals
-@intrinsic isize  implements Equals
 @intrinsic u8     implements Equals
 @intrinsic u16    implements Equals
 @intrinsic u32    implements Equals
 @intrinsic u64    implements Equals
-@intrinsic usize  implements Equals
 @intrinsic f32    implements Equals
 @intrinsic f64    implements Equals
 @intrinsic bool   implements Equals
@@ -264,12 +256,10 @@ i8    implements Hash -> u64(self)
 i16   implements Hash -> u64(self)
 i32   implements Hash -> u64(self)
 i64   implements Hash -> u64(self)
-isize implements Hash -> u64(self)
 u8    implements Hash -> u64(self)
 u16   implements Hash -> u64(self)
 u32   implements Hash -> u64(self)
 u64   implements Hash -> u64(self)
-usize implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
 // `string` reads the FNV-1a-64 cached on its interned atom (computed once at
@@ -294,12 +284,10 @@ i8    implements Comparable -> three_way(self < other, self > other)
 i16   implements Comparable -> three_way(self < other, self > other)
 i32   implements Comparable -> three_way(self < other, self > other)
 i64   implements Comparable -> three_way(self < other, self > other)
-isize implements Comparable -> three_way(self < other, self > other)
 u8    implements Comparable -> three_way(self < other, self > other)
 u16   implements Comparable -> three_way(self < other, self > other)
 u32   implements Comparable -> three_way(self < other, self > other)
 u64   implements Comparable -> three_way(self < other, self > other)
-usize implements Comparable -> three_way(self < other, self > other)
 char  implements Comparable -> three_way(self < other, self > other)
 
 // Byte order, through the `string.compare` op : `"a" < "b"` lowers to
@@ -317,12 +305,10 @@ i8    implements Step -> self + 1
 i16   implements Step -> self + 1
 i32   implements Step -> self + 1
 i64   implements Step -> self + 1
-isize implements Step -> self + 1
 u8    implements Step -> self + 1
 u16   implements Step -> self + 1
 u32   implements Step -> self + 1
 u64   implements Step -> self + 1
-usize implements Step -> self + 1
 char  implements Step -> next_scalar(self)
 
 // The Unicode scalar value after `c`.
@@ -359,11 +345,6 @@ next_scalar :: fn(c: char) -> char {
 @intrinsic i64 implements Mul
 @intrinsic i64 implements Div
 
-@intrinsic isize implements Add
-@intrinsic isize implements Sub
-@intrinsic isize implements Mul
-@intrinsic isize implements Div
-
 @intrinsic u8 implements Add
 @intrinsic u8 implements Sub
 @intrinsic u8 implements Mul
@@ -384,11 +365,6 @@ next_scalar :: fn(c: char) -> char {
 @intrinsic u64 implements Mul
 @intrinsic u64 implements Div
 
-@intrinsic usize implements Add
-@intrinsic usize implements Sub
-@intrinsic usize implements Mul
-@intrinsic usize implements Div
-
 @intrinsic f32 implements Add
 @intrinsic f32 implements Sub
 @intrinsic f32 implements Mul
@@ -405,12 +381,10 @@ i8 implements Zero -> 0
 i16 implements Zero -> 0
 i32 implements Zero -> 0
 i64 implements Zero -> 0
-isize implements Zero -> 0
 u8 implements Zero -> 0
 u16 implements Zero -> 0
 u32 implements Zero -> 0
 u64 implements Zero -> 0
-usize implements Zero -> 0
 f32 implements Zero -> 0.0
 f64 implements Zero -> 0.0
 
@@ -420,12 +394,10 @@ i8 implements One -> 1
 i16 implements One -> 1
 i32 implements One -> 1
 i64 implements One -> 1
-isize implements One -> 1
 u8 implements One -> 1
 u16 implements One -> 1
 u32 implements One -> 1
 u64 implements One -> 1
-usize implements One -> 1
 f32 implements One -> 1.0
 f64 implements One -> 1.0
 

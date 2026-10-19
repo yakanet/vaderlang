@@ -25,12 +25,12 @@
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(T) -> void
   expr 16:13    StringLitExpr  :: string
-  expr 16:32    BinaryExpr     :: usize
-  expr 16:32    BinaryExpr     :: usize
-  expr 16:32    IdentExpr      :: usize
-  expr 16:40    CallExpr       :: usize
-  expr 16:40    IdentExpr      :: type
-  expr 16:46    IdentExpr      :: i32
+  expr 16:30    BinaryExpr     :: u64
+  expr 16:30    BinaryExpr     :: u64
+  expr 16:30    IdentExpr      :: u64
+  expr 16:38    CallExpr       :: u64
+  expr 16:38    IdentExpr      :: type
+  expr 16:42    IdentExpr      :: i32
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
   expr 18:13    StringLitExpr  :: string

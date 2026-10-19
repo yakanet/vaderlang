@@ -48,8 +48,7 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     // (`stdlib/std/core/buffer.vader`), and its allocation `new_byte_buffer`.
     // `buffer.new` takes no operand — the allocated object is always a `Buffer`,
     // so its type is the BUFFER sentinel by definition.
-    if mangled == r"std_core$usize$BufferAlloc$new_buffer"
-        || mangled == r"std_core$new_byte_buffer" {
+    if mangled == r"std_core$new_byte_buffer" {
         return BufferNew {}
     }
     if mangled == r"std_core$Buffer$ByteAccess$load_u8" {
@@ -88,7 +87,7 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
 // Add / Sub / Mul / Div for any numeric primitive, resolved through op_select's
 // `checked_arith_op` / `div_op` — the SAME authority the operator path uses, so the
 // method mangle can never drift from `a + b`'s op. Covers every width (the
-// narrow ints i8/i16/u8/u16/u32 + isize/usize and f32, which the explicit arms
+// narrow ints i8/i16/u8/u16/u32 and f32, which the explicit arms
 // above never listed) ; `div_op` keeps u32/u64 division unsigned.
 primitive_arith_op :: fn(mangled: string) -> Op | null {
     add :: strip_core_member(mangled, r"$Add$add")
@@ -135,21 +134,20 @@ import "std/testing"
     cases :: [
         // arithmetic — every numeric width (routed through op_select)
         ["i8", "Add", "add"], ["i16", "Sub", "sub"], ["i32", "Mul", "mul"],
-        ["i64", "Div", "div"], ["isize", "Add", "add"],
+        ["i64", "Div", "div"],
         ["u8", "Div", "div"], ["u16", "Mul", "mul"], ["u32", "Div", "div"],
-        ["u64", "Sub", "sub"], ["usize", "Add", "add"],
+        ["u64", "Sub", "sub"],
         ["f32", "Add", "add"], ["f32", "Div", "div"],
         ["f64", "Add", "add"], ["f64", "Sub", "sub"], ["f64", "Mul", "mul"],
         ["f64", "Div", "div"],
         // equality (op-backed) — equals for every primitive
         ["i32", "Equals", "equals"], ["i64", "Equals", "equals"],
-        ["u8", "Equals", "equals"], ["usize", "Equals", "equals"],
+        ["u8", "Equals", "equals"], ["u64", "Equals", "equals"],
         ["f32", "Equals", "equals"], ["f64", "Equals", "equals"],
         ["bool", "Equals", "equals"], ["char", "Equals", "equals"],
         ["string", "Equals", "equals"],
         // ordering (op-backed) — `string` only
         ["string", "Comparable", "compare"],
-        ["usize", "BufferAlloc", "new_buffer"],
         ["Buffer", "ByteAccess", "load_u8"], ["Buffer", "ByteAccess", "store_u8"],
         ["Buffer", "ByteAccess", "memory_copy"], ["Buffer", "ByteAccess", "intern_string"],
         ["Buffer", "ByteAccess", "write_string"],
@@ -173,8 +171,8 @@ import "std/testing"
     assert(intrinsic_op_for_mangled(r"std_core$u64$Div$div") is U64Div, "u64 div → U64Div")
     i8_add :: intrinsic_op_for_mangled(r"std_core$i8$Add$add")
     assert(i8_add is CheckedArith && i8_add.kind == .I8, "i8 add → checked i8 add")
-    usize_add :: intrinsic_op_for_mangled(r"std_core$usize$Add$add")
-    assert(usize_add is CheckedArith && usize_add.kind == .Usize, "usize add → checked usize add")
+    u64_add :: intrinsic_op_for_mangled(r"std_core$u64$Add$add")
+    assert(u64_add is CheckedArith && u64_add.kind == .U64, "u64 add → checked u64 add")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Mul$mul") is F64Mul, "f32 mul → F64Mul")
     assert(intrinsic_op_for_mangled(r"std_core$f32$Equals$equals") is F64Eq, "f32 equals → F64Eq")
     assert(intrinsic_op_for_mangled(r"std_core$u8$Equals$equals") is I32Eq, "u8 equals → I32Eq")

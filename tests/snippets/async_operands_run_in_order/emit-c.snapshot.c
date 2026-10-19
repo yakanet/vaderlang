@@ -212,7 +212,6 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0);
 static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
-static void* std_core_new_byte_buffer(int64_t l0);
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
@@ -225,7 +224,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[22] = {
+const vader_type_info_t vader_type_info_table[21] = {
     [1] = { .slot_size = 16 },
     [2] = { .slot_size = 4 },
     [3] = { .slot_size = 16 },
@@ -283,9 +282,8 @@ const vader_type_info_t vader_type_info_table[22] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [21] = { .slot_size = 8 },
 };
-const size_t vader_type_info_count = 22;
+const size_t vader_type_info_count = 21;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -538,7 +536,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     vader_string_t t3 = 0;
     void* t4 = NULL;
     vader_box_t t5 = vader_box_null();
-    size_t t6;
     vader_box_t* gc_roots[29] = {
         &l10, &l12, &l22, &l24, &l32, &l34, &l42, &l44, &l53, &l55, &l63, &l65, &l76, &l78, &l89,
         &l91, &l99, &l101, &l110, &l112, &l121, &l123, &l129, &l131, &l138, &l140, &l147, &l149,
@@ -599,7 +596,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             }
             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s35 = l4;
 #line 88 "tests/snippets/async_operands_run_in_order/_main.vader"
-            l7 = std_core_new_byte_buffer(INT64_C(5));
+            l7 = (void*) vader_buffer_new((size_t) INT64_C(5));
             l8 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
             l9 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s35;
@@ -672,7 +669,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                 if (t0 == INT32_C(8)) {
 #line 84 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                    l16 = std_core_new_byte_buffer(INT64_C(24));
+                                    l16 = (void*) vader_buffer_new((size_t) INT64_C(24));
                                     l17 = INT64_C(0);
                                     l17 = std_core_write_string_at(l16, l17, 9u);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -730,12 +727,11 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
 #line 80 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                     vader_array_push_i32((vader_array_t*) l25, l26);
 #line 81 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                    l27 = std_core_new_byte_buffer(INT64_C(41));
+                                                    l27 = (void*) vader_buffer_new((size_t) INT64_C(41));
                                                     l28 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 81 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                    t6 = ((vader_array_t*) ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s20)->length;
-                                                    l29 = (int64_t) (size_t) t6;
+                                                    l29 = ((vader_array_t*) ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s20)->length;
                                                     l28 = std_core_write_int(l27, l28, l29);
                                                     l28 = std_core_write_string_at(l27, l28, 11u);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -788,7 +784,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                 VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l36)
                                                                 ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l36] = (int32_t) l37;
 #line 78 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                l38 = std_core_new_byte_buffer(INT64_C(20));
+                                                                l38 = (void*) vader_buffer_new((size_t) INT64_C(20));
                                                                 l39 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 78 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -839,7 +835,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                             l47 = vader_chk_add(i32, l45, l46);
                                                                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s23 = l47;
 #line 75 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                            l48 = std_core_new_byte_buffer(INT64_C(41));
+                                                                            l48 = (void*) vader_buffer_new((size_t) INT64_C(41));
                                                                             l49 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 75 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -948,7 +944,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s19 = l69;
                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 69 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                    l70 = std_core_new_byte_buffer(INT64_C(41));
+                                                                                                    l70 = (void*) vader_buffer_new((size_t) INT64_C(41));
                                                                                                     l71 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 69 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -1015,7 +1011,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s16 = l82;
                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 66 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                l83 = std_core_new_byte_buffer(INT64_C(62));
+                                                                                                                l83 = (void*) vader_buffer_new((size_t) INT64_C(62));
                                                                                                                 l84 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 66 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -1068,7 +1064,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                                                                                                         if (t0 == INT32_C(30)) {
 #line 63 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                            l92 = std_core_new_byte_buffer(INT64_C(20));
+                                                                                                                            l92 = (void*) vader_buffer_new((size_t) INT64_C(20));
                                                                                                                             l93 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                             l94 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s11;
@@ -1116,7 +1112,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                                                                                                                     if (t0 == INT32_C(33)) {
 #line 61 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                                        l102 = std_core_new_byte_buffer(INT64_C(20));
+                                                                                                                                        l102 = (void*) vader_buffer_new((size_t) INT64_C(20));
                                                                                                                                         l103 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                         l104 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s8;
@@ -1174,7 +1170,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s8 = l115;
                                                                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 59 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                                                    l116 = std_core_new_byte_buffer(INT64_C(41));
+                                                                                                                                                    l116 = (void*) vader_buffer_new((size_t) INT64_C(41));
                                                                                                                                                     l117 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
 #line 59 "tests/snippets/async_operands_run_in_order/_main.vader"
@@ -1228,7 +1224,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                                                                                                                                             if (t0 == INT32_C(39)) {
 #line 56 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                                                                l124 = std_core_new_byte_buffer(INT64_C(41));
+                                                                                                                                                                l124 = (void*) vader_buffer_new((size_t) INT64_C(41));
                                                                                                                                                                 l125 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s4;
@@ -1275,7 +1271,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                                                                                                                                                         if (t0 == INT32_C(42)) {
 #line 54 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                                                                            l132 = std_core_new_byte_buffer(INT64_C(20));
+                                                                                                                                                                            l132 = (void*) vader_buffer_new((size_t) INT64_C(20));
                                                                                                                                                                             l133 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                             l134 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
@@ -1318,7 +1314,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                                                                                                                                                                                     if (t0 == INT32_C(45)) {
 #line 52 "tests/snippets/async_operands_run_in_order/_main.vader"
-                                                                                                                                                                                        l141 = std_core_new_byte_buffer(INT64_C(20));
+                                                                                                                                                                                        l141 = (void*) vader_buffer_new((size_t) INT64_C(20));
                                                                                                                                                                                         l142 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                                         l143 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0;
@@ -1532,16 +1528,6 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* std_core_new_byte_buffer(int64_t l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
-#line 101 "lib/std/core/primitives.vader"
-    t0 = (void*) vader_buffer_new((size_t) l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-}
-
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
@@ -1550,7 +1536,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 104 "lib/std/core/primitives.vader"
+#line 100 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -1558,9 +1544,9 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 136 "lib/std/core/primitives.vader"
+#line 132 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 137 "lib/std/core/primitives.vader"
+#line 133 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -1572,46 +1558,46 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 142 "lib/std/core/primitives.vader"
+#line 138 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 143 "lib/std/core/primitives.vader"
+#line 139 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 144 "lib/std/core/primitives.vader"
+#line 140 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 142 "lib/std/core/primitives.vader"
+#line 138 "lib/std/core/primitives.vader"
     }
-#line 146 "lib/std/core/primitives.vader"
+#line 142 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 147 "lib/std/core/primitives.vader"
+#line 143 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 148 "lib/std/core/primitives.vader"
+#line 144 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 149 "lib/std/core/primitives.vader"
+#line 145 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 150 "lib/std/core/primitives.vader"
+#line 146 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 151 "lib/std/core/primitives.vader"
+#line 147 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 152 "lib/std/core/primitives.vader"
+#line 148 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
-#line 150 "lib/std/core/primitives.vader"
+#line 146 "lib/std/core/primitives.vader"
     }
-#line 154 "lib/std/core/primitives.vader"
+#line 150 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 155 "lib/std/core/primitives.vader"
+#line 151 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 156 "lib/std/core/primitives.vader"
+#line 152 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 157 "lib/std/core/primitives.vader"
+#line 153 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 158 "lib/std/core/primitives.vader"
+#line 154 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -1619,31 +1605,31 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 159 "lib/std/core/primitives.vader"
+#line 155 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 156 "lib/std/core/primitives.vader"
+#line 152 "lib/std/core/primitives.vader"
     }
-#line 161 "lib/std/core/primitives.vader"
+#line 157 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 162 "lib/std/core/primitives.vader"
+#line 158 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 161 "lib/std/core/primitives.vader"
+#line 157 "lib/std/core/primitives.vader"
     }
-#line 162 "lib/std/core/primitives.vader"
+#line 158 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
 
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
-#line 188 "lib/std/core/primitives.vader"
+#line 184 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 189 "lib/std/core/primitives.vader"
+#line 185 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 45u);
         return t0;
-#line 188 "lib/std/core/primitives.vader"
+#line 184 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 44u);
     return t0;
@@ -1654,7 +1640,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
     int32_t l8;
-    size_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -1668,17 +1653,14 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
     for (;;) {
 #line 209 "lib/std/io/io.vader"
-        t0 = ((vader_array_t*) l2)->length;
-        l4 = (int64_t) (size_t) t0;
+        l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
 #line 212 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l2)->length;
-            l5 = (int64_t) (size_t) t0;
+            l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
 #line 213 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l6)->length;
-            l7 = (int64_t) (size_t) t0;
+            l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
 #line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {

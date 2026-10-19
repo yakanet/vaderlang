@@ -11,11 +11,10 @@ type 8 primitive f64
 type 9 struct std_core$Dec64 { mantissa:7,exp:1 }
 type 10 struct __Tuple_u64_u64_u64_2d035edd { _0:7,_1:7,_2:7 }
 type 11 array 4
-type 12 primitive usize
-type 13 primitive void
-type 14 array 1
+type 12 primitive void
+type 13 array 1
+type 14 array 7
 type 15 ref _
-type 16 array 7
 string 0 "minus one"
 string 1 "zero"
 string 2 "other"
@@ -72,16 +71,16 @@ fn 1 snippet$main () -> i32
   i32.const 5
   local.set 0   ; a
   f64.const 5.0 4617315517961601024
-  call 9   ; std_core$f64$Display$to_string
+  call 8   ; std_core$f64$Display$to_string
   local.set 1   ; __p_0
   f64.const -5.0 13840687554816376832
-  call 9   ; std_core$f64$Display$to_string
+  call 8   ; std_core$f64$Display$to_string
   local.set 2   ; __p_1
   i32.const -5
-  call 8   ; std_core$i32$Display$to_string
+  call 7   ; std_core$i32$Display$to_string
   local.set 3   ; __p_2
   f64.const -5.0 13840687554816376832
-  call 9   ; std_core$f64$Display$to_string
+  call 8   ; std_core$f64$Display$to_string
   local.set 4   ; __p_3
   local.get 1   ; __p_0
   call.import 0   ; std_core$byte_len
@@ -110,7 +109,7 @@ fn 1 snippet$main () -> i32
   i64.const 45
   local.get 5   ; $call_15
   i64.add
-  call 3   ; std_core$new_byte_buffer
+  buffer.new
   local.set 7   ; __buf_4
   i64.const 0
   local.set 5   ; $call_15
@@ -120,72 +119,72 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   i64.const -5
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 1   ; __p_0
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 2   ; __p_1
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 3   ; __p_2
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 4   ; __p_3
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
-  call 4   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  call 31   ; std_io$println__string
   f64.const 5.0 4617315517961601024
   f64.neg
-  call 9   ; std_core$f64$Display$to_string
+  call 8   ; std_core$f64$Display$to_string
   local.tee 1   ; __p_0
   call.import 0   ; std_core$byte_len
   local.set 5   ; $call_15
   i64.const 147
   local.get 5   ; $call_15
   i64.add
-  call 3   ; std_core$new_byte_buffer
+  buffer.new
   local.set 7   ; __buf_4
   i64.const 0
   local.set 5   ; $call_15
@@ -196,12 +195,12 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   i32.const 7
   i32.checked_neg
@@ -210,12 +209,12 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 0   ; a
   i32.const 5
@@ -225,12 +224,12 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 0   ; a
   i32.const -5
@@ -240,12 +239,12 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   i32.const -5
   i32.checked_neg
@@ -254,51 +253,51 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 1   ; __p_0
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   i32.const 5
-  call 33   ; std_math$abs_1
+  call 32   ; std_math$abs_1
   i32.checked_neg
   i32.to_i64
   local.set 6   ; $call_16
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   i32.const -5
-  call 33   ; std_math$abs_1
+  call 32   ; std_math$abs_1
   i32.to_i64
   local.set 6   ; $call_16
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
-  call 4   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  call 31   ; std_io$println__string
   i32.const 0
   local.set 0   ; a
   i32.const -2
@@ -338,7 +337,7 @@ fn 1 snippet$main () -> i32
   i64.const 85
   local.get 5   ; $call_15
   i64.add
-  call 3   ; std_core$new_byte_buffer
+  buffer.new
   local.set 7   ; __buf_4
   i64.const 0
   local.set 5   ; $call_15
@@ -348,16 +347,16 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   i32.const -1
   i32.const -2
-  array.new 14 2   ; i32[]
+  array.new 13 2   ; i32[]
   i32.const 1
   load_slot_i32
   i32.to_i64
@@ -365,52 +364,52 @@ fn 1 snippet$main () -> i32
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 6   ; $call_16
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 1   ; __p_0
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   local.get 2   ; __p_1
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   i64.const -128
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   string.const 3   ; " "
-  call 5   ; std_core$write_string_at
+  call 4   ; std_core$write_string_at
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
   i64.const -9223372036854775808
-  call 6   ; std_core$write_int
+  call 5   ; std_core$write_int
   local.set 5   ; $call_15
   local.get 7   ; __buf_4
   local.get 5   ; $call_15
-  call 4   ; std_core$finish_buffer
-  call 32   ; std_io$println__string
+  call 3   ; std_core$finish_buffer
+  call 31   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -428,7 +427,6 @@ fn 2 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -444,21 +442,14 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 4 std_core$finish_buffer (ref,i64) -> string
+fn 3 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$write_string_at (ref,i64,string) -> i64
+fn 4 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -473,7 +464,7 @@ fn 5 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 6 std_core$write_int (ref,i64,i64) -> i64
+fn 5 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -587,7 +578,7 @@ fn 6 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 7 std_core$write_unsigned (ref,i64,u64) -> i64
+fn 6 std_core$write_unsigned (ref,i64,u64) -> i64
   local ndigits i64
   local m u64
   local i i64
@@ -667,26 +658,26 @@ fn 7 std_core$write_unsigned (ref,i64,u64) -> i64
   return
 end
 
-fn 8 std_core$i32$Display$to_string (i32) -> string
+fn 7 std_core$i32$Display$to_string (i32) -> string
   local.get 0   ; arg 0
   i32.to_i64
-  call 10   ; std_core$format_signed
+  call 9   ; std_core$format_signed
   return
 end
 
-fn 9 std_core$f64$Display$to_string (f64) -> string
+fn 8 std_core$f64$Display$to_string (f64) -> string
   local.get 0   ; arg 0
-  call 11   ; std_core$format_f64
+  call 10   ; std_core$format_f64
   return
 end
 
-fn 10 std_core$format_signed (i64) -> string
+fn 9 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits i64
   local m i64
   local buf ref
-  local $cast_34 u8
-  local $add_checked_35 u8
+  local $cast_33 u8
+  local $add_checked_34 u8
   local.get 0   ; arg 0
   i64.const 0
   i64.eq
@@ -736,7 +727,6 @@ fn 10 std_core$format_signed (i64) -> string
     local.set 3   ; m
   end $L4
   local.get 3   ; m
-  i64.to_i64
   buffer.new
   local.set 4   ; buf
   local.get 3   ; m
@@ -757,14 +747,14 @@ fn 10 std_core$format_signed (i64) -> string
       i64.to_i32
       i32.const 255
       i32.bitand
-      local.set 5   ; $cast_34
+      local.set 5   ; $cast_33
       i32.const 48
-      local.get 5   ; $cast_34
+      local.get 5   ; $cast_33
       u8.checked_add
-      local.set 6   ; $add_checked_35
+      local.set 6   ; $add_checked_34
       local.get 4   ; buf
       local.get 2   ; ndigits
-      local.get 6   ; $add_checked_35
+      local.get 6   ; $add_checked_34
       store_u8
       local.get 0   ; arg 0
       i64.const 10
@@ -790,7 +780,7 @@ fn 10 std_core$format_signed (i64) -> string
   return
 end
 
-fn 11 std_core$format_f64 (f64) -> string
+fn 10 std_core$format_f64 (f64) -> string
   local bits u64
   local sign bool
   local mantissa u64
@@ -846,7 +836,7 @@ fn 11 std_core$format_f64 (f64) -> string
   end $L3
   local.get 3   ; mantissa
   local.get 1   ; bits
-  call 12   ; std_core$d2d
+  call 11   ; std_core$d2d
   local.set 4   ; d
   local.field 4 9 0   ; d std_core$Dec64.mantissa
   ref.cast 7   ; u64
@@ -857,11 +847,11 @@ fn 11 std_core$format_f64 (f64) -> string
   local.get 1   ; bits
   local.get 5   ; $field_34
   local.get 2   ; sign
-  call 13   ; std_core$render
+  call 12   ; std_core$render
   return
 end
 
-fn 12 std_core$d2d (u64,u64) -> ref
+fn 11 std_core$d2d (u64,u64) -> ref
   local e2 i32
   local m2 u64
   local accept_bounds bool
@@ -941,7 +931,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.set 6   ; or_res
   end $L1
   local.get 6   ; or_res
-  call 14   ; std_core$b2u
+  call 13   ; std_core$b2u
   local.set 7   ; mm_shift
   i64.const 0
   local.set 8   ; vr
@@ -960,12 +950,12 @@ fn 12 std_core$d2d (u64,u64) -> ref
   i32.ge
   if $L2 void
     local.get 2   ; e2
-    call 15   ; std_core$log10_pow2
+    call 14   ; std_core$log10_pow2
     local.set 13   ; $call_57
     local.get 2   ; e2
     i32.const 3
     i32.gt
-    call 16   ; std_core$b2i
+    call 15   ; std_core$b2i
     local.set 14   ; $call_60
     local.get 13   ; $call_57
     local.get 14   ; $call_60
@@ -973,7 +963,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.tee 13   ; $call_57
     local.set 11   ; e10
     local.get 13   ; $call_57
-    call 17   ; std_core$pow5bits
+    call 16   ; std_core$pow5bits
     local.set 14   ; $call_60
     i32.const 125
     local.get 14   ; $call_60
@@ -995,11 +985,11 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 0 16   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 0 16   ; pool[0] u64[]
+    data.const 0 14   ; pool[0] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1014,7 +1004,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.get 18   ; hi
     local.get 14   ; $call_60
     local.get 7   ; mm_shift
-    call 18   ; std_core$mul_shift_all_64
+    call 17   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 10 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 7   ; u64
@@ -1043,7 +1033,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
       if $L4 void
         local.get 5   ; mv
         local.get 13   ; $call_57
-        call 19   ; std_core$multiple_of_power_of_5
+        call 18   ; std_core$multiple_of_power_of_5
         local.set 12   ; vr_is_tz
       else
         local.get 4   ; accept_bounds
@@ -1054,15 +1044,15 @@ fn 12 std_core$d2d (u64,u64) -> ref
           local.get 7   ; mm_shift
           u64.checked_sub
           local.get 13   ; $call_57
-          call 19   ; std_core$multiple_of_power_of_5
+          call 18   ; std_core$multiple_of_power_of_5
           local.set 6   ; or_res
         else
           local.get 5   ; mv
           i64.const 2
           u64.checked_add
           local.get 13   ; $call_57
-          call 19   ; std_core$multiple_of_power_of_5
-          call 14   ; std_core$b2u
+          call 18   ; std_core$multiple_of_power_of_5
+          call 13   ; std_core$b2u
           local.set 16   ; lo
           local.get 9   ; vp
           local.get 16   ; lo
@@ -1074,13 +1064,13 @@ fn 12 std_core$d2d (u64,u64) -> ref
   else
     local.get 2   ; e2
     i32.checked_neg
-    call 20   ; std_core$log10_pow5
+    call 19   ; std_core$log10_pow5
     local.set 13   ; $call_57
     local.get 2   ; e2
     i32.checked_neg
     i32.const 1
     i32.gt
-    call 16   ; std_core$b2i
+    call 15   ; std_core$b2i
     local.set 14   ; $call_60
     local.get 13   ; $call_57
     local.get 14   ; $call_60
@@ -1094,7 +1084,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.get 13   ; $call_57
     i32.checked_sub
     local.tee 2   ; e2
-    call 17   ; std_core$pow5bits
+    call 16   ; std_core$pow5bits
     i32.const 125
     i32.checked_sub
     local.set 14   ; $call_60
@@ -1109,11 +1099,11 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.get 15   ; $cast_74
     i64.checked_mul
     local.set 15   ; $cast_74
-    data.const 1 16   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.get 15   ; $cast_74
     load_slot_i64
     local.set 16   ; lo
-    data.const 1 16   ; pool[1] u64[]
+    data.const 1 14   ; pool[1] u64[]
     local.set 17   ; $data_const_80
     local.get 15   ; $cast_74
     i64.const 1
@@ -1128,7 +1118,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.get 18   ; hi
     local.get 14   ; $call_60
     local.get 7   ; mm_shift
-    call 18   ; std_core$mul_shift_all_64
+    call 17   ; std_core$mul_shift_all_64
     local.set 17   ; $data_const_80
     local.field 17 10 0   ; $data_const_80 __Tuple_u64_u64_u64_2d035edd._0
     ref.cast 7   ; u64
@@ -1164,7 +1154,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
       if $L8 void
         local.get 5   ; mv
         local.get 13   ; $call_57
-        call 21   ; std_core$multiple_of_power_of_2
+        call 20   ; std_core$multiple_of_power_of_2
         local.set 12   ; vr_is_tz
       end $L8
     end $L6
@@ -1365,7 +1355,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
       local.set 4   ; accept_bounds
     end $L24
     local.get 4   ; accept_bounds
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 3   ; m2
     local.get 8   ; vr
     local.get 3   ; m2
@@ -1469,7 +1459,7 @@ fn 12 std_core$d2d (u64,u64) -> ref
     local.set 6   ; or_res
   end $L28
   local.get 6   ; or_res
-  call 14   ; std_core$b2u
+  call 13   ; std_core$b2u
   local.set 3   ; m2
   local.get 8   ; vr
   local.get 3   ; m2
@@ -1485,12 +1475,12 @@ fn 12 std_core$d2d (u64,u64) -> ref
   return
 end
 
-fn 13 std_core$render (u64,i32,bool) -> string
+fn 12 std_core$render (u64,i32,bool) -> string
   local mantissa u64
   local exp i32
   local buf ref
   local off i64
-  local $call_22 i64
+  local $call_21 i64
   local.get 0   ; arg 0
   local.set 3   ; mantissa
   local.get 1   ; arg 1
@@ -1514,7 +1504,6 @@ fn 13 std_core$render (u64,i32,bool) -> string
     end $L1
   end $L0
   i64.const 25
-  i64.to_i64
   buffer.new
   local.set 5   ; buf
   i64.const 0
@@ -1531,10 +1520,10 @@ fn 13 std_core$render (u64,i32,bool) -> string
     local.get 6   ; off
     local.get 3   ; mantissa
     local.get 4   ; exp
-    call 22   ; std_core$write_decimal
-    local.set 7   ; $call_22
+    call 21   ; std_core$write_decimal
+    local.set 7   ; $call_21
     local.get 5   ; buf
-    local.get 7   ; $call_22
+    local.get 7   ; $call_21
     buffer_to_string
     return
   end $L2
@@ -1542,15 +1531,15 @@ fn 13 std_core$render (u64,i32,bool) -> string
   local.get 6   ; off
   local.get 3   ; mantissa
   local.get 4   ; exp
-  call 22   ; std_core$write_decimal
-  local.set 7   ; $call_22
+  call 21   ; std_core$write_decimal
+  local.set 7   ; $call_21
   local.get 5   ; buf
-  local.get 7   ; $call_22
+  local.get 7   ; $call_21
   buffer_to_string
   return
 end
 
-fn 14 std_core$b2u (bool) -> u64
+fn 13 std_core$b2u (bool) -> u64
   local.get 0   ; arg 0
   if $L0 void
     return.lit i64.const 1
@@ -1558,7 +1547,7 @@ fn 14 std_core$b2u (bool) -> u64
   return.lit i64.const 0
 end
 
-fn 15 std_core$log10_pow2 (i32) -> i32
+fn 14 std_core$log10_pow2 (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 78913
@@ -1569,7 +1558,7 @@ fn 15 std_core$log10_pow2 (i32) -> i32
   return
 end
 
-fn 16 std_core$b2i (bool) -> i32
+fn 15 std_core$b2i (bool) -> i32
   local.get 0   ; arg 0
   if $L0 void
     return.lit i32.const 1
@@ -1577,7 +1566,7 @@ fn 16 std_core$b2i (bool) -> i32
   return.lit i32.const 0
 end
 
-fn 17 std_core$pow5bits (i32) -> i32
+fn 16 std_core$pow5bits (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 1217359
@@ -1590,7 +1579,7 @@ fn 17 std_core$pow5bits (i32) -> i32
   return
 end
 
-fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
+fn 17 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local m u64
   local tmp u64
   local lo u64
@@ -1605,12 +1594,12 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   i64.shl
   local.tee 5   ; m
   local.get 1   ; arg 1
-  call 23   ; std_core$umul128
+  call 22   ; std_core$umul128
   local.set 7   ; lo
   local.set 6   ; tmp
   local.get 5   ; m
   local.get 2   ; arg 2
-  call 23   ; std_core$umul128
+  call 22   ; std_core$umul128
   local.set 8   ; lo1
   local.set 5   ; m
   local.get 6   ; tmp
@@ -1619,7 +1608,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 8   ; lo1
   local.get 6   ; tmp
   u64.lt
-  call 14   ; std_core$b2u
+  call 13   ; std_core$b2u
   local.set 6   ; tmp
   local.get 5   ; m
   local.get 6   ; tmp
@@ -1636,7 +1625,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 6   ; tmp
   local.get 7   ; lo
   u64.lt
-  call 14   ; std_core$b2u
+  call 13   ; std_core$b2u
   local.set 6   ; tmp
   local.get 9   ; $add_28
   local.get 6   ; tmp
@@ -1644,7 +1633,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 6   ; tmp
   local.get 8   ; lo1
   u64.lt
-  call 14   ; std_core$b2u
+  call 13   ; std_core$b2u
   local.set 9   ; $add_28
   local.get 5   ; m
   local.get 9   ; $add_28
@@ -1660,7 +1649,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 6   ; tmp
   local.get 9   ; $add_28
   local.get 10   ; $cast_41
-  call 24   ; std_core$shiftright128
+  call 23   ; std_core$shiftright128
   local.set 6   ; tmp
   i64.const 0
   local.set 9   ; $add_28
@@ -1679,7 +1668,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     u64.gt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 10   ; $cast_41
     local.get 11   ; $sub_50
     local.get 10   ; $cast_41
@@ -1687,7 +1676,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 10   ; $cast_41
     local.get 8   ; lo1
     u64.gt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 11   ; $sub_50
     local.get 5   ; m
     local.get 11   ; $sub_50
@@ -1703,7 +1692,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 11   ; $sub_50
     local.get 12   ; $cast_63
-    call 24   ; std_core$shiftright128
+    call 23   ; std_core$shiftright128
     local.set 9   ; $add_28
   else
     local.get 7   ; lo
@@ -1717,7 +1706,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     u64.lt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 7   ; lo
     local.get 11   ; $sub_50
     local.get 7   ; lo
@@ -1730,7 +1719,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 7   ; lo
     local.get 8   ; lo1
     u64.lt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 12   ; $cast_63
     local.get 11   ; $sub_50
     local.get 12   ; $cast_63
@@ -1747,7 +1736,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12   ; $cast_63
     local.get 10   ; $cast_41
     u64.gt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 10   ; $cast_41
     local.get 13   ; $sub_79
     local.get 10   ; $cast_41
@@ -1755,7 +1744,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 10   ; $cast_41
     local.get 7   ; lo
     u64.gt
-    call 14   ; std_core$b2u
+    call 13   ; std_core$b2u
     local.set 7   ; lo
     local.get 11   ; $sub_50
     local.get 7   ; lo
@@ -1769,7 +1758,7 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 10   ; $cast_41
     local.get 7   ; lo
     local.get 11   ; $sub_50
-    call 24   ; std_core$shiftright128
+    call 23   ; std_core$shiftright128
     local.set 9   ; $add_28
   end $L0
   local.get 3   ; arg 3
@@ -1782,22 +1771,22 @@ fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 8   ; lo1
   local.get 5   ; m
   local.get 7   ; lo
-  call 24   ; std_core$shiftright128
+  call 23   ; std_core$shiftright128
   local.get 6   ; tmp
   local.get 9   ; $add_28
   struct.new 10   ; __Tuple_u64_u64_u64_2d035edd
   return
 end
 
-fn 19 std_core$multiple_of_power_of_5 (u64,i32) -> bool
+fn 18 std_core$multiple_of_power_of_5 (u64,i32) -> bool
   local.get 0   ; arg 0
-  call 25   ; std_core$pow5_factor
+  call 24   ; std_core$pow5_factor
   local.get 1   ; arg 1
   i32.ge
   return
 end
 
-fn 20 std_core$log10_pow5 (i32) -> i32
+fn 19 std_core$log10_pow5 (i32) -> i32
   local.get 0   ; arg 0
   i32.to_i64
   i64.const 732923
@@ -1808,7 +1797,7 @@ fn 20 std_core$log10_pow5 (i32) -> i32
   return
 end
 
-fn 21 std_core$multiple_of_power_of_2 (u64,i32) -> bool
+fn 20 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   local $cast_3 u64
   local.get 1   ; arg 1
   i32.to_i64
@@ -1827,7 +1816,7 @@ fn 21 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   return
 end
 
-fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
+fn 21 std_core$write_decimal (ref,i64,u64,i32) -> i64
   local k i32
   local n i32
   local $add_checked_14 i64
@@ -1837,7 +1826,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
   local if_res u8
   local $cast_62 u64
   local.get 2   ; arg 2
-  call 26   ; std_core$decimal_width
+  call 25   ; std_core$decimal_width
   local.set 4   ; k
   local.get 3   ; arg 3
   local.get 4   ; k
@@ -1873,13 +1862,13 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 7   ; $unop_18
-      call 28   ; std_core$write_zeros
+      call 27   ; std_core$write_zeros
       local.set 6   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 2   ; arg 2
       local.get 4   ; k
-      call 27   ; std_core$write_digits
+      call 26   ; std_core$write_digits
       return
     end $L1
   end $L0
@@ -1887,7 +1876,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   local.get 4   ; k
-  call 27   ; std_core$write_digits
+  call 26   ; std_core$write_digits
   local.set 6   ; $add_checked_14
   local.get 4   ; k
   local.get 5   ; n
@@ -1904,7 +1893,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
       local.get 0   ; arg 0
       local.get 6   ; $add_checked_14
       local.get 7   ; $unop_18
-      call 28   ; std_core$write_zeros
+      call 27   ; std_core$write_zeros
       local.set 8   ; zeroed
       local.get 0   ; arg 0
       local.get 8   ; zeroed
@@ -1936,7 +1925,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
       local.get 1   ; arg 1
       local.get 4   ; k
       local.get 5   ; n
-      call 29   ; std_core$insert_point
+      call 28   ; std_core$insert_point
       return
     end $L5
   end $L4
@@ -1948,7 +1937,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
     local.get 1   ; arg 1
     local.get 4   ; k
     i32.const 1
-    call 29   ; std_core$insert_point
+    call 28   ; std_core$insert_point
     local.set 8   ; zeroed
   else
     local.get 6   ; $add_checked_14
@@ -1995,7 +1984,7 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
     local.get 0   ; arg 0
     local.get 6   ; $add_checked_14
     local.get 11   ; $cast_62
-    call 7   ; std_core$write_unsigned
+    call 6   ; std_core$write_unsigned
     return
   end $L8
   local.get 4   ; k
@@ -2004,11 +1993,11 @@ fn 22 std_core$write_decimal (ref,i64,u64,i32) -> i64
   local.get 0   ; arg 0
   local.get 6   ; $add_checked_14
   local.get 11   ; $cast_62
-  call 7   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   return
 end
 
-fn 23 std_core$umul128 (u64,u64) -> (u64,u64)
+fn 22 std_core$umul128 (u64,u64) -> (u64,u64)
   local a_lo u64
   local a_hi u64
   local b_lo u64
@@ -2096,7 +2085,7 @@ fn 23 std_core$umul128 (u64,u64) -> (u64,u64)
   return
 end
 
-fn 24 std_core$shiftright128 (u64,u64,u64) -> u64
+fn 23 std_core$shiftright128 (u64,u64,u64) -> u64
   local $sub_checked_4 u64
   local $shr_6 u64
   i64.const 64
@@ -2117,7 +2106,7 @@ fn 24 std_core$shiftright128 (u64,u64,u64) -> u64
   return
 end
 
-fn 25 std_core$pow5_factor (u64) -> i32
+fn 24 std_core$pow5_factor (u64) -> i32
   local value u64
   local count i32
   local.get 0   ; arg 0
@@ -2144,7 +2133,7 @@ fn 25 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 26 std_core$decimal_width (u64) -> i32
+fn 25 std_core$decimal_width (u64) -> i32
   local width i32
   local m u64
   local.get 0   ; arg 0
@@ -2177,7 +2166,7 @@ fn 26 std_core$decimal_width (u64) -> i32
   return
 end
 
-fn 27 std_core$write_digits (ref,i64,u64,i32) -> i64
+fn 26 std_core$write_digits (ref,i64,u64,i32) -> i64
   local n u64
   local $cast_5 i64
   local i i64
@@ -2228,7 +2217,7 @@ fn 27 std_core$write_digits (ref,i64,u64,i32) -> i64
   return
 end
 
-fn 28 std_core$write_zeros (ref,i64,i32) -> i64
+fn 27 std_core$write_zeros (ref,i64,i32) -> i64
   local i i32
   local $cast_6 i64
   local $add_checked_7 i64
@@ -2266,7 +2255,7 @@ fn 28 std_core$write_zeros (ref,i64,i32) -> i64
   return
 end
 
-fn 29 std_core$insert_point (ref,i64,i32,i32) -> i64
+fn 28 std_core$insert_point (ref,i64,i32,i32) -> i64
   local $cast_4 i64
   local $add_checked_8 i64
   local $cast_10 i64
@@ -2306,7 +2295,7 @@ fn 29 std_core$insert_point (ref,i64,i32,i32) -> i64
   return
 end
 
-fn 30 std_io$write (u8,string) -> void
+fn 29 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -2342,7 +2331,7 @@ fn 30 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 31   ; std_io$write_bytes
+      call 30   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2362,7 +2351,7 @@ fn 30 std_io$write (u8,string) -> void
   return
 end
 
-fn 31 std_io$write_bytes (u8,ref,i64) -> i32
+fn 30 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2382,7 +2371,7 @@ fn 31 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 32 std_io$println__string (string) -> void
+fn 31 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 10   ; "\n"
@@ -2390,11 +2379,11 @@ fn 32 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 30   ; std_io$write
+  call 29   ; std_io$write
   return
 end
 
-fn 33 std_math$abs_1 (i32) -> i32
+fn 32 std_math$abs_1 (i32) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.lt

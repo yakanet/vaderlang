@@ -1,10 +1,10 @@
 module "snippet"
 
 // `==` compares scalars by representation. `Handle` is a `CPointer`, so it
-// cannot equal an `isize` — convert one side explicitly (`isize(h)`).
+// cannot equal an `i64` — convert one side explicitly (`i64(h)`).
 Handle :: CPointer
 
-INVALID_HANDLE: isize: -1
+INVALID_HANDLE: i64: -1
 
 is_invalid :: fn(h: Handle) -> bool = h == INVALID_HANDLE
 

@@ -170,7 +170,7 @@ signed_machine_name :: fn(hi: i64) -> string = match hi {
     _                     -> ""
 }
 
-/// The name of the primitive `t` is : a primitive's own (`string`, `usize`), the
+/// The name of the primitive `t` is : a primitive's own (`string`, `char`), the
 /// machine integer a range of its bounds is (`machine_integer_name`) ; "" for any
 /// other type, a range of other bounds included, and for none.
 ///
@@ -219,8 +219,7 @@ export at_own_width :: fn(t: Type) -> Type {
 }
 
 /// The integer type `name` as the typecheck holds it : one of the eight machine
-/// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647` ;
-/// `usize` and `isize`, of the target's width, as primitives.
+/// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647`.
 ///
 /// @param name  an integer type's name (`is_int_name`).
 export mk_integer :: fn(name: string) -> Type = match name {
@@ -474,12 +473,10 @@ export PRIMITIVE_META: PrimitiveMeta[]: [
     PrimitiveMeta { .name = "i16",    .size = 2,  .is_int = true,  .is_signed = true,  .is_float = false },
     PrimitiveMeta { .name = "i32",    .size = 4,  .is_int = true,  .is_signed = true,  .is_float = false },
     PrimitiveMeta { .name = "i64",    .size = 8,  .is_int = true,  .is_signed = true,  .is_float = false },
-    PrimitiveMeta { .name = "isize",  .size = 8,  .is_int = true,  .is_signed = true,  .is_float = false },
     PrimitiveMeta { .name = "u8",     .size = 1,  .is_int = true,  .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "u16",    .size = 2,  .is_int = true,  .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "u32",    .size = 4,  .is_int = true,  .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "u64",    .size = 8,  .is_int = true,  .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "usize",  .size = 8,  .is_int = true,  .is_signed = false, .is_float = false },
     PrimitiveMeta { .name = "f32",    .size = 4,  .is_int = false, .is_signed = false, .is_float = true  },
     PrimitiveMeta { .name = "f64",    .size = 8,  .is_int = false, .is_signed = false, .is_float = true  },
     PrimitiveMeta { .name = "bool",   .size = 1,  .is_int = false, .is_signed = false, .is_float = false },
@@ -1415,7 +1412,6 @@ test_machine_integer_range_reads_as_its_primitive :: fn() -> void {
     assert_eq(display_type(byte), "Byte")
     assert_eq(canonical_key(byte), canonical_key(mk_primitive("u8")))
     assert_eq(impl_base_key(byte), "u8")
-    assert(mk_integer("usize") is PrimitiveType, "`usize` stays a primitive")
 }
 
 @test
@@ -1427,7 +1423,7 @@ test_is_primitive_name :: fn() -> void {
 
 @test
 test_primitive_meta_partition :: fn() -> void {
-    assert(is_int_name("usize") && is_unsigned_int_name("usize"), "usize is unsigned int")
+    assert(is_int_name("u64") && is_unsigned_int_name("u64"), "u64 is unsigned int")
     assert(is_signed_int_name("i64") && !is_unsigned_int_name("i64"), "i64 is signed int")
     assert(is_float_name("f32") && !is_int_name("f32"), "f32 is float not int")
     assert(!is_numeric_name("char") && !is_numeric_name("string"), "char/string not numeric")

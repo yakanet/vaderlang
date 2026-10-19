@@ -142,7 +142,7 @@ initial_globals :: fn(module: bc.BytecodeModule) -> Value[] =
 // number, `false`, the NUL char, the empty string, null for anything else.
 global_zero :: fn(val: bc.ValType) -> Value = match val {
     .I8 | .I16 | .I32 | .U8 | .U16 | .U32  -> I32Val(0)
-    .I64 | .Isize | .U64 | .Usize          -> I64Val(0)
+    .I64 | .U64                            -> I64Val(0)
     .F32 | .F64                            -> F64Val(0.0)
     .Bool                                  -> BoolVal(false)
     .Char                                  -> CharVal(char(u32(0)))

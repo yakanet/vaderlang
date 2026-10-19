@@ -2,15 +2,20 @@
 
 ## tests/snippets/extern_native_basic
   FnDecl         add_i32              :: fn(i32, i32) -> i32
-  FnDecl         c_strlen             :: fn(string) -> usize
+  FnDecl         c_strlen             :: fn(string) -> u64
+  FnDecl         c_strnlen            :: fn(string, u64) -> u64
   FnDecl         main                 :: fn() -> i32
-  expr 15:12    CallExpr       :: i32
-  expr 15:12    IdentExpr      :: fn(i32, i32) -> i32
-  expr 16:10    CallExpr       :: usize
-  expr 16:10    IdentExpr      :: fn(string) -> usize
-  expr 16:19    StringLitExpr  :: string
-  expr 17:13    StringLitExpr  :: string
-  expr 17:20    IdentExpr      :: i32
-  expr 17:34    IdentExpr      :: usize
-  expr 17:5     CallExpr       :: void
-  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 23:12    CallExpr       :: i32
+  expr 23:12    IdentExpr      :: fn(i32, i32) -> i32
+  expr 24:10    CallExpr       :: u64
+  expr 24:10    IdentExpr      :: fn(string) -> u64
+  expr 24:19    StringLitExpr  :: string
+  expr 25:16    CallExpr       :: u64
+  expr 25:16    IdentExpr      :: fn(string, u64) -> u64
+  expr 25:26    StringLitExpr  :: string
+  expr 26:13    StringLitExpr  :: string
+  expr 26:20    IdentExpr      :: i32
+  expr 26:34    IdentExpr      :: u64
+  expr 26:47    IdentExpr      :: u64
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void

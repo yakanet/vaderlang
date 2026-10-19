@@ -461,10 +461,7 @@ test_primitive_from_name_recognises_canonical :: fn() -> void {
         is PrimitiveType -> { assert_eq(p.name, "string") }
         _                -> { assert(false, "string should be primitive") }
     }
-    match primitive_from_name("usize") as p {
-        is PrimitiveType -> { assert_eq(p.name, "usize") }
-        _                -> { assert(false, "usize should be primitive") }
-    }
+    assert(primitive_from_name("usize") == null, "`usize` is no primitive")
 }
 
 @test

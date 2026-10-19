@@ -64,13 +64,13 @@ export is_display_to_string :: fn(mangled: string) -> bool {
 }
 
 /// Subset of `is_display_to_string` covering the unsigned widths that overflow
-/// the signed `i64` carrier (`u32` / `u64` / `usize`) — these need the unsigned
+/// the signed `i64` carrier (`u32` / `u64`) — these need the unsigned
 /// reinterpret path. `u8` / `u16` fit the signed carrier losslessly.
 ///
 /// @param mangled  the host import's mangled name.
 export is_unsigned_display :: fn(mangled: string) -> bool {
     kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
-    return kind != null && (kind == "u32" || kind == "u64" || kind == "usize")
+    return kind != null && (kind == "u32" || kind == "u64")
 }
 
 // Return the `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when

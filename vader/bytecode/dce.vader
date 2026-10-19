@@ -210,7 +210,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 
     // Collapse duplicate mangles. Two kept fns can share a (non-empty) mangle
     // when an impl member is materialised twice — once empty (dead, kept only as
-    // a vtable root) and once bodied (call-reached) — e.g. std/core's usize
+    // a vtable root) and once bodied (call-reached) — e.g. std/core's u64
     // `Comparable` / `Step` members when both a snippet and the force-loaded
     // string_builder pull `Range` in. Emitting both would yield two C `static`
     // defs with the same name → `redefinition of …` at link. Map each mangle to

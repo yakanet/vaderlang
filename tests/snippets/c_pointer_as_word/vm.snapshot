@@ -1,6 +1,5 @@
 # stdout
 live=true
-widths_agree=true
-as_64_bits=true
+readings_agree=true
 # exit
 0

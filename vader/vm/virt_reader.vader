@@ -425,7 +425,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
 /// integer storage classes). `shr` splits on signedness — signed widths
 /// keep arithmetic shift, unsigned widths get the logical variant.
 ///
-/// @param width   the integer width prefix (`i32`, `u8`, ..., `usize`).
+/// @param width   the integer width prefix (`i32`, `u8`, ..., `u64`).
 /// @param suffix  the verb tail (`add`, `shl`, `neg`, ...).
 /// @return        the matching op, or `null` for an unrecognised suffix.
 int_op_for :: fn(width: string, suffix: string) -> bc.Op | null {
@@ -525,7 +525,7 @@ parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
     // = i64 -9551616) loses its high bits and the unsigned-display host then
     // renders only the low 32 (`4285415680`). Preserving `I64Const` keeps the
     // full bit pattern ; signed consumers still read it via `read_i64`.
-    is_wide :: width == "i64" || width == "u64" || width == "isize" || width == "usize"
+    is_wide :: width == "i64" || width == "u64"
     // Negative literals : both emitters print `<width>.const -N` directly
     // (signed widths only — unsigned widths never carry a sign), so a
     // leading `-` strips to the magnitude, which we parse unsigned and
@@ -555,21 +555,21 @@ parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
     return bc.I64Const { .value = i64(parsed) }
 }
 
-/// True iff `width` is one of the 10 integer prefixes the VM recognises
-/// (`i8` / `i16` / `i32` / `i64` / `isize` / `u8` / `u16` / `u32` / `u64`
-/// / `usize`). `parse_op_line` and `int_op_for` read this to gate the
-/// `<width>.<verb>` dispatch.
+/// True iff `width` is one of the 8 integer prefixes the VM recognises
+/// (`i8` / `i16` / `i32` / `i64` / `u8` / `u16` / `u32` / `u64`).
+/// `parse_op_line` and `int_op_for` read this to gate the `<width>.<verb>`
+/// dispatch.
 ///
 /// @param width  the prefix candidate.
-/// @return       `true` for any of the 10 supported integer widths.
+/// @return       `true` for any of the 8 supported integer widths.
 is_int_width :: fn(width: string) -> bool = is_int_name(width)
 
-/// True iff `width` is one of the 5 unsigned integer prefixes. Used by
+/// True iff `width` is one of the 4 unsigned integer prefixes. Used by
 /// `int_op_for` to route cmp / div / rem / shr to the U* family so the
 /// signedness is respected.
 ///
 /// @param width  the prefix candidate.
-/// @return       `true` for `u8` / `u16` / `u32` / `u64` / `usize`.
+/// @return       `true` for `u8` / `u16` / `u32` / `u64`.
 is_unsigned_width :: fn(width: string) -> bool = is_unsigned_int_name(width)
 
 /// Strip `prefix` from `line`, trim, and parse the rest as a base-10

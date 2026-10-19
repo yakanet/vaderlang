@@ -921,7 +921,7 @@ div_mod_helper :: fn(op: CBinaryOperator, val: ValType) -> string | null = @part
 /// bootstrap : it changes how the compiler's own 64-bit literal rendering
 /// compiles and miscompiles large `i64`/`u64` constants (fixed point breaks,
 /// `INT64_MAX` emits as `4294967295`). u8/u16 are always < 2^31, so sign- and
-/// zero-extension coincide ; u64/usize are already `.I64` and never widen.
+/// zero-extension coincide ; u64 is already `.I64` and never widens.
 ///
 /// @param target_val  the result stack class (`I32`/`I64`/`F64`/`Char`).
 /// @param from_name   the op's recorded source type name (`"u32"`, `"i64"`,
@@ -1784,8 +1784,8 @@ emit_size_of_type :: fn(s: FnState) -> void {
     tv :: pop(s)
     push_into_temporary(
         s,
-        around("(size_t)vader_type_info_table[(int32_t)(uintptr_t)", payload(expression_of(tv), "obj"), "].slot_size"),
-        .Usize,
+        around("(int64_t)vader_type_info_table[(int32_t)(uintptr_t)", payload(expression_of(tv), "obj"), "].slot_size"),
+        .I64,
     )
 }
 
@@ -2152,7 +2152,7 @@ field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpressi
 /// Whether storing into this field can create an old→young edge.
 ///
 /// The card marks an object whose SLOTS a later minor must rescan, so a store
-/// that writes no reference has nothing to record — `cursor: usize` cannot make
+/// that writes no reference has nothing to record — `cursor: i64` cannot make
 /// an old object point at a young one. `Pointer` is excluded by its own
 /// definition (the GC must not scan it); `String` is an interned atom and is
 /// kept conservatively, since its liveness is tracked through the object's
@@ -2825,7 +2825,7 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     evaluate(s, call(helper, [array_pointer(obj), coerced_as(s, value, fill.val)]))
 }
 
-/// `array.len` — pop array, push its `usize` length.
+/// `array.len` — pop array, push its `i64` length.
 ///
 /// Target ABI S5 (inc-3) : reads the `length` header field inline instead of
 /// calling the runtime accessor — `vader_array_len` is `a->length`, so the
@@ -2834,7 +2834,7 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
 /// `vader_array_len`.
 emit_array_len :: fn(s: FnState) -> void {
     arr :: pop(s)
-    push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .Usize)
+    push_into_temporary(s, CMember { .base = array_header_pointer(arr), .member = "length", .arrow = true }, .I64)
 }
 
 /// `array.slice` — pop array + lo + hi, push a fresh array header over the

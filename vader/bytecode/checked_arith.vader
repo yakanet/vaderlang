@@ -111,13 +111,13 @@ test_checked_arith_u32_cells :: fn() -> void {
 @test
 test_checked_arith_classes :: fn() -> void {
     assert(checked_arith(.Add, .U8, 250, 10) == null, "u8 250 + 10")
-    assert(checked_arith(.Sub, .Usize, 0, 1) == null, "usize 0 - 1")
-    assert_eq(checked_arith(.Sub, .Isize, 0, 1) ?? 0, -1)
+    assert(checked_arith(.Sub, .U64, 0, 1) == null, "u64 0 - 1")
+    assert_eq(checked_arith(.Sub, .I64, 0, 1) ?? 0, -1)
     assert(checked_neg(.I8, -128) == null, "i8 -(-128)")
 }
 
 @test
 test_checked_overflow_message :: fn() -> void {
     assert_eq(checked_overflow_message(.U8, .Add), "u8.add overflow")
-    assert_eq(checked_neg_message(.Isize), "isize.neg overflow")
+    assert_eq(checked_neg_message(.I64), "i64.neg overflow")
 }

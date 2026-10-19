@@ -1,5 +1,5 @@
 // A type parameter bounded by `Int` is computed on as an `i64` : its argument is an
-// integer type within `i64`. `u64` and `usize` go past it, a `string` is no integer.
+// integer type within `i64`. `u64` goes past it, a `string` is no integer.
 module "snippet"
 
 export lowest :: fn<T: Int>(a: T, b: T) -> i64 {
@@ -11,9 +11,7 @@ export lowest :: fn<T: Int>(a: T, b: T) -> i64 {
 
 export main :: fn() -> i32 {
     big: u64: 5
-    size: usize: 3
     x :: lowest(big, big)
-    y :: lowest(size, size)
     z :: lowest("a", "b")
     return 0
 }

@@ -2,7 +2,7 @@
 //
 // Under the flavor-based erasure model the key lands RAW in the bucket entry
 // (`MutableMap__i64__i32`, key stored as raw `i64`). Exercise insert / get /
-// collision / miss across u8 / u16 / i16 / char / i64 / usize so a box-vs-raw
+// collision / miss across u8 / u16 / i16 / char / i64 / u64 so a box-vs-raw
 // miscompile of the key surfaces as a wrong lookup. The generic `get_or`
 // wrapper reads the key as a Mixed type-param, crossing the box-vs-raw
 // frontier on the way in.
@@ -60,10 +60,10 @@ main :: fn() -> i32 {
     mi64[knegbig] = 8
     println("i64 big=${get_or(mi64, kbig, -1)} negbig=${get_or(mi64, knegbig, -1)}")
 
-    // usize keys, exercise collisions by inserting a dense range
-    mus :: MutableMap<usize, i32> {}
-    for j in 0..<40 { mus[usize(j)] = j + 1000 }
-    println("usize size=${mus.len()} k0=${get_or(mus, usize(0), -1)} k39=${get_or(mus, usize(39), -1)} miss=${get_or(mus, usize(99), -1)}")
+    // u64 keys, exercise collisions by inserting a dense range
+    mus :: MutableMap<u64, i32> {}
+    for j in 0..<40 { mus[u64(j)] = j + 1000 }
+    println("u64 size=${mus.len()} k0=${get_or(mus, u64(0), -1)} k39=${get_or(mus, u64(39), -1)} miss=${get_or(mus, u64(99), -1)}")
 
     return 0
 }

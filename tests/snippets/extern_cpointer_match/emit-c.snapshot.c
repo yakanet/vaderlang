@@ -103,7 +103,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[14] = {
+const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
     [3] = { .slot_size = 16 },
@@ -111,24 +111,23 @@ const vader_type_info_t vader_type_info_table[14] = {
     [5] = { .slot_size = 1 },
     [6] = { .slot_size = 8 },
     [7] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
-    [8] = { .slot_size = 8 },
-    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [11] = { .slot_size = 16 },
-    [12] = {
+    [8] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [10] = { .slot_size = 16 },
+    [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_io_IOError_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_std_io_IOError_t, f_msg) },
         .string_count = 1,
     },
-    [13] = { .slot_size = 16 },
+    [12] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 14;
+const size_t vader_type_info_count = 13;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <stdio.h>
@@ -164,7 +163,7 @@ static vader_string_t vader_host_std_core_byte_slice(vader_string_t a0, int64_t 
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 7u, 5u);
+    return (void*) vader_string_bytes_view(a0, 8u, 5u);
 }
 
 static vader_box_t vader_host_std_env_get_env(vader_string_t a0) {
@@ -230,7 +229,7 @@ static int32_t snippet_main(void) {
 #line 35 "tests/snippets/extern_cpointer_match/_main.vader"
     l1 = std_io_write_file_string(l0, 2u);
 #line 36 "tests/snippets/extern_cpointer_match/_main.vader"
-    if (l1.tag == 12u) {
+    if (l1.tag == 11u) {
         l2 = l1.payload.obj;
 #line 37 "tests/snippets/extern_cpointer_match/_main.vader"
         l3 = ((vader_struct_std_io_IOError_t*) l2)->f_msg;
@@ -369,7 +368,6 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     void* l6 = NULL;
     int64_t l3, l4, l5, l7, l9;
     int32_t l8;
-    size_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -383,17 +381,14 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 208 "lib/std/io/io.vader"
     for (;;) {
 #line 209 "lib/std/io/io.vader"
-        t0 = ((vader_array_t*) l2)->length;
-        l4 = (int64_t) (size_t) t0;
+        l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
 #line 212 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l2)->length;
-            l5 = (int64_t) (size_t) t0;
+            l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
 #line 213 "lib/std/io/io.vader"
-            t0 = ((vader_array_t*) l6)->length;
-            l7 = (int64_t) (size_t) t0;
+            l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
 #line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
@@ -444,7 +439,7 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
     void* l6 = NULL;
     uint8_t t0;
     void* t1 = NULL;
-    size_t t2;
+    int64_t t2;
     int32_t t3;
     vader_box_t* gc_roots[1] = { &l5 };
     void** gc_raw_roots[3] = { &l1, &l6, &t1 };
@@ -463,7 +458,7 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
         if (t0 == INT32_C(0)) {
 #line 543 "lib/std/io/io.vader"
             vader_struct_std_io_IOError_t* _a0_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
-            vader_obj_header_init(_a0_obj, 12u);
+            vader_obj_header_init(_a0_obj, 11u);
             _a0_obj->f_msg = 13u;
             _a0_obj->f_kind = (uint8_t) 0;
             _a0_obj->f_code = INT32_C(0);
@@ -485,12 +480,10 @@ static vader_box_t std_io_write_file_bytes(vader_string_t l0, void* l1) {
     t2 = ((vader_array_t*) l1)->length;
     if ((t2 > INT64_C(0))) {
 #line 548 "lib/std/io/io.vader"
-        t2 = ((vader_array_t*) l1)->length;
-        l2 = (int64_t) (size_t) t2;
+        l2 = ((vader_array_t*) l1)->length;
         l2 = vader_host_system_posix_sys_fwrite(l1, INT64_C(1), l2, l4);
 #line 549 "lib/std/io/io.vader"
-        t2 = ((vader_array_t*) l1)->length;
-        l3 = (int64_t) (size_t) t2;
+        l3 = ((vader_array_t*) l1)->length;
         if (l2 != l3) {
 #line 551 "lib/std/io/io.vader"
             l6 = std_io_last_io_error(16u);
@@ -599,7 +592,7 @@ static void* std_io_last_io_error(vader_string_t l0) {
     if (l4 == 0u) {
 #line 121 "lib/std/io/io.vader"
         vader_struct_std_io_IOError_t* _a0_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
-        vader_obj_header_init(_a0_obj, 12u);
+        vader_obj_header_init(_a0_obj, 11u);
         _a0_obj->f_msg = l0;
         _a0_obj->f_kind = l2;
         _a0_obj->f_code = l1;
@@ -609,7 +602,7 @@ static void* std_io_last_io_error(vader_string_t l0) {
     }
 #line 121 "lib/std/io/io.vader"
     vader_struct_std_io_IOError_t* _a1_obj = (vader_struct_std_io_IOError_t*) vader_gc_alloc(sizeof(vader_struct_std_io_IOError_t));
-    vader_obj_header_init(_a1_obj, 12u);
+    vader_obj_header_init(_a1_obj, 11u);
     _a1_obj->f_msg = l4;
     _a1_obj->f_kind = l2;
     _a1_obj->f_code = l1;

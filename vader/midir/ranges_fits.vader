@@ -2,7 +2,7 @@
 // its type.
 //
 // An exact result within the type fits. Past that, an open upper end of a
-// `u64` / `usize` value stops at the type's greatest value, and a fact against
+// `u64` value stops at the type's greatest value, and a fact against
 // another local bounds a sum the intervals alone cannot: `i < n` keeps `i + 1`
 // at most `n`. The analysis itself is in `ranges.vader`.
 

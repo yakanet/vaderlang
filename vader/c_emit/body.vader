@@ -144,8 +144,6 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .U16 -> "uint16_t"
     .U32 -> "uint32_t"
     .U64 -> "uint64_t"
-    .Usize -> "size_t"
-    .Isize -> "ptrdiff_t"
     .F32 -> "float"
     .F64 -> "double"
     .Bool -> "bool"
@@ -177,8 +175,6 @@ unbox_expr :: fn(value: CExpression, target: ValType) -> CExpression = match tar
     .U16   -> payload_cast("uint16_t", value, "i")
     .U32   -> payload_cast("uint32_t", value, "i")
     .U64   -> payload_cast("uint64_t", value, "i")
-    .Usize -> payload_cast("size_t", value, "i")
-    .Isize -> payload_cast("ptrdiff_t", value, "i")
     .Char  -> payload_cast("uint32_t", value, "i")
     .F32   -> payload_cast("float", value, "f")
     .F64   -> payload_cast("double", value, "f")
@@ -216,8 +212,7 @@ box_expr :: fn(value: CExpression, val: ValType, type_index: i32) -> CExpression
     .I8 | .I16 | .I32     -> box_call("i32", type_index, value)
     .U8 | .U16 | .U32     -> box_call("i32", type_index, CCast { .types = ["int32_t", "uint32_t"], .value = value })
     .I64                  -> box_call("i64", type_index, value)
-    .Isize                -> box_call("i64", type_index, cast("int64_t", value))
-    .U64 | .Usize         -> box_call("i64", type_index, CCast { .types = ["int64_t", "uint64_t"], .value = value })
+    .U64                  -> box_call("i64", type_index, CCast { .types = ["int64_t", "uint64_t"], .value = value })
     .F32                  -> box_call("f64", type_index, cast("double", value))
     .F64                  -> box_call("f64", type_index, value)
     .Bool                 -> box_call("bool", type_index, value)
@@ -317,8 +312,8 @@ coerce_expr :: fn(types: BcType[], value: CExpression, from: ValType, to: ValTyp
 }
 
 /// `(to) (from) value` — convert through `from` first, as `emit_convert` does.
-/// A literal of `from`'s own class takes one cast : `(size_t) 0`, not
-/// `(size_t) (int64_t) INT64_C(0)` ; C converts the constant the same way,
+/// A literal of `from`'s own class takes one cast : `(uint64_t) 0`, not
+/// `(uint64_t) (int64_t) INT64_C(0)` ; C converts the constant the same way,
 /// negative values included. A literal re-read as another class (an `i32`
 /// constant taken as `u32`) keeps both casts : the inner one truncates.
 ///

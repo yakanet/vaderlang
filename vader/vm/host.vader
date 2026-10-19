@@ -182,7 +182,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     // doesn't matter at runtime (every integer collapses to `I32Val`),
     // so a single arm covers all the per-width manglings.
     .PrimDisplayToString -> {
-        // `u32` / `u64` / `usize` literals exceeding `i64.MAX` ride the
+        // `u32` / `u64` literals exceeding `i64.MAX` ride the
         // same `I64Val` carrier as signed `i64`. Default `display_value`
         // renders that bit pattern as signed i64 (e.g. `-9551616` instead
         // of `18446744073700000000`). The lower pass routes wide

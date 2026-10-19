@@ -189,6 +189,34 @@ export BcImport :: struct {
     /// place on darwin-arm64, where they travel on the stack rather than in
     /// registers. `cc` gets the same fact from `@c_header`; nothing gave it to us.
     c_variadic_fixed: i32 = -1
+    /// Per-parameter `@c_type`, parallel to the signature's params: the C type the
+    /// foreign callee declares, `""` where the Vader type's own spelling is meant.
+    /// Empty when no parameter carries one.
+    param_c_types: string[] = []
+    /// The `@c_type` of the declaration, the C type of its result ; `""` when the
+    /// Vader type's own spelling is meant.
+    result_c_type: string = ""
+}
+
+/// The C type parameter `j` of `imp` declares through `@c_type`, null without one.
+///
+/// @param imp  the import.
+/// @param j    the parameter index.
+export param_c_type :: fn(imp: BcImport, j: i64) -> string | null {
+    if j >= imp.param_c_types.len() || imp.param_c_types[j] == "" {
+        return null
+    }
+    return imp.param_c_types[j]
+}
+
+/// The C type the result of `imp` has through `@c_type`, null without one.
+///
+/// @param imp  the import.
+export c_result_type :: fn(imp: BcImport) -> string | null {
+    if imp.result_c_type == "" {
+        return null
+    }
+    return imp.result_c_type
 }
 
 /// One symbol exposed to the host (`@export` fns). `extern_name` is

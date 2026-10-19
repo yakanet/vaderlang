@@ -7,13 +7,12 @@ type 4 primitive u8
 type 5 primitive i64
 type 6 struct std_core$Buffer {  }
 type 7 array 4
-type 8 primitive usize
-type 9 primitive void
-type 10 primitive u64
-type 11 struct random$Rng { s0:10,s1:10 }
-type 12 primitive f64
-type 13 primitive u32
-type 14 array 1
+type 8 primitive void
+type 9 primitive u64
+type 10 struct random$Rng { s0:9,s1:9 }
+type 11 primitive f64
+type 12 primitive u32
+type 13 array 1
 string 0 "deterministic="
 string 1 "zero_seed_nonzero="
 string 2 "range_i32_in_bounds="
@@ -44,10 +43,10 @@ fn 0 snippet$main () -> i32
   local seen_f bool
   local bx bool
   i64.const 42
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   i64.const 42
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 1   ; b
   bool.const true
   local.set 2   ; same
@@ -59,10 +58,10 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L1 void
       local.get 0   ; a
-      call 11   ; random$next_u64
+      call 10   ; random$next_u64
       local.set 4   ; $call_14
       local.get 1   ; b
-      call 11   ; random$next_u64
+      call 10   ; random$next_u64
       local.set 5   ; $call_15
       local.get 4   ; $call_14
       local.get 5   ; $call_15
@@ -79,26 +78,26 @@ fn 0 snippet$main () -> i32
     end $L1
   end $L0
   i64.const 19
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 0   ; "deterministic="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 2   ; same
-  call 6   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i64.const 0
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   bool.const false
   local.set 2   ; same
@@ -110,7 +109,7 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L4 void
       local.get 0   ; a
-      call 11   ; random$next_u64
+      call 10   ; random$next_u64
       i64.const 0
       i64.ne
       if $L5 void
@@ -125,26 +124,26 @@ fn 0 snippet$main () -> i32
     end $L4
   end $L3
   i64.const 23
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 1   ; "zero_seed_nonzero="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 2   ; same
-  call 6   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i64.const 7
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   bool.const true
   local.set 2   ; same
@@ -158,7 +157,7 @@ fn 0 snippet$main () -> i32
       local.get 0   ; a
       i32.const 10
       i32.const 20
-      call 12   ; random$range_i32
+      call 11   ; random$range_i32
       local.tee 7   ; v
       i32.const 10
       i32.lt
@@ -181,26 +180,26 @@ fn 0 snippet$main () -> i32
     end $L7
   end $L6
   i64.const 25
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 2   ; "range_i32_in_bounds="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 2   ; same
-  call 6   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i64.const 123
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   bool.const true
   local.set 2   ; same
@@ -212,7 +211,7 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L11 void
       local.get 0   ; a
-      call 13   ; random$unit_f64
+      call 12   ; random$unit_f64
       local.tee 8   ; v
       f64.const 0.0 0
       f64.lt
@@ -235,26 +234,26 @@ fn 0 snippet$main () -> i32
     end $L11
   end $L10
   i64.const 24
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 3   ; "unit_f64_in_bounds="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 2   ; same
-  call 6   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i64.const 99
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   i32.const 1
   i32.const 2
@@ -264,20 +263,20 @@ fn 0 snippet$main () -> i32
   i32.const 6
   i32.const 7
   i32.const 8
-  array.new 14 8   ; i32[]
+  array.new 13 8   ; i32[]
   local.set 1   ; b
   local.get 0   ; a
   local.get 1   ; b
-  call 20   ; random$shuffle__i32
+  call 19   ; random$shuffle__i32
   i64.const 33
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 4   ; "shuffled_len="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 1   ; b
   array.len
@@ -285,12 +284,12 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 9   ; $len_136
-  call 5   ; std_core$write_int
+  call 4   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i32.const 0
   local.set 3   ; k
   local.get 1   ; b
@@ -320,14 +319,14 @@ fn 0 snippet$main () -> i32
     end $L15
   end $L14
   i64.const 33
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 5   ; "shuffled_sum="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 3   ; k
   i32.to_i64
@@ -335,14 +334,14 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 9   ; $len_136
-  call 5   ; std_core$write_int
+  call 4   ; std_core$write_int
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   i64.const 2026
-  call 10   ; random$new_seeded
+  call 9   ; random$new_seeded
   local.set 0   ; a
   bool.const false
   local.set 2   ; same
@@ -356,7 +355,7 @@ fn 0 snippet$main () -> i32
     i32.lt
     if $L17 void
       local.get 0   ; a
-      call 14   ; random$next_bool
+      call 13   ; random$next_bool
       local.tee 11   ; bx
       if $L18 void
         bool.const true
@@ -376,14 +375,14 @@ fn 0 snippet$main () -> i32
     end $L17
   end $L16
   i64.const 20
-  call 2   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; a
   i64.const 0
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
   string.const 6   ; "bool_both_seen="
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; same
   if $L20 void
@@ -396,12 +395,12 @@ fn 0 snippet$main () -> i32
   local.get 0   ; a
   local.get 6   ; __off_1
   local.get 2   ; same
-  call 6   ; std_core$write_bool
+  call 5   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 0   ; a
   local.get 6   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  call 2   ; std_core$finish_buffer
+  call 8   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -419,7 +418,6 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -435,21 +433,14 @@ fn 1 concat_2 (string,string) -> string
   return
 end
 
-fn 2 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 3 std_core$finish_buffer (ref,i64) -> string
+fn 2 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_string_at (ref,i64,string) -> i64
+fn 3 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -464,7 +455,7 @@ fn 4 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 5 std_core$write_int (ref,i64,i64) -> i64
+fn 4 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -578,24 +569,24 @@ fn 5 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 6 std_core$write_bool (ref,i64,bool) -> i64
+fn 5 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     string.const 8   ; "false"
-    call 4   ; std_core$write_string_at
+    call 3   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.const 7   ; "true"
-  call 4   ; std_core$write_string_at
+  call 3   ; std_core$write_string_at
   return
 end
 
-fn 7 std_io$write (u8,string) -> void
+fn 6 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -631,7 +622,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 8   ; std_io$write_bytes
+      call 7   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -651,7 +642,7 @@ fn 7 std_io$write (u8,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (u8,ref,i64) -> i32
+fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -671,7 +662,7 @@ fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 8 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 9   ; "\n"
@@ -679,71 +670,71 @@ fn 9 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 7   ; std_io$write
+  call 6   ; std_io$write
   return
 end
 
-fn 10 random$new_seeded (u64) -> ref
+fn 9 random$new_seeded (u64) -> ref
   local a u64
   local b u64
   local.get 0   ; arg 0
-  call 16   ; random$splitmix64
+  call 15   ; random$splitmix64
   local.tee 1   ; a
-  call 16   ; random$splitmix64
+  call 15   ; random$splitmix64
   local.set 2   ; b
   local.get 1   ; a
   local.get 2   ; b
-  struct.new 11   ; random$Rng
+  struct.new 10   ; random$Rng
   return
 end
 
-fn 11 random$next_u64 (ref) -> u64
+fn 10 random$next_u64 (ref) -> u64
   local $field_1 u64
   local $field_2 u64
   local $field_13 u64
   local $call_22 u64
-  local.field 0 11 0   ; arg 0 random$Rng.s0
-  ref.cast 10   ; u64
+  local.field 0 10 0   ; arg 0 random$Rng.s0
+  ref.cast 9   ; u64
   local.set 1   ; $field_1
-  local.field 0 11 1   ; arg 0 random$Rng.s1
-  ref.cast 10   ; u64
+  local.field 0 10 1   ; arg 0 random$Rng.s1
+  ref.cast 9   ; u64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
   i64.add
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   i64.const 17
-  call 18   ; random$rotl
+  call 17   ; random$rotl
   local.set 1   ; $field_1
-  local.field 0 11 0   ; arg 0 random$Rng.s0
-  ref.cast 10   ; u64
+  local.field 0 10 0   ; arg 0 random$Rng.s0
+  ref.cast 9   ; u64
   local.set 2   ; $field_2
   local.get 1   ; $field_1
   local.get 2   ; $field_2
   i64.add
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.set 1   ; $field_1
-  local.field 0 11 1   ; arg 0 random$Rng.s1
-  ref.cast 10   ; u64
+  local.field 0 10 1   ; arg 0 random$Rng.s1
+  ref.cast 9   ; u64
   local.set 2   ; $field_2
-  local.field 0 11 0   ; arg 0 random$Rng.s0
-  ref.cast 10   ; u64
+  local.field 0 10 0   ; arg 0 random$Rng.s0
+  ref.cast 9   ; u64
   local.set 3   ; $field_13
   local.get 2   ; $field_2
   local.get 3   ; $field_13
   i64.bitxor
   local.set 2   ; $field_2
-  local.field 0 11 0   ; arg 0 random$Rng.s0
-  ref.cast 10   ; u64
+  local.field 0 10 0   ; arg 0 random$Rng.s0
+  ref.cast 9   ; u64
   i64.const 49
-  call 18   ; random$rotl
+  call 17   ; random$rotl
   local.get 2   ; $field_2
   i64.bitxor
   local.set 3   ; $field_13
   local.get 2   ; $field_2
   i64.const 21
   i64.shl
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.set 4   ; $call_22
   local.get 3   ; $field_13
   local.get 4   ; $call_22
@@ -751,19 +742,19 @@ fn 11 random$next_u64 (ref) -> u64
   local.set 3   ; $field_13
   local.get 0   ; arg 0
   local.get 3   ; $field_13
-  struct.set 11 0   ; random$Rng.s0
+  struct.set 10 0   ; random$Rng.s0
   local.get 2   ; $field_2
   i64.const 28
-  call 18   ; random$rotl
+  call 17   ; random$rotl
   local.set 2   ; $field_2
   local.get 0   ; arg 0
   local.get 2   ; $field_2
-  struct.set 11 1   ; random$Rng.s1
+  struct.set 10 1   ; random$Rng.s1
   local.get 1   ; $field_1
   return
 end
 
-fn 12 random$range_i32 (ref,i32,i32) -> i32
+fn 11 random$range_i32 (ref,i32,i32) -> i32
   local span u32
   local $mod_9 u32
   local x u32
@@ -789,7 +780,7 @@ fn 12 random$range_i32 (ref,i32,i32) -> i32
   u32.checked_sub
   local.set 4   ; $mod_9
   local.get 0   ; arg 0
-  call 19   ; random$next_u32
+  call 18   ; random$next_u32
   local.set 5   ; x
   loop $L1 void
     local.get 5   ; x
@@ -797,7 +788,7 @@ fn 12 random$range_i32 (ref,i32,i32) -> i32
     u32.gt
     if $L2 void
       local.get 0   ; arg 0
-      call 19   ; random$next_u32
+      call 18   ; random$next_u32
       local.set 5   ; x
       br $L1
     end $L2
@@ -813,11 +804,11 @@ fn 12 random$range_i32 (ref,i32,i32) -> i32
   return
 end
 
-fn 13 random$unit_f64 (ref) -> f64
+fn 12 random$unit_f64 (ref) -> f64
   local $cast_4 f64
   local $cast_7 f64
   local.get 0   ; arg 0
-  call 11   ; random$next_u64
+  call 10   ; random$next_u64
   i64.const 12
   u64.shr
   u64.to_f64
@@ -831,9 +822,9 @@ fn 13 random$unit_f64 (ref) -> f64
   return
 end
 
-fn 14 random$next_bool (ref) -> bool
+fn 13 random$next_bool (ref) -> bool
   local.get 0   ; arg 0
-  call 11   ; random$next_u64
+  call 10   ; random$next_u64
   i64.const 63
   u64.shr
   i64.const 1
@@ -841,7 +832,7 @@ fn 14 random$next_bool (ref) -> bool
   return
 end
 
-fn 15 random$range_u32 (ref,u32,u32) -> u32
+fn 14 random$range_u32 (ref,u32,u32) -> u32
   local span u32
   local $mod_8 u32
   local x u32
@@ -865,7 +856,7 @@ fn 15 random$range_u32 (ref,u32,u32) -> u32
   u32.checked_sub
   local.set 4   ; $mod_8
   local.get 0   ; arg 0
-  call 19   ; random$next_u32
+  call 18   ; random$next_u32
   local.set 5   ; x
   loop $L1 void
     local.get 5   ; x
@@ -873,7 +864,7 @@ fn 15 random$range_u32 (ref,u32,u32) -> u32
     u32.gt
     if $L2 void
       local.get 0   ; arg 0
-      call 19   ; random$next_u32
+      call 18   ; random$next_u32
       local.set 5   ; x
       br $L1
     end $L2
@@ -888,13 +879,13 @@ fn 15 random$range_u32 (ref,u32,u32) -> u32
   return
 end
 
-fn 16 random$splitmix64 (u64) -> u64
+fn 15 random$splitmix64 (u64) -> u64
   local z u64
   local $shr_6 u64
   local.get 0   ; arg 0
   i64.const -7046029254386353131
   i64.add
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.tee 1   ; z
   i64.const 30
   u64.shr
@@ -904,7 +895,7 @@ fn 16 random$splitmix64 (u64) -> u64
   i64.bitxor
   i64.const -4658895280553007687
   i64.mul
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.tee 1   ; z
   i64.const 27
   u64.shr
@@ -914,7 +905,7 @@ fn 16 random$splitmix64 (u64) -> u64
   i64.bitxor
   i64.const -7723592293110705685
   i64.mul
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.tee 1   ; z
   i64.const 31
   u64.shr
@@ -925,20 +916,20 @@ fn 16 random$splitmix64 (u64) -> u64
   return
 end
 
-fn 17 random$mask64 (u64) -> u64
+fn 16 random$mask64 (u64) -> u64
   local.get 0   ; arg 0
   i64.const -1
   i64.bitand
   return
 end
 
-fn 18 random$rotl (u64,u64) -> u64
+fn 17 random$rotl (u64,u64) -> u64
   local $call_3 u64
   local $sub_checked_5 u64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i64.shl
-  call 17   ; random$mask64
+  call 16   ; random$mask64
   local.set 2   ; $call_3
   i64.const 64
   local.get 1   ; arg 1
@@ -954,16 +945,16 @@ fn 18 random$rotl (u64,u64) -> u64
   return
 end
 
-fn 19 random$next_u32 (ref) -> u32
+fn 18 random$next_u32 (ref) -> u32
   local.get 0   ; arg 0
-  call 11   ; random$next_u64
+  call 10   ; random$next_u64
   i64.const 32
   u64.shr
   u64.to_i32
   return
 end
 
-fn 20 random$shuffle__i32 (ref,ref) -> void
+fn 19 random$shuffle__i32 (ref,ref) -> void
   local n i64
   local $cast_14 u32
   local j i64
@@ -994,7 +985,7 @@ fn 20 random$shuffle__i32 (ref,ref) -> void
       local.get 0   ; arg 0
       i32.const 0
       local.get 3   ; $cast_14
-      call 15   ; random$range_u32
+      call 14   ; random$range_u32
       u32.to_i64
       local.set 4   ; j
       local.get 1   ; arg 1

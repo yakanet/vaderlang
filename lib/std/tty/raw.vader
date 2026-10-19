@@ -106,7 +106,7 @@ raw_mode_begin :: fn() -> bool {
         return true
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return false
     }
     mode: u32[]: [0]
@@ -132,7 +132,7 @@ raw_mode_end :: fn() -> void {
         return
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
-    if isize(h) != INVALID_HANDLE {
+    if i64(h) != INVALID_HANDLE {
         _ :: set_console_mode(h, state.console_mode)
     }
     state.active = false
@@ -160,7 +160,7 @@ columns :: fn() -> i32 {
 @target(.Windows)
 columns :: fn() -> i32 {
     h :: get_std_handle(STD_OUTPUT_HANDLE)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return 0
     }
     info :: ScreenBufferInfo {
@@ -239,7 +239,7 @@ read_keys :: fn(max: i32) -> string | null {
         return null
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return null
     }
     buf: u8[]: [0] * i64(n)

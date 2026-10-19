@@ -92,12 +92,23 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
 
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
-    // `@c_pointer` and `@c_out` are read straight off the origin AST rather than
-    // threaded through `CFGParam`: they exist only on an `@extern`, which has no
-    // body to lower, so there is nothing for the intervening passes to carry them on.
+    // `@c_pointer`, `@c_out` and `@c_type` are read straight off the origin AST
+    // rather than threaded through `CFGParam`: they exist only on an `@extern`,
+    // which has no body to lower, so there is nothing for the intervening passes
+    // to carry them on.
     signature :: with_param_decorators(base, ext.origin)
     import_index :: i32(ctx.imports.len())
-    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern, .c_header = ext.c_header, .c_library = ext.c_library, .c_variadic_fixed = ext.c_variadic_fixed })
+    ctx.imports.push(BcImport {
+        .extern_name = ext.extern_name,
+        .mangled_name = ext.mangled,
+        .signature = signature,
+        .is_extern = ext.is_extern,
+        .c_header = ext.c_header,
+        .c_library = ext.c_library,
+        .c_variadic_fixed = ext.c_variadic_fixed,
+        .param_c_types = param_c_types_of(ext.origin),
+        .result_c_type = result_c_type_of(ext.origin),
+    })
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
@@ -219,6 +230,39 @@ with_param_decorators :: fn(sig: BcSignature, origin: MonoEntry) -> BcSignature 
         out.param_c_out = c_out
     }
     return out
+}
+
+/// The `@c_type` spelling of each parameter `origin` declares, `""` where it names
+/// none ; empty when no parameter carries one.
+///
+/// @param origin  the mono entry of an `@extern`, for its source `FnDecl`.
+param_c_types_of :: fn(origin: MonoEntry) -> string[] {
+    d :: origin.decl
+    spellings: string[]: []
+    if d !is FnDecl {
+        return spellings
+    }
+    renamed := false
+    for p in d.params {
+        spelling :: c_type_of(p.decorators)
+        spellings.push(spelling)
+        renamed = renamed || spelling != ""
+    }
+    if !renamed {
+        spellings.clear()
+    }
+    return spellings
+}
+
+/// The `@c_type` spelling of the result `origin` declares, `""` without one.
+///
+/// @param origin  the mono entry of an `@extern`, for its source `FnDecl`.
+result_c_type_of :: fn(origin: MonoEntry) -> string {
+    d :: origin.decl
+    if d is FnDecl {
+        return c_type_of(d.decorators)
+    }
+    return ""
 }
 
 build_cfg_signature :: fn(
@@ -1344,7 +1388,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         } else if from_val != to_val {
             // Numeric / char ↔ numeric / char routes through Convert,
             // carrying the source width as a string so the dump emits
-            // `<from>.to_<to>` (e.g. `usize.to_i32`). Anything else
+            // `<from>.to_<to>` (e.g. `u64.to_i32`). Anything else
             // (heap-shaped → primitive, etc.) falls through to ref.cast.
             target_opt :: convert_target_of(to_val)
             if target_opt == null {
@@ -1483,7 +1527,7 @@ fits_in :: fn(from: ValType, to: ValType) -> bool = match to {
     .I8  -> from == .I8
     .U16 -> from == .U8 || from == .U16
     .I16 -> from == .U8 || from == .I8 || from == .I16
-    .I32 | .I64 | .Isize | .U32 | .U64 | .Usize | .F32 | .F64 | .Bool | .Char | .String | .Null
+    .I32 | .I64 | .U32 | .U64 | .F32 | .F64 | .Bool | .Char | .String | .Null
      | .Void | .Pointer | .Ref | .Any -> true
 }
 
@@ -1514,12 +1558,10 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
     .I16 -> true
     .I32 -> true
     .I64 -> true
-    .Isize -> true
     .U8 -> true
     .U16 -> true
     .U32 -> true
     .U64 -> true
-    .Usize -> true
     .F32 -> true
     .F64 -> true
     .Bool -> false
@@ -1635,7 +1677,7 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
         push_emit(ctx, NullConst {}, c.span)
     } else if v is ConstString {
         // Pick the const width from the literal's type : a 64-bit integer
-        // (`i64`/`u64`/`isize`/`usize`) keeps its full `u64` payload via
+        // (`i64`/`u64`) keeps its full `u64` payload via
         // `I64Const` ; narrower types truncate to `I32Const`. Without the
         // width check, a value ≥ 2^31 (e.g. `i32`-min's magnitude `2147483648`
         // wrapped in a `-`) truncated to i32 and the following `i64.neg` then

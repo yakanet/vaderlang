@@ -331,22 +331,6 @@
               }
             },
             {
-              "kind": "LetStmt",
-              "mutable": false,
-              "binding": {
-                "kind": "SimpleBinding",
-                "name": "sz"
-              },
-              "type": {
-                "kind": "IdentExpr",
-                "name": "usize"
-              },
-              "value": {
-                "kind": "IntLitExpr",
-                "value": "9000000000n"
-              }
-            },
-            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "CallExpr",
@@ -369,17 +353,6 @@
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "umax"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": " usize: "
-                        },
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "sz"
                           }
                         }
                       ]

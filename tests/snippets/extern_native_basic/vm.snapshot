@@ -1,4 +1,4 @@
 # stdout
-add=42 strlen=12
+add=42 strlen=12 strnlen=5
 # exit
 0

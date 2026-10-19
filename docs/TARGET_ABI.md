@@ -137,16 +137,16 @@ opcode pops them in reverse. `imm` = inline immediate (not a stack pop).
 
 | opcode | immediate | pops (→ top last) | pushes | notes |
 |--------|-----------|-------------------|--------|-------|
-| `ObjectNew`  | `type_id` | `size: usize` | `obj` | `vader_gc_alloc(size)` + `vader_obj_header_init(obj, type_id)` |
-| `LoadU8`     | — | `obj, off: usize` | `u8` | byte read |
-| `LoadI32`    | — | `obj, off: usize` | `i32` | typed read at byte offset |
-| `LoadI64`    | — | `obj, off: usize` | `i64` | |
-| `LoadF64`    | — | `obj, off: usize` | `f64` | |
+| `ObjectNew`  | `type_id` | `size: i64` | `obj` | `vader_gc_alloc(size)` + `vader_obj_header_init(obj, type_id)` |
+| `LoadU8`     | — | `obj, off: i64` | `u8` | byte read |
+| `LoadI32`    | — | `obj, off: i64` | `i32` | typed read at byte offset |
+| `LoadI64`    | — | `obj, off: i64` | `i64` | |
+| `LoadF64`    | — | `obj, off: i64` | `f64` | |
 | `StoreU8`    | — | `obj, off, v: u8`  | — | byte write |
 | `StoreI32`   | — | `obj, off, v: i32` | — | **no** write-barrier (primitive) |
 | `StoreI64`   | — | `obj, off, v: i64` | — | no barrier |
 | `StoreF64`   | — | `obj, off, v: f64` | — | no barrier |
-| `LoadSlot`   | — | `obj, i: usize` | `box` | boxed-slot read (`i` = slot index) |
+| `LoadSlot`   | — | `obj, i: i64` | `box` | boxed-slot read (`i` = slot index) |
 | `StoreSlot`  | — | `obj, i, v: box` | — | boxed-slot write — **fires `VADER_WRITE_BARRIER(obj)`** (G2) |
 | `MemoryCopy` | — | `dst, dst_off, src, src_off, n` | — | bulk byte copy obj→obj (lowers to `memcpy`) |
 
@@ -245,7 +245,7 @@ them back to these four phases.)
   which keeps the
   runtime-kind-tagged storage that lets erased generic code interoperate with
   concrete code. Shipped: `arr[i]`/`arr[i]=v` for concrete primitive widths
-  (i32/u32/char/i64/u64/usize/f64) → typed `LoadSlot*`/`StoreSlot*` (A2) ;
+  (i32/u32/char/i64/u64/f64) → typed `LoadSlot*`/`StoreSlot*` (A2) ;
   array-literal construction fills those same kinds via a typed raw store (C2) ;
   `len` open-coded as the header read ; **boxed (ref/struct/string/Any) access
   inlined** to `vader_array_box_slots(buf)[i]` (op B) ; **boxed construction**

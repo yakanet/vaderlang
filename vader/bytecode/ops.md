@@ -264,7 +264,7 @@ Name the precise type of the primitive on the stack as it enters a union or an e
 slot — a `u8` constant is pushed as an `i32`, and the tag is what a later `is u8` reads.
 
 ### `intrinsic size_of.type`
-Pop a type value, push its size in bytes as a `usize`.
+Pop a type value, push its size in bytes as an `i64`.
 
 ## Integers
 
@@ -277,7 +277,7 @@ compare, divide and shift as unsigned.
 ### `<type>.checked_add` `<type>.checked_sub` `<type>.checked_mul`
 Pop two integers of `<type>` (left, right); push `left + right`, `left - right` or
 `left * right`. Traps when the result leaves `<type>`: `u8.checked_add`,
-`usize.checked_sub`, … A native release build wraps instead.
+`u64.checked_sub`, … A native release build wraps instead.
 
 ### `<type>.checked_neg`
 Pop an integer of `<type>`, push its negation. Traps when the result leaves `<type>`:
@@ -395,7 +395,7 @@ Pop a bit pattern (`u64` / `u32`), push the float it encodes.
 
 ### `<from>.to_<to>`
 Pop a number (or `char`) of type `<from>`, push it converted to `<to>` — `i32.to_i64`,
-`usize.to_i32`, `i64.to_f64`, `u32.to_char`, …
+`u64.to_i32`, `i64.to_f64`, `u32.to_char`, …
 
 ## Booleans
 

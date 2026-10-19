@@ -1,14 +1,10 @@
 // `for x in T` walks a range, an integer type within `i64` or an enum without
-// variant data : `u64` and `usize` reach past `i64`, a `string` has no values to
-// walk.
+// variant data : `u64` reaches past `i64`, a `string` has no values to walk.
 module "snippet"
 
 export main :: fn() -> i32 {
     count: u64 = 0
     for x in u64 {
-        count += 1
-    }
-    for y in usize {
         count += 1
     }
     for s in string {

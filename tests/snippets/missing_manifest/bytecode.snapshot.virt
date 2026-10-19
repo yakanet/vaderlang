@@ -4,15 +4,14 @@ type 1 primitive string
 type 2 primitive i32
 type 3 primitive u8
 type 4 primitive i64
-type 5 array 3
-type 6 primitive usize
-type 7 struct std_core$Buffer {  }
-type 8 primitive void
-type 9 union 10,1
-type 10 struct std_io$IOError { msg:1,kind:3,code:2 }
-type 11 union 10,5
-type 12 union 13,0
-type 13 primitive pointer
+type 5 struct std_core$Buffer {  }
+type 6 array 3
+type 7 primitive void
+type 8 union 9,1
+type 9 struct std_io$IOError { msg:1,kind:3,code:2 }
+type 10 union 9,6
+type 11 union 12,0
+type 12 primitive pointer
 string 0 "unreadable ("
 string 1 " / "
 string 2 ")"
@@ -38,17 +37,17 @@ string 21 "directory not empty"
 string 22 "bad file descriptor"
 string 23 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=5 param_c_out= param_by_address= (ref) -> string
-import 2 bytes std_core$bytes result_type=5 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=2,5,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes_to_string std_core$bytes_to_string result_type=1 param_types=6 param_c_out= param_by_address= (ref) -> string
+import 2 bytes std_core$bytes result_type=6 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=2,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 4 extern vader_last_errno system_posix$sys_last_errno result_type=2 () -> i32
-import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=13 param_c_out= param_by_address= (pointer) -> i32
-import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=12 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
-import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=13 param_c_out= param_by_address= (pointer) -> i32
-import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=5,4,4,13 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
-impl 7 std_core$ByteAccess
-impl 10 std_core$Error
-vtable std_core$Error.message 10 11
+import 5 extern ferror system_posix$sys_ferror header=<stdio.h> result_type=2 param_types=12 param_c_out= param_by_address= (pointer) -> i32
+import 6 extern fopen system_posix$sys_fopen header=<stdio.h> result_type=11 param_types=1,1 param_c_out= param_by_address= (string,string) -> any
+import 7 extern fclose system_posix$sys_fclose header=<stdio.h> result_type=2 param_types=12 param_c_out= param_by_address= (pointer) -> i32
+import 8 extern fread system_posix$sys_fread header=<stdio.h> result_type=4 param_types=6,4,4,12 param_c_out=1,0,0,0 param_by_address= (ref,i64,i64,pointer) -> i64
+impl 5 std_core$ByteAccess
+impl 9 std_core$Error
+vtable std_core$Error.message 9 11
 export main 2
 
 fn 0 snippet$describe (string) -> string
@@ -59,18 +58,18 @@ fn 0 snippet$describe (string) -> string
   i64.const 16777216
   call 5   ; std_io$read_file_string
   local.tee 1   ; r
-  type_check 10   ; std_io$IOError
+  type_check 9   ; std_io$IOError
   if $L0 void
   else
     return.lit string.const 3   ; "ok"
   end $L0
   local.get 1   ; r
-  ref.cast 10   ; std_io$IOError
+  ref.cast 9   ; std_io$IOError
   call 11   ; std_io$IOError$std_core_Error$message
   local.set 2   ; $call_7
   local.get 1   ; r
-  ref.cast 10   ; std_io$IOError
-  struct.get 10 0   ; std_io$IOError.msg
+  ref.cast 9   ; std_io$IOError
+  struct.get 9 0   ; std_io$IOError.msg
   ref.cast 1   ; string
   local.set 3   ; $field_10
   string.const 0   ; "unreadable ("
@@ -89,7 +88,7 @@ fn 1 snippet$catch_all (string) -> string
   i64.const 16777216
   call 5   ; std_io$read_file_string
   local.tee 1   ; r
-  type_check 10   ; std_io$IOError
+  type_check 9   ; std_io$IOError
   if $L0 void
   else
     local.get 1   ; r
@@ -97,7 +96,7 @@ fn 1 snippet$catch_all (string) -> string
     return
   end $L0
   local.get 1   ; r
-  ref.cast 10   ; std_io$IOError
+  ref.cast 9   ; std_io$IOError
   virtual.call 1 std_core$Error.message
   local.set 2   ; $vcall_8
   string.const 4   ; "caught by trait: "
@@ -154,7 +153,6 @@ fn 3 concat_5 (string,string,string,string,string) -> string
   local.get 9   ; $call_16
   i64.add
   local.tee 9   ; $call_16
-  i64.to_i64
   buffer.new
   local.tee 10   ; buf
   i64.const 0
@@ -196,7 +194,6 @@ fn 4 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -218,17 +215,17 @@ fn 5 std_io$read_file_string (string,i64) -> any
   local.get 1   ; arg 1
   call 7   ; std_io$read_file_bytes
   local.tee 2   ; r
-  type_check 10   ; std_io$IOError
+  type_check 9   ; std_io$IOError
   if $L0 void
   else
     local.get 2   ; r
-    ref.cast 5   ; u8[]
+    ref.cast 6   ; u8[]
     call.import 1   ; std_core$bytes_to_string
     retag 1   ; string
     return
   end $L0
   local.get 2   ; r
-  ref.cast 10   ; std_io$IOError
+  ref.cast 9   ; std_io$IOError
   return
 end
 
@@ -261,7 +258,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 5   ; u8[]
+      array.slice 6   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -308,12 +305,12 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
     return
   end $L0
   local.get 3   ; __coalesce_0
-  ref.cast 13   ; pointer
+  ref.cast 12   ; pointer
   local.set 2   ; f
-  array.new 5 0   ; u8[]
+  array.new 6 0   ; u8[]
   local.set 4   ; out
   i32.const 0
-  array.new 5 1   ; u8[]
+  array.new 6 1   ; u8[]
   i64.const 65536
   array.repeat
   local.set 5   ; chunk
@@ -333,7 +330,7 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
       local.get 5   ; chunk
       i64.const 0
       local.get 7   ; n
-      array.slice 5   ; u8[]
+      array.slice 6   ; u8[]
       local.set 8   ; $slice_24
       local.get 4   ; out
       local.get 8   ; $slice_24
@@ -350,7 +347,7 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
       string.const 8   ; "file too large"
       i32.const 0
       i32.const 0
-      struct.new 10   ; std_io$IOError
+      struct.new 9   ; std_io$IOError
       return
     end $L3
     local.get 5   ; chunk
@@ -383,7 +380,7 @@ fn 7 std_io$read_file_bytes (string,i64) -> any
     if $L6 void
     else
       local.get 3   ; __coalesce_0
-      ref.cast 10   ; std_io$IOError
+      ref.cast 9   ; std_io$IOError
       return
     end $L6
     local.get 4   ; out
@@ -540,13 +537,13 @@ fn 9 std_io$last_io_error (string) -> ref
     local.get 0   ; arg 0
     local.get 2   ; kind
     local.get 1   ; e
-    struct.new 10   ; std_io$IOError
+    struct.new 9   ; std_io$IOError
     return
   end $L15
   local.get 4   ; reason
   local.get 2   ; kind
   local.get 1   ; e
-  struct.new 10   ; std_io$IOError
+  struct.new 9   ; std_io$IOError
   return
 end
 
@@ -662,7 +659,7 @@ fn 10 std_io$describe_io_error_kind (u8) -> string
 end
 
 fn 11 std_io$IOError$std_core_Error$message (ref) -> string
-  local.field 0 10 0   ; arg 0 std_io$IOError.msg
+  local.field 0 9 0   ; arg 0 std_io$IOError.msg
   ref.cast 1   ; string
   return
 end

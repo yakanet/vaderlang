@@ -125,7 +125,7 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
@@ -164,14 +164,12 @@
     fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
     fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
     fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
-    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.three_way  // std_core$three_way
     fn std.core.umul128  // std_core$umul128
-    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_decimal  // std_core$write_decimal
     fn std.core.write_digits  // std_core$write_digits

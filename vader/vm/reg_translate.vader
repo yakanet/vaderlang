@@ -535,7 +535,7 @@ checked_register_op :: fn(op: bc.CheckedArith) -> RegOp {
             .Mul -> .MulCheckedI32
         }
     }
-    if op.kind == .I64 || op.kind == .Isize {
+    if op.kind == .I64 {
         return match op.op {
             .Add -> .AddCheckedI64
             .Sub -> .SubCheckedI64
@@ -561,7 +561,7 @@ checked_neg_register_op :: fn(kind: bc.ValType) -> RegOp {
     if kind == .I32 {
         return .NegCheckedI32
     }
-    if kind == .I64 || kind == .Isize {
+    if kind == .I64 {
         return .NegCheckedI64
     }
     return .NegChecked
@@ -818,7 +818,7 @@ narrow_code :: fn(v: bc.ValType) -> i32 = match v {
     .I8  -> 1
     .U16 -> 2
     .I16 -> 3
-    .I32 | .I64 | .Isize | .U32 | .U64 | .Usize | .F32 | .F64 | .Bool | .Char | .String | .Null
+    .I32 | .I64 | .U32 | .U64 | .F32 | .F64 | .Bool | .Char | .String | .Null
      | .Void | .Pointer | .Ref | .Any -> -1
 }
 

@@ -10,7 +10,7 @@ module "snippet"
 @assert(@satisfies(string, Hash), "string implements Hash")
 @assert(@satisfies(i32, Hash),    "i32 implements Hash")
 @assert(@satisfies(u32, Hash),    "u32 implements Hash")
-@assert(@satisfies(usize, Hash),  "usize implements Hash")
+@assert(@satisfies(u64, Hash),    "u64 implements Hash")
 
 // `std/core` declares `i32 implements Add` (`@intrinsic`), so `main` exits 99.
 main :: fn() -> i32 {

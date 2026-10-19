@@ -22,7 +22,6 @@ type 19 struct std_core$Buffer {  }
 type 20 primitive i64
 type 21 primitive u8
 type 22 array 21
-type 23 primitive usize
 string 0 ""
 string 1 "doubled: "
 string 2 "\n"
@@ -351,7 +350,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       i32.const -1
       struct.set 8 5   ; __asyncstate_snippet_1.state
       i64.const 29
-      call 12   ; std_core$new_byte_buffer
+      buffer.new
       local.set 1   ; $call_10
       local.get 0   ; arg 0
       local.get 1   ; $call_10
@@ -367,7 +366,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       local.get 2   ; $field_12
       local.get 3   ; $field_13
       string.const 1   ; "doubled: "
-      call 14   ; std_core$write_string_at
+      call 13   ; std_core$write_string_at
       local.set 4   ; $call_15
       local.get 0   ; arg 0
       local.get 4   ; $call_15
@@ -384,7 +383,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       local.get 5   ; $field_16
       local.get 6   ; $field_17
       local.get 7   ; $cast_19
-      call 15   ; std_core$write_int
+      call 14   ; std_core$write_int
       local.set 8   ; $call_20
       local.get 0   ; arg 0
       local.get 8   ; $call_20
@@ -396,7 +395,7 @@ fn 7 snippet$__asyncstate_snippet_1$Async$resume (ref) -> any
       local.set 10   ; $field_22
       local.get 9   ; $field_21
       local.get 10   ; $field_22
-      call 13   ; std_core$finish_buffer
+      call 12   ; std_core$finish_buffer
       retag 10   ; string
       return
     end $L2
@@ -489,7 +488,7 @@ fn 8 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
     if $L3 void
       local.field 0 11 1   ; arg 0 __asyncstate_snippet_2.s1
       ref.cast 10   ; string
-      call 18   ; std_io$println__string
+      call 17   ; std_io$println__string
       local.get 0   ; arg 0
       i32.const 1
       struct.set 11 3   ; __asyncstate_snippet_2.state
@@ -539,7 +538,7 @@ fn 8 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
           i32.eq
           if $L7 void
             i64.const 20
-            call 12   ; std_core$new_byte_buffer
+            buffer.new
             local.set 4   ; __buf_1
             i64.const 0
             local.set 5   ; __off_2
@@ -550,12 +549,12 @@ fn 8 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             local.get 4   ; __buf_1
             local.get 5   ; __off_2
             local.get 6   ; $cast_41
-            call 15   ; std_core$write_int
+            call 14   ; std_core$write_int
             local.set 5   ; __off_2
             local.get 4   ; __buf_1
             local.get 5   ; __off_2
-            call 13   ; std_core$finish_buffer
-            call 18   ; std_io$println__string
+            call 12   ; std_core$finish_buffer
+            call 17   ; std_io$println__string
             local.get 0   ; arg 0
             i32.const 4
             struct.set 11 3   ; __asyncstate_snippet_2.state
@@ -638,7 +637,6 @@ fn 11 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -654,21 +652,14 @@ fn 11 concat_2 (string,string) -> string
   return
 end
 
-fn 12 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 13 std_core$finish_buffer (ref,i64) -> string
+fn 12 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$write_string_at (ref,i64,string) -> i64
+fn 13 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -683,7 +674,7 @@ fn 14 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 15 std_core$write_int (ref,i64,i64) -> i64
+fn 14 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -797,7 +788,7 @@ fn 15 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 16 std_io$write (u8,string) -> void
+fn 15 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -833,7 +824,7 @@ fn 16 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 17   ; std_io$write_bytes
+      call 16   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -853,7 +844,7 @@ fn 16 std_io$write (u8,string) -> void
   return
 end
 
-fn 17 std_io$write_bytes (u8,ref,i64) -> i32
+fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -873,7 +864,7 @@ fn 17 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 18 std_io$println__string (string) -> void
+fn 17 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 2   ; "\n"
@@ -881,6 +872,6 @@ fn 18 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 16   ; std_io$write
+  call 15   ; std_io$write
   return
 end

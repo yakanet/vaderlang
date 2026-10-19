@@ -606,8 +606,8 @@ const_val_type :: fn(c: ConstOp) -> ValType = match c {
 /// Const ops are width-aliased : only `I32Const` / `I64Const` / `F64Const`
 /// / `BoolConst` / `CharConst` / `StringConst` / `NullConst` exist, so an
 /// exact `const_val_type == slot` compare wrongly rejects a `I64Const`
-/// bound for a `usize` / `u64` / `isize` slot (and a `I32Const` for a
-/// `u8` / `u16` / `u32` slot) even though the bits are identical and the
+/// bound for a `u64` slot (and a `I32Const` for a `u8` / `u16` / `u32`
+/// slot) even though the bits are identical and the
 /// VM stores both as the same `I64Val` / `I32Val`. Comparing by class lets
 /// those propagate : the emitter only ever emits a const whose class
 /// matches the slot's class, so no `to_<width>` convert is ever needed.
@@ -806,7 +806,7 @@ import "std/testing"
 }
 
 @test test_convert_target_of_i64_widths_collapse_to_i64 :: fn() -> void {
-    target :: convert_target_of(.Usize)
+    target :: convert_target_of(.U64)
     if target is null {
         assert_eq("expected non-null target", "")
         return

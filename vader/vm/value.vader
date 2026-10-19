@@ -517,7 +517,7 @@ lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 
 export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
     if bc.val_type_name(val) == describe_value_tag(v) { return true }
     // Width-suffixed integer classes have no dedicated Value variant — they
-    // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64/usize/isize ; i64
+    // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64 ; i64
     // is already caught by the tag check above). Accept BOTH widths so e.g. a
     // `u64` computed via `i64.*` ops (stored `I64Val`) satisfies its `is u64`
     // check — not just small literals that happen to land in `I32Val`. Without
@@ -549,12 +549,10 @@ export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
     .I8    -> true
     .I16   -> true
     .I64   -> true
-    .Isize -> true
     .U8    -> true
     .U16   -> true
     .U32   -> true
     .U64   -> true
-    .Usize -> true
     .I32   -> false
     .F32   -> false
     .F64   -> false

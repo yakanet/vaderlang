@@ -208,6 +208,18 @@ export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null
     return null
 }
 
+/// The C type a `@c_type("…")` among `decs` names, or `""` when none does or its
+/// argument is not one plain string.
+///
+/// @param decs  the decorators of an `@extern` declaration or of one parameter.
+export c_type_of :: fn(decs: Decorator[]) -> string {
+    d :: find_decorator(decs, "c_type") ?? return ""
+    if d.args.len() != 1 {
+        return ""
+    }
+    return string_literal_text(d.args[0]) ?? ""
+}
+
 // ============================================================================
 // Declarations
 // ============================================================================

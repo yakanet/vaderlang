@@ -679,6 +679,11 @@ reject_free_fn_decorators :: fn(
                 "`@ensures` states what holds once a free function returns ; "
                     + "it does not apply to ${what}")
         }
+        if d.name == "c_type" {
+            p.error(.UnknownDecoratorPlacement, d.span,
+                "`@c_type` names the C type of an `@extern` result or parameter ; "
+                    + "it does not apply to ${what}")
+        }
     }
 }
 

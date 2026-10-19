@@ -8,31 +8,30 @@ type 5 struct __defer_env_snippet_5 {  }
 type 6 primitive string
 type 7 primitive u8
 type 8 primitive i64
-type 9 array 7
-type 10 primitive usize
-type 11 struct std_core$Buffer {  }
-type 12 fn () -> 3
+type 9 struct std_core$Buffer {  }
+type 10 array 7
+type 11 fn () -> 3
 string 0 "starting"
 string 1 "outer cleanup"
 string 2 "middle cleanup"
 string 3 "inner cleanup"
 string 4 "\n"
 import 0 byte_len std_core$byte_len result_type=8 param_types=6 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=9 param_types=6 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,9,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 11 std_core$ByteAccess
+import 1 bytes std_core$bytes result_type=10 param_types=6 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=1,10,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 9 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
   local boom i32
   struct.new 2   ; __defer_env_snippet_1
-  make_closure 1 12   ; __defer_snippet_0 fn
+  make_closure 1 11   ; __defer_snippet_0 fn
   defer.push
   struct.new 4   ; __defer_env_snippet_3
-  make_closure 2 12   ; __defer_snippet_2 fn
+  make_closure 2 11   ; __defer_snippet_2 fn
   defer.push
   struct.new 5   ; __defer_env_snippet_5
-  make_closure 3 12   ; __defer_snippet_4 fn
+  make_closure 3 11   ; __defer_snippet_4 fn
   defer.push
   string.const 0   ; "starting"
   call 7   ; std_io$println__string
@@ -78,7 +77,6 @@ fn 4 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -123,7 +121,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

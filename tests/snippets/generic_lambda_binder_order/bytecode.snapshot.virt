@@ -11,8 +11,7 @@ type 8 primitive u8
 type 9 struct std_core$Buffer {  }
 type 10 primitive u32
 type 11 array 8
-type 12 primitive usize
-type 13 primitive void
+type 12 primitive void
 string 0 "empty="
 string 1 " filled="
 string 2 "ab"
@@ -49,34 +48,34 @@ fn 0 snippet$main () -> i32
   call 5   ; snippet$zip_with__string
   local.set 3   ; filled_in
   i64.const 54
-  call 8   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; $fn_ref_0
   i64.const 0
   local.set 4   ; __off_1
   local.get 0   ; $fn_ref_0
   local.get 4   ; __off_1
   string.const 0   ; "empty="
-  call 10   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 0   ; $fn_ref_0
   local.get 4   ; __off_1
   local.get 2   ; empty
-  call 11   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $fn_ref_0
   local.get 4   ; __off_1
   string.const 1   ; " filled="
-  call 10   ; std_core$write_string_at
+  call 9   ; std_core$write_string_at
   local.set 4   ; __off_1
   local.get 0   ; $fn_ref_0
   local.get 4   ; __off_1
   local.get 3   ; filled_in
-  call 11   ; std_core$write_int
+  call 10   ; std_core$write_int
   local.set 4   ; __off_1
   local.get 0   ; $fn_ref_0
   local.get 4   ; __off_1
-  call 9   ; std_core$finish_buffer
-  call 17   ; std_io$println__string
+  call 8   ; std_core$finish_buffer
+  call 16   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -161,7 +160,6 @@ fn 6 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -194,7 +192,7 @@ fn 7 std_core$len (string) -> i64
     return
   end $L0
   local.get 0   ; arg 0
-  call 12   ; std_core$ascii_prefix
+  call 11   ; std_core$ascii_prefix
   local.tee 2   ; i
   local.set 3   ; count
   loop $L1 void
@@ -217,7 +215,7 @@ fn 7 std_core$len (string) -> i64
         local.get 0   ; arg 0
         local.get 4   ; b
         local.get 2   ; i
-        call 13   ; std_core$decode_tail
+        call 12   ; std_core$decode_tail
         local.set 6   ; $call_elem_20
         drop
         local.get 6   ; $call_elem_20
@@ -238,21 +236,14 @@ fn 7 std_core$len (string) -> i64
   return
 end
 
-fn 8 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 9 std_core$finish_buffer (ref,i64) -> string
+fn 8 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 10 std_core$write_string_at (ref,i64,string) -> i64
+fn 9 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -267,7 +258,7 @@ fn 10 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 11 std_core$write_int (ref,i64,i64) -> i64
+fn 10 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -381,7 +372,7 @@ fn 11 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 12 std_core$ascii_prefix (string) -> i64
+fn 11 std_core$ascii_prefix (string) -> i64
   local n i64
   local i i64
   local bits u8
@@ -446,7 +437,7 @@ fn 12 std_core$ascii_prefix (string) -> i64
   return
 end
 
-fn 13 std_core$decode_tail (string,u8,i64) -> (u32,i64)
+fn 12 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local or_res bool
   local n i64
   local $add_checked_21 i64
@@ -495,7 +486,7 @@ fn 13 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 6   ; b1
-  call 14   ; std_core$is_utf8_continuation
+  call 13   ; std_core$is_utf8_continuation
   if $L3 void
   else
     i32.const 65533
@@ -624,7 +615,7 @@ fn 13 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 10   ; b2
-  call 14   ; std_core$is_utf8_continuation
+  call 13   ; std_core$is_utf8_continuation
   if $L15 void
   else
     i32.const 65533
@@ -682,7 +673,7 @@ fn 13 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local.get 4   ; n
   call.import 1   ; std_core$byte_at
   local.tee 11   ; b3
-  call 14   ; std_core$is_utf8_continuation
+  call 13   ; std_core$is_utf8_continuation
   if $L18 void
   else
     i32.const 65533
@@ -730,7 +721,7 @@ fn 13 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   return
 end
 
-fn 14 std_core$is_utf8_continuation (u8) -> bool
+fn 13 std_core$is_utf8_continuation (u8) -> bool
   local.get 0   ; arg 0
   i32.const 192
   i32.bitand
@@ -739,7 +730,7 @@ fn 14 std_core$is_utf8_continuation (u8) -> bool
   return
 end
 
-fn 15 std_io$write (u8,string) -> void
+fn 14 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -775,7 +766,7 @@ fn 15 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 16   ; std_io$write_bytes
+      call 15   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -795,7 +786,7 @@ fn 15 std_io$write (u8,string) -> void
   return
 end
 
-fn 16 std_io$write_bytes (u8,ref,i64) -> i32
+fn 15 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -815,7 +806,7 @@ fn 16 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 17 std_io$println__string (string) -> void
+fn 16 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 4   ; "\n"
@@ -823,6 +814,6 @@ fn 17 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 15   ; std_io$write
+  call 14   ; std_io$write
   return
 end

@@ -24,9 +24,9 @@ import "std/string"
 
 export ValType :: enum(u8) {
     // Signed integers
-    I8, I16, I32, I64, Isize,
+    I8, I16, I32, I64,
     // Unsigned integers
-    U8, U16, U32, U64, Usize,
+    U8, U16, U32, U64,
     // Floats
     F32, F64,
     // Other primitives
@@ -49,12 +49,10 @@ export val_type_name :: fn(v: ValType) -> string = match v {
     .I16 -> "i16"
     .I32 -> "i32"
     .I64 -> "i64"
-    .Isize -> "isize"
     .U8 -> "u8"
     .U16 -> "u16"
     .U32 -> "u32"
     .U64 -> "u64"
-    .Usize -> "usize"
     .F32 -> "f32"
     .F64 -> "f64"
     .Bool -> "bool"
@@ -81,12 +79,10 @@ export parse_val_type :: fn(name: string) -> ValType | null {
     if name == "i16" { return .I16 }
     if name == "i32" { return .I32 }
     if name == "i64" { return .I64 }
-    if name == "isize" { return .Isize }
     if name == "u8" { return .U8 }
     if name == "u16" { return .U16 }
     if name == "u32" { return .U32 }
     if name == "u64" { return .U64 }
-    if name == "usize" { return .Usize }
     if name == "f32" { return .F32 }
     if name == "f64" { return .F64 }
     if name == "bool" { return .Bool }
@@ -102,18 +98,16 @@ export parse_val_type :: fn(name: string) -> ValType | null {
 
 /// True when the val-type is an integer (any width, signed or unsigned).
 /// @param v  the value class to classify.
-/// @return   `true` for `i8`..`i64`/`isize` and `u8`..`u64`/`usize`.
+/// @return   `true` for `i8`..`i64` and `u8`..`u64`.
 export is_integer_val :: fn(v: ValType) -> bool = match v {
     .I8 -> true
     .I16 -> true
     .I32 -> true
     .I64 -> true
-    .Isize -> true
     .U8 -> true
     .U16 -> true
     .U32 -> true
     .U64 -> true
-    .Usize -> true
     .F32 -> false
     .F64 -> false
     .Bool -> false
@@ -136,12 +130,10 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
     .I16 -> false
     .I32 -> false
     .I64 -> false
-    .Isize -> false
     .U8 -> false
     .U16 -> false
     .U32 -> false
     .U64 -> false
-    .Usize -> false
     .Bool -> false
     .Char -> false
     .String -> false
@@ -154,18 +146,15 @@ export is_float_val :: fn(v: ValType) -> bool = match v {
 
 /// True when the val-type is a 64-bit-wide integer slot. Used by the
 /// bytecode emitter to pick `I64Const` over `I32Const` for int
-/// literals whose static type binds to one of these widths. The four
-/// 64-bit-wide variants : `i64`, `u64`, `isize`, `usize` — every
-/// narrower integer + every float / bool / char / ref shape returns
-/// false.
+/// literals whose static type binds to one of these widths : `i64` and
+/// `u64`. Every narrower integer and every float / bool / char / ref
+/// shape returns false.
 ///
 /// @param v  the value class to classify.
 /// @return   `true` for the four 64-bit integer widths, false otherwise.
 export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
     .I64   -> true
     .U64   -> true
-    .Isize -> true
-    .Usize -> true
     .I8    -> false
     .I16   -> false
     .I32   -> false
@@ -191,15 +180,13 @@ export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
 /// values with the high bit set (e.g. SHA-256 round constants).
 ///
 /// @param v  the value class to classify.
-/// @return   `true` for `u64` / `usize`, `false` otherwise.
+/// @return   `true` for `u64`, `false` otherwise.
 export is_u64_class :: fn(v: ValType) -> bool = match v {
     .U64   -> true
-    .Usize -> true
     .I8 -> false
     .I16 -> false
     .I32 -> false
     .I64 -> false
-    .Isize -> false
     .U8 -> false
     .U16 -> false
     .U32 -> false
@@ -230,9 +217,7 @@ export is_u32_class :: fn(v: ValType) -> bool = match v {
     .I16 -> false
     .I32 -> false
     .I64 -> false
-    .Isize -> false
     .U64 -> false
-    .Usize -> false
     .F32 -> false
     .F64 -> false
     .Bool -> false
@@ -249,7 +234,7 @@ export is_u32_class :: fn(v: ValType) -> bool = match v {
 /// 64-bit). Disjunction of `is_u32_class` and `is_u64_class`.
 ///
 /// @param v  the value class to classify.
-/// @return   `true` for any of `u8` / `u16` / `u32` / `u64` / `usize`.
+/// @return   `true` for any of `u8` / `u16` / `u32` / `u64`.
 export is_unsigned_val :: fn(v: ValType) -> bool = is_u32_class(v) || is_u64_class(v)
 
 /// True when the val-type is an integer width narrower than the 32 bits it rides
@@ -271,12 +256,10 @@ export is_string_val :: fn(v: ValType) -> bool = match v {
     .I16 -> false
     .I32 -> false
     .I64 -> false
-    .Isize -> false
     .U8 -> false
     .U16 -> false
     .U32 -> false
     .U64 -> false
-    .Usize -> false
     .F32 -> false
     .F64 -> false
     .Bool -> false
@@ -375,9 +358,8 @@ export array_kind_name :: fn(k: ArrayKind) -> string = match k {
     .Boxed -> "boxed"
 }
 
-/// `ArrayKind` for a primitive element type name. Inverse of `array_kind_name`,
-/// plus the `usize`/`isize` aliases (no dedicated `ArrayKind` — they ride in
-/// `U64`/`I64`). Used by the data-pool producer (`midir`) and the `.virt`
+/// `ArrayKind` for a primitive element type name. Inverse of `array_kind_name`.
+/// Used by the data-pool producer (`midir`) and the `.virt`
 /// reader. Non-primitive / unknown names → `Boxed` (callers only feed
 /// primitive element names).
 /// @param name  the element type name.
@@ -387,12 +369,10 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
     "u16"   -> .U16
     "u32"   -> .U32
     "u64"   -> .U64
-    "usize" -> .U64
     "i8"    -> .I8
     "i16"   -> .I16
     "i32"   -> .I32
     "i64"   -> .I64
-    "isize" -> .I64
     "f32"   -> .F32
     "f64"   -> .F64
     "char"  -> .Char
@@ -621,8 +601,6 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .I64 -> 8
     .U64 -> 8
     .F64 -> 8
-    .Isize -> 8
-    .Usize -> 8
     .String -> 16
     .Void -> 0
     .Null -> 0
@@ -700,12 +678,10 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
     .U16 -> .U16
     .U32 -> .U32
     .U64 -> .U64
-    .Usize -> .U64
     .I8 -> .I8
     .I16 -> .I16
     .I32 -> .I32
     .I64 -> .I64
-    .Isize -> .I64
     .F32 -> .F32
     .F64 -> .F64
     .Char -> .Char

@@ -24,7 +24,7 @@
             "name": "n",
             "type": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "u64"
             },
             "visibility": "public",
             "default": {
@@ -36,7 +36,7 @@
             "name": "delta",
             "type": {
               "kind": "IdentExpr",
-              "name": "isize"
+              "name": "i64"
             },
             "visibility": "public",
             "default": {
@@ -193,11 +193,11 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "isz"
+                "name": "signed_wide"
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "isize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",
@@ -209,11 +209,11 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "usz"
+                "name": "unsigned_wide"
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "u64"
               },
               "value": {
                 "kind": "IntLitExpr",
@@ -330,7 +330,7 @@
                           "kind": "interp",
                           "expr": {
                             "kind": "IdentExpr",
-                            "name": "isz"
+                            "name": "signed_wide"
                           }
                         },
                         {
@@ -341,7 +341,7 @@
                           "kind": "interp",
                           "expr": {
                             "kind": "IdentExpr",
-                            "name": "usz"
+                            "name": "unsigned_wide"
                           }
                         }
                       ]
@@ -356,7 +356,7 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "isz2"
+                "name": "signed_wide_next"
               },
               "type": null,
               "value": {
@@ -364,7 +364,7 @@
                 "op": "add",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "isz"
+                  "name": "signed_wide"
                 },
                 "right": {
                   "kind": "IntLitExpr",
@@ -377,7 +377,7 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "usz2"
+                "name": "unsigned_wide_next"
               },
               "type": null,
               "value": {
@@ -385,7 +385,7 @@
                 "op": "add",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "usz"
+                  "name": "unsigned_wide"
                 },
                 "right": {
                   "kind": "IntLitExpr",
@@ -457,7 +457,7 @@
                           "kind": "interp",
                           "expr": {
                             "kind": "IdentExpr",
-                            "name": "isz2"
+                            "name": "signed_wide_next"
                           }
                         },
                         {
@@ -468,7 +468,7 @@
                           "kind": "interp",
                           "expr": {
                             "kind": "IdentExpr",
-                            "name": "usz2"
+                            "name": "unsigned_wide_next"
                           }
                         },
                         {
@@ -509,7 +509,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "isize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",
@@ -657,7 +657,7 @@
                   "op": "eq",
                   "left": {
                     "kind": "IdentExpr",
-                    "name": "usz"
+                    "name": "unsigned_wide"
                   },
                   "right": {
                     "kind": "IntLitExpr",
@@ -702,7 +702,7 @@
                   "op": "lte",
                   "left": {
                     "kind": "IdentExpr",
-                    "name": "isz"
+                    "name": "signed_wide"
                   },
                   "right": {
                     "kind": "IntLitExpr",
@@ -726,7 +726,7 @@
                           "parts": [
                             {
                               "kind": "text",
-                              "value": "isz_neg ok"
+                              "value": "signed_neg ok"
                             }
                           ]
                         },
@@ -891,7 +891,7 @@
                 "params": [],
                 "returnType": {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "u64"
                 },
                 "body": {
                   "kind": "BlockExpr",

@@ -344,7 +344,7 @@ export ArraySlice :: struct { type_id: i32 }
 // needs a static element type_id. Reached via the intrinsic channel
 // (`intrinsic_op_for_name`), not a dedicated Lowered/Instr node.
 
-/// `[lhs] * n` — pop `n` (usize) then the source array ; push a fresh array
+/// `[lhs] * n` — pop `n` (i64) then the source array ; push a fresh array
 /// repeating the source's elements n times. `length = src.length * n`,
 /// `capacity = max(length, n)` (so `[] * n` reserves n slots with length 0, the
 /// preallocation case). Ref elements are repeated by reference (shallow). The
@@ -397,8 +397,8 @@ export RefCast :: struct { type_id: i32 }
 /// an erased `ref` slot : `type_id` is the value's SEMANTIC BcType. Nothing is
 /// allocated — the native backend writes this tag into the 16-byte union value.
 /// Needed because a constant or a conversion carries only the coarse `ValType`
-/// (a `u8` constant is an `i32.const`, a `usize` an `i64` one), from which the
-/// tag would be wrong and a downstream `is u8` / `is usize` would miss. midir
+/// (a `u8` constant is an `i32.const`, a `u64` an `i64` one), from which the
+/// tag would be wrong and a downstream `is u8` / `is u64` would miss. midir
 /// emits it wherever a primitive is stored into a union slot, and for one
 /// returned into an erased result. The VM's value tags are coarse (`I32Val`
 /// matches any `is`-of-a-32-bit-or-narrower integer), so it drops the op, like
@@ -410,7 +410,7 @@ export Retag :: struct { type_id: i32 }
 /// destination storage class (I32Val / I64Val / F64Val / CharVal) so
 /// downstream typed ops (`f64.div`, `u32.shl`, …) find a matching tag.
 ///
-/// `from_name` carries the SOURCE type as its source-level name (`usize`,
+/// `from_name` carries the SOURCE type as its source-level name (`u64`,
 /// `u32`, `i16`, …): the dump spells `<from>.to_<to>` with it, and the
 /// backends read its signedness off it, an unsigned source being widened
 /// with zeros.
@@ -443,8 +443,6 @@ export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
     .U32   -> .I32
     .I64   -> .I64
     .U64   -> .I64
-    .Isize -> .I64
-    .Usize -> .I64
     .F32   -> .F64
     .F64   -> .F64
     .Char  -> .Char
@@ -481,7 +479,7 @@ export DeferPush :: struct {}
 /// transcends.
 export DeferPopExec :: struct { count: i32 }
 
-/// Pop a `TypeVal` ; push a `usize` carrying the byte size of the type
+/// Pop a `TypeVal` ; push an `i64` carrying the byte size of the type
 /// at `module.types[type_id]`. Backs the runtime path of `@size_of(t)`.
 /// Layer 4 §1.19 B.2.
 export SizeOfType :: struct {}
@@ -552,7 +550,7 @@ export I64Shl    :: struct {}
 /// 64-bit arithmetic shift-right (sign-extending). Pairs with `I64Shl`.
 export I64Shr    :: struct {}
 /// 64-bit logical shift-right (zero-filling). Used by unsigned-width
-/// source ops (`u64.shr`, `usize.shr`).
+/// source ops (`u64.shr`).
 export I64ShrU   :: struct {}
 /// 64-bit bitwise AND. Distinct from `I32BitAnd` so wide-width masks
 /// keep their high bits (e.g. `bit_len & 0xFFFF_FFFF_FFFF_FFFF_u64`).
@@ -588,7 +586,7 @@ export F64Gt :: struct {}
 export F64Ge :: struct {}
 
 // The seven ops below are width-aliased : every integer-width sibling
-// (`isize.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
+// (`i8.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
 // because the VM aliases every integer width to `I32Val`. See
 // `is_int_op` in `vader/vm/virt_reader.vader` for the parser-side collapse.
 /// Pop one i32 ; push `-value`.
@@ -605,12 +603,12 @@ export I32BitXor :: struct {}
 export I32Shl :: struct {}
 /// Pop two i32 (left, right) ; push `left >> right` (arithmetic shift —
 /// preserves the sign bit). Used by signed-width source ops
-/// (`i32.shr` / `i64.shr` / `isize.shr` / `i8.shr` / `i16.shr`).
+/// (`i32.shr` / `i64.shr` / `i8.shr` / `i16.shr`).
 export I32Shr :: struct {}
 /// Pop two i32 (left, right) ; push `left >> right` interpreted as a
 /// logical (unsigned) shift — the sign bit is replaced by zero. Used by
-/// unsigned-width source ops (`u32.shr` / `u64.shr` / `usize.shr` /
-/// `u8.shr` / `u16.shr`). The Vader VM aliases every integer width to
+/// unsigned-width source ops (`u32.shr` / `u64.shr` / `u8.shr` /
+/// `u16.shr`). The Vader VM aliases every integer width to
 /// signed `I32Val`, so we distinguish the two shifts at the op level
 /// rather than at the value tag.
 export I32ShrU :: struct {}
@@ -714,13 +712,12 @@ export ReturnLit :: struct { value: ConstOp }
 /// the region and stamps the header with that same sentinel — the GC forwards a
 /// boxed reference through the header, so the two must agree.
 ///
-/// Emitted from the core library's buffer allocation only (`new_byte_buffer`,
-/// `<byte-count>.new_buffer()`), mapped in `bytecode/intrinsics.vader`. Its
-/// accessors have no Vader-level trigger at all; what exercises the whole family
-/// end to end, this op included, is the hand-authored
-/// `tests/fixtures/membuf_gc.virt` (down to surviving a moving collection). A
-/// caller count alone therefore understates what removing any of them would
-/// break.
+/// Emitted from the core library's buffer allocation only, `new_byte_buffer`,
+/// mapped in `bytecode/intrinsics.vader`. Its accessors have no Vader-level
+/// trigger at all; what exercises the whole family end to end, this op included,
+/// is the hand-authored `tests/fixtures/membuf_gc.virt` (down to surviving a
+/// moving collection). A caller count alone therefore understates what removing
+/// any of them would break.
 export BufferNew :: struct {}
 
 // The multi-byte members of this family (`LoadI32` / `I64` / `F64` and their
@@ -772,13 +769,13 @@ export StoreF64 :: struct {}
 /// `bounds_safe` : producer PROVED the index in range → C backend skips the
 /// bounds check ; default `false`. The VM checks regardless (soundness oracle).
 export LoadSlotI32 :: struct { bounds_safe: bool = false }
-/// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). `bounds_safe` as above.
+/// 8-byte signed read (`i64` / `u64` elements). `bounds_safe` as above.
 export LoadSlotI64 :: struct { bounds_safe: bool = false }
 /// 8-byte float read (`f64` elements). `bounds_safe` as above.
 export LoadSlotF64 :: struct { bounds_safe: bool = false }
 /// 4-byte signed write (`i32` / `u32` / `char` elements). `bounds_safe` as above.
 export StoreSlotI32 :: struct { bounds_safe: bool = false }
-/// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). `bounds_safe` as above.
+/// 8-byte signed write (`i64` / `u64` elements). `bounds_safe` as above.
 export StoreSlotI64 :: struct { bounds_safe: bool = false }
 /// 8-byte float write (`f64` elements). `bounds_safe` as above.
 export StoreSlotF64 :: struct { bounds_safe: bool = false }
@@ -787,7 +784,7 @@ export StoreSlotF64 :: struct { bounds_safe: bool = false }
 /// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
 export MemoryCopy :: struct {}
 
-/// Intern a `Buffer`'s leading `len` bytes as a `string`. Pops `obj, len: usize`
+/// Intern a `Buffer`'s leading `len` bytes as a `string`. Pops `obj, len: i64`
 /// ; pushes the interned `string`. Lowers to `vader_string_new((const char*)
 /// obj->bytes, len)` — a single copy into the atom table, no read-back. Same
 /// verbatim-bytes semantics as `bytes_to_string` over a `u8[]` (neither
@@ -795,7 +792,7 @@ export MemoryCopy :: struct {}
 export BufferToString :: struct {}
 
 /// Copy a `string`'s bytes into a `Buffer` at byte offset `off`. Pops
-/// `obj, off: usize, s: string` (no push). Lowers to a `memcpy` from the string
+/// `obj, off: i64, s: string` (no push). Lowers to a `memcpy` from the string
 /// atom's bytes into `obj->bytes + off` (`vader_buffer_write_string`). The lean
 /// replacement for the retired `vader_string_concat_all` host intrinsic :
 /// `StringBuilder.to_string` assembles its `string[]` parts with this.

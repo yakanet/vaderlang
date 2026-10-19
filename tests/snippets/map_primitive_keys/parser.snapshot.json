@@ -1475,7 +1475,7 @@
                   "typeArgs": [
                     {
                       "kind": "IdentExpr",
-                      "name": "usize"
+                      "name": "u64"
                     },
                     {
                       "kind": "IdentExpr",
@@ -1520,7 +1520,7 @@
                         "kind": "CallExpr",
                         "callee": {
                           "kind": "IdentExpr",
-                          "name": "usize"
+                          "name": "u64"
                         },
                         "args": [
                           {
@@ -1568,7 +1568,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "usize size="
+                          "value": "u64 size="
                         },
                         {
                           "kind": "interp",
@@ -1612,7 +1612,7 @@
                                   "kind": "CallExpr",
                                   "callee": {
                                     "kind": "IdentExpr",
-                                    "name": "usize"
+                                    "name": "u64"
                                   },
                                   "args": [
                                     {
@@ -1665,7 +1665,7 @@
                                   "kind": "CallExpr",
                                   "callee": {
                                     "kind": "IdentExpr",
-                                    "name": "usize"
+                                    "name": "u64"
                                   },
                                   "args": [
                                     {
@@ -1718,7 +1718,7 @@
                                   "kind": "CallExpr",
                                   "callee": {
                                     "kind": "IdentExpr",
-                                    "name": "usize"
+                                    "name": "u64"
                                   },
                                   "args": [
                                     {

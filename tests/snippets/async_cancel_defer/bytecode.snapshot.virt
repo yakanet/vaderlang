@@ -16,9 +16,8 @@ type 13 fn () -> 5
 type 14 ref std_core$Async
 type 15 primitive u8
 type 16 primitive i64
-type 17 array 15
-type 18 primitive usize
-type 19 struct std_core$Buffer {  }
+type 17 struct std_core$Buffer {  }
+type 18 array 15
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -27,12 +26,12 @@ string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
 import 0 byte_len std_core$byte_len result_type=16 param_types=11 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=17 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,17,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=18 param_types=11 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,18,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Async
 impl 8 std_core$Async
 impl 10 std_core$Async
-impl 19 std_core$ByteAccess
+impl 17 std_core$ByteAccess
 vtable std_core$Async.resume 1 0
 vtable std_core$Async.resume 8 6
 vtable std_core$Async.resume 10 9
@@ -574,7 +573,6 @@ fn 11 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -619,7 +617,7 @@ fn 12 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 17   ; u8[]
+      array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

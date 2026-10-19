@@ -8,9 +8,10 @@
 // `vader_string_concat_all` host intrinsic — finalisation, not every append,
 // pays for the copy.
 //
-// The byte primitives (`new_buffer` / `write_string` / `intern_string`) live in
-// `std/core` (the prelude) and are reached with no import : they are
-// `@intrinsic`-marked impl members resolved through the impl registry. `bytes` /
+// The byte primitives (`new_byte_buffer` / `write_string` / `intern_string`) live
+// in `std/core` (the prelude) and are reached with no import : the allocation is
+// an `@intrinsic` free fn, the others `@intrinsic` impl members resolved through
+// the impl registry. `bytes` /
 // `bytes_to_string` / `utf8_encode` are likewise ambient std/core primitives. So
 // this module needs no `import` of its own.
 //
@@ -85,7 +86,7 @@ StringBuilder implements Display {
         for p in self.parts {
             total = total + p.byte_len()
         }
-        buf :: usize(total).new_buffer()
+        buf :: new_byte_buffer(total)
         off: i64 = 0
         for p in self.parts {
             buf.write_string(off, p)

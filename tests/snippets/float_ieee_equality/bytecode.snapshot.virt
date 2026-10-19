@@ -14,15 +14,13 @@ type 11 array 1
 type 12 primitive i8
 type 13 ref _
 type 14 primitive i16
-type 15 primitive isize
-type 16 primitive u16
-type 17 primitive u32
-type 18 primitive u64
-type 19 primitive usize
-type 20 primitive f32
-type 21 primitive char
-type 22 array 8
-type 23 primitive void
+type 15 primitive u16
+type 16 primitive u32
+type 17 primitive u64
+type 18 primitive f32
+type 19 primitive char
+type 20 array 8
+type 21 primitive void
 string 0 "zero"
 string 1 "other"
 string 2 "union    : "
@@ -37,24 +35,22 @@ string 10 "true"
 string 11 "false"
 string 12 "\n"
 import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=22 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,22,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=20 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,20,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 10 std_core$ByteAccess
-vtable std_core$Equals.equals 12 11
-vtable std_core$Equals.equals 14 12
-vtable std_core$Equals.equals 4 13
-vtable std_core$Equals.equals 9 14
+vtable std_core$Equals.equals 12 10
+vtable std_core$Equals.equals 14 11
+vtable std_core$Equals.equals 4 12
+vtable std_core$Equals.equals 9 13
+vtable std_core$Equals.equals 8 14
 vtable std_core$Equals.equals 15 15
-vtable std_core$Equals.equals 8 16
-vtable std_core$Equals.equals 16 17
-vtable std_core$Equals.equals 17 18
-vtable std_core$Equals.equals 18 19
-vtable std_core$Equals.equals 19 20
-vtable std_core$Equals.equals 20 21
-vtable std_core$Equals.equals 2 22
-vtable std_core$Equals.equals 5 23
-vtable std_core$Equals.equals 21 24
-vtable std_core$Equals.equals 3 25
+vtable std_core$Equals.equals 16 16
+vtable std_core$Equals.equals 17 17
+vtable std_core$Equals.equals 18 18
+vtable std_core$Equals.equals 2 19
+vtable std_core$Equals.equals 5 20
+vtable std_core$Equals.equals 19 21
+vtable std_core$Equals.equals 3 22
 export main 1
 
 fn 0 snippet$pick (any) -> string
@@ -109,14 +105,14 @@ fn 1 snippet$main () -> i32
   retag 2   ; f64
   local.set 4   ; n
   i64.const 34
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 5   ; __buf_0
   i64.const 0
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 2   ; "union    : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; u
   type_check 2   ; f64
@@ -181,12 +177,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; u
   type_check 2   ; f64
@@ -254,12 +250,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 4   ; n
   type_check 2   ; f64
@@ -324,12 +320,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 4   ; n
   type_check 2   ; f64
@@ -397,53 +393,53 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   local.get 3   ; w
   array.new 11 1   ; union[]
   local.set 5   ; __buf_0
   i64.const 22
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 13   ; __buf_2
   i64.const 0
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   string.const 4   ; "in       : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 2   ; u
-  call 10   ; std_core$[]$Contains$contains__f64___string
+  call 9   ; std_core$[]$Contains$contains__f64___string
   local.set 7   ; and_res
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 4   ; n
   array.new 11 1   ; union[]
   local.get 4   ; n
-  call 10   ; std_core$[]$Contains$contains__f64___string
+  call 9   ; std_core$[]$Contains$contains__f64___string
   local.set 7   ; and_res
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   local.get 2   ; u
   call 0   ; snippet$pick
   local.set 11   ; $cast_33
@@ -455,16 +451,16 @@ fn 1 snippet$main () -> i32
   string.const 3   ; " "
   local.get 12   ; $cast_34
   call 4   ; concat_4
-  call 28   ; std_io$println__string
+  call 25   ; std_io$println__string
   i64.const 34
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 5   ; __buf_0
   i64.const 0
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 6   ; "generic  : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; nz
   f64.const 0.0 0
@@ -473,12 +469,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 1   ; nan
   local.get 1   ; nan
@@ -487,12 +483,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 2   ; u
   local.get 3   ; w
@@ -501,12 +497,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 4   ; n
   local.get 4   ; n
@@ -515,23 +511,23 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   local.get 0   ; nz
   local.set 2   ; u
   i64.const 16
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 5   ; __buf_0
   i64.const 0
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 7   ; "trait    : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   f64.const 0.0 0
   local.get 2   ; u
@@ -540,25 +536,25 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   local.get 0   ; nz
   retag 2   ; f64
   struct.new_stack 6   ; snippet$Holder
   local.set 5   ; __buf_0
   i64.const 22
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 13   ; __buf_2
   i64.const 0
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   string.const 8   ; "nullable : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 5 6 0   ; __buf_0 snippet$Holder.v
   local.tee 2   ; u
@@ -576,12 +572,12 @@ fn 1 snippet$main () -> i32
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   string.const 3   ; " "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.field 5 6 0   ; __buf_0 snippet$Holder.v
   type_check 0   ; null
@@ -590,21 +586,21 @@ fn 1 snippet$main () -> i32
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 13   ; __buf_2
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   i64.const 16
-  call 6   ; std_core$new_byte_buffer
+  buffer.new
   local.set 5   ; __buf_0
   i64.const 0
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   string.const 9   ; "tuple    : "
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   local.get 0   ; nz
   f64.const 0.0 0
@@ -621,12 +617,12 @@ fn 1 snippet$main () -> i32
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
   local.get 7   ; and_res
-  call 9   ; std_core$write_bool
+  call 8   ; std_core$write_bool
   local.set 6   ; __off_1
   local.get 5   ; __buf_0
   local.get 6   ; __off_1
-  call 7   ; std_core$finish_buffer
-  call 28   ; std_io$println__string
+  call 6   ; std_core$finish_buffer
+  call 25   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -733,7 +729,6 @@ fn 4 concat_4 (string,string,string,string) -> string
   local.get 7   ; $call_12
   i64.add
   local.tee 7   ; $call_12
-  i64.to_i64
   buffer.new
   local.tee 8   ; buf
   i64.const 0
@@ -771,7 +766,6 @@ fn 5 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -787,21 +781,14 @@ fn 5 concat_2 (string,string) -> string
   return
 end
 
-fn 6 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 7 std_core$finish_buffer (ref,i64) -> string
+fn 6 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 8 std_core$write_string_at (ref,i64,string) -> i64
+fn 7 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -816,24 +803,24 @@ fn 8 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 9 std_core$write_bool (ref,i64,bool) -> i64
+fn 8 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
     local.get 0   ; arg 0
     local.get 1   ; arg 1
     string.const 11   ; "false"
-    call 8   ; std_core$write_string_at
+    call 7   ; std_core$write_string_at
     return
   end $L0
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   string.const 10   ; "true"
-  call 8   ; std_core$write_string_at
+  call 7   ; std_core$write_string_at
   return
 end
 
-fn 10 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
+fn 9 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
   local __for_arr_0 ref
   local __for_len_1 i64
   local __for_i_2 i64
@@ -906,7 +893,7 @@ fn 10 std_core$[]$Contains$contains__f64___string (ref,any) -> bool
   return.lit bool.const false
 end
 
-fn 11 std_core$i8$Equals$equals$guard (i8,any) -> bool
+fn 10 std_core$i8$Equals$equals$guard (i8,any) -> bool
   local $cast_4 i8
   local.get 1   ; arg 1
   type_check 12   ; i8
@@ -922,7 +909,7 @@ fn 11 std_core$i8$Equals$equals$guard (i8,any) -> bool
   return.lit bool.const false
 end
 
-fn 12 std_core$i16$Equals$equals$guard (i16,any) -> bool
+fn 11 std_core$i16$Equals$equals$guard (i16,any) -> bool
   local $cast_4 i16
   local.get 1   ; arg 1
   type_check 14   ; i16
@@ -938,7 +925,7 @@ fn 12 std_core$i16$Equals$equals$guard (i16,any) -> bool
   return.lit bool.const false
 end
 
-fn 13 std_core$i32$Equals$equals$guard (i32,any) -> bool
+fn 12 std_core$i32$Equals$equals$guard (i32,any) -> bool
   local $cast_4 i32
   local.get 1   ; arg 1
   type_check 4   ; i32
@@ -954,7 +941,7 @@ fn 13 std_core$i32$Equals$equals$guard (i32,any) -> bool
   return.lit bool.const false
 end
 
-fn 14 std_core$i64$Equals$equals$guard (i64,any) -> bool
+fn 13 std_core$i64$Equals$equals$guard (i64,any) -> bool
   local $cast_4 i64
   local.get 1   ; arg 1
   type_check 9   ; i64
@@ -970,23 +957,7 @@ fn 14 std_core$i64$Equals$equals$guard (i64,any) -> bool
   return.lit bool.const false
 end
 
-fn 15 std_core$isize$Equals$equals$guard (isize,any) -> bool
-  local $cast_4 isize
-  local.get 1   ; arg 1
-  type_check 15   ; isize
-  if $L0 void
-    local.get 1   ; arg 1
-    ref.cast 15   ; isize
-    local.set 2   ; $cast_4
-    local.get 0   ; arg 0
-    local.get 2   ; $cast_4
-    i64.eq
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 16 std_core$u8$Equals$equals$guard (u8,any) -> bool
+fn 14 std_core$u8$Equals$equals$guard (u8,any) -> bool
   local $cast_4 u8
   local.get 1   ; arg 1
   type_check 8   ; u8
@@ -1002,13 +973,13 @@ fn 16 std_core$u8$Equals$equals$guard (u8,any) -> bool
   return.lit bool.const false
 end
 
-fn 17 std_core$u16$Equals$equals$guard (u16,any) -> bool
+fn 15 std_core$u16$Equals$equals$guard (u16,any) -> bool
   local $cast_4 u16
   local.get 1   ; arg 1
-  type_check 16   ; u16
+  type_check 15   ; u16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 16   ; u16
+    ref.cast 15   ; u16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1018,13 +989,13 @@ fn 17 std_core$u16$Equals$equals$guard (u16,any) -> bool
   return.lit bool.const false
 end
 
-fn 18 std_core$u32$Equals$equals$guard (u32,any) -> bool
+fn 16 std_core$u32$Equals$equals$guard (u32,any) -> bool
   local $cast_4 u32
   local.get 1   ; arg 1
-  type_check 17   ; u32
+  type_check 16   ; u32
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 17   ; u32
+    ref.cast 16   ; u32
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1034,13 +1005,13 @@ fn 18 std_core$u32$Equals$equals$guard (u32,any) -> bool
   return.lit bool.const false
 end
 
-fn 19 std_core$u64$Equals$equals$guard (u64,any) -> bool
+fn 17 std_core$u64$Equals$equals$guard (u64,any) -> bool
   local $cast_4 u64
   local.get 1   ; arg 1
-  type_check 18   ; u64
+  type_check 17   ; u64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 18   ; u64
+    ref.cast 17   ; u64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1050,29 +1021,13 @@ fn 19 std_core$u64$Equals$equals$guard (u64,any) -> bool
   return.lit bool.const false
 end
 
-fn 20 std_core$usize$Equals$equals$guard (usize,any) -> bool
-  local $cast_4 usize
-  local.get 1   ; arg 1
-  type_check 19   ; usize
-  if $L0 void
-    local.get 1   ; arg 1
-    ref.cast 19   ; usize
-    local.set 2   ; $cast_4
-    local.get 0   ; arg 0
-    local.get 2   ; $cast_4
-    i64.eq
-    return
-  end $L0
-  return.lit bool.const false
-end
-
-fn 21 std_core$f32$Equals$equals$guard (f32,any) -> bool
+fn 18 std_core$f32$Equals$equals$guard (f32,any) -> bool
   local $cast_4 f32
   local.get 1   ; arg 1
-  type_check 20   ; f32
+  type_check 18   ; f32
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 20   ; f32
+    ref.cast 18   ; f32
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1082,7 +1037,7 @@ fn 21 std_core$f32$Equals$equals$guard (f32,any) -> bool
   return.lit bool.const false
 end
 
-fn 22 std_core$f64$Equals$equals$guard (f64,any) -> bool
+fn 19 std_core$f64$Equals$equals$guard (f64,any) -> bool
   local $cast_4 f64
   local.get 1   ; arg 1
   type_check 2   ; f64
@@ -1098,7 +1053,7 @@ fn 22 std_core$f64$Equals$equals$guard (f64,any) -> bool
   return.lit bool.const false
 end
 
-fn 23 std_core$bool$Equals$equals$guard (bool,any) -> bool
+fn 20 std_core$bool$Equals$equals$guard (bool,any) -> bool
   local $cast_4 bool
   local.get 1   ; arg 1
   type_check 5   ; bool
@@ -1114,13 +1069,13 @@ fn 23 std_core$bool$Equals$equals$guard (bool,any) -> bool
   return.lit bool.const false
 end
 
-fn 24 std_core$char$Equals$equals$guard (char,any) -> bool
+fn 21 std_core$char$Equals$equals$guard (char,any) -> bool
   local $cast_4 char
   local.get 1   ; arg 1
-  type_check 21   ; char
+  type_check 19   ; char
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 21   ; char
+    ref.cast 19   ; char
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1130,7 +1085,7 @@ fn 24 std_core$char$Equals$equals$guard (char,any) -> bool
   return.lit bool.const false
 end
 
-fn 25 std_core$string$Equals$equals$guard (string,any) -> bool
+fn 22 std_core$string$Equals$equals$guard (string,any) -> bool
   local $cast_4 string
   local.get 1   ; arg 1
   type_check 3   ; string
@@ -1146,7 +1101,7 @@ fn 25 std_core$string$Equals$equals$guard (string,any) -> bool
   return.lit bool.const false
 end
 
-fn 26 std_io$write (u8,string) -> void
+fn 23 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -1175,14 +1130,14 @@ fn 26 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 22   ; u8[]
+      array.slice 20   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 27   ; std_io$write_bytes
+      call 24   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1202,7 +1157,7 @@ fn 26 std_io$write (u8,string) -> void
   return
 end
 
-fn 27 std_io$write_bytes (u8,ref,i64) -> i32
+fn 24 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1222,7 +1177,7 @@ fn 27 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 28 std_io$println__string (string) -> void
+fn 25 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 12   ; "\n"
@@ -1230,6 +1185,6 @@ fn 28 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 26   ; std_io$write
+  call 23   ; std_io$write
   return
 end

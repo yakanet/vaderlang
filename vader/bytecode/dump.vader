@@ -342,7 +342,20 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         } else {
             ""
         }
-        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${va}${header}${rt}${pt}${pm}${pa}")
+        // The `@c_type` spellings, or a `.virt` re-read would declare the callee
+        // with the Vader types and conflict with the header that owns it.
+        ct :: if imp.param_c_types.len() == 0 {
+            ""
+        } else {
+            "param_c_types=${c_type_token(imp.param_c_types.join(","))} "
+        }
+        rc :: if imp.result_c_type == "" {
+            ""
+        } else {
+            "result_c_type=${c_type_token(imp.result_c_type)} "
+        }
+        attributes :: "${va}${header}${rt}${pt}${pm}${pa}${ct}${rc}"
+        sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")
     }
@@ -375,6 +388,18 @@ join_indices :: fn(xs: i32[]) -> string {
     }
     return sb.to_string()
 }
+
+/// C type spellings as one token of an import line, whose attributes are
+/// separated by spaces : each space is written `+`, which no C type contains.
+/// `c_type_from_token` reads it back.
+///
+/// @param spelling  the C type, as `@c_type` names it, or several joined by `,`.
+export c_type_token :: fn(spelling: string) -> string = spelling.replace(" ", "+")
+
+/// The C type spelling a `c_type_token` stands for.
+///
+/// @param token  the token read from an import line.
+export c_type_from_token :: fn(token: string) -> string = token.replace("+", " ")
 
 /// Render per-parameter flags as a comma-separated run of `0` / `1`.
 ///

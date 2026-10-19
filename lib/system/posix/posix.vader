@@ -254,7 +254,7 @@ export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32
 @c_header("<spawn.h>")
 @extern("posix_spawnp")
 export sys_posix_spawnp :: fn(@c_out pid: i32[], file: string, actions: u8[],
-                              attrp: CPointer | null, argv: usize[], envp: CPointer) -> i32
+                              attrp: CPointer | null, argv: u64[], envp: CPointer) -> i32
 
 /// `waitpid(2)`.
 ///

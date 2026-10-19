@@ -4,7 +4,7 @@ arith: -49 43 9000000001 18446744073700000001
 neg: -100 -101
 counter: n=0 delta=-1
 eq ok
-isz_neg ok
+signed_neg ok
 slice_array: 4
 returned: 42
 # exit

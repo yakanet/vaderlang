@@ -12,8 +12,8 @@ main :: fn(argv: string[]) -> i32 {
     byte: u8: 254
     println("u8 in range: ${byte + u8(one)}")
     println("u8 method in range: ${byte.add(u8(one))}")
-    index: usize: 0
-    println("usize in range: ${index + usize(one) - 1}")
+    index: u64: 0
+    println("u64 in range: ${index + u64(one) - 1}")
     small: i8: -127
     println("i8 in range: ${small - i8(one)}")
     top: i32: 2_147_483_646

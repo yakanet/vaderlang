@@ -69,7 +69,7 @@ probe_tty :: fn(stream: Stream) -> bool {
         .Stderr -> STD_ERROR_HANDLE
     }
     h :: get_std_handle(which)
-    if isize(h) == INVALID_HANDLE {
+    if i64(h) == INVALID_HANDLE {
         return false
     }
     mode: u32[]: [0]

@@ -18,12 +18,12 @@
           __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(std.core.u8.add(byte, u8(one))))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      index: usize = 0
+      index: u64 = 0
       std.io.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(36))
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(34))
           __off_5: i64 = 0
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, "usize in range: ")
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64((index + usize(one)) - usize(1)))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "u64 in range: ")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, (index + u64(one)) - u64(1))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       small: i8 = -127
@@ -62,7 +62,7 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
@@ -82,10 +82,8 @@
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.three_way  // std_core$three_way
     fn std.core.u8.add  // std_core$u8$Add$add
-    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

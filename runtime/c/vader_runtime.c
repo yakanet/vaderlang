@@ -3517,7 +3517,7 @@ char** vader_environ(void) {
  * @param i     the word index.
  */
 VADER_HOST_EXPORT
-void* vader_ptr_at(const void* base, size_t i) {
+void* vader_ptr_at(const void* base, int64_t i) {
     return ((void* const*) base)[i];
 }
 

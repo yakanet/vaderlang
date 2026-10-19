@@ -90,7 +90,7 @@
           "args": [
             {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "u64"
             },
             {
               "kind": "IdentExpr",
@@ -98,7 +98,7 @@
             }
           ]
         },
-        "message": "usize implements Hash",
+        "message": "u64 implements Hash",
         "decorators": []
       },
       {

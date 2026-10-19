@@ -16,12 +16,11 @@ type 13 ref std_core$Async
 type 14 primitive bool
 type 15 primitive u8
 type 16 primitive i64
-type 17 array 15
-type 18 primitive usize
-type 19 struct std_core$Buffer {  }
-type 20 ref std_core$Async
-type 21 struct std_async$Sleep { ms:16,deadline:16,armed:14 }
-type 22 union 0,9
+type 17 struct std_core$Buffer {  }
+type 18 array 15
+type 19 ref std_core$Async
+type 20 struct std_async$Sleep { ms:16,deadline:16,armed:14 }
+type 21 union 0,9
 string 0 "defer 1 "
 string 1 "defer 2 "
 string 2 "body "
@@ -29,19 +28,19 @@ string 3 "x"
 string 4 "\n"
 string 5 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=16 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,17,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 bytes std_core$bytes result_type=18 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,18,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 sched_now std_runtime$sched_now result_type=16 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=5 param_types=16 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=3 () -> i32
 import 6 panic std_abort$panic result_type=5 param_types=1 param_c_out= param_by_address= (string) -> void
 impl 7 std_core$Async
 impl 10 std_core$Async
-impl 19 std_core$ByteAccess
-impl 21 std_core$Async
+impl 17 std_core$ByteAccess
+impl 20 std_core$Async
 vtable std_core$Async.resume 7 4
 vtable std_core$Async.resume 10 5
-vtable std_core$Async.resume 21 12
+vtable std_core$Async.resume 20 12
 export main 1
 
 fn 0 snippet$step (string) -> any
@@ -397,7 +396,6 @@ fn 6 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -442,7 +440,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 17   ; u8[]
+      array.slice 18   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -505,7 +503,7 @@ fn 10 std_async$sleep (i64) -> any
   local.get 0   ; arg 0
   i64.const 0
   bool.const false
-  struct.new 21   ; std_async$Sleep
+  struct.new 20   ; std_async$Sleep
   return
 end
 
@@ -518,16 +516,16 @@ end
 fn 12 std_async$Sleep$std_core_Async$resume (ref) -> any
   local $call_3 i64
   local $field_4 i64
-  local.field 0 21 2   ; arg 0 std_async$Sleep.armed
+  local.field 0 20 2   ; arg 0 std_async$Sleep.armed
   ref.cast 14   ; bool
   if $L0 void
   else
     local.get 0   ; arg 0
     bool.const true
-    struct.set 21 2   ; std_async$Sleep.armed
+    struct.set 20 2   ; std_async$Sleep.armed
     call.import 3   ; std_runtime$sched_now
     local.set 1   ; $call_3
-    local.field 0 21 0   ; arg 0 std_async$Sleep.ms
+    local.field 0 20 0   ; arg 0 std_async$Sleep.ms
     ref.cast 16   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
@@ -536,14 +534,14 @@ fn 12 std_async$Sleep$std_core_Async$resume (ref) -> any
     local.set 1   ; $call_3
     local.get 0   ; arg 0
     local.get 1   ; $call_3
-    struct.set 21 1   ; std_async$Sleep.deadline
-    local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+    struct.set 20 1   ; std_async$Sleep.deadline
+    local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 16   ; i64
     call.import 4   ; std_runtime$sched_arm
   end $L0
   call.import 3   ; std_runtime$sched_now
   local.set 1   ; $call_3
-  local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+  local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
   ref.cast 16   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
@@ -551,7 +549,7 @@ fn 12 std_async$Sleep$std_core_Async$resume (ref) -> any
   i64.ge
   if $L1 void
   else
-    local.field 0 21 1   ; arg 0 std_async$Sleep.deadline
+    local.field 0 20 1   ; arg 0 std_async$Sleep.deadline
     ref.cast 16   ; i64
     struct.new 9   ; std_core$Suspended
     return

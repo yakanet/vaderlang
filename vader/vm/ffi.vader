@@ -10,7 +10,7 @@
 // hand that to every program — a surface decision of its own. The compiler is
 // the only caller today.
 //
-// Addresses ride `usize`, not `CPointer`. `0` is the null address. Nothing here
+// Addresses ride `i64`, not `CPointer`. `0` is the null address. Nothing here
 // dereferences or offsets one — the value only travels from `ffi_symbol` to a
 // call, so the pointer type would buy nothing the integer does not already give.
 

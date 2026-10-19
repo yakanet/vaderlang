@@ -86,7 +86,7 @@ children :: fn() -> Child[] = []
 // end), indexed by handle. Stored as machine words and read back as handles
 // through `ptr_at`: a `CPointer` cannot be rebuilt from an integer (T3010).
 @singleton
-win_handles :: fn() -> usize[] = []
+win_handles :: fn() -> u64[] = []
 
 /// The `k`-th handle of child `handle` — 0 process, 1 stdout, 2 stderr.
 ///
@@ -192,13 +192,13 @@ spawn_start :: fn(argv: string[]) -> i64 {
     sys_spawn_actions_addclose(actions, err_fds[1])
 
     // Two views of one vector: `owned` holds the pointers so they can be freed,
-    // `vec` is the `usize[]` that lends as the `char**` the spawn wants.
+    // `vec` is the `u64[]` that lends as the `char**` the spawn wants.
     owned: CPointer[]: []
-    vec: usize[]: []
+    vec: u64[]: []
     for a in argv {
         p :: sys_strdup(a)
         owned.push(p)
-        vec.push(usize(p))
+        vec.push(u64(p))
     }
     vec.push(0)
 
@@ -359,10 +359,10 @@ spawn_start :: fn(argv: string[]) -> i64 {
     }
     // Inheritable ends, so the child receives the write halves.
     sa :: SecurityAttributes { .nLength = 24, .lpSecurityDescriptor = 0, .bInheritHandle = 1 }
-    out_r: usize[]: [0]
-    out_w: usize[]: [0]
-    err_r: usize[]: [0]
-    err_w: usize[]: [0]
+    out_r: u64[]: [0]
+    out_w: u64[]: [0]
+    err_r: u64[]: [0]
+    err_w: u64[]: [0]
     if !create_pipe(out_r, out_w, sa, 0) {
         return -1
     }
@@ -413,9 +413,9 @@ spawn_start :: fn(argv: string[]) -> i64 {
     for handles.len() < base + 3 {
         handles.push(0)
     }
-    handles[base]     = usize(pi.hProcess)
-    handles[base + 1] = usize(out_read)
-    handles[base + 2] = usize(err_read)
+    handles[base]     = u64(pi.hProcess)
+    handles[base + 1] = u64(out_read)
+    handles[base + 2] = u64(err_read)
     return h
 }
 

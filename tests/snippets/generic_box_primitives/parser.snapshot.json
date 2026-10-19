@@ -386,7 +386,7 @@
               "mutable": false,
               "binding": {
                 "kind": "SimpleBinding",
-                "name": "bus"
+                "name": "bu64"
               },
               "type": null,
               "value": {
@@ -400,7 +400,7 @@
                   "typeArgs": [
                     {
                       "kind": "IdentExpr",
-                      "name": "usize"
+                      "name": "u64"
                     }
                   ]
                 },
@@ -648,7 +648,7 @@
                         },
                         {
                           "kind": "text",
-                          "value": " usize="
+                          "value": " u64="
                         },
                         {
                           "kind": "interp",
@@ -656,7 +656,7 @@
                             "kind": "FieldExpr",
                             "target": {
                               "kind": "IdentExpr",
-                              "name": "bus"
+                              "name": "bu64"
                             },
                             "field": "v"
                           }

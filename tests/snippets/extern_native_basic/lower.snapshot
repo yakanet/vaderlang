@@ -2,17 +2,21 @@
 
 ## snippet
   snippet.add_i32 :: fn(a: i32, b: i32) -> i32  // snippet$add_i32
-  snippet.c_strlen :: fn(s: string) -> usize  // snippet$c_strlen
+  snippet.c_strlen :: fn(s: string) -> u64  // snippet$c_strlen
+  snippet.c_strnlen :: fn(s: string, max: u64) -> u64  // snippet$c_strnlen
   snippet.main :: fn() -> i32 {  // snippet$main
       sum: i32 = snippet.add_i32(40, 2)
-      n: usize = snippet.c_strlen("hello, world")
+      n: u64 = snippet.c_strlen("hello, world")
+      bounded: u64 = snippet.c_strnlen("hello, world", u64(5))
       std.io.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(i64(52))
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(81))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "add=")
           __off_1 = std.core.write_int(__buf_0, __off_1, i64(sum))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " strlen=")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(n))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, n)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " strnlen=")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, bounded)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       return 0
@@ -20,7 +24,7 @@
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
       c1: i64 = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      buf: Buffer = std.core.new_byte_buffer(c1)
       std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
@@ -40,9 +44,7 @@
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
-    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at

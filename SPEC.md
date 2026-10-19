@@ -89,7 +89,7 @@ Lowering and every downstream phase therefore never see an *unbound* type parame
 
 ### Instance flavor (monomorphise vs erase)
 
-Cloning *every* instance in full would blow up code size — a `List<T>` used at ten different reference types would emit ten identical pointer-shuffling bodies. So each observed `(decl, type-args)` instance is classified into one of three **flavors**, which decide how its type arguments are represented in the emitted body. The split keys on whether a type argument is a **primitive value-type** — the fixed-width numerics (`i8`…`i64`, `u8`…`u64`, `usize`/`isize`), `f32`/`f64`, `bool`, `char`, `string`, and distinct newtypes over any of these — or a **reference type** (structs, arrays, tuples, closures — everything represented at runtime as a uniform pointer):
+Cloning *every* instance in full would blow up code size — a `List<T>` used at ten different reference types would emit ten identical pointer-shuffling bodies. So each observed `(decl, type-args)` instance is classified into one of three **flavors**, which decide how its type arguments are represented in the emitted body. The split keys on whether a type argument is a **primitive value-type** — the fixed-width numerics (`i8`…`i64`, `u8`…`u64`), `f32`/`f64`, `bool`, `char`, `string`, and distinct newtypes over any of these — or a **reference type** (structs, arrays, tuples, closures — everything represented at runtime as a uniform pointer):
 
 - **Mono** — full concrete substitution, one body per instance (`second__i32`). A free fn is `Mono` when it dispatches a trait method on a type parameter (the call must bind to a concrete impl) or returns a `T[]`.
 - **Mixed** — at least one type argument is a primitive. Primitive parameters stay **concrete and raw** — a `Box<i64>` field is laid out as a raw `i64` (not a boxed slot), and `msg.to_string()` on a primitive resolves to the one impl statically — while reference parameters are erased to the uniform pointer. Mangling keeps one body per distinct primitive shape (`Box__i64`, `Box__f32`, …).
@@ -472,15 +472,15 @@ x := a + \
 | Category | Types |
 |----------|-------|
 | Boolean | `bool` |
-| Unsigned integers | `u8`, `u16`, `u32`, `u64`, `usize` |
-| Signed integers | `i8`, `i16`, `i32`, `i64`, `isize` |
+| Unsigned integers | `u8`, `u16`, `u32`, `u64` |
+| Signed integers | `i8`, `i16`, `i32`, `i64` |
 | Floats | `f32`, `f64` |
 | Text | `char` (a Unicode scalar value, held in 32 bits), `string` (UTF-8 sequence) |
 | Foreign pointer | `CPointer` (§13) |
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-The eight integer types of a fixed width are ranges of `Int` (§Range types, *Machine integers*); `usize` and `isize`, of the target's width, are not.
+The eight integer types are ranges of `Int` (§Range types, *Machine integers*). None has the target's width: a foreign `size_t` is a `u64` that `@c_type` spells for C (§13), and a `CPointer` is read as an `i64` or a `u64`.
 
 `type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `T: type : i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
@@ -497,10 +497,6 @@ To reduce typing in everyday code, the compiler recognises a set of **canonical 
 | `byte` | `u8` (unsigned) |
 
 `char` and `string` are already first-class names in the primitive table, so they need no alias.
-
-`usize` is a **target-dependent** unsigned integer, the width of a pointer: what C calls `size_t`. It is the word a foreign function or structure takes where C has one, and the integer a `CPointer` is read as (§13). The bytecode/VM bootstrap treats it as a 64-bit value.
-
-`isize` is its **signed** counterpart, C's `ptrdiff_t`, 64-bit in the bytecode/VM bootstrap.
 
 A length, an index and a size are an `i64`, on every target: array and string `len()`, `byte_len()`, `@size_of(T)`. Array indexing accepts any integer type (`arr[2]`, `arr[i]` with `i: i32`, `arr.len() == 12` all compile with no conversion written); an index outside the array stops the run.
 
@@ -615,9 +611,9 @@ A literal float with no concrete context **infers to `f64`** (`x := 3.14` ⇒ `x
 
 ### Implicit numeric coercion
 
-**An integer type goes into any integer type holding every value it has**, with no conversion written: a `u8` into a `u16`, an `i32` or a `usize`, an `i32` into an `i64`, a `u32` into an `i64` or a `usize`. It does so as an argument, a return value, a field, an initialiser or an assignment, an array or tuple element, and into a union through such a member. Nothing goes the other way implicitly: an `i32` into a `u8` is **T3001** (write `u8(x)`, §Casts). Two types of one set under two names, `u64` and `usize`, `i64` and `isize`, hold neither the other, since C tells them apart.
+**An integer type goes into any integer type holding every value it has**, with no conversion written: a `u8` into a `u16`, an `i32` or a `u64`, an `i32` into an `i64`, a `u32` into an `i64` or a `u64`. It does so as an argument, a return value, a field, an initialiser or an assignment, an array or tuple element, and into a union through such a member. Nothing goes the other way implicitly: an `i32` into a `u8` is **T3001** (write `u8(x)`, §Casts).
 
-An operation between two integer types is computed in the one holding the other: `b + i` with `b: u8` and `i: i32` is an `i32`, and so is a comparison's operand. Two of which neither holds the other (`u32` and `i32`, `u64` and `usize`) are **T3017**. Where paths join, the branches of a value `if` or `match`, an integer type goes into another of them holding it. Among overloads, the parameter holding the argument most tightly wins: `min(b, b)` on a `u8` calls the `i32` overload rather than the `usize` one.
+An operation between two integer types is computed in the one holding the other: `b + i` with `b: u8` and `i: i32` is an `i32`, and so is a comparison's operand. Two of which neither holds the other (`u32` and `i32`, `u64` and `i64`) are **T3017**. Where paths join, the branches of a value `if` or `match`, an integer type goes into another of them holding it. Among overloads, the parameter holding the argument most tightly wins: `min(b, b)` on a `u8` calls the `i32` overload rather than the `i64` one.
 
 The widening does not reach through a container, a function type or a union: a `u8[]` is no `i32[]`, a `fn() -> u8` no `fn() -> i32`, which would call the function as it is, and a `u8 | null` no `i32 | null`, whose value keeps the tag it was built with. A bare `u8` goes into an `i32 | null` through its `i32`. A float never widens: `f32 → f64` and an integer into a float require a cast (`f64(x)`). Numeric literals stay flexible until they land in a typed context (`x: i64 = 42`), and range types widen as integer types do (§Range types).
 
@@ -635,13 +631,13 @@ back :: bits.from_bits()   // f64 3.0                 — round-trips bit-for-bi
 
 ### Numeric-literal context-sensitivity
 
-An integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
+An integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: u64 = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if count == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
 
 The flow is bidirectional:
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
 - **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
 - **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and namespace imports.
-- **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: usize }` types to `usize`, not `{integer} | usize`).
+- **Cross-branch in `if`** — when one branch of an if-expression produces a concrete numeric type and the other is a Free literal, the Free side repins to match (so `if c { 0 } else { width: u64 }` types to `u64`, not `{integer} | u64`).
 
 When no context applies, the literal falls back to its **default** (`i32` for integers, `f64` for floats). The default is what `x := 42` records.
 
@@ -692,7 +688,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 ### Integer overflow
 
-An integer `+`, `-`, `*` or unary `-` whose result leaves its type **stops the run**, under `vader run`, under `vader test` and from a debug build: `a: i32: 2147483647` then `a + 1` traps with `i32.add overflow`. Each type is checked at its own bounds, so a `u8` stops past 255 and a `usize` below 0. A **release** build (`--release`) wraps instead (two's complement, at the type's width) and pays nothing for the check. The method forms (`a.add(b)`, `Add` on a primitive) behave as the operators.
+An integer `+`, `-`, `*` or unary `-` whose result leaves its type **stops the run**, under `vader run`, under `vader test` and from a debug build: `a: i32: 2147483647` then `a + 1` traps with `i32.add overflow`. Each type is checked at its own bounds, so a `u8` stops past 255 and a `u64` below 0. A **release** build (`--release`) wraps instead (two's complement, at the type's width) and pays nothing for the check. The method forms (`a.add(b)`, `Add` on a primitive) behave as the operators.
 
 A constant the compiler folds follows the same rule: an overflow while evaluating a `@comptime` value is `C4017`. A plain constant that does not fold is computed at run time, where it traps outside a release build.
 
@@ -716,7 +712,7 @@ Clock :: struct {
 
 `Int` only names the base of a range: a value, a parameter or a field typed `Int` is **T3108**. The bounds are integer literals, the least first, within `i64` but for the greatest, which reaches up to `u64.max` exactly: `Int in 0..=18_446_744_073_709_551_615` holds the values of a `u64`, and `@max` of it is that value (`Int in 5..=1`, `Int in 0..=LIMIT`, a least bound past `i64` or another base are **T3109**). A range alone in value position (`r :: 0..=23`) stays a `Range<i32>` value. `Name :: Int in …` is a transparent refinement of the integer, shown under its name; a range alias written alone (`Heure :: Hour`) is a distinct type, as any type named alone.
 
-**Machine integers.** `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32` and `u64` are the ranges of their values: `i32` is `Int in -2_147_483_648..=2_147_483_647`, `u64` is `Int in 0..=18_446_744_073_709_551_615`. A range of those bounds is that integer, named or not: `Octet :: Int in 0..=255` is a `u8`, shown under its name, and goes where a `u8` goes and back. Its arithmetic is the integer's, closed and checked (§Integer overflow) rather than computed over the integers: `o + 55` with `o: Octet` is an `Octet`, where `l + 1` with `l: Int in 0..=254` is a `1..=255`. A comparison does not narrow it (*Narrowing*), `x in Octet` narrows as `x in u8` does (*Bounds*), and `Octet(x)` converts as `u8(x)` does (§Casts), with no check that stops the program. An integer type written alone (`Meters :: i64`) is a distinct type (§Distinct types), a transparent alias under `@comptime`. `usize` and `isize`, of the target's width, are no range.
+**Machine integers.** `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32` and `u64` are the ranges of their values: `i32` is `Int in -2_147_483_648..=2_147_483_647`, `u64` is `Int in 0..=18_446_744_073_709_551_615`. A range of those bounds is that integer, named or not: `Octet :: Int in 0..=255` is a `u8`, shown under its name, and goes where a `u8` goes and back. Its arithmetic is the integer's, closed and checked (§Integer overflow) rather than computed over the integers: `o + 55` with `o: Octet` is an `Octet`, where `l + 1` with `l: Int in 0..=254` is a `1..=255`. A comparison does not narrow it (*Narrowing*), `x in Octet` narrows as `x in u8` does (*Bounds*), and `Octet(x)` converts as `u8(x)` does (§Casts), with no check that stops the program. An integer type written alone (`Meters :: i64`) is a distinct type (§Distinct types), a transparent alias under `@comptime`.
 
 **Representation.** A value of a range is held in the narrowest of `u8`, `u16`, `u32`, `u64` that holds it when it has no negative value, of `i8`, `i16`, `i32`, `i64` otherwise: `Hour` is one byte, `Offset` an `i8`. `@size_of`, the layout of a field and an array's element all follow. A range narrowed out of an integer type stays held in it where it holds the range (*Bounds*): an `n: i64` past `n in Hour` is still an eight-byte value, converted only when it goes into an `Hour` slot. A type built from it holds the range as a declared one: the elements of `[n, n]` are bytes, and `first([n, n])` calls the instance every `Hour` shares.
 
@@ -738,7 +734,7 @@ A range is its integer to every impl: `"${h}"` prints the number, and its `Displ
 
 **In a generic function.** A generic function used at a range (`T` bound to `Hour`, written or handed on by an enclosing instance) has an instance of its own, apart from the one at the integer. There, what a call or an operator gives back as a `T` is checked against the range as `Hour(x)` checks it, and the program **stops** outside: `bump :: fn<T: Add>(a: T, b: T) -> T = a + b` at two `Hour` 20 and 10 stops rather than return a 30, and so do `T.zero()` at a `1..=12` and `sum` over `Hour` values past 23. A range inside an argument (`Hour[]` for `T[]` is `T` at `Hour`, but `Box<Hour>` for `T` is `Box<u8>`) is read as its integer; a member returning `Self` inside another type (`Self | null`) is not checked.
 
-**Generic over integers.** `fn<T: Int>` takes any integer type within `i64`, a range or a primitive; `u64`, `usize` and a non-integer are **T3006**. `Int` may stand beside traits (`T: Int & Display`). In the body, `T` is an integer type whose bounds only its instances know: `@min(T)` and `@max(T)` are values of `T` folded per instance, `x in T` tests an integer against them and narrows it to `T` where it holds, and `T(x)` converts an integer, the program **stopping** outside as for `Hour(x)` (a non-integer, a value of a type parameter that is no `Int` included, is **T3010**). A value of `T` is computed on as an `i64`: `a + b`, `-a` and `a < 5` take the values as `i64`, and a `T` goes where an `i64` goes (`i64`, `i64 | null`), as it is, and into no narrower slot. Getting a `T` back from a computation takes `x in T` or `T(x)`:
+**Generic over integers.** `fn<T: Int>` takes any integer type within `i64`, a range or a primitive; `u64` and a non-integer are **T3006**. `Int` may stand beside traits (`T: Int & Display`). In the body, `T` is an integer type whose bounds only its instances know: `@min(T)` and `@max(T)` are values of `T` folded per instance, `x in T` tests an integer against them and narrows it to `T` where it holds, and `T(x)` converts an integer, the program **stopping** outside as for `Hour(x)` (a non-integer, a value of a type parameter that is no `Int` included, is **T3010**). A value of `T` is computed on as an `i64`: `a + b`, `-a` and `a < 5` take the values as `i64`, and a `T` goes where an `i64` goes (`i64`, `i64 | null`), as it is, and into no narrower slot. Getting a `T` back from a computation takes `x in T` or `T(x)`:
 
 ```
 clamp_to :: fn<T: Int>(n: i64) -> T {
@@ -1279,7 +1275,7 @@ Direction :: enum(i32) {
 }
 ```
 
-Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, plus the word-width `isize` / `usize` (range-checked as `i64` / `u64`). An inferred width is not an ABI promise — adding a 257th variant widens a `u8` enum to `u16` — so an enum whose layout matters outside the program (a wire protocol, a file format) pins its width.
+Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`. An inferred width is not an ABI promise — adding a 257th variant widens a `u8` enum to `u16` — so an enum whose layout matters outside the program (a wire protocol, a file format) pins its width.
 
 ##### Variant indices
 
@@ -1395,7 +1391,7 @@ match value {
 - `is Type` for type narrowing. On an instance of a generic struct the test tells the instances apart when every type argument is a primitive (`is Spec<bool>` never matches a `Spec<string>`). **A type argument that erases is `T3087`** — a reference type, or a type parameter, which a reference may bind: `Box<Foo>` and `Box<Bar>` share one body (*Instance flavor* above), whose values carry the shared tag, so no test can tell them apart. Test the field that holds the type argument instead (`x.value is Foo`). A generic fn may test one of its own type parameters (`x is U`, `match x { is U -> … }`): the test reads what the call binds `U` to, through generic callers too. Inside an impl member it is `T3087`.
 - **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The arm matches when `scrutinee == literal` holds, with the literal typed as that right operand: a free literal takes the type of the variant it fills (`5` against `i64 | string` is an `i64`), a union compares by variant and a float by IEEE (`0.0` matches `-0.0`). The literal is typed against what the arms above leave of the scrutinee: after `is Point ->`, `"a"` against `Point | string | null` compares with `string | null`, so `Point` needs no `Equals` — placed before that arm, the same literal is T3043, as `==` on the whole union would be. A literal whose variant an arm above consumed (`"a"` after `is string ->`) can no longer match: `W0014`. A literal no value of the scrutinee can equal is T3001. A literal in a struct pattern (`is Holder { v: 5 }`) follows the same rule against its field.
 - **Range patterns**: `'a'..='z' -> …` / `0..<10 -> …` match a scalar scrutinee (char / integer) that falls in the range. `..=` includes the upper bound, `..<` excludes it (matching the range-expression operators). The bounds are scalar literals of the scrutinee's type, a free literal taking it: `5_000_000_000..=6_000_000_000` over an `i64` is two `i64`, and `-1..=3` over a `u8` is T3066. Over a distinct they take its backing, as `<` does. Over a union they take its integer or `char` variant, and the arm tests that variant first: after `is null ->`, `0..=9` matches an `i32 | null` holding 0 to 9; once the arms above took that variant, the range is W0014, as a literal is. A scrutinee with no integer or `char` to order is T3001. The lowerer emits `scrutinee >= lower && scrutinee <(=) upper`. Range patterns bind nothing; over an integer type they and literal patterns cover its values (next item).
-- **Exhaustive over an integer type**: a `match` over a range, an integer primitive or `char` (a distinct over one included) needs no `_` once its unguarded literal and range arms cover every value: `match h { 0..=11 -> …; 12..=23 -> … }` on an `Hour`, `0..<128` and `128..=255` on a `u8`, every Unicode scalar value on a `char` (the surrogates are none). A value no arm takes is `T3013`, which names the first one missing (`value `12` of Hour is not covered`). `u64` and `usize` reach past `i64`, which no literal does: they keep needing `_`. An arm whose values earlier arms all took, and a `_` after arms covering the type, are `W0014`.
+- **Exhaustive over an integer type**: a `match` over a range, an integer primitive or `char` (a distinct over one included) needs no `_` once its unguarded literal and range arms cover every value: `match h { 0..=11 -> …; 12..=23 -> … }` on an `Hour`, `0..<128` and `128..=255` on a `u8`, every Unicode scalar value on a `char` (the surrogates are none). A value no arm takes is `T3013`, which names the first one missing (`value `12` of Hour is not covered`). `u64` reaches past `i64`, which no literal does: it keeps needing `_`. An arm whose values earlier arms all took, and a `_` after arms covering the type, are `W0014`.
 - **A literal or range arm narrows** an integer scrutinee (a name, a field chain or the header alias) to its values in the arm, as `if h in 1..=11` would: past `1..=11 ->` an `Hour` is a `1..=11`, and an `i64` matched against `0..=11` is a `0..=11` there. An or-pattern narrows to the range holding its alternatives, and the wildcard to the values left when they are one interval (`_` after `0..=11` on an `Hour` sees `12..=23`). A `char` and a distinct are not narrowed to a range.
 - **Or-patterns**: pipe-separated alternatives in one arm — `.North | .South -> …` (enum variants), `1 | 2 | 3 -> …` (literals). The arm matches when *any* alternative does (lowered to `p1 || p2 || …`); each alternative is checked against the scrutinee, and every enum variant listed counts toward exhaustiveness. Alternatives are value-level and bind nothing: a struct pattern in one may constrain a field (`is A { x: 1 } | is B { x: 2 }`) but not bind it (`P1037`), since the arm could not say which alternative bound it. **Type tests don't need an or-pattern**: `is A | B -> …` is already a single `is` over the union type `A | B` (no parentheses required) — it narrows to `A | B` and covers both for exhaustiveness.
 - **Struct patterns**: `is Point { x, y }` binds fields by name, `is Point { x: 0, y }` also constrains one to a literal. Each name must be a field of the struct (`T3009`), a literal takes that field's type (`T3001`), and braces after a type that is not a struct are `T3001`. The field tests run after the type test, on the narrowed value — on a union, a field is only read once the variant carrying it is confirmed. **A constrained arm contributes nothing to exhaustiveness**, exactly as a guarded one: `is Point { x: 0 }` matches only some points, so an unconstrained arm (or `_`) must still cover `Point`.
@@ -1563,7 +1559,7 @@ Matching an argument against a signature that nothing has instantiated yet is a 
 **Limitations (MVP)**:
 - **No inherent "associated functions"** — a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. Factory functions outside a trait are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Equals` and `Hash` are carried by **every** primitive (`@intrinsic <prim> implements Equals` + `<prim> implements Hash` in `std/core`, covering `i8`…`usize`, `f32`/`f64`, `bool`, `char`, `string`), so `x.hash()` / `x.equals(y)` and `MutableMap` / `MutableSet` keying work for any primitive without a per-type opt-in.
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Equals` and `Hash` are carried by **every** primitive (`@intrinsic <prim> implements Equals` + `<prim> implements Hash` in `std/core`, covering `i8`…`u64`, `f32`/`f64`, `bool`, `char`, `string`), so `x.hash()` / `x.equals(y)` and `MutableMap` / `MutableSet` keying work for any primitive without a per-type opt-in.
 
 ### Traits
 
@@ -1870,7 +1866,7 @@ Resolution rule for **equality** (`==` / `!=`):
 2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). An array has none (*Equality* below), and the detail points at `content_equals`, `is_permutation_of` and `===`. When a generic impl would apply but for a bound (`Box<T> implements<T: Equals> Equals` on a `Box<Raw>`), the detail names the type argument that lacks it. `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
 3. `==` on a type-parameter operand needs a bound naming `Equals`, as `a + b` needs `Add` — `fn<T: Equals>(a: T, b: T) = a == b`. Without it, **T3043**, also when the parameter is a variant of a union (`T | null == T`). Only `x == null` needs no bound. `x in xs` follows: `T[]` implements `Contains<T>` only for `T: Equals`.
 4. A union operand compares by variant: both sides hold the same variant, and those two values are equal by that variant's own `==`. Every variant but `null` must compare, else **T3043** naming it. A union compares with another union or with one of its members; two sides that share no variant are **T3001**. A variant with no tag of its own to test — a type parameter, or an instance of a generic struct whose body other instances share — may sit only beside `null` (**T3087**). An enum boxes as its integer and a distinct as its backing, so `Color | u8` or `Meters | i64` cannot tell those two variants apart.
-5. Mismatched types are an error. Two numerics of different family, or two integer types neither of which holds the other (§Implicit numeric coercion), are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `isize`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` or `"" == path` with `Path :: string`), through the type's `Equals` impl when it has one, whichever side it is on; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
+5. Mismatched types are an error. Two numerics of different family, or two integer types neither of which holds the other (§Implicit numeric coercion), are T3017. Any other pair of scalars compares by **representation** — a distinct type stands for its backing, through any number of layers — and two different representations are **T3001**: `h == INVALID_HANDLE` with `h: Handle` (`Handle :: CPointer`) against an `i64`, `b == c` with `b: u8` and a `char` variable, `name == 3`. A distinct type against its own backing compares (`path == ""` or `"" == path` with `Path :: string`), through the type's `Equals` impl when it has one, whichever side it is on; two distinct types that are not one another's backing do not (`Meters == Seconds`, both `i64`: T3001). Free literals adopt the other operand's type first, so `b == '/'` and `x == 0` compare.
 
 Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics and `char` use the built-in comparison ops — a float by IEEE 754 (every comparison with `nan` is false). A distinct type orders as its backing (§Distinct types). `string` orders through its `Comparable` impl, by bytes — codepoint order in UTF-8, a proper prefix first.
@@ -2381,7 +2377,7 @@ The iteration form `for x in expr` accepts four shapes for `expr`:
    - **Concrete iter** (`Range<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
    - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
-4. A type: a range, an integer type within `i64` or a type parameter bounded by `Int` binds `x` to each of its values, the least first (`for h in Hour`, `for b in u8`, 256 turns, `255` included); an enum without variant data, to each variant in declaration order (`for d in Weekday`). `u64`, `usize`, `char`, an enum with variant data and any other type are **T3088**. A range of `char` (`for c in 'a'..='z'`) steps over the surrogates, which no `char` holds.
+4. A type: a range, an integer type within `i64` or a type parameter bounded by `Int` binds `x` to each of its values, the least first (`for h in Hour`, `for b in u8`, 256 turns, `255` included); an enum without variant data, to each variant in declaration order (`for d in Weekday`). `u64`, `char`, an enum with variant data and any other type are **T3088**. A range of `char` (`for c in 'a'..='z'`) steps over the surrogates, which no `char` holds.
 
 Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` — the loop advances the iterator it is handed — so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 
@@ -2885,6 +2881,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@comptime` | fn / value | Forces compile-time evaluation |
 | `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — `@c_out` says whether C writes through it. `T3079` anywhere else. See §13 |
 | `@c_out` | a parameter of an `@extern` fn | C writes through the parameter — an array, or a `@c_struct` crossing with `@c_pointer`. No argument. `T3079` anywhere else, or on a type C cannot write into. See §13 |
+| `@c_type("size_t")` | a parameter of an `@extern` fn, or the fn itself for its result | The C type the callee declares for an integer, where it is not the Vader type's own spelling. One plain string. Must be an integer type as wide as the Vader one. `T3079` on a parameter, `T3050` on a declaration otherwise. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
@@ -2932,7 +2929,7 @@ The v1 `@load` is **replaced by `import`**.
 
 ```vader
 @extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
-@extern("strlen") c_strlen :: fn(s: string) -> usize            // C symbol: strlen
+@extern("puts") c_puts :: fn(s: string) -> i32                  // C symbol: puts
 @extern("env", "console_log") log :: fn(p: i32, n: i32) -> void // C symbol: console_log
 ```
 
@@ -3017,6 +3014,31 @@ writes the generated C: the build hands that directory to `cc` as `-iquote`. So
 `@c_header("\"my_header.h\"")` finds a header sitting next to the entry, and
 `"\"include/my.h\""` one below it; a header installed in a system location takes
 angle brackets.
+
+### `@c_type` — the C spelling of an integer
+
+A synthesised prototype spells each number by its Vader type: `u64` is
+`uint64_t`. Where the C function declares another name for the same width
+(`size_t`, `ssize_t`, `off_t`, `DWORD`), that prototype conflicts with the
+header the C compiler sees, and `@c_type` names the C type instead:
+
+```vader
+@c_type("size_t")
+@extern("strnlen")
+c_strnlen :: fn(s: string, @c_type("size_t") max: u64) -> u64
+```
+
+On a parameter it spells that parameter; on the declaration, the result. Its
+argument is one plain string, and it applies to an integer only, a distinct type
+over one included (`T3079` on a parameter, `T3050` on the declaration, as
+anywhere outside an `@extern`). The shim casts at the call, `(size_t) max` going
+in and the result back to the Vader type coming out, but the value keeps its
+width: the C type must be an **integer as wide** as the Vader one, since the
+interpreter hands the callee the Vader width in an integer register. A native
+build asserts it once per spelling and Vader type
+(`_Static_assert(sizeof(size_t) == sizeof(uint64_t) && (size_t) 0.5 == 0)`).
+With `@c_header`, the header owns the prototype and `@c_type` only adds the
+casts.
 
 ### `@c_struct` — mirroring a C struct
 
@@ -3141,7 +3163,7 @@ name, mirror it.
 The C ABI marshals these scalars (`void` as a return only, `null` never):
 
 ```
-i8 i16 i32 i64    u8 u16 u32 u64    isize usize
+i8 i16 i32 i64    u8 u16 u32 u64
 f32 f64    bool   char    void    string
 ```
 
@@ -3167,7 +3189,7 @@ Plus, on top of the scalars:
 | a **distinct type** | both | zero-cost, so its ABI is its backing's — `Handle :: CPointer` is the idiom for a foreign handle |
 | a **nullable foreign pointer** (`CPointer \| null`) | both | one of the two union shapes with an ABI; C has no other nullable scalar |
 | a **nullable string** (`string \| null`) | RESULT only | how a callee says "absent" rather than "empty"; the atom is borrowed, as above |
-| **`i64(p)` / `u64(p)` (or `isize(p)` / `usize(p)`) on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as an integer that holds an address on every target, one of 64 bits or of the pointer's width, is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
+| **`i64(p)` / `u64(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a 64-bit integer, which holds an address on every target, is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `@c_out` decides `void*` vs `const void*`, and what C writes reads back |
 | a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; both backends, with the offset caveat noted there |
 | an **enum with a written width** | ARGUMENT only | crosses as the integer its variant stores, at that width (`enum(i32)` → `int32_t`), and one with variant data as its written value (§ Variant data). An inferred width moves when a variant is added, so it is `T3050`. A RESULT would let C hand back an integer no variant holds, so it is rejected too. A `@c_struct` field of enum type needs a written width as well, and cannot be an enum with variant data |
@@ -3345,7 +3367,7 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> i64` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@size_of(T)` | `(T: type) -> i64` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`u64`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
 | `@align_of(T)` | `(T: type) -> i64` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
@@ -3899,7 +3921,7 @@ compiler runs on. The two axes do **not** play the same role, and the asymmetry 
 the design rather than an accident:
 
 - **`os` selects code.** It is the only axis `@target` filters on.
-- **`arch` selects nothing.** It parameterises values — pointer width, `usize` —
+- **`arch` selects nothing.** It parameterises values — pointer width —
   and never includes or excludes a declaration. Hence no `@architecture`: its
   absence is a consequence, not a gap.
 

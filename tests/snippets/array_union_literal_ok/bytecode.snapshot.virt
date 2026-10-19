@@ -8,11 +8,10 @@ type 5 primitive u8
 type 6 primitive i64
 type 7 struct std_core$Buffer {  }
 type 8 array 5
-type 9 primitive usize
-type 10 primitive void
-type 11 array 12
-type 12 union 4,3
-type 13 array 3
+type 9 primitive void
+type 10 array 11
+type 11 union 4,3
+type 12 array 3
 string 0 "hi"
 string 1 "str "
 string 2 "int "
@@ -49,11 +48,11 @@ fn 1 snippet$main () -> i32
   retag 4   ; i32
   i32.const 3
   retag 4   ; i32
-  array.new 11 3   ; union[]
+  array.new 10 3   ; union[]
   local.tee 0   ; xs
   string.const 0   ; "hi"
   retag 3   ; string
-  array.push 12   ; union
+  array.push 11   ; union
   local.get 0   ; xs
   array.len
   local.set 1   ; __for_len_1
@@ -66,7 +65,7 @@ fn 1 snippet$main () -> i32
     if $L1 void
       local.get 0   ; xs
       local.get 2   ; __for_i_2
-      array.get 11   ; union[]
+      array.get 10   ; union[]
       local.tee 3   ; x
       type_check 3   ; string
       if $L2 void
@@ -76,7 +75,7 @@ fn 1 snippet$main () -> i32
         string.const 1   ; "str "
         local.get 4   ; s
         call 2   ; concat_2
-        call 9   ; std_io$println__string
+        call 8   ; std_io$println__string
       else
         local.get 3   ; x
         type_check 4   ; i32
@@ -85,14 +84,14 @@ fn 1 snippet$main () -> i32
           ref.cast 4   ; i32
           local.set 5   ; n
           i64.const 24
-          call 3   ; std_core$new_byte_buffer
+          buffer.new
           local.set 6   ; __buf_3
           i64.const 0
           local.set 7   ; __off_4
           local.get 6   ; __buf_3
           local.get 7   ; __off_4
           string.const 2   ; "int "
-          call 5   ; std_core$write_string_at
+          call 4   ; std_core$write_string_at
           local.set 7   ; __off_4
           local.get 5   ; n
           i32.to_i64
@@ -100,12 +99,12 @@ fn 1 snippet$main () -> i32
           local.get 6   ; __buf_3
           local.get 7   ; __off_4
           local.get 8   ; $cast_29
-          call 6   ; std_core$write_int
+          call 5   ; std_core$write_int
           local.set 7   ; __off_4
           local.get 6   ; __buf_3
           local.get 7   ; __off_4
-          call 4   ; std_core$finish_buffer
-          call 9   ; std_io$println__string
+          call 3   ; std_core$finish_buffer
+          call 8   ; std_io$println__string
         end $L3
       end $L2
       local.get 2   ; __for_i_2
@@ -117,7 +116,7 @@ fn 1 snippet$main () -> i32
   end $L0
   string.const 3   ; "ten"
   string.const 4   ; "twenty"
-  array.new 13 2   ; string[]
+  array.new 12 2   ; string[]
   local.tee 0   ; xs
   call 0   ; snippet$first_name
   type_check 3   ; string
@@ -129,7 +128,7 @@ fn 1 snippet$main () -> i32
     string.const 5   ; "view0 "
     local.get 4   ; s
     call 2   ; concat_2
-    call 9   ; std_io$println__string
+    call 8   ; std_io$println__string
     return.lit i32.const 0
   end $L4
   return.lit i32.const 0
@@ -149,7 +148,6 @@ fn 2 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -165,21 +163,14 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 4 std_core$finish_buffer (ref,i64) -> string
+fn 3 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$write_string_at (ref,i64,string) -> i64
+fn 4 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -194,7 +185,7 @@ fn 5 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 6 std_core$write_int (ref,i64,i64) -> i64
+fn 5 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -308,7 +299,7 @@ fn 6 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 7 std_io$write (u8,string) -> void
+fn 6 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -344,7 +335,7 @@ fn 7 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 8   ; std_io$write_bytes
+      call 7   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -364,7 +355,7 @@ fn 7 std_io$write (u8,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (u8,ref,i64) -> i32
+fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -384,7 +375,7 @@ fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 8 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 6   ; "\n"
@@ -392,6 +383,6 @@ fn 9 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 7   ; std_io$write
+  call 6   ; std_io$write
   return
 end

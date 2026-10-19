@@ -29,8 +29,7 @@ main :: fn() -> i32 {
     // 64-bit unsigned — the path the fix leaves untouched (broadening here
     // regressed the compiler's own literal rendering). Must not change.
     umax: u64: 18_446_744_073_709_551_615   // u64 max
-    sz: usize: 9_000_000_000
-    println("u64max: ${umax} usize: ${sz}")
+    println("u64max: ${umax}")
 
     return 0
 }

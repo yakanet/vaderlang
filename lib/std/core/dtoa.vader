@@ -385,7 +385,7 @@ render :: fn(mantissa_in: u64, exp_in: i32, sign: bool) -> string {
         mantissa = mantissa / 10
         exp = exp + 1
     }
-    buf :: usize(F64_RENDER_MAX).new_buffer()
+    buf :: new_byte_buffer(F64_RENDER_MAX)
     off: i64 = 0
     if sign {
         buf.store_u8(0, '-')

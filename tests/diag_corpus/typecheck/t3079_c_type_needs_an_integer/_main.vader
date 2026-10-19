@@ -1,0 +1,15 @@
+module "snippet"
+
+// `@c_type` names the C type a foreign callee declares for an INTEGER : a `string`
+// already crosses as `const char*`, a float travels in a float register, and its
+// argument is one plain string.
+@extern("puts")
+c_puts :: fn(@c_type("char*") s: string) -> i32
+
+@extern("fabs")
+c_fabs :: fn(@c_type("double") x: f64) -> f64
+
+@extern("abs")
+c_abs :: fn(@c_type n: i32) -> i32
+
+main :: fn() -> i32 = c_abs(c_puts("x")) + i32(c_fabs(1.0))

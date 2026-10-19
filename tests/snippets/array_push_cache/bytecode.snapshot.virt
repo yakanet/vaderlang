@@ -11,12 +11,11 @@ type 8 primitive u8
 type 9 primitive i64
 type 10 struct std_core$Buffer {  }
 type 11 array 8
-type 12 primitive usize
-type 13 primitive void
-type 14 primitive i16
-type 15 array 14
-type 16 array 17
-type 17 primitive f32
+type 12 primitive void
+type 13 primitive i16
+type 14 array 13
+type 15 array 16
+type 16 primitive f32
 string 0 "v"
 string 1 "x"
 string 2 "/"
@@ -143,14 +142,14 @@ fn 2 snippet$mk (i32) -> string
   local __off_1 i64
   local $cast_8 i64
   i64.const 21
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 1   ; __buf_0
   i64.const 0
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   string.const 0   ; "v"
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 2   ; __off_1
   local.get 0   ; arg 0
   i32.to_i64
@@ -158,11 +157,11 @@ fn 2 snippet$mk (i32) -> string
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
   local.get 3   ; $cast_8
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 1   ; __buf_0
   local.get 2   ; __off_1
-  call 32   ; std_core$finish_buffer
+  call 31   ; std_core$finish_buffer
   return
 end
 
@@ -686,7 +685,7 @@ fn 12 snippet$widths (i32) -> string
       br $L1
     end $L2
   end $L1
-  array.new 15 0   ; i16[]
+  array.new 14 0   ; i16[]
   local.set 5   ; $arr_17
   i32.const 0
   local.get 0   ; arg 0
@@ -723,7 +722,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 6   ; $cast_30
       local.get 5   ; $arr_17
       local.get 6   ; $cast_30
-      array.push 14 5   ; i16 $arr_17
+      array.push 13 5   ; i16 $arr_17
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -731,7 +730,7 @@ fn 12 snippet$widths (i32) -> string
       br $L4
     end $L5
   end $L4
-  array.new 16 0   ; f32[]
+  array.new 15 0   ; f32[]
   local.set 7   ; $arr_33
   i32.const 0
   local.get 0   ; arg 0
@@ -766,7 +765,7 @@ fn 12 snippet$widths (i32) -> string
       local.set 10   ; $mul_checked_46
       local.get 7   ; $arr_33
       local.get 10   ; $mul_checked_46
-      array.push 17 7   ; f32 $arr_33
+      array.push 16 7   ; f32 $arr_33
       local.get 3   ; i
       i32.const 1
       i32.add
@@ -818,8 +817,8 @@ fn 12 snippet$widths (i32) -> string
     if $L12 void
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
-      array.get 15   ; i16[]
-      ref.cast 14   ; i16
+      array.get 14   ; i16[]
+      ref.cast 13   ; i16
       i16.to_i32
       local.set 13   ; $cast_73
       local.get 12   ; $cast_59
@@ -848,8 +847,8 @@ fn 12 snippet$widths (i32) -> string
     if $L14 void
       local.get 1   ; $arr_1
       local.get 11   ; __for_i_2
-      array.get 16   ; f32[]
-      ref.cast 17   ; f32
+      array.get 15   ; f32[]
+      ref.cast 16   ; f32
       local.set 9   ; $k_45
       local.get 8   ; $cast_44
       local.get 9   ; $k_45
@@ -863,7 +862,7 @@ fn 12 snippet$widths (i32) -> string
     end $L14
   end $L13
   i64.const 62
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 1   ; $arr_1
   i64.const 0
   local.set 2   ; if_res
@@ -873,12 +872,12 @@ fn 12 snippet$widths (i32) -> string
   local.get 1   ; $arr_1
   local.get 2   ; if_res
   local.get 11   ; __for_i_2
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 2   ; if_res
   local.get 1   ; $arr_1
   local.get 2   ; if_res
   string.const 2   ; "/"
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 2   ; if_res
   local.get 12   ; $cast_59
   i32.to_i64
@@ -886,12 +885,12 @@ fn 12 snippet$widths (i32) -> string
   local.get 1   ; $arr_1
   local.get 2   ; if_res
   local.get 11   ; __for_i_2
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 2   ; if_res
   local.get 1   ; $arr_1
   local.get 2   ; if_res
   string.const 2   ; "/"
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 2   ; if_res
   local.get 8   ; $cast_44
   f32.to_i32
@@ -900,11 +899,11 @@ fn 12 snippet$widths (i32) -> string
   local.get 1   ; $arr_1
   local.get 2   ; if_res
   local.get 11   ; __for_i_2
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 2   ; if_res
   local.get 1   ; $arr_1
   local.get 2   ; if_res
-  call 32   ; std_core$finish_buffer
+  call 31   ; std_core$finish_buffer
   return
 end
 
@@ -1487,14 +1486,14 @@ fn 27 snippet$main () -> i32
   local $cast_10 i64
   local $call_41 string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 5   ; "tight        "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 0   ; snippet$tight
@@ -1504,12 +1503,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 0   ; snippet$tight
@@ -1518,21 +1517,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 7   ; "reserved     "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 1   ; snippet$reserved
@@ -1542,12 +1541,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 1   ; snippet$reserved
@@ -1556,12 +1555,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i32.const 3
   call 3   ; snippet$allocates
   call 26   ; snippet$join
@@ -1569,16 +1568,16 @@ fn 27 snippet$main () -> i32
   string.const 8   ; "allocates    "
   local.get 3   ; $call_41
   call 30   ; concat_2
-  call 37   ; std_io$println__string
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 9   ; "reads_itself "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 5
   call 4   ; snippet$reads_itself
@@ -1588,12 +1587,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 5
   call 4   ; snippet$reads_itself
@@ -1602,21 +1601,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 10   ; "with_break   "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 9
   call 5   ; snippet$with_break
@@ -1626,12 +1625,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 9
   call 5   ; snippet$with_break
@@ -1640,21 +1639,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 11   ; "break_mid    "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -1668,12 +1667,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -1686,21 +1685,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 54
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 12   ; "early_return "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -1712,12 +1711,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 13   ; " "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const -1
@@ -1729,21 +1728,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 14   ; "break_outer  "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 4
   call 8   ; snippet$break_outer
@@ -1752,12 +1751,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i32.const 4
   call 9   ; snippet$boxed
   call 26   ; snippet$join
@@ -1765,16 +1764,16 @@ fn 27 snippet$main () -> i32
   string.const 15   ; "boxed        "
   local.get 3   ; $call_41
   call 30   ; concat_2
-  call 37   ; std_io$println__string
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 16   ; "into_view    "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   call 10   ; snippet$into_view
   call 25   ; snippet$sum
@@ -1783,12 +1782,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   call 10   ; snippet$into_view
   array.len
@@ -1796,21 +1795,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 17   ; "nested       "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 4
   call 11   ; snippet$nested
@@ -1819,28 +1818,28 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i32.const 150
   call 12   ; snippet$widths
   local.set 3   ; $call_41
   string.const 18   ; "widths       "
   local.get 3   ; $call_41
   call 30   ; concat_2
-  call 37   ; std_io$println__string
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 19   ; "aliased      "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 8
   call 14   ; snippet$aliased
@@ -1849,21 +1848,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 20   ; "len_after    "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 5
   call 18   ; snippet$len_after
@@ -1872,21 +1871,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 21   ; "captured     "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 8
   call 15   ; snippet$captured
@@ -1895,21 +1894,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 22   ; "two_names    "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 8
   call 16   ; snippet$two_names
@@ -1918,21 +1917,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 23   ; "rebound      "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 8
   call 17   ; snippet$rebound
@@ -1941,21 +1940,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 33
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 24   ; "one_shot     "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -1967,21 +1966,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 25   ; "collected    "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 22   ; snippet$collected
@@ -1991,12 +1990,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   call 22   ; snippet$collected
@@ -2005,21 +2004,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 26   ; "filtered     "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -2033,12 +2032,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -2051,21 +2050,21 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   i64.const 56
-  call 31   ; std_core$new_byte_buffer
+  buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 27   ; "taken        "
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -2080,12 +2079,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   string.const 6   ; " n="
-  call 33   ; std_core$write_string_at
+  call 32   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 1
   i32.const 2
@@ -2099,12 +2098,12 @@ fn 27 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   local.get 2   ; $cast_10
-  call 34   ; std_core$write_int
+  call 33   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 32   ; std_core$finish_buffer
-  call 37   ; std_io$println__string
+  call 31   ; std_core$finish_buffer
+  call 36   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -2137,7 +2136,6 @@ fn 29 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
-  i64.to_i64
   buffer.new
   local.tee 6   ; buf
   i64.const 0
@@ -2171,7 +2169,6 @@ fn 30 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
-  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -2187,21 +2184,14 @@ fn 30 concat_2 (string,string) -> string
   return
 end
 
-fn 31 std_core$new_byte_buffer (i64) -> ref
-  local.get 0   ; arg 0
-  i64.to_i64
-  buffer.new
-  return
-end
-
-fn 32 std_core$finish_buffer (ref,i64) -> string
+fn 31 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 33 std_core$write_string_at (ref,i64,string) -> i64
+fn 32 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -2216,7 +2206,7 @@ fn 33 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 34 std_core$write_int (ref,i64,i64) -> i64
+fn 33 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -2330,7 +2320,7 @@ fn 34 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 35 std_io$write (u8,string) -> void
+fn 34 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -2366,7 +2356,7 @@ fn 35 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 36   ; std_io$write_bytes
+      call 35   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -2386,7 +2376,7 @@ fn 35 std_io$write (u8,string) -> void
   return
 end
 
-fn 36 std_io$write_bytes (u8,ref,i64) -> i32
+fn 35 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -2406,7 +2396,7 @@ fn 36 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 37 std_io$println__string (string) -> void
+fn 36 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 28   ; "\n"
@@ -2414,6 +2404,6 @@ fn 37 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 35   ; std_io$write
+  call 34   ; std_io$write
   return
 end
