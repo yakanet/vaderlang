@@ -1,0 +1,16 @@
+module "snippet/clock"
+
+import "std/abort"
+
+/// An hour of the day.
+export Hour :: Int in 0..=23
+
+/// Stop the program unless `h` is an hour : past a call, `h` is one.
+///
+/// @param h  the hour read.
+@ensures(h in Hour)
+export require_hour :: fn(h: i64) -> void {
+    if h !in Hour {
+        panic("not an hour: ${h}")
+    }
+}

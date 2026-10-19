@@ -1,0 +1,39 @@
+// `@ensures(cond)` states what holds once the fn has returned : each return and the
+// end of the body are held to it, with the narrowings in force there. Returning
+// before the test, and ending without one, break it ; a branch that diverges does
+// not.
+module "snippet"
+
+import "std/abort"
+
+export Hour :: Int in 0..=23
+
+@ensures(n in Hour)
+export early :: fn(n: i64) -> i64 {
+    if n > 100 {
+        return 0
+    }
+    if n !in Hour {
+        panic("not an hour")
+    }
+    return n
+}
+
+@ensures(n in Hour)
+export untested :: fn(n: i64) -> void {
+    m :: n + 1
+}
+
+@ensures(n in Hour)
+export half :: fn(n: i64) -> i64 = if n in Hour { n } else { n + 1 }
+
+@ensures(n in Hour)
+export held :: fn(n: i64) -> void {
+    if n !in Hour {
+        panic("not an hour")
+    }
+}
+
+export main :: fn() -> i32 {
+    return 0
+}

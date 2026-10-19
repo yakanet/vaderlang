@@ -1,6 +1,8 @@
 // `@returns` states, over its parameters, the `bool` a non-generic fn returns : a
 // condition proving nothing of them states no contract, and nor does one that only
-// reaches its own guard.
+// reaches its own guard. `@ensures` too states a condition over the parameters of a
+// non-generic fn, one whose body has run once a call returns : not a generator. No
+// contract holds a fn with no body.
 module "snippet"
 
 export Weekday :: Int in 0..=6
@@ -17,6 +19,21 @@ export says_nothing :: fn(d: Weekday) -> bool = true
 
 @returns(goes_round(d))
 export goes_round :: fn(d: Weekday) -> bool = d >= 5
+
+@ensures(x in Weekend)
+export generic_check :: fn<T>(x: i64, y: T) -> void {}
+
+@ensures(true)
+export ensures_nothing :: fn(d: Weekday) -> void {}
+
+@ensures(d in Weekend)
+export weekend_days :: fn(d: Weekday) -> Iterator<Weekday> {
+    yield d
+}
+
+@ensures(d in Weekend)
+@extern
+export check_day :: fn(d: i64) -> void
 
 export main :: fn() -> i32 {
     return 0

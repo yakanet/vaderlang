@@ -458,8 +458,8 @@ export TypedProgram :: struct {
     /// and what each proves (`guard.vader`). A call in a condition narrows its
     /// argument the same way.
     guards: GuardState = GuardState {}
-    /// The `@returns` contracts of the project : one table shared by every module
-    /// (`share_guards`).
+    /// The `@returns` and `@ensures` contracts of the project : tables shared by
+    /// every module (`share_guards`).
     shared_guards: SharedGuards = SharedGuards {}
 
     /// Imported fn overloads, indexed by SOURCE FILE and then by simple name.

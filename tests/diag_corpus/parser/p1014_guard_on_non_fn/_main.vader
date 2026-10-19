@@ -1,8 +1,14 @@
-// `@returns` states what a free function returns ; on a struct it would do nothing.
+// `@returns` states what a free function returns, `@ensures` what holds once it has
+// returned ; on a struct either would do nothing.
 module "snippet"
 
 @returns(x > 0)
 export Bag :: struct {
+    x: i32
+}
+
+@ensures(x > 0)
+export Sack :: struct {
     x: i32
 }
 

@@ -59,6 +59,9 @@ export FnContext :: struct {
     /// each value it returns is held to it. A lambda in it has its own context,
     /// and no contract.
     guard: GuardContract | null = null
+    /// The contract of the `@ensures` fn whose body this is (`hold_to_ensures`) :
+    /// each return and the end of the body are held to it.
+    ensures: GuardContract | null = null
 }
 
 new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {

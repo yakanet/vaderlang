@@ -1,0 +1,35 @@
+// Opening hours read as integers, each checked by a function declaring
+// `@ensures(h in Hour)` : past a call written as a statement, or bound by a `let`,
+// the argument is an `Hour` for the rest of the block, with no conversion. The
+// contract of `require_hour` is read in the module declaring it.
+module "snippet"
+
+import "snippet/clock"
+import "std/abort"
+import "std/io"
+
+// The number of hours a shop opens from `open` to `close`, the latter excluded.
+@ensures(close in Hour)
+span_until :: fn(open: Hour, close: i64) -> i64 {
+    if close !in Hour {
+        panic("not an hour: ${close}")
+    }
+    return close - open
+}
+
+label :: fn(h: Hour) -> string = "${h}h"
+
+main :: fn() -> i32 {
+    readings: i64[]: [8, 12, 14, 19]
+    open :: readings[0]
+    require_hour(open)
+    lunch :: readings[1]
+    lunch.require_hour()
+    afternoon :: readings[2]
+    require_hour(afternoon)
+    close :: readings[3]
+    hours :: span_until(open, close)
+    println("${label(open)} to ${label(lunch)}, ${label(afternoon)} to ${label(close)}")
+    println("open ${hours} hours")
+    return 0
+}

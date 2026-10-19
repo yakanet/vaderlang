@@ -14,16 +14,23 @@
 // `cond` alone, so it is read on demand in the module declaring it, whatever has
 // been walked. The body is held to it at each value it returns, both sides
 // (T3111), and may not write a parameter (T3113).
+//
+// `@ensures(cond)` states what holds once the fn has returned : a call written as
+// a statement, or as the value of a `let`, narrows its arguments as `cond` narrows
+// the parameters where it is true, for the rest of the block. The contract is read
+// the same way ; the body is held to it at each return and at its end (T3114),
+// under the same rules of shape (T3112) and of writing (T3113).
 
 module "vader/typecheck"
 
 import "std/collections"
+import "toolchain/span"
 import "vader/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// The inferred guards of a module, and the contract being held while a `@returns`
-/// fn's body is checked.
+/// The inferred guards of a module, and the contract being held while the body of a
+/// fn declaring one is checked.
 export GuardState :: struct {
     /// The module's top-level fns that may be inferred guards
     /// (`is_guard_candidate`), by node id.
@@ -31,24 +38,33 @@ export GuardState :: struct {
     /// What each checked candidate proves, by node id ; nothing while its body is
     /// being checked.
     facts: MutableMap<usize, GuardFact[]> = MutableMap<usize, GuardFact[]> {}
-    /// The contract of the `@returns` fn whose body is being checked : a write to one
-    /// of its parameters, from a lambda in it too, is refused.
+    /// A contract of the fn whose body is being checked, `@returns` or `@ensures` :
+    /// a write to one of its parameters, from a lambda in it too, is refused.
     verifying: GuardContract | null = null
 }
 
-/// The `@returns` contracts of the project : one table every module shares.
+/// The declared contracts of the project, `@returns` and `@ensures` : tables every
+/// module shares.
 export SharedGuards :: struct {
-    /// The module declaring each `@returns` fn, by node id.
+    /// The module declaring each fn with a contract, by node id.
     owners: MutableMap<usize, TypedProgram> = MutableMap<usize, TypedProgram> {}
+    /// What each `@returns` states.
+    returns: ContractTable = ContractTable {}
+    /// What each `@ensures` states.
+    ensures: ContractTable = ContractTable {}
+}
+
+/// The contracts of one decorator, read on demand.
+export ContractTable :: struct {
     /// Each contract read so far, by node id.
     contracts: MutableMap<usize, GuardContract> = MutableMap<usize, GuardContract> {}
-    /// The contracts being read : a condition that reaches its own guard reads
-    /// nothing of it.
+    /// The contracts being read : a condition that reaches its own fn reads nothing
+    /// of it.
     reading: MutableSet<usize> = MutableSet<usize> {}
 }
 
-/// What a `@returns` fn promises : the facts its condition proves, over its
-/// parameters.
+/// What a fn declaring `@returns` or `@ensures` promises : the facts its condition
+/// proves, over its parameters.
 export GuardContract :: struct {
     decl: AST.FnDecl
     facts: GuardFact[]
@@ -61,9 +77,10 @@ export GuardFact :: struct {
     index: usize
     /// The parameter's declared type.
     declared: Type
-    /// What it holds where the guard returns true.
+    /// What it holds where the condition is true : the guard returns true, or the
+    /// `@ensures` fn has returned.
     then_ty: Type
-    /// What it holds where the guard returns false.
+    /// What it holds where the condition is false.
     else_ty: Type
 }
 
@@ -97,14 +114,44 @@ is_guard_candidate :: fn(fd: AST.FnDecl, typed: TypedProgram) -> bool {
 }
 
 // What keeps `fd` from being a predicate a guard can be : "" when it returns
-// `bool` or an inferred type and is not generic.
+// `bool` or an inferred type, has a body and is not generic.
 predicate_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
-    if fd.type_params.len() > 0 {
-        return "`${fd.name}` is generic"
+    held :: held_problem(fd)
+    if held != "" {
+        return held
     }
     returned :: lookup_return_type(fd, typed)
     if !is_bool(returned) && returned !is UnresolvedType {
         return "`${fd.name}` returns ${display_type(returned)}"
+    }
+    return ""
+}
+
+// What keeps `fd` from having a contract `@ensures` states : "" when it has a body
+// that has run once a call returns, and is not generic. A generator's body runs as
+// its stream is read, a coroutine's past its first `await`.
+ensures_problem :: fn(fd: AST.FnDecl, typed: TypedProgram) -> string {
+    held :: held_problem(fd)
+    if held != "" {
+        return held
+    }
+    if fn_is_generator(typed, fd) {
+        return "`${fd.name}` is a generator : its body runs after the call has returned"
+    }
+    if fn_is_async(typed, fd) {
+        return "`${fd.name}` awaits : its body runs after the call has returned"
+    }
+    return ""
+}
+
+// What keeps any contract off `fd` : a type parameter, which the contract cannot
+// speak of yet, or no body to hold to it.
+held_problem :: fn(fd: AST.FnDecl) -> string {
+    if fd.type_params.len() > 0 {
+        return "`${fd.name}` is generic"
+    }
+    if fd.body == null {
+        return "`${fd.name}` has no body to hold to it"
     }
     return ""
 }
@@ -154,12 +201,21 @@ guard_facts :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardFact[] | null {
 /// The condition `@returns(cond)` declares on `fd`, if it carries one.
 ///
 /// @param fd  a function declaration.
-guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null {
-    guard :: AST.find_decorator(fd.decorators, "returns") ?? return null
-    if guard.args.len() == 0 {
+guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, "returns")
+
+/// The condition `@ensures(cond)` declares on `fd`, if it carries one.
+///
+/// @param fd  a function declaration.
+ensured_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null = declared_condition(fd, "ensures")
+
+// The condition the decorator `name` declares on `fd` ; none where it does not
+// state exactly one (P1032).
+declared_condition :: fn(fd: AST.FnDecl, name: string) -> AST.Expr | null {
+    decorator :: AST.find_decorator(fd.decorators, name) ?? return null
+    if decorator.args.len() != 1 {
         return null
     }
-    return guard.args[0]
+    return decorator.args[0]
 }
 
 /// The contract the `@returns` fn `decl` declares : read once, in the module
@@ -168,23 +224,54 @@ guard_condition :: fn(fd: AST.FnDecl) -> AST.Expr | null {
 /// @return  null for no `@returns` fn, a misshapen one, and while the contract is
 ///          being read.
 contract_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null {
-    shared :: typed.shared_guards
-    known :: shared.contracts[decl.id]
+    table :: typed.shared_guards.returns
+    known :: table.contracts[decl.id]
     if known != null {
         return known
     }
-    owner :: shared.owners[decl.id] ?? return null
     cond :: guard_condition(decl) ?? return null
-    if decl.id in shared.reading || predicate_problem(decl, owner) != "" {
+    owner :: typed.shared_guards.owners[decl.id] ?? return null
+    if predicate_problem(decl, owner) != "" {
         return null
     }
-    _ :: shared.reading.add(decl.id)
+    return read_once(decl, cond, owner, table)
+}
+
+/// The contract the `@ensures` fn `decl` declares, read as `contract_of` reads one.
+///
+/// @return  null for no `@ensures` fn, a misshapen one, and while the contract is
+///          being read.
+ensures_of :: fn(decl: AST.FnDecl, typed: TypedProgram) -> GuardContract | null {
+    table :: typed.shared_guards.ensures
+    known :: table.contracts[decl.id]
+    if known != null {
+        return known
+    }
+    cond :: ensured_condition(decl) ?? return null
+    owner :: typed.shared_guards.owners[decl.id] ?? return null
+    if ensures_problem(decl, owner) != "" {
+        return null
+    }
+    return read_once(decl, cond, owner, table)
+}
+
+// The contract `cond` states for `decl`, read in `owner` and kept in `table`.
+read_once :: fn(
+    decl: AST.FnDecl,
+    cond: AST.Expr,
+    owner: TypedProgram,
+    table: ContractTable,
+) -> GuardContract | null {
+    if decl.id in table.reading {
+        return null
+    }
+    _ :: table.reading.add(decl.id)
     position :: set_walk_aside(owner)
     contract :: read_contract(decl, cond, owner)
     resume_walk(owner, position)
-    _ :: shared.reading.remove(decl.id)
+    _ :: table.reading.remove(decl.id)
     if contract != null {
-        shared.contracts[decl.id] = contract
+        table.contracts[decl.id] = contract
     }
     return contract
 }
@@ -206,22 +293,141 @@ read_contract :: fn(decl: AST.FnDecl, cond: AST.Expr, owner: TypedProgram) -> Gu
 ///
 /// @param ctx  the context of `fd`'s body.
 /// @error      T3112 when `@returns` is misshapen or proves nothing.
-hold_to_contract :: fn(fd: AST.FnDecl, ctx: FnContext, typed: TypedProgram, diags: Diagnostic[]) -> void {
+hold_to_contract :: fn(
+    fd: AST.FnDecl,
+    ctx: FnContext,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
     cond :: guard_condition(fd) ?? return
     problem :: predicate_problem(fd, typed)
+    ctx.guard = admitted(fd, cond, problem, typed, diags, () -> contract_of(fd, typed))
+}
+
+/// Start checking the body of the `@ensures` fn `fd` : report what its contract
+/// lacks, and hold the body to it, its returns and its end through `ctx` and its
+/// writes through the module's guard state.
+///
+/// @param ctx  the context of `fd`'s body.
+/// @error      T3112 when `fd` cannot carry the contract, or it proves nothing.
+hold_to_ensures :: fn(
+    fd: AST.FnDecl,
+    ctx: FnContext,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    cond :: ensured_condition(fd) ?? return
+    problem :: ensures_problem(fd, typed)
+    ctx.ensures = admitted(fd, cond, problem, typed, diags, () -> ensures_of(fd, typed))
+}
+
+// The contract `read` gives `fd`, whose body is checked next : null after a T3112
+// where `problem` keeps the contract off `fd`, or where its condition proves
+// nothing of the parameters. From here on the body may not write them (T3113).
+admitted :: fn(
+    fd: AST.FnDecl,
+    cond: AST.Expr,
+    problem: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    read: fn() -> GuardContract | null,
+) -> GuardContract | null {
     if problem != "" {
         diags.push(typecheck_error(.MisshapenGuard, fd.name_span, problem))
-        return
+        return null
     }
     _ :: check_expr(cond, TY_BOOL, typed, diags)
-    contract :: contract_of(fd, typed) ?? return
+    contract :: read() ?? return null
     if contract.facts.len() == 0 {
         diags.push(typecheck_error(.MisshapenGuard, cond.span,
             "the condition proves nothing of the parameters of `${fd.name}`"))
+        return null
+    }
+    typed.guards.verifying = contract
+    return contract
+}
+
+/// Hold the point an `@ensures` fn returns from to its contract : each parameter,
+/// as the narrowings in force there leave it, must lie within what the condition
+/// proves where it is true.
+///
+/// @param contract  the fn's contract.
+/// @param at        where it returns : a `return`, or the end of its body.
+/// @param how       `returns` or `ends`, as the message says it.
+/// @error           T3114 for each parameter that leaves the contract.
+check_ensured :: fn(
+    contract: GuardContract,
+    at: Span,
+    how: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    params :: contract.params
+    for fact in contract.facts {
+        holds :: narrow_for_binding(typed, params.symbols[fact.index], fact.declared)
+        if !is_assignable(holds, fact.then_ty) {
+            param :: contract.decl.params[fact.index].name
+            diags.push(typecheck_error(.PostconditionDoesNotHold, at,
+                "`${contract.decl.name}` ${how} where `${param}` is ${described(holds)}, "
+                    + "not within ${described(fact.then_ty)}"))
+        }
+    }
+}
+
+/// Hold the value `returned` an `@ensures` fn returns to its contract
+/// (`check_ensured`) : an `if` value branch by branch, a branch that diverges not at
+/// all, and one with no `else` whose branch diverges past it, as a statement is ; a
+/// call to an `@ensures` fn with what it ensures pushed ; a value that never comes,
+/// not at all.
+///
+/// @param contract  the fn's contract.
+/// @param returned  the value, already checked.
+/// @param how       `returns` or `ends`, as the message says it.
+check_ensured_value :: fn(
+    contract: GuardContract,
+    returned: AST.Expr,
+    how: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if typed.expr_types[returned.id] is NeverType {
         return
     }
-    ctx.guard = contract
-    typed.guards.verifying = contract
+    pushed: PushedNarrow[]: []
+    if returned is AST.IfExpr {
+        visit :: (v: AST.Expr) -> check_ensured_value(contract, v, how, typed, diags)
+        if !push_past_divergent_if(returned, typed, pushed)
+            && each_branch_value(returned, typed, visit) {
+            return
+        }
+    } else if returned is AST.CallExpr {
+        push_ensured_call(returned, typed, pushed)
+    }
+    check_ensured(contract, returned.span, how, typed, diags)
+    pop_narrows(pushed, typed)
+}
+
+/// Hold a point the fn returns from to its `@ensures`, if it has one : the value it
+/// returns there, or the point itself where it returns none.
+///
+/// @param contract  the fn's `@ensures` contract, null for none.
+/// @param value     the value returned there, null for none.
+/// @param at        where it returns : a `return`, or the end of its body.
+/// @param how       `returns` or `ends`, as the message says it.
+check_ensured_exit :: fn(
+    contract: GuardContract | null,
+    value: AST.Expr | null,
+    at: Span,
+    how: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    ensured :: contract ?? return
+    if value != null {
+        check_ensured_value(ensured, value, how, typed, diags)
+        return
+    }
+    check_ensured(ensured, at, how, typed, diags)
 }
 
 /// Hold the value `returned` a `@returns` fn returns to its contract : where it is
@@ -259,24 +465,64 @@ check_guard_return :: fn(
     }
 }
 
-// Hold each branch of the `if` value `e` to the contract, its condition pushed on
-// the side that reaches it ; whether `e` gives a value on every branch. What a
-// branch block's own statements narrow is not read, which only refuses more.
+// Hold each branch of the `if` value `e` to the contract (`each_branch_value`) ;
+// whether its branches cover `e`.
 check_guard_branches :: fn(
     contract: GuardContract,
     e: AST.IfExpr,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> bool {
-    then_value :: e.then_block.trailing ?? return false
-    else_value :: else_value_of(e) ?? return false
-    taken :: push_cond_narrows(e.cond, true, typed, diag_sink())
-    check_guard_return(contract, then_value, typed, diags)
-    pop_narrows(taken, typed)
-    skipped :: push_cond_narrows(e.cond, false, typed, diag_sink())
-    check_guard_return(contract, else_value, typed, diags)
-    pop_narrows(skipped, typed)
+) -> bool =
+    each_branch_value(e, typed, (v: AST.Expr) -> check_guard_return(contract, v, typed, diags))
+
+// Visit each value the `if` value `e` gives, its condition pushed on the side that
+// reaches it ; a branch that diverges gives none. Whether every branch gives a value
+// or diverges, so that the visits cover `e`. What a branch block's own statements
+// narrow is not read, which only refuses more.
+each_branch_value :: fn(e: AST.IfExpr, typed: TypedProgram, visit: fn(AST.Expr) -> void) -> bool {
+    then_branch :: branch_of(e.then_block.trailing, then_is_divergent(e.then_block, typed))
+        ?? return false
+    else_branch :: branch_of(else_value_of(e), else_is_divergent(e, typed)) ?? return false
+    visit_branch(e.cond, true, then_branch, typed, visit)
+    visit_branch(e.cond, false, else_branch, typed, visit)
     return true
+}
+
+// A branch that never ends.
+Diverged :: struct {}
+
+// What a branch gives : its value, `Diverged` where it never ends, null where it
+// ends with no value.
+branch_of :: fn(value: AST.Expr | null, diverges: bool) -> AST.Expr | Diverged | null {
+    if diverges {
+        return Diverged {}
+    }
+    return value
+}
+
+// Whether the `else` of `e` is a block that never ends.
+else_is_divergent :: fn(e: AST.IfExpr, typed: TypedProgram) -> bool {
+    eb :: e.else_branch
+    if eb is AST.IfElseBlock {
+        return then_is_divergent(eb.block, typed)
+    }
+    return false
+}
+
+// Visit the value `branch` gives, the condition `cond` pushed on its side `truth`.
+visit_branch :: fn(
+    cond: AST.Expr,
+    truth: bool,
+    branch: AST.Expr | Diverged,
+    typed: TypedProgram,
+    visit: fn(AST.Expr) -> void,
+) -> void {
+    if branch is Diverged {
+        return
+    }
+    pushed :: push_cond_narrows(cond, truth, typed, diag_sink())
+    visit(branch)
+    pop_narrows(pushed, typed)
 }
 
 // The value the `else` of `e` gives : its block's trailing, or the next `if`.
@@ -286,25 +532,51 @@ else_value_of :: fn(e: AST.IfExpr) -> AST.Expr | null = match e.else_branch as e
     is AST.IfElseIf    -> eb.branch
 }
 
-/// Hold the trailing value of `block` to the contract of the fn it is the body of,
-/// before the narrowings its guards pushed are undone.
+/// Hold the end of `block` to the contracts of the fn it is the body of, before the
+/// narrowings its guards pushed are undone : its trailing value to `@returns`, and
+/// to `@ensures` the value or, with none, the end itself unless the block never
+/// gets there.
 ///
-/// @param ctx  the context the block is checked in.
-check_body_value :: fn(block: AST.BlockExpr, ctx: FnContext | null, typed: TypedProgram, diags: Diagnostic[]) -> void {
+/// @param result  the type of `block`, `never` where its last statement diverges.
+/// @param ctx     the context the block is checked in.
+check_body_value :: fn(
+    block: AST.BlockExpr,
+    result: Type,
+    ctx: FnContext | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
     if ctx == null {
         return
     }
-    contract :: ctx.guard ?? return
-    body :: contract.decl.body ?? return
-    value :: block.trailing ?? return
-    if body.id == block.id {
-        check_guard_return(contract, value, typed, diags)
+    contract :: ctx.guard
+    if contract != null && is_body_of(block, contract) && block.trailing != null {
+        check_guard_return(contract, block.trailing, typed, diags)
     }
+    ensured :: ctx.ensures ?? return
+    if !is_body_of(block, ensured) || result is NeverType {
+        return
+    }
+    check_ensured_exit(ensured, block.trailing, end_of(block), "ends", typed, diags)
 }
 
-/// Refuse a write to `target` when it names a parameter of the `@returns` fn whose
-/// body is being checked : the contract speaks of the argument, which the write
-/// would hide.
+// Whether `block` is the body of the fn `contract` belongs to.
+is_body_of :: fn(block: AST.BlockExpr, contract: GuardContract) -> bool {
+    body :: contract.decl.body ?? return false
+    return body.id == block.id
+}
+
+// Where `block` ends, as a diagnostic places it : its last statement, else itself.
+end_of :: fn(block: AST.BlockExpr) -> Span {
+    if block.stmts.len() == 0 {
+        return block.span
+    }
+    return block.stmts[block.stmts.len() - 1].span
+}
+
+/// Refuse a write to `target` when it names a parameter of the fn whose body is
+/// being checked and which declares a contract : the contract speaks of the
+/// argument, which the write would hide.
 ///
 /// @param target  the name an assignment writes.
 /// @return        whether the write was refused.
@@ -401,6 +673,36 @@ side_of :: fn(truth: bool, then_ty: Type, else_ty: Type) -> Type {
 guard_narrowings :: fn(call: AST.CallExpr, typed: TypedProgram) -> IsNarrow[] | null {
     decl :: recorded_decl(typed, call) ?? return null
     facts :: callee_guard_facts(decl, typed) ?? return null
+    return argument_narrowings(call, decl, facts, typed)
+}
+
+/// Push what a call to an `@ensures` fn narrows once it has returned : each argument
+/// within what the condition proves of its parameter where it is true, for the rest
+/// of the block. Only a binding no lambda rebinds is narrowed : a field the callee,
+/// or a later argument, may write through another name, and a local a lambda the
+/// call runs may rebind, may no longer hold the value the contract spoke of.
+///
+/// @param call    a call written as a statement, already checked.
+/// @param pushed  receives the records that unwind them (`pop_narrows`).
+push_ensured_call :: fn(call: AST.CallExpr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
+    decl :: recorded_decl(typed, call) ?? return
+    contract :: ensures_of(decl, typed) ?? return
+    for n in argument_narrowings(call, decl, contract.facts, typed) {
+        if n.field_key != "" || n.sym_id in typed.resolved.closure_rebound {
+            continue
+        }
+        pushed.push(push_one_narrow(typed, n.sym_id, n.field_key, n.then_ty))
+    }
+}
+
+// The narrowing each of `facts`, of the fn `decl`, gives the argument `call` passes
+// its parameter, one per argument that is a binding or a field chain.
+argument_narrowings :: fn(
+    call: AST.CallExpr,
+    decl: AST.FnDecl,
+    facts: GuardFact[],
+    typed: TypedProgram,
+) -> IsNarrow[] {
     offset :: receiver_offset(call, decl, typed)
     out: IsNarrow[]: []
     for fact in facts {

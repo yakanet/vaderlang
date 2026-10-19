@@ -343,9 +343,11 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         // the body to find a use-site.
         self.idents[p.span.hash()] = sym
     }
-    guard :: AST.find_decorator(d.decorators, "returns")
-    if guard != null {
-        for a in guard.args {
+    for contract in d.decorators {
+        if !is_contract_decorator(contract.name) {
+            continue
+        }
+        for a in contract.args {
             self.walk_expr(a)
         }
     }
@@ -463,9 +465,9 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
             self.check_target_selectors(d)
             continue
         }
-        // `@returns`'s condition reads the parameters : `walk_fn_decl` walks it once
-        // they are bound.
-        if d.name == "returns" {
+        // The condition of `@returns` and `@ensures` reads the parameters :
+        // `walk_fn_decl` walks it once they are bound.
+        if is_contract_decorator(d.name) {
             continue
         }
         for a in d.args { self.walk_expr(a) }
@@ -492,6 +494,9 @@ check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
     }
 }
 
+// Whether `name` is a decorator stating a contract over a fn's parameters.
+is_contract_decorator :: fn(name: string) -> bool = name == "returns" || name == "ensures"
+
 /// Whitelist of known decorators.
 /// Update when SPEC §12 grows a new decorator.
 is_known_decorator :: fn(name: string) -> bool {
@@ -513,6 +518,7 @@ is_known_decorator :: fn(name: string) -> bool {
         || name == "displayable"
         || name == "singleton"
         || name == "returns"
+        || name == "ensures"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {

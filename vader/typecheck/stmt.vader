@@ -41,7 +41,7 @@ check_block :: fn(
         if !diverged && is_divergent_stmt(stmt, typed) {
             diverged = true
         }
-        push_divergent_narrow_if(stmt, typed, divergent_narrows)
+        push_statement_narrows(stmt, typed, divergent_narrows)
     }
     if diverged && first_unreachable_span is null {
         if block.trailing !is null {
@@ -66,7 +66,7 @@ check_block :: fn(
         }
         _       -> { result = check_expr(block.trailing, expected, typed, diags) }
     }
-    check_body_value(block, ctx, typed, diags)
+    check_body_value(block, result, ctx, typed, diags)
     // Restore the binding's static type on block exit so outer scopes don't see
     // the narrowed shape. In reverse: a binding several guards narrowed gets back
     // what it had before the first, not what a later guard found.
@@ -195,6 +195,7 @@ check_fn_body :: fn(
     outer_contract :: typed.guards.verifying
     typed.guards.verifying = null
     hold_to_contract(fn_decl, ctx, typed, diags)
+    hold_to_ensures(fn_decl, ctx, typed, diags)
     got :: check_block(body, expected, typed, diags, ctx)
     typed.guards.verifying = outer_contract
     if guard {
@@ -976,6 +977,7 @@ check_return :: fn(
                     typed,
                     diags,
                 )
+                check_ensured_exit(effective.ensures, null, s.span, "returns", typed, diags)
             }
         }
         // Empty `return` : no value expr, so no coercion / hint site.
@@ -1001,6 +1003,7 @@ check_return :: fn(
         if contract != null {
             check_guard_return(contract, v, typed, diags)
         }
+        check_ensured_exit(effective.ensures, v, s.span, "returns", typed, diags)
     }
 }
 
@@ -1334,21 +1337,45 @@ bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
     return FnContext { ...ctx, .loop_depth = ctx.loop_depth + 1 }
 }
 
-// Detect `if x is T { return ... }` pattern and push the complement
-// narrowing for the rest of the block. The then-branch must end in a
-// divergent statement (return / break / continue) — we approximate
-// this by requiring the then-block's last stmt to be a `ReturnStmt`.
-push_divergent_narrow_if :: fn(
+// Push what `stmt` leaves narrowed for the rest of its block : past a call to an
+// `@ensures` fn, what it ensures (`push_ensured_call`) ; past an `if` whose branch
+// diverges, what its condition leaves (`push_past_divergent_if`).
+push_statement_narrows :: fn(
     stmt: AST.Stmt,
     typed: TypedProgram,
     stack: PushedNarrow[],
 ) -> void {
-    if stmt !is AST.ExprStmt    { return }
-    if stmt.expr !is AST.IfExpr { return }
-    if_expr :: stmt.expr
-    if if_expr.else_branch !is null                  { return }
-    if !then_is_divergent(if_expr.then_block, typed) { return }
-    push_guard_narrows(if_expr.cond, typed, stack)
+    called :: statement_call(stmt)
+    if called != null {
+        push_ensured_call(called, typed, stack)
+        return
+    }
+    if stmt is AST.ExprStmt && stmt.expr is AST.IfExpr {
+        _ :: push_past_divergent_if(stmt.expr, typed, stack)
+    }
+}
+
+// Push the complement of the condition of `e`, an `if` with no `else` whose branch
+// diverges (`return`, `break`, `continue`, a call that never returns), for what
+// follows it ; whether `e` is one.
+push_past_divergent_if :: fn(e: AST.IfExpr, typed: TypedProgram, stack: PushedNarrow[]) -> bool {
+    if e.else_branch !is null || !then_is_divergent(e.then_block, typed) {
+        return false
+    }
+    push_guard_narrows(e.cond, typed, stack)
+    return true
+}
+
+// The call `stmt` makes as a whole, an expression statement or the value a `let`
+// binds : what its callee `@ensures` holds past it.
+statement_call :: fn(stmt: AST.Stmt) -> AST.CallExpr | null {
+    if stmt is AST.ExprStmt && stmt.expr is AST.CallExpr {
+        return stmt.expr
+    }
+    if stmt is AST.LetStmt && stmt.value is AST.CallExpr {
+        return stmt.value
+    }
+    return null
 }
 
 // Push the complement narrowing(s) a guard condition leaves for the rest of the

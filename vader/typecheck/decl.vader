@@ -97,8 +97,14 @@ declare_decl :: fn(
     match decl {
         is AST.FnDecl     -> {
             declare_fn(decl, resolved, typed, diags)
-            if guard_condition(decl) != null {
+            if guard_condition(decl) != null || ensured_condition(decl) != null {
                 typed.shared_guards.owners[decl.id] = typed
+                // A body is what a contract is held to ; a fn without one is never
+                // checked, so the shape is reported here.
+                if decl.body == null {
+                    diags.push(typecheck_error(.MisshapenGuard, decl.name_span,
+                        "`${decl.name}` has no body to hold to it"))
+                }
             }
             if is_guard_candidate(decl, typed) {
                 _ :: typed.guards.candidates.add(decl.id)
