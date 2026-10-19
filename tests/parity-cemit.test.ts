@@ -176,9 +176,8 @@ const C_PARITY = new Set<string>([
   // own iteration's value — the run oracle is the guard.
   "capture_loop_var",
   // Rebound captures : a param reassigned after a closure captured it (at fn
-  // entry, `promote_cell_params`, and in a lambda), a range counter the body
-  // reassigns (per-iteration cell on a synthetic counter) and a local the closure
-  // increments all live in a cell both sides share.
+  // entry, `promote_cell_params`, and in a lambda) and a local the closure
+  // increments both live in a cell both sides share.
   "closure_sees_rebound_capture",
   // Generators (`@generator` + `yield`) — the state-machine lowering emits a
   // synthesized `g$State` struct + an `Iterator::next` state machine consumed by

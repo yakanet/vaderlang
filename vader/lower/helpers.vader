@@ -453,8 +453,8 @@ env_field :: fn(lifted: LiftedFnContext, field: string, span: Span, type: Type) 
 
 /// Return a copy of `block` with `prefix` spliced in before its statements,
 /// preserving the block's `span` / `type` / `trailing`. Used to splice a
-/// fn-entry or loop-entry prologue (captured-param / loop-var cell promotion)
-/// ahead of an already-lowered body.
+/// fn-entry prologue (captured-param cell promotion) or a loop variable's
+/// binding ahead of an already-lowered body.
 /// @param prefix  statements to run first, in order.
 /// @param block   the body to prepend onto.
 /// @return        a fresh `LoweredBlock` ; `block` is returned untouched when

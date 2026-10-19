@@ -33,6 +33,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.util.total([1, 2, 3] :i32[], __lambda_snippet_2)))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
+      std.io.println<string>(snippet.util.turns(__lambda_snippet_3))
       return 0
   }
   __lambda_snippet_0 :: fn(n: i32) -> i32 {
@@ -60,6 +61,22 @@
           }
       }
       return sum
+  }
+  __lambda_env_snippet_5 :: struct { cap_0: i32 }
+  __lambda_snippet_4 :: fn(__env_0: __lambda_env_snippet_5) -> i32 {
+      __env_0.cap_0
+  }
+  __lambda_snippet_3 :: fn() -> (fn() -> i32)[] {
+      out: (fn() -> i32)[] = @array.repeat([] :(fn() -> i32)[], usize(3))
+      {
+          i: i32 = 0
+          for i < 3 {
+              @array.push(out, @closure(__lambda_snippet_4, __lambda_env_snippet_5 { .cap_0 = i }))
+          } @step {
+              i = i +% 1
+          }
+      }
+      return out
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: usize = std.core.byte_len(p0)
@@ -107,6 +124,26 @@
   }
   snippet.util.total :: fn(xs: i32[], f: fn(i32[]) -> i32) -> i32 {  // snippet_util$total
       f(xs)
+  }
+  snippet.util.turns :: fn(make: fn() -> (fn() -> i32)[]) -> string {  // snippet_util$turns
+      sb: string = ""
+      {
+          __for_arr_0: (fn() -> i32)[] = make()
+          __for_len_1: usize = @array.len(__for_arr_0)
+          __for_i_2: usize = 0
+          for __for_i_2 < __for_len_1 {
+              f: fn() -> i32 = __for_arr_0[__for_i_2]
+              sb = concat_2(sb, {
+                  __buf_3: Buffer = std.core.new_byte_buffer(usize(20))
+                  __off_4: usize = 0
+                  __off_4 = std.core.write_int(__buf_3, __off_4, i64(f()))
+                  std.core.finish_buffer(__buf_3, __off_4)
+              } :string)
+          } @step {
+              __for_i_2 = __for_i_2 +% usize(1)
+          }
+      }
+      return sb
   }
 
 ## lowered in dependencies

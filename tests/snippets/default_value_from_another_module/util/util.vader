@@ -26,3 +26,18 @@ export total :: fn(xs: i32[], f: fn(i32[]) -> i32 = (items: i32[]) -> {
     }
     return sum
 }) -> i32 = f(xs)
+
+// The default makes a closure per turn of a loop, each over its own variable.
+export turns :: fn(make: fn() -> (fn() -> i32)[] = () -> {
+    out: (fn() -> i32)[]: []
+    for i in 0..<3 {
+        out.push(() -> i)
+    }
+    return out
+}) -> string {
+    sb := ""
+    for f in make() {
+        sb = sb + "${f()}"
+    }
+    return sb
+}

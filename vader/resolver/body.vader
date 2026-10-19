@@ -33,6 +33,14 @@ export FileScope :: struct {
     ambiguous: MutableMap<string, string[]>
 }
 
+/// Why a local may not be rebound (T3041).
+export ConstLocal :: enum {
+    /// Declared with `::`.
+    Declared
+    /// The variable of a `for … in`, bound anew each turn.
+    LoopVariable
+}
+
 /// Resolution output. `idents` keys every resolved `AST.IdentExpr`
 /// by its span via `Span.hash()` (the file's FNV hash folded with the start
 /// line/column, unique per node). Consumers look up a span to get
@@ -43,10 +51,10 @@ export ResolvedFile :: struct {
     /// Every `AST.IdentExpr` reached during the body walk, span-keyed
     /// via `Span.hash()`.
     idents:    MutableMap<u64, Symbol>
-    /// `Symbol.id` set for every Local minted from a `name :: ...`
-    /// binding (`mutable = false`). `name :=` ones don't appear here.
-    /// Read by typecheck's check_assign for T3041.
-    immutable_locals: MutableMap<i32, bool>
+    /// Locals nothing may rebind, and why : a `name :: ...` binding, or the
+    /// variable of a `for … in`. `name :=` ones don't appear here. Read by
+    /// typecheck's check_assign for T3041.
+    immutable_locals: MutableMap<i32, ConstLocal>
     /// Locals and parameters no assignment of the file rebinds, `::` or not. Two
     /// reads of one yield the same value — within one iteration, for a `for`
     /// loop variable, which the loop itself advances. A symbol missing here may be
@@ -103,7 +111,7 @@ export resolve_module_programs :: fn(
     state :: ResolveState {
         .file_scopes = file_scopes,
         .idents = MutableMap<u64, Symbol> {},
-        .immutable_locals = MutableMap<i32, bool> {},
+        .immutable_locals = MutableMap<i32, ConstLocal> {},
         .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .mutable_decls = [],
         .reassigned = MutableSet<i32> {},
@@ -136,7 +144,7 @@ export resolve_module_programs :: fn(
 
 ResolveState :: struct {
     idents:           MutableMap<u64, Symbol>
-    immutable_locals: MutableMap<i32, bool>
+    immutable_locals: MutableMap<i32, ConstLocal>
     type_param_bounds: MutableMap<i32, AST.Expr>
     /// W0015 candidates, in declaration order — one entry per `:=` statement.
     mutable_decls:    MutableDecl[]
@@ -554,12 +562,18 @@ walk_let :: fn(self: ResolveState, s: AST.LetStmt) -> void {
     self.bind_let_binding(s.binding, bound)
     if !s.mutable {
         for sym in bound {
-            self.immutable_locals[sym.id] = true
+            self.immutable_locals[sym.id] = .Declared
         }
     } else if bound.len() > 0 {
         // `_ := f()` binds nothing, so there is no name to name.
         self.mutable_decls.push(MutableDecl { .syms = bound, .span = binding_span(s.binding) })
     }
+}
+
+// A `for … in` variable : a constant binding the loop alone gives a value each
+// turn, declared by no operator, so never a W0015 candidate.
+declare_loop_local :: fn(self: ResolveState, sym: Symbol) -> void {
+    self.immutable_locals[sym.id] = .LoopVariable
 }
 
 walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
@@ -569,6 +583,10 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
     }
 }
 
+// `out` receives every Symbol minted, in binding order. `walk_let` marks them
+// immutable (`::`) or groups them into one W0015 candidate (`:=`), and `walk_for`
+// marks them loop variables, so no caller walks the binding tree a second time to
+// look the names back up.
 bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding, out: Symbol[]) -> void {
     match b {
         is AST.SimpleBinding -> {
@@ -612,12 +630,14 @@ walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
                 is AST.NamedVar       -> {
                     sym :: self.bind_local_checked(.Local, nv.name, nv.span)
                     self.idents[nv.span.hash()] = sym
+                    self.declare_loop_local(sym)
                 }
                 is AST.DestructureVar -> {
-                    // A loop variable is declared by no operator, so it joins
-                    // neither `immutable_locals` nor the W0015 candidates.
-                    scratch: Symbol[]: []
-                    self.bind_let_binding(nv.pattern, scratch)
+                    bound: Symbol[]: []
+                    self.bind_let_binding(nv.pattern, bound)
+                    for sym in bound {
+                        self.declare_loop_local(sym)
+                    }
                 }
                 is AST.DiscardVar     -> {}
             }
@@ -734,11 +754,6 @@ has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
     }
     return false
 }
-
-// `out` receives every Symbol minted, in binding order. Both of `walk_stmt`'s
-// axes read it — `::` marks them immutable, `:=` groups them into one W0015
-// candidate — so neither walks the binding tree a second time to look the names
-// back up. A caller with no use for the list passes one it discards.
 
 // ---- expr walkers ---------------------------------------------------------
 

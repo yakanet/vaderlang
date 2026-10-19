@@ -1,0 +1,35 @@
+// The variable of a `for … in` is a constant binding, bound anew each turn : a
+// range counter, an array element, a fused chain's element and a destructured pair
+// are none of them rebound in the body. Changing what one designates is allowed,
+// and the condition form binds nothing : its `i` is an ordinary local.
+module "snippet"
+
+import "std/iter"
+
+is_even :: fn(v: i32) -> bool = v % 2 == 0
+
+export main :: fn() -> i32 {
+    total := 0
+    for i in 0..<3 {
+        i = i * 10
+        total += i
+    }
+    for word in ["a", "b"] {
+        word = word + "!"
+    }
+    for z in (0..<5).filter(is_even) {
+        z += 1
+    }
+    for [a, b] in [[1, 2], [3, 4]] {
+        a = b
+    }
+    rows: i32[][]: [[1]]
+    for row in rows {
+        row.push(2)
+    }
+    i := 3
+    for i > 0 {
+        i -= 1
+    }
+    return total
+}

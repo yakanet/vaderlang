@@ -129,13 +129,11 @@ defining_let :: fn(lets: LoweredLet[], symbol: Symbol) -> LoweredLet | null {
 }
 
 // Every turn runs the whole body: nothing in it skips the rest of a turn or
-// leaves the loop early, nor writes the counter.
+// leaves the loop early.
 runs_every_turn :: fn(counted: CountedLoop) -> bool {
     irregular := false
     stmt_node_block(counted.body, (s: LoweredStmt) -> {
-        jumps :: s is LoweredBreak || s is LoweredContinue || s is LoweredReturn
-        writes_counter :: s is LoweredAssign && names_local(s.target, counted.turns.counter)
-        if jumps || writes_counter {
+        if s is LoweredBreak || s is LoweredContinue || s is LoweredReturn {
             irregular = true
         }
     })

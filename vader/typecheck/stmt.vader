@@ -468,7 +468,8 @@ record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgra
 }
 
 check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    // T3041 : bare-ident assignment to a `::`-bound local or a module constant.
+    // T3041 : bare-ident assignment to a `::`-bound local, a `for … in` variable or
+    // a module constant.
     // Surface the diag and skip the value-side typing so the dump doesn't carry
     // extra expr_types for a rejected write.
     target :: s.target
@@ -904,7 +905,7 @@ reject_const_reassign :: fn(
 
 // T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
 // pattern or an `as` makes, a local declared with `:=`. A `::` local gets the `:=`
-// hint. Any other name is a declaration.
+// hint, a loop variable the hint to copy it. Any other name is a declaration.
 const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
     sym :: bare_name_symbol(ident, typed) ?? return null
     return match sym.kind {
@@ -919,10 +920,12 @@ const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string
 
 // T3041's detail for the local `sym`, null when `:=` declared it.
 local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string | null {
-    if typed.resolved.immutable_locals[sym.id] == null {
-        return null
+    why :: typed.resolved.immutable_locals[sym.id] ?? return null
+    return match why {
+        .Declared     -> "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
+        .LoopVariable -> "`${ident.name}` is the variable of a `for … in`, bound anew each turn ; "
+            + "copy it into a `:=` local to change it"
     }
-    return "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
 }
 
 // An access path rendered back to source, for a diagnostic that wants to name

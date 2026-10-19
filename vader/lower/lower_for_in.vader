@@ -206,10 +206,7 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
 }
 
 // Build the per-iteration loop-var binding stmt(s). A plain `for x in …` yields
-// a single `let`, cell-promoted when a body closure captures it and the body
-// rebinds it (mints a fresh cell each iteration so each closure sees its own
-// value ; `lower_cell_init` is a no-op for any other, the shape every for-in
-// binding site uses). A
+// a single `let`, which no body rebinds (T3041), so a closure copies its value. A
 // destructuring `for [k, v] in …` (`pattern != null`) binds the element to a temp
 // then destructures it into the pattern leaves — the exact shape a
 // `let [k, v] := <element>` lowers to (reuses `emit_let_binding_leaves` ; the k/v
@@ -525,8 +522,8 @@ try_lower_for_over_type :: fn(
 
 // A loop binding the user's variable, of `var_type`, to each value of `bounds` in
 // turn, counted in `counter_type` ; the last value may be the counter's maximum.
-// The counter is the loop's own, copied into the variable each turn : the body may
-// assign the variable without moving the walk.
+// The counter is the loop's own, of the integer the type is held in, copied into
+// the variable each turn, which is typed by the type walked (`Hour`, an enum).
 counted_walk :: fn(
     ctx: FnLowerCtx,
     for_stmt: AST.ForStmt,
@@ -660,25 +657,14 @@ try_lower_for_in_int_range :: fn(
     lo :: widen_int_lit(bind_one_before_hoisted(ctx, lo_value, mark), bound_type)
     hi_raw :: widen_int_lit(hi_value, bound_type)
 
-    // When a closure in the body captures the loop var and the body rebinds it,
-    // the var lives in a cell, which the in-place counter cannot be. Run the
-    // counter on a fresh synthetic symbol and rebind the user's loop var to a
-    // fresh per-iteration cell at the top of the body, so each captured closure
-    // sees that iteration's value. Otherwise the counter runs on the loop-var
-    // symbol itself, and a closure copies its value when it is made.
-    in_cell :: lives_in_cell(ctx, lb.symbol.id)
-    counter_symbol :: if in_cell { fresh_synthetic_symbol(ctx, lb.name) } else { lb.symbol }
+    // The counter runs on the loop variable itself : nothing but the loop rebinds
+    // it (T3041), so a closure copies its value when it is made.
     counter_ref :: LoweredIdent {
-        .span = span, .type = bound_type, .symbol = counter_symbol,
+        .span = span,
+        .type = bound_type,
+        .symbol = lb.symbol,
     }
-
-    raw_user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
-    user_body :: if !in_cell { raw_user_body } else {
-        // The counter runs on `counter_symbol` ; rebind the user's loop var to a
-        // fresh per-iteration cell over the current counter value.
-        bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, bound_type, span)
-        prepend_stmts_to_block(bind_stmts, raw_user_body)
-    }
+    user_body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
 
     // The range is built once, at loop entry : the condition reads the upper
     // bound at every test, and the body may rebind what it names, so it gets a
@@ -734,9 +720,8 @@ RangeLoopControl :: struct {
 // An inclusive range whose `hi` may be the counter type's maximum cannot test
 // `counter <= hi` again after its last turn: stepping past the maximum wraps, and
 // the test would hold (`for b in 250..=255` over a `u8`). It tests a flag instead,
-// set ahead of the loop and by each step from `counter` before the increment ; a
-// body that moves `counter` past `hi` still stops. `prelude` receives the flag's
-// `let`, after `counter` and `hi` are bound.
+// set ahead of the loop and by each step from `counter` before the increment.
+// `prelude` receives the flag's `let`, after `counter` and `hi` are bound.
 range_loop_control :: fn(
     ctx: FnLowerCtx,
     counter: LoweredIdent,

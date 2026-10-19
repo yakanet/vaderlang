@@ -1,13 +1,5 @@
 # stdout
 param 11
-counter 0
-counter 10
-counter 20
-element a!
-element b!
-filtered 0
-filtered 20
-filtered 40
 count 2
 lambda param 42
 generator 1

@@ -330,9 +330,9 @@ export LoweredLoop :: struct {
 }
 
 /// The trip count of a counted loop, as its emitter knows it: `counter` steps by
-/// one from `start` up to `bound` — reaching it when `inclusive` — unless the
-/// body writes `counter` too, which a reader must rule out: a range's counter can
-/// be the user's loop variable. `start` is what the counter is initialised from
+/// one from `start` up to `bound`, reaching it when `inclusive`. No body writes
+/// `counter`: it is a local of the emitter's own or a `for … in` variable, which
+/// nothing may rebind (T3041). `start` is what the counter is initialised from
 /// and `bound` what it is tested against, each as the loop's preheader computes
 /// it — any expression, a call included: evaluating either one again, or
 /// earlier, is the reader's to prove safe.

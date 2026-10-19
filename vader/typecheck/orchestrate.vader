@@ -409,7 +409,7 @@ synth_resolved :: fn() -> ResolvedModule {
         .display_path = "",
         .symbols = [],
         .idents = MutableMap<u64, Symbol> {},
-        .immutable_locals = MutableMap<i32, bool> {},
+        .immutable_locals = MutableMap<i32, ConstLocal> {},
         .fn_overloads = MutableMap<string, Symbol[]> {},
         .declarations = MutableMap<u64, Symbol> {},
         .imports_to = MutableMap<i32, Symbol> {},

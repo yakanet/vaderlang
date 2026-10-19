@@ -533,33 +533,30 @@ emit_fused_range :: fn(
     lo :: range_chain.bound_lower ?? panic(UNBOUND_CHAIN)
     hi :: range_chain.bound_upper ?? panic(UNBOUND_CHAIN)
 
-    // Same captured-counter handling as the non-fused int-range path : when the
-    // loop var lives in a cell, run the counter on a synthetic symbol and rebind
-    // the user var to a fresh per-iteration cell.
-    in_cell :: lives_in_cell(ctx, template.binding_symbol.id)
-    counter_symbol :: if in_cell { fresh_synthetic_symbol(ctx, template.binding_name) } else { template.binding_symbol }
+    // The counter runs on the loop variable itself : nothing but the loop rebinds
+    // it (T3041).
     counter_init :: LoweredLet {
-        .span = span, .name = template.binding_name, .symbol = counter_symbol,
-        .type = int_type, .value = lo,
+        .span = span,
+        .name = template.binding_name,
+        .symbol = template.binding_symbol,
+        .type = int_type,
+        .value = lo,
     }
     counter_ref :: LoweredIdent {
-        .span = span, .type = int_type, .symbol = counter_symbol,
+        .span = span,
+        .type = int_type,
+        .symbol = template.binding_symbol,
     }
     out: LoweredStmt[]: [counter_init]
     control :: range_loop_control(ctx, counter_ref, hi, range_chain.inclusive, span, out)
-
-    range_body :: if !in_cell { template.user_body } else {
-        bind_stmts :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, template.pattern, counter_ref, int_type, span)
-        prepend_stmts_to_block(bind_stmts, template.user_body)
-    }
     loop_stmt :: LoweredLoop {
         .span = outer_span,
         .label = null,
         .cond = control.cond,
-        .body = range_body,
+        .body = template.user_body,
         .step = control.step,
         .turns = LoopTurns {
-            .counter = counter_symbol,
+            .counter = template.binding_symbol,
             .start = lo,
             .bound = hi,
             .inclusive = range_chain.inclusive,

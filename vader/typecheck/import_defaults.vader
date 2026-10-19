@@ -125,11 +125,16 @@ copy_alias :: fn(alias: AST.AsBinding | null, from: TypedProgram, into: TypedPro
 // it names travels with its type, which the importing module may not see: a
 // private one, or one `from` imported from a module the importer does not.
 // Re-published each round, as an export's is, so a return inferred later
-// replaces the first.
+// replaces the first. A local nothing rebinds is published as such: a closure
+// the default makes copies it rather than keep it in a cell, which a loop
+// variable cannot be given (its counter is a bare `let`).
 copy_span :: fn(span: Span, from: TypedProgram, into: TypedProgram) -> void {
     key :: span.hash()
     sym :: from.resolved.idents[key] ?? return
     into.resolved.idents[key] = sym
+    if sym.id in from.resolved.rebind_free {
+        into.resolved.rebind_free.add(sym.id)
+    }
     ty :: lookup_decl(sym, from)
     if ty !is UnresolvedType {
         into.external_types[sym.id] = ty

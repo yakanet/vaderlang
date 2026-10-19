@@ -1961,7 +1961,7 @@ So with a type annotation the separator decides mutability: `:` → immutable, `
 
 Vader separates **who may rebind a name** from **who may mutate what it points at**.
 
-**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a binding and a `:=` local may be rebound. An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
+**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a name an `as` or a pattern binds, and a `:=` local may be rebound; the variable of a `for … in` may not (§`for`). An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
 
 **The referent.** A value may be modified through any name that reaches it: a parameter, a local, a field, an element. A signature does not say what a function does with what it is lent; the compiler reads it from the body (see *What a function does with what it is lent*). Two values are **frozen**, never modified in place: the value of a **module constant**, at every level, and a **view of a string's bytes** (`s.bytes()`).
 
@@ -2353,6 +2353,8 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 
 `T3019` fires when the expression is neither — the diagnostic catches a misplaced struct cond as well as a non-`Iterator` user type.
 
+**The variable of a `for x in …` is a constant binding**, bound anew each turn, and so is each name of `for [k, v] in …`: assigning it is **T3041** (copy it into a `:=` local to change it), while changing what it designates (`x.f = 1`, `x.push(y)`) is allowed, as for any `::` binding. The condition form binds nothing: in `for i > 0 { i -= 1 }`, `i` is an ordinary local.
+
 **What a loop iterates is evaluated once, before the first element.** A range `lo..<hi` evaluates `lo`, then `hi`, once each, when it is built — at loop entry for `for i in lo..<hi` — so `for i in 0..<n { n = 5 }` runs as many times as `n` held on entry. A lazy chain does the same, source first, then each combinator's argument, then a terminal's: `xs.map(f()).filter(p()).any_match(q())` evaluates `xs`, `f()`, `p()` and `q()` once each, in that order, before the first element — and on an empty `xs` too. The compiler fusing the chain into one loop does not change this.
 
 The iteration form `for x in expr` accepts four shapes for `expr`:
@@ -2361,7 +2363,7 @@ The iteration form `for x in expr` accepts four shapes for `expr`:
    - **Concrete iter** (`Range<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
    - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
-4. A type: a range, an integer type within `i64` or a type parameter bounded by `Int` binds `x` to each of its values, the least first (`for h in Hour`, `for b in u8`, 256 turns, `255` included); an enum without variant data, to each variant in declaration order (`for d in Weekday`). Assigning `x` in the body does not move the walk. `u64`, `usize`, an enum with variant data and any other type are **T3088**.
+4. A type: a range, an integer type within `i64` or a type parameter bounded by `Int` binds `x` to each of its values, the least first (`for h in Hour`, `for b in u8`, 256 turns, `255` included); an enum without variant data, to each variant in declaration order (`for d in Weekday`). `u64`, `usize`, an enum with variant data and any other type are **T3088**.
 
 Raw `T[]` arrays are auto-wrapped through `array_iter` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` — the loop advances the iterator it is handed — so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 

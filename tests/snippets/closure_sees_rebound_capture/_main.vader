@@ -3,17 +3,13 @@
 // rebinds is copied into the env instead (`capture_loop_var`,
 // `defer_capture_param`) ; these are the bindings that keep their cell : a
 // parameter reassigned after a closure captured it, at fn entry and inside a
-// lambda ; loop bindings the body reassigns — a range counter, an array element,
-// a fused filter chain's element ; a local the closure itself increments ; and a
-// generator parameter reassigned between yields, whose cell the generator's frame
-// carries across each suspension.
+// lambda ; a local the closure itself increments ; and a generator parameter
+// reassigned between yields, whose cell the generator's frame carries across each
+// suspension. A `for … in` variable is never one : nothing but the loop rebinds it.
 
 module "snippet"
 
 import "std/io"
-import "std/iter"
-
-is_even :: fn(v: i32) -> bool = v % 2 == 0
 
 // The closure is made before the parameter is reassigned, and reads it after.
 reads_later :: fn(n: i32) -> i32 {
@@ -33,37 +29,6 @@ stepped :: fn(seed: i32) -> Iterator<i32> {
 
 main :: fn() -> i32 {
     println("param ${reads_later(1)}")
-
-    // A range counter the body reassigns : each closure keeps its iteration's
-    // cell, and sees the value the body left in it.
-    seen: (fn() -> i32)[]: []
-    for i in 0..<3 {
-        seen.push(() -> i)
-        i = i * 10
-    }
-    for read in seen {
-        println("counter ${read()}")
-    }
-
-    // An array element the body reassigns.
-    tagged: (fn() -> string)[]: []
-    for word in ["a", "b"] {
-        tagged.push(() -> word)
-        word = word + "!"
-    }
-    for read in tagged {
-        println("element ${read()}")
-    }
-
-    // A fused filter chain's element the body reassigns.
-    evens: (fn() -> i32)[]: []
-    for z in (0..<5).filter(is_even) {
-        evens.push(() -> z)
-        z = z * 10
-    }
-    for read in evens {
-        println("filtered ${read()}")
-    }
 
     // A local the closure increments, read back by the enclosing fn.
     count := 0
