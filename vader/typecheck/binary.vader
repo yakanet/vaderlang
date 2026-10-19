@@ -371,7 +371,7 @@ check_operator_rhs :: fn(
         recv, chosen.trait_key, .OperatorTraitNotImplemented, operand_expr.span, typed, diags,
     )
     if method.params.len() > 0 {
-        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, typed, diags)
+        check_operand_fits(recv, operand, operand_expr, method.params[0], op_label, diags)
     }
     return method
 }
@@ -457,7 +457,7 @@ check_dispatched_operator :: fn(
     // A refused union dispatch is already reported.
     if specialised.params.len() > 0 && !member.refused {
         want :: specialised.params[0]
-        check_operand_fits(recv, operand, operand_expr, want, op_label, typed, diags)
+        check_operand_fits(recv, operand, operand_expr, want, op_label, diags)
     }
     return specialised
 }
@@ -470,11 +470,9 @@ check_operand_fits :: fn(
     operand_expr: AST.Expr,
     want: Type,
     op_label: string,
-    typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     if is_assignable(operand, want) {
-        note_integer_slot(typed, operand_expr, operand, want)
         return
     }
     push_operand_mismatch(recv, operand, want, op_label, operand_expr.span, diags)
@@ -727,7 +725,7 @@ check_contains_element :: fn(
     if fits_through_backing(e, left, want) {
         return
     }
-    check_operand_fits(right, left, e.left, want, "operator in", typed, diags)
+    check_operand_fits(right, left, e.left, want, "operator in", diags)
 }
 
 // A literal range or array on the right took the backing of a distinct element

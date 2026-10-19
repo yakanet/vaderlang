@@ -9,7 +9,7 @@
       u8(i16(i8(i16(h) + i16(by))) + i16(24)) % u8(24)
   }
   snippet.total :: fn(a: Percent, b: Percent) -> i32 {  // snippet$total
-      i32(a + b)
+      a + b
   }
   snippet.later :: fn(c: Clock, other: Clock) -> bool {  // snippet$later
       (c.hour > other.hour) || ((c.hour == other.hour) && (c.minute > other.minute))
@@ -148,7 +148,7 @@
           } :Hour))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      count: i32 = i32(c.hour + u8(1))
+      count: i32 = c.hour + u8(1)
       count = count * 1000
       std.io.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(26))

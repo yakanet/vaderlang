@@ -335,7 +335,7 @@ bind_consumer_arguments :: fn(
         }
         slot :: substitute(call.signature.params[k], call.subst)
         arg :: target.args[k]
-        value :: prepare_node_for_slot(ctx, arg, lower_expr(ctx, arg), slot, arg.span)
+        value :: prepare_into(ctx, arg, lower_expr(ctx, arg), slot, arg.span)
         out.push(bind_instance_param(ctx, call.instance, target.owner, target.decl.params[k], value, slot))
     }
     return bound
@@ -368,7 +368,7 @@ slot_result :: fn(
     if is_void(type) {
         return value
     }
-    return prepare_node_for_slot(ctx, node, value, type, span)
+    return prepare_into(ctx, node, value, type, span)
 }
 
 // The body's trailing value `raw`, lowered from `node`, in the call's result slot.

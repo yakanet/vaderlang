@@ -21,14 +21,14 @@
       i32(level) - base
   }
   snippet.louder :: fn(a: u8, b: i32, first: bool) -> i32 {  // snippet$louder
-      picked: i32 = if first { i32(a) } else { b }
+      picked: i32 = if first { a } else { b }
       return picked
   }
   snippet.last_seen :: fn(readings: u8[]) -> i64 | null {  // snippet$last_seen
       if @array.len(readings) == i64(0) {
           return null
       }
-      return i64(readings[@array.len(readings) - i64(1)])
+      return readings[@array.len(readings) - i64(1)]
   }
   snippet.Tally :: struct { sum: i64 }  // snippet$Tally
   snippet.Tally.add :: fn(self: Tally, more: i64) -> Tally {  // snippet$Tally$std_core_Add$add
@@ -58,7 +58,7 @@
           __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.louder(readings[0], -3, false)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
-      r: Reading = Reading { .level = i64(readings[2]), .at = i64(stamp) }
+      r: Reading = Reading { .level = readings[2], .at = stamp }
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(52))
           __off_5: i64 = 0
@@ -68,7 +68,7 @@
           __off_5 = std.core.write_int(__buf_4, __off_5, r.at)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
-      slot: i64 = i64(stamp)
+      slot: i64 = stamp
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(25))
           __off_7: i64 = 0
@@ -80,24 +80,24 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(29))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "quietest ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(std.math.min(i32(readings[0]), i32(readings[2]))))
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(std.math.min(readings[0], readings[2])))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(54))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "later ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.later<i64>(r.at, i64(stamp)))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.later<i64>(r.at, stamp))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, ", tally ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.Tally.add(Tally { .sum = i64(1) }, i64(stamp)).sum)
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.Tally.add(Tally { .sum = i64(1) }, stamp).sum)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       since: i64 = 0
       level: i32 = 0
       {
           __destr_src_12: [u32, u8] = snippet.window(readings, stamp)
-          __destr_el_13: i64 = i64(__destr_src_12._0)
-          __destr_el_14: i32 = i32(__destr_src_12._1)
+          __destr_el_13: i64 = __destr_src_12._0
+          __destr_el_14: i32 = __destr_src_12._1
           since = __destr_el_13
           level = __destr_el_14
       }

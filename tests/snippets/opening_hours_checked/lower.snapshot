@@ -11,7 +11,7 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
-      return i64(i8(i16(Hour(close)) - i16(open)))
+      return i8(i16(Hour(close)) - i16(open))
   }
   snippet.label :: fn(h: Hour) -> string {  // snippet$label
       {

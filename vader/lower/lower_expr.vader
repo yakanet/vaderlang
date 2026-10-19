@@ -37,22 +37,12 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
     return LoweredCharLit { .span = e.span, .type = TY_CHAR, .value = e.value }
 }
 
-/// Lower an `AST.Expr` to its `LoweredExpr` form, an integer converted to the slot
-/// the typecheck noted it fills (`TypedProgram.integer_slots`).
+/// Lower an `AST.Expr` to its `LoweredExpr` form, at the type the typecheck
+/// recorded for it.
 /// @param ctx   the fn-body context.
 /// @param expr  the source expression.
 /// @return      the lowered expression.
 lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
-    value :: lower_expr_as_typed(ctx, expr)
-    if ctx.typed.integer_slots.is_empty() {
-        return value
-    }
-    slot :: ctx.typed.integer_slots[expr.id] ?? return value
-    return integer_held(value, ctx.types.apply(slot), expr.span)
-}
-
-// `expr` lowered at the type the typecheck recorded for it.
-lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     if !ctx.bound_operands.is_empty() {
         bound :: ctx.bound_operands[expr.id]
         if bound != null {
@@ -775,8 +765,8 @@ lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
         .span = if_expr.span,
         .type = type,
         .cond = cond,
-        .then_block = held_block(then_block, type),
-        .else_block = held_block(else_block, type),
+        .then_block = then_block,
+        .else_block = else_block,
     }
 }
 

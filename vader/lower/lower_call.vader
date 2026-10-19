@@ -373,6 +373,14 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
 }
 
 
+// The parameters of the array member `callee` names, the receiver's first : what
+// the arguments of the operation it lowers to go in as.
+array_op_params :: fn(ctx: FnLowerCtx, callee: FieldExpr) -> Type[] {
+    params: Type[]: [ctx.types.expr_type(callee.target)]
+    params.push_all(param_types_of(ctx.types.expr_type(callee)))
+    return params
+}
+
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
 // null when the receiver isn't an array or the field isn't a recognised
 // array intrinsic — caller falls back to the generic call path.
@@ -420,6 +428,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
             .type = type,
             .name = INTRINSIC_ARRAY_PUSH_ALL,
             .args = lower_in_order(ctx, [callee.target, call.args[0].value]),
+            .param_types = array_op_params(ctx, callee),
         }
     }
     if callee.field == "copy_to" && call.args.len() == 4 {
@@ -434,6 +443,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
                 call.args[2].value,
                 call.args[3].value,
             ]),
+            .param_types = array_op_params(ctx, callee),
         }
     }
     if callee.field == "remove_last" && call.args.len() == 0 {

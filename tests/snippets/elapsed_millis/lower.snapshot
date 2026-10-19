@@ -9,10 +9,10 @@
       if (n < i64(0)) || (n > i64(23)) {
           return 1
       }
-      micros: i64 = i64(u32(Hour(n)) * u32(3600000))
+      micros: i64 = u32(Hour(n)) * u32(3600000)
       micros = micros * i64(1000)
       if snippet.is_morning(Hour(n)) {
-          early: i64 = i64(u16(u8(n)) * u16(1000))
+          early: i64 = u16(u8(n)) * u16(1000)
           early = early * i64(1000000)
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
@@ -29,17 +29,17 @@
       }
       count: u8 = b
       count = count + u8(1)
-      scaled: i32 = i32(u16(b) * u16(1000))
+      scaled: i32 = u16(b) * u16(1000)
       scaled = scaled + 1
       wide: u32 = u32(@array.len(argv)) + u32(3)
       signed: i32 = i32(@array.len(argv)) + 2
       if (!((u32(0) <= wide) && (wide <= u32(9)))) || (!((0 <= signed) && (signed <= 9))) {
           return 3
       }
-      forward: i64 = i64(u8(wide) + u8(signed))
+      forward: i64 = u8(wide) + u8(signed)
       forward = forward * i64(1000000000)
       h: Hour = 23
-      next: i32 = i32(h + u8(1))
+      next: i32 = h + u8(1)
       next = next % 24
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(114))

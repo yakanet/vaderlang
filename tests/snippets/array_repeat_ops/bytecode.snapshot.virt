@@ -14,7 +14,7 @@ fn 0 snippet$main () -> i32
   local.set 0   ; pass
   i32.const 0
   array.new 2 1   ; i32[]
-  i32.const 3
+  i64.const 3
   array.repeat
   local.tee 1   ; zeros
   array.len
@@ -42,7 +42,7 @@ fn 0 snippet$main () -> i32
   end $L0
   i32.const 1
   array.new 2 1   ; i32[]
-  i32.const 4
+  i64.const 4
   array.repeat
   local.tee 1   ; zeros
   array.len
@@ -71,7 +71,7 @@ fn 0 snippet$main () -> i32
   i32.const 7
   i32.const 9
   array.new 2 2   ; i32[]
-  i32.const 2
+  i64.const 2
   array.repeat
   local.tee 1   ; zeros
   array.len
@@ -112,7 +112,7 @@ fn 0 snippet$main () -> i32
     end $L7
   end $L6
   array.new 2 0   ; i32[]
-  i32.const 8
+  i64.const 8
   array.repeat
   local.tee 1   ; zeros
   array.len
@@ -254,7 +254,7 @@ fn 0 snippet$main () -> i32
   end $L21
   i32.const 0
   array.new 2 1   ; i32[]
-  i32.const 5
+  i64.const 5
   array.repeat
   local.set 1   ; zeros
   i32.const 11

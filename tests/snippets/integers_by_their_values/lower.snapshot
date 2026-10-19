@@ -41,6 +41,23 @@
   snippet.unwrap :: fn(s: Slot) -> Hour {  // snippet$unwrap
       s
   }
+  snippet.rebound :: fn(start: i64) -> i64 {  // snippet$rebound
+      x: @cell<i64> = @cell_new(start)
+      read: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = x }
+      if {
+          __in_x_1: i64 = @cell(x)
+          (__in_x_1 >= i64(0)) && (__in_x_1 <= i64(23))
+      } :bool {
+          @cell(x) = i64(300)
+      }
+      return __lambda_snippet_0(read)
+  }
+  snippet.copied :: fn(h: Hour) -> i32 {  // snippet$copied
+      from: i32[] = [1, 2, 3, 4] :i32[]
+      into: i32[] = [0, 0, 0, 0] :i32[]
+      @array.copy(from, h, into, h, i64(2))
+      return into[1] + into[2]
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       names: string[] = ["midnight", "one", "two", "three"] :string[]
       h: Hour = 2
@@ -107,7 +124,19 @@
           __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.kept<Hour>(h)))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
+      std.io.println<string>({
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.rebound(i64(5)))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.copied(Hour(1))))
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
       return 0
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: ? }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> i64 {
+      @cell(__env_0.cap_0)
   }
   snippet.same<Hour> :: fn(x: Hour) -> Hour {  // snippet$same__Int_in_0___23
       x

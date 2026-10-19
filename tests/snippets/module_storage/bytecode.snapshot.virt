@@ -1020,7 +1020,7 @@ end
 fn 7 snippet$slots$singleton () -> ref
   string.const 22   ; ""
   array.new 3 1   ; string[]
-  i32.const 24
+  i64.const 24
   array.repeat
   return
 end
@@ -1028,7 +1028,7 @@ end
 fn 8 snippet$flags$singleton () -> ref
   bool.const false
   array.new 5 1   ; bool[]
-  i32.const 4
+  i64.const 4
   array.repeat
   return
 end

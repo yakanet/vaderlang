@@ -1,0 +1,77 @@
+// vader/midir/callee_lookup : where a direct call's callee is declared.
+//
+// A call names its callee by a `Symbol`. A function is indexed by its mangle, and
+// also by its symbol id when its origin carries one (impl members and other
+// synthetic fns set `origin.symbol = null`) ; an import likewise. A call resolves
+// to a function by mangle then symbol id, else to an import by symbol id then
+// mangle. The CFG build (a parameter's type), the verifier and the call graph
+// resolve through this one chain. `emit.vader::resolve_direct_call` resolves on
+// the bytecode's own tables, an `@intrinsic` with an op of its own first.
+
+module "vader/midir"
+
+import "std/collections"
+import "vader/resolver/symbol"
+
+/// The four indexes a direct call resolves through : positions in the caller's own
+/// lists of functions and of imports.
+CalleeLookup :: struct {
+    fn_by_mangle:     MutableMap<string, i32> = MutableMap<string, i32> {}
+    fn_by_symbol:     MutableMap<i32, i32> = MutableMap<i32, i32> {}
+    import_by_mangle: MutableMap<string, i32> = MutableMap<string, i32> {}
+    import_by_symbol: MutableMap<i32, i32> = MutableMap<i32, i32> {}
+}
+
+/// Index the function at `index`, by its mangle and by its origin's symbol.
+///
+/// @param mangled  the function's mangled name.
+/// @param symbol   its origin's symbol ; null for a synthetic function.
+index_function :: fn(
+    lookup: CalleeLookup,
+    mangled: string,
+    symbol: Symbol | null,
+    index: i32,
+) -> void =
+    index_by_name(lookup.fn_by_mangle, lookup.fn_by_symbol, mangled, symbol, index)
+
+/// Index the import at `index`, by its mangle and by its origin's symbol.
+///
+/// @param mangled  the import's mangled name.
+/// @param symbol   its origin's symbol ; null for a synthetic one.
+index_import :: fn(
+    lookup: CalleeLookup,
+    mangled: string,
+    symbol: Symbol | null,
+    index: i32,
+) -> void =
+    index_by_name(lookup.import_by_mangle, lookup.import_by_symbol, mangled, symbol, index)
+
+index_by_name :: fn(
+    by_mangle: MutableMap<string, i32>,
+    by_symbol: MutableMap<i32, i32>,
+    mangled: string,
+    symbol: Symbol | null,
+    index: i32,
+) -> void {
+    by_mangle[mangled] = index
+    sym :: symbol ?? return
+    by_symbol[sym.id] = index
+}
+
+/// The function an `InstrCall` runs, or a value, an address or a closure is made
+/// of : by mangle, then by symbol id.
+///
+/// @param callee  the symbol the instruction names.
+function_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
+    found :: lookup.fn_by_mangle[callee.name] ?? return lookup.fn_by_symbol[callee.id]
+    return found
+}
+
+/// The import an `InstrCall` runs when no function answers : by symbol id, then by
+/// mangle.
+///
+/// @param callee  the symbol the call names.
+import_called :: fn(lookup: CalleeLookup, callee: Symbol) -> i32 | null {
+    found :: lookup.import_by_symbol[callee.id] ?? return lookup.import_by_mangle[callee.name]
+    return found
+}

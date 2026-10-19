@@ -135,22 +135,22 @@ fn 0 snippet$main () -> i32
   call.import 4   ; std_core$bytes_to_string
   call 15   ; std_io$println__string
   string.const 1   ; "hello"
-  i32.const 1
+  i64.const 1
   call 11   ; std_core$string$Index$at
   call 10   ; std_core$char$Display$to_string
   call 15   ; std_io$println__string
   string.const 8   ; "你好嗎？"
-  i32.const 0
+  i64.const 0
   call 11   ; std_core$string$Index$at
   call 10   ; std_core$char$Display$to_string
   call 15   ; std_io$println__string
   string.const 8   ; "你好嗎？"
-  i32.const 1
+  i64.const 1
   call 11   ; std_core$string$Index$at
   call 10   ; std_core$char$Display$to_string
   call 15   ; std_io$println__string
   string.const 8   ; "你好嗎？"
-  i32.const 3
+  i64.const 3
   call 11   ; std_core$string$Index$at
   call 10   ; std_core$char$Display$to_string
   call 15   ; std_io$println__string

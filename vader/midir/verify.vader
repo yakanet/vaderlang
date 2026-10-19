@@ -25,87 +25,64 @@ module "vader/midir"
 import "std/collections"
 import "toolchain/span"
 import "vader/diagnostics"
+import "vader/lower"
 import "vader/resolver/symbol"
 import "vader/types"
 import "vader/typecheck"
 
 // ---- resolution tables ----------------------------------------------------
 
-// The four lookup tables `midir/emit` fills while reserving functions, each
-// giving a function's position in `functions` or an extern's in `externs`.
+// The functions and the externs of a project, and what a check reads of them :
+// where a call finds them (`slots.callees`, positions in `functions` and in
+// `externs`), what their parameters and each struct's fields are held as.
 // Built once per project : rebuilding per function would make the verifier
 // quadratic on the self-host. The call graph (`call_graph.vader`) resolves
 // through it too, so a callee is found the same way by both.
 CfgResolution :: struct {
-    functions:        CFGFunction[]
-    externs:          CFGExternDecl[]
-    fn_by_mangle:     MutableMap<string, i32>
-    fn_by_symbol:     MutableMap<i32, i32>
-    import_by_mangle: MutableMap<string, i32>
-    import_by_symbol: MutableMap<i32, i32>
+    functions: CFGFunction[]
+    externs:   CFGExternDecl[]
+    slots:     SlotTypes
 }
 
-// Mirrors `reserve_cfg_function` / `reserve_cfg_extern` : a fn is always
-// indexed by mangle, and additionally by symbol id when its origin carries
-// one (impl members and other synthetic fns set `origin.symbol = null`).
+// Mirrors `reserve_cfg_function` / `reserve_cfg_extern` (`CalleeLookup`).
 build_cfg_resolution :: fn(project: CFGProject) -> CfgResolution {
     functions: CFGFunction[]: []
     externs: CFGExternDecl[]: []
-    fn_by_mangle :: MutableMap<string, i32> {}
-    fn_by_symbol :: MutableMap<i32, i32> {}
-    import_by_mangle :: MutableMap<string, i32> {}
-    import_by_symbol :: MutableMap<i32, i32> {}
+    slots :: SlotTypes {}
     for [_module_id, m] in project.modules {
         for f in m.functions {
-            at :: i32(functions.len())
-            index_by_name(fn_by_mangle, fn_by_symbol, f.mangled, f.origin.symbol, at)
+            note_params(slots, f.mangled, f.origin.symbol, param_types(f.params), false)
             functions.push(f)
         }
         for e in m.externs {
-            at :: i32(externs.len())
-            index_by_name(import_by_mangle, import_by_symbol, e.mangled, e.origin.symbol, at)
+            note_params(slots, e.mangled, e.origin.symbol, param_types(e.params), true)
             externs.push(e)
+        }
+        for d in m.struct_decls {
+            note_struct_fields(slots, d)
         }
     }
     return CfgResolution {
         .functions = functions,
         .externs = externs,
-        .fn_by_mangle = fn_by_mangle,
-        .fn_by_symbol = fn_by_symbol,
-        .import_by_mangle = import_by_mangle,
-        .import_by_symbol = import_by_symbol,
+        .slots = slots,
     }
 }
 
-index_by_name :: fn(
-    by_mangle: MutableMap<string, i32>,
-    by_symbol: MutableMap<i32, i32>,
-    mangled: string,
-    symbol: Symbol | null,
-    index: i32,
-) -> void {
-    by_mangle[mangled] = index
-    sym :: symbol ?? return
-    by_symbol[sym.id] = index
-}
-
-// The function an `InstrCall` runs, or a value, an address or a closure is made of :
-// by mangle, then by symbol id.
-function_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
-    found :: r.fn_by_mangle[callee.name] ?? return r.fn_by_symbol[callee.id]
-    return found
-}
-
-// The import an `InstrCall` runs when no function answers : by symbol id, then
-// by mangle.
-import_called :: fn(r: CfgResolution, callee: Symbol) -> i32 | null {
-    found :: r.import_by_symbol[callee.id] ?? return r.import_by_mangle[callee.name]
-    return found
+// The type of each of `params`, in order.
+param_types :: fn(params: CFGParam[]) -> Type[] {
+    out: Type[]: []
+    for p in params {
+        out.push(p.type)
+    }
+    return out
 }
 
 // `InstrCall`'s full fallback chain.
-callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool =
-    function_called(r, callee) != null || import_called(r, callee) != null
+callee_resolves :: fn(r: CfgResolution, callee: Symbol) -> bool {
+    callees :: r.slots.callees
+    return function_called(callees, callee) != null || import_called(callees, callee) != null
+}
 
 // ---- entry point ----------------------------------------------------------
 
@@ -149,10 +126,143 @@ verify_cfg_function :: fn(
     // arm of a match returns, and the structurer never visits them. When the
     // ids are broken there is no sound walk, so every block is treated as live.
     reachable :: if ids_ok { reachable_blocks(fn_) } else { all_blocks(fn_) }
+    reported :: diags.len()
     verify_locals(fn_, reachable, where, diags)
+    // The storage check reads each local's type : only once every local id holds.
+    locals_ok :: diags.len() == reported
     verify_fn_references(fn_, resolution, reachable, where, diags)
     verify_return_arity(fn_, reachable, where, diags)
+    if locals_ok {
+        verify_storage(fn_, resolution, reachable, where, diags)
+    }
 }
+
+// I7013 : every value goes into a slot that holds it in its own integer
+// (`storage.vader`) : a local, a field, an element, a parameter, a result, a cell,
+// a global. A flow point the build left unconverted, or a pass that rewired a
+// value into another slot, would otherwise reach the emitter, which reads an
+// operation's width off one operand and passes a store through as it is.
+verify_storage :: fn(
+    fn_: CFGFunction,
+    resolution: CfgResolution,
+    reachable: MutableSet<BlockId>,
+    where: string,
+    diags: Diagnostic[],
+) -> void {
+    check :: StorageCheck {
+        .fn_ = fn_,
+        .slots = resolution.slots,
+        .where = where,
+        .diags = diags,
+    }
+    for b in fn_.blocks {
+        if !reachable.contains(b.id) {
+            continue
+        }
+        for ins in b.instructions {
+            check_instruction_storage(check, ins)
+        }
+        t :: b.terminator
+        if t is TermReturn {
+            check_return_storage(check, t)
+        }
+    }
+}
+
+// What a storage check reads and reports against.
+StorageCheck :: struct {
+    fn_: CFGFunction
+    slots: SlotTypes
+    where: string
+    diags: Diagnostic[]
+}
+
+// The slots `ins` moves values into, each value checked against its slot.
+check_instruction_storage :: fn(check: StorageCheck, ins: Instruction) -> void {
+    slots :: check.slots
+    match ins {
+        is InstrMove      -> { check_slot(check, ins.src, local_type(check, ins.dst), ins.span) }
+        is InstrFieldSet  -> {
+            if holds_integer(check, ins.value) {
+                slot :: field_slot(slots, local_type(check, ins.target), ins.field)
+                check_slot(check, ins.value, slot, ins.span)
+            }
+        }
+        is InstrUnionFieldSet -> {
+            if holds_integer(check, ins.value) {
+                slot :: field_slot(slots, local_type(check, ins.target), ins.field)
+                check_slot(check, ins.value, slot, ins.span)
+            }
+        }
+        is InstrArraySet  -> {
+            check_slot(check, ins.value, element_slot(local_type(check, ins.target)), ins.span)
+        }
+        is InstrArrayPush -> {
+            check_slot(check, ins.value, element_slot(local_type(check, ins.target)), ins.span)
+        }
+        is InstrStructNew -> {
+            check_values(check, ins.fields, literal_slots(slots, ins.type), ins.span)
+        }
+        is InstrArrayNew  -> {
+            slot :: element_slot(ins.type)
+            for el in ins.elements {
+                check_slot(check, el, slot, ins.span)
+            }
+        }
+        is InstrGlobalSet -> { check_slot(check, ins.value, ins.type, ins.span) }
+        is InstrCellNew   -> { check_slot(check, ins.value, ins.value_type, ins.span) }
+        is InstrCellSet   -> { check_slot(check, ins.value, ins.value_type, ins.span) }
+        is InstrCall      -> {
+            check_values(check, ins.args, params_of(slots, ins.callee), ins.span)
+        }
+        is InstrCallIndirect -> {
+            check_values(check, ins.args, param_types_of(ins.fn_type), ins.span)
+        }
+        is InstrVirtualCall -> { check_values(check, ins.args, ins.param_types, ins.span) }
+        is InstrIntrinsic   -> { check_values(check, ins.args, ins.param_types, ins.span) }
+        // No slot to fill : a constant, a read, an operation, a conversion, a closure,
+        // a deferred block.
+        is InstrConst | InstrBinOp | InstrUnOp | InstrFnRef | InstrFnAddr | InstrFieldGet
+         | InstrUnionFieldGet | InstrArrayGet | InstrArrayLen | InstrArraySlice
+         | InstrDataConst | InstrGlobalGet | InstrTypeCheck | InstrTypeConst | InstrCast
+         | InstrCellGet | InstrMakeClosure | InstrDeferPush | InstrDeferPopExec -> {}
+    }
+}
+
+// The values a return hands back, against the function's result or, scalarised,
+// its elements.
+check_return_storage :: fn(check: StorageCheck, t: TermReturn) -> void {
+    results :: check.fn_.scalarised_results
+    if results.len() > 1 {
+        check_values(check, t.values, results, t.span)
+        return
+    }
+    if t.values.len() == 1 {
+        check_slot(check, t.values[0], check.fn_.return_type, t.span)
+    }
+}
+
+// Each of `values` against the slot of `slots` at its position, where known.
+check_values :: fn(check: StorageCheck, values: LocalId[], slots: Type[], span: Span) -> void {
+    for i in 0..<values.len() {
+        check_slot(check, values[i], type_at(slots, i), span)
+    }
+}
+
+// Whether the local `l` holds an integer : only then has its slot to be looked up.
+holds_integer :: fn(check: StorageCheck, l: LocalId) -> bool = local_type(check, l) is RangeType
+
+// I7013 when `value` goes into a slot of type `slot` that holds it in another
+// integer than its own ; nothing for a slot unknown.
+check_slot :: fn(check: StorageCheck, value: LocalId, slot: Type | null, span: Span) -> void {
+    held :: local_type(check, value)
+    target :: stored_conversion(held, slot) ?? return
+    detail :: "${check.where}: `${display_type(held)}` held in `${representation_name(held)}` " +
+        "goes into a slot of `${display_type(slot ?? held)}` held in `${target.name}`"
+    check.diags.push(internal_error(.StorageMismatch, span, detail))
+}
+
+local_type :: fn(check: StorageCheck, l: LocalId) -> Type = check.fn_.locals[i64(l)].type
 
 // I7010 — every `return` hands back what the signature will declare.
 //
@@ -310,7 +420,7 @@ verify_fn_references :: fn(
                 // straight off the union — and the fn-as-value rule keeps one
                 // site rather than three copies to hold in step.
                 is InstrFnRef | InstrFnAddr | InstrMakeClosure -> {
-                    if function_called(resolution, ins.fn_symbol) != null { continue }
+                    if function_called(resolution.slots.callees, ins.fn_symbol) != null { continue }
                     diags.push(internal_error(.UnresolvedFnReference, ins.span,
                         "${where}: ${fn_value_kind(ins)} `${ins.fn_symbol.name}` (symbol ${ins.fn_symbol.id}) was never materialised"))
                 }

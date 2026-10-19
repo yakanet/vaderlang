@@ -664,13 +664,6 @@ export TypedProgram :: struct {
     /// effect summary checks once every module is typed.
     widened_arguments: MutableMap<i64, WidenedArgument> = MutableMap<i64, WidenedArgument> {}
 
-    /// Expression id → the type of the slot its integer value goes into, where the
-    /// slot holds it in another integer (`u32` into an `i64` argument, a `u8` into
-    /// an `i64 | null` field ; `note_integer_slot`). The lowering converts the value
-    /// at the node, whatever slot type the path to it computes : a generic `T`, a
-    /// member's declared parameter, an operator's impl.
-    integer_slots: MutableMap<i64, Type> = MutableMap<i64, Type> {}
-
     /// For-in iterable id → true when the loop walks the values of the type the
     /// iterable names (`for h in Hour`, `for d in Weekday` ; `walked_type`), rather
     /// than iterating a value.

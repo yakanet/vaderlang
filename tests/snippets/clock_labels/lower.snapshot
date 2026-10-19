@@ -34,7 +34,7 @@
       } :i32
   }
   snippet.millis :: fn(h: Hour) -> i64 {  // snippet$millis
-      total: i64 = i64(h)
+      total: i64 = h
       total = total * i64(3600000)
       return total
   }

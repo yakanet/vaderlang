@@ -741,6 +741,9 @@ export LoweredIntrinsicCall :: struct {
     type:        Type
     name:        string
     args:        LoweredExpr[]
+    /// The type each argument goes in as, parallel to `args` : what the CFG holds
+    /// it as. Empty when the operation takes its arguments as they are.
+    param_types: Type[] = []
 }
 
 /// Allocate a new closure cell holding `value`. Cells are 1-slot heap

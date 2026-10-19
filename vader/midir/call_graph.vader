@@ -111,11 +111,11 @@ new_target_list :: fn(index: CalleeIndex, key: string) -> i32[] {
 /// @return        a function, else an extern, else `index.unknown`.
 callee_node :: fn(index: CalleeIndex, callee: Symbol) -> i32 {
     r :: index.resolution
-    function :: function_called(r, callee)
+    function :: function_called(r.slots.callees, callee)
     if function != null {
         return function
     }
-    extern_position :: import_called(r, callee) ?? return index.unknown
+    extern_position :: import_called(r.slots.callees, callee) ?? return index.unknown
     return i32(r.functions.len()) + extern_position
 }
 
@@ -189,7 +189,7 @@ note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) ->
 // The node of a function taken as a value or an address: by mangle, then by symbol
 // id, as emit resolves a `fn.ref` or a `fn.addr`.
 taken_node :: fn(index: CalleeIndex, target: Symbol) -> i32 =
-    function_called(index.resolution, target) ?? index.unknown
+    function_called(index.resolution.slots.callees, target) ?? index.unknown
 
 // The members of `set`, in the order they were added.
 nodes_of :: fn(set: MutableSet<i32>) -> i32[] {

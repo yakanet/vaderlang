@@ -337,7 +337,6 @@ emit_return_mismatch_if :: fn(
 // brace-bodied until the seed is advanced past that inliner/interning bug.
 flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram) -> bool {
     if is_assignable(got, expected) {
-        note_integer_slot(typed, value, got, expected)
         return true
     }
     return try_into(got, expected, typed, value)
@@ -748,7 +747,7 @@ index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic
         return array_write_slot(ix, arr, index_ty, typed, diags)
     }
     if dispatched != null {
-        reject_index_key(ix.index, index_ty, key_ty, typed, diags)
+        reject_index_key(ix.index, index_ty, key_ty, diags)
         return dispatched[1]
     }
     if receiver_ty is UnresolvedType {
@@ -781,7 +780,7 @@ index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic
     if picked != null && picked.params.len() > 1 {
         return picked.params[1]
     }
-    reject_index_key(ix.index, index_ty, key_ty, typed, diags)
+    reject_index_key(ix.index, index_ty, key_ty, diags)
     return index_set_value_expected(receiver_ty, typed) ?? TY_UNRESOLVED
 }
 

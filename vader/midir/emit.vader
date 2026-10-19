@@ -135,7 +135,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     // fields.
     if s.origin.symbol is Symbol as sym {
         struct_type :: mk_struct(sym, s.origin.type_arguments)
-        key :: type_intern_key(struct_type)
+        key :: layout_key(s.origin, s.mangled)
         cached :: ctx.type_key[key]
         idx := i32(ctx.types.len())
         if cached is i32 {
@@ -174,7 +174,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     ctx.types[new_index] = BcStruct {
         .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
     }
-    ctx.type_key[s.mangled] = new_index
+    ctx.type_key[layout_key(s.origin, s.mangled)] = new_index
 }
 
 /// The C type named by `@c_struct("struct timespec")` on the origin struct

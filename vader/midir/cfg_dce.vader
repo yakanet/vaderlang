@@ -416,6 +416,7 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
         .dst = remap_local_opt(m, ins.dst),
         .name = ins.name,
         .args = remap_locals(m, ins.args),
+        .param_types = ins.param_types,
     }
     // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),
     // so `compact_locals` renumbers it and it MUST be remapped here too — else

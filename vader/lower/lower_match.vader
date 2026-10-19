@@ -100,7 +100,7 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     for cursor > 0 {
         cursor = cursor - 1
         arm :: expr.arms[cursor]
-        arm_block :: held_block(lower_arm(ctx, arm, scrut_symbol, scrut_type), result_type)
+        arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
         predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type)
         match predicate {
             is null -> { chain = arm_block }

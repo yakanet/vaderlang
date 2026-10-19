@@ -1,0 +1,212 @@
+// vader/midir/storage : the integer a value is held in, at each flow point.
+//
+// A lowered value carries the type the typecheck gave it. Where it moves into a
+// slot (a local, a field, an element, a parameter, a result, a cell, a global),
+// the CFG holds it as the slot does : an integer is converted to the slot's
+// integer when the two differ (an `Hour`, held in a `u8`, into an `i64` slot), an
+// integer literal built at that integer rather than converted. A union slot holds
+// an integer in the variant of its own integer, else in the narrowest holding its
+// values. `verify.vader` holds every flow point to this rule under `--verify`.
+
+module "vader/midir"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/bytecode"
+import "vader/comptime"
+import "vader/integer"
+import "vader/resolver/symbol"
+import "vader/types"
+
+/// The integer a value of type `value` is converted to as a slot of type `slot`
+/// holds it ; null when it goes in as it is : no integer, no slot known, a slot
+/// holding no integer, or one holding it in its own integer.
+///
+/// @param value  the value's type.
+/// @param slot   the slot's type, or null when unknown.
+stored_conversion :: fn(value: Type, slot: Type | null) -> MachineInteger | null {
+    if value !is RangeType {
+        return null
+    }
+    known :: slot ?? return null
+    if known is RangeType && same_interval(value.bounds, known.bounds) {
+        return null
+    }
+    held :: storage_integer(value)
+    target :: integer_member(known, held) ?? return null
+    if target.name == held.name {
+        return null
+    }
+    return target
+}
+
+// The integer a slot of type `slot` holds a value of the integer `held` as : the
+// slot's own, or in a union the variant taking it, `held` itself if it is one,
+// else the narrowest holding its values. Null for a slot holding no integer.
+integer_member :: fn(slot: Type, held: MachineInteger) -> MachineInteger | null {
+    direct :: integer_representation(slot)
+    if direct != null || slot !is UnionType {
+        return direct
+    }
+    found: MachineInteger | null = null
+    for v in slot.variants {
+        candidate :: integer_representation(v) ?? continue
+        if candidate.name == held.name {
+            return candidate
+        }
+        if interval_within(held.values, candidate.values) && narrower(candidate, found) {
+            found = candidate
+        }
+    }
+    return found
+}
+
+// Whether `candidate` is narrower than `found`, or `found` is none.
+narrower :: fn(candidate: MachineInteger, found: MachineInteger | null) -> bool {
+    if found == null {
+        return true
+    }
+    return candidate.bits < found.bits
+}
+
+/// `value`, a local of the function `fn_ctx` builds, as a slot of type `slot` holds
+/// it (`stored_conversion`) : itself, or its conversion into a new local.
+///
+/// @param value  the value, built.
+/// @param slot   the type of the slot it moves into, or null when unknown.
+/// @return       the local holding the value as the slot does.
+held_in :: fn(fn_ctx: FnCtx, value: LocalId, slot: Type | null, span: Span) -> LocalId {
+    target :: stored_conversion(fn_ctx.locals[i64(value)].type, slot) ?? return value
+    stored :: machine_integer_type(target)
+    dst :: fresh_tmp(fn_ctx, "cast", stored)
+    emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = stored, .span = span })
+    return dst
+}
+
+// ---- slot types -----------------------------------------------------------
+
+/// The slot types nothing local to an instruction says : each struct's fields as
+/// its instance lays them out, each function's parameters.
+SlotTypes :: struct {
+    /// Each struct's fields, in layout order, by its layout key (`layout_key`).
+    fields:          MutableMap<string, CFGStructField[]> = MutableMap<string, CFGStructField[]> {}
+    callees:         CalleeLookup = CalleeLookup {}
+    /// Parameter types of each function, at its position in `callees`.
+    function_params: Type[][] = []
+    /// Parameter types of each import, at its position in `callees`.
+    import_params:   Type[][] = []
+}
+
+/// Note the fields of the struct `d` lays out.
+note_struct_fields :: fn(slots: SlotTypes, d: CFGStructDecl) -> void {
+    slots.fields[layout_key(d.origin, d.mangled)] = d.fields
+}
+
+/// The key a struct is laid out under : the intern key of its type, or its mangle
+/// for a struct no symbol declares. `emit.vader::reserve_cfg_struct` reserves the
+/// layout under it, and a value's type finds it by its own intern key.
+///
+/// @param origin   what the struct was laid out from.
+/// @param mangled  its mangled name.
+layout_key :: fn(origin: MonoEntry, mangled: string) -> string {
+    sym :: origin.symbol ?? return mangled
+    return type_intern_key(mk_struct(sym, origin.type_arguments))
+}
+
+/// Note the parameter types of a function, or of an import (`is_import`).
+///
+/// @param mangled  its mangled name.
+/// @param symbol   its origin's symbol ; null for a synthetic one.
+note_params :: fn(
+    slots: SlotTypes,
+    mangled: string,
+    symbol: Symbol | null,
+    params: Type[],
+    is_import: bool,
+) -> void {
+    if is_import {
+        index_import(slots.callees, mangled, symbol, i32(slots.import_params.len()))
+        slots.import_params.push(params)
+        return
+    }
+    index_function(slots.callees, mangled, symbol, i32(slots.function_params.len()))
+    slots.function_params.push(params)
+}
+
+/// The parameter types of the function or import a direct call to `callee` runs ;
+/// none when the project declares it nowhere.
+///
+/// @param callee  the symbol the call names.
+params_of :: fn(slots: SlotTypes, callee: Symbol) -> Type[] {
+    function :: function_called(slots.callees, callee)
+    if function != null {
+        return slots.function_params[function]
+    }
+    imported :: import_called(slots.callees, callee) ?? return []
+    return slots.import_params[imported]
+}
+
+/// The type each field of a literal of type `t` is held as, in the literal's order,
+/// which is its layout's : a tuple's elements, a struct's fields as its instance
+/// lays them out ; none when no layout is known.
+///
+/// @param t  the literal's type.
+literal_slots :: fn(slots: SlotTypes, t: Type) -> Type[] {
+    tuple :: tuple_backing(t)
+    if tuple != null {
+        return tuple.elements
+    }
+    fields :: laid_out_fields(slots, t) ?? return []
+    out: Type[]: []
+    for f in fields {
+        out.push(f.type)
+    }
+    return out
+}
+
+/// The type the field `name` of a value of type `t` is held as : a struct's field as
+/// its instance lays it out, a union's common field as a variant does ; null when
+/// no layout is known.
+///
+/// @param t     the type of the value holding the field.
+/// @param name  the field's name.
+field_slot :: fn(slots: SlotTypes, t: Type, name: string) -> Type | null {
+    if t is UnionType {
+        for v in t.variants {
+            found :: field_slot(slots, v, name) ?? continue
+            return found
+        }
+        return null
+    }
+    fields :: laid_out_fields(slots, t) ?? return null
+    for f in fields {
+        if f.name == name {
+            return f.type
+        }
+    }
+    return null
+}
+
+// The fields of the struct a value of type `t` is, in layout order ; null for a
+// type no struct the project lays out is.
+laid_out_fields :: fn(slots: SlotTypes, t: Type) -> CFGStructField[] | null =
+    slots.fields[type_intern_key(t)]
+
+/// The type an element of an array of type `t` is held as ; null for any other
+/// type.
+///
+/// @param t  the array's type.
+element_slot :: fn(t: Type) -> Type | null {
+    array :: array_backing(t) ?? return null
+    return array.element
+}
+
+/// The type at position `i` of `types` ; null past its end.
+///
+/// @param types  slot types, by position : parameters, results, literal fields.
+type_at :: fn(types: Type[], i: i64) -> Type | null {
+    if i >= types.len() {
+        return null
+    }
+    return types[i]
+}

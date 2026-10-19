@@ -6,7 +6,8 @@
 // range by its value, nested or not, and arithmetic on a distinct over a range is
 // computed wide enough for its result. A distinct over a range converts back into
 // it, and what a generic fn's own `T` hands back is a value of the range, with
-// nothing to check.
+// nothing to check. A captured binding written where a test narrows it still
+// holds what its declaration does, and an `Hour` goes where an `i64` offset does.
 
 module "snippet"
 
@@ -46,6 +47,22 @@ same :: fn<T>(x: T) -> T = x
 
 kept :: fn<T>(x: T) -> T = same(x)
 
+rebound :: fn(start: i64) -> i64 {
+    x := start
+    read :: () -> x
+    if x in Hour {
+        x = 300
+    }
+    return read()
+}
+
+copied :: fn(h: Hour) -> i32 {
+    from: i32[]: [1, 2, 3, 4]
+    into: i32[]: [0, 0, 0, 0]
+    from.copy_to(h, into, h, 2)
+    return into[1] + into[2]
+}
+
 main :: fn() -> i32 {
     names :: ["midnight", "one", "two", "three"]
     h: Hour: 2
@@ -69,5 +86,6 @@ main :: fn() -> i32 {
     println("${digit}")
     println("${walk(21, 23)} ${later(false, false, 5)} ${total(Dose(150), Dose(150))}")
     println("${unwrap(Slot(7))} ${kept(h)}")
+    println("${rebound(5)} ${copied(1)}")
     return 0
 }

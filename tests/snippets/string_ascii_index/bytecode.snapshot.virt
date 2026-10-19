@@ -407,7 +407,7 @@ fn 1 snippet$main () -> i32
   end $L0
   string.const 22   ; "the quick brown fox"
   local.tee 0   ; $call_9
-  i32.const 4
+  i64.const 4
   call 14   ; std_core$string$Index$at
   call 13   ; std_core$char$Display$to_string
   local.set 1   ; $call_15
@@ -469,7 +469,7 @@ fn 1 snippet$main () -> i32
   call 22   ; std_io$println__string
   string.const 25   ; "thé quïck"
   local.tee 0   ; $call_9
-  i32.const 2
+  i64.const 2
   call 14   ; std_core$string$Index$at
   call 13   ; std_core$char$Display$to_string
   local.set 1   ; $call_15

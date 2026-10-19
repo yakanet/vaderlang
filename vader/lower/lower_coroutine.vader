@@ -823,7 +823,7 @@ gb_route_expr :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredExpr {
         is LoweredIntrinsicCall -> {
             new_args: LoweredExpr[]: []
             for a in e.args { new_args.push(gb_route_expr(gb, a)) }
-            return LoweredIntrinsicCall { .span = e.span, .type = e.type, .name = e.name, .args = new_args }
+            return LoweredIntrinsicCall { ...e, .args = new_args }
         }
         is LoweredCellNew -> LoweredCellNew { .span = e.span, .type = e.type, .value = gb_route_expr(gb, e.value), .value_type = e.value_type }
         is LoweredCellGet -> LoweredCellGet { .span = e.span, .type = e.type, .target = gb_route_expr(gb, e.target), .value_type = e.value_type }

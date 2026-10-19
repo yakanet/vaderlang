@@ -549,6 +549,8 @@ export InstrIntrinsic :: struct {
     dst:         LocalId | null
     name:        string
     args:        LocalId[]
+    /// `LoweredIntrinsicCall.param_types`, which the arguments are held as.
+    param_types: Type[] = []
 }
 
 /// Local-to-local copy. Surfaces in lowered constructs like

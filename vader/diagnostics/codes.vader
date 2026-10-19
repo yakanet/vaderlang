@@ -110,7 +110,6 @@ export TypecheckCode :: enum(CodeInfo) {
     FrozenValueWritten              { .id = "T3070", .message = "a frozen value cannot be modified" },
     ViewKept                        { .id = "T3071", .message = "a view of a string's bytes cannot be kept" },
     FrozenValueLentToWriter         { .id = "T3072", .message = "a frozen value cannot be lent to a function that modifies it" },
-    // T3075 and T3076 checked where a `!` was written, and left with the marker.
     MethodOnlyBehindNamespaceAlias  { .id = "T3078", .message = "this free function is only in scope through its namespace alias" },
     InvalidParameterDecorator       { .id = "T3079", .message = "decorator not allowed on this parameter" },
     CallbackNotDirectFn             { .id = "T3080", .message = "callback argument must name a function directly" },
@@ -180,7 +179,6 @@ export ParserCode :: enum(CodeInfo) {
     RemovedConstQualifier             { .id = "P1027", .message = "`const` was removed from the language" },
     InvalidModuleName                 { .id = "P1028", .message = "invalid module name (does not match `[a-z][a-z0-9_]*(/[a-z][a-z0-9_]*)*` grammar)" },
     ExpressionNestingTooDeep          { .id = "P1029", .message = "expression nesting too deep" },
-    // P1030 and P1031 checked where a `!` was written, and left with the marker.
     DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
     DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
     CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
@@ -289,7 +287,6 @@ export WarningCode :: enum(CodeInfo) {
     UnreachableMatchArm         { .id = "W0014", .message = "match arm can never be taken — an earlier arm already covers it" },
     MutableNeverReassigned      { .id = "W0015", .message = "local is declared mutable but never reassigned — declare it with `::`" },
     NeedlessEnumTypePrefix      { .id = "W0016", .message = "the enum name adds nothing here — the slot already pins it, so the bare variant reads the same" },
-    // W0017 and W0018 reported a `!` to remove, and left with the marker.
     WriteToUnreadCopy           { .id = "W0019", .message = "a write into a copy nothing reads" },
 }
 
@@ -329,4 +326,5 @@ export InternalCode :: enum(CodeInfo) {
     ReturnArityMismatch      { .id = "I7010", .message = "a return hands back a different number of values than the function declares" },
     CapturedBindingNotInCell { .id = "I7011", .message = "a rebound binding a closure captures is not held in a cell" },
     FunctionDefinedTwice     { .id = "I7012", .message = "a function is defined more than once" },
+    StorageMismatch          { .id = "I7013", .message = "a value goes into a slot that holds it in another integer" },
 }

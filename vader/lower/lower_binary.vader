@@ -119,9 +119,10 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
     // `[lhs] * n` — array repeat / preallocation. A numeric `*` never yields an
     // array, so an array result type uniquely marks this case. Lower to the
-    // `array.repeat` intrinsic : args = [source array, count]. The runtime
-    // reuses the source's type / element kind / tag, so no static element type
-    // is threaded through. `[] * n` (empty source) reserves n slots, length 0.
+    // `array.repeat` intrinsic : args = [source array, count], the count the `i64`
+    // the arrays' `Mul` takes. The runtime reuses the source's type / element
+    // kind / tag, so no static element type is threaded through. `[] * n` (empty
+    // source) reserves n slots, length 0.
     if binary.op == .Mul && type is ArrayType {
         observe_no_call(ctx, binary, .Operator, "array.repeat")
         return LoweredIntrinsicCall {
@@ -129,6 +130,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             .type = type,
             .name = INTRINSIC_ARRAY_REPEAT,
             .args = lower_in_order(ctx, [binary.left, binary.right]),
+            .param_types = [type, TY_I64],
         }
     }
     // Arithmetic + / − / × / ÷ on a user struct with a matching impl

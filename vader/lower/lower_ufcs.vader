@@ -113,7 +113,7 @@ build_ufcs_args :: fn(
 ) -> LoweredExpr[] {
     args: LoweredExpr[]: []
     if first_slot == 1 && params.len() > 0 {
-        args.push(prepare_node_for_slot(ctx, target, receiver, params[0], call.span))
+        args.push(prepare_into(ctx, target, receiver, params[0], call.span))
     } else {
         args.push(receiver)
     }

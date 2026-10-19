@@ -432,7 +432,7 @@ bind_layer_operands :: fn(ctx: FnLowerCtx, chain: IterChain, out: LoweredStmt[])
     arg_sym :: layer.arg_sym
     arg_slot :: layer.arg_slot
     if arg_expr != null && arg_sym != null && arg_slot != null {
-        arg :: prepare_node_for_slot(ctx, arg_expr, lower_expr(ctx, arg_expr), arg_slot, chain.span)
+        arg :: prepare_into(ctx, arg_expr, lower_expr(ctx, arg_expr), arg_slot, chain.span)
         out.push(cell_aware_let(ctx, arg_sym, arg_sym.name, arg, arg_slot, chain.span))
     }
     return IterChain {

@@ -1188,7 +1188,7 @@ fn 23 std_path$join (string,string) -> string
     return
   end $L0
   local.get 1   ; arg 1
-  i32.const 0
+  i64.const 0
   call 10   ; std_core$string$Index$at
   char.const 47
   i32.eq
@@ -1310,7 +1310,7 @@ fn 25 std_path$ends_with (string,string) -> bool
   if $L2 void
   else
     local.get 3   ; sfx
-    i32.const 0
+    i64.const 0
     call 10   ; std_core$string$Index$at
     char.const 47
     i32.eq

@@ -37,7 +37,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
         return arr_view
     }
     if dispatched != null {
-        reject_index_key(e.index, index, key_ty, typed, diags)
+        reject_index_key(e.index, index, key_ty, diags)
         return dispatched[1]
     }
     picked :: pick_index_member(e, target, index_trait, index, typed, diags)
@@ -73,20 +73,19 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
         return TY_UNRESOLVED
     }
     _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
-    reject_index_key(e.index, index, key_ty, typed, diags)
+    reject_index_key(e.index, index, key_ty, diags)
     return result_ty
 }
 
 // T3001 when the key of `x[k]` is no `key`, the key type the receiver's `Index` /
 // `IndexSet` takes ; a null `key` (an array) asks nothing more.
 reject_index_key :: fn(
-    index: AST.Expr, index_ty: Type, key: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    index: AST.Expr, index_ty: Type, key: Type | null, diags: Diagnostic[],
 ) -> void {
     if key == null || index_ty is UnresolvedType {
         return
     }
     if is_assignable(index_ty, key) {
-        note_integer_slot(typed, index, index_ty, key)
         return
     }
     diags.push(typecheck_error(

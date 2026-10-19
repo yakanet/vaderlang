@@ -16,27 +16,13 @@ import "vader/types"
 import "toolchain/span"
 import "std/string_builder"
 
-/// Prepare the value of `node` for the slot of type `slot` it flows into : through
-/// the `into` the typecheck recorded for it, if any, telling the callee verifier
-/// (`verify_callees.vader`), then, an integer, held at the slot's width
-/// (`integer_held`).
-///
-/// EVERY call-building path must route its args through here, receiver
-/// included, because nothing downstream converts : `midir/emit.vader` emits call
-/// args as the lowered node typed them, only telling a scalar that enters a union
-/// slot its own type (`retag`).
-///
-/// @param node  the value's AST node, where the typecheck filed its conversion.
-/// @param expr  the lowered value.
-/// @param slot  the declared type of the slot it flows into.
-/// @param span  span to attribute a synthesised `into` call to.
-prepare_node_for_slot :: fn(
-    ctx: FnLowerCtx, node: Expr, expr: LoweredExpr, slot: Type, span: Span,
-) -> LoweredExpr = integer_held(prepare_into(ctx, node, expr, slot, span), slot, span)
-
 /// `expr`, the value of `node`, through the `into` the typecheck recorded for it
-/// toward `slot`, told to the callee verifier ; no integer conversion, which a cast
-/// `T(x)` makes itself.
+/// toward `slot`, told to the callee verifier (`verify_callees.vader`).
+///
+/// EVERY call-building path must route its args through here, receiver included :
+/// nothing downstream runs an `into`. The integer a value is held in is not the
+/// lowering's to decide : the CFG converts it to its slot's
+/// (`midir/storage.vader`).
 ///
 /// @param node  the value's AST node.
 /// @param expr  the lowered value.
@@ -70,7 +56,7 @@ recorded_conversion :: fn(
 /// @param slot   the declared type of the slot.
 /// @param span   span to attribute a synthesised `into` call to.
 lower_for_slot :: fn(ctx: FnLowerCtx, value: Expr, slot: Type, span: Span) -> LoweredExpr =
-    prepare_node_for_slot(ctx, value, lower_expr(ctx, value), slot, span)
+    prepare_into(ctx, value, lower_expr(ctx, value), slot, span)
 
 /// Lower `value`, then run the conversion the typecheck accepted on it, if any. For
 /// a value whose slot type is not at hand where it is lowered: the target is the one
@@ -120,7 +106,7 @@ lower_call_args :: fn(
             out.push(lowered[i])
         } else {
             value :: args[i].value
-            out.push(prepare_node_for_slot(ctx, value, lowered[i], params[slot], value.span))
+            out.push(prepare_into(ctx, value, lowered[i], params[slot], value.span))
         }
     }
     return out

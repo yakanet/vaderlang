@@ -1191,29 +1191,9 @@ reject_ufcs_receiver_at_instance :: fn(
 // widening an array.
 fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
     if is_assignable(from, to) {
-        note_integer_slot(typed, arg, from, to)
         return true
     }
     return fits_by_widening(typed, arg, from, to)
-}
-
-/// Note the slot `slot` that `value`, of type `got`, fills, where it holds an integer
-/// `got` in another integer (`TypedProgram.integer_slots`) ; else forget what an
-/// earlier check of `value` noted, the lowering following the last one.
-///
-/// @param typed  the program being checked.
-/// @param value  the expression filling the slot.
-/// @param got    its type.
-/// @param slot   the slot's type, `got` fitting it.
-note_integer_slot :: fn(typed: TypedProgram, value: AST.Expr, got: Type, slot: Type) -> void {
-    if integer_values(got) == null {
-        return
-    }
-    if equals_type(erase_ranges(got), erase_ranges(slot)) {
-        _ :: typed.integer_slots.remove(value.id)
-        return
-    }
-    typed.integer_slots[value.id] = slot
 }
 
 // Whether `arg` fits its parameter by widening an array (`widening_depth`): the

@@ -355,7 +355,7 @@ static int32_t snippet_main(void) {
 #line 37 "tests/snippets/string_ascii_index/_main.vader"
     l0 = 23u;
 #line 38 "tests/snippets/string_ascii_index/_main.vader"
-    t2 = std_core_string_Index_at(l0, (int64_t) 4);
+    t2 = std_core_string_Index_at(l0, INT64_C(4));
     l1 = std_core_char_Display_to_string(t2);
     vader_struct_std_core_Range__i64_t* _a5_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
     vader_obj_header_init(_a5_obj, 6u);
@@ -398,7 +398,7 @@ static int32_t snippet_main(void) {
 #line 39 "tests/snippets/string_ascii_index/_main.vader"
     l0 = 26u;
 #line 40 "tests/snippets/string_ascii_index/_main.vader"
-    t2 = std_core_string_Index_at(l0, (int64_t) 2);
+    t2 = std_core_string_Index_at(l0, INT64_C(2));
     l1 = std_core_char_Display_to_string(t2);
     vader_struct_std_core_Range__i64_t* _a9_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
     vader_obj_header_init(_a9_obj, 6u);

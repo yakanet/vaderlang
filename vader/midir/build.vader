@@ -16,6 +16,7 @@ module "vader/midir"
 
 import "std/collections"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/lower"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -54,12 +55,17 @@ ProjectCtx :: struct {
     diags: Diagnostic[]
     /// The global slots of the program (`LoweredProject.globals`).
     globals: GlobalSlot[]
+    /// What each struct's fields and each function's parameters are held as
+    /// (`storage.vader`).
+    slots: SlotTypes
 }
 
 new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
     externs :: MutableMap<i32, MutableSet<i64>> {}
+    slot_types :: SlotTypes {}
     for [_, m] in lp.modules {
         for d in m.decls {
+            note_slot_types(slot_types, d)
             if d is LoweredFnDecl {
                 if fn_metadata(d).is_extern {
                     if d.origin.symbol is Symbol as sym {
@@ -86,6 +92,24 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
         .extern_callbacks = externs,
         .diags            = diags,
         .globals          = lp.globals,
+        .slots            = slot_types,
+    }
+}
+
+// Note what the struct or the function `d` declares holds its fields or its
+// parameters as.
+note_slot_types :: fn(
+    slots: SlotTypes,
+    d: LoweredFnDecl | LoweredStructDecl | LoweredConstDecl,
+) -> void {
+    if d is LoweredStructDecl {
+        note_struct_fields(slots, make_struct_decl(d))
+    } else if d is LoweredFnDecl {
+        params: Type[]: []
+        for p in d.params {
+            params.push(p.type)
+        }
+        note_params(slots, d.mangled, d.origin.symbol, params, d.body == null)
     }
 }
 
@@ -479,7 +503,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     entry :: new_block(fn_ctx, body.span)
     fn_ctx.current = entry
 
-    trailing :: build_block_body(fn_ctx, body)
+    trailing :: build_block_value(fn_ctx, body, d.return_type)
 
     // Implicit return : if the current block still lacks a terminator,
     // emit one with the trailing expression (or null for void).
@@ -530,15 +554,21 @@ freeze_block :: fn(b: MutableBlock) -> BasicBlock {
 // ============================================================================
 
 /// Build a block body. Returns the LocalId carrying the trailing expr's
-/// value (or null when the block is void / control flow ended mid-body).
-build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null {
+/// value, held as the block's type (or null when the block is void / control
+/// flow ended mid-body).
+build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null =
+    build_block_value(fn_ctx, b, b.type)
+
+// A block's statements, then its trailing value as a slot of type `slot` holds it ;
+// null when it has none or control left mid-body.
+build_block_value :: fn(fn_ctx: FnCtx, b: LoweredBlock, slot: Type) -> LocalId | null {
     for s in b.stmts {
         if fn_ctx.current is null { return null }
         build_stmt(fn_ctx, s)
     }
     if fn_ctx.current is null { return null }
     if b.trailing is null { return null }
-    return build_expr(fn_ctx, b.trailing)
+    return build_held(fn_ctx, b.trailing, slot)
 }
 
 // Exhaustive over `LoweredStmt` (a closed compiler union) so a new variant trips
@@ -560,7 +590,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
                     build_expr_into(fn_ctx, v, dst)
                 }
             } else {
-                value_local :: build_expr(fn_ctx, v)
+                value_local :: build_held(fn_ctx, v, s.type)
                 dst :: declare_local(fn_ctx, s.name, s.type, s.symbol)
                 fn_ctx.local_by_sym_id[s.symbol.id] = dst
                 if value_local !is null {
@@ -572,7 +602,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         }
         is LoweredAssign -> { build_assign(fn_ctx, s) }
         is LoweredGlobalSet -> {
-            value :: build_expr(fn_ctx, s.value)
+            value :: build_held(fn_ctx, s.value, fn_ctx.project.globals[s.slot].type)
             if value !is null {
                 emit(fn_ctx, InstrGlobalSet {
                     .span = s.span,
@@ -584,7 +614,7 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         }
         is LoweredCellSet -> {
             cell :: build_expr(fn_ctx, s.target)
-            value :: build_expr(fn_ctx, s.value)
+            value :: build_held(fn_ctx, s.value, s.value_type)
             if cell !is null {
                 if value !is null {
                     emit(fn_ctx, InstrCellSet {
@@ -612,9 +642,8 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         is LoweredReturn -> {
             values: LocalId[]: []
             if s.value !is null {
-                // `build_expr` answers null for an expression that produced no
-                // value; that return carries nothing, exactly as before.
-                built :: build_expr(fn_ctx, s.value)
+                // A value that produced no local (control left inside it) is none.
+                built :: build_held(fn_ctx, s.value, fn_ctx.return_type)
                 if built != null {
                     values.push(built)
                 }
@@ -651,13 +680,13 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
                     "the typecheck should have refused it (T3041)"))
             return
         }
-        value :: build_expr(fn_ctx, s.value) ?? return
+        value :: build_held(fn_ctx, s.value, fn_ctx.locals[i64(slot_opt)].type) ?? return
         emit(fn_ctx, InstrMove { .dst = slot_opt, .src = value, .span = s.span })
         return
     }
     if target is LoweredFieldAccess {
         tgt :: build_expr(fn_ctx, target.target)
-        value :: build_expr(fn_ctx, s.value)
+        value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt is null { return }
         if value is null { return }
         emit(fn_ctx, InstrFieldSet {
@@ -668,7 +697,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     }
     if target is LoweredUnionField {
         tgt :: build_expr(fn_ctx, target.target)
-        value :: build_expr(fn_ctx, s.value)
+        value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt == null || value == null {
             return
         }
@@ -683,7 +712,7 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     if target is LoweredIndex {
         tgt :: build_expr(fn_ctx, target.target)
         idx :: build_expr(fn_ctx, target.index)
-        value :: build_expr(fn_ctx, s.value)
+        value :: build_held(fn_ctx, s.value, place_slot(fn_ctx, tgt, target))
         if tgt is null { return }
         if idx is null { return }
         if value is null { return }
@@ -695,6 +724,25 @@ build_assign :: fn(fn_ctx: FnCtx, s: LoweredAssign) -> void {
     }
     panic("midir/build: assignment to something that is no place in `${fn_ctx.mangled}`: " +
         "typecheck should have refused it (T3082)")
+}
+
+// The type the place `place` holds a value as, `holder` the local holding it : the
+// field or element as its holder lays it out, else the type the lowering gave the
+// place.
+place_slot :: fn(
+    fn_ctx: FnCtx,
+    holder: LocalId | null,
+    place: LoweredFieldAccess | LoweredUnionField | LoweredIndex,
+) -> Type {
+    held :: holder ?? return place.type
+    holder_type :: fn_ctx.locals[i64(held)].type
+    slots :: fn_ctx.project.slots
+    laid_out :: match place {
+        is LoweredFieldAccess -> field_slot(slots, holder_type, place.field)
+        is LoweredUnionField  -> field_slot(slots, holder_type, place.field)
+        is LoweredIndex       -> element_slot(holder_type)
+    }
+    return laid_out ?? place.type
 }
 
 // A loop with no condition starts its body in its header. A header that only
@@ -915,10 +963,11 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
         if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
+            params :: params_of(fn_ctx.project.slots, callee_id.symbol)
             args :: if slots is MutableSet<i64> as cb {
-                build_extern_args(fn_ctx, e.args, cb, callee_id.symbol.name) ?? return null
+                build_extern_args(fn_ctx, e.args, params, cb, callee_id.symbol.name) ?? return null
             } else {
-                build_args(fn_ctx, e.args) ?? return null
+                build_args(fn_ctx, e.args, params) ?? return null
             }
             dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call", e.type) }
             emit(fn_ctx, InstrCall {
@@ -932,7 +981,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
         }
     }
     callee :: build_expr(fn_ctx, e.callee) ?? return null
-    args :: build_args(fn_ctx, e.args) ?? return null
+    args :: build_args(fn_ctx, e.args, param_types_of(e.callee.type)) ?? return null
     dst :: if is_void(e.type) || e.type is NeverType { null } else { fresh_tmp(fn_ctx, "call_ind", e.type) }
     emit(fn_ctx, InstrCallIndirect {
         .dst = dst, .callee = callee, .args = args,
@@ -969,13 +1018,17 @@ end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) ->
 /// @param slots   parameter indices that are callbacks, from the DECLARATION.
 /// @param callee  the callee's name, for the failure message.
 build_extern_args :: fn(
-    fn_ctx: FnCtx, args: LoweredExpr[], slots: MutableSet<i64>, callee: string,
+    fn_ctx: FnCtx,
+    args: LoweredExpr[],
+    params: Type[],
+    slots: MutableSet<i64>,
+    callee: string,
 ) -> LocalId[] | null {
     out: LocalId[]: []
     for i in 0..<args.len() {
         a :: args[i]
         if !slots.contains(i) {
-            local :: build_expr(fn_ctx, a) ?? return null
+            local :: build_held(fn_ctx, a, type_at(params, i)) ?? return null
             out.push(local)
             continue
         }
@@ -999,10 +1052,11 @@ build_extern_args :: fn(
     return out
 }
 
-build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[]) -> LocalId[] | null {
+// Each of `args` as the parameter of `params` it fills holds it, where known.
+build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[], params: Type[]) -> LocalId[] | null {
     out: LocalId[]: []
-    for a in args {
-        local :: build_expr(fn_ctx, a) ?? return null
+    for i in 0..<args.len() {
+        local :: build_held(fn_ctx, args[i], type_at(params, i)) ?? return null
         out.push(local)
     }
     return out
@@ -1010,7 +1064,7 @@ build_args :: fn(fn_ctx: FnCtx, args: LoweredExpr[]) -> LocalId[] | null {
 
 build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null {
     receiver :: build_expr(fn_ctx, e.receiver) ?? return null
-    args :: build_args(fn_ctx, e.args) ?? return null
+    args :: build_args(fn_ctx, e.args, e.param_types) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "vcall", e.type) }
     emit(fn_ctx, InstrVirtualCall {
         .dst = dst, .trait_name = e.trait_name, .method = e.method,
@@ -1188,7 +1242,7 @@ build_expr_into :: fn(fn_ctx: FnCtx, e: LoweredExpr, dest: LocalId) -> void {
             return
         }
     }
-    val :: build_expr(fn_ctx, e)
+    val :: build_held(fn_ctx, e, fn_ctx.locals[i64(dest)].type)
     if fn_ctx.current !is null && val !is null {
         emit(fn_ctx, InstrMove { .dst = dest, .src = val, .span = e.span })
     }
@@ -1370,8 +1424,9 @@ only_leaves :: fn(block: LoweredBlock) -> bool {
 
 build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
     field_locals: LocalId[]: []
-    for f in e.fields {
-        local :: build_expr(fn_ctx, f.value) ?? return null
+    field_slots :: literal_slots(fn_ctx.project.slots, e.type)
+    for i in 0..<e.fields.len() {
+        local :: build_held(fn_ctx, e.fields[i].value, type_at(field_slots, i)) ?? return null
         field_locals.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "struct", e.type)
@@ -1384,8 +1439,9 @@ build_struct_lit :: fn(fn_ctx: FnCtx, e: LoweredStructLit) -> LocalId | null {
 
 build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
     elems: LocalId[]: []
+    slot :: element_slot(e.type)
     for el in e.elements {
-        local :: build_expr(fn_ctx, el) ?? return null
+        local :: build_held(fn_ctx, el, slot) ?? return null
         elems.push(local)
     }
     dst :: fresh_tmp(fn_ctx, "arr", e.type)
@@ -1420,10 +1476,14 @@ build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: stri
 }
 
 build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | null {
-    args :: build_args(fn_ctx, e.args) ?? return null
+    args :: build_args(fn_ctx, e.args, e.param_types) ?? return null
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
     emit(fn_ctx, InstrIntrinsic {
-        .dst = dst, .name = e.name, .args = args, .span = e.span,
+        .span = e.span,
+        .dst = dst,
+        .name = e.name,
+        .args = args,
+        .param_types = e.param_types,
     })
     return dst
 }
@@ -1437,7 +1497,7 @@ build_array_len :: fn(fn_ctx: FnCtx, e: LoweredArrayLen) -> LocalId | null {
 
 build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
-    value :: build_expr(fn_ctx, e.value)
+    value :: build_held(fn_ctx, e.value, element_slot(e.target.type))
     if target is null { return null }
     if value is null { return null }
     emit(fn_ctx, InstrArrayPush { .target = target, .value = value, .span = e.span, .cached = e.cached })
@@ -1478,7 +1538,7 @@ build_global_get :: fn(fn_ctx: FnCtx, e: LoweredGlobalGet) -> LocalId | null {
 }
 
 build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value) ?? return null
+    value :: build_held(fn_ctx, e.value, e.value_type) ?? return null
     dst :: fresh_tmp(fn_ctx, "cell", e.type)
     emit(fn_ctx, InstrCellNew {
         .dst = dst, .value = value, .value_type = e.value_type, .span = e.span,
@@ -1508,6 +1568,23 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
 // ============================================================================
 // Bookkeeping helpers
 // ============================================================================
+
+// `e`, built, as a slot of type `slot` holds it (`held_in`) : an integer literal the
+// slot's integer holds is built at that integer, with nothing left to convert.
+build_held :: fn(fn_ctx: FnCtx, e: LoweredExpr, slot: Type | null) -> LocalId | null {
+    if fn_ctx.current is null {
+        return null
+    }
+    if e is LoweredIntLit {
+        target :: stored_conversion(e.type, slot)
+        if target != null && holds_value(target.values, e.value) {
+            constant :: ConstInt { .value = e.value }
+            return emit_const(fn_ctx, machine_integer_type(target), constant, e.span)
+        }
+    }
+    value :: build_expr(fn_ctx, e) ?? return null
+    return held_in(fn_ctx, value, slot, e.span)
+}
 
 emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {
     if fn_ctx.current is null { return }
