@@ -18,8 +18,18 @@ proven_access :: fn(xs: i32[]) -> i32 {
 /// An index nothing bounds: its check stays.
 unproven_access :: fn(xs: i32[], i: i32) -> i32 = xs[i]
 
+/// An index between two passed accesses, in a function that reads no length: the
+/// two keep their checks, the one between them is proven.
+proven_by_an_access :: fn(xs: i32[], lo: i64, hi: i64) -> i32 {
+    total := xs[lo] + xs[hi]
+    for k in lo..<hi {
+        total += xs[k]
+    }
+    return total
+}
+
 main :: fn() -> i32 {
     xs :: [1, 2, 3]
-    println("${proven_access(xs)} ${unproven_access(xs, 1)}")
+    println("${proven_access(xs)} ${unproven_access(xs, 1)} ${proven_by_an_access(xs, 0, 2)}")
     return 0
 }

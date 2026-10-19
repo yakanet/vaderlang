@@ -54,43 +54,47 @@ proven_accesses :: fn(fn_: CFGFunction, shrinks: fn(Instruction) -> bool) -> Mut
     return proven
 }
 
-// Whether the analysis could prove an access of `fn_`. It proves one only against
-// the length of its own array, which only `array_len` brings in: a function with
-// no unchecked access to an array whose length it reads proves nothing, and
-// skips the fixed point.
+// Whether the analysis could prove an access of `fn_`. It proves one against a
+// length of its own array, which an `array_len` brings in, or one another access
+// to it left: a function whose checked accesses each index an array it neither
+// measures nor indexes at two sites proves nothing, and skips the fixed point.
 may_prove_an_access :: fn(fn_: CFGFunction) -> bool {
     measured :: MutableSet<LocalId> {}
+    sites :: MutableMap<LocalId, i64> {}
+    checked :: MutableSet<LocalId> {}
     for b in fn_.blocks {
         for ins in b.instructions {
             if ins is InstrArrayLen {
                 measured.add(ins.target)
             }
+            target :: indexed_array(ins) ?? continue
+            sites[target] = (sites[target] ?? 0) + 1
+            if is_checked_access(ins) {
+                checked.add(target)
+            }
         }
     }
-    if measured.len() == 0 {
-        return false
-    }
-    for b in fn_.blocks {
-        for ins in b.instructions {
-            target :: checked_access_target(ins) ?? continue
-            if target in measured {
-                return true
-            }
+    for target in checked {
+        if target in measured || (sites[target] ?? 0) > 1 {
+            return true
         }
     }
     return false
 }
 
-// The array an access indexes, when it still checks its index.
-checked_access_target :: fn(ins: Instruction) -> LocalId | null {
-    if ins is InstrArrayGet && !ins.bounds_safe {
+// The array an access indexes, checked or not.
+indexed_array :: fn(ins: Instruction) -> LocalId | null {
+    if ins is InstrArrayGet {
         return ins.target
     }
-    if ins is InstrArraySet && !ins.bounds_safe {
+    if ins is InstrArraySet {
         return ins.target
     }
     return null
 }
+
+// Whether `ins` is an array access that still checks its index.
+is_checked_access :: fn(ins: Instruction) = ins is InstrArrayGet | InstrArraySet && !already_safe(ins)
 
 // `b` with each access `proven` names marked `bounds_safe`.
 mark_block :: fn(b: BasicBlock, proven: MutableSet<i64>) -> BasicBlock {

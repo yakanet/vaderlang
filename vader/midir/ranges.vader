@@ -191,16 +191,39 @@ transfer :: fn(ctx: RangeContext, s: RangeState, ins: Instruction) -> void {
         is InstrBinOp -> { transfer_binop(ctx, s, ins) }
         is InstrUnOp -> { transfer_unop(ctx, s, ins) }
         is InstrArrayLen -> { transfer_length(ctx, s, ins) }
+        // The index first : the value read may be written over it.
+        is InstrArrayGet -> {
+            learn_access(ctx, s, ins.target, ins.index)
+            forget_written(s, ins)
+        }
+        is InstrArraySet -> {
+            learn_access(ctx, s, ins.target, ins.index)
+            forget_written(s, ins)
+        }
         // A value the analysis does not follow.
         is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrDeferPopExec
             | InstrFnRef | InstrFnAddr | InstrFieldGet | InstrFieldSet | InstrUnionFieldGet
-            | InstrUnionFieldSet | InstrArrayGet
-            | InstrArraySet | InstrArrayPush | InstrArraySlice | InstrStructNew
+            | InstrUnionFieldSet | InstrArrayPush | InstrArraySlice | InstrStructNew
             | InstrArrayNew | InstrDataConst | InstrTypeCheck | InstrTypeConst | InstrCellNew
             | InstrCellGet | InstrCellSet | InstrMakeClosure | InstrDeferPush | InstrGlobalGet
             | InstrGlobalSet -> {
             forget_written(s, ins)
         }
+    }
+}
+
+// What an access `array[index]` proves to the code after it, which runs only when
+// the access did not stop the run : `index` is not negative, and at most the
+// length of `array`. An index no value of which is in bounds proves nothing : the
+// code after it runs on no path.
+learn_access :: fn(ctx: RangeContext, s: RangeState, array: LocalId, index: LocalId) -> void {
+    current :: interval_of(ctx, s, index) ?? return
+    if current.lo_open || current.lo < 0 {
+        in_bounds :: interval_meet(current, interval_from_ends(0, null)) ?? return
+        set_interval(ctx, s, index, in_bounds)
+    }
+    if s.lengths[index] == null {
+        s.lengths[index] = array
     }
 }
 

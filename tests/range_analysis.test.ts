@@ -53,6 +53,15 @@ const EXPECTED: Record<string, string[]> = {
   negative_index: ["xs[i] -> certain fault"],
   last_element: ["xs[$sub_checked_3] -> unproven", "$len_1 - $k_2 -> unproven"],
   guarded_last: ["xs[$sub_checked_6] -> proven", "$len_4 - $k_5 -> proven"],
+  behind_access: ["xs[i] -> unproven", "first + $idx_8 -> unproven", "xs[j] -> proven"],
+  scan_between: [
+    "xs[lo] -> unproven",
+    "$idx_3 + $idx_4 -> unproven",
+    "xs[hi] -> unproven",
+    "total + $idx_9 -> unproven",
+    "xs[k] -> proven",
+  ],
+  bump: ["xs[i] -> unproven", "xs[i] = -> unproven", "$idx_2 + $k_3 -> unproven"],
   foreach_element: ["__for_arr_0[__for_i_2] -> proven", "total + x -> unproven"],
   fused_map_element: ["__fuse_arr_0[__fuse_i_2] -> proven", "total + y -> unproven"],
   double: ["x + x -> unproven"],
@@ -100,6 +109,7 @@ test("a release build drops the index check of a proven access only", async () =
   const c = await nativeC(["--release"]);
   expect(checksIn(c, "proven_access")).toEqual([]);
   expect(checksIn(c, "unproven_access")).toEqual(["VADER_ARRAY_CHECK_INDEX"]);
+  expect(checksIn(c, "proven_by_an_access")).toEqual(["VADER_ARRAY_CHECK_INDEX", "VADER_ARRAY_CHECK_INDEX"]);
 }, MEDIUM_BUILD);
 
 test("a debug build keeps the check of an access the range analysis proves", async () => {
