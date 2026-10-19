@@ -1422,7 +1422,7 @@ import "std/testing"
 // named `name` by rendering its `display_type`. Returns `<missing>` if
 // the decl never landed in `decl_types`.
 declared_type :: fn(src: string, name: string) -> string {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     typed :: new_typed_program(rm)

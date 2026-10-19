@@ -480,7 +480,7 @@ x := a + \
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-The eight integer types are ranges of `Int` (§Range types, *Machine integers*). None has the target's width: a foreign `size_t` is a `u64` that `@c_type` spells for C (§13), and a `CPointer` is read as an `i64` or a `u64`. A numeric type has one name, which gives its kind and its width: there is no `int`, `long`, `float`, `double` or `byte`.
+The eight integer types are ranges of `Int` (§Range types, *Machine integers*), declared in `std/core` (`lib/std/core/integers.vader`) and reached as any name of the prelude: `u8` is `export u8 :: Int in 0..=0xFF`, and a program built without the standard library has none of them. None has the target's width: a foreign `size_t` is a `u64` that `@c_type` spells for C (§13), and a `CPointer` is read as an `i64` or a `u64`. A numeric type has one name, which gives its kind and its width: there is no `int`, `long`, `float`, `double` or `byte`.
 
 `type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `T: type : i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
@@ -1667,7 +1667,7 @@ array** (`i32[] implements Tag`, `MonType[] implements Tag`), which wins for its
 element type. A partly generic array — `T[][]`, `[T, i32][]` — would be a second
 generic impl on arrays and is **T3090**. For the orphan rule (R2018), an array
 belongs to its element's owner: `MonType[]` to `MonType`'s module, `i32[]` to
-every module, as `i32` does.
+`std/core`, as `i32` does.
 
 #### Several impls of one trait
 

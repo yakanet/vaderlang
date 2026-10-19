@@ -1,9 +1,9 @@
 // vader/resolver/builtins — primitive type symbols + builtin module id.
 //
-// Primitive type names are minted
-// as `.BuiltinType` symbols in a synthetic `<builtin>` module so the
-// resolver can place them at the root of every per-file scope without
-// special-casing a "if name is a primitive" branch through the walker.
+// Primitive type names, but the integers `std/core` declares, are minted as
+// `.BuiltinType` symbols in a synthetic `<builtin>` module so the resolver can
+// place them at the root of every per-file scope without special-casing a "if
+// name is a primitive" branch through the walker.
 //
 // Order is load-bearing : downstream snapshots embed symbol IDs, and IDs
 // are assigned by the factory's `next` counter in the order seen here.
@@ -23,23 +23,20 @@ export BUILTIN_MODULE_ID :: "<builtin>"
 /// (`Int in 0..=23`), never the type of a value.
 BUILTIN_EXTRA_NAMES :: ["Self", "type", INT_BASE_NAME]
 
-/// Every builtin type name in mint order: the primitives (`PRIMITIVE_META`),
-/// then `Self` / `type` / `Int`. Order is load-bearing: symbol IDs mint in this
-/// sequence and are embedded in snapshots, so the two sources are concatenated
-/// in a fixed order rather than re-listed here.
+/// Every builtin type name in mint order: the primitives (`PRIMITIVE_META`) but
+/// the integers, which `std/core` declares, then `Self` / `type` / `Int`. Order is
+/// load-bearing: symbol IDs mint in this sequence and are embedded in snapshots,
+/// so the two sources are concatenated in a fixed order rather than re-listed
+/// here.
 builtin_type_names :: fn() -> string[] {
     out: string[]: []
-    for m in PRIMITIVE_META { out.push(m.name) }
+    for m in PRIMITIVE_META {
+        if !m.is_int {
+            out.push(m.name)
+        }
+    }
     for e in BUILTIN_EXTRA_NAMES { out.push(e) }
     return out
-}
-
-/// True iff `name` is one of the builtin type names.
-export is_builtin_type_name :: fn(name: string) -> bool {
-    for n in builtin_type_names() {
-        if n == name { return true }
-    }
-    return false
 }
 
 /// Build the root scope seed every per-file resolution starts from.
@@ -59,17 +56,17 @@ export make_builtin_scope :: fn(factory: SymbolFactory) -> MutableMap<string, Sy
 import "std/testing"
 
 @test
-test_builtin_scope_includes_i32 :: fn() -> void {
+test_builtin_scope_includes_string :: fn() -> void {
     factory :: SymbolFactory {}
     scope :: make_builtin_scope(factory)
-    sym :: scope["i32"]
+    sym :: scope["string"]
     match sym {
         is Symbol -> {
-            assert_eq(sym.name, "i32")
-            assert(sym.kind == .BuiltinType, "i32 must be BuiltinType")
+            assert_eq(sym.name, "string")
+            assert(sym.kind == .BuiltinType, "string must be BuiltinType")
             assert_eq(sym.module, BUILTIN_MODULE_ID)
         }
-        is null -> { assert(false, "i32 should be in builtin scope") }
+        is null -> { assert(false, "string should be in builtin scope") }
     }
 }
 
@@ -77,18 +74,17 @@ test_builtin_scope_includes_i32 :: fn() -> void {
 test_builtin_scope_first_id_is_one :: fn() -> void {
     factory :: SymbolFactory {}
     scope :: make_builtin_scope(factory)
-    first :: scope["i8"]
+    first :: scope[builtin_type_names()[0]]
     match first {
         is Symbol -> { assert_eq(first.id, 1) }
-        is null   -> { assert(false, "i8 should be the first builtin minted") }
+        is null   -> { assert(false, "the first name should be minted first") }
     }
 }
 
 @test
-test_is_builtin_type_name_recognises_primitives :: fn() -> void {
-    assert(is_builtin_type_name("i32"), "i32 is a primitive")
-    assert(is_builtin_type_name("string"), "string is a primitive")
-    assert(is_builtin_type_name("Self"), "Self is a builtin")
-    assert(!is_builtin_type_name("MyStruct"), "user types are not builtins")
-    assert(!is_builtin_type_name("int"), "a numeric type has one name")
+test_builtin_type_names_leave_the_integers_to_std_core :: fn() -> void {
+    names :: builtin_type_names()
+    assert(!("i32" in names), "std/core declares the integers")
+    assert("string" in names && "Self" in names, "the other primitives are builtin")
+    assert(!("int" in names), "a numeric type has one name")
 }

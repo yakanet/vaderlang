@@ -54,8 +54,9 @@ export RefSite :: struct {
 /// size, which is fine for an on-demand request.
 export ReferenceIndex :: struct {
     sites: RefSite[]
-    /// The targets whose name a trait fixes : an impl member, renamed only with
-    /// its trait and every other impl of it.
+    /// The targets whose name a rename may not change : an impl member, whose
+    /// name its trait fixes, and what the library declares (`i32`, `println`),
+    /// which is not the project's.
     fixed: MutableSet<i64> = MutableSet<i64> {}
 }
 
@@ -130,6 +131,9 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         for [_, sym] in typed.resolved.declarations {
             if !is_comptime_helper(typed, sym) {
                 add_symbol_site(index, typed, sym, sym, true)
+                if mod.module.origin == .Toolchain {
+                    index.fixed.add(target_key(typed, sym))
+                }
             }
         }
         for sym in typed.resolved.import_bindings {

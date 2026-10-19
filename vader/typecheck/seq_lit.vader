@@ -242,7 +242,7 @@ ExpectedSeq :: struct {
 }
 
 expect_seq :: fn(src: string) -> ExpectedSeq {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []

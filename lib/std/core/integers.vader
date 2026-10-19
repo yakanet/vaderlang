@@ -1,0 +1,34 @@
+// std/core/integers.vader: the eight machine integers.
+//
+// Each is a range of `Int` whose bounds are those of an 8-, 16-, 32- or 64-bit
+// integer: a range of those bounds, named or not, is that integer, stored at its
+// width, and its arithmetic is closed and checked rather than computed over the
+// integers (SPEC, Range types, *Machine integers*). The compiler builds the same
+// ranges by their bounds where it gives a type of its own, such as the `i32` of a
+// bare integer literal (`TY_I8` to `TY_U64` in `vader/types`): the two must agree.
+
+module "std/core"
+
+/// A signed 8-bit integer.
+export i8 :: Int in -0x80..=0x7F
+
+/// A signed 16-bit integer.
+export i16 :: Int in -0x8000..=0x7FFF
+
+/// A signed 32-bit integer, the type of an integer literal nothing else types.
+export i32 :: Int in -0x8000_0000..=0x7FFF_FFFF
+
+/// A signed 64-bit integer, the type of a length, an index and a size.
+export i64 :: Int in -0x8000_0000_0000_0000..=0x7FFF_FFFF_FFFF_FFFF
+
+/// An unsigned 8-bit integer.
+export u8 :: Int in 0..=0xFF
+
+/// An unsigned 16-bit integer.
+export u16 :: Int in 0..=0xFFFF
+
+/// An unsigned 32-bit integer.
+export u32 :: Int in 0..=0xFFFF_FFFF
+
+/// An unsigned 64-bit integer.
+export u64 :: Int in 0..=0xFFFF_FFFF_FFFF_FFFF

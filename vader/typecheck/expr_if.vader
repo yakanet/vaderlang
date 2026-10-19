@@ -451,7 +451,7 @@ accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
 }
 
 first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {

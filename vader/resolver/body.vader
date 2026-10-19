@@ -259,15 +259,17 @@ walk_enum_decl :: fn(self: ResolveState, d: AST.EnumDecl) -> void {
     }
 }
 
-// Bind `tp` in the current scope and walk its bound.
-// Bind `tp` in the current scope. Its declaration site is recorded in `idents` : the
-// typecheck reads every declared type parameter's symbol from there
-// (`record_type_param_symbols`), and so do explicit type arguments and bounds.
+// Bind `tp` in the current scope and walk its bound and its default, which names a
+// type of the scope (`<Step = i32>`) or an earlier parameter. Its declaration site is
+// recorded in `idents` : the typecheck reads every declared type parameter's symbol
+// from there (`record_type_param_symbols`), and so do explicit type arguments and
+// bounds.
 bind_type_param :: fn(self: ResolveState, tp: AST.TypeParam) -> Symbol {
     sym :: self.mint_local(.TypeParam, tp.name, tp.span)
     self.idents[tp.span.hash()] = sym
     self.scope.bind(tp.name, sym)
     self.walk_opt_expr(tp.bound)
+    self.walk_opt_expr(tp.default)
     return sym
 }
 

@@ -446,13 +446,13 @@ export Type ::
 
 /// Target-ABI metadata for one primitive — the single source of truth every
 /// pass consults instead of re-listing names. Row order is load-bearing:
-/// `resolver/builtins` mints builtin symbol IDs in this order (embedded in
-/// snapshots), so new primitives append at the end. Consumer-owned mappings
-/// (bytecode `ValType`, typecheck `ReprRange`, lower `WriterKind`, c-emit C
-/// spellings) map a row onto their own enum rather than living here, so
-/// `vader/types` stays a near-leaf. `is_signed` / `is_float` are only meaningful
-/// with `is_int` / respectively; `size` is bytes (align == size on the 64-bit
-/// target).
+/// `resolver/builtins` mints builtin symbol IDs in this order for every row but
+/// the integers (embedded in snapshots), so new primitives append at the end.
+/// Consumer-owned mappings (bytecode `ValType`, typecheck `ReprRange`, lower
+/// `WriterKind`, c-emit C spellings) map a row onto their own enum rather than
+/// living here, so `vader/types` stays a near-leaf. `is_signed` / `is_float` are
+/// only meaningful with `is_int` / respectively; `size` is bytes (align == size on
+/// the 64-bit target).
 export PrimitiveMeta :: struct {
     name:      string
     size:      i64

@@ -1445,7 +1445,7 @@ accept_binary :: fn(e: AST.Expr) -> AST.Expr | null {
 // walker + parse+resolve+check pipeline. Panics with a clear message
 // if the source doesn't yield a binary expression.
 expect_binary :: fn(src: string) -> ExpectedBinary {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []

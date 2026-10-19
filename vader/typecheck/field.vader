@@ -1930,7 +1930,7 @@ FieldFixture :: struct {
 }
 
 first_field_in_last_fn :: fn(src: string) -> FieldFixture {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []

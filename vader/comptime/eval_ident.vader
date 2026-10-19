@@ -30,23 +30,11 @@ export evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Ev
     // Path 1 : already-evaluated `@comptime const`.
     bound :: context.bindings[symbol.id]
     if !(bound is null) { return ok(bound) }
-    // Path 2 : type-reference identifier. Resolve to a `Type` via
-    // `type_from_expr` and wrap. Filter by SymbolKind so non-type
-    // references (Fn / Param / Const without binding / …) don't
-    // accidentally surface as `TypeVal(?)`.
-    if is_type_symbol_kind(symbol.kind) {
-        type_value :: type_from_expr_safe(expr, context)
-        if type_value != null { return ok(type_val(type_value)) }
-    }
+    // Path 2 : type-reference identifier, a declared type or a const naming
+    // one (`i32 :: Int in …`). A name of a value resolves to no type.
+    type_value :: type_from_expr_safe(expr, context)
+    if type_value != null { return ok(type_val(type_value)) }
     return vm_required(expr.span, "IdentExpr (${symbol.kind.label})")
-}
-
-// @partial: the type-denoting kinds are true ; every other SymbolKind is a
-// value / binding kind (Fn, Const, ImportBinding, Local, …) and is not a type.
-// why: a type-vs-not predicate, not a per-variant dispatch that must be exhaustive.
-is_type_symbol_kind :: fn(kind: SymbolKind) -> bool = @partial match kind {
-    .Struct | .Enum | .Trait | .TypeAlias | .BuiltinType | .TypeParam -> true
-    _ -> false
 }
 
 // `type_from_expr` writes diagnostics if the resolution fails ; we

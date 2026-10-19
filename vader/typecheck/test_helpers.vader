@@ -86,3 +86,33 @@ find_first_in_expr :: fn(
     }
 }
 
+// ---- a source without `std/core` ------------------------------------------
+
+/// The integers `std/core` declares, for a test source checked without it.
+TEST_INTEGERS :: """
+i8 :: Int in -0x80..=0x7F
+i16 :: Int in -0x8000..=0x7FFF
+i32 :: Int in -0x8000_0000..=0x7FFF_FFFF
+i64 :: Int in -0x8000_0000_0000_0000..=0x7FFF_FFFF_FFFF_FFFF
+u8 :: Int in 0..=0xFF
+u16 :: Int in 0..=0xFFFF
+u32 :: Int in 0..=0xFFFF_FFFF
+u64 :: Int in 0..=0xFFFF_FFFF_FFFF_FFFF
+"""
+
+/// `src` after the integer declarations, so its last declaration stays the test's.
+///
+/// @param src  a test source that names integer types.
+with_integers :: fn(src: string) -> string = TEST_INTEGERS + src
+
+/// The first function among `decls`, past the integers `with_integers` declares.
+///
+/// @param decls  a parsed test program's declarations.
+first_fn_decl :: fn(decls: AST.Decl[]) -> AST.FnDecl | null {
+    for d in decls {
+        if d is AST.FnDecl {
+            return d
+        }
+    }
+    return null
+}

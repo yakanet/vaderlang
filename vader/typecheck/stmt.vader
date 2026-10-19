@@ -793,7 +793,7 @@ reject_field_write :: fn(field: AST.FieldExpr, typed: TypedProgram, diags: Diagn
     _ :: check_expr(field.target, null, typed, diags)
     // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
     base :: bare_name_symbol(field.target, typed)
-    if base != null && is_type_kind(base.kind) {
+    if base != null && names_a_type(base, typed.resolved) {
         diags.push(typecheck_error(.InvalidAssignTarget, field.span,
             "`${field.field}` is reached through the type `${base.name}`, not a value"))
         return true
@@ -912,11 +912,19 @@ const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string
     return match sym.kind {
         .Param | .Binding -> null
         .Local            -> local_rebind_detail(ident, sym, typed)
-        .Const            -> "`${ident.name}` is a module constant"
+        .Const            -> module_constant_detail(ident, sym, typed)
         .ImportBinding    -> "`${ident.name}` names an imported module"
         .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam | .BuiltinType
             | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
     }
+}
+
+// T3041's detail for the module constant `sym`, which may name a type (`i32`).
+module_constant_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string {
+    if names_a_type(sym, typed.resolved) {
+        return "`${ident.name}` names a type"
+    }
+    return "`${ident.name}` is a module constant"
 }
 
 // T3041's detail for the local `sym`, null when `:=` declared it.
@@ -1839,7 +1847,7 @@ CheckedSource :: struct {
 }
 
 check_source_bodies :: fn(src: string) -> CheckedSource {
-    parsed :: parse_source(src, "t.vader")
+    parsed :: parse_source(with_integers(src), "t.vader")
     factory :: SymbolFactory {}
     rm :: resolve_module(parsed.program, "t", factory)
     diags: Diagnostic[]: []
@@ -1942,14 +1950,13 @@ test_for_in_array_narrows_binding :: fn() -> void {
 // ---- test walkers ---------------------------------------------------------
 
 first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
-    parsed :: parse_source(src, "t.vader")
-    if parsed.program.decls[0] is AST.FnDecl as f {
-        if f.body is AST.BlockExpr as b {
-            for s in b.stmts {
-                if s is AST.LetStmt {
-                    if s.binding is AST.SimpleBinding {
-                        return s.binding
-                    }
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    if f.body is AST.BlockExpr as b {
+        for s in b.stmts {
+            if s is AST.LetStmt {
+                if s.binding is AST.SimpleBinding {
+                    return s.binding
                 }
             }
         }
@@ -1958,17 +1965,16 @@ first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
 }
 
 first_for_in_binding_span :: fn(src: string) -> Span | null {
-    parsed :: parse_source(src, "t.vader")
-    if parsed.program.decls[0] is AST.FnDecl as f {
-        if f.body is AST.BlockExpr as b {
-            for s in b.stmts {
-                if s !is AST.ForStmt {
-                    continue
-                }
-                if s.form is AST.InFor as inf {
-                    if inf.loop_var is AST.NamedVar as nv {
-                        return nv.span
-                    }
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    if f.body is AST.BlockExpr as b {
+        for s in b.stmts {
+            if s !is AST.ForStmt {
+                continue
+            }
+            if s.form is AST.InFor as inf {
+                if inf.loop_var is AST.NamedVar as nv {
+                    return nv.span
                 }
             }
         }

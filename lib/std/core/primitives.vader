@@ -2,7 +2,7 @@
 //
 // Split out of core.vader so neither file outgrows the ~500-LoC budget. Carries
 // the Display / Equals / Hash / Comparable / Step / arithmetic impls for the
-// built-in scalar types and `string`, plus the pure-Vader number formatters.
+// scalar types and `string`, plus the pure-Vader number formatters.
 // Part of `module "std/core"` (same folder) — joins the auto-imported prelude
 // and shares core.vader's trait declarations without an explicit import.
 

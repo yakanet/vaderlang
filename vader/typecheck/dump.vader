@@ -208,17 +208,17 @@ dump_test :: fn(src: string) -> string {
 test_dump_renders_fn_decl :: fn() -> void {
     // Expected string excludes the trailing newline — `println` adds it
     // at the CLI boundary.
-    expected :: "# Typecheck\n\n## t\n  FnDecl         add                  :: fn(i32, i32) -> i32"
-    assert_eq(dump_test("add :: fn(a: i32, b: i32) -> i32 { return a + b }"), expected)
+    expected :: "# Typecheck\n\n## t\n  FnDecl         add                  :: fn(f64, f64) -> f64"
+    assert_eq(dump_test("add :: fn(a: f64, b: f64) -> f64 { return a + b }"), expected)
 }
 
 @test
 test_dump_sorts_decls_alphabetically :: fn() -> void {
     src :: """
-zebra :: fn() -> i32 { return 0 }
-apple :: fn() -> i32 { return 0 }
+zebra :: fn() -> f64 { return 0.0 }
+apple :: fn() -> f64 { return 0.0 }
 """
-    expected :: "# Typecheck\n\n## t\n  FnDecl         apple                :: fn() -> i32\n  FnDecl         zebra                :: fn() -> i32"
+    expected :: "# Typecheck\n\n## t\n  FnDecl         apple                :: fn() -> f64\n  FnDecl         zebra                :: fn() -> f64"
     assert_eq(dump_test(src), expected)
 }
 
