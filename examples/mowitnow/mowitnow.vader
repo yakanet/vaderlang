@@ -187,7 +187,7 @@ run :: fn(input: string) -> string | ParseError {
     if lawn is ParseError as e { return e }
 
     out :: StringBuilder {}
-    i: usize = 1
+    i: i64 = 1
     first := true
     for i < lines.len() {
         if i + 1 >= lines.len() {

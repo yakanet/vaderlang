@@ -1,6 +1,6 @@
 // An integer type goes into any integer type holding every value it has, with no
 // conversion written : a `u8` reading into an `i32` total, a `u32` timestamp into
-// an `i64` or a `usize`, a byte into an `i64 | null` slot. Mixed operands compute
+// an `i64`, a byte into an `i64 | null` slot. Mixed operands compute
 // in the integer holding the other, two branches join in it, and `min` on bytes
 // takes the `i32` overload, the tightest holding them. The conversion holds on
 // every path to a slot : a generic `T` bound to `i64`, an operator's impl, a
@@ -56,7 +56,7 @@ main :: fn(argv: string[]) -> i32 {
     println("louder ${louder(readings[0], -3, true)} ${louder(readings[0], -3, false)}")
     r :: Reading { .level = readings[2], .at = stamp }
     println("reading ${r.level} at ${r.at}")
-    slot: usize: stamp
+    slot: i64: stamp
     println("slot ${slot + readings.len()}")
     println("quietest ${min(readings[0], readings[2])}")
     println("later ${later(r.at, stamp)}, tally ${(Tally { .sum = 1 } + stamp).sum}")

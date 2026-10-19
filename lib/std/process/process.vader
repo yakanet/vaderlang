@@ -92,12 +92,12 @@ win_handles :: fn() -> usize[] = []
 ///
 /// @param handle  the child handle.
 /// @param k       which of the three.
-win_handle :: fn(handle: i64, k: usize) -> Handle = ptr_at(win_handles(), usize(handle) * 3 + k)
+win_handle :: fn(handle: i64, k: i64) -> Handle = ptr_at(win_handles(), handle * 3 + k)
 
 /// How much to ask for per drain. One page: large enough that a chatty child
 /// does not need many rounds, small enough that an idle one costs a syscall
 /// and an empty answer.
-DRAIN_CHUNK: usize: 4096
+DRAIN_CHUNK: i64: 4096
 
 /// Take a free slot, growing the table when every one is busy.
 ///
@@ -107,18 +107,18 @@ child_alloc :: fn() -> i64 {
     for i in 0..<table.len() {
         if !table[i].in_use {
             table[i] = Child { .in_use = true }
-            return i64(i)
+            return i
         }
     }
     table.push(Child { .in_use = true })
-    return i64(table.len() - 1)
+    return table.len() - 1
 }
 
 /// Whether `handle` names a live slot.
 ///
 /// @param handle  the handle to check.
 child_valid :: fn(handle: i64) -> bool =
-    handle >= 0 && usize(handle) < children().len() && children()[usize(handle)].in_use
+    handle >= 0 && handle < children().len() && children()[handle].in_use
 
 /// Number of logical processors online — what a caller sizes a parallel fan-out
 /// on. At least 1: a platform that cannot tell answers 1.
@@ -218,7 +218,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
         return -1
     }
     h :: child_alloc()
-    children()[usize(h)] = Child {
+    children()[h] = Child {
         .in_use = true,
         .proc   = i64(pid[0]),
         .out_h  = i64(out_fds[0]),
@@ -247,11 +247,11 @@ close_pair :: fn(fds: i32[]) -> void {
 /// @param into   the accumulating buffer.
 /// @return       true once the writer is gone and the pipe is drained.
 @target
-drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool
+drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool
 
 @target(.Linux, .Darwin)
-drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
-    c :: children()[usize(child)]
+drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
+    c :: children()[child]
     fd :: if which == 1 { i32(c.out_h) } else { i32(c.err_h) }
     chunk: u8[]: [0] * DRAIN_CHUNK
     pfd :: Pollfd { .fd = fd, .events = POLLIN, .revents = 0 }
@@ -271,7 +271,7 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
             // let the next poll try again.
             return false
         }
-        for i in 0..<usize(n) {
+        for i in 0..<n {
             into.push(chunk[i])
         }
     }
@@ -282,7 +282,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if !child_valid(handle) {
         return SIGNALED
     }
-    c :: children()[usize(handle)]
+    c :: children()[handle]
     if c.done {
         return c.exit_code
     }
@@ -340,7 +340,7 @@ spawn_kill :: fn(handle: i64) -> void {
     if !child_valid(handle) {
         return
     }
-    c :: children()[usize(handle)]
+    c :: children()[handle]
     if !c.done {
         sys_kill(i32(c.proc), SIGKILL)
         st: i32[]: [0]
@@ -348,7 +348,7 @@ spawn_kill :: fn(handle: i64) -> void {
         sys_close(i32(c.out_h))
         sys_close(i32(c.err_h))
     }
-    children()[usize(handle)] = Child {}
+    children()[handle] = Child {}
     return
 }
 
@@ -408,7 +408,7 @@ spawn_start :: fn(argv: string[]) -> i64 {
     }
     close_handle(pi.hThread)
     h :: child_alloc()
-    base :: usize(h) * 3
+    base :: h * 3
     handles :: win_handles()
     for handles.len() < base + 3 {
         handles.push(0)
@@ -508,7 +508,7 @@ needs_quoting :: fn(word: u8[]) -> bool {
 }
 
 @target(.Windows)
-drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
+drain_pipe :: fn(child: i64, which: i64, into: u8[]) -> bool {
     h :: win_handle(child, which)
     chunk: u8[]: [0] * DRAIN_CHUNK
     avail: u32[]: [0]
@@ -521,14 +521,14 @@ drain_pipe :: fn(child: i64, which: usize, into: u8[]) -> bool {
         if avail[0] == 0 {
             return false
         }
-        want :: if usize(avail[0]) > DRAIN_CHUNK { u32(DRAIN_CHUNK) } else { avail[0] }
+        want :: if i64(avail[0]) > DRAIN_CHUNK { u32(DRAIN_CHUNK) } else { avail[0] }
         if !read_file(h, chunk, want, got, null) {
             return true
         }
         if got[0] == 0 {
             return true
         }
-        for i in 0..<usize(got[0]) {
+        for i in 0..<i64(got[0]) {
             into.push(chunk[i])
         }
     }
@@ -539,7 +539,7 @@ spawn_poll :: fn(handle: i64) -> i32 {
     if !child_valid(handle) {
         return SIGNALED
     }
-    c :: children()[usize(handle)]
+    c :: children()[handle]
     if c.done {
         return c.exit_code
     }
@@ -584,7 +584,7 @@ spawn_kill :: fn(handle: i64) -> void {
     if !child_valid(handle) {
         return
     }
-    c :: children()[usize(handle)]
+    c :: children()[handle]
     if !c.done {
         proc :: win_handle(handle, 0)
         terminate_process(proc, 1)
@@ -593,7 +593,7 @@ spawn_kill :: fn(handle: i64) -> void {
         close_handle(win_handle(handle, 2))
         close_handle(proc)
     }
-    children()[usize(handle)] = Child {}
+    children()[handle] = Child {}
     return
 }
 
@@ -602,7 +602,7 @@ export spawn_take_stdout :: fn(handle: i64) -> string {
     if !child_valid(handle) {
         return ""
     }
-    return children()[usize(handle)].out.bytes_to_string()
+    return children()[handle].out.bytes_to_string()
 }
 
 /// Intern the child's captured stderr AND release the child slot — the last
@@ -611,11 +611,11 @@ export spawn_take_stderr :: fn(handle: i64) -> string {
     if !child_valid(handle) {
         return ""
     }
-    c :: children()[usize(handle)]
+    c :: children()[handle]
     out :: c.err.bytes_to_string()
     // The LAST call for a handle — releasing here is what frees the slot and
     // the captured buffers, and take order is stdout then stderr.
-    children()[usize(handle)] = Child {}
+    children()[handle] = Child {}
     return out
 }
 

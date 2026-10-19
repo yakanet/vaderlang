@@ -4,19 +4,19 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       pass: i32 = 0
       zeros: i32[] = @array.repeat([0] :i32[], 3)
-      if ((@array.len(zeros) == usize(3)) && (zeros[0] == 0)) && (zeros[2] == 0) {
+      if ((@array.len(zeros) == i64(3)) && (zeros[0] == 0)) && (zeros[2] == 0) {
           pass = pass + 1
       }
       ones: i32[] = @array.repeat([1] :i32[], 4)
-      if ((@array.len(ones) == usize(4)) && (ones[0] == 1)) && (ones[3] == 1) {
+      if ((@array.len(ones) == i64(4)) && (ones[0] == 1)) && (ones[3] == 1) {
           pass = pass + 1
       }
       ab: i32[] = @array.repeat([7, 9] :i32[], 2)
-      if ((((@array.len(ab) == usize(4)) && (ab[0] == 7)) && (ab[1] == 9)) && (ab[2] == 7)) && (ab[3] == 9) {
+      if ((((@array.len(ab) == i64(4)) && (ab[0] == 7)) && (ab[1] == 9)) && (ab[2] == 7)) && (ab[3] == 9) {
           pass = pass + 1
       }
       buf: i32[] = @array.repeat([] :i32[], 8)
-      if @array.len(buf) == usize(0) {
+      if @array.len(buf) == i64(0) {
           pass = pass + 1
       }
       {
@@ -27,34 +27,34 @@
               i = i +% 1
           }
       }
-      if ((@array.len(buf) == usize(5)) && (buf[0] == 0)) && (buf[4] == 4) {
+      if ((@array.len(buf) == i64(5)) && (buf[0] == 0)) && (buf[4] == 4) {
           pass = pass + 1
       }
       a: i32[] = [1, 2, 3] :i32[]
       extra: i32[] = [4, 5] :i32[]
       @array.push_all(a, extra)
-      if (((@array.len(a) == usize(5)) && (a[2] == 3)) && (a[3] == 4)) && (a[4] == 5) {
+      if (((@array.len(a) == i64(5)) && (a[2] == 3)) && (a[3] == 4)) && (a[4] == 5) {
           pass = pass + 1
       }
       dup: i32[] = [8, 9] :i32[]
       @array.push_all(dup, dup)
-      if ((((@array.len(dup) == usize(4)) && (dup[0] == 8)) && (dup[1] == 9)) && (dup[2] == 8)) && (dup[3] == 9) {
+      if ((((@array.len(dup) == i64(4)) && (dup[0] == 8)) && (dup[1] == 9)) && (dup[2] == 8)) && (dup[3] == 9) {
           pass = pass + 1
       }
       dst: i32[] = @array.repeat([0] :i32[], 5)
       src: i32[] = [11, 22, 33] :i32[]
-      @array.copy(src, usize(0), dst, usize(1), usize(3))
+      @array.copy(src, i64(0), dst, i64(1), i64(3))
       if ((((dst[0] == 0) && (dst[1] == 11)) && (dst[2] == 22)) && (dst[3] == 33)) && (dst[4] == 0) {
           pass = pass + 1
       }
       ov: i32[] = [1, 2, 3, 4] :i32[]
-      @array.copy(ov, usize(0), ov, usize(1), usize(3))
+      @array.copy(ov, i64(0), ov, i64(1), i64(3))
       if (((ov[0] == 1) && (ov[1] == 1)) && (ov[2] == 2)) && (ov[3] == 3) {
           pass = pass + 1
       }
       st: i32[] = [100, 200] :i32[]
       last: i32 | null = @array.remove_last(st)
-      if (((!(last is null)) && (i32(last) == 200)) && (@array.len(st) == usize(1))) && (st[0] == 100) {
+      if (((!(last is null)) && (i32(last) == 200)) && (@array.len(st) == i64(1))) && (st[0] == 100) {
           pass = pass + 1
       }
       drained: i32[] = [] :i32[]
@@ -65,7 +65,7 @@
       c: i32[] = [1, 2, 3, 4] :i32[]
       @array.clear(c)
       @array.push(c, 42)
-      if (@array.len(c) == usize(1)) && (c[0] == 42) {
+      if (@array.len(c) == i64(1)) && (c[0] == 42) {
           pass = pass + 1
       }
       return pass
@@ -75,13 +75,13 @@
   std/core
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
-    fn std.core.usize.step  // std_core$usize$Step$step
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64

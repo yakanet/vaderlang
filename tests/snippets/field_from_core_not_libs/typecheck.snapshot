@@ -5,8 +5,8 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:42    CallExpr       :: i32
   expr 10:42    IdentExpr      :: type
-  expr 10:46    CallExpr       :: usize
-  expr 10:46    FieldExpr      :: fn() -> usize
+  expr 10:46    CallExpr       :: i64
+  expr 10:46    FieldExpr      :: fn() -> i64
   expr 10:46    IdentExpr      :: Field[]
   expr 12:23    CallExpr       :: i32
   expr 12:23    IdentExpr      :: fn(Field[]) -> i32

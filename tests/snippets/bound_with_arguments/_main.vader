@@ -42,14 +42,14 @@ twice :: fn<T: Add<T, T>>(x: T) -> T = x + x
 relay :: fn<T: Add<T>>(x: T) -> T = twice(x)
 
 Count :: trait<E> {
-    count :: fn(self, e: E) -> usize
+    count :: fn(self, e: E) -> i64
 }
 
 Money[] implements Count<Money[]> {
-    count :: fn(self, e: Money[]) -> usize = self.len() + e.len()
+    count :: fn(self, e: Money[]) -> i64 = self.len() + e.len()
 }
 
-both :: fn<T: Count<T>>(x: T) -> usize = x.count(x)
+both :: fn<T: Count<T>>(x: T) -> i64 = x.count(x)
 
 Cfg :: struct {
     n: i32

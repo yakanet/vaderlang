@@ -219,11 +219,11 @@ read_keys :: fn(max: i32) -> string | null {
     if n == 0 {
         return null
     }
-    buf: u8[]: [0] * usize(n)
+    buf: u8[]: [0] * i64(n)
     for _ in 0..<READ_ATTEMPTS {
-        got :: sys_read(0, buf, usize(n))
+        got :: sys_read(0, buf, i64(n))
         if got > 0 {
-            return buf[0..<usize(got)].bytes_to_string()
+            return buf[0..<got].bytes_to_string()
         }
         if got == 0 {
             return null
@@ -242,7 +242,7 @@ read_keys :: fn(max: i32) -> string | null {
     if isize(h) == INVALID_HANDLE {
         return null
     }
-    buf: u8[]: [0] * usize(n)
+    buf: u8[]: [0] * i64(n)
     got: u32[]: [0]
     if !read_file(h, buf, u32(n), got, null) {
         return null
@@ -251,7 +251,7 @@ read_keys :: fn(max: i32) -> string | null {
     if got[0] == 0 {
         return null
     }
-    return buf[0..<usize(got[0])].bytes_to_string()
+    return buf[0..<i64(got[0])].bytes_to_string()
 }
 
 /// The read size: the caller's ask, floored at 0 and capped at `KEYS_MAX`.

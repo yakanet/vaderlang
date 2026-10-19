@@ -644,8 +644,8 @@ pinned_header :: fn(e: EnumType) -> string {
 // that may cross; null otherwise. Such an enum reaches C through a Vader
 // function that converts its rank, which would receive the callback as a value,
 // and C calls only a named function (T3080).
-callback_beside_enum_values :: fn(params: Type[]) -> usize | null {
-    callback: usize | null = null
+callback_beside_enum_values :: fn(params: Type[]) -> i64 | null {
+    callback: i64 | null = null
     values := false
     for i in 0..<params.len() {
         pt :: params[i]
@@ -1284,11 +1284,11 @@ build_data_enum_type :: fn(
     ranks :: MutableMap<string, i64> {}
     values: i64[]: []
     for variant in decl.variants {
-        rank :: i64(values.len())
+        rank :: values.len()
         ranks[variant.name] = rank
         values.push(written[variant.name] ?? rank)
     }
-    last_rank :: if values.len() > 0 { i64(values.len()) - 1 } else { 0 }
+    last_rank :: if values.len() > 0 { values.len() - 1 } else { 0 }
     return EnumType {
         .symbol        = sym,
         .repr          = narrowest_width(0, last_rank),

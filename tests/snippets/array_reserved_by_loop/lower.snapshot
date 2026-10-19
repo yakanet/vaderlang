@@ -11,21 +11,21 @@
       out: string = concat_2(label, ":")
       {
           __for_arr_0: i64[] = xs
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i64 = __for_arr_0[__for_i_2]
               out = {
                   __p_3: string = out
-                  __buf_4: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_3))
-                  __off_5: usize = 0
+                  __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
+                  __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
                   __off_5 = std.core.write_int(__buf_4, __off_5, x)
                   std.core.finish_buffer(__buf_4, __off_5)
               }
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       std.io.println<string>(out)
@@ -34,19 +34,19 @@
       out: i64[] = @array.repeat([] :i64[], @array.len(a))
       {
           __for_arr_0: i32[] = a
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               @array.push_cached(out, snippet.square(x))
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       return out
   }
   snippet.over_range :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_range
-      out: i64[] = @array.repeat([] :i64[], if lo < hi { usize(hi) -% usize(lo) } else { usize(0) } :usize)
+      out: i64[] = @array.repeat([] :i64[], if lo < hi { i64(hi) -% i64(lo) } else { i64(0) } :i64)
       {
           i: i32 = lo
           for i < hi {
@@ -58,7 +58,7 @@
       return out
   }
   snippet.over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_inclusive
-      out: i64[] = @array.repeat([] :i64[], if lo <= hi { (usize(hi) -% usize(lo)) +% usize(1) } else { usize(0) } :usize)
+      out: i64[] = @array.repeat([] :i64[], if lo <= hi { (i64(hi) -% i64(lo)) +% i64(1) } else { i64(0) } :i64)
       {
           i: i32 = lo
           __more_turns_0: bool = i <= hi
@@ -71,8 +71,8 @@
       }
       return out
   }
-  snippet.span_count :: fn(lo: i8, hi: i8) -> usize {  // snippet$span_count
-      out: i8[] = @array.repeat([] :i8[], if lo < hi { usize(hi) -% usize(lo) } else { usize(0) } :usize)
+  snippet.span_count :: fn(lo: i8, hi: i8) -> i64 {  // snippet$span_count
+      out: i8[] = @array.repeat([] :i8[], if lo < hi { i64(hi) -% i64(lo) } else { i64(0) } :i64)
       {
           b: i8 = lo
           for b < hi {
@@ -88,13 +88,13 @@
       out: i64[] = @array.repeat([] :i64[], @array.len(bag.items))
       {
           __for_arr_0: i32[] = bag.items
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               @array.push_cached(out, snippet.square(x))
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       return out
@@ -105,25 +105,25 @@
       offset: i32 = 100
       {
           __for_arr_0: i32[] = a
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               @array.push(squares, snippet.square(x))
               @array.push(doubles, i64((x * 2) + offset))
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
-      return squares[@array.len(squares) - usize(1)] + doubles[0]
+      return squares[@array.len(squares) - i64(1)] + doubles[0]
   }
   snippet.squares_later :: fn(a: i32[]) -> Async<i64[]> {  // snippet$squares_later
       return __asyncstate_snippet_0 {
           .s0 = a,
           .s1 = null,
           .s2 = null,
-          .s3 = usize(0),
-          .s4 = usize(0),
+          .s3 = i64(0),
+          .s4 = i64(0),
           .s5 = 0,
           .s6 = null,
           .awaited = null,
@@ -134,15 +134,15 @@
       out: i64[] = [] :i64[]
       {
           __for_arr_0: i32[] = a
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               if snippet.odd(x) {
                   @array.push_cached(out, snippet.square(x))
               }
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       return out
@@ -151,8 +151,8 @@
       out: i64[] = [] :i64[]
       {
           __for_arr_0: i32[] = a
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               if x > 3 {
@@ -160,7 +160,7 @@
               }
               @array.push_cached(out, snippet.square(x))
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       return out
@@ -175,7 +175,7 @@
           .state = 5,
       }))
   }
-  __asyncstate_snippet_0 :: struct { s0: i32[], s1: i64[], s2: i32[], s3: usize, s4: usize, s5: i32, s6: null, awaited: Async<Any>, state: i32 }
+  __asyncstate_snippet_0 :: struct { s0: i32[], s1: i64[], s2: i32[], s3: i64, s4: i64, s5: i32, s6: null, awaited: Async<Any>, state: i32 }
   snippet$__asyncstate_snippet_0$Async$resume :: fn(self: __asyncstate_snippet_0) -> i64[] | Suspended {
       dispatch$: for {
           if __self_4.state == 0 {
@@ -208,7 +208,7 @@
           } else if __self_4.state == 7 {
               __self_4.s5 = __self_4.s2[__self_4.s4]
               @array.push(__self_4.s1, snippet.square(__self_4.s5))
-              __self_4.s4 = __self_4.s4 +% usize(1)
+              __self_4.s4 = __self_4.s4 +% i64(1)
               __self_4.state = 6
           } else if __self_4.state == 8 {
               __self_4.s2 = __self_4.s0
@@ -262,21 +262,21 @@
                   f: fn(i32) -> i64 = snippet.square
                   out: i64[] = @array.repeat([] :i64[], @array.len(__fuse_arr_0))
                   {
-                      __fuse_len_0: usize = @array.len(__fuse_arr_0)
-                      __fuse_i_1: usize = 0
+                      __fuse_len_0: i64 = @array.len(__fuse_arr_0)
+                      __fuse_i_1: i64 = 0
                       for __fuse_i_1 < __fuse_len_0 {
                           x: i32 = __fuse_arr_0[__fuse_i_1]
                           x: i64 = snippet.square(x)
                           @array.push(out, x)
                       } @step {
-                          __fuse_i_1 = __fuse_i_1 +% usize(1)
+                          __fuse_i_1 = __fuse_i_1 +% i64(1)
                       }
                   }
                   out
               } :i64[])
               snippet.show("collect range", {
                   f: fn(i32) -> i64 = snippet.square
-                  out: i64[] = @array.repeat([] :i64[], usize(4))
+                  out: i64[] = @array.repeat([] :i64[], i64(4))
                   {
                       x: i32 = 0
                       for x < 4 {
@@ -295,16 +295,16 @@
               snippet.show("inclusive", snippet.over_inclusive(1, 3))
               snippet.show("empty inclusive", snippet.over_inclusive(3, 1))
               std.io.println<string>({
-                  __buf_3: Buffer = std.core.new_byte_buffer(usize(35))
-                  __off_4: usize = 0
+                  __buf_3: Buffer = std.core.new_byte_buffer(i64(35))
+                  __off_4: i64 = 0
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, "narrow signed: ")
-                  __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.span_count(i8(-100), i8(100))))
+                  __off_4 = std.core.write_int(__buf_3, __off_4, snippet.span_count(i8(-100), i8(100)))
                   std.core.finish_buffer(__buf_3, __off_4)
               } :string)
               snippet.show("field", snippet.over_field(Bag { .items = [3, 4] :i32[] }))
               std.io.println<string>({
-                  __buf_5: Buffer = std.core.new_byte_buffer(usize(27))
-                  __off_6: usize = 0
+                  __buf_5: Buffer = std.core.new_byte_buffer(i64(27))
+                  __off_6: i64 = 0
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, "split: ")
                   __off_6 = std.core.write_int(__buf_5, __off_6, snippet.split(__self_8.s0))
                   std.core.finish_buffer(__buf_5, __off_6)
@@ -322,10 +322,10 @@
       __self_8.state = -1
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -398,22 +398,22 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.Range<i8>.contains  // std_core$Range$Contains$contains__i8
     fn std.core.Range<i8>.next  // std_core$Range$Iterator$next__i8
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i8.compare  // std_core$i8$Comparable$compare
     fn std.core.i8.step  // std_core$i8$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -423,8 +423,8 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Range<i8>  // std_core$Range__i8
-    struct std.core.Range<usize>  // std_core$Range__usize
     struct std.core.Suspended  // std_core$Suspended
   std/io
     fn std.io.println<string>  // std_io$println__string

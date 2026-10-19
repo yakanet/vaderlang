@@ -66,54 +66,9 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         if recorded_callee(ctx, binary, .Operator) is Builtin {
             return lower_in_type(ctx, binary)
         }
-        // Fast-path : `x in lo..=hi` / `x in lo..<hi` over a LITERAL range with a
-        // scalar (a primitive, or a distinct over one), side-effect-free `x` →
-        // inline `lo <= x && x <= hi` (or `< hi`), bypassing the `Range` heap
-        // allocation + `contains` call. The hot case is the char predicates
-        // (`c in 'a'..='z'`), which would otherwise build a fresh `Range` per call
-        // just to bounds-check. `x` is re-lowered (not a shared IR node) so the
-        // ident loads twice ; restricting to IdentExpr keeps that duplication
-        // side-effect-free. The bounds are
-        // evaluated once each, `lo` first, as the `Range` would be : an `hi` that
-        // does work is bound ahead — the `&&` may short-circuit past it — and
-        // `lo` then ahead of it.
         if binary.right is RangeExpr as range_lit {
-            if binary.left is IdentExpr {
-                if scalar_backing(ctx.types.expr_type(binary.left)) != null {
-                    observe_no_call(ctx, binary, .Operator, "bounds")
-                    span :: binary.span
-                    lo_first :: lower_expr(ctx, range_lit.lower)
-                    mark :: ctx.pending_awaits.len()
-                    hi_value :: lower_expr(ctx, range_lit.upper)
-                    lo_value :: bind_one_before_hoisted(ctx, lo_first, mark)
-                    bounds: LoweredStmt[]: []
-                    hoist :: !is_effect_free_read(hi_value)
-                    lo :: if hoist {
-                        bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
-                    } else {
-                        lo_value
-                    }
-                    hi :: if hoist {
-                        bind_to_local(ctx, hi_value, hi_value.type, "in_hi", span, bounds)
-                    } else {
-                        hi_value
-                    }
-                    cmp_lo :: LoweredBinary {
-                        .span = span, .type = TY_BOOL, .op = .Lte,
-                        .left = lo, .right = lower_expr(ctx, binary.left),
-                    }
-                    cmp_hi :: LoweredBinary {
-                        .span = span, .type = TY_BOOL,
-                        .op = cmp_op_for_inclusive(range_lit.inclusive),
-                        .left = lower_expr(ctx, binary.left), .right = hi,
-                    }
-                    anded :: LoweredBinary {
-                        .span = span, .type = TY_BOOL, .op = .And,
-                        .left = cmp_lo, .right = cmp_hi,
-                    }
-                    test :: maybe_negate(anded, binary.op == .NotIn, span)
-                    return with_prelude(bounds, test, span)
-                }
+            if scalar_backing(ctx.types.expr_type(binary.left)) != null {
+                return lower_in_literal_range(ctx, binary, range_lit)
             }
         }
         // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`,
@@ -226,6 +181,100 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
 // True iff `t` is the `string` primitive — the predicate that routes `+` to the
 // StringBuilder-chain concat lowering. A standalone fn (not an `&& as` guard)
 // to avoid the `as`-binding-inside-`&&` miscompile.
+// `x in lo..=hi` / `x in lo..<hi` over a literal range, `x` a scalar (a primitive,
+// or a distinct over one) : `lo <= x && x <= hi` (or `< hi`) inline, without the
+// `Range` heap allocation and `contains` call. The hot cases are the char predicates
+// (`c in 'a'..='z'`) and index tests (`i64(i) in 0..<n`). A name is lowered afresh
+// for each comparison, a read that does no work ; any other `x` is evaluated once,
+// ahead of the bounds, as `contains` takes it, and read from a local. The bounds are
+// evaluated once each, `lo` first, as the `Range` would be : an `hi` that does work
+// is bound ahead (the `&&` may short-circuit past it), and `lo` then ahead of it.
+lower_in_literal_range :: fn(
+    ctx: FnLowerCtx,
+    binary: BinaryExpr,
+    range_lit: RangeExpr,
+) -> LoweredExpr {
+    observe_no_call(ctx, binary, .Operator, "bounds")
+    span :: binary.span
+    subject_first :: lowered_unless_name(ctx, binary.left)
+    subject_mark :: ctx.pending_awaits.len()
+    lo_first :: lower_expr(ctx, range_lit.lower)
+    mark :: ctx.pending_awaits.len()
+    hi_value :: lower_expr(ctx, range_lit.upper)
+    lo_value :: bind_one_before_hoisted(ctx, lo_first, mark)
+    bounds: LoweredStmt[]: []
+    held :: held_subject(ctx, subject_first, subject_mark, span, bounds)
+    hoist :: !is_effect_free_read(hi_value)
+    lo :: if hoist {
+        bind_unless_stable(ctx, lo_value, "in_lo", span, bounds)
+    } else {
+        lo_value
+    }
+    hi :: if hoist {
+        bind_to_local(ctx, hi_value, hi_value.type, "in_hi", span, bounds)
+    } else {
+        hi_value
+    }
+    cmp_lo :: LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = .Lte,
+        .left = lo,
+        .right = subject_read(ctx, binary.left, held),
+    }
+    cmp_hi :: LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = cmp_op_for_inclusive(range_lit.inclusive),
+        .left = subject_read(ctx, binary.left, held),
+        .right = hi,
+    }
+    anded :: LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = .And,
+        .left = cmp_lo,
+        .right = cmp_hi,
+    }
+    test :: maybe_negate(anded, binary.op == .NotIn, span)
+    return with_prelude(bounds, test, span)
+}
+
+// `left` lowered, unless it is a name, lowered afresh where it is read.
+lowered_unless_name :: fn(ctx: FnLowerCtx, left: Expr) -> LoweredExpr | null {
+    if left is IdentExpr {
+        return null
+    }
+    return lower_expr(ctx, left)
+}
+
+// `first`, the subject lowered ahead of the bounds, bound to a local in `out` ahead
+// of any `await` the bounds hoisted since `mark` ; null for a name.
+held_subject :: fn(
+    ctx: FnLowerCtx,
+    first: LoweredExpr | null,
+    mark: i64,
+    span: Span,
+    out: LoweredStmt[],
+) -> LoweredExpr | null {
+    if first == null {
+        return null
+    }
+    return bind_unless_stable(ctx, bind_one_before_hoisted(ctx, first, mark), "in_x", span, out)
+}
+
+// One read of the subject `left` : its name lowered afresh, or the value it was
+// held in, a local read again as a node of its own.
+subject_read :: fn(ctx: FnLowerCtx, left: Expr, held: LoweredExpr | null) -> LoweredExpr {
+    if held == null {
+        return lower_expr(ctx, left)
+    }
+    if held is LoweredIdent {
+        return LoweredIdent { ...held }
+    }
+    return held
+}
+
 is_string_type :: fn(t: Type) -> bool {
     if t is PrimitiveType { return t.name == "string" }
     return false

@@ -16,8 +16,8 @@ type 13 fn () -> 6
 type 14 ref std_core$Async
 type 15 primitive bool
 type 16 primitive u8
-type 17 primitive usize
-type 18 array 16
+type 17 array 16
+type 18 primitive usize
 type 19 struct std_core$Buffer {  }
 type 20 struct std_async$Race__string { children:25,wake_at:26 }
 type 21 ref std_core$Async
@@ -26,7 +26,6 @@ type 23 struct std_async$Sleep { ms:2,deadline:2,armed:15 }
 type 24 union 0,9
 type 25 array 3
 type 26 array 2
-type 27 primitive isize
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
@@ -34,9 +33,9 @@ string 3 "fast"
 string 4 "slow"
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
-import 0 byte_len std_core$byte_len result_type=17 param_types=1 param_c_out= param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=18 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=27 param_types=4,18,17 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 0 byte_len std_core$byte_len result_type=2 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=2 param_types=4,17,2 param_c_out= param_by_address= (i32,ref,i64) -> i64
 import 3 sched_now std_runtime$sched_now result_type=2 () -> i64
 import 4 sched_arm std_runtime$sched_arm result_type=6 param_types=2 param_c_out= param_by_address= (i64) -> void
 import 5 sched_park std_runtime$sched_park result_type=4 () -> i32
@@ -101,9 +100,9 @@ end
 
 fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $field_17 ref
-  local $sub_21 usize
+  local $sub_21 i64
   local $field_23 ref
-  local $sub_28 usize
+  local $sub_28 i64
   local $slice_29 ref
   local __resumed_3 any
   local $cast_44 null
@@ -262,9 +261,9 @@ end
 
 fn 4 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   local $field_8 ref
-  local $sub_12 usize
+  local $sub_12 i64
   local $field_14 ref
-  local $sub_19 usize
+  local $sub_19 i64
   local $slice_20 ref
   local.field 0 7 4   ; arg 0 __asyncstate_snippet_2.awaited
   type_check 0   ; null
@@ -449,8 +448,8 @@ fn 6 snippet$__asyncstate_snippet_3$Async$cancel (ref) -> void
 end
 
 fn 7 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -462,6 +461,7 @@ fn 7 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -479,13 +479,13 @@ end
 
 fn 8 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -497,7 +497,7 @@ fn 8 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -506,7 +506,7 @@ fn 8 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 18   ; u8[]
+      array.slice 17   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -525,7 +525,7 @@ fn 8 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -533,7 +533,7 @@ fn 8 std_io$write (u8,string) -> void
   return
 end
 
-fn 9 std_io$write_bytes (u8,ref,usize) -> i32
+fn 9 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -542,14 +542,14 @@ fn 9 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 
@@ -566,14 +566,14 @@ fn 10 std_io$println__string (string) -> void
 end
 
 fn 11 std_async$Race$std_core_Async$resume__string (ref) -> any
-  local n usize
+  local n i64
   local now i64
   local next i64
-  local i usize
+  local i i64
   local r any
   local $field_19 ref
   local $field_21 i64
-  local j usize
+  local j i64
   local $idx_32 i64
   local.field 0 20 0   ; arg 0 std_async$Race__string.children
   array.len
@@ -587,7 +587,7 @@ fn 11 std_async$Race$std_core_Async$resume__string (ref) -> any
   loop $L0 void
     local.get 4   ; i
     local.get 1   ; n
-    u64.lt
+    i64.lt
     if $L1 void
       local.field 0 20 1   ; arg 0 std_async$Race__string.wake_at
       local.get 4   ; i
@@ -619,7 +619,7 @@ fn 11 std_async$Race$std_core_Async$resume__string (ref) -> any
           loop $L4 void
             local.get 8   ; j
             local.get 1   ; n
-            u64.lt
+            i64.lt
             if $L5 void
               local.get 8   ; j
               local.get 4   ; i
@@ -665,8 +665,8 @@ end
 
 fn 12 std_async$Race$std_core_Async$cancel__string (ref) -> void
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   local.field 0 20 0   ; arg 0 std_async$Race__string.children
   local.tee 1   ; __for_arr_0
   array.len
@@ -676,7 +676,7 @@ fn 12 std_async$Race$std_core_Async$cancel__string (ref) -> void
   loop $L0 void
     local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
@@ -793,7 +793,7 @@ end
 
 fn 19 std_async$race__string (ref) -> any
   local $arr_2 ref
-  local $len_3 usize
+  local $len_3 i64
   i64.const 0
   array.new 26 1   ; i64[]
   local.set 1   ; $arr_2

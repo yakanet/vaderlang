@@ -214,7 +214,7 @@ project_root_from :: fn(args: string[]) -> string = arg_or_empty(args, 1)
 
 // `args[i]`, or "" when argv is shorter. A driver run by hand has neither the
 // project root nor the toolchain root, and both fall back rather than fail.
-arg_or_empty :: fn(args: string[], i: usize) -> string {
+arg_or_empty :: fn(args: string[], i: i64) -> string {
     if args.len() > i {
         return args[i]
     }

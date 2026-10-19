@@ -261,7 +261,7 @@ cursor_follows_a_dot :: fn(index: DocIndex, line: i32, character: i32) -> bool {
 // while `s[a..<b]` on a Vader string slices by CODEPOINT, so building the name
 // by slicing reads the wrong region the moment the file holds a single non-ASCII
 // character — and this file's own comments are full of em dashes.
-alias_before :: fn(index: DocIndex, offset: usize) -> string | null {
+alias_before :: fn(index: DocIndex, offset: i64) -> string | null {
     if offset < 2 {
         return null
     }
@@ -305,7 +305,7 @@ is_word_byte :: fn(b: u8) -> bool = (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 
 // ALONE, because `...` is the spread operator. Its last dot passes a naive test,
 // and `{ ...name }` then looked up the local `name` as a member of its own type
 // — leaving a perfectly indexed local for a field that merely shares its name.
-follows_a_dot :: fn(source: string, offset: usize) -> bool {
+follows_a_dot :: fn(source: string, offset: i64) -> bool {
     if offset == 0 {
         return false
     }

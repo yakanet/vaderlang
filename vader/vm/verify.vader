@@ -43,8 +43,8 @@ export display_verify_error :: fn(e: VerifyError) -> string = "${e.message} at p
 /// @return        the deepest the operand stack gets in each function, index-aligned
 ///                with `module.functions` — what a frame's stack is sized to.
 /// @error         a `VerifyError` naming the function, the pc and the first defect.
-export verify_module :: fn(module: bc.BytecodeModule) -> usize[] | VerifyError {
-    depths: usize[]: [] * module.functions.len()
+export verify_module :: fn(module: bc.BytecodeModule) -> i64[] | VerifyError {
+    depths: i64[]: [] * module.functions.len()
     for f in module.functions {
         found :: verify_function(module, f)
         if found is VerifyError {
@@ -73,8 +73,8 @@ export verify_all :: fn(module: bc.BytecodeModule) -> VerifyError[] {
 
 // What one op does to the operand stack, and where control goes next.
 StackEffect :: struct {
-    pops:   usize
-    pushes: usize
+    pops:   i64
+    pushes: i64
     flow:   Flow
 }
 
@@ -82,22 +82,22 @@ StackEffect :: struct {
 // (a condition) ; `Stop` leaves the function or traps.
 Flow :: enum { Next, Jump, Fork, Stop }
 
-effect :: fn(pops: usize, pushes: usize) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
+effect :: fn(pops: i64, pushes: i64) = StackEffect { .pops = pops, .pushes = pushes, .flow = .Next }
 
 // The function's deepest operand stack, or its first defect.
-verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | VerifyError {
+verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> i64 | VerifyError {
     n :: f.body.len()
     if n == 0 {
         return 0
     }
-    deepest: usize = 0
+    deepest: i64 = 0
     results :: bc.bc_result_arity(f.signature)
     depth: i64[]: [-1] * n
     depth[0] = 0
-    work: usize[]: [0]
+    work: i64[]: [0]
     for work.len() > 0 {
         pc :: work.remove_last() ?? break
-        d :: usize(depth[pc])
+        d :: depth[pc]
         op :: f.body[pc]
         e :: effect_of(module, f, op) ?? return defect(f, pc, "`${op_text(op)}` names nothing")
         if d < e.pops {
@@ -119,10 +119,10 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | Ve
         }
         if e.flow == .Jump || e.flow == .Fork {
             target :: if pc < f.jump_table.len() { f.jump_table[pc] } else { -1 }
-            if target < 0 || usize(target) > n {
+            if target < 0 || i64(target) > n {
                 return defect(f, pc, "`${op_text(op)}` has no jump target inside the body")
             }
-            jump :: flow_to(f, depth, work, usize(target), after, pc, results)
+            jump :: flow_to(f, depth, work, i64(target), after, pc, results)
             if jump != null {
                 return jump
             }
@@ -134,7 +134,7 @@ verify_function :: fn(module: bc.BytecodeModule, f: bc.BcFunction) -> usize | Ve
 // Control reaching `at` with `d` values: past the last op it leaves the function,
 // which must then hold its results ; anywhere else the depth is merged.
 flow_to :: fn(
-    f: bc.BcFunction, depth: i64[], work: usize[], at: usize, d: usize, from: usize, results: usize,
+    f: bc.BcFunction, depth: i64[], work: i64[], at: i64, d: i64, from: i64, results: i64,
 ) -> VerifyError | null {
     if at < f.body.len() {
         return merge(f, depth, work, at, d, from)
@@ -147,20 +147,20 @@ flow_to :: fn(
 
 // Record `at`'s depth, or check it against the one already recorded.
 merge :: fn(
-    f: bc.BcFunction, depth: i64[], work: usize[], at: usize, d: usize, from: usize,
+    f: bc.BcFunction, depth: i64[], work: i64[], at: i64, d: i64, from: i64,
 ) -> VerifyError | null {
     if depth[at] < 0 {
-        depth[at] = i64(d)
+        depth[at] = d
         work.push(at)
         return null
     }
-    if depth[at] != i64(d) {
+    if depth[at] != d {
         return defect(f, from, "reaches pc=${at} with ${d} value(s) where another path brings ${depth[at]}")
     }
     return null
 }
 
-defect :: fn(f: bc.BcFunction, pc: usize, message: string) = VerifyError {
+defect :: fn(f: bc.BcFunction, pc: i64, message: string) = VerifyError {
     .function = f.name,
     .pc       = i32(pc),
     .message  = message,
@@ -183,7 +183,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
             if !in_range(op.function_index, module.functions.len()) {
                 null
             } else {
-                callee :: module.functions[usize(op.function_index)].signature
+                callee :: module.functions[op.function_index].signature
                 effect(callee.params.len(), bc.bc_result_arity(callee))
             }
         }
@@ -191,7 +191,7 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
             if !in_range(op.index, module.imports.len()) {
                 null
             } else {
-                sig :: module.imports[usize(op.index)].signature
+                sig :: module.imports[op.index].signature
                 effect(sig.params.len(), bc.bc_result_arity(sig))
             }
         }
@@ -200,14 +200,14 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
             if op.parameter_count < 0 {
                 null
             } else {
-                effect(usize(op.parameter_count), virtual_result_arity(module, op.vtable_key))
+                effect(i64(op.parameter_count), virtual_result_arity(module, op.vtable_key))
             }
         }
         is bc.FnRef  -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
         is bc.FnAddr -> indexed_effect(op.function_index, module.functions.len(), 0, 1)
         is bc.MakeClosure -> indexed_effect(op.function_index, module.functions.len(), 1, 1)
         is bc.StructNew  -> struct_new_effect(module, op.type_id)
-        is bc.ArrayNew   -> if op.length >= 0 { effect(usize(op.length), 1) } else { null }
+        is bc.ArrayNew   -> if op.length >= 0 { effect(i64(op.length), 1) } else { null }
         is bc.TypeConst  -> indexed_effect(op.type_id, module.types.len(), 0, 1)
         is bc.TypeCheck  -> indexed_effect(op.type_id, module.types.len(), 1, 1)
         is bc.CheckedArith -> if bc.is_integer_val(op.kind) { effect(2, 1) } else { null }
@@ -244,11 +244,11 @@ effect_of :: fn(module: bc.BytecodeModule, f: bc.BcFunction, op: bc.Op) -> Stack
     }
 }
 
-in_range :: fn(index: i32, len: usize) = index >= 0 && usize(index) < len
+in_range :: fn(index: i32, len: i64) = i64(index) in 0..<len
 
 // `effect(pops, pushes)` when `index` names an entry of a table of `len`, null
 // otherwise.
-indexed_effect :: fn(index: i32, len: usize, pops: usize, pushes: usize) -> StackEffect | null {
+indexed_effect :: fn(index: i32, len: i64, pops: i64, pushes: i64) -> StackEffect | null {
     if !in_range(index, len) {
         return null
     }
@@ -264,7 +264,7 @@ op_text :: fn(op: bc.Op) -> string {
 // `call.indirect` pops the fn value on top of its arguments.
 indirect_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect | null {
     t :: fn_type_of(module, type_id) ?? return null
-    results: usize: if returns_void(module, t.return_type) { 0 } else { 1 }
+    results: i64: if returns_void(module, t.return_type) { 0 } else { 1 }
     return effect(t.params.len() + 1, results)
 }
 
@@ -273,7 +273,7 @@ fn_type_of :: fn(module: bc.BytecodeModule, type_id: i32) -> bc.BcFn | null {
     if !in_range(type_id, module.types.len()) {
         return null
     }
-    t :: module.types[usize(type_id)]
+    t :: module.types[type_id]
     return if t is bc.BcFn { t } else { null }
 }
 
@@ -281,12 +281,12 @@ returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
     if !in_range(type_index, module.types.len()) {
         return false
     }
-    t :: module.types[usize(type_index)]
+    t :: module.types[type_index]
     return t is bc.BcPrimitive && t.val == .Void
 }
 
 // A key with no row is served by a host impl, which always leaves one value.
-virtual_result_arity :: fn(module: bc.BytecodeModule, key: string) -> usize {
+virtual_result_arity :: fn(module: bc.BytecodeModule, key: string) -> i64 {
     sig :: virtual_signature(module, key) ?? return 1
     return bc.bc_result_arity(sig)
 }
@@ -298,7 +298,7 @@ virtual_signature :: fn(module: bc.BytecodeModule, key: string) -> bc.BcSignatur
         if row.key == key && row.entries.len() > 0 {
             at :: row.entries[0].fn_index
             if in_range(at, module.functions.len()) {
-                return module.functions[usize(at)].signature
+                return module.functions[at].signature
             }
         }
     }
@@ -309,7 +309,7 @@ struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect 
     if !in_range(type_id, module.types.len()) {
         return null
     }
-    t :: module.types[usize(type_id)]
+    t :: module.types[type_id]
     if t !is bc.BcStruct {
         return null
     }

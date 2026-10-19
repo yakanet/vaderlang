@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/bound_with_arguments
-  FnDecl         both                 :: fn(T) -> usize
+  FnDecl         both                 :: fn(T) -> i64
   StructDecl     Cfg                  :: Cfg
   TraitDecl      Count                :: Count<E>
   FnDecl         feed                 :: fn(T) -> i32
@@ -36,17 +36,17 @@
   expr 42:37    CallExpr       :: T
   expr 42:37    IdentExpr      :: fn(T) -> T
   expr 42:43    IdentExpr      :: T
-  expr 49:46    BinaryExpr     :: usize
-  expr 49:46    CallExpr       :: usize
-  expr 49:46    FieldExpr      :: fn() -> usize
-  expr 49:46    IdentExpr      :: Money[]
-  expr 49:59    CallExpr       :: usize
-  expr 49:59    FieldExpr      :: fn() -> usize
-  expr 49:59    IdentExpr      :: Money[]
-  expr 52:42    CallExpr       :: usize
-  expr 52:42    FieldExpr      :: fn(T) -> usize
-  expr 52:42    IdentExpr      :: T
-  expr 52:50    IdentExpr      :: T
+  expr 49:44    BinaryExpr     :: i64
+  expr 49:44    CallExpr       :: i64
+  expr 49:44    FieldExpr      :: fn() -> i64
+  expr 49:44    IdentExpr      :: Money[]
+  expr 49:57    CallExpr       :: i64
+  expr 49:57    FieldExpr      :: fn() -> i64
+  expr 49:57    IdentExpr      :: Money[]
+  expr 52:40    CallExpr       :: i64
+  expr 52:40    FieldExpr      :: fn(T) -> i64
+  expr 52:40    IdentExpr      :: T
+  expr 52:48    IdentExpr      :: T
   expr 64:9     FieldExpr      :: i32
   expr 64:9     IdentExpr      :: Cfg
   expr 65:16    FieldExpr      :: i32
@@ -99,8 +99,8 @@
   expr 78:5     CallExpr       :: void
   expr 78:5     IdentExpr      :: fn(T) -> void
   expr 79:13    StringLitExpr  :: string
-  expr 79:23    CallExpr       :: usize
-  expr 79:23    IdentExpr      :: fn(T) -> usize
+  expr 79:23    CallExpr       :: i64
+  expr 79:23    IdentExpr      :: fn(T) -> i64
   expr 79:28    SeqLitExpr     :: Money[]
   expr 79:29    StructLitExpr  :: Money
   expr 79:5     CallExpr       :: void

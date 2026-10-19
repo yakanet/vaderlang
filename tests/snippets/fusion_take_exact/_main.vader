@@ -11,7 +11,7 @@ module "snippet"
 import "std/io"
 import "std/iter"
 
-counting :: fn(n: usize) -> void {
+counting :: fn(n: i64) -> void {
     pulls := 0
     counted :: (x: i32) -> {
         pulls += 1

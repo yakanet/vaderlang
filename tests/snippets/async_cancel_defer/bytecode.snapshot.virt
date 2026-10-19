@@ -3,7 +3,7 @@ type 0 primitive null
 type 1 struct snippet$Never {  }
 type 2 union 3,4
 type 3 primitive i32
-type 4 struct std_core$Suspended { wake_at:19 }
+type 4 struct std_core$Suspended { wake_at:16 }
 type 5 primitive void
 type 6 ref std_core$Async
 type 7 struct __defer_env_snippet_1 {  }
@@ -15,11 +15,10 @@ type 12 array 13
 type 13 fn () -> 5
 type 14 ref std_core$Async
 type 15 primitive u8
-type 16 primitive usize
+type 16 primitive i64
 type 17 array 15
-type 18 struct std_core$Buffer {  }
-type 19 primitive i64
-type 20 primitive isize
+type 18 primitive usize
+type 19 struct std_core$Buffer {  }
 string 0 "never cancelled"
 string 1 "done"
 string 2 "inner cleanup"
@@ -27,13 +26,13 @@ string 3 "inner body (unreached)"
 string 4 "outer cleanup"
 string 5 "outer body (unreached)"
 string 6 "\n"
-import 0 byte_len std_core$byte_len result_type=16 param_types=11 param_c_out= param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=16 param_types=11 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=17 param_types=11 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=20 param_types=3,17,16 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=16 param_types=3,17,16 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 std_core$Async
 impl 8 std_core$Async
 impl 10 std_core$Async
-impl 18 std_core$ByteAccess
+impl 19 std_core$ByteAccess
 vtable std_core$Async.resume 1 0
 vtable std_core$Async.resume 8 6
 vtable std_core$Async.resume 10 9
@@ -111,9 +110,9 @@ end
 
 fn 6 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
   local $field_17 ref
-  local $sub_21 usize
+  local $sub_21 i64
   local $field_23 ref
-  local $sub_28 usize
+  local $sub_28 i64
   local $slice_29 ref
   local $field_34 i32
   local __resumed_3 any
@@ -283,9 +282,9 @@ end
 
 fn 7 snippet$__asyncstate_snippet_2$Async$cancel (ref) -> void
   local $field_8 ref
-  local $sub_12 usize
+  local $sub_12 i64
   local $field_14 ref
-  local $sub_19 usize
+  local $sub_19 i64
   local $slice_20 ref
   local.field 0 8 4   ; arg 0 __asyncstate_snippet_2.awaited
   type_check 0   ; null
@@ -343,9 +342,9 @@ end
 
 fn 9 snippet$__asyncstate_snippet_5$Async$resume (ref) -> any
   local $field_17 ref
-  local $sub_21 usize
+  local $sub_21 i64
   local $field_23 ref
-  local $sub_28 usize
+  local $sub_28 i64
   local $slice_29 ref
   local $field_34 i32
   local __resumed_3 any
@@ -509,9 +508,9 @@ end
 
 fn 10 snippet$__asyncstate_snippet_5$Async$cancel (ref) -> void
   local $field_8 ref
-  local $sub_12 usize
+  local $sub_12 i64
   local $field_14 ref
-  local $sub_19 usize
+  local $sub_19 i64
   local $slice_20 ref
   local.field 0 10 3   ; arg 0 __asyncstate_snippet_5.awaited
   type_check 0   ; null
@@ -562,8 +561,8 @@ fn 10 snippet$__asyncstate_snippet_5$Async$cancel (ref) -> void
 end
 
 fn 11 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -575,6 +574,7 @@ fn 11 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -592,13 +592,13 @@ end
 
 fn 12 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -610,7 +610,7 @@ fn 12 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -638,7 +638,7 @@ fn 12 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -646,7 +646,7 @@ fn 12 std_io$write (u8,string) -> void
   return
 end
 
-fn 13 std_io$write_bytes (u8,ref,usize) -> i32
+fn 13 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -655,14 +655,14 @@ fn 13 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 

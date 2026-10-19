@@ -225,7 +225,7 @@ build_struct_lit_fields :: fn(
     // fallback).
     st :: struct_backing(type) ?? return fallback_provided_order(ctx, lit)
     decl :: ctx.typed.struct_decls[st.symbol.id] ?? return fallback_provided_order(ctx, lit)
-    // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
+    // A field DEFAULT (`id: i64 = UNASSIGNED_NODE_ID`) is an AST expr
     // from the struct's OWNING module. Lowering it with the construction
     // site's `ctx` resolves its idents against the wrong `resolved.idents`
     // (the spans belong to another module's parse), so a const default
@@ -274,7 +274,7 @@ build_struct_lit_fields :: fn(
 // When the field value lowered since sink length `mark` hoisted an `await`, the
 // fields lowered before it are kept ahead of it (`bind_before_hoisted`).
 bind_fields_before_hoisted :: fn(
-    ctx: FnLowerCtx, fields: LoweredStructLitField[], mark: usize,
+    ctx: FnLowerCtx, fields: LoweredStructLitField[], mark: i64,
 ) -> void {
     if ctx.pending_awaits.len() == mark {
         return
@@ -395,7 +395,7 @@ lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr
 }
 
 // The element `i` of a tuple literal as its slot in `slots` holds it.
-held_element :: fn(value: LoweredExpr, slots: Type[], i: usize) -> LoweredExpr {
+held_element :: fn(value: LoweredExpr, slots: Type[], i: i64) -> LoweredExpr {
     if i >= slots.len() {
         return value
     }

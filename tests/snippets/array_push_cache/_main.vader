@@ -26,7 +26,7 @@ tight :: fn(n: i32) -> i32[] {
 
 // A reserved array (`[] * n`) is as fresh as a literal: cached too.
 reserved :: fn(n: i32) -> i32[] {
-    out: i32[]: [] * usize(n)
+    out: i32[]: [] * i64(n)
     for i in 0..<n {
         out.push(i * 3)
     }
@@ -260,7 +260,7 @@ len_after :: fn(n: i32) -> i32 {
 // and its push lands in the enclosing loop — whose body reads the length.
 one_shot :: fn(a: i32[]) -> i32 {
     out: i32[]: []
-    seen: usize = 0
+    seen: i64 = 0
     for x in a {
         for {
             out.push(x)

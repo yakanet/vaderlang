@@ -10,7 +10,7 @@ export main 1
 fn 0 snippet$count_fields (ref) -> i32
   local.get 0   ; arg 0
   array.len
-  usize.to_i32
+  i64.to_i32
   return
 end
 

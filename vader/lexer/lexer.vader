@@ -37,7 +37,7 @@ export InterpFrame :: struct {
 export Lexer :: struct {
     src: string
     file: string
-    pos: usize
+    pos: i64
     line: i32
     col: i32
     paren_depth: i32          // unclosed `(` and `[` since the innermost unclosed `{`
@@ -50,7 +50,7 @@ export Lexer :: struct {
     // its one L0012 (ADR 0063). Scalars only, so that `advance` allocates nothing
     // and keeps no GC frame.
     malformed_utf8_runs: i32 = 0
-    malformed_utf8_at: usize = 0
+    malformed_utf8_at: i64 = 0
     tokens: Token[]
     errors: Diagnostic[]
     interp_stack: InterpFrame[]
@@ -129,7 +129,7 @@ peek :: fn(l: Lexer) -> char {
 
 // `n` counts bytes, where `advance` counts codepoints: look only past an ASCII
 // char, where the two agree.
-peek_at :: fn(l: Lexer, n: usize) -> char {
+peek_at :: fn(l: Lexer, n: i64) -> char {
     p :: l.pos + n
     if p >= l.src.byte_len() {
         return '\0'
@@ -143,7 +143,7 @@ peek_at :: fn(l: Lexer, n: usize) -> char {
 
 // True when `c`, decoded from `width` bytes led by `lead`, stands for a malformed
 // run: the one well-formed U+FFFD is `EF BF BD`, three bytes from `EF`.
-is_malformed_utf8 :: fn(c: char, width: usize, lead: u8) =
+is_malformed_utf8 :: fn(c: char, width: i64, lead: u8) =
     c == REPLACEMENT_CHAR && !(lead == 0xEF && width == 3)
 
 // The span of the file's first malformed run, found again by walking to it: the
@@ -180,7 +180,7 @@ position_here :: fn(l: Lexer) =
 // Advance `pos` past `n` codepoints, as `codepoint_at_byte` decodes them: each is
 // one column, a malformed run included, which counts toward the file's L0012.
 // Newlines reset col to 1 as usual.
-advance :: fn(l: Lexer, n: usize) -> void {
+advance :: fn(l: Lexer, n: i64) -> void {
     for 0..<n {
         if l.pos >= l.src.byte_len() {
             return
@@ -628,7 +628,7 @@ pop_interp :: fn(l: Lexer) -> void {
     if n == 0 { return }
     // `0` because FreeInt repinning doesn't cross the `slice as
     // slice_array` import alias — the literal stays i32 and the VM traps
-    // on the i32-vs-usize comparison inside iter.slice's body.
+    // on the i32-vs-i64 comparison inside iter.slice's body.
     l.interp_stack = l.interp_stack[0..<n - 1] // FIXME: use `pop`
 }
 
@@ -1203,8 +1203,8 @@ line_of :: fn(l: Lexer, text: string) -> i32 {
 
 // Count `.Newline` tokens in a lexed stream — a statement terminator survived
 // only where these helpers expect it to.
-count_newlines :: fn(l: Lexer) -> usize {
-    n: usize = 0
+count_newlines :: fn(l: Lexer) -> i64 {
+    n: i64 = 0
     for t in l.tokens {
         if t.kind == .Newline { n += 1 }
     }

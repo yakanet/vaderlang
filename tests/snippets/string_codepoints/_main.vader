@@ -12,10 +12,10 @@ main :: fn() -> i32 {
     println("empty  cp=${len("")} bytes=${"".bytes().len()}")
 
     // codepoint_at_byte walks one sequence at a time. Manual iteration mimics
-    // what `chars()` does internally, demonstrating the [char, usize] return.
+    // what `chars()` does internally, demonstrating the [char, i64] return.
     s :: "你好"
     n :: s.bytes().len()
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         [c, w] :: codepoint_at_byte(s, i)
         println("at ${i}: '${c}' (${w} bytes)")

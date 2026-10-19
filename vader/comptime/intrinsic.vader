@@ -64,16 +64,16 @@ intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
     if expr.args.len() != 1 { return arg_count_error(expr, "field_count", 1) }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "field_count: argument is not a type") }
-    return ok(int_val_typed(type_field_count(arg_type, context), "usize"))
+    return ok(int_val_typed(type_field_count(arg_type, context), "i64"))
 }
 
 type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
     if t is StructType {
         decl :: context.typed.struct_decls[t.symbol.id]
-        if decl is AST.StructDecl { return i64(decl.fields.len()) }
+        if decl is AST.StructDecl { return decl.fields.len() }
         return 0
     }
-    if t is TupleType { return i64(t.elements.len()) }
+    if t is TupleType { return t.elements.len() }
     return 0
 }
 
@@ -82,12 +82,12 @@ intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
     if expr.args.len() != 1 { return arg_count_error(expr, "variant_count", 1) }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "variant_count: argument is not a type") }
-    return ok(int_val_typed(type_variant_count(arg_type), "usize"))
+    return ok(int_val_typed(type_variant_count(arg_type), "i64"))
 }
 
 type_variant_count :: fn(t: Type) -> i64 {
-    if t is UnionType { return i64(t.variants.len()) }
-    if t is EnumType { return i64(t.indices.len()) }
+    if t is UnionType { return t.variants.len() }
+    if t is EnumType { return t.indices.len() }
     return 0
 }
 
@@ -103,7 +103,7 @@ intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContex
         decl :: context.typed.struct_decls[arg_type.symbol.id]
         if decl is AST.StructDecl {
             for i in 0..<decl.fields.len() {
-                if decl.fields[i].name == name { return ok(int_val_typed(i64(i), "usize")) }
+                if decl.fields[i].name == name { return ok(int_val_typed(i, "i64")) }
             }
             return arg_error(expr, "field_index: `${display_type(arg_type)}` has no field named `${name}`")
         }
@@ -118,7 +118,7 @@ intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "size_of: argument is not a type") }
-    return ok(int_val_typed(byte_size(arg_type), "usize"))
+    return ok(int_val_typed(byte_size(arg_type), "i64"))
 }
 
 intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -127,7 +127,7 @@ intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) 
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
     if arg_type == null { return arg_error(expr, "align_of: argument is not a type") }
-    return ok(int_val_typed(byte_align(arg_type), "usize"))
+    return ok(int_val_typed(byte_align(arg_type), "i64"))
 }
 
 intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -196,7 +196,7 @@ export type_kind_label :: fn(t: Type) -> string = match t {
     is AnyType        -> "any"
 }
 
-arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: usize) -> EvalResult {
+arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: i64) -> EvalResult {
     return fail(comptime_error(.FeatureNotSupported, expr.span,
         "@${name} expects ${expected} argument(s), got ${expr.args.len()}"))
 }

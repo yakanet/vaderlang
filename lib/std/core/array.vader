@@ -21,14 +21,14 @@ module "std/core"
 /// ops, not a Vader body. `T` is the element type.
 export ArrayOps :: trait<T> {
     /// Number of live elements.
-    len :: fn(self) -> usize
+    len :: fn(self) -> i64
     /// Append `value` to the end, growing the backing storage as needed.
     push :: fn(self, value: T) -> void
     /// Append every element of `other` (a borrowed, immutable view).
     push_all :: fn(self, other: T[]) -> void
     /// Copy `count` elements from `self[src_off..]` into `dst[dst_off..]`.
     /// Reads `self` ; it is `dst` that is written.
-    copy_to :: fn(self, src_off: usize, dst: T[], dst_off: usize, count: usize) -> void
+    copy_to :: fn(self, src_off: i64, dst: T[], dst_off: i64, count: i64) -> void
     /// Remove and return the last element, or `null` when empty.
     remove_last :: fn(self) -> T | null
     /// Drop every element (length → 0), keeping the reserved capacity.
@@ -69,7 +69,7 @@ T[] implements<T> Add<T[]> {
 /// @example
 ///   rows: BlockId[][] = filled(block_count, () -> [])   // n DISTINCT arrays
 ///   seen :: filled(n, new_visited_set)                  // or a named factory
-export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
+export filled :: fn<T>(n: i64, make: fn() -> T) -> T[] {
     out: T[]: [] * n
     for 0..<n {
         out.push(make())
@@ -88,7 +88,7 @@ export filled :: fn<T>(n: usize, make: fn() -> T) -> T[] {
 /// @example
 ///   squares :: filled_indexed(n, (i) -> i32(i * i))
 ///   rows    :: filled_indexed(n, (i) -> Row { .id = i })
-export filled_indexed :: fn<T>(n: usize, make: fn(usize) -> T) -> T[] {
+export filled_indexed :: fn<T>(n: i64, make: fn(i64) -> T) -> T[] {
     out: T[]: [] * n
     for i in 0..<n {
         out.push(make(i))
@@ -142,7 +142,7 @@ export is_permutation_of :: fn<T: Equals>(self: T[], other: T[]) -> bool {
 
 // The index of the first element of `other` equal to `item` that `matched` does not
 // mark yet ; null when there is none.
-first_unmatched :: fn<T: Equals>(other: T[], matched: bool[], item: T) -> usize | null {
+first_unmatched :: fn<T: Equals>(other: T[], matched: bool[], item: T) -> i64 | null {
     for i in 0..<other.len() {
         if !matched[i] && other[i] == item {
             return i

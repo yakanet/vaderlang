@@ -27,7 +27,7 @@ import "std/abort"
 /// How a callee consumes its iterator parameter — found once per callee.
 ConsumerShape :: struct {
     /// The consumed parameter's index.
-    param:       usize
+    param:       i64
     /// The consumed parameter's symbol, as the resolver recorded it.
     symbol:      Symbol
     /// The callee's type parameters, in declaration order.
@@ -137,7 +137,7 @@ find_consumer_shape :: fn(project: LowerProjectCtx, target: CallTarget, signatur
 // `target` consuming its parameter `param` ; null when its body holds a `defer`,
 // which a `return` would leave without unwinding, or a type parameter has no
 // symbol.
-shape_of :: fn(target: CallTarget, body: AST.BlockExpr, param: usize, symbol: Symbol) -> ConsumerShape | null {
+shape_of :: fn(target: CallTarget, body: AST.BlockExpr, param: i64, symbol: Symbol) -> ConsumerShape | null {
     if block_holds(body, true, is_defer) {
         return null
     }
@@ -151,8 +151,8 @@ shape_of :: fn(target: CallTarget, body: AST.BlockExpr, param: usize, symbol: Sy
 
 // How many identifiers of `owner` refer to `symbol`, its declaration at `at` left
 // out.
-reference_count :: fn(owner: TypedProgram, symbol: Symbol, at: Span) -> usize {
-    count: usize = 0
+reference_count :: fn(owner: TypedProgram, symbol: Symbol, at: Span) -> i64 {
+    count: i64 = 0
     for [_, s] in owner.resolved.idents {
         if s.id == symbol.id {
             count += 1

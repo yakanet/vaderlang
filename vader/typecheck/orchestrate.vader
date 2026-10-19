@@ -1524,18 +1524,18 @@ has_expr_bodied_fn :: fn(decls: AST.Decl[]) -> bool {
 // (`decl_types`, struct/trait decls, the impl tables, …) stay intact:
 // only side-tables filled from inside fn bodies need a refresh.
 reset_expr_tables :: fn(typed: TypedProgram) -> void {
-    typed.expr_types = MutableMap<usize, Type> {}
-    typed.expr_kinds = MutableMap<usize, string> {}
-    typed.node_spans = MutableMap<usize, Span> {}
-    typed.ufcs_receiver_types = MutableMap<usize, Type> {}
-    typed.into_coercions = MutableMap<usize, Type> {}
-    typed.chosen_fns = MutableMap<usize, FnCandidate> {}
-    typed.chosen_impl_methods = MutableMap<usize, ImplMethod> {}
-    typed.overloaded_members = MutableMap<usize, ImplMethod[]> {}
-    typed.literals_past_default = MutableMap<usize, AST.IntLitExpr> {}
-    typed.static_members = MutableMap<usize, StaticMember> {}
+    typed.expr_types = MutableMap<i64, Type> {}
+    typed.expr_kinds = MutableMap<i64, string> {}
+    typed.node_spans = MutableMap<i64, Span> {}
+    typed.ufcs_receiver_types = MutableMap<i64, Type> {}
+    typed.into_coercions = MutableMap<i64, Type> {}
+    typed.chosen_fns = MutableMap<i64, FnCandidate> {}
+    typed.chosen_impl_methods = MutableMap<i64, ImplMethod> {}
+    typed.overloaded_members = MutableMap<i64, ImplMethod[]> {}
+    typed.literals_past_default = MutableMap<i64, AST.IntLitExpr> {}
+    typed.static_members = MutableMap<i64, StaticMember> {}
     typed.callee_field_id = AST.UNASSIGNED_NODE_ID
-    typed.callees = MutableMap<usize, Callee> {}
+    typed.callees = MutableMap<i64, Callee> {}
     typed.call_sites = CallSites {}
     typed.local_types = MutableMap<u64, Type> {}
     // The whole narrowing machine, not table by table: a table added to
@@ -2552,8 +2552,8 @@ impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32>
     return out
 }
 
-// Type each field's default against the field's declared type (`delta: isize = -1`
-// types the `-1` as `isize`, not `{integer}`) and check that it fits. Runs after
+// Type each field's default against the field's declared type (`delta: i64 = -1`
+// types the `-1` as `i64`, not `{integer}`) and check that it fits. Runs after
 // the bodies, so a const declared below the struct has its type.
 check_field_defaults :: fn(
     decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],

@@ -72,7 +72,7 @@ forward_struct_fields_in_fn :: fn(fn_: CFGFunction) -> CFGFunction {
     // entry state is empty every time.
     for id in order {
         entry :: join_of_predecessors(preds, exits, id)
-        rewritten[i32(id)] = forward_block_with(fn_.blocks[usize(id)].instructions, entry)
+        rewritten[i32(id)] = forward_block_with(fn_.blocks[i64(id)].instructions, entry)
         exits[i32(id)] = entry
     }
     new_blocks: BasicBlock[]: []
@@ -98,10 +98,10 @@ join_of_predecessors :: fn(
     preds: BlockId[][], exits: MutableMap<i32, MutableMap<i32, LocalId[]>>, id: BlockId,
 ) -> MutableMap<i32, LocalId[]> {
     fresh :: MutableMap<i32, LocalId[]> {}
-    if usize(id) >= preds.len() {
+    if i64(id) !in 0..<preds.len() {
         return fresh
     }
-    mine :: preds[usize(id)]
+    mine :: preds[i64(id)]
     if mine.len() == 0 {
         return fresh
     }
@@ -166,11 +166,11 @@ forward_block_with :: fn(
             fields :: built[i32(ins.target)]
             if fields != null {
                 index :: tuple_field_index(ins.field)
-                if index >= 0 && usize(index) < fields.len() {
+                if index >= 0 && i64(index) < fields.len() {
                     out.push(InstrMove {
                         .span = ins.span,
                         .dst = ins.dst,
-                        .src = fields[usize(index)],
+                        .src = fields[index],
                     })
                     continue
                 }

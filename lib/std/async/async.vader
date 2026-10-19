@@ -110,7 +110,7 @@ JoinAll :: struct<T> {
     children: Async<T>[]
     /// Completed results keyed by input index ; an index is present iff its
     /// child is done. `results.len() == children.len()` ⇒ all joined.
-    results:  MutableMap<usize, T>
+    results:  MutableMap<i64, T>
     /// The `wake_at` each child last reported, by input index ; `NEVER` once it
     /// is done.
     wake_at:  i64[]
@@ -160,7 +160,7 @@ export join_all :: fn<T>(xs: Async<T>[]) -> Async<T[]> = new_join_all(xs)
 // The driver behind `join_all` and `try_join_all`: nothing joined, every child due.
 new_join_all :: fn<T>(xs: Async<T>[]) = JoinAll<T> {
     .children = xs,
-    .results = MutableMap<usize, T> {},
+    .results = MutableMap<i64, T> {},
     .wake_at = [0] * xs.len(),
 }
 
@@ -261,7 +261,7 @@ JoinAny :: struct<U, E> {
     /// settled as an error.
     wake_at:  i64[]
     /// How many children settled as an error.
-    failed:   usize = 0
+    failed:   i64 = 0
     /// The most recent error — returned if every child ends up failing.
     last:     (U | E) | null = null
 }

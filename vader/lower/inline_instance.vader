@@ -264,7 +264,7 @@ labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> Lowered
 
 import "std/testing"
 
-span_at :: fn(file: string, from: usize, to: usize) -> Span = Span {
+span_at :: fn(file: string, from: i64, to: i64) -> Span = Span {
     .start = Position { .file = file, .offset = from, .line = 1, .column = 1 },
     .end = Position { .file = file, .offset = to, .line = 1, .column = 1 },
 }

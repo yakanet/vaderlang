@@ -11,7 +11,7 @@ import "std/iter"
 
 to_text :: fn(x: i32) -> string = "${x}"
 
-text_len :: fn(s: string) -> usize = s.byte_len()
+text_len :: fn(s: string) -> i64 = s.byte_len()
 
 main :: fn() -> i32 {
     lazy := ""

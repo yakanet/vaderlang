@@ -49,8 +49,8 @@ export POW5_128 :: @comptime {
     // q = -342 .. -1  (j = 342 .. 1, i.e. neg index 341 .. 0)
     k: i32 = 341
     for k >= 0 {
-        out.push(neg_hi[usize(k)])
-        out.push(neg_lo[usize(k)])
+        out.push(neg_hi[k])
+        out.push(neg_lo[k])
         k -= 1
     }
     // q = 0 .. 308  (positive powers 5^q by repeated *5)
@@ -72,7 +72,7 @@ import "std/testing"
 // endpoints, both sides of the |q| <= 27 rounding boundary, and the exact
 // small positives. Pins the comptime big-int against the reference.
 expect_pow5 :: fn(q: i32, hi: u64, lo: u64) -> void {
-    idx :: usize(2 * (q + 342))
+    idx :: i64(2 * (q + 342))
     assert_eq(POW5_128[idx], hi)
     assert_eq(POW5_128[idx + 1], lo)
 }
@@ -89,5 +89,5 @@ expect_pow5 :: fn(q: i32, hi: u64, lo: u64) -> void {
 }
 
 @test test_pow5_128_length :: fn() -> void {
-    assert_eq(POW5_128.len(), usize(2 * 651))
+    assert_eq(POW5_128.len(), i64(2 * 651))
 }

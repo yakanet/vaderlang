@@ -1,29 +1,29 @@
 # Lower
 
 ## snippet
-  snippet.not_twenty :: fn(p: [i32, usize]) -> bool {  // snippet$not_twenty
-      __tup_0: [i32, usize] = p
+  snippet.not_twenty :: fn(p: [i32, i64]) -> bool {  // snippet$not_twenty
+      __tup_0: [i32, i64] = p
       x: i32 = __tup_0._0
       return x != 20
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       lazy: string = ""
-      it: __genstate_filter<[i32, usize]> = std.iter.filter<[i32, usize]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
+      it: __genstate_filter<[i32, i64]> = std.iter.filter<[i32, i64]>(std.iter.indexed<i32>(std.core.i32[].into([10, 20, 30] :i32[])), snippet.not_twenty)
       {
-          __iter_1: Iterator<[i32, usize]> = it
+          __iter_1: Iterator<[i32, i64]> = it
           for {
-              __step_2: [[i32, usize], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
+              __step_2: [[i32, i64], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
               if __step_2._1 == u8(1) {
                   break
               } else {
-                  __for_elem_3: [i32, usize] = __step_2._0
+                  __for_elem_3: [i32, i64] = __step_2._0
                   x: i32 = __for_elem_3._0
-                  i: usize = __for_elem_3._1
+                  i: i64 = __for_elem_3._1
                   lazy = concat_2(lazy, {
-                      __buf_4: Buffer = std.core.new_byte_buffer(usize(42))
-                      __off_5: usize = 0
+                      __buf_4: Buffer = std.core.new_byte_buffer(i64(42))
+                      __off_5: i64 = 0
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                      __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(i))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, i)
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, ":")
                       __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
                       std.core.finish_buffer(__buf_4, __off_5)
@@ -35,40 +35,40 @@
       fused: string = ""
       {
           __fuse_arr_9: i32[] = [10, 20, 30] :i32[]
-          pred: fn([i32, usize]) -> bool = snippet.not_twenty
-          i: usize = 0
-          __fuse_len_11: usize = @array.len(__fuse_arr_9)
-          __fuse_i_12: usize = 0
+          pred: fn([i32, i64]) -> bool = snippet.not_twenty
+          i: i64 = 0
+          __fuse_len_11: i64 = @array.len(__fuse_arr_9)
+          __fuse_i_12: i64 = 0
           for __fuse_i_12 < __fuse_len_11 {
               x: i32 = __fuse_arr_9[__fuse_i_12]
-              x: [i32, usize] = [x, i] :[i32, usize]
+              x: [i32, i64] = [x, i] :[i32, i64]
               if snippet.not_twenty(x) {
-                  __gen_elem_10: [i32, usize] = x
+                  __gen_elem_10: [i32, i64] = x
                   x: i32 = __gen_elem_10._0
-                  i: usize = __gen_elem_10._1
+                  i: i64 = __gen_elem_10._1
                   fused = concat_2(fused, {
-                      __buf_7: Buffer = std.core.new_byte_buffer(usize(42))
-                      __off_8: usize = 0
+                      __buf_7: Buffer = std.core.new_byte_buffer(i64(42))
+                      __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(i))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, i)
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, ":")
                       __off_8 = std.core.write_int(__buf_7, __off_8, i64(x))
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
-              i = i + usize(1)
+              i = i + i64(1)
           } @step {
-              __fuse_i_12 = __fuse_i_12 +% usize(1)
+              __fuse_i_12 = __fuse_i_12 +% i64(1)
           }
       }
       std.io.println<string>(concat_2("fused indexed.filter:", fused))
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -130,20 +130,20 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.array_iter<i32>  // std_core$array_iter__i32
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32[].into  // std_core$[]$Into$into__i32
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -154,14 +154,14 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
     struct std_core$__gen_state_std_core_0
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/iter
-    fn std.iter.filter<[i32, usize]>  // std_iter$filter___i32__usize_
+    fn std.iter.filter<[i32, i64]>  // std_iter$filter___i32__i64_
     fn std.iter.indexed<i32>  // std_iter$indexed__i32
     fn std_iter$__gen_state_std_iter_0$Iterator$next
     fn std_iter$__genstate_filter$Iterator$next

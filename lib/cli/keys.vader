@@ -49,7 +49,7 @@ export KeyPress :: struct {
 export DecodedKey :: struct {
     press: KeyPress
     /// Always >= 1, so a decode loop cannot spin.
-    consumed: usize
+    consumed: i64
 }
 
 // ---- decoding -------------------------------------------------------------
@@ -63,7 +63,7 @@ DEL: u8: 0x7F
 /// @param from   byte offset to decode at; must be < `burst.byte_len()`.
 /// @return       the press and the byte count it took — never 0, so a caller
 ///               looping over a burst always advances.
-export decode_key :: fn(burst: string, from: usize) -> DecodedKey {
+export decode_key :: fn(burst: string, from: i64) -> DecodedKey {
     b :: burst.byte_at(from)
     remaining :: burst.byte_len() - from
     if b == ESC {
@@ -106,7 +106,7 @@ one :: fn(key: Key) = DecodedKey {
 // `ESC` and what follows it. A lone `ESC` — nothing else in the burst — is the
 // Escape key; `ESC [` and `ESC O` open a sequence. `ESC O` is the application
 // cursor mode some terminals switch to, and it carries the same four letters.
-decode_escape :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
+decode_escape :: fn(burst: string, from: i64, remaining: i64) -> DecodedKey {
     if remaining == 1 {
         return one(.Escape)
     }
@@ -152,11 +152,11 @@ arrow_for :: fn(final: u8) -> Key = match final {
 
 // `ESC [ <digits> ~`. Consumes through the `~` so the rest of the burst decodes
 // cleanly even when the key is one nothing here names.
-decode_tilde :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
+decode_tilde :: fn(burst: string, from: i64, remaining: i64) -> DecodedKey {
     // The WHOLE number, not its first digit: `1~` is Home but `15~` is F5, and
     // reading one digit made the two the same key.
     code := 0
-    n := usize(2)
+    n: i64 = 2
     for n < remaining {
         b :: burst.byte_at(from + n)
         if b == '~' {
@@ -181,7 +181,7 @@ decode_tilde :: fn(burst: string, from: usize, remaining: usize) -> DecodedKey {
 
 // A printable character, taken as a WHOLE codepoint: reporting its bytes
 // separately would put half a character into a text field.
-decode_char :: fn(burst: string, from: usize) -> DecodedKey {
+decode_char :: fn(burst: string, from: i64) -> DecodedKey {
     width :: burst.codepoint_at_byte(from).1
     return DecodedKey {
         .press = KeyPress { .key = .Char, .text = burst.byte_slice(from, from + width) },
@@ -195,7 +195,7 @@ decode_char :: fn(burst: string, from: usize) -> DecodedKey {
 /// @return       every press in order; empty when `burst` is empty.
 export decode_burst :: fn(burst: string) -> KeyPress[] {
     out: KeyPress[]: []
-    i := usize(0)
+    i: i64 = 0
     for i < burst.byte_len() {
         d :: decode_key(burst, i)
         out.push(d.press)
@@ -212,13 +212,13 @@ import "std/testing"
     // The case the whole burst-reading design exists for: nothing follows the
     // ESC in this burst, so it is the key and not the start of a sequence.
     presses :: decode_burst("\u{1B}")
-    assert_eq(presses.len(), usize(1))
+    assert_eq(presses.len(), 1)
     assert(presses[0].key == .Escape, "a lone ESC decodes as Escape")
 }
 
 @test test_arrows_decode_from_one_burst :: fn() -> void {
     up :: decode_burst("\u{1B}[A")
-    assert_eq(up.len(), usize(1))
+    assert_eq(up.len(), 1)
     assert(up[0].key == .Up, "ESC [ A is Up")
     down :: decode_burst("\u{1B}[B")
     assert(down[0].key == .Down, "ESC [ B is Down")
@@ -228,7 +228,7 @@ import "std/testing"
     // Some terminals switch to `ESC O` for the cursor keys; the letters are the
     // same and both spellings have to work.
     presses :: decode_burst("\u{1B}OA")
-    assert_eq(presses.len(), usize(1))
+    assert_eq(presses.len(), 1)
     assert(presses[0].key == .Up, "ESC O A is Up too")
 }
 
@@ -250,7 +250,7 @@ import "std/testing"
 @test test_multibyte_character_is_one_press :: fn() -> void {
     // Reporting the bytes separately would put half a character in a text field.
     presses :: decode_burst("é")
-    assert_eq(presses.len(), usize(1))
+    assert_eq(presses.len(), 1)
     assert(presses[0].key == .Char, "é is one press")
     assert_eq(presses[0].text, "é")
 }
@@ -258,7 +258,7 @@ import "std/testing"
 @test test_a_burst_holds_several_presses :: fn() -> void {
     // Typing fast, or a paste: one read returns them all.
     presses :: decode_burst("ab\u{1B}[A\r")
-    assert_eq(presses.len(), usize(4))
+    assert_eq(presses.len(), 4)
     assert_eq(presses[0].text, "a")
     assert_eq(presses[1].text, "b")
     assert(presses[2].key == .Up, "the arrow is still whole inside a burst")
@@ -275,7 +275,7 @@ import "std/testing"
 @test test_unknown_sequence_is_consumed_whole :: fn() -> void {
     // A function key must not leak its digits into a text field.
     presses :: decode_burst("\u{1B}[15~")
-    assert_eq(presses.len(), usize(1))
+    assert_eq(presses.len(), 1)
     assert(presses[0].key == .Unknown, "F5 has no name here, and no residue")
 }
 

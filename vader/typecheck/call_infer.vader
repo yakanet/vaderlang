@@ -39,7 +39,7 @@ type_generic_call :: fn(
     c: AST.CallExpr,
     callee_ty: FnType,
     expected: Type | null,
-    n: usize,
+    n: i64,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
@@ -64,7 +64,7 @@ type_generic_call :: fn(
     // Lambda arguments go last, once the other arguments and the result slot have
     // bound what their parameters name.
     arg_types: Type[]: []
-    lambdas: usize[]: []
+    lambdas: i64[]: []
     for i in 0..<n {
         if c.args[i].value is AST.LambdaExpr {
             arg_types.push(TY_UNRESOLVED)
@@ -186,7 +186,7 @@ member_name_span :: fn(c: AST.CallExpr) -> Span {
 }
 
 // Check argument `i` against its instantiated parameter, then bind from it.
-check_infer_arg :: fn(ctx: CallInference, i: usize, diags: Diagnostic[]) -> Type {
+check_infer_arg :: fn(ctx: CallInference, i: i64, diags: Diagnostic[]) -> Type {
     pattern :: ctx.inst.params[i]
     slot :: zonk(pattern, ctx.solutions)
     // An argument typed against a variable still unsolved may record it : the
@@ -205,7 +205,7 @@ check_infer_arg :: fn(ctx: CallInference, i: usize, diags: Diagnostic[]) -> Type
 // variable another lambda's parameter waits on. A round that binds nothing ends
 // them ; each other one binds a variable, so there are at most as many rounds as
 // variables.
-solve_through_lambdas :: fn(ctx: CallInference, lambdas: usize[]) -> void {
+solve_through_lambdas :: fn(ctx: CallInference, lambdas: i64[]) -> void {
     if !lambda_slot_open(ctx, lambdas) {
         return
     }
@@ -302,7 +302,7 @@ unify_struct_to_trait_infer :: fn(
 
 // Whether a lambda argument's parameter still names a variable of this call that a
 // round over the lambdas could bind, or one only a free literal solved.
-lambda_slot_open :: fn(ctx: CallInference, lambdas: usize[]) -> bool {
+lambda_slot_open :: fn(ctx: CallInference, lambdas: i64[]) -> bool {
     for i in lambdas {
         slot :: zonk(ctx.inst.params[i], ctx.solutions)
         if any_type(slot, is_free_numeric) {
@@ -317,8 +317,8 @@ lambda_slot_open :: fn(ctx: CallInference, lambdas: usize[]) -> bool {
     return false
 }
 
-solved_count :: fn(ctx: CallInference) -> usize {
-    count: usize = 0
+solved_count :: fn(ctx: CallInference) -> i64 {
+    count: i64 = 0
     for v in ctx.own {
         if ctx.solutions[v.id] != null {
             count += 1
@@ -342,7 +342,7 @@ names_any :: fn(t: Type, params: Symbol[]) -> bool {
 // run time, or the lowering's unresolved-callee panic. Silent on an arity mismatch,
 // which T3003 / T3005 already name.
 report_unsolved :: fn(
-    c: AST.CallExpr, unsolved: Symbol[], callee_ty: FnType, n: usize, diags: Diagnostic[],
+    c: AST.CallExpr, unsolved: Symbol[], callee_ty: FnType, n: i64, diags: Diagnostic[],
 ) -> void {
     if unsolved.len() == 0 || n != callee_ty.params.len() {
         return

@@ -94,7 +94,7 @@ reject_growing_recursion :: fn(
 add_instantiation :: fn(
     graph: InstantiationGraph,
     growing: GrowingCall[],
-    caller: usize,
+    caller: i64,
     callee: AST.FnDecl,
     bindings: MutableMap<i32, Type>,
     span: Span,
@@ -122,7 +122,7 @@ add_instantiation :: fn(
 }
 
 // The node key of parameter `param` of the function declared as `decl`.
-param_key :: fn(decl: usize, param: i32) -> u64 = u64(decl) * 0x1_0000_0000 + u64(param)
+param_key :: fn(decl: i64, param: i32) -> u64 = u64(decl) * 0x1_0000_0000 + u64(param)
 
 // The node of `key`, added on first sight.
 node_of :: fn(graph: InstantiationGraph, key: u64) -> i32 {

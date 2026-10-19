@@ -271,7 +271,7 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
 // the extra loops beyond the primary `self` loop in `GenComboLayer.extra_sources`.
 GenSourceBinding :: struct {
     source:  IterChain      // the param's arg chain
-    loop_id: usize          // the loop's `ForStmt.id`, in the generator's module
+    loop_id: i64          // the loop's `ForStmt.id`, in the generator's module
     loopvar: Symbol         // the loop's binding variable
     inner:   AST.BlockExpr  // the loop body (contains the yield)
     prelude: AST.Stmt[]     // state `let`s ahead of this loop (a counter, a seen-set)
@@ -282,7 +282,7 @@ GenComboLayer :: struct {
     decl:        AST.FnDecl      // the generator combinator
     subst:       Substitution    // its instance substitution
     owner:       TypedProgram    // the module the generator is defined in
-    loop_id:     usize           // the primary loop's `ForStmt.id`, in `owner`
+    loop_id:     i64           // the primary loop's `ForStmt.id`, in `owner`
     loopvar:     Symbol          // the body's primary `for <loopvar> in self` variable
     inner:       AST.BlockExpr   // the primary for-loop body (contains the yield)
     arg_sym:     Symbol | null   // the single non-self DATA param's symbol (map's `f`) ; null for a 0-arg combinator (`indexed`) or when the non-self param is itself a source (`chain`)
@@ -383,7 +383,7 @@ try_descend_gen_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterCha
 }
 
 // The source loop over param `param_index`, or null when no loop iterates it.
-find_source_loop :: fn(loops: GenSourceLoop[], param_index: usize) -> GenSourceLoop | null {
+find_source_loop :: fn(loops: GenSourceLoop[], param_index: i64) -> GenSourceLoop | null {
     for l in loops { if l.param_index == param_index { return l } }
     return null
 }
@@ -405,10 +405,10 @@ combinator_arg_sym :: fn(ctx: FnLowerCtx, decl: AST.FnDecl, owner: TypedProgram)
 // One source loop of a generator combinator body, tagged with the PARAM it
 // iterates. `prelude` is the run of non-loop statements ahead of it — the state
 // a combinator keeps across elements: `take`/`skip`/`indexed`'s counter
-// (`i: usize = 0`), `distinct`'s `seen` set ; empty for `map` / `filter`.
+// (`i: i64 = 0`), `distinct`'s `seen` set ; empty for `map` / `filter`.
 GenSourceLoop :: struct {
-    param_index:  usize
-    loop_id:      usize
+    param_index:  i64
+    loop_id:      i64
     loopvar_span: Span
     inner:        AST.BlockExpr
     prelude:      AST.Stmt[]

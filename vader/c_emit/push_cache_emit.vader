@@ -55,7 +55,7 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
     pushes := 0
     i: i32 = pc + 1
     for i < sc.end_pc {
-        op :: s.function.body[usize(i)]
+        op :: s.function.body[i]
         // A nested loop is refused outright. Two loops that both push to the
         // SAME array each get a plan, and the outer one's cached length then
         // goes stale the moment the inner one runs — so rather than reason about
@@ -69,7 +69,7 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
                 // region refreshes across.
                 return null
             }
-            k :: array_kind_of(s.ctx.module.types[usize(op.type_id)], s.ctx.module.types)
+            k :: array_kind_of(s.ctx.module.types[op.type_id], s.ctx.module.types)
             if !pc_liftable_kind(k) {
                 return null
             }
@@ -265,7 +265,7 @@ pc_helper_of :: fn(k: ArrayKind) -> string = push_helper_for(k) ?? "vader_array_
 pc_slot_used_outside_push :: fn(s: FnState, from: i32, to: i32, slot: i32, pushes: i32) -> bool {
     reads := 0
     for i in from..<to {
-        op :: s.function.body[usize(i)]
+        op :: s.function.body[i]
         if op is vm.LocalSet && op.slot == slot   { return true }
         if op is vm.LocalTee && op.slot == slot   { return true }
         if op is vm.LocalGet && op.slot == slot   { reads += 1 }

@@ -8,7 +8,7 @@
   expr 23:17    StringLitExpr  :: string
   expr 23:20    FieldExpr      :: string
   expr 23:20    IdentExpr      :: Field
-  expr 23:35    IntrinsicCallExpr :: usize
+  expr 23:35    IntrinsicCallExpr :: i64
   expr 23:44    FieldExpr      :: type
   expr 23:44    IdentExpr      :: Field
   expr 23:9     CallExpr       :: void
@@ -17,7 +17,7 @@
   expr 26:17    StringLitExpr  :: string
   expr 26:25    FieldExpr      :: string
   expr 26:25    IdentExpr      :: Field
-  expr 26:40    IntrinsicCallExpr :: usize
+  expr 26:40    IntrinsicCallExpr :: i64
   expr 26:49    FieldExpr      :: type
   expr 26:49    IdentExpr      :: Field
   expr 26:9     CallExpr       :: void

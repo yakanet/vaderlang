@@ -15,7 +15,7 @@ Hour :: Int in 0..=23
 is_morning :: fn(h: Hour) -> bool = h < 12
 
 main :: fn(argv: string[]) -> i32 {
-    n: i64: i64(argv.len()) + 4
+    n: i64: argv.len() + 4
     if n !in Hour {
         return 1
     }

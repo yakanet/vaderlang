@@ -42,7 +42,7 @@ import "std/numbers"
 /// wrote that output over nine correct `vm.snapshot` oracles.
 export VirtParseError :: struct {
     /// 1-based line number, ready for a `path:line:` diagnostic prefix.
-    line_number: usize
+    line_number: i64
     /// The offending line, comment already stripped — echoed under the message.
     line:        string
     /// What went wrong, e.g. ``unrecognised instruction `frobnicate` ``.
@@ -77,7 +77,7 @@ export display_virt_parse_error :: fn(e: VirtParseError, command: string, path: 
 // positioned error, or null when the directive parsed — the caller still does its
 // own `return`, since a helper cannot return on its behalf.
 positioned :: fn(
-    failure: DirectiveError | null, line_number: usize, line: string,
+    failure: DirectiveError | null, line_number: i64, line: string,
 ) -> VirtParseError | null {
     if failure is DirectiveError {
         return VirtParseError { .line_number = line_number, .line = line, .reason = failure.reason }
@@ -89,11 +89,11 @@ positioned :: fn(
 export VirtFunctionLines :: struct {
     /// The `fn N …` header — where the parameters, which the dump leaves
     /// unnamed, are declared.
-    header: usize
+    header: i64
     /// Each `local` line, in slot order after the parameters.
-    locals: usize[]
+    locals: i64[]
     /// Each op's line, in body order.
-    ops:    usize[]
+    ops:    i64[]
 }
 
 /// A `.virt` dump read back, with the 0-based line every indexed entry came
@@ -103,15 +103,15 @@ export VirtListing :: struct {
     /// One per function, by function index.
     functions: VirtFunctionLines[]
     /// The `type N` line of each type, by type index.
-    types:     usize[]
+    types:     i64[]
     /// The `string N` line of each pool string, by string index.
-    strings:   usize[]
+    strings:   i64[]
     /// The `import N` line of each host import, by import index.
-    imports:   usize[]
+    imports:   i64[]
     /// The `data N` line of each data-pool entry, by pool index.
-    data:      usize[]
+    data:      i64[]
     /// The `global N` line of each global slot, by slot index.
-    globals:   usize[]
+    globals:   i64[]
 }
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
@@ -169,15 +169,15 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         .param_names = [],
     }
     current_locals: bc.BcLocal[] = []
-    current_header: usize = 0
-    current_local_lines: usize[] = []
-    current_lines: usize[] = []
+    current_header: i64 = 0
+    current_local_lines: i64[] = []
+    current_lines: i64[] = []
     function_lines: VirtFunctionLines[]: []
-    type_lines: usize[]: []
-    string_lines: usize[]: []
-    import_lines: usize[]: []
-    data_lines: usize[]: []
-    global_lines: usize[]: []
+    type_lines: i64[]: []
+    string_lines: i64[]: []
+    import_lines: i64[]: []
+    data_lines: i64[]: []
+    global_lines: i64[]: []
     in_function := false
 
     state :: ParserState {
@@ -191,7 +191,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 
     lines :: source.split("\n")
     line_count :: lines.len()
-    line_index: usize = 0
+    line_index: i64 = 0
     for line_index < line_count {
         line :: lines[line_index]
         line_index += 1
@@ -353,8 +353,8 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
     }
 
     if main_index < 0 { main_index = find_main_by_suffix_bc(functions) }
-    if main_index >= 0 && usize(main_index) < functions.len() {
-        functions[usize(main_index)].is_main = true
+    if main_index >= 0 && i64(main_index) < functions.len() {
+        functions[main_index].is_main = true
     }
 
     module :: bc.BytecodeModule {
@@ -422,7 +422,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
             .reason = "expected `type <index> <kind> …`, got no kind after the index",
         }
     }
-    rest :: after_type.byte_slice(usize(first_space) + 1, after_type.byte_len()).trim()
+    rest :: after_type.byte_slice(first_space + 1, after_type.byte_len()).trim()
 
     if rest.starts_with("struct ") {
         parsed :: parse_struct_type_bc(rest)
@@ -473,10 +473,10 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
 ///
 /// @param s  the text between `struct ` and `{`.
 /// @return   the offset of the space starting ` as "`, or -1 when absent.
-find_mirror_marker :: fn(s: string) -> isize {
+find_mirror_marker :: fn(s: string) -> i64 {
     for i in 0..<s.byte_len() {
         if s.matches_at(i, " as \"") {
-            return isize(i)
+            return i
         }
     }
     return -1
@@ -506,14 +506,14 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
     c_name :: if marker < 0 {
         ""
     } else {
-        tail :: raw_name.byte_slice(usize(marker) + 5, raw_name.byte_len())
+        tail :: raw_name.byte_slice(marker + 5, raw_name.byte_len())
         end :: tail.index_of('"', 0)
-        if end < 0 { "" } else { tail.byte_slice(0, usize(end)) }
+        if end < 0 { "" } else { tail.byte_slice(0, end) }
     }
     bare :: if marker < 0 {
         raw_name
     } else {
-        raw_name.byte_slice(0, usize(marker))
+        raw_name.byte_slice(0, marker)
     }
     name :: unquote_name(bare)
     fields: bc.BcField[]: []
@@ -522,7 +522,7 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
         if close < 0 || close <= open + 1 {
             return DirectiveError { .reason = "struct `${name}`: field list is not closed by `}`" }
         }
-        inner :: after_struct.byte_slice(usize(open) + 1, usize(close)).trim()
+        inner :: after_struct.byte_slice(open + 1, close).trim()
         if inner.byte_len() > 0 {
             for part in inner.split(",") {
                 pt :: part.trim()
@@ -532,8 +532,8 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
                         .reason = "struct `${name}`: field `${pt}` has no `name:type` separator",
                     }
                 }
-                fname :: pt.byte_slice(0, usize(colon)).trim()
-                tidtext :: pt.byte_slice(usize(colon) + 1, pt.byte_len()).trim()
+                fname :: pt.byte_slice(0, colon).trim()
+                tidtext :: pt.byte_slice(colon + 1, pt.byte_len()).trim()
                 tid :: parse_int_in_base(tidtext, 10)
                 if tid is ParseError {
                     detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
@@ -552,14 +552,14 @@ parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     params: i32[]: if open >= 0 && close >= 0 && close > open + 1 {
-        parse_int_list(rest.byte_slice(usize(open) + 1, usize(close)).trim())
+        parse_int_list(rest.byte_slice(open + 1, close).trim())
     } else {
         []
     }
     return_type := 0
     arrow :: rest.index_of('>', 0)
     if arrow >= 0 {
-        ret_text :: rest.byte_slice(usize(arrow) + 1, rest.byte_len()).trim()
+        ret_text :: rest.byte_slice(arrow + 1, rest.byte_len()).trim()
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type = i32(parsed) }
     }
@@ -581,7 +581,7 @@ parse_import_decl_bc :: fn(
     head_part :: before_first(after, '(')
     parts :: head_part.trim().split(" ")
     is_extern := false
-    name_i: usize = 1
+    name_i: i64 = 1
     if parts.len() > 1 && parts[1] == "extern" { is_extern = true  name_i = 2 }
     if parts.len() < name_i + 2 {
         return DirectiveError {
@@ -595,12 +595,12 @@ parse_import_decl_bc :: fn(
     c_library :: if colon < 0 {
         ""
     } else {
-        raw_name.byte_slice(0, usize(colon))
+        raw_name.byte_slice(0, colon)
     }
     extern_name :: if colon < 0 {
         raw_name
     } else {
-        raw_name.byte_slice(usize(colon) + 1, raw_name.byte_len())
+        raw_name.byte_slice(colon + 1, raw_name.byte_len())
     }
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature: if open < 0 {
@@ -612,7 +612,7 @@ parse_import_decl_bc :: fn(
             .param_names = [],
         }
     } else {
-        parse_signature_bc(after.byte_slice(usize(open), after.byte_len()), types)
+        parse_signature_bc(after.byte_slice(open, after.byte_len()), types)
     }
     // Attributes written between the mangled name and the signature —
     // `header=<...>` and `result_type=<n>`, in either order and both optional.
@@ -712,12 +712,12 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> Directi
     if space < 0 {
         return DirectiveError { .reason = "expected `impl <type-index> <trait>`, got `${after}`" }
     }
-    type_id_text :: after.byte_slice(0, usize(space)).trim()
+    type_id_text :: after.byte_slice(0, space).trim()
     parsed :: parse_int_in_base(type_id_text, 10)
     if parsed is ParseError {
         return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
     }
-    trait_name :: after.byte_slice(usize(space) + 1, after.byte_len()).trim()
+    trait_name :: after.byte_slice(space + 1, after.byte_len()).trim()
     impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
     return null
 }
@@ -730,26 +730,26 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> Directiv
             .reason = "expected `vtable <key> <type-index> <fn-index>`, got `${after}`",
         }
     }
-    fn_text :: after.byte_slice(usize(last_space) + 1, after.byte_len()).trim()
+    fn_text :: after.byte_slice(i64(last_space) + 1, after.byte_len()).trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
     if fn_parsed is ParseError {
         return DirectiveError { .reason = "vtable: fn index \"${fn_text}\" is not a number" }
     }
-    head :: after.byte_slice(0, usize(last_space)).trim()
+    head :: after.byte_slice(0, i64(last_space)).trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 {
         return DirectiveError {
             .reason = "vtable: expected a key and a type index before the fn index, got `${head}`",
         }
     }
-    type_text :: head.byte_slice(usize(second_space) + 1, head.byte_len()).trim()
+    type_text :: head.byte_slice(i64(second_space) + 1, head.byte_len()).trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError {
         return DirectiveError {
             .reason = "vtable: receiver type index \"${type_text}\" is not a number",
         }
     }
-    key :: head.byte_slice(0, usize(second_space)).trim()
+    key :: head.byte_slice(0, i64(second_space)).trim()
     register_vtable_row(vtables, key, bc.VtableEntry {
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
@@ -793,7 +793,7 @@ parse_data_decl_bc :: fn(
             .reason = "expected `data <index> <kind> <payload>`, got `${after}`",
         }
     }
-    kind_payload :: after.byte_slice(usize(sp1) + 1, after.byte_len())
+    kind_payload :: after.byte_slice(sp1 + 1, after.byte_len())
     kind_name :: before_first(kind_payload, ' ')
     payload :: after_first(kind_payload, ' ')
     if kind_name == "str" {
@@ -822,7 +822,7 @@ parse_data_decl_bc :: fn(
     }
     hex_body :: payload.byte_slice(4, payload.byte_len() - 1)
     kind :: bc.array_kind_from_name(kind_name)
-    esz :: usize(bc.array_kind_element_size(kind))
+    esz :: i64(bc.array_kind_element_size(kind))
     items: u64[] = []
     if esz > 0 {
         bytes_arr :: hex_to_bytes(hex_body)
@@ -839,7 +839,7 @@ parse_data_decl_bc :: fn(
 parse_quoted_strings :: fn(s: string) -> string[] {
     out: string[]: []
     n :: s.byte_len()
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         if s.byte_at(i) != '"' {
             i += 1
@@ -910,7 +910,7 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.Bc
     if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
     if tag == "strref" {
         idx :: token_to_int(take_token(tokens, pos))
-        value :: if idx >= 0 && usize(idx) < strings.len() { strings[usize(idx)] } else { "" }
+        value :: if idx >= 0 && i64(idx) < strings.len() { strings[idx] } else { "" }
         return bc.BcValStr { .value = value }
     }
     if tag == "struct" {
@@ -929,7 +929,7 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.Bc
     }
     // Fall-through : a primitive leaf `<kind> <hex>` ; `tag` is the kind name.
     kind :: bc.array_kind_from_name(tag)
-    esz :: usize(bc.array_kind_element_size(kind))
+    esz :: i64(bc.array_kind_element_size(kind))
     bytes_arr :: hex_to_bytes(take_token(tokens, pos))
     bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
     return bc.BcValPrim { .kind = kind, .bits = bits }
@@ -937,8 +937,8 @@ parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.Bc
 
 // Read the token at the cursor and advance it ; "" past the end.
 take_token :: fn(tokens: string[], pos: i32[]) -> string {
-    if usize(pos[0]) >= tokens.len() { return "" }
-    t :: tokens[usize(pos[0])]
+    if !in_range(pos[0], tokens.len()) { return "" }
+    t :: tokens[pos[0]]
     pos[0] = pos[0] + 1
     return t
 }
@@ -953,7 +953,7 @@ token_to_int :: fn(s: string) -> i32 {
 tokenize_agg :: fn(s: string) -> string[] {
     out: string[]: []
     n :: s.byte_len()
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         if s.byte_at(i) == ' ' {
             i += 1
@@ -997,7 +997,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     params: bc.ValType[]: []
     param_types: i32[]: []
     if open >= 0 && close >= 0 && close > open + 1 {
-        inner :: line.byte_slice(usize(open) + 1, usize(close))
+        inner :: line.byte_slice(open + 1, close)
         for p in inner.split(",") {
             v :: vt_or_void(p.trim())
             params.push(v)
@@ -1009,7 +1009,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     results: bc.ValType[]: []
     result_types: i32[]: []
     if arrow >= 0 {
-        rtext :: line.byte_slice(usize(arrow) + 1, line.byte_len()).trim()
+        rtext :: line.byte_slice(arrow + 1, line.byte_len()).trim()
         // `-> i32` is one result and `-> (i32,i32)` several — the same split the
         // writer makes, so a single-value signature round-trips through the
         // format it has always used.
@@ -1043,8 +1043,8 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
     after :: cleaned.trim_prefix("local ").trim()
     sp :: after.index_of(' ', 0)
     if sp < 0 { return bc.BcLocal { .name = after, .val = .Void } }
-    nm :: after.byte_slice(0, usize(sp))
-    vtn :: after.byte_slice(usize(sp) + 1, after.byte_len()).trim()
+    nm :: after.byte_slice(0, sp)
+    vtn :: after.byte_slice(sp + 1, after.byte_len()).trim()
     return bc.BcLocal { .name = nm, .val = vt_or_void(vtn) }
 }
 

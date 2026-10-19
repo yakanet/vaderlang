@@ -80,9 +80,9 @@
 [17:1-17:1  ] newline        "\n"
 [17:5-17:11 ] ident          "walked"
 [17:11-17:12] colon          ":"
-[17:13-17:18] ident          "usize"
-[17:19-17:20] assign         "="
-[17:21-17:22] int_literal    "0" =0n
+[17:13-17:16] ident          "i64"
+[17:17-17:18] assign         "="
+[17:19-17:20] int_literal    "0" =0n
 [18:1-18:1  ] newline        "\n"
 [18:5-18:8  ] kw_for         "for"
 [18:9-18:10 ] ident          "_"

@@ -20,7 +20,7 @@ churn :: fn(x: i32) -> void {
 }
 
 @extern slice_set_cb :: fn(cb: fn(i32) -> void) -> void
-@extern slice_fill :: fn(@c_out q: i32[], n: usize) -> void
+@extern slice_fill :: fn(@c_out q: i32[], n: i64) -> void
 
 main :: fn() -> i32 {
     ys: i32[]: [5, 3, 9, 1, 7, 2, 8, 4]

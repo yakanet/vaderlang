@@ -33,7 +33,7 @@ WalkCtx :: struct {
     typed: TypedProgram
     index: CalleeIndex
     /// Symbol id → slot, for the parameters that hold references and the locals.
-    slots: MutableMap<i32, usize> = MutableMap<i32, usize> {}
+    slots: MutableMap<i32, i64> = MutableMap<i32, i64> {}
     /// How many lambdas the walk is inside.
     lambda_depth: i32 = 0
     /// What the body's own result undergoes: returned to the caller, or kept for
@@ -46,10 +46,10 @@ WalkCtx :: struct {
     /// The roots the frozen checks decide: each use of a frozen value, each binding.
     roots: FrozenRoot[] = []
     /// The name nodes a write lands below, `c` in `c.n = 0` or `c.n += 1`: no read.
-    place_bases: MutableSet<usize> = MutableSet<usize> {}
+    place_bases: MutableSet<i64> = MutableSet<i64> {}
     /// The slots that hold nothing but frozen values: a use of a constant or of an
     /// enum's variant data, a step below such a slot, a join of such slots.
-    pure: MutableSet<usize> = MutableSet<usize> {}
+    pure: MutableSet<i64> = MutableSet<i64> {}
     /// The locals and parameters a write into may be seen through, by symbol id:
     /// those the body reads, and those that may hold anything but frozen values.
     seen_names: MutableSet<i32> = MutableSet<i32> {}
@@ -161,7 +161,7 @@ for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
 // What each step of a `for` over `iter` hands its variable: an element of an array,
 // or what the iterator's `next` returns, the iterator being what `into` makes of
 // the iterable.
-loop_element :: fn(ctx: WalkCtx, iter: AST.Expr, iterable: usize | null) -> usize | null {
+loop_element :: fn(ctx: WalkCtx, iter: AST.Expr, iterable: i64 | null) -> i64 | null {
     if ctx.steps_through_elements(iter) {
         return ctx.step_slot(iterable, ELEMENT)
     }
@@ -208,7 +208,7 @@ note_place :: fn(ctx: WalkCtx, place: AST.Expr) -> void {
 // `place = value`: a local now holds `value` too ; a field or an element of a value
 // is assigned, and keeps `value` ; anything else, a place the typecheck refused,
 // keeps it.
-assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
+assign :: fn(ctx: WalkCtx, place: AST.Expr, value: i64 | null) -> void {
     // @partial: no other form is a place the typecheck accepts ; one that were
     // would keep `value` all the same.
     @partial match place {
@@ -229,7 +229,7 @@ assign :: fn(ctx: WalkCtx, place: AST.Expr, value: usize | null) -> void {
 
 // `name = value`: a local or a parameter now holds `value` too ; a module constant,
 // which the typecheck refuses to rebind (T3041), keeps it.
-assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> void {
+assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: i64 | null) -> void {
     slot :: ctx.ident_value(name)
     if slot == null {
         ctx.escape(value, .Stored, name.span)
@@ -241,7 +241,7 @@ assign_name :: fn(ctx: WalkCtx, name: AST.IdentExpr, value: usize | null) -> voi
 
 // `target[index] = value`, through the target's `IndexSet` or into an array. A
 // write the typecheck refused is still a write of the element.
-assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: usize | null) -> void {
+assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: i64 | null) -> void {
     ctx.note_write(place.target)
     target :: ctx.value(place.target)
     index :: ctx.value(place.index)
@@ -256,7 +256,7 @@ assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: usize | null) ->
 
 // ---- bindings -------------------------------------------------------------
 
-bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
+bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: i64 | null) -> void {
     match b {
         is AST.SimpleBinding   -> { ctx.bind_symbol(b.name_span, value) }
         is AST.TupleBinding    -> {
@@ -271,13 +271,13 @@ bind :: fn(ctx: WalkCtx, b: AST.LetBinding, value: usize | null) -> void {
 
 // The binding whose name sits at `span` now holds `value` too, a copy of what it
 // holds of a frozen value.
-bind_symbol :: fn(ctx: WalkCtx, span: Span, value: usize | null) -> void {
+bind_symbol :: fn(ctx: WalkCtx, span: Span, value: i64 | null) -> void {
     sym :: ctx.typed.resolved.idents[span.hash()] ?? return
     ctx.bind_copy(ctx.local_slot(sym.id), value, span, sym)
 }
 
 // The slot of the local `id`, made on its first binding.
-local_slot :: fn(ctx: WalkCtx, id: i32) -> usize {
+local_slot :: fn(ctx: WalkCtx, id: i32) -> i64 {
     known :: ctx.slots[id]
     if known != null {
         return known
@@ -291,14 +291,14 @@ local_slot :: fn(ctx: WalkCtx, id: i32) -> usize {
 
 // The function does `effect` at `path` below `value`, at `at`, when `value` holds
 // anything lent.
-mark :: fn(ctx: WalkCtx, value: usize | null, path: i32, effect: Effect, at: Span) -> void {
+mark :: fn(ctx: WalkCtx, value: i64 | null, path: i32, effect: Effect, at: Span) -> void {
     if value != null {
         ctx.s.add_mark(value, path, effect, at)
     }
 }
 
 // `value` leaves the call at `at`, kept (`.Stored`) or returned.
-escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect, at: Span) -> void =
+escape :: fn(ctx: WalkCtx, value: i64 | null, effect: Effect, at: Span) -> void =
     ctx.mark(value, ROOT, effect, at)
 
 // What `value`, of type `from`, holds as a value of type `to`: one `NARROWED` step
@@ -306,8 +306,8 @@ escape :: fn(ctx: WalkCtx, value: usize | null, effect: Effect, at: Span) -> voi
 // none, so that what is done below is not taken for what a view the value may
 // otherwise be undergoes (`views.vader`).
 narrowed :: fn(
-    ctx: WalkCtx, value: usize | null, from: Type | null, to: Type | null,
-) -> usize | null {
+    ctx: WalkCtx, value: i64 | null, from: Type | null, to: Type | null,
+) -> i64 | null {
     if !may_hold_bytes(from) || may_hold_bytes(to) {
         return value
     }
@@ -315,13 +315,13 @@ narrowed :: fn(
 }
 
 // A slot holding what `value` holds one `step` down, null when `value` is.
-step_slot :: fn(ctx: WalkCtx, value: usize | null, step: string) -> usize | null {
+step_slot :: fn(ctx: WalkCtx, value: i64 | null, step: string) -> i64 | null {
     from :: value ?? return null
     return ctx.path_slot(from, ctx.index.paths.path_to(step))
 }
 
 // A slot holding what `value` holds at `path` below it, null when `value` is.
-path_slot :: fn(ctx: WalkCtx, value: usize | null, path: i32) -> usize | null {
+path_slot :: fn(ctx: WalkCtx, value: i64 | null, path: i32) -> i64 | null {
     from :: value ?? return null
     slot :: ctx.s.fresh_slot()
     ctx.s.add_flow(slot, from, path)
@@ -333,8 +333,8 @@ path_slot :: fn(ctx: WalkCtx, value: usize | null, path: i32) -> usize | null {
 
 // A slot holding what each of `values` holds ; the value itself when only one holds
 // anything.
-union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
-    first: usize | null = null
+union_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
+    first: i64 | null = null
     count := 0
     pure := true
     for v in values {
@@ -364,7 +364,7 @@ union_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
 // What evaluates to one of `values`, the branches of an `if`, a `match` or a `??`.
 // A branch that holds nothing lent may still be shared, a lambda's parameter: a
 // join of frozen values with one gets a slot of its own, outside `pure`.
-one_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
+one_of :: fn(ctx: WalkCtx, values: (i64 | null)[]) -> i64 | null {
     joined :: ctx.union_of(values) ?? return null
     if joined !in ctx.pure || values.all_match((v) -> v != null) {
         return joined
@@ -375,7 +375,7 @@ one_of :: fn(ctx: WalkCtx, values: (usize | null)[]) -> usize | null {
 }
 
 // What the record says the site `role` at node `id` invokes.
-site_callee :: fn(ctx: WalkCtx, role: CallRole, id: usize) -> Callee | null =
+site_callee :: fn(ctx: WalkCtx, role: CallRole, id: i64) -> Callee | null =
     sites_of(ctx.typed.call_sites, role)[id]
 
 // A call at `at` to `callee` handing it `args` by its parameters' positions ; its
@@ -384,10 +384,10 @@ site_callee :: fn(ctx: WalkCtx, role: CallRole, id: usize) -> Callee | null =
 call :: fn(
     ctx: WalkCtx,
     callee: Callee | null,
-    args: (usize | null)[],
+    args: (i64 | null)[],
     at: Span,
     sources: (AST.Expr | null)[] = [],
-) -> usize | null {
+) -> i64 | null {
     c :: callee ?? return null
     targets :: ctx.index.targets_of(c)
     if targets.len() == 0 {

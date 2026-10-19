@@ -5,7 +5,7 @@
   expr 11:13    StringLitExpr  :: string
   expr 13:11    IdentExpr      :: string
   expr 13:11    IndexExpr      :: char
-  expr 13:16    IdentExpr      :: usize
+  expr 13:16    IdentExpr      :: i64
   expr 14:13    StringLitExpr  :: string
   expr 14:16    CallExpr       :: i32
   expr 14:16    IdentExpr      :: type

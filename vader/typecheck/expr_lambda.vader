@@ -87,7 +87,7 @@ is_concrete_promise :: fn(t: Type) -> bool =
     !is_void(t) && !contains_unresolved(t) && !type_contains_type_param(t)
 
 infer_param :: fn(
-    p: AST.FnParam, idx: usize, expected_fn: FnType | null,
+    p: AST.FnParam, idx: i64, expected_fn: FnType | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     if p.ty !is null {

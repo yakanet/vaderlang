@@ -76,7 +76,7 @@ heading_forms :: fn(heading: string) -> string[] {
 }
 
 // The text under a heading : its lines up to the next heading of any level.
-entry_text :: fn(lines: string[], from: usize) -> string {
+entry_text :: fn(lines: string[], from: i64) -> string {
     body: string[]: []
     for i in from..<lines.len() {
         if lines[i].starts_with("#") {

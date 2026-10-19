@@ -180,7 +180,7 @@ iter_trait_for_test :: fn(elem: Type) -> Type {
 }
 
 // A converted value numbered `id`.
-value_for_test :: fn(id: usize) -> AST.Expr = AST.IntLitExpr {
+value_for_test :: fn(id: i64) -> AST.Expr = AST.IntLitExpr {
     .span = empty_span(),
     .id = id,
     .value = 0,

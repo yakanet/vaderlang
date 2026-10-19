@@ -6,6 +6,6 @@ export main 0
 
 fn 0 snippet$main () -> i32
   i64.const 75
-  usize.to_i32
+  i64.to_i32
   return
 end

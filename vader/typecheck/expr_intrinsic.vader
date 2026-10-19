@@ -3,7 +3,7 @@
 //
 // Each intrinsic's static return type comes from
 // `vader/parser/intrinsics::intrinsic_spec(name).result`. The result
-// string is one of "usize", "bool", "string", "type", "field_array",
+// string is one of "i64", "bool", "string", "type", "field_array",
 // "type_array" (`type_for_result`) : a primitive, `type`, `type[]`, or
 // `std/core`'s `Field[]`.
 
@@ -112,7 +112,7 @@ static_string_value :: fn(e: AST.StringLitExpr) -> string {
 
 
 type_for_result :: fn(name: string, typed: TypedProgram) -> Type {
-    if name == "usize"      { return mk_primitive("usize") }
+    if name == "i64"        { return TY_I64 }
     if name == "bool"       { return TY_BOOL }
     if name == "string"     { return TY_STRING }
     if name == "type"       { return TY_TYPE }

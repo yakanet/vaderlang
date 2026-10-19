@@ -92,7 +92,7 @@ TarjanWalk :: struct {
     on_stack: bool[]
     stack: i32[]
     frame_nodes: i32[]
-    frame_tried: usize[]
+    frame_tried: i64[]
     next_rank: i32 = 0
 }
 
@@ -234,7 +234,7 @@ sorted_components :: fn(g: Graph) -> i32[][] =
     components_bottom_up(g).map((component) -> sort(component, (a, b) -> a < b)).collect()
 
 // The position of the component holding `node` in `components`.
-rank_of :: fn(components: i32[][], node: i32) -> usize {
+rank_of :: fn(components: i32[][], node: i32) -> i64 {
     rank :: (0..<components.len()).find((i) -> node in components[i])
     return rank ?? components.len()
 }
@@ -285,7 +285,7 @@ test_components_long_chain_needs_no_recursion :: fn() -> void {
     }
     successors.push([])
     components :: components_bottom_up(Graph { .successors = successors })
-    assert_eq(components.len(), usize(n))
+    assert_eq(components.len(), i64(n))
     assert_eq(components[0][0], n - 1)
     assert_eq(components[n - 1][0], 0)
 }

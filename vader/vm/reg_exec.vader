@@ -29,12 +29,12 @@ RegMachine :: struct {
     /// Per frame: the function, the first register of its window, and the pc its
     /// caller resumes at.
     frame_code:   RegFunction[]
-    frame_base:   usize[]
-    frame_return: usize[]
+    frame_base:   i64[]
+    frame_return: i64[]
     /// The closures `defer` pushed, for the whole run ; the live ones are
     /// `defers[0 ..< defer_count]`.
     defers:      Value[]
-    defer_count: usize
+    defer_count: i64
     /// The debugger driving the run, or `null`.
     debug: DebugSession | null
     /// What a `.Null` register reads as, built once so the read allocates nothing.
@@ -52,7 +52,7 @@ DebugSession :: struct {
 }
 
 // Grow the register file to at least `count` registers.
-reserve_registers :: fn(m: RegMachine, count: usize) -> void {
+reserve_registers :: fn(m: RegMachine, count: i64) -> void {
     for m.bits.len() < count {
         m.bits.push(0)
         m.tags.push(.Null)
@@ -61,7 +61,7 @@ reserve_registers :: fn(m: RegMachine, count: usize) -> void {
 }
 
 // The value of register `at`, boxed.
-register_value :: fn(m: RegMachine, at: usize) -> Value = match m.tags[at] {
+register_value :: fn(m: RegMachine, at: i64) -> Value = match m.tags[at] {
     .Ref  -> m.refs[at]
     .I32  -> I32Val(i32(m.bits[at]))
     .I64  -> I64Val(m.bits[at])
@@ -72,7 +72,7 @@ register_value :: fn(m: RegMachine, at: usize) -> Value = match m.tags[at] {
 }
 
 // Write a boxed value into register `at`.
-set_register :: fn(m: RegMachine, at: usize, value: Value) -> void = match value {
+set_register :: fn(m: RegMachine, at: i64, value: Value) -> void = match value {
     is I32Val -> {
         m.bits[at] = i64(value)
         m.tags[at] = .I32
@@ -101,7 +101,7 @@ set_register :: fn(m: RegMachine, at: usize, value: Value) -> void = match value
 }
 
 // Copy register `from` into `to`, all three columns.
-move_register :: fn(m: RegMachine, to: usize, from: usize) -> void {
+move_register :: fn(m: RegMachine, to: i64, from: i64) -> void {
     m.bits[to] = m.bits[from]
     m.tags[to] = m.tags[from]
     m.refs[to] = m.refs[from]
@@ -112,7 +112,7 @@ reg_run :: fn(
     state: VmState, code: RegModule, entry_index: i32, host_argv: string[], capture: Value[] | null,
     is_comptime: bool, debug: DebugController | null,
 ) -> VmResult {
-    entry_function :: state.bc.functions[usize(entry_index)]
+    entry_function :: state.bc.functions[entry_index]
     args :: build_main_args(entry_function, host_argv, state.string_array_type_id)
     if args is Trap {
         return args
@@ -135,7 +135,7 @@ reg_run :: fn(
         .defer_count  = 0,
         .debug        = session,
     }
-    reserve_registers(m, code.functions[usize(entry_index)].registers)
+    reserve_registers(m, code.functions[entry_index].registers)
     for i in 0..<args.len() {
         set_register(m, i, args[i])
     }
@@ -151,11 +151,11 @@ reg_run :: fn(
 // at `depth0`, until it returns ; its results land from `window`. `resume` is the pc
 // the frame below continues at, for the debugger's call stack.
 reg_call :: fn(
-    state: VmState, code: RegModule, m: RegMachine, entry: i32, window: usize, depth0: usize, resume: usize,
+    state: VmState, code: RegModule, m: RegMachine, entry: i32, window: i64, depth0: i64, resume: i64,
     is_comptime: bool,
 ) -> Trap | null {
-    f := code.functions[usize(entry)]
-    if depth0 >= usize(MAX_FRAME_DEPTH) {
+    f := code.functions[entry]
+    if depth0 >= i64(MAX_FRAME_DEPTH) {
         return overflow_trap(f.name)
     }
     enter_frame(m, f, window)
@@ -168,9 +168,9 @@ reg_call :: fn(
     }
     step_budget :: if is_comptime { COMPTIME_STEP_BUDGET } else { STEP_BUDGET_UNREACHABLE }
     steps: i64 = 0
-    depth: usize = depth0 + 1
-    base: usize = window
-    pc: usize = 0
+    depth: i64 = depth0 + 1
+    base: i64 = window
+    pc: i64 = 0
     ops := f.ops
     words := f.words
     bits :: m.bits
@@ -181,15 +181,15 @@ reg_call :: fn(
         w :: words[pc]
         match op {
             .Move -> {
-                to :: base + usize(operand_a(w))
-                from :: base + usize(operand_b(w))
+                to :: base + i64(operand_a(w))
+                from :: base + i64(operand_b(w))
                 bits[to] = bits[from]
                 tags[to] = tags[from]
                 refs[to] = refs[from]
             }
             .MoveScalar -> {
-                to :: base + usize(operand_a(w))
-                from :: base + usize(operand_b(w))
+                to :: base + i64(operand_a(w))
+                from :: base + i64(operand_b(w))
                 bits[to] = bits[from]
                 tags[to] = tags[from]
             }
@@ -386,7 +386,7 @@ reg_call :: fn(
                 set_char_code(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)))
             }
             .Jump -> {
-                pc = usize(operand_a(w))
+                pc = i64(operand_a(w))
                 continue
             }
             .JumpBack -> {
@@ -394,90 +394,90 @@ reg_call :: fn(
                 if steps > step_budget {
                     return budget_trap(step_budget)
                 }
-                pc = usize(operand_a(w))
+                pc = i64(operand_a(w))
                 continue
             }
             .JumpIfFalse -> {
                 if bits_of(bits, base, operand_b(w)) == 0 {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpIfTrue -> {
                 if bits_of(bits, base, operand_b(w)) != 0 {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpEqI32 -> {
                 if i32_of(bits, base, operand_b(w)) == i32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpNeI32 -> {
                 if i32_of(bits, base, operand_b(w)) != i32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLtI32 -> {
                 if i32_of(bits, base, operand_b(w)) < i32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLeI32 -> {
                 if i32_of(bits, base, operand_b(w)) <= i32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpEqI64 -> {
                 if bits_of(bits, base, operand_b(w)) == bits_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpNeI64 -> {
                 if bits_of(bits, base, operand_b(w)) != bits_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLtI64 -> {
                 if bits_of(bits, base, operand_b(w)) < bits_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLeI64 -> {
                 if bits_of(bits, base, operand_b(w)) <= bits_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLtU32 -> {
                 if u32_of(bits, base, operand_b(w)) < u32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLeU32 -> {
                 if u32_of(bits, base, operand_b(w)) <= u32_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLtU64 -> {
                 if u64_of(bits, base, operand_b(w)) < u64_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
             .JumpLeU64 -> {
                 if u64_of(bits, base, operand_b(w)) <= u64_of(bits, base, operand_c(w)) {
-                    pc = usize(operand_a(w))
+                    pc = i64(operand_a(w))
                     continue
                 }
             }
@@ -494,41 +494,41 @@ reg_call :: fn(
                 }
             }
             .CallImport -> {
-                failed :: call_import(state, m, operand_a(w), base + usize(operand_b(w)), f.origin[pc], is_comptime)
+                failed :: call_import(state, m, operand_a(w), base + i64(operand_b(w)), f.origin[pc], is_comptime)
                 if failed != null {
                     return failed
                 }
             }
             .StringByteLen -> {
-                at :: base + usize(operand_b(w))
+                at :: base + i64(operand_b(w))
                 s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_len", "string")
                 set_i32(bits, tags, base, operand_a(w), i32(s.byte_len()))
             }
             .StringByteAt -> {
-                at :: base + usize(operand_b(w))
+                at :: base + i64(operand_b(w))
                 s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_at", "string")
                 index :: i32_of(bits, base, operand_c(w))
-                if index < 0 || usize(index) >= s.byte_len() {
+                if index < 0 || i64(index) >= s.byte_len() {
                     return Trap { .message = "byte index out of bounds" }
                 }
-                set_i32(bits, tags, base, operand_a(w), i32(s.byte_at(usize(index))))
+                set_i32(bits, tags, base, operand_a(w), i32(s.byte_at(i64(index))))
             }
             .StringIsAscii -> {
-                at :: base + usize(operand_b(w))
+                at :: base + i64(operand_b(w))
                 s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "is_ascii", "string")
                 set_bool(bits, tags, base, operand_a(w), s.is_ascii())
             }
             .StringByteSlice -> {
-                at :: base + usize(operand_a(w))
+                at :: base + i64(operand_a(w))
                 s :: string_at(m, at) ?? return receiver_trap(m, at, f, pc, "byte_slice", "string")
-                start :: usize(bits_of(bits, base, operand_b(w)))
-                end :: usize(bits_of(bits, base, operand_c(w)))
+                start :: bits_of(bits, base, operand_b(w))
+                end :: bits_of(bits, base, operand_c(w))
                 m.refs[at] = StringVal(s.byte_slice(start, end))
                 tags[at] = .Ref
             }
-            .Trap -> { return Trap { .message = f.texts[usize(operand_a(w))] } }
+            .Trap -> { return Trap { .message = f.texts[operand_a(w)] } }
             .DeferPush -> {
-                closure :: register_value(m, base + usize(operand_a(w)))
+                closure :: register_value(m, base + i64(operand_a(w)))
                 if m.defer_count < m.defers.len() {
                     m.defers[m.defer_count] = closure
                 } else {
@@ -549,15 +549,15 @@ reg_call :: fn(
                 }
             }
             .ConstRef -> {
-                to :: base + usize(operand_a(w))
-                refs[to] = f.values[usize(operand_b(w))]
+                to :: base + i64(operand_a(w))
+                refs[to] = f.values[operand_b(w)]
                 tags[to] = .Ref
             }
             .GetField -> {
-                target :: refs[base + usize(operand_b(w))]
+                target :: refs[base + i64(operand_b(w))]
                 field :: operand_c(w)
-                if target is StructVal && field >= 0 && usize(field) < target.fields.len() {
-                    set_register(m, base + usize(operand_a(w)), target.fields[usize(field)])
+                if target is StructVal && field >= 0 && i64(field) < target.fields.len() {
+                    set_register(m, base + i64(operand_a(w)), target.fields[field])
                 } else {
                     // Not a struct, or no such field: the same test, trapping.
                     failed :: read_struct_field(target, field, f.origin[pc], "struct.get")
@@ -588,38 +588,38 @@ reg_call :: fn(
                 }
             }
             .Length -> {
-                at :: base + usize(operand_b(w))
+                at :: base + i64(operand_b(w))
                 array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.len", "array")
                 set_i32(bits, tags, base, operand_a(w), i32(array.length))
             }
             .Append -> {
-                at :: base + usize(operand_a(w))
+                at :: base + i64(operand_a(w))
                 array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, "array.push", "array")
                 // Tested here as well: `detach_array_view` sets up its GC frame before
                 // its own test, and almost no array pushed to is a view.
                 if array.raw != null || is_array_view(array) {
                     detach_array_view(array)
                 }
-                array.elements.push(register_value(m, base + usize(operand_b(w))))
+                array.elements.push(register_value(m, base + i64(operand_b(w))))
                 array.length = array.length + 1
             }
-            .Narrow -> { narrow_register(m, base + usize(operand_a(w)), operand_b(w)) }
+            .Narrow -> { narrow_register(m, base + i64(operand_a(w)), operand_b(w)) }
             .Call | .CallIndirect | .VirtualCall -> {
-                at :: base + usize(operand_b(w))
+                at :: base + i64(operand_b(w))
                 index: i32 = operand_a(w)
                 if op == .CallIndirect {
                     // Resolved here rather than in a helper: a fn that may build a
                     // `Trap` carries a GC frame on every call (`compute_may_alloc`).
                     // The fn value sits above the arguments ; an environment it
                     // carries becomes the first.
-                    arity :: usize(operand_c(w))
+                    arity :: i64(operand_c(w))
                     value :: refs[at + arity]
                     if tags[at + arity] == .Ref && value is FnVal {
                         target :: value.function_index
                         env :: value.env
                         expected :: if env != null { arity + 1 } else { arity }
-                        in_range :: target >= 0 && usize(target) < code.functions.len()
-                        if in_range && code.functions[usize(target)].params == expected {
+                        in_range :: target >= 0 && i64(target) < code.functions.len()
+                        if in_range && code.functions[target].params == expected {
                             if env != null {
                                 i := arity
                                 for i > 0 {
@@ -643,8 +643,8 @@ reg_call :: fn(
                     // dispatched here, as a fn value is ; a primitive receiver and
                     // every trap take `resolve_virtual`. The receiver sits above the
                     // other arguments and moves ahead of them.
-                    site :: usize(index)
-                    count :: usize(operand_c(w))
+                    site :: i64(index)
+                    count :: i64(operand_c(w))
                     top :: at + count - 1
                     receiver :: refs[top]
                     type_id: i32: if tags[top] != .Ref {
@@ -660,8 +660,8 @@ reg_call :: fn(
                     }
                     row :: if type_id < 0 { -1 } else { f.virtual_rows[site] }
                     target :: lookup_vtable_row(state.bc.vtables, row, type_id)
-                    in_range :: target >= 0 && usize(target) < code.functions.len()
-                    if in_range && code.functions[usize(target)].params == count {
+                    in_range :: target >= 0 && i64(target) < code.functions.len()
+                    if in_range && code.functions[target].params == count {
                         // A lone receiver already sits where the callee reads it.
                         if top > at {
                             i := top
@@ -685,9 +685,9 @@ reg_call :: fn(
                 }
                 // A negative index: a host primitive impl served the call.
                 if index >= 0 {
-                    callee :: code.functions[usize(index)]
+                    callee :: code.functions[index]
                     steps += 1
-                    if depth >= usize(MAX_FRAME_DEPTH) {
+                    if depth >= i64(MAX_FRAME_DEPTH) {
                         return overflow_trap(callee.name)
                     }
                     // `enter_frame` spelled out: a call grows nothing once the run
@@ -723,11 +723,11 @@ reg_call :: fn(
                 many :: op == .ReturnMany
                 result :: operand_a(w)
                 if many {
-                    for k in 0..<usize(operand_b(w)) {
-                        move_register(m, base + k, base + usize(result) + k)
+                    for k in 0..<i64(operand_b(w)) {
+                        move_register(m, base + k, base + i64(result) + k)
                     }
                 } else if result >= 0 {
-                    move_register(m, base, base + usize(result))
+                    move_register(m, base, base + i64(result))
                 }
                 depth -= 1
                 if depth == depth0 {
@@ -751,7 +751,7 @@ reg_call :: fn(
 // The array register `at` holds, writable (the in-place ops grow or overwrite the
 // very object the register holds), or null when it holds something else. Allocates
 // nothing, so a caller on a hot path takes no GC frame for it.
-array_at :: fn(m: RegMachine, at: usize) -> ArrayVal | null {
+array_at :: fn(m: RegMachine, at: i64) -> ArrayVal | null {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is ArrayVal {
@@ -762,7 +762,7 @@ array_at :: fn(m: RegMachine, at: usize) -> ArrayVal | null {
 }
 
 // The string in register `at`, or `null`.
-string_at :: fn(m: RegMachine, at: usize) -> string | null {
+string_at :: fn(m: RegMachine, at: i64) -> string | null {
     if m.tags[at] == .Ref {
         v :: m.refs[at]
         if v is StringVal {
@@ -774,7 +774,7 @@ string_at :: fn(m: RegMachine, at: usize) -> string | null {
 
 // The trap for an op whose receiver register `at` holds no `expected` value.
 receiver_trap :: fn(
-    m: RegMachine, at: usize, f: RegFunction, pc: usize, label: string, expected: string,
+    m: RegMachine, at: i64, f: RegFunction, pc: i64, label: string, expected: string,
 ) -> Trap {
     got :: describe_value_tag(register_value(m, at))
     where :: "${label} receiver at pc=${f.origin[pc]}"
@@ -782,14 +782,14 @@ receiver_trap :: fn(
 }
 
 // The pc of a trap message is read only once the op traps: `f.origin[pc]`.
-set_field :: fn(m: RegMachine, base: usize, obj: i32, value: i32, field: i32, f: RegFunction, pc: usize) -> Trap | null {
-    target :: m.refs[base + usize(obj)]
+set_field :: fn(m: RegMachine, base: i64, obj: i32, value: i32, field: i32, f: RegFunction, pc: i64) -> Trap | null {
+    target :: m.refs[base + i64(obj)]
     if target is StructVal {
-        if field < 0 || usize(field) >= target.fields.len() {
+        if field < 0 || i64(field) >= target.fields.len() {
             count :: target.fields.len()
             return Trap { .message = "struct.set field ${field} out of range (struct has ${count} fields) at pc=${f.origin[pc]}" }
         }
-        target.fields[usize(field)] = register_value(m, base + usize(value))
+        target.fields[field] = register_value(m, base + i64(value))
         return null
     }
     failed :: read_struct(target, f.origin[pc], "struct.set receiver")
@@ -800,19 +800,19 @@ set_field :: fn(m: RegMachine, base: usize, obj: i32, value: i32, field: i32, f:
 // False when the register holds no array or the index is out of bounds, with nothing
 // written: the caller then builds the trap (`element_trap`).
 try_get_element :: fn(
-    m: RegMachine, base: usize, dst: i32, array_reg: i32, index_reg: i32,
+    m: RegMachine, base: i64, dst: i32, array_reg: i32, index_reg: i32,
 ) -> bool {
-    array :: array_at(m, base + usize(array_reg)) ?? return false
-    index :: i32(m.bits[base + usize(index_reg)])
-    if index < 0 || usize(index) >= array.length {
+    array :: array_at(m, base + i64(array_reg)) ?? return false
+    index :: i32(m.bits[base + i64(index_reg)])
+    if index < 0 || i64(index) >= array.length {
         return false
     }
     raw :: array.raw
     if raw != null {
-        set_i32(m.bits, m.tags, base, dst, i32(raw.byte_at(array.offset + usize(index))))
+        set_i32(m.bits, m.tags, base, dst, i32(raw.byte_at(array.offset + i64(index))))
         return true
     }
-    set_register(m, base + usize(dst), array.elements[array.offset + usize(index)])
+    set_register(m, base + i64(dst), array.elements[array.offset + i64(index)])
     return true
 }
 
@@ -820,14 +820,14 @@ try_get_element :: fn(
 // register holds no array, the index is out of bounds or the array reads raw bytes it
 // must own first, with nothing written: the caller then runs `set_element`.
 try_set_element :: fn(
-    m: RegMachine, base: usize, array_reg: i32, index_reg: i32, value: i32,
+    m: RegMachine, base: i64, array_reg: i32, index_reg: i32, value: i32,
 ) -> bool {
-    array :: array_at(m, base + usize(array_reg)) ?? return false
-    index :: i32(m.bits[base + usize(index_reg)])
-    if index < 0 || usize(index) >= array.length || array.raw != null {
+    array :: array_at(m, base + i64(array_reg)) ?? return false
+    index :: i32(m.bits[base + i64(index_reg)])
+    if index < 0 || i64(index) >= array.length || array.raw != null {
         return false
     }
-    array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
+    array.elements[array.offset + i64(index)] = register_value(m, base + i64(value))
     return true
 }
 
@@ -835,17 +835,17 @@ try_set_element :: fn(
 // for its receiver or its index; any other refusal reads as an out-of-bounds index.
 element_trap :: fn(
     m: RegMachine,
-    base: usize,
+    base: i64,
     array_reg: i32,
     index_reg: i32,
     f: RegFunction,
-    pc: usize,
+    pc: i64,
     op: RegOp,
 ) -> Trap {
     label :: element_label(op)
-    at :: base + usize(array_reg)
+    at :: base + i64(array_reg)
     array :: array_at(m, at) ?? return receiver_trap(m, at, f, pc, label, "array")
-    index :: i32(m.bits[base + usize(index_reg)])
+    index :: i32(m.bits[base + i64(index_reg)])
     origin :: f.origin[pc]
     return Trap { .message = "${label} index ${index} out of bounds (len=${array.length}) at pc=${origin}" }
 }
@@ -854,22 +854,22 @@ element_trap :: fn(
 // reads raw bytes, which owns them first.
 set_element :: fn(
     m: RegMachine,
-    base: usize,
+    base: i64,
     array_reg: i32,
     index_reg: i32,
     value: i32,
     f: RegFunction,
-    pc: usize,
+    pc: i64,
     op: RegOp,
 ) -> Trap | null {
-    at :: base + usize(array_reg)
+    at :: base + i64(array_reg)
     array :: array_at(m, at) ?? return element_trap(m, base, array_reg, index_reg, f, pc, op)
-    index :: i32(m.bits[base + usize(index_reg)])
-    if index < 0 || usize(index) >= array.length {
+    index :: i32(m.bits[base + i64(index_reg)])
+    if index < 0 || i64(index) >= array.length {
         return element_trap(m, base, array_reg, index_reg, f, pc, op)
     }
     own_bytes(array)
-    array.elements[array.offset + usize(index)] = register_value(m, base + usize(value))
+    array.elements[array.offset + i64(index)] = register_value(m, base + i64(value))
     return null
 }
 
@@ -883,7 +883,7 @@ element_label :: fn(op: RegOp) -> string {
 
 // Truncate register `at` to a narrow width, as `narrow_mask` does: only an integer
 // is touched, and it comes back an `I32`.
-narrow_register :: fn(m: RegMachine, at: usize, width: i32) -> void {
+narrow_register :: fn(m: RegMachine, at: i64, width: i32) -> void {
     if m.tags[at] != .I32 && m.tags[at] != .I64 {
         return
     }
@@ -895,16 +895,16 @@ narrow_register :: fn(m: RegMachine, at: usize, width: i32) -> void {
 // Why the fn value above `arity` arguments from `at` cannot be called — the
 // `call.indirect` arm turned it down, on the same tests: not a fn, an index out
 // of range, or an arity its callee does not declare.
-indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: usize, arity: usize, origin: i32) -> Trap {
+indirect_call_trap :: fn(code: RegModule, m: RegMachine, at: i64, arity: i64, origin: i32) -> Trap {
     value :: read_fn(register_value(m, at + arity), origin, "call.indirect receiver")
     if value is Trap {
         return value
     }
     target :: value.function_index
-    if target < 0 || usize(target) >= code.functions.len() {
+    if target < 0 || i64(target) >= code.functions.len() {
         return fn_index_trap(target, origin, "call.indirect")
     }
-    callee :: code.functions[usize(target)]
+    callee :: code.functions[target]
     expected :: if value.env != null { arity + 1 } else { arity }
     incl :: if value.env != null { " (incl. env)" } else { "" }
     return Trap { .message = "call.indirect arity mismatch at pc=${origin}: caller supplied ${expected}${incl} but '${callee.name}' declares ${callee.params} param(s)" }
@@ -917,16 +917,16 @@ resolve_virtual :: fn(
     state: VmState,
     m: RegMachine,
     f: RegFunction,
-    pc: usize,
-    at: usize,
+    pc: i64,
+    at: i64,
     is_comptime: bool,
 ) -> i32 | Trap {
     w :: f.words[pc]
-    site :: usize(operand_a(w))
+    site :: i64(operand_a(w))
     call :: f.virtuals[site]
     row :: f.virtual_rows[site]
     origin :: f.origin[pc]
-    count :: usize(operand_c(w))
+    count :: i64(operand_c(w))
     top :: at + count - 1
     receiver :: register_value(m, top)
     type_id :: receiver_type_id_of(state, receiver)
@@ -945,7 +945,7 @@ resolve_virtual :: fn(
         if is_fn_index_out_of_range(target, state.bc.functions) {
             return fn_index_trap(target, origin, "virtual.call '${call.vtable_key}'")
         }
-        callee :: state.bc.functions[usize(target)]
+        callee :: state.bc.functions[target]
         if callee.signature.params.len() != count {
             declared :: callee.signature.params.len()
             return Trap { .message = "virtual.call '${call.vtable_key}' : impl '${callee.name}' expects ${declared} param(s) but call site supplied ${count} at pc=${origin}" }
@@ -978,7 +978,7 @@ resolve_virtual :: fn(
 
 // A frame with room for the operands and results of any boxed op.
 scratch_frame :: fn() -> Frame {
-    width: usize: 8
+    width: i64: 8
     return Frame {
         .stack   = width.filled(() -> NullVal {}),
         .payload = [0] * width,
@@ -991,12 +991,12 @@ scratch_frame :: fn() -> Frame {
 // Run the `Boxed` op at `pc` on the scratch frame, its operands and results in the
 // registers from r[b].
 run_boxed :: fn(
-    state: VmState, m: RegMachine, f: RegFunction, pc: usize, base: usize, is_comptime: bool,
+    state: VmState, m: RegMachine, f: RegFunction, pc: i64, base: i64, is_comptime: bool,
 ) -> Trap | null {
     w :: f.words[pc]
-    at :: base + usize(operand_b(w))
-    pops :: usize(operand_c(w) & 255)
-    pushes :: usize(operand_c(w) >> 8)
+    at :: base + i64(operand_b(w))
+    pops :: i64(operand_c(w) & 255)
+    pushes :: i64(operand_c(w) >> 8)
     frame :: m.scratch
     // An `array.new` or `struct.new` pops one value per element or field.
     reserve_stack(frame, pops)
@@ -1007,7 +1007,7 @@ run_boxed :: fn(
     }
     frame.sp = pops
     frame.pc = f.origin[pc]
-    outcome :: apply_boxed(state, m.run, f.boxed[usize(operand_a(w))], frame, f.name, is_comptime)
+    outcome :: apply_boxed(state, m.run, f.boxed[operand_a(w)], frame, f.name, is_comptime)
     if outcome is Trap {
         return outcome
     }
@@ -1021,8 +1021,8 @@ run_boxed :: fn(
 
 // Call host import `index` with its arguments from register `at` ; its result
 // lands in `at`.
-call_import :: fn(state: VmState, m: RegMachine, index: i32, at: usize, origin: i32, is_comptime: bool) -> Trap | null {
-    info :: state.bc.imports[usize(index)]
+call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i32, is_comptime: bool) -> Trap | null {
+    info :: state.bc.imports[index]
     args: Value[]: []
     for i in 0..<info.signature.params.len() {
         args.push(register_value(m, at + i))
@@ -1030,7 +1030,7 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: usize, origin: 
     outcome :: dispatch_import(
         info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
         state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, debug_controller(m),
-        state.import_ids[usize(index)],
+        state.import_ids[index],
     )
     if outcome is Trap {
         return outcome
@@ -1049,7 +1049,7 @@ debug_controller :: fn(m: RegMachine) -> DebugController | null {
 
 // Make `f`'s frame at `base`: room for its registers, its locals cleared, its
 // constants loaded.
-enter_frame :: fn(m: RegMachine, f: RegFunction, base: usize) -> void {
+enter_frame :: fn(m: RegMachine, f: RegFunction, base: i64) -> void {
     reserve_registers(m, base + f.registers)
     for r in base + f.params..<base + f.slots {
         m.tags[r] = .Null
@@ -1064,7 +1064,7 @@ enter_frame :: fn(m: RegMachine, f: RegFunction, base: usize) -> void {
 // `defer.pop_exec`: pop the last `count` deferred closures and run them, the last
 // pushed first, from register `at` — above the frame running them, at `depth`.
 run_defers :: fn(
-    state: VmState, code: RegModule, m: RegMachine, f: RegFunction, pc: usize, at: usize, depth: usize,
+    state: VmState, code: RegModule, m: RegMachine, f: RegFunction, pc: i64, at: i64, depth: i64,
     is_comptime: bool,
 ) -> Trap | null {
     count :: operand_a(f.words[pc])
@@ -1072,10 +1072,10 @@ run_defers :: fn(
         return null
     }
     origin :: f.origin[pc]
-    if m.defer_count < usize(count) {
+    if m.defer_count < i64(count) {
         return Trap { .message = "defer.pop_exec underflow (count=${count}, have=${m.defer_count}) at pc=${origin}" }
     }
-    first :: m.defer_count - usize(count)
+    first :: m.defer_count - i64(count)
     // Copied out: a thunk's own `defer`s reuse the slots above `first`.
     batch: FnVal[]: []
     for k in first..<m.defer_count {
@@ -1107,7 +1107,7 @@ defer_thunk :: fn(state: VmState, closure: Value, origin: i32, label: string) ->
     if checked is Trap {
         return checked
     }
-    callee :: state.bc.functions[usize(closure.function_index)]
+    callee :: state.bc.functions[closure.function_index]
     if callee.signature.params.len() != 1 {
         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${origin}" }
     }
@@ -1120,9 +1120,9 @@ run_thunk :: fn(
     code: RegModule,
     m: RegMachine,
     thunk: FnVal,
-    at: usize,
-    depth: usize,
-    resume: usize,
+    at: i64,
+    depth: i64,
+    resume: i64,
     is_comptime: bool,
 ) -> Trap | null {
     reserve_registers(m, at + 1)
@@ -1151,8 +1151,8 @@ unwind :: fn(state: VmState, code: RegModule, m: RegMachine, is_comptime: bool) 
 
 // The `Line` op at `pc`: stop when its source line carries a breakpoint or ends
 // the step in progress — at the line's first op only.
-stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegFunction, pc: usize, depth: usize) -> void {
-    position :: state.bc.functions[usize(f.index)].debug[usize(f.origin[pc])] ?? return
+stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegFunction, pc: i64, depth: i64) -> void {
+    position :: state.bc.functions[f.index].debug[f.origin[pc]] ?? return
     if position.line == session.last_line {
         return
     }
@@ -1169,7 +1169,7 @@ stop_at_line :: fn(state: VmState, m: RegMachine, session: DebugSession, f: RegF
 
 // The paused call stack, innermost frame first. A caller's pc is the op after its
 // call, so its line is the call site's.
-pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: usize, depth: usize) -> PauseCtx {
+pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: i64, depth: i64) -> PauseCtx {
     frames: PauseFrame[]: []
     k := depth
     for k > 0 {
@@ -1180,14 +1180,14 @@ pause_context :: fn(state: VmState, m: RegMachine, reason: string, pc: usize, de
         for s in 0..<code.slots {
             slots.push(register_value(m, m.frame_base[k] + s))
         }
-        frames.push(pause_frame(state.bc, state.bc.functions[usize(code.index)], slots, code.origin[at]))
+        frames.push(pause_frame(state.bc, state.bc.functions[code.index], slots, code.origin[at]))
     }
     return PauseCtx { .reason = reason, .frames = frames }
 }
 
 // Record a frame one deeper than any so far ; the record arrays are grow-only,
 // and a shallower frame overwrites its slot in place.
-grow_frame_records :: fn(m: RegMachine, code: RegFunction, base: usize, resume: usize) -> void {
+grow_frame_records :: fn(m: RegMachine, code: RegFunction, base: i64, resume: i64) -> void {
     m.frame_code.push(code)
     m.frame_base.push(base)
     m.frame_return.push(resume)
@@ -1211,44 +1211,44 @@ finish_run :: fn(m: RegMachine, has_value: bool, capture: Value[] | null) -> VmR
     return Ok { .value = i32(code) }
 }
 
-bits_of :: fn(bits: i64[], base: usize, register: i32) = bits[base + usize(register)]
+bits_of :: fn(bits: i64[], base: i64, register: i32) = bits[base + i64(register)]
 
 // `op` on r[b] and r[c] read as the integer class `kind` (`checked_arith`).
-checked_registers :: fn(op: bc.CheckedOp, kind: bc.ValType, bits: i64[], base: usize, w: i64) -> i64 | null =
+checked_registers :: fn(op: bc.CheckedOp, kind: bc.ValType, bits: i64[], base: i64, w: i64) -> i64 | null =
     bc.checked_arith(op, kind, bits_of(bits, base, operand_b(w)), bits_of(bits, base, operand_c(w)))
 
 // The trap of a checked `op` on a `kind` at `pc`.
-checked_trap :: fn(kind: bc.ValType, op: bc.CheckedOp, f: RegFunction, pc: usize) = Trap {
+checked_trap :: fn(kind: bc.ValType, op: bc.CheckedOp, f: RegFunction, pc: i64) = Trap {
     .message = "${bc.checked_overflow_message(kind, op)} at pc=${f.origin[pc]}",
 }
 
 // The trap of a checked negation on a `kind` at `pc`.
-checked_neg_trap :: fn(kind: bc.ValType, f: RegFunction, pc: usize) = Trap {
+checked_neg_trap :: fn(kind: bc.ValType, f: RegFunction, pc: i64) = Trap {
     .message = "${bc.checked_neg_message(kind)} at pc=${f.origin[pc]}",
 }
 
-i32_of :: fn(bits: i64[], base: usize, register: i32) = i32(bits[base + usize(register)])
+i32_of :: fn(bits: i64[], base: i64, register: i32) = i32(bits[base + i64(register)])
 
-u64_of :: fn(bits: i64[], base: usize, register: i32) = u64(bits[base + usize(register)])
+u64_of :: fn(bits: i64[], base: i64, register: i32) = u64(bits[base + i64(register)])
 
-u32_of :: fn(bits: i64[], base: usize, register: i32) = u32(i32(bits[base + usize(register)]))
+u32_of :: fn(bits: i64[], base: i64, register: i32) = u32(i32(bits[base + i64(register)]))
 
-f64_of :: fn(bits: i64[], base: usize, register: i32) = (u64(bits[base + usize(register)])).from_bits()
+f64_of :: fn(bits: i64[], base: i64, register: i32) = (u64(bits[base + i64(register)])).from_bits()
 
-set_i32 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: i32) -> void {
-    at :: base + usize(register)
+set_i32 :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: i32) -> void {
+    at :: base + i64(register)
     bits[at] = i64(v)
     tags[at] = .I32
 }
 
-set_i64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: i64) -> void {
-    at :: base + usize(register)
+set_i64 :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: i64) -> void {
+    at :: base + i64(register)
     bits[at] = v
     tags[at] = .I64
 }
 
 // r[register] <- `v`, the result of a checked op on a `kind`, under that kind's tag.
-set_integer :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, kind: bc.ValType, v: i64) -> void {
+set_integer :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, kind: bc.ValType, v: i64) -> void {
     if bc.is_64_bit_int_val(kind) {
         set_i64(bits, tags, base, register, v)
     } else {
@@ -1256,31 +1256,31 @@ set_integer :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, kin
     }
 }
 
-set_f64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: f64) -> void {
-    at :: base + usize(register)
+set_f64 :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: f64) -> void {
+    at :: base + i64(register)
     bits[at] = i64(v.to_bits())
     tags[at] = .F64
 }
 
 // r[register] = the `char` of codepoint `code`, which the program's own conversion
 // checked before this op.
-set_char_code :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, code: u32) -> void {
-    at :: base + usize(register)
+set_char_code :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, code: u32) -> void {
+    at :: base + i64(register)
     bits[at] = i64(code)
     tags[at] = .Char
 }
 
 // r[register] as an i64, an `I32` holding an unsigned value zero-extended.
-zero_extended :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32) -> i64 {
-    at :: base + usize(register)
+zero_extended :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32) -> i64 {
+    at :: base + i64(register)
     if tags[at] == .I32 {
         return i64(u32(i32(bits[at])))
     }
     return bits[at]
 }
 
-set_bool :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: bool) -> void {
-    at :: base + usize(register)
+set_bool :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: bool) -> void {
+    at :: base + i64(register)
     bits[at] = if v { 1 } else { 0 }
     tags[at] = .Bool
 }
@@ -1361,16 +1361,16 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
         "module demo",
         "type 0 primitive i32",
         "type 1 primitive u8",
-        "type 2 primitive usize",
+        "type 2 primitive i64",
         "type 3 primitive string",
         "type 4 primitive bool",
         "string 0 \"héllo\"",
         r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_c_out=0"
-            + " param_by_address= (string) -> usize",
+            + " param_by_address= (string) -> i64",
         r"import 1 byte_at std_core$byte_at result_type=1 param_types=3,2 param_c_out=0,0"
-            + " param_by_address= (string,usize) -> u8",
+            + " param_by_address= (string,i64) -> u8",
         r"import 2 byte_slice std_core$byte_slice result_type=3 param_types=3,2,2"
-            + " param_c_out=0,0,0 param_by_address= (string,usize,usize) -> string",
+            + " param_c_out=0,0,0 param_by_address= (string,i64,i64) -> string",
         r"import 3 is_ascii std_core$is_ascii result_type=4 param_types=3 param_c_out=0"
             + " param_by_address= (string) -> bool",
         "fn 0 main () -> i32",
@@ -1382,7 +1382,7 @@ string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
 string_byte_module :: fn(index: i32) -> bc.BytecodeModule | null = string_module([
     "string.const 0",
     "call.import 0",
-    "usize.to_i32",
+    "i64.to_i32",
     "string.const 0",
     "i64.const ${index}",
     "call.import 1",
@@ -1445,7 +1445,7 @@ slice_length_module :: fn(start: i32, end: i32) -> bc.BytecodeModule | null = st
     "i64.const ${end}",
     "call.import 2",
     "call.import 0",
-    "usize.to_i32",
+    "i64.to_i32",
     "return",
 ])
 

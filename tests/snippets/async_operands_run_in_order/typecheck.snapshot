@@ -234,8 +234,8 @@
   expr 80:5     FieldExpr      :: fn(i32) -> void
   expr 80:5     IdentExpr      :: fn(i32[]) -> i32[]
   expr 81:13    StringLitExpr  :: string
-  expr 81:16    CallExpr       :: usize
-  expr 81:16    FieldExpr      :: fn() -> usize
+  expr 81:16    CallExpr       :: i64
+  expr 81:16    FieldExpr      :: fn() -> i64
   expr 81:16    IdentExpr      :: i32[]
   expr 81:28    IdentExpr      :: i32[]
   expr 81:28    IndexExpr      :: i32

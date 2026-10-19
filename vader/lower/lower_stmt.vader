@@ -25,7 +25,7 @@ import "toolchain/span"
 ///                      for any other block.
 /// @return              the lowered block.
 lower_block :: fn(
-    ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, loop_id: usize | null,
+    ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, loop_id: i64 | null,
 ) -> LoweredBlock {
     entry_depth :: ctx.blocks.len()
     ctx.blocks.push(new_block_ctx(is_fn_root, loop_id))
@@ -102,7 +102,7 @@ lower_trailing :: fn(
 // (statement position), truncating the sink back to `base`. Awaits below `base`
 // belong to an enclosing statement's drain and are left untouched (the block
 // watermark — see `lower_block`).
-drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> void {
+drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: i64) -> void {
     n :: ctx.pending_awaits.len()
     // Fast path : the statement hoisted nothing (the common case) — no drain, no
     // realloc. Otherwise move the tail `[base, n)` into `out` and truncate the
@@ -118,7 +118,7 @@ drain_pending_from :: fn(ctx: FnLowerCtx, out: LoweredStmt[], base: usize) -> vo
 // leaves the awaits hoisted: the build stops on the diagnostic, and the reads of
 // their targets keep a definition. No-op when nothing was hoisted, as always
 // outside async.
-guard_no_pending_await :: fn(ctx: FnLowerCtx, base: usize, span: Span) -> void {
+guard_no_pending_await :: fn(ctx: FnLowerCtx, base: i64, span: Span) -> void {
     if ctx.pending_awaits.len() <= base { return }
     ctx.project.diags.push(lower_error(.AwaitInShortCircuit, span, ""))
 }
@@ -436,7 +436,7 @@ pop_defers_to_fn_root :: fn(ctx: FnLowerCtx, span: Span) -> LoweredStmt | null {
 // A `break` (`is_break`) or a `continue`, as written — unless it leaves a body a
 // fusion splices into a producer's code, where it may have to land elsewhere.
 lower_jump :: fn(
-    ctx: FnLowerCtx, jump_id: usize, written: string | null, is_break: bool, span: Span,
+    ctx: FnLowerCtx, jump_id: i64, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt {
     spliced :: spliced_jump(ctx, jump_id, written, is_break, span)
     if spliced != null {
@@ -451,7 +451,7 @@ lower_jump :: fn(
 
 // The label a jump is lowered under: the one it wrote, unless it names a labelled
 // loop by its iteration variable — that loop is lowered under its label.
-lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null) -> string | null {
+lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: i64, written: string | null) -> string | null {
     renamed :: ctx.typed.jump_labels[jump_id]
     return instance_label(ctx, if renamed != null { renamed } else { written })
 }
@@ -460,13 +460,13 @@ lowered_jump_label :: fn(ctx: FnLowerCtx, jump_id: usize, written: string | null
 // `jump_id` targets — break/continue exit every loop body up to their target's,
 // not the fn.
 drain_defers_to_loop :: fn(
-    ctx: FnLowerCtx, jump_id: usize, span: Span, out: LoweredStmt[],
+    ctx: FnLowerCtx, jump_id: i64, span: Span, out: LoweredStmt[],
 ) -> void {
     target :: ctx.typed.jump_targets[jump_id]
     total: i32 = 0
-    i := i64(ctx.blocks.len()) - 1
+    i := ctx.blocks.len() - 1
     for i >= 0 {
-        b :: ctx.blocks[usize(i)]
+        b :: ctx.blocks[i]
         total += i32(b.defers.len())
         loop_id :: b.loop_id
         if loop_id != null && (target == null || loop_id == target) {

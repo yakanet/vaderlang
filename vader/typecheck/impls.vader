@@ -71,7 +71,7 @@ export ImplRegistry :: struct {
     by_decl: MutableMap<u64, ImplEntry> = MutableMap<u64, ImplEntry> {}
     /// Every entry, keyed by the node id of each member it declares, a materialised
     /// one included (`member_entry`).
-    by_member: MutableMap<usize, ImplEntry> = MutableMap<usize, ImplEntry> {}
+    by_member: MutableMap<i64, ImplEntry> = MutableMap<i64, ImplEntry> {}
     /// Every entry the registry has seen — used by the lowerer to drive
     /// virtual dispatch over trait-typed receivers.
     all: ImplEntry[] = []

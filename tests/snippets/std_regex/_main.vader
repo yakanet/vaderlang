@@ -42,10 +42,10 @@ main :: fn() -> i32 {
         run_find("first-word", p_word, "abc def ghi")
         all :: p_word.find_all("abc def ghi")
         println("word-count=${all.len()}")
-        i: usize = 0
+        i: i64 = 0
         for i < all.len() {
             println("word[${i}]=${all[i].groups[0]}")
-            i = i + usize(1)
+            i += 1
         }
     }
 

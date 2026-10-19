@@ -51,7 +51,7 @@ export JsonObject :: struct { entries: MutableMap<string, JsonValue> }
 /// byte offset of the offending character.
 export JsonError :: struct {
     msg: string
-    pos: usize
+    pos: i64
 }
 
 JsonError implements Error {
@@ -62,7 +62,7 @@ JsonError implements Error {
 
 Parser :: struct {
     src: string
-    pos: usize
+    pos: i64
 }
 
 new_parser :: fn(s: string) -> Parser = Parser { .src = s, .pos = 0 }
@@ -334,7 +334,7 @@ read_hex4 :: fn(p: Parser) -> i32 {
         return -1
     }
     v := 0
-    for k in usize(0)..<4 {
+    for k in i64(0)..<4 {
         d :: hex_digit_value(char(p.src.byte_at(p.pos + k)))
         if d < 0 {
             return -1
@@ -484,7 +484,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 write_string :: fn(sb: StringBuilder, s: string, close: string) -> void {
     sb.append("\"")
     n :: s.byte_len()
-    run: usize = 0
+    run: i64 = 0
     for i in 0..<n {
         escape :: escape_of(s.byte_at(i)) ?? continue
         if run < i {

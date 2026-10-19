@@ -92,7 +92,7 @@ tuple_shape_name :: fn(elements: Type[]) -> string {
 /// Hex digits of the shape digest kept when the name is also spelled out. Eight
 /// is 32 bits of separation, which is what distinguishes two shapes that
 /// sanitise alike; the unspelled form keeps all sixteen.
-SHAPE_DIGEST_LEN: usize : 8
+SHAPE_DIGEST_LEN: i64 : 8
 
 /// Longest tuple shape spelled in full.
 ///
@@ -101,7 +101,7 @@ SHAPE_DIGEST_LEN: usize : 8
 /// (8) + `_t` (2). What is left is 40. Past that, two shapes differing only
 /// beyond the limit would be ONE struct to a compiler that applies the
 /// guarantee, so the name is hashed instead of spelled.
-TUPLE_NAME_MAX: usize : 40
+TUPLE_NAME_MAX: i64 : 40
 
 /// FNV-1a over the shape, as 16 hex digits. Only reached for a shape too long
 /// to spell; a collision would merge two distinct structs, so `intern_type`'s
@@ -116,7 +116,7 @@ fnv1a_hex :: fn(s: string) -> string {
     for i in 0..<16 {
         shift :: u64((15 - i) * 4)
         nibble :: (h >> shift) & 0xF
-        out = out + "0123456789abcdef"[usize(nibble)..<usize(nibble) + 1]
+        out = out + "0123456789abcdef"[i64(nibble)..<i64(nibble) + 1]
     }
     return out
 }

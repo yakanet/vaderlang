@@ -6,7 +6,7 @@ module "snippet"
 
 import "std/io"
 
-byte_count :: fn(x: string | u8[]) -> usize {
+byte_count :: fn(x: string | u8[]) -> i64 {
     if x is string { return x.bytes().len() }
     return x.len()
 }

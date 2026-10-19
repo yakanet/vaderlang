@@ -194,7 +194,7 @@ LeadingNumber :: struct {
     value:  i64
     /// How many leading digits were consumed. 0 means the value is not a number
     /// at all, and the runtime keeps its default.
-    digits: usize
+    digits: i64
     /// True when the digits ARE the whole string — false is the `512M` case,
     /// where a suffix is silently dropped.
     whole:  bool
@@ -202,7 +202,7 @@ LeadingNumber :: struct {
 
 read_leading_number :: fn(raw: string) -> LeadingNumber {
     value: i64 = 0
-    n: usize = 0
+    n: i64 = 0
     for n < raw.byte_len() {
         b :: raw.byte_at(n)
         if b < '0' || b > '9' {
@@ -232,7 +232,7 @@ import "std/testing"
 
 @test test_leading_number_rejects_a_non_number :: fn() -> void {
     n :: read_leading_number("big")
-    assert_eq(n.digits, usize(0))
+    assert_eq(n.digits, 0)
 }
 
 @test test_gc_byte_suffix_fails_rather_than_passing_quietly :: fn() -> void {

@@ -29,12 +29,12 @@
   expr 54:44    FieldExpr      :: i32
   expr 54:44    IdentExpr      :: Wrapper<MonType>
   expr 58:34    StringLitExpr  :: string
-  expr 58:42    CallExpr       :: usize
-  expr 58:42    FieldExpr      :: fn() -> usize
+  expr 58:42    CallExpr       :: i64
+  expr 58:42    FieldExpr      :: fn() -> i64
   expr 58:42    IdentExpr      :: MonType[]
   expr 62:34    StringLitExpr  :: string
-  expr 62:43    CallExpr       :: usize
-  expr 62:43    FieldExpr      :: fn() -> usize
+  expr 62:43    CallExpr       :: i64
+  expr 62:43    FieldExpr      :: fn() -> i64
   expr 62:43    IdentExpr      :: T[]
   expr 65:33    CallExpr       :: string
   expr 65:33    FieldExpr      :: fn() -> string

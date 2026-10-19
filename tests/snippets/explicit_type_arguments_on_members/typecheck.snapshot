@@ -45,13 +45,13 @@
   expr 42:5     FieldExpr      :: fn(f64) -> void
   expr 42:5     IdentExpr      :: Bag<f64>
   expr 43:13    StringLitExpr  :: string
-  expr 43:16    CallExpr       :: usize
+  expr 43:16    CallExpr       :: i64
   expr 43:16    FieldExpr      :: f64[]
-  expr 43:16    FieldExpr      :: fn() -> usize
+  expr 43:16    FieldExpr      :: fn() -> i64
   expr 43:16    IdentExpr      :: Bag<f64>
-  expr 43:33    CallExpr       :: usize
+  expr 43:33    CallExpr       :: i64
   expr 43:33    FieldExpr      :: f64[]
-  expr 43:33    FieldExpr      :: fn() -> usize
+  expr 43:33    FieldExpr      :: fn() -> i64
   expr 43:33    IdentExpr      :: Bag<f64>
   expr 43:5     CallExpr       :: void
   expr 43:5     IdentExpr      :: fn(T) -> void

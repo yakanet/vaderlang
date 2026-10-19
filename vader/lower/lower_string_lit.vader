@@ -211,7 +211,7 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // `concat_N` path (`lower_concat_chain`). Each part is lowered once.
 lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     string_type :: TY_STRING
-    usize_type :: mk_primitive("usize")
+    i64_type :: mk_primitive("i64")
     span :: expr.span
     // Lower every part once, classifying interpolated values by type ; a
     // `${Display}` part is rendered here, and joins the strings.
@@ -291,7 +291,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
             write_values.push(v)
             write_kinds.push(.Bool)
         } else if k == .Text {
-            if v is LoweredStringLit { const_bytes = const_bytes + i64(v.value.byte_len()) }
+            if v is LoweredStringLit { const_bytes = const_bytes + v.value.byte_len() }
             write_values.push(v)
             write_kinds.push(.Str)
         } else {
@@ -305,19 +305,19 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
                 .value = v,
             })
             tmp_ref :: synth_ident(tmp_sym, string_type, span)
-            blen_call :: mk_lowered_call(blen_sym, [tmp_ref], usize_type, span)
+            blen_call :: mk_lowered_call(blen_sym, [tmp_ref], i64_type, span)
             if runtime_size == null { runtime_size = blen_call } else {
-                runtime_size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = runtime_size, .right = blen_call }
+                runtime_size = LoweredBinary { .span = span, .type = i64_type, .op = .Add, .left = runtime_size, .right = blen_call }
             }
             write_values.push(tmp_ref)
             write_kinds.push(.Str)
         }
     }
     // size = const_bytes + Σ byte_len(str tmps).
-    const_lit :: LoweredIntLit { .span = span, .type = usize_type, .value = const_bytes }
+    const_lit :: LoweredIntLit { .span = span, .type = i64_type, .value = const_bytes }
     size: LoweredExpr = const_lit
     if runtime_size != null {
-        size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = const_lit, .right = runtime_size }
+        size = LoweredBinary { .span = span, .type = i64_type, .op = .Add, .left = const_lit, .right = runtime_size }
     }
     buf_sym :: fresh_synthetic_symbol(ctx, "buf")
     stmts.push(LoweredLet {
@@ -326,8 +326,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     })
     off_sym :: fresh_synthetic_symbol(ctx, "off")
     stmts.push(LoweredLet {
-        .span = span, .name = off_sym.name, .symbol = off_sym, .type = usize_type,
-        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
+        .span = span, .name = off_sym.name, .symbol = off_sym, .type = i64_type,
+        .value = LoweredIntLit { .span = span, .type = i64_type, .value = 0 },
     })
     // `off = buf.write_X(off, value)` per part — the write returns the new offset.
     for i in 0..<write_values.len() {
@@ -338,12 +338,12 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
             .Bool                   -> wbool_sym
             .Str | .Text | .Display -> wstr_sym
         }
-        call :: mk_lowered_call(wsym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span), wv], usize_type, span)
-        stmts.push(LoweredAssign { .span = span, .target = synth_ident(off_sym, usize_type, span), .value = call })
+        call :: mk_lowered_call(wsym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, i64_type, span), wv], i64_type, span)
+        stmts.push(LoweredAssign { .span = span, .target = synth_ident(off_sym, i64_type, span), .value = call })
     }
     return LoweredBlock {
         .span = span, .type = string_type, .stmts = stmts,
-        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span)], string_type, span),
+        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, i64_type, span)], string_type, span),
     }
 }
 

@@ -38,7 +38,7 @@ export WideningVerdict :: enum {
 /// An argument that fits its parameter only by widening an array.
 export WideningSite :: struct {
     /// The argument's node id, the key of `TypedProgram.widened_arguments`.
-    arg: usize
+    arg: i64
     span: Span
     /// The display path of the module that holds the site.
     module: string
@@ -46,7 +46,7 @@ export WideningSite :: struct {
     depth: i32
     callee: Callee
     /// The parameter the argument fills, by position.
-    param: usize
+    param: i64
     verdict: WideningVerdict
     /// The first access of the callee's parameter that breaks the widening, for a
     /// verdict of `Breaks`.
@@ -65,7 +65,7 @@ note_widened :: fn(
     ctx: WalkCtx,
     callee: Callee,
     targets: CallTarget[],
-    param: usize,
+    param: i64,
     arg: AST.Expr,
 ) -> void {
     widened :: ctx.typed.widened_arguments[arg.id] ?? return
@@ -133,7 +133,7 @@ display_callee :: fn(callee: Callee) -> string = match callee {
 }
 
 // The name of parameter `param` of `callee`, when the call names its declaration.
-parameter_name :: fn(callee: Callee, param: usize) -> string | null {
+parameter_name :: fn(callee: Callee, param: i64) -> string | null {
     if callee is DirectFn && param < callee.decl.params.len() {
         return callee.decl.params[param].name
     }
@@ -150,7 +150,7 @@ parameter_name :: fn(callee: Callee, param: usize) -> string | null {
 /// @param checked  its typecheck, which noted the widened arguments.
 export widening_diagnostics :: fn(summary: EffectSummary, checked: CheckResult) -> Diagnostic[] {
     out: Diagnostic[]: []
-    decided :: MutableSet<usize> {}
+    decided :: MutableSet<i64> {}
     for site in summary.widenings {
         decided.add(site.arg)
         if site.verdict != .Covariant {

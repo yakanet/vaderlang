@@ -26,9 +26,9 @@
 [12:1-12:1  ] newline        "\n"
 [12:5-12:8  ] ident          "idx"
 [12:8-12:9  ] colon          ":"
-[12:10-12:15] ident          "usize"
-[12:15-12:16] colon          ":"
-[12:17-12:19] int_literal    "10" =10n
+[12:10-12:13] ident          "i64"
+[12:13-12:14] colon          ":"
+[12:15-12:17] int_literal    "10" =10n
 [13:1-13:1  ] newline        "\n"
 [13:5-13:7  ] ident          "ch"
 [13:8-13:10 ] decl_const     "::"

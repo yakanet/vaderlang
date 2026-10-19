@@ -33,7 +33,7 @@ main :: fn() -> i32 {
     }
 
     ok := dec.width == u32(2) && dec.height == u32(2)
-        && dec.maxval == u32(255) && dec.pixels.len() == usize(12)
+        && dec.maxval == u32(255) && dec.pixels.len() == 12
     for i in 0..<dec.pixels.len() {
         if dec.pixels[i] != px[i] { ok = false }
     }

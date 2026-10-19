@@ -155,7 +155,7 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
         e10 = q
         k :: DOUBLE_POW5_INV_BITCOUNT + pow5bits(q) - 1
         i :: -e2 + q + k
-        row :: 2 * usize(q)
+        row :: 2 * i64(q)
         lo  :: DOUBLE_POW5_INV_SPLIT[row]
         hi  :: DOUBLE_POW5_INV_SPLIT[row + 1]
         [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, i, mm_shift)
@@ -179,7 +179,7 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
         i :: -e2 - q
         k :: pow5bits(i) - DOUBLE_POW5_BITCOUNT
         j :: q - k
-        row :: 2 * usize(i)
+        row :: 2 * i64(i)
         lo  :: DOUBLE_POW5_SPLIT[row]
         hi  :: DOUBLE_POW5_SPLIT[row + 1]
         [rvr, rvp, rvm] :: mul_shift_all_64(m2, lo, hi, j, mm_shift)
@@ -290,7 +290,7 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
 // one digit, a point, 16 more, `e`, a sign and a 3-digit exponent (24). f32
 // reaches this code with 9 digits and a 2-digit exponent, so it is strictly
 // narrower. The stores below are unchecked, so this bound is load-bearing.
-F64_RENDER_MAX: usize: 25
+F64_RENDER_MAX: i64: 25
 
 // Number of decimal digits in `n` (1 for 0).
 decimal_width :: fn(n: u64) -> i32 {
@@ -312,9 +312,9 @@ decimal_width :: fn(n: u64) -> i32 {
 // `Buffer.write_unsigned` does the same job and measures the width itself, but
 // this layer needs the width BEFORE it writes anything: the branch it takes
 // depends on where the decimal point falls among the digits.
-write_digits :: fn(buf: Buffer, off: usize, n_in: u64, width: i32) -> usize {
+write_digits :: fn(buf: Buffer, off: i64, n_in: u64, width: i32) -> i64 {
     n := n_in
-    end :: off + usize(width)
+    end :: off + i64(width)
     i := end
     for i > off {
         i = i - 1
@@ -325,28 +325,28 @@ write_digits :: fn(buf: Buffer, off: usize, n_in: u64, width: i32) -> usize {
 }
 
 // Write `count` zero bytes at `off` ; return the offset past them.
-write_zeros :: fn(buf: Buffer, off: usize, count: i32) -> usize {
+write_zeros :: fn(buf: Buffer, off: i64, count: i32) -> i64 {
     for i in 0..<count {
-        buf.store_u8(off + usize(i), '0')
+        buf.store_u8(off + i64(i), '0')
     }
-    return off + usize(count)
+    return off + i64(count)
 }
 
 // Put a `.` after the first `left` of the `width` digits already written at
 // `off`, shifting the tail one byte right (`memory_copy` is overlap-safe).
 // Returns the offset past the last byte. Requires `0 < left < width`.
-insert_point :: fn(buf: Buffer, off: usize, width: i32, left: i32) -> usize {
-    at :: off + usize(left)
-    buf.memory_copy(at + 1, buf, at, usize(width - left))
+insert_point :: fn(buf: Buffer, off: i64, width: i32, left: i32) -> i64 {
+    at :: off + i64(left)
+    buf.memory_copy(at + 1, buf, at, i64(width - left))
     buf.store_u8(at, '.')
-    return off + usize(width) + 1
+    return off + i64(width) + 1
 }
 
 // Write the shortest decimal `digits * 10^exp` at `off`, per ECMAScript
 // Number::toString plus the Vader trailing `.0` on an integer value. Returns
 // the offset past the last byte. `k` and `n` keep their ECMA-262 meanings: how
 // many digits there are, and where the decimal point falls among them.
-write_decimal :: fn(buf: Buffer, off: usize, digits: u64, exp: i32) -> usize {
+write_decimal :: fn(buf: Buffer, off: i64, digits: u64, exp: i32) -> i64 {
     k :: decimal_width(digits)
     n :: exp + k
     // The one branch that does not open with the digits, so it goes first and
@@ -385,8 +385,8 @@ render :: fn(mantissa_in: u64, exp_in: i32, sign: bool) -> string {
         mantissa = mantissa / 10
         exp = exp + 1
     }
-    buf :: F64_RENDER_MAX.new_buffer()
-    off: usize = 0
+    buf :: usize(F64_RENDER_MAX).new_buffer()
+    off: i64 = 0
     if sign {
         buf.store_u8(0, '-')
         off = 1

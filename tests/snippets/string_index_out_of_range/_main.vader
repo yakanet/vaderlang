@@ -9,7 +9,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     word :: "abc"
-    idx: usize: 10
+    idx: i64: 10
     ch :: word[idx]
     println("${i32(ch)}")
     return 0

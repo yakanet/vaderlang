@@ -111,7 +111,7 @@ target_group_name_at :: fn(
 // How many OS selectors a `@target` carries: 0 for the bare form (THE
 // declaration), more for a body. Returns 0 when there is no `@target` at all —
 // callers pair it with `has_target_decorator`, which separates the two cases.
-target_selector_count :: fn(decorators: AST.Decorator[]) -> usize {
+target_selector_count :: fn(decorators: AST.Decorator[]) -> i64 {
     for d in decorators {
         if d.name == "target" {
             return d.args.len()

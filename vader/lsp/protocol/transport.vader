@@ -32,7 +32,7 @@ TransportError implements Error {
 /// @return  the JSON body (UTF-8, exactly `Content-Length` bytes).
 /// @error   `TransportError` on malformed frame or EOF.
 export read_frame :: fn() -> string | TransportError {
-    content_length: isize = -1
+    content_length: i64 = -1
     // Read header lines until the blank `\r\n`. Each line ends with
     // `\r\n` so we read 1 byte at a time looking for the terminator —
     // header lines are short (typically < 100 bytes) so the per-byte
@@ -63,7 +63,7 @@ export read_frame :: fn() -> string | TransportError {
                                     parsed :: trimmed.parse_int()
                                     match parsed {
                                         is ParseError -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
-                                        is i32 -> { content_length = isize(parsed) }
+                                        is i32 -> { content_length = i64(parsed) }
                                     }
                                 }
                                 // Other headers (`Content-Type`, etc.) are
@@ -82,7 +82,7 @@ export read_frame :: fn() -> string | TransportError {
     if content_length < 0 {
         return TransportError { .msg = "missing Content-Length header" }
     }
-    body :: read_stdin(usize(content_length))
+    body :: read_stdin(content_length)
     match body {
         is IOError -> { return TransportError { .msg = "EOF in body" } }
         is string -> { return body }

@@ -10,8 +10,8 @@
   FnDecl         show                 :: fn(Label) -> string
   expr 20:33    StructLitExpr  :: Label
   expr 20:46    StringLitExpr  :: string
-  expr 20:51    CallExpr       :: usize
-  expr 20:51    FieldExpr      :: fn() -> usize
+  expr 20:51    CallExpr       :: i64
+  expr 20:51    FieldExpr      :: fn() -> i64
   expr 20:51    IdentExpr      :: Mon[]
   expr 24:14    IdentExpr      :: Mon[]
   expr 25:15    StructLitExpr  :: Label

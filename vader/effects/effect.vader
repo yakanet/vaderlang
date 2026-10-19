@@ -333,12 +333,12 @@ export ParamEffects :: struct {
 
 // The most accesses a set scans for a key ; past it, the set keeps their keys in a
 // hash set.
-SCANNED_ACCESSES: usize: 8
+SCANNED_ACCESSES: i64: 8
 
 access_key :: fn(a: Access) -> i64 = key_of(a.path, a.effect)
 
 // The key of an access at `path` doing `effect`, building no `Access`.
-key_of :: fn(path: i32, effect: Effect) -> i64 = i64(path) * 8 + i64(usize(effect))
+key_of :: fn(path: i32, effect: Effect) -> i64 = i64(path) * 8 + i64(effect)
 
 // Add `a` to `effects`, which does not hold it, put there by the constraint `how`
 // carrying the callee's access `then` ; with no constraint, for a fixed set built
@@ -443,7 +443,7 @@ drop_covered :: fn(t: PathTable, effects: ParamEffects, a: Access) -> [i64, i64]
 
 // The index of the first access of `effects` that `a` covers (`covers`) ; null when
 // it covers none.
-first_covered :: fn(t: PathTable, a: Access, effects: ParamEffects) -> usize | null {
+first_covered :: fn(t: PathTable, a: Access, effects: ParamEffects) -> i64 | null {
     for i in 0..<effects.accesses.len() {
         if t.covers(a, effects.accesses[i]) {
             return i
@@ -453,15 +453,15 @@ first_covered :: fn(t: PathTable, a: Access, effects: ParamEffects) -> usize | n
 }
 
 // The constraint that put the access at index `i` of `effects` there.
-constraint_at :: fn(effects: ParamEffects, i: usize) -> i64 = effects.origins[2 * i]
+constraint_at :: fn(effects: ParamEffects, i: i64) -> i64 = effects.origins[2 * i]
 
 // The callee's access the constraint of the access at index `i` carries.
-carried_at :: fn(effects: ParamEffects, i: usize) -> i64 = effects.origins[2 * i + 1]
+carried_at :: fn(effects: ParamEffects, i: i64) -> i64 = effects.origins[2 * i + 1]
 
 // Whether `x`, at a cut path, covers the access whose key is `key` (`covers`).
 covers_key :: fn(t: PathTable, x: Access, key: i64) -> bool {
     path :: i32(key / 8)
-    if i64(usize(x.effect)) != key % 8 || x.path == path || !t.nodes[x.path].deeper {
+    if i64(x.effect) != key % 8 || x.path == path || !t.nodes[x.path].deeper {
         return false
     }
     return t.extends(path, x.path)
@@ -485,7 +485,7 @@ any_effects :: fn() -> ParamEffects {
 sorted_accesses :: fn(t: PathTable, effects: ParamEffects) -> Access[] {
     keyed: KeyedAccess[]: []
     for a in effects.accesses {
-        key :: "${usize(a.effect)} ${t.display_path(a.path)}"
+        key :: "${i64(a.effect)} ${t.display_path(a.path)}"
         keyed.push(KeyedAccess { .key = key, .access = a })
     }
     out: Access[]: []

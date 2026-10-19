@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 ///
 /// @param ctx  the walk.
 /// @param e    an expression in value position.
-value :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
+value :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
     held :: ctx.converted(e, ctx.value_of(e))
     if !holds_references(ctx.typed.expr_types[e.id]) {
         return null
@@ -33,14 +33,14 @@ discard :: fn(ctx: WalkCtx, e: AST.Expr) -> void {
 }
 
 // What an implicit `into` at `e` returns of `held`, or `held` when none runs there.
-converted :: fn(ctx: WalkCtx, e: AST.Expr, held: usize | null) -> usize | null =
+converted :: fn(ctx: WalkCtx, e: AST.Expr, held: i64 | null) -> i64 | null =
     ctx.converted_by(ctx.site_callee(.Into, e.id), held, e)
 
 // What the conversion `callee` returns of `held`, which `source` evaluates to, or
 // `held` when nothing runs.
 converted_by :: fn(
-    ctx: WalkCtx, callee: Callee | null, held: usize | null, source: AST.Expr,
-) -> usize | null {
+    ctx: WalkCtx, callee: Callee | null, held: i64 | null, source: AST.Expr,
+) -> i64 | null {
     conversion :: callee ?? return held
     result :: ctx.call(conversion, [held], source.span, [source])
     if result == null {
@@ -49,7 +49,7 @@ converted_by :: fn(
     return result
 }
 
-value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
+value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null = match e {
     is AST.IdentExpr         -> ctx.ident_value(e)
     is AST.FieldExpr         -> ctx.field_value(e)
     is AST.IndexExpr         -> ctx.index_value(e)
@@ -74,7 +74,7 @@ value_of :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null = match e {
 }
 
 // Walk `e`, whose value holds nothing lent.
-nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
+nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
     ctx.discard(e)
     return null
 }
@@ -82,7 +82,7 @@ nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> usize | null {
 // `@field(x, name)` reads a field of `x`: the one `name` spells out, or any of them
 // when a `@comptime for` only names it once unrolled. Any other intrinsic returns
 // a value that holds nothing lent.
-intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> usize | null {
+intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
     if e.name != "field" || e.args.len() != 2 {
         return ctx.sequence_walked(e.args)
     }
@@ -94,9 +94,9 @@ intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> usize | null {
 
 // What `target`, the value of `source`, holds in any field that holds references ;
 // anything below it when its fields are not known.
-any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: usize | null) -> usize | null {
+any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: i64 | null) -> i64 | null {
     fields :: ctx.struct_fields_of(source) ?? return ctx.path_slot(target, EVERYWHERE)
-    held: (usize | null)[]: []
+    held: (i64 | null)[]: []
     for [name, t] in fields {
         if holds_references(t) {
             held.push(ctx.step_slot(target, name))
@@ -106,7 +106,7 @@ any_field :: fn(ctx: WalkCtx, source: AST.Expr, target: usize | null) -> usize |
 }
 
 // Walk each of `exprs`, whose values hold nothing lent.
-sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> usize | null {
+sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> i64 | null {
     for e in exprs {
         ctx.discard(e)
     }
@@ -114,7 +114,7 @@ sequence_walked :: fn(ctx: WalkCtx, exprs: AST.Expr[]) -> usize | null {
 }
 
 // A parameter's or a local's slot, or a use of a frozen constant.
-ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
+ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> i64 | null {
     sym :: ctx.typed.resolved.idents[e.span.hash()] ?? return null
     local :: ctx.slots[sym.id]
     if local != null {
@@ -128,7 +128,7 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> usize | null {
 
 // `target.field`: a step below the target's slot, or a use of the frozen constant a
 // namespace alias's member names (`M.CONST`).
-field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> usize | null {
+field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> i64 | null {
     member :: ctx.namespace_member(e) ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
     return ctx.frozen_use(e, member)
 }
@@ -143,7 +143,7 @@ namespace_member :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> Symbol | null {
 
 // `target[index]`: what the target's `Index` returns, the elements of a slice, or
 // one element.
-index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
+index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> i64 | null {
     target :: ctx.value(e.target)
     index :: ctx.value(e.index)
     reader :: ctx.site_callee(.IndexRead, e.id)
@@ -158,10 +158,10 @@ index_value :: fn(ctx: WalkCtx, e: AST.IndexExpr) -> usize | null {
 
 // ---- calls ----------------------------------------------------------------
 
-call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
+call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
     callee :: ctx.site_callee(.Call, c.id) ?? UnsettledCallee {}
     sources :: ctx.call_sources(c, callee)
-    args: (usize | null)[]: []
+    args: (i64 | null)[]: []
     for source in sources {
         args.push(ctx.value(source))
     }
@@ -206,7 +206,7 @@ passes_receiver :: fn(
 }
 
 // The one argument of a conversion.
-single :: fn(args: (usize | null)[]) -> usize | null {
+single :: fn(args: (i64 | null)[]) -> i64 | null {
     if args.len() == 1 {
         return args[0]
     }
@@ -215,7 +215,7 @@ single :: fn(args: (usize | null)[]) -> usize | null {
 
 // `left op right`: an operator an impl serves is a call, `in` taking its
 // container first. An `is` test binds its `as` name to the tested value.
-binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
+binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> i64 | null {
     left :: ctx.value(e.left)
     right :: ctx.value(e.right)
     alias :: e.bind_as
@@ -234,7 +234,7 @@ binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> usize | null {
 // ---- control flow ---------------------------------------------------------
 
 // What a `??` falls back to: a value, or a statement that leaves.
-fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> usize | null {
+fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> i64 | null {
     match f {
         is AST.ReturnStmt                   -> { ctx.return_stmt(f) }
         is AST.BreakStmt | AST.ContinueStmt -> {}
@@ -243,26 +243,26 @@ fallback_value :: fn(ctx: WalkCtx, f: AST.CoalesceFallback) -> usize | null {
     return null
 }
 
-if_value :: fn(ctx: WalkCtx, e: AST.IfExpr) -> usize | null {
+if_value :: fn(ctx: WalkCtx, e: AST.IfExpr) -> i64 | null {
     ctx.discard(e.cond)
     then :: ctx.block_value(e.then_block)
     return ctx.one_of([then, ctx.else_value(e.else_branch)])
 }
 
-else_value :: fn(ctx: WalkCtx, branch: AST.IfElse | null) -> usize | null = match branch {
+else_value :: fn(ctx: WalkCtx, branch: AST.IfElse | null) -> i64 | null = match branch {
     is AST.IfElseIf    -> ctx.if_value(branch.branch)
     is AST.IfElseBlock -> ctx.block_value(branch.block)
     is null            -> null
 }
 
 // Each arm's bindings hold parts of the scrutinee ; the match is worth any arm.
-match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
+match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> i64 | null {
     scrutinee :: ctx.value(e.scrutinee)
     alias :: e.bind_as
     if alias != null {
         ctx.bind_symbol(alias.span, scrutinee)
     }
-    arms: (usize | null)[]: []
+    arms: (i64 | null)[]: []
     for arm in e.arms {
         ctx.bind_pattern(arm.pattern, scrutinee)
         guard :: arm.guard
@@ -275,7 +275,7 @@ match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> usize | null {
 }
 
 // Bind each name `p` binds to its part of the scrutinee.
-bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null) -> void {
+bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: i64 | null) -> void {
     match p {
         is AST.IsPattern     -> {
             inner :: p.inner
@@ -300,7 +300,7 @@ bind_pattern :: fn(ctx: WalkCtx, p: AST.Pattern, scrutinee: usize | null) -> voi
     }
 }
 
-block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> usize | null {
+block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> i64 | null {
     for s in b.stmts {
         ctx.stmt(s)
     }
@@ -310,7 +310,7 @@ block_value :: fn(ctx: WalkCtx, b: AST.BlockExpr) -> usize | null {
 
 // A lambda's own parameters hold nothing lent: whoever calls it is a function value
 // call, which lends it anything. What it returns leaves for that caller.
-lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
+lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> i64 | null {
     ctx.lambda_depth += 1
     ctx.escape(ctx.block_value(l.body), .Stored, l.span)
     ctx.lambda_depth -= 1
@@ -321,7 +321,7 @@ lambda_value :: fn(ctx: WalkCtx, l: AST.LambdaExpr) -> usize | null {
 
 // A struct literal keeps its field values ; a spread keeps every field of its
 // source the literal does not name. The literal is a fresh value.
-struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> usize | null {
+struct_literal_value :: fn(ctx: WalkCtx, e: AST.StructLitExpr) -> i64 | null {
     named :: MutableSet<string> {}
     for item in e.items {
         if item is AST.StructLitField {
@@ -363,21 +363,21 @@ struct_fields_of :: fn(ctx: WalkCtx, e: AST.Expr) -> MutableMap<string, Type> | 
 }
 
 // An array or a tuple literal keeps its elements ; it is a fresh value.
-sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> usize | null {
+sequence_value :: fn(ctx: WalkCtx, e: AST.SeqLitExpr) -> i64 | null {
     for element in e.elements {
         ctx.escape(ctx.value(element), .Stored, element.span)
     }
     return null
 }
 
-range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> usize | null {
+range_value :: fn(ctx: WalkCtx, e: AST.RangeExpr) -> i64 | null {
     ctx.discard(e.lower)
     ctx.discard(e.upper)
     return null
 }
 
 // An interpolation renders each value it holds through its `Display`.
-string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> usize | null {
+string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> i64 | null {
     for part in e.parts {
         if part is AST.StringLitInterp {
             renders :: ctx.site_callee(.Display, part.expr.id)

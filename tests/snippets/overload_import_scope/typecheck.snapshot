@@ -36,8 +36,8 @@
   FnDecl         f                    :: fn(string) -> void
   FnDecl         f                    :: fn(T[]) -> void
   expr 10:13    StringLitExpr  :: string
-  expr 10:20    CallExpr       :: usize
-  expr 10:20    FieldExpr      :: fn() -> usize
+  expr 10:20    CallExpr       :: i64
+  expr 10:20    FieldExpr      :: fn() -> i64
   expr 10:20    IdentExpr      :: T[]
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(T) -> void

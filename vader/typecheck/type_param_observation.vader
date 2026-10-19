@@ -18,7 +18,7 @@ import "vader/fixpoint"
 // function observes. Declaration ids are project-wide.
 ForwardingGraph :: struct {
     /// Declaration id → node.
-    nodes: MutableMap<usize, i32>
+    nodes: MutableMap<i64, i32>
     /// Per node, whether its function observes its type parameters.
     observing: bool[]
     successors: i32[][]
@@ -75,7 +75,7 @@ reject_observing_impl_forwards :: fn(
 // parameters by itself: then none does.
 forwarding_graph :: fn(modules: MutableMap<string, TypedProgram>) -> ForwardingGraph | null {
     forwarding :: ForwardingGraph {
-        .nodes = MutableMap<usize, i32> {},
+        .nodes = MutableMap<i64, i32> {},
         .observing = [],
         .successors = [],
     }
@@ -104,11 +104,11 @@ forwarding_graph :: fn(modules: MutableMap<string, TypedProgram>) -> ForwardingG
 }
 
 // The node of declaration `id`.
-node_of :: fn(forwarding: ForwardingGraph, id: usize) -> i32 =
+node_of :: fn(forwarding: ForwardingGraph, id: i64) -> i32 =
     forwarding.nodes[id] ?? add_node(forwarding, id)
 
 // Add declaration `id` as a node, unmarked and with no edge.
-add_node :: fn(forwarding: ForwardingGraph, id: usize) -> i32 {
+add_node :: fn(forwarding: ForwardingGraph, id: i64) -> i32 {
     node :: i32(forwarding.successors.len())
     forwarding.nodes[id] = node
     forwarding.observing.push(false)

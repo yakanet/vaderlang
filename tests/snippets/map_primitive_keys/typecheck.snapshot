@@ -25,8 +25,8 @@
   expr 31:114   CallExpr       :: u8
   expr 31:114   IdentExpr      :: type
   expr 31:13    StringLitExpr  :: string
-  expr 31:24    CallExpr       :: usize
-  expr 31:24    FieldExpr      :: fn() -> usize
+  expr 31:24    CallExpr       :: i64
+  expr 31:24    FieldExpr      :: fn() -> i64
   expr 31:24    IdentExpr      :: MutableMap<u8, i32>
   expr 31:40    CallExpr       :: i32
   expr 31:40    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
@@ -133,8 +133,8 @@
   expr 66:123   CallExpr       :: usize
   expr 66:123   IdentExpr      :: type
   expr 66:13    StringLitExpr  :: string
-  expr 66:27    CallExpr       :: usize
-  expr 66:27    FieldExpr      :: fn() -> usize
+  expr 66:27    CallExpr       :: i64
+  expr 66:27    FieldExpr      :: fn() -> i64
   expr 66:27    IdentExpr      :: MutableMap<usize, i32>
   expr 66:43    CallExpr       :: i32
   expr 66:43    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32

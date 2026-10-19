@@ -46,15 +46,15 @@ format_signed :: fn(n: i64) -> string {
     if n == 0 { return "0" }
     neg :: n < 0
     if n > 0 { n = -n }                       // shift into non-positive space ; -(i64 min) never evaluated
-    ndigits: usize = 0
+    ndigits: i64 = 0
     m := n
     for m != 0 {
         ndigits = ndigits + 1
         m = m / 10
     }
     total :: if neg { ndigits + 1 } else { ndigits }
-    buf :: total.new_buffer()
-    i: usize = total
+    buf :: usize(total).new_buffer()
+    i: i64 = total
     for n != 0 {
         i = i - 1
         buf.store_u8(i, '0' + u8(-(n % 10)))
@@ -69,14 +69,14 @@ format_signed :: fn(n: i64) -> string {
 // count-then-fill single-`Buffer` shape as `format_signed`, with no sign slot.
 format_unsigned :: fn(n: u64) -> string {
     if n == 0 { return "0" }
-    ndigits: usize = 0
+    ndigits: i64 = 0
     m := n
     for m != 0 {
         ndigits = ndigits + 1
         m = m / 10
     }
-    buf :: ndigits.new_buffer()
-    i: usize = ndigits
+    buf :: usize(ndigits).new_buffer()
+    i: i64 = ndigits
     for n != 0 {
         i = i - 1
         buf.store_u8(i, '0' + u8(n % 10))
@@ -98,21 +98,21 @@ format_unsigned :: fn(n: u64) -> string {
 
 /// Allocate a byte `Buffer` of `cap` bytes — the free-fn wrapper the `${}` / `+`
 /// lowering resolves (the `new_buffer` impl member isn't reachable by name there).
-export new_byte_buffer :: fn(cap: usize) -> Buffer = cap.new_buffer()
+export new_byte_buffer :: fn(cap: i64) -> Buffer = usize(cap).new_buffer()
 
 /// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
-export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_string(len)
+export finish_buffer :: fn(self: Buffer, len: i64) -> string = self.intern_string(len)
 
 /// Byte length of `s` (its UTF-8 byte count), an `@intrinsic` read straight off
 /// the interned atom. String-only: a `u8[]` uses `.len()` directly.
-@intrinsic export byte_len :: fn(s: string) -> usize
+@intrinsic export byte_len :: fn(s: string) -> i64
 
 /// The byte at index `i` of `s` — an `@intrinsic` header-free read straight off
 /// the interned atom, no read-only `u8[]` view materialised: how code reads a
 /// string's bytes, the peer of `byte_len` for the `[i]` case.
 ///
 /// @error traps when `i >= byte_len(s)`, matching `s.bytes()[i]`.
-@intrinsic export byte_at :: fn(s: string, i: usize) -> u8
+@intrinsic export byte_at :: fn(s: string, i: i64) -> u8
 
 /// The bytes of `s` from offset `start` up to `end`, excluded, as a string: an
 /// `@intrinsic` slice of the interned atom, nothing copied. Offsets count bytes,
@@ -122,7 +122,7 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 /// @param s      source string.
 /// @param start  first byte offset, included.
 /// @param end    byte offset where the slice stops, excluded.
-@intrinsic export byte_slice :: fn(s: string, start: usize, end: usize) -> string
+@intrinsic export byte_slice :: fn(s: string, start: i64, end: i64) -> string
 
 /// Whether every byte of `s` is ASCII (below 0x80): each byte is then one codepoint,
 /// and a byte offset is a codepoint index. The runtime records it when the string is
@@ -132,27 +132,27 @@ export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_str
 @intrinsic export is_ascii :: fn(s: string) -> bool
 
 /// Write `s`'s bytes at `off` ; return `off + s.byte_len()`.
-export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
+export write_string_at :: fn(self: Buffer, off: i64, s: string) -> i64 {
     self.write_string(off, s)
     return off + s.byte_len()
 }
 
 /// Write the signed decimal digits of `n` at `off` ; return the offset past them.
-export write_int :: fn(self: Buffer, off: usize, n: i64) -> usize {
+export write_int :: fn(self: Buffer, off: i64, n: i64) -> i64 {
     if n == 0 {
         self.store_u8(off, '0')
         return off + 1
     }
     neg :: n < 0
     if n > 0 { n = -n }                       // non-positive space ; -(i64 min) never evaluated
-    ndigits: usize = 0
+    ndigits: i64 = 0
     m := n
     for m != 0 {
         ndigits = ndigits + 1
         m = m / 10
     }
     total :: if neg { ndigits + 1 } else { ndigits }
-    i: usize = off + total
+    i: i64 = off + total
     for n != 0 {
         i = i - 1
         self.store_u8(i, '0' + u8(-(n % 10)))
@@ -163,18 +163,18 @@ export write_int :: fn(self: Buffer, off: usize, n: i64) -> usize {
 }
 
 /// Write the unsigned decimal digits of `n` at `off` ; return the offset past them.
-export write_unsigned :: fn(self: Buffer, off: usize, n: u64) -> usize {
+export write_unsigned :: fn(self: Buffer, off: i64, n: u64) -> i64 {
     if n == 0 {
         self.store_u8(off, '0')
         return off + 1
     }
-    ndigits: usize = 0
+    ndigits: i64 = 0
     m := n
     for m != 0 {
         ndigits = ndigits + 1
         m = m / 10
     }
-    i: usize = off + ndigits
+    i: i64 = off + ndigits
     for n != 0 {
         i = i - 1
         self.store_u8(i, '0' + u8(n % 10))
@@ -184,7 +184,7 @@ export write_unsigned :: fn(self: Buffer, off: usize, n: u64) -> usize {
 }
 
 /// Write `"true"` / `"false"` at `off` ; return the offset past it.
-export write_bool :: fn(self: Buffer, off: usize, b: bool) -> usize {
+export write_bool :: fn(self: Buffer, off: i64, b: bool) -> i64 {
     if b { return self.write_string_at(off, "true") }
     return self.write_string_at(off, "false")
 }

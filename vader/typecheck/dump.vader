@@ -136,12 +136,12 @@ build_expr_lines :: fn(typed: TypedProgram) -> string[] {
 // Look up the node's span via `node_spans` and render its start as
 // `line:col`. Materialised cloned bodies have trait-source spans —
 // the dump renders them at the trait method's source position.
-start_loc_for_id :: fn(typed: TypedProgram, id: usize) -> string {
+start_loc_for_id :: fn(typed: TypedProgram, id: i64) -> string {
     s :: typed.node_spans[id] ?? return "undefined:undefined"
     return "${s.start.line}:${s.start.column}"
 }
 
-lookup_expr_type_str :: fn(typed: TypedProgram, id: usize) -> string {
+lookup_expr_type_str :: fn(typed: TypedProgram, id: i64) -> string {
     ty :: typed.expr_types[id] ?? return "?"
     return display_type(ty)
 }

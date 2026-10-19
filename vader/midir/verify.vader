@@ -171,9 +171,9 @@ verify_return_arity :: fn(
     expected :: if fn_.scalarised_results.len() > 1 {
         fn_.scalarised_results.len()
     } else if is_void(fn_.return_type) {
-        usize(0)
+        0
     } else {
-        usize(1)
+        1
     }
     for b in fn_.blocks {
         if !reachable.contains(b.id) {
@@ -360,10 +360,10 @@ fn_span :: fn(fn_: CFGFunction) -> Span {
 // divergent call, which produces nothing to hand back.
 returns_only_never :: fn(fn_: CFGFunction, values: LocalId[]) -> bool {
     for v in values {
-        if usize(v) >= fn_.locals.len() {
+        if i64(v) !in 0..<fn_.locals.len() {
             return false
         }
-        if fn_.locals[usize(v)].type !is NeverType {
+        if fn_.locals[i64(v)].type !is NeverType {
             return false
         }
     }

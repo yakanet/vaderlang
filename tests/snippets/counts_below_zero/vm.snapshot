@@ -1,0 +1,7 @@
+# stdout
+repeat 0
+slice 2 10
+bytes 'he'
+copy 1 2 3
+# exit
+0

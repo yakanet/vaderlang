@@ -17,10 +17,10 @@ pool :: fn(label: string) -> i32[] {
     return [1, 2, 3]
 }
 
-window :: fn(label: string) -> Range<usize> {
+window :: fn(label: string) -> Range<i64> {
     println(label)
-    lo: usize: 1
-    hi: usize: 3
+    lo: i64: 1
+    hi: i64: 3
     return lo..<hi
 }
 

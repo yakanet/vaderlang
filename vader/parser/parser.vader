@@ -66,7 +66,7 @@ export ModuleHeader :: struct {
 
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
     n :: source.byte_len()
-    i: usize = 0
+    i: i64 = 0
     // UTF-8 BOM (EF BB BF) — skip it exactly like the main lexer's `tokenize`
     // does. Without this the byte-scan reads `0xEF` as the first non-trivial
     // byte, fails to match `module`, and the caller reports a misleading
@@ -136,13 +136,13 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
 // Scan budget — most module decls land in the first 1 KB ; bail past
 // 4 KB to stay O(1) memory regardless of file size when the prologue
 // looks malformed.
-header_budget :: fn(n: usize) -> usize {
-    cap :: usize(4096)
+header_budget :: fn(n: i64) -> i64 {
+    cap: i64: 4096
     if n < cap { return n }
     return cap
 }
 
-skip_to_eol :: fn(source: string, from: usize) -> usize {
+skip_to_eol :: fn(source: string, from: i64) -> i64 {
     n :: source.byte_len()
     i := from
     for i < n && source.byte_at(i) != '\n' {
@@ -154,7 +154,7 @@ skip_to_eol :: fn(source: string, from: usize) -> usize {
     return i
 }
 
-skip_block_comment :: fn(source: string, from: usize) -> usize {
+skip_block_comment :: fn(source: string, from: i64) -> i64 {
     n :: source.byte_len()
     i := from
     depth: i32 = 1
@@ -243,16 +243,16 @@ peek :: fn(p: Parser) -> Token {
     pending :: p.shr_pending_half
     if pending != null { return pending }
     n :: i32(p.tokens.len())
-    if p.pos < n { return p.tokens[usize(p.pos)] }
-    return p.tokens[usize(n - 1)]
+    if p.pos < n { return p.tokens[p.pos] }
+    return p.tokens[n - 1]
 }
 
 peek_at :: fn(p: Parser, offset: i32) -> Token {
     n :: i32(p.tokens.len())
     i :: p.pos + offset
     if i < 0 { return p.tokens[0] }
-    if i < n { return p.tokens[usize(i)] }
-    return p.tokens[usize(n - 1)]
+    if i < n { return p.tokens[i] }
+    return p.tokens[n - 1]
 }
 
 check :: fn(p: Parser, kind: TokenKind) -> bool {
@@ -327,7 +327,7 @@ consume_closing_angle :: fn(p: Parser) -> Token {
         // with the second half so THIS generic's `peek_at(-1)` anchor reports
         // the second `>`'s span (the first half is no longer needed).
         p.shr_pending_half = null
-        if p.pos > 0 { p.tokens[usize(p.pos - 1)] = pending }
+        if p.pos > 0 { p.tokens[p.pos - 1] = pending }
         return pending
     }
     cur :: p.peek()
@@ -356,7 +356,7 @@ consume_closing_angle :: fn(p: Parser) -> Token {
         }
         // Overwrite the `Shr` slot with the first half so `peek_at(-1)` anchors
         // on the FIRST `>`, and stash the second half for the enclosing close.
-        p.tokens[usize(p.pos)] = first_half
+        p.tokens[p.pos] = first_half
         p.shr_pending_half = second_half
         if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
         return first_half
@@ -881,7 +881,7 @@ is_impl_decl :: fn(p: Parser) -> bool {
     depth := 0
     n :: i32(p.tokens.len())
     for i in p.pos..<n {
-        t :: p.tokens[usize(i)]
+        t :: p.tokens[i]
         if t.kind == .Eof || t.kind == .Newline { return false }
         if t.kind == .KwImplements && depth == 0 { return true }
         if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace { depth = depth + 1 }
@@ -902,20 +902,20 @@ peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
     depth := 1         // open angle count
     other_depth := 0   // any other paren/bracket/brace nesting
     for i in (p.pos + 2)..<n {     // skip ident, skip `<`
-        t :: p.tokens[usize(i)]
+        t :: p.tokens[i]
         if t.kind == .Eof || t.kind == .Newline { return false }
         if t.kind == .Lt && other_depth == 0 {
             depth = depth + 1
         } else if t.kind == .Gt && other_depth == 0 {
             depth = depth - 1
             if depth == 0 {
-                if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                if i + 1 < n { return p.tokens[i + 1].kind == .DeclConst }
                 return false
             }
         } else if t.kind == .Shr && other_depth == 0 {
             depth = depth - 2
             if depth == 0 {
-                if i + 1 < n { return p.tokens[usize(i + 1)].kind == .DeclConst }
+                if i + 1 < n { return p.tokens[i + 1].kind == .DeclConst }
                 return false
             }
             if depth < 0 { return false }
@@ -2318,7 +2318,7 @@ kind_after_bracket_group :: fn(p: Parser) -> TokenKind {
     j := p.pos + 1
     n :: i32(p.tokens.len())
     for j < n && depth > 0 {
-        k :: p.tokens[usize(j)].kind
+        k :: p.tokens[j].kind
         if k == .Eof { return .Eof }
         if k == .LBracket { depth = depth + 1 }
         else if k == .RBracket {
@@ -2329,9 +2329,9 @@ kind_after_bracket_group :: fn(p: Parser) -> TokenKind {
     }
     if depth != 0 { return .Eof }
     i := j + 1
-    for i < n && p.tokens[usize(i)].kind == .Newline { i = i + 1 }
+    for i < n && p.tokens[i].kind == .Newline { i = i + 1 }
     if i >= n { return .Eof }
-    return p.tokens[usize(i)].kind
+    return p.tokens[i].kind
 }
 
 parse_destructure_assign :: fn(p: Parser) -> DestructureAssignStmt {
@@ -3406,12 +3406,12 @@ parse_generic_use :: fn(p: Parser, head: Expr) -> Expr {
 /// `if x < y { stmt }` doesn't scan into the body.
 scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
     n :: i32(p.tokens.len())
-    if lt_pos >= n || p.tokens[usize(lt_pos)].kind != .Lt { return false }
+    if lt_pos >= n || p.tokens[lt_pos].kind != .Lt { return false }
     angle_depth := 1
     paren_depth := 0
     bracket_depth := 0
     for i in (lt_pos + 1)..<n {
-        t :: p.tokens[usize(i)]
+        t :: p.tokens[i]
         if t.kind == .Eof { return false }
         at_outer :: paren_depth == 0 && bracket_depth == 0
         if t.kind == .Newline && at_outer { return false }
@@ -3455,18 +3455,18 @@ generic_use_follows :: fn(p: Parser, close: i32) -> bool {
     if close + 1 >= n {
         return false
     }
-    next :: p.tokens[usize(close + 1)].kind
+    next :: p.tokens[close + 1].kind
     if next == .LParen || next == .LBrace || ends_a_value(next) || ends_its_line(p, close) {
         return true
     }
-    return next == .Dot && close + 2 < n && p.tokens[usize(close + 2)].kind == .Ident
+    return next == .Dot && close + 2 < n && p.tokens[close + 2].kind == .Ident
 }
 
 // Whether the token at `pos` is the last of its line. The lexer drops the newline
 // after a trailing operator, `>` included, so the next token can be the next
 // statement's first.
 ends_its_line :: fn(p: Parser, pos: i32) -> bool =
-    p.tokens[usize(pos + 1)].span.start.line > p.tokens[usize(pos)].span.end.line
+    p.tokens[pos + 1].span.start.line > p.tokens[pos].span.end.line
 
 // A token that closes the expression before it. No newline follows a `>` : the
 // lexer drops it (`ends_its_line`).
@@ -3493,7 +3493,7 @@ looks_like_struct_lit_body :: fn(tokens: Token[], pos_at_lbrace: i32) -> bool {
     n :: i32(tokens.len())
     i := pos_at_lbrace + 1
     for i < n {
-        t :: tokens[usize(i)]
+        t :: tokens[i]
         if t.kind == .Newline {
             i = i + 1
             continue
@@ -4063,7 +4063,7 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     // rather than fail on an unexpected token: the keyword is still lexed for
     // exactly that reason.
     src :: "module \"t\"\n" +
-        "f :: fn(x: const u8[]) -> usize = x.len()\n"
+        "f :: fn(x: const u8[]) -> i64 = x.len()\n"
     errors :: parse_source(src, "test.vader").errors
     assert_eq(errors.len(), 1)
     assert_eq(errors[0].code.id, "P1027")
@@ -4102,7 +4102,7 @@ first_variant_value :: fn(src: string) -> i64 | null {
 }
 
 
-header_arity :: fn(src: string) -> usize {
+header_arity :: fn(src: string) -> i64 {
     e :: first_enum(src)
     return if e == null { 99 } else { e.header.len() }
 }

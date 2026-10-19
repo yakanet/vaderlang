@@ -4,23 +4,23 @@ type 1 primitive i32
 type 2 primitive string
 type 3 primitive bool
 type 4 primitive u8
-type 5 primitive usize
+type 5 primitive i64
 type 6 array 4
-type 7 struct std_core$Buffer {  }
-type 8 primitive void
-type 9 primitive isize
+type 7 primitive usize
+type 8 struct std_core$Buffer {  }
+type 9 primitive void
 string 0 "  a  "
 string 1 " b "
 string 2 " e "
 string 3 " c "
 string 4 " d "
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,usize) -> u8
-import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,usize,usize) -> string
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,6,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
-impl 7 std_core$ByteAccess
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,6,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 8 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -76,8 +76,8 @@ fn 4 snippet$third () -> string
 end
 
 fn 5 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -89,6 +89,7 @@ fn 5 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -106,13 +107,13 @@ end
 
 fn 6 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 3   ; std_core$bytes
   local.set 2   ; buf
@@ -124,7 +125,7 @@ fn 6 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -152,7 +153,7 @@ fn 6 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -160,7 +161,7 @@ fn 6 std_io$write (u8,string) -> void
   return
 end
 
-fn 7 std_io$write_bytes (u8,ref,usize) -> i32
+fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -169,14 +170,14 @@ fn 7 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 4   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 
@@ -193,9 +194,9 @@ fn 8 std_io$println__string (string) -> void
 end
 
 fn 9 std_string$trim (string) -> string
-  local n usize
-  local lo usize
-  local $sub_checked_13 usize
+  local n i64
+  local lo i64
+  local $sub_checked_13 i64
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.set 1   ; n
@@ -205,7 +206,7 @@ fn 9 std_string$trim (string) -> string
     loop $L1 void
       local.get 2   ; lo
       local.get 1   ; n
-      u64.lt
+      i64.lt
       if $L2 void
         local.get 0   ; arg 0
         local.get 2   ; lo
@@ -217,7 +218,7 @@ fn 9 std_string$trim (string) -> string
         end $L3
         local.get 2   ; lo
         i64.const 1
-        usize.checked_add
+        i64.checked_add
         local.set 2   ; lo
         br $L1
       end $L2
@@ -227,11 +228,11 @@ fn 9 std_string$trim (string) -> string
     loop $L5 void
       local.get 1   ; n
       local.get 2   ; lo
-      u64.gt
+      i64.gt
       if $L6 void
         local.get 1   ; n
         i64.const 1
-        usize.checked_sub
+        i64.checked_sub
         local.set 3   ; $sub_checked_13
         local.get 0   ; arg 0
         local.get 3   ; $sub_checked_13
@@ -243,7 +244,7 @@ fn 9 std_string$trim (string) -> string
         end $L7
         local.get 1   ; n
         i64.const 1
-        usize.checked_sub
+        i64.checked_sub
         local.set 1   ; n
         br $L5
       end $L6

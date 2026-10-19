@@ -169,12 +169,12 @@ export Stream :: enum {
 /// descriptors at all, and neither has a backend that could run this yet.
 /// Reporting failure is what the caller already handles.
 @target
-write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     return -1
 }
 
 @target(.Linux, .Darwin)
-write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     fd :: if out == .Stdout { STDOUT } else { STDERR }
     // `ssize_t` down to the `i32` this reports. A single write never approaches
     // 2 GB, and the -1 failure value survives the narrowing.
@@ -182,7 +182,7 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
 }
 
 @target(.Windows)
-write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
+write_bytes :: fn(out: Stream, buf: u8[], count: i64) -> i32 {
     which :: if out == .Stdout { STD_OUTPUT_HANDLE } else { STD_ERROR_HANDLE }
     // A synchronous `WriteFile` writes everything or fails, so the count it
     // reports adds nothing — but it READS BACK now, so a future caller that
@@ -204,7 +204,7 @@ write_bytes :: fn(out: Stream, buf: u8[], count: usize) -> i32 {
 // `fwrite` + `fflush` host it replaces already had.
 write :: fn(out: Stream, msg: string) -> void {
     buf :: msg.bytes()
-    sent: usize = 0
+    sent: i64 = 0
     for {
         if sent >= buf.len() {
             return
@@ -214,7 +214,7 @@ write :: fn(out: Stream, msg: string) -> void {
         if n <= 0 {
             return
         }
-        sent += usize(n)
+        sent += i64(n)
     }
 }
 
@@ -275,7 +275,7 @@ export read_line :: fn() -> string | IOError {
 
 /// Ceiling on `read_line`, so a peer that never sends a newline cannot make it
 /// spin forever.
-MAX_LINE: usize : 1024 * 1024
+MAX_LINE: i64 : 1024 * 1024
 
 /// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
 /// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
@@ -288,17 +288,17 @@ MAX_LINE: usize : 1024 * 1024
 /// `wasi-wasm32` and `browser-wasm32`. Reporting failure is what every caller
 /// already handles, and it is what `write_bytes` does on the same targets.
 @target
-export read_stdin :: fn(n: usize) -> string | IOError {
+export read_stdin :: fn(n: i64) -> string | IOError {
     return IOError { .msg = "stdin is not available on this target" }
 }
 
 @target(.Linux, .Darwin)
-read_stdin :: fn(n: usize) -> string | IOError {
+read_stdin :: fn(n: i64) -> string | IOError {
     if n == 0 {
         return ""
     }
     buf: u8[]: [0] * n
-    got: usize = 0
+    got: i64 = 0
     // `read` hands over what has ARRIVED, not what was asked: a pipe delivers
     // in bursts, so a short return is normal and only `0` means end of file.
     for _ in 0..<n {
@@ -313,22 +313,22 @@ read_stdin :: fn(n: usize) -> string | IOError {
         if r == 0 {
             return IOError { .msg = "unexpected end of input" }
         }
-        for i in 0..<usize(r) {
+        for i in 0..<r {
             buf[got + i] = slice[i]
         }
-        got = got + usize(r)
+        got = got + r
     }
     return buf.bytes_to_string()
 }
 
 @target(.Windows)
-read_stdin :: fn(n: usize) -> string | IOError {
+read_stdin :: fn(n: i64) -> string | IOError {
     if n == 0 {
         return ""
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
     buf: u8[]: [0] * n
-    got: usize = 0
+    got: i64 = 0
     for _ in 0..<n {
         if got >= n {
             break
@@ -338,7 +338,7 @@ read_stdin :: fn(n: usize) -> string | IOError {
         if !read_file(h, slice, u32(n - got), read, null) {
             return IOError { .msg = "stdin read failed" }
         }
-        r :: usize(read[0])
+        r :: i64(read[0])
         if r == 0 {
             return IOError { .msg = "unexpected end of input" }
         }
@@ -430,10 +430,10 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes` — `"file too large"`.
 @target
-export read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError
+export read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError
 
 @target(.Linux, .Darwin)
-read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
+read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
     f :: sys_fopen(path, "rb") ?? return last_io_error("cannot open file")
     // Read to end of file in chunks rather than sizing it first: `fseek` +
     // `ftell` would need `SEEK_END`, and a size taken up front is a lie on
@@ -473,7 +473,7 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
 /// take a real UTF-16 path, and `ReadFile` reports a failure the CRT would have
 /// folded into a short read.
 @target(.Windows)
-read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
+read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {
     h :: create_file_w(to_wide(path), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, null,
                        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, null)
     // `INVALID_HANDLE_VALUE` is -1, NOT null, so the handle is read as a word.
@@ -490,7 +490,7 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
             close_handle(h)
             return err
         }
-        n :: usize(got[0])
+        n :: i64(got[0])
         if n > 0 {
             out.push_all(chunk[0..<n])
         }
@@ -509,7 +509,7 @@ read_file_bytes :: fn(path: string, max_bytes: usize) -> u8[] | IOError {
 }
 
 // 64 KiB per read.
-READ_CHUNK: usize : 64 * 1024
+READ_CHUNK: i64 : 64 * 1024
 
 /// A ceiling for a read whose caller has no figure of its own.
 ///
@@ -522,7 +522,7 @@ READ_CHUNK: usize : 64 * 1024
 /// 16 MiB clears the first by ~100x and refuses cleanly on both backends.
 ///
 /// Name your own when you know what you are reading.
-export READ_LIMIT_DEFAULT: usize: 16 * 1024 * 1024
+export READ_LIMIT_DEFAULT: i64: 16 * 1024 * 1024
 
 /// Write raw bytes to `path`, replacing any existing file. Lossless for
 /// arbitrary binary. The canonical file-write primitive.
@@ -693,7 +693,7 @@ remove_file :: fn(path: string) -> null | IOError {
 /// @return           file contents as a UTF-8 string.
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes`.
-export read_file_string :: fn(path: string, max_bytes: usize = READ_LIMIT_DEFAULT) -> string | IOError {
+export read_file_string :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> string | IOError {
     r :: read_file_bytes(path, max_bytes)
     if r is IOError { return r }
     return r.bytes_to_string()
@@ -860,7 +860,7 @@ current_executable_location :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
     buf: u16[]: [0] * 4096
     n :: get_module_file_name(null, buf, u32(buf.len()))
-    if n == 0 || usize(n) >= buf.len() {
+    if n == 0 || i64(n) >= buf.len() {
         return "."
     }
     return to_slash(from_wide(buf, i32(n)))
@@ -889,7 +889,7 @@ current_working_directory :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
     buf: u16[]: [0] * 4096
     n :: get_current_directory(u32(buf.len()), buf)
-    if n == 0 || usize(n) >= buf.len() {
+    if n == 0 || i64(n) >= buf.len() {
         return "."
     }
     return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
@@ -943,7 +943,7 @@ temp_dir :: fn() -> string {
     // 4096 UTF-16 units, so 8192 bytes.
     buf: u16[]: [0] * 4096
     n :: get_temp_path(u32(buf.len()), buf)
-    if n == 0 || usize(n) >= buf.len() {
+    if n == 0 || i64(n) >= buf.len() {
         return "."
     }
     return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
@@ -965,7 +965,7 @@ to_wide :: fn(s: string) -> u16[] {
     if units <= 0 {
         return []
     }
-    out: u16[]: [0] * usize(units)
+    out: u16[]: [0] * i64(units)
     if multi_byte_to_wide_char(CP_UTF8, 0, s, -1, out, units) <= 0 {
         return []
     }
@@ -982,7 +982,7 @@ from_wide :: fn(w: u16[], units: i32) -> string {
     if n <= 0 {
         return ""
     }
-    out: u8[]: [0] * usize(n)
+    out: u8[]: [0] * i64(n)
     if wide_char_to_multi_byte(CP_UTF8, 0, w, units, out, n, null, null) <= 0 {
         return ""
     }
@@ -1003,7 +1003,7 @@ to_slash :: fn(p: string) -> string {
 // Drop trailing separators so `temp_dir() + "/name"` stays clean. Keeps a lone
 // `/`, which IS the directory rather than a separator after one.
 without_trailing_sep :: fn(p: string) -> string {
-    trailing: usize = 0
+    trailing: i64 = 0
     for i in 0..<p.byte_len() {
         last :: p.byte_len() - 1 - i
         if last == 0 || p.byte_at(last) != '/' {

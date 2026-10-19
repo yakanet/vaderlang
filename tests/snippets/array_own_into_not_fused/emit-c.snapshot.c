@@ -15,8 +15,8 @@ typedef struct vader_struct_snippet___genstate_shifted_t vader_struct_snippet___
 typedef struct vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t;
 typedef struct vader_struct_std_core_Range__i32_t vader_struct_std_core_Range__i32_t;
 typedef struct vader_struct___Tuple_i32_u8_99ae0d29_t vader_struct___Tuple_i32_u8_99ae0d29_t;
-typedef struct vader_struct_std_core_Range__usize_t vader_struct_std_core_Range__usize_t;
-typedef struct vader_struct___Tuple_usize_u8_de11f1ad_t vader_struct___Tuple_usize_u8_de11f1ad_t;
+typedef struct vader_struct_std_core_Range__i64_t vader_struct_std_core_Range__i64_t;
+typedef struct vader_struct___Tuple_i64_u8_87057322_t vader_struct___Tuple_i64_u8_87057322_t;
 typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__bool_t vader_struct_std_collections_MutableMap__i32__bool_t;
 typedef struct vader_struct_std_collections___gen_state_std_collections_0_t vader_struct_std_collections___gen_state_std_collections_0_t;
@@ -45,8 +45,8 @@ struct vader_struct_snippet___genstate_scaled_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
-    size_t f_s2;
-    size_t f_s3;
+    int64_t f_s2;
+    int64_t f_s3;
     void* f_s4;
     int32_t f_state;
 };
@@ -59,8 +59,8 @@ struct vader_struct_snippet___genstate_labels_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
-    size_t f_s2;
-    size_t f_s3;
+    int64_t f_s2;
+    int64_t f_s3;
     void* f_s4;
     int32_t f_state;
 };
@@ -77,8 +77,8 @@ struct vader_struct_snippet___genstate_shifted_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
-    size_t f_s2;
-    size_t f_s3;
+    int64_t f_s2;
+    int64_t f_s3;
     void* f_s4;
     int32_t f_state;
 };
@@ -100,17 +100,17 @@ struct vader_struct___Tuple_i32_u8_99ae0d29_t {
     int32_t f__0;
     uint8_t f__1;
 };
-struct vader_struct_std_core_Range__usize_t {
+struct vader_struct_std_core_Range__i64_t {
     vader_obj_header_t header;
-    size_t f_start;
-    size_t f_end;
+    int64_t f_start;
+    int64_t f_end;
     bool f_inclusive;
     bool f_done;
-    size_t f_cursor;
+    int64_t f_cursor;
 };
-struct vader_struct___Tuple_usize_u8_de11f1ad_t {
+struct vader_struct___Tuple_i64_u8_87057322_t {
     vader_obj_header_t header;
-    size_t f__0;
+    int64_t f__0;
     uint8_t f__1;
 };
 struct vader_struct_std_core_Buffer_t {
@@ -121,17 +121,17 @@ struct vader_struct_std_collections_MutableMap__i32__bool_t {
     void* f_ekeys;
     void* f_evals;
     void* f_index;
-    size_t f_mask;
-    size_t f_size;
-    size_t f_tombs;
+    int64_t f_mask;
+    int64_t f_size;
+    int64_t f_tombs;
 };
 struct vader_struct_std_collections___gen_state_std_collections_0_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
     void* f_s2;
-    size_t f_s3;
-    size_t f_s4;
+    int64_t f_s3;
+    int64_t f_s4;
     int32_t f_state;
 };
 struct vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t {
@@ -149,17 +149,17 @@ struct vader_struct_std_collections_MutableMap__i32__i32_t {
     void* f_ekeys;
     void* f_evals;
     void* f_index;
-    size_t f_mask;
-    size_t f_size;
-    size_t f_tombs;
+    int64_t f_mask;
+    int64_t f_size;
+    int64_t f_tombs;
 };
 struct vader_struct_std_collections___gen_state_std_collections_1_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
     void* f_s2;
-    size_t f_s3;
-    size_t f_s4;
+    int64_t f_s3;
+    int64_t f_s4;
     int32_t f_state;
 };
 struct vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t {
@@ -177,17 +177,17 @@ struct vader_struct_std_collections_MutableMap__string__i32_t {
     void* f_ekeys;
     void* f_evals;
     void* f_index;
-    size_t f_mask;
-    size_t f_size;
-    size_t f_tombs;
+    int64_t f_mask;
+    int64_t f_size;
+    int64_t f_tombs;
 };
 struct vader_struct_std_collections___gen_state_std_collections_2_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
     void* f_s2;
-    size_t f_s3;
-    size_t f_s4;
+    int64_t f_s3;
+    int64_t f_s4;
     int32_t f_state;
 };
 struct vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t {
@@ -208,8 +208,8 @@ struct vader_struct_std_collections___gen_state_std_collections_3_t {
     vader_obj_header_t header;
     void* f_s0;
     void* f_s1;
-    size_t f_s2;
-    size_t f_s3;
+    int64_t f_s2;
+    int64_t f_s3;
     int32_t f_state;
 };
 
@@ -261,14 +261,14 @@ static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_strin
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static int32_t std_core_i32_Step_step(int32_t l0);
 static void* std_core_Range_Iterator_next__i32(void* l0);
-static size_t std_core_usize_Step_step(size_t l0);
-static void* std_core_Range_Iterator_next__usize(void* l0);
-static void* std_core_new_byte_buffer(size_t l0);
-static vader_string_t std_core_finish_buffer(void* l0, size_t l1);
-static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2);
-static size_t std_core_write_int(void* l0, size_t l1, int64_t l2);
+static int64_t std_core_i64_Step_step(int64_t l0);
+static void* std_core_Range_Iterator_next__i64(void* l0);
+static void* std_core_new_byte_buffer(int64_t l0);
+static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
+static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
+static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
 static void std_io_write(uint8_t l0, vader_string_t l1);
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2);
+static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
 static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l0);
 static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l0);
@@ -279,7 +279,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[49] = {
+const vader_type_info_t vader_type_info_table[48] = {
     [1] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -353,137 +353,136 @@ const vader_type_info_t vader_type_info_table[49] = {
         .slot_size = 8,
     },
     [22] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__usize_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i64_t),
         .slot_size = 8,
     },
     [23] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i64_u8_87057322_t),
         .slot_size = 8,
     },
     [24] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [25] = { .slot_size = 8 },
-    [26] = {
+    [25] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [28] = { .slot_size = 8 },
+    [26] = { .slot_size = 8 },
+    [28] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
     [29] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
-    [30] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__bool_t, f_index) },
         .ref_count = 3,
     },
-    [31] = {
+    [30] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections___gen_state_std_collections_0_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections___gen_state_std_collections_0_t, f_s0), offsetof(vader_struct_std_collections___gen_state_std_collections_0_t, f_s1), offsetof(vader_struct_std_collections___gen_state_std_collections_0_t, f_s2) },
         .ref_count = 3,
     },
-    [32] = {
+    [31] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t, f__0) },
         .ref_count = 1,
     },
-    [33] = {
+    [32] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t),
         .slot_size = 8,
     },
-    [34] = {
+    [33] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__i32__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__i32__i32_t, f_index) },
         .ref_count = 3,
     },
-    [35] = {
+    [34] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections___gen_state_std_collections_1_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections___gen_state_std_collections_1_t, f_s0), offsetof(vader_struct_std_collections___gen_state_std_collections_1_t, f_s1), offsetof(vader_struct_std_collections___gen_state_std_collections_1_t, f_s2) },
         .ref_count = 3,
     },
-    [36] = {
+    [35] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t, f__0) },
         .ref_count = 1,
     },
-    [37] = {
+    [36] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_i32_3103e027_t),
         .slot_size = 8,
     },
-    [38] = {
+    [37] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableMap__string__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_ekeys), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_evals), offsetof(vader_struct_std_collections_MutableMap__string__i32_t, f_index) },
         .ref_count = 3,
     },
-    [39] = {
+    [38] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections___gen_state_std_collections_2_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections___gen_state_std_collections_2_t, f_s0), offsetof(vader_struct_std_collections___gen_state_std_collections_2_t, f_s1), offsetof(vader_struct_std_collections___gen_state_std_collections_2_t, f_s2) },
         .ref_count = 3,
     },
-    [40] = {
+    [39] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t, f__0) },
         .ref_count = 1,
     },
-    [41] = {
+    [40] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t),
         .slot_size = 8,
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_string_i32_4ccf6d4f_t, f__0) },
         .string_count = 1,
     },
-    [42] = {
+    [41] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections_MutableSet__i32_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections_MutableSet__i32_t, f_inner) },
         .ref_count = 1,
     },
-    [43] = {
+    [42] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_std_collections___gen_state_std_collections_3_t),
         .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_collections___gen_state_std_collections_3_t, f_s0), offsetof(vader_struct_std_collections___gen_state_std_collections_3_t, f_s1) },
         .ref_count = 2,
     },
+    [43] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
     [44] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [45] = {
-        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
-        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
-    },
+    [45] = { .slot_size = 16 },
     [46] = { .slot_size = 16 },
     [47] = { .slot_size = 16 },
-    [48] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 49;
+const size_t vader_type_info_count = 48;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
 
-static size_t vader_host_std_core_byte_len(vader_string_t a0) {
+static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 26u, 12u);
+    return (void*) vader_string_bytes_view(a0, 25u, 12u);
 }
 
-static ptrdiff_t vader_host_system_posix_sys_write(int32_t a0, void* a1, size_t a2) {
+static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
     vader_slice_t s1 = vader_array_bytes((vader_array_t*) a1);
     return write(a0, s1.ptr, a2);
 }
@@ -505,8 +504,8 @@ static vader_box_t snippet_scaled(void* l0) {
     vader_obj_header_init(_a0_obj, 10u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = l1;
-    _a0_obj->f_s2 = (size_t) 0;
-    _a0_obj->f_s3 = (size_t) 0;
+    _a0_obj->f_s2 = INT64_C(0);
+    _a0_obj->f_s3 = INT64_C(0);
     _a0_obj->f_s4 = l2;
     _a0_obj->f_state = INT32_C(6);
     t0 = (void*) _a0_obj;
@@ -527,8 +526,8 @@ static vader_box_t snippet_labels(void* l0) {
     vader_obj_header_init(_a0_obj, 13u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = l1;
-    _a0_obj->f_s2 = (size_t) 0;
-    _a0_obj->f_s3 = (size_t) 0;
+    _a0_obj->f_s2 = INT64_C(0);
+    _a0_obj->f_s3 = INT64_C(0);
     _a0_obj->f_s4 = l2;
     _a0_obj->f_state = INT32_C(6);
     t0 = (void*) _a0_obj;
@@ -549,8 +548,8 @@ static vader_box_t snippet_shifted(void* l0) {
     vader_obj_header_init(_a0_obj, 16u);
     _a0_obj->f_s0 = l0;
     _a0_obj->f_s1 = l1;
-    _a0_obj->f_s2 = (size_t) 0;
-    _a0_obj->f_s3 = (size_t) 0;
+    _a0_obj->f_s2 = INT64_C(0);
+    _a0_obj->f_s3 = INT64_C(0);
     _a0_obj->f_s4 = l2;
     _a0_obj->f_state = INT32_C(6);
     t0 = (void*) _a0_obj;
@@ -622,8 +621,7 @@ static vader_string_t snippet_join_labels(vader_box_t l0) {
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     void* l3 = NULL;
-    size_t l1;
-    int64_t l2;
+    int64_t l1, l2;
     int32_t l4, l6;
     vader_box_t l5 = vader_box_null();
     void* t0 = NULL;
@@ -638,8 +636,8 @@ static int32_t snippet_main(void) {
     };
     vader_gc_top = &gc_frame;
 #line 71 "tests/snippets/array_own_into_not_fused/_main.vader"
-    l0 = std_core_new_byte_buffer((size_t) 20);
-    l1 = (size_t) 0;
+    l0 = std_core_new_byte_buffer(INT64_C(20));
+    l1 = INT64_C(0);
 #line 68 "tests/snippets/array_own_into_not_fused/_main.vader"
     t0 = (void*) &vader_data_0;
 #line 71 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -672,9 +670,9 @@ static int32_t snippet_main(void) {
     l4 = INT32_C(0);
 #line 75 "tests/snippets/array_own_into_not_fused/_main.vader"
     t1 = snippet____std_core_Into_into__snippet_Pt_2(l0);
-#line 393 "lib/std/iter/iter.vader"
+#line 392 "lib/std/iter/iter.vader"
     l5 = t1;
-#line 394 "lib/std/iter/iter.vader"
+#line 393 "lib/std/iter/iter.vader"
     for (;;) {
         t1 = vader_vt_std_core_Iterator__next(l5);
         l0 = t1.payload.obj;
@@ -682,14 +680,14 @@ static int32_t snippet_main(void) {
             l6 = __lambda_snippet_0(((vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t*) l0)->f__0);
 #line 76 "tests/snippets/array_own_into_not_fused/_main.vader"
             l4 = vader_chk_add(i32, l4, l6);
-#line 394 "lib/std/iter/iter.vader"
+#line 393 "lib/std/iter/iter.vader"
             continue;
         }
         break;
     }
 #line 78 "tests/snippets/array_own_into_not_fused/_main.vader"
-    l0 = std_core_new_byte_buffer((size_t) 20);
-    l1 = (size_t) 0;
+    l0 = std_core_new_byte_buffer(INT64_C(20));
+    l1 = INT64_C(0);
     l2 = ((int64_t) (int32_t) l4);
     l1 = std_core_write_int(l0, l1, l2);
     t3 = std_core_finish_buffer(l0, l1);
@@ -699,16 +697,16 @@ static int32_t snippet_main(void) {
 }
 
 static void* snippet___genstate_scaled_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8;
+    int64_t l1, l2, l3, l5, l8;
     void* l4 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
     void* l9 = NULL;
-    int32_t t0, t3;
-    size_t t1;
-    int64_t t2;
-    void* t4 = NULL;
-    void** gc_raw_roots[6] = { &l0, &l4, &l6, &l7, &l9, &t4 };
+    int32_t t0, t2;
+    int64_t t1;
+    void* t3 = NULL;
+    size_t t4;
+    void** gc_raw_roots[6] = { &l0, &l4, &l6, &l7, &l9, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 18 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -742,8 +740,7 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3;
 #line 19 "tests/snippets/array_own_into_not_fused/_main.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3 = l3;
 #line 18 "tests/snippets/array_own_into_not_fused/_main.vader"
                     ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(2);
@@ -753,18 +750,18 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                         ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(3);
 #line 20 "tests/snippets/array_own_into_not_fused/_main.vader"
                         t0 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s4)->f_v;
-                        t3 = vader_chk_mul(i32, t0, INT32_C(100));
+                        t2 = vader_chk_mul(i32, t0, INT32_C(100));
                         vader_struct_snippet_Mon_t* _a0_obj = (vader_struct_snippet_Mon_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Mon_t));
                         vader_obj_header_init(_a0_obj, 2u);
-                        _a0_obj->f_v = t3;
-                        t4 = (void*) _a0_obj;
+                        _a0_obj->f_v = t2;
+                        t3 = (void*) _a0_obj;
 #line 18 "tests/snippets/array_own_into_not_fused/_main.vader"
                         vader_struct___Tuple_Struct_snippet_Mon_u8_6dc654f4_t* _a1_obj = (vader_struct___Tuple_Struct_snippet_Mon_u8_6dc654f4_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Mon_u8_6dc654f4_t));
                         vader_obj_header_init(_a1_obj, 11u);
-                        _a1_obj->f__0 = t4;
+                        _a1_obj->f__0 = t3;
                         _a1_obj->f__1 = (uint8_t) 0;
-                        t4 = (void*) _a1_obj;
-                        { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a1_obj;
+                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
@@ -787,8 +784,8 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                             vader_obj_header_init(_a3_obj, 11u);
                             _a3_obj->f__0 = l9;
                             _a3_obj->f__1 = (uint8_t) 1;
-                            t4 = (void*) _a3_obj;
-                            { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                            t3 = (void*) _a3_obj;
+                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l7 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s0;
 #line 19 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -796,9 +793,10 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_scaled_t*) l0);
 #line 18 "tests/snippets/array_own_into_not_fused/_main.vader"
 #line 19 "tests/snippets/array_own_into_not_fused/_main.vader"
-                        l8 = ((vader_array_t*) ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s1)->length;
+                        t4 = ((vader_array_t*) ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s1)->length;
+                        l8 = (int64_t) (size_t) t4;
                         ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s2 = l8;
-                        ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3 = INT64_C(0);
 #line 18 "tests/snippets/array_own_into_not_fused/_main.vader"
                         ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(2);
                     }
@@ -811,20 +809,19 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
 }
 
 static void* snippet___genstate_labels_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8, l11;
+    int64_t l1, l2, l3, l5, l6, l8, l11;
     void* l4 = NULL;
     void* l7 = NULL;
     void* l9 = NULL;
     void* l10 = NULL;
     void* l12 = NULL;
-    int64_t l6;
     int32_t t0;
-    size_t t1;
-    int64_t t2;
-    vader_string_t t3 = 0;
-    void* t4 = NULL;
-    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l9, &l10, &l12, &t4 };
-    vader_string_t* gc_atom_roots[1] = { &t3 };
+    int64_t t1;
+    vader_string_t t2 = 0;
+    void* t3 = NULL;
+    size_t t4;
+    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l9, &l10, &l12, &t3 };
+    vader_string_t* gc_atom_roots[1] = { &t2 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
@@ -860,8 +857,7 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3;
 #line 25 "tests/snippets/array_own_into_not_fused/_main.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3 = l3;
 #line 24 "tests/snippets/array_own_into_not_fused/_main.vader"
                     ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(2);
@@ -870,26 +866,26 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                     if (t0 == INT32_C(4)) {
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(3);
 #line 26 "tests/snippets/array_own_into_not_fused/_main.vader"
-                        l4 = std_core_new_byte_buffer((size_t) 21);
-                        l5 = (size_t) 0;
+                        l4 = std_core_new_byte_buffer(INT64_C(21));
+                        l5 = INT64_C(0);
                         l5 = std_core_write_string_at(l4, l5, 2u);
 #line 24 "tests/snippets/array_own_into_not_fused/_main.vader"
 #line 26 "tests/snippets/array_own_into_not_fused/_main.vader"
                         t0 = ((vader_struct_snippet_Mon_t*) ((vader_struct_snippet___genstate_labels_t*) l0)->f_s4)->f_v;
                         l6 = ((int64_t) (int32_t) t0);
                         l5 = std_core_write_int(l4, l5, l6);
-                        t3 = std_core_finish_buffer(l4, l5);
+                        t2 = std_core_finish_buffer(l4, l5);
                         vader_struct_snippet_Label_t* _a0_obj = (vader_struct_snippet_Label_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Label_t));
                         vader_obj_header_init(_a0_obj, 15u);
-                        _a0_obj->f_s = t3;
-                        t4 = (void*) _a0_obj;
+                        _a0_obj->f_s = t2;
+                        t3 = (void*) _a0_obj;
 #line 24 "tests/snippets/array_own_into_not_fused/_main.vader"
                         vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t* _a1_obj = (vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Label_u8_66b63bc9_t));
                         vader_obj_header_init(_a1_obj, 14u);
-                        _a1_obj->f__0 = t4;
+                        _a1_obj->f__0 = t3;
                         _a1_obj->f__1 = (uint8_t) 0;
-                        t4 = (void*) _a1_obj;
-                        { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a1_obj;
+                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
@@ -912,8 +908,8 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                             vader_obj_header_init(_a3_obj, 14u);
                             _a3_obj->f__0 = l12;
                             _a3_obj->f__1 = (uint8_t) 1;
-                            t4 = (void*) _a3_obj;
-                            { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                            t3 = (void*) _a3_obj;
+                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l10 = ((vader_struct_snippet___genstate_labels_t*) l0)->f_s0;
 #line 25 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -921,9 +917,10 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_labels_t*) l0);
 #line 24 "tests/snippets/array_own_into_not_fused/_main.vader"
 #line 25 "tests/snippets/array_own_into_not_fused/_main.vader"
-                        l11 = ((vader_array_t*) ((vader_struct_snippet___genstate_labels_t*) l0)->f_s1)->length;
+                        t4 = ((vader_array_t*) ((vader_struct_snippet___genstate_labels_t*) l0)->f_s1)->length;
+                        l11 = (int64_t) (size_t) t4;
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_s2 = l11;
-                        ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_snippet___genstate_labels_t*) l0)->f_s3 = INT64_C(0);
 #line 24 "tests/snippets/array_own_into_not_fused/_main.vader"
                         ((vader_struct_snippet___genstate_labels_t*) l0)->f_state = INT32_C(2);
                     }
@@ -936,16 +933,16 @@ static void* snippet___genstate_labels_Iterator_next(void* l0) {
 }
 
 static void* snippet___genstate_shifted_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8;
+    int64_t l1, l2, l3, l5, l8;
     void* l4 = NULL;
     void* l6 = NULL;
     void* l7 = NULL;
     void* l9 = NULL;
-    int32_t t0, t3;
-    size_t t1;
-    int64_t t2;
-    void* t4 = NULL;
-    void** gc_raw_roots[6] = { &l0, &l4, &l6, &l7, &l9, &t4 };
+    int32_t t0, t2;
+    int64_t t1;
+    void* t3 = NULL;
+    size_t t4;
+    void** gc_raw_roots[6] = { &l0, &l4, &l6, &l7, &l9, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 6u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 42 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -979,8 +976,7 @@ static void* snippet___genstate_shifted_Iterator_next(void* l0) {
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s3;
 #line 43 "tests/snippets/array_own_into_not_fused/_main.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s3 = l3;
 #line 42 "tests/snippets/array_own_into_not_fused/_main.vader"
                     ((vader_struct_snippet___genstate_shifted_t*) l0)->f_state = INT32_C(2);
@@ -990,18 +986,18 @@ static void* snippet___genstate_shifted_Iterator_next(void* l0) {
                         ((vader_struct_snippet___genstate_shifted_t*) l0)->f_state = INT32_C(3);
 #line 44 "tests/snippets/array_own_into_not_fused/_main.vader"
                         t0 = ((vader_struct_snippet_Pt_t*) ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s4)->f_x;
-                        t3 = vader_chk_add(i32, t0, INT32_C(1000));
+                        t2 = vader_chk_add(i32, t0, INT32_C(1000));
                         vader_struct_snippet_Pt_t* _a0_obj = (vader_struct_snippet_Pt_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Pt_t));
                         vader_obj_header_init(_a0_obj, 6u);
-                        _a0_obj->f_x = t3;
-                        t4 = (void*) _a0_obj;
+                        _a0_obj->f_x = t2;
+                        t3 = (void*) _a0_obj;
 #line 42 "tests/snippets/array_own_into_not_fused/_main.vader"
                         vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t* _a1_obj = (vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Struct_snippet_Pt_u8_c4d7c09f_t));
                         vader_obj_header_init(_a1_obj, 17u);
-                        _a1_obj->f__0 = t4;
+                        _a1_obj->f__0 = t3;
                         _a1_obj->f__1 = (uint8_t) 0;
-                        t4 = (void*) _a1_obj;
-                        { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a1_obj;
+                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_snippet___genstate_shifted_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
@@ -1024,8 +1020,8 @@ static void* snippet___genstate_shifted_Iterator_next(void* l0) {
                             vader_obj_header_init(_a3_obj, 17u);
                             _a3_obj->f__0 = l9;
                             _a3_obj->f__1 = (uint8_t) 1;
-                            t4 = (void*) _a3_obj;
-                            { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                            t3 = (void*) _a3_obj;
+                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l7 = ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s0;
 #line 43 "tests/snippets/array_own_into_not_fused/_main.vader"
@@ -1033,9 +1029,10 @@ static void* snippet___genstate_shifted_Iterator_next(void* l0) {
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_shifted_t*) l0);
 #line 42 "tests/snippets/array_own_into_not_fused/_main.vader"
 #line 43 "tests/snippets/array_own_into_not_fused/_main.vader"
-                        l8 = ((vader_array_t*) ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s1)->length;
+                        t4 = ((vader_array_t*) ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s1)->length;
+                        l8 = (int64_t) (size_t) t4;
                         ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s2 = l8;
-                        ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_snippet___genstate_shifted_t*) l0)->f_s3 = INT64_C(0);
 #line 42 "tests/snippets/array_own_into_not_fused/_main.vader"
                         ((vader_struct_snippet___genstate_shifted_t*) l0)->f_state = INT32_C(2);
                     }
@@ -1088,51 +1085,46 @@ static vader_box_t snippet____std_core_Into_into__snippet_Pt_2(void* l0) {
 }
 
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {
-    size_t l3, l4, l5;
+    int64_t l3, l4, l5;
     void* l6 = NULL;
-    int64_t t0;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l6 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l3 = vader_host_std_core_byte_len(l0);
     l4 = vader_host_std_core_byte_len(l1);
-    t0 = (l3 + l4);
-    l4 = (size_t) (int64_t) t0;
+    l4 = (l3 + l4);
     l5 = vader_host_std_core_byte_len(l2);
-    t0 = (l4 + l5);
-    l5 = (size_t) (int64_t) t0;
+    l5 = (l4 + l5);
     l6 = (void*) vader_buffer_new((size_t) l5);
     vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
     vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l3, l1);
     vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l4, l2);
-    t1 = vader_buffer_intern_string((vader_buffer_t*) l6, (size_t) l5);
-    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_buffer_intern_string((vader_buffer_t*) l6, (size_t) l5);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
-    size_t l2, l3;
+    int64_t l2, l3;
     void* l4 = NULL;
-    int64_t t0;
-    vader_string_t t1 = 0;
+    vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l4 };
-    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t1 };
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
-    t0 = (l2 + l3);
-    l3 = (size_t) (int64_t) t0;
+    l3 = (l2 + l3);
     l4 = (void*) vader_buffer_new((size_t) l3);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
-    t1 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
-    { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
@@ -1217,45 +1209,45 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static size_t std_core_usize_Step_step(size_t l0) {
+static int64_t std_core_i64_Step_step(int64_t l0) {
     int64_t t0;
-#line 325 "lib/std/core/primitives.vader"
-    t0 = vader_chk_add(usize, l0, INT64_C(1));
-    return (size_t) (int64_t) t0;
+#line 319 "lib/std/core/primitives.vader"
+    t0 = vader_chk_add(i64, l0, INT64_C(1));
+    return t0;
 }
 
-static void* std_core_Range_Iterator_next__usize(void* l0) {
+static void* std_core_Range_Iterator_next__i64(void* l0) {
     bool l1;
-    size_t l2, l3;
+    int64_t l2, l3;
     uint8_t l4;
     bool t0;
-    size_t t1;
+    int64_t t1;
     void* t2 = NULL;
     void** gc_raw_roots[2] = { &l0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 294 "lib/std/core/core.vader"
-    t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
+    t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_inclusive;
     if (t0) {
-        t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_done;
+        t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_done;
         if (t0) {
             l1 = true;
         } else {
-            l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-            l3 = ((vader_struct_std_core_Range__usize_t*) l0)->f_end;
+            l2 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
+            l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
             l1 = (l2 > l3);
         }
 #line 295 "lib/std/core/core.vader"
     } else {
-        l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-        l3 = ((vader_struct_std_core_Range__usize_t*) l0)->f_end;
+        l2 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
+        l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
         l1 = (l2 >= l3);
 #line 294 "lib/std/core/core.vader"
     }
 #line 298 "lib/std/core/core.vader"
     if (l1) {
-        t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-        vader_struct___Tuple_usize_u8_de11f1ad_t* _a0_obj = (vader_struct___Tuple_usize_u8_de11f1ad_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t));
+        t1 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
+        vader_struct___Tuple_i64_u8_87057322_t* _a0_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
         vader_obj_header_init(_a0_obj, 23u);
         _a0_obj->f__0 = t1;
         _a0_obj->f__1 = (uint8_t) 1;
@@ -1263,21 +1255,21 @@ static void* std_core_Range_Iterator_next__usize(void* l0) {
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
 #line 299 "lib/std/core/core.vader"
-    l2 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
+    l2 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
 #line 300 "lib/std/core/core.vader"
-    t0 = ((vader_struct_std_core_Range__usize_t*) l0)->f_inclusive;
+    t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_inclusive;
     if (t0) {
-        l3 = ((vader_struct_std_core_Range__usize_t*) l0)->f_end;
+        l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
         l1 = (l2 >= l3);
     } else {
         l1 = false;
     }
     if (l1) {
 #line 301 "lib/std/core/core.vader"
-        ((vader_struct_std_core_Range__usize_t*) l0)->f_done = true;
+        ((vader_struct_std_core_Range__i64_t*) l0)->f_done = true;
 #line 305 "lib/std/core/core.vader"
         l4 = (uint8_t) 0;
-        vader_struct___Tuple_usize_u8_de11f1ad_t* _a1_obj = (vader_struct___Tuple_usize_u8_de11f1ad_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t));
+        vader_struct___Tuple_i64_u8_87057322_t* _a1_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
         vader_obj_header_init(_a1_obj, 23u);
         _a1_obj->f__0 = l2;
         _a1_obj->f__1 = l4;
@@ -1286,12 +1278,12 @@ static void* std_core_Range_Iterator_next__usize(void* l0) {
 #line 300 "lib/std/core/core.vader"
     }
 #line 303 "lib/std/core/core.vader"
-    t1 = ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor;
-    l3 = std_core_usize_Step_step(t1);
-    ((vader_struct_std_core_Range__usize_t*) l0)->f_cursor = l3;
+    t1 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
+    l3 = std_core_i64_Step_step(t1);
+    ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor = l3;
 #line 305 "lib/std/core/core.vader"
     l4 = (uint8_t) 0;
-    vader_struct___Tuple_usize_u8_de11f1ad_t* _a2_obj = (vader_struct___Tuple_usize_u8_de11f1ad_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_usize_u8_de11f1ad_t));
+    vader_struct___Tuple_i64_u8_87057322_t* _a2_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
     vader_obj_header_init(_a2_obj, 23u);
     _a2_obj->f__0 = l2;
     _a2_obj->f__1 = l4;
@@ -1299,7 +1291,7 @@ static void* std_core_Range_Iterator_next__usize(void* l0) {
     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static void* std_core_new_byte_buffer(size_t l0) {
+static void* std_core_new_byte_buffer(int64_t l0) {
     void* t0 = NULL;
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
@@ -1309,7 +1301,7 @@ static void* std_core_new_byte_buffer(size_t l0) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
+static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
     vader_string_t t0 = 0;
     void** gc_raw_roots[1] = { &l0 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
@@ -1322,22 +1314,21 @@ static vader_string_t std_core_finish_buffer(void* l0, size_t l1) {
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static size_t std_core_write_string_at(void* l0, size_t l1, vader_string_t l2) {
-    size_t l3;
+static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
+    int64_t l3;
     int64_t t0;
 #line 136 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
 #line 137 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
-    t0 = vader_chk_add(usize, l1, l3);
-    return (size_t) (int64_t) t0;
+    t0 = vader_chk_add(i64, l1, l3);
+    return t0;
 }
 
-static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
+static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     bool l3;
-    size_t l4, l6;
-    int64_t l5;
-    uint8_t l7, l8;
+    int64_t l4, l5;
+    uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
 #line 142 "lib/std/core/primitives.vader"
@@ -1345,8 +1336,8 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
 #line 143 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
 #line 144 "lib/std/core/primitives.vader"
-        t0 = vader_chk_add(usize, l1, INT64_C(1));
-        return (size_t) (int64_t) t0;
+        t0 = vader_chk_add(i64, l1, INT64_C(1));
+        return t0;
 #line 142 "lib/std/core/primitives.vader"
     }
 #line 146 "lib/std/core/primitives.vader"
@@ -1356,41 +1347,37 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
         l2 = vader_chk_neg(i64, l2);
     }
 #line 148 "lib/std/core/primitives.vader"
-    l4 = (size_t) 0;
+    l4 = INT64_C(0);
 #line 149 "lib/std/core/primitives.vader"
     l5 = l2;
 #line 150 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
 #line 151 "lib/std/core/primitives.vader"
-        t0 = vader_chk_add(usize, l4, INT64_C(1));
-        l4 = (size_t) (int64_t) t0;
+        l4 = vader_chk_add(i64, l4, INT64_C(1));
 #line 152 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
 #line 150 "lib/std/core/primitives.vader"
     }
 #line 154 "lib/std/core/primitives.vader"
     if (l3) {
-        t0 = vader_chk_add(usize, l4, INT64_C(1));
-        l6 = (size_t) (int64_t) t0;
+        l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
-        l6 = l4;
+        l5 = l4;
     }
 #line 155 "lib/std/core/primitives.vader"
-    t0 = vader_chk_add(usize, l1, l6);
-    l4 = (size_t) (int64_t) t0;
+    l4 = vader_chk_add(i64, l1, l5);
 #line 156 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
 #line 157 "lib/std/core/primitives.vader"
-        t0 = vader_chk_sub(usize, l4, INT64_C(1));
-        l4 = (size_t) (int64_t) t0;
+        l4 = vader_chk_sub(i64, l4, INT64_C(1));
 #line 158 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
+        l6 = (uint8_t) (int32_t) t2;
+        t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
-        t2 = vader_chk_add(u8, INT32_C(48), l7);
-        l8 = (uint8_t) (int32_t) t2;
-        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l8);
+        vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
 #line 159 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
 #line 156 "lib/std/core/primitives.vader"
@@ -1399,21 +1386,21 @@ static size_t std_core_write_int(void* l0, size_t l1, int64_t l2) {
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
 #line 162 "lib/std/core/primitives.vader"
-        t0 = vader_chk_add(usize, l1, l6);
-        return (size_t) (int64_t) t0;
+        t0 = vader_chk_add(i64, l1, l5);
+        return t0;
 #line 161 "lib/std/core/primitives.vader"
     }
 #line 162 "lib/std/core/primitives.vader"
-    t0 = vader_chk_add(usize, l1, l6);
-    return (size_t) (int64_t) t0;
+    t0 = vader_chk_add(i64, l1, l5);
+    return t0;
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {
     void* l2 = NULL;
     void* l6 = NULL;
-    size_t l3, l4, l5, l7, l9;
+    int64_t l3, l4, l5, l7, l9;
     int32_t l8;
-    int64_t t0;
+    size_t t0;
     void** gc_raw_roots[2] = { &l2, &l6 };
     vader_string_t* gc_atom_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = {
@@ -1423,18 +1410,21 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
 #line 207 "lib/std/io/io.vader"
-    l3 = (size_t) 0;
+    l3 = INT64_C(0);
 #line 208 "lib/std/io/io.vader"
     for (;;) {
 #line 209 "lib/std/io/io.vader"
-        l4 = ((vader_array_t*) l2)->length;
+        t0 = ((vader_array_t*) l2)->length;
+        l4 = (int64_t) (size_t) t0;
         if (!((l3 >= l4))) {
 #line 212 "lib/std/io/io.vader"
-            l5 = ((vader_array_t*) l2)->length;
-            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (size_t) l3, (size_t) l5);
+            t0 = ((vader_array_t*) l2)->length;
+            l5 = (int64_t) (size_t) t0;
+            vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
 #line 213 "lib/std/io/io.vader"
-            l7 = ((vader_array_t*) l6)->length;
+            t0 = ((vader_array_t*) l6)->length;
+            l7 = (int64_t) (size_t) t0;
             l8 = std_io_write_bytes(l0, l6, l7);
 #line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
@@ -1443,10 +1433,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
 #line 214 "lib/std/io/io.vader"
             }
 #line 217 "lib/std/io/io.vader"
-            t0 = ((int64_t) (int32_t) l8);
-            l9 = (size_t) (int64_t) t0;
-            t0 = vader_chk_add(usize, l3, l9);
-            l3 = (size_t) (int64_t) t0;
+            l9 = ((int64_t) (int32_t) l8);
+            l3 = vader_chk_add(i64, l3, l9);
 #line 208 "lib/std/io/io.vader"
             continue;
 #line 209 "lib/std/io/io.vader"
@@ -1458,8 +1446,8 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
-    ptrdiff_t t0;
+static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
+    int64_t t0;
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
@@ -1467,12 +1455,12 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, size_t l2) {
     if (l0 == INT32_C(0)) {
 #line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
-        { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+        { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 #line 178 "lib/std/io/io.vader"
     }
 #line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
-    { int32_t __vret = ((int32_t) (ptrdiff_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
+    { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_io_println__string(vader_string_t l0) {
@@ -1487,7 +1475,7 @@ static void std_io_println__string(vader_string_t l0) {
 }
 
 static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8, l10;
+    int64_t l1, l2, l3, l5, l8, l10;
     void* l4 = NULL;
     void* l7 = NULL;
     void* l11 = NULL;
@@ -1496,12 +1484,11 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
     int32_t l6;
     bool l9;
     int32_t t0;
-    size_t t1;
-    int64_t t2;
-    vader_box_t t3 = vader_box_null();
-    void* t4 = NULL;
-    vader_box_t* gc_roots[1] = { &t3 };
-    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t4 };
+    int64_t t1;
+    vader_box_t t2 = vader_box_null();
+    void* t3 = NULL;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 315 "lib/std/collections/collections.vader"
@@ -1535,8 +1522,7 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3;
 #line 320 "lib/std/collections/collections.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3 = l3;
 #line 315 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(2);
@@ -1558,25 +1544,25 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
-                        t3 = vader_box_bool(20u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8]);
-                        l9 = t3.payload.b;
+                        t2 = vader_box_bool(20u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8]);
+                        l9 = t2.payload.b;
                         vader_struct___Tuple_i32_bool_cd1657f9_t* _a2_obj = (vader_struct___Tuple_i32_bool_cd1657f9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t));
-                        vader_obj_header_init(_a2_obj, 33u);
+                        vader_obj_header_init(_a2_obj, 32u);
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
-                        t4 = (void*) _a2_obj;
+                        t3 = (void*) _a2_obj;
 #line 315 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
-                        vader_obj_header_init(_a3_obj, 32u);
-                        _a3_obj->f__0 = t4;
+                        vader_obj_header_init(_a3_obj, 31u);
+                        _a3_obj->f__0 = t3;
                         _a3_obj->f__1 = (uint8_t) 0;
-                        t4 = (void*) _a3_obj;
-                        { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a3_obj;
+                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
 #line 320 "lib/std/collections/collections.vader"
-                        ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3 = INT64_C(0);
 #line 315 "lib/std/collections/collections.vader"
 #line 320 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s0)->f_size;
@@ -1588,11 +1574,11 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                         if (!(t0 == INT32_C(6))) {
                             l13 = vader_box_obj(0u, NULL).payload.obj;
                             vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a4_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
-                            vader_obj_header_init(_a4_obj, 32u);
+                            vader_obj_header_init(_a4_obj, 31u);
                             _a4_obj->f__0 = l13;
                             _a4_obj->f__1 = (uint8_t) 1;
-                            t4 = (void*) _a4_obj;
-                            { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                            t3 = (void*) _a4_obj;
+                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
 #line 318 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s0)->f_ekeys;
@@ -1615,7 +1601,7 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
 }
 
 static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8, l10;
+    int64_t l1, l2, l3, l5, l8, l10;
     void* l4 = NULL;
     void* l7 = NULL;
     void* l11 = NULL;
@@ -1623,10 +1609,9 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
     void* l13 = NULL;
     int32_t l6, l9;
     int32_t t0;
-    size_t t1;
-    int64_t t2;
-    void* t3 = NULL;
-    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t3 };
+    int64_t t1;
+    void* t2 = NULL;
+    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 315 "lib/std/collections/collections.vader"
@@ -1660,8 +1645,7 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3;
 #line 320 "lib/std/collections/collections.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3 = l3;
 #line 315 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(2);
@@ -1685,22 +1669,22 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                         l9 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
                         vader_struct___Tuple_i32_i32_3103e027_t* _a2_obj = (vader_struct___Tuple_i32_i32_3103e027_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_i32_3103e027_t));
-                        vader_obj_header_init(_a2_obj, 37u);
+                        vader_obj_header_init(_a2_obj, 36u);
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
-                        t3 = (void*) _a2_obj;
+                        t2 = (void*) _a2_obj;
 #line 315 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
-                        vader_obj_header_init(_a3_obj, 36u);
-                        _a3_obj->f__0 = t3;
+                        vader_obj_header_init(_a3_obj, 35u);
+                        _a3_obj->f__0 = t2;
                         _a3_obj->f__1 = (uint8_t) 0;
-                        t3 = (void*) _a3_obj;
-                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+                        t2 = (void*) _a3_obj;
+                        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
 #line 320 "lib/std/collections/collections.vader"
-                        ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3 = INT64_C(0);
 #line 315 "lib/std/collections/collections.vader"
 #line 320 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s0)->f_size;
@@ -1712,11 +1696,11 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                         if (!(t0 == INT32_C(6))) {
                             l13 = vader_box_obj(0u, NULL).payload.obj;
                             vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a4_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
-                            vader_obj_header_init(_a4_obj, 36u);
+                            vader_obj_header_init(_a4_obj, 35u);
                             _a4_obj->f__0 = l13;
                             _a4_obj->f__1 = (uint8_t) 1;
-                            t3 = (void*) _a4_obj;
-                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+                            t2 = (void*) _a4_obj;
+                            { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                         }
 #line 318 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s0)->f_ekeys;
@@ -1739,7 +1723,7 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
 }
 
 static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l8, l10;
+    int64_t l1, l2, l3, l5, l8, l10;
     void* l4 = NULL;
     void* l7 = NULL;
     void* l11 = NULL;
@@ -1748,12 +1732,11 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
     vader_string_t l6 = 0;
     int32_t l9;
     int32_t t0;
-    size_t t1;
-    int64_t t2;
-    vader_box_t t3 = vader_box_null();
-    void* t4 = NULL;
-    vader_box_t* gc_roots[1] = { &t3 };
-    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t4 };
+    int64_t t1;
+    vader_box_t t2 = vader_box_null();
+    void* t3 = NULL;
+    vader_box_t* gc_roots[1] = { &t2 };
+    void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t3 };
     vader_string_t* gc_atom_roots[1] = { &l6 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
@@ -1790,8 +1773,7 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
 #line 320 "lib/std/collections/collections.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3 = l3;
 #line 315 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(2);
@@ -1805,8 +1787,8 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
-                        t3 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
-                        l6 = t3.payload.s;
+                        t2 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
+                        l6 = t2.payload.s;
 #line 315 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
@@ -1816,22 +1798,22 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
                         l9 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
                         vader_struct___Tuple_string_i32_4ccf6d4f_t* _a2_obj = (vader_struct___Tuple_string_i32_4ccf6d4f_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t));
-                        vader_obj_header_init(_a2_obj, 41u);
+                        vader_obj_header_init(_a2_obj, 40u);
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
-                        t4 = (void*) _a2_obj;
+                        t3 = (void*) _a2_obj;
 #line 315 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a3_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
-                        vader_obj_header_init(_a3_obj, 40u);
-                        _a3_obj->f__0 = t4;
+                        vader_obj_header_init(_a3_obj, 39u);
+                        _a3_obj->f__0 = t3;
                         _a3_obj->f__1 = (uint8_t) 0;
-                        t4 = (void*) _a3_obj;
-                        { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                        t3 = (void*) _a3_obj;
+                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
 #line 320 "lib/std/collections/collections.vader"
-                        ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3 = (size_t) 0;
+                        ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3 = INT64_C(0);
 #line 315 "lib/std/collections/collections.vader"
 #line 320 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__string__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s0)->f_size;
@@ -1843,11 +1825,11 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                         if (!(t0 == INT32_C(6))) {
                             l13 = vader_box_obj(0u, NULL).payload.obj;
                             vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a4_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
-                            vader_obj_header_init(_a4_obj, 40u);
+                            vader_obj_header_init(_a4_obj, 39u);
                             _a4_obj->f__0 = l13;
                             _a4_obj->f__1 = (uint8_t) 1;
-                            t4 = (void*) _a4_obj;
-                            { void* __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+                            t3 = (void*) _a4_obj;
+                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
 #line 318 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__string__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s0)->f_ekeys;
@@ -1870,14 +1852,13 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
 }
 
 static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l0) {
-    size_t l1, l2, l3, l5, l6;
+    int64_t l1, l2, l3, l5, l6;
     void* l4 = NULL;
     void* l7 = NULL;
     int32_t t0;
-    size_t t1;
-    int64_t t2;
-    void* t3 = NULL;
-    void** gc_raw_roots[4] = { &l0, &l4, &l7, &t3 };
+    int64_t t1;
+    void* t2 = NULL;
+    void** gc_raw_roots[4] = { &l0, &l4, &l7, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 382 "lib/std/collections/collections.vader"
@@ -1911,8 +1892,7 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2;
 #line 385 "lib/std/collections/collections.vader"
-                    t2 = (t1 + INT64_C(1));
-                    l3 = (size_t) (int64_t) t2;
+                    l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2 = l3;
 #line 382 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(2);
@@ -1932,13 +1912,13 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                         vader_obj_header_init(_a1_obj, 21u);
                         _a1_obj->f__0 = t0;
                         _a1_obj->f__1 = (uint8_t) 0;
-                        t3 = (void*) _a1_obj;
-                        { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+                        t2 = (void*) _a1_obj;
+                        { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
 #line 385 "lib/std/collections/collections.vader"
-                        ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2 = (size_t) 0;
+                        ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2 = INT64_C(0);
 #line 382 "lib/std/collections/collections.vader"
 #line 385 "lib/std/collections/collections.vader"
                         l6 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s0)->f_inner)->f_size;
@@ -1952,8 +1932,8 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                             vader_obj_header_init(_a2_obj, 21u);
                             _a2_obj->f__0 = INT32_C(0);
                             _a2_obj->f__1 = (uint8_t) 1;
-                            t3 = (void*) _a2_obj;
-                            { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+                            t2 = (void*) _a2_obj;
+                            { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                         }
 #line 384 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s0)->f_inner)->f_ekeys;
@@ -1977,11 +1957,11 @@ static vader_box_t vader_vt_std_core_Iterator__next(vader_box_t recv) {
         case 13u: return vader_ref_box(snippet___genstate_labels_Iterator_next(recv.payload.obj));
         case 16u: return vader_ref_box(snippet___genstate_shifted_Iterator_next(recv.payload.obj));
         case 19u: return vader_ref_box(std_core_Range_Iterator_next__i32(recv.payload.obj));
-        case 22u: return vader_ref_box(std_core_Range_Iterator_next__usize(recv.payload.obj));
-        case 31u: return vader_ref_box(std_collections___gen_state_std_collections_0_Iterator_next(recv.payload.obj));
-        case 35u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
-        case 39u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
-        case 43u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
+        case 22u: return vader_ref_box(std_core_Range_Iterator_next__i64(recv.payload.obj));
+        case 30u: return vader_ref_box(std_collections___gen_state_std_collections_0_Iterator_next(recv.payload.obj));
+        case 34u: return vader_ref_box(std_collections___gen_state_std_collections_1_Iterator_next(recv.payload.obj));
+        case 38u: return vader_ref_box(std_collections___gen_state_std_collections_2_Iterator_next(recv.payload.obj));
+        case 42u: return vader_ref_box(std_collections___gen_state_std_collections_3_Iterator_next(recv.payload.obj));
         default: vader_unreachable("vtable miss in std_core$Iterator.next");
     }
     vader_unreachable("vtable miss in std_core$Iterator.next");

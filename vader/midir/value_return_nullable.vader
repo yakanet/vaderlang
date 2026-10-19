@@ -97,10 +97,10 @@ returns_fresh_composite :: fn(f: CFGFunction) -> NullableReturn | null {
         }
         types: Type[]: []
         for l in built.fields {
-            if usize(l) >= f.locals.len() {
+            if i64(l) !in 0..<f.locals.len() {
                 return null
             }
-            types.push(f.locals[usize(l)].type)
+            types.push(f.locals[i64(l)].type)
         }
         found = NullableReturn { .fields = types, .struct_type = built.type }
     }

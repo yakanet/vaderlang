@@ -1070,27 +1070,14 @@
                 "left": {
                   "kind": "CallExpr",
                   "callee": {
-                    "kind": "IdentExpr",
-                    "name": "i64"
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "argv"
+                    },
+                    "field": "len"
                   },
-                  "args": [
-                    {
-                      "name": null,
-                      "value": {
-                        "kind": "CallExpr",
-                        "callee": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "argv"
-                          },
-                          "field": "len"
-                        },
-                        "args": []
-                      },
-                      "spread": false
-                    }
-                  ]
+                  "args": []
                 },
                 "right": {
                   "kind": "IntLitExpr",

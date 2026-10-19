@@ -97,7 +97,7 @@ export materialize_default_members :: fn(
 
 synth_with_body :: fn(
     method: AST.FnDecl, subst: Subst,
-    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx, id: usize,
+    decorators: AST.Decorator[], body: AST.BlockExpr, stamp: StampCtx, id: i64,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,
@@ -223,8 +223,8 @@ provided_names :: fn(members: AST.FnDecl[]) -> MutableSet<string> {
     return set
 }
 
-export count_sam_synthetics :: fn(members: AST.FnDecl[]) -> usize {
-    n: usize = 0
+export count_sam_synthetics :: fn(members: AST.FnDecl[]) -> i64 {
+    n: i64 = 0
     for m in members {
         if m.sam_synthetic { n = n + 1 }
     }
@@ -261,7 +261,7 @@ build_subst :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl) -> Subst {
 }
 
 synth_signature :: fn(
-    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[], id: usize,
+    method: AST.FnDecl, name_span: Span, subst: Subst, decorators: AST.Decorator[], id: i64,
 ) -> AST.FnDecl {
     return AST.FnDecl {
         .span = method.span,

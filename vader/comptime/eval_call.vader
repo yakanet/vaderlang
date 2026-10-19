@@ -33,9 +33,9 @@ export evaluate_call_expr :: fn(
         return vm_required(expr.span, "CallExpr (non-ident callee)")
     }
     callee :: expr.callee
-    // Primitive integer cast written as a call (`usize(16)`, `i32(n)`): the
+    // Primitive integer cast written as a call (`i64(16)`, `i32(n)`): the
     // "callee" is a primitive type name, not a fn, so the FnDecl lookup below
-    // would bail and the const never bakes (e.g. `BUCKET_COUNT :: usize(16)`
+    // would bail and the const never bakes (e.g. `BUCKET_COUNT :: i64(16)`
     // → bucket_index's `h % BUCKET_COUNT` drops). Int→int casts preserve the
     // comptime value, so fold by passing the argument's IntValue through.
     if callee is AST.IdentExpr {
@@ -84,7 +84,7 @@ export evaluate_call_expr :: fn(
 }
 
 // True for the 10 integer primitive type names — the ones that appear as a
-// cast callee (`usize(16)`) over an integer comptime value.
+// cast callee (`i64(16)`) over an integer comptime value.
 is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
 
 evaluate_fn_body :: fn(

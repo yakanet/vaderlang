@@ -23,7 +23,7 @@
 [16:1-16:1  ] newline        "\n"
 [16:5-16:12 ] ident          "retries"
 [16:12-16:13] colon          ":"
-[16:14-16:19] ident          "usize"
+[16:14-16:17] ident          "i64"
 [17:1-17:1  ] newline        "\n"
 [17:5-17:10 ] ident          "label"
 [17:10-17:11] colon          ":"

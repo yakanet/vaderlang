@@ -82,9 +82,9 @@
 [12:1-12:1  ] newline        "\n"
 [13:5-13:6  ] ident          "n"
 [13:6-13:7  ] colon          ":"
-[13:8-13:13 ] ident          "usize"
-[13:13-13:14] colon          ":"
-[13:15-13:18] int_literal    "100" =100n
+[13:8-13:11 ] ident          "i64"
+[13:11-13:12] colon          ":"
+[13:13-13:16] int_literal    "100" =100n
 [14:1-14:1  ] newline        "\n"
 [14:5-14:12 ] ident          "println"
 [14:12-14:13] lparen         "("

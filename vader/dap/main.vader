@@ -402,7 +402,7 @@ variables_body :: fn(var_refs: MutableMap<i32, PauseVar[]>, next_ref: i32[], ref
 // the `id` from `stackTrace`).
 evaluate_find :: fn(ctx: PauseCtx, frame_id: i32, expression: string) -> string | null {
     if frame_id < 0 || frame_id >= i32(ctx.frames.len()) { return null }
-    for local in ctx.frames[usize(frame_id)].locals {
+    for local in ctx.frames[frame_id].locals {
         if local.name == expression { return local.value }
     }
     return null
@@ -422,7 +422,7 @@ evaluate_result :: fn(value: string) -> JsonValue {
 display_fn_name :: fn(mangled: string) -> string {
     idx :: last_index_of(mangled, '$', 0)
     if idx < 0 { return mangled }
-    return mangled.byte_slice(usize(idx) + 1, mangled.byte_len())
+    return mangled.byte_slice(idx + 1, mangled.byte_len())
 }
 
 // Final path segment (`/a/b/c.vader` → `c.vader`) for the `source.name`.

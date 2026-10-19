@@ -6,8 +6,8 @@
   StructDecl     Tag                  :: Tag
   expr 17:15    BinaryExpr     :: T[]
   expr 17:15    SeqLitExpr     :: T[]
-  expr 17:20    CallExpr       :: usize
-  expr 17:20    FieldExpr      :: fn() -> usize
+  expr 17:20    CallExpr       :: i64
+  expr 17:20    FieldExpr      :: fn() -> i64
   expr 17:20    IdentExpr      :: T[]
   expr 18:18    IdentExpr      :: T[]
   expr 18:5     CallExpr       :: void
@@ -26,13 +26,13 @@
   expr 26:5     FieldExpr      :: fn(i32) -> void
   expr 26:5     IdentExpr      :: i32[]
   expr 27:13    StringLitExpr  :: string
-  expr 27:16    CallExpr       :: usize
-  expr 27:16    FieldExpr      :: fn() -> usize
+  expr 27:16    CallExpr       :: i64
+  expr 27:16    FieldExpr      :: fn() -> i64
   expr 27:16    IdentExpr      :: i32[]
   expr 27:30    IdentExpr      :: i32[]
   expr 27:30    IndexExpr      :: i32
-  expr 27:41    CallExpr       :: usize
-  expr 27:41    FieldExpr      :: fn() -> usize
+  expr 27:41    CallExpr       :: i64
+  expr 27:41    FieldExpr      :: fn() -> i64
   expr 27:41    IdentExpr      :: Tag[]
   expr 27:5     CallExpr       :: void
   expr 27:5     IdentExpr      :: fn(T) -> void

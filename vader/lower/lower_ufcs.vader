@@ -109,7 +109,7 @@ build_ufcs_args :: fn(
     receiver: LoweredExpr,
     call: CallExpr,
     params: Type[],
-    first_slot: usize,
+    first_slot: i64,
 ) -> LoweredExpr[] {
     args: LoweredExpr[]: []
     if first_slot == 1 && params.len() > 0 {

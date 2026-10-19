@@ -318,7 +318,7 @@ is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
 
 /// Whether `wide` is an integer type holding every value of the integer type
 /// `narrow` (`u8` in an `i32`, `0..=9` in a `u8`), and more when both are machine
-/// integers or primitives : `u64` and `usize`, one set under two names C tells
+/// integers or primitives : `u64` and `i64`, one set under two names C tells
 /// apart, hold neither the other, nor does `i32` hold `i32`.
 ///
 /// @param wide    the type a value of `narrow` would go into.
@@ -339,7 +339,7 @@ holds_integer :: fn(wide: Type, narrow: Type) -> bool {
 /// primitive's, the Unicode scalar values of `char`, those of a distinct over one.
 ///
 /// @return  null for any other type, and for one reaching past `i64` (`u64`,
-///          `usize`), whose patterns are read within `i64`.
+///          `i64`), whose patterns are read within `i64`.
 integer_set :: fn(t: Type) -> Interval[] | null {
     if t !is PrimitiveType | RangeType | DistinctType {
         return null

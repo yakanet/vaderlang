@@ -22,14 +22,14 @@ module "vader/vm"
 ///
 /// @param name  the library's bare name, or `""` for the current process.
 /// @return      an opaque handle, or `0` when the library is not found.
-@intrinsic export ffi_open :: fn(name: string) -> usize
+@intrinsic export ffi_open :: fn(name: string) -> i64
 
 /// Resolve `symbol` in `lib`.
 ///
 /// @param lib     a handle from `ffi_open`.
 /// @param symbol  the exact linker name.
 /// @return        the function's address, or `0` when absent.
-@intrinsic export ffi_symbol :: fn(lib: usize, symbol: string) -> usize
+@intrinsic export ffi_symbol :: fn(lib: i64, symbol: string) -> i64
 
 /// One foreign call, described by DATA rather than by its shape.
 ///
@@ -53,7 +53,7 @@ module "vader/vm"
 ///                string otherwise — an atom id cannot travel through the frame,
 ///                since nothing on the Vader side can turn one back into a
 ///                `string`.
-@intrinsic export ffi_call :: fn(fn_ptr: usize, desc: u8[], frame: u8[], nfixed: i64) -> string
+@intrinsic export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
 
 // ---- tests ----------------------------------------------------------------
 
@@ -72,11 +72,11 @@ import "std/testing"
 
 @test test_ffi_missing_symbol_reports_zero :: fn() -> void {
     process :: ffi_open("")
-    assert_eq(ffi_symbol(process, "vader_symbol_that_cannot_exist"), usize(0))
+    assert_eq(ffi_symbol(process, "vader_symbol_that_cannot_exist"), 0)
 }
 
 @test test_ffi_missing_library_reports_zero :: fn() -> void {
-    assert_eq(ffi_open("vader_library_that_cannot_exist"), usize(0))
+    assert_eq(ffi_open("vader_library_that_cannot_exist"), 0)
 }
 
 // The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each

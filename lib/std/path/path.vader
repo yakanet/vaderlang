@@ -73,7 +73,7 @@ export parent :: fn(self: Path) -> Path {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path(SEP_STR)
     }
-    return Path(s.byte_slice(0, usize(idx)))
+    return Path(s.byte_slice(0, idx))
 }
 
 /// Last segment (filename or directory name). For a path with no
@@ -86,7 +86,7 @@ export filename :: fn(self: Path) -> string {
     if idx < 0 {
         return s
     }
-    return s.byte_slice(usize(idx) + 1, s.byte_len())
+    return s.byte_slice(idx + 1, s.byte_len())
 }
 
 /// The two halves of a filename, as returned by `basename`.
@@ -118,7 +118,7 @@ export basename :: fn(self: Path) -> Basename =
 // `filename()` first. `last_index_of` returns a BYTE offset, so every caller
 // slices `bytes()` and not the codepoint-indexed `s[a..<b]`; mixing the two turns
 // `café.vader` into `ader`.
-extension_dot :: fn(fname: string) -> isize = fname.last_index_of('.', 1)
+extension_dot :: fn(fname: string) -> i64 = fname.last_index_of('.', 1)
 
 /// The final segment without its extension.
 ///
@@ -140,7 +140,7 @@ export name :: fn(self: Path) -> string {
     if idx < 0 {
         return fname
     }
-    return fname.byte_slice(0, usize(idx))
+    return fname.byte_slice(0, idx)
 }
 
 /// The final segment's extension, without the dot.
@@ -162,7 +162,7 @@ export extension :: fn(self: Path) -> string {
     if idx < 0 {
         return ""
     }
-    return fname.byte_slice(usize(idx) + 1, fname.byte_len())
+    return fname.byte_slice(idx + 1, fname.byte_len())
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -265,9 +265,9 @@ export normalize :: fn(self: Path) -> Path {
     }
     abs :: self.is_absolute()
     segments: string[]: []
-    count: usize = 0
+    count: i64 = 0
     n :: s.byte_len()
-    i: usize = if abs { 1 } else { 0 }
+    i: i64 = if abs { 1 } else { 0 }
     seg_start := i
     for i <= n {
         at_end :: i == n

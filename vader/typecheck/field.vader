@@ -1294,7 +1294,7 @@ trait_names_apart :: fn(keys: string[], typed: TypedProgram) -> string[] {
     return out
 }
 
-short_name_count :: fn(names: string[], name: string) -> usize =
+short_name_count :: fn(names: string[], name: string) -> i64 =
     names.filter((candidate) -> candidate == name).count()
 
 // `module.Name` of the trait whose key is `key`. The key's module segment is

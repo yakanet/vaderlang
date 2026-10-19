@@ -129,7 +129,7 @@ import "std/testing"
     assert_eq(DOUBLE_POW5_SPLIT[1], u64(1152921504606846976))
     assert_eq(DOUBLE_POW5_SPLIT[650], u64(8710297504448807696))
     assert_eq(DOUBLE_POW5_SPLIT[651], u64(1780059086805761106))
-    assert_eq(DOUBLE_POW5_SPLIT.len(), usize(652))
+    assert_eq(DOUBLE_POW5_SPLIT.len(), 652)
 }
 
 @test test_double_inv_reference :: fn() -> void {
@@ -139,14 +139,14 @@ import "std/testing"
     assert_eq(DOUBLE_POW5_INV_SPLIT[3], u64(1844674407370955161))
     assert_eq(DOUBLE_POW5_INV_SPLIT[682], u64(673562245690857633))
     assert_eq(DOUBLE_POW5_INV_SPLIT[683], u64(1345193707530136767))
-    assert_eq(DOUBLE_POW5_INV_SPLIT.len(), usize(684))
+    assert_eq(DOUBLE_POW5_INV_SPLIT.len(), 684)
 }
 
 @test test_float_reference :: fn() -> void {
     assert_eq(FLOAT_POW5_SPLIT[0], u64(1152921504606846976))
     assert_eq(FLOAT_POW5_SPLIT[46], u64(2019483917365790221))
-    assert_eq(FLOAT_POW5_SPLIT.len(), usize(47))
+    assert_eq(FLOAT_POW5_SPLIT.len(), 47)
     assert_eq(FLOAT_POW5_INV_SPLIT[0], u64(576460752303423489))
     assert_eq(FLOAT_POW5_INV_SPLIT[54], u64(441711766194596083))
-    assert_eq(FLOAT_POW5_INV_SPLIT.len(), usize(55))
+    assert_eq(FLOAT_POW5_INV_SPLIT.len(), 55)
 }

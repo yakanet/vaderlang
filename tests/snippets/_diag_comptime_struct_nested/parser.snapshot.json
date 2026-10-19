@@ -132,7 +132,7 @@
                     "parts": [
                       {
                         "kind": "text",
-                        "value": "usize"
+                        "value": "i64"
                       }
                     ]
                   }

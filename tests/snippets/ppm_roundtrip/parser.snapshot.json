@@ -701,21 +701,8 @@
                     "args": []
                   },
                   "right": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "usize"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "12n"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IntLitExpr",
+                    "value": "12n"
                   }
                 }
               }

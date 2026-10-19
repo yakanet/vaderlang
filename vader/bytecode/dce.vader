@@ -54,7 +54,7 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
         for j in 0..<fn_.body.len() {
             op :: fn_.body[j]
             if op is CallImport {
-                fn_.body[j] = CallImport { .index = remap[usize(op.index)] }
+                fn_.body[j] = CallImport { .index = remap[op.index] }
             }
         }
     }
@@ -95,7 +95,7 @@ export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcD
         for j in 0..<fn_.body.len() {
             op :: fn_.body[j]
             if op is DataConst {
-                fn_.body[j] = DataConst { ...op, .pool_index = remap[usize(op.pool_index)] }
+                fn_.body[j] = DataConst { ...op, .pool_index = remap[op.pool_index] }
             }
         }
     }
@@ -138,9 +138,9 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
         for j in 0..<fn_.body.len() {
             op :: fn_.body[j]
             if op is GlobalGet {
-                fn_.body[j] = GlobalGet { .index = remap[usize(op.index)] }
+                fn_.body[j] = GlobalGet { .index = remap[op.index] }
             } else if op is GlobalSet {
-                fn_.body[j] = GlobalSet { .index = remap[usize(op.index)] }
+                fn_.body[j] = GlobalSet { .index = remap[op.index] }
             }
         }
     }
@@ -186,8 +186,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
             new_work.push(work[w])
         }
         work = new_work
-        if usize(idx) >= n { continue }
-        fn_ :: ctx.functions[usize(idx)]
+        if i64(idx) !in 0..<n { continue }
+        fn_ :: ctx.functions[idx]
         for op in fn_.body {
             callee: i32 = -1
             if op is Call { callee = op.function_index }
@@ -226,7 +226,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
                 prev_opt :: canonical_old_by_mangle[mangle]
                 if prev_opt is i32 {
                     has_dup_mangle = true
-                    if ctx.functions[ci].body.len() > 0 && ctx.functions[usize(prev_opt)].body.len() == 0 {
+                    if ctx.functions[ci].body.len() > 0 && ctx.functions[prev_opt].body.len() == 0 {
                         canonical_old_by_mangle[mangle] = i32(ci)
                     }
                 } else {
@@ -280,17 +280,17 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         for bj in 0..<fn_.body.len() {
             op :: fn_.body[bj]
             if op is Call {
-                fn_.body[bj] = Call { .function_index = remap[usize(op.function_index)] }
+                fn_.body[bj] = Call { .function_index = remap[op.function_index] }
             }
             if op is FnRef {
-                fn_.body[bj] = FnRef { .function_index = remap[usize(op.function_index)], .type_id = op.type_id }
+                fn_.body[bj] = FnRef { .function_index = remap[op.function_index], .type_id = op.type_id }
             }
             if op is FnAddr {
-                fn_.body[bj] = FnAddr { .function_index = remap[usize(op.function_index)] }
+                fn_.body[bj] = FnAddr { .function_index = remap[op.function_index] }
             }
             if op is MakeClosure {
                 fn_.body[bj] = MakeClosure {
-                    .function_index = remap[usize(op.function_index)],
+                    .function_index = remap[op.function_index],
                     .env_type_id    = op.env_type_id,
                 }
             }
@@ -300,7 +300,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Rewrite @export entries' fn_index in place via array rebuild.
     new_exports: BcExport[]: []
     for e in ctx.exports {
-        new_idx :: remap[usize(e.fn_index)]
+        new_idx :: remap[e.fn_index]
         if new_idx >= 0 {
             new_exports.push(BcExport { .extern_name = e.extern_name, .fn_index = new_idx })
         }
@@ -311,7 +311,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // was pruned ; remap survivors.
     new_sym_map :: MutableMap<i32, i32> {}
     for [sym_id, old_idx] in ctx.function_index_by_symbol_id {
-        r :: remap[usize(old_idx)]
+        r :: remap[old_idx]
         if r >= 0 { new_sym_map[sym_id] = r }
     }
     ctx.function_index_by_symbol_id = new_sym_map
@@ -322,7 +322,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // stale pre-prune index here would point those vtable rows at the wrong fn.
     new_mangle_map :: MutableMap<string, i32> {}
     for [mangle, old_idx] in ctx.function_index_by_mangle {
-        r :: remap[usize(old_idx)]
+        r :: remap[old_idx]
         if r >= 0 { new_mangle_map[mangle] = r }
     }
     ctx.function_index_by_mangle = new_mangle_map
@@ -333,8 +333,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // (empty) pins onto the canonical.
     new_pins_by_fn :: MutableMap<i32, i32[]> {}
     for [old_fn, pins] in ctx.pinned_types_by_fn {
-        if usize(old_fn) >= remap.len() { continue }
-        new_fn :: remap[usize(old_fn)]
+        if i64(old_fn) !in 0..<remap.len() { continue }
+        new_fn :: remap[old_fn]
         if new_fn < 0 { continue }
         existing :: new_pins_by_fn[new_fn]
         if existing is i32[] as ex {
@@ -453,8 +453,8 @@ remap_globals :: fn(globals: BcGlobal[], remap: i32[]) -> BcGlobal[] =
 /// @return       the new index, or `-1`.
 export remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
     if idx < 0 { return idx }
-    if usize(idx) >= remap.len() { return -1 }
-    return remap[usize(idx)]
+    if i64(idx) >= remap.len() { return -1 }
+    return remap[idx]
 }
 
 /// `remap_idx` over a list — a signature's `result_types`, a struct's fields.
@@ -513,9 +513,9 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
 visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void {
     if idx < 0 { return }
     if idx in reachable { return }
-    if usize(idx) >= ctx.types.len() { return }
+    if i64(idx) >= ctx.types.len() { return }
     reachable.add(idx)
-    t :: ctx.types[usize(idx)]
+    t :: ctx.types[idx]
     if t is BcStruct {
         for f in t.fields { visit_type(f.type_index, ctx, reachable) }
     }

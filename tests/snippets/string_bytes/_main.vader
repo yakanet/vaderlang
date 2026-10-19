@@ -41,7 +41,7 @@ main :: fn() -> i32 {
 
     // Slicing the view stays a (native zero-copy) view over the same bytes.
     println("-- slice --")
-    sl :: "abcde".bytes()[usize(1)..<usize(4)]
+    sl :: "abcde".bytes()[i64(1)..<i64(4)]
     println("sl.len=${sl.len()} sl0=${sl[0]} sl1=${sl[1]} sl2=${sl[2]}")
 
     return 0

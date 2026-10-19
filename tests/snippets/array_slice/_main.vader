@@ -2,7 +2,7 @@
 // `[r.start, r.end)` (or closed `[r.start, r.end]` when the range is `..=`).
 // The typechecker dispatches on the *type* of the index : any
 // `Range[<integer>]` slot triggers the slice path, so literal range
-// expressions, let-bound range values, and usize-typed bounds all work.
+// expressions, let-bound range values, and i64-typed bounds all work.
 // Empty slices (`arr[i..<i]`) produce a zero-length array.
 
 module "snippet"
@@ -28,8 +28,8 @@ main :: fn() -> i32 {
     println("s3.len = ${s3.len()}")
     for v in s3 { println("  ${v}") }
 
-    // usize-typed bounds
-    n: usize: 3
+    // i64-typed bounds
+    n: i64: 3
     s4 :: arr[0..<n]
     println("s4.len = ${s4.len()}")
     for v in s4 { println("  ${v}") }

@@ -57,8 +57,8 @@
   expr 57:10    BinaryExpr     :: i32
   expr 57:10    CallExpr       :: i32
   expr 57:10    IdentExpr      :: type
-  expr 57:14    CallExpr       :: usize
-  expr 57:14    FieldExpr      :: fn() -> usize
+  expr 57:14    CallExpr       :: i64
+  expr 57:14    FieldExpr      :: fn() -> i64
   expr 57:14    IdentExpr      :: string[]
   expr 58:13    CallExpr       :: string
   expr 58:13    IdentExpr      :: fn(string | u8) -> string
@@ -109,8 +109,8 @@
   expr 70:5     FieldExpr      :: fn(string | u8) -> bool
   expr 70:5     IdentExpr      :: MutableSet<string | u8>
   expr 71:13    StringLitExpr  :: string
-  expr 71:21    CallExpr       :: usize
-  expr 71:21    FieldExpr      :: fn() -> usize
+  expr 71:21    CallExpr       :: i64
+  expr 71:21    FieldExpr      :: fn() -> i64
   expr 71:21    IdentExpr      :: MutableSet<string | u8>
   expr 71:5     CallExpr       :: void
   expr 71:5     IdentExpr      :: fn(T) -> void
@@ -120,8 +120,8 @@
   expr 72:5     IdentExpr      :: fn(T) -> void
   expr 73:19    IfExpr         :: string | u8
   expr 73:22    BinaryExpr     :: bool
-  expr 73:22    CallExpr       :: usize
-  expr 73:22    FieldExpr      :: fn() -> usize
+  expr 73:22    CallExpr       :: i64
+  expr 73:22    FieldExpr      :: fn() -> i64
   expr 73:22    IdentExpr      :: string[]
   expr 73:51    StringLitExpr  :: string
   expr 74:13    CallExpr       :: string
@@ -136,8 +136,8 @@
   expr 75:28    BinaryExpr     :: i32
   expr 75:28    CallExpr       :: i32
   expr 75:28    IdentExpr      :: type
-  expr 75:32    CallExpr       :: usize
-  expr 75:32    FieldExpr      :: fn() -> usize
+  expr 75:32    CallExpr       :: i64
+  expr 75:32    FieldExpr      :: fn() -> i64
   expr 75:32    IdentExpr      :: string[]
   expr 75:5     CallExpr       :: void
   expr 75:5     IdentExpr      :: fn(T) -> void

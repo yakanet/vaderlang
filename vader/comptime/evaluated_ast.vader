@@ -74,7 +74,7 @@ export FileRead :: struct {
     /// The path as the program wrote it.
     path: string
     /// The size of what was read, in bytes.
-    bytes: usize
+    bytes: i64
     /// The constant the read initialises when it is the whole of a const's value.
     name: string | null = null
 }
@@ -115,7 +115,7 @@ export EvaluatedProject :: struct {
     /// Every `@file("path")` call baked at comptime, keyed by the
     /// IntrinsicCallExpr's AST node id. Lower reads this
     /// to emit a `LoweredStringLit` of the file contents.
-    file_exprs: MutableMap<usize, string>
+    file_exprs: MutableMap<i64, string>
 
     /// Sorted list of every generic instantiation seen in the typed AST
     /// (Struct/Trait with non-empty args), from which `lower_mono_struct`
@@ -147,7 +147,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed             = typed,
         .modules           = MutableMap<string, EvaluatedProgram> {},
-        .file_exprs        = MutableMap<usize, string> {},
+        .file_exprs        = MutableMap<i64, string> {},
         .file_baked_consts = MutableMap<i32, ComptimeValue> {},
         .instances         = [],
         .vm_required       = [],

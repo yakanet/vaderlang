@@ -12,21 +12,21 @@
       out: string = line
       {
           __for_arr_0: i32[] = xs
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               x: i32 = __for_arr_0[__for_i_2]
               out = {
                   __p_3: string = out
-                  __buf_4: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_3))
-                  __off_5: usize = 0
+                  __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
+                  __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
                   __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
                   std.core.finish_buffer(__buf_4, __off_5)
               }
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       std.io.println<string>(out)
@@ -40,15 +40,15 @@
           f: fn([i32, i32]) -> i32 = snippet.product
           out: i32[] = [] :i32[]
           {
-              n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+              n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
               {
-                  i: usize = 0
+                  i: i64 = 0
                   for i < n {
                       x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                       x: i32 = snippet.product(x)
                       @array.push(out, x)
                   } @step {
-                      i = i +% usize(1)
+                      i = i +% i64(1)
                   }
               }
           }
@@ -77,42 +77,42 @@
           out
       } :i32[])
       std.io.println<string>({
-          __buf_3: Buffer = std.core.new_byte_buffer(usize(40))
-          __off_4: usize = 0
+          __buf_3: Buffer = std.core.new_byte_buffer(i64(40))
+          __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "filter count fused: ")
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64({
+          __off_4 = std.core.write_int(__buf_3, __off_4, {
               self: i32[] = a
               other: i32[] = b
               pred: fn([i32, i32]) -> bool = snippet.left_bigger
-              total: usize = 0
+              total: i64 = 0
               {
-                  n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+                  n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
                   {
-                      i: usize = 0
+                      i: i64 = 0
                       for i < n {
                           x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                           if snippet.left_bigger(x) {
                               _: [i32, i32] = x
-                              total = total + usize(1)
+                              total = total + i64(1)
                           }
                       } @step {
-                          i = i +% usize(1)
+                          i = i +% i64(1)
                       }
                   }
               }
               total
-          } :usize))
+          } :i64)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       lazy_filter: __genstate_zip<[i32, i32]> = std.iter.zip<i32, i32>(a, b)
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(usize(39))
-          __off_7: usize = 0
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(39))
+          __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "filter count lazy: ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64({
+          __off_7 = std.core.write_int(__buf_6, __off_7, {
               self: Iterator<[i32, i32]> = lazy_filter
               pred: fn([i32, i32]) -> bool = snippet.left_bigger
-              total: usize = 0
+              total: i64 = 0
               {
                   {
                       __iter_0: Iterator<[i32, i32]> = self
@@ -124,43 +124,43 @@
                               x: [i32, i32] = __step_1._0
                               if snippet.left_bigger(x) {
                                   _: [i32, i32] = x
-                                  total = total + usize(1)
+                                  total = total + i64(1)
                               }
                           }
                       }
                   }
               }
               total
-          } :usize))
+          } :i64)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       snippet.show("take fused", {
           self: i32[] = a
           other: i32[] = b
-          n: usize = 2
+          n: i64 = 2
           f: fn([i32, i32]) -> i32 = snippet.product
           out: i32[] = [] :i32[]
           {
               $exit$i76: {
-                  if n == usize(0) {
+                  if n == i64(0) {
                       break $exit$i76
                   }
-                  i: usize = 0
+                  i: i64 = 0
                   $leave86: {
-                      n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+                      n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
                       {
-                          i: usize = 0
+                          i: i64 = 0
                           for i < n {
                               x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                               x: [i32, i32] = x
                               x: i32 = snippet.product(x)
                               @array.push(out, x)
-                              i = i + usize(1)
+                              i = i + i64(1)
                               if i >= n {
                                   break $leave86
                               }
                           } @step {
-                              i = i +% usize(1)
+                              i = i +% i64(1)
                           }
                       }
                   }
@@ -169,8 +169,8 @@
           out
       } :i32[])
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(usize(16))
-          __off_11: usize = 0
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(16))
+          __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "any fused: ")
           __off_11 = std.core.write_bool(__buf_10, __off_11, {
               self: i32[] = a
@@ -179,9 +179,9 @@
               __consumed_9: bool = false
               $exit$i95: {
                   {
-                      n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+                      n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
                       {
-                          i: usize = 0
+                          i: i64 = 0
                           for i < n {
                               x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                               if snippet.left_bigger(x) {
@@ -189,7 +189,7 @@
                                   break $exit$i95
                               }
                           } @step {
-                              i = i +% usize(1)
+                              i = i +% i64(1)
                           }
                       }
                   }
@@ -206,9 +206,9 @@
           __consumed_12: [i32, i32] | null = null
           $exit$i107: {
               {
-                  n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+                  n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
                   {
-                      i: usize = 0
+                      i: i64 = 0
                       for i < n {
                           x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                           if snippet.left_bigger(x) {
@@ -216,7 +216,7 @@
                               break $exit$i107
                           }
                       } @step {
-                          i = i +% usize(1)
+                          i = i +% i64(1)
                       }
                   }
               }
@@ -226,8 +226,8 @@
       }
       if !(found is null) {
           std.io.println<string>({
-              __buf_13: Buffer = std.core.new_byte_buffer(usize(53))
-              __off_14: usize = 0
+              __buf_13: Buffer = std.core.new_byte_buffer(i64(53))
+              __off_14: i64 = 0
               __off_14 = std.core.write_string_at(__buf_13, __off_14, "find fused: ")
               __off_14 = std.core.write_int(__buf_13, __off_14, i64(([i32, i32])(found)._0))
               __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
@@ -241,9 +241,9 @@
           other: i32[] = b
           f: fn([i32, i32]) -> i32 = snippet.product
           $leave121: {
-              n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+              n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
               {
-                  i: usize = 0
+                  i: i64 = 0
                   for i < n {
                       x: [i32, i32] = [self[i], other[i]] :[i32, i32]
                       x: i32 = snippet.product(x)
@@ -257,14 +257,14 @@
                           total = total + x
                       }
                   } @step {
-                      i = i +% usize(1)
+                      i = i +% i64(1)
                   }
               }
           }
       }
       std.io.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(usize(32))
-          __off_16: usize = 0
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(32))
+          __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "loop fused: ")
           __off_16 = std.core.write_int(__buf_15, __off_16, i64(total))
           std.core.finish_buffer(__buf_15, __off_16)
@@ -272,64 +272,64 @@
       {
           self: i32[] = a
           other: i32[] = b
-          i: usize = 0
-          n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+          i: i64 = 0
+          n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
           {
-              i: usize = 0
+              i: i64 = 0
               for i < n {
                   x: [i32, i32] = [self[i], other[i]] :[i32, i32]
-                  __gen_elem_20: [[i32, i32], usize] = [x, i] :[[i32, i32], usize]
+                  __gen_elem_20: [[i32, i32], i64] = [x, i] :[[i32, i32], i64]
                   pair: [i32, i32] = __gen_elem_20._0
-                  i: usize = __gen_elem_20._1
+                  i: i64 = __gen_elem_20._1
                   std.io.println<string>({
-                      __buf_18: Buffer = std.core.new_byte_buffer(usize(77))
-                      __off_19: usize = 0
+                      __buf_18: Buffer = std.core.new_byte_buffer(i64(77))
+                      __off_19: i64 = 0
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "indexed fused: ")
-                      __off_19 = std.core.write_unsigned(__buf_18, __off_19, u64(i))
+                      __off_19 = std.core.write_int(__buf_18, __off_19, i)
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
                       __off_19 = std.core.write_int(__buf_18, __off_19, i64(pair._0))
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
                       __off_19 = std.core.write_int(__buf_18, __off_19, i64(pair._1))
                       std.core.finish_buffer(__buf_18, __off_19)
                   } :string)
-                  i = i + usize(1)
+                  i = i + i64(1)
               } @step {
-                  i = i +% usize(1)
+                  i = i +% i64(1)
               }
           }
       }
       empty: i32[] = [] :i32[]
       std.io.println<string>({
-          __buf_22: Buffer = std.core.new_byte_buffer(usize(33))
-          __off_23: usize = 0
+          __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
+          __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "empty fused: ")
-          __off_23 = std.core.write_unsigned(__buf_22, __off_23, u64({
+          __off_23 = std.core.write_int(__buf_22, __off_23, {
               self: i32[] = a
               other: i32[] = empty
-              total: usize = 0
+              total: i64 = 0
               {
-                  n: usize = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
+                  n: i64 = if @array.len(self) < @array.len(other) { @array.len(self) } else { @array.len(other) }
                   {
-                      i: usize = 0
+                      i: i64 = 0
                       for i < n {
                           _: [i32, i32] = [self[i], other[i]] :[i32, i32]
-                          total = total + usize(1)
+                          total = total + i64(1)
                       } @step {
-                          i = i +% usize(1)
+                          i = i +% i64(1)
                       }
                   }
               }
               total
-          } :usize))
+          } :i64)
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -391,18 +391,18 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -412,7 +412,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

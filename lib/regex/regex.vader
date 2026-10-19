@@ -37,7 +37,7 @@ export Pattern :: struct {
     @internal
     insts:       Inst[]
     @internal
-    group_count: usize
+    group_count: i64
 }
 
 /// A successful match. `start` and `end` are byte offsets into the
@@ -45,15 +45,15 @@ export Pattern :: struct {
 /// match ; `groups[i]` (1 ≤ i ≤ group_count) is the i-th capture, or
 /// empty if the group never matched.
 export Match :: struct {
-    start:  usize
-    end:    usize
+    start:  i64
+    end:    i64
     groups: string[]
 }
 
 /// Error returned by `compile` when the pattern doesn't parse.
 export RegexError :: struct {
     msg:      string
-    position: usize
+    position: i64
 }
 
 RegexError implements Error {
@@ -94,20 +94,20 @@ export InstMatch :: struct {}
 
 /// Unconditional jump to `target`.
 export InstJump :: struct {
-    target: usize
+    target: i64
 }
 
 /// Non-deterministic split — spawn one thread at `a`, another at `b`.
 export InstSplit :: struct {
-    a: usize
-    b: usize
+    a: i64
+    b: i64
 }
 
 /// Record the current input offset into `groups[slot]` (and advance pc).
 /// Slot `0` / `1` = group 0 start/end (whole match) ;
 /// `2 * i` / `2 * i + 1` = group `i` start/end.
 export InstSave :: struct {
-    slot: usize
+    slot: i64
 }
 
 /// `^` — match only at input position 0.
@@ -121,18 +121,18 @@ export InstAnchorEnd :: struct {}
 
 Parser :: struct {
     pattern:        string
-    cursor:         usize
+    cursor:         i64
     insts:          Inst[]
-    next_group_id:  usize
+    next_group_id:  i64
     // Current group-nesting depth. Bumped on each `(` descent and capped at
     // MAX_GROUP_DEPTH so a pathological `(((…` can't overflow the parser's
     // mutual recursion (would crash `compile` instead of returning RegexError).
-    depth:          usize
+    depth:          i64
 }
 
 // Maximum `(...)` nesting the parser accepts. Well under the VM's 1024-frame
 // limit, so a hostile pattern gets a clean RegexError, not a stack overflow.
-MAX_GROUP_DEPTH: usize: 200
+MAX_GROUP_DEPTH: i64: 200
 
 /// Compile a regex source string into a `Pattern`. Anchors `^`/`$`
 /// inside the pattern bind to the input boundaries. The pattern is
@@ -184,7 +184,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     // `Inst[][]` would be more direct but the current code generator
     // doesn't handle indexing into one.
     branches_buf: Inst[]: []
-    branch_offsets: usize[]: [0]
+    branch_offsets: i64[]: [0]
     branches_buf.push_all(extract_range(p.insts, branch_start, p.insts.len()))
     branch_offsets.push(branches_buf.len())
     p.insts = truncate_to(p.insts, branch_start)
@@ -208,7 +208,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     //   S_{N-1}: <b_{N-1}>
     //   end:
     n :: branch_offsets.len() - 1
-    end_jumps: usize[]: []
+    end_jumps: i64[]: []
     for i in 0..<n - 1 {
         split_pos :: p.insts.len()
         p.insts.push(InstSplit { .a = 0, .b = 0 })
@@ -238,9 +238,9 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
 // composite fragment un-rebased (`(a|b)*`, `(a*)*`, `(a|b){2,3}`)
 // self-loops or jumps into the wrong instruction.
 // Whole-fragment form — the common case for the quantifier wrappers.
-push_atom_rebased :: fn(dst: Inst[], atom: Inst[], old_start: usize) = push_fragment_rebased(dst, atom, 0, atom.len(), old_start)
+push_atom_rebased :: fn(dst: Inst[], atom: Inst[], old_start: i64) = push_fragment_rebased(dst, atom, 0, atom.len(), old_start)
 
-push_fragment_rebased :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize, old_start: usize) -> void {
+push_fragment_rebased :: fn(dst: Inst[], src: Inst[], lo: i64, hi: i64, old_start: i64) -> void {
     shift :: dst.len() - old_start
     for i in lo..<hi {
         inst :: src[i]
@@ -291,7 +291,7 @@ parse_atom_with_quantifier :: fn(p: Parser) -> RegexError | null {
 //   L2: <atom>
 //       Jump L1
 //   L3:
-apply_star :: fn(p: Parser, atom_start: usize) -> void {
+apply_star :: fn(p: Parser, atom_start: i64) -> void {
     atom :: extract_range(p.insts, atom_start, p.insts.len())
     p.insts = truncate_to(p.insts, atom_start)
     split_pos :: p.insts.len()
@@ -307,7 +307,7 @@ apply_star :: fn(p: Parser, atom_start: usize) -> void {
 //   L1: <atom>
 //       Split L1, L2
 //   L2:
-apply_plus :: fn(p: Parser, atom_start: usize) -> void {
+apply_plus :: fn(p: Parser, atom_start: i64) -> void {
     split_pos :: p.insts.len()
     p.insts.push(InstSplit { .a = 0, .b = 0 })
     after :: p.insts.len()
@@ -318,7 +318,7 @@ apply_plus :: fn(p: Parser, atom_start: usize) -> void {
 //   Split L_atom, L_after
 //   L_atom: <atom>
 //   L_after:
-apply_optional :: fn(p: Parser, atom_start: usize) -> void {
+apply_optional :: fn(p: Parser, atom_start: i64) -> void {
     atom :: extract_range(p.insts, atom_start, p.insts.len())
     p.insts = truncate_to(p.insts, atom_start)
     p.insts.push(InstSplit { .a = atom_start + 1, .b = 0 })
@@ -333,29 +333,29 @@ apply_optional :: fn(p: Parser, atom_start: usize) -> void {
 /// expand to physical instruction copies, so the ceiling bounds both
 /// compile time and program size (RE2, the architectural sibling, uses
 /// the same limit).
-REPEAT_MAX: usize: 1000
+REPEAT_MAX: i64: 1000
 
 /// Ceiling on the compiled program size. Nested counted repeats multiply
 /// (`((a{1000}){1000}){1000}` passes the per-count check three times but
 /// would materialise ~1e9 instructions) — checked after each counted
 /// expansion.
-PROGRAM_MAX: usize: 100_000
+PROGRAM_MAX: i64: 100_000
 
-apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
+apply_counted :: fn(p: Parser, atom_start: i64) -> RegexError | null {
     if peek(p) != '{' { return null }
     save_cursor :: p.cursor
     p.cursor = p.cursor + 1
-    n_outcome :: parse_decimal_usize(p)
+    n_outcome :: parse_decimal_count(p)
     if n_outcome is RegexError { return n_outcome }
     n :: n_outcome
-    m: usize = n
+    m: i64 = n
     has_comma: bool = false
     has_upper: bool = false
     if peek(p) == ',' {
         p.cursor = p.cursor + 1
         has_comma = true
         if !at_end(p) && peek(p) != '}' {
-            m_outcome :: parse_decimal_usize(p)
+            m_outcome :: parse_decimal_count(p)
             if m_outcome is RegexError { return m_outcome }
             m = m_outcome
             has_upper = true
@@ -386,7 +386,7 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
     if has_upper {
         // {n,m} : up to (m - n) optional copies. Each one : Split atom, after.
         diff :: m - n
-        splits: usize[]: []
+        splits: i64[]: []
         for _ in 0..<diff {
             split_pos :: p.insts.len()
             splits.push(split_pos)
@@ -577,13 +577,13 @@ at_digit :: fn(p: Parser) = is_digit_byte(peek(p))
 // True when `b` is an ASCII decimal digit.
 is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
 
-parse_decimal_usize :: fn(p: Parser) -> usize | RegexError {
+parse_decimal_count :: fn(p: Parser) -> i64 | RegexError {
     if !at_digit(p) {
         return RegexError { .msg = "expected digit", .position = p.cursor }
     }
-    acc: usize = 0
+    acc: i64 = 0
     for at_digit(p) {
-        acc = acc * 10 + usize(peek(p) - '0')
+        acc = acc * 10 + i64(peek(p) - '0')
         p.cursor = p.cursor + 1
     }
     return acc
@@ -608,7 +608,7 @@ space_class_ranges :: fn() -> CharRange[] {
 }
 
 // The byte offset just past the codepoint at byte `offset` of `s`.
-next_codepoint :: fn(s: string, offset: usize) = offset + s.codepoint_at_byte(offset).1
+next_codepoint :: fn(s: string, offset: i64) = offset + s.codepoint_at_byte(offset).1
 
 // These wrap the built-in zero-copy slice + `push_all` intrinsic. The earlier
 // hand-rolled element loops existed because the generic `std/iter.slice` /
@@ -616,14 +616,14 @@ next_codepoint :: fn(s: string, offset: usize) = offset + s.codepoint_at_byte(of
 // `arr[lo..<hi]` (ArraySlice op) and `dst.push_all(src)` (ArrayPushAll op) are
 // intrinsics that see the concrete element type post-mono, so they don't.
 // `push_all` itself is now a built-in array method — no local helper needed.
-extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[] {
+extract_range :: fn(arr: Inst[], start: i64, end: i64) -> Inst[] {
     view :: arr[start..<end]
     out: Inst[]: [] * view.len()
     out.push_all(view)
     return out
 }
 
-truncate_to :: fn(arr: Inst[], n: usize) = extract_range(arr, 0, n)
+truncate_to :: fn(arr: Inst[], n: i64) = extract_range(arr, 0, n)
 
 // =========================================================================
 // Match / Search
@@ -637,7 +637,7 @@ export matches :: fn(self: Pattern, input: string) = run_vm(self, input, 0, true
 /// when there's no match.
 export find :: fn(self: Pattern, input: string) -> Match | null {
     n :: input.byte_len()
-    start: usize = 0
+    start: i64 = 0
     for start <= n {
         m :: run_at(self, input, start)
         if m is Match { return m }
@@ -652,7 +652,7 @@ export find :: fn(self: Pattern, input: string) -> Match | null {
 export find_all :: fn(self: Pattern, input: string) -> Match[] {
     n :: input.byte_len()
     out: Match[]: []
-    start: usize = 0
+    start: i64 = 0
     for start <= n {
         m :: run_at(self, input, start)
         if m is Match {
@@ -675,7 +675,7 @@ export find_all :: fn(self: Pattern, input: string) -> Match[] {
 /// backrefs inside `repl`.
 export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     sb :: StringBuilder {}
-    cursor: usize = 0
+    cursor: i64 = 0
     matches_found :: self.find_all(input)
     for i in 0..<matches_found.len() {
         m :: matches_found[i]
@@ -696,15 +696,15 @@ expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
     // `run` starts the literal bytes not yet copied. They go out as one slice when
     // a group reference ends them, so the text around the references passes
     // unchanged, valid UTF-8 or not.
-    run: usize = 0
-    i: usize = 0
+    run: i64 = 0
+    i: i64 = 0
     for i + 1 < n {
         if repl.byte_at(i) != '$' || !is_digit_byte(repl.byte_at(i + 1)) {
             i += 1
             continue
         }
         sb.append(repl.byte_slice(run, i))
-        gi :: usize(repl.byte_at(i + 1) - '0')
+        gi :: i64(repl.byte_at(i + 1) - '0')
         if gi < m.groups.len() {
             sb.append(m.groups[gi])
         }
@@ -719,17 +719,17 @@ expand_replacement :: fn(sb: StringBuilder, repl: string, m: Match) -> void {
 // =========================================================================
 
 Thread :: struct {
-    pc:     usize
-    groups: usize[]
+    pc:     i64
+    groups: i64[]
 }
 
 // Sentinel for "this slot was never written".
-SLOT_UNSET: usize: 0xFFFF_FFFF_FFFF_FFFF
+SLOT_UNSET: i64: -1
 
 // The leftmost-first match from `start`, its groups sliced out of `input`. Slots 0
 // and 1 are always written: the program opens with `InstSave 0` and saves slot 1
 // right before its only `InstMatch`.
-run_at :: fn(p: Pattern, input: string, start: usize) -> Match | null {
+run_at :: fn(p: Pattern, input: string, start: i64) -> Match | null {
     groups :: run_vm(p, input, start, false) ?? return null
     return Match {
         .start  = groups[0],
@@ -744,7 +744,7 @@ run_at :: fn(p: Pattern, input: string, start: usize) -> Match | null {
 /// try `ab` after `a` matched a prefix (leftmost-first would otherwise
 /// make `matches` depend on alternative order). Answers the group slots of the
 /// match, or `null`.
-run_vm :: fn(p: Pattern, input: string, start: usize, full: bool) -> usize[] | null {
+run_vm :: fn(p: Pattern, input: string, start: i64, full: bool) -> i64[] | null {
     slots :: 2 * (p.group_count + 1)
     current: Thread[] = []
     next: Thread[] = []
@@ -752,26 +752,26 @@ run_vm :: fn(p: Pattern, input: string, start: usize, full: bool) -> usize[] | n
     // (higher-priority) thread this step. Kills the exponential thread
     // blowup on `(a+)+` AND bounds `add_thread`'s epsilon recursion on
     // cyclic programs (`(a*)*`).
-    seen: usize[]: [0] * p.insts.len()
-    gen: usize = 1
+    seen: i64[]: [0] * p.insts.len()
+    gen: i64 = 1
 
-    seed_groups: usize[]: [SLOT_UNSET] * slots
+    seed_groups: i64[]: [SLOT_UNSET] * slots
     add_thread(current, 0, seed_groups, p, input, start, seen, gen)
     n :: input.byte_len()
 
     // The groups of the last thread to match. A greedy pattern matches again at
     // every step, so the caller slices the groups once the run is over.
-    winner: usize[] | null = null
+    winner: i64[] | null = null
     pos := start
     for pos <= n {
         c_at_pos: char = ' '
-        bytes_consumed: usize = 0
+        bytes_consumed: i64 = 0
         if pos < n {
             [c, w] :: input.codepoint_at_byte(pos)
             c_at_pos = c
             bytes_consumed = w
         }
-        t_idx: usize = 0
+        t_idx: i64 = 0
         for t_idx < current.len() {
             t :: current[t_idx]
             inst :: p.insts[t.pc]
@@ -853,19 +853,19 @@ class_matches :: fn(inst: InstClass, c: char) -> bool {
 // One entry of `add_thread`'s explicit DFS stack : the pc to visit and the
 // (copy-on-write) capture array reaching it.
 WorkItem :: struct {
-    pc:     usize
-    groups: usize[]
+    pc:     i64
+    groups: i64[]
 }
 
 add_thread :: fn(
     out: Thread[],
-    start_pc: usize,
-    start_groups: usize[],
+    start_pc: i64,
+    start_groups: i64[],
     p: Pattern,
     input: string,
-    pos: usize,
-    seen: usize[],
-    gen: usize,
+    pos: i64,
+    seen: i64[],
+    gen: i64,
 ) -> void {
     // Iterative epsilon-closure (was recursive). A long ACYCLIC epsilon chain —
     // e.g. the N chained `InstSplit` a `a?`×N pattern compiles to — recursed one
@@ -892,7 +892,7 @@ add_thread :: fn(
                 stack.push(WorkItem { .pc = inst.a, .groups = groups })
             }
             is InstSave -> {
-                g: usize[]: []
+                g: i64[]: []
                 g.push_all(groups)
                 g[inst.slot] = pos
                 stack.push(WorkItem { .pc = pc + 1, .groups = g })
@@ -912,7 +912,7 @@ add_thread :: fn(
     }
 }
 
-captured_groups :: fn(groups: usize[], input: string) -> string[] {
+captured_groups :: fn(groups: i64[], input: string) -> string[] {
     n_groups :: groups.len() / 2
     out: string[]: []
     for i in 0..<n_groups {
@@ -927,7 +927,7 @@ captured_groups :: fn(groups: usize[], input: string) -> string[] {
     return out
 }
 
-truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[] {
+truncate_threads :: fn(threads: Thread[], cutoff: i64) -> Thread[] {
     out: Thread[]: []
     for i in 0..<cutoff {
         out.push(threads[i])

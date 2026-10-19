@@ -3,7 +3,7 @@
 ## tests/snippets/leading_operator_continuation
   FnDecl         describe             :: fn(i32, bool) -> string
   FnDecl         in_range             :: fn(i32) -> bool
-  FnDecl         lookup               :: fn(string[], usize) -> string
+  FnDecl         lookup               :: fn(string[], i64) -> string
   FnDecl         main                 :: fn() -> i32
   expr 11:14    IfExpr         :: string
   expr 11:17    IdentExpr      :: bool
@@ -19,13 +19,13 @@
   expr 23:15    IfExpr         :: null | string
   expr 23:15    NullCoalesceExpr :: string
   expr 23:18    BinaryExpr     :: bool
-  expr 23:18    IdentExpr      :: usize
-  expr 23:22    CallExpr       :: usize
-  expr 23:22    FieldExpr      :: fn() -> usize
+  expr 23:18    IdentExpr      :: i64
+  expr 23:22    CallExpr       :: i64
+  expr 23:22    FieldExpr      :: fn() -> i64
   expr 23:22    IdentExpr      :: string[]
   expr 23:36    IdentExpr      :: string[]
   expr 23:36    IndexExpr      :: string
-  expr 23:42    IdentExpr      :: usize
+  expr 23:42    IdentExpr      :: i64
   expr 24:19    StringLitExpr  :: string
   expr 25:12    IdentExpr      :: string
   expr 29:5     BinaryExpr     :: bool
@@ -42,14 +42,14 @@
   expr 35:5     CallExpr       :: void
   expr 35:5     IdentExpr      :: fn(T) -> void
   expr 36:13    CallExpr       :: string
-  expr 36:13    IdentExpr      :: fn(string[], usize) -> string
+  expr 36:13    IdentExpr      :: fn(string[], i64) -> string
   expr 36:20    SeqLitExpr     :: string[]
   expr 36:21    StringLitExpr  :: string
   expr 36:28    StringLitExpr  :: string
   expr 36:5     CallExpr       :: void
   expr 36:5     IdentExpr      :: fn(T) -> void
   expr 37:13    CallExpr       :: string
-  expr 37:13    IdentExpr      :: fn(string[], usize) -> string
+  expr 37:13    IdentExpr      :: fn(string[], i64) -> string
   expr 37:20    SeqLitExpr     :: string[]
   expr 37:21    StringLitExpr  :: string
   expr 37:5     CallExpr       :: void

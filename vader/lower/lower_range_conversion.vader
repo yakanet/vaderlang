@@ -308,8 +308,8 @@ decided_inside :: fn(source: Interval, runs: Interval[]) -> bool | null {
 }
 
 // How many comparisons `inside_test` makes on a value of `source`.
-comparison_count :: fn(source: Interval, runs: Interval[]) -> usize {
-    count: usize = 0
+comparison_count :: fn(source: Interval, runs: Interval[]) -> i64 {
+    count: i64 = 0
     for run in reachable_runs(source, runs) {
         if is_single_value(run) {
             count += 1
@@ -321,8 +321,8 @@ comparison_count :: fn(source: Interval, runs: Interval[]) -> usize {
 }
 
 // How many ends of `run`, within `source`, a value of `source` may pass.
-ends_tested :: fn(source: Interval, run: Interval) -> usize {
-    count: usize = 0
+ends_tested :: fn(source: Interval, run: Interval) -> i64 {
+    count: i64 = 0
     if may_lie_below(source, run) {
         count += 1
     }

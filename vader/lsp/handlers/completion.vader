@@ -184,7 +184,7 @@ strip_binding_prefix :: fn(sig: string) -> string {
 /// member identifier already typed ; if a `.` precedes it, returns that dot's
 /// byte offset in the source (the receiver ends just before it). Returns `null`
 /// when the cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
-member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> usize | null {
+member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i64 | null {
     i := li_offset(li, line0, char0)
     if i > li.source.byte_len() { i = li.source.byte_len() }
     for i > 0 {
@@ -335,7 +335,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
 // dot, with no whitespace skip: a member access glues its value to the dot, so a
 // value end (ident, `)`, `]`) means member access; a space, `(`, `=`, `{`, a
 // keyword gap (`return .`) or the start of input means a leading dot.
-is_leading_dot :: fn(source: string, dot_off: usize) -> bool {
+is_leading_dot :: fn(source: string, dot_off: i64) -> bool {
     if dot_off == 0 { return true }
     b :: source.byte_at(dot_off - 1)
     if is_ident_byte(b) { return false }
@@ -345,7 +345,7 @@ is_leading_dot :: fn(source: string, dot_off: usize) -> bool {
 
 // The source byte before the dot at byte `dot_off`, skipping whitespace ; 0 at
 // the start of input. Shared by the leading-dot classifiers.
-byte_before_dot :: fn(source: string, dot_off: usize) -> u8 {
+byte_before_dot :: fn(source: string, dot_off: i64) -> u8 {
     if dot_off == 0 { return 0 }
     i := dot_off - 1
     for i > 0 {
@@ -356,7 +356,7 @@ byte_before_dot :: fn(source: string, dot_off: usize) -> u8 {
 
 // True when the dot opens a struct-literal field key — the byte before it (after
 // whitespace) is `{` or `,` (`S { .field` / `, .field`). A subset of is_leading_dot.
-dot_after_brace_or_comma :: fn(source: string, dot_off: usize) -> bool {
+dot_after_brace_or_comma :: fn(source: string, dot_off: i64) -> bool {
     b :: byte_before_dot(source, dot_off)
     return b == '{' || b == ','
 }
@@ -622,8 +622,8 @@ call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
     // either way fall back to the last parameter's type.
     idx := active_param_index(call, line, col) + receiver_slots(call, typed)
     if idx < 0 { idx = 0 }
-    if usize(idx) >= fd.params.len() { idx = i32(fd.params.len()) - 1 }
-    return typed.param_types[fd.params[usize(idx)].span.hash()]
+    if i64(idx) >= fd.params.len() { idx = i32(fd.params.len()) - 1 }
+    return typed.param_types[fd.params[idx].span.hash()]
 }
 
 /// Declarations reachable at `(line, col)` : every file-wide decl plus the

@@ -104,7 +104,7 @@ materialize_one_instance :: fn(
     owner_typed :: typed.modules[sym.module] ?? return
     // (1) Find the StructDecl for this instance ; emit a
     // monomorphized struct decl. Emitted even for stdlib structs
-    // (`MutableMap<usize, Span>`, `Entry`, …) — pushed into the
+    // (`MutableMap<i64, Span>`, `Entry`, …) — pushed into the
     // empty stdlib lowered module created above so the bytecode
     // type table carries the concrete shape instead of an orphan
     // `ref`. (Filtered from the lower dump, so byte-match is safe.)
@@ -269,7 +269,7 @@ close_over_field_shapes :: fn(
             for_each_lowered_type(decl, collect)
         }
     }
-    i: usize = 0
+    i: i64 = 0
     count := 0
     for i < worklist.len() {
         if count >= MAX_FIELD_SHAPES { break }

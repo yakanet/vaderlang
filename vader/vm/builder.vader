@@ -147,7 +147,7 @@ synth_signature :: fn(params: bc.ValType[], has_return: bool) -> bc.BcSignature 
 /// @param has_return      `true` if the import pushes one value back.
 /// @return                the index into `self.imports`.
 @allow_unused
-export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, parameter_count: usize, has_return: bool) -> i32 {
+export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, parameter_count: i64, has_return: bool) -> i32 {
     index :: i32(self.imports.len())
     self.imports.push(bc.BcImport {
         .extern_name  = name,
@@ -244,8 +244,8 @@ export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
     if main_index < 0 {
         main_index = find_main_by_suffix_bc(self.functions)
     }
-    if main_index >= 0 && usize(main_index) < self.functions.len() {
-        self.functions[usize(main_index)].is_main = true
+    if main_index >= 0 && i64(main_index) < self.functions.len() {
+        self.functions[main_index].is_main = true
     }
     no_vtables: bc.VtableRow[]: []
     no_exports: bc.BcExport[]: []
@@ -293,15 +293,15 @@ export FunctionBuilder :: struct {
     name: string
     /// Class of each parameter, in slot order.
     params: bc.ValType[]
-    local_count: usize
+    local_count: i64
     ops: bc.Op[]
     table: i32[]
     @internal
     scopes: ScopeEntry[]
-    scope_sp: usize[]
+    scope_sp: i64[]
     @internal
     pending: PendingBranch[]
-    pending_sp: usize[]
+    pending_sp: i64[]
 }
 
 /// Fresh function builder with one argument slot per entry of `params`,
@@ -315,7 +315,7 @@ export FunctionBuilder :: struct {
 /// @param local_count      number of additional locals declared in the body.
 /// @return                 a FunctionBuilder ready to receive ops.
 export new_function_builder :: fn(
-    name: string, params: bc.ValType[], local_count: usize,
+    name: string, params: bc.ValType[], local_count: i64,
 ) -> FunctionBuilder {
     return FunctionBuilder {
         .name            = name,
@@ -365,7 +365,7 @@ export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
     self.push(bc.Loop {})
     push_scope(self.scopes, self.scope_sp, ScopeEntry { .label = label, .is_loop = true, .opener_pc = pc })
-    self.table[usize(pc)] = pc + 1
+    self.table[pc] = pc + 1
 }
 
 /// Open a conditional scope. The matching `end` will set
@@ -388,7 +388,7 @@ export else_ :: fn(self: FunctionBuilder) -> void {
     sp :: self.scope_sp[0]
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
-    self.table[usize(top.opener_pc)] = pc + 1
+    self.table[top.opener_pc] = pc + 1
     self.scopes[sp - 1] = ScopeEntry { .label = top.label, .is_loop = false, .opener_pc = pc }
 }
 
@@ -402,8 +402,8 @@ export end :: fn(self: FunctionBuilder) -> void {
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
     self.scope_sp[0] -= 1
-    if !top.is_loop && self.table[usize(top.opener_pc)] < 0 {
-        self.table[usize(top.opener_pc)] = pc + 1
+    if !top.is_loop && self.table[top.opener_pc] < 0 {
+        self.table[top.opener_pc] = pc + 1
     }
     drain_pending(self.table, self.pending, self.pending_sp, top.label, top.is_loop, top.opener_pc, pc)
 }

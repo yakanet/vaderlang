@@ -50,12 +50,12 @@
   expr 36:12    BinaryExpr     :: i32
   expr 36:12    CallExpr       :: i32
   expr 36:12    IdentExpr      :: type
-  expr 36:16    BinaryExpr     :: usize
-  expr 36:16    CallExpr       :: usize
-  expr 36:16    FieldExpr      :: fn() -> usize
+  expr 36:16    BinaryExpr     :: i64
+  expr 36:16    CallExpr       :: i64
+  expr 36:16    FieldExpr      :: fn() -> i64
   expr 36:16    IdentExpr      :: string
-  expr 36:27    CallExpr       :: usize
-  expr 36:27    FieldExpr      :: fn() -> usize
+  expr 36:27    CallExpr       :: i64
+  expr 36:27    FieldExpr      :: fn() -> i64
   expr 36:27    IdentExpr      :: string
   expr 36:39    IdentExpr      :: i32
   expr 36:43    IdentExpr      :: i32

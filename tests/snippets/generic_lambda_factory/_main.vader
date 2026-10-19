@@ -9,7 +9,7 @@ import "std/io"
 // call-site pushes and reads it as packed `i32`. That mismatch used to corrupt
 // the elements silently (no diagnostic, no trap) once a row grew past its
 // initial capacity; it took a self-compile SIGSEGV to surface.
-build :: fn<T>(n: usize, make: fn() -> T) -> T[] {
+build :: fn<T>(n: i64, make: fn() -> T) -> T[] {
     out: T[]: [] * n
     for 0..<n {
         out.push(make())
@@ -21,8 +21,8 @@ build :: fn<T>(n: usize, make: fn() -> T) -> T[] {
 /// never had to substitute.
 new_row :: fn() -> i32[] = []
 
-ROWS:    usize: 40
-PER_ROW: usize: 9
+ROWS:    i64: 40
+PER_ROW: i64: 9
 
 // Several pushes per row so each buffer outgrows its first allocation — the
 // growth path is where the erased/packed mismatch used to show up.

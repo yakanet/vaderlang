@@ -65,7 +65,7 @@ export utf8_encode :: fn(c: char) -> u8[] {
 /// @return   `[codepoint, byte_width]`, the width 1 to 4.
 /// @example
 ///   [c, width] :: "é!".codepoint_at_byte(0)   // ['é', 2]
-export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
+export codepoint_at_byte :: fn(s: string, i: i64) -> [char, i64] {
     b :: s.byte_at(i)
     if b < 0x80 {
         return [char(b), 1]
@@ -79,7 +79,7 @@ export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
 // walk, so it calls nothing the VM would not inline and reads each byte once. The
 // codepoint is a `u32`, a Unicode scalar value by the bytes it was read from : a
 // caller wanting the `char` converts it, a walk counting widths checks nothing.
-decode_tail :: fn(s: string, b: u8, i: usize) -> [u32, usize] {
+decode_tail :: fn(s: string, b: u8, i: i64) -> [u32, i64] {
     // A continuation byte, an overlong lead (`C0`, `C1`) and a lead past U+10FFFF
     // (`F5..FF`) lead nothing.
     if b < 0xC2 || b > 0xF4 {
@@ -136,7 +136,7 @@ decode_tail :: fn(s: string, b: u8, i: usize) -> [u32, usize] {
 /// in s` yields. O(1) on an ASCII string, else O(n) in the byte length.
 /// @param s  source string.
 /// @return   the codepoint count.
-export len :: fn(s: string) -> usize {
+export len :: fn(s: string) -> i64 {
     n :: s.byte_len()
     if s.is_ascii() {
         return n
@@ -158,14 +158,14 @@ export len :: fn(s: string) -> usize {
 }
 
 // The bytes `ascii_prefix` tests at once.
-ASCII_BLOCK: usize: 64
+ASCII_BLOCK: i64: 64
 
 // How many leading bytes of `s` are ASCII, counted in whole blocks: a block of a
 // fixed length the C compiler vectorises, the first one holding a non-ASCII byte
 // ending the count.
-ascii_prefix :: fn(s: string) -> usize {
+ascii_prefix :: fn(s: string) -> i64 {
     n :: s.byte_len()
-    i: usize = 0
+    i: i64 = 0
     for i + ASCII_BLOCK <= n {
         bits: u8 = 0
         for k in i..<i + ASCII_BLOCK {
@@ -182,10 +182,10 @@ ascii_prefix :: fn(s: string) -> usize {
 // The byte offset `count` codepoints past byte `start` of `s`, clamped to its end.
 // Steps through `decode_tail` without building the pair for an ASCII byte, which the
 // VM would pay for at every one.
-codepoint_offset :: fn(s: string, start: usize, count: usize) -> usize {
+codepoint_offset :: fn(s: string, start: i64, count: i64) -> i64 {
     n :: s.byte_len()
     i := start
-    k: usize = 0
+    k: i64 = 0
     for i < n && k < count {
         b :: s.byte_at(i)
         if b < 0x80 {
@@ -199,7 +199,7 @@ codepoint_offset :: fn(s: string, start: usize, count: usize) -> usize {
 }
 
 // The codepoints `r` spans, none when it ends before it starts.
-codepoint_count :: fn(r: Range<usize>) -> usize {
+codepoint_count :: fn(r: Range<i64>) -> i64 {
     end := r.end
     if r.inclusive {
         end += 1
@@ -213,8 +213,8 @@ codepoint_count :: fn(r: Range<usize>) -> usize {
 /// `s[i]`: the codepoint at codepoint index `i`, found by walking `s` from its
 /// start; in an ASCII string, the byte at `i`. Traps past the last codepoint, where
 /// the walk lands on the length.
-string implements Index<usize, char> {
-    at :: fn(self, i: usize) -> char {
+string implements Index<i64, char> {
+    at :: fn(self, i: i64) -> char {
         if self.is_ascii() {
             return char(self.byte_at(i))
         }
@@ -225,8 +225,8 @@ string implements Index<usize, char> {
 /// `s[lo..<hi]` and `s[lo..=hi]`: the codepoints of a range, as a string; in an ASCII
 /// string, the bytes of the range. Bounds past the end clamp to it, and a range
 /// ending before it starts gives the empty string.
-string implements Index<Range<usize>, string> {
-    at :: fn(self, r: Range<usize>) -> string {
+string implements Index<Range<i64>, string> {
+    at :: fn(self, r: Range<i64>) -> string {
         if self.is_ascii() {
             return self.byte_slice(r.start, r.start + codepoint_count(r))
         }
@@ -241,8 +241,8 @@ import "std/testing"
 
 // Assert that `s` decodes to exactly `want`, one `codepoint_at_byte` step each.
 assert_decodes :: fn(s: string, want: char[]) -> void {
-    i: usize = 0
-    k: usize = 0
+    i: i64 = 0
+    k: i64 = 0
     for i < s.byte_len() {
         [c, width] :: s.codepoint_at_byte(i)
         assert(k < want.len() && c == want[k], "codepoint ${k} of the walk")

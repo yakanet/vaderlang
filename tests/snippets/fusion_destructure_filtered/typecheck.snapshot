@@ -2,22 +2,22 @@
 
 ## tests/snippets/fusion_destructure_filtered
   FnDecl         main                 :: fn() -> i32
-  FnDecl         not_twenty           :: fn([i32, usize]) -> bool
-  expr 11:15    IdentExpr      :: [i32, usize]
+  FnDecl         not_twenty           :: fn([i32, i64]) -> bool
+  expr 11:15    IdentExpr      :: [i32, i64]
   expr 12:12    BinaryExpr     :: bool
   expr 12:12    IdentExpr      :: i32
   expr 16:13    StringLitExpr  :: string
-  expr 17:11    CallExpr       :: __genstate_filter<[i32, usize]>
-  expr 17:11    CallExpr       :: __genstate_indexed<[i32, usize]>
-  expr 17:11    FieldExpr      :: fn() -> Iterator<[i32, usize]>
-  expr 17:11    FieldExpr      :: fn(fn([i32, usize]) -> bool) -> Iterator<[i32, usize]>
+  expr 17:11    CallExpr       :: __genstate_filter<[i32, i64]>
+  expr 17:11    CallExpr       :: __genstate_indexed<[i32, i64]>
+  expr 17:11    FieldExpr      :: fn() -> Iterator<[i32, i64]>
+  expr 17:11    FieldExpr      :: fn(fn([i32, i64]) -> bool) -> Iterator<[i32, i64]>
   expr 17:11    SeqLitExpr     :: i32[]
-  expr 17:41    IdentExpr      :: fn([i32, usize]) -> bool
-  expr 18:19    IdentExpr      :: __genstate_filter<[i32, usize]>
+  expr 17:41    IdentExpr      :: fn([i32, i64]) -> bool
+  expr 18:19    IdentExpr      :: __genstate_filter<[i32, i64]>
   expr 19:16    BinaryExpr     :: string
   expr 19:16    IdentExpr      :: string
   expr 19:23    StringLitExpr  :: string
-  expr 19:27    IdentExpr      :: usize
+  expr 19:27    IdentExpr      :: i64
   expr 19:32    IdentExpr      :: i32
   expr 19:9     IdentExpr      :: string
   expr 21:13    StringLitExpr  :: string
@@ -25,16 +25,16 @@
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:14    StringLitExpr  :: string
-  expr 23:19    CallExpr       :: __genstate_filter<[i32, usize]>
-  expr 23:19    CallExpr       :: __genstate_indexed<[i32, usize]>
-  expr 23:19    FieldExpr      :: fn() -> Iterator<[i32, usize]>
-  expr 23:19    FieldExpr      :: fn(fn([i32, usize]) -> bool) -> Iterator<[i32, usize]>
+  expr 23:19    CallExpr       :: __genstate_filter<[i32, i64]>
+  expr 23:19    CallExpr       :: __genstate_indexed<[i32, i64]>
+  expr 23:19    FieldExpr      :: fn() -> Iterator<[i32, i64]>
+  expr 23:19    FieldExpr      :: fn(fn([i32, i64]) -> bool) -> Iterator<[i32, i64]>
   expr 23:19    SeqLitExpr     :: i32[]
-  expr 23:49    IdentExpr      :: fn([i32, usize]) -> bool
+  expr 23:49    IdentExpr      :: fn([i32, i64]) -> bool
   expr 24:17    BinaryExpr     :: string
   expr 24:17    IdentExpr      :: string
   expr 24:25    StringLitExpr  :: string
-  expr 24:29    IdentExpr      :: usize
+  expr 24:29    IdentExpr      :: i64
   expr 24:34    IdentExpr      :: i32
   expr 24:9     IdentExpr      :: string
   expr 26:13    StringLitExpr  :: string

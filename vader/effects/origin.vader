@@ -26,28 +26,28 @@ FIXED: i64: -1
 NO_ACCESS: i64: -1
 
 /// The origin of an access the mark at index `mark` of its skeleton put there.
-mark_origin :: fn(mark: usize) -> i64 = -2 - i64(mark)
+mark_origin :: fn(mark: i64) -> i64 = -2 - mark
 
 /// The origin of an access the call at index `site` of its skeleton put there,
 /// running its target `target` with the argument of the callee's parameter `param`.
-call_origin :: fn(site: usize, target: usize, param: usize) -> i64 =
-    (i64(site) << 32) | (i64(target) << 16) | i64(param)
+call_origin :: fn(site: i64, target: i64, param: i64) -> i64 =
+    (site << 32) | (target << 16) | param
 
 // The mark an origin names ; null for a call or a fixed set.
-origin_mark :: fn(how: i64) -> usize | null {
+origin_mark :: fn(how: i64) -> i64 | null {
     if how >= FIXED {
         return null
     }
-    return usize(-2 - how)
+    return i64(-2 - how)
 }
 
 // The call, its target and the callee's parameter an origin names ; null for a
 // mark or a fixed set.
-origin_call :: fn(how: i64) -> [usize, usize, usize] | null {
+origin_call :: fn(how: i64) -> [i64, i64, i64] | null {
     if how < 0 {
         return null
     }
-    return [usize(how >> 32), usize((how >> 16) & 0xFFFF), usize(how & 0xFFFF)]
+    return [i64(how >> 32), i64((how >> 16) & 0xFFFF), i64(how & 0xFFFF)]
 }
 
 // ---- fault chains ---------------------------------------------------------
@@ -105,7 +105,7 @@ Link :: struct {
 
 // The chain of the access at `index` of `start`'s set: the calls it goes down, and
 // the write it ends at.
-trace :: fn(ctx: TraceCtx, start: Link, index: usize) -> FaultChain {
+trace :: fn(ctx: TraceCtx, start: Link, index: i64) -> FaultChain {
     chain :: FaultChain {}
     at := start
     i := index
@@ -164,7 +164,7 @@ written_by :: fn(
 
 // The index in `effects` of the access whose key is `key`, or of the cut path that
 // dropped it ; null when neither is there.
-find_access :: fn(paths: PathTable, effects: ParamEffects, key: i64) -> usize | null {
+find_access :: fn(paths: PathTable, effects: ParamEffects, key: i64) -> i64 | null {
     if key == NO_ACCESS {
         return null
     }

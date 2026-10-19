@@ -64,7 +64,7 @@ flags :: fn() -> bool[] = [false] * 4
 @singleton
 queue :: fn() -> Spec[] = []
 
-bump :: fn(i: usize) -> void {
+bump :: fn(i: i64) -> void {
     counts()[i] += 1
 }
 

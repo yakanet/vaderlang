@@ -33,7 +33,7 @@
             "name": "retries",
             "type": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "visibility": "public",
             "default": null

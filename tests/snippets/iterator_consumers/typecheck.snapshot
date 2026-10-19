@@ -166,9 +166,9 @@
   expr 123:13   StringLitExpr  :: string
   expr 123:31   CallExpr       :: Point[]
   expr 123:31   CallExpr       :: __genstate_filter<Point>
-  expr 123:31   CallExpr       :: usize
+  expr 123:31   CallExpr       :: i64
   expr 123:31   FieldExpr      :: fn() -> Point[]
-  expr 123:31   FieldExpr      :: fn() -> usize
+  expr 123:31   FieldExpr      :: fn() -> i64
   expr 123:31   FieldExpr      :: fn(fn(Point) -> bool) -> Iterator<Point>
   expr 123:31   IdentExpr      :: Point[]
   expr 123:42   LambdaExpr     :: fn(Point) -> bool
@@ -179,9 +179,9 @@
   expr 123:5    CallExpr       :: void
   expr 123:5    IdentExpr      :: fn(T) -> void
   expr 123:82   CallExpr       :: Point[]
-  expr 123:82   CallExpr       :: usize
+  expr 123:82   CallExpr       :: i64
   expr 123:82   FieldExpr      :: fn() -> Point[]
-  expr 123:82   FieldExpr      :: fn() -> usize
+  expr 123:82   FieldExpr      :: fn() -> i64
   expr 123:82   IdentExpr      :: __genstate_filter<Point>
   expr 125:14   CallExpr       :: __genstate_map<string>
   expr 125:14   FieldExpr      :: fn(fn(string) -> string) -> Iterator<string>

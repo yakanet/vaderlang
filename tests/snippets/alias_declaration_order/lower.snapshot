@@ -31,10 +31,10 @@
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -51,8 +51,8 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.d2d  // std_core$d2d
@@ -62,6 +62,8 @@
     fn std.core.format_f64  // std_core$format_f64
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.insert_point  // std_core$insert_point
     fn std.core.log10_pow2  // std_core$log10_pow2
     fn std.core.log10_pow5  // std_core$log10_pow5
@@ -74,9 +76,7 @@
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.three_way  // std_core$three_way
     fn std.core.umul128  // std_core$umul128
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_decimal  // std_core$write_decimal
     fn std.core.write_digits  // std_core$write_digits
     fn std.core.write_unsigned  // std_core$write_unsigned
@@ -85,7 +85,7 @@
     struct std.core.Dec64  // std_core$Dec64
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

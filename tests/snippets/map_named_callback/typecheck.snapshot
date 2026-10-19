@@ -24,8 +24,8 @@
   expr 17:11    IdentExpr      :: Rec[]
   expr 17:18    IdentExpr      :: fn(Rec) -> string[]
   expr 18:13    StringLitExpr  :: string
-  expr 18:23    CallExpr       :: usize
-  expr 18:23    FieldExpr      :: fn() -> usize
+  expr 18:23    CallExpr       :: i64
+  expr 18:23    FieldExpr      :: fn() -> i64
   expr 18:23    IdentExpr      :: string[][]
   expr 18:35    IdentExpr      :: string[][]
   expr 18:35    IndexExpr      :: string
@@ -45,8 +45,8 @@
   expr 19:25    IdentExpr      :: fn(Rec) -> string[]
   expr 19:30    IdentExpr      :: Rec
   expr 20:13    StringLitExpr  :: string
-  expr 20:24    CallExpr       :: usize
-  expr 20:24    FieldExpr      :: fn() -> usize
+  expr 20:24    CallExpr       :: i64
+  expr 20:24    FieldExpr      :: fn() -> i64
   expr 20:24    IdentExpr      :: string[][]
   expr 20:36    IdentExpr      :: string[][]
   expr 20:36    IndexExpr      :: string

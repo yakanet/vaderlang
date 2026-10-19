@@ -40,7 +40,7 @@ iterations :: fn(cx: f64, cy: f64) -> i32 {
 
 shade :: fn(iters: i32) -> char {
     idx :: (iters * (PALETTE_N - 1)) / MAX_ITER
-    return PALETTE[usize(idx)]
+    return PALETTE[i64(idx)]
 }
 
 main :: fn() -> i32 {

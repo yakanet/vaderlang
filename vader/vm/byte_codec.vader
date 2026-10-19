@@ -21,7 +21,7 @@ module "vader/vm"
 /// @param offset  byte offset of the least-significant byte.
 /// @param width   number of bytes to read (1–8).
 /// @return        the decoded value, zero-extended into a u64.
-export read_le :: fn(bytes: u8[], offset: usize, width: usize) -> u64 {
+export read_le :: fn(bytes: u8[], offset: i64, width: i64) -> u64 {
     // Assemble most-significant byte first, so the shift amount is the
     // constant 8 (a free literal coercing to u64) rather than a variable
     // `i * 8` — no per-byte cast of the loop index.
@@ -40,7 +40,7 @@ export read_le :: fn(bytes: u8[], offset: usize, width: usize) -> u64 {
 /// @param offset  byte offset of the least-significant byte.
 /// @param width   number of bytes to write (1–8).
 /// @param value   the value whose low `width` bytes are stored.
-export write_le :: fn(bytes: u8[], offset: usize, width: usize, value: u64) -> void {
+export write_le :: fn(bytes: u8[], offset: i64, width: i64, value: u64) -> void {
     // Peel the low byte and shift down by the constant 8 (free literal), so
     // the loop index needs no cast.
     v := value

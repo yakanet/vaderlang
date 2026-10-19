@@ -1,0 +1,19 @@
+// A count, an offset or a slice bound below 0 counts as 0, on the VM and in a
+// native build alike : repeating an array a negative number of times gives an
+// empty one, a slice from a negative bound starts at the first element, and a
+// copy of a negative count copies nothing.
+module "snippet"
+
+import "std/io"
+
+main :: fn(argv: string[]) -> i32 {
+    below: i64: i64(argv.len()) - 2
+    xs :: [10, 20, 30]
+    println("repeat ${([7] * below).len()}")
+    println("slice ${xs[below..<2].len()} ${xs[below..<2][0]}")
+    println("bytes '${"hello".byte_slice(below, 2)}'")
+    ys :: [1, 2, 3]
+    xs.copy_to(below, ys, below, below)
+    println("copy ${ys[0]} ${ys[1]} ${ys[2]}")
+    return 0
+}

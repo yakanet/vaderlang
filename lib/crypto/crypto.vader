@@ -78,7 +78,7 @@ export sha256_bytes :: fn(input: string | u8[]) -> u8[] {
     for block_idx in 0..<blocks {
         block_offset :: block_idx * 64
         w: u32[]: []
-        for i in usize(0)..<16 {
+        for i in i64(0)..<16 {
             b0 :: u32(msg[block_offset + i * 4 + 0])
             b1 :: u32(msg[block_offset + i * 4 + 1])
             b2 :: u32(msg[block_offset + i * 4 + 2])
@@ -86,7 +86,7 @@ export sha256_bytes :: fn(input: string | u8[]) -> u8[] {
             w.push(mask32((b0 << 24) | (b1 << 16) | (b2 << 8) | b3))
         }
         // Message schedule W[16..63]
-        for j in usize(16)..<64 {
+        for j in i64(16)..<64 {
             w_jm15 :: w[j - 15]
             w_jm2  :: w[j - 2]
             s0 :: rotr32(w_jm15, 7) ^ rotr32(w_jm15, 18) ^ (w_jm15 >> 3)
@@ -97,7 +97,7 @@ export sha256_bytes :: fn(input: string | u8[]) -> u8[] {
         // Working copy of the eight state words for the 64 rounds ; indices map
         // to the SHA-256 round names `v[0..7] = a, b, c, d, e, f, g, h`.
         v :: h.clone()
-        for t in usize(0)..<64 {
+        for t in i64(0)..<64 {
             sig1 :: rotr32(v[4], 6) ^ rotr32(v[4], 11) ^ rotr32(v[4], 25)
             ch_efg :: (v[4] & v[5]) ^ (mask32(~v[4]) & v[6])
             t1 :: mask32(v[7] +% sig1 +% ch_efg +% SHA256_K[t] +% w[t])
@@ -115,11 +115,11 @@ export sha256_bytes :: fn(input: string | u8[]) -> u8[] {
             v[0] = mask32(t1 +% t2)
         }
 
-        for i in usize(0)..<8 { h[i] = mask32(h[i] +% v[i]) }
+        for i in i64(0)..<8 { h[i] = mask32(h[i] +% v[i]) }
     }
 
     out: u8[]: []
-    for i in usize(0)..<8 { append_u32_be(out, h[i]) }
+    for i in i64(0)..<8 { append_u32_be(out, h[i]) }
     return out
 }
 
@@ -152,7 +152,7 @@ export hex_of_bytes :: fn(bytes: u8[]) -> string {
 /// @param msg  the message : a `string` or raw bytes.
 /// @return     the 32-byte HMAC.
 export hmac_sha256 :: fn(key: string | u8[], msg: string | u8[]) -> u8[] {
-    BLOCK : usize : 64
+    BLOCK : i64 : 64
     kb :: to_bytes(key)
     mb :: to_bytes(msg)
     // Normalise the key to exactly one block : hash it down if oversized, then
@@ -267,7 +267,7 @@ export md5 :: fn(input: string) -> string {
     for block_idx in 0..<blocks {
         block_offset :: block_idx * 64
         m: u32[]: []
-        for i in usize(0)..<16 {
+        for i in i64(0)..<16 {
             byte0 :: u32(msg[block_offset + i * 4 + 0])
             byte1 :: u32(msg[block_offset + i * 4 + 1])
             byte2 :: u32(msg[block_offset + i * 4 + 2])
@@ -280,9 +280,9 @@ export md5 :: fn(input: string) -> string {
         c := c0
         d := d0
 
-        for j in usize(0)..<64 {
+        for j in i64(0)..<64 {
             f: u32 = 0
-            g: usize = 0
+            g: i64 = 0
             if j < 16 {
                 f = (b & c) | (mask32(~b) & d)
                 g = j
@@ -453,7 +453,7 @@ import "std/testing"
     // A key longer than the 64-byte block is hashed down to 32 bytes first, so
     // HMAC(longKey, m) == HMAC(sha256(longKey), m).
     long_key: u8[]: []
-    for i in usize(0)..<70 { long_key.push('a') }
+    for 0..<70 { long_key.push('a') }
     hashed :: sha256_bytes(long_key)
     from_long   :: hmac_sha256(long_key, "message")
     from_hashed :: hmac_sha256(hashed, "message")

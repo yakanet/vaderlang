@@ -14,7 +14,7 @@ module "main"
 import "std/io"
 
 main :: fn() -> i32 {
-    total: usize = 0
+    total: i64 = 0
     for i in 0..<200000 {
         s :: "🚀 val=${i} x=${i * 2} y=${i - 1}"
         total = total + s.len()

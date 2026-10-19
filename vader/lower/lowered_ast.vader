@@ -48,7 +48,7 @@ export InlineConst :: struct {}
 
 /// A constant in the data pool, read through a view.
 export PooledConst :: struct {
-    pool_index: usize
+    pool_index: i64
     /// A struct, the single element of its entry ; an array is the entry itself.
     element: bool = false
     /// The accessor building it again, for a use that reads it fresh
@@ -266,7 +266,7 @@ export LoweredCellSet :: struct {
 /// Write `value` into the global slot `slot` of the project (`LoweredProject.globals`).
 export LoweredGlobalSet :: struct {
     span:  Span
-    slot:  usize
+    slot:  i64
     value: LoweredExpr
 }
 
@@ -659,14 +659,14 @@ export LoweredArrayLit :: struct {
 export LoweredDataConst :: struct {
     span:       Span
     type:       Type
-    pool_index: usize
+    pool_index: i64
 }
 
 /// The value in the global slot `slot` of the project (`LoweredProject.globals`).
 export LoweredGlobalGet :: struct {
     span: Span
     type: Type
-    slot: usize
+    slot: i64
 }
 
 /// Length of an array, exposed by the bytecode op `array.len`.

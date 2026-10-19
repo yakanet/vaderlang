@@ -13,7 +13,7 @@ bc :: import "vader/bytecode"
 
 /// Clamp a signed operand to a non-negative index. A negative count or offset is
 /// not an error for these ops — it saturates to an empty range.
-clamp_nonneg :: fn(v: i32) -> usize = if v < 0 { 0 } else { usize(v) }
+clamp_nonneg :: fn(v: i32) -> i64 = if v < 0 { 0 } else { i64(v) }
 
 /// `array.copy` — overlap-safe window copy between two arrays.
 exec_array_copy :: fn(frame: Frame) -> Trap | null {

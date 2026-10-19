@@ -442,7 +442,7 @@ status_key :: fn(status: CheckStatus) = match status {
 // Floor for the check-name column. The width is taken from the checks actually
 // reported rather than fixed: the environment keys are named after the variables
 // they read, so the longest one depends on what is set.
-NAME_COLUMN: usize: 18
+NAME_COLUMN: i64: 18
 
 // Hangs the detail under the name column — `status_label` is four visible
 // columns plus its two-space gap, whatever the SGR bytes around it cost.

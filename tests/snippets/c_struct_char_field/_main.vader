@@ -23,7 +23,7 @@ Pair :: struct {
 
 @c_header("<stdlib.h>")
 @extern("memset")
-zero_pair :: fn(@c_pointer @c_out p: Pair, byte: i32, n: usize) -> CPointer
+zero_pair :: fn(@c_pointer @c_out p: Pair, byte: i32, n: i64) -> CPointer
 
 main :: fn() -> i32 {
     p :: Pair { .quot = 'A', .rem = 7 }

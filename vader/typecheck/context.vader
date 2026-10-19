@@ -29,7 +29,7 @@ export FnContext :: struct {
     /// `fn_needs_concrete_instances`. Keyed by id (not name) so overloaded fns
     /// don't collide. A lambda carries its enclosing fn's ; `0` for a lambda
     /// typed outside any fn body (in a module-level const, say).
-    fn_id: usize = 0
+    fn_id: i64 = 0
     /// True when the enclosing fn is a generator (it `yield`s). Drives `yield`
     /// legality, forbids `return <value>`, and suppresses the
     /// missing-return obligation on the `-> Iterator<T>` body. False for

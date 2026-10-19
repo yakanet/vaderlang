@@ -11,10 +11,10 @@ import "std/string"
 import "std/string_builder"
 
 // The column C text is wrapped at.
-LINE_WIDTH: usize: 100
+LINE_WIDTH: i64: 100
 
 // The columns one level of indentation takes.
-INDENT_WIDTH: usize: 4
+INDENT_WIDTH: i64: 4
 
 /// Accumulates C text printed from trees. Only this module can write the text,
 /// so an emitter can produce C only as a tree.
@@ -189,8 +189,8 @@ write_block :: fn(out: StringBuilder, block: CBlock, depth: i32) -> void = write
 write_statements :: fn(
     out: StringBuilder,
     statements: CStatement[],
-    from: usize,
-    to: usize,
+    from: i64,
+    to: i64,
     depth: i32,
 ) -> void {
     for k in from..<to {
@@ -577,7 +577,7 @@ write_assign :: fn(out: StringBuilder, node: CAssign) -> void {
 write_declaration :: fn(out: StringBuilder, node: CDeclaration, depth: i32) -> void {
     out.append(node.type)
     out.append(" ")
-    column :: usize(depth) * INDENT_WIDTH + node.type.byte_len() + 1
+    column :: i64(depth) * INDENT_WIDTH + node.type.byte_len() + 1
     for k in 0..<node.declarators.len() {
         if k > 0 {
             out.append(", ")
@@ -591,7 +591,7 @@ write_declaration :: fn(out: StringBuilder, node: CDeclaration, depth: i32) -> v
 write_declarator :: fn(
     out: StringBuilder,
     declarator: CDeclarator,
-    column: usize,
+    column: i64,
     depth: i32,
 ) -> void {
     length :: declarator.length
@@ -605,7 +605,7 @@ write_declared :: fn(
     out: StringBuilder,
     head: string,
     value: CExpression | null,
-    column: usize,
+    column: i64,
     depth: i32,
 ) -> void {
     out.append(head)
@@ -620,7 +620,7 @@ write_declared :: fn(
 write_initializer :: fn(
     out: StringBuilder,
     value: CExpression,
-    column: usize,
+    column: i64,
     depth: i32,
 ) -> void {
     text :: text_of(value)
@@ -643,7 +643,7 @@ write_initializer :: fn(
 write_initializer_line :: fn(
     out: StringBuilder,
     value: CExpression,
-    column: usize,
+    column: i64,
     depth: i32,
 ) -> void = write_laid_out(
     out,
@@ -658,7 +658,7 @@ write_laid_out :: fn(
     out: StringBuilder,
     value: CExpression,
     text: string,
-    column: usize,
+    column: i64,
     depth: i32,
 ) -> void {
     if value !is CInitializerList || fits(text, column) {
@@ -693,7 +693,7 @@ is_table :: fn(elements: CExpression[]) -> bool {
 // `elements` at `depth`, each followed by `,`, as many on a line as fit in
 // `LINE_WIDTH` ; one too wide for a line of its own is laid out on its own lines.
 write_filled :: fn(out: StringBuilder, elements: CExpression[], depth: i32) -> void {
-    start :: usize(depth) * INDENT_WIDTH
+    start :: i64(depth) * INDENT_WIDTH
     column := start
     for element in elements {
         text :: text_of(element)
@@ -725,7 +725,7 @@ write_filled :: fn(out: StringBuilder, elements: CExpression[], depth: i32) -> v
 
 // One element of an initializer list, already indented to `depth`.
 write_element :: fn(out: StringBuilder, element: CExpression, depth: i32) -> void {
-    column :: usize(depth) * INDENT_WIDTH
+    column :: i64(depth) * INDENT_WIDTH
     if element is CDesignated {
         write_declared(out, element.designator, element.value, column, depth)
     } else {
@@ -735,7 +735,7 @@ write_element :: fn(out: StringBuilder, element: CExpression, depth: i32) -> voi
 
 // Whether `text`, written from `column`, leaves room for a closing `;` or `,`
 // within `LINE_WIDTH`.
-fits :: fn(text: string, column: usize) -> bool = column + text.byte_len() + 1 <= LINE_WIDTH
+fits :: fn(text: string, column: i64) -> bool = column + text.byte_len() + 1 <= LINE_WIDTH
 
 // `expression` as C text, on one line.
 text_of :: fn(expression: CExpression) -> string {

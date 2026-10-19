@@ -64,8 +64,8 @@
   expr 62:43    IdentExpr      :: i32
   expr 63:17    StringLitExpr  :: string
   expr 63:26    IdentExpr      :: string
-  expr 63:31    CallExpr       :: usize
-  expr 63:31    FieldExpr      :: fn() -> usize
+  expr 63:31    CallExpr       :: i64
+  expr 63:31    FieldExpr      :: fn() -> i64
   expr 63:31    IdentExpr      :: string
   expr 63:9     CallExpr       :: void
   expr 63:9     IdentExpr      :: fn(T) -> void

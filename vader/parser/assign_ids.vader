@@ -1,6 +1,6 @@
 // vader/parser/assign_ids — post-parse walker assigning unique IDs.
 //
-// Every AST node declares `id: usize = UNASSIGNED_NODE_ID` so downstream
+// Every AST node declares `id: i64 = UNASSIGNED_NODE_ID` so downstream
 // passes can key side-tables (`expr_types`, `expr_kinds`, …) on a stable
 // integer rather than on stringified spans (which collide when materialise
 // clones default-method bodies into impl members).
@@ -9,12 +9,12 @@
 // `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
 // `StringLitPart`, etc. explicitly.
 
-/// Mints a unique `usize` id per call. One factory serves the whole project
+/// Mints a unique `i64` id per call. One factory serves the whole project
 /// (`load_project_with_overlay`), and what `materialize.vader` clones or
 /// synthesises draws from it too, so no two nodes of a project share an id.
 module "vader/parser"
 
-export NodeIdFactory :: struct { next: usize }
+export NodeIdFactory :: struct { next: i64 }
 
 /// Build a fresh factory. IDs start at 1 — `0` is reserved for
 /// `UNASSIGNED_NODE_ID` so `node.id == 0` reliably detects un-walked nodes.
@@ -23,7 +23,7 @@ export new_node_id_factory :: fn() -> NodeIdFactory {
 }
 
 /// Mint the next ID and advance the counter. Pure side-effect on `self`.
-export mint :: fn(self: NodeIdFactory) -> usize {
+export mint :: fn(self: NodeIdFactory) -> i64 {
     id :: self.next
     self.next = id + 1
     return id

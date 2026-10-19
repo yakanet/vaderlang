@@ -6,7 +6,7 @@
   FnDecl         byte                 :: fn(u8) -> bool
   FnDecl         has_big              :: fn(C) -> bool
   FnDecl         has_big_value        :: fn(Contains<i64>) -> bool
-  FnDecl         listed               :: fn(usize, Meters) -> bool
+  FnDecl         listed               :: fn(i64, Meters) -> bool
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Meters               :: type
   FnDecl         near                 :: fn(Meters) -> bool
@@ -39,13 +39,13 @@
   expr 28:66    IdentExpr      :: C
   expr 30:49    BinaryExpr     :: bool
   expr 30:66    IdentExpr      :: Contains<i64>
-  expr 32:45    BinaryExpr     :: bool
-  expr 32:45    BinaryExpr     :: bool
-  expr 32:45    IdentExpr      :: usize
-  expr 32:50    SeqLitExpr     :: usize[]
-  expr 32:60    BinaryExpr     :: bool
-  expr 32:60    IdentExpr      :: Meters
-  expr 32:65    SeqLitExpr     :: i64[]
+  expr 32:43    BinaryExpr     :: bool
+  expr 32:43    BinaryExpr     :: bool
+  expr 32:43    IdentExpr      :: i64
+  expr 32:48    SeqLitExpr     :: i64[]
+  expr 32:58    BinaryExpr     :: bool
+  expr 32:58    IdentExpr      :: Meters
+  expr 32:63    SeqLitExpr     :: i64[]
   expr 35:20    RangeExpr      :: Range<i64>
   expr 36:16    SeqLitExpr     :: i64[]
   expr 37:13    StringLitExpr  :: string
@@ -81,13 +81,13 @@
   expr 40:30    CallExpr       :: bool
   expr 40:30    IdentExpr      :: fn(u8) -> bool
   expr 40:44    CallExpr       :: bool
-  expr 40:44    IdentExpr      :: fn(usize, Meters) -> bool
+  expr 40:44    IdentExpr      :: fn(i64, Meters) -> bool
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 40:54    CallExpr       :: Meters
   expr 40:54    IdentExpr      :: type
   expr 40:68    CallExpr       :: bool
-  expr 40:68    IdentExpr      :: fn(usize, Meters) -> bool
+  expr 40:68    IdentExpr      :: fn(i64, Meters) -> bool
   expr 40:78    CallExpr       :: Meters
   expr 40:78    IdentExpr      :: type
   expr 41:12    StructLitExpr  :: Bag

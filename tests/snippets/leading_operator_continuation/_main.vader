@@ -19,7 +19,7 @@ describe :: fn(n: i32, verbose: bool) -> string {
     return label
 }
 
-lookup :: fn(names: string[], i: usize) -> string {
+lookup :: fn(names: string[], i: i64) -> string {
     found :: (if i < names.len() { names[i] } else { null })
         ?? return "none"
     return found

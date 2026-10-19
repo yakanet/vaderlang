@@ -97,10 +97,8 @@
   expr 52:5     IdentExpr      :: fn(T) -> void
   expr 53:14    BinaryExpr     :: i64
   expr 53:14    CallExpr       :: i64
-  expr 53:14    IdentExpr      :: type
-  expr 53:18    CallExpr       :: usize
-  expr 53:18    FieldExpr      :: fn() -> usize
-  expr 53:18    IdentExpr      :: string[]
+  expr 53:14    FieldExpr      :: fn() -> i64
+  expr 53:14    IdentExpr      :: string[]
   expr 54:17    CallExpr       :: Month
   expr 54:17    IdentExpr      :: fn(i64) -> T
   expr 54:25    BinaryExpr     :: i64

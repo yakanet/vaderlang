@@ -44,8 +44,8 @@ export RawToken :: struct {
     length:       i32
     tok_type:     i32
     modifiers:    i32
-    start_offset: usize
-    end_offset:   usize
+    start_offset: i64
+    end_offset:   i64
 }
 
 // ---- legend ---------------------------------------------------------------

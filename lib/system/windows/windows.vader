@@ -228,7 +228,7 @@ export create_file_w :: fn(path: u16[], access: u32, share: u32,
 /// wastes a few hundred bytes on the stack, under-reserving corrupts.
 ///
 /// ⚠️ Do NOT narrow this to what one toolchain reports.
-export FIND_DATA_BYTES: usize: 1024
+export FIND_DATA_BYTES: i64: 1024
 
 /// `FindFirstFileW`. The pattern is a directory path with `\*` appended.
 ///
@@ -421,7 +421,7 @@ export create_pipe :: fn(@c_out read_end: usize[], @c_out write_end: usize[],
 /// @param base  the buffer the callee filled.
 /// @param i     the word index.
 @extern("vader_ptr_at")
-export ptr_at :: fn(base: usize[], i: usize) -> Handle
+export ptr_at :: fn(base: usize[], i: i64) -> Handle
 
 /// `HANDLE_FLAG_INHERIT`.
 export HANDLE_FLAG_INHERIT: u32 : 1

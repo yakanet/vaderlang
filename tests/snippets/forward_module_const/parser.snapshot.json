@@ -136,7 +136,7 @@
         "params": [],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "usize"
+          "name": "i64"
         },
         "body": {
           "kind": "BlockExpr",

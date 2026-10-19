@@ -2,7 +2,7 @@
 
 ## tests/snippets/generic_bound_free_fn_call
   FnDecl         apply                :: fn(fn() -> string) -> string
-  FnDecl         counted              :: fn(I) -> usize
+  FnDecl         counted              :: fn(I) -> i64
   FnDecl         first_shown          :: fn(U[]) -> string
   FnDecl         main                 :: fn() -> i32
   StructDecl     P                    :: P
@@ -45,9 +45,9 @@
   expr 37:48    CallExpr       :: i32
   expr 37:48    FieldExpr      :: fn() -> i32
   expr 37:48    IdentExpr      :: I
-  expr 39:51    CallExpr       :: usize
-  expr 39:51    IdentExpr      :: fn(Iterator<T>) -> usize
-  expr 39:57    IdentExpr      :: I
+  expr 39:49    CallExpr       :: i64
+  expr 39:49    IdentExpr      :: fn(Iterator<T>) -> i64
+  expr 39:55    IdentExpr      :: I
   expr 41:49    CallExpr       :: i32
   expr 41:49    IdentExpr      :: fn(Iterator<T>) -> i32
   expr 41:55    IdentExpr      :: I
@@ -72,8 +72,8 @@
   expr 47:20    RangeExpr      :: Range<i32>
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(T) -> void
-  expr 48:13    CallExpr       :: usize
-  expr 48:13    IdentExpr      :: fn(I) -> usize
+  expr 48:13    CallExpr       :: i64
+  expr 48:13    IdentExpr      :: fn(I) -> i64
   expr 48:21    RangeExpr      :: Range<i32>
   expr 48:5     CallExpr       :: void
   expr 48:5     IdentExpr      :: fn(T) -> void

@@ -47,7 +47,7 @@ pf_is_digit :: fn(b: u8) = b >= '0' && b <= '9'
 export scan_decimal :: fn(s: string) -> DecimalParts | null {
     n :: s.byte_len()
     if n == 0 { return null }
-    i: usize = 0
+    i: i64 = 0
     negative := false
     if s.byte_at(0) == '-' { negative = true  i = 1 }
     else if s.byte_at(0) == '+' { i = 1 }
@@ -117,7 +117,7 @@ pf_clz64 :: fn(x: u64) -> i32 {
 // compute_product_approximation(q, w), bit_precision 55 : `w * 5^q` as a 128-bit
 // [hi, lo], refined by a second multiply when the top 9 bits of `hi` are all 1.
 pf_product :: fn(q: i32, w: u64) -> [u64, u64] {
-    idx :: usize(2 * (q - PF_SMALLEST_POW5))
+    idx :: i64(2 * (q - PF_SMALLEST_POW5))
     [hi0, lo0] :: umul128(w, POW5_128[idx])
     hi: u64 = hi0
     lo: u64 = lo0
@@ -208,7 +208,7 @@ sd_neg_sign: u64: 0x8000000000000000
 SlowParts :: struct { d: BigInt  e: i32 }
 sd_scan :: fn(s: string) -> SlowParts {
     n :: s.byte_len()
-    i: usize = 0
+    i: i64 = 0
     if s.byte_at(0) == '-' || s.byte_at(0) == '+' { i = 1 }
     d: BigInt = [0]
     e: i32 = 0

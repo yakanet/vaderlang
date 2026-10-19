@@ -121,7 +121,7 @@
             "name": "n",
             "type": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "defaultValue": null,
             "variadic": false

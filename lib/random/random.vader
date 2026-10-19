@@ -123,10 +123,10 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     n :: arr.len()
     if n <= 1 { return }
-    i: usize = n - 1
+    i: i64 = n - 1
     for i > 0 {
         // Uniform [0, i].
-        j :: usize(self.range_u32(0, u32(i + 1)))
+        j :: i64(self.range_u32(0, u32(i + 1)))
         tmp :: arr[i]
         arr[i] = arr[j]
         arr[j] = tmp

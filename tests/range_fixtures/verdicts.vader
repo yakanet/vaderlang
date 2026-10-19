@@ -140,7 +140,7 @@ export indirect_call_drops_length :: fn(xs: i32[], f: fn(i32) -> i32) -> i32 {
 export shortening_callback :: fn() -> fn(i32[]) -> void = pop
 
 /// An unsigned decrement behind `n > 0`: proven.
-export guarded_decrement :: fn(n: usize) -> usize {
+export guarded_decrement :: fn(n: u64) -> u64 {
     if n > 0 {
         return n - 1
     }
@@ -148,7 +148,7 @@ export guarded_decrement :: fn(n: usize) -> usize {
 }
 
 /// An unsigned decrement of any value: unproven.
-export unguarded_decrement :: fn(n: usize) -> usize = n - 1
+export unguarded_decrement :: fn(n: u64) -> u64 = n - 1
 
 /// `255 + 1` in `u8`, whenever it runs: a certain fault.
 export always_overflows :: fn(x: u8) -> u8 {
@@ -158,8 +158,8 @@ export always_overflows :: fn(x: u8) -> u8 {
     return x
 }
 
-/// An access behind `n < 0` on a `usize`: unreachable.
-export impossible_branch :: fn(xs: i32[], n: usize) -> i32 {
+/// An access behind `n < 0` on a `u64`: unreachable.
+export impossible_branch :: fn(xs: i32[], n: u64) -> i32 {
     if n < 0 {
         return xs[n]
     }

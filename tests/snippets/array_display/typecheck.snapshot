@@ -17,8 +17,8 @@
   expr 15:46    StringLitExpr  :: string
   expr 15:50    IdentExpr      :: T
   expr 17:51    StringLitExpr  :: string
-  expr 17:54    CallExpr       :: usize
-  expr 17:54    FieldExpr      :: fn() -> usize
+  expr 17:54    CallExpr       :: i64
+  expr 17:54    FieldExpr      :: fn() -> i64
   expr 17:54    IdentExpr      :: T[]
   expr 17:71    IdentExpr      :: T[]
   expr 20:19    SeqLitExpr     :: i32[]

@@ -330,7 +330,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
 
 // Whether the use `node` of `symbol` reads a fresh value of a constant rather than
 // the one the program shares (`TypedProject.fresh`).
-reads_fresh_constant :: fn(ctx: FnLowerCtx, node: usize, symbol: Symbol) -> bool =
+reads_fresh_constant :: fn(ctx: FnLowerCtx, node: i64, symbol: Symbol) -> bool =
     symbol.kind == .Const && node in ctx.project.typed.fresh.uses
 
 /// `nsM.foo` used as a fn-VALUE (not a call callee) — lower to the member fn
@@ -407,10 +407,10 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
 // @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
 is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true
-    // `usize(0)` / `i32(N)` — a primitive numeric conversion of a scalar
+    // `i64(0)` / `i32(N)` — a primitive numeric conversion of a scalar
     // literal parses as a CallExpr. It folds just as safely (the arg is a
     // literal, so no dependency on another unbaked const), so a const like
-    // `UNASSIGNED_NODE_ID :: usize(0)` resolves at its use sites in imported
+    // `UNASSIGNED_NODE_ID :: i64(0)` resolves at its use sites in imported
     // bodies instead of degrading to an unresolved ident.
     is CallExpr -> is_numeric_conversion_of_literal(e)
     _           -> false

@@ -10,7 +10,7 @@ import "std/iter" { find as _, any_match as _, collect as _, count as _ }
 find :: fn(it: Iterator<i32>, pred: fn(i32) -> bool) -> i32 = -1
 any_match :: fn(it: Iterator<i32>, pred: fn(i32) -> bool) -> bool = false
 collect :: fn(it: Iterator<i32>) -> i32[] = [0]
-count :: fn(it: Iterator<i32>) -> usize = 99
+count :: fn(it: Iterator<i32>) -> i64 = 99
 
 main :: fn() -> i32 {
     xs :: [1, 2, 3, 4]

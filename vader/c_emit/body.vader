@@ -281,7 +281,7 @@ box_expr_unknown :: fn(types: BcType[], value: CExpression, val: ValType) -> CEx
 /// `slot_val` — the compile-time answer for `type_check` on a primitively-
 /// typed value (no runtime tag to inspect).
 export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcPrimitive { return t.val == slot_val }
     return false
 }
@@ -382,7 +382,7 @@ export is_ref_val :: fn(v: ValType) -> bool = v == .Ref || v == .Any
 /// `type_index` in `types`. The field-store / field-read / arg paths use it
 /// to spell the C-storage type of a struct field.
 export val_type_of_field :: fn(types: BcType[], type_index: i32) -> ValType =
-    val_type_of_bc_type(types[usize(type_index)])
+    val_type_of_bc_type(types[type_index])
 
 /// Canonical C identifier for a `BcStruct` slot. Format is
 /// `vader_struct_<sanitised>_t` so the runtime `vader.h` shim and any

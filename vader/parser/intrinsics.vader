@@ -30,13 +30,13 @@ INTRINSICS: IntrinsicSpec[]: [
     // is a `TypeMeta` value in value position). The lowerer folds the
     // static case to a literal and routes the runtime case through the
     // `size_of.type` intrinsic.
-    IntrinsicSpec { .name = "size_of",       .args = [.Value],         .result = "usize"  },
-    IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "usize"  },
+    IntrinsicSpec { .name = "size_of",       .args = [.Value],         .result = "i64"  },
+    IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "i64"  },
     IntrinsicSpec { .name = "type_name",     .args = [.Type],          .result = "string" },
     IntrinsicSpec { .name = "type_kind",     .args = [.Type],          .result = "string" },
-    IntrinsicSpec { .name = "field_count",   .args = [.Type],          .result = "usize"  },
-    IntrinsicSpec { .name = "variant_count", .args = [.Type],          .result = "usize"  },
-    IntrinsicSpec { .name = "field_index",   .args = [.Type, .Value],  .result = "usize"  },
+    IntrinsicSpec { .name = "field_count",   .args = [.Type],          .result = "i64"  },
+    IntrinsicSpec { .name = "variant_count", .args = [.Type],          .result = "i64"  },
+    IntrinsicSpec { .name = "field_index",   .args = [.Type, .Value],  .result = "i64"  },
     IntrinsicSpec { .name = "satisfies",     .args = [.Type, .Type],   .result = "bool"   },
     // `@min(T)` / `@max(T)` — the least and the greatest value of an integer type,
     // a value of `T` itself.
@@ -59,7 +59,7 @@ INTRINSICS: IntrinsicSpec[]: [
     // arg is a static string literal (or a `f.name` access that folds to
     // one inside `@comptime for f in @fields(T)`). The result type is
     // the field's declared type, resolved per-call.
-    IntrinsicSpec { .name = "field",         .args = [.Value, .Value], .result = "usize"       },
+    IntrinsicSpec { .name = "field",         .args = [.Value, .Value], .result = "i64"       },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a

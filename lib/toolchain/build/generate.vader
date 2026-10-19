@@ -240,7 +240,7 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
 ///
 /// @param dir  the generated root ; a path that does not exist is not an error.
 /// @return     how many files were removed.
-export sweep_generated :: fn(dir: string) -> usize {
+export sweep_generated :: fn(dir: string) -> i64 {
     if !is_dir(dir) {
         return 0
     }
@@ -250,7 +250,7 @@ export sweep_generated :: fn(dir: string) -> usize {
     if listing is IOError {
         return 0
     }
-    removed: usize = 0
+    removed: i64 = 0
     for entry in listing {
         path :: join_path(dir, entry)
         if is_dir(path) {

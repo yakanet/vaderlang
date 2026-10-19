@@ -23,16 +23,16 @@
       statuses: HttpStatus[] = [u8(0), u8(1), u8(2)] :HttpStatus[]
       {
           __for_arr_0: HttpStatus[] = statuses
-          __for_len_1: usize = @array.len(__for_arr_0)
-          __for_i_2: usize = 0
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               s: HttpStatus = __for_arr_0[__for_i_2]
               std.io.println<string>({
                   __p_3: string = snippet.HttpStatus.to_string(s)
                   __p_4: string = snippet.HttpStatus$data[i64(s)].reason
                   __p_5: string = snippet.describe(s)
-                  __buf_6: Buffer = std.core.new_byte_buffer(usize(23) +% ((std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)) +% std.core.byte_len(__p_5)))
-                  __off_7: usize = 0
+                  __buf_6: Buffer = std.core.new_byte_buffer(i64(23) +% ((std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)) +% std.core.byte_len(__p_5)))
+                  __off_7: i64 = 0
                   __off_7 = std.core.write_int(__buf_6, __off_7, i64(i32(snippet.HttpStatus$value[i64(s)])))
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_3)
@@ -43,36 +43,36 @@
                   std.core.finish_buffer(__buf_6, __off_7)
               } :string)
           } @step {
-              __for_i_2 = __for_i_2 +% usize(1)
+              __for_i_2 = __for_i_2 +% i64(1)
           }
       }
       {
           __for_arr_8: Level[] = [u8(0), u8(1), u8(2)] :Level[]
-          __for_len_9: usize = @array.len(__for_arr_8)
-          __for_i_10: usize = 0
+          __for_len_9: i64 = @array.len(__for_arr_8)
+          __for_i_10: i64 = 0
           for __for_i_10 < __for_len_9 {
               level: Level = __for_arr_8[__for_i_10]
               std.io.println<string>({
                   __p_11: string = snippet.Level$data[i64(level)].reason
-                  __buf_12: Buffer = std.core.new_byte_buffer(usize(21) +% std.core.byte_len(__p_11))
-                  __off_13: usize = 0
+                  __buf_12: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_11))
+                  __off_13: i64 = 0
                   __off_13 = std.core.write_int(__buf_12, __off_13, i64(i32(i64(level) +% i64(1))))
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
                   std.core.finish_buffer(__buf_12, __off_13)
               } :string)
           } @step {
-              __for_i_10 = __for_i_10 +% usize(1)
+              __for_i_10 = __for_i_10 +% i64(1)
           }
       }
       std.io.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(usize(47))
-          __off_15: usize = 0
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(47))
+          __off_15: i64 = 0
           __off_15 = std.core.write_int(__buf_14, __off_15, i64(i32(i64(404))))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
           __off_15 = std.core.write_bool(__buf_14, __off_15, statuses[1] == u8(1))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_unsigned(__buf_14, __off_15, u64(1))
+          __off_15 = std.core.write_int(__buf_14, __off_15, i64(1))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       return 0
@@ -91,10 +91,10 @@
       } :string
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -107,16 +107,16 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -124,7 +124,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

@@ -104,7 +104,7 @@ FrozenSites :: struct {
 /// order: record `i` is root `params + i` (`root_record`).
 FrozenRoot :: struct {
     /// Its number in the skeleton (`Skeleton.add_root`, `Skeleton.add_copy`).
-    root: usize
+    root: i64
     span: Span
     /// The constant a use names, the call that makes a view (`bytes()`), the
     /// conversion that reads variant data (`Info(…)`), or the name of a binding.
@@ -123,7 +123,7 @@ FrozenRoot :: struct {
 /// A use of a module constant, or of variant data: its node, and the symbol id of
 /// the constant or of the struct the data is kept in.
 ConstantUse :: struct {
-    node: usize
+    node: i64
     symbol: i32
 }
 
@@ -159,7 +159,7 @@ FrozenBody :: struct {
 // The slot of a use of the frozen constant `sym`, which `e` names ; null when `sym`
 // is no frozen constant, or its value holds no reference. An import binding that
 // renames the constant stands for it.
-frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> usize | null {
+frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> i64 | null {
     constant :: declared_symbol(sym, ctx.typed)
     if !is_frozen_const(constant) || !holds_references(ctx.typed.expr_types[e.id]) {
         return null
@@ -169,7 +169,7 @@ frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> usize | null {
 }
 
 // `slot`, noted as holding nothing but its frozen value.
-pure_source :: fn(ctx: WalkCtx, slot: usize) -> usize {
+pure_source :: fn(ctx: WalkCtx, slot: i64) -> i64 {
     ctx.pure.add(slot)
     return slot
 }
@@ -182,7 +182,7 @@ frozen_source :: fn(
     label: string,
     origin: FrozenOrigin,
     constant: ConstantUse | null,
-) -> usize {
+) -> i64 {
     slot :: ctx.s.fresh_slot()
     use :: FrozenRoot {
         .root = ctx.s.add_root(slot),
@@ -198,7 +198,7 @@ frozen_source :: fn(
 
 // The slot of the view of a string's bytes the call `c` returns ; null when `c`
 // returns none.
-frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> usize | null {
+frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> i64 | null {
     if !ctx.index.makes_view(callee) {
         return null
     }
@@ -210,7 +210,7 @@ frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> usize | null
 // its fields. A type parameter converted to a struct some enum keeps its data in
 // may stand for that enum at an instance, and for the struct itself at another,
 // where the conversion hands its argument on.
-frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
+frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
     if c.args.len() != 1 {
         return null
     }
@@ -228,7 +228,7 @@ frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> usize | null {
 }
 
 // The slot of the use `c` of variant data kept in the struct `data`.
-variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> usize {
+variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> i64 {
     use :: ConstantUse { .node = c.id, .symbol = data.symbol.id }
     return ctx.frozen_source(c, "${data.symbol.name}(…)", .VariantData, use)
 }
@@ -236,7 +236,7 @@ variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> usize
 // The binding of `sym`, at `span`, to what `value` holds: a copy of what it holds
 // of a frozen value, an alias of the rest. A name bound to anything but frozen
 // values is seen: a write into it may be read through what else it holds.
-bind_copy :: fn(ctx: WalkCtx, slot: usize, value: usize | null, span: Span, sym: Symbol) -> void {
+bind_copy :: fn(ctx: WalkCtx, slot: i64, value: i64 | null, span: Span, sym: Symbol) -> void {
     if value == null || value !in ctx.pure {
         ctx.seen_names.add(sym.id)
     }
@@ -278,7 +278,7 @@ struct_key :: fn(t: StructType) -> string = "s${t.symbol.id}"
 
 // A callee the compiler knows without a body writes what it is lent at the call:
 // record the type of `arg` when it fills a parameter one of `targets` writes.
-note_known_writes :: fn(ctx: WalkCtx, targets: CallTarget[], param: usize, arg: AST.Expr) -> void {
+note_known_writes :: fn(ctx: WalkCtx, targets: CallTarget[], param: i64, arg: AST.Expr) -> void {
     for target in targets {
         if target is KnownEffects && param < target.params.len() {
             if target.params[param].accesses.any_match(modifies) {
@@ -643,7 +643,7 @@ fault_chain :: fn(
 }
 
 // The set a fault of `kind` on root `root` comes from.
-fault_set :: fn(effects: RootEffects, root: usize, kind: FrozenKind) -> ParamEffects | null =
+fault_set :: fn(effects: RootEffects, root: i64, kind: FrozenKind) -> ParamEffects | null =
     match kind {
         .WriteFault | .UnreadCopy -> effects.marked[root]
         .CallFault                -> effects.lent[root]
@@ -651,7 +651,7 @@ fault_set :: fn(effects: RootEffects, root: usize, kind: FrozenKind) -> ParamEff
     }
 
 // The record of extra root `root` of `body`.
-root_record :: fn(body: FrozenBody, root: usize) -> FrozenRoot =
+root_record :: fn(body: FrozenBody, root: i64) -> FrozenRoot =
     body.roots[root - body.skeleton.params]
 
 either :: fn(c: RootCase, p: fn(Access) -> bool) -> bool =

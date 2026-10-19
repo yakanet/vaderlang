@@ -545,12 +545,12 @@ export struct_symbol_type_index :: fn(types: BcType[], symbol_id: i32) -> i32 {
 /// @return             the first variant's slot, or `null` when `union_index` is no
 ///                     union or its first variant no struct.
 export union_layout_struct :: fn(types: BcType[], union_index: i32) -> i32 | null {
-    u :: types[usize(union_index)]
+    u :: types[union_index]
     if u !is BcUnion || u.variants.len() == 0 {
         return null
     }
     first :: u.variants[0]
-    if types[usize(first)] !is BcStruct {
+    if types[first] !is BcStruct {
         return null
     }
     return first
@@ -663,7 +663,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     is BcRef -> false
     is BcUnion -> {
         for v in t.variants {
-            if !is_ref_only_element(types[usize(v)], types) { return false }
+            if !is_ref_only_element(types[v], types) { return false }
         }
         return true
     }
@@ -737,10 +737,10 @@ export array_kind_of_val :: fn(v: ValType) -> ArrayKind = match v {
 /// @param idx    the slot to name; out of range yields `"?"`.
 /// @return       a key equal for equal types across modules.
 export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
-    if idx < 0 || usize(idx) >= types.len() {
+    if idx < 0 || i64(idx) >= types.len() {
         return "?"
     }
-    return match types[usize(idx)] as t {
+    return match types[idx] as t {
         is BcPrimitive -> "p:${i32(t.val)}"
         // Structs key by NAME, not by their fields: the name is unique after
         // monomorphisation, and descending would not terminate on a recursive

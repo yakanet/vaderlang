@@ -108,9 +108,9 @@
   expr 85:5     CallExpr       :: void
   expr 85:5     IdentExpr      :: fn(T) -> void
   expr 86:13    CallExpr       :: BigInt
-  expr 86:13    CallExpr       :: usize
+  expr 86:13    CallExpr       :: i64
   expr 86:13    FieldExpr      :: fn() -> BigInt
-  expr 86:13    FieldExpr      :: fn() -> usize
+  expr 86:13    FieldExpr      :: fn() -> i64
   expr 86:13    IdentExpr      :: type
   expr 86:5     CallExpr       :: void
   expr 86:5     IdentExpr      :: fn(T) -> void

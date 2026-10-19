@@ -42,7 +42,7 @@ export LineIndex :: struct {
     /// Negotiated character-counting unit.
     encoding:    PositionEncoding
     /// Byte offset of each line's first byte.
-    line_starts: usize[]
+    line_starts: i64[]
 }
 
 /// Build a `LineIndex` over `source` in one O(n) pass. Line breaks match the
@@ -53,8 +53,8 @@ export LineIndex :: struct {
 /// @return          an index ready for `li_character` / `li_offset`.
 export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineIndex {
     n :: source.byte_len()
-    starts: usize[]: [0]
-    i: usize = 0
+    starts: i64[]: [0]
+    i: i64 = 0
     for i < n {
         if source.byte_at(i) == '\n' {
             starts.push(i + 1)
@@ -78,7 +78,7 @@ export new_line_index :: fn(source: string, encoding: PositionEncoding) -> LineI
 /// malformed byte run decodes as one U+FFFD, a BMP codepoint, as the client's
 /// decoder reads it too. The single source of truth shared by the outgoing count
 /// and the incoming walk.
-units_for :: fn(encoding: PositionEncoding, w: usize) -> i32 {
+units_for :: fn(encoding: PositionEncoding, w: i64) -> i32 {
     if encoding == .Utf8 { return i32(w) }
     if encoding == .Utf16 && w == 4 { return 2 }
     return 1
@@ -86,14 +86,14 @@ units_for :: fn(encoding: PositionEncoding, w: usize) -> i32 {
 
 /// Count `character` units between byte offsets `from` and `to` under `encoding`.
 /// `from`/`to` should sit on codepoint boundaries (span offsets always do).
-count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEncoding) -> i32 {
+count_units :: fn(source: string, from: i64, to: i64, encoding: PositionEncoding) -> i32 {
     // utf-8 : the character IS the byte offset — no scan.
     if encoding == .Utf8 {
         return i32(to - from)
     }
     hi :: min(to, source.byte_len())
     count: i32 = 0
-    i: usize = from
+    i: i64 = from
     for i < hi {
         w :: source.codepoint_at_byte(i).1
         count += units_for(encoding, w)
@@ -109,7 +109,7 @@ count_units :: fn(source: string, from: usize, to: usize, encoding: PositionEnco
 /// @param line         0-based line the offset sits on.
 /// @param byte_offset  absolute UTF-8 byte offset of the position.
 /// @return             the 0-based character in the negotiated encoding.
-export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 =
+export li_character :: fn(li: LineIndex, line: i32, byte_offset: i64) -> i32 =
     character_in(li, line, byte_offset, li.encoding)
 
 /// The 1-based column a `Span` gives byte `byte_offset` of 0-based `line`: the
@@ -119,7 +119,7 @@ export li_character :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 =
 /// @param line         0-based line the offset sits on.
 /// @param byte_offset  absolute UTF-8 byte offset.
 /// @return             the 1-based codepoint column.
-export span_column :: fn(li: LineIndex, line: i32, byte_offset: usize) -> i32 =
+export span_column :: fn(li: LineIndex, line: i32, byte_offset: i64) -> i32 =
     character_in(li, line, byte_offset, .Utf32) + 1
 
 /// The `Span` column of an LSP `(line, character)`: see `span_column`.
@@ -134,13 +134,13 @@ export lsp_span_column :: fn(li: LineIndex, line: i32, character: i32) -> i32 =
 character_in :: fn(
     li: LineIndex,
     line: i32,
-    byte_offset: usize,
+    byte_offset: i64,
     encoding: PositionEncoding,
 ) -> i32 {
-    if line < 0 || usize(line) >= li.line_starts.len() {
+    if line < 0 || i64(line) >= li.line_starts.len() {
         return 0
     }
-    line_start :: li.line_starts[usize(line)]
+    line_start :: li.line_starts[line]
     if byte_offset <= line_start {
         return 0
     }
@@ -154,15 +154,15 @@ character_in :: fn(
 /// @param line       0-based LSP line.
 /// @param character  0-based LSP character in the negotiated encoding.
 /// @return           the absolute byte offset.
-export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> usize {
+export li_offset :: fn(li: LineIndex, line: i32, character: i32) -> i64 {
     n :: li.source.byte_len()
     if line < 0 {
         return 0
     }
-    if usize(line) >= li.line_starts.len() {
+    if i64(line) >= li.line_starts.len() {
         return n
     }
-    cursor: usize = li.line_starts[usize(line)]
+    cursor: i64 = li.line_starts[line]
     if character <= 0 {
         return cursor
     }

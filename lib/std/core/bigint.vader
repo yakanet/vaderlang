@@ -71,17 +71,17 @@ BigInt implements Div<u32, [BigInt, u32]> {
     div :: fn(self, d: u32) -> [BigInt, u32] {
         msb: BigInt: []          // quotient limbs, most-significant first
         rem: u64 = 0
-        i: i32 = i32(self.len()) - 1
+        i := self.len() - 1
         for i >= 0 {
-            cur :: (rem << 32) | u64(self[usize(i)])
+            cur :: (rem << 32) | u64(self[i])
             msb.push(u32(cur / u64(d)))
             rem = cur % u64(d)
             i -= 1
         }
         out: BigInt: []          // reverse to little-endian
-        j: i32 = i32(msb.len()) - 1
+        j := msb.len() - 1
         for j >= 0 {
-            out.push(msb[usize(j)])
+            out.push(msb[j])
             j -= 1
         }
         return [out, u32(rem)]
@@ -101,7 +101,7 @@ export div_small :: fn(self: BigInt, d: u32) -> BigInt {
 /// @return      `self << bits`.
 export shl :: fn(self: BigInt, bits: i32) -> BigInt {
     out: BigInt: []
-    for 0..<usize(bits / 32) { out.push(0) }
+    for 0..<i64(bits / 32) { out.push(0) }
     bit_shift :: bits % 32
     if bit_shift == 0 {
         for i in 0..<self.len() { out.push(self[i]) }
@@ -130,14 +130,14 @@ export is_zero :: fn(self: BigInt) -> bool {
 export any_below :: fn(self: BigInt, pos: i32) -> bool {
     whole :: pos / 32
     bit :: pos % 32
-    for i in 0..<usize(whole) {
+    for i in 0..<i64(whole) {
         if self[i] != 0 {
             return true
         }
     }
-    if bit > 0 && usize(whole) < self.len() {
-        mask :: (u32(1) << u32(bit)) - 1
-        if (self[usize(whole)] & mask) != 0 {
+    if bit > 0 {
+        mask :: (u64(1) << u64(bit)) - 1
+        if (self.limb(i64(whole)) & mask) != 0 {
             return true
         }
     }
@@ -151,7 +151,7 @@ export any_below :: fn(self: BigInt, pos: i32) -> bool {
 export bit_len :: fn(self: BigInt) -> i32 {
     i: i32 = i32(self.len()) - 1
     for i >= 0 {
-        if self[usize(i)] != 0 { return i * 32 + (32 - clz32(self[usize(i)])) }
+        if self[i] != 0 { return i * 32 + (32 - clz32(self[i])) }
         i -= 1
     }
     return 0
@@ -163,7 +163,7 @@ export bit_len :: fn(self: BigInt) -> i32 {
 /// @param off   bit offset (>= 0) ; bits past the top read as 0.
 /// @return      the 64-bit window `(self >> off) & (2^64 - 1)`.
 export bits64 :: fn(self: BigInt, off: i32) -> u64 {
-    base :: usize(off / 32)
+    base :: i64(off / 32)
     sh :: off % 32
     w0 :: self.limb(base)
     w1 :: self.limb(base + 1)
@@ -212,8 +212,8 @@ export shl128 :: fn(hi: u64, lo: u64, s: i32) -> [u64, u64] {
 
 // ---- internal helpers -----------------------------------------------------
 
-// Limb `i` of `self`, or 0 past the end.
-limb :: fn(self: BigInt, i: usize) -> u64 = if i < self.len() { u64(self[i]) } else { u64(0) }
+// Limb `i` of `self`, or 0 outside it.
+limb :: fn(self: BigInt, i: i64) -> u64 = if i in 0..<self.len() { u64(self[i]) } else { u64(0) }
 
 // Count leading zeros of a non-zero u32.
 clz32 :: fn(x: u32) -> i32 {

@@ -9,16 +9,16 @@
   snippet.describe :: fn(n: i64) -> string {  // snippet$describe
       if ((n >= i64(0)) && (n <= i64(55295))) || ((n >= i64(57344)) && (n <= i64(1114111))) {
           return {
-              __buf_0: Buffer = std.core.new_byte_buffer(usize(38))
-              __off_1: usize = 0
+              __buf_0: Buffer = std.core.new_byte_buffer(i64(38))
+              __off_1: i64 = 0
               __off_1 = std.core.write_int(__buf_0, __off_1, n)
               __off_1 = std.core.write_string_at(__buf_0, __off_1, " is a scalar value")
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
       return {
-          __buf_2: Buffer = std.core.new_byte_buffer(usize(39))
-          __off_3: usize = 0
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(39))
+          __off_3: i64 = 0
           __off_3 = std.core.write_int(__buf_2, __off_3, n)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " is no scalar value")
           std.core.finish_buffer(__buf_2, __off_3)
@@ -40,8 +40,8 @@
   }
   snippet.walk_codes :: fn(c: char) -> string {  // snippet$walk_codes
       {
-          __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
-          __off_1: usize = 0
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_1: i64 = 0
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32(c)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
@@ -52,8 +52,8 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(usize(53))
-          __off_1: usize = 0
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(53))
+          __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "first ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32('\0')))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, ", last ")
@@ -62,13 +62,13 @@
       } :string)
       {
           __for_arr_2: i32[] = [-1, 0, 55295, 55296, 57343, 57344, 1114111, 1114112] :i32[]
-          __for_len_3: usize = @array.len(__for_arr_2)
-          __for_i_4: usize = 0
+          __for_len_3: i64 = @array.len(__for_arr_2)
+          __for_i_4: i64 = 0
           for __for_i_4 < __for_len_3 {
               n: i32 = __for_arr_2[__for_i_4]
               std.io.println<string>(snippet.describe(i64(n)))
           } @step {
-              __for_i_4 = __for_i_4 +% usize(1)
+              __for_i_4 = __for_i_4 +% i64(1)
           }
       }
       std.io.println<string>(concat_3(std.core.char.to_string(snippet.from_byte(u8(72))), std.core.char.to_string(snippet.from_unit(u32(105))), std.core.char.to_string(snippet.from_unit(u32(128512)))))
@@ -95,8 +95,8 @@
           } :char)
           __p_8: string = std.core.char.to_string(char(glyph))
           __p_9: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
-          __buf_10: Buffer = std.core.new_byte_buffer(usize(27) +% ((std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)) +% std.core.byte_len(__p_9)))
-          __off_11: usize = 0
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(27) +% ((std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)) +% std.core.byte_len(__p_9)))
+          __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_7)
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
           __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_8)
@@ -158,8 +158,8 @@
           s
       }
       std.io.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(usize(27))
-          __off_16: usize = 0
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "fused: ")
           __off_16 = std.core.write_unsigned(__buf_15, __off_16, u64(fused))
           std.core.finish_buffer(__buf_15, __off_16)
@@ -210,20 +210,20 @@
       u32(c)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      c2: usize = c1 +% std.core.byte_len(p2)
-      buf: Buffer = std.core.usize.new_buffer(c2)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(usize(c2))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.write_string(buf, c1, p2)
       std.core.Buffer.intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -288,8 +288,8 @@
     fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.char.compare  // std_core$char$Comparable$compare
     fn std.core.char.step  // std_core$char$Step$step
     fn std.core.char.to_string  // std_core$char$Display$to_string
@@ -297,13 +297,13 @@
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
@@ -316,7 +316,7 @@
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<char>  // std_core$Range__char
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

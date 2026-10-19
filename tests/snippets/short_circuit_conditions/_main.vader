@@ -42,8 +42,8 @@ shapes :: fn(a: bool, b: bool, c: bool) -> string {
     return sb.to_string()
 }
 
-first_over :: fn(xs: i32[], n: i32, stop: i32) -> usize {
-    i: usize = 0
+first_over :: fn(xs: i32[], n: i32, stop: i32) -> i64 {
+    i: i64 = 0
     for i < xs.len() && !(xs[i] > n || xs[i] == stop) {
         i += 1
     }

@@ -45,7 +45,7 @@ ProjectCtx :: struct {
     /// would silently answer "no callbacks here" and emit a fn value into C.
     /// A symbol names one declaration, which is also what makes an overload pick
     /// unambiguous.
-    extern_callbacks: MutableMap<i32, MutableSet<usize>>
+    extern_callbacks: MutableMap<i32, MutableSet<i64>>
     /// Where `build_ident` reports an ident with no local. LOUD on purpose: the
     /// symbol resolved, so a miss here is the COMPILER losing a binding, and the
     /// recovery value is a `TermUnreachable` that replaces the whole entry block
@@ -57,13 +57,13 @@ ProjectCtx :: struct {
 }
 
 new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
-    externs :: MutableMap<i32, MutableSet<usize>> {}
+    externs :: MutableMap<i32, MutableSet<i64>> {}
     for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl {
                 if fn_metadata(d).is_extern {
                     if d.origin.symbol is Symbol as sym {
-                        slots :: MutableSet<usize> {}
+                        slots :: MutableSet<i64> {}
                         for i in 0..<d.params.len() {
                             if d.params[i].type is FnType {
                                 slots.add(i)
@@ -483,7 +483,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     // Implicit return : if the current block still lacks a terminator,
     // emit one with the trailing expression (or null for void).
     if fn_ctx.current !is null {
-        cur :: fn_ctx.blocks[usize(fn_ctx.current)]
+        cur :: fn_ctx.blocks[i64(fn_ctx.current)]
         if cur.terminator is null {
             cur.terminator = TermReturn {
                 .values = if trailing == null { [] } else { [trailing] },
@@ -774,9 +774,9 @@ build_back_edge :: fn(fn_ctx: FnCtx, frame: LoopFrame, span: Span) -> void {
 // labelled block: only a `break` naming it reaches it.
 resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
     if label is null {
-        j := i64(fn_ctx.loop_stack.len()) - 1
+        j := fn_ctx.loop_stack.len() - 1
         for j >= 0 {
-            frame :: fn_ctx.loop_stack[usize(j)]
+            frame :: fn_ctx.loop_stack[j]
             if !frame.block { return frame }
             j -= 1
         }
@@ -786,9 +786,9 @@ resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame {
     // comparison currently mis-boxes when crossing a field vs a param
     // boundary ; comparing two `string` locals is unambiguous.
     needle :: label
-    i := i64(fn_ctx.loop_stack.len()) - 1
+    i := fn_ctx.loop_stack.len() - 1
     for i >= 0 {
-        frame :: fn_ctx.loop_stack[usize(i)]
+        frame :: fn_ctx.loop_stack[i]
         if frame.label !is null {
             if frame.label == needle { return frame }
         }
@@ -854,7 +854,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
         // Binding-kind narrowing : the slot's declared type is wider
         // than the expr's, so emit a Cast to recover the narrowed type
         // before downstream uses.
-        slot_type :: fn_ctx.locals[usize(slot_opt)].type
+        slot_type :: fn_ctx.locals[i64(slot_opt)].type
         if slot_type is UnionType {
             if !equals_type(slot_type, e.type) {
                 dst :: fresh_tmp(fn_ctx, "narrow", e.type)
@@ -914,7 +914,7 @@ build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
         if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
-            args :: if slots is MutableSet<usize> as cb {
+            args :: if slots is MutableSet<i64> as cb {
                 build_extern_args(fn_ctx, e.args, cb, callee_id.symbol.name) ?? return null
             } else {
                 build_args(fn_ctx, e.args) ?? return null
@@ -968,7 +968,7 @@ end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) ->
 /// @param slots   parameter indices that are callbacks, from the DECLARATION.
 /// @param callee  the callee's name, for the failure message.
 build_extern_args :: fn(
-    fn_ctx: FnCtx, args: LoweredExpr[], slots: MutableSet<usize>, callee: string,
+    fn_ctx: FnCtx, args: LoweredExpr[], slots: MutableSet<i64>, callee: string,
 ) -> LocalId[] | null {
     out: LocalId[]: []
     for i in 0..<args.len() {
@@ -1510,7 +1510,7 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
 
 emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {
     if fn_ctx.current is null { return }
-    fn_ctx.blocks[usize(fn_ctx.current)].instructions.push(instr)
+    fn_ctx.blocks[i64(fn_ctx.current)].instructions.push(instr)
 }
 
 emit_const :: fn(fn_ctx: FnCtx, type: Type, value: ConstValue, span: Span) -> LocalId {
@@ -1521,7 +1521,7 @@ emit_const :: fn(fn_ctx: FnCtx, type: Type, value: ConstValue, span: Span) -> Lo
 
 terminate :: fn(fn_ctx: FnCtx, t: Terminator) -> void {
     if fn_ctx.current is null { return }
-    cur :: fn_ctx.blocks[usize(fn_ctx.current)]
+    cur :: fn_ctx.blocks[i64(fn_ctx.current)]
     if cur.terminator is null { cur.terminator = t }
     fn_ctx.current = null
 }

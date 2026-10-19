@@ -124,14 +124,14 @@
   expr 80:16    SeqLitExpr     :: u8[]
   expr 81:13    IfExpr         :: u8
   expr 81:16    BinaryExpr     :: bool
-  expr 81:16    CallExpr       :: usize
-  expr 81:16    FieldExpr      :: fn() -> usize
+  expr 81:16    CallExpr       :: i64
+  expr 81:16    FieldExpr      :: fn() -> i64
   expr 81:16    IdentExpr      :: u8[]
   expr 81:32    IdentExpr      :: u8[]
   expr 81:32    IndexExpr      :: u8
-  expr 81:36    BinaryExpr     :: usize
-  expr 81:36    CallExpr       :: usize
-  expr 81:36    FieldExpr      :: fn() -> usize
+  expr 81:36    BinaryExpr     :: i64
+  expr 81:36    CallExpr       :: i64
+  expr 81:36    FieldExpr      :: fn() -> i64
   expr 81:36    IdentExpr      :: u8[]
   expr 82:13    IfExpr         :: string
   expr 82:16    BinaryExpr     :: bool
@@ -143,8 +143,8 @@
   expr 83:18    SeqLitExpr     :: u8[]
   expr 84:14    IfExpr         :: u8
   expr 84:17    BinaryExpr     :: bool
-  expr 84:17    CallExpr       :: usize
-  expr 84:17    FieldExpr      :: fn() -> usize
+  expr 84:17    CallExpr       :: i64
+  expr 84:17    FieldExpr      :: fn() -> i64
   expr 84:17    IdentExpr      :: u8[]
   expr 84:35    IdentExpr      :: u8[]
   expr 84:35    IndexExpr      :: u8
@@ -155,15 +155,15 @@
   expr 85:5     CallExpr       :: void
   expr 85:5     IdentExpr      :: fn(T) -> void
   expr 85:58    StringLitExpr  :: string
-  expr 86:10    CallExpr       :: usize
-  expr 86:10    FieldExpr      :: fn() -> usize
+  expr 86:10    CallExpr       :: i64
+  expr 86:10    FieldExpr      :: fn() -> i64
   expr 86:10    IdentExpr      :: u8[]
   expr 87:15    MatchExpr      :: u8
-  expr 87:21    IdentExpr      :: usize
+  expr 87:21    IdentExpr      :: i64
   expr 89:14    IdentExpr      :: u8[]
   expr 89:14    IndexExpr      :: u8
-  expr 89:20    BinaryExpr     :: usize
-  expr 89:20    IdentExpr      :: usize
+  expr 89:20    BinaryExpr     :: i64
+  expr 89:20    IdentExpr      :: i64
   expr 91:13    IfExpr         :: string
   expr 91:16    BinaryExpr     :: bool
   expr 91:16    IdentExpr      :: u8
@@ -172,7 +172,7 @@
   expr 91:5     IdentExpr      :: fn(T) -> void
   expr 91:69    StringLitExpr  :: string
   expr 93:13    MatchExpr      :: i64
-  expr 93:19    IdentExpr      :: usize
+  expr 93:19    IdentExpr      :: i64
   expr 95:14    IdentExpr      :: i64
   expr 97:13    StringLitExpr  :: string
   expr 97:35    BinaryExpr     :: i64

@@ -2,26 +2,26 @@
 
 ## tests/snippets/iter_chunks_distinct_nulls
   FnDecl         main                 :: fn() -> i32
-  expr 13:19    CallExpr       :: __genstate_indexed<[string, usize]>
-  expr 13:19    FieldExpr      :: fn() -> Iterator<[string, usize]>
+  expr 13:19    CallExpr       :: __genstate_indexed<[string, i64]>
+  expr 13:19    FieldExpr      :: fn() -> Iterator<[string, i64]>
   expr 13:19    SeqLitExpr     :: string[]
   expr 13:20    StringLitExpr  :: string
   expr 13:25    StringLitExpr  :: string
   expr 13:30    StringLitExpr  :: string
   expr 14:17    StringLitExpr  :: string
-  expr 14:28    IdentExpr      :: usize
+  expr 14:28    IdentExpr      :: i64
   expr 14:33    IdentExpr      :: string
   expr 14:9     CallExpr       :: void
   expr 14:9     IdentExpr      :: fn(T) -> void
   expr 16:14    CallExpr       :: __genstate_chunked<i32[]>
-  expr 16:14    FieldExpr      :: fn(usize) -> Iterator<i32[]>
+  expr 16:14    FieldExpr      :: fn(i64) -> Iterator<i32[]>
   expr 16:14    SeqLitExpr     :: i32[]
   expr 17:17    StringLitExpr  :: string
   expr 17:26    IdentExpr      :: i32[]
   expr 17:9     CallExpr       :: void
   expr 17:9     IdentExpr      :: fn(T) -> void
   expr 19:15    CallExpr       :: __genstate_chunked<i32[]>
-  expr 19:15    FieldExpr      :: fn(usize) -> Iterator<i32[]>
+  expr 19:15    FieldExpr      :: fn(i64) -> Iterator<i32[]>
   expr 19:15    SeqLitExpr     :: i32[]
   expr 20:14    IdentExpr      :: __genstate_chunked<i32[]>
   expr 21:17    StringLitExpr  :: string

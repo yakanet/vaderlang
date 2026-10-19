@@ -9,9 +9,9 @@ import "std/io"
 // unification refuses the two bindings that say nothing — `T := ?` and the
 // self-referential `T := T` — so the round that follows can still learn the
 // real one.
-zip_with :: fn<T>(make: fn() -> T[], probe: fn(T) -> usize) -> usize {
+zip_with :: fn<T>(make: fn() -> T[], probe: fn(T) -> i64) -> i64 {
     rows :: make()
-    total: usize = 0
+    total: i64 = 0
     for r in rows {
         total += probe(r)
     }

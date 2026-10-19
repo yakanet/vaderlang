@@ -6,25 +6,25 @@
   ConstDecl      Log                  :: type
   FnDecl         main                 :: fn() -> i32
   ConstDecl      Offset               :: type
-  expr 13:39    BinaryExpr     :: i32
-  expr 13:39    BinaryExpr     :: i32
-  expr 13:39    CallExpr       :: i32
-  expr 13:39    IdentExpr      :: type
-  expr 13:43    CallExpr       :: usize
-  expr 13:43    FieldExpr      :: fn() -> usize
-  expr 13:43    IdentExpr      :: Offset
-  expr 13:63    CallExpr       :: i32
-  expr 13:63    IdentExpr      :: type
-  expr 13:67    IdentExpr      :: usize
+  expr 13:37    BinaryExpr     :: i32
+  expr 13:37    BinaryExpr     :: i32
+  expr 13:37    CallExpr       :: i32
+  expr 13:37    IdentExpr      :: type
+  expr 13:41    CallExpr       :: i64
+  expr 13:41    FieldExpr      :: fn() -> i64
+  expr 13:41    IdentExpr      :: Offset
+  expr 13:61    CallExpr       :: i32
+  expr 13:61    IdentExpr      :: type
+  expr 13:65    IdentExpr      :: i64
   expr 18:17    StringLitExpr  :: string
-  expr 18:27    IdentExpr      :: usize
+  expr 18:27    IdentExpr      :: i64
   expr 18:32    IdentExpr      :: i32
   expr 18:9     CallExpr       :: void
   expr 18:9     IdentExpr      :: fn(T) -> void
-  expr 29:39    BinaryExpr     :: i32
-  expr 29:39    CallExpr       :: i32
-  expr 29:39    IdentExpr      :: type
-  expr 29:43    IdentExpr      :: usize
+  expr 29:37    BinaryExpr     :: i32
+  expr 29:37    CallExpr       :: i32
+  expr 29:37    IdentExpr      :: type
+  expr 29:41    IdentExpr      :: i64
   expr 39:16    CallExpr       :: Offset
   expr 39:16    IdentExpr      :: type
   expr 39:23    SeqLitExpr     :: Offset
@@ -64,8 +64,8 @@
   expr 50:9     CallExpr       :: void
   expr 50:9     IdentExpr      :: fn(T) -> void
   expr 52:13    StringLitExpr  :: string
-  expr 52:26    CallExpr       :: usize
-  expr 52:26    FieldExpr      :: fn() -> usize
+  expr 52:26    CallExpr       :: i64
+  expr 52:26    FieldExpr      :: fn() -> i64
   expr 52:26    IdentExpr      :: Log
   expr 52:26    IndexExpr      :: i32[]
   expr 52:28    RangeExpr      :: Range<i32>

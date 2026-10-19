@@ -12,7 +12,7 @@ type 9 struct __defer_env_snippet_7 {  }
 type 10 struct __defer_env_snippet_9 {  }
 type 11 struct __asyncstate_snippet_10 { s0:1,s1:0,awaited:18,state:2 }
 type 12 union 2,13
-type 13 struct std_core$Suspended { wake_at:24 }
+type 13 struct std_core$Suspended { wake_at:22 }
 type 14 struct __defer_env_snippet_12 {  }
 type 15 struct __asyncstate_snippet_13 { s0:2,__defers:19,awaited:18,state:2 }
 type 16 struct __asyncstate_snippet_14 { s0:2,s1:2,awaited:18,state:2 }
@@ -21,15 +21,14 @@ type 18 ref std_core$Async
 type 19 array 20
 type 20 fn () -> 3
 type 21 primitive u8
-type 22 primitive usize
+type 22 primitive i64
 type 23 struct std_core$Buffer {  }
-type 24 primitive i64
-type 25 array 21
+type 24 array 21
+type 25 primitive usize
 type 26 ref std_core$Async
-type 27 struct std_async$Sleep { ms:24,deadline:24,armed:4 }
+type 27 struct std_async$Sleep { ms:22,deadline:22,armed:4 }
 type 28 union 0,13
-type 29 primitive isize
-type 30 struct $Cell_i32 { value:2 }
+type 29 struct $Cell_i32 { value:2 }
 string 0 "work "
 string 1 "note "
 string 2 "call"
@@ -44,13 +43,13 @@ string 10 "defer async"
 string 11 "async"
 string 12 "async deadlock: a task is suspended with nothing left to wake it"
 string 13 "\n"
-import 0 byte_len std_core$byte_len result_type=22 param_types=1 param_c_out= param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=25 param_types=1 param_c_out= param_by_address= (string) -> ref
-import 2 sched_now std_runtime$sched_now result_type=24 () -> i64
-import 3 sched_arm std_runtime$sched_arm result_type=3 param_types=24 param_c_out= param_by_address= (i64) -> void
+import 0 byte_len std_core$byte_len result_type=22 param_types=1 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=24 param_types=1 param_c_out= param_by_address= (string) -> ref
+import 2 sched_now std_runtime$sched_now result_type=22 () -> i64
+import 3 sched_arm std_runtime$sched_arm result_type=3 param_types=22 param_c_out= param_by_address= (i64) -> void
 import 4 sched_park std_runtime$sched_park result_type=2 () -> i32
 import 5 panic std_abort$panic result_type=3 param_types=1 param_c_out= param_by_address= (string) -> void
-import 6 extern write system_posix$sys_write header=<unistd.h> result_type=29 param_types=2,25,22 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 6 extern write system_posix$sys_write header=<unistd.h> result_type=22 param_types=2,24,22 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 11 std_core$Async
 impl 15 std_core$Async
 impl 16 std_core$Async
@@ -95,12 +94,12 @@ fn 3 snippet$returns_a_local () -> i32
   local n any
   local __result_1 i32
   i32.const 1
-  struct.new 30   ; $Cell_i32
+  struct.new 29   ; $Cell_i32
   local.tee 0   ; n
   struct.new 7   ; __defer_env_snippet_3
   make_closure 10 20   ; __defer_snippet_2 fn
   defer.push
-  local.field 0 30 0   ; n $Cell_i32.value
+  local.field 0 29 0   ; n $Cell_i32.value
   local.set 1   ; __result_1
   defer.pop_exec 1
   local.get 1   ; __result_1
@@ -189,7 +188,7 @@ end
 fn 10 __defer_snippet_2 (ref) -> void
   local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
   i32.const 2
-  struct.set 30 0   ; $Cell_i32.value
+  struct.set 29 0   ; $Cell_i32.value
   return
 end
 
@@ -312,9 +311,9 @@ end
 
 fn 16 snippet$__asyncstate_snippet_13$Async$resume (ref) -> any
   local $field_17 ref
-  local $sub_21 usize
+  local $sub_21 i64
   local $field_23 ref
-  local $sub_28 usize
+  local $sub_28 i64
   local $slice_29 ref
   local __resumed_3 any
   local $cast_39 i32
@@ -461,19 +460,19 @@ end
 fn 17 snippet$__asyncstate_snippet_14$Async$resume (ref) -> any
   local $field_13 i32
   local __buf_7 ref
-  local __off_8 usize
+  local __off_8 i64
   local $cast_20 i64
   local __resumed_10 any
   local $cast_32 i32
   local $cast_38 any
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local $cast_49 i64
   local __buf_2 ref
-  local __off_3 usize
+  local __off_3 i64
   local $cast_58 i64
   local __buf_4 ref
-  local __off_5 usize
+  local __off_5 i64
   local $cast_68 i64
   loop $L0 void
     local.field 0 16 3   ; arg 0 __asyncstate_snippet_14.state
@@ -643,8 +642,8 @@ fn 17 snippet$__asyncstate_snippet_14$Async$resume (ref) -> any
 end
 
 fn 18 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -656,6 +655,7 @@ fn 18 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -671,24 +671,24 @@ fn 18 concat_2 (string,string) -> string
   return
 end
 
-fn 19 std_core$new_byte_buffer (usize) -> ref
+fn 19 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 20 std_core$finish_buffer (ref,usize) -> string
+fn 20 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 21 std_core$write_int (ref,usize,i64) -> usize
+fn 21 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
-  local ndigits usize
+  local ndigits i64
   local m i64
-  local total usize
   local $cast_36 u8
   local $add_checked_37 u8
   local.get 2   ; arg 2
@@ -701,7 +701,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    usize.checked_add
+    i64.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -727,7 +727,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      usize.checked_add
+      i64.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -740,15 +740,15 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    usize.checked_add
-    local.set 6   ; total
+    i64.checked_add
+    local.set 5   ; m
   else
     local.get 4   ; ndigits
-    local.set 6   ; total
+    local.set 5   ; m
   end $L4
   local.get 1   ; arg 1
-  local.get 6   ; total
-  usize.checked_add
+  local.get 5   ; m
+  i64.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -757,7 +757,7 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      usize.checked_sub
+      i64.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
@@ -766,14 +766,14 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
       i64.to_i32
       i32.const 255
       i32.bitand
-      local.set 7   ; $cast_36
+      local.set 6   ; $cast_36
       i32.const 48
-      local.get 7   ; $cast_36
+      local.get 6   ; $cast_36
       u8.checked_add
-      local.set 8   ; $add_checked_37
+      local.set 7   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_checked_37
+      local.get 7   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -789,13 +789,13 @@ fn 21 std_core$write_int (ref,usize,i64) -> usize
     i32.const 45
     store_u8
     local.get 1   ; arg 1
-    local.get 6   ; total
-    usize.checked_add
+    local.get 5   ; m
+    i64.checked_add
     return
   end $L7
   local.get 1   ; arg 1
-  local.get 6   ; total
-  usize.checked_add
+  local.get 5   ; m
+  i64.checked_add
   return
 end
 
@@ -826,7 +826,7 @@ fn 24 std_async$Sleep$std_core_Async$resume (ref) -> any
     call.import 2   ; std_runtime$sched_now
     local.set 1   ; $call_3
     local.field 0 27 0   ; arg 0 std_async$Sleep.ms
-    ref.cast 24   ; i64
+    ref.cast 22   ; i64
     local.set 2   ; $field_4
     local.get 1   ; $call_3
     local.get 2   ; $field_4
@@ -836,13 +836,13 @@ fn 24 std_async$Sleep$std_core_Async$resume (ref) -> any
     local.get 1   ; $call_3
     struct.set 27 1   ; std_async$Sleep.deadline
     local.field 0 27 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 24   ; i64
+    ref.cast 22   ; i64
     call.import 3   ; std_runtime$sched_arm
   end $L0
   call.import 2   ; std_runtime$sched_now
   local.set 1   ; $call_3
   local.field 0 27 1   ; arg 0 std_async$Sleep.deadline
-  ref.cast 24   ; i64
+  ref.cast 22   ; i64
   local.set 2   ; $field_4
   local.get 1   ; $call_3
   local.get 2   ; $field_4
@@ -850,7 +850,7 @@ fn 24 std_async$Sleep$std_core_Async$resume (ref) -> any
   if $L1 void
   else
     local.field 0 27 1   ; arg 0 std_async$Sleep.deadline
-    ref.cast 24   ; i64
+    ref.cast 22   ; i64
     struct.new 13   ; std_core$Suspended
     return
   end $L1
@@ -884,13 +884,13 @@ end
 
 fn 26 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -902,7 +902,7 @@ fn 26 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -911,7 +911,7 @@ fn 26 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 25   ; u8[]
+      array.slice 24   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -930,7 +930,7 @@ fn 26 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -938,7 +938,7 @@ fn 26 std_io$write (u8,string) -> void
   return
 end
 
-fn 27 std_io$write_bytes (u8,ref,usize) -> i32
+fn 27 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -947,14 +947,14 @@ fn 27 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 6   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 6   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 

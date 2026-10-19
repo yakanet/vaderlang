@@ -49,9 +49,9 @@ ParserState :: struct {
     ops:        bc.Op[]
     table:      i32[]
     scopes:     ScopeEntry[]
-    scope_sp:   usize[]
+    scope_sp:   i64[]
     pending:    PendingBranch[]
-    pending_sp: usize[]
+    pending_sp: i64[]
 }
 
 /// Strip a trailing `; ...` comment (the .virt format glues a source-
@@ -69,7 +69,7 @@ strip_comment :: fn(line: string) -> string {
     // must not be treated as the start of a comment.
     n :: line.byte_len()
     in_quote := false
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         b :: line.byte_at(i)
         if b == '\\' && in_quote && i + 1 < n {
@@ -113,7 +113,7 @@ before_first :: fn(s: string, c: char) -> string {
     if at < 0 {
         return s
     }
-    return s.byte_slice(0, usize(at))
+    return s.byte_slice(0, at)
 }
 
 // The text of `s` after the first `c`, or nothing when `c` does not occur.
@@ -122,7 +122,7 @@ after_first :: fn(s: string, c: char) -> string {
     if at < 0 {
         return ""
     }
-    return s.byte_slice(usize(at) + 1, s.byte_len())
+    return s.byte_slice(at + 1, s.byte_len())
 }
 
 /// Parse a comma-separated list of base-10 i32s — used by both
@@ -155,7 +155,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | 
     if first_quote < 0 {
         return DirectiveError { .reason = "expected `string <index> \"…\"`, got no quoted text" }
     }
-    body :: after.byte_slice(usize(first_quote) + 1, after.byte_len() - 1)
+    body :: after.byte_slice(first_quote + 1, after.byte_len() - 1)
     strings.push(decode_escapes(body))
     return null
 }
@@ -170,7 +170,7 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> DirectiveError | 
 /// @return   one byte per pair of hex digits, in input order.
 hex_to_bytes :: fn(s: string) -> u8[] {
     out: u8[]: []
-    i: usize = 0
+    i: i64 = 0
     len :: s.byte_len()
     for i + 1 < len {
         hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))))
@@ -267,7 +267,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     dot :: head.index_of('.', 0)
     if dot >= 0 {
-        width :: head.byte_slice(0, usize(dot))
+        width :: head.byte_slice(0, dot)
 
         // Width gates : we only slice the suffix for the int / f64 width
         // families. `array.X`, `bool.X`, `char.X`, `string.X`, `ref.X`,
@@ -278,7 +278,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
         is_f64 :: width == "f64"
         is_char_or_f32 :: width == "char" || width == "f32"
         if is_int || is_f64 || is_char_or_f32 {
-            suffix :: head.byte_slice(usize(dot) + 1, head.byte_len())
+            suffix :: head.byte_slice(dot + 1, head.byte_len())
 
             if suffix == "const" && is_int {
                 value_off :: head.byte_len() + 1
@@ -596,8 +596,8 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// @return         the `Convert` op carrying the target tag.
 parse_convert :: fn(cleaned: string) -> bc.Op {
     dot :: cleaned.index_of('.', 0)
-    prefix :: cleaned.byte_slice(0, usize(dot))
-    suffix :: cleaned.byte_slice(usize(dot) + 1 + 3, cleaned.byte_len())
+    prefix :: cleaned.byte_slice(0, dot)
+    suffix :: cleaned.byte_slice(dot + 1 + 3, cleaned.byte_len())
     return bc.Convert { .from_name = prefix, .target = convert_target_of(suffix) }
 }
 
@@ -648,7 +648,7 @@ parse_f64_const :: fn(line: string) -> bc.Op | null {
     if rest == "nan"  { return bc.F64Const { .value = quiet_nan.from_bits() } }
     sp :: last_index_of_space(rest)
     if sp >= 0 {
-        bits :: parse_uint_in_base(rest.byte_slice(usize(sp) + 1, rest.byte_len()), 10)
+        bits :: parse_uint_in_base(rest.byte_slice(i64(sp) + 1, rest.byte_len()), 10)
         if bits is u64 { return bc.F64Const { .value = bits.from_bits() } }
     }
     parsed :: parse_f64(rest) ?? return null
@@ -704,10 +704,10 @@ parse_virtual_call :: fn(line: string) -> bc.Op | null {
     rest :: line.trim_prefix("virtual.call ").trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
-    pc_text :: rest.byte_slice(0, usize(space)).trim()
+    pc_text :: rest.byte_slice(0, space).trim()
     parsed_pc :: parse_int_in_base(pc_text, 10)
     if parsed_pc is ParseError { return null }
-    key :: rest.byte_slice(usize(space) + 1, rest.byte_len()).trim()
+    key :: rest.byte_slice(space + 1, rest.byte_len()).trim()
     return bc.VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
@@ -794,9 +794,9 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | 
     rest :: line.byte_slice(prefix.byte_len(), line.byte_len()).trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
-    a :: parse_int_in_base(rest.byte_slice(0, usize(space)).trim(), 10)
+    a :: parse_int_in_base(rest.byte_slice(0, space).trim(), 10)
     if a is ParseError { return null }
-    b :: parse_int_in_base(rest.byte_slice(usize(space) + 1, rest.byte_len()).trim(), 10)
+    b :: parse_int_in_base(rest.byte_slice(space + 1, rest.byte_len()).trim(), 10)
     if b is ParseError { return null }
     return [i32(a), i32(b)]
 }
@@ -829,11 +829,11 @@ parse_local_field :: fn(line: string) -> bc.Op | null {
     rest :: line.trim_prefix("local.field ").trim()
     s1 :: rest.index_of(' ', 0)
     if s1 < 0 { return null }
-    s2 :: rest.index_of(' ', usize(s1) + 1)
+    s2 :: rest.index_of(' ', s1 + 1)
     if s2 < 0 { return null }
-    slot_str :: rest.byte_slice(0, usize(s1)).trim()
-    type_str :: rest.byte_slice(usize(s1) + 1, usize(s2)).trim()
-    field_str :: rest.byte_slice(usize(s2) + 1, rest.byte_len()).trim()
+    slot_str :: rest.byte_slice(0, s1).trim()
+    type_str :: rest.byte_slice(s1 + 1, s2).trim()
+    field_str :: rest.byte_slice(s2 + 1, rest.byte_len()).trim()
     slot :: parse_int_in_base(slot_str, 10)
     if slot is ParseError { return null }
     tid :: parse_int_in_base(type_str, 10)
@@ -904,8 +904,8 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
     after :: line.trim_prefix("data.const ")
     sp :: after.index_of(' ', 0)
     if sp < 0 { return null }
-    pool_text :: after.byte_slice(0, usize(sp))
-    type_text :: after.byte_slice(usize(sp) + 1, after.byte_len()).trim()
+    pool_text :: after.byte_slice(0, sp)
+    type_text :: after.byte_slice(sp + 1, after.byte_len()).trim()
     pool_parsed :: parse_int_in_base(pool_text, 10)
     if pool_parsed is ParseError { return null }
     type_parsed :: parse_int_in_base(type_text, 10)

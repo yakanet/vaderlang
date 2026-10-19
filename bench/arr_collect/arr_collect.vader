@@ -23,7 +23,7 @@ main :: fn() -> i32 {
     total: i64 = 0
     for 0..<40000 {
         out :: a.filter(is_odd).map(square).collect()
-        total = total + i64(out.len()) + out[out.len() - 1]
+        total = total + out.len() + out[out.len() - 1]
     }
     println("arr_collect ${total}")
     return 0

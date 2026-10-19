@@ -179,7 +179,7 @@ const VADER_SELF_EMIT = new Set<string>([
   // (for-loops, matches → if-chains) lost its else handling.
   "field_not_null_narrow",
   // Building a foreign struct while OMITTING a field whose default references a
-  // const in the struct's OWNING module (`id: usize = DEFAULT_ID`). The default's
+  // const in the struct's OWNING module (`id: i64 = DEFAULT_ID`). The default's
   // AST lives in that module, so lowering it with the construction site's context
   // left the const unresolved → the struct literal dropped. This is the compiler's
   // own `simple_placeholder` building `SimpleBinding` (default `UNASSIGNED_NODE_ID`

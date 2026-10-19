@@ -46,14 +46,14 @@
   expr 40:5     CallExpr       :: void
   expr 40:5     IdentExpr      :: fn(T) -> void
   expr 41:13    CallExpr       :: i32[]
-  expr 41:13    CallExpr       :: usize
-  expr 41:13    FieldExpr      :: fn() -> usize
+  expr 41:13    CallExpr       :: i64
+  expr 41:13    FieldExpr      :: fn() -> i64
   expr 41:13    IdentExpr      :: fn() -> i32[]
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void
   expr 42:13    CallExpr       :: Counter[]
-  expr 42:13    CallExpr       :: usize
-  expr 42:13    FieldExpr      :: fn() -> usize
+  expr 42:13    CallExpr       :: i64
+  expr 42:13    FieldExpr      :: fn() -> i64
   expr 42:13    IdentExpr      :: fn() -> Counter[]
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void

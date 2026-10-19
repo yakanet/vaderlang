@@ -25,7 +25,7 @@ export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
 
 // An extern's integer argument `i`, its label built only when it is not one.
-extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val | Trap {
+extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: i64) -> I64Val | Trap {
     if v is I64Val {
         return v
     }
@@ -74,7 +74,7 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: usize) -> I64Val
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], sched_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -220,11 +220,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     // pending deadlines. The VM always jumps the virtual clock (an interpreter
     // never real-sleeps) ; output depends only on deadline ordering, so it
     // matches native.
-    .SchedNow -> { return HostOk { .value = I64Val(i64(sched_state[0])) } }
+    .SchedNow -> { return HostOk { .value = I64Val(sched_state[0]) } }
     .SchedArm -> {
         d :: read_i64(stack[arg_base], at_pc, "sched_arm deadline")
         if d is Trap { return d }
-        sched_state.push(usize(d))
+        sched_state.push(i64(d))
         return HostOk { .value = NullVal {} }
     }
     .SchedPark -> {
@@ -247,14 +247,14 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     .FfiOpen -> {
         name :: read_string(stack[arg_base], at_pc, "ffi_open name")
         if name is Trap { return name }
-        return HostOk { .value = I64Val(i64(ffi_open(string(name)))) }
+        return HostOk { .value = I64Val(ffi_open(string(name))) }
     }
     .FfiSymbol -> {
         lib :: read_i64(stack[arg_base], at_pc, "ffi_symbol lib")
         if lib is Trap { return lib }
         sym :: read_string(stack[arg_base + 1], at_pc, "ffi_symbol name")
         if sym is Trap { return sym }
-        return HostOk { .value = I64Val(i64(ffi_symbol(usize(lib), string(sym)))) }
+        return HostOk { .value = I64Val(ffi_symbol(i64(lib), string(sym))) }
     }
     .FfiCall -> {
         ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn_ptr")
@@ -277,7 +277,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             if b is Trap { return b }
             frame.push(u8(b))
         }
-        ffi_call(usize(ptr), desc, frame, -1)
+        ffi_call(i64(ptr), desc, frame, -1)
         // `frame` is a COPY, and it carries BOTH what the callee wrote into a
         // lent area and the result itself — so it has to travel back whole.
         for i in 0..<frame_arr.length {
@@ -337,7 +337,7 @@ debug_std_descriptor :: fn(which: i64) -> i64 = if which == 0xFFFF_FFF4 { 2 } el
 
 // The first `count` bytes of `a` as a `u8[]`: the bytes it reads in place when it
 // views a string, else its boxed slots gathered.
-array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] | Trap {
+array_bytes :: fn(a: ArrayVal, count: i64, at_pc: i32, label: string) -> u8[] | Trap {
     raw :: a.raw
     if raw != null {
         return raw.bytes()[a.offset..<a.offset + count]
@@ -365,17 +365,17 @@ array_bytes :: fn(a: ArrayVal, count: usize, at_pc: i32, label: string) -> u8[] 
 /// @param at_pc     program counter, for trap messages.
 /// @param debug     the attached controller.
 /// @return          the byte count, as the syscall would report it.
-debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, debug: DebugController) -> HostCallResult {
+debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, debug: DebugController) -> HostCallResult {
     fd :: read_i64(stack[arg_base], at_pc, "sys_write fd")
     if fd is Trap { return fd }
     arr :: read_array(stack[arg_base + 1], at_pc, "sys_write buf")
     if arr is Trap { return arr }
     count :: read_i64(stack[arg_base + 2], at_pc, "sys_write count")
     if count is Trap { return count }
-    if count < 0 || usize(count) > arr.length {
+    if count < 0 || i64(count) > arr.length {
         return Trap { .message = "sys_write at pc=${at_pc}: count ${i64(count)} exceeds the buffer" }
     }
-    bs :: array_bytes(arr, usize(count), at_pc, "sys_write byte")
+    bs :: array_bytes(arr, i64(count), at_pc, "sys_write byte")
     if bs is Trap {
         return bs
     }
@@ -409,7 +409,7 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32
 /// @param types        the module type table, for a lent array's element width.
 /// @param debug        the DAP controller when one is attached, else null.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
-dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
     // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
@@ -487,16 +487,16 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // compile, but nothing stops `vader run` on its own, and the callee
             // would then write past a block sized for a partial mirror. The
             // floor turns that into wrong values instead of a buffer overrun.
-            floor :: usize(bc.MIRROR_BLOCK_FLOOR)
-            room :: if usize(layout.size) > floor { usize(layout.size) } else { floor }
+            floor :: bc.MIRROR_BLOCK_FLOOR
+            room :: if layout.size > floor { layout.size } else { floor }
             for _pad in 0..<room {
                 data.push(0)
             }
             filled :: serialise_mirror(data, at, v, fields, types, at_pc, info.extern_name, 0)
             if filled is Trap { return filled }
             desc.push(u8(FFI_ADDR))
-            addr_slots.push(i64(slot_words.len()))
-            slot_words.push(i64(at))
+            addr_slots.push(slot_words.len())
+            slot_words.push(at)
             if bc.param_is_c_out(info.signature, i) {
                 lent_structs.push(LentStruct { .target = v, .at = at, .fields = fields })
             }
@@ -508,23 +508,23 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // of the stack temporary the native shim spills to.
             w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
-            width :: usize(bc.size_of_val_type(params[i]))
+            width :: i64(bc.size_of_val_type(params[i]))
             if width == 0 || width > 8 {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: `@c_pointer` on a ${bc.val_type_name(params[i])} parameter is not covered" }
             }
             desc.push(u8(FFI_ADDR))
-            addr_slots.push(i64(slot_words.len()))
-            slot_words.push(i64(data.len()))
+            addr_slots.push(slot_words.len())
+            slot_words.push(data.len())
             push_little_endian(data, i64(w), width)
         } else if v is ArrayVal {
             elem :: lent_element_val_type(types, v.type_id)
             if elem == null {
                 return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is an array whose element type the VM cannot lend (only integer elements are covered)" }
             }
-            width :: usize(bc.size_of_val_type(elem))
+            width :: i64(bc.size_of_val_type(elem))
             desc.push(u8(FFI_ADDR))
-            addr_slots.push(i64(slot_words.len()))
-            slot_words.push(i64(data.len()))
+            addr_slots.push(slot_words.len())
+            slot_words.push(data.len())
             raw :: v.raw
             if raw != null {
                 // A string's own bytes, read-only as the native view is: lent as
@@ -547,8 +547,8 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
             // area — the same ADDR mechanism a lent array uses. The native shim
             // reaches the same place through `vader_string_to_cstr`.
             desc.push(u8(FFI_ADDR))
-            addr_slots.push(i64(slot_words.len()))
-            slot_words.push(i64(data.len()))
+            addr_slots.push(slot_words.len())
+            slot_words.push(data.len())
             data.push_all(string(v).bytes())
             data.push(0)
         } else if v is F64Val {
@@ -589,7 +589,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // final once the slot area's width is known.
     base :: slot_words.len() * 8
     for si in addr_slots {
-        slot_words[usize(si)] = slot_words[usize(si)] + i64(base)
+        slot_words[si] = slot_words[si] + base
     }
     frame: u8[]: []
     for w in slot_words {
@@ -613,7 +613,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, at_pc:
     // sent. The native path needs no equivalent: it lends the array's own
     // storage, so the write lands in place.
     for b in borrowed {
-        width :: usize(bc.size_of_val_type(b.element))
+        width :: i64(bc.size_of_val_type(b.element))
         // Only an integer class reaches `LentArray`, so unsigned is the whole
         // question — `lent_element_val_type` filtered the rest out.
         signed :: !bc.is_unsigned_val(b.element)
@@ -698,10 +698,10 @@ ffi_result_class :: fn(result: bc.ValType) -> i32 {
 /// @param want         the non-`null` variant to match.
 /// @return             whether the slot is exactly `want | null`.
 ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) -> bool {
-    if result_type < 0 || usize(result_type) >= types.len() {
+    if result_type < 0 || i64(result_type) >= types.len() {
         return false
     }
-    u :: types[usize(result_type)]
+    u :: types[result_type]
     if u !is bc.BcUnion {
         return false
     }
@@ -711,10 +711,10 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
     has_null := false
     has_want := false
     for vi in u.variants {
-        if vi < 0 || usize(vi) >= types.len() {
+        if vi < 0 || i64(vi) >= types.len() {
             continue
         }
-        v :: types[usize(vi)]
+        v :: types[vi]
         if v is bc.BcPrimitive {
             if v.val == .Null { has_null = true }
             if v.val == want            { has_want = true }
@@ -730,7 +730,7 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
 LentStruct :: struct {
     target: StructVal
     /// Offset of the block inside the frame's data area.
-    at:     usize
+    at:     i64
     fields: bc.BcField[]
 }
 
@@ -739,15 +739,15 @@ LentStruct :: struct {
 ///
 /// `param_types` is absent from a `.virt` re-read, which is why this returns an
 /// option rather than trapping on an index.
-mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: usize) -> bc.BcField[] | null {
+mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: i64) -> bc.BcField[] | null {
     if i >= param_types.len() {
         return null
     }
     idx :: param_types[i]
-    if idx < 0 || usize(idx) >= types.len() {
+    if idx < 0 || i64(idx) >= types.len() {
         return null
     }
-    t :: types[usize(idx)]
+    t :: types[idx]
     if t !is bc.BcStruct {
         return null
     }
@@ -771,7 +771,7 @@ field_val_type :: fn(types: bc.BcType[], f: bc.BcField) -> bc.ValType =
 /// @param fields  the mirror's fields at this level.
 /// @param depth   guards a malformed self-referential mirror.
 read_back_mirror :: fn(
-    frame: u8[], base: usize, target: StructVal, fields: bc.BcField[],
+    frame: u8[], base: i64, target: StructVal, fields: bc.BcField[],
     types: bc.BcType[], depth: i32,
 ) -> void {
     if depth >= bc.NEST_CAP {
@@ -784,7 +784,7 @@ read_back_mirror :: fn(
             inner :: target.fields[j]
             if inner is StructVal {
                 read_back_mirror(
-                    frame, base + usize(layout.offsets[j]), inner, nested.fields,
+                    frame, base + layout.offsets[j], inner, nested.fields,
                     types, depth + 1,
                 )
             }
@@ -792,7 +792,7 @@ read_back_mirror :: fn(
         }
         width :: bc.c_field_width(fields[j], types) ?? continue
         signed :: !bc.is_unsigned_val(field_val_type(types, fields[j]))
-        written :: read_little_endian(frame, base + usize(layout.offsets[j]), usize(width), signed)
+        written :: read_little_endian(frame, base + layout.offsets[j], width, signed)
         target.fields[j] = retyped_int(target.fields[j], written)
     }
 }
@@ -811,7 +811,7 @@ read_back_mirror :: fn(
 /// @param depth   guards a malformed self-referential mirror.
 /// @return        `null` on success, a `Trap` naming the field otherwise.
 serialise_mirror :: fn(
-    data: u8[], base: usize, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
+    data: u8[], base: i64, sv: StructVal, fields: bc.BcField[], types: bc.BcType[],
     at_pc: i32, extern_name: string, depth: i32,
 ) -> Trap | null {
     if depth >= bc.NEST_CAP {
@@ -826,7 +826,7 @@ serialise_mirror :: fn(
                 return Trap { .message = "extern `${extern_name}` at pc=${at_pc}: field `${fields[j].name}` mirrors a nested C struct but holds no value" }
             }
             t :: serialise_mirror(
-                data, base + usize(layout.offsets[j]), inner, nested.fields, types,
+                data, base + layout.offsets[j], inner, nested.fields, types,
                 at_pc, extern_name, depth + 1,
             )
             if t is Trap { return t }
@@ -840,13 +840,13 @@ serialise_mirror :: fn(
             read_scalar_word(field, at_pc, "extern `${extern_name}` field `${fields[j].name}`")
         }
         if cell is Trap { return cell }
-        write_little_endian(data, base + usize(layout.offsets[j]), i64(cell), usize(width))
+        write_little_endian(data, base + layout.offsets[j], i64(cell), width)
     }
     return null
 }
 
 /// Write `value` into `buf` at `at`, little-endian, over `width` bytes.
-write_little_endian :: fn(buf: u8[], at: usize, value: i64, width: usize) -> void {
+write_little_endian :: fn(buf: u8[], at: i64, value: i64, width: i64) -> void {
     v :: u64(value)
     for k in 0..<width {
         buf[at + k] = u8((v >> u64(k * 8)) & 0xFF)
@@ -855,7 +855,7 @@ write_little_endian :: fn(buf: u8[], at: usize, value: i64, width: usize) -> voi
 
 LentArray :: struct {
     target: ArrayVal
-    at:     usize
+    at:     i64
     /// What the array holds — the stride of the spill and the read-back, and
     /// whether the read-back sign-extends.
     element: bc.ValType
@@ -873,17 +873,17 @@ LentArray :: struct {
 /// @param array_type_id  the `ArrayVal`'s own type index.
 /// @return               the element's value class, or `null` when not lendable.
 lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValType | null {
-    if array_type_id < 0 || usize(array_type_id) >= types.len() {
+    if array_type_id < 0 || i64(array_type_id) >= types.len() {
         return null
     }
-    t :: types[usize(array_type_id)]
+    t :: types[array_type_id]
     if t !is bc.BcArray {
         return null
     }
-    if t.element < 0 || usize(t.element) >= types.len() {
+    if t.element < 0 || i64(t.element) >= types.len() {
         return null
     }
-    element :: types[usize(t.element)]
+    element :: types[t.element]
     if element !is bc.BcPrimitive {
         return null
     }
@@ -903,7 +903,7 @@ lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValTyp
 /// @param width   how many bytes it occupies.
 /// @param signed  whether to sign-extend a narrow value.
 /// @return        the integer C left there.
-read_little_endian :: fn(buf: u8[], at: usize, width: usize, signed: bool) -> i64 {
+read_little_endian :: fn(buf: u8[], at: i64, width: i64, signed: bool) -> i64 {
     value: i64 = 0
     for k in 0..<width {
         value = value | (i64(buf[at + k]) << i64(k * 8))
@@ -927,7 +927,7 @@ read_little_endian :: fn(buf: u8[], at: usize, width: usize, signed: bool) -> i6
 /// @param buf    the flat lend buffer, appended to.
 /// @param value  the scalar to spill.
 /// @param width  how many bytes the foreign parameter occupies.
-push_little_endian :: fn(buf: u8[], value: i64, width: usize) -> void {
+push_little_endian :: fn(buf: u8[], value: i64, width: i64) -> void {
     for k in 0..<width {
         buf.push(u8((value >> i64(k * 8)) & 0xFF))
     }
@@ -1013,8 +1013,8 @@ extern_result :: fn(result: bc.ValType, raw: i64) -> HostCallResult {
 
 // A timer already due carries nothing: the program re-drives every task after a
 // park, so each of them sees the clock it waited for. `state[0]` is the clock.
-drop_due_timers :: fn(state: usize[]) -> void {
-    i: usize = 1
+drop_due_timers :: fn(state: i64[]) -> void {
+    i: i64 = 1
     for i < state.len() {
         if state[i] <= state[0] {
             state[i] = state[state.len() - 1]

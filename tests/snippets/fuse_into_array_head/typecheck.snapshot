@@ -31,8 +31,8 @@
   expr 24:36    IdentExpr      :: fn(i32) -> i32
   expr 25:13    StringLitExpr  :: string
   expr 25:20    IdentExpr      :: i32
-  expr 25:35    CallExpr       :: usize
-  expr 25:35    FieldExpr      :: fn() -> usize
+  expr 25:35    CallExpr       :: i64
+  expr 25:35    FieldExpr      :: fn() -> i64
   expr 25:35    IdentExpr      :: i32[]
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void

@@ -150,7 +150,7 @@
                               "kind": "CallExpr",
                               "callee": {
                                 "kind": "IdentExpr",
-                                "name": "usize"
+                                "name": "i64"
                               },
                               "args": [
                                 {
@@ -167,7 +167,7 @@
                               "kind": "CallExpr",
                               "callee": {
                                 "kind": "IdentExpr",
-                                "name": "usize"
+                                "name": "i64"
                               },
                               "args": [
                                 {

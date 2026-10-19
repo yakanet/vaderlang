@@ -332,7 +332,7 @@ drain_load_queue :: fn(
     // DISABLED and lets every `@target` body through to the type checker.
     target: Target | null,
 ) -> void {
-    cursor: usize = 0
+    cursor: i64 = 0
     for cursor < queue.len() {
         m :: queue[cursor]
         cursor = cursor + 1

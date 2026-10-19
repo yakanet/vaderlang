@@ -190,7 +190,7 @@ undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> A
 // the context so they interleave with the driver's own reports in order.
 emit_one :: fn(
     ctx: BuildContext, lowered: LoweredEntry, entry: Path,
-    target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: usize,
+    target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: i64,
 ) -> i32 {
     // One `out` cannot name N binaries: the second would overwrite the first in
     // silence. Refuse rather than pick a winner.

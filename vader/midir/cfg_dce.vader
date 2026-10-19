@@ -80,9 +80,9 @@ fold_moves_in_block :: fn(
             // per iteration (a fresh `[false]` per step would heap-allocate on
             // every backward step).
             reads_cell: bool[]: [false]
-            j: i64 = i64(folded.len()) - 1
+            j: i64 = folded.len() - 1
             for j >= 0 {
-                cand :: folded[usize(j)]
+                cand :: folded[j]
                 cdst_opt :: dst_of(cand)
                 if cdst_opt is LocalId {
                     if cdst_opt == ins.src { producer_idx = j  break }
@@ -96,10 +96,10 @@ fold_moves_in_block :: fn(
                 j = j - 1
             }
             if producer_idx < 0 || intervening { folded.push(ins)  continue }
-            producer :: folded[usize(producer_idx)]
+            producer :: folded[producer_idx]
             if instruction_has_side_effect(producer) { folded.push(ins)  continue }
             rewritten :: with_dst(producer, ins.dst)
-            folded[usize(producer_idx)] = rewritten
+            folded[producer_idx] = rewritten
             // Move drops — don't push it. continue the outer loop.
         }
     }
@@ -117,33 +117,41 @@ fold_moves_in_block :: fn(
 // renumbered to -1 (unused) drop entirely.
 // ============================================================================
 
+// Flag the local `l` as read in `referenced`, one flag per local.
+mark_referenced :: fn(referenced: bool[], l: LocalId) -> void {
+    if i64(l) in 0..<referenced.len() {
+        referenced[i64(l)] = true
+    }
+}
+
 compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     n :: f.locals.len()
     referenced: bool[]: [false] * n
+    keep :: (l: LocalId) -> mark_referenced(referenced, l)
     // Params keep their slots regardless.
-    for p in f.params { if usize(p.local) < n { referenced[usize(p.local)] = true } }
+    for p in f.params {
+        keep(p.local)
+    }
 
     for b in f.blocks {
         for ins in b.instructions {
-            for_each_read_local(ins, (l: LocalId) -> {
-                if usize(l) < n { referenced[usize(l)] = true }
-            })
+            for_each_read_local(ins, keep)
             // Side-effecting dst must keep its slot.
             if instruction_has_side_effect(ins) {
                 multi :: multi_dsts(ins)
                 if multi != null {
                     for l in multi {
-                        if usize(l) < n { referenced[usize(l)] = true }
+                        keep(l)
                     }
                 } else {
                     d :: dst_of(ins)
-                    if d != null && usize(d) < n { referenced[usize(d)] = true }
+                    if d != null {
+                        keep(d)
+                    }
                 }
             }
         }
-        for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
-            if usize(l) < n { referenced[usize(l)] = true }
-        })
+        for_each_read_in_terminator(b.terminator, keep)
     }
 
     // Short-circuit when nothing drops.
@@ -165,7 +173,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     for p in f.params {
         new_params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type,
-            .local = LocalId(remap[usize(p.local)]),
+            .local = LocalId(remap[i64(p.local)]),
         })
     }
 
@@ -176,7 +184,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
         for ins in b.instructions {
             d :: dst_of(ins)
             if d is LocalId {
-                if usize(d) < remap.len() && remap[usize(d)] < 0 {
+                if i64(d) in 0..<remap.len() && remap[i64(d)] < 0 {
                     if !instruction_has_side_effect(ins) { continue }
                 }
             }
@@ -193,7 +201,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
 }
 
 remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
-    if usize(l) < m.len() { return LocalId(m[usize(l)]) }
+    if i64(l) in 0..<m.len() { return LocalId(m[i64(l)]) }
     return l
 }
 
@@ -537,7 +545,7 @@ test_fold_moves_rewrites_single_use_producer :: fn() -> void {
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(1))
+    assert_eq(out.len(), 1)
     first :: out[0]
     assert(first is InstrBinOp, "producer survives as the binop")
     if first is InstrBinOp {
@@ -551,7 +559,7 @@ test_fold_moves_keeps_move_when_source_used_twice :: fn() -> void {
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 2]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(2))
+    assert_eq(out.len(), 2)
 }
 
 @test
@@ -562,7 +570,7 @@ test_fold_moves_keeps_move_when_source_is_a_param :: fn() -> void {
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), params,
     )
-    assert_eq(out.len(), usize(2))
+    assert_eq(out.len(), 2)
 }
 
 @test
@@ -580,7 +588,7 @@ test_fold_moves_bails_on_intervening_read_of_destination :: fn() -> void {
         ]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(3))
+    assert_eq(out.len(), 3)
     last :: out[2]
     assert(last is InstrMove, "the Move must survive")
 }
@@ -597,7 +605,7 @@ test_fold_moves_bails_on_intervening_write_of_destination :: fn() -> void {
         ]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(3))
+    assert_eq(out.len(), 3)
 }
 
 @test
@@ -608,7 +616,7 @@ test_fold_moves_keeps_move_when_producer_has_a_side_effect :: fn() -> void {
         fm_block([fm_call(LocalId(2), LocalId(0)), fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(2))
+    assert_eq(out.len(), 2)
 }
 
 @test
@@ -621,7 +629,7 @@ test_fold_moves_keeps_a_move_that_tags_a_scalar_into_a_union :: fn() -> void {
         fm_block([fm_binop(LocalId(2), LocalId(0), LocalId(1)), fm_move(LocalId(3), LocalId(2))]),
         locals, fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(2))
+    assert_eq(out.len(), 2)
 }
 
 @test
@@ -631,5 +639,5 @@ test_fold_moves_leaves_a_move_with_no_producer_alone :: fn() -> void {
         fm_block([fm_move(LocalId(3), LocalId(2))]),
         fm_locals(), fm_uses([[LocalId(2), 1]]), fm_no_params(),
     )
-    assert_eq(out.len(), usize(1))
+    assert_eq(out.len(), 1)
 }

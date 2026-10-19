@@ -344,11 +344,11 @@ import_path :: fn(line: string) -> string {
     if q1 < 0 {
         return ""
     }
-    q2 :: t.index_of('"', usize(q1) + 1)
+    q2 :: t.index_of('"', q1 + 1)
     if q2 < 0 {
         return ""
     }
-    return t.byte_slice(usize(q1) + 1, usize(q2))
+    return t.byte_slice(q1 + 1, q2)
 }
 
 // ---- tests ----------------------------------------------------------------

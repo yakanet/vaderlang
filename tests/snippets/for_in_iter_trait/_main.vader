@@ -31,7 +31,7 @@ sum_iter :: fn(it: Iterator<i32>) -> i32 {
 // overload, then std/iter's `count` consumes the chain without allocating an
 // intermediate array.
 is_l :: fn(c: char) -> bool { return c == 'l' }
-count_ls :: fn(s: string) -> usize {
+count_ls :: fn(s: string) -> i64 {
     return s.chars().filter(is_l).count()
 }
 

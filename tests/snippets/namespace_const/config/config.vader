@@ -3,5 +3,5 @@
 // namespace-qualified CONST access.
 module "snippet/config"
 
-export MAX_RETRIES :: usize(3)
+export MAX_RETRIES :: i64(3)
 export GREETING :: "hi"

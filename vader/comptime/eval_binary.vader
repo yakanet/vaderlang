@@ -206,7 +206,7 @@ shift_amount_mask :: fn(rname: string) -> i64 = match rname {
 
 // Primitive name of the node's resolved type, or "" when the typechecker left
 // no entry / the type isn't a bare primitive (both ⇒ don't wrap).
-resolved_int_name :: fn(context: ComptimeContext, expr_id: usize) -> string {
+resolved_int_name :: fn(context: ComptimeContext, expr_id: i64) -> string {
     t :: context.typed.expr_types[expr_id]
     name :: primitive_name(t)
     if name != "" {

@@ -155,7 +155,7 @@ loop_of :: fn(scope: CScope) -> CStatement {
 
 // `branch` without its closing `continue`, between the loop body's leading and
 // trailing directives.
-spliced :: fn(statements: CStatement[], lead: usize, trail: usize, branch: CBlock) -> CBlock {
+spliced :: fn(statements: CStatement[], lead: i64, trail: i64, branch: CBlock) -> CBlock {
     body :: CBlock { .body = [] }
     body.body.push_all(statements[0..<lead])
     continuing :: statements_end(branch.body) - 1
@@ -191,7 +191,7 @@ end_is_reachable :: fn(statements: CStatement[]) -> bool {
 }
 
 // The index just past the last statement that is not a `#line` directive.
-statements_end :: fn(statements: CStatement[]) -> usize = statements.len() - trailing_directives(
+statements_end :: fn(statements: CStatement[]) -> i64 = statements.len() - trailing_directives(
     statements,
     0,
 )

@@ -41,7 +41,7 @@ lower_place_assign :: fn(ctx: FnLowerCtx, s: AssignStmt, compound: bool) -> Lowe
     // A compound assignment in a block of `rhs` gets a table of its own ; this one
     // is back before this statement's write lowers.
     outer :: ctx.bound_operands
-    ctx.bound_operands = MutableMap<usize, LoweredExpr> {}
+    ctx.bound_operands = MutableMap<i64, LoweredExpr> {}
     stmts: LoweredStmt[]: []
     bind_place_operands(ctx, s.target, stmts)
     mark :: ctx.pending_awaits.len()
@@ -211,7 +211,7 @@ destructured_leaf :: fn(
     backing: Type,
     place_type: Type,
     span: Span,
-    index: usize,
+    index: i64,
 ) -> LoweredExpr {
     source_type :: element_type_at(backing, index, place_type)
     if ctx.typed.into_coercions[place.id] != null {
@@ -226,7 +226,7 @@ destructured_leaf :: fn(
 }
 
 // The type element `index` of `backing` holds ; `fallback` for any other shape.
-element_type_at :: fn(backing: Type, index: usize, fallback: Type) -> Type {
+element_type_at :: fn(backing: Type, index: i64, fallback: Type) -> Type {
     if backing is ArrayType {
         return backing.element
     }
@@ -321,8 +321,8 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
         is RangeExpr -> {
             parts :: lower_in_order(ctx, [expr.target, range_lit.lower, range_lit.upper])
             target_lowered :: parts[0]
-            lo_value :: cast_to_usize(parts[1], range_lit.span)
-            hi_raw   :: cast_to_usize(parts[2], range_lit.span)
+            lo_value :: cast_to_i64(parts[1], range_lit.span)
+            hi_raw   :: cast_to_i64(parts[2], range_lit.span)
             hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
             return LoweredArraySlice {
                 .span = expr.span,
@@ -358,11 +358,11 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
             .type = idx_type, .value = range_value,
         }
         range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
-        bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { mk_primitive("usize") }
-        lo_value :: cast_to_usize(LoweredFieldAccess {
+        bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { mk_primitive("i64") }
+        lo_value :: cast_to_i64(LoweredFieldAccess {
             .span = span, .type = bound_type, .target = range_ref, .field = "start",
         }, span)
-        hi_raw :: cast_to_usize(LoweredFieldAccess {
+        hi_raw :: cast_to_i64(LoweredFieldAccess {
             .span = span, .type = bound_type, .target = range_ref, .field = "end",
         }, span)
         hi_value :: adjust_hi_inclusive_dynamic(hi_raw, LoweredFieldAccess {
@@ -384,32 +384,32 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
 }
 
 adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr {
-    usize_ty :: mk_primitive("usize")
+    i64_type :: mk_primitive("i64")
     delta :: LoweredIf {
-        .span = span, .type = usize_ty, .cond = inclusive,
+        .span = span, .type = i64_type, .cond = inclusive,
         .then_block = LoweredBlock {
-            .span = span, .type = usize_ty, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
+            .span = span, .type = i64_type, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = i64_type, .value = 1 },
         },
         .else_block = LoweredBlock {
-            .span = span, .type = usize_ty, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = 0 },
+            .span = span, .type = i64_type, .stmts = [],
+            .trailing = LoweredIntLit { .span = span, .type = i64_type, .value = 0 },
         },
     }
     return LoweredBinary {
-        .span = span, .type = usize_ty, .op = .Add,
+        .span = span, .type = i64_type, .op = .Add,
         .left = hi, .right = delta,
     }
 }
 
-cast_to_usize :: fn(value: LoweredExpr, span: Span) = cast_to_width(value, "usize", span)
+cast_to_i64 :: fn(value: LoweredExpr, span: Span) = cast_to_width(value, "i64", span)
 
 adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
     if !inclusive { return hi }
     return LoweredBinary {
-        .span = span, .type = mk_primitive("usize"), .op = .Add,
+        .span = span, .type = mk_primitive("i64"), .op = .Add,
         .left = hi,
-        .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
+        .right = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = 1 },
     }
 }
 

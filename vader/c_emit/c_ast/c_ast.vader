@@ -761,8 +761,8 @@ any_mentions_local :: fn(expressions: CExpression[], slot: i32) -> bool {
 }
 
 // The number of `#line` directives `statements` starts with.
-leading_directives :: fn(statements: CStatement[]) -> usize {
-    n: usize = 0
+leading_directives :: fn(statements: CStatement[]) -> i64 {
+    n: i64 = 0
     for n < statements.len() && statements[n] is CDirective {
         n += 1
     }
@@ -770,8 +770,8 @@ leading_directives :: fn(statements: CStatement[]) -> usize {
 }
 
 // The number of `#line` directives `statements[from…]` ends with.
-trailing_directives :: fn(statements: CStatement[], from: usize) -> usize {
-    n: usize = 0
+trailing_directives :: fn(statements: CStatement[], from: i64) -> i64 {
+    n: i64 = 0
     for statements.len() - n > from && statements[statements.len() - 1 - n] is CDirective {
         n += 1
     }

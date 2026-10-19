@@ -50,7 +50,7 @@ over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {
 }
 
 // `-100..<100` over an `i8`: 200 turns, more than an `i8` holds.
-span_count :: fn(lo: i8, hi: i8) -> usize {
+span_count :: fn(lo: i8, hi: i8) -> i64 {
     out: i8[]: []
     for b in lo..<hi {
         out.push(b)

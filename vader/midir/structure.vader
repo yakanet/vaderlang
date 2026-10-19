@@ -238,7 +238,7 @@ copies_cheaply :: fn(b: BasicBlock) -> bool {
 
 // The most instructions a block that returns or traps may hold and still be
 // copied to each edge into it.
-SMALL_DEAD_END: usize: 2
+SMALL_DEAD_END: i64: 2
 
 // True when loop header `h` ends in a test with a target outside its loop.
 tests_its_exit :: fn(
@@ -364,7 +364,7 @@ loop_exit :: fn(ctx: FnEmitCfg, shape: StructureShape, x: BlockId) -> BlockId {
 // The last instruction index of `x` before which the operand stack is empty —
 // a scope may only open there. An instruction the scheduler leaves on the stack
 // for the next one, or for the terminator, holds the stack until its consumer.
-last_empty_stack_point :: fn(ctx: FnEmitCfg, x: BlockId) -> usize {
+last_empty_stack_point :: fn(ctx: FnEmitCfg, x: BlockId) -> i64 {
     at := ctx.fn_.blocks[i32(x)].instructions.len()
     for at > 0 && ctx.hints.skip_set.contains(pos_key(x, at - 1)) {
         at -= 1
@@ -372,7 +372,7 @@ last_empty_stack_point :: fn(ctx: FnEmitCfg, x: BlockId) -> usize {
     return at
 }
 
-emit_instructions :: fn(ctx: FnEmitCfg, x: BlockId, from: usize, until: usize) -> void {
+emit_instructions :: fn(ctx: FnEmitCfg, x: BlockId, from: i64, until: i64) -> void {
     block :: ctx.fn_.blocks[i32(x)]
     for i in from..<until {
         emit_instr(ctx, block.instructions[i], pos_key(x, i))

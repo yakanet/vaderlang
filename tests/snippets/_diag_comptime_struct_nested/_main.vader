@@ -18,7 +18,7 @@ Spec :: struct {
 }
 
 SPECS: Spec[]: [
-    Spec { .name = "size_of", .args = [.Value], .result = "usize" },
+    Spec { .name = "size_of", .args = [.Value], .result = "i64" },
     Spec { .name = "cast", .args = [.Type, .Value], .result = "T" },
 ]
 

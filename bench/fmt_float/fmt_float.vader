@@ -36,7 +36,7 @@ main :: fn() -> i32 {
             continue
         }
         rendered :: "${f64(i) / f64(DIVISOR)}"
-        length += i64(rendered.byte_len())
+        length += rendered.byte_len()
         for position in 0..<rendered.byte_len() {
             hash += i64(position + 1) * i64(rendered.byte_at(position))
         }

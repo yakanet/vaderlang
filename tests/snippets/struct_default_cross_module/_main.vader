@@ -1,5 +1,5 @@
 // Building a foreign struct (`shapes/Node`) while OMITTING a field whose default
-// (`id: usize = DEFAULT_ID`) references a const in the struct's OWNING module.
+// (`id: i64 = DEFAULT_ID`) references a const in the struct's OWNING module.
 // The default's AST lives in `snippet/shapes`, so lowering it with the
 // construction site's context left `DEFAULT_ID` unresolved → the whole struct
 // literal degraded to a drop. This is the compiler's own `simple_placeholder`

@@ -166,7 +166,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     // is NOT reset across passes : the worklist only grows, so a stable
     // cursor walks each decl exactly once. `for i in 0..<n` can't replace
     // the inner loop — it would snapshot the bound and miss appends.
-    cursor: usize = 0
+    cursor: i64 = 0
     for {
         for cursor < worklist.len() {
             d :: worklist[cursor]

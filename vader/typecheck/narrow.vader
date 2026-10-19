@@ -84,7 +84,7 @@ export NarrowState :: struct {
 
     /// `&&` / `||` nodes whose right operand ran a call : what the left operand
     /// narrowed does not hold past it.
-    calling_right_operands: MutableSet<usize> = MutableSet<usize> {}
+    calling_right_operands: MutableSet<i64> = MutableSet<i64> {}
 }
 
 
@@ -224,10 +224,10 @@ field_chain_key :: fn(e: AST.FieldExpr, typed: TypedProgram) -> string {
     }
     sym :: typed.resolved.idents[cur.span.hash()] ?? return ""
     fields: string[]: []
-    i := i32(parts_leaf_first.len()) - 1
+    i := parts_leaf_first.len() - 1
     for i >= 0 {
-        fields.push(parts_leaf_first[usize(i)])
-        i = i - 1
+        fields.push(parts_leaf_first[i])
+        i -= 1
     }
     return chain_key(sym.id, fields)
 }
@@ -417,7 +417,7 @@ retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) ->
 /// @param typed         the program's typing tables.
 /// @param id            the `&&` / `||` node.
 /// @param calls_before  `typed.narrow.calls` before its right operand was checked.
-note_right_operand_calls :: fn(typed: TypedProgram, id: usize, calls_before: i32) -> void {
+note_right_operand_calls :: fn(typed: TypedProgram, id: i64, calls_before: i32) -> void {
     if typed.narrow.calls != calls_before {
         _ :: typed.narrow.calling_right_operands.add(id)
     }

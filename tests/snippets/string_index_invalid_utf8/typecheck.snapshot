@@ -5,46 +5,46 @@
   expr 12:10    CallExpr       :: string
   expr 12:10    IdentExpr      :: fn(u8[]) -> string
   expr 12:26    SeqLitExpr     :: u8[]
-  expr 13:13    CallExpr       :: usize
-  expr 13:13    FieldExpr      :: fn() -> usize
+  expr 13:13    CallExpr       :: i64
+  expr 13:13    FieldExpr      :: fn() -> i64
   expr 13:13    IdentExpr      :: string
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 14:14    RangeExpr      :: Range<usize>
-  expr 14:18    CallExpr       :: usize
-  expr 14:18    FieldExpr      :: fn() -> usize
+  expr 14:14    RangeExpr      :: Range<i64>
+  expr 14:18    CallExpr       :: i64
+  expr 14:18    FieldExpr      :: fn() -> i64
   expr 14:18    IdentExpr      :: string
   expr 15:17    CallExpr       :: u32
   expr 15:17    IdentExpr      :: type
   expr 15:21    IdentExpr      :: string
   expr 15:21    IndexExpr      :: char
-  expr 15:23    IdentExpr      :: usize
+  expr 15:23    IdentExpr      :: i64
   expr 15:9     CallExpr       :: void
   expr 15:9     IdentExpr      :: fn(T) -> void
   expr 18:14    IdentExpr      :: string
-  expr 19:9     BinaryExpr     :: usize
-  expr 19:9     IdentExpr      :: usize
-  expr 21:13    IdentExpr      :: usize
+  expr 19:9     BinaryExpr     :: i64
+  expr 19:9     IdentExpr      :: i64
+  expr 21:13    IdentExpr      :: i64
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
-  expr 22:13    CallExpr       :: usize
-  expr 22:13    FieldExpr      :: fn() -> usize
+  expr 22:13    CallExpr       :: i64
+  expr 22:13    FieldExpr      :: fn() -> i64
   expr 22:13    IdentExpr      :: string
   expr 22:13    IndexExpr      :: string
-  expr 22:15    RangeExpr      :: Range<usize>
+  expr 22:15    RangeExpr      :: Range<i64>
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
-  expr 23:13    CallExpr       :: usize
-  expr 23:13    FieldExpr      :: fn() -> usize
+  expr 23:13    CallExpr       :: i64
+  expr 23:13    FieldExpr      :: fn() -> i64
   expr 23:13    IdentExpr      :: string
   expr 23:13    IndexExpr      :: string
-  expr 23:15    RangeExpr      :: Range<usize>
+  expr 23:15    RangeExpr      :: Range<i64>
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
-  expr 24:13    CallExpr       :: usize
-  expr 24:13    FieldExpr      :: fn() -> usize
+  expr 24:13    CallExpr       :: i64
+  expr 24:13    FieldExpr      :: fn() -> i64
   expr 24:13    IdentExpr      :: string
   expr 24:13    IndexExpr      :: string
-  expr 24:15    RangeExpr      :: Range<usize>
+  expr 24:15    RangeExpr      :: Range<i64>
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void

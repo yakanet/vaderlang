@@ -168,7 +168,7 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
     // `prefix` (`@`) and `name` are ASCII, so the byte width equals the char
     // width ; `reencode_columns` derives col + length from the offsets.
-    end_off :: start.offset + usize(prefix) + name.byte_len()
+    end_off :: start.offset + i64(prefix) + name.byte_len()
     if end_off <= start.offset { return }
     out.push(RawToken {
         .line         = start.line - 1,
@@ -491,7 +491,7 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
 walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
     // Upgrade the callee's bare-ident position to Function — unless the
     // ident names a primitive type, in which case the call is a cast
-    // (`i32(x)`, `usize(n)`) and the callee is a type.
+    // (`i32(x)`, `i64(n)`) and the callee is a type.
     match c.callee as callee {
         is AST.IdentExpr -> {
             if callee.name.is_primitive_type_name() {

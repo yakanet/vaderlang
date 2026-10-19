@@ -90,8 +90,8 @@
   expr 44:5     IdentExpr      :: fn(T) -> void
   expr 44:57    DotVariantExpr :: HttpStatus
   expr 44:65    StringLitExpr  :: string
-  expr 44:72    CallExpr       :: usize
-  expr 44:72    FieldExpr      :: fn() -> usize
+  expr 44:72    CallExpr       :: i64
+  expr 44:72    FieldExpr      :: fn() -> i64
   expr 44:72    IdentExpr      :: MutableMap<HttpStatus, string>
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void

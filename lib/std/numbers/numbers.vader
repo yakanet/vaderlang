@@ -198,7 +198,7 @@ export to_compact_str :: fn(self: f64) -> string {
 ///   `strip_numeric_text("0xFF", 16)  // "FF"`
 ///   `strip_numeric_text("1_000", 10)  // "1000"`
 export strip_numeric_text :: fn(text: string, base: i32) -> string {
-    start: usize: if base == 10 { 0 } else { 2 }
+    start: i64: if base == 10 { 0 } else { 2 }
     body :: text.byte_slice(start, text.byte_len())
     // Fast path : no `_` to filter → return the slice directly.
     if !body.contains("_") { return body }

@@ -804,7 +804,7 @@
                       },
                       "type": {
                         "kind": "IdentExpr",
-                        "name": "usize"
+                        "name": "i64"
                       },
                       "value": {
                         "kind": "IntLitExpr",
@@ -915,21 +915,8 @@
                                 "name": "i"
                               },
                               "right": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "usize"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IntLitExpr",
-                                      "value": "1n"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
+                                "kind": "IntLitExpr",
+                                "value": "1n"
                               }
                             }
                           }

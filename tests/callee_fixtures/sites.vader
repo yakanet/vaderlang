@@ -85,12 +85,12 @@ export Grid :: struct {
     cells: i32[]
 }
 
-Grid implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = self.cells[i]
+Grid implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = self.cells[i]
 }
 
-Grid implements IndexSet<usize, i32> {
-    set_at :: fn(self, i: usize, v: i32) -> void {
+Grid implements IndexSet<i64, i32> {
+    set_at :: fn(self, i: i64, v: i32) -> void {
         self.cells[i] = v
     }
 }
@@ -149,8 +149,8 @@ evens :: fn(limit: i32) -> Iterator<i32> {
     }
 }
 
-walk :: fn(it: Iterator<i32>) -> usize {
-    n: usize = 0
+walk :: fn(it: Iterator<i32>) -> i64 {
+    n: i64 = 0
     for _ in it {
         n += 1
     }
@@ -198,7 +198,7 @@ export cast :: fn(x: i32) -> i64 = i64(x)
 
 export enum_equals :: fn(c: Color) -> bool = c.equals(.Red)
 
-export array_op :: fn(xs: i32[]) -> usize = xs.len()
+export array_op :: fn(xs: i32[]) -> i64 = xs.len()
 
 export generic_ufcs :: fn<T>(x: T) -> T = x.same()
 
@@ -253,79 +253,79 @@ export implicit_into :: fn(m: Meters) -> i64 {
     return x
 }
 
-export array_into_iterator :: fn() -> usize = walk([1, 2])
+export array_into_iterator :: fn() -> i64 = walk([1, 2])
 
 export distinct_backing :: fn(t: Ticks) -> i64 {
     x: i64: t
     return x
 }
 
-export for_array :: fn(xs: i32[]) -> usize {
-    n: usize = 0
+export for_array :: fn(xs: i32[]) -> i64 {
+    n: i64 = 0
     for _ in xs {
         n += 1
     }
     return n
 }
 
-export for_range :: fn() -> usize {
-    n: usize = 0
+export for_range :: fn() -> i64 {
+    n: i64 = 0
     for _ in 0..<3 {
         n += 1
     }
     return n
 }
 
-export for_iterator :: fn(c: Countdown) -> usize {
-    n: usize = 0
+export for_iterator :: fn(c: Countdown) -> i64 {
+    n: i64 = 0
     for _ in c {
         n += 1
     }
     return n
 }
 
-export for_into_iterator :: fn(d: Deck) -> usize {
-    n: usize = 0
+export for_into_iterator :: fn(d: Deck) -> i64 {
+    n: i64 = 0
     for _ in d {
         n += 1
     }
     return n
 }
 
-export for_generator :: fn() -> usize {
-    n: usize = 0
+export for_generator :: fn() -> i64 {
+    n: i64 = 0
     for _ in evens(4) {
         n += 1
     }
     return n
 }
 
-export for_string :: fn(s: string) -> usize {
-    n: usize = 0
+export for_string :: fn(s: string) -> i64 {
+    n: i64 = 0
     for _ in s {
         n += 1
     }
     return n
 }
 
-export for_char_range :: fn() -> usize {
-    n: usize = 0
+export for_char_range :: fn() -> i64 {
+    n: i64 = 0
     for _ in 'a'..='e' {
         n += 1
     }
     return n
 }
 
-export for_bounded :: fn<T: Iterator<i32>>(t: T) -> usize {
-    n: usize = 0
+export for_bounded :: fn<T: Iterator<i32>>(t: T) -> i64 {
+    n: i64 = 0
     for _ in t {
         n += 1
     }
     return n
 }
 
-export for_array_sugar :: fn(xs: i32[]) -> usize {
-    n: usize = 0
+export for_array_sugar :: fn(xs: i32[]) -> i64 {
+    n: i64 = 0
     for xs {
         n += 1
     }

@@ -8,7 +8,7 @@ module "snippet"
 
 import "std/io"
 
-fill :: fn(x: i32[] | string[]) -> usize {
+fill :: fn(x: i32[] | string[]) -> i64 {
     if x is i32[] {
         x.push(30)
         x.push(40)
@@ -19,13 +19,13 @@ fill :: fn(x: i32[] | string[]) -> usize {
 }
 
 // Reading through the narrowed binding works the same way.
-total :: fn(x: i32[] | string[]) -> usize {
+total :: fn(x: i32[] | string[]) -> i64 {
     if x is i32[] {
         sum := 0
         for v in x {
             sum = sum + v
         }
-        return usize(sum)
+        return i64(sum)
     }
     return x.len()
 }

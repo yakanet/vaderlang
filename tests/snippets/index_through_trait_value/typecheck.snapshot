@@ -77,8 +77,8 @@
   expr 48:6     IndexExpr      :: i32
   expr 48:8     StringLitExpr  :: string
   expr 49:13    StringLitExpr  :: string
-  expr 49:16    CallExpr       :: usize
-  expr 49:16    FieldExpr      :: fn() -> usize
+  expr 49:16    CallExpr       :: i64
+  expr 49:16    FieldExpr      :: fn() -> i64
   expr 49:16    FieldExpr      :: string[]
   expr 49:16    IdentExpr      :: Log
   expr 49:33    FieldExpr      :: string[]
@@ -108,6 +108,6 @@
   expr 54:38    IdentExpr      :: i64
   expr 54:5     CallExpr       :: void
   expr 54:5     IdentExpr      :: fn(T) -> void
-  expr 54:54    CallExpr       :: usize
-  expr 54:54    FieldExpr      :: fn() -> usize
+  expr 54:54    CallExpr       :: i64
+  expr 54:54    FieldExpr      :: fn() -> i64
   expr 54:54    IdentExpr      :: MutableMap<i64, i32>

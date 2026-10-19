@@ -26,9 +26,9 @@ export CommentKind :: enum(u8) {
 /// One scanned comment, ready for replay by the printer.
 export Comment :: struct {
     // Byte offset (inclusive) of the leading `/` in the source.
-    offset:      usize
+    offset:      i64
     // Byte offset (exclusive) past the comment's closing token.
-    end_offset:  usize
+    end_offset:  i64
     // 1-based source line of `offset` — used to decide leading vs trailing.
     line:        i32
     // 1-based source line where the comment ends. For line comments
@@ -50,7 +50,7 @@ export Comment :: struct {
 /// document order.
 export CommentMap :: struct {
     comments: Comment[]
-    cursor:   usize
+    cursor:   i64
 }
 
 // The delimiter of a triple-quoted string literal.
@@ -65,7 +65,7 @@ TRIPLE_QUOTE :: "\"\"\""
 export scan_comments :: fn(source: string) -> CommentMap {
     out: Comment[]: []
     n :: source.byte_len()
-    i: usize = 0
+    i: i64 = 0
     line: i32 = 1
     for i < n {
         b :: source.byte_at(i)
@@ -82,7 +82,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
             start :: i
             start_line :: line
             is_doc :: source.matches_at(i, "///")
-            j: usize = i + 2
+            j: i64 = i + 2
             for j < n && source.byte_at(j) != '\n' {
                 j = j + 1
             }
@@ -107,7 +107,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
         if b == '/' && source.matches_at(i, "/*") {
             start :: i
             start_line :: line
-            j: usize = i + 2
+            j: i64 = i + 2
             depth: i32 = 1
             for j < n && depth > 0 {
                 cur :: source.byte_at(j)
@@ -148,7 +148,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
         if b == '"' {
             // Triple-quoted ?
             if source.matches_at(i, TRIPLE_QUOTE) {
-                j: usize = i + 3
+                j: i64 = i + 3
                 for j + 2 < n {
                     if source.byte_at(j) == '"' && source.matches_at(j, TRIPLE_QUOTE) {
                         j = j + 3
@@ -166,7 +166,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
             // recurse into `${expr}` interpolation : a closing `"` inside an
             // interp expression is rare and we accept the small risk of
             // misclassification.
-            j: usize = i + 1
+            j: i64 = i + 1
             for j < n {
                 c :: source.byte_at(j)
                 if c == '\\' && j + 1 < n {
@@ -186,7 +186,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
 
         // Raw string `r"…"`.
         if b == 'r' && source.matches_at(i, "r\"") {
-            j: usize = i + 2
+            j: i64 = i + 2
             for j < n {
                 c :: source.byte_at(j)
                 if c == '"' {
@@ -202,7 +202,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
 
         // Char literal `'…'`. Same escape rules as strings.
         if b == '\'' {
-            j: usize = i + 1
+            j: i64 = i + 1
             for j < n {
                 c :: source.byte_at(j)
                 if c == '\\' && j + 1 < n {
@@ -226,7 +226,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
 }
 
 // True when a non-blank byte precedes `at` on its own line.
-code_before_on_line :: fn(source: string, at: usize) -> bool {
+code_before_on_line :: fn(source: string, at: i64) -> bool {
     k := at
     for k > 0 {
         k = k - 1
@@ -240,7 +240,7 @@ code_before_on_line :: fn(source: string, at: usize) -> bool {
 // True when at least one un-emitted comment has `offset < before`. The
 // printer uses this to decide whether a separator line is needed between
 // the leading-comment run and the AST node that follows.
-export has_before :: fn(self: CommentMap, before: usize) -> bool {
+export has_before :: fn(self: CommentMap, before: i64) -> bool {
     if self.cursor >= self.comments.len() { return false }
     c :: self.comments[self.cursor]
     return c.offset < before
@@ -250,7 +250,7 @@ export has_before :: fn(self: CommentMap, before: usize) -> bool {
 /// `before` ; null otherwise. Consumes nothing.
 ///
 /// @param before  byte offset the comment must start before.
-export first_line_before :: fn(self: CommentMap, before: usize) -> i32 | null {
+export first_line_before :: fn(self: CommentMap, before: i64) -> i32 | null {
     if self.cursor >= self.comments.len() {
         return null
     }
@@ -262,7 +262,7 @@ export first_line_before :: fn(self: CommentMap, before: usize) -> i32 | null {
 // cursor past them. The printer calls this just before emitting each
 // AST node so leading comments land at the right position.
 
-export take_before :: fn(self: CommentMap, before: usize) -> Comment[] {
+export take_before :: fn(self: CommentMap, before: i64) -> Comment[] {
     out: Comment[]: []
     for self.cursor < self.comments.len() {
         c :: self.comments[self.cursor]

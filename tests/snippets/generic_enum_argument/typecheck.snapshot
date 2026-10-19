@@ -77,6 +77,6 @@
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 42:53    DotVariantExpr :: HttpStatus
   expr 42:61    StringLitExpr  :: string
-  expr 42:68    CallExpr       :: usize
-  expr 42:68    FieldExpr      :: fn() -> usize
+  expr 42:68    CallExpr       :: i64
+  expr 42:68    FieldExpr      :: fn() -> i64
   expr 42:68    IdentExpr      :: MutableMap<HttpStatus, string>

@@ -260,7 +260,7 @@ export Field :: struct {
 
 /// Range produced by `0..<n` / `0..=n` and `'a'..='z'`. Generic over the
 /// bound type so integer ranges (every signed / unsigned width plus
-/// `usize` / `isize`) and char ranges share a single struct. The `cursor`
+/// `i64` / `i64`) and char ranges share a single struct. The `cursor`
 /// field is advanced by each `next` call via implicit struct-ref mutation.
 export Range :: struct<T> {
     start:     T
@@ -355,8 +355,8 @@ T[] implements<T: Equals> Contains<T> {
 /// devirt can't statically reach. The return is a fresh array the caller owns.
 /// Blanket impl (orphan rule : `Mul` is std/core's, `T[]` isn't), mirroring
 /// `Into` / `Contains`.
-T[] implements<T> Mul<usize> {
-    mul :: fn(self, other: usize) -> T[] {
+T[] implements<T> Mul<i64> {
+    mul :: fn(self, other: i64) -> T[] {
         out: T[]: []
         for _ in 0..<other { out.push_all(self) }
         return out
@@ -369,7 +369,7 @@ T[] implements<T> Mul<usize> {
 T[] implements<T: Display> Display {
     to_string :: fn(self) -> string {
         parts: string[]: []
-        size: usize = 2
+        size: i64 = 2
         for item in self {
             part :: item.to_string()
             size += part.byte_len()

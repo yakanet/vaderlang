@@ -195,8 +195,8 @@ bake_file_exprs :: fn(decls: AST.Decl[], project: EvaluatedProject, program: Eva
 
 // The constant each bare `NAME :: @file(...)` initialises, keyed by the `@file`
 // call's node id.
-file_constants :: fn(decls: AST.Decl[]) -> MutableMap<usize, AST.ConstDecl> {
-    out :: MutableMap<usize, AST.ConstDecl> {}
+file_constants :: fn(decls: AST.Decl[]) -> MutableMap<i64, AST.ConstDecl> {
+    out :: MutableMap<i64, AST.ConstDecl> {}
     for decl in decls {
         if decl is AST.ConstDecl {
             if decl.value is AST.IntrinsicCallExpr as ic {

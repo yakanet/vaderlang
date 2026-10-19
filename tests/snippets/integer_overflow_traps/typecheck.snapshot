@@ -4,8 +4,8 @@
   FnDecl         main                 :: fn(string[]) -> i32
   expr 11:12    CallExpr       :: i32
   expr 11:12    IdentExpr      :: type
-  expr 11:16    CallExpr       :: usize
-  expr 11:16    FieldExpr      :: fn() -> usize
+  expr 11:16    CallExpr       :: i64
+  expr 11:16    FieldExpr      :: fn() -> i64
   expr 11:16    IdentExpr      :: string[]
   expr 13:13    StringLitExpr  :: string
   expr 13:29    BinaryExpr     :: u8

@@ -10,7 +10,7 @@
   FnDecl         over_inclusive       :: fn(i32, i32) -> i64[]
   FnDecl         over_range           :: fn(i32, i32) -> i64[]
   FnDecl         show                 :: fn(string, i64[]) -> void
-  FnDecl         span_count           :: fn(i8, i8) -> usize
+  FnDecl         span_count           :: fn(i8, i8) -> i64
   FnDecl         split                :: fn(i32[]) -> i64
   FnDecl         square               :: fn(i32) -> i64
   FnDecl         squares_later        :: fn(i32[]) -> Async<i64[]>
@@ -93,8 +93,8 @@
   expr 129:5    CallExpr       :: void
   expr 129:5    IdentExpr      :: fn(string, i64[]) -> void
   expr 130:13   StringLitExpr  :: string
-  expr 130:31   CallExpr       :: usize
-  expr 130:31   IdentExpr      :: fn(i8, i8) -> usize
+  expr 130:31   CallExpr       :: i64
+  expr 130:31   IdentExpr      :: fn(i8, i8) -> i64
   expr 130:5    CallExpr       :: void
   expr 130:5    IdentExpr      :: fn(T) -> void
   expr 131:10   StringLitExpr  :: string
@@ -177,8 +177,8 @@
   expr 56:9     CallExpr       :: void
   expr 56:9     FieldExpr      :: fn(i8) -> void
   expr 56:9     IdentExpr      :: i8[]
-  expr 58:12    CallExpr       :: usize
-  expr 58:12    FieldExpr      :: fn() -> usize
+  expr 58:12    CallExpr       :: i64
+  expr 58:12    FieldExpr      :: fn() -> i64
   expr 58:12    IdentExpr      :: i8[]
   expr 66:17    SeqLitExpr     :: i64[]
   expr 67:14    FieldExpr      :: i32[]
@@ -211,9 +211,9 @@
   expr 82:12    BinaryExpr     :: i64
   expr 82:12    IdentExpr      :: i64[]
   expr 82:12    IndexExpr      :: i64
-  expr 82:20    BinaryExpr     :: usize
-  expr 82:20    CallExpr       :: usize
-  expr 82:20    FieldExpr      :: fn() -> usize
+  expr 82:20    BinaryExpr     :: i64
+  expr 82:20    CallExpr       :: i64
+  expr 82:20    FieldExpr      :: fn() -> i64
   expr 82:20    IdentExpr      :: i64[]
   expr 82:41    IdentExpr      :: i64[]
   expr 82:41    IndexExpr      :: i64

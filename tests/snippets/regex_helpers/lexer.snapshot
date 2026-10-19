@@ -201,9 +201,9 @@
 [26:1-26:1  ] newline        "\n"
 [26:5-26:6  ] ident          "i"
 [26:6-26:7  ] colon          ":"
-[26:8-26:13 ] ident          "usize"
-[26:14-26:15] assign         "="
-[26:16-26:17] int_literal    "0" =0n
+[26:8-26:11 ] ident          "i64"
+[26:12-26:13] assign         "="
+[26:14-26:15] int_literal    "0" =0n
 [27:1-27:1  ] newline        "\n"
 [27:5-27:8  ] kw_for         "for"
 [27:9-27:10 ] ident          "i"

@@ -61,7 +61,7 @@ shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool = fn(i
 /// One line on what the summary concluded, for `$VADER_OPT_REPORT`.
 summary_line :: fn(s: ShrinkSummary) -> string {
     nodes :: s.calls.nodes
-    is_function :: (i: usize) -> nodes[i] is CFGFunction
+    is_function :: (i: i64) -> nodes[i] is CFGFunction
     functions :: count_where(nodes.len(), is_function)
     shrinking :: count_where(nodes.len(), (i) -> is_function(i) && s.may_shrink[i])
     by_their_body :: count_where(
@@ -76,7 +76,7 @@ summary_line :: fn(s: ShrinkSummary) -> string {
 }
 
 // How many of `0..<n` satisfy `pred`.
-count_where :: fn(n: usize, pred: fn(usize) -> bool) -> usize = (0..<n).filter(pred).count()
+count_where :: fn(n: i64, pred: fn(i64) -> bool) -> i64 = (0..<n).filter(pred).count()
 
 // What a node does by itself, its calls left out.
 node_shrinks_by_itself :: fn(node: CallNode) -> bool = match node {

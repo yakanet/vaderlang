@@ -6,9 +6,9 @@
           .ekeys = [] :string[],
           .evals = [] :u8[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, u8>.set_at(mu8, "x", u8(200))
       std.collections.MutableMap<string, u8>.set_at(mu8, "y", u8(7))
@@ -18,8 +18,8 @@
       } else {
           std.io.println<string>({
               __p_0: string = @vcall(std.core.Display.to_string, std.collections.MutableMap<string, u8>.at(mu8, "y"))
-              __buf_1: Buffer = std.core.new_byte_buffer(usize(28) +% std.core.byte_len(__p_0))
-              __off_2: usize = 0
+              __buf_1: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_0))
+              __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "u8 x=")
               __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(u8(vx)))
               __off_2 = std.core.write_string_at(__buf_1, __off_2, " y=")
@@ -31,9 +31,9 @@
           .ekeys = [] :string[],
           .evals = [] :bool[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, bool>.set_at(mbool, "t", true)
       std.collections.MutableMap<string, bool>.set_at(mbool, "f", false)
@@ -43,8 +43,8 @@
           std.io.println<string>("bool: missing")
       } else {
           std.io.println<string>({
-              __buf_3: Buffer = std.core.new_byte_buffer(usize(20))
-              __off_4: usize = 0
+              __buf_3: Buffer = std.core.new_byte_buffer(i64(20))
+              __off_4: i64 = 0
               __off_4 = std.core.write_string_at(__buf_3, __off_4, "bool t=")
               __off_4 = std.core.write_bool(__buf_3, __off_4, bool(vt))
               __off_4 = std.core.write_string_at(__buf_3, __off_4, " f=")
@@ -56,9 +56,9 @@
           .ekeys = [] :string[],
           .evals = [] :char[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, char>.set_at(mchar, "first", 'A')
       std.collections.MutableMap<string, char>.set_at(mchar, "accent", '\u{e9}')
@@ -72,9 +72,9 @@
           .ekeys = [] :string[],
           .evals = [] :f32[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, f32>.set_at(mf32, "pi", f32(3.5))
       vp: f32 | null = std.collections.MutableMap<string, f32>.at(mf32, "pi")
@@ -87,9 +87,9 @@
           .ekeys = [] :string[],
           .evals = [] :f64[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, f64>.set_at(mf64, "e", 2.25)
       ve: f64 | null = std.collections.MutableMap<string, f64>.at(mf64, "e")
@@ -102,9 +102,9 @@
           .ekeys = [] :string[],
           .evals = [] :i16[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, i16>.set_at(mi16, "neg", i16(-1000))
       vn: i16 | null = std.collections.MutableMap<string, i16>.at(mi16, "neg")
@@ -112,8 +112,8 @@
           std.io.println<string>("i16: missing")
       } else {
           std.io.println<string>({
-              __buf_5: Buffer = std.core.new_byte_buffer(usize(28))
-              __off_6: usize = 0
+              __buf_5: Buffer = std.core.new_byte_buffer(i64(28))
+              __off_6: i64 = 0
               __off_6 = std.core.write_string_at(__buf_5, __off_6, "i16 neg=")
               __off_6 = std.core.write_int(__buf_5, __off_6, i64(i16(vn)))
               std.core.finish_buffer(__buf_5, __off_6)
@@ -123,9 +123,9 @@
           .ekeys = [] :string[],
           .evals = [] :u16[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       std.collections.MutableMap<string, u16>.set_at(mu16, "big", u16(50000))
       vb: null | u16 = std.collections.MutableMap<string, u16>.at(mu16, "big")
@@ -133,8 +133,8 @@
           std.io.println<string>("u16: missing")
       } else {
           std.io.println<string>({
-              __buf_7: Buffer = std.core.new_byte_buffer(usize(28))
-              __off_8: usize = 0
+              __buf_7: Buffer = std.core.new_byte_buffer(i64(28))
+              __off_8: i64 = 0
               __off_8 = std.core.write_string_at(__buf_7, __off_8, "u16 big=")
               __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(u16(vb)))
               std.core.finish_buffer(__buf_7, __off_8)
@@ -144,9 +144,9 @@
           .ekeys = [] :string[],
           .evals = [] :i64[],
           .index = [] :i32[],
-          .mask = usize(0),
-          .size = usize(0),
-          .tombs = usize(0),
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
       }
       huge: i64 = 9000000000
       std.collections.MutableMap<string, i64>.set_at(mi64, "huge", huge)
@@ -155,8 +155,8 @@
           std.io.println<string>("i64: missing")
       } else {
           std.io.println<string>({
-              __buf_9: Buffer = std.core.new_byte_buffer(usize(29))
-              __off_10: usize = 0
+              __buf_9: Buffer = std.core.new_byte_buffer(i64(29))
+              __off_10: i64 = 0
               __off_10 = std.core.write_string_at(__buf_9, __off_10, "i64 huge=")
               __off_10 = std.core.write_int(__buf_9, __off_10, i64(vh))
               std.core.finish_buffer(__buf_9, __off_10)
@@ -167,8 +167,8 @@
           std.io.println<string>("miss: ok")
       } else {
           std.io.println<string>({
-              __buf_11: Buffer = std.core.new_byte_buffer(usize(32))
-              __off_12: usize = 0
+              __buf_11: Buffer = std.core.new_byte_buffer(i64(32))
+              __off_12: i64 = 0
               __off_12 = std.core.write_string_at(__buf_11, __off_12, "miss: WRONG ")
               __off_12 = std.core.write_unsigned(__buf_11, __off_12, u64(u8(miss)))
               std.core.finish_buffer(__buf_11, __off_12)
@@ -177,22 +177,22 @@
       return 0
   }
   concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      c2: usize = c1 +% std.core.byte_len(p2)
-      c3: usize = c2 +% std.core.byte_len(p3)
-      buf: Buffer = std.core.usize.new_buffer(c3)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.usize.new_buffer(usize(c3))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.write_string(buf, c1, p2)
       std.core.Buffer.write_string(buf, c2, p3)
       std.core.Buffer.intern_string(buf, c3)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -363,8 +363,8 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
@@ -387,6 +387,8 @@
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
@@ -416,9 +418,7 @@
     fn std.core.u64.to_string  // std_core$u64$Display$to_string
     fn std.core.u8.to_string  // std_core$u8$Display$to_string
     fn std.core.umul128  // std_core$umul128
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.usize.to_string  // std_core$usize$Display$to_string
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
@@ -435,7 +435,7 @@
     struct std.core.FloatDec32  // std_core$FloatDec32
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

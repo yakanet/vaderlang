@@ -77,7 +77,7 @@ export site_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -
 
 // The key of a function: its declaration's node id, apart from every symbol id.
 // Node ids and symbol ids are two numberings, so functions take the negative half.
-fn_key :: fn(decl: AST.FnDecl) -> i64 = -i64(decl.id) - 1
+fn_key :: fn(decl: AST.FnDecl) -> i64 = -decl.id - 1
 
 /// True when `sp` is in `file` AND the 1-based (line, col) falls inside it.
 ///
@@ -237,8 +237,8 @@ RecordedFns :: struct {
 // The fns the typecheck recorded in `typed`, by node : one pass over the record's
 // tables rather than a lookup per role at every node. A member materialised from a
 // trait default has no source of its own.
-recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns> {
-    out :: MutableMap<usize, RecordedFns> {}
+recorded_fns :: fn(typed: TypedProgram) -> MutableMap<i64, RecordedFns> {
+    out :: MutableMap<i64, RecordedFns> {}
     for role in all_roles() {
         for [id, callee] in sites_of(typed.call_sites, role) {
             for decl in named_decls(callee) {
@@ -257,7 +257,7 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<usize, RecordedFns> {
     return out
 }
 
-new_recorded :: fn(out: MutableMap<usize, RecordedFns>, id: usize) -> RecordedFns {
+new_recorded :: fn(out: MutableMap<i64, RecordedFns>, id: i64) -> RecordedFns {
     fresh :: RecordedFns {}
     out[id] = fresh
     return fresh
@@ -690,7 +690,7 @@ import "std/testing"
 
 // Count the identifier spans the walker collects from a parsed source — guards
 // the walker's coverage (parse-only, no resolution needed).
-collect_count :: fn(src: string) -> usize {
+collect_count :: fn(src: string) -> i64 {
     parsed :: Parse.parse_source(src, "t.vader")
     out :: Collected {}
     for d in parsed.program.decls { collect_decl_idents(d, out) }

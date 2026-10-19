@@ -4,13 +4,13 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:13    StringLitExpr  :: string
   expr 10:17    CallExpr       :: string
-  expr 10:17    FieldExpr      :: fn(usize, char) -> string
+  expr 10:17    FieldExpr      :: fn(i64, char) -> string
   expr 10:17    StringLitExpr  :: string
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(T) -> void
   expr 11:13    StringLitExpr  :: string
   expr 11:17    CallExpr       :: string
-  expr 11:17    FieldExpr      :: fn(usize, char) -> string
+  expr 11:17    FieldExpr      :: fn(i64, char) -> string
   expr 11:17    StringLitExpr  :: string
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
@@ -30,7 +30,7 @@
   expr 16:27    CallExpr       :: string
   expr 16:27    CallExpr       :: string
   expr 16:27    FieldExpr      :: fn() -> string
-  expr 16:27    FieldExpr      :: fn(usize, char) -> string
+  expr 16:27    FieldExpr      :: fn(i64, char) -> string
   expr 16:27    IdentExpr      :: u64
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
@@ -57,7 +57,7 @@
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 9:13     StringLitExpr  :: string
   expr 9:17     CallExpr       :: string
-  expr 9:17     FieldExpr      :: fn(usize, char) -> string
+  expr 9:17     FieldExpr      :: fn(i64, char) -> string
   expr 9:17     StringLitExpr  :: string
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void

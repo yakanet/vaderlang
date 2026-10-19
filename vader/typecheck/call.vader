@@ -171,7 +171,7 @@ pick_member_index :: fn(
     expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
-) -> usize | null {
+) -> i64 | null {
     if c.args.len() > 0 {
         arg0 :: check_expr(c.args[0].value, null, typed, [])
         pick :: pick_by_first_arg(sigs, arg0, c.args.len(), typed)
@@ -181,7 +181,7 @@ pick_member_index :: fn(
         }
         return pick.best ?? 0
     }
-    fits: usize[]: []
+    fits: i64[]: []
     if expected != null {
         for i in 0..<sigs.len() {
             sig :: sigs[i]
@@ -208,9 +208,9 @@ pick_member_index :: fn(
 /// Which of several members a first argument picks (`overload_rank`).
 ArgPick :: struct {
     /// The best-ranked member's index ; null when none takes the argument.
-    best:  usize | null = null
+    best:  i64 | null = null
     /// Another member that ranks the same : the use site is ambiguous.
-    rival: usize | null = null
+    rival: i64 | null = null
 }
 
 /// The member whose first parameter takes `arg` best, among `sigs` — each a member's
@@ -219,7 +219,7 @@ ArgPick :: struct {
 /// @param sigs   the members' signatures ; one that is no `FnType` is skipped.
 /// @param arg    the type of the use site's first argument.
 /// @param arity  the use site's argument count, which an exact arity ranks above.
-pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: usize, typed: TypedProgram) -> ArgPick {
+pick_by_first_arg :: fn(sigs: Type[], arg: Type, arity: i64, typed: TypedProgram) -> ArgPick {
     pick := ArgPick {}
     best_rank: i32 = -1
     for i in 0..<sigs.len() {
@@ -264,7 +264,7 @@ OWN_TYPE_CLOSENESS: i32: 9
 // How tightly `param0` holds the integer argument `arg0` : `OWN_TYPE_CLOSENESS`
 // for its own type, that less the bytes of the integer of `param0` holding it
 // otherwise (a union's variant included), so that `min(b, b)` on a `u8` takes the
-// `i32` overload over the `usize` one ; 0 for an argument of no integer type.
+// `i32` overload over the `i64` one ; 0 for an argument of no integer type.
 integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
     if integer_values(arg0) == null {
         return 0
@@ -408,7 +408,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
     }
     slots: (AST.CallArg | null)[]: [null] * params.len()
     seen_named := false
-    next_pos: usize = 0
+    next_pos: i64 = 0
     ok := true
     for a in c.args {
         arg_name :: a.name
@@ -443,7 +443,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
                     typecheck_error(.UnknownNamedArg, a.span, "no parameter named `${arg_name}`"),
                 )
                 ok = false
-            } else if slots[usize(idx)] != null {
+            } else if slots[idx] != null {
                 diags.push(
                     typecheck_error(
                         .NamedArgDuplicatesPositional,
@@ -453,7 +453,7 @@ normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnos
                 )
                 ok = false
             } else {
-                slots[usize(idx)] = a
+                slots[idx] = a
             }
         }
     }
@@ -503,10 +503,10 @@ in_parameter_order :: fn(params: AST.FnParam[], args: AST.CallArg[]) -> bool {
     return true
 }
 
-param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
+param_index_by_name :: fn(params: AST.FnParam[], name: string) -> i64 {
     for i in 0..<params.len() {
         if params[i].name == name {
-            return isize(i)
+            return i
         }
     }
     return -1
@@ -807,7 +807,7 @@ explicit_params :: fn(
     return out
 }
 
-type_args_taken :: fn(declared: usize) -> string {
+type_args_taken :: fn(declared: i64) -> string {
     if declared == 0 {
         return "no type argument"
     }

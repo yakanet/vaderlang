@@ -103,7 +103,7 @@ WalkPosition :: struct {
     /// The fn being walked.
     fn_ctx: FnContext | null
     /// The callee being typed (`TypedProgram.callee_field_id`).
-    callee_field_id: usize
+    callee_field_id: i64
     /// The impl, and its type parameters, whose members are walked.
     enclosing_impl: u64
     enclosing_impl_params: MutableSet<i32>
@@ -177,7 +177,7 @@ closes_reported_cycle :: fn(key: u64, cd: AST.ConstDecl, walk: ConstWalk) -> boo
 DependencyFrame :: struct {
     decl: AST.ConstDecl
     reads: AST.ConstDecl[]
-    next: usize = 0
+    next: i64 = 0
 }
 
 // `root` and the consts of this walk it reads, not yet typed, each after the ones it

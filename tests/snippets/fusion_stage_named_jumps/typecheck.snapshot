@@ -145,7 +145,7 @@
   expr 92:14    CallExpr       :: __genstate_first_two_of_odd<i32>
   expr 92:14    CallExpr       :: __genstate_take<i32>
   expr 92:14    FieldExpr      :: fn() -> Iterator<i32>
-  expr 92:14    FieldExpr      :: fn(usize) -> Iterator<i32>
+  expr 92:14    FieldExpr      :: fn(i64) -> Iterator<i32>
   expr 92:14    SeqLitExpr     :: i32[]
   expr 93:17    BinaryExpr     :: string
   expr 93:17    IdentExpr      :: string
@@ -156,7 +156,7 @@
   expr 96:11    CallExpr       :: __genstate_first_two_of_odd<i32>
   expr 96:11    CallExpr       :: __genstate_take<i32>
   expr 96:11    FieldExpr      :: fn() -> Iterator<i32>
-  expr 96:11    FieldExpr      :: fn(usize) -> Iterator<i32>
+  expr 96:11    FieldExpr      :: fn(i64) -> Iterator<i32>
   expr 96:11    SeqLitExpr     :: i32[]
   expr 97:14    IdentExpr      :: __genstate_first_two_of_odd<i32>
   expr 98:16    BinaryExpr     :: string

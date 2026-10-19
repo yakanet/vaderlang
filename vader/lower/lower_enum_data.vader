@@ -58,7 +58,7 @@ lower_enum_data_slot :: fn(
 /// @param enum_type  its enum.
 /// @param span       the conversion.
 lower_enum_data_read :: fn(
-    ctx: FnLowerCtx, node: usize, value: LoweredExpr, enum_type: EnumType, span: Span,
+    ctx: FnLowerCtx, node: i64, value: LoweredExpr, enum_type: EnumType, span: Span,
 ) -> LoweredExpr {
     slot :: lower_enum_data_slot(ctx, value, enum_type, span)
     if node !in ctx.project.typed.fresh.uses {
@@ -107,7 +107,7 @@ lower_enum_value :: fn(
     values :: enum_type.values
     i64_type :: mk_primitive("i64")
     if value is LoweredIntLit {
-        return LoweredIntLit { .span = span, .type = i64_type, .value = values[usize(value.value)] }
+        return LoweredIntLit { .span = span, .type = i64_type, .value = values[value.value] }
     }
     if is_consecutive(values) {
         if values[0] == 0 {
@@ -139,7 +139,7 @@ rank_of :: fn(value: LoweredExpr, span: Span) -> LoweredExpr =
 
 is_consecutive :: fn(values: i64[]) -> bool {
     for rank in 0..<values.len() {
-        if values[rank] != values[0] + i64(rank) {
+        if values[rank] != values[0] + rank {
             return false
         }
     }

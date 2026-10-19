@@ -10,7 +10,7 @@ main :: fn() -> i32 {
     println("a == b : ${a.equals(b)}")
     println("a == c : ${a.equals(c)}")
 
-    n: usize: 100
+    n: i64: 100
     println("hash(n) = ${n.hash()}")
     return 0
 }

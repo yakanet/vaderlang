@@ -25,7 +25,7 @@ export MAX_CODEPOINT :: char(0x10FFFF)
 /// `codepoint_at_byte` answers that one.
 /// @param c  the codepoint to measure.
 /// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
-export codepoint_byte_len :: fn(c: char) -> usize {
+export codepoint_byte_len :: fn(c: char) -> i64 {
     cp :: u32(c)
     if cp < 0x80    { return 1 }
     if cp < 0x800   { return 2 }

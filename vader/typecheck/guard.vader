@@ -34,10 +34,10 @@ AST :: import "toolchain/ast"
 export GuardState :: struct {
     /// The module's top-level fns that may be inferred guards
     /// (`is_guard_candidate`), by node id.
-    candidates: MutableSet<usize> = MutableSet<usize> {}
+    candidates: MutableSet<i64> = MutableSet<i64> {}
     /// What each checked candidate proves, by node id ; nothing while its body is
     /// being checked.
-    facts: MutableMap<usize, GuardFact[]> = MutableMap<usize, GuardFact[]> {}
+    facts: MutableMap<i64, GuardFact[]> = MutableMap<i64, GuardFact[]> {}
     /// A contract of the fn whose body is being checked, `@returns` or `@ensures` :
     /// a write to one of its parameters, from a lambda in it too, is refused.
     verifying: GuardContract | null = null
@@ -47,7 +47,7 @@ export GuardState :: struct {
 /// module shares.
 export SharedGuards :: struct {
     /// The module declaring each fn with a contract, by node id.
-    owners: MutableMap<usize, TypedProgram> = MutableMap<usize, TypedProgram> {}
+    owners: MutableMap<i64, TypedProgram> = MutableMap<i64, TypedProgram> {}
     /// What each `@returns` states.
     returns: ContractTable = ContractTable {}
     /// What each `@ensures` states.
@@ -57,10 +57,10 @@ export SharedGuards :: struct {
 /// The contracts of one decorator, read on demand.
 export ContractTable :: struct {
     /// Each contract read so far, by node id.
-    contracts: MutableMap<usize, GuardContract> = MutableMap<usize, GuardContract> {}
+    contracts: MutableMap<i64, GuardContract> = MutableMap<i64, GuardContract> {}
     /// The contracts being read : a condition that reaches its own fn reads nothing
     /// of it.
-    reading: MutableSet<usize> = MutableSet<usize> {}
+    reading: MutableSet<i64> = MutableSet<i64> {}
 }
 
 /// What a fn declaring `@returns` or `@ensures` promises : the facts its condition
@@ -74,7 +74,7 @@ export GuardContract :: struct {
 /// What a guard proves about one of its parameters.
 export GuardFact :: struct {
     /// The parameter's position.
-    index: usize
+    index: i64
     /// The parameter's declared type.
     declared: Type
     /// What it holds where the condition is true : the guard returns true, or the
@@ -759,7 +759,7 @@ push_guard_call :: fn(call: AST.CallExpr, truth: bool, typed: TypedProgram, push
 // The argument `call` passes the parameter `index` of a fn `offset` of whose
 // parameters its receiver fills ; the typecheck put the arguments in parameter
 // order.
-guard_argument :: fn(call: AST.CallExpr, offset: usize, index: usize) -> AST.Expr | null {
+guard_argument :: fn(call: AST.CallExpr, offset: i64, index: i64) -> AST.Expr | null {
     if index < offset {
         callee :: call.callee
         if callee is AST.FieldExpr {

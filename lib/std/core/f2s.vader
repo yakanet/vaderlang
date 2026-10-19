@@ -48,8 +48,8 @@ mul_shift_32 :: fn(m: u32, factor: u64, shift: i32) -> u32 {
     return u32(sum >> u64(shift - 32))
 }
 
-mul_pow5_inv_div_pow2 :: fn(m: u32, q: i32, j: i32) -> u32 = mul_shift_32(m, FLOAT_POW5_INV_SPLIT[usize(q)], j)
-mul_pow5_div_pow2     :: fn(m: u32, i: i32, j: i32) -> u32 = mul_shift_32(m, FLOAT_POW5_SPLIT[usize(i)], j)
+mul_pow5_inv_div_pow2 :: fn(m: u32, q: i32, j: i32) -> u32 = mul_shift_32(m, FLOAT_POW5_INV_SPLIT[q], j)
+mul_pow5_div_pow2     :: fn(m: u32, i: i32, j: i32) -> u32 = mul_shift_32(m, FLOAT_POW5_SPLIT[i], j)
 
 // Count of factors of 5 in `value` (value != 0).
 pow5_factor_32 :: fn(value_in: u32) -> i32 {

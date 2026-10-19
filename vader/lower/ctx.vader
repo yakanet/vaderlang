@@ -59,7 +59,7 @@ ClosureAnalysis :: struct {
 /// Module-qualified key for the closure-analysis capture maps. Combines the
 /// module's stable path with the node id so two modules' identically-numbered
 /// AST nodes don't collide in the project-global maps.
-capture_key :: fn(module_path: string, node_id: usize) -> string = "${module_path}#${node_id}"
+capture_key :: fn(module_path: string, node_id: i64) -> string = "${module_path}#${node_id}"
 
 /// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
 /// build a `LowerProjectCtx` before the analyser has populated it.
@@ -104,7 +104,7 @@ LowerProjectCtx :: struct {
     /// Every free fn's symbol, in the module that declares it, keyed by its
     /// declaration's node id : the typecheck's record names a fn by its declaration,
     /// a call names it by its symbol (`populate_fn_symbols`).
-    fn_symbols:          MutableMap<usize, Symbol> = MutableMap<usize, Symbol> {}
+    fn_symbols:          MutableMap<i64, Symbol> = MutableMap<i64, Symbol> {}
 
     /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
     /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
@@ -126,7 +126,7 @@ LowerProjectCtx :: struct {
     inlining_callees:    MutableSet<i32> = MutableSet<i32> {}
     /// The id each inlined impl member's instances are keyed on, by its
     /// declaration's id: a member has no resolver symbol to lend its own.
-    impl_member_ids:     MutableMap<usize, i32> = MutableMap<usize, i32> {}
+    impl_member_ids:     MutableMap<i64, i32> = MutableMap<i64, i32> {}
     /// Instance clone id → the resolver's id for the same binding: the key of
     /// every resolver table indexed by symbol id (`origin_symbol_id`).
     clone_origins:       MutableMap<i32, i32> = MutableMap<i32, i32> {}
@@ -208,7 +208,7 @@ LowerProjectCtx :: struct {
     /// Tables due, in first-read order. `materialize_enum_tables` lowers each
     /// from `enum_table_cursor` on, inside the lowering fixpoint.
     enum_table_order:    EnumTable[]
-    enum_table_cursor:   usize
+    enum_table_cursor:   i64
 
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
@@ -260,7 +260,7 @@ LowerProjectCtx :: struct {
     /// materialise↔surface fixpoint loop drains newly-harvested fns
     /// (e.g. `decode_tail` pulled in by a surfaced `StringChars.next`)
     /// without re-lowering earlier entries.
-    nongeneric_imported_cursor: usize
+    nongeneric_imported_cursor: i64
 
     /// Module-level `const` decls observed at reference sites in any non-entry
     /// module (`register_nongeneric_imported_const`). Like fns, such a const's
@@ -278,7 +278,7 @@ LowerProjectCtx :: struct {
     /// the materialise↔surface fixpoint so a const harvested late (e.g. one
     /// referenced only by a surfaced stdlib fn body) is lowered without
     /// re-lowering earlier entries.
-    nongeneric_imported_const_cursor: usize
+    nongeneric_imported_const_cursor: i64
 
     /// Erasure-dedupe of impl-member emissions — keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
@@ -372,14 +372,14 @@ LowerProjectCtx :: struct {
     @internal
     generic_collected:   PendingFnInstance[]
     generic_processed:   MutableMap<string, bool>
-    generic_fn_cursor:   usize
-    generic_recv_cursor: usize
+    generic_fn_cursor:   i64
+    generic_recv_cursor: i64
 
     /// The impl members with type parameters of their own, at the types a call
     /// gives them, queued by the call and materialised in the same fixpoint as
     /// the generic fn instances.
     member_instances: MemberInstance[] = []
-    member_instance_cursor: usize = 0
+    member_instance_cursor: i64 = 0
 
     diags:               Diagnostic[]
 }
@@ -477,14 +477,14 @@ BlockCtx :: struct {
     is_fn_root: bool
     /// The `ForStmt.id` of the loop this block is the body of; null for any
     /// other block. A jump drains defers up to the body of the loop it targets.
-    loop_id:    usize | null
+    loop_id:    i64 | null
 }
 
 /// Construct a fresh `BlockCtx` with no defers.
 /// @param is_fn_root  true when this block is the enclosing fn body.
 /// @param loop_id     the loop this block is the body of; null for any other.
 /// @return            a fresh block context.
-new_block_ctx :: fn(is_fn_root: bool, loop_id: usize | null) -> BlockCtx {
+new_block_ctx :: fn(is_fn_root: bool, loop_id: i64 | null) -> BlockCtx {
     return BlockCtx {
         .defers     = [],
         .is_fn_root = is_fn_root,
@@ -559,7 +559,7 @@ FnLowerCtx :: struct {
     /// while the statement is lowered, so the write and the read in
     /// `lhs op rhs` share one evaluation. Transient — `lower_compound_assign`
     /// removes its entries once the statement is lowered.
-    bound_operands:     MutableMap<usize, LoweredExpr> = MutableMap<usize, LoweredExpr> {}
+    bound_operands:     MutableMap<i64, LoweredExpr> = MutableMap<i64, LoweredExpr> {}
 
     /// True while lowering a `generator` body: `lower_stmt` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the

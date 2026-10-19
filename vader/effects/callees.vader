@@ -24,12 +24,12 @@ export CalleeIndex :: struct {
     /// Per node, the function and the module that typed it.
     functions: Function[] = []
     /// Declaration id → node, for each function with a body.
-    nodes: MutableMap<usize, i32> = MutableMap<usize, i32> {}
+    nodes: MutableMap<i64, i32> = MutableMap<i64, i32> {}
     /// Declaration id → what a bodyless function does.
-    bodyless: MutableMap<usize, CallTarget> = MutableMap<usize, CallTarget> {}
+    bodyless: MutableMap<i64, CallTarget> = MutableMap<i64, CallTarget> {}
     /// The declarations of the intrinsics that hand back a frozen view
     /// (`makes_frozen_view`).
-    frozen_views: MutableSet<usize> = MutableSet<usize> {}
+    frozen_views: MutableSet<i64> = MutableSet<i64> {}
     /// The nodes that return a view, found once the facts are settled
     /// (`spread_views`).
     view_nodes: MutableSet<i32> = MutableSet<i32> {}

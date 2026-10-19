@@ -37,7 +37,7 @@ byte_contains :: fn(s: string, sub: string) -> bool {
 /// @param s       the string read.
 /// @param offset  byte offset into `s`.
 /// @param sub     the bytes expected there.
-export matches_at :: fn(s: string, offset: usize, sub: string) -> bool {
+export matches_at :: fn(s: string, offset: i64, sub: string) -> bool {
     m :: sub.byte_len()
     if offset > s.byte_len() || m > s.byte_len() - offset {
         return false
@@ -72,7 +72,7 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
 /// bytes. The cursor moves in bytes over the string itself.
 export StringChars :: struct {
     @internal s:      string
-    @internal cursor: usize = 0
+    @internal cursor: i64 = 0
 }
 
 StringChars implements Iterator<char> {
@@ -115,7 +115,7 @@ export chars :: fn(s: string) -> StringChars = StringChars { .s = s }
 // generator, so a `for` inlines this walk instead of stepping an iterator.
 string implements Into<Iterator<char>> {
     into :: fn(self) -> Iterator<char> {
-        i: usize = 0
+        i: i64 = 0
         // The length is read at every turn rather than held in a local, so the C
         // compiler sees the bound `byte_at` checks against and drops that check.
         // Two `yield`s, each inlining the loop body: behind one shared `yield`,
@@ -182,7 +182,7 @@ is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
 /// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe — the byte
 /// cursor advances by each codepoint's encoded width), tracking the
-/// latest match. Returns `-1` when not found ; the signed `isize`
+/// latest match. Returns `-1` when not found ; the signed `i64`
 /// return type lets callers branch on `result < 0` instead of folding
 /// "absent" into a zero offset.
 /// @param s          source string.
@@ -191,13 +191,13 @@ is_white_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n' || b == '\r'
 ///                   match (later matches still win). Pass `0` to
 ///                   accept every position.
 /// @return           byte offset of the latest match, or `-1` if absent.
-export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
+export last_index_of :: fn(s: string, c: char, min_index: i64) -> i64 {
     n :: s.byte_len()
-    last: isize = -1
-    i: usize = 0
+    last: i64 = -1
+    i: i64 = 0
     for i < n {
         [cp, width] :: s.codepoint_at_byte(i)
-        if isize(i) >= min_index && cp == c { last = isize(i) }
+        if i >= min_index && cp == c { last = i }
         i += width
     }
     return last
@@ -212,12 +212,12 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
 /// @param c     codepoint to find.
 /// @param from  earliest leading-byte position considered.
 /// @return      byte offset of the match, or `-1` if absent.
-export index_of :: fn(s: string, c: char, from: usize) -> isize {
+export index_of :: fn(s: string, c: char, from: i64) -> i64 {
     n :: s.byte_len()
     i := from
     for i < n {
         [cp, width] :: s.codepoint_at_byte(i)
-        if cp == c { return isize(i) }
+        if cp == c { return i }
         i += width
     }
     return -1
@@ -238,7 +238,7 @@ export split :: fn(s: string, sep: string) -> string[] {
     n :: s.byte_len()
     m :: sep.byte_len()
     if m == 0 {
-        at: usize = 0
+        at: i64 = 0
         for at < n {
             next :: at + s.codepoint_at_byte(at).1
             out.push(s.byte_slice(at, next))
@@ -247,8 +247,8 @@ export split :: fn(s: string, sep: string) -> string[] {
         return out
     }
     first :: sep.byte_at(0)
-    start: usize = 0
-    i: usize = 0
+    start: i64 = 0
+    i: i64 = 0
     for i + m <= n {
         // `m == 1` skips the call: the first byte is the whole separator.
         if s.byte_at(i) == first && (m == 1 || s.matches_at(i, sep)) {
@@ -305,7 +305,7 @@ export replace_all :: fn(s: string, old: string, new: string) = s.split(old).joi
 /// @param s  the fragment to repeat.
 /// @param n  how many copies.
 /// @return   `s` repeated `n` times.
-export repeat :: fn(s: string, n: usize) -> string {
+export repeat :: fn(s: string, n: i64) -> string {
     sb :: StringBuilder {}
     for _ in 0..<n { sb.append(s) }
     return sb.to_string()
@@ -322,7 +322,7 @@ export contains_char :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
     n :: s.byte_len()
-    lo: usize = 0
+    lo: i64 = 0
     for lo < n && is_white_byte(s.byte_at(lo)) {
         lo += 1
     }
@@ -339,7 +339,7 @@ export trim :: fn(s: string) -> string {
 /// @return   `s` with its leading whitespace removed.
 export left_trim :: fn(s: string) -> string {
     n :: s.byte_len()
-    lo: usize = 0
+    lo: i64 = 0
     for lo < n && is_white_byte(s.byte_at(lo)) {
         lo += 1
     }
@@ -424,7 +424,7 @@ ParseError implements Error {
 export parse_int :: fn(s: string) -> i32 | ParseError {
     n :: s.byte_len()
     if n == 0 { return ParseError { .msg = "parse_int: empty string" } }
-    i: usize = 0
+    i: i64 = 0
     neg := false
     if s.byte_at(0) == '-' {
         neg = true
@@ -473,7 +473,7 @@ export parse_float :: fn(s: string) -> f64 | ParseError {
 /// @param s      source string.
 /// @param width  target length in codepoints.
 /// @param fill   pad character.
-export pad_start :: fn(s: string, width: usize, fill: char) -> string {
+export pad_start :: fn(s: string, width: i64, fill: char) -> string {
     n :: s.len()
     if n >= width {
         return s
@@ -491,7 +491,7 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
 /// @param s      source string.
 /// @param width  target length in codepoints.
 /// @param fill   pad character.
-export pad_end :: fn(s: string, width: usize, fill: char) -> string {
+export pad_end :: fn(s: string, width: i64, fill: char) -> string {
     n :: s.len()
     if n >= width {
         return s
@@ -548,8 +548,8 @@ export decode_escapes :: fn(body: string) -> string {
     // `run` starts the literal bytes not yet copied. They go out as one slice when
     // an escape ends them, so the text between escapes passes unchanged, valid
     // UTF-8 or not. A trailing backslash stays in the last slice.
-    run: usize = 0
-    i: usize = 0
+    run: i64 = 0
+    i: i64 = 0
     for i + 1 < n {
         if body.byte_at(i) != '\\' {
             i += 1
@@ -871,7 +871,7 @@ import "std/testing"
 
 @test test_chars_every_width :: fn() -> void {
     want :: ['a', 'é', '€', '😀']
-    i: usize = 0
+    i: i64 = 0
     for c in "aé€😀" {
         assert_eq(c, want[i])
         i += 1
@@ -884,7 +884,7 @@ import "std/testing"
     // short by the end decodes as one U+FFFD over the bytes it has.
     s :: bytes_to_string([0x61, 0xA9, 0x62, 0x63, 0x64, 0xE2, 0x82])
     want :: ['a', REPLACEMENT_CHAR, 'b', 'c', 'd', REPLACEMENT_CHAR]
-    i: usize = 0
+    i: i64 = 0
     for c in s {
         assert_eq(c, want[i])
         i += 1

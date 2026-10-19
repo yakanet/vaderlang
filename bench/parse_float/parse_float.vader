@@ -51,7 +51,7 @@ build_inputs :: fn() -> string[] {
     out: string[]: []
     for index in 0..<INPUT_COUNT {
         mantissa :: i64(index) * 1103515245 % 1000003
-        out.push("${mantissa}.${FRACTIONS[usize(index % 8)]}${EXPONENTS[usize(index % 5)]}")
+        out.push("${mantissa}.${FRACTIONS[index % 8]}${EXPONENTS[index % 5]}")
     }
     return out
 }

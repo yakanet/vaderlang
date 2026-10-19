@@ -59,7 +59,7 @@ export bind :: fn(self: Scope, name: string, sym: Symbol) -> void {
 /// Walk frames innermost-out and return the first match, or null.
 export lookup :: fn(self: Scope, name: string) -> Symbol | null {
     n :: self.frames.len()
-    i := usize(n)
+    i := n
     for i > 0 {
         i = i - 1
         frame :: self.frames[i]
@@ -82,7 +82,7 @@ export frame_count :: fn(self: Scope) -> i32 = i32(self.frames.len())
 /// and a top-level name (index 0, the root seed).
 export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
     n :: self.frames.len()
-    i := usize(n)
+    i := n
     for i > 0 {
         i = i - 1
         frame :: self.frames[i]

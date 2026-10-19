@@ -27,8 +27,8 @@ import "std/collections"
 export POS_STRIDE :: i64(1000000)
 
 /// Encode a (block, instruction-index) position as a single i64 key.
-export pos_key :: fn(block: BlockId, idx: usize) -> i64 {
-    return i64(block) * POS_STRIDE + i64(idx)
+export pos_key :: fn(block: BlockId, idx: i64) -> i64 {
+    return i64(block) * POS_STRIDE + idx
 }
 
 /// Stack-pass-through hints for one fn.

@@ -12,12 +12,12 @@ export STDERR :: 2
 
 /// `write(2)`. Byte count written, or -1 with `errno` set.
 ///
-/// `isize`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here.
+/// `i64`, not `i32`: POSIX returns `ssize_t`, 64-bit on every target here.
 /// `@c_header` hands `cc` the real prototype, so a width mismatch stops the
 /// build rather than truncating silently.
 @c_header("<unistd.h>")
 @extern("write")
-export sys_write :: fn(fd: i32, buf: u8[], count: usize) -> isize
+export sys_write :: fn(fd: i32, buf: u8[], count: i64) -> i64
 
 /// `CLOCK_REALTIME` — the wall clock.
 export CLOCK_REALTIME :: 0
@@ -162,7 +162,7 @@ export sys_ferror :: fn(stream: CPointer) -> i32
 /// @return       bytes read, `0` at EOF, `-1` on error.
 @c_header("<unistd.h>")
 @extern("read")
-export sys_read :: fn(fd: i32, @c_out buf: u8[], count: usize) -> isize
+export sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 
 /// `struct pollfd` — one descriptor and what to watch it for.
 ///
@@ -188,7 +188,7 @@ export Pollfd :: struct {
 /// aarch64 and musl.
 ///
 /// ⚠️ Do NOT narrow this to what one system reports.
-export SPAWN_ACTIONS_BYTES: usize: 128
+export SPAWN_ACTIONS_BYTES: i64: 128
 
 /// `WNOHANG` — return immediately rather than waiting. 1 on both systems.
 export WNOHANG: i32: 1
@@ -248,7 +248,7 @@ export sys_spawn_actions_adddup2 :: fn(@c_out actions: u8[], fd: i32, newfd: i32
 /// @param file     the program name.
 /// @param actions  the file actions, or an empty buffer for none.
 /// @param attrp    null — no spawn attributes are used.
-/// @param argv     a NULL-terminated vector of `char*`, as `usize` words.
+/// @param argv     a NULL-terminated vector of `char*`, as `i64` words.
 /// @param envp     `sys_environ()`.
 /// @return         0 on success, an errno value otherwise.
 @c_header("<spawn.h>")
@@ -277,7 +277,7 @@ export sys_kill :: fn(pid: i32, sig: i32) -> i32
 
 /// `strdup(3)` — a heap copy of `s`, owned by the caller.
 ///
-/// Used to build the `char**` a spawn wants: a `usize[]` of these lends as one.
+/// Used to build the `char**` a spawn wants: a `i64[]` of these lends as one.
 ///
 /// @param s  the string to copy.
 /// @return   a `char*` the caller frees with `sys_free`.
@@ -334,7 +334,7 @@ export sys_poll_one :: fn(@c_pointer @c_out fds: Pollfd, nfds: u64, timeout_ms: 
 /// over-reserving wastes 12 bytes on Linux, under-reserving is an out-of-bounds
 /// write by `tcgetattr`, which nothing here checks. One constant, taken high, is
 /// the shape that cannot be got wrong.
-export TERMIOS_BYTES: usize: 72
+export TERMIOS_BYTES: i64: 72
 
 /// `TCSAFLUSH` — apply after draining output, DISCARDING pending input. That
 /// last part is why raw mode uses it: keystrokes meant for the shell must not
@@ -434,7 +434,7 @@ export sys_isatty :: fn(fd: i32) -> i32
 /// Linux reads the running binary's path from `/proc/self/exe`.
 @c_header("<unistd.h>")
 @extern("readlink")
-export sys_readlink :: fn(path: string, @c_out buf: u8[], size: usize) -> isize
+export sys_readlink :: fn(path: string, @c_out buf: u8[], size: i64) -> i64
 
 /// `realpath(3)`. Writes the canonical path into `resolved` and returns it, or
 /// null on failure. `resolved` must hold at least `PATH_MAX` bytes.
@@ -467,12 +467,12 @@ export sys_fclose :: fn(stream: CPointer) -> i32
 /// @param stream  an open stream.
 @c_header("<stdio.h>")
 @extern("fread")
-export sys_fread :: fn(@c_out buf: u8[], size: usize, count: usize, stream: CPointer) -> usize
+export sys_fread :: fn(@c_out buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
 
 /// `fwrite(3)`. The number of items written; short means failure.
 @c_header("<stdio.h>")
 @extern("fwrite")
-export sys_fwrite :: fn(buf: u8[], size: usize, count: usize, stream: CPointer) -> usize
+export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i64
 
 /// `getcwd(3)`. Fills `buf` with the working directory, NUL-terminated, and
 /// returns it — or null when `buf` is too small or the directory is unreadable.
@@ -482,7 +482,7 @@ export sys_fwrite :: fn(buf: u8[], size: usize, count: usize, stream: CPointer) 
 /// @param size  `buf`'s capacity in bytes.
 @c_header("<unistd.h>")
 @extern("getcwd")
-export sys_getcwd :: fn(@c_out buf: u8[], size: usize) -> CPointer | null
+export sys_getcwd :: fn(@c_out buf: u8[], size: i64) -> CPointer | null
 
 /// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
 /// why the caller re-tests the path rather than reading `errno`.

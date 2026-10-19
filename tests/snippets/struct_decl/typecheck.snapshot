@@ -13,8 +13,8 @@
   expr 25:16    IdentExpr      :: Point
   expr 25:23    FieldExpr      :: f64
   expr 25:23    IdentExpr      :: Point
-  expr 25:30    CallExpr       :: usize
-  expr 25:30    FieldExpr      :: fn() -> usize
+  expr 25:30    CallExpr       :: i64
+  expr 25:30    FieldExpr      :: fn() -> i64
   expr 25:30    FieldExpr      :: i32[]
   expr 25:30    IdentExpr      :: List<i32>
   expr 25:47    FieldExpr      :: u32

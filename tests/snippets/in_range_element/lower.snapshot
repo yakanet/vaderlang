@@ -20,8 +20,8 @@
   snippet.has_big_value :: fn(c: Contains<i64>) -> bool {  // snippet$has_big_value
       @vcall(std.core.Contains.contains, c, i64(4000000000))
   }
-  snippet.listed :: fn(n: usize, m: Meters) -> bool {  // snippet$listed
-      std.core.usize[].contains([usize(1), usize(2)] :usize[], n) && std.core.i64[].contains([i64(3), i64(4)] :i64[], m)
+  snippet.listed :: fn(n: i64, m: Meters) -> bool {  // snippet$listed
+      std.core.i64[].contains([i64(1), i64(2)] :i64[], n) && std.core.i64[].contains([i64(3), i64(4)] :i64[], m)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       r: Range<i64> = Range<i64> {
@@ -33,16 +33,16 @@
       }
       xs: i64[] = [i64(5000000000), i64(7)] :i64[]
       std.io.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(usize(11))
-          __off_1: usize = 0
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_1: i64 = 0
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.wide(i64(5500000000)))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.wide(i64(1500000000)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(usize(17))
-          __off_3: usize = 0
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
+          __off_3: i64 = 0
           __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.byte(u8(113)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.byte(u8(255)))
@@ -51,37 +51,37 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(usize(11))
-          __off_5: usize = 0
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_5: i64 = 0
           __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.near(Meters(i64(5))))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.near(Meters(i64(15))))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(usize(23))
-          __off_7: usize = 0
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.blank(u8(32)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.blank(u8(120)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.listed(usize(2), Meters(i64(3))))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.listed(i64(2), Meters(i64(3))))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.listed(usize(3), Meters(i64(3))))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.listed(i64(3), Meters(i64(3))))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       bag: Bag = Bag { .items = [i64(4000000000), i64(7)] :i64[] }
       std.io.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(usize(11))
-          __off_9: usize = 0
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_9: i64 = 0
           __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.has_big<Bag>(bag))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
           __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.has_big_value(bag))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(usize(23))
-          __off_11: usize = 0
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_11: i64 = 0
           __off_11 = std.core.write_bool(__buf_10, __off_11, std.core.Range<i64>.contains(r, i64(4000000000)))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
           __off_11 = std.core.write_bool(__buf_10, __off_11, std.core.Range<i64>.contains(r, i64(6000000000)))
@@ -97,10 +97,10 @@
       snippet.Bag.contains(c, i64(4000000000))
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -117,8 +117,6 @@
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.Range<u8>.contains  // std_core$Range$Contains$contains__u8
     fn std.core.Range<u8>.next  // std_core$Range$Iterator$next__u8
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
@@ -130,10 +128,7 @@
     fn std.core.u8.compare  // std_core$u8$Comparable$compare
     fn std.core.u8.step  // std_core$u8$Step$step
     fn std.core.u8[].contains  // std_core$[]$Contains$contains__u8
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
-    fn std.core.usize[].contains  // std_core$[]$Contains$contains__usize
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -143,7 +138,6 @@
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Range<u8>  // std_core$Range__u8
-    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

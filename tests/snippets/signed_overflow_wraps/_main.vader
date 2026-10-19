@@ -27,7 +27,7 @@ main :: fn(argv: string[]) -> i32 {
     }
     println("i32 steps to the wrap: ${count}")
 
-    wide_top :: i64(argv.len()) + 9223372036854775806
+    wide_top :: argv.len() + 9223372036854775806
     println("i64 sum: ${wide_top +% 1}")
     println("i64 grows at the maximum: ${grows_wide(wide_top)}")
     return 0

@@ -217,15 +217,15 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
 lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
     if t is StructType {
         decl :: ctx.typed.struct_decls[t.symbol.id] ?? return 0
-        return i64(decl.fields.len())
+        return decl.fields.len()
     }
-    if t is TupleType { return i64(t.elements.len()) }
+    if t is TupleType { return t.elements.len() }
     return 0
 }
 
 lower_variant_count :: fn(t: Type) -> i64 {
-    if t is UnionType { return i64(t.variants.len()) }
-    if t is EnumType { return i64(t.indices.len()) }
+    if t is UnionType { return t.variants.len() }
+    if t is EnumType { return t.indices.len() }
     return 0
 }
 
@@ -238,7 +238,7 @@ try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: 
         decl :: ctx.typed.struct_decls[ty.symbol.id] ?? return null
         for i in 0..<decl.fields.len() {
             if decl.fields[i].name == name {
-                return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i64(i) }
+                return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i }
             }
         }
     }

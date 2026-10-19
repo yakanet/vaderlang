@@ -1094,7 +1094,7 @@
         ],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "usize"
+          "name": "i64"
         },
         "body": {
           "kind": "BlockExpr",
@@ -1108,7 +1108,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",

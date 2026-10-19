@@ -29,7 +29,7 @@ export ComptimeValue ::
     | TypeValue
 
 /// Signed integer with the typechecker-resolved primitive name (`i32`,
-/// `i64`, `u8`, `isize`, …). The dump prints `<value>_<typeName>`.
+/// `i64`, `u8`, `i64`, …). The dump prints `<value>_<typeName>`.
 export IntValue :: struct {
     value:     i64
     type_name: string
@@ -95,7 +95,7 @@ export int_val :: fn(value: i64) -> ComptimeValue {
 /// Build an `IntValue` with an explicit primitive name.
 /// @param value      the integer value.
 /// @param type_name  the typechecker-resolved primitive name (`u8`,
-///                   `usize`, `isize`, …).
+///                   `i64`, `i64`, …).
 /// @return           the wrapped comptime value.
 export int_val_typed :: fn(value: i64, type_name: string) -> ComptimeValue {
     return IntValue { .value = value, .type_name = type_name }
@@ -162,8 +162,8 @@ render_array :: fn(array: ArrayValue) -> string {
     sb :: StringBuilder {}
     sb.append_char('[')
     n :: array.elements.len()
-    truncated :: n > usize(ARRAY_DISPLAY_CAP)
-    shown :: if truncated { usize(ARRAY_DISPLAY_HEAD) } else { n }
+    truncated :: n > i64(ARRAY_DISPLAY_CAP)
+    shown :: if truncated { i64(ARRAY_DISPLAY_HEAD) } else { n }
     for i in 0..<shown {
         if i > 0 { sb.append(", ") }
         sb.append(display_value(array.elements[i]))

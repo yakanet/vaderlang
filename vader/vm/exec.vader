@@ -50,7 +50,7 @@ Frame :: struct {
     stack:          Value[]
     payload:        i64[]
     tag:            StackTag[]
-    sp:             usize
+    sp:             i64
     pc:             i32
 }
 
@@ -128,7 +128,7 @@ stack_grow :: fn(frame: Frame) -> void {
 
 /// Size `frame`'s three stack columns to at least `depth`, so a push inside the op
 /// it runs never checks capacity. The columns are grow-only.
-reserve_stack :: fn(frame: Frame, depth: usize) -> void {
+reserve_stack :: fn(frame: Frame, depth: i64) -> void {
     for frame.payload.len() < depth {
         stack_grow(frame)
     }
@@ -138,7 +138,7 @@ reserve_stack :: fn(frame: Frame, depth: usize) -> void {
 /// Write `value` into the stack columns at `cursor` — sized by `reserve_stack`
 /// (the caller bumps `sp`). Scalars land in payload + tag, heap values in the refs
 /// column.
-push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
+push_val :: fn(frame: Frame, cursor: i64, value: Value) -> void {
     match value {
         is I32Val -> {
             frame.payload[cursor] = i64(value)
@@ -169,11 +169,11 @@ push_val :: fn(frame: Frame, cursor: usize, value: Value) -> void {
 }
 
 /// Materialise the stack value at absolute index `idx` as a boxed `Value`.
-peek_val :: fn(frame: Frame, idx: usize) -> Value =
+peek_val :: fn(frame: Frame, idx: i64) -> Value =
     if frame.tag[idx] == .Null { NULL_VALUE } else { peek_owned(frame, idx) }
 
 // `peek_val` for a caller that stores the value: a null it stores is its own.
-peek_owned :: fn(frame: Frame, idx: usize) -> Value = match frame.tag[idx] {
+peek_owned :: fn(frame: Frame, idx: i64) -> Value = match frame.tag[idx] {
     .Ref  -> frame.stack[idx]
     .I32  -> I32Val(i32(frame.payload[idx]))
     .I64  -> I64Val(frame.payload[idx])
@@ -196,7 +196,7 @@ peek_owned :: fn(frame: Frame, idx: usize) -> Value = match frame.tag[idx] {
 /// @param label  informational — names the operand in the trap message.
 /// @return       the writable `ArrayVal`, or a `Trap` when the slot holds
 ///               anything else.
-peek_array_mut :: fn(frame: Frame, idx: usize, at_pc: i32, label: string) -> ArrayVal | Trap {
+peek_array_mut :: fn(frame: Frame, idx: i64, at_pc: i32, label: string) -> ArrayVal | Trap {
     if frame.tag[idx] == .Ref {
         v :: frame.stack[idx]
         if v is ArrayVal {
@@ -218,8 +218,8 @@ peek_array_mut :: fn(frame: Frame, idx: usize, at_pc: i32, label: string) -> Arr
 pause_frame :: fn(bc_mod: bc.BytecodeModule, fn_body: bc.BcFunction, slots: Value[], at_pc: i32) -> PauseFrame {
     file := ""
     line := 0
-    if at_pc >= 0 && usize(at_pc) < fn_body.debug.len() {
-        dbg :: fn_body.debug[usize(at_pc)]
+    if at_pc >= 0 && i64(at_pc) < fn_body.debug.len() {
+        dbg :: fn_body.debug[at_pc]
         if dbg != null {
             file = dbg.file
             line = dbg.line
@@ -236,7 +236,7 @@ pause_frame :: fn(bc_mod: bc.BytecodeModule, fn_body: bc.BcFunction, slots: Valu
 // Max nesting the Variables projection descends (also the cycle guard) and max
 // array elements projected per level — bounds the eager snapshot.
 DEBUG_MAX_DEPTH: i32: 5
-DEBUG_MAX_ELEMS: usize: 64
+DEBUG_MAX_ELEMS: i64: 64
 
 // Render a frame's params + declared locals for the Variables view. Slots
 // `[0..params)` are params (no source names in `BcSignature` → `arg0`, `arg1`,
@@ -253,9 +253,9 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
     last:  i32[]: [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
         s :: slot_touched_by(fn_body.body[pc])
-        if s >= 0 && usize(s) < total_slots {
-            if first[usize(s)] < 0 { first[usize(s)] = i32(pc) }
-            last[usize(s)] = i32(pc)
+        if s >= 0 && i64(s) < total_slots {
+            if first[s] < 0 { first[s] = i32(pc) }
+            last[s] = i32(pc)
         }
     }
 
@@ -289,14 +289,14 @@ slot_touched_by :: fn(op: bc.Op) -> i32 {
 }
 
 // True when `slot`'s live window (`[first, last]` touch pc) contains `pc`.
-slot_in_scope :: fn(first: i32[], last: i32[], slot: usize, pc: i32) -> bool {
+slot_in_scope :: fn(first: i32[], last: i32[], slot: i64, pc: i32) -> bool {
     if first[slot] < 0 { return false }
     return first[slot] <= pc && pc <= last[slot]
 }
 
 // Source parameter name for slot `p`, or `arg<p>` when the signature carries no
 // names (imports / synth wrappers / `.virt` reload).
-param_display_name :: fn(sig: bc.BcSignature, p: usize) -> string {
+param_display_name :: fn(sig: bc.BcSignature, p: i64) -> string {
     if p < sig.param_names.len() && sig.param_names[p] != "" { return sig.param_names[p] }
     return "arg${p}"
 }
@@ -326,8 +326,8 @@ project_var :: fn(name: string, v: Value, bc_mod: bc.BytecodeModule, depth: i32)
 project_struct_fields :: fn(s: StructVal, bc_mod: bc.BytecodeModule, depth: i32) -> PauseVar[] {
     out: PauseVar[]: []
     names: string[]: []
-    if usize(s.type_id) < bc_mod.types.len() {
-        entry :: bc_mod.types[usize(s.type_id)]
+    if in_range(s.type_id, bc_mod.types.len()) {
+        entry :: bc_mod.types[s.type_id]
         if entry is bc.BcStruct {
             for fld in entry.fields { names.push(fld.name) }
         }
@@ -361,7 +361,7 @@ validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: 
 // `VirtualCall` tests with this predicate and builds the trap only on failure: a
 // fn that may build a `Trap` carries a GC frame, so calling `validate_fn_index`
 // on the hot path pays that frame on every call.
-is_fn_index_out_of_range :: fn(function_index: i32, functions: bc.BcFunction[]) = function_index < 0 || usize(function_index) >= functions.len()
+is_fn_index_out_of_range :: fn(function_index: i32, functions: bc.BcFunction[]) = function_index < 0 || i64(function_index) >= functions.len()
 
 fn_index_trap :: fn(function_index: i32, at_pc: i32, op_label: string) = Trap {
     .message = "${op_label} function ${function_index} out of range at pc=${at_pc}",
@@ -401,8 +401,8 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
 /// or "" when the slot isn't a primitive. Used by the virtual.call intrinsic
 /// fallback to rebuild a host mangle.
 primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
-    if type_id < 0 || usize(type_id) >= types.len() { return "" }
-    t :: types[usize(type_id)]
+    if type_id < 0 || i64(type_id) >= types.len() { return "" }
+    t :: types[type_id]
     if t is bc.BcPrimitive { return bc.val_type_name(t.val) }
     return ""
 }
@@ -419,8 +419,8 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     // key carries its own.
     dot :: vtable_key.last_index_of('.', 0)
     if dot < 0 { return "" }
-    trait_key :: vtable_key.byte_slice(0, usize(dot))
-    method :: vtable_key.byte_slice(usize(dot) + 1, vtable_key.byte_len())
+    trait_key :: vtable_key.byte_slice(0, dot)
+    method :: vtable_key.byte_slice(dot + 1, vtable_key.byte_len())
     return bc.primitive_member_mangle(kind, trait_key_name(trait_key), method)
 }
 
@@ -560,7 +560,7 @@ truncate_to_width :: fn(raw: i64, bits: i64, signed: bool) -> i32 {
 // slot of `locals[i]` is `params.len() + i`). Decides a `local.set`'s truncation.
 slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
     np :: body.signature.params.len()
-    s :: usize(slot)
+    s :: i64(slot)
     if s < np { return body.signature.params[s] }
     li :: s - np
     if li < body.locals.len() { return body.locals[li].val }
@@ -572,8 +572,8 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
 // Backs the `struct.new` narrow-field mask : a struct literal builds its fields
 // straight from the stack (`build_struct`) with no intervening narrow `local.set`.
 field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
-    if type_index < 0 || usize(type_index) >= types.len() { return .Ref }
-    t :: types[usize(type_index)]
+    if type_index < 0 || i64(type_index) >= types.len() { return .Ref }
+    t :: types[type_index]
     if t is bc.BcPrimitive { return t.val }
     return .Ref
 }
@@ -594,7 +594,7 @@ export exec_entry :: fn(
     state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool,
     debug: DebugController | null,
 ) -> VmResult {
-    if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
+    if entry_index < 0 || i64(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
     if debug != null && !state.debuggable {
@@ -618,7 +618,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     if length < 0 {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
-    needed :: usize(length)
+    needed :: i64(length)
     arg_base :: frame.sp - needed
     elements: Value[]: [] * needed
     for element_index in 0..<needed {
@@ -645,7 +645,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
 ///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
 build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | null {
-    type_decl :: types[usize(type_id)]
+    type_decl :: types[type_id]
     if !(type_decl is bc.BcStruct) {
         return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
     }
@@ -693,8 +693,8 @@ build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
             .message = "buffer.new size ${i32(size_unwrap)} is negative at pc=${frame.pc}",
         }
     }
-    bytes: u8[]: [] * usize(size_unwrap)
-    for _ in 0..<usize(size_unwrap) {
+    bytes: u8[]: [] * i64(size_unwrap)
+    for _ in 0..<i64(size_unwrap) {
         bytes.push(0)
     }
     handle_cell[0] = handle_cell[0] + 1
@@ -717,11 +717,11 @@ build_buffer :: fn(frame: Frame, handle_cell: i32[]) -> Trap | null {
 /// @param pc         current program counter, for trap provenance.
 /// @return           the validated `usize` offset.
 /// @error            negative offset ; range past the byte length.
-check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, pc: i32) -> usize | Trap {
+check_byte_range :: fn(off: i32, width: i64, bytes_len: i64, label: string, pc: i32) -> i64 | Trap {
     if off < 0 {
         return Trap { .message = "${label} offset ${off} is negative at pc=${pc}" }
     }
-    o :: usize(off)
+    o :: i64(off)
     if o + width > bytes_len {
         return Trap { .message = "${label} offset ${o} (+${width}) exceeds object byte length ${bytes_len} at pc=${pc}" }
     }
@@ -730,7 +730,7 @@ check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, 
 
 // The i32 in stack cell `at`, straight off the columns as `read_i32` reads it ;
 // the label — `op`, then `what` — is built only when the read traps.
-stack_i32 :: fn(frame: Frame, at: usize, op: string, what: string) -> i32 | Trap {
+stack_i32 :: fn(frame: Frame, at: i64, op: string, what: string) -> i32 | Trap {
     if is_i32_tag(frame.tag[at]) {
         return i32(frame.payload[at])
     }
@@ -739,7 +739,7 @@ stack_i32 :: fn(frame: Frame, at: usize, op: string, what: string) -> i32 | Trap
 }
 
 // The object in stack cell `at` ; the label is built only when it is not one.
-stack_obj :: fn(frame: Frame, at: usize, op: string) -> ObjVal | Trap {
+stack_obj :: fn(frame: Frame, at: i64, op: string) -> ObjVal | Trap {
     v :: peek_val(frame, at)
     if v is ObjVal {
         return v
@@ -759,7 +759,7 @@ stack_obj :: fn(frame: Frame, at: usize, op: string) -> ObjVal | Trap {
 /// @return       the raw value, or a `Trap` on underflow / bad obj / OOB.
 /// @error        fewer than 2 stack slots ; non-object receiver ; negative or
 ///               out-of-range offset.
-load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
+load_bytes_op :: fn(frame: Frame, width: i64, label: string) -> u64 | Trap {
     off_unwrap :: stack_i32(frame, frame.sp - 1, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: stack_obj(frame, frame.sp - 2, label)
@@ -781,7 +781,7 @@ load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
 /// @param label  op label for trap messages.
 /// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
 /// @error        non-object receiver ; negative or out-of-range offset.
-store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
+store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Trap | null {
     off_unwrap :: stack_i32(frame, frame.sp - 2, label, "offset")
     if off_unwrap is Trap { return off_unwrap }
     obj_unwrap :: stack_obj(frame, frame.sp - 3, label)
@@ -818,9 +818,9 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
     if n_unwrap < 0 || src_off_unwrap < 0 || dst_off_unwrap < 0 {
         return Trap { .message = "memory_copy negative length/offset at pc=${frame.pc}" }
     }
-    n :: usize(n_unwrap)
-    src_off :: usize(src_off_unwrap)
-    dst_off :: usize(dst_off_unwrap)
+    n :: i64(n_unwrap)
+    src_off :: i64(src_off_unwrap)
+    dst_off :: i64(dst_off_unwrap)
     if src_off + n > src_unwrap.bytes.len() {
         return Trap { .message = "memory_copy source range [${src_off}, ${src_off + n}) exceeds ${src_unwrap.bytes.len()} at pc=${frame.pc}" }
     }
@@ -846,8 +846,8 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
 /// (index 0 is `now`), and the handle source of `buffer.new`. Boxed cells, since
 /// `dispatch_import` and `build_buffer` update them in place.
 RunHost :: struct {
-    gc_state:    usize[]
-    sched_state: usize[]
+    gc_state:    i64[]
+    sched_state: i64[]
     obj_handles: i32[]
 }
 
@@ -866,7 +866,7 @@ overflow_trap :: fn(name: string) = Trap {
 // The import `dispatch_import` serves a host-provided impl on a primitive through
 // (`string implements Hash`) — it has no vtable row. Only the name, the arity and
 // a non-void result are read.
-primitive_impl_import :: fn(mangle: string, arity: usize) = bc.BcImport {
+primitive_impl_import :: fn(mangle: string, arity: i64) = bc.BcImport {
     .extern_name  = "",
     .mangled_name = mangle,
     .signature    = bc.BcSignature {
@@ -885,7 +885,7 @@ SINGLETON_COMPTIME_MARKER :: "belongs to a `@singleton`, whose instance only a r
 
 // The trap of global slot `index` reached during a comptime evaluation.
 global_at_comptime_trap :: fn(state: VmState, index: i32) -> Trap =
-    Trap { .message = "`${state.bc.globals[usize(index)].name}` ${SINGLETON_COMPTIME_MARKER}" }
+    Trap { .message = "`${state.bc.globals[index].name}` ${SINGLETON_COMPTIME_MARKER}" }
 
 /// Whether a trap of a comptime run came from a global slot it reached.
 ///
@@ -997,7 +997,7 @@ apply_boxed :: fn(
             if is_comptime {
                 return global_at_comptime_trap(state, instr.index)
             }
-            push_val(frame, frame.sp, state.globals[usize(instr.index)])
+            push_val(frame, frame.sp, state.globals[instr.index])
             frame.sp = frame.sp + 1
             frame.pc = frame.pc + 1
         }
@@ -1005,12 +1005,12 @@ apply_boxed :: fn(
             if is_comptime {
                 return global_at_comptime_trap(state, instr.index)
             }
-            state.globals[usize(instr.index)] = peek_owned(frame, frame.sp - 1)
+            state.globals[instr.index] = peek_owned(frame, frame.sp - 1)
             frame.sp = frame.sp - 1
             frame.pc = frame.pc + 1
         }
         is bc.DataConst -> {
-            shared :: state.data_pool[usize(instr.pool_index)]
+            shared :: state.data_pool[instr.pool_index]
             if shared.type_id == instr.type_id {
                 push_val(frame, frame.sp, shared)
             } else {
@@ -1043,10 +1043,10 @@ apply_boxed :: fn(
                 return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
             }
             type_id :: top_val.type_id
-            if type_id < 0 || usize(type_id) >= state.bc.types.len() {
+            if type_id < 0 || i64(type_id) >= state.bc.types.len() {
                 return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
             }
-            size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
+            size :: bc.size_of_bc_type(state.bc.types[type_id])
             frame.payload[frame.sp - 1] = i64(size)
             frame.tag[frame.sp - 1] = .I64
             frame.pc = frame.pc + 1

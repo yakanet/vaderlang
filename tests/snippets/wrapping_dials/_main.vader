@@ -50,7 +50,7 @@ main :: fn(argv: string[]) -> i32 {
     hours: Hour[]: [9, 4, 12]
     println("lowest ${hours.lowest()} over ${span_of(late, hours.lowest())}")
     println(show(december))
-    count :: i64(argv.len()) + 2
+    count :: argv.len() + 2
     may: Month: exactly(count + 2)
     println("month ${may}")
     beyond: Month: exactly(count * 20)

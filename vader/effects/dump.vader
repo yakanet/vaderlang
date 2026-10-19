@@ -54,7 +54,7 @@ export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
 comes_before :: fn(summary: EffectSummary, a: i32, b: i32) -> bool =
     name_offset(summary, a) < name_offset(summary, b)
 
-name_offset :: fn(summary: EffectSummary, node: i32) -> usize =
+name_offset :: fn(summary: EffectSummary, node: i32) -> i64 =
     summary.index.functions[node].decl.name_span.start.offset
 
 write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> void {
@@ -108,7 +108,7 @@ write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> 
         if chain != null {
             write_chain(sb, chain)
         }
-        counts[usize(site.kind)] += 1
+        counts[i64(site.kind)] += 1
     }
     write_totals(sb, kinds.map(frozen_label).collect(), counts)
 }
@@ -180,7 +180,7 @@ write_widenings :: fn(
             sb.append(": ${access_label(paths, site.breaking, "argument")}")
         }
         sb.append("\n")
-        counts[usize(site.verdict)] += 1
+        counts[i64(site.verdict)] += 1
     }
     write_totals(sb, verdicts.map(verdict_label).collect(), counts)
 }

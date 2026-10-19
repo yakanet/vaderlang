@@ -7,7 +7,7 @@ module "snippet"
 import "std/io"
 import "std/iter"
 
-not_twenty :: fn(p: [i32, usize]) -> bool {
+not_twenty :: fn(p: [i32, i64]) -> bool {
     [x, _] :: p
     return x != 20
 }

@@ -67,7 +67,7 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 //   }
 synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     string_type :: TY_STRING
-    usize_type :: mk_primitive("usize")
+    i64_type :: mk_primitive("i64")
     span :: empty_span()
 
     // Resolve the std/core buffer API (force-loaded ; a miss is a broken
@@ -81,14 +81,13 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // where the `Buffer` type comes from. The call goes to the impl member below.
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
     buffer_type :: resolve_buffer_type(ctx, finish_sym) ?? return null
-    usize_ty :: mk_primitive("usize")
     // The three `Buffer` operations are the impl members, not the expression-bodied
     // free wrappers `new_byte_buffer` / `finish_buffer` around them. Each wrapper is
     // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a
     // `vader_gc_frame_t`, publishes it on the `vader_gc_top` global, and pops it —
     // and `cc` cannot elide that, because the collector reads that global. So a
     // 13-byte concat used to push four nested frames to do one buffer's work.
-    nbuf_member :: find_impl_member_for(ctx, usize_ty, "new_buffer") ?? return null
+    nbuf_member :: find_impl_member_for(ctx, mk_primitive("usize"), "new_buffer") ?? return null
     intern_member :: find_impl_member_for(ctx, buffer_type, "intern_string") ?? return null
     wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string") ?? return null
     // Harvest the free wrapper for materialisation — else the synthesised call has
@@ -115,16 +114,16 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     stmts: LoweredStmt[]: []
     cum_syms: Symbol[]: []
     for i in 0..<n {
-        bl :: mk_lowered_call(blen_sym, [param_refs[i]], usize_type, span)
+        bl :: mk_lowered_call(blen_sym, [param_refs[i]], i64_type, span)
         value :: if i == 0 { bl } else {
             LoweredBinary {
-                .span = span, .type = usize_type, .op = .Add,
-                .left = synth_ident(cum_syms[i - 1], usize_type, span), .right = bl,
+                .span = span, .type = i64_type, .op = .Add,
+                .left = synth_ident(cum_syms[i - 1], i64_type, span), .right = bl,
             }
         }
         c_sym :: synth_entry_symbol(ctx, .Synthetic, "c${i}")
         stmts.push(LoweredLet {
-            .span = span, .name = c_sym.name, .symbol = c_sym, .type = usize_type, .value = value,
+            .span = span, .name = c_sym.name, .symbol = c_sym, .type = i64_type, .value = value,
         })
         cum_syms.push(c_sym)
     }
@@ -134,15 +133,18 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
         .value = build_member_call_or_inline(
-            nbuf_member, [synth_ident(total_sym, usize_type, span)], buffer_type, span,
+            nbuf_member,
+            [cast_to_width(synth_ident(total_sym, i64_type, span), "usize", span)],
+            buffer_type,
+            span,
         ),
     })
     // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
         offset :: if i == 0 {
-            LoweredIntLit { .span = span, .type = usize_type, .value = 0 }
+            LoweredIntLit { .span = span, .type = i64_type, .value = 0 }
         } else {
-            synth_ident(cum_syms[i - 1], usize_type, span)
+            synth_ident(cum_syms[i - 1], i64_type, span)
         }
         call :: build_member_call_or_inline(
             wstr_member, [synth_ident(buf_sym, buffer_type, span), offset, param_refs[i]], TY_VOID, span,
@@ -153,7 +155,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
         .span = span, .type = string_type, .stmts = stmts,
         .trailing = build_member_call_or_inline(
             intern_member,
-            [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, usize_type, span)],
+            [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, i64_type, span)],
             string_type, span,
         ),
     }

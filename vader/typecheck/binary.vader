@@ -188,12 +188,12 @@ check_arith :: fn(
     // A distinct (newtype) operand is nominal — never take the built-in string /
     // numeric path (that would silently compute on the backing integer, e.g.
     // `instant + 5`). An ARRAY operand likewise : `[lhs] * n` (array repeat /
-    // preallocation) dispatches through the declared `T[] implements<T> Mul<usize>`
+    // preallocation) dispatches through the declared `T[] implements<T> Mul<i64>`
     // (std/core) via the trait-impl lookup below — a concrete array matches the
     // blanket through the `"[]"` base key (`impl_base_key`), and the lowerer
     // devirtualises to the `array.repeat` intrinsic (`lower_binary`). Skip the
     // numeric path for all three so they reach the lookup ; a missing/mismatched
-    // impl is then a clean error (`instant + instant`, `[…] * <non-usize>`).
+    // impl is then a clean error (`instant + instant`, `[…] * <non-i64>`).
     if left !is DistinctType && right !is DistinctType && left !is ArrayType {
         if e.op == .Add && is_string(left) && is_string(right) {
             record_site(typed, e, .Operator, BUILTIN_CALLEE)
@@ -393,7 +393,7 @@ pick_operator_member :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> ImplMethod {
-    index: usize = 0
+    index: i64 = 0
     if candidates.len() > 1 {
         sigs: Type[]: []
         for m in candidates {
@@ -827,7 +827,7 @@ check_equality :: fn(
     }
     // Two scalars compare by REPRESENTATION : a distinct type stands for its
     // backing, so `path == ""` (a `Path` over `string`) holds, and
-    // `h == INVALID_HANDLE` (a `Handle` over `CPointer`, against an `isize`)
+    // `h == INVALID_HANDLE` (a `Handle` over `CPointer`, against an `i64`)
     // does not. The detail names the written types, not the backings.
     left_scalar  :: scalar_backing(left)
     right_scalar :: scalar_backing(right)
@@ -1190,7 +1190,7 @@ classify :: fn(op: AST.BinaryOp) -> OpKind = match op {
 }
 
 // The type the right operand is checked against: `left`'s for a numeric operator
-// (`numeric_propagation`), so a free literal adopts it (`size + 1` → `1: usize`);
+// (`numeric_propagation`), so a free literal adopts it (`size + 1` → `1: i64`);
 // for `x in` a literal range or array, a container of `x`'s type, so a free bound
 // or element takes it. A distinct `x` lends its backing, as `<` does to a literal.
 right_operand_context :: fn(e: AST.BinaryExpr, left: Type, typed: TypedProgram) -> Type | null {
@@ -1616,14 +1616,14 @@ equality_diags :: fn(src: string) -> Diagnostic[] {
 
 @test
 test_equality_pointer_against_int_is_T3001 :: fn() -> void {
-    src :: "f :: fn(p: CPointer, v: isize) -> bool { return p == v }"
-    assert(has_code(equality_diags(src), "T3001"), "CPointer == isize")
+    src :: "f :: fn(p: CPointer, v: i64) -> bool { return p == v }"
+    assert(has_code(equality_diags(src), "T3001"), "CPointer == i64")
 }
 
 @test
 test_equality_distinct_over_other_kind_is_T3001 :: fn() -> void {
-    src :: "Handle :: CPointer\nf :: fn(h: Handle, v: isize) -> bool { return h == v }"
-    assert(has_code(equality_diags(src), "T3001"), "Handle == isize compares CPointer with isize")
+    src :: "Handle :: CPointer\nf :: fn(h: Handle, v: i64) -> bool { return h == v }"
+    assert(has_code(equality_diags(src), "T3001"), "Handle == i64 compares CPointer with i64")
 }
 
 @test

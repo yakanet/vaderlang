@@ -5,7 +5,7 @@ module "snippet"
 
 import "std/io"
 
-read_around_defer :: fn(xs: i32[], i: usize) -> i32 {
+read_around_defer :: fn(xs: i32[], i: i64) -> i32 {
     before :: xs[i]
     {
         defer {

@@ -18,7 +18,7 @@ import "std/string"
 import "std/string_builder"
 
 /// Column where a flag's description starts, unless a label forces it right.
-MIN_DESCRIPTION_COLUMN: usize: 28
+MIN_DESCRIPTION_COLUMN: i64: 28
 
 /// Two spaces of indent per nesting level, matching the usage block.
 INDENT :: "  "
@@ -105,7 +105,7 @@ action_label :: fn(cmd: CommandSpec) -> string =
 // enumerated values as an inner block. `depth` is in `INDENT` units. Labels are
 // built once and reused for both the measurement and the output — computing them
 // twice is how a label and its column silently disagree.
-render_flag_block :: fn(flags: FlagSpec[], depth: usize) -> string {
+render_flag_block :: fn(flags: FlagSpec[], depth: i64) -> string {
     labels: string[]: []
     for f in flags {
         labels.push(flag_label(f))
@@ -148,8 +148,8 @@ flag_description :: fn(spec: FlagSpec) -> string =
 // short labels doesn't crowd its text. One function for all three kinds of block
 // (actions, flags, enumerated values) — they only differed in how the label was
 // built, which the caller now does.
-column_of :: fn(labels: string[]) -> usize {
-    widest: usize = 0
+column_of :: fn(labels: string[]) -> i64 {
+    widest: i64 = 0
     for l in labels {
         len :: l.len()
         if len > widest {
@@ -166,7 +166,7 @@ column_of :: fn(labels: string[]) -> usize {
 // Right-pad `s` to `width` codepoints. A label longer than the column keeps its
 // own length plus one space rather than being truncated: a long name should
 // misalign, not disappear.
-pad_to :: fn(s: string, width: usize) = pad_end("${s} ", width, ' ')
+pad_to :: fn(s: string, width: i64) = pad_end("${s} ", width, ' ')
 
 // ---- tests ----------------------------------------------------------------
 

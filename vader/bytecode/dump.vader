@@ -209,7 +209,7 @@ type_name_token :: fn(name: string) -> string = if " " in name { quote_string(na
 
 // Little-endian hex of a single bit pattern at the kind's natural width.
 data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
-    esz :: usize(array_kind_element_size(kind))
+    esz :: i64(array_kind_element_size(kind))
     out :: StringBuilder {}
     for b in 0..<esz {
         byte :: (bits >> u64(8 * b)) & 0xFF
@@ -220,7 +220,7 @@ data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
 
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).
 data_items_hex :: fn(entry: BcPrimData) -> string {
-    esz :: usize(array_kind_element_size(entry.kind))
+    esz :: i64(array_kind_element_size(entry.kind))
     out :: StringBuilder {}
     for item in entry.items {
         for b in 0..<esz {
@@ -482,14 +482,14 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
     // `end_pc + 1`, so this is what turns a jump-table entry back into the
     // label that OWNS it — see the `Branch` case.
     stack_end_pc:    i32[]   : []
-    sp: usize = 0
+    sp: i64 = 0
     // Pending Branch/BranchIf whose target scope hasn't closed yet
     // (block / if / else falls through to its End). Drained when the
     // matching End is seen ; `branch_target_label[pc]` carries the
     // resolved label string.
     pending_pc:    i32[]   : []
     pending_label: string[]: []
-    psp: usize = 0
+    psp: i64 = 0
     // pc → resolved label string (filled lazily for Branch/BranchIf).
     branch_target_label: string[]: []
     n :: body.len()
@@ -504,10 +504,10 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
             label :: stack_labels[sp - 1]
             // Resolve any pending branches whose target scope is this
             // one — they branch to the End's label.
-            new_psp: usize = 0
+            new_psp: i64 = 0
             for j in 0..<psp {
                 if pending_label[j] == label {
-                    branch_target_label[usize(pending_pc[j])] = label
+                    branch_target_label[pending_pc[j]] = label
                 } else {
                     pending_pc[new_psp]    = pending_pc[j]
                     pending_label[new_psp] = pending_label[j]
@@ -600,7 +600,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
 
 push_scope_entry :: fn(
     labels: string[], opener_pc: i32[], is_loop: bool[], end_pc: i32[],
-    sp: usize, label: string, pc: i32, loop_flag: bool, scope_end: i32,
+    sp: i64, label: string, pc: i32, loop_flag: bool, scope_end: i32,
 ) -> void {
     if sp == labels.len() {
         labels.push(label)
@@ -617,7 +617,7 @@ push_scope_entry :: fn(
 
 // The pc of the `End` closing the scope opened at `opener_pc`. `Else` keeps the
 // scope open, so only the openers and `End` move the depth.
-matching_end_pc :: fn(body: Op[], opener_pc: usize) -> i32 {
+matching_end_pc :: fn(body: Op[], opener_pc: i64) -> i32 {
     d: i32 = 0
     for k in opener_pc..<body.len() {
         op :: body[k]
@@ -638,11 +638,11 @@ matching_end_pc :: fn(body: Op[], opener_pc: usize) -> i32 {
 // reader resolves the label it reads, so the jump lands inside a scope the
 // branch meant to leave.
 non_loop_label_for_target :: fn(
-    labels: string[], end_pc: i32[], is_loop: bool[], sp: usize, target_pc: i32,
+    labels: string[], end_pc: i32[], is_loop: bool[], sp: i64, target_pc: i32,
 ) -> string {
     i: i32 = i32(sp) - 1
     for i >= 0 {
-        u :: usize(i)
+        u :: i64(i)
         if !is_loop[u] && end_pc[u] + 1 == target_pc { return labels[u] }
         i -= 1
     }
@@ -650,12 +650,12 @@ non_loop_label_for_target :: fn(
 }
 
 find_loop_label_local :: fn(
-    labels: string[], opener_pc: i32[], is_loop: bool[], sp: usize, target_pc: i32,
+    labels: string[], opener_pc: i32[], is_loop: bool[], sp: i64, target_pc: i32,
 ) -> string {
     i: i32 = i32(sp) - 1
     for i >= 0 {
-        if is_loop[usize(i)] && opener_pc[usize(i)] + 1 == target_pc {
-            return labels[usize(i)]
+        if is_loop[i] && opener_pc[i] + 1 == target_pc {
+            return labels[i]
         }
         i -= 1
     }
@@ -954,25 +954,25 @@ ref_label :: fn(module: BytecodeModule, function: BcFunction, ref: OperandRef) -
 }
 
 string_label :: fn(module: BytecodeModule, index: i32) -> string {
-    if index < 0 || usize(index) >= module.strings.len() { return "<string #${index} out of range>" }
-    return quote_string(module.strings[usize(index)])
+    if index < 0 || i64(index) >= module.strings.len() { return "<string #${index} out of range>" }
+    return quote_string(module.strings[index])
 }
 
 fn_label :: fn(module: BytecodeModule, index: i32) -> string {
-    if index < 0 || usize(index) >= module.functions.len() { return "<fn #${index} out of range>" }
-    return module.functions[usize(index)].name
+    if index < 0 || i64(index) >= module.functions.len() { return "<fn #${index} out of range>" }
+    return module.functions[index].name
 }
 
 import_label :: fn(module: BytecodeModule, index: i32) -> string {
-    if index < 0 || usize(index) >= module.imports.len() { return "<import #${index} out of range>" }
-    return module.imports[usize(index)].mangled_name
+    if index < 0 || i64(index) >= module.imports.len() { return "<import #${index} out of range>" }
+    return module.imports[index].mangled_name
 }
 
 global_label :: fn(module: BytecodeModule, index: i32) -> string {
-    if index < 0 || usize(index) >= module.globals.len() {
+    if index < 0 || i64(index) >= module.globals.len() {
         return "<global #${index} out of range>"
     }
-    return module.globals[usize(index)].name
+    return module.globals[index].name
 }
 
 // Slot numbering is WASM-style : slots `0..param_count` are the function's
@@ -985,17 +985,17 @@ local_label :: fn(function: BcFunction, slot: i32) -> string {
     param_count :: i32(function.signature.params.len())
     if slot < 0 { return "<local #${slot} out of range>" }
     if slot < param_count { return "arg ${slot}" }
-    li :: usize(slot - param_count)
+    li :: i64(slot - param_count)
     if li >= locals.len() { return "<local #${slot} out of range>" }
     return locals[li].name
 }
 
 field_label :: fn(module: BytecodeModule, type_id: i32, field_index: i32) -> string {
-    if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
-    t :: module.types[usize(type_id)]
+    if type_id < 0 || i64(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
+    t :: module.types[type_id]
     if t is BcStruct {
-        if field_index < 0 || usize(field_index) >= t.fields.len() { return "<field #${field_index} out of range>" }
-        return t.fields[usize(field_index)].name
+        if field_index < 0 || i64(field_index) >= t.fields.len() { return "<field #${field_index} out of range>" }
+        return t.fields[field_index].name
     }
     // A field read off a union is named by the variant its layout comes from.
     if t is BcUnion {
@@ -1011,8 +1011,8 @@ type_label :: fn(module: BytecodeModule, type_id: i32) = type_label_at(module, t
 
 type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string {
     if depth > 6 { return "..." }
-    if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
-    return match module.types[usize(type_id)] as p {
+    if type_id < 0 || i64(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
+    return match module.types[type_id] as p {
         is BcPrimitive -> val_type_name(p.val)
         is BcStruct    -> p.name
         is BcArray     -> "${type_label_at(module, p.element, depth + 1)}[]"

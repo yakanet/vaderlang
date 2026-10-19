@@ -11,15 +11,15 @@ Circle :: struct {
     r: f64
 }
 
-count_mixed :: fn(xs: (i32 | string)[]) -> usize = xs.len()
+count_mixed :: fn(xs: (i32 | string)[]) -> i64 = xs.len()
 
-count_shapes :: fn(xs: (Circle | string)[]) -> usize = xs.len()
+count_shapes :: fn(xs: (Circle | string)[]) -> i64 = xs.len()
 
-count_nullable :: fn(xs: (Circle | null)[]) -> usize = xs.len()
+count_nullable :: fn(xs: (Circle | null)[]) -> i64 = xs.len()
 
-count_strings :: fn(xs: (string | null)[]) -> usize = xs.len()
+count_strings :: fn(xs: (string | null)[]) -> i64 = xs.len()
 
-count_pairs :: fn(xs: ([i32, i32] | null | string)[]) -> usize = xs.len()
+count_pairs :: fn(xs: ([i32, i32] | null | string)[]) -> i64 = xs.len()
 
 second :: fn(p: [i32 | string, i32]) -> i32 {
     [_, b] :: p

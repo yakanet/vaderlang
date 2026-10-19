@@ -349,13 +349,13 @@ sort_by_display_key :: fn(types: Type[]) -> Type[] {
         return types
     }
     keys: string[]: []
-    order: usize[]: []
+    order: i64[]: []
     for i in 0..<types.len() {
         keys.push(display_type(types[i]))
         order.push(i)
     }
     out: Type[]: []
-    in_union_order :: (a: usize, b: usize) -> comes_before(types[a], keys[a], types[b], keys[b])
+    in_union_order :: (a: i64, b: i64) -> comes_before(types[a], keys[a], types[b], keys[b])
     for i in sort(order, in_union_order) {
         out.push(types[i])
     }
@@ -888,7 +888,7 @@ bound_names_trait :: fn(t: TypeParamType, trait_key: string, typed: TypedProgram
 // non-null one : an `Equals` comparison, which tests which variant each side
 // holds, can tell it only from `null`. Null when there is none.
 untagged_beside_variant :: fn(u: UnionType) -> Type | null {
-    held: usize = 0
+    held: i64 = 0
     untagged: Type | null = null
     for v in u.variants {
         if !is_null_type(v) {

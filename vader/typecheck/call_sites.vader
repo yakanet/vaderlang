@@ -123,27 +123,27 @@ export CallRole :: enum {
 export CallSites :: struct {
     /// The calls written in each function, by its declaration's id. A lambda's are
     /// its enclosing function's, whose instances it shares.
-    calls_in_fn: MutableMap<usize, usize[]> = MutableMap<usize, usize[]> {}
-    calls: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    calls_in_fn: MutableMap<i64, i64[]> = MutableMap<i64, i64[]> {}
+    calls: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     /// Where each instantiation of a generic fn sits, by its node id : the calls
     /// `calls` records with bindings, every site `references` records, and every
     /// member access `receiver_instances` records.
-    instantiation_spans: MutableMap<usize, Span> = MutableMap<usize, Span> {}
+    instantiation_spans: MutableMap<i64, Span> = MutableMap<i64, Span> {}
     /// The function each of those sites sits in, by its declaration's id ; none at
     /// module level.
-    instantiation_callers: MutableMap<usize, usize> = MutableMap<usize, usize> {}
-    operators: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    index_reads: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    index_writes: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    conversions: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    iterator_conversions: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    iterator_steps: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    displays: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
-    references: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    instantiation_callers: MutableMap<i64, i64> = MutableMap<i64, i64> {}
+    operators: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    index_reads: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    index_writes: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    iterator_conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    iterator_steps: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    displays: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    references: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     /// The member accesses on an array receiver whose element names a type
     /// parameter, by node id : the member, with what the receiver gives the impl's
     /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).
-    receiver_instances: MutableMap<usize, Callee> = MutableMap<usize, Callee> {}
+    receiver_instances: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
 }
 
 /// Note that the site `id`, at `span`, instantiates a generic : the growing-recursion
@@ -152,14 +152,14 @@ export CallSites :: struct {
 /// @param typed  the module.
 /// @param id     the site's node id.
 /// @param span   where it is written.
-note_instantiation_site :: fn(typed: TypedProgram, id: usize, span: Span) -> void {
+note_instantiation_site :: fn(typed: TypedProgram, id: i64, span: Span) -> void {
     typed.call_sites.instantiation_spans[id] = span
     caller :: current_fn_id(typed) ?? return
     typed.call_sites.instantiation_callers[id] = caller
 }
 
 // The declaration id of the function being checked ; null at module level.
-current_fn_id :: fn(typed: TypedProgram) -> usize | null {
+current_fn_id :: fn(typed: TypedProgram) -> i64 | null {
     ctx :: typed.current_fn_ctx ?? return null
     if ctx.fn_id == 0 {
         return null
@@ -171,7 +171,7 @@ current_fn_id :: fn(typed: TypedProgram) -> usize | null {
 ///
 /// @param sites  a module's sites (`TypedProgram.call_sites`).
 /// @param role   the part the sites play.
-export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<usize, Callee> = match role {
+export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<i64, Callee> = match role {
     .Call       -> sites.calls
     .Operator   -> sites.operators
     .IndexRead  -> sites.index_reads
@@ -267,7 +267,7 @@ direct_decl :: fn(callee: Callee | null) -> AST.FnDecl | null {
 /// @param c      the call.
 /// @param decl   the declaration the record names for it.
 /// @param typed  the module that checked the call.
-export receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) -> usize {
+export receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) -> i64 {
     if c.callee !is AST.FieldExpr {
         return 0
     }
@@ -305,7 +305,7 @@ record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: C
 
 // List the call `node` under the function being checked ; a module-level
 // initialiser is in none.
-file_in_fn :: fn(typed: TypedProgram, node: usize) -> void {
+file_in_fn :: fn(typed: TypedProgram, node: i64) -> void {
     fn_id :: current_fn_id(typed) ?? return
     nodes :: typed.call_sites.calls_in_fn[fn_id]
     if nodes == null {
@@ -722,7 +722,7 @@ comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
     if a.span.end.offset != b.span.end.offset {
         return a.span.end.offset < b.span.end.offset
     }
-    return usize(a.role) < usize(b.role)
+    return i64(a.role) < i64(b.role)
 }
 
 /// How the dump and the lowering's verifier name `role`.

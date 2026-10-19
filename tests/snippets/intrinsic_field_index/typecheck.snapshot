@@ -5,10 +5,10 @@
   StructDecl     Vec3                 :: Vec3
   expr 14:28    StringLitExpr  :: string
   expr 14:9     BinaryExpr     :: bool
-  expr 14:9     IntrinsicCallExpr :: usize
+  expr 14:9     IntrinsicCallExpr :: i64
   expr 15:28    StringLitExpr  :: string
   expr 15:9     BinaryExpr     :: bool
-  expr 15:9     IntrinsicCallExpr :: usize
+  expr 15:9     IntrinsicCallExpr :: i64
   expr 16:28    StringLitExpr  :: string
   expr 16:9     BinaryExpr     :: bool
-  expr 16:9     IntrinsicCallExpr :: usize
+  expr 16:9     IntrinsicCallExpr :: i64

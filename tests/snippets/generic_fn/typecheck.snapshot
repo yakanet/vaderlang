@@ -6,8 +6,8 @@
   FnDecl         main                 :: fn() -> i32
   expr 10:5     IfExpr         :: void
   expr 10:8     BinaryExpr     :: bool
-  expr 10:8     CallExpr       :: usize
-  expr 10:8     FieldExpr      :: fn() -> usize
+  expr 10:8     CallExpr       :: i64
+  expr 10:8     FieldExpr      :: fn() -> i64
   expr 10:8     IdentExpr      :: T[]
   expr 11:16    IdentExpr      :: T[]
   expr 11:16    IndexExpr      :: T

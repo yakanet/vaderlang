@@ -7,13 +7,13 @@
   expr 13:14    RangeExpr      :: Range<i32>
   expr 13:18    IdentExpr      :: i32
   expr 14:15    IdentExpr      :: i32
-  expr 19:14    RangeExpr      :: Range<usize>
-  expr 19:18    CallExpr       :: usize
-  expr 19:18    FieldExpr      :: fn() -> usize
+  expr 19:14    RangeExpr      :: Range<i64>
+  expr 19:18    CallExpr       :: i64
+  expr 19:18    FieldExpr      :: fn() -> i64
   expr 19:18    IdentExpr      :: string
   expr 20:15    StringLitExpr  :: string
   expr 20:18    IdentExpr      :: string
-  expr 20:22    IdentExpr      :: usize
+  expr 20:22    IdentExpr      :: i64
   expr 26:14    CallExpr       :: __genstate_upto<i32>
   expr 26:14    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 27:17    StringLitExpr  :: string
@@ -55,30 +55,30 @@
   expr 46:25    IdentExpr      :: f64
   expr 46:9     CallExpr       :: void
   expr 46:9     IdentExpr      :: fn(T) -> void
-  expr 49:16    CallExpr       :: __genstate_map<usize>
+  expr 49:16    CallExpr       :: __genstate_map<i64>
   expr 49:16    CallExpr       :: __genstate_upto_1<string>
-  expr 49:16    CallExpr       :: usize[]
-  expr 49:16    FieldExpr      :: fn() -> usize[]
-  expr 49:16    FieldExpr      :: fn(fn(string) -> usize) -> Iterator<usize>
+  expr 49:16    CallExpr       :: i64[]
+  expr 49:16    FieldExpr      :: fn() -> i64[]
+  expr 49:16    FieldExpr      :: fn(fn(string) -> i64) -> Iterator<i64>
   expr 49:16    IdentExpr      :: fn(string) -> Iterator<string>
   expr 49:21    StringLitExpr  :: string
-  expr 49:31    LambdaExpr     :: fn(string) -> usize
-  expr 49:46    CallExpr       :: usize
-  expr 49:46    FieldExpr      :: fn() -> usize
+  expr 49:31    LambdaExpr     :: fn(string) -> i64
+  expr 49:46    CallExpr       :: i64
+  expr 49:46    FieldExpr      :: fn() -> i64
   expr 49:46    IdentExpr      :: string
   expr 50:13    StringLitExpr  :: string
-  expr 50:16    CallExpr       :: usize
-  expr 50:16    FieldExpr      :: fn() -> usize
-  expr 50:16    IdentExpr      :: usize[]
-  expr 50:33    IdentExpr      :: usize[]
-  expr 50:33    IndexExpr      :: usize
+  expr 50:16    CallExpr       :: i64
+  expr 50:16    FieldExpr      :: fn() -> i64
+  expr 50:16    IdentExpr      :: i64[]
+  expr 50:33    IdentExpr      :: i64[]
+  expr 50:33    IndexExpr      :: i64
   expr 50:5     CallExpr       :: void
   expr 50:5     IdentExpr      :: fn(T) -> void
   expr 51:13    StringLitExpr  :: string
   expr 51:16    CallExpr       :: __genstate_filter<i32>
   expr 51:16    CallExpr       :: __genstate_upto<i32>
-  expr 51:16    CallExpr       :: usize
-  expr 51:16    FieldExpr      :: fn() -> usize
+  expr 51:16    CallExpr       :: i64
+  expr 51:16    FieldExpr      :: fn() -> i64
   expr 51:16    FieldExpr      :: fn(fn(i32) -> bool) -> Iterator<i32>
   expr 51:16    IdentExpr      :: fn(i32) -> Iterator<i32>
   expr 51:31    LambdaExpr     :: fn(i32) -> bool

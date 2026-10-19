@@ -28,7 +28,7 @@ module "toolchain/span"
 /// them. The LSP boundary translates to UTF-16 column counts when needed.
 export Position :: struct {
     file: string
-    offset: usize
+    offset: i64
     line: i32
     column: i32
 }

@@ -19,8 +19,8 @@
                   break $resume6
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "skip ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -32,8 +32,8 @@
                   break $resume6
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "skip ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -45,8 +45,8 @@
                   break $resume6
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "skip ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -62,8 +62,8 @@
                   break $leave10
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "stop ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -73,8 +73,8 @@
                   break $leave10
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "stop ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -84,8 +84,8 @@
                   break $leave10
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "stop ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -119,8 +119,8 @@
                           break $resume19
                       }
                       std.io.println<string>({
-                          __buf_0: Buffer = std.core.new_byte_buffer(usize(26))
-                          __off_1: usize = 0
+                          __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
+                          __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, "small ")
                           __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
                           std.core.finish_buffer(__buf_0, __off_1)
@@ -152,8 +152,8 @@
                                   break $leave27
                               }
                               std.io.println<string>({
-                                  __buf_0: Buffer = std.core.new_byte_buffer(usize(25))
-                                  __off_1: usize = 0
+                                  __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
+                                  __off_1: i64 = 0
                                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "pair ")
                                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(p))
                                   std.core.finish_buffer(__buf_0, __off_1)
@@ -173,8 +173,8 @@
       return __genstate_with_header {
           .s0 = xs,
           .s1 = null,
-          .s2 = usize(0),
-          .s3 = usize(0),
+          .s2 = i64(0),
+          .s3 = i64(0),
           .s4 = 0,
           .state = 7,
       }
@@ -196,8 +196,8 @@
                   break $resume42
               }
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "headed ")
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
                   std.core.finish_buffer(__buf_0, __off_1)
@@ -205,8 +205,8 @@
           }
           {
               __for_arr_0: i32[] = xs
-              __for_len_1: usize = @array.len(__for_arr_0)
-              __for_i_2: usize = 0
+              __for_len_1: i64 = @array.len(__for_arr_0)
+              __for_i_2: i64 = 0
               for __for_i_2 < __for_len_1 {
                   x: i32 = __for_arr_0[__for_i_2]
                   x: i32 = x
@@ -216,15 +216,15 @@
                           break $resume42
                       }
                       std.io.println<string>({
-                          __buf_0: Buffer = std.core.new_byte_buffer(usize(27))
-                          __off_1: usize = 0
+                          __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
+                          __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, "headed ")
                           __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
               } @step {
-                  __for_i_2 = __for_i_2 +% usize(1)
+                  __for_i_2 = __for_i_2 +% i64(1)
               }
           }
       }
@@ -241,8 +241,8 @@
                   }
                   {
                       __for_arr_0: i32[] = xs
-                      __for_len_1: usize = @array.len(__for_arr_0)
-                      __for_i_2: usize = 0
+                      __for_len_1: i64 = @array.len(__for_arr_0)
+                      __for_i_2: i64 = 0
                       for __for_i_2 < __for_len_1 {
                           x: i32 = __for_arr_0[__for_i_2]
                           x: i32 = x
@@ -251,7 +251,7 @@
                               break $exit$i54
                           }
                       } @step {
-                          __for_i_2 = __for_i_2 +% usize(1)
+                          __for_i_2 = __for_i_2 +% i64(1)
                       }
                   }
               }
@@ -275,8 +275,8 @@
                                   break $resume68
                               }
                               std.io.println<string>({
-                                  __buf_0: Buffer = std.core.new_byte_buffer(usize(46))
-                                  __off_1: usize = 0
+                                  __buf_0: Buffer = std.core.new_byte_buffer(i64(46))
+                                  __off_1: i64 = 0
                                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "cell ")
                                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(r))
                                   __off_1 = std.core.write_string_at(__buf_0, __off_1, ",")
@@ -415,7 +415,7 @@
           }
       }
   }
-  snippet$__genstate_with_header :: struct { s0: i32[], s1: i32[], s2: usize, s3: usize, s4: i32, state: i32 }
+  snippet$__genstate_with_header :: struct { s0: i32[], s1: i32[], s2: i64, s3: i64, s4: i32, state: i32 }
   snippet$__genstate_with_header$Iterator$next :: fn(self: __genstate_with_header) -> [i32, Continuation] {
       dispatch$: for {
           if __self_3.state == 0 {
@@ -429,7 +429,7 @@
                   __self_3.state = 1
               }
           } else if __self_3.state == 3 {
-              __self_3.s3 = __self_3.s3 +% usize(1)
+              __self_3.s3 = __self_3.s3 +% i64(1)
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
@@ -451,10 +451,10 @@
       }
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -526,8 +526,8 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.b2i  // std_core$b2i
     fn std.core.b2u  // std_core$b2u
     fn std.core.b2u32  // std_core$b2u32
@@ -550,6 +550,8 @@
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.i32.to_string  // std_core$i32$Display$to_string
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.i64.to_string  // std_core$i64$Display$to_string
     fn std.core.i8.to_string  // std_core$i8$Display$to_string
     fn std.core.insert_point  // std_core$insert_point
@@ -579,9 +581,7 @@
     fn std.core.u64.to_string  // std_core$u64$Display$to_string
     fn std.core.u8.to_string  // std_core$u8$Display$to_string
     fn std.core.umul128  // std_core$umul128
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.usize.to_string  // std_core$usize$Display$to_string
     fn std.core.utf8_encode  // std_core$utf8_encode
     fn std.core.write_bool  // std_core$write_bool
@@ -598,7 +598,7 @@
     struct std.core.FloatDec32  // std_core$FloatDec32
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

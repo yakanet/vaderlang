@@ -24,7 +24,7 @@ bound :: fn(name: string, v: i32) -> i32 {
     return v
 }
 
-limit :: fn(n: usize) -> usize {
+limit :: fn(n: i64) -> i64 {
     println("limit ${n}")
     return n
 }

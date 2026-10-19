@@ -16,7 +16,7 @@ main :: fn() -> i32 {
         for i in 0..<100000 {
             a.push(i32(i))
         }
-        total = total + i64(a.len())
+        total = total + a.len()
     }
     println("arr_push ${total}")
     return 0

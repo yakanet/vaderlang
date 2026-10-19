@@ -187,8 +187,8 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
     h :: type_intern_hash(t)
     fast :: ctx.type_hash[h]
     if fast is i32 {
-        if usize(fast) < ctx.type_by_slot.len() {
-            if same_intern_class(t, ctx.type_by_slot[usize(fast)]) { return fast }
+        if i64(fast) in 0..<ctx.type_by_slot.len() {
+            if same_intern_class(t, ctx.type_by_slot[fast]) { return fast }
         }
     }
     key :: type_intern_key(t)
@@ -216,7 +216,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
         ctx.type_hash[h] = new_index
     }
     record_slot_type(ctx, new_index, t)
-    ctx.types[usize(new_index)] = bc_type_of_with_ctx(t, ctx, new_index)
+    ctx.types[new_index] = bc_type_of_with_ctx(t, ctx, new_index)
     return new_index
 }
 
@@ -323,8 +323,8 @@ import "std/testing"
 /// always addressable. Callers reach slots out of order (`reserve_struct` mints
 /// ahead of `intern_type`), so a plain `push` would desync.
 export record_slot_type :: fn(ctx: EmitterCtx, index: i32, t: Type) -> void {
-    for _ in ctx.type_by_slot.len()..=usize(index) {
+    for _ in ctx.type_by_slot.len()..=i64(index) {
         ctx.type_by_slot.push(TY_NULL)
     }
-    ctx.type_by_slot[usize(index)] = t
+    ctx.type_by_slot[index] = t
 }

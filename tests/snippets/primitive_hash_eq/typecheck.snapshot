@@ -19,7 +19,7 @@
   expr 14:13    StringLitExpr  :: string
   expr 14:26    CallExpr       :: u64
   expr 14:26    FieldExpr      :: fn() -> u64
-  expr 14:26    IdentExpr      :: usize
+  expr 14:26    IdentExpr      :: i64
   expr 14:5     CallExpr       :: void
   expr 14:5     IdentExpr      :: fn(T) -> void
   expr 9:13     StringLitExpr  :: string

@@ -141,8 +141,8 @@
               __self_2.state = -1
               return __self_2.s0
           } else if __self_2.state == 3 {
-              __self_2.__defers[@array.len(__self_2.__defers) -% usize(1)]()
-              __self_2.__defers = __self_2.__defers[usize(0)..<@array.len(__self_2.__defers) -% usize(1)]
+              __self_2.__defers[@array.len(__self_2.__defers) -% i64(1)]()
+              __self_2.__defers = __self_2.__defers[i64(0)..<@array.len(__self_2.__defers) -% i64(1)]
               __self_2.state = 2
           } else if __self_2.state == 4 {
               __resumed_3: Any | Suspended = @vcall(std.core.Async.resume, __self_2.awaited)
@@ -167,9 +167,9 @@
       if __self_2.awaited is null {} else {
           @vcall(std.core.Async.cancel, __self_2.awaited)
       }
-      for @array.len(__self_2.__defers) != usize(0) {
-          __self_2.__defers[@array.len(__self_2.__defers) -% usize(1)]()
-          __self_2.__defers = __self_2.__defers[usize(0)..<@array.len(__self_2.__defers) -% usize(1)]
+      for @array.len(__self_2.__defers) != i64(0) {
+          __self_2.__defers[@array.len(__self_2.__defers) -% i64(1)]()
+          __self_2.__defers = __self_2.__defers[i64(0)..<@array.len(__self_2.__defers) -% i64(1)]
       }
       __self_2.state = -1
   }
@@ -184,8 +184,8 @@
           } else if __self_9.state == 2 {
               __self_9.s1 = __self_9.s0
               std.io.println<string>({
-                  __buf_7: Buffer = std.core.new_byte_buffer(usize(20))
-                  __off_8: usize = 0
+                  __buf_7: Buffer = std.core.new_byte_buffer(i64(20))
+                  __off_8: i64 = 0
                   __off_8 = std.core.write_int(__buf_7, __off_8, i64(__self_9.s1))
                   std.core.finish_buffer(__buf_7, __off_8)
               } :string)
@@ -203,21 +203,21 @@
               __self_9.state = 3
           } else if __self_9.state == 5 {
               std.io.println<string>({
-                  __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
-                  __off_1: usize = 0
+                  __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
+                  __off_1: i64 = 0
                   __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.returns_a_call()))
                   std.core.finish_buffer(__buf_0, __off_1)
               } :string)
               std.io.println<string>({
-                  __buf_2: Buffer = std.core.new_byte_buffer(usize(20))
-                  __off_3: usize = 0
+                  __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
+                  __off_3: i64 = 0
                   __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.returns_a_local()))
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               snippet.returns_a_void_call()
               std.io.println<string>({
-                  __buf_4: Buffer = std.core.new_byte_buffer(usize(20))
-                  __off_5: usize = 0
+                  __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
+                  __off_5: i64 = 0
                   __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.returns_from_a_nested_block(true)))
                   std.core.finish_buffer(__buf_4, __off_5)
               } :string)
@@ -234,10 +234,10 @@
       __self_9.state = -1
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -312,18 +312,18 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.hash  // std_core$i32$Hash$hash
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -333,7 +333,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.Suspended  // std_core$Suspended
   std/io
     fn std.io.println<string>  // std_io$println__string

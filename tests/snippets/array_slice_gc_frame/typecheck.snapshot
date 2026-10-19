@@ -15,8 +15,8 @@
   expr 18:21    IdentExpr      :: Foo
   expr 18:27    CallExpr       :: i32
   expr 18:27    IdentExpr      :: type
-  expr 18:31    CallExpr       :: usize
-  expr 18:31    FieldExpr      :: fn() -> usize
+  expr 18:31    CallExpr       :: i64
+  expr 18:31    FieldExpr      :: fn() -> i64
   expr 18:31    IdentExpr      :: i32[]
   expr 18:9     IdentExpr      :: i32
   expr 20:12    IdentExpr      :: i32

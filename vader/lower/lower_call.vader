@@ -394,7 +394,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     if callee.field == "len" && call.args.len() == 0 {
         return LoweredArrayLen {
             .span = call.span,
-            .type = mk_primitive("usize"),
+            .type = type,
             .target = lower_expr(ctx, callee.target),
         }
     }

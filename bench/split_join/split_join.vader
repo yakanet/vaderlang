@@ -33,7 +33,7 @@ main :: fn() -> i32 {
                 kept.push(part)
             }
         }
-        pieces += i64(kept.len())
+        pieces += kept.len()
         joined_length += i64(join(kept, SEPARATOR).byte_len())
     }
     println(

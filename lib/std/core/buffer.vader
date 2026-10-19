@@ -40,22 +40,22 @@ BufferAlloc :: trait {
 /// neither fires a write barrier, since the region holds no references.
 ByteAccess :: trait {
     /// Read the byte at `off`.
-    load_u8 :: fn(self, off: usize) -> u8
+    load_u8 :: fn(self, off: i64) -> u8
     /// Write `v` at byte offset `off`.
-    store_u8 :: fn(self, off: usize, v: u8) -> void
+    store_u8 :: fn(self, off: i64, v: u8) -> void
     /// Copy `n` bytes from `src[s ..< s + n]` into `self[d ..< d + n]`
     /// (overlap-safe).
-    memory_copy :: fn(self, d: usize, src: Self, s: usize, n: usize) -> void
+    memory_copy :: fn(self, d: i64, src: Self, s: i64, n: i64) -> void
     /// Intern the buffer's leading `len` bytes as a `string` — a single copy
     /// into the atom table, no read-back into an intermediate `u8[]`. Bytes are
     /// taken verbatim (no UTF-8 validation, same as `bytes_to_string` over a
     /// `u8[]`) ; the caller guarantees valid UTF-8.
-    intern_string :: fn(self, len: usize) -> string
+    intern_string :: fn(self, len: i64) -> string
     /// Copy string `s`'s bytes into the buffer at byte offset `off` — a single
     /// bulk `memcpy` from the interned atom, no per-byte loop. The lean
     /// replacement for `vader_string_concat_all` ; `StringBuilder.to_string`
     /// assembles its parts with this.
-    write_string :: fn(self, off: usize, s: string) -> void
+    write_string :: fn(self, off: i64, s: string) -> void
 }
 
 @intrinsic usize  implements BufferAlloc

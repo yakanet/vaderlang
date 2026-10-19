@@ -220,12 +220,12 @@ RegFunction :: struct {
     virtual_rows: i32[]
     texts:     string[]
     /// Parameters, locals, then one register per operand-stack depth.
-    registers: usize
+    registers: i64
     /// `signature.params.len()` — the arity the call arm checks a fn value or a
     /// vtable impl against before entering it.
-    params:    usize
+    params:    i64
     /// Parameters plus locals: the registers a call resets.
-    slots:     usize
+    slots:     i64
 }
 
 // The translated module, index-aligned with `BytecodeModule.functions`.

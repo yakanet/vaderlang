@@ -286,16 +286,16 @@
 [44:24-44:25] lparen         "("
 [44:25-44:26] rparen         ")"
 [44:26-44:27] lbracket       "["
-[44:27-44:32] ident          "usize"
-[44:32-44:33] lparen         "("
-[44:33-44:34] int_literal    "1" =1n
-[44:34-44:35] rparen         ")"
-[44:35-44:38] range_excl     "..<"
-[44:38-44:43] ident          "usize"
-[44:43-44:44] lparen         "("
-[44:44-44:45] int_literal    "4" =4n
-[44:45-44:46] rparen         ")"
-[44:46-44:47] rbracket       "]"
+[44:27-44:30] ident          "i64"
+[44:30-44:31] lparen         "("
+[44:31-44:32] int_literal    "1" =1n
+[44:32-44:33] rparen         ")"
+[44:33-44:36] range_excl     "..<"
+[44:36-44:39] ident          "i64"
+[44:39-44:40] lparen         "("
+[44:40-44:41] int_literal    "4" =4n
+[44:41-44:42] rparen         ")"
+[44:42-44:43] rbracket       "]"
 [45:1-45:1  ] newline        "\n"
 [45:5-45:12 ] ident          "println"
 [45:12-45:13] lparen         "("

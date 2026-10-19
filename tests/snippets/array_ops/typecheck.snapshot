@@ -19,6 +19,6 @@
   expr 20:28    IndexExpr      :: i32
   expr 20:36    CallExpr       :: i32
   expr 20:36    IdentExpr      :: type
-  expr 20:40    CallExpr       :: usize
-  expr 20:40    FieldExpr      :: fn() -> usize
+  expr 20:40    CallExpr       :: i64
+  expr 20:40    FieldExpr      :: fn() -> i64
   expr 20:40    IdentExpr      :: i32[]

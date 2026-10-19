@@ -9,8 +9,8 @@ export main 2
 fn 0 snippet$sum_ids (ref) -> i32
   local total i32
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   local $cast_12 i32
   i32.const 0
   local.set 1   ; total
@@ -23,7 +23,7 @@ fn 0 snippet$sum_ids (ref) -> i32
   loop $L0 void
     local.get 4   ; __for_i_2
     local.get 3   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2

@@ -100,7 +100,7 @@ export parse :: fn(s: string) -> Version | ParseError {
 
     // Locate the build separator `+` first (last occurrence — build
     // identifiers cannot themselves contain `+`).
-    plus_pos: usize = n
+    plus_pos: i64 = n
     for i in 0..<n {
         if s.byte_at(i) == '+' { plus_pos = i }
     }
@@ -109,7 +109,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     // the first `-` after the patch component, which lives after the
     // second `.`. Earlier `-` bytes are part of an alphanumeric
     // identifier (`alpha-1` etc.) and must NOT be treated as separators.
-    dash_pos: usize = plus_pos
+    dash_pos: i64 = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
         b :: s.byte_at(j)
@@ -128,8 +128,8 @@ export parse :: fn(s: string) -> Version | ParseError {
     // Core must be M.N.P with exactly three numeric identifiers,
     // each free of leading zeros.
     triple :: [0, 0, 0]
-    fill: usize = 0
-    start: usize = 0
+    fill: i64 = 0
+    start: i64 = 0
     cn :: core.byte_len()
     for k in 0..<cn {
         if core.byte_at(k) == '.' {
@@ -265,7 +265,7 @@ validate_prerelease_id :: fn(id: string) -> string {
 
 validate_prerelease :: fn(s: string) -> string {
     n :: s.byte_len()
-    start: usize = 0
+    start: i64 = 0
     for i in 0..<n {
         if s.byte_at(i) == '.' {
             id :: s.byte_slice(start, i)
@@ -289,7 +289,7 @@ validate_build_id :: fn(id: string) -> string {
 
 validate_build :: fn(s: string) -> string {
     n :: s.byte_len()
-    start: usize = 0
+    start: i64 = 0
     for i in 0..<n {
         if s.byte_at(i) == '.' {
             id :: s.byte_slice(start, i)
@@ -401,7 +401,7 @@ split_or :: fn(s: string) -> string[] {
         out.push(s)
         return out
     }
-    start: usize = 0
+    start: i64 = 0
     for i in 0..<(n - 1) {
         if s.byte_at(i) == '|' && s.byte_at(i + 1) == '|' {
             out.push(s.byte_slice(start, i))
@@ -418,7 +418,7 @@ split_or :: fn(s: string) -> string[] {
 split_ws :: fn(s: string) -> string[] {
     out: string[]: []
     n :: s.byte_len()
-    start: usize = 0
+    start: i64 = 0
     in_word := false
     for i in 0..<n {
         c :: char(u32(s.byte_at(i)))
@@ -460,11 +460,11 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
 
     n :: s.byte_len()
     // Locate `+` (last) and the first `-` after two `.`.
-    plus_pos: usize = n
+    plus_pos: i64 = n
     for i in 0..<n {
         if s.byte_at(i) == '+' { plus_pos = i }
     }
-    dash_pos: usize = plus_pos
+    dash_pos: i64 = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
         b :: s.byte_at(j)
@@ -709,7 +709,7 @@ parse_clause :: fn(s: string) -> RangeClause | ParseError {
     }
     terms: RangeTerm[]: []
     n :: tokens.len()
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         // Operator with a space before its version (`>= 1.2.3`, `^ 1.2.3`) :
         // node-semver allows whitespace between a comparator and its version, so

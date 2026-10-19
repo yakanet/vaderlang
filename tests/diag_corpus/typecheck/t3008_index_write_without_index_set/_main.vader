@@ -7,8 +7,8 @@ Grid :: struct {
     w: i32
 }
 
-Grid implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = i32(i)
+Grid implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = i32(i)
 }
 
 main :: fn() -> i32 {

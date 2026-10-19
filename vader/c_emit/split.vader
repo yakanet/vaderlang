@@ -148,13 +148,13 @@ export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: str
         // Prototypes for this unit's OWN internal functions — the shared header
         // carries only the external ones, and a `static` definition needs a
         // `static` declaration ahead of any mutually-recursive use.
-        ctx.emit_internal_forward_decls(buckets[usize(k)], unit)
+        ctx.emit_internal_forward_decls(buckets[k], unit)
         if k == 0 {
             ctx.emit_fn_trampolines(unit)
             ctx.emit_vtable_dispatchers(unit)
         }
-        for idx in buckets[usize(k)] {
-            unit.print_item(function_definition(ctx, idx, m.functions[usize(idx)]))
+        for idx in buckets[k] {
+            unit.print_item(function_definition(ctx, idx, m.functions[idx]))
         }
         if k == 0 {
             ctx.emit_main(unit, opts.entry_mangled)
@@ -229,16 +229,16 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
     }
     for u in 0..<buckets.len() {
         for idx in buckets[u] {
-            unit_of[usize(idx)] = i32(u)
+            unit_of[idx] = i32(u)
         }
     }
 
     for e in m.exports {
-        external[usize(e.fn_index)] = true
+        external[e.fn_index] = true
     }
     for row in m.vtables {
         for en in row.entries {
-            external[usize(en.fn_index)] = true
+            external[en.fn_index] = true
         }
     }
     usage :: scan_fn_value_usage(m.functions)
@@ -255,8 +255,8 @@ internal_fn_flags :: fn(m: BytecodeModule, buckets: i32[][], entry_mangled: stri
         home :: unit_of[i]
         for op in m.functions[i].body {
             callee :: callee_index_of(op)
-            if callee >= 0 && unit_of[usize(callee)] != home {
-                external[usize(callee)] = true
+            if callee >= 0 && unit_of[callee] != home {
+                external[callee] = true
             }
         }
     }
@@ -331,7 +331,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // to straddle a module.
     of_module :: MutableMap<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
-        m :: module_stem_of(fns[usize(idx)].name)
+        m :: module_stem_of(fns[idx].name)
         cur :: of_module[m]
         if cur == null {
             of_module[m] = [idx]
@@ -369,7 +369,7 @@ sorted_module_stems :: fn(of_module: MutableMap<string, i32[]>) -> string[] {
 unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     out: string[]: [GLUE_UNIT]
     for k in 1..<buckets.len() {
-        stem :: module_stem_of(fns[usize(buckets[k][0])].name)
+        stem :: module_stem_of(fns[buckets[k][0]].name)
         // A stem names a MODULE, so every byte of it is an identifier byte. An
         // EMPTY stem is ordinary — a bare name like `main` has no `$` — and
         // becomes `_root` below. A stem that is non-empty but not an identifier
@@ -381,7 +381,7 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
         for i in 0..<stem.byte_len() {
             b :: stem.byte_at(i)
             if !is_ident_byte(b) {
-                todo("split: unit name for `${fns[usize(buckets[k][0])].name}` is not an identifier — the mangled name is corrupt")
+                todo("split: unit name for `${fns[buckets[k][0]].name}` is not an identifier — the mangled name is corrupt")
             }
         }
         out.push(if stem == "" { "_root" } else { stem })
@@ -405,14 +405,14 @@ module_stem_of :: fn(name: string) -> string {
     if at < 0 {
         return ""
     }
-    return name.byte_slice(0, usize(at))
+    return name.byte_slice(0, at)
 }
 
 /// Fn indices sorted by mangled name — the deterministic visit order.
 sorted_fn_indices :: fn(fns: BcFunction[]) -> i32[] {
     idxs: i32[]: []
     for i in 0..<fns.len() { idxs.push(i32(i)) }
-    return sort(idxs, (a: i32, b: i32) -> compare_ascending(fns[usize(a)].name, fns[usize(b)].name))
+    return sort(idxs, (a: i32, b: i32) -> compare_ascending(fns[a].name, fns[b].name))
 }
 
 

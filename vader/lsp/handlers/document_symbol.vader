@@ -94,7 +94,7 @@ import "std/testing"
 
 // `name` of the i-th top-level symbol, or "" out of range — keeps the asserts
 // terse without a find helper.
-sym_name_at :: fn(syms: DeclEntry[], i: usize) -> string {
+sym_name_at :: fn(syms: DeclEntry[], i: i64) -> string {
     if i >= syms.len() { return "" }
     return syms[i].name
 }

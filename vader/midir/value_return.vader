@@ -1,6 +1,6 @@
 // vader/midir/value_return — return a small composite in registers, not on the heap.
 //
-// A function returning `[char, usize]` allocates a heap object the caller reads
+// A function returning `[char, i64]` allocates a heap object the caller reads
 // twice and drops.
 //
 // This pass hands the elements back as separate values instead. The IR carries
@@ -189,7 +189,7 @@ rewrite_call_sites :: fn(
     locals: CFGLocal[]: []
     locals.push_all(f.locals)
     // A rewritten block keeps `b.id`, so `kept` stays indexed by id — which is
-    // how `emit.vader` reads it (`blocks[usize(id)]`). A nullable rebuild needs
+    // how `emit.vader` reads it (`blocks[i64(id)]`). A nullable rebuild needs
     // extra blocks; they take fresh ids ABOVE every existing one, in the order
     // they are minted, so appending `extra` keeps the whole array indexed.
     kept: BasicBlock[]: []

@@ -39,7 +39,7 @@ RangeSite :: struct {
     /// Where the instruction sits: its block, and its rank among the block's
     /// instructions.
     block: BlockId
-    position: usize
+    position: i64
     /// The operation over its locals' names: `xs[i]`, `total + x`.
     what: string
     /// A checked operation, not an array access.

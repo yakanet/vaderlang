@@ -6,9 +6,9 @@ module "snippet"
 
 import "std/collections"
 
-keys_of :: fn(u: MutableMap<i32, i32> | MutableMap<i32, bool>) -> usize = u.ekeys.len()
+keys_of :: fn(u: MutableMap<i32, i32> | MutableMap<i32, bool>) -> i64 = u.ekeys.len()
 
-size_of :: fn(m: MutableMap<i32, i32>) -> usize = @field(m, "size")
+size_of :: fn(m: MutableMap<i32, i32>) -> i64 = @field(m, "size")
 
 main :: fn() -> i32 {
     m :: MutableMap<i32, i32> {}

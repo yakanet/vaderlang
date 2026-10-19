@@ -5,9 +5,9 @@
   ConstDecl      Histogram            :: type
   FnDecl         main                 :: fn() -> i32
   expr 22:25    SeqLitExpr     :: Histogram
-  expr 23:18    RangeExpr      :: Range<usize>
-  expr 23:22    CallExpr       :: usize
-  expr 23:22    FieldExpr      :: fn() -> usize
+  expr 23:18    RangeExpr      :: Range<i64>
+  expr 23:22    CallExpr       :: i64
+  expr 23:22    FieldExpr      :: fn() -> i64
   expr 23:22    IdentExpr      :: Histogram
   expr 23:35    CallExpr       :: void
   expr 23:35    FieldExpr      :: fn(u32) -> void
@@ -15,13 +15,13 @@
   expr 23:44    BinaryExpr     :: u32
   expr 23:44    IdentExpr      :: Histogram
   expr 23:44    IndexExpr      :: u32
-  expr 23:49    IdentExpr      :: usize
+  expr 23:49    IdentExpr      :: i64
   expr 23:54    IdentExpr      :: u32
   expr 24:16    IdentExpr      :: Histogram
   expr 30:25    SeqLitExpr     :: Histogram
-  expr 31:18    RangeExpr      :: Range<usize>
-  expr 31:22    CallExpr       :: usize
-  expr 31:22    FieldExpr      :: fn() -> usize
+  expr 31:18    RangeExpr      :: Range<i64>
+  expr 31:22    CallExpr       :: i64
+  expr 31:22    FieldExpr      :: fn() -> i64
   expr 31:22    IdentExpr      :: Histogram
   expr 31:35    CallExpr       :: void
   expr 31:35    FieldExpr      :: fn(u32) -> void
@@ -29,7 +29,7 @@
   expr 31:44    BinaryExpr     :: u32
   expr 31:44    IdentExpr      :: Histogram
   expr 31:44    IndexExpr      :: u32
-  expr 31:49    IdentExpr      :: usize
+  expr 31:49    IdentExpr      :: i64
   expr 31:54    IdentExpr      :: u32
   expr 32:16    SeqLitExpr     :: [Histogram, u32]
   expr 32:17    IdentExpr      :: Histogram
@@ -70,8 +70,8 @@
   expr 45:42    IdentExpr      :: u32
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 45:53    CallExpr       :: usize
-  expr 45:53    FieldExpr      :: fn() -> usize
+  expr 45:53    CallExpr       :: i64
+  expr 45:53    FieldExpr      :: fn() -> i64
   expr 45:53    IdentExpr      :: Histogram
   expr 47:16    IdentExpr      :: Histogram
   expr 47:20    IdentExpr      :: u32

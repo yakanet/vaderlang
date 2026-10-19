@@ -11,8 +11,8 @@ export main 1
 fn 0 snippet$run (any,bool,bool) -> i32
   local items ref
   local base i32
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   i32.const 1
   i32.const 2
   i32.const 3
@@ -53,7 +53,7 @@ fn 0 snippet$run (any,bool,bool) -> i32
       loop $L4 void
         local.get 6   ; __for_i_2
         local.get 5   ; __for_len_1
-        u64.lt
+        i64.lt
         if $L5 void
           local.get 3   ; items
           local.get 6   ; __for_i_2

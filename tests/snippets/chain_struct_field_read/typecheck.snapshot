@@ -18,8 +18,8 @@
   expr 24:21    IdentExpr      :: Rec[]
   expr 24:24    IdentExpr      :: Rec[]
   expr 25:13    StringLitExpr  :: string
-  expr 25:20    CallExpr       :: usize
-  expr 25:20    FieldExpr      :: fn() -> usize
+  expr 25:20    CallExpr       :: i64
+  expr 25:20    FieldExpr      :: fn() -> i64
   expr 25:20    IdentExpr      :: Rec[]
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void

@@ -387,7 +387,7 @@ extern_decl :: fn(imp: BcImport, types: BcType[]) -> CTopLevel {
 }
 
 // The C type the foreign symbol declares for parameter `j` of `sig`.
-extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: usize) -> string {
+extern_parameter_type :: fn(sig: BcSignature, types: BcType[], j: i64) -> string {
     writes :: param_is_c_out(sig, j)
     if is_abi_array(types, sig.param_types[j]) {
         // One Vader array = ONE C argument, a bare pointer. A length, when
@@ -653,7 +653,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
 }
 
 // `a<j>`, the shim's `j`-th parameter.
-argument :: fn(j: usize) -> CExpression = verbatim("a${j}")
+argument :: fn(j: i64) -> CExpression = verbatim("a${j}")
 
 // `vader_trap("message");` — a runtime abort naming what went wrong.
 trap :: fn(message: string) -> CStatement = perform("vader_trap", [verbatim(c_string_lit(message))])
@@ -773,7 +773,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     // in `vader_array_bytes` instead, because there C holds the address itself.
     after: CStatement[]: []
     if write_back_roots.len() > 0 {
-        count :: number(i64(write_back_roots.len()))
+        count :: number(write_back_roots.len())
         before.push(array_declaration("void**", "__wb_roots", write_back_roots))
         frame :: verbatim("__wb_frame")
         before.push(perform("VADER_GC_PUSH_RAW", [frame, verbatim("__wb_roots"), count]))
@@ -906,10 +906,10 @@ interned :: fn(text: CExpression) -> CExpression =
 /// @param type_index  the slot ; `-1` is absent.
 /// @return            e.g. `"struct timespec"`, or `""`.
 mirrored_c_struct :: fn(types: BcType[], type_index: i32) -> string {
-    if type_index < 0 || usize(type_index) >= types.len() {
+    if type_index < 0 || i64(type_index) >= types.len() {
         return ""
     }
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcStruct {
         return t.c_name
     }
@@ -922,10 +922,10 @@ mirrored_c_struct :: fn(types: BcType[], type_index: i32) -> string {
 /// @param type_index  the slot.
 /// @return            the mangled Vader name.
 bc_struct_name :: fn(types: BcType[], type_index: i32) -> string {
-    if type_index < 0 || usize(type_index) >= types.len() {
+    if type_index < 0 || i64(type_index) >= types.len() {
         return ""
     }
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcStruct {
         return t.name
     }
@@ -938,10 +938,10 @@ bc_struct_name :: fn(types: BcType[], type_index: i32) -> string {
 /// @param type_index  the slot.
 /// @return            the field list, in declaration order.
 bc_struct_fields :: fn(types: BcType[], type_index: i32) -> BcField[] {
-    if type_index < 0 || usize(type_index) >= types.len() {
+    if type_index < 0 || i64(type_index) >= types.len() {
         return []
     }
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcStruct {
         return t.fields
     }

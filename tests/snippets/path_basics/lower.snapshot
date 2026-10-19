@@ -14,8 +14,8 @@
       snippet.show_path("grand", std.path.parent(std.path.parent(p)))
       abs: Path = std.path.to_path("/usr/local/bin/vader")
       std.io.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(usize(21))
-          __off_1: usize = 0
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
+          __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "abs is_absolute=")
           __off_1 = std.core.write_bool(__buf_0, __off_1, std.path.is_absolute(abs))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -24,15 +24,15 @@
       snippet.show_path("abs.filename", std.path.to_path(std.path.filename(abs)))
       snippet.show_path("abs.parent.parent", std.path.parent(std.path.parent(abs)))
       std.io.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(usize(20))
-          __off_3: usize = 0
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "empty is empty=")
           __off_3 = std.core.write_bool(__buf_2, __off_3, std.path.empty_path() == std.path.empty_path())
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(usize(16))
-          __off_5: usize = 0
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(16))
+          __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "p is empty=")
           __off_5 = std.core.write_bool(__buf_4, __off_5, p == std.path.empty_path())
           std.core.finish_buffer(__buf_4, __off_5)
@@ -42,29 +42,29 @@
       snippet.show_path("join absolute", std.path.join(std.path.to_path("/etc"), "/var/log"))
       snippet.show_path("join empty base", std.path.join(std.path.empty_path(), "foo"))
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(usize(28))
-          __off_7: usize = 0
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(28))
+          __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "a/b/c starts_with a/b: ")
           __off_7 = std.core.write_bool(__buf_6, __off_7, std.path.starts_with(std.path.to_path("a/b/c"), std.path.to_path("a/b")))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(usize(27))
-          __off_9: usize = 0
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "a/bc starts_with a/b: ")
           __off_9 = std.core.write_bool(__buf_8, __off_9, std.path.starts_with(std.path.to_path("a/bc"), std.path.to_path("a/b")))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(usize(26))
-          __off_11: usize = 0
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "a/b/c ends_with b/c: ")
           __off_11 = std.core.write_bool(__buf_10, __off_11, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("b/c")))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(usize(25))
-          __off_13: usize = 0
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(25))
+          __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "a/b/c ends_with /c: ")
           __off_13 = std.core.write_bool(__buf_12, __off_13, std.path.ends_with(std.path.to_path("a/b/c"), std.path.to_path("/c")))
           std.core.finish_buffer(__buf_12, __off_13)
@@ -77,20 +77,20 @@
       return 0
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      c2: usize = c1 +% std.core.byte_len(p2)
-      buf: Buffer = std.core.usize.new_buffer(c2)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(usize(c2))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.write_string(buf, c1, p2)
       std.core.Buffer.intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -102,21 +102,21 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.codepoint_at_byte  // std_core$codepoint_at_byte
     fn std.core.codepoint_offset  // std_core$codepoint_offset
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.string.at  // std_core$string$Index$at
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -124,7 +124,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

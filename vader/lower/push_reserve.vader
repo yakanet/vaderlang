@@ -156,9 +156,9 @@ is_push_onto :: fn(e: LoweredExpr, out: Symbol) -> bool =
 
 // ---- the trip count ---------------------------------------------------------
 
-// How many turns the loop runs, as a `usize`: `bound - start` (one more when the
+// How many turns the loop runs, as an `i64`: `bound - start` (one more when the
 // bound is reached), or 0 for a range whose bound sits below its start. The
-// difference is a wrapping `usize` one, exact under the `start <= bound` guard: in
+// difference is a wrapping `i64` one, exact under the `start <= bound` guard: in
 // the counter's own type it may not fit (`-100..<100` over an `i8`). Two literal
 // bounds wrap too, the count being a hint: a span past `i64` reserves nothing.
 trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
@@ -166,14 +166,14 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     bound :: turns.bound
     inclusive :: turns.inclusive
     extra: i64: if inclusive { 1 } else { 0 }
-    if is_int_lit(start, 0) && is_usize(bound.type) && !inclusive {
-        return bound
+    if is_int_lit(start, 0) && never_negative(bound) && !inclusive {
+        return cast_to_i64(bound, span)
     }
     if start is LoweredIntLit && bound is LoweredIntLit {
         count :: bound.value -% start.value +% extra
-        return usize_lit(if count > 0 { count } else { 0 }, span)
+        return count_lit(if count > 0 { count } else { 0 }, span)
     }
-    turned :: usize_difference(bound, start, span)
+    turned :: count_between(bound, start, span)
     in_range :: LoweredBinary {
         .span = span,
         .type = TY_BOOL,
@@ -183,32 +183,24 @@ trip_count :: fn(turns: LoopTurns, span: Span) -> LoweredExpr {
     }
     return LoweredIf {
         .span = span,
-        .type = mk_primitive("usize"),
+        .type = mk_primitive("i64"),
         .cond = in_range,
-        .then_block = wrap_as_block(if inclusive { plus_one(turned, span) } else { turned }, span),
-        .else_block = wrap_as_block(usize_lit(0, span), span),
+        .then_block = wrap_as_block(adjust_hi_inclusive(turned, inclusive, span), span),
+        .else_block = wrap_as_block(count_lit(0, span), span),
     }
 }
 
-usize_difference :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> LoweredExpr {
+count_between :: fn(bound: LoweredExpr, start: LoweredExpr, span: Span) -> LoweredExpr {
     if is_int_lit(start, 0) {
-        return cast_to_usize(bound, span)
+        return cast_to_i64(bound, span)
     }
     return LoweredBinary {
         .span = span,
-        .type = mk_primitive("usize"),
+        .type = mk_primitive("i64"),
         .op = .Sub,
-        .left = cast_to_usize(bound, span),
-        .right = cast_to_usize(start, span),
+        .left = cast_to_i64(bound, span),
+        .right = cast_to_i64(start, span),
     }
-}
-
-plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr = LoweredBinary {
-    .span = span,
-    .type = mk_primitive("usize"),
-    .op = .Add,
-    .left = e,
-    .right = usize_lit(1, span),
 }
 
 // Whether `e`, a hoisted start or bound, reads `symbol`.
@@ -225,11 +217,18 @@ reads_local :: fn(e: LoweredExpr, symbol: Symbol) -> bool {
     return false
 }
 
-is_usize :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "usize"
+// Whether `bound`, a hoisted bound, is never negative : an array's length, or a
+// value of an unsigned integer type.
+never_negative :: fn(bound: LoweredExpr) -> bool {
+    if bound is LoweredArrayLen {
+        return true
+    }
+    return is_unsigned_int_name(primitive_name(bound.type))
+}
 
-usize_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
+count_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {
     .span = span,
-    .type = mk_primitive("usize"),
+    .type = mk_primitive("i64"),
     .value = value,
 }
 

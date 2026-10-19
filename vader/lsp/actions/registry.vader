@@ -142,7 +142,7 @@ export run_source_actions :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResu
 /// Shared by the rewrite actions.
 export reindent :: fn(text: string, indent: i32) -> string {
     if indent <= 0 { return text }
-    pad :: " ".repeat(usize(indent))
+    pad :: " ".repeat(i64(indent))
     out := ""
     i := 0
     for line in text.split("\n") {

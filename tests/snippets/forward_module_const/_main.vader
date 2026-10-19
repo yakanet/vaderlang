@@ -38,7 +38,7 @@ kind :: fn(name: string) -> string {
     return "other"
 }
 
-count_numeric :: fn() -> usize = NUMERIC.len()
+count_numeric :: fn() -> i64 = NUMERIC.len()
 
 first_name :: fn() -> string = NAMES[0]
 

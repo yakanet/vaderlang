@@ -5,8 +5,8 @@ module "snippet"
 
 Names :: i32[]
 
-Names implements Index<usize, string> {
-    at :: fn(self, i: usize) -> string = "n${i}"
+Names implements Index<i64, string> {
+    at :: fn(self, i: i64) -> string = "n${i}"
 }
 
 main :: fn() -> i32 {

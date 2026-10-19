@@ -56,10 +56,10 @@ export CLayout :: struct {
 /// @return       the field's `ValType`, or `null` when its type is not a
 ///               primitive, or its index is not one the table holds.
 export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
-    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+    if f.type_index < 0 || i64(f.type_index) >= types.len() {
         return null
     }
-    t :: types[usize(f.type_index)]
+    t :: types[f.type_index]
     if t is BcPrimitive {
         return t.val
     }
@@ -94,10 +94,10 @@ export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
 /// @param f      the field.
 /// @param types  the module type table.
 export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null {
-    if f.type_index < 0 || usize(f.type_index) >= types.len() {
+    if f.type_index < 0 || i64(f.type_index) >= types.len() {
         return null
     }
-    t :: types[usize(f.type_index)]
+    t :: types[f.type_index]
     if t is BcStruct {
         if t.c_name != "" {
             return t

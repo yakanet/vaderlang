@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/for_in_iter_trait
-  FnDecl         count_ls             :: fn(string) -> usize
+  FnDecl         count_ls             :: fn(string) -> i64
   FnDecl         is_l                 :: fn(char) -> bool
   FnDecl         main                 :: fn() -> i32
   FnDecl         sum_iter             :: fn(Iterator<i32>) -> i32
@@ -15,9 +15,9 @@
   expr 33:38    IdentExpr      :: char
   expr 35:12    CallExpr       :: StringChars
   expr 35:12    CallExpr       :: __genstate_filter<char>
-  expr 35:12    CallExpr       :: usize
+  expr 35:12    CallExpr       :: i64
   expr 35:12    FieldExpr      :: fn() -> StringChars
-  expr 35:12    FieldExpr      :: fn() -> usize
+  expr 35:12    FieldExpr      :: fn() -> i64
   expr 35:12    FieldExpr      :: fn(fn(char) -> bool) -> Iterator<char>
   expr 35:12    IdentExpr      :: string
   expr 35:29    IdentExpr      :: fn(char) -> bool
@@ -35,10 +35,10 @@
   expr 42:29    IdentExpr      :: i32
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
-  expr 44:10    CallExpr       :: usize
-  expr 44:10    IdentExpr      :: fn(string) -> usize
+  expr 44:10    CallExpr       :: i64
+  expr 44:10    IdentExpr      :: fn(string) -> i64
   expr 44:19    StringLitExpr  :: string
   expr 45:13    StringLitExpr  :: string
-  expr 45:29    IdentExpr      :: usize
+  expr 45:29    IdentExpr      :: i64
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void

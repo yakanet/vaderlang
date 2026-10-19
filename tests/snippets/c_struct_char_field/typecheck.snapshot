@@ -3,7 +3,7 @@
 ## tests/snippets/c_struct_char_field
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair
-  FnDecl         zero_pair            :: fn(Pair, i32, usize) -> CPointer
+  FnDecl         zero_pair            :: fn(Pair, i32, i64) -> CPointer
   expr 29:10    StructLitExpr  :: Pair
   expr 30:13    StringLitExpr  :: string
   expr 30:28    FieldExpr      :: char
@@ -14,7 +14,7 @@
   expr 30:5     IdentExpr      :: fn(T) -> void
   expr 31:15    IdentExpr      :: Pair
   expr 31:5     CallExpr       :: CPointer
-  expr 31:5     IdentExpr      :: fn(Pair, i32, usize) -> CPointer
+  expr 31:5     IdentExpr      :: fn(Pair, i32, i64) -> CPointer
   expr 33:13    StringLitExpr  :: string
   expr 33:27    BinaryExpr     :: bool
   expr 33:27    FieldExpr      :: char

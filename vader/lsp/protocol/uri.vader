@@ -43,7 +43,7 @@ export uri_to_path :: fn(uri: string) -> string {
 percent_decode :: fn(s: string) -> string {
     n :: s.byte_len()
     out: u8[]: []
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         b :: s.byte_at(i)
         if b == '%' && i + 2 < n {

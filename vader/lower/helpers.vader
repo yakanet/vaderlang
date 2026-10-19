@@ -104,7 +104,7 @@ lower_call_args :: fn(
     ctx: FnLowerCtx,
     args: CallArg[],
     params: Type[],
-    first_slot: usize,
+    first_slot: i64,
 ) -> LoweredExpr[] {
     lowered: LoweredExpr[]: []
     for arg in args {
@@ -157,7 +157,7 @@ lower_in_order :: fn(ctx: FnLowerCtx, operands: Expr[]) -> LoweredExpr[] {
 /// @param value  the operand lowered first.
 /// @param mark   the sink length when the later operands began.
 /// @return       what to read in its place.
-bind_one_before_hoisted :: fn(ctx: FnLowerCtx, value: LoweredExpr, mark: usize) -> LoweredExpr {
+bind_one_before_hoisted :: fn(ctx: FnLowerCtx, value: LoweredExpr, mark: i64) -> LoweredExpr {
     if ctx.pending_awaits.len() == mark || bound_by_sink(ctx, value) {
         return value
     }
@@ -170,7 +170,7 @@ bind_one_before_hoisted :: fn(ctx: FnLowerCtx, value: LoweredExpr, mark: usize) 
 // When the operand lowered since sink length `mark` hoisted an `await`, each of
 // `earlier` that may read a different value once statements run is bound to a
 // local placed ahead of it, and replaced by that local.
-bind_before_hoisted :: fn(ctx: FnLowerCtx, earlier: LoweredExpr[], mark: usize) -> void {
+bind_before_hoisted :: fn(ctx: FnLowerCtx, earlier: LoweredExpr[], mark: i64) -> void {
     if ctx.pending_awaits.len() == mark {
         return
     }
@@ -206,7 +206,7 @@ bound_by_sink :: fn(ctx: FnLowerCtx, value: LoweredExpr) -> bool {
 // When what was lowered since sink length `mark` hoisted an `await`, the
 // statements a value runs ahead of it (its prelude) move into the sink ahead of
 // that `await`, so they still run first. `prelude` is left empty.
-hoist_prelude_before :: fn(ctx: FnLowerCtx, prelude: LoweredStmt[], mark: usize) -> void {
+hoist_prelude_before :: fn(ctx: FnLowerCtx, prelude: LoweredStmt[], mark: i64) -> void {
     if ctx.pending_awaits.len() == mark || prelude.len() == 0 {
         return
     }

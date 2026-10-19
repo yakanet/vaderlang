@@ -29,7 +29,7 @@ has_big :: fn<C: Contains<i64>>(c: C) -> bool = 4_000_000_000 in c
 
 has_big_value :: fn(c: Contains<i64>) -> bool = 4_000_000_000 in c
 
-listed :: fn(n: usize, m: Meters) -> bool = n in [1, 2] && m in [3, 4]
+listed :: fn(n: i64, m: Meters) -> bool = n in [1, 2] && m in [3, 4]
 
 main :: fn() -> i32 {
     r: Range<i64>: 0..<5_000_000_000

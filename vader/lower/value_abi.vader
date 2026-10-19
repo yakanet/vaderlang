@@ -28,7 +28,7 @@ import "vader/resolver/symbol"
 ///
 /// arm64 AAPCS and x86-64 SysV both pass a composite of at most 16 bytes in two
 /// registers ; past that the C compiler inserts the hidden pointer itself, and
-/// the two forms converge. At 8 the bound would leave `[char, usize]` (12 bytes)
+/// the two forms converge. At 8 the bound would leave `[char, i64]` (12 bytes)
 /// behind, and that pair is what `for c in s` decodes with.
 VALUE_ABI_MAX_BYTES: i64: 16
 
@@ -320,7 +320,7 @@ render_value_abi_report :: fn(
     out.append("\n[VADER_OPT_REPORT] composites that could cross a call in registers\n")
     out.append("  (every leaf a non-reference primitive, payload at most ")
     out.append("${VALUE_ABI_MAX_BYTES} bytes)\n")
-    out.append("  returns: ${returns}   parameters: ${i64(sites.len()) - returns}")
+    out.append("  returns: ${returns}   parameters: ${sites.len() - returns}")
     out.append("   of which `T | null`: ${nullables}\n")
     out.append("  returns whose every `return` builds its value on the spot: ${fresh_returns}\n")
     out.append("    (the gate a STRUCT return needs ; a tuple has no identity to break)\n\n  sites:\n")
@@ -396,7 +396,7 @@ test_value_abi_takes_two_words :: fn() -> void {
 @test
 test_value_abi_takes_twelve_bytes :: fn() -> void {
     // `codepoint_at_byte`'s shape: the one an 8-byte bound would have missed.
-    decoded :: mk_tuple([mk_primitive("char"), mk_primitive("usize")])
+    decoded :: mk_tuple([mk_primitive("char"), mk_primitive("i64")])
     assert_eq(value_abi_type_size(decoded), 12)
 }
 
@@ -446,8 +446,8 @@ test_value_abi_sees_through_a_distinct :: fn() -> void {
 
 @test
 test_value_abi_reads_through_a_nullable :: fn() -> void {
-    pair :: mk_tuple([mk_primitive("char"), mk_primitive("usize")])
-    assert_eq(display_type(value_abi_payload(mk_union([pair, TY_NULL]))), "[char, usize]")
+    pair :: mk_tuple([mk_primitive("char"), mk_primitive("i64")])
+    assert_eq(display_type(value_abi_payload(mk_union([pair, TY_NULL]))), "[char, i64]")
 }
 
 @test

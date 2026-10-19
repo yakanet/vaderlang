@@ -172,7 +172,7 @@ contains :: fn(self: ReprRange, v: i64) -> bool {
 // Inclusive `[min, max]` value range of a backing integer primitive, DERIVED
 // from its width + signedness (`vader/types::PRIMITIVE_META`) rather than a
 // per-width name table. Signed n-bit = `[-2^(n-1), 2^(n-1)-1]`; unsigned =
-// `[0, 2^n-1]`. The 64-bit widths (i64/isize + u64/usize) clamp `max` to
+// `[0, 2^n-1]`. The 64-bit widths (i64/i64 + u64/i64) clamp `max` to
 // `i64.MAX`: values above it can't be carried in the AST. `vader/types::
 // primitive_interval` gives the same bounds as an interval, its 64-bit unsigned
 // end open past `i64`.

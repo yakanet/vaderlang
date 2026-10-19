@@ -32,7 +32,7 @@ export Printer :: struct {
     // contiguous group of alignable decls (signature-only fns + consts) ;
     // emit_fn_decl / emit_const_decl pad the name to this width. `0`
     // disables alignment (single-space `::`).
-    align_name_width: usize
+    align_name_width: i64
     // How the NEXT `emit_block_expr` should lay out its body. The block-stmt
     // loop sets it per statement (then restores) : `.Expand` for a control-flow
     // statement body (`if` / `for` / `while` — always multi-line), `.Inline` for
@@ -46,11 +46,11 @@ export Printer :: struct {
     // the max `if <cond>` condition width across the chain run. `emit_if` pads
     // the condition to this width so the braces line up. `0` disables (not a
     // chain). Mirrors `align_name_width` for `::` decl groups.
-    align_if_width: usize = 0
+    align_if_width: i64 = 0
     // Current output column (bytes since the last newline). Maintained by
     // `write` / `newline` / `indent` so a delimited construct can decide
     // whether its single-line form fits within `MAX_LINE`.
-    column: usize = 0
+    column: i64 = 0
     // Rendering in "flat" mode : delimited constructs (struct-lit, call, seq)
     // force their single-line form and never explode — used by `flat_width`
     // to MEASURE a construct before deciding its real layout.
@@ -63,7 +63,7 @@ export Printer :: struct {
     // closes — the ` ?? return …` after a call. That construct counts it in its
     // fit test (`fits_inline`), which clears it before the construct's own
     // children are emitted.
-    trailing: usize = 0
+    trailing: i64 = 0
 }
 
 /// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
@@ -110,7 +110,7 @@ newline :: fn(self: Printer) -> void {
 
 indent :: fn(self: Printer) -> void {
     for 0..<self.depth { self.buf.append(INDENT) }
-    self.column = self.column + usize(self.depth) * INDENT.byte_len()
+    self.column = self.column + i64(self.depth) * INDENT.byte_len()
 }
 
 // Newline followed by current-depth indent. The most common emit shape across
@@ -136,7 +136,7 @@ write_name_padded :: fn(self: Printer, name: string) -> void {
 }
 
 // Spaces from column `used` up to `target` ; none once `used` reaches it.
-write_padding :: fn(self: Printer, used: usize, target: usize) -> void {
+write_padding :: fn(self: Printer, used: i64, target: i64) -> void {
     if used >= target {
         return
     }
@@ -148,7 +148,7 @@ write_padding :: fn(self: Printer, used: usize, target: usize) -> void {
 // Whether a blank line separates a node from the one ending on `prev_end` : the
 // gap is measured up to the node's first leading comment, so a comment written
 // right under the previous node stays attached to it.
-opens_gap :: fn(self: Printer, prev_end: i32, offset: usize, line: i32) -> bool {
+opens_gap :: fn(self: Printer, prev_end: i32, offset: i64, line: i32) -> bool {
     top :: self.comments.first_line_before(offset) ?? line
     return top > prev_end + 1
 }
@@ -162,7 +162,7 @@ opens_gap :: fn(self: Printer, prev_end: i32, offset: usize, line: i32) -> bool 
 // gap > 1 line, emit one extra newline as the visual separator).
 // `prev_end_line` tracks where the previous comment FINISHED — needed for
 // multi-line block comments whose `start_line` is well before `end_line`.
-flush_leading_comments :: fn(self: Printer, before: usize, node_line: i32) -> void {
+flush_leading_comments :: fn(self: Printer, before: i64, node_line: i32) -> void {
     cs :: self.comments.take_before(before)
     prev_end_line: i32 = 0
     has_prev := false
@@ -259,7 +259,7 @@ attach_trailing_comments :: fn(text: string) -> string {
         notes.push("")
         standalone = false
     }
-    i: usize = 0
+    i: i64 = 0
     for i < codes.len() {
         if notes[i] == "" {
             i += 1
@@ -267,7 +267,7 @@ attach_trailing_comments :: fn(text: string) -> string {
         }
         ind :: indent_width(codes[i])
         end := i
-        width: usize = 0
+        width: i64 = 0
         for end < codes.len() && notes[end] != "" && indent_width(codes[end]) == ind {
             w :: codes[end].right_trim().byte_len()
             if w > width { width = w }
@@ -283,8 +283,8 @@ attach_trailing_comments :: fn(text: string) -> string {
 }
 
 // Leading spaces of `line`.
-indent_width :: fn(line: string) -> usize {
-    n: usize = 0
+indent_width :: fn(line: string) -> i64 {
+    n: i64 = 0
     for i in 0..<line.byte_len() {
         b :: line.byte_at(i)
         if b != ' ' { break }
@@ -458,9 +458,9 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
 // get `0`, which disables padding. Groups extending across two or more
 // decls all see the same width — the max name length in the group — so
 // every name in the group aligns to the same column.
-compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
-    out: usize[]: []
-    i: usize = 0
+compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
     for i < decls.len() {
         if !decl_is_alignable(decls[i]) {
             out.push(0)
@@ -468,7 +468,7 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
             continue
         }
         end := i + 1
-        width: usize = decl_alignable_name(decls[i]).byte_len()
+        width: i64 = decl_alignable_name(decls[i]).byte_len()
         for end < decls.len() {
             if !decls_in_same_group(decls[end - 1], decls[end]) { break }
             w :: decl_alignable_name(decls[end]).byte_len()
@@ -585,7 +585,7 @@ emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comm
     // it single-line when it fits under the column budget. `flat` mode
     // (measuring) always renders single-line.
     inline :: self.flat
-        || (!trailing_comma && self.column + flat_import_block_width(self.source, names) <= usize(MAX_LINE))
+        || (!trailing_comma && self.column + flat_import_block_width(self.source, names) <= i64(MAX_LINE))
     self.emit_comma_list(names, " {", "}", true, inline, emit_import_name)
 }
 
@@ -593,7 +593,7 @@ emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comm
 // including the surrounding braces — drives the Dart-style layout choice.
 // Measures by rendering through the real emitter in `flat` mode (which forces
 // the single-line branch), so the two never drift.
-flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> usize {
+flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_import_name_block(names, false)
@@ -658,13 +658,13 @@ emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
 emit_fn_params :: fn(self: Printer, params: p.FnParam[], trailing_comma: bool) -> void {
     inline :: self.flat
         || params.len() == 0
-        || (!trailing_comma && self.column + flat_params_width(self.source, params) <= usize(MAX_LINE))
+        || (!trailing_comma && self.column + flat_params_width(self.source, params) <= i64(MAX_LINE))
     self.emit_comma_list(params, "(", ")", false, inline, emit_fn_param)
 }
 
 // Flat width of a parameter list rendered as `(a: T, b: U)`, including the
 // parens — used to decide the Dart-style single-line vs exploded layout.
-flat_params_width :: fn(source: string, params: p.FnParam[]) -> usize {
+flat_params_width :: fn(source: string, params: p.FnParam[]) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_fn_params(params, false)
@@ -800,8 +800,8 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
 // The widths a variant pads to so that, across its group, the `{ … }` blocks
 // start in one column and the `=` in another. `0` pads nothing.
 EnumVariantColumns :: struct {
-    name:  usize = 0
-    block: usize = 0
+    name:  i64 = 0
+    block: i64 = 0
 }
 
 // One `EnumVariantColumns` per variant. A group is a run of variants on
@@ -809,7 +809,7 @@ EnumVariantColumns :: struct {
 // alone in its group pads nothing.
 enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVariantColumns[] {
     out: EnumVariantColumns[]: []
-    i: usize = 0
+    i: i64 = 0
     for i < variants.len() {
         end := i + 1
         for end < variants.len() && variants[end].span.start.line == variant_last_line(variants[end - 1]) + 1 {
@@ -849,7 +849,7 @@ variant_last_line :: fn(v: p.EnumVariant) -> i32 {
 }
 
 // Single-line width of a variant's `{ … }` block ; `0` without one.
-variant_block_width :: fn(source: string, v: p.EnumVariant) -> usize {
+variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
     data :: v.data ?? return 0
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
@@ -930,9 +930,9 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
 // `::` column alignment inside trait / impl bodies. Same group rule :
 // consecutive signature-only fns with matching visibility and decorator
 // set share a group.
-compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
-    out: usize[]: []
-    i: usize = 0
+compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
     for i < members.len() {
         m :: members[i]
         if m.sam_synthetic || m.is_expression_bodied {
@@ -948,7 +948,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
         // Group : consecutive sig-only members, adjacent lines, same
         // visibility, same decorator set.
         end := i + 1
-        width: usize = m.name.byte_len()
+        width: i64 = m.name.byte_len()
         for end < members.len() {
             prev :: members[end - 1]
             cur :: members[end]
@@ -1087,7 +1087,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // colons — `parse_typed_const_decl`), not `NAME: T :: value`. They skip
     // name-column alignment : the `: T` segment breaks the per-name column
     // anyway.
-    name_width: usize = 0
+    name_width: i64 = 0
     match d.ty {
         is null -> {
             self.write_name_padded(d.name)
@@ -1113,9 +1113,9 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // Typed constants skip this path (the `: T :` segment makes the prefix
     // shape too irregular for the simple align rule to read cleanly).
     if d.ty is null && is_bitor_chain(d.value) {
-        prefix_width :: usize(self.depth) * 4 + name_width + 4 // " :: "
+        prefix_width :: i64(self.depth) * 4 + name_width + 4 // " :: "
         rendered :: format_expr(self.source, d.value)
-        if prefix_width + rendered.byte_len() > usize(MAX_LINE) {
+        if prefix_width + rendered.byte_len() > i64(MAX_LINE) {
             self.emit_union_multiline(d.value, name_width)
             return
         }
@@ -1178,7 +1178,7 @@ export format_expr :: fn(source: string, e: p.Expr) -> string {
     return sub.finish()
 }
 
-emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> void {
+emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: i64) -> void {
     variants :: p.collect_bitor_variants(value)
     if variants.len() < 2 {
         // Defensive fallback : a degenerate chain (or a single-variant
@@ -1190,7 +1190,7 @@ emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> v
     // Leading-pipe indent : `depth*4` for the base indent + `name_width`
     // to step past the name column + 2 more cols so the `|` lands one
     // space before each variant's column (matches the first variant).
-    pad :: usize(self.depth) * 4 + name_width + 2
+    pad :: i64(self.depth) * 4 + name_width + 2
     for i in 1..<variants.len() {
         self.newline()
         for k in 0..<pad {
@@ -1453,7 +1453,7 @@ emit_expression_body :: fn(self: Printer, body: p.Expr | null) -> void {
 keeps_line_breaks :: fn(self: Printer) -> bool = !self.flat && self.keep_line_breaks
 
 // Whether only blanks separate `offset` from the line break before it.
-line_breaks_before :: fn(source: string, offset: usize) -> bool =
+line_breaks_before :: fn(source: string, offset: i64) -> bool =
     offset > 0 && !code_before_on_line(source, offset)
 
 fallback_start :: fn(fallback: p.CoalesceFallback) -> Position = match fallback {
@@ -1479,7 +1479,7 @@ OperatorPlace :: struct {
     at: LineBreakAt
     /// Byte offset of the operator, where a `BeforeOp` break flushes the
     /// comments up to.
-    offset: usize
+    offset: i64
 }
 
 // Where the source breaks the line around `symbol`, the operator written between
@@ -1544,7 +1544,7 @@ write_operator :: fn(
 
 // A kept line break : the comments the source holds before `before`, then a fresh
 // line at the current depth.
-break_line :: fn(self: Printer, before: usize, node_line: i32) -> void {
+break_line :: fn(self: Printer, before: i64, node_line: i32) -> void {
     self.flush_leading_comments(before, node_line)
     if self.column != 0 {
         self.newline()
@@ -1561,7 +1561,7 @@ emit_coalesce_fallback :: fn(self: Printer, fallback: p.CoalesceFallback) -> voi
 
 // Width of ` ?? ` and the fallback's first line, laid out on its own : all of a
 // short fallback, the head of one that explodes (`return Foo {`).
-coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> usize {
+coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.write(" ?? ")
     sub.emit_coalesce_fallback(fallback)
@@ -1576,7 +1576,7 @@ fits_inline :: fn(self: Printer, x: p.Expr, empty: bool, trailing_comma: bool) -
     self.trailing = 0
     return self.flat
         || empty
-        || (!trailing_comma && self.column + flat_width(self.source, x) + trailing <= usize(MAX_LINE))
+        || (!trailing_comma && self.column + flat_width(self.source, x) + trailing <= i64(MAX_LINE))
 }
 
 // ============================================================================
@@ -2064,7 +2064,7 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
 
 // Rendered width of a match arm's head — `pattern [if guard]`, the part before
 // ` -> `. Measured via a sub-printer, like `if_cond_width`.
-match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> usize {
+match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.keep_line_breaks = false
     sub.emit_pattern(arm.pattern)
@@ -2076,9 +2076,9 @@ match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> usize {
 // alignment) when there are fewer than 2 arms, or when the widest head exceeds
 // `MATCH_ALIGN_MAX` — past that, padding the short arms wastes space and risks
 // pushing bodies past `MAX_LINE`, so each `->` just follows its own head.
-match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> usize {
+match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
     if arms.len() < 2 { return 0 }
-    w := usize(0)
+    w: i64 = 0
     for arm in arms {
         head :: match_arm_head_width(source, arm)
         if head > w { w = head }
@@ -2090,7 +2090,7 @@ match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> usize {
 // Widest arm head that still gets `->` alignment. Beyond it a match's arrows are
 // left unaligned (see `match_arm_align`). Chosen so an aligned `->` + a short
 // body still fits comfortably under `MAX_LINE`.
-MATCH_ALIGN_MAX: usize: 44
+MATCH_ALIGN_MAX: i64: 44
 
 // A single-line `if <cond> { <one stmt/expr> }` with no `else` — a lookup-table
 // entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
@@ -2119,7 +2119,7 @@ control_flow_stmt :: fn(s: p.Stmt) -> bool {
 
 // Layout for statement `i` of a block : keep a lookup-table `if`-chain inline,
 // force a control-flow body multi-line, otherwise preserve the source form.
-block_mode_for :: fn(stmts: p.Stmt[], i: usize) -> BlockLayout {
+block_mode_for :: fn(stmts: p.Stmt[], i: i64) -> BlockLayout {
     if inline_if_stmt(stmts[i]) {
         prev :: i > 0 && inline_if_stmt(stmts[i - 1])
         next :: i + 1 < stmts.len() && inline_if_stmt(stmts[i + 1])
@@ -2131,7 +2131,7 @@ block_mode_for :: fn(stmts: p.Stmt[], i: usize) -> BlockLayout {
 
 // Rendered width of a lookup-table `if`'s condition (for `{`-column alignment),
 // or 0 when `s` isn't an inline `if`.
-if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
+if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
     if s is p.ExprStmt {
         if s.expr is p.IfExpr as iff {
             return format_expr(source, iff.cond).byte_len()
@@ -2143,9 +2143,9 @@ if_cond_width :: fn(s: p.Stmt, source: string) -> usize {
 // Per-statement `{`-alignment target : for each run of ≥2 consecutive inline
 // `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
 // Mirrors the `::` decl-group width computation in `alignment_widths`.
-compute_if_align :: fn(stmts: p.Stmt[], source: string) -> usize[] {
-    out: usize[]: []
-    i: usize = 0
+compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
     for i < stmts.len() {
         if !inline_if_stmt(stmts[i]) {
             out.push(0)
@@ -2178,10 +2178,10 @@ inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
         if tr == null {
             return true
         }
-        return self.column + 4 + flat_width(self.source, tr) <= usize(MAX_LINE)
+        return self.column + 4 + flat_width(self.source, tr) <= i64(MAX_LINE)
     }
     if b.stmts.len() == 1 && tr == null {
-        return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= usize(MAX_LINE)
+        return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= i64(MAX_LINE)
     }
     return true
 }
@@ -2396,7 +2396,7 @@ emit_struct_lit_item :: fn(self: Printer, it: p.StructLitField | p.StructLitSpre
 // Single-line (flat) rendered width of an expression — for the fit-in-`MAX_LINE`
 // decision on delimited constructs. Renders in `flat` mode so nested constructs
 // stay single-line too.
-flat_width :: fn(source: string, e: p.Expr) -> usize {
+flat_width :: fn(source: string, e: p.Expr) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_expr(e)
@@ -2404,7 +2404,7 @@ flat_width :: fn(source: string, e: p.Expr) -> usize {
 }
 
 // Same, for a statement — the inline-block fit decision in `emit_block_expr`.
-flat_stmt_width :: fn(source: string, st: p.Stmt) -> usize {
+flat_stmt_width :: fn(source: string, st: p.Stmt) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_stmt(st)

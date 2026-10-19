@@ -12,15 +12,15 @@ type 9 struct __Tuple_Any_i32_ad92e87f { _0:8,_1:5 }
 type 10 primitive string
 type 11 struct snippet$Box__snippet_Point { value:8 }
 type 12 primitive u8
-type 13 primitive usize
+type 13 primitive i64
 type 14 struct std_core$Buffer {  }
 type 15 primitive i8
 type 16 primitive i16
-type 17 primitive i64
-type 18 primitive isize
-type 19 primitive u16
-type 20 primitive u32
-type 21 primitive u64
+type 17 primitive isize
+type 18 primitive u16
+type 19 primitive u32
+type 20 primitive u64
+type 21 primitive usize
 type 22 primitive f32
 type 23 primitive f64
 type 24 primitive char
@@ -33,9 +33,9 @@ string 2 "5"
 string 3 "true"
 string 4 "false"
 string 5 "\n"
-import 0 byte_len std_core$byte_len result_type=13 param_types=10 param_c_out= param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=13 param_types=10 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=25 param_types=10 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 param_types=5,25,13 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=5,25,13 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 4 std_core$Equals
 impl 6 std_core$Equals
 impl 1 std_core$Equals
@@ -48,13 +48,13 @@ vtable std_core$Equals.equals 3 9
 vtable std_core$Equals.equals 15 14
 vtable std_core$Equals.equals 16 15
 vtable std_core$Equals.equals 5 16
-vtable std_core$Equals.equals 17 17
-vtable std_core$Equals.equals 18 18
+vtable std_core$Equals.equals 13 17
+vtable std_core$Equals.equals 17 18
 vtable std_core$Equals.equals 12 19
-vtable std_core$Equals.equals 19 20
-vtable std_core$Equals.equals 20 21
-vtable std_core$Equals.equals 21 22
-vtable std_core$Equals.equals 13 23
+vtable std_core$Equals.equals 18 20
+vtable std_core$Equals.equals 19 21
+vtable std_core$Equals.equals 20 22
+vtable std_core$Equals.equals 21 23
 vtable std_core$Equals.equals 22 24
 vtable std_core$Equals.equals 23 25
 vtable std_core$Equals.equals 2 26
@@ -117,7 +117,7 @@ fn 3 snippet$main () -> i32
   local s3 any
   local s4 any
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local and_res bool
   local $cast_25 ref
   local $cast_26 ref
@@ -504,10 +504,10 @@ fn 3 snippet$main () -> i32
   call 11   ; std_core$finish_buffer
   call 31   ; std_io$println__string
   i64.const 5
-  retag 17   ; i64
+  retag 13   ; i64
   local.set 5   ; s3
   i64.const 5
-  retag 17   ; i64
+  retag 13   ; i64
   local.set 6   ; s4
   string.const 2   ; "5"
   retag 10   ; string
@@ -1161,8 +1161,8 @@ fn 6 snippet$same_pair__snippet_Point (ref,ref) -> bool
 end
 
 fn 7 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -1174,6 +1174,7 @@ fn 7 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -1221,21 +1222,22 @@ fn 9 snippet$Label$std_core_Equals$equals$guard (ref,any) -> bool
   return.lit bool.const false
 end
 
-fn 10 std_core$new_byte_buffer (usize) -> ref
+fn 10 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 11 std_core$finish_buffer (ref,usize) -> string
+fn 11 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$write_string_at (ref,usize,string) -> usize
-  local $call_3 usize
+fn 12 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -1245,11 +1247,11 @@ fn 12 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 13 std_core$write_bool (ref,usize,bool) -> usize
+fn 13 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
@@ -1317,10 +1319,10 @@ end
 fn 17 std_core$i64$Equals$equals$guard (i64,any) -> bool
   local $cast_4 i64
   local.get 1   ; arg 1
-  type_check 17   ; i64
+  type_check 13   ; i64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 17   ; i64
+    ref.cast 13   ; i64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1333,10 +1335,10 @@ end
 fn 18 std_core$isize$Equals$equals$guard (isize,any) -> bool
   local $cast_4 isize
   local.get 1   ; arg 1
-  type_check 18   ; isize
+  type_check 17   ; isize
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 18   ; isize
+    ref.cast 17   ; isize
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1365,10 +1367,10 @@ end
 fn 20 std_core$u16$Equals$equals$guard (u16,any) -> bool
   local $cast_4 u16
   local.get 1   ; arg 1
-  type_check 19   ; u16
+  type_check 18   ; u16
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 19   ; u16
+    ref.cast 18   ; u16
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1381,10 +1383,10 @@ end
 fn 21 std_core$u32$Equals$equals$guard (u32,any) -> bool
   local $cast_4 u32
   local.get 1   ; arg 1
-  type_check 20   ; u32
+  type_check 19   ; u32
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 20   ; u32
+    ref.cast 19   ; u32
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1397,10 +1399,10 @@ end
 fn 22 std_core$u64$Equals$equals$guard (u64,any) -> bool
   local $cast_4 u64
   local.get 1   ; arg 1
-  type_check 21   ; u64
+  type_check 20   ; u64
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 21   ; u64
+    ref.cast 20   ; u64
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1413,10 +1415,10 @@ end
 fn 23 std_core$usize$Equals$equals$guard (usize,any) -> bool
   local $cast_4 usize
   local.get 1   ; arg 1
-  type_check 13   ; usize
+  type_check 21   ; usize
   if $L0 void
     local.get 1   ; arg 1
-    ref.cast 13   ; usize
+    ref.cast 21   ; usize
     local.set 2   ; $cast_4
     local.get 0   ; arg 0
     local.get 2   ; $cast_4
@@ -1508,13 +1510,13 @@ end
 
 fn 29 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -1526,7 +1528,7 @@ fn 29 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -1554,7 +1556,7 @@ fn 29 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -1562,7 +1564,7 @@ fn 29 std_io$write (u8,string) -> void
   return
 end
 
-fn 30 std_io$write_bytes (u8,ref,usize) -> i32
+fn 30 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1571,14 +1573,14 @@ fn 30 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 

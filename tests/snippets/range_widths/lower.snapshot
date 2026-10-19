@@ -13,8 +13,8 @@
           }
       }
       std.io.println<string>({
-          __buf_0: Buffer = std.core.new_byte_buffer(usize(28))
-          __off_1: usize = 0
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(28))
+          __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "u64 sum=")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, su)
           std.core.finish_buffer(__buf_0, __off_1)
@@ -30,8 +30,8 @@
           }
       }
       std.io.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(usize(28))
-          __off_3: usize = 0
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(28))
+          __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "i64 sum=")
           __off_3 = std.core.write_int(__buf_2, __off_3, si)
           std.core.finish_buffer(__buf_2, __off_3)
@@ -47,8 +47,8 @@
           }
       }
       std.io.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(usize(30))
-          __off_5: usize = 0
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(30))
+          __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "isize sum=")
           __off_5 = std.core.write_int(__buf_4, __off_5, i64(sis))
           std.core.finish_buffer(__buf_4, __off_5)
@@ -64,8 +64,8 @@
           }
       }
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(usize(27))
-          __off_7: usize = 0
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "u8 sum=")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(sb))
           std.core.finish_buffer(__buf_6, __off_7)
@@ -83,8 +83,8 @@
           }
       }
       std.io.println<string>({
-          __buf_10: Buffer = std.core.new_byte_buffer(usize(28))
-          __off_11: usize = 0
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(28))
+          __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "i16 sum=")
           __off_11 = std.core.write_int(__buf_10, __off_11, i64(sh))
           std.core.finish_buffer(__buf_10, __off_11)
@@ -92,10 +92,10 @@
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -117,8 +117,6 @@
     fn std.core.Range<u64>.next  // std_core$Range$Iterator$next__u64
     fn std.core.Range<u8>.contains  // std_core$Range$Contains$contains__u8
     fn std.core.Range<u8>.next  // std_core$Range$Iterator$next__u8
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i16.compare  // std_core$i16$Comparable$compare
     fn std.core.i16.step  // std_core$i16$Step$step
@@ -134,9 +132,7 @@
     fn std.core.u64.step  // std_core$u64$Step$step
     fn std.core.u8.compare  // std_core$u8$Comparable$compare
     fn std.core.u8.step  // std_core$u8$Step$step
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -149,7 +145,6 @@
     struct std.core.Range<isize>  // std_core$Range__isize
     struct std.core.Range<u64>  // std_core$Range__u64
     struct std.core.Range<u8>  // std_core$Range__u8
-    struct std.core.Range<usize>  // std_core$Range__usize
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

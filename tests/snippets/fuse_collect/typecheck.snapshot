@@ -16,8 +16,8 @@
   expr 15:72    BinaryExpr     :: bool
   expr 15:72    IdentExpr      :: i32
   expr 16:13    StringLitExpr  :: string
-  expr 16:20    CallExpr       :: usize
-  expr 16:20    FieldExpr      :: fn() -> usize
+  expr 16:20    CallExpr       :: i64
+  expr 16:20    FieldExpr      :: fn() -> i64
   expr 16:20    IdentExpr      :: i32[]
   expr 16:36    IdentExpr      :: i32[]
   expr 16:36    IndexExpr      :: i32
@@ -37,8 +37,8 @@
   expr 19:39    BinaryExpr     :: i32
   expr 19:39    IdentExpr      :: i32
   expr 20:13    StringLitExpr  :: string
-  expr 20:21    CallExpr       :: usize
-  expr 20:21    FieldExpr      :: fn() -> usize
+  expr 20:21    CallExpr       :: i64
+  expr 20:21    FieldExpr      :: fn() -> i64
   expr 20:21    IdentExpr      :: i32[]
   expr 20:37    IdentExpr      :: i32[]
   expr 20:37    IndexExpr      :: i32

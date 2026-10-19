@@ -8,10 +8,8 @@
   expr 15:37    IdentExpr      :: Hour
   expr 18:13    BinaryExpr     :: i64
   expr 18:13    CallExpr       :: i64
-  expr 18:13    IdentExpr      :: type
-  expr 18:17    CallExpr       :: usize
-  expr 18:17    FieldExpr      :: fn() -> usize
-  expr 18:17    IdentExpr      :: string[]
+  expr 18:13    FieldExpr      :: fn() -> i64
+  expr 18:13    IdentExpr      :: string[]
   expr 19:14    IdentExpr      :: Hour
   expr 19:5     IfExpr         :: void
   expr 19:8     BinaryExpr     :: bool
@@ -39,8 +37,8 @@
   expr 30:12    BinaryExpr     :: u8
   expr 30:12    CallExpr       :: u8
   expr 30:12    IdentExpr      :: type
-  expr 30:15    CallExpr       :: usize
-  expr 30:15    FieldExpr      :: fn() -> usize
+  expr 30:15    CallExpr       :: i64
+  expr 30:15    FieldExpr      :: fn() -> i64
   expr 30:15    IdentExpr      :: string[]
   expr 31:14    RangeExpr      :: Range<u8>
   expr 31:5     IfExpr         :: void
@@ -56,14 +54,14 @@
   expr 38:16    BinaryExpr     :: u32
   expr 38:16    CallExpr       :: u32
   expr 38:16    IdentExpr      :: type
-  expr 38:20    CallExpr       :: usize
-  expr 38:20    FieldExpr      :: fn() -> usize
+  expr 38:20    CallExpr       :: i64
+  expr 38:20    FieldExpr      :: fn() -> i64
   expr 38:20    IdentExpr      :: string[]
   expr 39:18    BinaryExpr     :: i32
   expr 39:18    CallExpr       :: i32
   expr 39:18    IdentExpr      :: type
-  expr 39:22    CallExpr       :: usize
-  expr 39:22    FieldExpr      :: fn() -> usize
+  expr 39:22    CallExpr       :: i64
+  expr 39:22    FieldExpr      :: fn() -> i64
   expr 39:22    IdentExpr      :: string[]
   expr 40:17    RangeExpr      :: Range<u32>
   expr 40:26    BinaryExpr     :: bool

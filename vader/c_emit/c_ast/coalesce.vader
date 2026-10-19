@@ -85,7 +85,7 @@ export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> Va
             slot_types.push(temporary.val)
             slot_end.push(usage.last[id])
         } else {
-            slot_end[usize(chosen)] = usage.last[id]
+            slot_end[chosen] = usage.last[id]
         }
         temporary.slot = chosen
     }
@@ -94,14 +94,14 @@ export coalesce_temporaries :: fn(root: CBlock, temporaries: CTemporary[]) -> Va
 
 // Temp ids `0..<first.len()` that are used, ordered by first use (ties by id,
 // via the stable sort).
-order_by_first :: fn(first: i32[]) -> usize[] {
-    used: usize[]: []
+order_by_first :: fn(first: i32[]) -> i64[] {
+    used: i64[]: []
     for id in 0..<first.len() {
         if first[id] >= 0 {
             used.push(id)
         }
     }
-    return sort(used, (a: usize, b: usize) -> first[a] < first[b])
+    return sort(used, (a: i64, b: i64) -> first[a] < first[b])
 }
 
 // ---- uses and live ranges -------------------------------------------------
@@ -215,7 +215,7 @@ scan_clause :: fn(body: CCaseStatement[], usage: TemporaryUsage) -> void {
 scan_expression :: fn(expression: CExpression, usage: TemporaryUsage) -> void {
     match expression {
         is CTemporary                           -> {
-            id :: usize(expression.id)
+            id :: i64(expression.id)
             usage.uses[id] += 1
             if usage.first[id] < 0 {
                 usage.first[id] = usage.position
@@ -275,8 +275,8 @@ scan_expression :: fn(expression: CExpression, usage: TemporaryUsage) -> void {
 // `block.body` in place.
 fuse_temp_local_copies :: fn(block: CBlock, usage: TemporaryUsage) -> void {
     body :: block.body
-    kept: usize = 0
-    k: usize = 0
+    kept: i64 = 0
+    k: i64 = 0
     for k < body.len() {
         statement :: body[k]
         if statement is CIf {
@@ -310,14 +310,14 @@ fused_copy :: fn(definition: CStatement, copy: CStatement, usage: TemporaryUsage
         return null
     }
     temporary :: definition.target
-    if temporary !is CTemporary || usage.uses[usize(temporary.id)] != 2 {
+    if temporary !is CTemporary || usage.uses[temporary.id] != 2 {
         return null
     }
     source :: copy.value
     if copy.target !is CLocal || source !is CTemporary || source.id != temporary.id {
         return null
     }
-    usage.first[usize(temporary.id)] = -1
+    usage.first[temporary.id] = -1
     return CAssign { .target = copy.target, .value = definition.value }
 }
 

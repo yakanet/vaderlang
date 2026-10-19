@@ -45,10 +45,10 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
     out: Op[]: []
-    out_len: usize = 0
+    out_len: i64 = 0
     old_to_new: i32[]: []
     for p in 0..<n { old_to_new.push(-1) }
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         op :: body[i]
         if op is Return {
@@ -92,17 +92,17 @@ export drop_unbranched_blocks :: fn(function: BcFunction) -> BcPeepholeOut {
     branched_to: bool[]: [false] * (n + 1)
     for pc in 0..<n {
         target :: jump_table[pc]
-        if body[pc] is Branch | BranchIf && target >= 0 && usize(target) <= n {
-            branched_to[usize(target)] = true
+        if body[pc] is Branch | BranchIf && target >= 0 && i64(target) <= n {
+            branched_to[target] = true
         }
     }
     dropped: bool[]: [false] * n
     any := false
     for pc in 0..<n {
         after_end :: jump_table[pc]
-        if body[pc] is Block && after_end > 0 && !branched_to[usize(after_end)] {
+        if body[pc] is Block && after_end > 0 && !branched_to[after_end] {
             dropped[pc] = true
-            dropped[usize(after_end) - 1] = true
+            dropped[i64(after_end) - 1] = true
             any = true
         }
     }
@@ -129,15 +129,15 @@ export drop_unbranched_blocks :: fn(function: BcFunction) -> BcPeepholeOut {
 /// Remap a jump_table from old PC space to new PC space using a
 /// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
 /// New entries default to -1.
-export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[] {
+export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: i64) -> i32[] {
     new_jt: i32[]: []
     for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
-    i: usize = 0
+    i: i64 = 0
     for i < old_n {
         target :: old_jt[i]
         if target < 0 { i = i + 1  continue }
-        if usize(target) >= old_to_new.len() { i = i + 1  continue }
+        if i64(target) >= old_to_new.len() { i = i + 1  continue }
         new_pc_branch :: old_to_new[i]
         if new_pc_branch < 0 { i = i + 1  continue }
         // Resolve target : the op at `old PC target` may have been
@@ -145,13 +145,13 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) 
         // semantic destination is the NEXT surviving op — scan forward
         // until we find one (or the end of the body).
         new_pc_target: i32 = -1
-        for t in usize(target)..<old_to_new.len() {
+        for t in i64(target)..<old_to_new.len() {
             cand :: old_to_new[t]
             if cand >= 0 { new_pc_target = cand  break }
         }
         if new_pc_target < 0 { new_pc_target = i32(new_len) }
-        if usize(new_pc_branch) < new_len {
-            new_jt[usize(new_pc_branch)] = new_pc_target
+        if i64(new_pc_branch) in 0..<new_len {
+            new_jt[new_pc_branch] = new_pc_target
         }
         i = i + 1
     }
@@ -166,11 +166,11 @@ export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) 
 /// @param jump_table  the function's PC→target table.
 /// @param n           body length (bitmap size).
 /// @return            length-`n` bool array, `true` at each branch target.
-export mark_jump_targets :: fn(jump_table: i32[], n: usize) -> bool[] {
+export mark_jump_targets :: fn(jump_table: i32[], n: i64) -> bool[] {
     is_target: bool[]: [false] * n
     for k in 0..<jump_table.len() {
         t :: jump_table[k]
-        if t >= 0 && usize(t) < n { is_target[usize(t)] = true }
+        if t >= 0 && i64(t) < n { is_target[t] = true }
     }
     return is_target
 }
@@ -208,14 +208,14 @@ export bc_peephole_unchanged :: fn(function: BcFunction) -> BcPeepholeOut = BcPe
 /// @param old_to_new  per-old-PC new PC, `< 0` for removed ops.
 /// @param new_len     length of the rewritten body.
 /// @return            a fresh debug table of length `new_len`.
-remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: usize) -> (DebugPos | null)[] {
+remap_debug :: fn(old_debug: (DebugPos | null)[], old_to_new: i32[], new_len: i64) -> (DebugPos | null)[] {
     // `old_debug` and `old_to_new` are always parallel to the old body (both
     // grown one entry per op), so a plain walk over `old_debug` is safe.
     new_debug: (DebugPos | null)[]: [null] * new_len
     for i in 0..<old_debug.len() {
         np :: old_to_new[i]
         if np < 0 { continue }
-        dst :: usize(np)
+        dst :: i64(np)
         // First non-null wins : only fill while the slot is still empty, so a
         // real position isn't clobbered by a later fold onto the same new pc.
         if dst < new_len && new_debug[dst] == null {
@@ -234,7 +234,7 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
     out: Op[]: []
-    out_len: usize = 0
+    out_len: i64 = 0
     old_to_new: i32[]: []
     for pp in 0..<n { old_to_new.push(-1) }
     for i in 0..<n {
@@ -262,7 +262,7 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
 // and floats carry NaN / signed-zero / precision drift. A checked op folds only
 // when it stays in range, and is otherwise left to stop the run. Returns the
 // folded `I32Const` / `I64Const` on a hit, null otherwise.
-try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
+try_fold_arith :: fn(op: Op, out: Op[], out_len: i64) -> Op | null {
     if out_len < 2 { return null }
     right :: out[out_len - 1]
     left  :: out[out_len - 2]
@@ -334,9 +334,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         tee_count.push(0)
     }
     for op in body {
-        if op is LocalSet { set_count[usize(op.slot)] += 1 }
-        if op is LocalGet { get_count[usize(op.slot)] += 1 }
-        if op is LocalTee { tee_count[usize(op.slot)] += 1 }
+        if op is LocalSet { set_count[op.slot] += 1 }
+        if op is LocalGet { get_count[op.slot] += 1 }
+        if op is LocalTee { tee_count[op.slot] += 1 }
     }
     // Mark every op that is a jump TARGET (a non-negative value in the jump
     // table). Rule 1 must NOT fold a `LocalGet` that a branch lands on :
@@ -349,11 +349,11 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     // that this guards.
     is_jump_target :: mark_jump_targets(function.jump_table, n)
     out: Op[]: []
-    out_len: usize = 0
+    out_len: i64 = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
     old_to_new: i32[]: []
     for p in 0..<n { old_to_new.push(-1) }
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         op :: body[i]
 
@@ -379,7 +379,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                             cv :: const_op_of(prev)
                             if cv !is null { prev_is_const = true }
                         }
-                        slot_u :: usize(op.slot)
+                        slot_u :: i64(op.slot)
                         propagate_eligible :: set_count[slot_u] == 1 && get_count[slot_u] == 1 && tee_count[slot_u] == 0
                         // Never fold when the `get` is a branch target (see
                         // `is_jump_target` above) : the tee would pop an empty
@@ -453,7 +453,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
 /// Append `value` when the cursor is at the end ; overwrite in place
 /// otherwise — the write primitive every peephole in this file goes through.
-push_or_assign :: fn(items: Op[], sp: usize, value: Op) -> void {
+push_or_assign :: fn(items: Op[], sp: i64, value: Op) -> void {
     if sp == items.len() {
         items.push(value)
     } else {
@@ -507,13 +507,13 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     for i in 0..<n {
         op :: body[i]
         if op is LocalSet {
-            slot :: usize(op.slot)
+            slot :: i64(op.slot)
             set_count[slot] += 1
             set_idx[slot] = i32(i)
         }
-        if op is LocalTee { tee_count[usize(op.slot)] += 1 }
+        if op is LocalTee { tee_count[op.slot] += 1 }
         if op is LocalGet {
-            slot :: usize(op.slot)
+            slot :: i64(op.slot)
             get_count[slot] += 1
             get_idx[slot] = i32(i)
         }
@@ -536,7 +536,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
             if gi <= si { valid = false }
         }
         if valid {
-            const_op :: body[usize(si - 1)]
+            const_op :: body[si - 1]
             cv :: const_op_of(const_op)
             if cv is null {
                 valid = false
@@ -560,7 +560,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     new_debug: (DebugPos | null)[]: []
     old_to_new: i32[]: []
     for pp in 0..<n { old_to_new.push(-1) }
-    j: usize = 0
+    j: i64 = 0
     for j < n {
         if to_delete_set[i32(j)] is bool {
             j = j + 1
@@ -635,10 +635,10 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     // `local.field` (midir/emit.vader::try_fuse_local_field).
     for op in function.body {
         if op is LocalGet {
-            reads[usize(op.slot)] += 1
+            reads[op.slot] += 1
         }
         if op is LocalField {
-            reads[usize(op.slot)] += 1
+            reads[op.slot] += 1
         }
     }
     // Mark dead = non-param local slots with zero reads.
@@ -675,42 +675,42 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     body_len :: function.body.len()
     old_to_new_pc: i32[]: []
     for init_pc in 0..<body_len { old_to_new_pc.push(-1) }
-    pc: usize = 0
+    pc: i64 = 0
     for pc < body_len {
         op :: function.body[pc]
         if op is LocalSet {
-            if dead[usize(op.slot)] {
+            if dead[op.slot] {
                 old_to_new_pc[pc] = i32(out.len())
                 out.push(Drop {})
             } else {
                 old_to_new_pc[pc] = i32(out.len())
-                out.push(LocalSet { .slot = remap[usize(op.slot)] })
+                out.push(LocalSet { .slot = remap[op.slot] })
             }
             pc = pc + 1
             continue
         }
         if op is LocalTee {
-            if dead[usize(op.slot)] {
+            if dead[op.slot] {
                 // tee = set + push. With the set dead, just leave the
                 // value on stack — the consumer reads it directly.
                 pc = pc + 1
                 continue
             }
             old_to_new_pc[pc] = i32(out.len())
-            out.push(LocalTee { .slot = remap[usize(op.slot)] })
+            out.push(LocalTee { .slot = remap[op.slot] })
             pc = pc + 1
             continue
         }
         if op is LocalGet {
             old_to_new_pc[pc] = i32(out.len())
-            out.push(LocalGet { .slot = remap[usize(op.slot)] })
+            out.push(LocalGet { .slot = remap[op.slot] })
             pc = pc + 1
             continue
         }
         if op is LocalField {
             old_to_new_pc[pc] = i32(out.len())
             out.push(LocalField {
-                .slot = remap[usize(op.slot)],
+                .slot = remap[op.slot],
                 .type_id = op.type_id,
                 .field_index = op.field_index,
             })

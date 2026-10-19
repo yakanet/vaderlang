@@ -56,7 +56,7 @@ export dump_diagnostics_with_file :: fn(diags: Diagnostic[]) -> string = render_
 // Upper bound on diagnostics rendered in one block. A single root error can
 // cascade into hundreds of derived diagnostics ; past this many the real cause
 // scrolls off, so the tail is collapsed into a "… and N more" line.
-MAX_SHOWN_DIAGNOSTICS: usize: 100
+MAX_SHOWN_DIAGNOSTICS: i64: 100
 
 // Shared body for both public renderers. `show_file` switches the per-line file
 // prefix AND the sort (file-grouped vs offset-only) in lockstep. `cap` collapses
@@ -184,8 +184,8 @@ import "std/testing"
 import "toolchain/span"
 
 mk_diag_span :: fn(start: i32, end: i32) -> Span = Span {
-    .start = Position { .file = "t.vader", .offset = usize(start), .line = 1, .column = start + 1 },
-    .end   = Position { .file = "t.vader", .offset = usize(end),   .line = 1, .column = end + 1 },
+    .start = Position { .file = "t.vader", .offset = i64(start), .line = 1, .column = start + 1 },
+    .end   = Position { .file = "t.vader", .offset = i64(end),   .line = 1, .column = end + 1 },
 }
 
 @test test_dedup_drops_exact_duplicates :: fn() -> void {

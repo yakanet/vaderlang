@@ -40,7 +40,7 @@ PpmError implements Error {
 /// Bytes per colour sample for a given maxval: 1 when `maxval < 256`, else 2.
 /// Exposed so callers can index `Ppm.pixels` correctly for 16-bit images.
 /// @param maxval  the image's maximum sample value.
-export bytes_per_sample :: fn(maxval: u32) -> usize = if maxval < 256 { 1 } else { 2 }
+export bytes_per_sample :: fn(maxval: u32) -> i64 = if maxval < 256 { 1 } else { 2 }
 
 // ---- header scanning ------------------------------------------------------
 
@@ -58,15 +58,15 @@ is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
 // surface as a malformed-header error at the call site).
 ScanInt :: struct {
     value: u32
-    pos:   usize
+    pos:   i64
     found: bool
 }
 
 // Advance past whitespace and `# … <LF>` comment lines, returning the index of
 // the next significant byte (or `bs.len()` at end of input).
-skip_ws :: fn(bs: u8[], from: usize) -> usize {
+skip_ws :: fn(bs: u8[], from: i64) -> i64 {
     n :: bs.len()
-    p: usize = from
+    p: i64 = from
     for p < n {
         b :: bs[p]
         if b == '#' {
@@ -83,9 +83,9 @@ skip_ws :: fn(bs: u8[], from: usize) -> usize {
 // Read a run of ASCII digits as a u32 starting at `from`. Stops at the first
 // non-digit. Guards against u32 overflow so a malformed huge run errors rather
 // than wrapping.
-scan_uint :: fn(bs: u8[], from: usize) -> ScanInt {
+scan_uint :: fn(bs: u8[], from: i64) -> ScanInt {
     n :: bs.len()
-    p: usize = from
+    p: i64 = from
     v: u32 = 0
     for p < n && is_digit_byte(bs[p]) {
         d :: u32(bs[p] - '0')
@@ -141,7 +141,7 @@ export decode :: fn(data: u8[]) -> Ppm | PpmError {
     raster_start :: mv.pos + 1
 
     bps :: bytes_per_sample(mv.value)
-    expected :: usize(w.value) * usize(h.value) * 3 * bps
+    expected :: i64(w.value) * i64(h.value) * 3 * bps
     raster_len :: data.len() - raster_start
     if raster_len != expected {
         return PpmError { .msg = "ppm: raster is ${raster_len} bytes, expected ${expected}" }
@@ -166,7 +166,7 @@ export encode :: fn(img: Ppm) -> u8[] | PpmError {
         return PpmError { .msg = "ppm: maxval must be in 1..=65535, got ${img.maxval}" }
     }
     bps :: bytes_per_sample(img.maxval)
-    expected :: usize(img.width) * usize(img.height) * 3 * bps
+    expected :: i64(img.width) * i64(img.height) * 3 * bps
     if img.pixels.len() != expected {
         return PpmError { .msg = "ppm: pixels is ${img.pixels.len()} bytes, expected ${expected}" }
     }
@@ -224,7 +224,7 @@ import "std/testing"
         assert_eq(dec.width, u32(2))
         assert_eq(dec.height, u32(2))
         assert_eq(dec.maxval, u32(255))
-        assert_eq(dec.pixels.len(), usize(12))
+        assert_eq(dec.pixels.len(), 12)
         for i in 0..<dec.pixels.len() {
             assert_eq(i32(dec.pixels[i]), i32(px[i]))
         }
@@ -244,7 +244,7 @@ import "std/testing"
         assert(false, "decode 16-bit failed: ${dec.msg}")
     } else {
         assert_eq(dec.maxval, u32(65535))
-        assert_eq(dec.pixels.len(), usize(6))
+        assert_eq(dec.pixels.len(), 6)
         assert_eq(i32(dec.pixels[0]), i32(0x12))
         assert_eq(i32(dec.pixels[5]), i32(0xbc))
     }

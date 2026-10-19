@@ -137,7 +137,7 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
     errors: string[]: []
 
     n :: args.len()
-    i: usize = 0
+    i: i64 = 0
 
     // The option zone. Every `continue` here must have advanced `i`.
     for i < n {
@@ -159,8 +159,8 @@ export parse :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
         long :: a.starts_with("--")
         body :: a.byte_slice(if long { 2 } else { 1 }, a.byte_len())
         eq :: body.index_of('=', 0)
-        name :: if eq < 0 { body } else { body.byte_slice(0, usize(eq)) }
-        inline_value :: if eq < 0 { "" } else { body.byte_slice(usize(eq) + 1, body.byte_len()) }
+        name :: if eq < 0 { body } else { body.byte_slice(0, eq) }
+        inline_value :: if eq < 0 { "" } else { body.byte_slice(eq + 1, body.byte_len()) }
 
         spec :: find_spec(specs, name, long)
         if spec == null {

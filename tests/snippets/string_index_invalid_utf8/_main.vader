@@ -14,7 +14,7 @@ main :: fn() -> i32 {
     for i in 0..<s.len() {
         println(u32(s[i]))
     }
-    walked: usize = 0
+    walked: i64 = 0
     for _ in s {
         walked += 1
     }

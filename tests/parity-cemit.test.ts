@@ -142,7 +142,7 @@ const C_PARITY = new Set<string>([
   "for_loop",
   "if_null_narrow",
   // Erasure-boundary tuple field read : `for [k, v] in zip(...)` / `indexed()`
-  // yield erased-sibling tuples (all-`Any` from zip, `[Any, usize]` from
+  // yield erased-sibling tuples (all-`Any` from zip, `[Any, i64]` from
   // indexed) that the carrying array erases to `ref` ; the concrete field
   // read must tag-dispatch + box/unbox (`c_emit/walker.vader::push_struct_field`).
   // The native-run oracle here is the regression guard — the snapshot/VM
@@ -628,6 +628,8 @@ const C_PARITY = new Set<string>([
   "strings",
   "struct_decl",
   "trait_impl",
+  // A negative count or slice bound reads as 0 in the C runtime, as on the VM.
+  "counts_below_zero",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -2820,10 +2820,12 @@ void vader_ffi_callback_first_escape(void) {
 
 static void* vader_gc_force_tenure(void* obj);
 
-vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
+vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_bound) {
     a = vader_array_resolve(a);
     /* Clamp bounds against the header length (independent of `buf`, so it's
      * valid for both the owning, view, and borrowed cases). */
+    size_t lo = vader_count_or_zero(lo_bound);
+    size_t hi = vader_count_or_zero(hi_bound);
     if (lo > a->length) lo = a->length;
     if (hi < lo)        hi = lo;
     if (hi > a->length) hi = a->length;
@@ -3107,7 +3109,8 @@ static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, u
  * kind / tag.
  * For a ref element the SAME reference is repeated n times (shallow, evaluate-
  * once — the documented semantics). */
-vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
+vader_array_t* vader_array_repeat(vader_array_t* src, int64_t times) {
+    size_t n = vader_count_or_zero(times);
     src = vader_array_resolve(src);
     uint32_t type_index = src->header.type_index;
     size_t src_len = src->length;
@@ -3278,7 +3281,10 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
  * — this overwrites, it does not grow. The basis for future `insert`/`remove`.
  * No allocation anywhere, hence no GC / no rooting : the argument pointers are
  * stable for the whole call. */
-void vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, size_t dst_start, size_t len) {
+void vader_array_copy(vader_array_t* src, int64_t src_from, vader_array_t* dst, int64_t dst_from, int64_t count) {
+    size_t src_start = vader_count_or_zero(src_from);
+    size_t dst_start = vader_count_or_zero(dst_from);
+    size_t len = vader_count_or_zero(count);
     if (len == 0) return;
     if (VADER_UNLIKELY(vader_array_is_borrowed(dst))) {
         vader_trap("cannot copy into a borrowed `const u8[]` byte view");

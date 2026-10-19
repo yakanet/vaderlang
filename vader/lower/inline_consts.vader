@@ -40,7 +40,7 @@ import "vader/types"
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
 // `2 * N` ops to rebuild the literal once N passes this threshold.
-FN_WRAP_MIN_ELEMENTS :: usize(4)
+FN_WRAP_MIN_ELEMENTS: i64: 4
 
 /// Classify every const decl in `project`, record its read-site routing on
 /// `project.const_inline`, `const_fn_wrap` and `const_fresh_wrap`, and its route
@@ -209,7 +209,7 @@ try_pool_struct :: fn(
         },
         .index       = LoweredIntLit {
             .span  = span,
-            .type  = mk_primitive("usize"),
+            .type  = mk_primitive("i64"),
             .value = 0,
         },
         .bounds_safe = true,

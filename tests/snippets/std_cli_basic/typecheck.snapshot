@@ -16,15 +16,15 @@
   expr 15:16    IdentExpr      :: string[]
   expr 15:22    IdentExpr      :: FlagSpec[]
   expr 17:13    StringLitExpr  :: string
-  expr 17:23    CallExpr       :: usize
-  expr 17:23    FieldExpr      :: fn() -> usize
+  expr 17:23    CallExpr       :: i64
+  expr 17:23    FieldExpr      :: fn() -> i64
   expr 17:23    FieldExpr      :: string[]
   expr 17:23    IdentExpr      :: ParsedArgs
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(T) -> void
   expr 18:13    StringLitExpr  :: string
-  expr 18:28    CallExpr       :: usize
-  expr 18:28    FieldExpr      :: fn() -> usize
+  expr 18:28    CallExpr       :: i64
+  expr 18:28    FieldExpr      :: fn() -> i64
   expr 18:28    FieldExpr      :: string[]
   expr 18:28    IdentExpr      :: ParsedArgs
   expr 18:5     CallExpr       :: void
@@ -79,8 +79,8 @@
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
   expr 29:13    StringLitExpr  :: string
-  expr 29:34    CallExpr       :: usize
-  expr 29:34    FieldExpr      :: fn() -> usize
+  expr 29:34    CallExpr       :: i64
+  expr 29:34    FieldExpr      :: fn() -> i64
   expr 29:34    FieldExpr      :: string[]
   expr 29:34    IdentExpr      :: ParsedArgs
   expr 29:5     CallExpr       :: void
@@ -113,8 +113,8 @@
   expr 38:23    StringLitExpr  :: string
   expr 38:34    IdentExpr      :: FlagSpec[]
   expr 39:13    StringLitExpr  :: string
-  expr 39:31    CallExpr       :: usize
-  expr 39:31    FieldExpr      :: fn() -> usize
+  expr 39:31    CallExpr       :: i64
+  expr 39:31    FieldExpr      :: fn() -> i64
   expr 39:31    FieldExpr      :: string[]
   expr 39:31    IdentExpr      :: ParsedArgs
   expr 39:5     CallExpr       :: void
@@ -132,8 +132,8 @@
   expr 44:34    StringLitExpr  :: string
   expr 44:48    IdentExpr      :: FlagSpec[]
   expr 45:13    StringLitExpr  :: string
-  expr 45:33    CallExpr       :: usize
-  expr 45:33    FieldExpr      :: fn() -> usize
+  expr 45:33    CallExpr       :: i64
+  expr 45:33    FieldExpr      :: fn() -> i64
   expr 45:33    FieldExpr      :: string[]
   expr 45:33    IdentExpr      :: ParsedArgs
   expr 45:5     CallExpr       :: void

@@ -598,7 +598,7 @@ check_destructuring_assign :: fn(
     }
     // The places are typed FIRST so their slots can be handed to the source as
     // the expected shape : without it a free literal defaults to `i32` and
-    // `[u, v] = [1, 2]` over two `usize` slots fails on both elements, where
+    // `[u, v] = [1, 2]` over two `i64` slots fails on both elements, where
     // `u = 1` passes. With a rest, the rest's own array type is that shape.
     rest_slot: Type | null = null
     for t in s.targets {
@@ -690,7 +690,7 @@ place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> T
 /// when `value_ty` cannot be destructured that way. A tuple answers per position
 /// and must match `count` exactly ; an array answers its element type for every
 /// position.
-destructure_element_types :: fn(value_ty: Type, count: usize) -> Type[] | null {
+destructure_element_types :: fn(value_ty: Type, count: i64) -> Type[] | null {
     backing :: tuple_backing(value_ty)
     if backing is TupleType {
         if backing.elements.len() != count {
@@ -1161,7 +1161,7 @@ in_for_element :: fn(
 /// without variant data. The walk is noted on `iter` (`TypedProgram.walked_types`).
 ///
 /// @param iter  the type expression the loop walks.
-/// @error       T3088 for any other type, `u64` and `usize` included, whose values
+/// @error       T3088 for any other type, `u64` and `i64` included, whose values
 ///              reach past `i64`.
 walked_type :: fn(iter: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     t :: type_operand(iter, typed, diags)
@@ -1190,7 +1190,7 @@ walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
 
 check_loop_jump :: fn(
     span: Span,
-    jump_id: usize,
+    jump_id: i64,
     label: string | null,
     typed: TypedProgram,
     ctx: FnContext | null,
@@ -1805,7 +1805,7 @@ several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | nu
 // when no such coercion applies.
 // The lowerer resolves the matching `into` member's field names from the
 // impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
-into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
+into_tuple_target :: fn(declared: Type, arity: i64, typed: TypedProgram) -> Type | null {
     if declared !is StructType {
         return null
     }

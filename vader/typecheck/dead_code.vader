@@ -461,7 +461,7 @@ bfs_reachable :: fn(
 ) -> MutableSet<string> {
     reachable :: MutableSet<string> {}
     work :: chain(root_names, seed_refs).collect()
-    cursor: usize = 0
+    cursor: i64 = 0
     for cursor < work.len() {
         n :: work[cursor]
         cursor += 1
@@ -705,11 +705,11 @@ import "std/testing"
 
 // Parse `src` as a single-file module and return the number of W0007 the pass
 // raises — the reachability BFS exercised end to end on a synthetic graph.
-dead_count :: fn(src: string) -> usize = dead_count_in(src, "t")
+dead_count :: fn(src: string) -> i64 = dead_count_in(src, "t")
 
 // The module name matters to one root only — a driver's `build` — so the tests
 // that do not exercise it pass an ordinary name.
-dead_count_in :: fn(src: string, module_name: string) -> usize {
+dead_count_in :: fn(src: string, module_name: string) -> i64 {
     parsed :: Parse.parse_source(src, "t.vader")
     diags: Diagnostic[]: []
     check_dead_code(parsed.program.decls, module_name, diags)

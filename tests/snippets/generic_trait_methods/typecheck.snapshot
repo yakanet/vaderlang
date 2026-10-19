@@ -10,12 +10,12 @@
   expr 20:46    FieldExpr      :: i32
   expr 20:46    IdentExpr      :: Box
   expr 20:56    IntrinsicCallExpr :: string
-  expr 20:73    IntrinsicCallExpr :: usize
+  expr 20:73    IntrinsicCallExpr :: i64
   expr 20:82    IdentExpr      :: U
   expr 21:34    StructLitExpr  :: Box
   expr 21:45    CallExpr       :: i32
   expr 21:45    IdentExpr      :: type
-  expr 21:49    IntrinsicCallExpr :: usize
+  expr 21:49    IntrinsicCallExpr :: i64
   expr 21:58    IdentExpr      :: U
   expr 29:43    StringLitExpr  :: string
   expr 29:46    IntrinsicCallExpr :: string
@@ -25,8 +25,8 @@
   expr 34:43    StringLitExpr  :: string
   expr 34:46    IntrinsicCallExpr :: string
   expr 34:63    IntrinsicCallExpr :: string
-  expr 34:80    CallExpr       :: usize
-  expr 34:80    FieldExpr      :: fn() -> usize
+  expr 34:80    CallExpr       :: i64
+  expr 34:80    FieldExpr      :: fn() -> i64
   expr 34:80    IdentExpr      :: T[]
   expr 35:34    SeqLitExpr     :: T[]
   expr 38:48    CallExpr       :: string

@@ -3,12 +3,12 @@ type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
 type 3 primitive u8
-type 4 primitive usize
+type 4 primitive i64
 type 5 struct std_core$Buffer {  }
 type 6 primitive u64
 type 7 array 3
-type 8 primitive void
-type 9 primitive isize
+type 8 primitive usize
+type 9 primitive void
 string 0 "-- ascii --"
 string 1 "vader"
 string 2 "sum="
@@ -39,24 +39,24 @@ string 26 " sl0="
 string 27 " sl1="
 string 28 " sl2="
 string 29 "\n"
-import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=1,7,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 5 std_core$ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
   local sum u32
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   local $cast_14 u32
   local $cast_25 u64
   local b u8
   local __buf_8 ref
-  local __off_9 usize
+  local __off_9 i64
   string.const 0   ; "-- ascii --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   i32.const 0
   local.set 0   ; sum
   string.const 1   ; "vader"
@@ -69,7 +69,7 @@ fn 0 snippet$main () -> i32
   loop $L0 void
     local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
@@ -104,14 +104,14 @@ fn 0 snippet$main () -> i32
   local.get 1   ; __for_arr_0
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 3   ; "-- multibyte --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 4   ; "你"
   call.import 1   ; std_core$bytes
   local.tee 1   ; __for_arr_0
@@ -122,7 +122,7 @@ fn 0 snippet$main () -> i32
   loop $L2 void
     local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L3 void
       local.get 1   ; __for_arr_0
       local.get 3   ; __for_i_2
@@ -140,12 +140,12 @@ fn 0 snippet$main () -> i32
       local.get 7   ; __buf_8
       local.get 8   ; __off_9
       local.get 5   ; $cast_25
-      call 5   ; std_core$write_unsigned
+      call 6   ; std_core$write_unsigned
       local.set 8   ; __off_9
       local.get 7   ; __buf_8
       local.get 8   ; __off_9
       call 3   ; std_core$finish_buffer
-      call 8   ; std_io$println__string
+      call 9   ; std_io$println__string
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -157,7 +157,7 @@ fn 0 snippet$main () -> i32
   call.import 1   ; std_core$bytes
   local.set 1   ; __for_arr_0
   string.const 6   ; "-- bom --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   i64.const 71
   call 2   ; std_core$new_byte_buffer
   local.set 7   ; __buf_8
@@ -177,7 +177,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -193,7 +193,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -209,12 +209,12 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   i64.const 52
   call 2   ; std_core$new_byte_buffer
   local.set 7   ; __buf_8
@@ -234,7 +234,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -251,14 +251,14 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 13   ; "-- empty --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 14   ; ""
   call.import 1   ; std_core$bytes
   array.len
@@ -268,10 +268,10 @@ fn 0 snippet$main () -> i32
   loop $L4 void
     local.get 3   ; __for_i_2
     local.get 2   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L5 void
       string.const 15   ; "never"
-      call 8   ; std_io$println__string
+      call 9   ; std_io$println__string
       local.get 3   ; __for_i_2
       i64.const 1
       i64.add
@@ -292,19 +292,18 @@ fn 0 snippet$main () -> i32
   string.const 14   ; ""
   call.import 1   ; std_core$bytes
   array.len
-  usize.to_i64
-  local.set 5   ; $cast_25
+  local.set 3   ; __for_i_2
   local.get 1   ; __for_arr_0
   local.get 2   ; __for_len_1
-  local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  local.get 3   ; __for_i_2
+  call 5   ; std_core$write_int
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 17   ; "-- u8[] surface --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 18   ; "abc"
   call.import 1   ; std_core$bytes
   local.set 1   ; __for_arr_0
@@ -320,12 +319,11 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   array.len
-  usize.to_i64
-  local.set 5   ; $cast_25
+  local.set 3   ; __for_i_2
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
-  local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  local.get 3   ; __for_i_2
+  call 5   ; std_core$write_int
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -341,7 +339,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -357,7 +355,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -373,14 +371,14 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 23   ; "-- slice --"
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   string.const 24   ; "abcde"
   call.import 1   ; std_core$bytes
   i64.const 1
@@ -399,12 +397,11 @@ fn 0 snippet$main () -> i32
   local.set 2   ; __for_len_1
   local.get 1   ; __for_arr_0
   array.len
-  usize.to_i64
-  local.set 5   ; $cast_25
+  local.set 3   ; __for_i_2
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
-  local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  local.get 3   ; __for_i_2
+  call 5   ; std_core$write_int
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -420,7 +417,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -436,7 +433,7 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
@@ -452,18 +449,18 @@ fn 0 snippet$main () -> i32
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   local.get 5   ; $cast_25
-  call 5   ; std_core$write_unsigned
+  call 6   ; std_core$write_unsigned
   local.set 2   ; __for_len_1
   local.get 7   ; __buf_8
   local.get 2   ; __for_len_1
   call 3   ; std_core$finish_buffer
-  call 8   ; std_io$println__string
+  call 9   ; std_io$println__string
   return.lit i32.const 0
 end
 
 fn 1 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -475,6 +472,7 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -490,21 +488,22 @@ fn 1 concat_2 (string,string) -> string
   return
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
+fn 2 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
+fn 3 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_string_at (ref,usize,string) -> usize
-  local $call_3 usize
+fn 4 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -514,14 +513,128 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
-  local ndigits usize
+fn 5 std_core$write_int (ref,i64,i64) -> i64
+  local neg bool
+  local ndigits i64
+  local m i64
+  local $cast_36 u8
+  local $add_checked_37 u8
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.eq
+  if $L0 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 48
+    store_u8
+    local.get 1   ; arg 1
+    i64.const 1
+    i64.checked_add
+    return
+  end $L0
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.lt
+  local.set 3   ; neg
+  local.get 2   ; arg 2
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 2   ; arg 2
+    i64.checked_neg
+    local.set 2   ; arg 2
+  end $L1
+  i64.const 0
+  local.set 4   ; ndigits
+  local.get 2   ; arg 2
+  local.set 5   ; m
+  loop $L2 void
+    local.get 5   ; m
+    i64.const 0
+    i64.ne
+    if $L3 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_add
+      local.set 4   ; ndigits
+      local.get 5   ; m
+      i64.const 10
+      i64.div
+      local.set 5   ; m
+      br $L2
+    end $L3
+  end $L2
+  local.get 3   ; neg
+  if $L4 void
+    local.get 4   ; ndigits
+    i64.const 1
+    i64.checked_add
+    local.set 5   ; m
+  else
+    local.get 4   ; ndigits
+    local.set 5   ; m
+  end $L4
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  local.set 4   ; ndigits
+  loop $L5 void
+    local.get 2   ; arg 2
+    i64.const 0
+    i64.ne
+    if $L6 void
+      local.get 4   ; ndigits
+      i64.const 1
+      i64.checked_sub
+      local.set 4   ; ndigits
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.rem
+      i64.checked_neg
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      local.set 6   ; $cast_36
+      i32.const 48
+      local.get 6   ; $cast_36
+      u8.checked_add
+      local.set 7   ; $add_checked_37
+      local.get 0   ; arg 0
+      local.get 4   ; ndigits
+      local.get 7   ; $add_checked_37
+      store_u8
+      local.get 2   ; arg 2
+      i64.const 10
+      i64.div
+      local.set 2   ; arg 2
+      br $L5
+    end $L6
+  end $L5
+  local.get 3   ; neg
+  if $L7 void
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    i32.const 45
+    store_u8
+    local.get 1   ; arg 1
+    local.get 5   ; m
+    i64.checked_add
+    return
+  end $L7
+  local.get 1   ; arg 1
+  local.get 5   ; m
+  i64.checked_add
+  return
+end
+
+fn 6 std_core$write_unsigned (ref,i64,u64) -> i64
+  local ndigits i64
   local m u64
-  local i usize
+  local i i64
   local $cast_26 u8
   local $add_checked_27 u8
   local.get 2   ; arg 2
@@ -534,7 +647,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    usize.checked_add
+    i64.checked_add
     return
   end $L0
   i64.const 0
@@ -548,7 +661,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -559,7 +672,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  usize.checked_add
+  i64.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -568,7 +681,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      usize.checked_sub
+      i64.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -594,19 +707,19 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 6 std_io$write (u8,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -618,7 +731,7 @@ fn 6 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -634,7 +747,7 @@ fn 6 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 7   ; std_io$write_bytes
+      call 8   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -646,7 +759,7 @@ fn 6 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -654,7 +767,7 @@ fn 6 std_io$write (u8,string) -> void
   return
 end
 
-fn 7 std_io$write_bytes (u8,ref,usize) -> i32
+fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -663,18 +776,18 @@ fn 7 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 
-fn 8 std_io$println__string (string) -> void
+fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 29   ; "\n"
@@ -682,6 +795,6 @@ fn 8 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 6   ; std_io$write
+  call 7   ; std_io$write
   return
 end

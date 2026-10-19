@@ -1,7 +1,7 @@
 # Typecheck
 
 ## tests/snippets/forward_module_const
-  FnDecl         count_numeric        :: fn() -> usize
+  FnDecl         count_numeric        :: fn() -> i64
   FnDecl         first_name           :: fn() -> string
   FnDecl         joined               :: fn() -> string
   FnDecl         kind                 :: fn(string) -> string
@@ -21,9 +21,9 @@
   expr 35:8     IdentExpr      :: string
   expr 36:16    StringLitExpr  :: string
   expr 38:12    StringLitExpr  :: string
-  expr 41:34    CallExpr       :: usize
-  expr 41:34    FieldExpr      :: fn() -> usize
-  expr 41:34    IdentExpr      :: string[]
+  expr 41:32    CallExpr       :: i64
+  expr 41:32    FieldExpr      :: fn() -> i64
+  expr 41:32    IdentExpr      :: string[]
   expr 43:32    IdentExpr      :: string[]
   expr 43:32    IndexExpr      :: string
   expr 46:12    StringLitExpr  :: string
@@ -55,8 +55,8 @@
   expr 60:5     IdentExpr      :: fn(T) -> void
   expr 60:53    StringLitExpr  :: string
   expr 61:13    StringLitExpr  :: string
-  expr 61:16    CallExpr       :: usize
-  expr 61:16    IdentExpr      :: fn() -> usize
+  expr 61:16    CallExpr       :: i64
+  expr 61:16    IdentExpr      :: fn() -> i64
   expr 61:35    CallExpr       :: string
   expr 61:35    IdentExpr      :: fn() -> string
   expr 61:5     CallExpr       :: void

@@ -16,7 +16,7 @@ import "vader/parser"
 /// Longest const, field or variant head shown before it is cut with ` …` : a
 /// table written over many lines is a value, not a signature. A union alias is
 /// never cut — its `|` chain IS the signature.
-HEAD_VALUE_MAX: usize: 120
+HEAD_VALUE_MAX: i64: 120
 
 /// Render the head of a declaration on one line : `area :: fn(a: i32) -> i32`,
 /// `Point :: struct`, `Kind :: enum(u8)`, `Add :: trait<Rhs = Self>`,
@@ -138,7 +138,7 @@ const_head :: fn(h: Printer, d: p.ConstDecl) -> string {
 // `text` kept to its first line and to `limit` bytes, a cut marked ` …`. A block
 // value (a lambda body) still breaks lines in flat mode, hence the first line.
 // The cut backs off to a UTF-8 lead byte, so it never splits a character.
-cut_head :: fn(text: string, limit: usize) -> string {
+cut_head :: fn(text: string, limit: i64) -> string {
     end := first_line_len(text)
     if end == text.byte_len() && end <= limit {
         return text
@@ -153,7 +153,7 @@ cut_head :: fn(text: string, limit: usize) -> string {
 }
 
 // Byte length of `text`'s first line — all of it when it holds no newline.
-first_line_len :: fn(text: string) -> usize {
+first_line_len :: fn(text: string) -> i64 {
     for i in 0..<text.byte_len() {
         if text.byte_at(i) == '\n' {
             return i

@@ -4,15 +4,15 @@ type 1 primitive i32
 type 2 primitive string
 type 3 primitive bool
 type 4 primitive u8
-type 5 primitive usize
+type 5 primitive i64
 type 6 struct std_core$Buffer {  }
 type 7 primitive char
 type 8 primitive u32
 type 9 array 4
-type 10 primitive void
-type 11 array 2
-type 12 primitive isize
-type 13 struct std_string_builder$StringBuilder { parts:11 }
+type 10 primitive usize
+type 11 primitive void
+type 12 array 2
+type 13 struct std_string_builder$StringBuilder { parts:12 }
 string 0 "hello world"
 string 1 "o"
 string 2 "0"
@@ -29,18 +29,18 @@ string 12 "true"
 string 13 "false"
 string 14 "\n"
 string 15 ""
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
-import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,usize) -> u8
-import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,usize,usize) -> string
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,i64) -> u8
+import 2 byte_slice std_core$byte_slice result_type=2 param_types=2,5,5 param_c_out= param_by_address= (string,i64,i64) -> string
 import 3 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 6 std_core$ByteAccess
 impl 13 std_core$Display
 export main 0
 
 fn 0 snippet$main () -> i32
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local $call_25 bool
   string.const 0   ; "hello world"
   string.const 1   ; "o"
@@ -105,8 +105,8 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -118,6 +118,7 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -134,9 +135,9 @@ fn 1 concat_2 (string,string) -> string
 end
 
 fn 2 concat_3 (string,string,string) -> string
-  local c0 usize
-  local $call_5 usize
-  local $call_8 usize
+  local c0 i64
+  local $call_5 i64
+  local $call_8 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -155,6 +156,7 @@ fn 2 concat_3 (string,string,string) -> string
   local.get 5   ; $call_8
   i64.add
   local.tee 5   ; $call_8
+  i64.to_i64
   buffer.new
   local.tee 6   ; buf
   i64.const 0
@@ -174,21 +176,22 @@ fn 2 concat_3 (string,string,string) -> string
   return
 end
 
-fn 3 std_core$new_byte_buffer (usize) -> ref
+fn 3 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 4 std_core$finish_buffer (ref,usize) -> string
+fn 4 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$write_string_at (ref,usize,string) -> usize
-  local $call_3 usize
+fn 5 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -198,11 +201,11 @@ fn 5 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 6 std_core$write_bool (ref,usize,bool) -> usize
+fn 6 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
@@ -219,9 +222,9 @@ fn 6 std_core$write_bool (ref,usize,bool) -> usize
   return
 end
 
-fn 7 std_core$codepoint_at_byte (string,usize) -> (char,usize)
+fn 7 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local b u8
-  local width usize
+  local width i64
   local __in_range_1 u32
   local or_res bool
   local.get 0   ; arg 0
@@ -275,10 +278,10 @@ fn 7 std_core$codepoint_at_byte (string,usize) -> (char,usize)
   end $L1
 end
 
-fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
+fn 8 std_core$decode_tail (string,u8,i64) -> (u32,i64)
   local or_res bool
-  local n usize
-  local $add_checked_21 usize
+  local n i64
+  local $add_checked_21 i64
   local b1 u8
   local $shl_34 u32
   local $bitand_37 u32
@@ -308,9 +311,9 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   local.set 4   ; n
   local.get 2   ; arg 2
   i64.const 1
-  usize.checked_add
+  i64.checked_add
   local.get 4   ; n
-  u64.ge
+  i64.ge
   if $L2 void
     i32.const 65533
     i64.const 1
@@ -318,7 +321,7 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   end $L2
   local.get 2   ; arg 2
   i64.const 1
-  usize.checked_add
+  i64.checked_add
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
@@ -437,9 +440,9 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   end $L5
   local.get 2   ; arg 2
   i64.const 2
-  usize.checked_add
+  i64.checked_add
   local.get 4   ; n
-  u64.ge
+  i64.ge
   if $L14 void
     i32.const 65533
     i64.const 2
@@ -447,7 +450,7 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   end $L14
   local.get 2   ; arg 2
   i64.const 2
-  usize.checked_add
+  i64.checked_add
   local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
   local.get 5   ; $add_checked_21
@@ -495,9 +498,9 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   end $L16
   local.get 2   ; arg 2
   i64.const 3
-  usize.checked_add
+  i64.checked_add
   local.get 4   ; n
-  u64.ge
+  i64.ge
   if $L17 void
     i32.const 65533
     i64.const 3
@@ -505,7 +508,7 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   end $L17
   local.get 2   ; arg 2
   i64.const 3
-  usize.checked_add
+  i64.checked_add
   local.set 4   ; n
   local.get 0   ; arg 0
   local.get 4   ; n
@@ -570,13 +573,13 @@ end
 
 fn 10 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 3   ; std_core$bytes
   local.set 2   ; buf
@@ -588,7 +591,7 @@ fn 10 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -616,7 +619,7 @@ fn 10 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -624,7 +627,7 @@ fn 10 std_io$write (u8,string) -> void
   return
 end
 
-fn 11 std_io$write_bytes (u8,ref,usize) -> i32
+fn 11 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -633,14 +636,14 @@ fn 11 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 4   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 4   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 
@@ -659,8 +662,8 @@ end
 fn 13 std_string$replace (string,string,string) -> string
   local parts ref
   local $arr_8 ref
-  local if_res usize
-  local __for_hi_0 usize
+  local if_res i64
+  local __for_hi_0 i64
   local $idx_24 string
   local $call_29 string
   local.get 0   ; arg 0
@@ -669,19 +672,19 @@ fn 13 std_string$replace (string,string,string) -> string
   local.tee 3   ; parts
   array.len
   i64.const 1
-  u64.le
+  i64.le
   if $L0 void
     local.get 0   ; arg 0
     return
   end $L0
-  array.new 11 0   ; string[]
+  array.new 12 0   ; string[]
   local.set 4   ; $arr_8
   local.get 3   ; parts
   array.len
   local.set 5   ; if_res
   i64.const 1
   local.get 5   ; if_res
-  u64.lt
+  i64.lt
   if $L1 void
     local.get 3   ; parts
     array.len
@@ -704,11 +707,11 @@ fn 13 std_string$replace (string,string,string) -> string
   loop $L2 void
     local.get 5   ; if_res
     local.get 6   ; __for_hi_0
-    u64.lt
+    i64.lt
     if $L3 void
       local.get 3   ; parts
       local.get 5   ; if_res
-      array.get 11   ; string[]
+      array.get 12   ; string[]
       ref.cast 2   ; string
       local.set 7   ; $idx_24
       local.get 4   ; $arr_8
@@ -723,7 +726,7 @@ fn 13 std_string$replace (string,string,string) -> string
   end $L2
   local.get 3   ; parts
   i32.const 0
-  array.get 11   ; string[]
+  array.get 12   ; string[]
   ref.cast 2   ; string
   local.set 7   ; $idx_24
   local.get 4   ; $arr_8
@@ -746,10 +749,10 @@ fn 14 std_string$replace_all (string,string,string) -> string
   return
 end
 
-fn 15 std_string$repeat (string,usize) -> string
+fn 15 std_string$repeat (string,i64) -> string
   local sb ref
-  local _ usize
-  array.new 11 0   ; string[]
+  local _ i64
+  array.new 12 0   ; string[]
   struct.new 13   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
@@ -757,7 +760,7 @@ fn 15 std_string$repeat (string,usize) -> string
   loop $L0 void
     local.get 3   ; _
     local.get 1   ; arg 1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 2   ; sb
       local.get 0   ; arg 0
@@ -786,17 +789,17 @@ end
 
 fn 17 std_string$split (string,string) -> ref
   local out ref
-  local n usize
-  local m usize
-  local at usize
-  local $field_14 usize
-  local next usize
+  local n i64
+  local m i64
+  local at i64
+  local $field_14 i64
+  local next i64
   local $call_17 string
   local first u8
   local and_res bool
   local or_res bool
-  local $call_elem_42 usize
-  array.new 11 0   ; string[]
+  local $call_elem_42 i64
+  array.new 12 0   ; string[]
   local.set 2   ; out
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -812,7 +815,7 @@ fn 17 std_string$split (string,string) -> ref
     loop $L1 void
       local.get 5   ; at
       local.get 3   ; n
-      u64.lt
+      i64.lt
       if $L2 void
         local.get 0   ; arg 0
         local.get 5   ; at
@@ -823,7 +826,7 @@ fn 17 std_string$split (string,string) -> ref
         local.set 6   ; $field_14
         local.get 5   ; at
         local.get 6   ; $field_14
-        usize.checked_add
+        i64.checked_add
         local.set 7   ; next
         local.get 0   ; arg 0
         local.get 5   ; at
@@ -852,9 +855,9 @@ fn 17 std_string$split (string,string) -> ref
   loop $L3 void
     local.get 6   ; $field_14
     local.get 4   ; m
-    usize.checked_add
+    i64.checked_add
     local.get 3   ; n
-    u64.le
+    i64.le
     if $L4 void
       local.get 0   ; arg 0
       local.get 6   ; $field_14
@@ -893,14 +896,14 @@ fn 17 std_string$split (string,string) -> ref
         array.push 2   ; string
         local.get 6   ; $field_14
         local.get 4   ; m
-        usize.checked_add
+        i64.checked_add
         local.tee 6   ; $field_14
         local.set 5   ; at
         br $L3
       end $L7
       local.get 6   ; $field_14
       i64.const 1
-      usize.checked_add
+      i64.checked_add
       local.set 6   ; $field_14
       br $L3
     end $L4
@@ -919,10 +922,10 @@ end
 
 fn 18 std_string$join (ref,string) -> string
   local sb ref
-  local i usize
-  local __for_hi_0 usize
+  local i i64
+  local __for_hi_0 i64
   local $idx_12 string
-  array.new 11 0   ; string[]
+  array.new 12 0   ; string[]
   struct.new 13   ; std_string_builder$StringBuilder
   local.set 2   ; sb
   i64.const 0
@@ -933,11 +936,11 @@ fn 18 std_string$join (ref,string) -> string
   loop $L0 void
     local.get 3   ; i
     local.get 4   ; __for_hi_0
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 3   ; i
       i64.const 0
-      u64.gt
+      i64.gt
       if $L2 void
         local.get 2   ; sb
         local.get 1   ; arg 1
@@ -945,7 +948,7 @@ fn 18 std_string$join (ref,string) -> string
       end $L2
       local.get 0   ; arg 0
       local.get 3   ; i
-      array.get 11   ; string[]
+      array.get 12   ; string[]
       ref.cast 2   ; string
       local.set 5   ; $idx_12
       local.get 2   ; sb
@@ -963,12 +966,12 @@ fn 18 std_string$join (ref,string) -> string
   return
 end
 
-fn 19 std_string$index_of (string,char,usize) -> isize
-  local n usize
-  local i usize
+fn 19 std_string$index_of (string,char,i64) -> i64
+  local n i64
+  local i i64
   local cp char
-  local width usize
-  local $call_elem_18 usize
+  local width i64
+  local $call_elem_17 i64
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.set 3   ; n
@@ -977,26 +980,25 @@ fn 19 std_string$index_of (string,char,usize) -> isize
   loop $L0 void
     local.get 4   ; i
     local.get 3   ; n
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 0   ; arg 0
       local.get 4   ; i
       call 7   ; std_core$codepoint_at_byte
-      local.set 7   ; $call_elem_18
+      local.set 7   ; $call_elem_17
       local.set 5   ; cp
-      local.get 7   ; $call_elem_18
+      local.get 7   ; $call_elem_17
       local.set 6   ; width
       local.get 5   ; cp
       local.get 1   ; arg 1
       i32.eq
       if $L2 void
         local.get 4   ; i
-        usize.to_i64
         return
       end $L2
       local.get 4   ; i
       local.get 6   ; width
-      usize.checked_add
+      i64.checked_add
       local.set 4   ; i
       br $L0
     end $L1
@@ -1004,10 +1006,10 @@ fn 19 std_string$index_of (string,char,usize) -> isize
   return.lit i64.const -1
 end
 
-fn 20 std_string$matches_at (string,usize,string) -> bool
-  local m usize
-  local $call_5 usize
-  local $add_checked_14 usize
+fn 20 std_string$matches_at (string,i64,string) -> bool
+  local m i64
+  local $call_5 i64
+  local $add_checked_14 i64
   local $call_15 u8
   local $call_16 u8
   local.get 2   ; arg 2
@@ -1018,18 +1020,18 @@ fn 20 std_string$matches_at (string,usize,string) -> bool
   local.set 4   ; $call_5
   local.get 1   ; arg 1
   local.get 4   ; $call_5
-  u64.gt
+  i64.gt
   if $L0 void
     return.lit bool.const false
   end $L0
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
   local.get 1   ; arg 1
-  usize.checked_sub
+  i64.checked_sub
   local.set 4   ; $call_5
   local.get 3   ; m
   local.get 4   ; $call_5
-  u64.gt
+  i64.gt
   if $L1 void
     return.lit bool.const false
   end $L1
@@ -1038,11 +1040,11 @@ fn 20 std_string$matches_at (string,usize,string) -> bool
   loop $L2 void
     local.get 4   ; $call_5
     local.get 3   ; m
-    u64.lt
+    i64.lt
     if $L3 void
       local.get 1   ; arg 1
       local.get 4   ; $call_5
-      usize.checked_add
+      i64.checked_add
       local.set 5   ; $add_checked_14
       local.get 0   ; arg 0
       local.get 5   ; $add_checked_14
@@ -1076,14 +1078,14 @@ fn 21 std_string_builder$append (ref,string) -> void
 end
 
 fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
-  local n usize
+  local n i64
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
-  local $call_23 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
+  local $call_23 i64
   local __for_arr_3 ref
   local p string
-  local $call_40 usize
+  local $call_41 i64
   local.field 0 13 0   ; arg 0 std_string_builder$StringBuilder.parts
   array.len
   local.tee 1   ; n
@@ -1098,7 +1100,7 @@ fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   if $L1 void
     local.field 0 13 0   ; arg 0 std_string_builder$StringBuilder.parts
     i32.const 0
-    array.get 11   ; string[]
+    array.get 12   ; string[]
     ref.cast 2   ; string
     return
   end $L1
@@ -1113,17 +1115,17 @@ fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   loop $L2 void
     local.get 4   ; __for_i_2
     local.get 3   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L3 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
-      array.get 11   ; string[]
+      array.get 12   ; string[]
       ref.cast 2   ; string
       call.import 0   ; std_core$byte_len
       local.set 5   ; $call_23
       local.get 1   ; n
       local.get 5   ; $call_23
-      usize.checked_add
+      i64.checked_add
       local.set 1   ; n
       local.get 4   ; __for_i_2
       i64.const 1
@@ -1133,6 +1135,7 @@ fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
     end $L3
   end $L2
   local.get 1   ; n
+  i64.to_i64
   buffer.new
   local.set 2   ; __for_arr_0
   i64.const 0
@@ -1146,11 +1149,11 @@ fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   loop $L4 void
     local.get 5   ; $call_23
     local.get 4   ; __for_i_2
-    u64.lt
+    i64.lt
     if $L5 void
       local.get 6   ; __for_arr_3
       local.get 5   ; $call_23
-      array.get 11   ; string[]
+      array.get 12   ; string[]
       ref.cast 2   ; string
       local.set 7   ; p
       local.get 2   ; __for_arr_0
@@ -1159,10 +1162,10 @@ fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
       buffer_write_string
       local.get 7   ; p
       call.import 0   ; std_core$byte_len
-      local.set 8   ; $call_40
+      local.set 8   ; $call_41
       local.get 3   ; __for_len_1
-      local.get 8   ; $call_40
-      usize.checked_add
+      local.get 8   ; $call_41
+      i64.checked_add
       local.set 3   ; __for_len_1
       local.get 5   ; $call_23
       i64.const 1

@@ -26,7 +26,7 @@ emit_let_binding_leaves :: fn(
     rest_index :: rest_leaf_index(binding)
     if rest_index >= 0 {
         if resolved is ArrayType {
-            emit_array_destructure(ctx, binding, usize(rest_index), target, resolved, span, out)
+            emit_array_destructure(ctx, binding, rest_index, target, resolved, span, out)
             return
         }
     }
@@ -70,7 +70,7 @@ emit_let_binding_leaves :: fn(
 // names when the `into` of that arity has a body that is a tuple literal of plain
 // `self.<field>` reads — the zero-alloc inline case — and null otherwise. Mirror of
 // the typer's `into_tuple_target`, which picks the first `Into` of that arity too.
-into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: usize) -> string[] | null {
+into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type, arity: i64) -> string[] | null {
     for entry in ctx.project.impls.impls_for(target_type, core_trait_key(TRAIT_INTO)) {
         for m in entry.decl.members {
             if m.name != METHOD_INTO { continue }
@@ -114,7 +114,7 @@ self_field_name :: fn(e: Expr) -> string {
 // Index of the first `...rest` leaf in `binding`, or -1 when none.
 rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
     for i in 0..<binding.elements.len() {
-        if binding.elements[i] is RestBinding { return i64(i) }
+        if binding.elements[i] is RestBinding { return i }
     }
     return -1
 }
@@ -123,7 +123,7 @@ rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
 // rest read by index, the rest leaf binds a fresh array filled by a
 // loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`.
 emit_array_destructure :: fn(
-    ctx: FnLowerCtx, binding: TupleBinding, rest_index: usize,
+    ctx: FnLowerCtx, binding: TupleBinding, rest_index: i64,
     target: LoweredExpr, arr: ArrayType, span: Span, out: LoweredStmt[],
 ) -> void {
     elem_type :: ctx.types.apply(arr.element)
@@ -132,7 +132,7 @@ emit_array_destructure :: fn(
         if !(leaf is WildcardBinding) {
             access :: LoweredIndex {
                 .span = span, .type = elem_type, .target = target,
-                .index = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(i) },
+                .index = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = i },
             }
             emit_let_leaf_array(ctx, leaf, access, elem_type, span, out)
         }
@@ -149,7 +149,7 @@ emit_array_destructure :: fn(
 // Emit the rest leaf's fresh-array + index-loop-push for an array
 // destructure.
 emit_rest_loop :: fn(
-    ctx: FnLowerCtx, rest: RestBinding, rest_index: usize,
+    ctx: FnLowerCtx, rest: RestBinding, rest_index: i64,
     target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[],
 ) -> void {
     // The resolver indexes a rest binding's Symbol by `span` (not
@@ -171,15 +171,15 @@ emit_rest_loop :: fn(
 /// @param target      the source array.
 /// @param elem_type   the source's element type.
 emit_tail_copy :: fn(
-    ctx: FnLowerCtx, dest: LoweredExpr, rest_index: usize,
+    ctx: FnLowerCtx, dest: LoweredExpr, rest_index: i64,
     target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[],
 ) -> void {
     idx_sym :: fresh_synthetic_symbol(ctx, "i")
     out.push(LoweredLet {
-        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = mk_primitive("usize"),
-        .value = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(rest_index) },
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = mk_primitive("i64"),
+        .value = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = rest_index },
     })
-    idx_ref :: LoweredIdent { .span = span, .type = mk_primitive("usize"), .symbol = idx_sym }
+    idx_ref :: LoweredIdent { .span = span, .type = mk_primitive("i64"), .symbol = idx_sym }
     push_stmt :: LoweredExprStmt {
         .span = span,
         .expr = LoweredArrayPush {
@@ -190,9 +190,9 @@ emit_tail_copy :: fn(
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
-            .span = span, .type = mk_primitive("usize"), .op = .Add,
+            .span = span, .type = mk_primitive("i64"), .op = .Add,
             .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
+            .right = LoweredIntLit { .span = span, .type = mk_primitive("i64"), .value = 1 },
         },
     }
     loop_stmts: LoweredStmt[]: []
@@ -206,7 +206,7 @@ emit_tail_copy :: fn(
         .cond = LoweredBinary {
             .span = span, .type = TY_BOOL, .op = .Lt,
             .left = idx_ref,
-            .right = LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = target },
+            .right = LoweredArrayLen { .span = span, .type = mk_primitive("i64"), .target = target },
         },
         .body = loop_body,
         .step = [],
@@ -250,7 +250,7 @@ emit_let_leaf_array :: fn(
 
 emit_let_leaf :: fn(
     ctx: FnLowerCtx, leaf: LetBinding, target: LoweredExpr,
-    target_type: Type, index: usize, span: Span, out: LoweredStmt[],
+    target_type: Type, index: i64, span: Span, out: LoweredStmt[],
     field_names: string[] | null,
 ) -> void {
     match leaf {
@@ -293,7 +293,7 @@ simple_placeholder :: fn(nested: TupleBinding) -> SimpleBinding {
 }
 
 tuple_or_array_element_type :: fn(
-    target_type: Type, index: usize, ctx: FnLowerCtx, binding: SimpleBinding,
+    target_type: Type, index: i64, ctx: FnLowerCtx, binding: SimpleBinding,
 ) -> Type {
     // Prefer the typer's per-binding type (already substituted) when
     // available — most accurate for the user's slot.
@@ -332,14 +332,14 @@ destructure_backing :: fn(t: Type) -> Type {
 }
 
 build_leaf_access :: fn(
-    target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
+    target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: i64,
     field_names: string[] | null,
 ) -> LoweredExpr {
     if target_type is ArrayType {
         return LoweredIndex {
             .span = span, .type = elem_type, .target = target,
             .index = LoweredIntLit {
-                .span = span, .type = mk_primitive("usize"), .value = i64(index),
+                .span = span, .type = mk_primitive("i64"), .value = index,
             },
         }
     }
@@ -351,7 +351,7 @@ build_leaf_access :: fn(
 
 // The field a leaf reads : the `Into<[...]>` impl's `field_names[index]` when
 // present, else the positional tuple field `_<index>`.
-leaf_field_name :: fn(field_names: string[] | null, index: usize) -> string {
+leaf_field_name :: fn(field_names: string[] | null, index: i64) -> string {
     if field_names == null { return "_${index}" }
     if index >= field_names.len() { return "_${index}" }
     return field_names[index]

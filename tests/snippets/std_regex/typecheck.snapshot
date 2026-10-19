@@ -32,9 +32,9 @@
   expr 17:8     IdentExpr      :: Match | null
   expr 18:17    StringLitExpr  :: string
   expr 18:20    IdentExpr      :: string
-  expr 18:29    FieldExpr      :: usize
+  expr 18:29    FieldExpr      :: i64
   expr 18:29    IdentExpr      :: Match
-  expr 18:41    FieldExpr      :: usize
+  expr 18:41    FieldExpr      :: i64
   expr 18:41    IdentExpr      :: Match
   expr 18:50    FieldExpr      :: string[]
   expr 18:50    IdentExpr      :: Match
@@ -96,30 +96,27 @@
   expr 43:16    IdentExpr      :: Pattern
   expr 43:32    StringLitExpr  :: string
   expr 44:17    StringLitExpr  :: string
-  expr 44:31    CallExpr       :: usize
-  expr 44:31    FieldExpr      :: fn() -> usize
+  expr 44:31    CallExpr       :: i64
+  expr 44:31    FieldExpr      :: fn() -> i64
   expr 44:31    IdentExpr      :: Match[]
   expr 44:9     CallExpr       :: void
   expr 44:9     IdentExpr      :: fn(T) -> void
   expr 46:13    BinaryExpr     :: bool
-  expr 46:13    IdentExpr      :: usize
-  expr 46:17    CallExpr       :: usize
-  expr 46:17    FieldExpr      :: fn() -> usize
+  expr 46:13    IdentExpr      :: i64
+  expr 46:17    CallExpr       :: i64
+  expr 46:17    FieldExpr      :: fn() -> i64
   expr 46:17    IdentExpr      :: Match[]
   expr 47:13    CallExpr       :: void
   expr 47:13    IdentExpr      :: fn(T) -> void
   expr 47:21    StringLitExpr  :: string
-  expr 47:29    IdentExpr      :: usize
+  expr 47:29    IdentExpr      :: i64
   expr 47:35    FieldExpr      :: string[]
   expr 47:35    IdentExpr      :: Match[]
   expr 47:35    IndexExpr      :: Match
   expr 47:35    IndexExpr      :: string
-  expr 47:39    IdentExpr      :: usize
-  expr 48:13    IdentExpr      :: usize
-  expr 48:17    BinaryExpr     :: usize
-  expr 48:17    IdentExpr      :: usize
-  expr 48:21    CallExpr       :: usize
-  expr 48:21    IdentExpr      :: type
+  expr 47:39    IdentExpr      :: i64
+  expr 48:13    BinaryExpr     :: i64
+  expr 48:13    IdentExpr      :: i64
   expr 53:17    CallExpr       :: Pattern | RegexError
   expr 53:17    IdentExpr      :: fn(string) -> Pattern | RegexError
   expr 53:25    StringLitExpr  :: string

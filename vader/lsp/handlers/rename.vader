@@ -168,7 +168,7 @@ test_sources :: fn(path: string, content: string) -> MutableMap<string, string> 
     return m
 }
 
-mk_site :: fn(file: string, off: usize, len: usize, key: i64) -> RefSite {
+mk_site :: fn(file: string, off: i64, len: i64, key: i64) -> RefSite {
     return RefSite {
         .span = Span {
             .start = Position { .file = file, .offset = off, .line = 1, .column = i32(off) + 1 },

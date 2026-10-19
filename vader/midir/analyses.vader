@@ -236,7 +236,7 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
 ///
 /// @param rpo  a function's blocks in reverse postorder.
 /// @param n    the function's block count.
-export rpo_positions :: fn(rpo: BlockId[], n: usize) -> i32[] {
+export rpo_positions :: fn(rpo: BlockId[], n: i64) -> i32[] {
     positions: i32[]: [-1] * n
     for i in 0..<rpo.len() {
         positions[i32(rpo[i])] = i32(i)

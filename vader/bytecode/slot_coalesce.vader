@@ -34,10 +34,10 @@ export remap_push_cache_slot :: fn(op: Op, remap: i32[]) -> Op {
     if !(op is ArrayPush) {
         return op
     }
-    if op.cache_slot < 0 || usize(op.cache_slot) >= remap.len() {
+    if op.cache_slot < 0 || i64(op.cache_slot) >= remap.len() {
         return op
     }
-    return ArrayPush { .type_id = op.type_id, .cache_slot = remap[usize(op.cache_slot)] }
+    return ArrayPush { .type_id = op.type_id, .cache_slot = remap[op.cache_slot] }
 }
 
 /// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
@@ -86,7 +86,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     for i in 0..<body_len {
         slot :: slot_touched(body[i])
         if slot >= 0 {
-            us :: usize(slot)
+            us :: i64(slot)
             if !has_range[us] {
                 ranges[us] = SlotRange { .first = i32(i), .last = i32(i) }
                 has_range[us] = true
@@ -159,10 +159,10 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
             phys_ranges.push(range)
             new_locals.push(function.locals[src - param_count])
         } else {
-            cur :: phys_ranges[usize(chosen)]
+            cur :: phys_ranges[chosen]
             new_first :: if range.first < cur.first { range.first } else { cur.first }
             new_last  :: if range.last  > cur.last  { range.last  } else { cur.last  }
-            phys_ranges[usize(chosen)] = SlotRange { .first = new_first, .last = new_last }
+            phys_ranges[chosen] = SlotRange { .first = new_first, .last = new_last }
         }
         remap[src] = chosen
         src = src + 1
@@ -182,7 +182,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
         op :: body[j]
         slot :: slot_touched(op)
         if slot >= 0 {
-            ns :: remap[usize(slot)]
+            ns :: remap[slot]
             if ns >= 0 {
                 new_body.push(with_remapped_slot(op, ns))
             } else {
@@ -207,7 +207,7 @@ ranges_overlap :: fn(a: SlotRange, b: SlotRange) -> bool {
 }
 
 extend_into_loops :: fn(
-    ranges: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
+    ranges: SlotRange[], has_range: bool[], total_slots: i64, loops: SlotRange[],
 ) -> bool {
     changed := false
     for s in 0..<total_slots {
@@ -232,7 +232,7 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
     out: SlotRange[]: []
     kinds: string[]: []
     starts: i32[]: []
-    sp: usize = 0
+    sp: i64 = 0
     n :: body.len()
     for pc in 0..<n {
         op :: body[pc]
@@ -251,7 +251,7 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
     return out
 }
 
-push_scope :: fn(kinds: string[], starts: i32[], sp: usize, kind: string, start_pc: i32) -> void {
+push_scope :: fn(kinds: string[], starts: i32[], sp: i64, kind: string, start_pc: i32) -> void {
     if sp == kinds.len() {
         kinds.push(kind)
         starts.push(start_pc)
@@ -283,7 +283,7 @@ push_scope :: fn(kinds: string[], starts: i32[], sp: usize, kind: string, start_
 // branch target : a jump landing on it arrives with a foreign stack top, where
 // the store is a real write, not a self-copy. (`is … as` can't sit inside `&&`
 // (R2029), so the get / store tests nest.)
-foldable_self_copy :: fn(body: Op[], i: usize, n: usize, is_jump_target: bool[]) -> bool {
+foldable_self_copy :: fn(body: Op[], i: i64, n: i64, is_jump_target: bool[]) -> bool {
     if i + 1 >= n { return false }
     if is_jump_target[i + 1] { return false }
     if body[i] is LocalGet as g {
@@ -303,7 +303,7 @@ export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
     // move's endpoints, so most functions have none. Scan first ; with nothing to
     // fold, return the original body / tables by reference — no rebuild, no remap.
     any_fold := false
-    scan: usize = 0
+    scan: i64 = 0
     for scan < n {
         if foldable_self_copy(body, scan, n, is_jump_target) { any_fold = true  break }
         scan += 1
@@ -314,7 +314,7 @@ export strip_self_copies :: fn(function: BcFunction) -> BcPeepholeOut {
 
     out: Op[]: []
     old_to_new: i32[]: [-1] * n
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         op :: body[i]
         if foldable_self_copy(body, i, n, is_jump_target) {

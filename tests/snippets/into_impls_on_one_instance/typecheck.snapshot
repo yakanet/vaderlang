@@ -20,15 +20,15 @@
   expr 30:48    IdentExpr      :: Wrapper<Mon>
   expr 34:33    StructLitExpr  :: Label
   expr 34:46    StringLitExpr  :: string
-  expr 34:51    CallExpr       :: usize
-  expr 34:51    FieldExpr      :: fn() -> usize
+  expr 34:51    CallExpr       :: i64
+  expr 34:51    FieldExpr      :: fn() -> i64
   expr 34:51    IdentExpr      :: Mon[]
   expr 38:31    StructLitExpr  :: Tag
   expr 38:42    BinaryExpr     :: i32
   expr 38:48    CallExpr       :: i32
   expr 38:48    IdentExpr      :: type
-  expr 38:52    CallExpr       :: usize
-  expr 38:52    FieldExpr      :: fn() -> usize
+  expr 38:52    CallExpr       :: i64
+  expr 38:52    FieldExpr      :: fn() -> i64
   expr 38:52    IdentExpr      :: Mon[]
   expr 41:34    FieldExpr      :: string
   expr 41:34    IdentExpr      :: Label

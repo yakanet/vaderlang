@@ -182,7 +182,7 @@
           "typeArgs": [
             {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             }
           ]
         },
@@ -218,7 +218,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",
@@ -234,7 +234,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",

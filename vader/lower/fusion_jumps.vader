@@ -30,7 +30,7 @@ import "std/abort"
 /// into its producer's code, or copied by an unrolled `@comptime for`.
 JumpFrame :: struct {
     /// The loop's `ForStmt.id`, in the module the body is lowered from.
-    loop_id:        usize
+    loop_id:        i64
     /// True when a bare `break` of the loop lands right as written.
     breaks_land:    bool
     /// True when a bare `continue` of the loop lands right as written.
@@ -47,7 +47,7 @@ JumpFrame :: struct {
 ///
 /// @param loop_id  the consuming loop's `ForStmt.id`.
 /// @param chain    the chain the loop consumes.
-chain_jump_frame :: fn(loop_id: usize, chain: IterChain) -> JumpFrame {
+chain_jump_frame :: fn(loop_id: i64, chain: IterChain) -> JumpFrame {
     landing :: chain_landing(chain)
     return JumpFrame {
         .loop_id = loop_id, .breaks_land = landing.breaks, .continue_lands = landing.continues,
@@ -91,7 +91,7 @@ exit_block :: fn(frame: JumpFrame, span: Span, stmts: LoweredStmt[]) -> LoweredS
 /// @param written  the label the jump names, null when it names none.
 /// @param span     the jump's span.
 spliced_jump :: fn(
-    ctx: FnLowerCtx, jump_id: usize, written: string | null, is_break: bool, span: Span,
+    ctx: FnLowerCtx, jump_id: i64, written: string | null, is_break: bool, span: Span,
 ) -> LoweredStmt | null {
     target :: ctx.typed.jump_targets[jump_id] ?? return null
     frame :: frame_of(ctx, target) ?? return null
@@ -103,7 +103,7 @@ spliced_jump :: fn(
     return LoweredBreak { .span = span, .label = label }
 }
 
-frame_of :: fn(ctx: FnLowerCtx, loop_id: usize) -> JumpFrame | null {
+frame_of :: fn(ctx: FnLowerCtx, loop_id: i64) -> JumpFrame | null {
     i := ctx.jump_frames.len()
     for i > 0 {
         i -= 1

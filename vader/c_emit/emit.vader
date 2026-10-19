@@ -177,7 +177,7 @@ module_function_storage :: fn(ctx: EmitCtx, index: i32) -> CStorage {
     if !ctx.split {
         return .Internal
     }
-    if usize(index) < ctx.internal_fns.len() && ctx.internal_fns[usize(index)] {
+    if i64(index) in 0..<ctx.internal_fns.len() && ctx.internal_fns[index] {
         return .Internal
     }
     return .External
@@ -419,7 +419,7 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     entries: CExpression[]: []
     offset: i64 = 0
     for s in ctx.atom_table {
-        byte_len :: i64(s.byte_len())
+        byte_len :: s.byte_len()
         literals.push("${c_string_lit(s)} \"\\0\"")
         blob_byte :: CIndex { .base = verbatim("vader_atom_blob"), .index = number(offset) }
         entries.push(initializer_list([
@@ -462,7 +462,7 @@ emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// @param ctx  the emit context.
 atom_count_define :: fn(ctx: EmitCtx) -> CTopLevel = CDefine {
     .name = "VADER_COMPTIME_ATOM_COUNT",
-    .value = unsigned(i64(ctx.atom_table.len())),
+    .value = unsigned(ctx.atom_table.len()),
 }
 
 /// Storage of a global defined by the emitter : private to its single unit,
@@ -495,10 +495,10 @@ external :: fn(
 /// @param s           the struct decl to render.
 /// @param type_index  index of `s` in `ctx.module.types` ; used to look
 ///                    up the cached C identifier in `struct_c_names`.
-struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> CStructDefinition {
+struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> CStructDefinition {
     fields: CField[]: [CField { .type = "vader_obj_header_t", .name = "header" }]
     for f in s.fields {
-        ftype :: ctx.module.types[usize(f.type_index)]
+        ftype :: ctx.module.types[f.type_index]
         fields.push(CField { .type = c_type_for(ftype), .name = field_c_name(f.name) })
     }
     return CStructDefinition { .name = ctx.struct_c_names[type_index], .fields = fields }
@@ -574,7 +574,7 @@ push_pool_array :: fn(
     kind: ArrayKind,
     slots: CExpression[],
 ) -> void {
-    n :: i64(slots.len())
+    n :: slots.len()
     buffer :: "${array.name}_buf"
     items.push(CGlobal {
         .storage = array.storage,
@@ -634,8 +634,8 @@ emit_global_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     atoms :: global_slot_addresses(ctx.module, .String)
     fields: CExpression[]: [
         NULL_POINTER,
-        unsigned(i64(boxes.len())),
-        unsigned(i64(raws.len())),
+        unsigned(boxes.len()),
+        unsigned(raws.len()),
         root_list(items, "vader_box_t*", "vader_global_box_roots", boxes),
         root_list(items, "void**", "vader_global_raw_roots", raws),
         ZERO,
@@ -643,7 +643,7 @@ emit_global_roots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
     ]
     if atoms.len() > 0 {
         atom_roots :: root_list(items, "vader_string_t*", "vader_global_atom_roots", atoms)
-        fields.push_all([unsigned(i64(atoms.len())), atom_roots])
+        fields.push_all([unsigned(atoms.len()), atom_roots])
     }
     // `main` installs the frame, and under `--split` `main` lives in a different
     // unit from the globals, so `static` here would leave it undeclared there.
@@ -672,7 +672,7 @@ emit_global_slots :: fn(ctx: EmitCtx, items: CTopLevel[]) -> void {
 
 // The value class of global slot `index` of `module`.
 global_slot_val :: fn(module: BytecodeModule, index: i32) -> ValType =
-    val_type_of_field(module.types, module.globals[usize(index)].type_id)
+    val_type_of_field(module.types, module.globals[index].type_id)
 
 // The zero a global of class `val` starts at.
 zero_of :: fn(val: ValType) -> CExpression {
@@ -756,9 +756,9 @@ emit_data_value :: fn(
     if v is BcValStr { return unsigned(i64(atom_for(atom_of, v.value))) }
     if v is BcValStruct {
         type_id :: type_id_for_struct_symbol(ctx.module.types, v.symbol_id)
-        type :: "struct ${ctx.struct_c_names[usize(type_id)]}"
+        type :: "struct ${ctx.struct_c_names[type_id]}"
         members: CExpression[]: [object_header(unsigned(i64(type_id)))]
-        if ctx.module.types[usize(type_id)] is BcStruct as bcs {
+        if ctx.module.types[type_id] is BcStruct as bcs {
             for k in 0..<v.fields.len() {
                 field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
                 members.push(
@@ -836,7 +836,7 @@ struct_field_init :: fn(
     // T12: an erased field (union / open ref) is a tagged `vader_box_t` slot,
     // boxed with the value's own type ; a concrete-ref field (struct/array/fn) is
     // a raw `void*`.
-    field_val :: val_type_of_bc_type(ctx.module.types[usize(field_tid)])
+    field_val :: val_type_of_bc_type(ctx.module.types[field_tid])
     if field_val == .Any {
         return box_slot(ctx, items, v, name, field_tid, atom_of)
     }
@@ -1064,7 +1064,7 @@ emit_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// @param ctx    the emit context, for the storage.
 /// @param index  index into `module.functions`.
 signature_for :: fn(ctx: EmitCtx, index: i32) -> CSignature {
-    function :: ctx.module.functions[usize(index)]
+    function :: ctx.module.functions[index]
     parameters :: value_parameters(function.signature.params, "l")
     // A multi-value return has no C spelling, so it becomes out-params appended
     // after the declared ones and the function itself returns void. Measured as
@@ -1098,7 +1098,7 @@ signature_for :: fn(ctx: EmitCtx, index: i32) -> CSignature {
 /// One place, because the callee's `return` writes through it and every call
 /// site takes its address — a mismatch between the two is a C compile error at
 /// best and the wrong slot at worst.
-export out_param_name :: fn(i: usize) -> string = "__o${i}"
+export out_param_name :: fn(i: i64) -> string = "__o${i}"
 
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
 /// typedef. The canonical erased family is always emitted at least for
@@ -1119,8 +1119,8 @@ emit_fn_sig_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 
 /// Highest arity across every `BcFn` type in the module. Returns `0`
 /// for an empty type table so the 0-arity typedef is always emitted.
-max_fn_arity :: fn(types: BcType[]) -> usize {
-    best: usize = 0
+max_fn_arity :: fn(types: BcType[]) -> i64 {
+    best: i64 = 0
     for t in types {
         if t is BcFn && t.params.len() > best {
             best = t.params.len()
@@ -1135,7 +1135,7 @@ max_fn_arity :: fn(types: BcType[]) -> usize {
 /// match their definitions.
 ///
 /// @param count  the boxed slots after `env`.
-erased_parameters :: fn(count: usize) -> CParameter[] = boxed_parameters(
+erased_parameters :: fn(count: i64) -> CParameter[] = boxed_parameters(
     CParameter { .type = "void*", .name = "env" },
     count,
 )
@@ -1144,7 +1144,7 @@ erased_parameters :: fn(count: usize) -> CParameter[] = boxed_parameters(
 ///
 /// @param first  the leading parameter.
 /// @param count  the boxed slots after it.
-boxed_parameters :: fn(first: CParameter, count: usize) -> CParameter[] {
+boxed_parameters :: fn(first: CParameter, count: i64) -> CParameter[] {
     parameters: CParameter[]: [first]
     for j in 0..<count {
         parameters.push(CParameter { .type = "vader_box_t", .name = "a${j}" })
@@ -1253,7 +1253,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     table_count :: CGlobal {
         .constant = true,
         .type = "size_t",
-        .declarator = CDeclarator { .name = "vader_type_info_count", .value = number(i64(count)) },
+        .declarator = CDeclarator { .name = "vader_type_info_count", .value = number(count) },
     }
     printer.print_section(CSection { .items = [table, table_count] })
 }
@@ -1274,7 +1274,7 @@ single_offset_list :: fn(name: string, offset: string) -> CTopLevel = CGlobal {
 // The row of a type whose objects hold exactly one reference, at the offset
 // the shared list `offsets` names.
 single_reference_row :: fn(
-    index: usize,
+    index: i64,
     kind: string,
     type: string,
     slot_size: i32,
@@ -1291,7 +1291,7 @@ single_reference_row :: fn(
 )
 
 // `[index] = { members… }` — one row of the type-info table.
-info_row :: fn(index: usize, members: CExpression[]) -> CExpression = designated(
+info_row :: fn(index: i64, members: CExpression[]) -> CExpression = designated(
     "[${index}]",
     initializer_list(members),
 )
@@ -1323,12 +1323,12 @@ empty_struct_offsets :: fn() -> StructOffsets {
 /// reader scans it, so it MUST match the field's emitted C type — see the T12
 /// note in the body, and `val_type_of_bc_type`, the shared predicate that keeps
 /// the two from drifting.
-classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> StructOffsets {
+classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> StructOffsets {
     cname :: ctx.struct_c_names[type_index]
     offsets :: empty_struct_offsets()
     for i in 0..<s.fields.len() {
         f :: s.fields[i]
-        ftype :: ctx.module.types[usize(f.type_index)]
+        ftype :: ctx.module.types[f.type_index]
         offset :: "offsetof(${cname}, ${field_c_name(f.name)})"
         // T12: the offset bucket MUST match the field's C type so the GC scans it
         // with the right reader — a raw `void*` (`.Ref`) via `ref_offsets` →
@@ -1357,7 +1357,7 @@ struct_info_row :: fn(
     ctx: EmitCtx,
     s: BcStruct,
     offs: StructOffsets,
-    type_index: usize,
+    type_index: i64,
 ) -> CExpression {
     // Fields are named, so the row does not depend on `vader_type_info_t`'s
     // field order — the committed seed is compiled against the header of the
@@ -1388,7 +1388,7 @@ push_offset_list :: fn(members: CExpression[], prefix: string, offsets: string[]
             CCompoundLiteral { .type = "const uint16_t[]", .elements = elements },
         ),
     )
-    members.push(designated(".${prefix}_count", number(i64(offsets.len()))))
+    members.push(designated(".${prefix}_count", number(offsets.len())))
 }
 
 // `emit_import_shims` lives in `host.vader` (same module) — the
@@ -1428,7 +1428,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
         return unused_arguments
     }
 
-    function :: ctx.module.functions[usize(main_index)]
+    function :: ctx.module.functions[main_index]
     takes_argv :: function.signature.params.len() == 1
     // Atom table init must precede any string interning. `atexit`
     // handlers fire LIFO, so atom shutdown runs after gc shutdown.

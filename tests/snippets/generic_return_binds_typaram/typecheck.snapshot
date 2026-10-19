@@ -20,8 +20,8 @@
   expr 23:5     FieldExpr      :: fn(string) -> void
   expr 23:5     IdentExpr      :: string[]
   expr 25:13    StringLitExpr  :: string
-  expr 25:23    CallExpr       :: usize
-  expr 25:23    FieldExpr      :: fn() -> usize
+  expr 25:23    CallExpr       :: i64
+  expr 25:23    FieldExpr      :: fn() -> i64
   expr 25:23    IdentExpr      :: i32[]
   expr 25:40    IdentExpr      :: i32[]
   expr 25:40    IndexExpr      :: i32
@@ -30,8 +30,8 @@
   expr 25:54    IdentExpr      :: i32[]
   expr 25:54    IndexExpr      :: i32
   expr 26:13    StringLitExpr  :: string
-  expr 26:23    CallExpr       :: usize
-  expr 26:23    FieldExpr      :: fn() -> usize
+  expr 26:23    CallExpr       :: i64
+  expr 26:23    FieldExpr      :: fn() -> i64
   expr 26:23    IdentExpr      :: string[]
   expr 26:38    IdentExpr      :: string[]
   expr 26:38    IndexExpr      :: string

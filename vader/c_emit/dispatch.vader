@@ -49,7 +49,7 @@ find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
 /// with `result = .Any` so divergent monomorphised impls can box-and-return
 /// uniformly. Callers guarantee `row.entries` is non-empty.
 vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
-    first :: ctx.module.functions[usize(row.entries[0].fn_index)]
+    first :: ctx.module.functions[row.entries[0].fn_index]
     first_sig :: first.signature
     // Bound once each: loop-invariant, and re-asking is a call where reading a
     // field used to be free.
@@ -57,7 +57,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     first_result_type :: bc_single_result_type(first_sig)
     uniform := true
     for e in row.entries {
-        f :: ctx.module.functions[usize(e.fn_index)]
+        f :: ctx.module.functions[e.fn_index]
         if bc_single_result(f.signature) != first_result
             || bc_single_result_type(f.signature) != first_result_type {
             uniform = false
@@ -129,12 +129,12 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
                 continue
             }
             seen_tags.push(e.receiver_type_index)
-            callee :: ctx.module.functions[usize(e.fn_index)]
+            callee :: ctx.module.functions[e.fn_index]
             csig :: callee.signature
             args: CExpression[]: [coerce_expr(types, verbatim("recv"), .Any, csig.params[0])]
             tail :: i32(csig.params.len()) - 1
             for i in 0..<tail {
-                args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[usize(i + 1)]))
+                args.push(coerce_expr(types, verbatim("a${i}"), .Any, csig.params[i + 1]))
             }
             forward :: call(sanitise(callee.name), args)
             body: CCaseStatement[]: if bc_single_result(sig) == .Void {

@@ -37,7 +37,7 @@
 
 module "std/collections"
 
-MINIMAL_INDEX_COUNT :: usize(16)
+MINIMAL_INDEX_COUNT: i64: 16
 
 EMPTY_SLOT :: i32(0)    // index slot holds no entry
 TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
@@ -61,28 +61,28 @@ export MutableMap :: struct<K: Hash & Equals, V> {
     index: i32[] = []
     /// `index.len() - 1` — bitmask for the power-of-two slot count.
     @internal
-    mask:  usize = 0
+    mask:  i64 = 0
     /// Live entry count.
     @internal
-    size:  usize = 0
+    size:  i64 = 0
     /// Tombstone count in `index`. Counted toward the load factor so a
     /// remove-heavy map rehashes (clearing tombstones) before the open-addressed
     /// probe runs out of `EMPTY` slots and loops forever.
     @internal
-    tombs: usize = 0
+    tombs: i64 = 0
 }
 
 // Method signatures below declare just `[K, V]` (no bound repetition) — the
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
 // the typecheck `inherit-bounds` pass when the first param is `MutableMap<K, V>`.
 
-first_slot :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
+first_slot :: fn(h: u64, mask: i64) -> i64 = i64(h) & mask
 
 // The probe step after a collision. `perturb` starts as the full hash and loses five
 // bits before each step, which brings the high bits into play; once it reaches 0,
 // `5 * s + 1` visits every slot of a power-of-two table. Every walk of the index
 // takes exactly this sequence, or a key stops being found.
-next_slot :: fn(s: usize, perturb: u64, mask: usize) -> usize = (s *% 5 +% usize(perturb) +% 1) & mask
+next_slot :: fn(s: i64, perturb: u64, mask: i64) -> i64 = (s *% 5 +% i64(perturb) +% 1) & mask
 
 // Lazy-initialise the index on first insert. No-op once allocated, so cheap to
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
@@ -98,7 +98,7 @@ ensure_index :: fn<K, V>(self: MutableMap<K, V>) -> void {
 // Rebuild the index at `new_count` slots from the dense entries — re-probing
 // each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
 // touched (entries don't move), so growth allocates no entries.
-rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: usize) -> void {
+rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> void {
     fresh: i32[]: []
     for 0..<new_count { fresh.push(EMPTY_SLOT) }
     new_mask :: new_count - 1
@@ -149,15 +149,15 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void
     first_tomb: i64 = -1
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] == TOMB_SLOT {
-            if first_tomb < 0 { first_tomb = i64(s) }
+            if first_tomb < 0 { first_tomb = s }
         } else {
-            ei :: usize(self.index[s]) - 1
+            ei :: i64(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { self.evals[ei] = value  return }
         }
         perturb = perturb >> 5
         s = next_slot(s, perturb, self.mask)
     }
-    target :: if first_tomb >= 0 { usize(first_tomb) } else { s }
+    target :: if first_tomb >= 0 { first_tomb } else { s }
     if first_tomb >= 0 { self.tombs = self.tombs - 1 }   // reused a tombstone slot
     self.write_entry(key, value)
     self.index[target] = i32(self.size + 1)
@@ -187,7 +187,7 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
     s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
-            ei :: usize(self.index[s]) - 1
+            ei :: i64(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { return self.evals[ei] }
         }
         perturb = perturb >> 5
@@ -206,7 +206,7 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
     s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
-            ei :: usize(self.index[s]) - 1
+            ei :: i64(self.index[s]) - 1
             if self.ekeys[ei].equals(key) { return true }
         }
         perturb = perturb >> 5
@@ -217,7 +217,7 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
 
 // Find the index slot whose stored value equals `want` (a 1-based entry pos),
 // probing from `key`'s hash. Used by `remove` to re-point a swapped entry.
-slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i32) -> usize {
+slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i32) -> i64 {
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
@@ -240,7 +240,7 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
     s := first_slot(perturb, self.mask)
     for self.index[s] != EMPTY_SLOT {
         if self.index[s] != TOMB_SLOT {
-            ei :: usize(self.index[s]) - 1
+            ei :: i64(self.index[s]) - 1
             if self.ekeys[ei].equals(key) {
                 last :: self.size - 1
                 if ei != last {
@@ -262,7 +262,7 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
-export len :: fn<K, V>(self: MutableMap<K, V>) -> usize { return self.size }
+export len :: fn<K, V>(self: MutableMap<K, V>) -> i64 { return self.size }
 
 /// True iff no entries have been inserted (or all were removed). O(1).
 export is_empty :: fn<K, V>(self: MutableMap<K, V>) -> bool { return self.size == 0 }
@@ -358,7 +358,7 @@ export remove :: fn<T: Hash & Equals>(self: MutableSet<T>, value: T) -> bool =
     self.inner.remove(value)
 
 /// Number of members in the set. O(1).
-export len :: fn<T>(self: MutableSet<T>) -> usize = self.inner.size
+export len :: fn<T>(self: MutableSet<T>) -> i64 = self.inner.size
 
 /// True iff no members have been added (or all were removed). O(1).
 export is_empty :: fn<T>(self: MutableSet<T>) -> bool = self.inner.size == 0
@@ -468,7 +468,7 @@ import "std/testing"
 
 @test test_map_iteration_order :: fn() -> void {
     m :: MutableMap<i32, i32> {}
-    for i in 0..<usize(50) { m[i32(i)] = i32(i) * 2 }
+    for i in 0..<50 { m[i] = i * 2 }
     seen := 0
     sum := 0
     for [k, v] in m {
@@ -482,13 +482,13 @@ import "std/testing"
 
 @test test_map_remove_then_reinsert :: fn() -> void {
     m :: MutableMap<i32, i32> {}
-    for i in 0..<usize(100) { m[i32(i)] = i32(i) }
-    for i in 0..<usize(100) { if i % 3 == 0 { m.remove(i32(i)) } }
-    for i in 0..<usize(100) { if i % 3 == 0 { m[i32(i)] = i32(i) * 7 } }
+    for i in 0..<100 { m[i] = i }
+    for i in 0..<100 { if i % 3 == 0 { m.remove(i) } }
+    for i in 0..<100 { if i % 3 == 0 { m[i] = i * 7 } }
     assert_eq(m.len(), 100)
-    for i in 0..<usize(100) {
-        expected :: if i % 3 == 0 { i32(i) * 7 } else { i32(i) }
-        match m.get(i32(i)) as v {
+    for i in 0..<100 {
+        expected :: if i % 3 == 0 { i * 7 } else { i }
+        match m.get(i) as v {
             is i32  -> assert_eq(v, expected)
             is null -> assert(false, "key should be present")
         }

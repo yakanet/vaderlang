@@ -22,8 +22,7 @@ module "std/iter"
 
 import "std/collections"
 
-/// True when `arr` carries no elements. Cheap one-liner — saves the
-/// `.len() == usize(0)` boilerplate that polluted call sites.
+/// True when `arr` carries no elements.
 ///
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
@@ -43,13 +42,13 @@ export is_empty :: fn<T>(it: Iterator<T>) -> bool {
 /// How many elements `arr` holds — its length, O(1).
 ///
 /// @param arr  source array.
-export count :: fn<T>(arr: T[]) -> usize = arr.len()
+export count :: fn<T>(arr: T[]) -> i64 = arr.len()
 
 /// Drain `it`, returning how many elements it yielded — O(n).
 ///
 /// @param it  source iterator.
-export count :: fn<T>(it: Iterator<T>) -> usize {
-    total: usize = 0
+export count :: fn<T>(it: Iterator<T>) -> i64 {
+    total: i64 = 0
     for _ in it {
         total += 1
     }
@@ -192,7 +191,7 @@ export zip :: fn<T, U>(self: T[], other: U[]) -> Iterator<[T, U]> {
 ///              while the window fits.
 /// @example
 ///   for w in [1, 2, 3, 4, 5].window(3) { println("${w}") }   // [1,2,3] [2,3,4] [3,4,5]
-export window :: fn<T>(self: T[], size: usize) -> Iterator<T[]> {
+export window :: fn<T>(self: T[], size: i64) -> Iterator<T[]> {
     n :: self.len()
     count :: if size > 0 && n >= size { n - size + 1 } else { 0 }
     for start in 0..<count {
@@ -215,9 +214,9 @@ export chain :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T> {
 /// so `for [x, i] in it.indexed() { … }` reads in the order it is yielded. A
 /// 0-arg combinator: fuses over the source with no intermediate array.
 /// @param self  source iterator (a raw array auto-coerces at the call site).
-/// @return      a lazy `Iterator<[T, usize]>` — `[self[0], 0]`, `[self[1], 1]`, …
-export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, usize]> {
-    i: usize = 0
+/// @return      a lazy `Iterator<[T, i64]>` — `[self[0], 0]`, `[self[1], 1]`, …
+export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, i64]> {
+    i: i64 = 0
     for x in self {
         yield [x, i]
         i += 1
@@ -225,7 +224,7 @@ export indexed :: fn<T>(self: Iterator<T>) -> Iterator<[T, usize]> {
 }
 
 /// The most elements `chunked` reserves up front for one chunk.
-CHUNK_RESERVE_CAP: usize: 1024
+CHUNK_RESERVE_CAP: i64: 1024
 
 /// Split `self` into consecutive runs of `size` elements ; the last run holds
 /// what remains and may be shorter. Mirrors Kotlin's `chunked(size)`.
@@ -239,7 +238,7 @@ CHUNK_RESERVE_CAP: usize: 1024
 ///              run, … , then the shorter remainder if any.
 /// @example
 ///   for c in [1, 2, 3, 4, 5].chunked(2) { println("${c}") }   // [1, 2] [3, 4] [5]
-export chunked :: fn<T>(self: Iterator<T>, size: usize) -> Iterator<T[]> {
+export chunked :: fn<T>(self: Iterator<T>, size: i64) -> Iterator<T[]> {
     if size == 0 {
         return
     }
@@ -396,11 +395,11 @@ export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> Iterator<U> {
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends —
 /// pulling exactly `n` items from `self`, none for `take(0)`.
-export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
+export take :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
     if n == 0 {
         return
     }
-    i: usize = 0
+    i: i64 = 0
     for x in self {
         yield x
         i += 1
@@ -412,8 +411,8 @@ export take :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
 
 /// Fluent lazy `skip`. Drops the first `n` items from `self`, then forwards
 /// every subsequent item.
-export skip :: fn<T>(self: Iterator<T>, n: usize) -> Iterator<T> {
-    i: usize = 0
+export skip :: fn<T>(self: Iterator<T>, n: i64) -> Iterator<T> {
+    i: i64 = 0
     for x in self {
         if i >= n { yield x }
         i += 1
@@ -526,7 +525,7 @@ import "std/testing"
 }
 
 @test test_indexed :: fn() -> void {
-    idxs: usize[]: []
+    idxs: i64[]: []
     vals: string[]: []
     for [s, i] in ["a", "b", "c"].indexed() {
         idxs.push(i)
@@ -645,7 +644,7 @@ import "std/testing"
 // `take(n)` pulls exactly `n` items from its source, fused where it is consumed
 // and lazy once bound to a local.
 
-take_pulls_fused :: fn(n: usize) -> i32 {
+take_pulls_fused :: fn(n: i64) -> i32 {
     pulls := 0
     counted :: (x: i32) -> {
         pulls += 1
@@ -656,7 +655,7 @@ take_pulls_fused :: fn(n: usize) -> i32 {
     return pulls
 }
 
-take_pulls_lazy :: fn(n: usize) -> i32 {
+take_pulls_lazy :: fn(n: i64) -> i32 {
     pulls := 0
     counted :: (x: i32) -> {
         pulls += 1

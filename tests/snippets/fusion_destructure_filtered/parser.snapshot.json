@@ -39,7 +39,7 @@
                 },
                 {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "i64"
                 }
               ]
             },

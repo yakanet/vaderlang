@@ -17,8 +17,8 @@
   expr 24:8     BinaryExpr     :: bool
   expr 24:8     BinaryExpr     :: bool
   expr 24:8     BinaryExpr     :: bool
-  expr 24:8     CallExpr       :: usize
-  expr 24:8     FieldExpr      :: fn() -> usize
+  expr 24:8     CallExpr       :: i64
+  expr 24:8     FieldExpr      :: fn() -> i64
   expr 24:8     IdentExpr      :: i32[]
   expr 26:13    BinaryExpr     :: i32[]
   expr 26:13    SeqLitExpr     :: i32[]
@@ -35,8 +35,8 @@
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     BinaryExpr     :: bool
-  expr 27:8     CallExpr       :: usize
-  expr 27:8     FieldExpr      :: fn() -> usize
+  expr 27:8     CallExpr       :: i64
+  expr 27:8     FieldExpr      :: fn() -> i64
   expr 27:8     IdentExpr      :: i32[]
   expr 30:11    BinaryExpr     :: i32[]
   expr 30:11    SeqLitExpr     :: i32[]
@@ -58,8 +58,8 @@
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     BinaryExpr     :: bool
   expr 31:8     BinaryExpr     :: bool
-  expr 31:8     CallExpr       :: usize
-  expr 31:8     FieldExpr      :: fn() -> usize
+  expr 31:8     CallExpr       :: i64
+  expr 31:8     FieldExpr      :: fn() -> i64
   expr 31:8     IdentExpr      :: i32[]
   expr 31:80    IdentExpr      :: i32
   expr 31:87    BinaryExpr     :: i32
@@ -71,8 +71,8 @@
   expr 35:32    IdentExpr      :: i32
   expr 35:5     IfExpr         :: void
   expr 35:8     BinaryExpr     :: bool
-  expr 35:8     CallExpr       :: usize
-  expr 35:8     FieldExpr      :: fn() -> usize
+  expr 35:8     CallExpr       :: i64
+  expr 35:8     FieldExpr      :: fn() -> i64
   expr 35:8     IdentExpr      :: i32[]
   expr 36:14    RangeExpr      :: Range<i32>
   expr 36:22    CallExpr       :: void
@@ -92,8 +92,8 @@
   expr 37:8     BinaryExpr     :: bool
   expr 37:8     BinaryExpr     :: bool
   expr 37:8     BinaryExpr     :: bool
-  expr 37:8     CallExpr       :: usize
-  expr 37:8     FieldExpr      :: fn() -> usize
+  expr 37:8     CallExpr       :: i64
+  expr 37:8     FieldExpr      :: fn() -> i64
   expr 37:8     IdentExpr      :: i32[]
   expr 40:10    SeqLitExpr     :: i32[]
   expr 41:14    SeqLitExpr     :: i32[]
@@ -118,8 +118,8 @@
   expr 43:8     BinaryExpr     :: bool
   expr 43:8     BinaryExpr     :: bool
   expr 43:8     BinaryExpr     :: bool
-  expr 43:8     CallExpr       :: usize
-  expr 43:8     FieldExpr      :: fn() -> usize
+  expr 43:8     CallExpr       :: i64
+  expr 43:8     FieldExpr      :: fn() -> i64
   expr 43:8     IdentExpr      :: i32[]
   expr 46:12    SeqLitExpr     :: i32[]
   expr 47:18    IdentExpr      :: i32[]
@@ -144,8 +144,8 @@
   expr 48:8     BinaryExpr     :: bool
   expr 48:8     BinaryExpr     :: bool
   expr 48:8     BinaryExpr     :: bool
-  expr 48:8     CallExpr       :: usize
-  expr 48:8     FieldExpr      :: fn() -> usize
+  expr 48:8     CallExpr       :: i64
+  expr 48:8     FieldExpr      :: fn() -> i64
   expr 48:8     IdentExpr      :: i32[]
   expr 48:85    IdentExpr      :: i32
   expr 48:92    BinaryExpr     :: i32
@@ -155,7 +155,7 @@
   expr 52:12    SeqLitExpr     :: i32[]
   expr 53:20    IdentExpr      :: i32[]
   expr 53:5     CallExpr       :: void
-  expr 53:5     FieldExpr      :: fn(usize, i32[], usize, usize) -> void
+  expr 53:5     FieldExpr      :: fn(i64, i32[], i64, i64) -> void
   expr 53:5     IdentExpr      :: i32[]
   expr 54:23    BinaryExpr     :: bool
   expr 54:23    IdentExpr      :: i32[]
@@ -183,7 +183,7 @@
   expr 57:11    SeqLitExpr     :: i32[]
   expr 58:19    IdentExpr      :: i32[]
   expr 58:5     CallExpr       :: void
-  expr 58:5     FieldExpr      :: fn(usize, i32[], usize, usize) -> void
+  expr 58:5     FieldExpr      :: fn(i64, i32[], i64, i64) -> void
   expr 58:5     IdentExpr      :: i32[]
   expr 59:22    BinaryExpr     :: bool
   expr 59:22    IdentExpr      :: i32[]
@@ -211,8 +211,8 @@
   expr 64:24    BinaryExpr     :: bool
   expr 64:24    IdentExpr      :: i32
   expr 64:39    BinaryExpr     :: bool
-  expr 64:39    CallExpr       :: usize
-  expr 64:39    FieldExpr      :: fn() -> usize
+  expr 64:39    CallExpr       :: i64
+  expr 64:39    FieldExpr      :: fn() -> i64
   expr 64:39    IdentExpr      :: i32[]
   expr 64:5     IfExpr         :: void
   expr 64:56    BinaryExpr     :: bool
@@ -252,7 +252,7 @@
   expr 75:5     IfExpr         :: void
   expr 75:8     BinaryExpr     :: bool
   expr 75:8     BinaryExpr     :: bool
-  expr 75:8     CallExpr       :: usize
-  expr 75:8     FieldExpr      :: fn() -> usize
+  expr 75:8     CallExpr       :: i64
+  expr 75:8     FieldExpr      :: fn() -> i64
   expr 75:8     IdentExpr      :: i32[]
   expr 77:12    IdentExpr      :: i32

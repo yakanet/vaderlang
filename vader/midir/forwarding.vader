@@ -76,7 +76,7 @@ goes_on_or_out :: fn(
     target: BlockId,
 ) -> bool {
     innermost := BlockId(-1)
-    size: usize = 0
+    size: i64 = 0
     for [header, body] in loops {
         if holds_all(body, sources) && (i32(innermost) < 0 || body.len() < size) {
             innermost = header

@@ -8,8 +8,8 @@
   FnDecl         total                :: fn(Bag) -> i32
   expr 15:12    CallExpr       :: i32
   expr 15:12    IdentExpr      :: type
-  expr 15:16    CallExpr       :: usize
-  expr 15:16    FieldExpr      :: fn() -> usize
+  expr 15:16    CallExpr       :: i64
+  expr 15:16    FieldExpr      :: fn() -> i64
   expr 15:16    IdentExpr      :: i32[]
   expr 20:5     IfExpr         :: void
   expr 20:8     BinaryExpr     :: bool

@@ -29,7 +29,7 @@ import "vader/typecheck"
 /// Where a value may come from: root `param`, reached by `path`. A root below the
 /// parameter count is a parameter ; one above, an extra root of the skeleton.
 Root :: struct {
-    param: usize
+    param: i64
     path: i32
 }
 
@@ -37,15 +37,15 @@ Root :: struct {
 /// has a copy root: `into` holds it instead of the seeded roots of `from`
 /// (`Skeleton.add_copy`).
 Flow :: struct {
-    into: usize
-    from: usize
+    into: i64
+    from: i64
     path: i32 = ROOT
-    copy: usize | null = null
+    copy: i64 | null = null
 }
 
 /// The function does `effect` at `path` below what `slot` holds, at `at`.
 Mark :: struct {
-    slot: usize
+    slot: i64
     path: i32
     effect: Effect
     at: Span
@@ -74,13 +74,13 @@ export AnyCallee :: struct {}
 /// that receives its result.
 Site :: struct {
     targets: CallTarget[]
-    args: (usize | null)[]
+    args: (i64 | null)[]
     /// A slot of its own, minted by `add_site`: no argument is it, so the roots of
     /// the arguments hold still while the call collects what its callees return.
-    result: usize
+    result: i64
     /// The number of the call's first argument among all those of the skeleton's
     /// calls (`Skeleton.arguments`).
-    first_argument: usize
+    first_argument: i64
     /// What the call names, for a diagnostic, and where it is.
     callee: Callee
     at: Span
@@ -89,48 +89,48 @@ Site :: struct {
 /// The constraints of one function's body.
 Skeleton :: struct {
     /// The function's parameters, which are its first slots.
-    params: usize
-    slots: usize
+    params: i64
+    slots: i64
     flows: Flow[] = []
     sites: Site[] = []
     marks: Mark[] = []
     /// How many roots the skeleton holds besides its parameters.
-    extra: usize = 0
+    extra: i64 = 0
     /// How many arguments its calls pass, all calls together.
-    arguments: usize = 0
+    arguments: i64 = 0
     /// Extra root → the slot it starts in. A binding copies these roots rather than
     /// aliasing them ; a copy root starts in no slot. Null until a root is seeded.
-    seeds: MutableMap<usize, usize> | null = null
+    seeds: MutableMap<i64, i64> | null = null
 }
 
 /// The skeleton of a function of `params` parameters, before its body is walked.
-new_skeleton :: fn(params: usize) -> Skeleton = Skeleton { .params = params, .slots = params }
+new_skeleton :: fn(params: i64) -> Skeleton = Skeleton { .params = params, .slots = params }
 
 /// A slot that holds nothing yet.
-fresh_slot :: fn(s: Skeleton) -> usize {
+fresh_slot :: fn(s: Skeleton) -> i64 {
     slot :: s.slots
     s.slots += 1
     return slot
 }
 
 /// Slot `into` holds what `from` holds, `path` further down.
-add_flow :: fn(s: Skeleton, into: usize, from: usize, path: i32 = ROOT) -> void {
+add_flow :: fn(s: Skeleton, into: i64, from: i64, path: i32 = ROOT) -> void {
     s.flows.push(Flow { .into = into, .from = from, .path = path })
 }
 
 /// A new extra root, starting in `slot`, which a binding copies rather than aliases.
 ///
 /// @return  the root's number.
-add_root :: fn(s: Skeleton, slot: usize) -> usize {
+add_root :: fn(s: Skeleton, slot: i64) -> i64 {
     root :: s.next_root()
-    seeds :: s.seeds ?? MutableMap<usize, usize> {}
+    seeds :: s.seeds ?? MutableMap<i64, i64> {}
     seeds[root] = slot
     s.seeds = seeds
     return root
 }
 
 /// Whether `root` is an extra root that starts in a slot (`add_root`).
-is_seed :: fn(s: Skeleton, root: usize) -> bool {
+is_seed :: fn(s: Skeleton, root: i64) -> bool {
     if root < s.params {
         return false
     }
@@ -140,21 +140,21 @@ is_seed :: fn(s: Skeleton, root: usize) -> bool {
 
 /// A binding of `from` into `into`, whose copy of a seeded root is the new extra
 /// root this returns the number of.
-add_copy :: fn(s: Skeleton, into: usize, from: usize) -> usize {
+add_copy :: fn(s: Skeleton, into: i64, from: i64) -> i64 {
     root :: s.next_root()
     s.flows.push(Flow { .into = into, .from = from, .copy = root })
     return root
 }
 
 // The number of a new extra root.
-next_root :: fn(s: Skeleton) -> usize {
+next_root :: fn(s: Skeleton) -> i64 {
     root :: s.params + s.extra
     s.extra += 1
     return root
 }
 
 /// The function does `effect` at `path` below what `slot` holds, at `at`.
-add_mark :: fn(s: Skeleton, slot: usize, path: i32, effect: Effect, at: Span) -> void {
+add_mark :: fn(s: Skeleton, slot: i64, path: i32, effect: Effect, at: Span) -> void {
     mark :: Mark {
         .slot = slot,
         .path = path,
@@ -175,10 +175,10 @@ add_mark :: fn(s: Skeleton, slot: usize, path: i32, effect: Effect, at: Span) ->
 add_site :: fn(
     s: Skeleton,
     targets: CallTarget[],
-    args: (usize | null)[],
+    args: (i64 | null)[],
     callee: Callee,
     at: Span,
-) -> usize {
+) -> i64 {
     result :: s.fresh_slot()
     site :: Site {
         .targets = targets,
@@ -237,9 +237,9 @@ RootEffects :: struct {
     lent: ParamEffects[]
     /// Per copy root, the seeded roots it took the place of, each at the path the
     /// copy holds below it.
-    took: MutableMap<usize, Root[]>
+    took: MutableMap<i64, Root[]>
     /// The copy roots whose binding let another root through besides.
-    mixed: MutableSet<usize>
+    mixed: MutableSet<i64>
 }
 
 /// What the function does with every extra root of `s`, its callees doing what
@@ -253,8 +253,8 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
     marked :: count.filled(() -> ParamEffects {})
     lent :: count.filled(() -> ParamEffects {})
     apply_constraints(s, slots, ctx, marked, lent)
-    took :: MutableMap<usize, Root[]> {}
-    mixed :: MutableSet<usize> {}
+    took :: MutableMap<i64, Root[]> {}
+    mixed :: MutableSet<i64> {}
     for f in s.flows {
         copy :: f.copy ?? continue
         roots :: slots.roots[f.from] ?? continue
@@ -321,8 +321,8 @@ settled_slots :: fn(s: Skeleton, ctx: EvalCtx, extra: bool) -> SlotRoots {
     // How many roots of its source each flow has carried, and each argument of each
     // call has had collected: a round reads only the roots that arrived since, those
     // before it land where they already are. The callees' facts hold still meanwhile.
-    flowed: usize[]: [0] * s.flows.len()
-    collected: usize[]: [0] * s.arguments
+    flowed: i64[]: [0] * s.flows.len()
+    collected: i64[]: [0] * s.arguments
     for {
         grew := false
         for i in 0..<s.flows.len() {
@@ -351,14 +351,14 @@ settled_slots :: fn(s: Skeleton, ctx: EvalCtx, extra: bool) -> SlotRoots {
 }
 
 // How many roots slot `slot` holds.
-held_count :: fn(slots: SlotRoots, slot: usize) -> usize {
+held_count :: fn(slots: SlotRoots, slot: i64) -> i64 {
     roots :: slots.roots[slot] ?? return 0
     return roots.len()
 }
 
 // Add `r` to slot `slot` ; false when it held it already.
-include_root :: fn(slots: SlotRoots, slot: usize, r: Root) -> bool {
-    key :: ((i64(slot) * slots.root_count + i64(r.param)) << 32) | i64(r.path)
+include_root :: fn(slots: SlotRoots, slot: i64, r: Root) -> bool {
+    key :: ((slot * slots.root_count + r.param) << 32) | i64(r.path)
     if !slots.seen.add(key) {
         return false
     }
@@ -377,8 +377,8 @@ include_root :: fn(slots: SlotRoots, slot: usize, r: Root) -> bool {
 reroot :: fn(
     slots: SlotRoots,
     f: Flow,
-    start: usize,
-    end: usize,
+    start: i64,
+    end: i64,
     s: Skeleton,
     paths: PathTable,
 ) -> bool {
@@ -418,11 +418,11 @@ at_path :: fn(r: Root, path: i32) -> Root {
 // further down ; true when it gained one.
 reroot_below :: fn(
     slots: SlotRoots,
-    from: usize,
-    start: usize,
-    end: usize,
+    from: i64,
+    start: i64,
+    end: i64,
     path: i32,
-    into: usize,
+    into: i64,
     paths: PathTable,
     recursive: bool,
 ) -> bool {
@@ -441,7 +441,7 @@ reroot_below :: fn(
 // Give the result of `site` what its callees return of the roots its arguments
 // gained since the last round, as many as `collected` counts for each ; true when
 // it gained a root.
-collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: usize[]) -> bool {
+collect_returned :: fn(slots: SlotRoots, site: Site, ctx: EvalCtx, collected: i64[]) -> bool {
     grew := false
     for target in site.targets {
         params :: known_params(target, ctx.facts)
@@ -478,7 +478,7 @@ apply_site :: fn(
     out: ParamEffects[],
     slots: SlotRoots,
     site: Site,
-    index: usize,
+    index: i64,
     ctx: EvalCtx,
 ) -> bool {
     grew := false
@@ -515,7 +515,7 @@ known_params :: fn(target: CallTarget, facts: ParamEffects[][]) -> ParamEffects[
 // The accesses a callee makes through its parameter `q` ; those of `any` when
 // nothing is known of the callee, or of that parameter.
 accesses_of_param :: fn(
-    params: ParamEffects[] | null, q: usize, any: ParamEffects,
+    params: ParamEffects[] | null, q: i64, any: ParamEffects,
 ) -> Access[] {
     if params == null || q >= params.len() {
         return any.accesses
@@ -586,7 +586,7 @@ evaluated :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects[] {
 }
 
 // The accesses of parameter `param` in `effects`, as the dump writes them.
-rendered :: fn(t: PathTable, effects: ParamEffects[], param: usize) -> string {
+rendered :: fn(t: PathTable, effects: ParamEffects[], param: i64) -> string {
     out: string[]: []
     for a in sorted_accesses(t, effects[param]) {
         out.push("${effect_label(a.effect)} ${t.display_path(a.path)}")
@@ -610,7 +610,7 @@ test_evaluate_follows_what_a_callee_returns :: fn() -> void {
     returns_element :: ParamEffects {}
     returns_element.insert(Access { .path = t.path_to(ELEMENT), .effect = .Returned })
     s :: new_skeleton(1)
-    first: usize: 0
+    first: i64: 0
     known :: KnownEffects { .params = [returns_element] }
     result :: s.add_site([known], [first], UNSET, empty_span())
     s.add_mark(result, t.path_to("n"), .Assigned, empty_span())
@@ -623,7 +623,7 @@ test_evaluate_reads_the_callee_fact :: fn() -> void {
     shrinks :: ParamEffects {}
     shrinks.insert(Access { .path = ROOT, .effect = .Shrunk })
     s :: new_skeleton(1)
-    first: usize: 0
+    first: i64: 0
     _ :: s.add_site([CalleeNode { .node = 0 }], [first], UNSET, empty_span())
     assert_eq(rendered(t, evaluated(s, test_ctx(t, [[shrinks]])), 0), "shrunk ")
 }
@@ -632,7 +632,7 @@ test_evaluate_reads_the_callee_fact :: fn() -> void {
 test_evaluate_lends_anything_to_an_unknown_callee :: fn() -> void {
     t :: PathTable {}
     s :: new_skeleton(2)
-    second: usize: 1
+    second: i64: 1
     _ :: s.add_site([AnyCallee {}], [null, second], UNSET, empty_span())
     out :: evaluated(s, test_ctx(t, []))
     assert_eq(out[0].accesses.len(), 0)

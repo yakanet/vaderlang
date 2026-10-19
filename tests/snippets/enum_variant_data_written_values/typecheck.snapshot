@@ -66,7 +66,7 @@
   expr 42:5     CallExpr       :: void
   expr 42:5     IdentExpr      :: fn(T) -> void
   expr 42:59    DotVariantExpr :: HttpStatus
-  expr 42:72    IntrinsicCallExpr :: usize
+  expr 42:72    IntrinsicCallExpr :: i64
   expr 42:81    IdentExpr      :: HttpStatus
   expr 4:22     StringLitExpr  :: string
   expr 5:25     StringLitExpr  :: string

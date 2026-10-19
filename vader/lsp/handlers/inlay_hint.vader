@@ -361,12 +361,12 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
 
 import "std/testing"
 
-test_pos :: fn(offset: usize, line: i32, column: i32) -> Position =
+test_pos :: fn(offset: i64, line: i32, column: i32) -> Position =
     Position { .file = "t.vader", .offset = offset, .line = line, .column = column }
 
 // `operator_hint_anchor` reads only the name's `end` and the value's `start`, so
 // the other endpoint of each span is filler.
-name_ending_at :: fn(offset: usize, line: i32, column: i32) -> Span =
+name_ending_at :: fn(offset: i64, line: i32, column: i32) -> Span =
     Span { .start = test_pos(0, 1, 1), .end = test_pos(offset, line, column) }
 
 // The anchor for `content`, indexed in utf-16 as a default LSP client would
@@ -374,7 +374,7 @@ name_ending_at :: fn(offset: usize, line: i32, column: i32) -> Span =
 anchor_of :: fn(content: string, name_span: Span, value_span: Span) -> HintAnchor =
     operator_hint_anchor(new_line_index(content, .Utf16), content, name_span, value_span)
 
-value_starting_at :: fn(offset: usize, line: i32, column: i32) -> Span =
+value_starting_at :: fn(offset: i64, line: i32, column: i32) -> Span =
     Span { .start = test_pos(offset, line, column), .end = test_pos(offset, line, column) }
 
 // A 0-based `character` of C inserts before the (C+1)-th 1-based column, so

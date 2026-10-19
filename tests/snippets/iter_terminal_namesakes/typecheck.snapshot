@@ -3,7 +3,7 @@
 ## tests/snippets/iter_terminal_namesakes
   FnDecl         any_match            :: fn(Iterator<i32>, fn(i32) -> bool) -> bool
   FnDecl         collect              :: fn(Iterator<i32>) -> i32[]
-  FnDecl         count                :: fn(Iterator<i32>) -> usize
+  FnDecl         count                :: fn(Iterator<i32>) -> i64
   FnDecl         find                 :: fn(Iterator<i32>, fn(i32) -> bool) -> i32
   FnDecl         main                 :: fn() -> i32
   expr 12:45    SeqLitExpr     :: i32[]
@@ -53,9 +53,9 @@
   expr 20:13    StringLitExpr  :: string
   expr 20:16    CallExpr       :: __genstate_map<i32>
   expr 20:16    CallExpr       :: i32[]
-  expr 20:16    CallExpr       :: usize
+  expr 20:16    CallExpr       :: i64
   expr 20:16    FieldExpr      :: fn() -> i32[]
-  expr 20:16    FieldExpr      :: fn() -> usize
+  expr 20:16    FieldExpr      :: fn() -> i64
   expr 20:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 20:16    IdentExpr      :: i32[]
   expr 20:23    LambdaExpr     :: fn(i32) -> i32
@@ -65,8 +65,8 @@
   expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    StringLitExpr  :: string
   expr 21:16    CallExpr       :: __genstate_map<i32>
-  expr 21:16    CallExpr       :: usize
-  expr 21:16    FieldExpr      :: fn() -> usize
+  expr 21:16    CallExpr       :: i64
+  expr 21:16    FieldExpr      :: fn() -> i64
   expr 21:16    FieldExpr      :: fn(fn(i32) -> i32) -> Iterator<i32>
   expr 21:16    IdentExpr      :: i32[]
   expr 21:23    LambdaExpr     :: fn(i32) -> i32

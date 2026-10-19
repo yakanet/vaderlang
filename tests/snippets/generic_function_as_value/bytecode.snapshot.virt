@@ -8,14 +8,13 @@ type 5 primitive f64
 type 6 primitive i64
 type 7 fn (2) -> 2
 type 8 primitive u8
-type 9 primitive usize
-type 10 struct std_core$Buffer {  }
-type 11 array 8
+type 9 struct std_core$Buffer {  }
+type 10 array 8
+type 11 primitive usize
 type 12 primitive void
-type 13 primitive isize
-type 14 array 5
-type 15 fn (16) -> 16
-type 16 ref _
+type 13 array 5
+type 14 fn (15) -> 15
+type 15 ref _
 string 0 "s"
 string 1 " "
 string 2 "through a module"
@@ -26,10 +25,10 @@ string 6 "i64 string"
 string 7 "true"
 string 8 "false"
 string 9 "\n"
-import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_c_out= param_by_address= (string) -> usize
-import 1 bytes std_core$bytes result_type=11 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=2,11,9 param_c_out= param_by_address= (i32,ref,usize) -> isize
-impl 10 std_core$ByteAccess
+import 0 byte_len std_core$byte_len result_type=6 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=10 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=2,10,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 9 std_core$ByteAccess
 export main 1
 
 fn 0 snippet$apply (ref,i32) -> string
@@ -41,17 +40,16 @@ end
 
 fn 1 snippet$main () -> i32
   local __fuse_arr_0 ref
-  local __fuse_len_1 usize
-  local __fuse_i_2 usize
+  local __fuse_len_1 i64
+  local __fuse_i_2 i64
   local __p_3 string
-  local $cast_48 i64
   fn.ref 7 1   ; snippet$name_of__i32 fn
   i32.const 5
   call 0   ; snippet$apply
   call 21   ; std_io$println__string
   f64.const 1.5 4609434218613702656
   f64.const 2.5 4612811918334230528
-  array.new 14 2   ; f64[]
+  array.new 13 2   ; f64[]
   local.tee 0   ; __fuse_arr_0
   array.len
   local.set 1   ; __fuse_len_1
@@ -60,7 +58,7 @@ fn 1 snippet$main () -> i32
   loop $L0 void
     local.get 2   ; __fuse_i_2
     local.get 1   ; __fuse_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 0   ; __fuse_arr_0
       local.get 2   ; __fuse_i_2
@@ -74,7 +72,7 @@ fn 1 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
-  fn.ref 4 15   ; snippet$id__i32 fn
+  fn.ref 4 14   ; snippet$id__i32 fn
   i32.const 7
   call 10   ; snippet$twice__i32
   call 20   ; std_io$println__i32
@@ -105,10 +103,10 @@ fn 1 snippet$main () -> i32
   i32.const 3
   call 4   ; snippet$id__i32
   i32.to_i64
-  local.set 4   ; $cast_48
+  local.set 2   ; __fuse_i_2
   local.get 0   ; __fuse_arr_0
   local.get 1   ; __fuse_len_1
-  local.get 4   ; $cast_48
+  local.get 2   ; __fuse_i_2
   call 15   ; std_core$write_int
   local.set 1   ; __fuse_len_1
   local.get 0   ; __fuse_arr_0
@@ -179,8 +177,8 @@ fn 10 snippet$twice__i32 (ref,i32) -> i32
 end
 
 fn 11 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -192,6 +190,7 @@ fn 11 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -207,21 +206,22 @@ fn 11 concat_2 (string,string) -> string
   return
 end
 
-fn 12 std_core$new_byte_buffer (usize) -> ref
+fn 12 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 13 std_core$finish_buffer (ref,usize) -> string
+fn 13 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$write_string_at (ref,usize,string) -> usize
-  local $call_3 usize
+fn 14 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -231,15 +231,14 @@ fn 14 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 15 std_core$write_int (ref,usize,i64) -> usize
+fn 15 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
-  local ndigits usize
+  local ndigits i64
   local m i64
-  local total usize
   local $cast_36 u8
   local $add_checked_37 u8
   local.get 2   ; arg 2
@@ -252,7 +251,7 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    usize.checked_add
+    i64.checked_add
     return
   end $L0
   local.get 2   ; arg 2
@@ -278,7 +277,7 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
     if $L3 void
       local.get 4   ; ndigits
       i64.const 1
-      usize.checked_add
+      i64.checked_add
       local.set 4   ; ndigits
       local.get 5   ; m
       i64.const 10
@@ -291,15 +290,15 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
   if $L4 void
     local.get 4   ; ndigits
     i64.const 1
-    usize.checked_add
-    local.set 6   ; total
+    i64.checked_add
+    local.set 5   ; m
   else
     local.get 4   ; ndigits
-    local.set 6   ; total
+    local.set 5   ; m
   end $L4
   local.get 1   ; arg 1
-  local.get 6   ; total
-  usize.checked_add
+  local.get 5   ; m
+  i64.checked_add
   local.set 4   ; ndigits
   loop $L5 void
     local.get 2   ; arg 2
@@ -308,7 +307,7 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
     if $L6 void
       local.get 4   ; ndigits
       i64.const 1
-      usize.checked_sub
+      i64.checked_sub
       local.set 4   ; ndigits
       local.get 2   ; arg 2
       i64.const 10
@@ -317,14 +316,14 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
       i64.to_i32
       i32.const 255
       i32.bitand
-      local.set 7   ; $cast_36
+      local.set 6   ; $cast_36
       i32.const 48
-      local.get 7   ; $cast_36
+      local.get 6   ; $cast_36
       u8.checked_add
-      local.set 8   ; $add_checked_37
+      local.set 7   ; $add_checked_37
       local.get 0   ; arg 0
       local.get 4   ; ndigits
-      local.get 8   ; $add_checked_37
+      local.get 7   ; $add_checked_37
       store_u8
       local.get 2   ; arg 2
       i64.const 10
@@ -340,17 +339,17 @@ fn 15 std_core$write_int (ref,usize,i64) -> usize
     i32.const 45
     store_u8
     local.get 1   ; arg 1
-    local.get 6   ; total
-    usize.checked_add
+    local.get 5   ; m
+    i64.checked_add
     return
   end $L7
   local.get 1   ; arg 1
-  local.get 6   ; total
-  usize.checked_add
+  local.get 5   ; m
+  i64.checked_add
   return
 end
 
-fn 16 std_core$write_bool (ref,usize,bool) -> usize
+fn 16 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
@@ -369,13 +368,13 @@ end
 
 fn 17 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -387,7 +386,7 @@ fn 17 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -396,7 +395,7 @@ fn 17 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 11   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
@@ -415,7 +414,7 @@ fn 17 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -423,7 +422,7 @@ fn 17 std_io$write (u8,string) -> void
   return
 end
 
-fn 18 std_io$write_bytes (u8,ref,usize) -> i32
+fn 18 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -432,20 +431,20 @@ fn 18 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 
 fn 19 std_io$println__bool (bool) -> void
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local $call_10 string
   i64.const 6
   call 12   ; std_core$new_byte_buffer
@@ -474,7 +473,7 @@ end
 
 fn 20 std_io$println__i32 (i32) -> void
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local $cast_7 i64
   local $call_11 string
   i64.const 21

@@ -76,8 +76,8 @@ tokenize_bf :: fn(source: string) -> char[] {
 // `-1` then overwritten on the matching `]`.
 match_brackets :: fn(tokens: char[]) -> i32[] {
     partner: i32[]: []
-    open_stack: usize[]: []      // grow-only ; `sp` is the logical top
-    sp: usize = 0
+    open_stack: i64[]: []      // grow-only ; `sp` is the logical top
+    sp: i64 = 0
     for j in 0..<tokens.len() {
         partner.push(-1)
         if tokens[j] == '[' {
@@ -113,7 +113,7 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 emit_bf_char :: fn(
     fb: FunctionBuilder,
     c: char,
-    idx: usize,
+    idx: i64,
     partner: i32[],
     cells_type_id: i32,
 ) -> void {
@@ -230,7 +230,7 @@ compile_brainfuck :: fn(tokens: char[], partner: i32[]) -> bc.BytecodeModule {
     bf_main.push(bc.LocalSet { .slot = 2 })
 
     // BF body
-    token_index: usize = 0
+    token_index: i64 = 0
     token_count :: tokens.len()
     for token_index < token_count {
         emit_bf_char(bf_main, tokens[token_index], token_index, partner, cells_type_id)

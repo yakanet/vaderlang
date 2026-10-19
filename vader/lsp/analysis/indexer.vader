@@ -551,7 +551,7 @@ top_entry :: fn(
 // Smallest start-offset among the decl itself and every decorator
 // stacked above it. `///` comments contiguous with this offset are
 // the decl's vaderdoc.
-doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
+doc_boundary_offset :: fn(decl_start: i64, decorators: Decorator[]) -> i64 {
     best := decl_start
     for d in decorators {
         if d.span.start.offset < best { best = d.span.start.offset }
@@ -694,7 +694,7 @@ collect_let_binding :: fn(
 // line for `<name> := <expr>` — readable, just less precise.
 local_sig :: fn(
     name: string, type_hint: string,
-    decl_start: usize, scope_end: usize, source: string,
+    decl_start: i64, scope_end: i64, source: string,
 ) -> string {
     if type_hint.byte_len() > 0 {
         return name + ": " + type_hint
@@ -838,10 +838,10 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
 // Slice up to the end of the current line — used for local-binding
 // signatures (`x :: expr` form). Caps at `upper` so we don't read past
 // the enclosing block.
-slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
+slice_to_eol :: fn(source: string, start: i64, upper: i64) -> string {
     cap :: source.byte_len()
-    up: usize: if upper > cap { cap } else { upper }
-    cursor: usize = start
+    up: i64: if upper > cap { cap } else { upper }
+    cursor: i64 = start
     for cursor < up {
         b :: source.byte_at(cursor)
         if b == '\n' { break }
@@ -865,14 +865,14 @@ param_signature_slice :: fn(span: Span, fallback: string, source: string) -> str
 // Collect every `///` comment whose end is contiguous (only whitespace
 // between) with the decl's start. Strips the leading `/// ` prefix and
 // joins with `\n`.
-leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string {
+leading_doc :: fn(cmap: CommentMap, decl_start: i64, source: string) -> string {
     n :: cmap.comments.len()
     if n == 0 { return "" }
     next_boundary := decl_start
     first_idx: i32 = -1
     i: i32 = i32(n) - 1
     for i >= 0 {
-        c :: cmap.comments[usize(i)]
+        c :: cmap.comments[i]
         if c.end_offset > next_boundary {
             i = i - 1
             continue
@@ -885,7 +885,7 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
     }
     if first_idx < 0 { return "" }
     out := ""
-    for j in usize(first_idx)..<n {
+    for j in i64(first_idx)..<n {
         c :: cmap.comments[j]
         if c.kind != .DocLine { break }
         if c.offset >= decl_start { break }
@@ -899,7 +899,7 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
     return out
 }
 
-whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
+whitespace_between :: fn(source: string, start: i64, end: i64) -> bool {
     for cursor in start..<end {
         b :: source.byte_at(cursor)
         if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
@@ -912,7 +912,7 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
 strip_doc_prefix :: fn(text: string) -> string {
     n :: text.byte_len()
     if n < 3 { return text }
-    cursor: usize = 3
+    cursor: i64 = 3
     if cursor < n && text.byte_at(cursor) == ' ' {
         cursor = cursor + 1
     }
@@ -921,7 +921,7 @@ strip_doc_prefix :: fn(text: string) -> string {
 
 // ---- token-based position resolution -------------------------------------
 
-token_name_at :: fn(tokens: Token[], offset: usize) -> string {
+token_name_at :: fn(tokens: Token[], offset: i64) -> string {
     for t in tokens {
         if t.kind != .Ident { continue }
         if t.span.start.offset <= offset && offset < t.span.end.offset {
@@ -931,7 +931,7 @@ token_name_at :: fn(tokens: Token[], offset: usize) -> string {
     return ""
 }
 
-token_span_at :: fn(tokens: Token[], offset: usize) -> Span | null {
+token_span_at :: fn(tokens: Token[], offset: i64) -> Span | null {
     for t in tokens {
         if t.kind != .Ident { continue }
         if t.span.start.offset <= offset && offset < t.span.end.offset {
@@ -943,11 +943,11 @@ token_span_at :: fn(tokens: Token[], offset: usize) -> Span | null {
 
 // Find the entry matching `name` whose scope most tightly contains
 // `offset`. Top-level (scope_span = null) acts as a fallback.
-lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclEntry | null {
+lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEntry | null {
     has_best := false
-    best_idx: usize = 0
-    best_size: usize = 0
-    i: usize = 0
+    best_idx: i64 = 0
+    best_size: i64 = 0
+    i: i64 = 0
     n :: decls.len()
     for i < n {
         d :: decls[i]

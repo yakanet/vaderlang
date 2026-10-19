@@ -21,7 +21,7 @@ REPS   :: 40_000
 PASSES :: 15
 
 main :: fn() -> i32 {
-    text :: repeat(LINE, usize(REPS))
+    text :: repeat(LINE, i64(REPS))
     nb :: text.byte_len()
     words: i64 = 0
     lines: i64 = 0

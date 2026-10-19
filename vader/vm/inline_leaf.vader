@@ -23,7 +23,7 @@ import "std/iter"
 bc :: import "vader/bytecode"
 
 // The longest body inlined, its `return` aside.
-MAX_INLINED_OPS: usize: 16
+MAX_INLINED_OPS: i64: 16
 
 // `module` with every direct call to an inline leaf replaced by the leaf's body.
 inline_leaf_calls :: fn(module: bc.BytecodeModule) -> bc.BytecodeModule {
@@ -61,10 +61,10 @@ is_inline_leaf :: fn(f: bc.BcFunction) -> bool {
         }
         slot :: slot_touched_by(op)
         if slot >= i32(params) {
-            if op is bc.LocalGet && !written[usize(slot)] {
+            if op is bc.LocalGet && !written[slot] {
                 return false
             }
-            written[usize(slot)] = true
+            written[slot] = true
         }
     }
     return true
@@ -101,10 +101,10 @@ relocated :: fn(op: bc.Op, base: i32) -> bc.Op {
 }
 
 // `functions[index]` with its calls to inline leaves expanded.
-inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: usize) -> bc.BcFunction {
+inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.BcFunction {
     caller :: functions[index]
     body :: caller.body
-    if !body.any_match((op) -> op is bc.Call && leaf[usize(op.function_index)]) {
+    if !body.any_match((op) -> op is bc.Call && leaf[op.function_index]) {
         return caller
     }
     out: bc.Op[]: []
@@ -121,8 +121,8 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: usize) -> bc.
         op :: body[pc]
         old_to_new.push(i32(out.len()))
         here :: caller.debug[pc]
-        if op is bc.Call && leaf[usize(op.function_index)] {
-            callee :: functions[usize(op.function_index)]
+        if op is bc.Call && leaf[op.function_index] {
+            callee :: functions[op.function_index]
             base := bases[op.function_index] ?? -1
             if base < 0 {
                 base = params + i32(locals.len())

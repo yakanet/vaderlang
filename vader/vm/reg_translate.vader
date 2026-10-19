@@ -32,7 +32,7 @@ Translation :: struct {
     operands: i32[]
     stack: Pending[]
     /// First register of the operand stack: after the slots and the constants.
-    stack_base: usize
+    stack_base: i64
     /// Index of the last op while nothing has come after it: a `local.set` may
     /// retarget it onto the slot, an `if` / `br_if` fuse it with the branch.
     /// `-1` otherwise.
@@ -78,7 +78,7 @@ translate_function :: fn(
     ft: FunctionTags,
     debug: bool,
 ) -> RegFunction | VerifyError {
-    f :: module.functions[usize(index)]
+    f :: module.functions[index]
     n :: f.body.len()
     slots :: f.signature.params.len() + f.locals.len()
     consts: i64[]: []
@@ -120,12 +120,12 @@ translate_function :: fn(
         if leader[pc] {
             flush(t, pc)
         }
-        start[pc] = i64(t.code.ops.len())
+        start[pc] = t.code.ops.len()
         if ft.depth[pc] < 0 {
             continue
         }
         if leader[pc] {
-            reset_stack(t, usize(ft.depth[pc]))
+            reset_stack(t, ft.depth[pc])
         }
         if debug && pc < f.debug.len() && f.debug[pc] != null {
             emit(t, pc, .Line, 0, 0, 0)
@@ -134,11 +134,11 @@ translate_function :: fn(
             return VerifyError { .function = f.name, .pc = i32(pc), .message = "no register form for this op" }
         }
     }
-    start[n] = i64(t.code.ops.len())
+    start[n] = t.code.ops.len()
     emit(t, n, .Return, -1, 0, 0)
     for i in 0..<t.jumps.len() / 2 {
-        at :: usize(t.jumps[2 * i])
-        t.operands[3 * at] = i32(start[usize(t.jumps[2 * i + 1])])
+        at :: t.jumps[2 * i]
+        t.operands[3 * at] = i32(start[t.jumps[2 * i + 1]])
     }
     for k in 0..<t.code.ops.len() {
         word :: pack_operands(operand_of(t, k, 0), operand_of(t, k, 1), operand_of(t, k, 2))
@@ -152,12 +152,12 @@ translate_function :: fn(
 }
 
 // Whether the op at `pc` is an `if` whose then-arm is empty: its `else` follows.
-skips_else :: fn(f: bc.BcFunction, pc: usize) -> bool {
+skips_else :: fn(f: bc.BcFunction, pc: i64) -> bool {
     return f.body[pc] is bc.If && pc + 1 < f.body.len() && f.body[pc + 1] is bc.Else
 }
 
 // Translate the op at `pc` ; false when it is not one the register engine runs.
-translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation, pc: usize) -> bool {
+translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags, t: Translation, pc: i64) -> bool {
     op :: f.body[pc]
     // Only the op an arm emits next may be retargeted or fused ; `local.set`,
     // `if` and `br_if` read the previous one.
@@ -171,7 +171,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         emit(t, pc, binary, dst, lhs, rhs)
         note_checked_kind(t, op)
         push_register(t, dst)
-        t.retarget = i64(t.code.ops.len() - 1)
+        t.retarget = t.code.ops.len() - 1
         return true
     }
     unary :: unary_op(op, ft, pc)
@@ -181,7 +181,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
         emit(t, pc, unary, dst, src, 0)
         note_checked_kind(t, op)
         push_register(t, dst)
-        t.retarget = i64(t.code.ops.len() - 1)
+        t.retarget = t.code.ops.len() - 1
         return true
     }
     // @partial: the ops without an arm run on `apply_boxed` (`is_boxed`).
@@ -216,12 +216,12 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             target :: f.jump_table[if inverted { pc + 1 } else { pc }]
             // The comparison that just computed the condition, when nothing came
             // between them and nothing else reads its result.
-            fusable :: cell.kind == .Register && previous >= 0 && previous == i64(t.code.ops.len()) - 1
-                && operand_of(t, usize(previous), 0) == cell.register
-            compare :: if fusable { fused_branch(t.code.ops[usize(previous)], when_true) } else { null }
+            fusable :: cell.kind == .Register && previous >= 0 && previous == t.code.ops.len() - 1
+                && operand_of(t, previous, 0) == cell.register
+            compare :: if fusable { fused_branch(t.code.ops[previous], when_true) } else { null }
             if compare != null {
-                lhs :: operand_of(t, usize(previous), 1)
-                rhs :: operand_of(t, usize(previous), 2)
+                lhs :: operand_of(t, previous, 1)
+                rhs :: operand_of(t, previous, 2)
                 drop_last_op(t)
                 if compare.swap {
                     jump(t, pc, compare.op, rhs, lhs, target)
@@ -266,7 +266,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
                 return false
             }
             flush(t, pc)
-            base :: pop_to(t, usize(op.parameter_count))
+            base :: pop_to(t, i64(op.parameter_count))
             t.code.virtuals.push(op)
             t.code.virtual_rows.push(vtable_row_of(module.vtables, op.vtable_key))
             emit(t, pc, .VirtualCall, i32(t.code.virtuals.len() - 1), base, op.parameter_count)
@@ -275,7 +275,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             }
         }
         is bc.Call -> {
-            callee :: module.functions[usize(op.function_index)].signature
+            callee :: module.functions[op.function_index].signature
             results :: bc.bc_result_arity(callee)
             flush(t, pc)
             base :: pop_to(t, callee.params.len())
@@ -294,10 +294,10 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
             emit(t, pc, .Return, operand(t, 1), 0, 0)
         }
         is bc.CallImport -> {
-            if string_byte_op(t, pc, t.import_ids[usize(op.index)]) {
+            if string_byte_op(t, pc, t.import_ids[op.index]) {
                 return true
             }
-            signature :: module.imports[usize(op.index)].signature
+            signature :: module.imports[op.index].signature
             flush(t, pc)
             base :: pop_to(t, signature.params.len())
             emit(t, pc, .CallImport, op.index, base, 0)
@@ -382,7 +382,7 @@ translate_op :: fn(module: bc.BytecodeModule, f: bc.BcFunction, ft: FunctionTags
 
 // Emit `op` as a `Boxed` op over the top `pops` cells, which it replaces with
 // `pushes` values.
-boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) -> void {
+boxed :: fn(t: Translation, pc: i64, op: bc.Op, pops: i64, pushes: i64) -> void {
     flush(t, pc)
     base :: pop_to(t, pops)
     t.code.boxed.push(op)
@@ -395,7 +395,7 @@ boxed :: fn(t: Translation, pc: usize, op: bc.Op, pops: usize, pushes: usize) ->
 // `byte_len`, `byte_at`, `byte_slice` and `is_ascii` read a string in place: an op
 // of their own spares them the generic import call. Answers whether the import
 // `id` was one of them.
-string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
+string_byte_op :: fn(t: Translation, pc: i64, id: bc.IntrinsicId) -> bool {
     if id == .ByteLen {
         return one_argument_string_op(t, pc, .StringByteLen)
     }
@@ -408,7 +408,7 @@ string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
         dst :: pop_to(t, 2)
         emit(t, pc, .StringByteAt, dst, s, index)
         push_register(t, dst)
-        t.retarget = i64(t.code.ops.len() - 1)
+        t.retarget = t.code.ops.len() - 1
         return true
     }
     if id == .ByteSlice {
@@ -427,19 +427,19 @@ string_byte_op :: fn(t: Translation, pc: usize, id: bc.IntrinsicId) -> bool {
 
 // Translate an import that reads the string on top of the stack into `op`, its
 // result in the string's register.
-one_argument_string_op :: fn(t: Translation, pc: usize, op: RegOp) -> bool {
+one_argument_string_op :: fn(t: Translation, pc: i64, op: RegOp) -> bool {
     s :: operand(t, 1)
     dst :: pop_to(t, 1)
     emit(t, pc, op, dst, s, 0)
     push_register(t, dst)
-    t.retarget = i64(t.code.ops.len() - 1)
+    t.retarget = t.code.ops.len() - 1
     return true
 }
 
 // Push the string `op` names, built once.
-string_constant :: fn(module: bc.BytecodeModule, t: Translation, pc: usize, op: bc.StringConst) -> void {
+string_constant :: fn(module: bc.BytecodeModule, t: Translation, pc: i64, op: bc.StringConst) -> void {
     dst :: canonical(t, t.stack.len())
-    t.code.values.push(StringVal(module.strings[usize(op.index)]))
+    t.code.values.push(StringVal(module.strings[op.index]))
     emit(t, pc, .ConstRef, dst, i32(t.code.values.len() - 1), 0)
     push_register(t, dst)
 }
@@ -458,7 +458,7 @@ is_boxed :: fn(op: bc.Op) = op is bc.FnRef | bc.MakeClosure | bc.StructNew | bc.
 // The register op of a binary bytecode op, or `null`. Equality and the bool ops
 // are translated only where their operands are proven: their arms also accept a
 // `.Null` or read a box, which the register engine does not reproduce.
-binary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
+binary_op :: fn(op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
     // @partial: every other op is not a binary scalar op.
     return @partial match op {
         is bc.I32Add -> .AddI32
@@ -575,7 +575,7 @@ note_checked_kind :: fn(t: Translation, op: bc.Op) -> void {
 }
 
 // The register op of a unary bytecode op, or `null`.
-unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: usize) -> RegOp | null {
+unary_op :: fn(op: bc.Op, ft: FunctionTags, pc: i64) -> RegOp | null {
     integral :: TAGS_I32 | TAGS_I64 | TAGS_CHAR | TAGS_BOOL
     // @partial: every other op is not a unary scalar op.
     return @partial match op {
@@ -611,10 +611,10 @@ widening :: fn(from_name: string) -> RegOp {
     return .ToI64
 }
 
-operands_within :: fn(ft: FunctionTags, pc: usize, allowed: u8) =
+operands_within :: fn(ft: FunctionTags, pc: i64, allowed: u8) =
     tags_within(stack_tags(ft, pc, 1), allowed) && tags_within(stack_tags(ft, pc, 2), allowed)
 
-emit :: fn(t: Translation, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void {
+emit :: fn(t: Translation, pc: i64, op: RegOp, a: i32, b: i32, c: i32) -> void {
     t.code.ops.push(op)
     t.operands.push(a)
     t.operands.push(b)
@@ -624,7 +624,7 @@ emit :: fn(t: Translation, pc: usize, op: RegOp, a: i32, b: i32, c: i32) -> void
 }
 
 // Emit a jump whose `a` is patched to the op translating `target`.
-jump :: fn(t: Translation, pc: usize, op: RegOp, b: i32, c: i32, target: i32) -> void {
+jump :: fn(t: Translation, pc: i64, op: RegOp, b: i32, c: i32, target: i32) -> void {
     back :: target >= 0 && target < i32(pc)
     span :: i32(pc) - target + 1
     kind := op
@@ -635,7 +635,7 @@ jump :: fn(t: Translation, pc: usize, op: RegOp, b: i32, c: i32, target: i32) ->
     } else if back {
         emit(t, pc, .Budget, 0, span, 0)
     }
-    t.jumps.push(i64(t.code.ops.len()))
+    t.jumps.push(t.code.ops.len())
     t.jumps.push(i64(target))
     emit(t, pc, kind, 0, operand, c)
 }
@@ -683,7 +683,7 @@ branch :: fn(when_true: bool, op: RegOp, swap: bool, negated: RegOp, negated_swa
     if when_true { FusedBranch { .op = op, .swap = swap } } else { FusedBranch { .op = negated, .swap = negated_swap } }
 
 // Operand `i` (0 for `a`, 1 for `b`, 2 for `c`) of op `k`.
-operand_of :: fn(t: Translation, k: usize, i: usize) -> i32 = t.operands[3 * k + i]
+operand_of :: fn(t: Translation, k: i64, i: i64) -> i32 = t.operands[3 * k + i]
 
 // Remove the op emitted last.
 drop_last_op :: fn(t: Translation) -> void {
@@ -702,7 +702,7 @@ push_constant :: fn(t: Translation, c: bc.ConstOp) -> void {
     if k < 0 {
         panic("reg_translate: constant missing from the prepass")
     }
-    t.stack.push(Pending { .kind = .Constant, .register = i32(t.code.slots + usize(k)) })
+    t.stack.push(Pending { .kind = .Constant, .register = i32(t.code.slots + k) })
 }
 
 // A scalar constant's register contents.
@@ -726,7 +726,7 @@ scalar_of :: fn(c: bc.ConstOp) -> Scalar | null = match c {
 constant_index :: fn(consts: i64[], tags: StackTag[], scalar: Scalar) -> i64 {
     for k in 0..<consts.len() {
         if consts[k] == scalar.bits && tags[k] == scalar.tag {
-            return i64(k)
+            return k
         }
     }
     return -1
@@ -756,13 +756,13 @@ push_register :: fn(t: Translation, register: i32) -> void {
 }
 
 // The canonical register of stack position `at`.
-canonical :: fn(t: Translation, at: usize) -> i32 = i32(t.stack_base + at)
+canonical :: fn(t: Translation, at: i64) -> i32 = i32(t.stack_base + at)
 
 // The register holding the cell `back` below the top.
-operand :: fn(t: Translation, back: usize) -> i32 = t.stack[t.stack.len() - back].register
+operand :: fn(t: Translation, back: i64) -> i32 = t.stack[t.stack.len() - back].register
 
 // Pop `count` cells ; the register the result of their op goes to.
-pop_to :: fn(t: Translation, count: usize) -> i32 {
+pop_to :: fn(t: Translation, count: i64) -> i32 {
     for 0..<count {
         t.stack.remove_last()
     }
@@ -770,7 +770,7 @@ pop_to :: fn(t: Translation, count: usize) -> i32 {
 }
 
 // Write the cell at `at` to its canonical register.
-materialise :: fn(t: Translation, pc: usize, at: usize) -> void {
+materialise :: fn(t: Translation, pc: i64, at: i64) -> void {
     cell :: t.stack[at]
     target :: canonical(t, at)
     if cell.kind == .Constant {
@@ -782,7 +782,7 @@ materialise :: fn(t: Translation, pc: usize, at: usize) -> void {
 }
 
 // Every pending cell to its canonical register.
-flush :: fn(t: Translation, pc: usize) -> void {
+flush :: fn(t: Translation, pc: i64) -> void {
     for at in 0..<t.stack.len() {
         materialise(t, pc, at)
     }
@@ -791,7 +791,7 @@ flush :: fn(t: Translation, pc: usize) -> void {
 }
 
 // Start a block with `depth` cells, each in its canonical register.
-reset_stack :: fn(t: Translation, depth: usize) -> void {
+reset_stack :: fn(t: Translation, depth: i64) -> void {
     t.stack.clear()
     for at in 0..<depth {
         push_register(t, canonical(t, at))
@@ -799,7 +799,7 @@ reset_stack :: fn(t: Translation, depth: usize) -> void {
 }
 
 // Return the values on top of the stack, each truncated to its own class.
-return_many :: fn(t: Translation, pc: usize, results: bc.ValType[]) -> void {
+return_many :: fn(t: Translation, pc: i64, results: bc.ValType[]) -> void {
     flush(t, pc)
     count :: results.len()
     first :: t.stack.len() - count
@@ -825,7 +825,7 @@ narrow_code :: fn(v: bc.ValType) -> i32 = match v {
 // `local.set slot` — or `local.tee`, which leaves the value on the stack. A slot of
 // a narrow class is truncated to its width after the store. `previous` is the op
 // that may be retargeted onto the slot, or `-1`.
-store_slot :: fn(t: Translation, f: bc.BcFunction, pc: usize, slot: i32, keep: bool, previous: i64) -> void {
+store_slot :: fn(t: Translation, f: bc.BcFunction, pc: i64, slot: i32, keep: bool, previous: i64) -> void {
     top :: t.stack.len() - 1
     narrow :: narrow_code(slot_valtype(f, slot))
     // A cell still reading the slot must be read before the slot changes — and
@@ -839,8 +839,8 @@ store_slot :: fn(t: Translation, f: bc.BcFunction, pc: usize, slot: i32, keep: b
         }
     }
     cell :: t.stack[top]
-    if cell.kind == .Register && retarget >= 0 && operand_of(t, usize(retarget), 0) == cell.register {
-        t.operands[3 * usize(retarget)] = slot
+    if cell.kind == .Register && retarget >= 0 && operand_of(t, retarget, 0) == cell.register {
+        t.operands[3 * retarget] = slot
     } else if cell.kind == .Constant {
         emit(t, pc, .MoveScalar, slot, cell.register, 0)
     } else if cell.register != slot {

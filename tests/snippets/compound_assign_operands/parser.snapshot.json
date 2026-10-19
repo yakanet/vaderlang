@@ -24,7 +24,7 @@
             "name": "i",
             "type": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "defaultValue": null,
             "variadic": false
@@ -32,7 +32,7 @@
         ],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "usize"
+          "name": "i64"
         },
         "body": {
           "kind": "BlockExpr",
@@ -233,7 +233,7 @@
         "traitArgs": [
           {
             "kind": "IdentExpr",
-            "name": "usize"
+            "name": "i64"
           },
           {
             "kind": "IdentExpr",
@@ -257,7 +257,7 @@
                 "name": "i",
                 "type": {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "i64"
                 },
                 "defaultValue": null,
                 "variadic": false
@@ -303,7 +303,7 @@
         "traitArgs": [
           {
             "kind": "IdentExpr",
-            "name": "usize"
+            "name": "i64"
           },
           {
             "kind": "IdentExpr",
@@ -327,7 +327,7 @@
                 "name": "i",
                 "type": {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "i64"
                 },
                 "defaultValue": null,
                 "variadic": false
@@ -395,7 +395,7 @@
                 "typeArgs": [
                   {
                     "kind": "IdentExpr",
-                    "name": "usize"
+                    "name": "i64"
                   },
                   {
                     "kind": "IdentExpr",
@@ -412,7 +412,7 @@
                 "typeArgs": [
                   {
                     "kind": "IdentExpr",
-                    "name": "usize"
+                    "name": "i64"
                   },
                   {
                     "kind": "IdentExpr",
@@ -438,7 +438,7 @@
             "name": "i",
             "type": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "defaultValue": null,
             "variadic": false
@@ -544,7 +544,7 @@
         "traitArgs": [
           {
             "kind": "IdentExpr",
-            "name": "usize"
+            "name": "i64"
           },
           {
             "kind": "IdentExpr",
@@ -568,7 +568,7 @@
                 "name": "i",
                 "type": {
                   "kind": "IdentExpr",
-                  "name": "usize"
+                  "name": "i64"
                 },
                 "defaultValue": null,
                 "variadic": false
@@ -2065,7 +2065,7 @@
               },
               "type": {
                 "kind": "IdentExpr",
-                "name": "usize"
+                "name": "i64"
               },
               "value": {
                 "kind": "IntLitExpr",

@@ -9,12 +9,12 @@ import "std/io"
 
 Offset :: i32[]
 
-Offset implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = i32(self.len()) * 100 + i32(i)
+Offset implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = i32(self.len()) * 100 + i32(i)
 }
 
-Offset implements IndexSet<usize, i32> {
-    set_at :: fn(self, i: usize, v: i32) {
+Offset implements IndexSet<i64, i32> {
+    set_at :: fn(self, i: i64, v: i32) {
         println("set_at ${i} ${v}")
     }
 }
@@ -25,14 +25,14 @@ Grid :: struct {
 
 Cells :: Grid
 
-Cells implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = i32(i) * 10
+Cells implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = i32(i) * 10
 }
 
 Log :: i32[]
 
-Log implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = -1
+Log implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = -1
 }
 
 main :: fn() -> i32 {

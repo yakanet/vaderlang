@@ -36,8 +36,8 @@
   expr 32:16    SeqLitExpr     :: i32[]
   expr 33:13    StringLitExpr  :: string
   expr 33:20    IdentExpr      :: i32
-  expr 33:31    CallExpr       :: usize
-  expr 33:31    FieldExpr      :: fn() -> usize
+  expr 33:31    CallExpr       :: i64
+  expr 33:31    FieldExpr      :: fn() -> i64
   expr 33:31    IdentExpr      :: i32[]
   expr 33:45    IdentExpr      :: i32[]
   expr 33:45    IndexExpr      :: i32

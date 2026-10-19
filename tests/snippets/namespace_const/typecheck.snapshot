@@ -5,12 +5,12 @@
   FnDecl         main                 :: fn() -> i32
   FnDecl         mk                   :: fn() -> Budget
   expr 20:24    StructLitExpr  :: Budget
-  expr 20:44    FieldExpr      :: usize
+  expr 20:44    FieldExpr      :: i64
   expr 20:68    FieldExpr      :: string
   expr 23:10    CallExpr       :: Budget
   expr 23:10    IdentExpr      :: fn() -> Budget
   expr 24:13    StringLitExpr  :: string
-  expr 24:24    FieldExpr      :: usize
+  expr 24:24    FieldExpr      :: i64
   expr 24:24    IdentExpr      :: Budget
   expr 24:43    FieldExpr      :: string
   expr 24:43    IdentExpr      :: Budget
@@ -18,11 +18,11 @@
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:12    CallExpr       :: i32
   expr 25:12    IdentExpr      :: type
-  expr 25:16    FieldExpr      :: usize
+  expr 25:16    FieldExpr      :: i64
 
 ## tests/snippets/namespace_const/config
   ConstDecl      GREETING             :: string
-  ConstDecl      MAX_RETRIES          :: usize
-  expr 6:23     CallExpr       :: usize
+  ConstDecl      MAX_RETRIES          :: i64
+  expr 6:23     CallExpr       :: i64
   expr 6:23     IdentExpr      :: type
   expr 7:20     StringLitExpr  :: string

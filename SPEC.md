@@ -498,11 +498,11 @@ To reduce typing in everyday code, the compiler recognises a set of **canonical 
 
 `char` and `string` are already first-class names in the primitive table, so they need no alias.
 
-`usize` is a **target-dependent** unsigned integer used for sizes and indexes. It maps to `size_t` in the C backend (typically 64-bit on modern hosts). The bytecode/VM bootstrap treats it as a 64-bit value. The WASM backend will choose the platform-native width when implemented (likely WASM64 only at first).
+`usize` is a **target-dependent** unsigned integer, the width of a pointer: what C calls `size_t`. It is the word a foreign function or structure takes where C has one, and the integer a `CPointer` is read as (§13). The bytecode/VM bootstrap treats it as a 64-bit value.
 
-`isize` is its **signed** counterpart — a target-dependent signed integer used for pointer differences and signed indexing. Maps to `ptrdiff_t` in the C backend and is 64-bit in the bytecode/VM bootstrap. Use `isize` when you need a signed offset (e.g. iterating backwards), `usize` when the value is a count or index that can't be negative.
+`isize` is its **signed** counterpart, C's `ptrdiff_t`, 64-bit in the bytecode/VM bootstrap.
 
-Array `len()` returns `usize`, and array indexing accepts `usize` (the runtime also accepts narrower integer types for ergonomic literals — `arr[2]` compiles, `arr.len() == 12` compiles, no explicit casts needed).
+A length, an index and a size are an `i64`, on every target: array and string `len()`, `byte_len()`, `@size_of(T)`. Array indexing accepts any integer type (`arr[2]`, `arr[i]` with `i: i32`, `arr.len() == 12` all compile with no conversion written); an index outside the array stops the run.
 
 These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
 
@@ -567,7 +567,7 @@ lowering boundary).
   - **array** (`Name :: T[]`) — index `n[i]`, the `.len()` / `.push()` / …
     builtins, `for x in n`, and `[…]` literal coercion. This lets an array
     newtype declare its own operators (`BigInt implements Mul<u32>`) without
-    colliding with the array blanket impls (`T[] implements Mul<usize>` repeat).
+    colliding with the array blanket impls (`T[] implements Mul<i64>` repeat).
   - **struct** (`Name :: Rgb`) — field access `c.r` and `Name { … }`
     construction forward to the backing struct's fields, while the newtype owns
     its own trait impls (`Color implements Add<Color, Color>`).
@@ -763,7 +763,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
 - `bytes()` returns the UTF-8 byte sequence as a `u8[]` **view**, for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is **zero-copy**, aliasing the string's interned bytes (it allocates only a small array header, not the byte storage). A view is frozen (§5, *Frozen values*): writing it, lending it to a function that modifies it, or keeping it in a field is rejected at compile time, which keeps it sound since the shared bytes are immutable; `.clone()` makes a copy to modify or keep. On the VM the array reads the interned bytes in place until a write copies them. `bytes()` is for handing the bytes to code that takes a `u8[]`; to read them, the string itself answers (`byte_len`, `byte_at`, `byte_slice`, below), with no view to allocate. Strings iterate by **codepoint** by default: `string implements Into<Iterator<char>>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); the byte loop is `for i in 0..<s.byte_len() { b :: s.byte_at(i) }`.
 - `is_empty()` — sugar for `s.byte_len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`); the key is a `usize` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<usize>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i) and `s[lo..<hi]` O(hi). In an ASCII string, where a codepoint index is a byte offset, both find their bytes without a walk. `for c in s` walks every codepoint in O(n). For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, usize]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<i64, char>` in `std/core`); the key is an `i64` or a free literal, as for any `Index` impl, and an index past the last codepoint stops the run. **Slicing** `s[lo..<hi]` (or `s[lo..=hi]`) returns the codepoints of the range as a string (via `string implements Index<Range<i64>, string>`): bounds past the end clamp to it, and a range that ends before it starts gives `""`. Both walk from the start: `s[i]` is O(i) and `s[lo..<hi]` O(hi). In an ASCII string, where a codepoint index is a byte offset, both find their bytes without a walk. `for c in s` walks every codepoint in O(n). For byte-cursor access, read the string in place: `s.byte_at(i) -> u8` for the raw byte, `s.byte_slice(lo, hi)` for the substring between two byte offsets, `s.codepoint_at_byte(i) -> [char, i64]` to decode the UTF-8 codepoint starting at byte offset `i` into the codepoint and the bytes it spans (lexers and regex parsers; `.0` keeps the codepoint alone). There is no `IndexSet` impl; strings are immutable.
 - **Malformed UTF-8.** Nothing validates the bytes a string is made from (`bytes_to_string`, `read_file_string`, a `byte_slice` that cuts a codepoint). Every codepoint walk decodes them one way, the substitution Unicode recommends and WHATWG decoders apply: a malformed run is one `U+FFFD` spanning the longest prefix of a well-formed sequence, and at least one byte. Overlong forms, surrogates and codepoints past U+10FFFF are malformed, and no `char` holds one, so what `utf8_encode` (behind `append_char` and a `char`'s `Display`) writes decodes back. So `s.len()` is the number of codepoints `for c in s` yields and the number of valid `s[i]`, on any bytes. The compiler reads source the same way (§Source encoding).
 - Literals stored in the binary's data section.
 
@@ -772,7 +772,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 - `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo<i32>[]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked: an index outside `0..<arr.len()` stops the run. The compiler may drop a check it proves can never fail.
-- **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and range values bound to a local work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
+- **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and range values bound to a local work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; its bounds are read as `i64`, a bound below 0 counting as 0 and one past the end as the end. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
 - Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
 #### Variance
@@ -808,7 +808,7 @@ LIMITS :: [10, 20, 30]              // same storage, inferred
 @singleton
 counts :: fn() -> i32[] = [0, 0, 0] // state: one instance, built on first call
 
-bump :: fn(i: usize) -> void { counts()[i] += 1 }   // persists across calls
+bump :: fn(i: i64) -> void { counts()[i] += 1 }   // persists across calls
 ```
 
 **Escape hatch**: `arr.clone()` produces a fresh array from any array. Modifying the copy never affects the original.
@@ -826,7 +826,7 @@ zeros := [0] * 3          // [0, 0, 0]
 pair  := [7, 9] * 2       // [7, 9, 7, 9]   (length = len(lhs) * n)
 ```
 
-Result length is `len(lhs) * n`; capacity is reserved for at least `max(len(lhs) * n, n)` elements. The empty-LHS form is the **preallocation** primitive (there is no named `with_capacity`):
+Result length is `len(lhs) * n`, a count below 0 counting as 0; capacity is reserved for at least `max(len(lhs) * n, n)` elements. The empty-LHS form is the **preallocation** primitive (there is no named `with_capacity`):
 
 ```vader
 buf: i32[] = [] * 1024    // length 0, capacity 1024 reserved
@@ -1416,7 +1416,7 @@ Local bindings come in four shapes that share a single `LetStmt` AST node; the s
 |-----------------------|------------|-------------|-------------------------------|
 | `name :: value`       | immutable  | inferred    | `pi :: 3.14`                  |
 | `name := value`       | mutable    | inferred    | `total := 0`                  |
-| `name: T: value`     | immutable  | typed       | `cap: usize: 1024`           |
+| `name: T: value`     | immutable  | typed       | `cap: i64: 1024`             |
 | `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
 
 The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator<T>`, see §4 *Type coercion via `Into`*).
@@ -1879,7 +1879,7 @@ Resolution rule for **ordering** (`< <= > >=`):
 
 **T3043** is the shared "operator's trait is not implemented" error — it names the missing trait (`Equals` for `==`/`!=`, `Comparable` for `< <= > >=`, `Contains` for `in`) so the fix is obvious. It is distinct from T3017, which stays for plain operand-type mismatches (e.g. `i32 && bool`, two integer types neither of which holds the other). (Arithmetic `+ - * / %` on a type without the matching `Add`/… impl still reports T3017 for now.)
 
-Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`. A type's **own** impl wins over the array it is backed by, trait by trait: a distinct `Offset :: i32[]` that implements `Index` reads through its `at`, one that also implements `IndexSet` writes through its `set_at`, and one with `Index` alone writes into its backing array, at the backing's element type. A distinct over a struct indexes only through its own impls; it does not inherit its struct's. A `Range` index on an array-backed distinct always slices the backing, and a write with neither an `IndexSet` nor an array to store into is `T3008`. A receiver that dispatches through the trait itself — a type parameter bounded by it, a value of the trait (`store: IndexSet<string, i32>`), a union of its implementors (`MutableMap<string, i32> | Log`) — reads and writes through `at` / `set_at` as its method form does. Outside an array, the key is of the trait's key type `K`, read or write, whatever the receiver (`m["nope"]` on a `MutableMap<i64, i32>` is `T3001`), and a free literal key takes it. A destructuring place (`[m["a"], m["b"]] = …`) is a write like `m["a"] = v`: it takes the `IndexSet` value type, never what the `Index` read hands back (`V | null` on a `MutableMap`).
+Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<i64, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`. A type's **own** impl wins over the array it is backed by, trait by trait: a distinct `Offset :: i32[]` that implements `Index` reads through its `at`, one that also implements `IndexSet` writes through its `set_at`, and one with `Index` alone writes into its backing array, at the backing's element type. A distinct over a struct indexes only through its own impls; it does not inherit its struct's. A `Range` index on an array-backed distinct always slices the backing, and a write with neither an `IndexSet` nor an array to store into is `T3008`. A receiver that dispatches through the trait itself — a type parameter bounded by it, a value of the trait (`store: IndexSet<string, i32>`), a union of its implementors (`MutableMap<string, i32> | Log`) — reads and writes through `at` / `set_at` as its method form does. Outside an array, the key is of the trait's key type `K`, read or write, whatever the receiver (`m["nope"]` on a `MutableMap<i64, i32>` is `T3001`), and a free literal key takes it. A destructuring place (`[m["a"], m["b"]] = …`) is a write like `m["a"] = v`: it takes the `IndexSet` value type, never what the `Index` read hands back (`V | null` on a `MutableMap`).
 
 ### Nullability
 
@@ -2242,7 +2242,7 @@ Two free functions with the same name **may coexist in the same module** when th
 
 ```vader
 size :: fn(self: Path) -> i32 { ... }
-size :: fn<K, V>(self: MutableMap<K, V>) -> usize { ... }
+size :: fn<K, V>(self: MutableMap<K, V>) -> i64 { ... }
 
 p.size()            // resolves to the Path version
 m.size()            // resolves to the MutableMap version
@@ -2970,7 +2970,7 @@ is `T3079`.
 
 ```vader
 @extern("read")
-sys_read :: fn(fd: i32, @c_out buf: u8[], count: usize) -> i64
+sys_read :: fn(fd: i32, @c_out buf: u8[], count: i64) -> i64
 ```
 
 Without `@c_out`, C only reads what it is lent: an array crosses as `const void*`,
@@ -3345,18 +3345,18 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> usize` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
-| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
+| `@size_of(T)` | `(T: type) -> i64` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@align_of(T)` | `(T: type) -> i64` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
 | `@min(T)`, `@max(T)` | `(T: type) -> T` | The least, the greatest value of the integer type `T`, a range, a primitive, or a type parameter bounded by `Int`; of an enum without variant data, its variant of the least, the greatest value; of `char`, U+0000 and U+10FFFF. | A literal of `T`, per instance for a type parameter. **T3110** for any other type (§Range types, *Bounds*). |
-| `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
-| `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
-| `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
+| `@field_count(T)` | `(T: type) -> i64` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
+| `@variant_count(T)` | `(T: type) -> i64` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
+| `@field_index(T, "name")` | `(T: type, name: string-literal) -> i64` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope, or has it built in (an enum's `Equals`). | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `<T: Trait>` bounds. |
 | `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root; escapes raise `C4011`. Missing file raises `C4006`. |
 | `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated at runtime** — only its static type is read at the call site. Useful as input to other reflection intrinsics (`@fields(@type_of(point))`). |
-| `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string`, `offset: usize`, `ty: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
+| `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string`, `offset: i64`, `ty: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
 | `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
 | `@field(x, "name")` | `(x: value, name: value) -> <field type>` | Dynamic field access by static-string-literal name. | `name` must be a static string literal (or a `f.name` access that folds to one inside `@comptime for f in @fields(T)`). Result type is the field's declared type, resolved per-call. |
 
@@ -3385,7 +3385,7 @@ Traits: `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`,
 
 Types: `Continuation`, `Range`, `Field` (reflection — see §14).
 
-Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Comparable` (via the `string.compare` op), `string implements Index<usize, char>` and `Index<Range<usize>, string>` (power `s[i]` and `s[lo..<hi]`), `Equals` on every primitive (floats, `bool` and `string` included), and `Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice). `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) The integer `Hash`, `Comparable` and `Step` impls and the two `Index` impls on `string` are written in Vader; the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Comparable` (via the `string.compare` op), `string implements Index<i64, char>` and `Index<Range<i64>, string>` (power `s[i]` and `s[lo..<hi]`), `Equals` on every primitive (floats, `bool` and `string` included), and `Hash`/`Comparable`/`Step` on the integer primitives + `char`. `T[] implements<T> Add<T[]>` concatenates — `a + b` is a fresh array holding `a`'s elements then `b`'s, neither operand touched — mirroring `string + string`; it is written in Vader over `push_all`, not an intrinsic, so it allocates once per application (a chain `a + b + c` allocates twice). `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) The integer `Hash`, `Comparable` and `Step` impls and the two `Index` impls on `string` are written in Vader; the rest are `@intrinsic` and bodies are host-provided.
 
 The `Contains<T>` trait powers the `in` / `!in` operators:
 
@@ -3408,7 +3408,7 @@ println    :: fn<T: Display>(msg: T) -> void
 eprint     :: fn<T: Display>(msg: T) -> void
 eprintln   :: fn<T: Display>(msg: T) -> void
 read_line  :: fn() -> string | Error
-read_stdin :: fn(n: usize) -> string | Error  // read up to n bytes from stdin
+read_stdin :: fn(n: i64) -> string | Error  // read up to n bytes from stdin
 read_file_string  :: fn(path: string) -> string | Error
 write_file_string :: fn(path: string, content: string) -> null | Error
 read_file_bytes   :: fn(path: string) -> u8[] | Error
@@ -3438,7 +3438,7 @@ is_empty    :: fn(s: string) -> bool                   // sugar for s.byte_len()
 contains    :: fn(s: string, sub: string) -> bool      // the `Contains<string>` impl (powers `sub in s`); pure Vader, not a host intrinsic
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
-matches_at  :: fn(s: string, offset: usize, sub: string) -> bool  // `sub` at byte `offset`
+matches_at  :: fn(s: string, offset: i64, sub: string) -> bool  // `sub` at byte `offset`
 split       :: fn(s: string, sep: string) -> string[]       // an empty `sep` gives one segment per codepoint
 trim        :: fn(s: string) -> string
 to_upper    :: fn(s: string) -> string
@@ -3450,37 +3450,36 @@ parse_int   :: fn(s: string) -> i32 | ParseError
 parse_float :: fn(s: string) -> f64 | ParseError     // pure-Vader, correctly rounded (std/core Eisel-Lemire)
 
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
-len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
+len              :: fn(s: string) -> i64                        // codepoint count, allocation-free
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator<char>
 
 // Byte access (raw UTF-8), read in place. `byte_len`, `byte_at`, `byte_slice`, `is_ascii`,
 // `codepoint_at_byte`, `bytes` and `bytes_to_string` live in the prelude (`std/core`).
-byte_len          :: fn(s: string) -> usize                         // byte length, O(1)
-byte_at           :: fn(s: string, i: usize) -> u8                  // the byte at `i`; traps past the end
-byte_slice        :: fn(s: string, start: usize, end: usize) -> string  // bytes `start..<end` as a string
+byte_len          :: fn(s: string) -> i64                           // byte length, O(1)
+byte_at           :: fn(s: string, i: i64) -> u8                    // the byte at `i`; traps past the end
+byte_slice        :: fn(s: string, start: i64, end: i64) -> string  // bytes `start..<end` as a string
 is_ascii          :: fn(s: string) -> bool                          // every byte below 0x80, no walk
-codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize]       // the codepoint at byte `i`, the bytes it spans
+codepoint_at_byte :: fn(s: string, i: i64) -> [char, i64]           // the codepoint at byte `i`, the bytes it spans
 bytes             :: fn(s: string) -> u8[]                          // UTF-8 bytes as an array
 bytes_to_string   :: fn(bs: u8[]) -> string                         // inverse of bytes()
 
-// Indexing helpers. `min_index` / `from` and the result use `isize` so the
-// `-1`-on-miss sentinel stays expressible without a `usize | null`.
-index_of      :: fn(s: string, c: char, from: usize) -> isize
-last_index_of :: fn(s: string, c: char, min_index: isize) -> isize
+// Indexing helpers. The result is `-1` on a miss.
+index_of      :: fn(s: string, c: char, from: i64) -> i64
+last_index_of :: fn(s: string, c: char, min_index: i64) -> i64
 
 // Ordering — case-sensitive and case-insensitive lexicographic comparators.
 compare_ascending    :: fn(a: string, b: string) -> bool
 compare_ascending_ci :: fn(a: string, b: string) -> bool
 
 // Format helpers (pure Vader).
-pad_start  :: fn(s: string, width: usize, fill: char) -> string
-pad_end    :: fn(s: string, width: usize, fill: char) -> string
+pad_start  :: fn(s: string, width: i64, fill: char) -> string
+pad_end    :: fn(s: string, width: i64, fill: char) -> string
 join       :: fn(parts: string[], sep: string) -> string
 left_trim  :: fn(s: string) -> string
 right_trim :: fn(s: string) -> string
 
 // The bytes a `char` takes once encoded.
-codepoint_byte_len :: fn(c: char) -> usize                      // 1..4, as `utf8_encode` writes it
+codepoint_byte_len :: fn(c: char) -> i64                        // 1..4, as `utf8_encode` writes it
 
 // UTF-16 surrogates, as code units: no `char` holds one (JSON `\uXXXX`).
 is_surrogate       :: fn(unit: u32) -> bool
@@ -3561,7 +3560,7 @@ land (post-MVP).
 // is the trait-operator triad below; `put` / `get` / `contains_key` are
 // internal helpers used by the impls.
 MutableMap<K: Hash & Equals, V>
-len      :: fn(self: MutableMap<K, V>) -> usize
+len      :: fn(self: MutableMap<K, V>) -> i64
 is_empty :: fn(self: MutableMap<K, V>) -> bool
 keys     :: fn(self: MutableMap<K, V>) -> K[]
 values   :: fn(self: MutableMap<K, V>) -> V[]
@@ -3573,7 +3572,7 @@ MutableSet<T: Hash & Equals>
 add      :: fn(self: MutableSet<T>, value: T) -> bool   // true if newly added
 remove   :: fn(self: MutableSet<T>, value: T) -> bool   // true if the value was present
 contains :: fn(self: MutableSet<T>, value: T) -> bool
-len      :: fn(self: MutableSet<T>) -> usize
+len      :: fn(self: MutableSet<T>) -> i64
 is_empty :: fn(self: MutableSet<T>) -> bool
 ```
 
@@ -3594,20 +3593,20 @@ semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
 ### `std/math`
 
 ```vader
-// Comparison + helpers — overloaded on `i32`, `usize`, and `f64`. A generic
+// Comparison + helpers — overloaded on `i32`, `i64`, and `f64`. A generic
 // `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP: the
 // body needs to default-init a slot of type `T` before threading it through
 // `compare`, which is gated on `Default<T>` / a `zero<T>()` intrinsic.
 min   :: fn(a: i32, b: i32) -> i32
-min   :: fn(a: usize, b: usize) -> usize
+min   :: fn(a: i64, b: i64) -> i64
 min   :: fn(a: f64, b: f64) -> f64
 max   :: fn(a: i32, b: i32) -> i32
-max   :: fn(a: usize, b: usize) -> usize
+max   :: fn(a: i64, b: i64) -> i64
 max   :: fn(a: f64, b: f64) -> f64
 abs   :: fn(x: i32) -> i32
 abs   :: fn(x: f64) -> f64
 clamp :: fn(x: i32, lo: i32, hi: i32) -> i32
-clamp :: fn(x: usize, lo: usize, hi: usize) -> usize
+clamp :: fn(x: i64, lo: i64, hi: i64) -> i64
 clamp :: fn(x: f64, lo: f64, hi: f64) -> f64
 lerp  :: fn(a: f64, b: f64, t: f64) -> f64        // a + (b - a) * clamp(t, 0.0, 1.0)
 
@@ -3649,14 +3648,14 @@ An implementation provides `next` and nothing else: everything that consumes an 
 ```vader
 map             :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U)    -> Iterator<U>
 filter          :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> Iterator<T>
-take            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
-skip            :: fn<T>(self: Iterator<T>, n: usize)            -> Iterator<T>
-indexed         :: fn<T>(self: Iterator<T>)                      -> Iterator<[T, usize]>
+take            :: fn<T>(self: Iterator<T>, n: i64)              -> Iterator<T>
+skip            :: fn<T>(self: Iterator<T>, n: i64)              -> Iterator<T>
+indexed         :: fn<T>(self: Iterator<T>)                      -> Iterator<[T, i64]>
 flat_map        :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U[])  -> Iterator<U>
 chain           :: fn<T>(self: Iterator<T>, other: Iterator<T>) -> Iterator<T>
 zip             :: fn<T, U>(self: T[], other: U[])                -> Iterator<[T, U]>
-window          :: fn<T>(self: T[], size: usize)                 -> Iterator<T[]>
-chunked         :: fn<T>(self: Iterator<T>, size: usize)         -> Iterator<T[]>
+window          :: fn<T>(self: T[], size: i64)                   -> Iterator<T[]>
+chunked         :: fn<T>(self: Iterator<T>, size: i64)           -> Iterator<T[]>
 distinct        :: fn<T: Hash & Equals>(self: Iterator<T>)       -> Iterator<T>
 filter_not_null :: fn<T>(self: Iterator<T | null>)               -> Iterator<T>
 ```
@@ -3811,7 +3810,7 @@ JsonNull   :: struct {}
 JsonArray  :: struct { items: JsonValue[] }
 JsonObject :: struct { entries: MutableMap<string, JsonValue> }
 
-JsonError  :: struct { msg: string, pos: usize }   // implements Error
+JsonError  :: struct { msg: string, pos: i64 }   // implements Error
 
 parse            :: fn(input: string)                -> JsonValue | JsonError
 stringify        :: fn(v: JsonValue)                  -> string

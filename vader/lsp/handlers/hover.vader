@@ -163,7 +163,7 @@ format_param_payload :: fn(payload: string) -> string {
     if n == 0 { return payload }
     space: u8: ' '
     tab:   u8: '\t'
-    i: usize = 0
+    i: i64 = 0
     for i < n {
         b :: payload.byte_at(i)
         if b == space || b == tab { break }

@@ -18,6 +18,6 @@ fn 0 snippet$main () -> i32
   array.push 1   ; i32
   local.get 0   ; arr
   array.len
-  usize.to_i32
+  i64.to_i32
   return
 end

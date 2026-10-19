@@ -4,131 +4,131 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       arr: i32[] = [10, 20, 30, 40, 50] :i32[]
       __tup_0: i32[] = arr
-      first: i32 = __tup_0[usize(0)]
+      first: i32 = __tup_0[i64(0)]
       rest: i32[] = [] :i32[]
-      __i_1: usize = 1
+      __i_1: i64 = 1
       for __i_1 < @array.len(__tup_0) {
           @array.push_cached(rest, __tup_0[__i_1])
-          __i_1 = __i_1 +% usize(1)
+          __i_1 = __i_1 +% i64(1)
       }
       std.io.println<string>({
-          __buf_2: Buffer = std.core.new_byte_buffer(usize(56))
-          __off_3: usize = 0
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(56))
+          __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "first=")
           __off_3 = std.core.write_int(__buf_2, __off_3, i64(first))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " rest.len=")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(@array.len(rest)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(rest))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       {
           __for_arr_4: i32[] = rest
-          __for_len_5: usize = @array.len(__for_arr_4)
-          __for_i_6: usize = 0
+          __for_len_5: i64 = @array.len(__for_arr_4)
+          __for_i_6: i64 = 0
           for __for_i_6 < __for_len_5 {
               x: i32 = __for_arr_4[__for_i_6]
               std.io.println<string>({
-                  __buf_7: Buffer = std.core.new_byte_buffer(usize(22))
-                  __off_8: usize = 0
+                  __buf_7: Buffer = std.core.new_byte_buffer(i64(22))
+                  __off_8: i64 = 0
                   __off_8 = std.core.write_string_at(__buf_7, __off_8, "  ")
                   __off_8 = std.core.write_int(__buf_7, __off_8, i64(x))
                   std.core.finish_buffer(__buf_7, __off_8)
               } :string)
           } @step {
-              __for_i_6 = __for_i_6 +% usize(1)
+              __for_i_6 = __for_i_6 +% i64(1)
           }
       }
       __tup_9: i32[] = arr
-      a: i32 = __tup_9[usize(0)]
-      b: i32 = __tup_9[usize(1)]
+      a: i32 = __tup_9[i64(0)]
+      b: i32 = __tup_9[i64(1)]
       tail: i32[] = [] :i32[]
-      __i_10: usize = 2
+      __i_10: i64 = 2
       for __i_10 < @array.len(__tup_9) {
           @array.push_cached(tail, __tup_9[__i_10])
-          __i_10 = __i_10 +% usize(1)
+          __i_10 = __i_10 +% i64(1)
       }
       std.io.println<string>({
-          __buf_11: Buffer = std.core.new_byte_buffer(usize(75))
-          __off_12: usize = 0
+          __buf_11: Buffer = std.core.new_byte_buffer(i64(75))
+          __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "a=")
           __off_12 = std.core.write_int(__buf_11, __off_12, i64(a))
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " b=")
           __off_12 = std.core.write_int(__buf_11, __off_12, i64(b))
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " tail.len=")
-          __off_12 = std.core.write_unsigned(__buf_11, __off_12, u64(@array.len(tail)))
+          __off_12 = std.core.write_int(__buf_11, __off_12, @array.len(tail))
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       __tup_13: i32[] = arr
       short: i32[] = [] :i32[]
-      __i_14: usize = 3
+      __i_14: i64 = 3
       for __i_14 < @array.len(__tup_13) {
           @array.push_cached(short, __tup_13[__i_14])
-          __i_14 = __i_14 +% usize(1)
+          __i_14 = __i_14 +% i64(1)
       }
       std.io.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(usize(30))
-          __off_16: usize = 0
+          __buf_15: Buffer = std.core.new_byte_buffer(i64(30))
+          __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "short.len=")
-          __off_16 = std.core.write_unsigned(__buf_15, __off_16, u64(@array.len(short)))
+          __off_16 = std.core.write_int(__buf_15, __off_16, @array.len(short))
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       {
           __for_arr_17: i32[] = short
-          __for_len_18: usize = @array.len(__for_arr_17)
-          __for_i_19: usize = 0
+          __for_len_18: i64 = @array.len(__for_arr_17)
+          __for_i_19: i64 = 0
           for __for_i_19 < __for_len_18 {
               x: i32 = __for_arr_17[__for_i_19]
               std.io.println<string>({
-                  __buf_20: Buffer = std.core.new_byte_buffer(usize(22))
-                  __off_21: usize = 0
+                  __buf_20: Buffer = std.core.new_byte_buffer(i64(22))
+                  __off_21: i64 = 0
                   __off_21 = std.core.write_string_at(__buf_20, __off_21, "  ")
                   __off_21 = std.core.write_int(__buf_20, __off_21, i64(x))
                   std.core.finish_buffer(__buf_20, __off_21)
               } :string)
           } @step {
-              __for_i_19 = __for_i_19 +% usize(1)
+              __for_i_19 = __for_i_19 +% i64(1)
           }
       }
       __tup_22: i32[] = arr
-      c_first: i32 = __tup_22[usize(0)]
+      c_first: i32 = __tup_22[i64(0)]
       c_rest: i32[] = [] :i32[]
-      __i_23: usize = 1
+      __i_23: i64 = 1
       for __i_23 < @array.len(__tup_22) {
           @array.push_cached(c_rest, __tup_22[__i_23])
-          __i_23 = __i_23 +% usize(1)
+          __i_23 = __i_23 +% i64(1)
       }
       std.io.println<string>({
-          __buf_24: Buffer = std.core.new_byte_buffer(usize(60))
-          __off_25: usize = 0
+          __buf_24: Buffer = std.core.new_byte_buffer(i64(60))
+          __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "c_first=")
           __off_25 = std.core.write_int(__buf_24, __off_25, i64(c_first))
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " c_rest.len=")
-          __off_25 = std.core.write_unsigned(__buf_24, __off_25, u64(@array.len(c_rest)))
+          __off_25 = std.core.write_int(__buf_24, __off_25, @array.len(c_rest))
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
       __tup_26: i32[] = [99] :i32[]
-      only: i32 = __tup_26[usize(0)]
+      only: i32 = __tup_26[i64(0)]
       empty: i32[] = [] :i32[]
-      __i_27: usize = 1
+      __i_27: i64 = 1
       for __i_27 < @array.len(__tup_26) {
           @array.push_cached(empty, __tup_26[__i_27])
-          __i_27 = __i_27 +% usize(1)
+          __i_27 = __i_27 +% i64(1)
       }
       std.io.println<string>({
-          __buf_28: Buffer = std.core.new_byte_buffer(usize(56))
-          __off_29: usize = 0
+          __buf_28: Buffer = std.core.new_byte_buffer(i64(56))
+          __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "only=")
           __off_29 = std.core.write_int(__buf_28, __off_29, i64(only))
           __off_29 = std.core.write_string_at(__buf_28, __off_29, " empty.len=")
-          __off_29 = std.core.write_unsigned(__buf_28, __off_29, u64(@array.len(empty)))
+          __off_29 = std.core.write_int(__buf_28, __off_29, @array.len(empty))
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
-      c0: usize = std.core.byte_len(p0)
-      c1: usize = c0 +% std.core.byte_len(p1)
-      buf: Buffer = std.core.usize.new_buffer(c1)
-      std.core.Buffer.write_string(buf, usize(0), p0)
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(usize(c1))
+      std.core.Buffer.write_string(buf, i64(0), p0)
       std.core.Buffer.write_string(buf, c0, p1)
       std.core.Buffer.intern_string(buf, c1)
   }
@@ -140,16 +140,16 @@
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
-    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
-    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
     fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
     fn std.core.three_way  // std_core$three_way
-    fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
-    fn std.core.usize.step  // std_core$usize$Step$step
     fn std.core.write_bool  // std_core$write_bool
     fn std.core.write_int  // std_core$write_int
     fn std.core.write_string_at  // std_core$write_string_at
@@ -157,7 +157,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
-    struct std.core.Range<usize>  // std_core$Range__usize
+    struct std.core.Range<i64>  // std_core$Range__i64
   std/io
     fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write

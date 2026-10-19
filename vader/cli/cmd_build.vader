@@ -383,9 +383,9 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     rt_src :: "${rt}/vader_runtime.c"
     argvs.push(cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir))
 
-    wave :: if cc_jobs > 0 { usize(cc_jobs) } else { argvs.len() }
+    wave :: if cc_jobs > 0 { i64(cc_jobs) } else { argvs.len() }
     results: (ProcessResult | ProcessError)[]: []
-    start: usize = 0
+    start: i64 = 0
     for start < argvs.len() {
         stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
         tasks: Async<ProcessResult | ProcessError>[]: []

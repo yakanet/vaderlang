@@ -3,7 +3,7 @@
 ## tests/snippets/extern_lend_sliced_array
   FnDecl         churn                :: fn(i32) -> void
   FnDecl         main                 :: fn() -> i32
-  FnDecl         slice_fill           :: fn(i32[], usize) -> void
+  FnDecl         slice_fill           :: fn(i32[], i64) -> void
   FnDecl         slice_set_cb         :: fn(fn(i32) -> void) -> void
   expr 19:5     CallExpr       :: void
   expr 19:5     IdentExpr      :: fn() -> void
@@ -16,7 +16,7 @@
   expr 28:5     IdentExpr      :: fn(fn(i32) -> void) -> void
   expr 29:16    IdentExpr      :: i32[]
   expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(i32[], usize) -> void
+  expr 29:5     IdentExpr      :: fn(i32[], i64) -> void
   expr 30:13    StringLitExpr  :: string
   expr 30:22    IdentExpr      :: i32[]
   expr 30:22    IndexExpr      :: i32
@@ -34,7 +34,7 @@
   expr 33:16    RangeExpr      :: Range<i32>
   expr 34:16    IdentExpr      :: i32[]
   expr 34:5     CallExpr       :: void
-  expr 34:5     IdentExpr      :: fn(i32[], usize) -> void
+  expr 34:5     IdentExpr      :: fn(i32[], i64) -> void
   expr 35:13    StringLitExpr  :: string
   expr 35:21    IdentExpr      :: i32[]
   expr 35:21    IndexExpr      :: i32

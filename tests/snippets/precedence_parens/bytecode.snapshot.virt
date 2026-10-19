@@ -60,8 +60,8 @@ end
 
 fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   local.get 0   ; arg 0
   local.tee 2   ; __for_arr_0
   array.len
@@ -71,7 +71,7 @@ fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   loop $L0 void
     local.get 4   ; __for_i_2
     local.get 3   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2

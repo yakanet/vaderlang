@@ -283,10 +283,10 @@ export read_struct_field :: fn(v: Value, field_index: i32, at_pc: i32, label: st
     if !(v is StructVal) {
         return read_struct(v, at_pc, "${label} receiver")
     }
-    if field_index < 0 || usize(field_index) >= v.fields.len() {
+    if field_index < 0 || i64(field_index) >= v.fields.len() {
         return Trap { .message = "${label} field ${field_index} out of range (struct has ${v.fields.len()} fields) at pc=${at_pc}" }
     }
-    return v.fields[usize(field_index)]
+    return v.fields[field_index]
 }
 
 /// Unwrap an `ArrayVal` from a `Value`. Used by the array-op arms
@@ -378,8 +378,8 @@ HeapVal :: StructVal | ArrayVal | FnVal | ErrorVal | TypeVal | ObjVal
 /// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
 /// Returns `false` for `BcFn` (placeholder until ref/trait dispatch lands).
 export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
-    if type_id < 0 || usize(type_id) >= state.bc.types.len() { return false }
-    type_decl :: state.bc.types[usize(type_id)]
+    if type_id < 0 || i64(type_id) >= state.bc.types.len() { return false }
+    type_decl :: state.bc.types[type_id]
     return match type_decl {
         is bc.BcPrimitive -> primitive_matches(v, type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value → false.
@@ -500,7 +500,7 @@ lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 
     if row < 0 {
         return -1
     }
-    for entry in vtables[usize(row)].entries {
+    for entry in vtables[row].entries {
         if entry.receiver_type_index == type_id {
             return entry.fn_index
         }
@@ -658,8 +658,8 @@ export StructVal :: struct {
 export ArrayVal :: struct {
     type_id:  i32
     elements: Value[]
-    offset:   usize
-    length:   usize
+    offset:   i64
+    length:   i64
     /// The string whose bytes a `u8[]` reads in place of `elements`, never
     /// copied, or null. A write or a push owns them first (`own_bytes`);
     /// `offset` and `length` index into its bytes as into `elements`.
@@ -667,7 +667,7 @@ export ArrayVal :: struct {
 }
 
 /// Slot `at` of `a`'s backing, `offset` included.
-export element_at :: fn(a: ArrayVal, at: usize) -> Value {
+export element_at :: fn(a: ArrayVal, at: i64) -> Value {
     raw :: a.raw
     if raw != null {
         return I32Val(i32(raw.byte_at(at)))

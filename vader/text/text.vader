@@ -53,9 +53,9 @@ export code_span :: fn(text: string) -> string {
     return "${fence}${text}${fence}"
 }
 
-longest_backtick_run :: fn(text: string) -> usize {
-    longest: usize = 0
-    run: usize = 0
+longest_backtick_run :: fn(text: string) -> i64 {
+    longest: i64 = 0
+    run: i64 = 0
     for i in 0..<text.byte_len() {
         if text.byte_at(i) == '`' {
             run += 1

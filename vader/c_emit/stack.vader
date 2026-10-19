@@ -337,9 +337,9 @@ drop_top :: fn(s: FnState) -> void {
 slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
     params :: function.signature.params
     if slot < i32(params.len()) {
-        return params[usize(slot)]
+        return params[slot]
     }
-    return function.locals[usize(slot) - params.len()].val
+    return function.locals[i64(slot) - params.len()].val
 }
 
 // ---- materialisation ------------------------------------------------------

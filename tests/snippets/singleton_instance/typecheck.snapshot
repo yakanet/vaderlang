@@ -61,9 +61,9 @@
   expr 55:16    CallExpr       :: Counter
   expr 55:16    FieldExpr      :: i32
   expr 55:16    IdentExpr      :: fn() -> Counter
+  expr 55:31    CallExpr       :: i64
   expr 55:31    CallExpr       :: string[]
-  expr 55:31    CallExpr       :: usize
-  expr 55:31    FieldExpr      :: fn() -> usize
+  expr 55:31    FieldExpr      :: fn() -> i64
   expr 55:31    IdentExpr      :: fn() -> string[]
   expr 55:46    CallExpr       :: string[]
   expr 55:46    IdentExpr      :: fn() -> string[]

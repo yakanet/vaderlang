@@ -10,7 +10,7 @@ module "snippet"
 
 import "std/io"
 
-slot :: fn(i: usize) -> usize {
+slot :: fn(i: i64) -> i64 {
     println("index ${i}")
     return i
 }
@@ -37,18 +37,18 @@ Cell :: struct {
     slots: i32[]
 }
 
-Cell implements Index<usize, i32> {
-    at :: fn(self, i: usize) -> i32 = self.slots[i]
+Cell implements Index<i64, i32> {
+    at :: fn(self, i: i64) -> i32 = self.slots[i]
 }
 
-Cell implements IndexSet<usize, i32> {
-    set_at :: fn(self, i: usize, v: i32) {
+Cell implements IndexSet<i64, i32> {
+    set_at :: fn(self, i: i64, v: i32) {
         self.slots[i] = v
     }
 }
 
 // The same write through a type-param bound : a virtual `at` then `set_at`.
-bump_nth :: fn<C: Index<usize, i32> & IndexSet<usize, i32>>(c: C, i: usize) {
+bump_nth :: fn<C: Index<i64, i32> & IndexSet<i64, i32>>(c: C, i: i64) {
     c[slot(i)] += 100
 }
 
@@ -57,8 +57,8 @@ Shelf :: struct {
     items: Counter[]
 }
 
-Shelf implements Index<usize, Counter> {
-    at :: fn(self, i: usize) -> Counter {
+Shelf implements Index<i64, Counter> {
+    at :: fn(self, i: i64) -> Counter {
         println("at ${i}")
         return self.items[i]
     }
@@ -112,7 +112,7 @@ main :: fn() -> i32 {
 
     // The rhs rebinds the index through a closure : the write still lands on the
     // element the read came from.
-    k: usize = 0
+    k: i64 = 0
     move_k :: () -> {
         k = 2
         1

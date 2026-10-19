@@ -42,8 +42,8 @@ main :: fn() -> i32 {
     corpus :: build_corpus(vocabulary)
     counts :: MutableMap<string, i32> {}
     for token_index in 0..<TOKEN_COUNT {
-        start :: usize(token_index) * usize(WORD_LENGTH + 1)
-        token :: corpus[start..<start + usize(WORD_LENGTH)].bytes_to_string()
+        start :: i64(token_index) * i64(WORD_LENGTH + 1)
+        token :: corpus[start..<start + i64(WORD_LENGTH)].bytes_to_string()
         seen :: counts[token]
         counts[token] = if seen == null { 1 } else { seen + 1 }
     }
@@ -89,7 +89,7 @@ build_corpus :: fn(vocabulary: u8[][]) -> u8[] {
     out: u8[]: []
     for token_index in 0..<TOKEN_COUNT {
         word_index :: i32(i64(token_index) * VOCABULARY_STRIDE % i64(VOCABULARY_SIZE))
-        out.push_all(vocabulary[usize(word_index)])
+        out.push_all(vocabulary[word_index])
         out.push(' ')
     }
     return out

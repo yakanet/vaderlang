@@ -192,7 +192,7 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 // `import_may_collect` holds `intrinsic_may_collect` per import.
 op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
     is vm.StructNew -> !op.stack
-    is vm.CallImport -> import_may_collect[usize(op.index)]
+    is vm.CallImport -> import_may_collect[op.index]
     is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
     is vm.GlobalGet | vm.GlobalSet -> false
     is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.UnionFieldGet | vm.UnionFieldSet | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
@@ -678,7 +678,7 @@ const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> CExpression = match c {
     is vm.BoolConst   -> verbatim(if c.value { "true" } else { "false" })
     is vm.CharConst   -> verbatim("${u32(c.value)}u")
     is vm.NullConst   -> verbatim("vader_box_obj(${ctx.null_tag}u, NULL)")
-    is vm.StringConst -> verbatim("${ctx.atom_ids[usize(c.index)]}u")
+    is vm.StringConst -> verbatim("${ctx.atom_ids[c.index]}u")
 }
 
 /// C literal for an f64 value. A `.0` suffix is appended when the rendered
@@ -1195,18 +1195,18 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
 // One for anything this does not recognise: the caller only uses it to decide
 // whether a lookahead optimisation is safe, and "one" is the shape every call
 // had before multi-value.
-callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> usize {
+callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> i64 {
     if op is vm.Call {
-        if usize(op.function_index) >= ctx.module.functions.len() {
+        if i64(op.function_index) !in 0..<ctx.module.functions.len() {
             return 1
         }
-        return bc_result_arity(ctx.module.functions[usize(op.function_index)].signature)
+        return bc_result_arity(ctx.module.functions[op.function_index].signature)
     }
     if op is vm.CallImport {
-        if usize(op.index) >= ctx.module.imports.len() {
+        if i64(op.index) !in 0..<ctx.module.imports.len() {
             return 1
         }
-        return bc_result_arity(ctx.module.imports[usize(op.index)].signature)
+        return bc_result_arity(ctx.module.imports[op.index].signature)
     }
     return 1
 }
@@ -1304,7 +1304,7 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
 /// / definition do (`sanitise(name)`, see `signature_for`), and delegates
 /// to the shared `emit_call_to`.
 emit_call :: fn(s: FnState, op: vm.Call) -> void {
-    callee :: s.ctx.module.functions[usize(op.function_index)]
+    callee :: s.ctx.module.functions[op.function_index]
     emit_call_to(s, sanitise(callee.name), callee.signature)
 }
 
@@ -1312,7 +1312,7 @@ emit_call :: fn(s: FnState, op: vm.Call) -> void {
 /// shim (see `host.vader`). Reuses the shared `emit_call_to` with
 /// the import's signature.
 emit_call_import :: fn(s: FnState, op: vm.CallImport) -> void {
-    imp :: s.ctx.module.imports[usize(op.index)]
+    imp :: s.ctx.module.imports[op.index]
     emit_call_to(s, host_shim_name(imp), imp.signature)
 }
 
@@ -1325,11 +1325,11 @@ emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
     n :: i32(sig.params.len())
     // Top-of-stack is the last argument, so pop into `args` back-to-front :
     // pop #k lands in slot `n-1-k`, restoring source order.
-    args: CExpression[]: [verbatim("")] * usize(n)
+    args: CExpression[]: [verbatim("")] * i64(n)
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
-        args[usize(slot)] = coerced_as(s, v, sig.params[usize(slot)])
+        args[slot] = coerced_as(s, v, sig.params[slot])
     }
     if bc_result_arity(sig) > 1 {
         emit_multi_call(s, callee_name, args, sig)
@@ -1394,11 +1394,11 @@ emit_call_result :: fn(s: FnState, call: CExpression, result: ValType) -> void {
 /// slot `count-1-k`. Shared by the erased-call sites (`call.indirect` args,
 /// `virtual.call` tail).
 pop_args_boxed :: fn(s: FnState, count: i32) -> CExpression[] {
-    args: CExpression[]: [verbatim("")] * usize(count)
+    args: CExpression[]: [verbatim("")] * i64(count)
     for k in 0..<count {
         v :: pop(s)
         slot :: count - 1 - k
-        args[usize(slot)] = coerced_as(s, v, .Any)
+        args[slot] = coerced_as(s, v, .Any)
     }
     return args
 }
@@ -1415,10 +1415,10 @@ pop_args_boxed :: fn(s: FnState, count: i32) -> CExpression[] {
 /// @param index  the function's index in it.
 /// @return       the sanitised mangled name.
 fn_symbol_name :: fn(fns: BcFunction[], index: i32) -> string {
-    if index < 0 || usize(index) >= fns.len() {
+    if index < 0 || i64(index) >= fns.len() {
         panic("c_emit: op names function ${index}, which the module table does not hold")
     }
-    return sanitise(fns[usize(index)].name)
+    return sanitise(fns[index].name)
 }
 
 /// `fn.ref` — box a pointer to the fn's static trampoline value. The
@@ -1495,7 +1495,7 @@ emit_make_closure :: fn(s: FnState, op: vm.MakeClosure) -> void {
 /// coerce it back to the static return class for direct readers.
 emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
     types :: s.ctx.module.types
-    t :: types[usize(op.type_id)]
+    t :: types[op.type_id]
     if t is BcFn {
         // `fn_val` is on top — pop it before the args.
         fn_val :: pop(s)
@@ -1506,7 +1506,7 @@ emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
         call_args: CExpression[]: [verbatim("${fn_obj}->env")]
         call_args.push_all(args)
         erased :: call("((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)", call_args)
-        ret_val :: val_type_of_bc_type(types[usize(t.return_type)])
+        ret_val :: val_type_of_bc_type(types[t.return_type])
         if ret_val == .Void {
             evaluate(s, erased)
             return
@@ -1608,10 +1608,10 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     for f in fns {
         for op in f.body {
             if op is vm.FnRef {
-                fn_ref_type[usize(op.function_index)] = op.type_id
+                fn_ref_type[op.function_index] = op.type_id
                 any = true
             } else if op is vm.MakeClosure {
-                is_closure[usize(op.function_index)] = true
+                is_closure[op.function_index] = true
                 any = true
             }
         }
@@ -1660,7 +1660,7 @@ emit_closure_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// Emit the `fn.ref` trampoline (drops env, unboxes args to the fn's concrete
 /// sig, boxes the result) + the static `vader_fn_t` value pointing at it.
 emit_fn_ref_tramp :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32, type_id: i32) -> void {
-    fn_decl :: ctx.module.functions[usize(fn_index)]
+    fn_decl :: ctx.module.functions[fn_index]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
     body :: CBlock {
@@ -1684,7 +1684,7 @@ emit_fn_ref_tramp :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32, type_id
 /// boxed, re-boxes env into the `vader_box_t` the lifted fn's first param
 /// expects, unboxes the tail to the concrete sig, boxes the result.
 emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void {
-    fn_decl :: ctx.module.functions[usize(fn_index)]
+    fn_decl :: ctx.module.functions[fn_index]
     cname :: sanitise(fn_decl.name)
     sig :: fn_decl.signature
     if sig.params.len() == 0 {
@@ -1707,7 +1707,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, items: CTopLevel[], fn_index: i32) -> void
 /// @param ctx    the emit context, for the storage.
 /// @param name   the wrapper's C name.
 /// @param count  the boxed slots after `env`.
-erased_wrapper_signature :: fn(ctx: EmitCtx, name: string, count: usize) -> CSignature =
+erased_wrapper_signature :: fn(ctx: EmitCtx, name: string, count: i64) -> CSignature =
     CSignature {
         .storage = wrapper_storage(ctx.split),
         .result = "vader_box_t",
@@ -1798,7 +1798,7 @@ emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
     v :: pop(s)
     val :: val_of(v)
     if is_ref_val(val) {
-        target :: s.ctx.module.types[usize(op.type_id)]
+        target :: s.ctx.module.types[op.type_id]
         if target is BcUnion {
             // `x is (A | B)` — a boxed value never carries a union's own tag, so
             // OR the per-variant checks (mirrors the VM's `union_matches`). This
@@ -1820,7 +1820,7 @@ emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
 // The C bool expr for `<value> is <single type_id>`, over the value's tag : a trait ref expands to a
 // disjunction over its implementers, anything else is a plain tag compare.
 one_variant_check :: fn(s: FnState, tag_expr: CExpression, type_id: i32) -> CExpression {
-    target :: s.ctx.module.types[usize(type_id)]
+    target :: s.ctx.module.types[type_id]
     if target is BcRef {
         if target.trait_name != "" {
             return trait_check_expr(s.ctx, tag_expr, target.trait_name, type_id)
@@ -1905,17 +1905,17 @@ emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void =
 /// value whose ValType differs from the field's is reconciled by
 /// `coerce_expr` (B1 nullable-ref fields are T12).
 emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
-    t :: s.ctx.module.types[usize(op.type_id)]
+    t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
-        cname :: s.ctx.struct_c_names[usize(op.type_id)]
+        cname :: s.ctx.struct_c_names[op.type_id]
         n :: i32(t.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
-        field_vals: CExpression[]: [verbatim("")] * usize(n)
+        field_vals: CExpression[]: [verbatim("")] * i64(n)
         for k in 0..<n {
             v :: pop(s)
             fi :: n - 1 - k
-            f :: t.fields[usize(fi)]
-            field_vals[usize(fi)] = coerced_as(s, v, val_type_of_field(s.ctx.module.types, f.type_index))
+            f :: t.fields[fi]
+            field_vals[fi] = coerced_as(s, v, val_type_of_field(s.ctx.module.types, f.type_index))
         }
         // Storage : a C local for the escape-proven stack variant, a GC heap
         // block otherwise. The popped field values live in ref temps that
@@ -1951,8 +1951,8 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
         }
         init_object_header(s, obj, op.type_id)
         for i in 0..<n {
-            f :: t.fields[usize(i)]
-            assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[usize(i)])
+            f :: t.fields[i]
+            assign(s, verbatim("${obj}->${field_c_name(f.name)}"), field_vals[i])
         }
         push_object(s, verbatim(obj))
     } else {
@@ -1962,7 +1962,7 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
         // an index past the end, or an entry of the wrong shape — need different
         // investigations. This message once cost a day for want of naming which.
         types :: s.ctx.module.types
-        found :: if usize(op.type_id) >= types.len() {
+        found :: if i64(op.type_id) !in 0..<types.len() {
             "index past the end of a ${types.len()}-entry table"
         } else {
             "the entry is `${bc_type_key(types, op.type_id)}` in a ${types.len()}-entry table"
@@ -2002,10 +2002,10 @@ push_struct_field :: fn(
     recv_val: ValType,
 ) -> void {
     types :: s.ctx.module.types
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcStruct {
-        cname :: s.ctx.struct_c_names[usize(type_index)]
-        f :: t.fields[usize(field_index)]
+        cname :: s.ctx.struct_c_names[type_index]
+        f :: t.fields[field_index]
         fval :: val_type_of_field(types, f.type_index)
         // T12: a `.Ref` receiver is a raw `void*` ; an `.Any` receiver is a box
         // (erased element / downcast) whose object is in `.payload.obj`.
@@ -2053,12 +2053,12 @@ push_struct_field :: fn(
 /// arity, and each field identical or erased on one side — an open `ref` in the
 /// sibling, or an open `ref` here where the sibling holds a reference. Covers
 /// the all-`Any` form (`zip` erases every field → `[Any, Any]`), partial erasure
-/// (`indexed` keeps the concrete `usize` index, erases only the element →
-/// `[Any, usize]`), and the concrete layout an erased consumer receives from a
+/// (`indexed` keeps the concrete `i64` index, erases only the element →
+/// `[Any, i64]`), and the concrete layout an erased consumer receives from a
 /// concrete producer.
 find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
     out: i32[]: []
-    et :: types[usize(struct_idx)]
+    et :: types[struct_idx]
     if et is BcStruct {
         // Anonymous tuples carry no source symbol — they group by the reserved
         // `__Tuple` name marker ; named generics group by a shared `symbol_id`.
@@ -2094,10 +2094,10 @@ fields_are_layout_siblings :: fn(types: BcType[], expected: BcStruct, cand: BcSt
             continue
         }
         differs = true
-        if types[usize(cf)] is BcRef {
+        if types[cf] is BcRef {
             continue
         }
-        if types[usize(ef)] is BcRef && val_type_of_field(types, cf) == .Ref {
+        if types[ef] is BcRef && val_type_of_field(types, cf) == .Ref {
             continue
         }
         return false
@@ -2117,10 +2117,10 @@ erased_sibling_field_read :: fn(
     recv: CExpression,
 ) -> CExpression {
     types :: s.ctx.module.types
-    st :: types[usize(sib_idx)]
+    st :: types[sib_idx]
     if st is BcStruct {
-        sib_cname :: s.ctx.struct_c_names[usize(sib_idx)]
-        sf :: st.fields[usize(field_index)]
+        sib_cname :: s.ctx.struct_c_names[sib_idx]
+        sf :: st.fields[field_index]
         sf_val :: val_type_of_field(types, sf.type_index)
         raw :: field_of(sib_cname, recv, sf.name)
         // Reconcile the sibling field's storage class to the concrete field's via
@@ -2167,12 +2167,12 @@ field_may_hold_reference :: fn(types: BcType[], type_index: i32) -> bool {
 }
 
 emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
-    t :: s.ctx.module.types[usize(op.type_id)]
+    t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
-        cname :: s.ctx.struct_c_names[usize(op.type_id)]
+        cname :: s.ctx.struct_c_names[op.type_id]
         value :: pop(s)
         obj :: pop(s)
-        f :: t.fields[usize(op.field_index)]
+        f :: t.fields[op.field_index]
         // T12: `.Ref` receiver is a raw `void*` ; `.Any` is a box → `.payload.obj`.
         obj_ptr :: object_pointer_of(obj)
         place :: field_of(cname, obj_ptr, f.name)
@@ -2244,14 +2244,14 @@ union_field_place :: fn(
     types :: s.ctx.module.types
     layout :: union_layout_struct(types, type_id)
         ?? panic("c_emit: a union field access on type ${type_id}, no union of structs")
-    t :: types[usize(layout)]
+    t :: types[layout]
     if t !is BcStruct {
         panic("c_emit: the layout of union ${type_id} is no struct")
     }
-    f :: t.fields[usize(field_index)]
+    f :: t.fields[field_index]
     place :: call("VADER_UNION_FIELD", [
-        verbatim(c_type_for(types[usize(f.type_index)])),
-        verbatim(s.ctx.struct_c_names[usize(layout)]),
+        verbatim(c_type_for(types[f.type_index])),
+        verbatim(s.ctx.struct_c_names[layout]),
         verbatim(field_c_name(f.name)),
         pointer,
     ])
@@ -2264,7 +2264,7 @@ union_field_place :: fn(
 /// to pin a field's type).
 emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
     v :: pop(s)
-    target_val :: val_type_of_bc_type(s.ctx.module.types[usize(op.type_id)])
+    target_val :: val_type_of_bc_type(s.ctx.module.types[op.type_id])
     // A ref.cast is a representation-preserving reinterpret, so it must honour the
     // T12 boundary: widening a concrete `.Ref` (raw `void*`) into an erased `.Any`
     // slot boxes it (`vader_ref_box`), narrowing `.Any → .Ref` unboxes, same-class
@@ -2337,6 +2337,9 @@ buffer_pointer :: fn(v: StackVal) -> CExpression = cast("vader_buffer_t*", objec
 
 // `(size_t) v`.
 as_size :: fn(value: StackVal) -> CExpression = cast("size_t", expression_of(value))
+
+// `(int64_t) v` : a count, an offset or a slice bound the array runtime clamps at 0.
+as_count :: fn(value: StackVal) -> CExpression = cast("int64_t", expression_of(value))
 
 emit_buffer_load :: fn(s: FnState, helper: string, result: ValType) -> void {
     off :: pop(s)
@@ -2623,7 +2626,7 @@ emit_global_set :: fn(s: FnState, op: vm.GlobalSet) -> void {
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind :: array_kind_of(types[usize(elem_tag)], types)
+    kind :: array_kind_of(types[elem_tag], types)
     kind_idx :: array_kind_index(kind)
     n :: op.length
     arr_buf :: aux(s, "arr")
@@ -2686,7 +2689,7 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     arr :: pop(s)
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    elem :: types[usize(elem_tag)]
+    elem :: types[elem_tag]
     kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
@@ -2729,7 +2732,7 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     arr :: pop(s)
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    elem :: types[usize(elem_tag)]
+    elem :: types[elem_tag]
     kind :: array_kind_of(elem, types)
     fill :: typed_array_fill_for(kind)
     a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
@@ -2788,7 +2791,7 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     arr :: pop(s)
     types :: s.ctx.module.types
     obj :: object_pointer_of(arr)
-    kind :: array_kind_of(types[usize(op.type_id)], types)
+    kind :: array_kind_of(types[op.type_id], types)
     // `push_cache_tag` proved this push's loop can keep the array's state in
     // locals, and the enclosing `Loop` opener declared them. See
     // `push_cache_emit.vader`.
@@ -2847,7 +2850,7 @@ emit_array_slice :: fn(s: FnState, op: vm.ArraySlice) -> void {
         arr_buf,
         call(
             "vader_array_slice",
-            [array_pointer(object_pointer_of(arr)), as_size(lo), as_size(hi)],
+            [array_pointer(object_pointer_of(arr)), as_count(lo), as_count(hi)],
         ),
     )
     push_object(s, verbatim(arr_buf))
@@ -2866,7 +2869,7 @@ emit_array_repeat :: fn(s: FnState) -> void {
         s,
         "vader_array_t*",
         arr_buf,
-        call("vader_array_repeat", [array_pointer(object_pointer_of(src)), as_size(n)]),
+        call("vader_array_repeat", [array_pointer(object_pointer_of(src)), as_count(n)]),
     )
     push_object(s, verbatim(arr_buf))
 }
@@ -2900,10 +2903,10 @@ emit_array_copy :: fn(s: FnState) -> void {
             "vader_array_copy",
             [
                 array_pointer(object_pointer_of(src)),
-                as_size(src_start),
+                as_count(src_start),
                 array_pointer(object_pointer_of(dst)),
-                as_size(dst_start),
-                as_size(len),
+                as_count(dst_start),
+                as_count(len),
             ],
         ),
     )
@@ -2931,7 +2934,7 @@ emit_array_clear :: fn(s: FnState) -> void {
 /// or `type_index` itself when it isn't an array (defensive — the lowerer
 /// only emits these ops on array types).
 array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
-    t :: types[usize(type_index)]
+    t :: types[type_index]
     if t is BcArray {
         return t.element
     }

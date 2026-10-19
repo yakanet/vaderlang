@@ -177,7 +177,7 @@ lower_project_impl :: fn(
     // All four queues are append-only (the three arrays) / add-only (the mangle
     // set), so their combined length strictly increases until the joint fixpoint
     // settles — loop until the total stops growing.
-    prev_total: usize = 0
+    prev_total: i64 = 0
     draining := true
     for draining {
         drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)

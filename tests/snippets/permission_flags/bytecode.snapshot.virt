@@ -4,18 +4,18 @@ type 1 primitive i32
 type 2 primitive string
 type 3 primitive bool
 type 4 primitive u8
-type 5 primitive usize
+type 5 primitive i64
 type 6 struct std_core$Buffer {  }
 type 7 primitive u64
 type 8 array 4
-type 9 primitive void
-type 10 primitive isize
+type 9 primitive usize
+type 10 primitive void
 string 0 "true"
 string 1 "false"
 string 2 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
+import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=8 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=1,8,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,8,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 6 std_core$ByteAccess
 export main 0
 
@@ -23,7 +23,7 @@ fn 0 snippet$main () -> i32
   local r u32
   local w u32
   local __buf_0 ref
-  local __off_1 usize
+  local __off_1 i64
   local $cast_12 u64
   local $gt_38 bool
   local __buf_12 ref
@@ -188,8 +188,8 @@ fn 0 snippet$main () -> i32
 end
 
 fn 1 concat_2 (string,string) -> string
-  local c0 usize
-  local $call_4 usize
+  local c0 i64
+  local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
   call.import 0   ; std_core$byte_len
@@ -201,6 +201,7 @@ fn 1 concat_2 (string,string) -> string
   local.get 3   ; $call_4
   i64.add
   local.tee 3   ; $call_4
+  i64.to_i64
   buffer.new
   local.tee 4   ; buf
   i64.const 0
@@ -216,21 +217,22 @@ fn 1 concat_2 (string,string) -> string
   return
 end
 
-fn 2 std_core$new_byte_buffer (usize) -> ref
+fn 2 std_core$new_byte_buffer (i64) -> ref
   local.get 0   ; arg 0
+  i64.to_i64
   buffer.new
   return
 end
 
-fn 3 std_core$finish_buffer (ref,usize) -> string
+fn 3 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_string_at (ref,usize,string) -> usize
-  local $call_3 usize
+fn 4 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
@@ -240,14 +242,14 @@ fn 4 std_core$write_string_at (ref,usize,string) -> usize
   local.set 3   ; $call_3
   local.get 1   ; arg 1
   local.get 3   ; $call_3
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
-  local ndigits usize
+fn 5 std_core$write_unsigned (ref,i64,u64) -> i64
+  local ndigits i64
   local m u64
-  local i usize
+  local i i64
   local $cast_26 u8
   local $add_checked_27 u8
   local.get 2   ; arg 2
@@ -260,7 +262,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     store_u8
     local.get 1   ; arg 1
     i64.const 1
-    usize.checked_add
+    i64.checked_add
     return
   end $L0
   i64.const 0
@@ -274,7 +276,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L2 void
       local.get 3   ; ndigits
       i64.const 1
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; ndigits
       local.get 4   ; m
       i64.const 10
@@ -285,7 +287,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L1
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  usize.checked_add
+  i64.checked_add
   local.set 5   ; i
   loop $L3 void
     local.get 2   ; arg 2
@@ -294,7 +296,7 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
     if $L4 void
       local.get 5   ; i
       i64.const 1
-      usize.checked_sub
+      i64.checked_sub
       local.set 5   ; i
       local.get 2   ; arg 2
       i64.const 10
@@ -320,11 +322,11 @@ fn 5 std_core$write_unsigned (ref,usize,u64) -> usize
   end $L3
   local.get 1   ; arg 1
   local.get 3   ; ndigits
-  usize.checked_add
+  i64.checked_add
   return
 end
 
-fn 6 std_core$write_bool (ref,usize,bool) -> usize
+fn 6 std_core$write_bool (ref,i64,bool) -> i64
   local.get 2   ; arg 2
   if $L0 void
   else
@@ -343,8 +345,8 @@ end
 
 fn 7 std_core$[]$Contains$contains__u8 (ref,u8) -> bool
   local __for_arr_0 ref
-  local __for_len_1 usize
-  local __for_i_2 usize
+  local __for_len_1 i64
+  local __for_i_2 i64
   local.get 0   ; arg 0
   local.tee 2   ; __for_arr_0
   array.len
@@ -354,7 +356,7 @@ fn 7 std_core$[]$Contains$contains__u8 (ref,u8) -> bool
   loop $L0 void
     local.get 4   ; __for_i_2
     local.get 3   ; __for_len_1
-    u64.lt
+    i64.lt
     if $L1 void
       local.get 2   ; __for_arr_0
       local.get 4   ; __for_i_2
@@ -377,13 +379,13 @@ end
 
 fn 8 std_io$write (u8,string) -> void
   local buf ref
-  local sent usize
-  local $len_6 usize
-  local $len_8 usize
+  local sent i64
+  local $len_6 i64
+  local $len_8 i64
   local chunk ref
-  local $len_11 usize
+  local $len_11 i64
   local n i32
-  local $cast_16 usize
+  local $cast_16 i64
   local.get 1   ; arg 1
   call.import 1   ; std_core$bytes
   local.set 2   ; buf
@@ -395,7 +397,7 @@ fn 8 std_io$write (u8,string) -> void
     local.set 4   ; $len_6
     local.get 3   ; sent
     local.get 4   ; $len_6
-    u64.ge
+    i64.ge
     if $L1 void
     else
       local.get 2   ; buf
@@ -423,7 +425,7 @@ fn 8 std_io$write (u8,string) -> void
       local.set 9   ; $cast_16
       local.get 3   ; sent
       local.get 9   ; $cast_16
-      usize.checked_add
+      i64.checked_add
       local.set 3   ; sent
       br $L0
     end $L1
@@ -431,7 +433,7 @@ fn 8 std_io$write (u8,string) -> void
   return
 end
 
-fn 9 std_io$write_bytes (u8,ref,usize) -> i32
+fn 9 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -440,14 +442,14 @@ fn 9 std_io$write_bytes (u8,ref,usize) -> i32
     local.get 1   ; arg 1
     local.get 2   ; arg 2
     call.import 2   ; system_posix$sys_write
-    isize.to_i32
+    i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
   call.import 2   ; system_posix$sys_write
-  isize.to_i32
+  i64.to_i32
   return
 end
 

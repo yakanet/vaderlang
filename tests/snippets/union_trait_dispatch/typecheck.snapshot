@@ -81,8 +81,8 @@
   expr 139:5    IdentExpr      :: fn(Log | MutableMap<string, i32>) -> void
   expr 139:9    IdentExpr      :: Log
   expr 140:13   StringLitExpr  :: string
-  expr 140:16   CallExpr       :: usize
-  expr 140:16   FieldExpr      :: fn() -> usize
+  expr 140:16   CallExpr       :: i64
+  expr 140:16   FieldExpr      :: fn() -> i64
   expr 140:16   IdentExpr      :: MutableMap<string, i32>
   expr 140:27   FieldExpr      :: string[]
   expr 140:27   IdentExpr      :: Log

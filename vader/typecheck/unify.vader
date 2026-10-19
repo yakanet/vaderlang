@@ -237,7 +237,7 @@ export union_leftovers :: fn(pattern: Type[], actual: Type[]) -> UnionLeftover[]
     for pv in pattern {
         idx :: find_unused_equal(actual, used, pv)
         if idx >= 0 {
-            used[usize(idx)] = true
+            used[idx] = true
         } else if type_contains_type_param(pv) {
             left_pattern.push(pv)
         }

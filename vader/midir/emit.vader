@@ -65,7 +65,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
     import_count :: i32(ctx.imports.len())
     i: i32 = 0
     for i < import_count {
-        imp :: ctx.imports[usize(i)]
+        imp :: ctx.imports[i]
         import_index :: i
         i += 1
         if imp.is_extern { continue }
@@ -128,7 +128,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
         cached :: ctx.type_key[key]
         idx := i32(ctx.types.len())
         if cached is i32 {
-            if ctx.types[usize(cached)] is BcStruct { return }
+            if ctx.types[cached] is BcStruct { return }
             idx = cached
         } else {
             ctx.type_key[key] = idx
@@ -144,7 +144,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
             type_index :: intern_type(f.type, ctx)
             fields.push(BcField { .name = f.name, .type_index = type_index })
         }
-        ctx.types[usize(idx)] = BcStruct {
+        ctx.types[idx] = BcStruct {
             .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
         }
         return
@@ -160,7 +160,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
         type_index :: intern_type(f.type, ctx)
         fields.push(BcField { .name = f.name, .type_index = type_index })
     }
-    ctx.types[usize(new_index)] = BcStruct {
+    ctx.types[new_index] = BcStruct {
         .name = s.mangled, .fields = fields, .c_name = c_struct_of(s.origin), .symbol_id = sym_id,
     }
     ctx.type_key[s.mangled] = new_index
@@ -390,7 +390,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // (`const` + `set` gone, `get` → `const`), so the body length
             // strictly decreases until nothing more inlines — loop on that
             // instead of a fixed unroll count.
-            prev_len: usize = ctx.functions[i].body.len() + 1
+            prev_len: i64 = ctx.functions[i].body.len() + 1
             for ctx.functions[i].body.len() < prev_len {
                 prev_len = ctx.functions[i].body.len()
                 ctx.functions[i] = propagate_const_single_use(ctx.functions[i])
@@ -513,7 +513,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
             if op is VirtualCall { used_keys[op.vtable_key] = true }
         }
     }
-    rows_by_key :: MutableMap<string, usize> {}
+    rows_by_key :: MutableMap<string, i64> {}
     out: VtableRow[]: []
     // An enum or a distinct boxes under its representation's tag, so its entry
     // shares that type's slot : listed last, it only fills a slot the
@@ -542,7 +542,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         // "vtable miss in std/core.Display.to_string".
         receiver_idx :: receiver_slot
         existing :: rows_by_key[key]
-        if existing is usize {
+        if existing is i64 {
             if has_receiver(out[existing], receiver_idx) {
                 continue
             }
@@ -583,8 +583,8 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
         existing :: ctx.type_key[key_str]
         if existing !is i32 { continue }
         type_index :: existing
-        if usize(type_index) < ctx.types.len() {
-            if ctx.types[usize(type_index)] !is BcStruct { continue }
+        if i64(type_index) in 0..<ctx.types.len() {
+            if ctx.types[type_index] !is BcStruct { continue }
         }
         key :: "${type_index}|${entry.trait_name}"
         if seen[key] is bool { continue }
@@ -709,7 +709,7 @@ collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
 /// next consumer.
 
 emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[], want_debug: bool) -> void {
-    slot :: ctx.functions[usize(fn_idx)]
+    slot :: ctx.functions[fn_idx]
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
     // per-call emit appends to it directly (no per-op map lookup).
@@ -746,8 +746,8 @@ emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, 
         .want_debug = want_debug,
     }
     structure_function(fn_ctx)
-    ctx.functions[usize(fn_idx)] = with_peephole_out(
-        ctx.functions[usize(fn_idx)], drop_unbranched_blocks(ctx.functions[usize(fn_idx)]),
+    ctx.functions[fn_idx] = with_peephole_out(
+        ctx.functions[fn_idx], drop_unbranched_blocks(ctx.functions[fn_idx]),
     )
 }
 
@@ -765,7 +765,7 @@ cf_loop :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     pc :: push_op_with_span(ctx, Loop {}, span)
     ctx.scopes.push(ScopeFrame { .kind = "loop", .target_blk = target_blk, .opener_pc = pc })
     // Loop target = body start (opener_pc + 1) — known immediately.
-    ctx.slot.jump_table[usize(pc)] = pc + 1
+    ctx.slot.jump_table[pc] = pc + 1
 }
 
 cf_if :: fn(ctx: FnEmitCfg, span: Span) -> void {
@@ -784,7 +784,7 @@ cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
     top :: ctx.scopes[sp - 1]
     // The `if` opener jumps past the matching `else` op when its cond
     // is false ; the matching `end` will set the else opener's target.
-    ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
+    ctx.slot.jump_table[top.opener_pc] = pc + 1
     // Repurpose the same entry as an "else scope".
     ctx.scopes[sp - 1] = ScopeFrame { .kind = "if", .target_blk = top.target_blk, .opener_pc = pc }
 }
@@ -804,8 +804,8 @@ cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
     // fall through via the opener — their `table[opener]` already
     // points at the body start.
     if top.kind != "loop" {
-        if ctx.slot.jump_table[usize(top.opener_pc)] < 0 {
-            ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
+        if ctx.slot.jump_table[top.opener_pc] < 0 {
+            ctx.slot.jump_table[top.opener_pc] = pc + 1
         }
     }
     // Drain any pending branches whose target matches this scope.
@@ -855,7 +855,7 @@ cf_br_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
 defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> void {
     for s in ctx.scopes {
         if s.kind == "loop" && s.target_blk == target_blk {
-            ctx.slot.jump_table[usize(pc)] = s.opener_pc + 1
+            ctx.slot.jump_table[pc] = s.opener_pc + 1
             return
         }
     }
@@ -867,7 +867,7 @@ drain_pending :: fn(ctx: FnEmitCfg, target_blk: BlockId, is_loop: bool, opener_p
     kept: PendingBranch[]: []
     for entry in ctx.pending {
         if entry.target_blk == target_blk {
-            ctx.slot.jump_table[usize(entry.branch_pc)] = resolved_pc
+            ctx.slot.jump_table[entry.branch_pc] = resolved_pc
         } else {
             kept.push(entry)
         }
@@ -900,7 +900,7 @@ push_op_with_span :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> i32 {
 
 // Tag a scalar returned into a union result (see `emit_retag_into`) : an
 // expression-bodied fn and a block tail hand their value back with no Move.
-emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: usize, span: Span) -> void {
+emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: i64, span: Span) -> void {
     // A scalarised return hands back each value under ITS OWN declared type, so
     // that is what decides whether it needs a retag. Judging by `return_type`
     // there would see the composite and retag every concrete element into a slot
@@ -916,8 +916,8 @@ emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: usize, span: Span
 // True when `m` is where a scalar is tagged entering a union : the producer of
 // its source is typed as the scalar, so it must not write the union slot itself.
 move_retags :: fn(locals: CFGLocal[], m: InstrMove) -> bool =
-    is_union_slot(locals[usize(m.dst)].type)
-        && is_scalar_class(val_type_of_type(locals[usize(m.src)].type))
+    is_union_slot(locals[i64(m.dst)].type)
+        && is_scalar_class(val_type_of_type(locals[i64(m.src)].type))
 
 // Tag `value`, just pushed, when it enters a union slot. A scalar names its own
 // type there, which its class cannot — a `u8` constant is an `i32.const`, an enum
@@ -928,7 +928,7 @@ emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, union_slot: bool, span: Sp
     if !union_slot {
         return
     }
-    t :: ctx.fn_.locals[usize(value)].type
+    t :: ctx.fn_.locals[i64(value)].type
     if is_scalar_class(val_type_of_type(t)) {
         push_emit(ctx, Retag { .type_id = intern_type(t, ctx.project) }, span)
     }
@@ -966,14 +966,14 @@ union_slots_of :: fn(types: Type[]) -> bool[] = types.map((t) -> is_union_slot(t
 
 // The type-table row `type_index` is a union.
 is_union_row :: fn(ctx: EmitterCtx, type_index: i32) -> bool =
-    ctx.types[usize(type_index)] is BcUnion
+    ctx.types[type_index] is BcUnion
 
 union_params_of :: fn(ctx: EmitterCtx, sig: BcSignature) -> bool[] =
     sig.param_types.map((i) -> is_union_row(ctx, i)).collect()
 
 // Which of a `BcStruct` row's fields are union slots, in order ; none for another row.
 union_fields_of :: fn(ctx: EmitterCtx, type_index: i32) -> bool[] {
-    t :: ctx.types[usize(type_index)]
+    t :: ctx.types[type_index]
     if t is BcStruct {
         return t.fields.map((f) -> is_union_row(ctx, f.type_index)).collect()
     }
@@ -981,8 +981,8 @@ union_fields_of :: fn(ctx: EmitterCtx, type_index: i32) -> bool[] {
 }
 
 // Field `index` of the row `type_index` is a union slot.
-union_field :: fn(ctx: EmitterCtx, type_index: i32, index: usize) -> bool {
-    t :: ctx.types[usize(type_index)]
+union_field :: fn(ctx: EmitterCtx, type_index: i32, index: i64) -> bool {
+    t :: ctx.types[type_index]
     return t is BcStruct && is_union_row(ctx, t.fields[index].type_index)
 }
 
@@ -1024,13 +1024,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrMove {
         emit_first_get(ctx, pos, ins.src, ins.span)
-        emit_retag_into(ctx, ins.src, is_union_slot(ctx.fn_.locals[usize(ins.dst)].type), ins.span)
+        emit_retag_into(ctx, ins.src, is_union_slot(ctx.fn_.locals[i64(ins.dst)].type), ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
     if ins is InstrBinOp {
-        lhs_type :: ctx.fn_.locals[usize(ins.lhs)].type
-        rhs_type :: ctx.fn_.locals[usize(ins.rhs)].type
+        lhs_type :: ctx.fn_.locals[i64(ins.lhs)].type
+        rhs_type :: ctx.fn_.locals[i64(ins.rhs)].type
         tag_lhs :: compares_boxes(ins.op, rhs_type)
         emit_first_get(ctx, pos, ins.lhs, ins.span)
         emit_retag_into(ctx, ins.lhs, tag_lhs, ins.span)
@@ -1056,10 +1056,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // alive even after the call's function is DCE'd.
         pins :: ctx.pinned_types_bucket
         for a in ins.args {
-            pins.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
+            pins.push(intern_type(ctx.fn_.locals[i64(a)].type, ctx.project))
         }
         for cdst in ins.dsts {
-            pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
+            pins.push(intern_type(ctx.fn_.locals[i64(cdst)].type, ctx.project))
         }
         target :: resolve_direct_call(ctx, ins)
         union_params :: union_params_of(ctx.project, target.signature)
@@ -1070,7 +1070,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrUnOp {
         emit_first_get(ctx, pos, ins.operand, ins.span)
-        operand_val :: val_type_of_type(ctx.fn_.locals[usize(ins.operand)].type)
+        operand_val :: val_type_of_type(ctx.fn_.locals[i64(ins.operand)].type)
         push_emit(ctx, unary_op_for(ins.op, operand_val), ins.span)
         if unary_leaves_width(ins.op, operand_val) {
             emit_narrowing(ctx, operand_val, ins.span)
@@ -1129,7 +1129,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFieldGet {
-        target_local :: ctx.fn_.locals[usize(ins.target)]
+        target_local :: ctx.fn_.locals[i64(ins.target)]
         target_type :: target_local.type
         type_index :: intern_type(target_type, ctx.project)
         // Remember whether the scheduler elided our receiver get BEFORE
@@ -1172,7 +1172,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrFieldSet {
-        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         field_slot :: find_struct_field_index(ctx.project, type_index, ins.field)
         if field_slot == null {
@@ -1189,7 +1189,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrUnionFieldGet {
-        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         layout :: union_layout_struct(ctx.project.types, type_index)
             ?? panic(no_common_field(ctx, ins.field, target_type))
@@ -1205,7 +1205,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrUnionFieldSet {
-        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         layout :: union_layout_struct(ctx.project.types, type_index)
             ?? panic(no_common_field(ctx, ins.field, target_type))
@@ -1219,7 +1219,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrArrayGet {
-        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.index, ins.span)
@@ -1241,7 +1241,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrArraySet {
-        target_type :: ctx.fn_.locals[usize(ins.target)].type
+        target_type :: ctx.fn_.locals[i64(ins.target)].type
         type_index :: intern_type(target_type, ctx.project)
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.index, ins.span)
@@ -1266,8 +1266,8 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrArrayPush {
         value_type :: pushed_element_type(
-            ctx.fn_.locals[usize(ins.target)].type,
-            ctx.fn_.locals[usize(ins.value)].type,
+            ctx.fn_.locals[i64(ins.target)].type,
+            ctx.fn_.locals[i64(ins.value)].type,
         )
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
@@ -1275,7 +1275,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // Resolve the array's local to its bytecode slot only when the lift was
         // proven safe — that slot IS the hint the backend needs, and it cannot be
         // filled earlier: slots are assigned here, not in `lower`.
-        cache_slot :: if ins.cached { ctx.local_to_slot[usize(ins.target)] } else { -1 }
+        cache_slot :: if ins.cached { ctx.local_to_slot[i64(ins.target)] } else { -1 }
         push_emit(ctx, ArrayPush { .type_id = intern_type(value_type, ctx.project), .cache_slot = cache_slot }, ins.span)
         return
     }
@@ -1336,7 +1336,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrCast {
         emit_first_get(ctx, pos, ins.value, ins.span)
-        from_type :: ctx.fn_.locals[usize(ins.value)].type
+        from_type :: ctx.fn_.locals[i64(ins.value)].type
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(ins.type)
         if is_union_slot(ins.type) && is_scalar_class(from_val) {
@@ -1574,7 +1574,7 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     if fn_index != null {
         return DirectCallTarget {
             .op = Call { .function_index = fn_index },
-            .signature = p.functions[usize(fn_index)].signature,
+            .signature = p.functions[fn_index].signature,
         }
     }
     if import_index is i32 {
@@ -1587,7 +1587,7 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
 // that has one, which the native build binds no host for — the choice
 // `build_intrinsic_wrapper_body` makes for a vtable target.
 import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
-    imp :: p.imports[usize(index)]
+    imp :: p.imports[index]
     intrinsic :: if imp.is_extern { null } else { intrinsic_op_for_mangled(imp.mangled_name) }
     return DirectCallTarget {
         .op = intrinsic ?? CallImport { .index = index },
@@ -1603,8 +1603,8 @@ import_call_target :: fn(p: EmitterCtx, index: i32) -> DirectCallTarget {
 /// first-class value).
 ///
 /// @return the field's slot index, or `null` when no such struct field exists.
-find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: string) -> usize | null {
-    t :: ctx.types[usize(type_index)]
+find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: string) -> i64 | null {
+    t :: ctx.types[type_index]
     if t is BcStruct {
         for i in 0..<t.fields.len() {
             if t.fields[i].name == field_name { return i }
@@ -1641,14 +1641,14 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
         // wrapped in a `-`) truncated to i32 and the following `i64.neg` then
 
         // Translate CFG string index → bytecode pool index.
-        pool_idx :: ctx.string_index_map[usize(v.index)]
+        pool_idx :: ctx.string_index_map[v.index]
         push_emit(ctx, StringConst { .index = pool_idx }, c.span)
     }
     emit_result(ctx, pos, c.dst, c.span)
 }
 
 emit_get :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
-    slot :: ctx.local_to_slot[usize(local_id)]
+    slot :: ctx.local_to_slot[i64(local_id)]
     push_emit(ctx, LocalGet { .slot = slot }, span)
 }
 
@@ -1732,7 +1732,7 @@ try_fuse_local_field :: fn(ctx: FnEmitCfg, type_id: i32, field_index: i32) -> bo
 }
 
 emit_set :: fn(ctx: FnEmitCfg, local_id: LocalId, span: Span) -> void {
-    slot :: ctx.local_to_slot[usize(local_id)]
+    slot :: ctx.local_to_slot[i64(local_id)]
     push_emit(ctx, LocalSet { .slot = slot }, span)
 }
 

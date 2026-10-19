@@ -13,7 +13,7 @@ import "std/io"
 C :: import "snippet/config"
 
 Budget :: struct {
-    retries: usize
+    retries: i64
     label:   string
 }
 

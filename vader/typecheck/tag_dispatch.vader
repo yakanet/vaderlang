@@ -227,7 +227,7 @@ NO_TYPES: Type[]: []
 
 // The argument at `i` every variant's instance agrees on : one type, or each
 // variant itself, which the union reads as `Self`.
-shared_argument :: fn(variants: Type[], per_variant: Type[][], i: usize) -> Type | null {
+shared_argument :: fn(variants: Type[], per_variant: Type[][], i: i64) -> Type | null {
     first :: per_variant[0][i]
     same := true
     itself := true

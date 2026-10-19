@@ -483,7 +483,7 @@
             ],
             "returnType": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "body": null,
             "decorators": []
@@ -539,7 +539,7 @@
             ],
             "returnType": {
               "kind": "IdentExpr",
-              "name": "usize"
+              "name": "i64"
             },
             "body": {
               "kind": "BlockExpr",
@@ -615,7 +615,7 @@
         ],
         "returnType": {
           "kind": "IdentExpr",
-          "name": "usize"
+          "name": "i64"
         },
         "body": {
           "kind": "BlockExpr",

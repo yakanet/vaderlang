@@ -97,7 +97,7 @@ export BcSignature :: struct {
 ///
 /// @param sig  the signature.
 /// @param j    the parameter index.
-export param_is_c_out :: fn(sig: BcSignature, j: usize) -> bool =
+export param_is_c_out :: fn(sig: BcSignature, j: i64) -> bool =
     j < sig.param_c_out.len() && sig.param_c_out[j]
 
 /// Whether parameter `j` of `sig` carries `@c_pointer`: the foreign callee
@@ -105,7 +105,7 @@ export param_is_c_out :: fn(sig: BcSignature, j: usize) -> bool =
 ///
 /// @param sig  the signature.
 /// @param j    the parameter index.
-export param_is_by_address :: fn(sig: BcSignature, j: usize) -> bool =
+export param_is_by_address :: fn(sig: BcSignature, j: i64) -> bool =
     j < sig.param_by_address.len() && sig.param_by_address[j]
 
 /// The single `ValType` a signature leaves on the stack, `Void` when it leaves
@@ -144,7 +144,7 @@ export bc_single_result_type :: fn(sig: BcSignature) -> i32 {
 /// Zero for a void return: the representation spells that as a single
 /// `ValType.Void` entry rather than the empty arrays, so
 /// asking `results.len()` directly would count one value where none is pushed.
-export bc_result_arity :: fn(sig: BcSignature) -> usize =
+export bc_result_arity :: fn(sig: BcSignature) -> i64 =
     if sig.results.len() == 1 && sig.results[0] == .Void { 0 } else { sig.results.len() }
 
 /// One declared local — name + stack-erased `ValType`. The C-emit
@@ -283,8 +283,8 @@ export data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
     for f in module.functions {
         for op in f.body {
             if op is DataConst {
-                if op.pool_index >= 0 && usize(op.pool_index) < out.len() {
-                    out[usize(op.pool_index)] = op.type_id
+                if op.pool_index >= 0 && i64(op.pool_index) < out.len() {
+                    out[op.pool_index] = op.type_id
                 }
             }
         }

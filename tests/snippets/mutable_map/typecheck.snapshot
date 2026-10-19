@@ -5,8 +5,8 @@
   expr 10:5     IdentExpr      :: MutableMap<i32, i32>
   expr 11:5     IdentExpr      :: MutableMap<i32, i32>
   expr 12:13    StringLitExpr  :: string
-  expr 12:23    CallExpr       :: usize
-  expr 12:23    FieldExpr      :: fn() -> usize
+  expr 12:23    CallExpr       :: i64
+  expr 12:23    FieldExpr      :: fn() -> i64
   expr 12:23    IdentExpr      :: MutableMap<i32, i32>
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(T) -> void

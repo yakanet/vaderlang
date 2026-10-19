@@ -218,7 +218,7 @@ make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
 collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     text :: c.text
     n :: text.byte_len()
-    i: usize = 0
+    i: i64 = 0
     line :: c.line - 1   // 0-based
     // Each fragment's absolute byte offset is `c.offset + <index into text>` ;
     // `reencode_columns` later turns the offsets into columns in the negotiated
@@ -253,7 +253,7 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
         i = tag_end
         if tag_name == "param" {
             // Skip whitespace then capture an identifier.
-            j: usize = i
+            j: i64 = i
             for j < n && (text.byte_at(j) == ' ' || text.byte_at(j) == '\t') {
                 j = j + 1
             }
@@ -274,7 +274,7 @@ collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
     }
 }
 
-scan_ident_end :: fn(text: string, start: usize) -> usize {
+scan_ident_end :: fn(text: string, start: i64) -> i64 {
     n :: text.byte_len()
     j := start
     for j < n && is_ident_byte(text.byte_at(j)) {
@@ -449,7 +449,7 @@ token_at :: fn(toks: RawToken[], line: i32, col: i32, length: i32, tok_type: i32
 // foreground is missing a semantic-token → attributes mapping.
 @test
 test_call_sites_are_tagged_function :: fn() -> void {
-    src :: "main :: fn() -> void {\n    out.push(1)\n    mk_primitive(\"usize\")\n}\n"
+    src :: "main :: fn() -> void {\n    out.push(1)\n    mk_primitive(\"i64\")\n}\n"
     toks :: build_sorted_for_test(src, "file:///c.vader")
     assert(token_at(toks, 1, 8, 4, i32(TokenType.Function)), "`push` tagged Function")
     assert(token_at(toks, 2, 4, 12, i32(TokenType.Function)), "`mk_primitive` tagged Function")
@@ -511,7 +511,7 @@ test_yield_const_classified_as_keyword :: fn() -> void {
 }
 
 // The semantic type of the token starting at byte `offset`, or -1 if none.
-tok_type_at :: fn(toks: RawToken[], offset: usize) -> i32 {
+tok_type_at :: fn(toks: RawToken[], offset: i64) -> i32 {
     for r in toks {
         if r.start_offset == offset {
             return r.tok_type

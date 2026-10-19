@@ -1009,22 +1009,29 @@ static inline void vader_array_push_f32 (vader_array_t* a, vader_f32_t  v) { VAD
 static inline void vader_array_push_bool(vader_array_t* a, vader_bool_t v) { VADER_ARRAY_PUSH_BODY(uint8_t,  vader_box_bool) }
 #undef VADER_ARRAY_PUSH_BODY
 #undef VADER_ARRAY_PUSH_KIND_CHECK
+/* A count, an offset or a slice bound as the array runtime reads it : a negative
+ * one is 0, as the VM reads it (`clamp_nonneg`). */
+static inline size_t vader_count_or_zero(int64_t v) {
+    if (v < 0) return 0;
+    return (size_t) v;
+}
+
 /* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
  * pushing into the view detaches into a fresh buf so concurrent views
  * don't see the growth. Bounds are clamped (lo to `[0,len]`, hi to
  * `[lo,len]`). */
-vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi);
+vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo, int64_t hi);
 
 /* `[lhs] * n` — fresh array repeating `src`'s elements n times. `length =
  * src.length * n`, `capacity = max(length, n)` (so `[] * n` reserves n slots
  * with length 0 — the preallocation case). Ref elements are repeated by
  * reference (shallow, evaluate-once). Result reuses `src`'s type / kind / tag. */
-vader_array_t* vader_array_repeat(vader_array_t* src, size_t n);
+vader_array_t* vader_array_repeat(vader_array_t* src, int64_t n);
 /* `dst.push_all(src)` — append every element of `src` to `dst` (grows dst). */
 void           vader_array_push_all(vader_array_t* dst, vader_array_t* src);
 /* `src.copy_to(src_start, dst, dst_start, len)` — overlap-safe positional copy
  * into an existing `dst` region (traps if `dst` isn't already long enough). */
-void           vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, size_t dst_start, size_t len);
+void           vader_array_copy(vader_array_t* src, int64_t src_start, vader_array_t* dst, int64_t dst_start, int64_t len);
 /* `arr.remove_last()` — pop + return the last element as a pre-tagged box, or
  * `vader_box_null()` when empty (the `T | null` channel). */
 vader_box_t    vader_array_remove_last(vader_array_t* a);
@@ -1436,7 +1443,9 @@ static inline uint8_t vader_string_byte_at(vader_string_t s, size_t i) {
 }
 /* The bytes `lo..<hi` of `s` as a string, the bounds clamped as `vader_array_slice`
  * clamps them. An atom slice: nothing is copied. */
-static inline vader_string_t vader_string_byte_slice(vader_string_t s, size_t lo, size_t hi) {
+static inline vader_string_t vader_string_byte_slice(vader_string_t s, int64_t lo_bound, int64_t hi_bound) {
+    size_t lo = vader_count_or_zero(lo_bound);
+    size_t hi = vader_count_or_zero(hi_bound);
     size_t len = vader_atom_len(s);
     if (lo > len) lo = len;
     if (hi < lo)  hi = lo;

@@ -16,7 +16,7 @@ module "main"
 
 import "std/io"
 
-SIZE: usize: 260
+SIZE: i64: 260
 
 main :: fn() -> i32 {
     left :: build(7)

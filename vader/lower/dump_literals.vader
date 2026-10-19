@@ -2,7 +2,7 @@
 //
 // A literal of the type a bare one takes in the source (`i32`, `f64`, `char`,
 // `string`, `bool`) prints bare, and so does one written into a slot of its own
-// type ; any other prints as the conversion that names its type, `usize(27)`.
+// type ; any other prints as the conversion that names its type, `i64(27)`.
 // A string escapes its `$`, which would open an interpolation.
 
 module "vader/lower"

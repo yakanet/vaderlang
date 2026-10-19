@@ -426,7 +426,7 @@ export has_self_param :: fn(fd: AST.FnDecl) -> bool =
 
 /// Index of `fd`'s first parameter past its receiver : 1 when it takes `self`, 0
 /// for a static member.
-receiver_count :: fn(fd: AST.FnDecl) -> usize = if has_self_param(fd) { 1 } else { 0 }
+receiver_count :: fn(fd: AST.FnDecl) -> i64 = if has_self_param(fd) { 1 } else { 0 }
 
 // ---- tests ----------------------------------------------------------------
 

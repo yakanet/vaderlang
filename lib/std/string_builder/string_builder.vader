@@ -81,12 +81,12 @@ StringBuilder implements Display {
         n :: self.parts.len()
         if n == 0 { return "" }
         if n == 1 { return self.parts[0] }
-        total: usize = 0
+        total: i64 = 0
         for p in self.parts {
             total = total + p.byte_len()
         }
-        buf :: total.new_buffer()
-        off: usize = 0
+        buf :: usize(total).new_buffer()
+        off: i64 = 0
         for p in self.parts {
             buf.write_string(off, p)
             off = off + p.byte_len()
