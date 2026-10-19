@@ -61,24 +61,28 @@ range_result :: fn(
 }
 
 /// `t` as a bitwise operation reads it : a range as the integer it is held in
-/// (`range_representation`), any other type as it is.
+/// (`range_representation`), a machine integer at its own width, any other type as
+/// it is.
 ///
 /// @param t  an operand's type.
 represented :: fn(t: Type) -> Type {
-    if t is RangeType {
-        return range_representation(t)
-    }
-    return t
+    refined :: refinement_of(t) ?? return at_own_width(t)
+    return held_integer(refined)
 }
+
+// The integer the range `r` is held in (`range_representation`), as the typecheck
+// holds an integer type (`mk_integer`).
+held_integer :: fn(r: RangeType) -> Type = mk_integer(range_representation(r).name)
 
 // `t` as an operation reads it : a range reaching past `i64` as the integer it is
 // held in, which the operation is then checked in, `i64` holding none of its values
 // past `i64.max` ; anything else as it is.
 held_beyond_i64 :: fn(t: Type) -> Type {
-    if t is RangeType && t.bounds.hi_open {
-        return range_representation(t)
+    refined :: refinement_of(t) ?? return t
+    if !refined.bounds.hi_open {
+        return t
     }
-    return t
+    return held_integer(refined)
 }
 
 // The operand `t` of a range operation as the operation reads it : a free value
@@ -95,30 +99,33 @@ settle_range_operand :: fn(
     return free_range(operand, t, typed, diags)
 }
 
-// `t` as an operation beside `other` reads it : a primitive that a range beside it
-// holds, without fitting it, as the range of its values (`b + r` with a `u8` and
-// an `r: 0..=300` is `0..=555`) ; anything else as it is.
+// `t` as an operation beside `other` reads it : a machine integer that a range
+// beside it holds, without fitting it, as the range of its values (`b + r` with a
+// `u8` and an `r: 0..=300` is `0..=555`) ; anything else as it is.
 read_beside :: fn(t: Type, other: Type) -> Type {
-    if t !is PrimitiveType || other !is RangeType || holds_integer(t, other) {
+    refined :: refinement_of(other) ?? return t
+    if primitive_name(t) == "" || holds_integer(t, refined) {
         return t
     }
-    values :: primitive_interval(t.name) ?? return t
-    if !interval_within(values, other.bounds) {
+    values :: integer_values(t) ?? return t
+    if !interval_within(values, refined.bounds) {
         return t
     }
     return RangeType { .bounds = values }
 }
 
-// The primitive operand of a range operation, if any : it absorbs the other. Of
-// two, the one holding the other.
-absorbing_primitive :: fn(left: Type, right: Type) -> PrimitiveType | null {
-    if left is PrimitiveType && right is PrimitiveType && holds_integer(right, left) {
+// The operand of a range operation that absorbs the other, if any : a primitive,
+// a machine integer among them. Of two, the one holding the other.
+absorbing_primitive :: fn(left: Type, right: Type) -> Type | null {
+    left_closed :: primitive_name(left) != ""
+    right_closed :: primitive_name(right) != ""
+    if left_closed && right_closed && holds_integer(right, left) {
         return right
     }
-    if left is PrimitiveType {
+    if left_closed {
         return left
     }
-    if right is PrimitiveType {
+    if right_closed {
         return right
     }
     return null
@@ -129,7 +136,7 @@ absorbed_result :: fn(
     e: AST.BinaryExpr,
     left: Type,
     right: Type,
-    p: PrimitiveType,
+    p: Type,
     diags: Diagnostic[],
 ) -> Type {
     for operand in [left, right] {
@@ -138,20 +145,20 @@ absorbed_result :: fn(
         }
         if operand is RangeType {
             diags.push(typecheck_error(.OperatorNotDefined, e.span,
-                "${display_range(operand)} does not fit `${p.name}`"))
+                "${display_range(operand)} does not fit `${display_type(p)}`"))
         } else {
             push_op_undefined(e, left, right, diags)
         }
         return TY_UNRESOLVED
     }
-    return p
+    return at_own_width(p)
 }
 
 // The range of every value of `exact`, computed from values narrowed out of
 // `origin` ; `i64` once it leaves 64 bits, where the operation is checked as any.
 range_or_i64 :: fn(exact: Interval, origin: string) -> Type {
     if exact.lo_open || exact.hi_open {
-        return mk_primitive("i64")
+        return TY_I64
     }
     return RangeType { .bounds = exact, .origin = origin }
 }
@@ -172,10 +179,11 @@ arith_interval :: fn(op: AST.BinaryOp, a: Interval, b: Interval) -> Interval =
 ///
 /// @param t  the negated operand's type.
 negated :: fn(t: Type) -> Type {
-    if t is RangeType && !t.bounds.hi_open {
-        return range_or_i64(interval_negate(t.bounds), t.origin)
+    refined :: refinement_of(t)
+    if refined != null && !refined.bounds.hi_open {
+        return range_or_i64(interval_negate(refined.bounds), refined.origin)
     }
-    return held_beyond_i64(t)
+    return at_own_width(held_beyond_i64(t))
 }
 
 /// The type a mutable local takes from a value of type `t`, so that it can take
@@ -191,35 +199,35 @@ widened_base :: fn(t: Type) -> Type {
     if t !is RangeType {
         return t
     }
-    held :: narrowed_origin(t)
-    if held != null {
-        return held
+    if narrowed_origin(t) != null {
+        return held_integer(t)
     }
-    if t.origin == "" && t.name != "" {
+    if (t.origin == "" && t.name != "") || is_machine_range(t) {
         return t
     }
-    if interval_within(t.bounds, I32_VALUES) {
-        return mk_primitive("i32")
+    if interval_within(t.bounds, TY_I32.bounds) {
+        return TY_I32
     }
     if t.bounds.hi_open {
-        return range_representation(t)
+        return held_integer(t)
     }
-    return mk_primitive("i64")
+    return TY_I64
 }
 
 /// The integer type a value of `t` was declared as, as a range narrowed out of it
-/// keeps it (`RangeType.origin`) : a primitive integer's own name, a range's
-/// origin, "" for anything else.
+/// keeps it (`RangeType.origin`) : a range's origin, an integer type's own name,
+/// "" for anything else.
 ///
 /// @param t  the type of the value narrowed.
 origin_of :: fn(t: Type) -> string {
-    if t is PrimitiveType && is_int_name(t.name) {
-        return t.name
-    }
-    if t is RangeType {
+    if t is RangeType && t.origin != "" {
         return t.origin
     }
-    return ""
+    name :: primitive_name(t)
+    if !is_int_name(name) {
+        return ""
+    }
+    return name
 }
 
 /// `r` narrowed out of a value declared as `origin`.
@@ -255,9 +263,6 @@ wider_origin :: fn(a: string, b: string) -> string {
     return narrowest_integer(interval_join(a_values, b_values)).name
 }
 
-// The values of `i32`.
-I32_VALUES :: Interval { .lo = -0x8000_0000, .hi = 0x7FFF_FFFF }
-
 /// The type a free integer value `expr` takes in the range slot `expected` : a
 /// literal takes the slot, its bounds checked where it is pinned ; arithmetic on
 /// literals the range of what it computes, so that `20 + 10` is no `Hour` ; any
@@ -272,7 +277,7 @@ free_value_in_range :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type | null {
-    if expected !is RangeType || got !is FreeIntType {
+    if !is_refinement(expected) || got !is FreeIntType {
         return null
     }
     if expr is AST.IntLitExpr {
@@ -291,7 +296,7 @@ free_range :: fn(e: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic
         return check_expr(e, RangeType { .bounds = interval(value, value) }, typed, diags)
     }
     if e is AST.IntLitExpr && is_past_i64(e) {
-        held :: mk_primitive("u64")
+        held :: mk_integer("u64")
         settle_free_value(e, held, typed, diags)
         return held
     }

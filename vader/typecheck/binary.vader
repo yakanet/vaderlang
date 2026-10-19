@@ -69,7 +69,7 @@ infer_binary :: fn(
         right = represented(right)
     }
     // A literal beside a range stands for its own value (`range_result`).
-    if left !is RangeType && right !is RangeType {
+    if !is_refinement(left) && !is_refinement(right) {
         left = repin_operand(e.left, left, right, typed, diags)
         right = repin_operand(e.right, right, left, typed, diags)
     }
@@ -1226,7 +1226,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 
     if !propagates                                                     { return null }
     // A literal beside a range stands for its own value (`range_result`).
-    if left is RangeType                                               { return null }
+    if is_refinement(left)                                             { return null }
     if is_numeric(left)                                                { return left }
     // Equality propagates enum types too so `.Variant` on the RHS can
     // infer its enum from the LHS (e.g. `d == .East`).
@@ -1261,10 +1261,8 @@ op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
     if !width_carrying {
         return null
     }
-    if expected is PrimitiveType {
-        if is_numeric_name(expected.name) {
-            return expected
-        }
+    if is_numeric_name(primitive_name(expected)) {
+        return expected
     }
     return null
 }
@@ -1304,9 +1302,17 @@ numeric_result :: fn(
     }
     // The built-in op, whichever width the operands settle on below.
     record_site(typed, e, .Operator, BUILTIN_CALLEE)
-    if left is RangeType || right is RangeType {
+    if is_refinement(left) || is_refinement(right) {
         return range_result(e, left, right, typed, diags)
     }
+    // Past the ranges, an operation on integers is closed : each machine integer
+    // is read at its own width, the operation checked there.
+    return closed_result(e, at_own_width(left), at_own_width(right), diags)
+}
+
+// The type of `e`, numeric, its operands `left` and `right` of no range of exact
+// arithmetic (`is_refinement`).
+closed_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
     // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType && right is FreeIntType     { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
@@ -1363,8 +1369,8 @@ numeric_result :: fn(
     }
     // Both concrete : one type, or of two integer types the one holding the other
     // (`u8 + i32` is an `i32`) ; `u32 + i32`, which neither holds, is refused.
-    if left is PrimitiveType && right is PrimitiveType {
-        if left.name == right.name || holds_integer(left, right) {
+    if primitive_name(left) != "" && primitive_name(right) != "" {
+        if equals_type(left, right) || holds_integer(left, right) {
             return left
         }
         if holds_integer(right, left) {

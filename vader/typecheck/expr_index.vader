@@ -369,8 +369,7 @@ index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedPro
 
 is_integer_index :: fn(t: Type) -> bool {
     if t is FreeIntType { return true }
-    if t is PrimitiveType { return is_int_name(t.name) }
-    return false
+    return is_int_name(primitive_name(t))
 }
 
 is_range_type :: fn(t: Type) -> bool {

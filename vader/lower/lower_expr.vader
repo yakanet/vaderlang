@@ -63,11 +63,11 @@ lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     }
     type :: ctx.types.expr_type(expr)
     match expr {
-        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = int_literal_value(expr) } }
-        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = default_if_free(type), .value = expr.value } }
+        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = lowered_default(type), .value = int_literal_value(expr) } }
+        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = lowered_default(type), .value = expr.value } }
         is BoolLitExpr   -> { return LoweredBoolLit { .span = expr.span, .type = TY_BOOL, .value = expr.value } }
         is NullLitExpr   -> { return LoweredNullLit { .span = expr.span, .type = TY_NULL } }
-        is CharLitExpr   -> { return lower_char_lit(expr, default_if_free(type)) }
+        is CharLitExpr   -> { return lower_char_lit(expr, lowered_default(type)) }
         is StringLitExpr -> { return lower_string_lit(ctx, expr, type) }
         is IdentExpr     -> { return lower_ident(ctx, expr, type) }
         is CallExpr      -> { return kept_in_range(ctx, expr, lower_call(ctx, expr, type)) }
@@ -582,7 +582,8 @@ union_field_read_type :: fn(
     field: string,
 ) -> Type | null {
     if type is UnresolvedType {
-        return union_common_field_type(receiver, field, ctx.typed)
+        declared :: union_common_field_type(receiver, field, ctx.typed) ?? return null
+        return erase_ranges(declared)
     }
     for v in receiver.variants {
         if v !is StructType {
@@ -615,19 +616,11 @@ narrowed_field_width :: fn(
     if use_type !is PrimitiveType || ctx.types.raw_expr_type(expr) !is RangeType {
         return null
     }
-    declared :: erase_ranges(receiver_field_type(ctx, receiver, field))
+    declared :: struct_field_type(ctx, receiver, field)
     if !narrows_integer_width(declared, use_type) {
         return null
     }
     return declared
-}
-
-// The declared type of `receiver.field`, a union's common field included.
-receiver_field_type :: fn(ctx: FnLowerCtx, receiver: Type, field: string) -> Type {
-    if receiver is UnionType {
-        return union_common_field_type(receiver, field, ctx.typed) ?? TY_UNRESOLVED
-    }
-    return struct_field_type(ctx, receiver, field)
 }
 
 // Read a captured binding's value back out of its cell.

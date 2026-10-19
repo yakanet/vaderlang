@@ -197,6 +197,8 @@ lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
     // `Symbol.module` carries the owning module id — direct lookup
     // beats walking every evaluated module per UFCS call site.
     program :: ctx.project.evaluated.modules[sym.module] ?? return null
-    if program is EvaluatedProgram { return program.typed.decl_types[sym.id] }
+    if program is EvaluatedProgram {
+        return fn_signature(program.typed, sym)
+    }
     return null
 }

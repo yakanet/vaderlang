@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/octet_arithmetic
+  ConstDecl      Level                :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Meters               :: type
+  ConstDecl      Octet                :: type
+  ConstDecl      Wide                 :: type
+  expr 17:18    BinaryExpr     :: Octet
+  expr 17:18    IdentExpr      :: Octet
+  expr 18:16    BinaryExpr     :: Octet
+  expr 18:16    IdentExpr      :: Octet
+  expr 19:18    IdentExpr      :: Octet
+  expr 21:14    BinaryExpr     :: 1..=255
+  expr 21:14    IdentExpr      :: Level
+  expr 22:18    IdentExpr      :: 1..=255
+  expr 24:15    IdentExpr      :: Wide
+  expr 25:10    CallExpr       :: Meters
+  expr 25:10    IdentExpr      :: type
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    IdentExpr      :: Octet
+  expr 26:24    IdentExpr      :: Octet
+  expr 26:35    IdentExpr      :: u8
+  expr 26:46    IdentExpr      :: Octet
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 26:54    IdentExpr      :: u64
+  expr 26:61    CallExpr       :: i64
+  expr 26:61    IdentExpr      :: type
+  expr 26:65    IdentExpr      :: Meters
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    IntrinsicCallExpr :: Octet
+  expr 27:31    BinaryExpr     :: bool
+  expr 27:31    IdentExpr      :: Octet
+  expr 27:36    IdentExpr      :: Level
+  expr 27:45    BinaryExpr     :: bool
+  expr 27:45    IdentExpr      :: Octet
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 27:53    IdentExpr      :: Level

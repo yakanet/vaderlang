@@ -1,0 +1,29 @@
+// A range written over the values of a machine integer is that integer : `Octet`
+// is `u8`, so its arithmetic is `u8`'s, closed and checked, where the arithmetic
+// of a range of other bounds is exact (`Level + 1` is `1..=255`). A value of one
+// goes into a slot of the other with no conversion, and `u64` is the range
+// `0..=u64.max`. A machine integer named alone stays a type of its own.
+module "snippet"
+
+import "std/io"
+
+Octet :: Int in 0..=255
+Level :: Int in 0..=254
+Wide :: Int in 0..=18_446_744_073_709_551_615
+Meters :: i64
+
+main :: fn() -> i32 {
+    o: Octet: 200
+    next: Octet: o + 55
+    wrapped :: o +% 100
+    as_byte: u8: next
+    l: Level: 254
+    exact :: l + 1
+    held: Octet: exact
+    w: Wide: 18_446_744_073_709_551_615
+    top: u64: w
+    m :: Meters(5)
+    println("${next} ${wrapped} ${as_byte} ${held} ${top} ${i64(m)}")
+    println("${@max(Octet)} ${o in Level} ${next in Level}")
+    return 0
+}

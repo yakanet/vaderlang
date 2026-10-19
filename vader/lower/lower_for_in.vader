@@ -278,7 +278,7 @@ iterator_of :: fn(ctx: FnLowerCtx, element: Type) -> Type | null {
 // applied to the lowered iterator type (a destructured or unnamed variable has
 // no binding entry).
 resolve_element_type :: fn(ctx: FnLowerCtx, iter_type: Type, binding_key: u64) -> Type =
-    concrete_local_type(ctx.types, binding_key) ?? for_in_element(iter_type, ctx.typed)
+    concrete_local_type(ctx.types, binding_key) ?? iterated_element(iter_type, ctx.typed)
 
 // Erase a concrete `__genstate_<fn>` iterator (a `generator`'s Direction-A call
 // result) back to the trait `Iterator<element>`, so an un-fused for-in dispatches
@@ -634,6 +634,17 @@ walk_enum_values :: fn(
 // ---- int-range fast path --------------------------------------------------
 
 
+// The width a counter from `lower` to `upper` counts in : the concrete bound's, a
+// free literal on either side adopting the other's ; the lower side's when both are
+// concrete, as the typecheck infers left to right ; the default width
+// (`lowered_default`) when both are free.
+counter_width :: fn(lower: Type, upper: Type) -> Type {
+    if lower is FreeIntType && is_counting_type(upper) {
+        return lowered_default(upper)
+    }
+    return lowered_default(lower)
+}
+
 // `for x in lo..<hi` / `for x in lo..=hi` over an integer-typed range
 // bottom emits a counter loop.
 // Returns null when the bound isn't an integer ; caller falls back to
@@ -645,17 +656,7 @@ try_lower_for_in_int_range :: fn(
     raw_lower :: ctx.types.expr_type(range.lower)
     raw_upper :: ctx.types.expr_type(range.upper)
     if !is_counting_type(raw_lower) { return null }
-    // Pick the counter's width from whichever bound is concrete : a
-    // FreeInt literal on either side adopts the other's width. When
-    // both bounds are concrete, the lower side wins (matches the
-    // typer's left-to-right inference). When both are FreeInt, fall
-    // back to the i32 default via `default_if_free`. The Range's
-    // element type is already settled by the bidirectional infer.
-    bound_type :: if raw_lower is FreeIntType {
-        if is_counting_type(raw_upper) { default_if_free(raw_upper) } else { default_if_free(raw_lower) }
-    } else {
-        default_if_free(raw_lower)
-    }
+    bound_type :: counter_width(raw_lower, raw_upper)
     // For-in bindings that the body never references don't surface
     // in `resolved.idents` (the use-site map). Synthesize a placeholder
     // when the lookup misses so the dump still renders.

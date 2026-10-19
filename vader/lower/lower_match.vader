@@ -401,11 +401,12 @@ narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, sp
     return target
 }
 
-// Field type of `target_type.field_name`, its type arguments applied, or
-// `unresolved` when the target isn't a struct (a non-struct in a struct-field
-// pattern is an upstream typecheck error) or the field/decl is missing.
+// Field type of `target_type.field_name`, its type arguments applied and its
+// ranges read as integers (`erase_ranges`), or `unresolved` when the target
+// isn't a struct (a non-struct in a struct-field pattern is an upstream
+// typecheck error) or the field/decl is missing.
 struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type =
-    declared_struct_field_type(target_type, field_name, ctx.typed) ?? TY_UNRESOLVED
+    erase_ranges(declared_struct_field_type(target_type, field_name, ctx.typed) ?? TY_UNRESOLVED)
 
 // Resolve a pattern binding's Symbol via the shared per-module
 // `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh

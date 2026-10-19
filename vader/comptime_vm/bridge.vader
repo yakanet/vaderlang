@@ -70,11 +70,11 @@ int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue {
 // `fallback` when `ty` isn't a primitive — the scalar arms then keep the VM
 // tag's natural width.
 prim_name :: fn(ty: Type, fallback: string) -> string {
-    if ty is PrimitiveType { return ty.name }
-    if ty is DistinctType {
-        if ty.backing is PrimitiveType as p { return p.name }
+    name :: primitive_name(strip_distinct(ty))
+    if name == "" {
+        return fallback
     }
-    return fallback
+    return name
 }
 
 // Recurse a VM array into an `ArrayValue`, naming each element from the

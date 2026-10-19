@@ -198,7 +198,7 @@ fits_integer_bound :: fn(t: Type, typed: TypedProgram) -> bool {
 }
 
 // What the values of a type parameter bounded by `Int` are computed on as.
-COMPUTED_INTEGER :: PrimitiveType { .name = "i64" }
+COMPUTED_INTEGER :: TY_I64
 
 // The type the one argument of `@min(T)` or `@max(T)` names, as recorded.
 bounded_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram) -> Type | null {

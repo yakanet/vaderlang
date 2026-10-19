@@ -107,7 +107,7 @@
       {
           __in_range_0: i64 = (((i64(x) - i64(0)) + i64(1)) % ((i64(255) - i64(0)) + i64(1))) + i64(0)
           if (__in_range_0 < i64(0)) || (__in_range_0 > i64(255)) {
-              @unreachable("value out of range: not in `u8` (0..=255)")
+              @unreachable("value out of range: not in `u8`")
           }
           u8(__in_range_0)
       } :u8

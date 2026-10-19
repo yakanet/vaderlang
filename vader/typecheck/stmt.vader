@@ -1634,8 +1634,8 @@ export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
             return for_in_element(iter_ty.backing, typed)
         }
         // An enum or a primitive finds its element under its own `Iterator` impl,
-        // or its `Into` toward one (`string`).
-        is EnumType | PrimitiveType -> {
+        // or its `Into` toward one (`string`) ; a range, under its integer's.
+        is EnumType | PrimitiveType | RangeType -> {
             elements :: typed.impl_tables.iter_element_types
             return impl_side(typed, elements, iter_ty, "") ?? TY_UNRESOLVED
         }

@@ -208,7 +208,10 @@ shift_amount_mask :: fn(rname: string) -> i64 = match rname {
 // no entry / the type isn't a bare primitive (both ⇒ don't wrap).
 resolved_int_name :: fn(context: ComptimeContext, expr_id: usize) -> string {
     t :: context.typed.expr_types[expr_id]
-    if t is PrimitiveType { return t.name }
+    name :: primitive_name(t)
+    if name != "" {
+        return name
+    }
     // A free int the typechecker never pinned to a concrete width (nested inside
     // a comparison / shift, so no slot narrowed it) defaults to `i32` — SPEC
     // "Default integer", exactly what the runtime does, so it wraps at 32 bits.

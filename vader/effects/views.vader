@@ -72,13 +72,14 @@ may_hold_bytes :: fn(t: Type | null) -> bool = match t {
 
 // Whether a value of type `t` may be a byte, the element of a view.
 may_be_byte :: fn(t: Type) -> bool = match t {
-    is PrimitiveType -> t.name == "u8"
+    // A range of other bounds than `u8`'s takes no byte by inclusion : no
+    // container converts.
+    is PrimitiveType | RangeType -> primitive_name(t) == "u8"
     is UnionType     -> t.variants.any_match(may_be_byte)
     is DistinctType  -> may_be_byte(t.backing)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType -> true
     is InferVar -> leaked_infer_var(t)
-    // A range takes no byte by inclusion : no container converts.
-    is StructType | TupleType | ArrayType | EnumType | RangeType | FnType | TypeMetaType
+    is StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType
      | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 

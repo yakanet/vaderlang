@@ -310,19 +310,16 @@ variant_keeps_tag :: fn(v: Type, to: UnionType) -> bool {
 // (`literal_family_holds`), an integer one to a range (its value is checked where
 // it is pinned, T3066), or to a union holding one.
 is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
-    if to is PrimitiveType && literal_family_holds(from, to.name) {
-        return true
-    }
-    if to is RangeType && from is FreeIntType {
+    if literal_takes(from, to) {
         return true
     }
     return check_common(from, to)
 }
 
 /// Whether `wide` is an integer type holding every value of the integer type
-/// `narrow` (`u8` in an `i32`, `0..=9` in a `u8`), and more when both are
-/// primitives : `u64` and `usize`, one set under two names C tells apart, hold
-/// neither the other.
+/// `narrow` (`u8` in an `i32`, `0..=9` in a `u8`), and more when both are machine
+/// integers or primitives : `u64` and `usize`, one set under two names C tells
+/// apart, hold neither the other, nor does `i32` hold `i32`.
 ///
 /// @param wide    the type a value of `narrow` would go into.
 /// @param narrow  any type : only a range or an integer primitive is held.
@@ -332,7 +329,10 @@ holds_integer :: fn(wide: Type, narrow: Type) -> bool {
     if !interval_within(values, outer) {
         return false
     }
-    return narrow !is PrimitiveType || wide !is PrimitiveType || !same_interval(values, outer)
+    if !same_interval(values, outer) {
+        return true
+    }
+    return primitive_name(narrow) == "" && primitive_name(wide) == ""
 }
 
 /// The values of `t` a `match` covers arm by arm : a range's, an integer

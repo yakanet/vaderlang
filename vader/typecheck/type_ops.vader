@@ -83,8 +83,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is FreeFloatType  -> b is FreeFloatType
     is FreeCharType   -> b is FreeCharType
     is AnyType        -> b is AnyType
-    is RangeType      -> b is RangeType && same_interval(a.bounds, b.bounds)
-    is PrimitiveType  -> if b is PrimitiveType as bx { a.name == bx.name } else { false }
+    is RangeType | PrimitiveType -> equals_scalar(a, b)
     is TypeParamType  -> if b is TypeParamType as bx { a.symbol.id == bx.symbol.id } else { false }
     is InferVar       -> if b is InferVar as bx { a.id == bx.id } else { false }
     // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
@@ -110,6 +109,20 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     // type equals only itself, never its backing primitive nor another
     // distinct over the same backing — that's the whole point.
     is DistinctType  -> if b is DistinctType as bx { a.symbol.id == bx.symbol.id } else { false }
+}
+
+// Two ranges are equal by their bounds. A machine integer is the range of its
+// values, held as a range or as the primitive the lowering reads it as : `i32`
+// either way (`primitive_name`).
+equals_scalar :: fn(a: Type, b: Type) -> bool {
+    if a is PrimitiveType && b is PrimitiveType {
+        return a.name == b.name
+    }
+    if a is RangeType && b is RangeType {
+        return same_interval(a.bounds, b.bounds)
+    }
+    name :: primitive_name(a)
+    return name != "" && name == primitive_name(b)
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
@@ -158,8 +171,9 @@ union_of_paths :: fn(reached: Type[]) -> Type {
     hull: RangeType | null = null
     rest: Type[]: []
     for t in reached {
-        if t is RangeType {
-            hull = joined_ranges(hull, t)
+        refined :: refinement_of(t)
+        if refined != null {
+            hull = joined_ranges(hull, refined)
         } else {
             rest.push(t)
         }
@@ -185,7 +199,7 @@ union_of_paths :: fn(reached: Type[]) -> Type {
 // holding it. Only a value a path gives bare does : one inside a union keeps its
 // tag, which nothing converts (`u8 | null` is no `i32 | null`).
 absorbed :: fn(v: Type, variants: Type[], paths: Type[]) -> bool {
-    if v !is PrimitiveType || !held_by_another(variants, v) {
+    if primitive_name(v) == "" || !held_by_another(variants, v) {
         return false
     }
     for path in paths {
@@ -260,11 +274,21 @@ erase_nested :: fn(t: Type) -> Type {
             .params = erase_nested_each(t.params),
             .return_type = erase_nested(t.return_type),
         }
-        is UnionType    -> union_of(erase_nested_each(t.variants))
+        is UnionType    -> erase_union(t)
         is PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType | SelfType
          | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
          | AnyType -> t
     }
+}
+
+// `u` erased : variant by variant where its only ranges are machine integers, each
+// then the primitive it is, of the same name and so the same place ; else rebuilt
+// canonical, two ranges erasing to one integer (`Hour | u8`).
+erase_union :: fn(u: UnionType) -> Type {
+    if contains_range(u, true) {
+        return union_of(erase_nested_each(u.variants))
+    }
+    return UnionType { .variants = erase_nested_each(u.variants) }
 }
 
 erase_nested_each :: fn(types: Type[]) -> Type[] {
@@ -275,25 +299,28 @@ erase_nested_each :: fn(types: Type[]) -> Type[] {
     return out
 }
 
-/// Whether a range sits anywhere in `t`. Read on every type the lowering reads : a
-/// plain walk, no iterator.
+/// Whether a range sits anywhere in `t`, or with `refinements` a range of exact
+/// arithmetic (`is_refinement`). Read on every type the lowering reads : a plain
+/// walk, no iterator.
 ///
-/// @param t  a type the typecheck recorded.
-export contains_range :: fn(t: Type) -> bool = match t {
-    is RangeType    -> true
-    is DistinctType -> contains_range(t.backing)
-    is StructType | TraitType -> any_contains_range(t.args)
-    is ArrayType    -> contains_range(t.element)
-    is TupleType    -> any_contains_range(t.elements)
-    is FnType       -> any_contains_range(t.params) || contains_range(t.return_type)
-    is UnionType    -> any_contains_range(t.variants)
+/// @param t            a type the typecheck recorded.
+/// @param refinements  whether a machine integer goes unseen.
+export contains_range :: fn(t: Type, refinements: bool = false) -> bool = match t {
+    is RangeType    -> !refinements || !is_machine_range(t)
+    is DistinctType -> contains_range(t.backing, refinements)
+    is StructType | TraitType -> any_contains_range(t.args, refinements)
+    is ArrayType    -> contains_range(t.element, refinements)
+    is TupleType    -> any_contains_range(t.elements, refinements)
+    is FnType       -> (any_contains_range(t.params, refinements)
+        || contains_range(t.return_type, refinements))
+    is UnionType    -> any_contains_range(t.variants, refinements)
     is PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType | SelfType
      | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType | AnyType -> false
 }
 
-any_contains_range :: fn(types: Type[]) -> bool {
+any_contains_range :: fn(types: Type[], refinements: bool) -> bool {
     for t in types {
-        if contains_range(t) {
+        if contains_range(t, refinements) {
             return true
         }
     }
@@ -374,7 +401,7 @@ export default_if_free :: fn(t: Type) -> Type {
     // @partial: only the three Free* literal variants default to a concrete
     // primitive; every other type is already concrete → returned unchanged.
     @partial match t {
-        is FreeIntType   -> { return mk_primitive("i32") }
+        is FreeIntType   -> { return TY_I32 }
         is FreeFloatType -> { return mk_primitive("f64") }
         is FreeCharType  -> { return mk_primitive("char") }
         _ -> { return t }
@@ -996,13 +1023,10 @@ narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
         member :: union_literal_member(got, expected) ?? return got
         return member
     }
-    if expected is PrimitiveType && literal_family_holds(got, expected.name) {
-        return expected
+    if expected == null || !literal_takes(got, expected) {
+        return got
     }
-    if expected is RangeType && got is FreeIntType {
-        return expected
-    }
-    return got
+    return expected
 }
 
 /// The member of `u` a free literal of kind `got` settles on : its family's
@@ -1036,15 +1060,18 @@ export union_literal_member :: fn(got: Type, u: UnionType) -> Type | null {
 union_literal_candidates :: fn(got: Type, u: UnionType) -> Type[] {
     out: Type[]: []
     for v in u.variants {
-        if v is PrimitiveType && literal_family_holds(got, v.name) {
-            out.push(v)
-        }
-        if v is RangeType && got is FreeIntType {
+        if literal_takes(got, v) {
             out.push(v)
         }
     }
     return out
 }
+
+// Whether a free literal of kind `got` can be a value of `t` : of a primitive of
+// its family (`literal_family_holds`), and for an integer one of any range, its
+// value checked where it is pinned (T3066).
+literal_takes :: fn(got: Type, t: Type) -> bool =
+    literal_family_holds(got, primitive_name(t)) || (got is FreeIntType && is_refinement(t))
 
 // A free literal of kind `got` can be a value of the primitive `name` : an
 // integer width for `5`, a float width for `2.5`, an integer width or `char` for
@@ -1228,6 +1255,13 @@ test_union_of_flattens :: fn() -> void {
 }
 
 @test
+test_machine_integer_is_its_primitive :: fn() -> void {
+    assert(equals_type(TY_I32, mk_primitive("i32")), "the range `i32` is the primitive")
+    assert(!equals_type(TY_I32, mk_primitive("i64")), "`i32` is no `i64`")
+    assert(!equals_type(mk_integer("u64"), mk_primitive("usize")), "`u64` is no `usize`")
+}
+
+@test
 test_union_of_orders_same_named_types_by_identity :: fn() -> void {
     factory :: SymbolFactory {}
     first: Type: mk_struct(factory.make(.Struct, "Point", "pa", "pa", .Public, null), [])
@@ -1239,10 +1273,8 @@ test_union_of_orders_same_named_types_by_identity :: fn() -> void {
 
 @test
 test_default_if_free :: fn() -> void {
-    match default_if_free(TY_FREE_INT) as p {
-        is PrimitiveType -> { assert_eq(p.name, "i32") }
-        _                -> { assert(false, "FreeInt defaults to i32") }
-    }
+    assert_eq(display_type(default_if_free(TY_FREE_INT)), "i32")
+    assert(default_if_free(TY_FREE_INT) is RangeType, "FreeInt defaults to the range `i32`")
     match default_if_free(TY_FREE_FLOAT) as p {
         is PrimitiveType -> { assert_eq(p.name, "f64") }
         _                -> { assert(false, "FreeFloat defaults to f64") }

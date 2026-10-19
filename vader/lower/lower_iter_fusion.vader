@@ -176,7 +176,7 @@ opaque_iter_bottom :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
 // The element type of a concrete iterator struct, by the typecheck's own rule
 // (`for_in_element`) ; null when it yields nothing the tables know.
 opaque_iter_element :: fn(ctx: FnLowerCtx, t: Type) -> Type | null {
-    element :: for_in_element(t, ctx.typed)
+    element :: iterated_element(t, ctx.typed)
     if element is UnresolvedType {
         return null
     }
@@ -202,7 +202,7 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | nul
         is AST.RangeExpr -> {
             bound :: ctx.types.expr_type(expr.lower)
             if !is_counting_type(bound) { return null }
-            element :: default_if_free(bound)
+            element :: lowered_default(bound)
             return IterChain {
                 .kind = .Range,
                 .range_lower = expr.lower,

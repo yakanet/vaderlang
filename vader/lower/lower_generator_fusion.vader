@@ -25,12 +25,12 @@ import "toolchain/span"
 import "std/abort"
 
 // The element the `generator` `decl` yields, from the typecheck-side registry
-// (`generator_state_of`) substituted by the call's instance subst. Null when the
-// declaration isn't registered (declines fusion). Shared by the direct-call and
-// combinator fusion sites.
+// (`generator_state_of`) substituted by the call's instance subst, its ranges read
+// as integers. Null when the declaration isn't registered (declines fusion).
+// Shared by the direct-call and combinator fusion sites.
 genstate_element :: fn(typed: TypedProgram, decl: AST.FnDecl, subst: Substitution) -> Type | null {
     state :: generator_state_of(decl, typed) ?? return null
-    return substitute(state.element, subst)
+    return erase_ranges(substitute(state.element, subst))
 }
 
 // Build the yield sink for a generator inlined into a `for` consumer. For a
@@ -114,14 +114,6 @@ call_target :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> CallTarget | null {
     }
 }
 
-// The declared signature of `callee`, null when typecheck recorded none.
-fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null {
-    t :: owner.decl_types[callee.id]
-    if t is FnType {
-        return t
-    }
-    return null
-}
 
 // `decl`'s type parameters as the resolver bound them, in declaration order ;
 // null when one has no symbol.
@@ -234,7 +226,7 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
         }
         return null
     }
-    recorded :: lookup_struct_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
+    recorded :: recorded_trait_args(concrete, trait_key_of(tt.symbol), ctx.typed)
     if recorded != null {
         if all_concrete(recorded) { return recorded }
     }
@@ -502,13 +494,13 @@ gen_combo_subst :: fn(
         actuals.push(source_elem)
     } else {
         patterns.push(signature.params[0])
-        actuals.push(default_if_free(ctx.types.expr_type(receiver)))
+        actuals.push(lowered_default(ctx.types.expr_type(receiver)))
     }
     // Then the fn arg, for any param it introduces beyond the source element (map's
     // `U` from `f: fn(T) -> U`) ; the first binding wins, so a concrete arg agrees.
     if fn_arg != null {
         patterns.push(signature.params[1])
-        actuals.push(default_if_free(ctx.types.expr_type(fn_arg)))
+        actuals.push(lowered_default(ctx.types.expr_type(fn_arg)))
     }
     type_params :: declared_type_params(decl, owner) ?? return null
     concrete :: unify_type_args(ctx, patterns, actuals, type_params) ?? return null
@@ -651,10 +643,7 @@ try_descend_into_gen_source :: fn(ctx: FnLowerCtx, expr: AST.Expr, span: Span) -
     if !fn_is_generator(owner, decl) || decl.body == null {
         return null
     }
-    signature :: owner.impl_method_decl_types[decl.name_span.hash()]
-    if signature !is FnType {
-        return null
-    }
+    signature :: impl_member_signature(owner, decl) ?? return null
     type_args :: strip_distinct_each(type_args_of(impl_receiver(entry, receiver)))
     if !all_concrete(type_args) {
         return null

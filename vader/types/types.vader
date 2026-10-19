@@ -117,6 +117,11 @@ export without_origin :: fn(r: RangeType) -> RangeType = RangeType { ...r, .orig
 ///
 /// @param values  the integers to hold ; past 64 bits, the widest of its kind.
 export narrowest_integer :: fn(values: Interval) -> PrimitiveType {
+    // The common case, a machine integer's own values, needs no search.
+    exact :: machine_integer_name(values)
+    if exact != "" {
+        return PrimitiveType { .name = exact }
+    }
     candidates :: integer_candidates(values)
     for name in candidates {
         whole :: primitive_interval(name) ?? continue
@@ -125,6 +130,109 @@ export narrowest_integer :: fn(values: Interval) -> PrimitiveType {
         }
     }
     return PrimitiveType { .name = candidates[candidates.len() - 1] }
+}
+
+/// The machine integer whose values `bounds` are exactly : `i8`, `i16`, `i32`, `i64`,
+/// `u8`, `u16`, `u32` or `u64` ; "" for any other bounds. A range of those bounds is
+/// that integer, named or not : its arithmetic is closed, checked against its
+/// bounds, where the arithmetic of any other range is exact.
+///
+/// @param bounds  a range's bounds.
+export machine_integer_name :: fn(bounds: Interval) -> string {
+    if same_interval(bounds, U64_VALUES) {
+        return "u64"
+    }
+    if bounds.lo_open || bounds.hi_open {
+        return ""
+    }
+    if bounds.lo == 0 {
+        return unsigned_machine_name(bounds.hi)
+    }
+    // `hi > 0` first : `-hi` of the least `i64` overflows.
+    if bounds.hi > 0 && bounds.lo == -bounds.hi - 1 {
+        return signed_machine_name(bounds.hi)
+    }
+    return ""
+}
+
+unsigned_machine_name :: fn(hi: i64) -> string = match hi {
+    0xFF        -> "u8"
+    0xFFFF      -> "u16"
+    0xFFFF_FFFF -> "u32"
+    _           -> ""
+}
+
+signed_machine_name :: fn(hi: i64) -> string = match hi {
+    0x7F                  -> "i8"
+    0x7FFF                -> "i16"
+    0x7FFF_FFFF           -> "i32"
+    0x7FFF_FFFF_FFFF_FFFF -> "i64"
+    _                     -> ""
+}
+
+/// The name of the primitive `t` is : a primitive's own (`string`, `usize`), the
+/// machine integer a range of its bounds is (`machine_integer_name`) ; "" for any
+/// other type, a range of other bounds included, and for none.
+///
+/// @param t  any type, or none.
+export primitive_name :: fn(t: Type | null) -> string {
+    if t is PrimitiveType {
+        return t.name
+    }
+    if t is RangeType {
+        return machine_integer_name(t.bounds)
+    }
+    return ""
+}
+
+/// Whether `r` has the bounds of a machine integer (`machine_integer_name`).
+///
+/// @param r  a range.
+export is_machine_range :: fn(r: RangeType) -> bool = machine_integer_name(r.bounds) != ""
+
+/// `t` when it is a range of no machine integer's bounds (`Hour`, `1..=24`) : one
+/// whose arithmetic is exact, computed over the integers ; null for any other type.
+///
+/// @param t  any type, or none.
+export refinement_of :: fn(t: Type | null) -> RangeType | null {
+    if t is RangeType && !is_machine_range(t) {
+        return t
+    }
+    return null
+}
+
+/// Whether `t` is a range of no machine integer's bounds (`refinement_of`).
+///
+/// @param t  any type, or none.
+export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
+
+/// `t` read at the width of its own values : a range without the integer it was
+/// narrowed out of (`without_origin`), any other type as it is. What a type
+/// parameter binds to, and what an operation closed on a machine integer gives.
+///
+/// @param t  any type.
+export at_own_width :: fn(t: Type) -> Type {
+    if t is RangeType && t.origin != "" {
+        return without_origin(t)
+    }
+    return t
+}
+
+/// The integer type `name` as the typecheck holds it : one of the eight machine
+/// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647` ;
+/// `usize` and `isize`, of the target's width, as primitives.
+///
+/// @param name  an integer type's name (`is_int_name`).
+export mk_integer :: fn(name: string) -> Type = match name {
+    "i8"  -> TY_I8
+    "i16" -> TY_I16
+    "i32" -> TY_I32
+    "i64" -> TY_I64
+    "u8"  -> TY_U8
+    "u16" -> TY_U16
+    "u32" -> TY_U32
+    "u64" -> TY_U64
+    _     -> PrimitiveType { .name = name }
 }
 
 integer_candidates :: fn(values: Interval) -> string[] {
@@ -181,9 +289,15 @@ signed_interval :: fn(bits: i64) -> Interval {
     return interval(-half, half - 1)
 }
 
-// `r` as written : its declared name, else its bounds. `qualified` writes its
-// bounds whatever its name, `Int in 0..=23`, so two ranges of one name differ.
+// `r` as written : its declared name, else the machine integer of its bounds,
+// else its bounds. `qualified` writes the bounds of any other range whatever its
+// name, `Int in 0..=23`, so two ranges of one name differ.
 write_range :: fn(sb: StringBuilder, r: RangeType, qualified: bool) -> void {
+    machine :: machine_integer_name(r.bounds)
+    if machine != "" && (qualified || r.name == "") {
+        sb.append(machine)
+        return
+    }
     if qualified {
         sb.append("${INT_BASE_NAME} in ${display_bounds(r.bounds)}")
         return
@@ -196,10 +310,14 @@ write_range :: fn(sb: StringBuilder, r: RangeType, qualified: bool) -> void {
 }
 
 /// `r` as a message names it : `` `Hour` (0..=23) `` when it has a name,
-/// `` `0..=23` `` otherwise.
+/// `` `0..=23` `` otherwise, `` `i32` `` for a machine integer.
 ///
 /// @param r  a range.
 export display_range :: fn(r: RangeType) -> string {
+    machine :: machine_integer_name(r.bounds)
+    if machine != "" && (r.name == "" || r.name == machine) {
+        return "`${machine}`"
+    }
     if r.name == "" {
         return "`${display_bounds(r.bounds)}`"
     }
@@ -713,6 +831,27 @@ export TY_CHAR       :: PrimitiveType { .name = "char" }
 export TY_NULL       :: PrimitiveType { .name = "null" }
 export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 
+/// `i8`, the range of its values (`mk_integer`).
+export TY_I8 :: RangeType { .bounds = Interval { .lo = -0x80, .hi = 0x7F }, .name = "i8" }
+/// `i16`, the range of its values.
+export TY_I16 :: RangeType { .bounds = Interval { .lo = -0x8000, .hi = 0x7FFF }, .name = "i16" }
+/// `i32`, the range of its values : what a free integer defaults to.
+export TY_I32 :: RangeType {
+    .bounds = Interval { .lo = -0x8000_0000, .hi = 0x7FFF_FFFF },
+    .name = "i32",
+}
+/// `i64`, the range of its values : what an integer is computed on where no
+/// narrower type is known.
+export TY_I64 :: RangeType { .bounds = Interval { .lo = I64_MIN, .hi = I64_MAX }, .name = "i64" }
+/// `u8`, the range of its values.
+export TY_U8 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFF }, .name = "u8" }
+/// `u16`, the range of its values.
+export TY_U16 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFFFF }, .name = "u16" }
+/// `u32`, the range of its values.
+export TY_U32 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFFFF_FFFF }, .name = "u32" }
+/// `u64`, the range of its values, up to `u64.max` exactly.
+export TY_U64 :: RangeType { .bounds = U64_VALUES, .name = "u64" }
+
 /// Whether `t` is the `null` type.
 ///
 /// @param t  the type to test.
@@ -733,6 +872,11 @@ export is_char :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "char"
 export display_type :: fn(t: Type) -> string {
     match t {
         is PrimitiveType                           -> { return t.name }
+        is RangeType                               -> {
+            if t.name != "" {
+                return t.name
+            }
+        }
         is EnumType | DistinctType | TypeParamType -> { return t.symbol.name }
         is StructType | TraitType                  -> {
             if t.args.len() == 0 {
@@ -904,7 +1048,7 @@ export canonical_key :: fn(t: Type) -> string {
         is TypeParamType  -> { return "P${t.symbol.id}" }
         is EnumType       -> { return "e${t.symbol.id}" }
         is DistinctType   -> { return "d${t.symbol.id}" }
-        is RangeType      -> { return "r${display_bounds(t.bounds)}" }
+        is RangeType      -> { return range_key(t) }
         is TypeMetaType   -> { return "M" }
         is SelfType       -> { return "S" }
         is UnresolvedType -> { return "?" }
@@ -915,6 +1059,16 @@ export canonical_key :: fn(t: Type) -> string {
         is AnyType        -> { return "A" }
         is InferVar       -> { return "I${t.id}" }
     }
+}
+
+// A machine integer's range keys as the primitive it is held in after the
+// typecheck, so that a table filled before the ranges are erased answers after.
+range_key :: fn(r: RangeType) -> string {
+    machine :: machine_integer_name(r.bounds)
+    if machine != "" {
+        return "p${machine}"
+    }
+    return "r${display_bounds(r.bounds)}"
 }
 
 /// Compose an arg-list canonical key — used as the inner key in
@@ -1089,18 +1243,22 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | null {
 /// suffix, and the `is` tests that cannot see through a shared body (T3087) —
 /// so they always agree on the instance.
 ///
-/// A primitive is kept, and so is a newtype over one, as its backing. An enum
-/// with variant data is kept as itself : it stores its variant's rank, so
-/// boxing it would leave `i64(v)` in the shared body reading the rank where
-/// the written value is meant. Every other type erases, a range included : a test
-/// at run time cannot tell it from its integer. The lowering alone keeps a range
-/// (`kept_argument`), for the instance at it to check what it gets back.
+/// A primitive is kept, and so is a newtype over one, as its backing, a machine
+/// integer as the primitive it is held in. An enum with variant data is kept as
+/// itself : it stores its variant's rank, so boxing it would leave `i64(v)` in the
+/// shared body reading the rank where the written value is meant. Every other type
+/// erases, any other range included : a test at run time cannot tell it from its
+/// integer. The lowering alone keeps such a range (`kept_argument`), for the
+/// instance at it to check what it gets back.
 ///
 /// @param t  a concrete type argument of the instance.
 export kept_type_argument :: fn(t: Type) -> Type | null {
     backing :: strip_distinct(t)
     if backing is PrimitiveType {
         return backing
+    }
+    if backing is RangeType && is_machine_range(backing) {
+        return narrowest_integer(backing.bounds)
     }
     if backing is EnumType && backing.data != null {
         return backing
@@ -1135,7 +1293,9 @@ export is_untagged :: fn(t: Type) -> bool {
 export carries_own_tag :: fn(t: Type) -> bool = match t {
     is StructType -> !is_untagged(t)
     is ArrayType | PrimitiveType -> true
-    is EnumType | DistinctType | RangeType | AnyType | TypeParamType | InferVar -> false
+    // A machine integer's value is tagged as that integer.
+    is RangeType -> is_machine_range(t)
+    is EnumType | DistinctType | AnyType | TypeParamType | InferVar -> false
     // Never the receiver of an impl.
     is UnionType | TupleType | TraitType | FnType | SelfType | TypeMetaType -> false
     is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> false
@@ -1148,7 +1308,7 @@ export carries_own_tag :: fn(t: Type) -> bool = match t {
 ///
 /// @param t  the type of the value boxed.
 export boxes_as_representation :: fn(t: Type) -> bool =
-    t is EnumType || t is DistinctType || t is RangeType
+    t is EnumType || t is DistinctType || is_refinement(t)
 
 /// Map `strip_distinct` over a type-arg list. Always returns a fresh array
 /// with each element passed through `strip_distinct`.
@@ -1235,6 +1395,27 @@ test_display_type_param :: fn() -> void {
     sym :: factory.make(.TypeParam, "T", "test", "test", .Private, null)
     tp :: mk_type_param(sym)
     assert_eq(display_type(tp), "T")
+}
+
+@test
+test_machine_integer_name_reads_exact_bounds :: fn() -> void {
+    assert_eq(machine_integer_name(interval(0, 255)), "u8")
+    assert_eq(machine_integer_name(interval(-128, 127)), "i8")
+    assert_eq(machine_integer_name(interval(I64_MIN, I64_MAX)), "i64")
+    assert_eq(machine_integer_name(U64_VALUES), "u64")
+    assert_eq(machine_integer_name(interval(0, 254)), "")
+    assert_eq(machine_integer_name(interval(-5, 4)), "")
+    assert_eq(machine_integer_name(interval(I64_MIN, I64_MIN)), "")
+}
+
+@test
+test_machine_integer_range_reads_as_its_primitive :: fn() -> void {
+    byte :: RangeType { .bounds = interval(0, 255), .name = "Byte" }
+    assert_eq(display_type(RangeType { .bounds = interval(0, 255) }), "u8")
+    assert_eq(display_type(byte), "Byte")
+    assert_eq(canonical_key(byte), canonical_key(mk_primitive("u8")))
+    assert_eq(impl_base_key(byte), "u8")
+    assert(mk_integer("usize") is PrimitiveType, "`usize` stays a primitive")
 }
 
 @test

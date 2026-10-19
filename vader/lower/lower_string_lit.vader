@@ -228,7 +228,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
                 mark :: ctx.pending_awaits.len()
                 inner :: lower_expr(ctx, part.expr)
                 bind_before_hoisted(ctx, values, mark)
-                shown :: default_if_free(shown_type(ctx, part.expr, inner))
+                shown :: lowered_default(shown_type(ctx, part.expr, inner))
                 rendered :: render_part(ctx, part.expr, inner, shown, span)
                 if rendered != null {
                     observe_replacement(ctx, part.expr, .Display, inner, rendered)

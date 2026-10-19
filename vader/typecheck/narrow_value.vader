@@ -5,12 +5,12 @@
 // range ; the value compared with is a literal or a value of a range, read by its
 // bounds. A side no value reaches is `never`. `==` and `!=` remove a value at a
 // bound only : a range with a hole would be a union of intervals, which a range
-// does not carry. An integer of a primitive type is not narrowed by a comparison :
-// it is no range yet.
+// does not carry. A machine integer (`i32`, `u8`) is not narrowed by a comparison :
+// its arithmetic stays closed.
 //
 // `x in T`, `T` an integer type or a range written with literal bounds, holds `x`
-// within `T` where it is true, an integer of a primitive type included, and
-// outside it where it is false, when that leaves a range.
+// within `T` where it is true, a machine integer included, and outside it where it
+// is false, when that leaves a range and `x` is no machine integer.
 
 module "vader/typecheck"
 
@@ -58,15 +58,12 @@ narrowing_of :: fn(
     other: AST.Expr,
     typed: TypedProgram,
 ) -> IsNarrow | null {
-    if typed.expr_types[subject.id] !is RangeType {
+    if !is_refinement(typed.expr_types[subject.id]) {
         return null
     }
     bounds :: compared_bounds(other, typed) ?? return null
     slot :: slot_of(subject, typed) ?? return null
-    current :: slot.current
-    if current !is RangeType {
-        return null
-    }
+    current :: refinement_of(slot.current) ?? return null
     return IsNarrow {
         .sym_id = slot.sym_id,
         .static_ty = current,
@@ -180,13 +177,11 @@ inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
 }
 
 // What `current` is where it lies outside `tested` : the part of a range past an
-// end `tested` covers, `never` when it covers the whole ; a primitive, or a range
-// `tested` would split, as it is.
+// end `tested` covers, `never` when it covers the whole ; a machine integer, or a
+// range `tested` would split, as it is.
 outside_of :: fn(current: Type, tested: Interval) -> Type {
-    if current !is RangeType {
-        return current
-    }
-    bounds :: current.bounds
+    refined :: refinement_of(current) ?? return current
+    bounds :: refined.bounds
     met :: interval_meet(bounds, tested) ?? return current
     if same_interval(met, bounds) {
         return TY_NEVER
@@ -211,11 +206,8 @@ compared_bounds :: fn(other: AST.Expr, typed: TypedProgram) -> Interval | null {
     if bound != null {
         return bound
     }
-    recorded :: typed.expr_types[other.id]
-    if recorded is RangeType {
-        return recorded.bounds
-    }
-    return null
+    refined :: refinement_of(typed.expr_types[other.id]) ?? return null
+    return refined.bounds
 }
 
 // A binding or a field chain, and its type as narrowed so far.

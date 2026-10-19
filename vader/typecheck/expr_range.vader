@@ -87,16 +87,18 @@ infer_range_from_bounds :: fn(e: AST.RangeExpr, typed: TypedProgram, diags: Diag
 }
 
 pick_bound_or_default :: fn(t: Type) -> Type {
-    // @partial: a range bound is only ever a free-int / free-char literal or an
-    // integer / char primitive; every other type kind defaults to i32.
+    // @partial: a bound of its own type is an integer type or `char` ; a free
+    // literal takes its default, and every other type kind defaults to i32.
     @partial match t {
-        is FreeIntType   -> { return mk_primitive("i32") }
-        is FreeCharType  -> { return mk_primitive("char") }
-        is PrimitiveType -> {
-            if is_int_name(t.name) { return t }
-            if t.name == "char"    { return t }
-            return mk_primitive("i32")
+        is FreeIntType   -> { return TY_I32 }
+        is FreeCharType  -> { return TY_CHAR }
+        is PrimitiveType | RangeType -> {
+            name :: primitive_name(t)
+            if is_int_name(name) || name == "char" {
+                return t
+            }
+            return TY_I32
         }
-        _                -> { return mk_primitive("i32") }
+        _                -> { return TY_I32 }
     }
 }

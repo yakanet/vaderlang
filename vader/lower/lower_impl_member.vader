@@ -514,7 +514,7 @@ converts_integer_into_char :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) 
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     target :: ctx.types.raw_expr_type(call)
-    if target is RangeType || target is TypeParamType {
+    if is_refinement(target) || target is TypeParamType {
         target_range :: instance_range(ctx, target)
         if target_range != null {
             return lower_range_conversion(ctx, call, target_range)

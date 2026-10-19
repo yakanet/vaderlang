@@ -43,11 +43,11 @@ infer_cast :: fn(e: AST.CastExpr, typed: TypedProgram, diags: Diagnostic[]) -> T
 /// @param target  the cast's target type.
 cast_operand_expected :: fn(target: Type) -> Type {
     if is_valued_enum(target) {
-        return PrimitiveType { .name = "i64" }
+        return TY_I64
     }
     if target is DistinctType {
         backing :: cast_operand_expected(target.backing)
-        if backing is PrimitiveType {
+        if primitive_name(backing) != "" {
             return backing
         }
     }
@@ -63,7 +63,11 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // Undecidable operands (an earlier error, an unbound type param, a metatype)
     // opt out — never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }
-    if target is RangeType { return range_conversion_allowed(src, target) }
+    // A machine integer converts as any primitive : `i32(x)` is no checked conversion.
+    refined :: refinement_of(target)
+    if refined != null {
+        return range_conversion_allowed(src, refined)
+    }
     if enum_data_of(src, target) != null { return true }
     // The `Convert` op domain — numeric / char / enum conversions (`usize(i32)`,
     // `f64(u64)`, `u8(char)`, `i32(enum)`) and distinct newtype construct / unwrap

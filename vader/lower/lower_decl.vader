@@ -54,7 +54,7 @@ lower_impl_member_list :: fn(
     if impl_decl.for_type is ArrayTypeExpr { return out }
     // An impl whose trait does not resolve has no entry ; resolution reported it.
     impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
-    self_type :: impl_entry.for_type
+    self_type :: impl_self_type(impl_entry)
     for member in impl_decl.members {
         // A member with type parameters of its own is lowered per call
         // (`member_instance`).
@@ -113,16 +113,18 @@ build_impl_member_params :: fn(
 // TRAIT method's param span ; every primitive implementor shares it, so the
 // span-keyed `param_types` table collapses to a single last-writer-wins
 // entry (all primitive `equals` wrappers came out `(prim, string)`). When
-// the substituted type expr resolves structurally to a PRIMITIVE, that is
-// authoritative — take it. Every other param keeps the span/subst-keyed
-// `EntryTypes` path (generic-impl members still carry a type-param at the
-// AST level and need the entry substitution), so this narrows strictly to
-// the primitive-intrinsic collision.
+// the substituted type expr resolves structurally to a PRIMITIVE, a machine
+// integer included, that is authoritative : take it. Every other param keeps
+// the span/subst-keyed `EntryTypes` path (generic-impl members still carry a
+// type-param at the AST level and need the entry substitution), so this
+// narrows strictly to the primitive-intrinsic collision.
 impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
     pty :: ast_param.ty ?? return types.param_type(ast_param)
     scratch: Diagnostic[]: []
     direct :: type_from_expr(pty, typed.resolved, scratch)
-    if direct is PrimitiveType { return direct }
+    if primitive_name(direct) != "" {
+        return erase_ranges(direct)
+    }
     return types.param_type(ast_param)
 }
 
@@ -383,7 +385,7 @@ lower_const_value :: fn(
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
     if baked == null { return lower_expr(fn_ctx, const_decl.value) }
-    return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
+    return comptime_value_to_lowered(baked, lowered_default(type_val), const_decl.span)
 }
 
 lookup_comptime_value :: fn(

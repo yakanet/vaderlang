@@ -904,6 +904,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
             if t.name == "null" { return false }
             return true
         }
+        is RangeType     -> { return is_machine_range(t) }
         is DistinctType  -> {
             // A newtype is zero-cost and stripped at lowering, so its ABI is
             // its backing's. `Handle :: CPointer` is the recommended idiom for
@@ -972,6 +973,9 @@ is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
     }
     if t is UnresolvedType {
         return true
+    }
+    if t is RangeType {
+        return is_machine_range(t)
     }
     if t !is PrimitiveType {
         return false
@@ -1057,6 +1061,7 @@ is_extern_abi_element :: fn(t: Type) -> bool {
         is PrimitiveType  -> {
             return t.name != "void" && t.name != "null" && t.name != "string"
         }
+        is RangeType      -> { return is_machine_range(t) }
         _                     -> { return false }
     }
 }
@@ -1069,7 +1074,7 @@ check_main_signature :: fn(
     return_type: Type,
     diags: Diagnostic[],
 ) -> void {
-    if !is_primitive_named(return_type, "i32") {
+    if primitive_name(return_type) != "i32" {
         diags.push(typecheck_error(.InvalidMainSignature, decl.span, "main must return i32"))
         return
     }
@@ -1078,7 +1083,7 @@ check_main_signature :: fn(
     }
     if params.len() == 1 {
         if params[0] is ArrayType as a {
-            if is_primitive_named(a.element, "string") {
+            if primitive_name(a.element) == "string" {
                 return
             }
         }
@@ -1090,13 +1095,6 @@ check_main_signature :: fn(
             "main takes either no parameters or a single `[string]` argument",
         ),
     )
-}
-
-is_primitive_named :: fn(t: Type, name: string) -> bool {
-    if t is PrimitiveType {
-        return t.name == name
-    }
-    return false
 }
 
 declare_fn_param :: fn(
@@ -1186,9 +1184,10 @@ declare_const :: fn(
 }
 
 /// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
-/// array, struct or tuple RHS (`Name :: i64`, `BigInt :: u32[]`) becomes a
-/// `DistinctType` (nominal newtype) — see `distinct_backing` ; a union or fn RHS
-/// stays a transparent alias, and so does a range written out (`Int in 0..=23`).
+/// array, struct or tuple RHS (`Name :: f64`, `BigInt :: u32[]`) becomes a
+/// `DistinctType` (nominal newtype, `distinct_backing`), and so does an integer
+/// type named alone (`Name :: i64`, `named_range`) ; a union or fn RHS stays a
+/// transparent alias, and so does a range written out (`Int in 0..=23`).
 ///
 /// @param sym       the declared name's symbol.
 /// @param alias_ty  the RHS, resolved.
@@ -1199,19 +1198,23 @@ alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
         return mk_distinct(sym, alias_ty)
     }
     if alias_ty is RangeType {
-        return named_range(sym, alias_ty, decl.value)
+        return named_range(sym, alias_ty, decl)
     }
     return alias_ty
 }
 
 // The range `Name :: <rhs>` declares : `Int in 0..=23` a transparent refinement
-// of the integer, shown under its name ; a range alias written alone
-// (`Heure :: Hour`) a type of its own, as any other type named alone.
-named_range :: fn(sym: Symbol, range: RangeType, rhs: AST.Expr) -> Type {
-    if rhs is AST.IdentExpr | AST.FieldExpr {
-        return mk_distinct(sym, range)
+// of the integer, shown under its name ; an integer type written alone
+// (`Meters :: i64`, `Heure :: Hour`) a type of its own, as any other type named
+// alone, but under `@comptime`, which declares a transparent alias of it.
+named_range :: fn(sym: Symbol, range: RangeType, decl: AST.ConstDecl) -> Type {
+    if decl.value !is AST.IdentExpr | AST.FieldExpr {
+        return RangeType { ...range, .name = sym.name }
     }
-    return RangeType { ...range, .name = sym.name }
+    if AST.decorators_have(decl.decorators, "comptime") {
+        return range
+    }
+    return mk_distinct(sym, range)
 }
 
 /// True when a `Name :: <type>` const should become a `DistinctType` rather
@@ -1222,10 +1225,8 @@ named_range :: fn(sym: Symbol, range: RangeType, rhs: AST.Expr) -> Type {
 /// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
 /// `check_const_value` (both in orchestrate.vader).
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
-    for d in decorators {
-        if d.name == "comptime" {
-            return false
-        }
+    if AST.decorators_have(decorators, "comptime") {
+        return false
     }
     if alias_ty is PrimitiveType {
         return alias_ty.name != "void" && alias_ty.name != "null"
@@ -1327,9 +1328,9 @@ classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: 
 
 // The integer a width names — directly, or through a distinct over one.
 enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> string {
-    backing :: strip_distinct(ty)
-    if backing is PrimitiveType && is_int_name(backing.name) {
-        return backing.name
+    name :: primitive_name(strip_distinct(ty))
+    if is_int_name(name) {
+        return name
     }
     diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, written.span, "got ${display_type(ty)}"))
     return "i32"

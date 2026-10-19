@@ -33,7 +33,7 @@
   expr 24:9     CallExpr       :: void
   expr 24:9     IdentExpr      :: fn(T) -> void
   expr 27:13    StringLitExpr  :: string
-  expr 27:16    BinaryExpr     :: u64
+  expr 27:16    BinaryExpr     :: Counter
   expr 27:16    IdentExpr      :: Counter
   expr 27:27    BinaryExpr     :: u64
   expr 27:27    IdentExpr      :: Straddle

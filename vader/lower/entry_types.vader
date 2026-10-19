@@ -48,11 +48,82 @@ export apply :: fn(self: EntryTypes, t: Type) -> Type {
 /// @param self  the entry-types view.
 /// @param t     a type argument the typecheck recorded.
 export instance_argument :: fn(self: EntryTypes, t: Type) -> Type {
-    if t is RangeType {
+    if is_refinement(t) {
         return t
     }
     bound :: bound_range(self.subst, t) ?? return apply(self, t)
     return bound
+}
+
+// ---- declaration-level reads ----------------------------------------------
+//
+// What the lowering reads off the typecheck's tables beside the per-expression
+// ones, every range in it read as its integer, as `apply` reads the rest.
+
+/// The signature the typecheck recorded for the fn `callee`, its ranges read as
+/// integers.
+/// @param owner   the typed program declaring `callee`.
+/// @param callee  a fn's symbol.
+/// @return        null when the typecheck recorded no signature.
+fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null =
+    erased_signature(owner.decl_types[callee.id])
+
+/// The signature the typecheck recorded for the impl member `decl`, its ranges
+/// read as integers.
+/// @param owner  the typed program declaring the impl.
+/// @param decl   one of its members.
+/// @return       null when the typecheck recorded no signature.
+impl_member_signature :: fn(owner: TypedProgram, decl: FnDecl) -> FnType | null =
+    erased_signature(owner.impl_method_decl_types[decl.name_span.hash()])
+
+// `t`, a signature the typecheck recorded, its ranges read as integers ; null for
+// no signature.
+erased_signature :: fn(t: Type | null) -> FnType | null {
+    if t !is FnType {
+        return null
+    }
+    erased :: erase_ranges(t)
+    if erased is FnType {
+        return erased
+    }
+    return null
+}
+
+/// The type `entry` implements its trait for, its ranges read as integers : the
+/// receiver of each of its members.
+/// @param entry  an impl.
+impl_self_type :: fn(entry: ImplEntry) -> Type = erase_ranges(entry.for_type)
+
+/// The element a `for` over a value of `iter_type` binds, by the typecheck's own
+/// rule (`for_in_element`), its ranges read as integers.
+/// @param iter_type  the iterated value's type.
+/// @param typed      the module being lowered, for the impl tables.
+iterated_element :: fn(iter_type: Type, typed: TypedProgram) -> Type =
+    erase_ranges(for_in_element(iter_type, typed))
+
+/// The arguments `concrete` implements the trait `trait_key` at, as the typecheck
+/// recorded them (`lookup_struct_trait_args`), their ranges read as integers.
+/// @param concrete   an implementing type.
+/// @param trait_key  the trait.
+/// @param typed      the module being lowered.
+/// @return           null when it records no single argument list.
+recorded_trait_args :: fn(concrete: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    recorded :: lookup_struct_trait_args(concrete, trait_key, typed) ?? return null
+    erased: Type[]: []
+    for t in recorded {
+        erased.push(erase_ranges(t))
+    }
+    return erased
+}
+
+/// `t` with a free literal settled at the width it defaults to (`default_if_free`),
+/// as the lowering reads it : `i32` for an integer, the primitive.
+/// @param t  a type the typecheck recorded, through the entry's substitution.
+lowered_default :: fn(t: Type) -> Type {
+    if is_free_numeric(t) {
+        return erase_ranges(default_if_free(t))
+    }
+    return t
 }
 
 // Apply the entry's substitution to a `Type | null` lookup result,

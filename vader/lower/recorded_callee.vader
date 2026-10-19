@@ -248,7 +248,7 @@ recorded_type_args :: fn(
         bindings[id] = ctx.types.instance_argument(bound)
     }
     if node is CallExpr && leaves_unbound(declared, bindings) {
-        bind_at_instance(ctx, node, owner.decl_types[fn_sym.id], bindings)
+        bind_at_instance(ctx, node, fn_signature(owner, fn_sym), bindings)
     }
     out: Type[]: []
     for tp in declared {
@@ -316,7 +316,7 @@ bind_at_instance :: fn(
         if k >= callee_type.params.len() {
             break
         }
-        actual :: default_if_free(ctx.types.instance_argument(ctx.types.raw_expr_type(args[k])))
+        actual :: lowered_default(ctx.types.instance_argument(ctx.types.raw_expr_type(args[k])))
         unify_params(callee_type.params[k], actual, bindings, ctx)
     }
 }
