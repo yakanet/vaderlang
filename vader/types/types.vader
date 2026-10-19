@@ -137,7 +137,7 @@ integer_candidates :: fn(values: Interval) -> string[] {
 /// The values of the primitive integer type `name`.
 ///
 /// @return  null for a name that is no integer type. A 64-bit unsigned type's
-///          upper end is open : it reaches past every `i64`.
+///          upper end lies past every `i64`, at `u64.max` exactly.
 export primitive_interval :: fn(name: string) -> Interval | null {
     meta :: primitive_meta(name) ?? return null
     if !meta.is_int {
@@ -151,7 +151,8 @@ export primitive_interval :: fn(name: string) -> Interval | null {
 }
 
 /// The least value of an integer type holding `values`, or its greatest, as an
-/// `i64` carries it : the greatest `u64`, past `i64`, is its bit pattern, `-1`.
+/// `i64` carries it : a greatest value past `i64` is its bit pattern, `-1` for
+/// `u64.max`.
 ///
 /// @param values    the type's values (`primitive_interval`, a range's bounds).
 /// @param greatest  the greatest rather than the least.
@@ -160,18 +161,14 @@ export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
         return values.lo
     }
     if values.hi_open {
-        return -1
+        return i64(upper_past_i64(values))
     }
     return values.hi
 }
 
 unsigned_interval :: fn(bits: i64) -> Interval {
     if bits == 64 {
-        return Interval {
-            .lo = 0,
-            .hi = I64_MAX,
-            .hi_open = true,
-        }
+        return U64_VALUES
     }
     return interval(0, (1 << bits) - 1)
 }
@@ -209,15 +206,19 @@ export display_range :: fn(r: RangeType) -> string {
     return "`${r.name}` (${display_bounds(r.bounds)})"
 }
 
-/// `bounds` as a range is written, `lo..=hi`, an open end left out (`0..`).
+/// `bounds` as a range is written, `lo..=hi`, an end with no bound left out
+/// (`0..`).
 ///
 /// @param bounds  the interval to render.
 export display_bounds :: fn(bounds: Interval) -> string {
     lo :: open_or(bounds.lo_open, bounds.lo)
-    if bounds.hi_open {
+    if !bounds.hi_open {
+        return "${lo}..=${bounds.hi}"
+    }
+    if bounds.hi_past == 0 {
         return "${lo}.."
     }
-    return "${lo}..=${bounds.hi}"
+    return "${lo}..=${upper_past_i64(bounds)}"
 }
 
 // The text of a bound, "" when the end is open.

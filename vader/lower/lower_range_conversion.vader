@@ -166,11 +166,7 @@ stops_outside :: fn(
         return [stop_if(outside_test(value, source, runs, compared, span), reason, span)]
     }
     first :: reachable[0]
-    beyond :: Interval {
-        .lo = first.hi + 1,
-        .hi = source.hi,
-        .hi_open = source.hi_open,
-    }
+    beyond :: Interval { ...source, .lo = first.hi + 1, .lo_open = false }
     second :: stop_if(outside_test(value, beyond, [reachable[1]], compared, span), reason, span)
     stmts: LoweredStmt[]: []
     if may_lie_below(source, first) {
@@ -180,7 +176,7 @@ stops_outside :: fn(
         stmts.push(second)
         return [if_then(bound_test(value, .Neq, first.lo, compared, span), stmts, span)]
     }
-    stmts.push(if_then(bound_test(value, .Gt, first.hi, compared, span), [second], span))
+    stmts.push(if_then(bound_test(value, .Gt, integer_bound(first, true), compared, span), [second], span))
     return stmts
 }
 
@@ -238,13 +234,13 @@ decided :: fn(value: LoweredExpr, outcome: bool, span: Span) -> LoweredExpr {
     return with_prelude([LoweredExprStmt { .span = span, .expr = value }], known, span)
 }
 
-// Whether a value of `source` may lie below `bounds`, and above them : an open
-// end of `bounds` holds every value past it.
+// Whether a value of `source` may lie below `bounds`, and above them : a lower end
+// below every `i64` holds every value past it, an upper end past `i64` as far as
+// it reaches (`upper_at_most`).
 may_lie_below :: fn(source: Interval, bounds: Interval) -> bool =
     !bounds.lo_open && (source.lo_open || source.lo < bounds.lo)
 
-may_lie_above :: fn(source: Interval, bounds: Interval) -> bool =
-    !bounds.hi_open && (source.hi_open || source.hi > bounds.hi)
+may_lie_above :: fn(source: Interval, bounds: Interval) -> bool = !upper_at_most(source, bounds)
 
 // The values the converted value can take : a literal's own, those of a value a
 // widening cast holds (`u32(b)` with `b: u8`), those of its type as the typecheck
@@ -379,7 +375,7 @@ outside_test :: fn(
         tests.push(bound_test(value, .Lt, run.lo, compared, span))
     }
     if may_lie_above(source, run) {
-        tests.push(bound_test(value, .Gt, run.hi, compared, span))
+        tests.push(bound_test(value, .Gt, integer_bound(run, true), compared, span))
     }
     return or_all(span, tests)
 }
@@ -401,7 +397,7 @@ run_test :: fn(
         tests.push(bound_test(value, .Gte, run.lo, compared, span))
     }
     if may_lie_above(source, run) {
-        tests.push(bound_test(value, .Lte, run.hi, compared, span))
+        tests.push(bound_test(value, .Lte, integer_bound(run, true), compared, span))
     }
     return and_all(span, tests)
 }

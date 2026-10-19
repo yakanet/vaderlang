@@ -145,7 +145,7 @@ has_bounds :: fn(t: Type, typed: TypedProgram) -> bool =
 /// The value `e` stands for when it is `@min(T)` or `@max(T)`, as a range of
 /// one value : what a comparison with it narrows to.
 ///
-/// @return  null for any other expression, and for `@max(u64)`, past `i64`.
+/// @return  null for any other expression, and for a `@max` past `i64`.
 integer_bound_value :: fn(e: AST.Expr, typed: TypedProgram) -> Interval | null {
     if e !is AST.IntrinsicCallExpr || e.name != "min" && e.name != "max" {
         return null

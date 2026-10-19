@@ -273,10 +273,19 @@ names_int_base :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     return sym.kind == .BuiltinType && sym.name == INT_BASE_NAME
 }
 
-// The range type `lo..=hi` or `lo..<hi` : its bounds integer literals within
-// `i64`, the least first.
+// The range type `lo..=hi` or `lo..<hi` : its bounds integer literals, the least
+// first, within `i64` but for the greatest, which reaches up to `u64.max`.
 range_type :: fn(e: AST.RangeExpr, diags: Diagnostic[]) -> Type {
     lo :: range_bound(e.lower, diags) ?? return TY_UNRESOLVED
+    upper :: e.upper
+    if upper is AST.IntLitExpr && is_past_i64(upper) {
+        if lo < 0 {
+            diags.push(typecheck_error(.MalformedRangeType, e.span,
+                "a range past `i64.max` holds no negative value : no integer holds it"))
+            return TY_UNRESOLVED
+        }
+        return RangeType { .bounds = reaching_past_i64(lo, upper, e.inclusive) }
+    }
     written_hi :: range_bound(e.upper, diags) ?? return TY_UNRESOLVED
     hi :: greatest_below(written_hi, e.inclusive)
     if hi == null || lo > hi {
@@ -298,6 +307,18 @@ greatest_below :: fn(end: i64, inclusive: bool) -> i64 | null {
     return end - 1
 }
 
+// Whether the integer literal `e` is a value past `i64.max`.
+is_past_i64 :: fn(e: AST.IntLitExpr) -> bool = !e.negative && e.value > u64(I64_MAX)
+
+// `lo..=hi` or `lo..<hi`, `hi` the integer literal `e`, a value past `i64.max`.
+reaching_past_i64 :: fn(lo: i64, e: AST.IntLitExpr, inclusive: bool) -> Interval {
+    top := e.value
+    if !inclusive {
+        top -= 1
+    }
+    return interval_up_to(lo, top)
+}
+
 // The value of a range type's bound `e`, an integer literal within `i64`.
 range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
     if e !is AST.IntLitExpr {
@@ -313,7 +334,11 @@ range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
 }
 
 // Whether the integer literal `e`, its sign as written, is a value of the range `r`.
+// A value past `i64.max` is read up from `i64.max`, which a range reaching it holds.
 literal_in_range :: fn(e: AST.IntLitExpr, r: RangeType) -> bool {
+    if is_past_i64(e) {
+        return interval_within(reaching_past_i64(I64_MAX, e, true), r.bounds)
+    }
     value :: int_literal_i64(e) ?? return false
     return interval_within(interval(value, value), r.bounds)
 }

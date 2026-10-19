@@ -267,7 +267,7 @@ negation_verdict :: fn(ctx: RangeContext, s: RangeState, ins: InstrUnOp) -> Rang
         return .Unproven
     }
     exact :: interval_negate(a)
-    return overflow_verdict(exact, t, closed_within(exact, t))
+    return overflow_verdict(exact, t, interval_within(exact, t))
 }
 
 // A checked operation whose exact result is `exact` in the type of values `t`:

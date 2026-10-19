@@ -142,7 +142,7 @@ export TypecheckCode :: enum(CodeInfo) {
     ReturnInDefer                   { .id = "T3106", .message = "`return` is not allowed in a `defer` body" },
     GenericMemberAtRunTime          { .id = "T3107", .message = "a generic member cannot be called where its impl is picked at run time" },
     IntIsNoValueType                { .id = "T3108", .message = "`Int` only names the base of a range" },
-    MalformedRangeType              { .id = "T3109", .message = "a range type takes integer literal bounds within 64 bits, the least first" },
+    MalformedRangeType              { .id = "T3109", .message = "a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`" },
     NotAnIntegerType                { .id = "T3110", .message = "only an integer type, `char` or an enum without variant data has bounds" },
     GuardDoesNotHold                { .id = "T3111", .message = "a function does not return what its `@returns` states" },
     MisshapenGuard                  { .id = "T3112", .message = "a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns" },

@@ -3,8 +3,8 @@
 // An interval end may be open: below every `i64` for a lower end, past every
 // `i64` for an upper one. Arithmetic on the ends opens them rather than
 // wrapping, so an interval never holds fewer values than the computation it
-// stands for. Who reads an interval within a type decides where an open end
-// stops: the open upper end of a `u64` stops at `u64.max`, which no `i64` reaches.
+// stands for. An open upper end may still be exact, up to `u64.max` : `hi_past`
+// says how far past `i64.max` it lies, so that `u64` is `0..=u64.max` exactly.
 
 module "vader/integer"
 
@@ -13,9 +13,8 @@ import "std/math"
 // ---- intervals ------------------------------------------------------------
 
 /// The integers from `lo` to `hi`, both included. An open end also holds the
-/// extreme `i64` on its side, so that a join or a meet is `min` / `max` on the
-/// values and `||` / `&&` on the flags, and two equal intervals are equal field
-/// by field.
+/// extreme `i64` on its side, so that two equal intervals are equal field by
+/// field ; an upper end past `i64` compares by `hi_past` (`upper_at_most`).
 export Interval :: struct {
     lo: i64
     hi: i64
@@ -23,6 +22,20 @@ export Interval :: struct {
     lo_open: bool = false
     /// Past every `i64`; `hi` is then `I64_MAX`.
     hi_open: bool = false
+    /// With `hi_open`, how far past `i64.max` the upper end lies, from 1 up to
+    /// `U64_MAX_PAST_I64` ; 0 for no upper end at all.
+    hi_past: u64 = 0
+}
+
+// How far `u64.max` lies past `i64.max`.
+U64_MAX_PAST_I64: u64: 0x8000_0000_0000_0000
+
+/// The values of `u64`, `0..=u64.max` exactly.
+export U64_VALUES :: Interval {
+    .lo = 0,
+    .hi = I64_MAX,
+    .hi_open = true,
+    .hi_past = U64_MAX_PAST_I64,
 }
 
 /// Every integer.
@@ -38,6 +51,34 @@ ZERO :: Interval { .lo = 0, .hi = 0 }
 /// The interval `lo..=hi`.
 export interval :: fn(lo: i64, hi: i64) -> Interval = Interval { .lo = lo, .hi = hi }
 
+/// The integers from `lo` up to `top`, a value up to `u64.max` : its upper end past
+/// `i64` where `top` is.
+///
+/// @param lo   the least, within `i64`.
+/// @param top  the greatest, at least `lo`.
+export interval_up_to :: fn(lo: i64, top: u64) -> Interval {
+    if top <= u64(I64_MAX) {
+        return interval(lo, i64(top))
+    }
+    return Interval {
+        .lo = lo,
+        .hi = I64_MAX,
+        .hi_open = true,
+        .hi_past = top - u64(I64_MAX),
+    }
+}
+
+/// The greatest value of `a`, its upper end past `i64` (`hi_open`), as a `u64` :
+/// `u64.max` for an end with no bound.
+///
+/// @param a  an interval whose upper end is past `i64`.
+export upper_past_i64 :: fn(a: Interval) -> u64 {
+    if a.hi_past == 0 {
+        return u64(I64_MAX) + U64_MAX_PAST_I64
+    }
+    return u64(I64_MAX) + a.hi_past
+}
+
 /// The interval from `lo` to `hi`, an absent end open.
 export interval_from_ends :: fn(lo: i64 | null, hi: i64 | null) -> Interval = Interval {
     .lo = lo ?? I64_MIN,
@@ -48,20 +89,19 @@ export interval_from_ends :: fn(lo: i64 | null, hi: i64 | null) -> Interval = In
 
 /// Whether every value of `a` is a value of `outer`.
 export interval_within :: fn(a: Interval, outer: Interval) -> bool =
-    a.lo >= outer.lo && (outer.lo_open || !a.lo_open) &&
-        a.hi <= outer.hi && (outer.hi_open || !a.hi_open)
+    a.lo >= outer.lo && (outer.lo_open || !a.lo_open) && upper_at_most(a, outer)
 
 /// Whether `a` and `b` hold the same integers.
 export same_interval :: fn(a: Interval, b: Interval) -> bool =
     a.lo == b.lo && a.hi == b.hi && a.lo_open == b.lo_open && a.hi_open == b.hi_open
+        && a.hi_past == b.hi_past
 
 /// The smallest interval holding both `a` and `b`: what a value is after a join
 /// of two paths.
 export interval_join :: fn(a: Interval, b: Interval) -> Interval = Interval {
+    ...greater_upper(a, b),
     .lo = lesser(a.lo, b.lo),
-    .hi = greater(a.hi, b.hi),
     .lo_open = a.lo_open || b.lo_open,
-    .hi_open = a.hi_open || b.hi_open,
 }
 
 /// The integers both `a` and `b` hold: what a value is once a test proved both.
@@ -69,16 +109,43 @@ export interval_join :: fn(a: Interval, b: Interval) -> Interval = Interval {
 /// @return  null when they share none.
 export interval_meet :: fn(a: Interval, b: Interval) -> Interval | null {
     lo :: greater(a.lo, b.lo)
-    hi :: lesser(a.hi, b.hi)
-    if lo > hi {
+    upper :: lesser_upper(a, b)
+    if lo > upper.hi {
         return null
     }
     return Interval {
+        ...upper,
         .lo = lo,
-        .hi = hi,
         .lo_open = a.lo_open && b.lo_open,
-        .hi_open = a.hi_open && b.hi_open,
     }
+}
+
+/// Whether the upper end of `a` lies at or below that of `b` : a closed end by its
+/// value, below every end past `i64`, these by how far past, below no end at all.
+export upper_at_most :: fn(a: Interval, b: Interval) -> bool {
+    if !a.hi_open {
+        return b.hi_open || a.hi <= b.hi
+    }
+    if !b.hi_open {
+        return false
+    }
+    return b.hi_past == 0 || a.hi_past != 0 && a.hi_past <= b.hi_past
+}
+
+// Of `a` and `b`, the one whose upper end lies the higher.
+greater_upper :: fn(a: Interval, b: Interval) -> Interval {
+    if upper_at_most(a, b) {
+        return b
+    }
+    return a
+}
+
+// Of `a` and `b`, the one whose upper end lies the lower.
+lesser_upper :: fn(a: Interval, b: Interval) -> Interval {
+    if upper_at_most(a, b) {
+        return a
+    }
+    return b
 }
 
 /// `set` without the integers `removed` holds : what a `match` leaves of its
@@ -221,12 +288,6 @@ end_difference :: fn(x: i64, x_open: bool, y: i64, y_open: bool) -> i64 | null {
     return checked_sub(64, false, x, y)
 }
 
-/// Whether every value of `exact`, an exact result over the integers, is a
-/// value of the type of values `t`. An open end never fits: the open upper end
-/// of a `u64` type stops at `u64.max`, an exact result's does not.
-export closed_within :: fn(exact: Interval, t: Interval) -> bool =
-    !exact.lo_open && !exact.hi_open && interval_within(exact, t)
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -316,17 +377,38 @@ test_interval_rem_takes_the_dividend_sign :: fn() -> void {
 }
 
 @test
-test_closed_within_rejects_an_open_end :: fn() -> void {
+test_interval_within_rejects_an_end_with_no_bound :: fn() -> void {
     u8_iv :: interval(0, 255)
-    assert(closed_within(interval(1, 10), u8_iv), "fits")
-    assert(!closed_within(interval(250, 260), u8_iv), "leaves the type")
-    u64_iv :: Interval {
+    assert(interval_within(interval(1, 10), u8_iv), "fits")
+    assert(!interval_within(interval(250, 260), u8_iv), "leaves the type")
+    plus_one :: interval_add(U64_VALUES, interval(1, 1))
+    assert(!interval_within(plus_one, U64_VALUES), "u64.max + 1 is past u64")
+}
+
+@test
+test_interval_up_to_closes_within_i64 :: fn() -> void {
+    assert(same_interval(interval_up_to(3, 9), interval(3, 9)), "within i64")
+    assert(same_interval(interval_up_to(0, u64(I64_MAX)), interval(0, I64_MAX)), "at i64.max")
+    assert(same_interval(interval_up_to(0, 18_446_744_073_709_551_615), U64_VALUES), "u64")
+    assert_eq(upper_past_i64(U64_VALUES), 18_446_744_073_709_551_615)
+}
+
+@test
+test_interval_upper_end_past_i64 :: fn() -> void {
+    past_by_one :: Interval {
         .lo = 0,
         .hi = I64_MAX,
         .hi_open = true,
+        .hi_past = 1,
     }
-    plus_one :: interval_add(u64_iv, interval(1, 1))
-    assert(!closed_within(plus_one, u64_iv), "u64.max + 1 is past u64")
+    assert(interval_within(past_by_one, U64_VALUES), "i64.max + 1 within u64")
+    assert(!interval_within(U64_VALUES, past_by_one), "u64 past i64.max + 1")
+    assert(interval_within(U64_VALUES, ANY_INTEGER), "u64 within every integer")
+    assert(!interval_within(ANY_INTEGER, U64_VALUES), "every integer past u64")
+    assert(same_interval(interval_join(past_by_one, U64_VALUES), U64_VALUES), "join")
+    met :: interval_meet(past_by_one, U64_VALUES) ?? ANY_INTEGER
+    assert(same_interval(met, past_by_one), "meet")
+    assert(!same_interval(past_by_one, U64_VALUES), "two ends past i64 differ")
 }
 
 @test

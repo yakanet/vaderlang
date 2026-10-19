@@ -338,8 +338,8 @@ holds_integer :: fn(wide: Type, narrow: Type) -> bool {
 /// The values of `t` a `match` covers arm by arm : a range's, an integer
 /// primitive's, the Unicode scalar values of `char`, those of a distinct over one.
 ///
-/// @return  null for any other type, and for one past `i64` (`u64`, `usize`),
-///          which no literal reaches the end of.
+/// @return  null for any other type, and for one reaching past `i64` (`u64`,
+///          `usize`), whose patterns are read within `i64`.
 integer_set :: fn(t: Type) -> Interval[] | null {
     if t !is PrimitiveType | RangeType | DistinctType {
         return null

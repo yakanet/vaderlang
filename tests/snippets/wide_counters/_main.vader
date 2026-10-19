@@ -1,0 +1,34 @@
+// Counters on 64 bits : a range written up to `u64.max`, or straddling `i64.max`,
+// keeps its exact bounds. Its values are those of the `u64` holding them, its
+// greatest is `@max`, and `in` and a conversion test them past `i64`. Arithmetic
+// on it is the `u64`'s, and a comparison with another such range narrows exactly.
+module "snippet"
+
+import "std/io"
+
+Counter :: Int in 0..=18_446_744_073_709_551_615
+Straddle :: Int in 9_223_372_036_854_775_800..=9_223_372_036_854_775_810
+Signed :: Int in 0..<9_223_372_036_854_775_808
+BelowEdge :: Int in 9_223_372_036_854_775_800..=9_223_372_036_854_775_809
+
+main :: fn() -> i32 {
+    top: Counter: 18_446_744_073_709_551_615
+    held: u64: top
+    println("${held} ${@max(Counter)} ${@max(Straddle)} ${@max(Signed)}")
+    past: u64: 9_223_372_036_854_775_809
+    if past in Straddle {
+        println("${Straddle(past)} lies past i64.max")
+    }
+    beyond: u64: 9_223_372_036_854_775_811
+    if beyond !in Straddle {
+        println("${beyond} lies past Straddle")
+    }
+    near: Straddle: 9_223_372_036_854_775_809
+    println("${top / 2} ${near - 5} ${near % 10}")
+    edge: Straddle: 9_223_372_036_854_775_810
+    if near < edge {
+        below_edge: BelowEdge: near
+        println("${below_edge} below ${edge}")
+    }
+    return 0
+}

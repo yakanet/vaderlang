@@ -299,7 +299,7 @@ transfer_unop :: fn(ctx: RangeContext, s: RangeState, ins: InstrUnOp) -> void {
     a :: interval_of(ctx, s, ins.operand)
     if ins.op == .Neg && t != null && a != null {
         exact :: interval_negate(a)
-        if ctx.checked_ops_trap || closed_within(exact, t) {
+        if ctx.checked_ops_trap || interval_within(exact, t) {
             set_result(ctx, s, ins.dst, exact)
             return
         }
@@ -347,7 +347,7 @@ result_fits :: fn(
 ) -> bool = match kind {
     .Sum        -> sum_fits(ctx, s, ins.lhs, a, ins.rhs, b, t)
     .Difference -> sum_fits(ctx, s, ins.lhs, a, null, interval_negate(b), t)
-    .Product    -> closed_within(interval_mul(a, b), t)
+    .Product    -> interval_within(interval_mul(a, b), t)
 }
 
 is_single :: fn(a: Interval) -> bool = !a.lo_open && !a.hi_open && a.lo == a.hi

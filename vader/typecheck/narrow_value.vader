@@ -192,9 +192,13 @@ outside_of :: fn(current: Type, tested: Interval) -> Type {
         return TY_NEVER
     }
     if met.lo == bounds.lo {
-        return narrowed_range(current, interval(met.hi + 1, bounds.hi))
+        // What lies past an end beyond `i64` would start beyond it : no range holds it.
+        if met.hi_open {
+            return current
+        }
+        return narrowed_range(current, Interval { ...bounds, .lo = met.hi + 1 })
     }
-    if met.hi == bounds.hi {
+    if upper_at_most(bounds, met) {
         return narrowed_range(current, interval(bounds.lo, met.lo - 1))
     }
     return current
@@ -246,7 +250,7 @@ slot_of :: fn(subject: AST.Expr, typed: TypedProgram) -> NarrowedSlot | null {
 // rules out a value only when `other` has no other.
 holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
     if op == .Neq {
-        if bounds.lo != bounds.hi {
+        if bounds.lo != bounds.hi || bounds.hi_open {
             return current
         }
         return outside_of(current, bounds)
@@ -262,11 +266,31 @@ holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
 // The integers `x` lies within where `x op other` is true, `other` within
 // `bounds` ; null for none. `x < other` holds below `other`'s greatest value.
 within_for :: fn(op: AST.BinaryOp, bounds: Interval) -> Interval | null = @unreachable match op {
-    .Lt  -> below(bounds.hi)
-    .Lte -> interval_from_ends(null, bounds.hi)
+    .Lt  -> below_upper(bounds, true)
+    .Lte -> below_upper(bounds, false)
     .Gt  -> above(bounds.lo)
     .Gte -> interval_from_ends(bounds.lo, null)
     .Eq  -> bounds
+}
+
+// The integers below the greatest value of `bounds`, or up to it unless `strict` ;
+// null for none. An upper end past `i64` reaches as far, one with no bound bounds
+// nothing.
+below_upper :: fn(bounds: Interval, strict: bool) -> Interval | null {
+    if !bounds.hi_open {
+        if strict {
+            return below(bounds.hi)
+        }
+        return interval_from_ends(null, bounds.hi)
+    }
+    if bounds.hi_past == 0 {
+        return ANY_INTEGER
+    }
+    top := upper_past_i64(bounds)
+    if strict {
+        top -= 1
+    }
+    return Interval { ...interval_up_to(I64_MIN, top), .lo_open = true }
 }
 
 // The integers below `x`, null for none.
@@ -277,10 +301,12 @@ below :: fn(x: i64) -> Interval | null {
     return interval_from_ends(null, x - 1)
 }
 
-// The integers above `x`, null for none.
-above :: fn(x: i64) -> Interval | null {
+// The integers above `x`.
+above :: fn(x: i64) -> Interval {
+    // Past `i64.max` lie the values only a range reaching past `i64` holds, from a
+    // least value no `i64` carries : the interval starts at `i64.max`, one value more.
     if x == I64_MAX {
-        return null
+        return interval_from_ends(I64_MAX, null)
     }
     return interval_from_ends(x + 1, null)
 }

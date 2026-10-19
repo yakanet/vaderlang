@@ -1,0 +1,53 @@
+# Typecheck
+
+## tests/snippets/wide_counters
+  ConstDecl      BelowEdge            :: type
+  ConstDecl      Counter              :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Signed               :: type
+  ConstDecl      Straddle             :: type
+  expr 16:16    IdentExpr      :: Counter
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    IdentExpr      :: u64
+  expr 17:24    IntrinsicCallExpr :: Counter
+  expr 17:41    IntrinsicCallExpr :: Straddle
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 17:59    IntrinsicCallExpr :: Signed
+  expr 19:16    IdentExpr      :: Straddle
+  expr 19:5     IfExpr         :: void
+  expr 19:8     BinaryExpr     :: bool
+  expr 19:8     IdentExpr      :: u64
+  expr 20:17    StringLitExpr  :: string
+  expr 20:20    CallExpr       :: Straddle
+  expr 20:20    IdentExpr      :: type
+  expr 20:29    IdentExpr      :: Straddle
+  expr 20:9     CallExpr       :: void
+  expr 20:9     IdentExpr      :: fn(T) -> void
+  expr 23:19    IdentExpr      :: Straddle
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: u64
+  expr 24:17    StringLitExpr  :: string
+  expr 24:20    IdentExpr      :: u64
+  expr 24:9     CallExpr       :: void
+  expr 24:9     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    BinaryExpr     :: u64
+  expr 27:16    IdentExpr      :: Counter
+  expr 27:27    BinaryExpr     :: u64
+  expr 27:27    IdentExpr      :: Straddle
+  expr 27:39    BinaryExpr     :: u64
+  expr 27:39    IdentExpr      :: Straddle
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 29:15    IdentExpr      :: Straddle
+  expr 29:5     IfExpr         :: void
+  expr 29:8     BinaryExpr     :: bool
+  expr 29:8     IdentExpr      :: Straddle
+  expr 30:32    IdentExpr      :: 9223372036854775800..=9223372036854775809
+  expr 31:17    StringLitExpr  :: string
+  expr 31:20    IdentExpr      :: BelowEdge
+  expr 31:40    IdentExpr      :: Straddle
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
