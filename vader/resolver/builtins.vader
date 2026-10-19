@@ -13,27 +13,23 @@ module "vader/resolver"
 
 import "std/collections"
 import "vader/resolver/symbol"
-// `PRIMITIVE_META` / `PRIMITIVE_ALIASES` are the source of truth in
-// `vader/types`. The builtin scope derives from them so it can't drift.
 import "vader/types"
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"
 
-/// Non-primitive, non-alias builtin names, minted after the primitives and
-/// aliases. `Self` is the trait self-type; `type` is the metatype; `Int` the base
-/// of a range type (`Int in 0..=23`), never the type of a value.
+/// Non-primitive builtin names, minted after the primitives. `Self` is the trait
+/// self-type; `type` is the metatype; `Int` the base of a range type
+/// (`Int in 0..=23`), never the type of a value.
 BUILTIN_EXTRA_NAMES :: ["Self", "type", INT_BASE_NAME]
 
-/// Every builtin type name in mint order: canonical primitives
-/// (`PRIMITIVE_META`), then friendly aliases (`PRIMITIVE_ALIASES`), then
-/// `Self` / `type` / `Int`. Order is load-bearing — symbol IDs mint in this sequence
-/// and are embedded in snapshots, so the three sources are concatenated in a
-/// fixed order rather than re-listed here.
+/// Every builtin type name in mint order: the primitives (`PRIMITIVE_META`),
+/// then `Self` / `type` / `Int`. Order is load-bearing: symbol IDs mint in this
+/// sequence and are embedded in snapshots, so the two sources are concatenated
+/// in a fixed order rather than re-listed here.
 builtin_type_names :: fn() -> string[] {
     out: string[]: []
     for m in PRIMITIVE_META { out.push(m.name) }
-    for a in PRIMITIVE_ALIASES { out.push(a[0]) }
     for e in BUILTIN_EXTRA_NAMES { out.push(e) }
     return out
 }
@@ -94,4 +90,5 @@ test_is_builtin_type_name_recognises_primitives :: fn() -> void {
     assert(is_builtin_type_name("string"), "string is a primitive")
     assert(is_builtin_type_name("Self"), "Self is a builtin")
     assert(!is_builtin_type_name("MyStruct"), "user types are not builtins")
+    assert(!is_builtin_type_name("int"), "a numeric type has one name")
 }

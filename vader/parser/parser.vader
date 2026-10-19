@@ -2204,7 +2204,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         return p.parse_for(label_tok.text, false)
     }
     // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
-    // `[a, b]: [int, string] = expr`. Detected by the `[` whose matching `]`
+    // `[a, b]: [i32, string] = expr`. Detected by the `[` whose matching `]`
     // is followed by `:=`, `::`, or `:` (typed form).
     // A `=` (or a compound operator) after the `]` is a destructuring
     // assignment — its elements are targets, not expressions, so it cannot go

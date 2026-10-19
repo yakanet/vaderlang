@@ -559,10 +559,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "type_aliases": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "u32_bitops": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -572,14 +568,6 @@
     "leakedBytes": 0
   },
   "union_common_field": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "usize_arith": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "usize_basic": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },

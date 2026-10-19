@@ -1760,10 +1760,9 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
 /// `declare_const` + `check_const_value` (const RHS) and the in-fn `let`-alias
 /// detection (`stmt.vader`).
 ///
-/// An IdentExpr names a type when it is a primitive (incl. `type` / `Self` and
-/// the friendly aliases `int` / `long` / …), a real type declaration
-/// (`is_type_kind` — struct / trait / enum / type-alias / type-param / builtin),
-/// OR a `Name :: <type>` const/distinct already registered in `alias_types`.
+/// An IdentExpr names a type when it is a primitive (incl. `type` / `Self`), a
+/// real type declaration (`is_type_kind` — struct / trait / enum / type-alias /
+/// type-param / builtin), OR a `Name :: <type>` const/distinct already registered in `alias_types`.
 /// That last case is what lets a newtype be used as an alias RHS
 /// (`Distance :: Meters`) or a tuple-alias element (`Pair :: [Meters, i32]`) —
 /// such a decl is a plain `ConstDecl` (SymbolKind.Const), so it is invisible to

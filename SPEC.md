@@ -480,29 +480,15 @@ x := a + \
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-The eight integer types are ranges of `Int` (§Range types, *Machine integers*). None has the target's width: a foreign `size_t` is a `u64` that `@c_type` spells for C (§13), and a `CPointer` is read as an `i64` or a `u64`.
+The eight integer types are ranges of `Int` (§Range types, *Machine integers*). None has the target's width: a foreign `size_t` is a `u64` that `@c_type` spells for C (§13), and a `CPointer` is read as an `i64` or a `u64`. A numeric type has one name, which gives its kind and its width: there is no `int`, `long`, `float`, `double` or `byte`.
 
 `type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `T: type : i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
-### Built-in type aliases
-
-To reduce typing in everyday code, the compiler recognises a set of **canonical aliases** for primitive types. They are fully transparent — the compiler treats an alias and its target as the same type everywhere (error messages, snapshots, inference).
-
-| Alias | Resolves to |
-|-------|-------------|
-| `int` | `i32` |
-| `long` | `i64` |
-| `float` | `f32` |
-| `double` | `f64` |
-| `byte` | `u8` (unsigned) |
-
-`char` and `string` are already first-class names in the primitive table, so they need no alias.
-
 A length, an index and a size are an `i64`, on every target: array and string `len()`, `byte_len()`, `@size_of(T)`. Array indexing accepts any integer type (`arr[2]`, `arr[i]` with `i: i32`, `arr.len() == 12` all compile with no conversion written); an index outside the array stops the run.
 
-These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
+### Type aliases
 
-User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias: no runtime slot is allocated and the name is usable in any type-demanding slot.
+A type alias uses the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias: no runtime slot is allocated and the name is usable in any type-demanding slot.
 
 Generic type aliases use the LHS-angle head `Foo<T> :: <body>` — the `<...>` between the ident and `::` is unambiguous (no other decl form puts angles there), so the parser dispatches without a form-selector keyword. Type parameters are always written with angle brackets `<...>`; there is no bracket or paren form.
 
@@ -765,7 +751,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 
 ### Arrays
 
-- `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo<i32>[]`, ... `int[][]` is an array of int arrays.
+- `T[]` (postfix) is a dynamic array (runtime length). `i32[]`, `string[]`, `Foo<i32>[]`, ... `i32[][]` is an array of `i32` arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked: an index outside `0..<arr.len()` stops the run. The compiler may drop a check it proves can never fail.
 - **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and range values bound to a local work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; its bounds are read as `i64`, a bound below 0 counting as 0 and one past the end as the end. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
@@ -873,7 +859,7 @@ println(pair.1)      // "answer"
 - **Disambiguation of seq literals** is contextual:
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
-  - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
+  - With an annotation, the annotation wins: `xs: i32[] = [1, 2, 3]` is array; `p: [i32, string] = [1, "x"]` is tuple.
 - **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
 - **Element types are invariant.** A tuple's fields are laid out by their types and read with no test, so `[i32, i32]` does not pass as `[i32 | string, i32]` (T3001): the raw `i32` would be read as a union. A fresh literal is built straight into the slot's element types instead, so `p: [i32 | string, i32]: [1, 2]` compiles.
 - **`==` compares the elements, not the references.** A tuple carries no identity to observe — its elements cannot be written (`T3101`, above) and a fresh one is built at each construction — so `a == b` is rewritten field by field. Two tuples with equal contents are equal whether or not they are the same object, and `a != b` negates the whole comparison. Each element compares as it would on its own: a nested tuple recurses, a struct goes through its `Equals` impl, a union by variant, a bounded type parameter through `Equals`. A **distinct newtype over a tuple** (`Pair :: [i32, i32]`) compares through its backing unless it implements `Equals` itself.
