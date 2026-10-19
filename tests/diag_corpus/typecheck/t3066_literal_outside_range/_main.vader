@@ -1,8 +1,11 @@
 // A literal stored in a range must be one of its values : in a local, a field, an
-// array, an optional slot, a conversion `Hour(…)` and a `match` pattern alike.
+// array, an optional slot, a conversion `Hour(…)` or into a distinct over the range,
+// and a `match` pattern alike.
 module "snippet"
 
 export Hour :: Int in 0..=23
+
+export Slot :: Hour
 
 export Alarm :: struct {
     at: Hour
@@ -22,5 +25,6 @@ export main :: fn() -> i32 {
     alarm :: Alarm { .at = 99 }
     hours: Hour[]: [1, 24]
     converted :: Hour(25)
+    slot :: Slot(26)
     return 0
 }

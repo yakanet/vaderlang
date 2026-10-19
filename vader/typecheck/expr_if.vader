@@ -77,12 +77,12 @@ settle_branch :: fn(
 family_member :: fn(sibling: Type, free: Type) -> Type | null {
     if sibling is UnionType {
         member :: union_literal_member(free, sibling) ?? return null
-        if primitive_name(member) != "" {
+        if literal_family_holds(free, member) {
             return member
         }
         return null
     }
-    if literal_family_holds(free, primitive_name(sibling)) {
+    if literal_family_holds(free, sibling) {
         return sibling
     }
     return null

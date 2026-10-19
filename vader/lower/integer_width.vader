@@ -50,6 +50,21 @@ operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger 
     return integer_representation(right)
 }
 
+/// The integer type a binary operation of type `result` is computed in
+/// (`computation_width`). A test reads a distinct over an integer as that integer,
+/// so that `Slot == w` (`Slot` over `Hour`, `w: i64`) compares in `i64` ;
+/// arithmetic on a distinct keeps the width of its own type, where it is checked.
+///
+/// @param left    the left operand's type.
+/// @param right   the right operand's type.
+/// @param result  the operation's type : an integer, or the `bool` of a test.
+operation_width :: fn(left: Type, right: Type, result: Type) -> MachineInteger | null {
+    if result is RangeType {
+        return computation_width(left, right, result)
+    }
+    return computation_width(strip_distinct(left), strip_distinct(right), result)
+}
+
 /// `e` converted to `width`, when there is one to compute in.
 ///
 /// @param e      an operand, lowered.

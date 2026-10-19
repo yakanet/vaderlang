@@ -325,7 +325,7 @@ range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
         diags.push(typecheck_error(.MalformedRangeType, e.span, "a bound is an integer literal"))
         return null
     }
-    if !int_fits(e.value, e.negative, "i64") {
+    if !literal_fits(e.value, e.negative, TY_I64.bounds) {
         diags.push(typecheck_error(.MalformedRangeType, e.span,
             "`${AST.int_literal_text(e)}` is past `i64`"))
         return null
@@ -333,20 +333,10 @@ range_bound :: fn(e: AST.Expr, diags: Diagnostic[]) -> i64 | null {
     return AST.int_literal_value(e)
 }
 
-// Whether the integer literal `e`, its sign as written, is a value of the range `r`.
-// A value past `i64.max` is read up from `i64.max`, which a range reaching it holds.
-literal_in_range :: fn(e: AST.IntLitExpr, r: RangeType) -> bool {
-    if is_past_i64(e) {
-        return interval_within(reaching_past_i64(I64_MAX, e, true), r.bounds)
-    }
-    value :: int_literal_i64(e) ?? return false
-    return interval_within(interval(value, value), r.bounds)
-}
-
 /// The value of the integer literal `e`, its sign as written ; null for any other
 /// expression, and for a literal past `i64`.
 int_literal_i64 :: fn(e: AST.Expr) -> i64 | null {
-    if e !is AST.IntLitExpr || !int_fits(e.value, e.negative, "i64") {
+    if e !is AST.IntLitExpr || !literal_fits(e.value, e.negative, TY_I64.bounds) {
         return null
     }
     return AST.int_literal_value(e)

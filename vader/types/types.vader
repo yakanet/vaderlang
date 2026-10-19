@@ -1123,8 +1123,8 @@ export tuple_backing :: fn(t: Type) -> TupleType | null {
 
 /// The scalar `t` is : `t` itself when it is a primitive or an integer, or the
 /// scalar a distinct newtype wraps, through any number of distinct layers
-/// (`Handle :: CPointer` → `CPointer`). `null` for anything else. Two scalars
-/// compare by their representation (`representation_name`).
+/// (`Handle :: CPointer` → `CPointer`). `null` for anything else : what `==`
+/// compares two scalars through.
 export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
     if t is PrimitiveType | RangeType { return t }
     if t is DistinctType { return scalar_backing(t.backing) }

@@ -47,7 +47,7 @@ cast_operand_expected :: fn(target: Type) -> Type {
     }
     if target is DistinctType {
         backing :: cast_operand_expected(target.backing)
-        if primitive_name(backing) != "" {
+        if backing is PrimitiveType | RangeType {
             return backing
         }
     }

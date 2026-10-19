@@ -167,7 +167,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     left :: lower_expr(ctx, binary.left)
     mark :: ctx.pending_awaits.len()
     right :: lower_expr(ctx, binary.right)
-    computed_in :: computation_width(left.type, right.type, type)
+    computed_in :: operation_width(left.type, right.type, type)
     computed :: LoweredBinary {
         .span = binary.span,
         .type = computed_type(type, computed_in),

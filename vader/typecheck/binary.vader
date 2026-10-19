@@ -825,14 +825,18 @@ check_equality :: fn(
         numeric_result(e, left, right, typed, diags)
         return TY_BOOL
     }
-    // Two scalars compare by REPRESENTATION : a distinct type stands for its
+    // Two scalars compare through their backings : a distinct type stands for its
     // backing, so `path == ""` (a `Path` over `string`) holds, and
     // `h == INVALID_HANDLE` (a `Handle` over `CPointer`, against an `i64`)
-    // does not. The detail names the written types, not the backings.
+    // does not. Two numeric backings compare as numbers do (`numeric_type`), the
+    // distinct's own `Equals` recorded above still the callee. The detail names the
+    // written types, not the backings.
     left_scalar  :: scalar_backing(left)
     right_scalar :: scalar_backing(right)
     if left_scalar != null && right_scalar != null {
-        if representation_name(left_scalar) != representation_name(right_scalar) {
+        if is_numeric(left_scalar) && is_numeric(right_scalar) {
+            numeric_type(e, left_scalar, right_scalar, typed, diags)
+        } else if !equals_type(left_scalar, right_scalar) {
             diags.push(typecheck_error(.TypeMismatch, e.span,
                 "expected `${display_type(left)}`, got `${display_type(right)}`"))
         }
@@ -1309,6 +1313,18 @@ numeric_result :: fn(
     }
     // The built-in op, whichever width the operands settle on below.
     record_site(typed, e, .Operator, BUILTIN_CALLEE)
+    return numeric_type(e, left, right, typed, diags)
+}
+
+// The type of `e` on the numeric operands `left` and `right`, the operation's
+// diagnostics pushed (T3017 on two integer types neither of which holds the other).
+numeric_type :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
     if is_refinement(left) || is_refinement(right) {
         return range_result(e, left, right, typed, diags)
     }

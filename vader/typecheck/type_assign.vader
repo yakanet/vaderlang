@@ -306,9 +306,9 @@ variant_keeps_tag :: fn(v: Type, to: UnionType) -> bool {
     return false
 }
 
-// `from` is a free literal : it widens to any primitive of its family
-// (`literal_family_holds`), an integer one to a range (its value is checked where
-// it is pinned, T3066), or to a union holding one.
+// `from` is a free literal : it widens to a type it can be a value of
+// (`literal_takes`), its value checked where it is pinned (T3066), or to a union
+// holding one.
 is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
     if literal_takes(from, to) {
         return true

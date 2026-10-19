@@ -607,8 +607,10 @@ result_c_type_fault :: fn(
 // Whether `t` is an integer C may declare under another name of its width, a
 // distinct type over one included. An unresolved type passes : its own
 // diagnostic is enough.
-is_c_integer :: fn(t: Type) -> bool =
-    t is UnresolvedType || is_int_name(primitive_name(strip_distinct(t)))
+is_c_integer :: fn(t: Type) -> bool {
+    backing :: strip_distinct(t)
+    return t is UnresolvedType || backing is RangeType && is_machine_range(backing)
+}
 
 /// Check the field types of a `@c_struct` mirror that is about to cross to C.
 ///

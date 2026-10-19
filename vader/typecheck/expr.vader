@@ -80,28 +80,20 @@ check_literal_bounds :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
-    name :: primitive_name(final)
-    if expr is AST.CharLitExpr {
-        if is_int_name(name) && !char_fits(expr.value, name) {
+    if final is RangeType {
+        if expr is AST.CharLitExpr && !literal_fits(u64(expr.value), false, final.bounds) {
             diags.push(typecheck_error(.CharLiteralOutOfRange, expr.span,
-                "character literal (codepoint ${expr.value}) does not fit in `${name}`"))
+                "character literal (codepoint ${expr.value}) is not in ${display_range(final)}"))
+        }
+        if expr is AST.IntLitExpr && !literal_fits(expr.value, expr.negative, final.bounds) {
+            diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
+                "`${AST.int_literal_text(expr)}` is not in ${display_range(final)}"))
         }
     }
-    if expr is AST.IntLitExpr {
-        if is_int_name(name) && !int_fits(expr.value, expr.negative, name) {
-            diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
-                "`${AST.int_literal_text(expr)}` does not fit in `${name}`"))
-        }
-        refined :: refinement_of(final)
-        if refined != null && !literal_in_range(expr, refined) {
-            diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
-                "`${AST.int_literal_text(expr)}` is not in ${display_range(refined)}"))
-        }
-        if final is FreeIntType {
-            defaulted :: primitive_name(default_if_free(final))
-            if !int_fits(expr.value, expr.negative, defaulted) {
-                typed.literals_past_default[expr.id] = expr
-            }
+    if expr is AST.IntLitExpr && final is FreeIntType {
+        defaulted :: integer_values(default_if_free(final)) ?? return
+        if !literal_fits(expr.value, expr.negative, defaulted) {
+            typed.literals_past_default[expr.id] = expr
         }
     }
 }
@@ -173,7 +165,7 @@ settled_type :: fn(recorded: Type, t: Type) -> Type | null {
     variants: Type[]: []
     found := false
     for v in union_variants(recorded) ?? [recorded] {
-        if literal_family_holds(v, primitive_name(t)) {
+        if literal_family_holds(v, t) {
             variants.push(t)
             found = true
         } else {

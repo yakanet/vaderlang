@@ -91,6 +91,31 @@ export interval_from_ends :: fn(lo: i64 | null, hi: i64 | null) -> Interval = In
 export interval_within :: fn(a: Interval, outer: Interval) -> bool =
     a.lo >= outer.lo && (outer.lo_open || !a.lo_open) && upper_at_most(a, outer)
 
+/// Whether `values` holds the integer `v`.
+///
+/// @param values  an interval.
+/// @param v       an integer within `i64`.
+export holds_value :: fn(values: Interval, v: i64) -> bool =
+    (values.lo_open || values.lo <= v) && (values.hi_open || v <= values.hi)
+
+/// The number of bits that count the values of `values` from the least : 8 for
+/// `u8` and `i8`, 5 for `0..=23`, 64 for a 64-bit integer and an interval opening
+/// past `i64`.
+///
+/// @param values  an interval.
+export count_bits :: fn(values: Interval) -> i64 {
+    if values.lo_open || values.hi_open {
+        return 64
+    }
+    span := u64(values.hi) -% u64(values.lo)
+    bits: i64 = 0
+    for span > 0 {
+        span = span >> 1
+        bits += 1
+    }
+    return bits
+}
+
 /// Whether `a` and `b` hold the same integers.
 export same_interval :: fn(a: Interval, b: Interval) -> bool =
     a.lo == b.lo && a.hi == b.hi && a.lo_open == b.lo_open && a.hi_open == b.hi_open
@@ -424,4 +449,23 @@ test_interval_remove_drops_a_covered_part :: fn() -> void {
     left :: interval_remove([interval(0, 3), interval(8, 9)], interval(0, 5))
     assert_eq(left.len(), 1)
     assert(same_interval(left[0], interval(8, 9)), "only the part out of reach stays")
+}
+
+@test
+test_holds_value_reads_both_ends :: fn() -> void {
+    assert(holds_value(interval(0, 23), 23), "23 is an Hour")
+    assert(!holds_value(interval(0, 23), 24), "24 is no Hour")
+    assert(!holds_value(interval(0, 23), -1), "-1 is no Hour")
+    assert(holds_value(U64_VALUES, I64_MAX), "i64.max is a u64")
+    assert(holds_value(interval_from_ends(null, 5), I64_MIN), "an open lower end")
+}
+
+@test
+test_count_bits_reads_the_number_of_values :: fn() -> void {
+    assert_eq(count_bits(interval(0, 255)), 8)
+    assert_eq(count_bits(interval(-128, 127)), 8)
+    assert_eq(count_bits(interval(0, 23)), 5)
+    assert_eq(count_bits(interval(5, 5)), 0)
+    assert_eq(count_bits(interval(I64_MIN, I64_MAX)), 64)
+    assert_eq(count_bits(U64_VALUES), 64)
 }

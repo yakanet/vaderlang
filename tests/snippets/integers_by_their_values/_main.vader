@@ -1,0 +1,39 @@
+// An integer type is read by its values, never by the integer it is stored in: a
+// range indexes an array, a distinct over a range compares with any integer
+// holding it or held by it, an overload takes the parameter of fewest values
+// holding the argument, and a `char` literal enters a range holding its code point.
+
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+Slot :: Hour
+Id :: u8
+
+pick :: fn(x: Hour) -> string = "hour"
+pick :: fn(x: u8) -> string = "byte"
+
+main :: fn() -> i32 {
+    names :: ["midnight", "one", "two", "three"]
+    h: Hour: 2
+    println(names[h])
+    n: i64: 3
+    if n in 0..=3 {
+        println(names[n])
+    }
+    s: Slot: Slot(3)
+    b: u8: 3
+    w: i64: 3
+    far: i64: 4_294_967_299
+    near: 10..=30: 12
+    println("${s == b} ${s == w} ${s == far} ${far == s} ${s == near}")
+    i: Id: Id(3)
+    k: i32: 259
+    println("${i == b} ${i == k} ${k == i}")
+    tiny: 0..=5: 4
+    println("${pick(tiny)} ${pick(b)}")
+    digit: 48..=57: '5'
+    println("${digit}")
+    return 0
+}

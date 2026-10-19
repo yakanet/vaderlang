@@ -26,31 +26,25 @@ export is_void :: fn(t: Type) -> bool {
 
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
 
-/// Whether a Unicode codepoint fits the integer primitive `type_name`. A char
-/// literal coerces to an integer only when its codepoint is representable —
-/// `b == '💩'` (u8) is rejected. Non-integer names return false (a char never
-/// coerces to e.g. f64).
-char_fits :: fn(codepoint: u32, type_name: string) -> bool {
-    m :: machine_integer_named(type_name) ?? return false
-    return i64(codepoint) <= m.values.hi
-}
-
-/// Whether an integer literal fits the integer primitive `type_name`. Mirrors
-/// `char_fits` : a free integer literal pinned to a concrete width must be
-/// representable, so `x: i32 = 9000000000`, `x: u8 = 300`, `x: i8 = 128` and
-/// `z: u32 = -1` are rejected (T3066).
+/// Whether an integer literal, its magnitude and its sign as written, is one of
+/// `values` : `x: u8 = 300`, `x: i8 = 128`, `z: u32 = -1` and `h: Hour = 30` are
+/// rejected (T3066), and so is `b == '💩'` on a `u8`, a `char` literal standing
+/// for its code point.
 ///
 /// @param value     the literal's magnitude, the `u64` the AST carries.
 /// @param negative  whether the literal is written with a `-` (`IntLitExpr.negative`).
-/// @param type_name the integer primitive the literal lands in.
-int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
-    m :: machine_integer_named(type_name) ?? return false
-    // A negative magnitude reaches 2^63 at most, the least `i64`.
+/// @param values    the values of the integer type it lands in.
+literal_fits :: fn(value: u64, negative: bool, values: Interval) -> bool {
     if negative {
-        return value <= 0x8000_0000_0000_0000 && 0 -% i64(value) >= m.values.lo
+        // A negative magnitude reaches 2^63 at most, the least `i64`.
+        return value <= 0x8000_0000_0000_0000 && holds_value(values, 0 -% i64(value))
     }
-    // An upper end past `i64` is `u64`'s, which holds every magnitude.
-    return m.values.hi_open || value <= u64(m.values.hi)
+    if value <= u64(I64_MAX) {
+        return holds_value(values, i64(value))
+    }
+    // Past `i64.max` : a range holding it holds every value from `i64.max` up, its
+    // lower bound being within `i64`.
+    return interval_within(interval_up_to(I64_MAX, value), values)
 }
 
 // True when `target` is one of `names`. A small shared membership helper.
@@ -1089,23 +1083,27 @@ union_literal_candidates :: fn(got: Type, u: UnionType) -> Type[] {
     return out
 }
 
-// Whether a free literal of kind `got` can be a value of `t` : of a primitive of
-// its family (`literal_family_holds`), and for an integer one of any range, its
+// Whether a free literal of kind `got` can be a value of `t` : a type of its family
+// (`literal_family_holds`), and for an integer or a `char` literal any range, its
 // value checked where it is pinned (T3066).
 literal_takes :: fn(got: Type, t: Type) -> bool =
-    literal_family_holds(got, primitive_name(t)) || (got is FreeIntType && is_refinement(t))
+    literal_family_holds(got, t) || (got is FreeIntType | FreeCharType && is_refinement(t))
 
-// A free literal of kind `got` can be a value of the primitive `name` : an
-// integer width for `5`, a float width for `2.5`, an integer width or `char` for
-// `'a'` (its codepoint, bounds-checked where it is pinned).
-literal_family_holds :: fn(got: Type, name: string) -> bool = match got {
-    is FreeIntType   -> is_int_name(name)
-    is FreeFloatType -> is_float_name(name)
-    is FreeCharType  -> is_int_name(name) || name == "char"
+// Whether a free literal of kind `got` joins a value of type `t` as `t` : a machine
+// integer for `5`, a float for `2.5`, a machine integer or `char` for `'a'` (its
+// codepoint). Beside a range of other bounds a literal keeps its own value, the
+// paths then joined by their values.
+literal_family_holds :: fn(got: Type, t: Type) -> bool = match got {
+    is FreeIntType   -> is_machine_integer(t)
+    is FreeFloatType -> t is PrimitiveType && is_float_name(t.name)
+    is FreeCharType  -> is_machine_integer(t) || is_char(t)
     is PrimitiveType | EnumType | DistinctType | RangeType | ArrayType | StructType | TraitType
      | UnionType | TupleType | FnType | TypeParamType | InferVar | TypeMetaType | SelfType
      | UnresolvedType | NeverType | AnyType -> false
 }
+
+// Whether `t` is one of the eight machine integers, a range of exactly its bounds.
+is_machine_integer :: fn(t: Type) -> bool = t is RangeType && is_machine_range(t)
 
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
@@ -1218,6 +1216,7 @@ removed_covers :: fn(removed: Type, t: Type) -> bool {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/abort"
 import "std/testing"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -1292,31 +1291,41 @@ test_default_if_free :: fn() -> void {
     assert(equals_type(default_if_free(TY_I32), TY_I32), "i32 should pass through")
 }
 
+// The values of the machine integer `name`, for the tests below.
+values_of_named :: fn(name: string) -> Interval =
+    primitive_interval(name) ?? panic("`${name}` is no machine integer")
+
 @test
-test_int_fits_bounds :: fn() -> void {
+test_literal_fits_machine_bounds :: fn() -> void {
     // Out of range → rejected (T3066 at the pin site).
-    assert(!int_fits(9000000000, false, "i32"), "9e9 does not fit i32")
-    assert(!int_fits(300, false, "u8"), "300 does not fit u8")
-    assert(!int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "i64"), "u64.MAX does not fit i64")
-    assert(!int_fits(128, false, "i8"), "128 does not fit i8")
-    assert(!int_fits(0x8000_0000, false, "i32"), "2^31 does not fit i32")
-    assert(!int_fits(0x8000_0000_0000_0000, false, "i64"), "2^63 does not fit i64")
+    assert(!literal_fits(9000000000, false, values_of_named("i32")), "9e9 does not fit i32")
+    assert(!literal_fits(300, false, values_of_named("u8")), "300 does not fit u8")
+    assert(!literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("i64")), "u64.MAX past i64")
+    assert(!literal_fits(128, false, values_of_named("i8")), "128 does not fit i8")
+    assert(!literal_fits(0x8000_0000, false, values_of_named("i32")), "2^31 does not fit i32")
+    assert(!literal_fits(0x8000_0000_0000_0000, false, values_of_named("i64")), "2^63 past i64")
     // In-range values and maxima → accepted.
-    assert(int_fits(0x7FFF_FFFF, false, "i32"), "i32.MAX fits i32")
-    assert(int_fits(255, false, "u8"), "u8.MAX fits u8")
-    assert(int_fits(0xFFFF_FFFF_FFFF_FFFF, false, "u64"), "u64.MAX fits u64")
-    // A non-integer target never accepts an integer literal via this path.
-    assert(!int_fits(0, false, "f64"), "int literal never fits f64")
-    assert(!int_fits(0, false, "bool"), "int literal never fits bool")
+    assert(literal_fits(0x7FFF_FFFF, false, values_of_named("i32")), "i32.MAX fits i32")
+    assert(literal_fits(255, false, values_of_named("u8")), "u8.MAX fits u8")
+    assert(literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("u64")), "u64.MAX fits u64")
 }
 
 @test
-test_int_fits_negative_literals :: fn() -> void {
-    assert(int_fits(128, true, "i8"), "-128 fits i8")
-    assert(!int_fits(129, true, "i8"), "-129 does not fit i8")
-    assert(int_fits(0x8000_0000, true, "i32"), "i32.MIN fits i32")
-    assert(int_fits(0x8000_0000_0000_0000, true, "i64"), "i64.MIN fits i64")
-    assert(!int_fits(0x8000_0000_0000_0001, true, "i64"), "past i64.MIN")
-    assert(!int_fits(1, true, "u32"), "-1 does not fit u32")
-    assert(int_fits(0, true, "u8"), "-0 fits u8")
+test_literal_fits_negative_literals :: fn() -> void {
+    assert(literal_fits(128, true, values_of_named("i8")), "-128 fits i8")
+    assert(!literal_fits(129, true, values_of_named("i8")), "-129 does not fit i8")
+    assert(literal_fits(0x8000_0000, true, values_of_named("i32")), "i32.MIN fits i32")
+    assert(literal_fits(0x8000_0000_0000_0000, true, values_of_named("i64")), "i64.MIN fits i64")
+    assert(!literal_fits(0x8000_0000_0000_0001, true, values_of_named("i64")), "past i64.MIN")
+    assert(!literal_fits(1, true, values_of_named("u32")), "-1 does not fit u32")
+    assert(literal_fits(0, true, values_of_named("u8")), "-0 fits u8")
+}
+
+@test
+test_literal_fits_a_range :: fn() -> void {
+    assert(literal_fits(23, false, interval(0, 23)), "23 is an Hour")
+    assert(!literal_fits(24, false, interval(0, 23)), "24 is no Hour")
+    past :: interval_up_to(0, 0x8000_0000_0000_0005)
+    assert(literal_fits(0x8000_0000_0000_0005, false, past), "the top of a range past i64")
+    assert(!literal_fits(0x8000_0000_0000_0006, false, past), "past the top of a range past i64")
 }

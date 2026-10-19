@@ -367,10 +367,9 @@ index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedPro
     return substitute_struct_args(tmpl, target, typed)
 }
 
-is_integer_index :: fn(t: Type) -> bool {
-    if t is FreeIntType { return true }
-    return is_int_name(primitive_name(t))
-}
+// Whether `t` indexes an array : any integer type (`Hour`, a narrowed `0..=9`), or a
+// free literal.
+is_integer_index :: fn(t: Type) -> bool = t is FreeIntType || t is RangeType
 
 is_range_type :: fn(t: Type) -> bool {
     if t is StructType {

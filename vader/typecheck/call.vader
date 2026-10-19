@@ -258,13 +258,14 @@ overload_rank :: fn(arg0: Type, param0: Type, exact_arity: bool) -> i32 {
 }
 
 // The closeness of an integer argument to a parameter of its own type, above any
-// wider one : an 8-byte slot holding a narrower argument is 1.
-OWN_TYPE_CLOSENESS: i32: 9
+// wider one : a 64-bit slot holding a narrower argument is 1.
+OWN_TYPE_CLOSENESS: i32: 65
 
 // How tightly `param0` holds the integer argument `arg0` : `OWN_TYPE_CLOSENESS`
-// for its own type, that less the bytes of the integer of `param0` holding it
-// otherwise (a union's variant included), so that `min(b, b)` on a `u8` takes the
-// `i32` overload over the `i64` one ; 0 for an argument of no integer type.
+// for its own type, that less the bits that count the values of the integer of
+// `param0` holding it otherwise (a union's variant included), so that `min(b, b)`
+// on a `u8` takes the `i32` overload over the `i64` one, and an `Hour` the one
+// on `0..=23` over the one on `u8` ; 0 for an argument of no integer type.
 integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
     if integer_values(arg0) == null {
         return 0
@@ -274,10 +275,11 @@ integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
         if equals_type(arg0, slot) {
             return OWN_TYPE_CLOSENESS
         }
-        if integer_values(slot) == null || !is_assignable(arg0, slot) {
+        values :: integer_values(slot) ?? continue
+        if !is_assignable(arg0, slot) {
             continue
         }
-        tightness :: OWN_TYPE_CLOSENESS - i32(slot_byte_size(slot))
+        tightness :: OWN_TYPE_CLOSENESS - i32(count_bits(values))
         if tightness > closest {
             closest = tightness
         }

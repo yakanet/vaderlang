@@ -630,6 +630,9 @@ const C_PARITY = new Set<string>([
   "trait_impl",
   // A negative count or slice bound reads as 0 in the C runtime, as on the VM.
   "counts_below_zero",
+  // An integer type read by its values : a range index, a distinct compared at
+  // the width of the integer it is over, an overload by the values it holds.
+  "integers_by_their_values",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.
