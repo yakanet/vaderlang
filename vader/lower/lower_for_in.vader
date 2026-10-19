@@ -845,13 +845,13 @@ compare_counter :: fn(
 // literal `hi + 1` overflows. A `char` counter steps on 32 bits, past the last
 // codepoint.
 may_be_type_max :: fn(hi: LoweredExpr, t: Type) -> bool {
-    if t !is PrimitiveType || !is_int_name(t.name) {
+    if t !is PrimitiveType {
         return false
     }
+    m :: machine_integer_named(t.name) ?? return false
     if hi !is LoweredIntLit {
         return true
     }
-    bits :: primitive_size(t.name) * 8
-    return checked_add(bits, is_unsigned_int_name(t.name), hi.value, 1) == null
+    return checked_add(m.bits, !m.is_signed, hi.value, 1) == null
 }
 

@@ -80,29 +80,35 @@ export RangeType :: struct {
     origin: string = ""
 }
 
-/// The integer type a value of `r` is held in : the type it was narrowed out of
+/// The machine integer a value of `r` is held in : the one it was narrowed out of
 /// where that holds it (`narrowed_origin`), since a narrowing changes no width ;
-/// else the narrowest holding it (`narrowest_integer`).
+/// else the narrowest holding it.
+///
+/// @param r  a range.
+export storage_integer :: fn(r: RangeType) -> MachineInteger =
+    narrowed_origin(r) ?? narrowest_machine_integer(r.bounds)
+
+/// The integer type a value of `r` is held in (`storage_integer`).
 ///
 /// @param r  a range.
 export range_representation :: fn(r: RangeType) -> PrimitiveType =
-    narrowed_origin(r) ?? narrowest_integer(r.bounds)
+    PrimitiveType { .name = storage_integer(r).name }
 
-/// The integer type the range `r` was narrowed out of, where it holds `r`'s values :
-/// the width a narrowing keeps, for a mutable local, a bitwise operation and the
-/// value's storage alike.
+/// The machine integer the range `r` was narrowed out of, where it holds `r`'s
+/// values : the width a narrowing keeps, for a mutable local, a bitwise operation
+/// and the value's storage alike.
 ///
 /// @param r  a range.
 /// @return   null for a range with no origin, or one its origin does not hold.
-export narrowed_origin :: fn(r: RangeType) -> PrimitiveType | null {
+export narrowed_origin :: fn(r: RangeType) -> MachineInteger | null {
     if r.origin == "" {
         return null
     }
-    values :: primitive_interval(r.origin) ?? return null
-    if !interval_within(r.bounds, values) {
+    m :: machine_integer_named(r.origin) ?? return null
+    if !interval_within(r.bounds, m.values) {
         return null
     }
-    return PrimitiveType { .name = r.origin }
+    return m
 }
 
 /// `r` as a type argument holds it : without the integer it was narrowed out of,
@@ -116,59 +122,8 @@ export without_origin :: fn(r: RangeType) -> RangeType = RangeType { ...r, .orig
 /// in, and an enum's inferred width.
 ///
 /// @param values  the integers to hold ; past 64 bits, the widest of its kind.
-export narrowest_integer :: fn(values: Interval) -> PrimitiveType {
-    // The common case, a machine integer's own values, needs no search.
-    exact :: machine_integer_name(values)
-    if exact != "" {
-        return PrimitiveType { .name = exact }
-    }
-    candidates :: integer_candidates(values)
-    for name in candidates {
-        whole :: primitive_interval(name) ?? continue
-        if interval_within(values, whole) {
-            return PrimitiveType { .name = name }
-        }
-    }
-    return PrimitiveType { .name = candidates[candidates.len() - 1] }
-}
-
-/// The machine integer whose values `bounds` are exactly : `i8`, `i16`, `i32`, `i64`,
-/// `u8`, `u16`, `u32` or `u64` ; "" for any other bounds. A range of those bounds is
-/// that integer, named or not : its arithmetic is closed, checked against its
-/// bounds, where the arithmetic of any other range is exact.
-///
-/// @param bounds  a range's bounds.
-export machine_integer_name :: fn(bounds: Interval) -> string {
-    if same_interval(bounds, U64_VALUES) {
-        return "u64"
-    }
-    if bounds.lo_open || bounds.hi_open {
-        return ""
-    }
-    if bounds.lo == 0 {
-        return unsigned_machine_name(bounds.hi)
-    }
-    // `hi > 0` first : `-hi` of the least `i64` overflows.
-    if bounds.hi > 0 && bounds.lo == -bounds.hi - 1 {
-        return signed_machine_name(bounds.hi)
-    }
-    return ""
-}
-
-unsigned_machine_name :: fn(hi: i64) -> string = match hi {
-    0xFF        -> "u8"
-    0xFFFF      -> "u16"
-    0xFFFF_FFFF -> "u32"
-    _           -> ""
-}
-
-signed_machine_name :: fn(hi: i64) -> string = match hi {
-    0x7F                  -> "i8"
-    0x7FFF                -> "i16"
-    0x7FFF_FFFF           -> "i32"
-    0x7FFF_FFFF_FFFF_FFFF -> "i64"
-    _                     -> ""
-}
+export narrowest_integer :: fn(values: Interval) -> PrimitiveType =
+    PrimitiveType { .name = narrowest_machine_integer(values).name }
 
 /// The name of the primitive `t` is : a primitive's own (`string`, `char`), the
 /// machine integer a range of its bounds is (`machine_integer_name`) ; "" for any
@@ -222,39 +177,25 @@ export at_own_width :: fn(t: Type) -> Type {
 /// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647`.
 ///
 /// @param name  an integer type's name (`is_int_name`).
-export mk_integer :: fn(name: string) -> Type = match name {
-    "i8"  -> TY_I8
-    "i16" -> TY_I16
-    "i32" -> TY_I32
-    "i64" -> TY_I64
-    "u8"  -> TY_U8
-    "u16" -> TY_U16
-    "u32" -> TY_U32
-    "u64" -> TY_U64
-    _     -> PrimitiveType { .name = name }
+export mk_integer :: fn(name: string) -> Type {
+    m :: machine_integer_named(name) ?? return PrimitiveType { .name = name }
+    return machine_integer_type(m)
 }
 
-integer_candidates :: fn(values: Interval) -> string[] {
-    if !values.lo_open && values.lo >= 0 {
-        return ["u8", "u16", "u32", "u64"]
-    }
-    return ["i8", "i16", "i32", "i64"]
-}
+/// The machine integer `m` as the typecheck holds it : the range of its values,
+/// named after it.
+///
+/// @param m  a machine integer.
+export machine_integer_type :: fn(m: MachineInteger) -> RangeType =
+    RangeType { .bounds = m.values, .name = m.name }
 
 /// The values of the primitive integer type `name`.
 ///
 /// @return  null for a name that is no integer type. A 64-bit unsigned type's
 ///          upper end lies past every `i64`, at `u64.max` exactly.
 export primitive_interval :: fn(name: string) -> Interval | null {
-    meta :: primitive_meta(name) ?? return null
-    if !meta.is_int {
-        return null
-    }
-    bits :: meta.size * 8
-    if meta.is_signed {
-        return signed_interval(bits)
-    }
-    return unsigned_interval(bits)
+    m :: machine_integer_named(name) ?? return null
+    return m.values
 }
 
 /// The least value of an integer type holding `values`, or its greatest, as an
@@ -271,21 +212,6 @@ export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
         return i64(upper_past_i64(values))
     }
     return values.hi
-}
-
-unsigned_interval :: fn(bits: i64) -> Interval {
-    if bits == 64 {
-        return U64_VALUES
-    }
-    return interval(0, (1 << bits) - 1)
-}
-
-signed_interval :: fn(bits: i64) -> Interval {
-    if bits == 64 {
-        return interval(I64_MIN, I64_MAX)
-    }
-    half :: 1 << (bits - 1)
-    return interval(-half, half - 1)
 }
 
 // `r` as written : its declared name, else the machine integer of its bounds,
@@ -444,21 +370,18 @@ export Type ::
 
 // ---- name registries ------------------------------------------------------
 
-/// Target-ABI metadata for one primitive — the single source of truth every
+/// Target-ABI metadata for one primitive other than the integers, which
+/// `vader/integer::MACHINE_INTEGERS` describes: the single source of truth every
 /// pass consults instead of re-listing names. Row order is load-bearing:
-/// `resolver/builtins` mints builtin symbol IDs in this order for every row but
-/// the integers (embedded in snapshots), so new primitives append at the end.
-/// Consumer-owned mappings (bytecode `ValType`, typecheck `ReprRange`, lower
-/// `WriterKind`, c-emit C spellings) map a row onto their own enum rather than
-/// living here, so `vader/types` stays a near-leaf. `is_signed` / `is_float` are
-/// only meaningful with `is_int` / respectively; `size` is bytes (align == size on
-/// the 64-bit target).
+/// `resolver/builtins` mints builtin symbol IDs in this order (embedded in
+/// snapshots), so new primitives append at the end. Consumer-owned mappings
+/// (bytecode `ValType`, c-emit C spellings) map a row onto their own enum rather
+/// than living here, so `vader/types` stays a near-leaf. `size` is bytes (align ==
+/// size on the 64-bit target).
 export PrimitiveMeta :: struct {
-    name:      string
-    size:      i64
-    is_int:    bool
-    is_signed: bool
-    is_float:  bool
+    name:     string
+    size:     i64
+    is_float: bool = false
     /// The value is a handle the runtime follows, not storage the slot owns.
     /// `string` is an interned atom the collector tracks ; `CPointer` addresses
     /// memory the Vader side does not own. A pass deciding whether a value can
@@ -469,22 +392,30 @@ export PrimitiveMeta :: struct {
 }
 
 export PRIMITIVE_META: PrimitiveMeta[]: [
-    PrimitiveMeta { .name = "i8",     .size = 1,  .is_int = true,  .is_signed = true,  .is_float = false },
-    PrimitiveMeta { .name = "i16",    .size = 2,  .is_int = true,  .is_signed = true,  .is_float = false },
-    PrimitiveMeta { .name = "i32",    .size = 4,  .is_int = true,  .is_signed = true,  .is_float = false },
-    PrimitiveMeta { .name = "i64",    .size = 8,  .is_int = true,  .is_signed = true,  .is_float = false },
-    PrimitiveMeta { .name = "u8",     .size = 1,  .is_int = true,  .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "u16",    .size = 2,  .is_int = true,  .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "u32",    .size = 4,  .is_int = true,  .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "u64",    .size = 8,  .is_int = true,  .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "f32",    .size = 4,  .is_int = false, .is_signed = false, .is_float = true  },
-    PrimitiveMeta { .name = "f64",    .size = 8,  .is_int = false, .is_signed = false, .is_float = true  },
-    PrimitiveMeta { .name = "bool",   .size = 1,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "char",   .size = 4,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "string", .size = 4,  .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
-    PrimitiveMeta { .name = "void",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "null",   .size = 0,  .is_int = false, .is_signed = false, .is_float = false },
-    PrimitiveMeta { .name = "CPointer", .size = 8, .is_int = false, .is_signed = false, .is_float = false, .is_reference = true },
+    PrimitiveMeta {
+        .name = "f32",
+        .size = 4,
+        .is_float = true,
+    },
+    PrimitiveMeta {
+        .name = "f64",
+        .size = 8,
+        .is_float = true,
+    },
+    PrimitiveMeta { .name = "bool", .size = 1 },
+    PrimitiveMeta { .name = "char", .size = 4 },
+    PrimitiveMeta {
+        .name = "string",
+        .size = 4,
+        .is_reference = true,
+    },
+    PrimitiveMeta { .name = "void", .size = 0 },
+    PrimitiveMeta { .name = "null", .size = 0 },
+    PrimitiveMeta {
+        .name = "CPointer",
+        .size = 8,
+        .is_reference = true,
+    },
 ]
 
 /// The `PrimitiveMeta` row for `name`, or null when `name` is not a primitive.
@@ -495,7 +426,9 @@ export primitive_meta :: fn(name: string) -> PrimitiveMeta | null {
     return null
 }
 
-export is_primitive_name :: fn(name: string) -> bool = primitive_meta(name) != null
+/// Whether `name` spells a primitive or a machine integer.
+export is_primitive_name :: fn(name: string) -> bool =
+    primitive_meta(name) != null || is_int_name(name)
 
 /// Whether `name` is a primitive the runtime reaches through a handle.
 ///
@@ -506,10 +439,8 @@ export is_reference_name :: fn(name: string) -> bool {
     return m != null && m.is_reference
 }
 
-export is_int_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && m.is_int
-}
+/// Whether `name` spells a machine integer (`machine_integer_named`).
+export is_int_name :: fn(name: string) -> bool = machine_integer_named(name) != null
 
 /// Whether a range whose lower bound has type `t` counts in place: a primitive
 /// integer, or a free integer or `char` literal. A `for` over such a range written
@@ -524,14 +455,16 @@ export is_counting_type :: fn(t: Type) -> bool = match t {
     is NeverType | UnresolvedType | TypeMetaType -> false
 }
 
+/// Whether `name` spells a signed machine integer.
 export is_signed_int_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && m.is_int && m.is_signed
+    m :: machine_integer_named(name) ?? return false
+    return m.is_signed
 }
 
+/// Whether `name` spells an unsigned machine integer.
 export is_unsigned_int_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && m.is_int && !m.is_signed
+    m :: machine_integer_named(name) ?? return false
+    return !m.is_signed
 }
 
 export is_float_name :: fn(name: string) -> bool {
@@ -539,13 +472,16 @@ export is_float_name :: fn(name: string) -> bool {
     return m != null && m.is_float
 }
 
-export is_numeric_name :: fn(name: string) -> bool {
-    m :: primitive_meta(name)
-    return m != null && (m.is_int || m.is_float)
-}
+/// Whether `name` spells a machine integer or a float.
+export is_numeric_name :: fn(name: string) -> bool = is_int_name(name) || is_float_name(name)
 
-/// Size in bytes of a primitive (0 for `void` / `null` / non-primitive).
+/// Size in bytes of a primitive or a machine integer (0 for `void` / `null` /
+/// anything else).
 export primitive_size :: fn(name: string) -> i64 {
+    integer :: machine_integer_named(name)
+    if integer != null {
+        return integer.bits / 8
+    }
     m :: primitive_meta(name) ?? return 0
     return m.size
 }
@@ -577,7 +513,7 @@ export slot_byte_size :: fn(t: Type) -> i64 = match t {
     // enums and one that is four times denser.
     is EnumType     -> primitive_size(t.repr)
     is DistinctType -> slot_byte_size(t.backing)
-    is RangeType    -> primitive_size(range_representation(t).name)
+    is RangeType    -> storage_integer(t).bits / 8
     is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
     is TraitType | UnionType | AnyType               -> BOX_SLOT_BYTES
     is TypeMetaType | TypeParamType | InferVar | SelfType | UnresolvedType
@@ -812,11 +748,7 @@ export TY_CHAR       :: PrimitiveType { .name = "char" }
 export TY_NULL       :: PrimitiveType { .name = "null" }
 export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 
-/// `i8`, the range of its values (`mk_integer`).
-export TY_I8 :: RangeType { .bounds = Interval { .lo = -0x80, .hi = 0x7F }, .name = "i8" }
-/// `i16`, the range of its values.
-export TY_I16 :: RangeType { .bounds = Interval { .lo = -0x8000, .hi = 0x7FFF }, .name = "i16" }
-/// `i32`, the range of its values : what a free integer defaults to.
+/// `i32`, the range of its values (`mk_integer`) : what a free integer defaults to.
 export TY_I32 :: RangeType {
     .bounds = Interval { .lo = -0x8000_0000, .hi = 0x7FFF_FFFF },
     .name = "i32",
@@ -824,14 +756,6 @@ export TY_I32 :: RangeType {
 /// `i64`, the range of its values : what an integer is computed on where no
 /// narrower type is known.
 export TY_I64 :: RangeType { .bounds = Interval { .lo = I64_MIN, .hi = I64_MAX }, .name = "i64" }
-/// `u8`, the range of its values.
-export TY_U8 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFF }, .name = "u8" }
-/// `u16`, the range of its values.
-export TY_U16 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFFFF }, .name = "u16" }
-/// `u32`, the range of its values.
-export TY_U32 :: RangeType { .bounds = Interval { .lo = 0, .hi = 0xFFFF_FFFF }, .name = "u32" }
-/// `u64`, the range of its values, up to `u64.max` exactly.
-export TY_U64 :: RangeType { .bounds = U64_VALUES, .name = "u64" }
 
 /// Whether `t` is the `null` type.
 ///
@@ -940,7 +864,7 @@ export impl_base_key :: fn(t: Type) -> string {
         is StructType | TraitType | EnumType | DistinctType -> { return declaration_key(t.symbol) }
         is ArrayType -> { return "[]" }
         // A range is its integer to every impl.
-        is RangeType -> { return range_representation(t).name }
+        is RangeType -> { return storage_integer(t).name }
         // Two same-named types of two modules print alike inside one of these.
         is TupleType | FnType | UnionType -> { return canonical_key(t) }
         _ -> { return display_type(t) }
@@ -1379,14 +1303,12 @@ test_display_type_param :: fn() -> void {
 }
 
 @test
-test_machine_integer_name_reads_exact_bounds :: fn() -> void {
-    assert_eq(machine_integer_name(interval(0, 255)), "u8")
-    assert_eq(machine_integer_name(interval(-128, 127)), "i8")
-    assert_eq(machine_integer_name(interval(I64_MIN, I64_MAX)), "i64")
-    assert_eq(machine_integer_name(U64_VALUES), "u64")
-    assert_eq(machine_integer_name(interval(0, 254)), "")
-    assert_eq(machine_integer_name(interval(-5, 4)), "")
-    assert_eq(machine_integer_name(interval(I64_MIN, I64_MIN)), "")
+test_integer_singletons_agree_with_the_machine_table :: fn() -> void {
+    singletons :: [TY_I32, TY_I64]
+    for t in singletons {
+        m :: machine_integer_named(t.name) ?? return assert(false, "${t.name} is in the table")
+        assert(same_interval(m.values, t.bounds), "${t.name} has its machine bounds")
+    }
 }
 
 @test

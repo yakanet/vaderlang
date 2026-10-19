@@ -7,7 +7,10 @@
 
 module "vader/typecheck"
 
+import "std/string_builder"
 AST :: import "toolchain/ast"
+import "vader/integer"
+import "vader/types"
 
 /// Walk the first decl's body looking for the first expression that
 /// `pred` accepts (returns non-null). Descends through `BlockExpr`,
@@ -88,22 +91,19 @@ find_first_in_expr :: fn(
 
 // ---- a source without `std/core` ------------------------------------------
 
-/// The integers `std/core` declares, for a test source checked without it.
-TEST_INTEGERS :: """
-i8 :: Int in -0x80..=0x7F
-i16 :: Int in -0x8000..=0x7FFF
-i32 :: Int in -0x8000_0000..=0x7FFF_FFFF
-i64 :: Int in -0x8000_0000_0000_0000..=0x7FFF_FFFF_FFFF_FFFF
-u8 :: Int in 0..=0xFF
-u16 :: Int in 0..=0xFFFF
-u32 :: Int in 0..=0xFFFF_FFFF
-u64 :: Int in 0..=0xFFFF_FFFF_FFFF_FFFF
-"""
-
-/// `src` after the integer declarations, so its last declaration stays the test's.
+/// `src` after the integers `std/core` declares, one line per machine integer, so
+/// that a test source checked without `std/core` can name them and its last
+/// declaration stays the test's.
 ///
 /// @param src  a test source that names integer types.
-with_integers :: fn(src: string) -> string = TEST_INTEGERS + src
+with_integers :: fn(src: string) -> string {
+    sb :: StringBuilder {}
+    for m in MACHINE_INTEGERS {
+        sb.append("${m.name} :: ${INT_BASE_NAME} in ${display_bounds(m.values)}\n")
+    }
+    sb.append(src)
+    return sb.to_string()
+}
 
 /// The first function among `decls`, past the integers `with_integers` declares.
 ///

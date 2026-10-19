@@ -441,7 +441,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
     // name (opaque — an impl on the distinct, never the backing's).
     is DistinctType -> t.symbol.name
     // A range is its integer to every impl.
-    is RangeType -> range_representation(t).name
+    is RangeType -> storage_integer(t).name
     // Generic-shape pattern + concrete receiver agree on a canonical token :
     // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
     is ArrayType          -> "[]"

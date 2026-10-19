@@ -70,9 +70,9 @@ represented :: fn(t: Type) -> Type {
     return held_integer(refined)
 }
 
-// The integer the range `r` is held in (`range_representation`), as the typecheck
-// holds an integer type (`mk_integer`).
-held_integer :: fn(r: RangeType) -> Type = mk_integer(range_representation(r).name)
+// The integer the range `r` is held in (`storage_integer`), as the typecheck holds
+// an integer type (`machine_integer_type`).
+held_integer :: fn(r: RangeType) -> Type = machine_integer_type(storage_integer(r))
 
 // `t` as an operation reads it : a range reaching past `i64` as the integer it is
 // held in, which the operation is then checked in, `i64` holding none of its values
@@ -260,7 +260,7 @@ wider_origin :: fn(a: string, b: string) -> string {
     }
     a_values :: primitive_interval(a) ?? return b
     b_values :: primitive_interval(b) ?? return a
-    return narrowest_integer(interval_join(a_values, b_values)).name
+    return narrowest_machine_integer(interval_join(a_values, b_values)).name
 }
 
 /// The type a free integer value `expr` takes in the range slot `expected` : a

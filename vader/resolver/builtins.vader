@@ -23,17 +23,14 @@ export BUILTIN_MODULE_ID :: "<builtin>"
 /// (`Int in 0..=23`), never the type of a value.
 BUILTIN_EXTRA_NAMES :: ["Self", "type", INT_BASE_NAME]
 
-/// Every builtin type name in mint order: the primitives (`PRIMITIVE_META`) but
-/// the integers, which `std/core` declares, then `Self` / `type` / `Int`. Order is
-/// load-bearing: symbol IDs mint in this sequence and are embedded in snapshots,
-/// so the two sources are concatenated in a fixed order rather than re-listed
-/// here.
+/// Every builtin type name in mint order: the primitives (`PRIMITIVE_META`), then
+/// `Self` / `type` / `Int`; the integers are `std/core`'s. Order is load-bearing:
+/// symbol IDs mint in this sequence and are embedded in snapshots, so the two
+/// sources are concatenated in a fixed order rather than re-listed here.
 builtin_type_names :: fn() -> string[] {
     out: string[]: []
     for m in PRIMITIVE_META {
-        if !m.is_int {
-            out.push(m.name)
-        }
+        out.push(m.name)
     }
     for e in BUILTIN_EXTRA_NAMES { out.push(e) }
     return out

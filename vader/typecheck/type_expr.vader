@@ -408,8 +408,7 @@ type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
 export primitive_from_name :: fn(name: string) -> Type | null {
     if name == "type" { return TY_TYPE }
     if name == "Self" { return TY_SELF }
-    m :: primitive_meta(name) ?? return null
-    if m.is_int {
+    if primitive_meta(name) == null {
         return null
     }
     return mk_primitive(name)

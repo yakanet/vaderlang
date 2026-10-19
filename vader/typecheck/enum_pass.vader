@@ -33,7 +33,7 @@ resolve_enum_indices :: fn(
 ) -> MutableMap<string, i64> {
     out :: MutableMap<string, i64> {}
     seen_values :: MutableSet<i64> {}
-    range :: repr_range(repr)
+    values :: primitive_interval(repr)
     cursor: i64 = 0
     for variant in decl.variants {
         value :: variant.value
@@ -41,11 +41,11 @@ resolve_enum_indices :: fn(
             is i64 -> value
             is null -> cursor
         }
-        if !range.contains(v) {
+        if values != null && (v < values.lo || v > values.hi) {
             span :: span_of_value(variant)
             diags.push(typecheck_error(
                 .EnumVariantValueOutOfRange, span,
-                "${v} not in [${range.min}, ${range.max}] for `${repr}`",
+                "${v} not in [${values.lo}, ${values.hi}] for `${repr}`",
             ))
         }
         if !seen_values.add(v) {
@@ -74,7 +74,7 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
 /// The narrowest integer holding every index in `[smallest, largest]` : unsigned when
 /// none is negative.
 export narrowest_width :: fn(smallest: i64, largest: i64) -> string =
-    narrowest_integer(interval(smallest, largest)).name
+    narrowest_machine_integer(interval(smallest, largest)).name
 
 /// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
 export value_bounds :: fn(values: i64[]) -> [i64, i64] {
@@ -150,56 +150,9 @@ export declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructTy
     return null
 }
 
-// ---- repr ranges ----------------------------------------------------------
+// ---- variant spans ------------------------------------------------------
 
-/// Inclusive `[min, max]` integer range for a backing primitive.
-/// `contains(v)` returns true when v lands in the range (or always-true
-/// when the repr isn't an integer — defensive fallback).
-ReprRange :: struct {
-    min: i64
-    max: i64
-    /// True when the range is meaningful. False for non-integer reprs
-    /// (which shouldn't reach this pass — repr validation already
-    /// rejects them via T3029).
-    has_bounds: bool
-}
-
-contains :: fn(self: ReprRange, v: i64) -> bool {
-    if !self.has_bounds { return true }
-    return self.min <= v && v <= self.max
-}
-
-// Inclusive `[min, max]` value range of a backing integer primitive, DERIVED
-// from its width + signedness (`vader/types::PRIMITIVE_META`) rather than a
-// per-width name table. Signed n-bit = `[-2^(n-1), 2^(n-1)-1]`; unsigned =
-// `[0, 2^n-1]`. The 64-bit widths (i64/i64 + u64/i64) clamp `max` to
-// `i64.MAX`: values above it can't be carried in the AST. `vader/types::
-// primitive_interval` gives the same bounds as an interval, its 64-bit unsigned
-// end open past `i64`.
-repr_range :: fn(repr: string) -> ReprRange {
-    m :: primitive_meta(repr)
-    if m == null  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
-    if !m.is_int  { return ReprRange { .min = 0, .max = 0, .has_bounds = false } }
-    if m.size >= 8 {
-        lo: i64: if m.is_signed { -0x8000_0000_0000_0000 } else { 0 }
-        return ReprRange { .min = lo, .max = 0x7FFF_FFFF_FFFF_FFFF, .has_bounds = true }
-    }
-    bits :: m.size * 8
-    if m.is_signed {
-        half :: pow2_i64(bits - 1)
-        return ReprRange { .min = -half, .max = half - 1, .has_bounds = true }
-    }
-    return ReprRange { .min = 0, .max = pow2_i64(bits) - 1, .has_bounds = true }
-}
-
-// 2^k as an i64 (k ≤ 32 here — narrower integer widths only; the 64-bit widths
-// are handled above without ever computing 2^64).
-pow2_i64 :: fn(k: i64) -> i64 {
-    r: i64 = 1
-    for _ in 0..<k { r = r * 2 }
-    return r
-}
-
+// Where a variant's value is written, or the variant itself when it has none.
 span_of_value :: fn(v: EnumVariant) -> Span {
     match v.value_span as s {
         is null -> { return v.span }

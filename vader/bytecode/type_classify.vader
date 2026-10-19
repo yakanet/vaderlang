@@ -15,9 +15,9 @@
 
 module "vader/bytecode"
 
-import "vader/types"
-import "vader/resolver/symbol"
 import "vader/diagnostics"
+import "vader/resolver/symbol"
+import "vader/types"
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`
 /// allocation by keying directly on the primitive name (already a
@@ -41,7 +41,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     // backing's zero-cost representation end to end.
     is DistinctType   -> type_intern_key(t.backing)
     // A range rides its representation the same way.
-    is RangeType      -> range_representation(t).name
+    is RangeType      -> storage_integer(t).name
     is ArrayType      -> "Array<${type_intern_key(t.element)}>"
     is UnionType      -> "Union<${type_key_join(t.variants, "|")}>"
     is TupleType      -> "Tuple<${type_key_join(t.elements, "|")}>"
@@ -189,7 +189,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
     is DistinctType -> val_type_of_type(t.backing)
-    is RangeType    -> val_type_of_primitive_name(range_representation(t).name)
+    is RangeType    -> val_type_of_primitive_name(storage_integer(t).name)
     is ArrayType    -> .Ref
     is FnType       -> .Ref
     is TupleType    -> .Ref
@@ -237,7 +237,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
         is PrimitiveType -> { return BcPrimitive { .val = val_type_of_primitive_name(t.name) } }
         is EnumType      -> { return BcPrimitive { .val = val_type_of_primitive_name(t.repr) } }
         is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
-        is RangeType     -> { return bc_type_of_with_ctx(range_representation(t), ctx, slot_index) }
+        is RangeType     -> { return BcPrimitive { .val = val_type_of_type(t) } }
         is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
         is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
@@ -368,7 +368,7 @@ export type_intern_hash :: fn(t: Type) -> u64 = match t {
      | FreeIntType | FreeCharType | FreeFloatType | NeverType -> bare_hash(display_type(t))
     is InferVar       -> leaked_infer_var(t)
     is DistinctType   -> type_intern_hash(t.backing)
-    is RangeType      -> bare_hash(range_representation(t).name)
+    is RangeType      -> bare_hash(storage_integer(t).name)
     // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, …),
     // so a tag mirrors what the string already separates.
     is StructType     -> type_args_hash(mix64(mix64(FNV_OFFSET_64, 1), symbol_hash(t.symbol)), t.args)
@@ -430,7 +430,7 @@ export same_intern_class :: fn(a: Type, b: Type) -> bool {
 bare_intern_name :: fn(t: Type) -> string = match t {
     is PrimitiveType -> t.name
     is EnumType      -> t.repr
-    is RangeType     -> range_representation(t).name
+    is RangeType     -> storage_integer(t).name
     is AnyType       -> "Any"
     is TypeParamType | TypeMetaType | SelfType | UnresolvedType
      | FreeIntType | FreeCharType | FreeFloatType | NeverType -> display_type(t)

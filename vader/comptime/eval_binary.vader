@@ -77,10 +77,8 @@ checked_result :: fn(span: Span, value: i64 | null, type_name: string) -> EvalRe
 // The width of the integer type `type_name` ; 64 bits for an unknown one, which
 // folds unbounded at `i64` rather than at a guessed width.
 int_bits_of :: fn(type_name: string) -> i64 {
-    if is_int_name(type_name) {
-        return primitive_size(type_name) * 8
-    }
-    return 64
+    m :: machine_integer_named(type_name) ?? return 64
+    return m.bits
 }
 
 has_union_operand :: fn(context: ComptimeContext, expr: AST.BinaryExpr) -> bool =
@@ -171,14 +169,15 @@ result_type_name :: fn(iv: IntValue, rname: string) -> string {
 // Wrap an i64 to the given primitive width, keeping the value in that type's
 // range so a comparison, a division or a shift folds as it runs. A `u64` above
 // `i64` cannot be held this way and stays as its bits.
-wrap_to_width :: fn(v: i64, type_name: string) -> i64 = match type_name {
-    "i8"  -> sign_extend(v, 8)
-    "u8"  -> v & 0xFF
-    "i16" -> sign_extend(v, 16)
-    "u16" -> v & 0xFFFF
-    "i32" -> sign_extend(v, 32)
-    "u32" -> v & 0xFFFF_FFFF
-    _     -> v
+wrap_to_width :: fn(v: i64, type_name: string) -> i64 {
+    m :: machine_integer_named(type_name) ?? return v
+    if m.bits == 64 {
+        return v
+    }
+    if m.is_signed {
+        return sign_extend(v, m.bits)
+    }
+    return v & ((1 << m.bits) - 1)
 }
 
 // Truncate to the low `bits`, then sign-extend the top one into the upper half,
@@ -199,9 +198,12 @@ mask_shift_amount :: fn(rhs: ComptimeValue, rname: string) -> ComptimeValue {
     return rhs
 }
 
-shift_amount_mask :: fn(rname: string) -> i64 = match rname {
-    "i8" | "u8" | "i16" | "u16" | "i32" | "u32" -> 31
-    _                                           -> 63
+shift_amount_mask :: fn(rname: string) -> i64 {
+    m :: machine_integer_named(rname) ?? return 63
+    if m.bits <= 32 {
+        return 31
+    }
+    return 63
 }
 
 // Primitive name of the node's resolved type, or "" when the typechecker left

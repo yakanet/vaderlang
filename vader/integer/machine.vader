@@ -1,0 +1,191 @@
+// vader/integer/machine: the eight machine integers.
+//
+// A machine integer is a storage width, 8, 16, 32 or 64 bits, signed or not, with
+// the values that width holds. `lib/std/core/integers.vader` declares them as
+// ranges of those values: a range of exactly those bounds is that integer, its
+// arithmetic closed and checked (`checked_add`, …), and any other range is held
+// in the narrowest of them holding its values. The bytecode spells each the way
+// this table does (`i32.add`), and so do the compiler's messages and mangled
+// names.
+
+module "vader/integer"
+
+// ---- machine integers -----------------------------------------------------
+
+/// A storage width and the values it holds.
+export MachineInteger :: struct {
+    /// How messages, mangled names and the bytecode spell it: `i8` … `u64`.
+    name:      string
+    /// 8, 16, 32 or 64.
+    bits:      i64
+    is_signed: bool
+    /// Every value it holds; the upper end of `u64` lies past `i64` (`U64_VALUES`).
+    values:    Interval
+}
+
+/// The eight machine integers, the signed ones then the unsigned ones, each from
+/// the narrowest to the widest: `narrowest_machine_integer` takes the first of
+/// its kind that holds the values. Every row is written out in literals: a row
+/// naming another constant (`U64_VALUES`) keeps the table out of static data, so
+/// that each read rebuilds it.
+export MACHINE_INTEGERS: MachineInteger[]: [
+    MachineInteger {
+        .name = "i8",
+        .bits = 8,
+        .is_signed = true,
+        .values = Interval { .lo = -0x80, .hi = 0x7F },
+    },
+    MachineInteger {
+        .name = "i16",
+        .bits = 16,
+        .is_signed = true,
+        .values = Interval { .lo = -0x8000, .hi = 0x7FFF },
+    },
+    MachineInteger {
+        .name = "i32",
+        .bits = 32,
+        .is_signed = true,
+        .values = Interval { .lo = -0x8000_0000, .hi = 0x7FFF_FFFF },
+    },
+    MachineInteger {
+        .name = "i64",
+        .bits = 64,
+        .is_signed = true,
+        .values = Interval { .lo = -0x8000_0000_0000_0000, .hi = 0x7FFF_FFFF_FFFF_FFFF },
+    },
+    MachineInteger {
+        .name = "u8",
+        .bits = 8,
+        .is_signed = false,
+        .values = Interval { .lo = 0, .hi = 0xFF },
+    },
+    MachineInteger {
+        .name = "u16",
+        .bits = 16,
+        .is_signed = false,
+        .values = Interval { .lo = 0, .hi = 0xFFFF },
+    },
+    MachineInteger {
+        .name = "u32",
+        .bits = 32,
+        .is_signed = false,
+        .values = Interval { .lo = 0, .hi = 0xFFFF_FFFF },
+    },
+    MachineInteger {
+        .name = "u64",
+        .bits = 64,
+        .is_signed = false,
+        .values = Interval {
+            .lo = 0,
+            .hi = 0x7FFF_FFFF_FFFF_FFFF,
+            .hi_open = true,
+            .hi_past = 0x8000_0000_0000_0000,
+        },
+    },
+]
+
+/// The machine integer spelt `name`.
+///
+/// @param name  a type name, such as `i32`.
+/// @return      null for a name no machine integer has.
+export machine_integer_named :: fn(name: string) -> MachineInteger | null {
+    for m in MACHINE_INTEGERS {
+        if m.name == name {
+            return m
+        }
+    }
+    return null
+}
+
+/// The machine integer whose values are exactly `values`: the one a range of those
+/// bounds is, named or not.
+///
+/// @param values  a range's bounds.
+/// @return        null for bounds no machine integer has.
+export machine_integer_of :: fn(values: Interval) -> MachineInteger | null {
+    for m in MACHINE_INTEGERS {
+        if same_interval(m.values, values) {
+            return m
+        }
+    }
+    return null
+}
+
+/// The spelling of the machine integer whose values are exactly `bounds`
+/// (`machine_integer_of`), "" for any other bounds.
+///
+/// @param bounds  a range's bounds.
+export machine_integer_name :: fn(bounds: Interval) -> string {
+    m :: machine_integer_of(bounds) ?? return ""
+    return m.name
+}
+
+/// The narrowest machine integer holding every value of `values`: an unsigned one
+/// when none is negative, a signed one otherwise; past 64 bits, the widest of its
+/// kind.
+///
+/// @param values  the integers to hold.
+export narrowest_machine_integer :: fn(values: Interval) -> MachineInteger {
+    signed :: values.lo < 0
+    widest := MACHINE_INTEGERS[0]
+    for m in MACHINE_INTEGERS {
+        if m.is_signed != signed {
+            continue
+        }
+        if interval_within(values, m.values) {
+            return m
+        }
+        widest = m
+    }
+    return widest
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_machine_integer_named_finds_each_spelling :: fn() -> void {
+    for m in MACHINE_INTEGERS {
+        found :: machine_integer_named(m.name)
+        assert(found != null && found.bits == m.bits, "${m.name} is found by its spelling")
+    }
+    assert(machine_integer_named("f64") == null, "f64 is no machine integer")
+    assert(machine_integer_named("Int") == null, "Int is no machine integer")
+}
+
+@test
+test_machine_integer_rows_agree_with_their_bounds :: fn() -> void {
+    for m in MACHINE_INTEGERS {
+        assert_eq(m.values.lo < 0, m.is_signed)
+        assert_eq(machine_integer_name(m.values), m.name)
+        // Its bounds are the extremes of its width: one step past either overflows.
+        if !m.values.hi_open {
+            assert(checked_add(m.bits, !m.is_signed, m.values.hi, 1) == null, "${m.name} max")
+            assert(checked_sub(m.bits, !m.is_signed, m.values.lo, 1) == null, "${m.name} min")
+        }
+    }
+    wide :: machine_integer_named("u64") ?? return
+    assert(same_interval(wide.values, U64_VALUES), "u64 holds up to u64.max")
+}
+
+@test
+test_machine_integer_of_reads_exact_bounds :: fn() -> void {
+    assert_eq(machine_integer_name(interval(0, 255)), "u8")
+    assert_eq(machine_integer_name(interval(-128, 127)), "i8")
+    assert_eq(machine_integer_name(interval(I64_MIN, I64_MAX)), "i64")
+    assert_eq(machine_integer_name(U64_VALUES), "u64")
+    assert_eq(machine_integer_name(interval(0, 254)), "")
+    assert_eq(machine_integer_name(interval(-5, 4)), "")
+    assert_eq(machine_integer_name(interval(I64_MIN, I64_MIN)), "")
+    assert_eq(machine_integer_name(interval_from_ends(null, 127)), "")
+}
+
+@test
+test_narrowest_machine_integer_follows_the_least_value :: fn() -> void {
+    assert_eq(narrowest_machine_integer(interval(0, 23)).name, "u8")
+    assert_eq(narrowest_machine_integer(interval(0, 300)).name, "u16")
+    assert_eq(narrowest_machine_integer(interval(-1, 200)).name, "i16")
+    assert_eq(narrowest_machine_integer(interval(0, 0x1_0000_0000)).name, "u64")
+    assert_eq(narrowest_machine_integer(ANY_INTEGER).name, "i64")
+}

@@ -25,20 +25,14 @@ export is_void :: fn(t: Type) -> bool {
 }
 
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
-//
-// The int/signed/float partition is the single source of truth in
-// `vader/types::PRIMITIVE_META`. These thin re-exports keep the ~40 call sites
-// that import the predicates from `vader/typecheck` unchanged.
-
 
 /// Whether a Unicode codepoint fits the integer primitive `type_name`. A char
 /// literal coerces to an integer only when its codepoint is representable —
-/// `b == '💩'` (u8) is rejected. Delegates to the authoritative per-repr range
-/// table (`repr_range` / `contains`), so the byte/short bounds stay in one place.
-/// Non-integer names return false (a char never coerces to e.g. f64).
+/// `b == '💩'` (u8) is rejected. Non-integer names return false (a char never
+/// coerces to e.g. f64).
 char_fits :: fn(codepoint: u32, type_name: string) -> bool {
-    if !is_int_name(type_name) { return false }
-    return contains(repr_range(type_name), i64(codepoint))
+    m :: machine_integer_named(type_name) ?? return false
+    return i64(codepoint) <= m.values.hi
 }
 
 /// Whether an integer literal fits the integer primitive `type_name`. Mirrors
@@ -50,18 +44,13 @@ char_fits :: fn(codepoint: u32, type_name: string) -> bool {
 /// @param negative  whether the literal is written with a `-` (`IntLitExpr.negative`).
 /// @param type_name the integer primitive the literal lands in.
 int_fits :: fn(value: u64, negative: bool, type_name: string) -> bool {
-    if !is_int_name(type_name) {
-        return false
-    }
-    // The range table holds `i64` bounds: a negative magnitude reaches 2^63 at most
-    // (the least `i64`), a positive one past `i64.MAX` fits only the 64-bit unsigned.
+    m :: machine_integer_named(type_name) ?? return false
+    // A negative magnitude reaches 2^63 at most, the least `i64`.
     if negative {
-        return value <= 0x8000_0000_0000_0000 && contains(repr_range(type_name), 0 -% i64(value))
+        return value <= 0x8000_0000_0000_0000 && 0 -% i64(value) >= m.values.lo
     }
-    if type_name == "u64" {
-        return true
-    }
-    return value <= 0x7FFF_FFFF_FFFF_FFFF && contains(repr_range(type_name), i64(value))
+    // An upper end past `i64` is `u64`'s, which holds every magnitude.
+    return m.values.hi_open || value <= u64(m.values.hi)
 }
 
 // True when `target` is one of `names`. A small shared membership helper.
