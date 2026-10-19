@@ -178,13 +178,22 @@ try_fold_static_intrinsic :: fn(
 }
 
 // `@min(T)` or `@max(T)`, a literal of `type`, the integer `T` is held in ; of an
-// enum, its variant of the least or the greatest value, as a variant lowers.
+// enum, its variant of the least or the greatest value, as a variant lowers ; of
+// `char`, U+0000 or U+10FFFF.
 fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr | null {
     if intrinsic.args.len() != 1 {
         return null
     }
     greatest :: intrinsic.name == "max"
     bounded :: ctx.types.raw_type_expr_type(intrinsic.args[0])
+    if is_char(bounded) {
+        hull :: type_bounds(bounded) ?? return null
+        return LoweredCharLit {
+            .span = intrinsic.span,
+            .type = bounded,
+            .value = u32(integer_bound(hull, greatest)),
+        }
+    }
     if bounded is EnumType {
         hull :: type_bounds(bounded) ?? return null
         return LoweredIntLit {

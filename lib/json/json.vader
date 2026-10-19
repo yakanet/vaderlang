@@ -357,24 +357,21 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
     if hi_val < 0 {
         return false
     }
-    hi :: char(hi_val)
-    if !hi.is_surrogate() {
-        sb.append_char(hi)                  // ordinary BMP scalar
+    hi :: u32(hi_val)
+    if !is_surrogate(hi) {
+        sb.append_char(char(hi))            // ordinary BMP scalar
         return true
     }
-    if hi.is_high_surrogate() {
+    if is_high_surrogate(hi) {
         if p.pos + 2 <= p.src.byte_len()
             && p.src.byte_at(p.pos) == '\\'
             && p.src.byte_at(p.pos + 1) == 'u' {
             saved :: p.pos
             p.pos = p.pos + 2
             lo_val :: read_hex4(p)
-            if lo_val >= 0 {
-                lo :: char(lo_val)
-                if lo.is_low_surrogate() {
-                    sb.append_char(combine_surrogates(hi, lo))
-                    return true
-                }
+            if lo_val >= 0 && is_low_surrogate(u32(lo_val)) {
+                sb.append_char(combine_surrogates(hi, u32(lo_val)))
+                return true
             }
             p.pos = saved
         }

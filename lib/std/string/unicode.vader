@@ -9,8 +9,8 @@ module "std/string"
 
 // ---- constants ------------------------------------------------------------
 
-/// The highest valid Unicode scalar value (U+10FFFF). Codepoints above this are
-/// invalid ; `\u{...}` escapes past it are rejected, and encoders clamp to 4 bytes.
+/// The highest Unicode scalar value (U+10FFFF), `@max(char)`. Codepoints above
+/// this are invalid ; `\u{...}` escapes past it are rejected.
 export MAX_CODEPOINT :: char(0x10FFFF)
 
 // ---- widths ---------------------------------------------------------------
@@ -18,9 +18,8 @@ export MAX_CODEPOINT :: char(0x10FFFF)
 /// UTF-8 encoded byte length (1–4) of codepoint `c`, as `utf8_encode` writes it:
 ///   - `U+0000..U+007F`     → 1 byte
 ///   - `U+0080..U+07FF`     → 2 bytes
-///   - `U+0800..U+FFFF`     → 3 bytes, a surrogate as U+FFFD
+///   - `U+0800..U+FFFF`     → 3 bytes
 ///   - `U+10000..U+10FFFF`  → 4 bytes
-///   - past `U+10FFFF`      → 3 bytes, as U+FFFD
 ///
 /// The width a `char` takes once encoded, not the width it was decoded from:
 /// `codepoint_at_byte` answers that one.
@@ -28,47 +27,36 @@ export MAX_CODEPOINT :: char(0x10FFFF)
 /// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
 export codepoint_byte_len :: fn(c: char) -> usize {
     cp :: u32(c)
-    if cp < 0x80                               { return 1 }
-    if cp < 0x800                              { return 2 }
-    if cp < 0x10000 || cp > u32(MAX_CODEPOINT) { return 3 }
+    if cp < 0x80    { return 1 }
+    if cp < 0x800   { return 2 }
+    if cp < 0x10000 { return 3 }
     return 4
 }
 
 // ---- UTF-16 surrogates ----------------------------------------------------
 //
 // Surrogates encode astral codepoints (U+10000..U+10FFFF) as a pair of 16-bit
-// code units. They exist only in UTF-16 — never as a well-formed UTF-8 sequence
-// or a valid decoded scalar — but Vader has to speak UTF-16 at two boundaries:
-// JSON `\uXXXX` escapes and the LSP `positionEncoding = utf-16`.
+// code units. They exist only in UTF-16, never as a well-formed UTF-8 sequence nor
+// as a `char`, but Vader has to speak UTF-16 at two boundaries: JSON `\uXXXX`
+// escapes and the LSP `positionEncoding = utf-16`. A code unit is a `u32` here.
 
-/// True for a high (leading) surrogate code unit, `U+D800..U+DBFF`.
-export is_high_surrogate :: fn(c: char) -> bool {
-    cp :: u32(c)
-    return cp >= 0xD800 && cp <= 0xDBFF
-}
+/// True for a high (leading) surrogate code unit, `0xD800..0xDBFF`.
+export is_high_surrogate :: fn(unit: u32) -> bool = unit >= 0xD800 && unit <= 0xDBFF
 
-/// True for a low (trailing) surrogate code unit, `U+DC00..U+DFFF`.
-export is_low_surrogate :: fn(c: char) -> bool {
-    cp :: u32(c)
-    return cp >= 0xDC00 && cp <= 0xDFFF
-}
+/// True for a low (trailing) surrogate code unit, `0xDC00..0xDFFF`.
+export is_low_surrogate :: fn(unit: u32) -> bool = unit >= 0xDC00 && unit <= 0xDFFF
 
-/// True for either half of a surrogate pair, `U+D800..U+DFFF`. Such values are
-/// not valid Unicode scalars — a decoder that sees one in isolation should
-/// substitute `REPLACEMENT_CHAR`.
-export is_surrogate :: fn(c: char) -> bool {
-    cp :: u32(c)
-    return cp >= 0xD800 && cp <= 0xDFFF
-}
+/// True for either half of a surrogate pair, `0xD800..0xDFFF`: no `char` holds
+/// one, and a decoder that sees one in isolation substitutes `REPLACEMENT_CHAR`.
+export is_surrogate :: fn(unit: u32) -> bool = unit >= 0xD800 && unit <= 0xDFFF
 
-/// Recombine a UTF-16 surrogate pair into the astral scalar it encodes.
-/// The caller must have verified `is_high_surrogate(hi)` and
-/// `is_low_surrogate(lo)` ; a malformed pair yields a garbage codepoint.
-/// @param hi  the high surrogate (`U+D800..U+DBFF`).
-/// @param lo  the low surrogate (`U+DC00..U+DFFF`).
+/// Recombine a UTF-16 surrogate pair into the astral scalar it encodes. The
+/// caller must have verified `is_high_surrogate(hi)` and `is_low_surrogate(lo)`.
+/// @param hi  the high surrogate (`0xD800..0xDBFF`).
+/// @param lo  the low surrogate (`0xDC00..0xDFFF`).
 /// @return    the recombined scalar in `U+10000..U+10FFFF`.
-export combine_surrogates :: fn(hi: char, lo: char) -> char =
-    char(0x10000 + ((u32(hi) - 0xD800) << 10) + (u32(lo) - 0xDC00))
+export combine_surrogates :: fn(hi: u32, lo: u32) -> char =
+    char(0x10000 + ((hi - 0xD800) << 10) + (lo - 0xDC00))
 
 // ---- tests ----------------------------------------------------------------
 
@@ -81,14 +69,14 @@ import "std/testing"
 }
 
 @test test_surrogate_classification :: fn() -> void {
-    assert(is_high_surrogate(char(0xD83D)), "0xD83D is a high surrogate")
-    assert(is_low_surrogate(char(0xDE00)), "0xDE00 is a low surrogate")
-    assert(is_surrogate(char(0xD83D)), "a high surrogate is a surrogate")
-    assert(!is_surrogate('A'), "ASCII is not a surrogate")
-    assert(!is_high_surrogate(char(0xDE00)), "a low surrogate is not a high surrogate")
+    assert(is_high_surrogate(0xD83D), "0xD83D is a high surrogate")
+    assert(is_low_surrogate(0xDE00), "0xDE00 is a low surrogate")
+    assert(is_surrogate(0xD83D), "a high surrogate is a surrogate")
+    assert(!is_surrogate(0x41), "ASCII is not a surrogate")
+    assert(!is_high_surrogate(0xDE00), "a low surrogate is not a high surrogate")
 }
 
 @test test_combine_surrogates :: fn() -> void {
     // 😀 (U+1F600) is encoded as the surrogate pair [D83D, DE00].
-    assert_eq(combine_surrogates(char(0xD83D), char(0xDE00)), '😀')
+    assert_eq(combine_surrogates(0xD83D, 0xDE00), '😀')
 }

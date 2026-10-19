@@ -13,6 +13,9 @@ module "std/core"
 /// undecodable byte or an unpaired UTF-16 surrogate.
 export REPLACEMENT_CHAR :: char(0xFFFD)
 
+// `REPLACEMENT_CHAR`'s codepoint, as `decode_tail` returns it.
+REPLACEMENT_CODE: u32: 0xFFFD
+
 // ---- byte classification --------------------------------------------------
 
 /// True when `b` is a UTF-8 continuation byte (`0x80..0xBF`): the trailing bytes
@@ -22,17 +25,15 @@ export is_utf8_continuation :: fn(b: u8) -> bool = (b & 0xC0) == 0x80
 // ---- encode ---------------------------------------------------------------
 
 /// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
-/// interning via `bytes_to_string` or appending into a byte buffer. A `char`
-/// that holds no Unicode scalar value, a surrogate or a value past U+10FFFF,
-/// encodes as U+FFFD: `codepoint_at_byte` reads back what this writes.
+/// interning via `bytes_to_string` or appending into a byte buffer.
+/// `codepoint_at_byte` reads back what this writes.
 /// @param c  the codepoint to encode.
 /// @return   the 1–4 UTF-8 bytes encoding `c`.
 export utf8_encode :: fn(c: char) -> u8[] {
-    // ASCII first: the VM calls `scalar_or_replacement`, it does not inline it.
-    if u32(c) < 0x80 {
-        return [u8(c)]
+    cp :: u32(c)
+    if cp < 0x80 {
+        return [u8(cp)]
     }
-    cp :: scalar_or_replacement(u32(c))
     out: u8[]: []
     if cp < 0x800 {
         out.push(u8(0xC0 | (cp >> 6)))
@@ -49,14 +50,6 @@ export utf8_encode :: fn(c: char) -> u8[] {
     }
     return out
 }
-
-// `cp`, or U+FFFD when it is no Unicode scalar value.
-scalar_or_replacement :: fn(cp: u32) -> u32 =
-    if cp >= 0xD800 && cp <= 0xDFFF || cp > 0x10FFFF {
-        return u32(REPLACEMENT_CHAR)
-    } else {
-        return cp
-    }
 
 // ---- decode ---------------------------------------------------------------
 
@@ -77,59 +70,62 @@ export codepoint_at_byte :: fn(s: string, i: usize) -> [char, usize] {
     if b < 0x80 {
         return [char(b), 1]
     }
-    return decode_tail(s, b, i)
+    [code, width] :: decode_tail(s, b, i)
+    return [char(code), width]
 }
 
 // The non-ASCII half of `codepoint_at_byte`: the codepoint the byte `b` at byte
 // `i` of `s` leads, and its width. It runs once per non-ASCII codepoint of every
-// walk, so it calls nothing the VM would not inline and reads each byte once.
-decode_tail :: fn(s: string, b: u8, i: usize) -> [char, usize] {
+// walk, so it calls nothing the VM would not inline and reads each byte once. The
+// codepoint is a `u32`, a Unicode scalar value by the bytes it was read from : a
+// caller wanting the `char` converts it, a walk counting widths checks nothing.
+decode_tail :: fn(s: string, b: u8, i: usize) -> [u32, usize] {
     // A continuation byte, an overlong lead (`C0`, `C1`) and a lead past U+10FFFF
     // (`F5..FF`) lead nothing.
     if b < 0xC2 || b > 0xF4 {
-        return [REPLACEMENT_CHAR, 1]
+        return [REPLACEMENT_CODE, 1]
     }
     n :: s.byte_len()
     if i + 1 >= n {
-        return [REPLACEMENT_CHAR, 1]
+        return [REPLACEMENT_CODE, 1]
     }
     b1 :: s.byte_at(i + 1)
     if !b1.is_utf8_continuation() {
-        return [REPLACEMENT_CHAR, 1]
+        return [REPLACEMENT_CODE, 1]
     }
     if b < 0xE0 {
-        return [char(((u32(b) & 0x1F) << 6) | (u32(b1) & 0x3F)), 2]
+        return [((u32(b) & 0x1F) << 6) | (u32(b1) & 0x3F), 2]
     }
     // A second byte below `A0` after `E0` encodes an overlong form, one above `9F`
     // after `ED` a surrogate; below `90` after `F0` an overlong form, above `8F`
     // after `F4` a codepoint past U+10FFFF.
     if b < 0xF0 {
         if b == 0xE0 && b1 < 0xA0 || b == 0xED && b1 > 0x9F {
-            return [REPLACEMENT_CHAR, 1]
+            return [REPLACEMENT_CODE, 1]
         }
     } else if b == 0xF0 && b1 < 0x90 || b == 0xF4 && b1 > 0x8F {
-        return [REPLACEMENT_CHAR, 1]
+        return [REPLACEMENT_CODE, 1]
     }
     if i + 2 >= n {
-        return [REPLACEMENT_CHAR, 2]
+        return [REPLACEMENT_CODE, 2]
     }
     b2 :: s.byte_at(i + 2)
     if !b2.is_utf8_continuation() {
-        return [REPLACEMENT_CHAR, 2]
+        return [REPLACEMENT_CODE, 2]
     }
     if b < 0xF0 {
-        return [char(((u32(b) & 0x0F) << 12) | ((u32(b1) & 0x3F) << 6) | (u32(b2) & 0x3F)), 3]
+        return [((u32(b) & 0x0F) << 12) | ((u32(b1) & 0x3F) << 6) | (u32(b2) & 0x3F), 3]
     }
     if i + 3 >= n {
-        return [REPLACEMENT_CHAR, 3]
+        return [REPLACEMENT_CODE, 3]
     }
     b3 :: s.byte_at(i + 3)
     if !b3.is_utf8_continuation() {
-        return [REPLACEMENT_CHAR, 3]
+        return [REPLACEMENT_CODE, 3]
     }
     cp :: ((u32(b) & 0x07) << 18) | ((u32(b1) & 0x3F) << 12) | ((u32(b2) & 0x3F) << 6) |
         (u32(b3) & 0x3F)
-    return [char(cp), 4]
+    return [cp, 4]
 }
 
 // ---- codepoint index ------------------------------------------------------
@@ -283,9 +279,9 @@ assert_decodes :: fn(s: string, want: char[]) -> void {
 }
 
 @test test_utf8_encode_writes_what_decodes_back :: fn() -> void {
-    // A surrogate and a value past U+10FFFF are no scalar value: U+FFFD.
-    assert_decodes(utf8_encode(char(0xD800)).bytes_to_string(), [REPLACEMENT_CHAR])
-    assert_decodes(utf8_encode(char(0x110000)).bytes_to_string(), [REPLACEMENT_CHAR])
+    assert_decodes(utf8_encode('\u{D7FF}').bytes_to_string(), ['\u{D7FF}'])
+    assert_decodes(utf8_encode('\u{E000}').bytes_to_string(), ['\u{E000}'])
+    assert_decodes(utf8_encode('\u{10FFFF}').bytes_to_string(), ['\u{10FFFF}'])
     assert_decodes(utf8_encode('😀').bytes_to_string(), ['😀'])
 }
 

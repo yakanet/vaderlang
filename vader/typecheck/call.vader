@@ -971,6 +971,8 @@ cast_call_target :: fn(c: AST.CallExpr, typed: TypedProgram, diags: Diagnostic[]
             if !converts_into_enum(arg.value, src, target, typed, diags) {
                 site = ERRONEOUS_CALLEE
             }
+        } else if is_char(strip_distinct(target)) && !converts_into_char(arg.value, src, diags) {
+            site = ERRONEOUS_CALLEE
         } else if !cast_allowed(src, target, typed) {
             diags.push(
                 typecheck_error(
@@ -1004,10 +1006,43 @@ converts_into_enum :: fn(
     }
     if !is_integer(src) {
         diags.push(typecheck_error(.InvalidCast, value.span,
-            "an enum converts from an integer, got ${display_type(src)}"))
+            "an enum converts from an integer, got `${display_type(src)}`"))
         return false
     }
-    runs :: enum_value_runs(target)
+    return converts_into_runs(value, src, target, enum_value_runs(target), diags)
+}
+
+// Whether `char(value)`, `value` of type `src`, converts into `char` or a distinct
+// over it : an integer some value of which is a Unicode scalar value does, a
+// distinct over one included, checked where it runs (a literal here, T3066 off
+// them) ; so does a `char`. A float or an enum is T3010 ; any other source is left
+// to `cast_allowed`, an `Into<char>` impl.
+converts_into_char :: fn(value: AST.Expr, src: Type, diags: Diagnostic[]) -> bool {
+    backing :: strip_distinct(src)
+    if is_char(backing) || backing is FreeCharType || not_decidable(backing) {
+        return true
+    }
+    if is_integer(backing) {
+        return converts_into_runs(value, backing, TY_CHAR, CHAR_VALUES, diags)
+    }
+    if is_numeric(backing) || backing is EnumType {
+        diags.push(typecheck_error(.InvalidCast, value.span,
+            "a `char` converts from an integer, got `${display_type(src)}`"))
+        return false
+    }
+    return true
+}
+
+// Whether `value`, an integer of type `src`, converts into `target`, whose values
+// are `runs` : a literal one of them does (T3066 otherwise), so does a type some
+// value of which is (T3010 otherwise).
+converts_into_runs :: fn(
+    value: AST.Expr,
+    src: Type,
+    target: Type,
+    runs: Interval[],
+    diags: Diagnostic[],
+) -> bool {
     literal :: int_literal_i64(value)
     if literal != null {
         if meets_any(runs, interval(literal, literal)) {

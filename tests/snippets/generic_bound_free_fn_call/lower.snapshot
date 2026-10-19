@@ -241,7 +241,6 @@
     fn std.core.pow5_factor_32  // std_core$pow5_factor_32
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.string.to_string  // std_core$string$Display$to_string

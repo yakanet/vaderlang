@@ -383,7 +383,7 @@ reg_call :: fn(
                 set_i64(bits, tags, base, operand_a(w), n)
             }
             .ToChar -> {
-                set_char(bits, tags, base, operand_a(w), char(u32_of(bits, base, operand_b(w))))
+                set_char_code(bits, tags, base, operand_a(w), u32_of(bits, base, operand_b(w)))
             }
             .Jump -> {
                 pc = usize(operand_a(w))
@@ -1262,9 +1262,11 @@ set_f64 :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: f64)
     tags[at] = .F64
 }
 
-set_char :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, v: char) -> void {
+// r[register] = the `char` of codepoint `code`, which the program's own conversion
+// checked before this op.
+set_char_code :: fn(bits: i64[], tags: StackTag[], base: usize, register: i32, code: u32) -> void {
     at :: base + usize(register)
-    bits[at] = i64(u32(v))
+    bits[at] = i64(code)
     tags[at] = .Char
 }
 

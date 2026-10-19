@@ -1,9 +1,9 @@
 // `Range[char]` exercises both `Contains[char]` and `Iterator[char]`.
 // `c in 'a'..='z'` is the natural surface for character class checks
 // (replaces the verbose `c >= 'a' && c <= 'z'` chain). `for c in 'a'..='z'`
-// also works — the Iterator impl advances the cursor via the u32
-// round-trip `char(u32(self.cursor) + u32(1))` since char has no
-// dedicated `+ i32` operator.
+// walks a counter in place ; a stored `Range` of `char` steps through the
+// `char` impl of `Step`, which goes over the surrogates since no `char`
+// holds one.
 
 module "snippet"
 

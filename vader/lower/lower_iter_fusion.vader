@@ -548,19 +548,25 @@ emit_fused_range :: fn(
         .symbol = template.binding_symbol,
     }
     out: LoweredStmt[]: [counter_init]
-    control :: range_loop_control(ctx, counter_ref, hi, range_chain.inclusive, span, out)
+    inclusive :: range_chain.inclusive
+    control :: range_loop_control(ctx, counter_ref, hi, inclusive, span, out)
+    hops :: is_char(int_type)
+        && walk_may_cross_surrogates(range_chain.range_lower, range_chain.range_upper)
     loop_stmt :: LoweredLoop {
         .span = outer_span,
         .label = null,
         .cond = control.cond,
-        .body = template.user_body,
+        .body = hopping_body(template.user_body, counter_ref, hi, inclusive, hops, span),
         .step = control.step,
-        .turns = LoopTurns {
+    }
+    // A hop over the surrogates leaves 2048 values uncounted.
+    if !hops {
+        loop_stmt.turns = LoopTurns {
             .counter = template.binding_symbol,
             .start = lo,
             .bound = hi,
-            .inclusive = range_chain.inclusive,
-        },
+            .inclusive = inclusive,
+        }
     }
     out.push(loop_stmt)
     return out

@@ -1,0 +1,18 @@
+// `char(x)` converts an integer into a Unicode scalar value, the program stopping on
+// any other value ; a literal is checked where it is written : a surrogate, a value
+// past U+10FFFF and a negative one are no `char`, nor are they a `Glyph`, a distinct
+// over `char`.
+module "snippet"
+
+export Glyph :: char
+
+export main :: fn() -> i32 {
+    g :: Glyph(0xD800)
+    a :: char(0xD800)
+    b :: char(0xDFFF)
+    c :: char(0x110000)
+    d :: char(-1)
+    e :: char(0x10FFFF)
+    f :: char(0xD7FF)
+    return 0
+}

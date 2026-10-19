@@ -1,0 +1,93 @@
+// A table of code points read as integers : which are Unicode scalar values, the
+// `char` each converts to, and the walks around the surrogates, which no `char`
+// holds. A walk over a range of `char` written in place counts, and hops from
+// U+D800 to U+E000 where its bounds may reach them ; a stored `Range` steps over
+// them through the `char` step ; so does a fused chain over such a range.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+import "std/string"
+
+FIRST :: @min(char)
+LAST :: @max(char)
+
+describe :: fn(n: i64) -> string {
+    if n in char {
+        return "${n} is a scalar value"
+    }
+    return "${n} is no scalar value"
+}
+
+// A `u8` is a scalar value whatever it is : no check runs.
+from_byte :: fn(b: u8) -> char = char(b)
+
+// A `u32` is checked where it converts.
+from_unit :: fn(n: u32) -> char = char(n)
+
+walk_codes :: fn(c: char) -> string = "${u32(c)}"
+
+// A code read from a file : a distinct over an integer converts as its backing.
+Code :: u32
+
+// A glyph is a `char` of its own : converting into it checks as `char(x)` does.
+Glyph :: char
+
+// A boxed code point, converted through its `Into<char>`.
+Boxed :: struct {
+    code: u8
+}
+
+Boxed implements Into<char> {
+    into :: fn(self) -> char = char(self.code)
+}
+
+main :: fn() -> i32 {
+    println("first ${u32(FIRST)}, last ${u32(LAST)}")
+    for n in [-1, 0, 0xD7FF, 0xD800, 0xDFFF, 0xE000, 0x10FFFF, 0x110000] {
+        println(describe(n))
+    }
+    println("${from_byte(72)}${from_unit(0x69)}${from_unit(0x1F600)}")
+    code: Code: Code(0x2764)
+    glyph :: Glyph(code + 0)
+    boxed :: Boxed { .code = 0x21 }
+    println("${char(code)} ${char(glyph)} ${char(boxed)} gap ${'a' - 'A'}")
+
+    crossing: string[]: []
+    for c in '\u{D7FE}'..='\u{E001}' {
+        crossing.push(walk_codes(c))
+    }
+    println("in place: ${crossing.join(" ")}")
+
+    stepped: string[]: []
+    span :: '\u{D7FE}'..<'\u{E001}'
+    for c in span {
+        stepped.push(walk_codes(c))
+    }
+    println("stepped: ${stepped.join(" ")}")
+
+    fused :: ('\u{D7FE}'..='\u{E001}').map((c) -> u32(c)).sum()
+    println("fused: ${fused}")
+
+    // Bounds held in variables : the walk hops the surrogates, and an exclusive
+    // one ending on U+E000 stops there.
+    upper: char: '\u{E001}'
+    stop: char: '\u{E000}'
+    hopped: string[]: []
+    for c in '\u{D7FE}'..=upper {
+        hopped.push(walk_codes(c))
+    }
+    for c in '\u{D7FE}'..<stop {
+        hopped.push(walk_codes(c))
+    }
+    println("hopped: ${hopped.join(" ")}")
+
+    letters: string[]: []
+    for c in 'a'..='e' {
+        letters.push("${c}")
+    }
+    println("letters: ${letters.join("")}")
+
+    println("pair: ${combine_surrogates(0xD83D, 0xDE00)}")
+    return 0
+}

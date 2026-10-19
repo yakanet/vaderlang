@@ -23,11 +23,19 @@
                   c: char = char(b)
                   std.io.println<string>(std.core.char.to_string(c))
               } else {
-                  __tup_0: [char, usize] = std.core.decode_tail(self, b, i)
-                  c: char = __tup_0._0
+                  __tup_0: [u32, usize] = std.core.decode_tail(self, b, i)
+                  code: u32 = __tup_0._0
                   width: usize = __tup_0._1
                   i = i + width
-                  c: char = c
+                  c: char = {
+                      __in_range_1: u32 = code
+                      if __in_range_1 > u32(55295) {
+                          if (__in_range_1 < u32(57344)) || (__in_range_1 > u32(1114111)) {
+                              @unreachable("value out of range: no Unicode scalar value")
+                          }
+                      }
+                      char(__in_range_1)
+                  }
                   std.io.println<string>(std.core.char.to_string(c))
               }
           }
@@ -71,7 +79,6 @@
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
     fn std.core.three_way  // std_core$three_way
     fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer

@@ -8,16 +8,17 @@ type 5 primitive usize
 type 6 struct std_core$Buffer {  }
 type 7 primitive i64
 type 8 primitive char
-type 9 array 4
-type 10 primitive void
-type 11 primitive isize
+type 9 primitive u32
+type 10 array 4
+type 11 primitive void
+type 12 primitive isize
 string 0 "abc"
 string 1 "\n"
 import 0 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> usize
 import 1 byte_at std_core$byte_at result_type=4 param_types=2,5 param_c_out= param_by_address= (string,usize) -> u8
 import 2 is_ascii std_core$is_ascii result_type=3 param_types=2 param_c_out= param_by_address= (string) -> bool
-import 3 bytes std_core$bytes result_type=9 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 4 extern write system_posix$sys_write header=<unistd.h> result_type=11 param_types=1,9,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
+import 3 bytes std_core$bytes result_type=10 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 extern write system_posix$sys_write header=<unistd.h> result_type=12 param_types=1,10,5 param_c_out= param_by_address= (i32,ref,usize) -> isize
 impl 6 std_core$ByteAccess
 export main 0
 
@@ -298,8 +299,9 @@ end
 
 fn 7 std_core$codepoint_at_byte (string,usize) -> (char,usize)
   local b u8
-  local $ret_elem_10 char
-  local $ret_elem_11 usize
+  local width usize
+  local __in_range_1 u32
+  local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   call.import 1   ; std_core$byte_at
@@ -307,30 +309,57 @@ fn 7 std_core$codepoint_at_byte (string,usize) -> (char,usize)
   i32.const 128
   u32.lt
   if $L0 void
-  else
-    local.get 0   ; arg 0
     local.get 2   ; b
-    local.get 1   ; arg 1
-    call 8   ; std_core$decode_tail
-    local.set 4   ; $ret_elem_11
-    local.set 3   ; $ret_elem_10
-    local.get 3   ; $ret_elem_10
-    local.get 4   ; $ret_elem_11
+    u8.to_char
+    i64.const 1
     return
   end $L0
+  local.get 0   ; arg 0
   local.get 2   ; b
-  u8.to_char
-  i64.const 1
-  return
+  local.get 1   ; arg 1
+  call 8   ; std_core$decode_tail
+  local.set 3   ; width
+  local.set 4   ; __in_range_1
+  local.get 4   ; __in_range_1
+  i32.const 55295
+  u32.gt
+  if $L1 void
+    local.get 4   ; __in_range_1
+    i32.const 57344
+    u32.lt
+    if $L2 void
+      bool.const true
+      local.set 5   ; or_res
+    else
+      local.get 4   ; __in_range_1
+      i32.const 1114111
+      u32.gt
+      local.set 5   ; or_res
+    end $L2
+    local.get 5   ; or_res
+    if $L3 void
+      unreachable
+    else
+      local.get 4   ; __in_range_1
+      u32.to_char
+      local.get 3   ; width
+      return
+    end $L3
+  else
+    local.get 4   ; __in_range_1
+    u32.to_char
+    local.get 3   ; width
+    return
+  end $L1
 end
 
-fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
+fn 8 std_core$decode_tail (string,u8,usize) -> (u32,usize)
   local or_res bool
   local n usize
-  local $add_checked_23 usize
+  local $add_checked_21 usize
   local b1 u8
-  local $shl_37 u32
-  local $bitand_40 u32
+  local $shl_34 u32
+  local $bitand_37 u32
   local and_res bool
   local b2 u8
   local b3 u8
@@ -349,7 +378,6 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   local.get 3   ; or_res
   if $L1 void
     i32.const 65533
-    i32.to_char
     i64.const 1
     return
   end $L1
@@ -363,23 +391,21 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   u64.ge
   if $L2 void
     i32.const 65533
-    i32.to_char
     i64.const 1
     return
   end $L2
   local.get 2   ; arg 2
   i64.const 1
   usize.checked_add
-  local.set 5   ; $add_checked_23
+  local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
-  local.get 5   ; $add_checked_23
+  local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 6   ; b1
   call 9   ; std_core$is_utf8_continuation
   if $L3 void
   else
     i32.const 65533
-    i32.to_char
     i64.const 1
     return
   end $L3
@@ -393,16 +419,15 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
     i32.bitand
     i32.const 6
     i32.shl
-    local.set 7   ; $shl_37
+    local.set 7   ; $shl_34
     local.get 6   ; b1
     u8.to_i32
     i32.const 63
     i32.bitand
-    local.set 8   ; $bitand_40
-    local.get 7   ; $shl_37
-    local.get 8   ; $bitand_40
+    local.set 8   ; $bitand_37
+    local.get 7   ; $shl_34
+    local.get 8   ; $bitand_37
     i32.bitor
-    u32.to_char
     i64.const 2
     return
   end $L4
@@ -445,7 +470,6 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
     local.get 3   ; or_res
     if $L9 void
       i32.const 65533
-      i32.to_char
       i64.const 1
       return
     end $L9
@@ -485,7 +509,6 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
     local.get 3   ; or_res
     if $L13 void
       i32.const 65533
-      i32.to_char
       i64.const 1
       return
     end $L13
@@ -497,23 +520,21 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   u64.ge
   if $L14 void
     i32.const 65533
-    i32.to_char
     i64.const 2
     return
   end $L14
   local.get 2   ; arg 2
   i64.const 2
   usize.checked_add
-  local.set 5   ; $add_checked_23
+  local.set 5   ; $add_checked_21
   local.get 0   ; arg 0
-  local.get 5   ; $add_checked_23
+  local.get 5   ; $add_checked_21
   call.import 1   ; std_core$byte_at
   local.tee 10   ; b2
   call 9   ; std_core$is_utf8_continuation
   if $L15 void
   else
     i32.const 65533
-    i32.to_char
     i64.const 2
     return
   end $L15
@@ -527,27 +548,26 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
     i32.bitand
     i32.const 12
     i32.shl
-    local.set 7   ; $shl_37
+    local.set 7   ; $shl_34
     local.get 6   ; b1
     u8.to_i32
     i32.const 63
     i32.bitand
     i32.const 6
     i32.shl
-    local.set 8   ; $bitand_40
-    local.get 7   ; $shl_37
-    local.get 8   ; $bitand_40
+    local.set 8   ; $bitand_37
+    local.get 7   ; $shl_34
+    local.get 8   ; $bitand_37
     i32.bitor
-    local.set 7   ; $shl_37
+    local.set 7   ; $shl_34
     local.get 10   ; b2
     u8.to_i32
     i32.const 63
     i32.bitand
-    local.set 8   ; $bitand_40
-    local.get 7   ; $shl_37
-    local.get 8   ; $bitand_40
+    local.set 8   ; $bitand_37
+    local.get 7   ; $shl_34
+    local.get 8   ; $bitand_37
     i32.bitor
-    u32.to_char
     i64.const 3
     return
   end $L16
@@ -558,7 +578,6 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   u64.ge
   if $L17 void
     i32.const 65533
-    i32.to_char
     i64.const 3
     return
   end $L17
@@ -574,7 +593,6 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   if $L18 void
   else
     i32.const 65533
-    i32.to_char
     i64.const 3
     return
   end $L18
@@ -584,38 +602,37 @@ fn 8 std_core$decode_tail (string,u8,usize) -> (char,usize)
   i32.bitand
   i32.const 18
   i32.shl
-  local.set 7   ; $shl_37
+  local.set 7   ; $shl_34
   local.get 6   ; b1
   u8.to_i32
   i32.const 63
   i32.bitand
   i32.const 12
   i32.shl
-  local.set 8   ; $bitand_40
-  local.get 7   ; $shl_37
-  local.get 8   ; $bitand_40
+  local.set 8   ; $bitand_37
+  local.get 7   ; $shl_34
+  local.get 8   ; $bitand_37
   i32.bitor
-  local.set 7   ; $shl_37
+  local.set 7   ; $shl_34
   local.get 10   ; b2
   u8.to_i32
   i32.const 63
   i32.bitand
   i32.const 6
   i32.shl
-  local.set 8   ; $bitand_40
-  local.get 7   ; $shl_37
-  local.get 8   ; $bitand_40
+  local.set 8   ; $bitand_37
+  local.get 7   ; $shl_34
+  local.get 8   ; $bitand_37
   i32.bitor
-  local.set 7   ; $shl_37
+  local.set 7   ; $shl_34
   local.get 11   ; b3
   u8.to_i32
   i32.const 63
   i32.bitand
-  local.set 8   ; $bitand_40
-  local.get 7   ; $shl_37
-  local.get 8   ; $bitand_40
+  local.set 8   ; $bitand_37
+  local.get 7   ; $shl_34
+  local.get 8   ; $bitand_37
   i32.bitor
-  u32.to_char
   i64.const 4
   return
 end
@@ -658,7 +675,7 @@ fn 10 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11

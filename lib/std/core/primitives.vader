@@ -309,8 +309,9 @@ char  implements Comparable -> three_way(self < other, self > other)
 // ---- Step -----------------------------------------------------------------
 //
 // Discrete-successor logic per primitive. Every integer width bumps by 1 ;
-// `char` round-trips through u32 since it has no native `+ i32` op. Floats
-// are intentionally excluded — there's no canonical `next float` semantics.
+// `char` round-trips through u32 since it has no native `+ i32` op, and steps
+// over the surrogates, which no `char` holds. Floats are intentionally excluded:
+// there's no canonical `next float` semantics.
 
 i8    implements Step -> self + 1
 i16   implements Step -> self + 1
@@ -322,7 +323,15 @@ u16   implements Step -> self + 1
 u32   implements Step -> self + 1
 u64   implements Step -> self + 1
 usize implements Step -> self + 1
-char  implements Step -> char(u32(self) + 1)
+char  implements Step -> next_scalar(self)
+
+// The Unicode scalar value after `c`.
+next_scalar :: fn(c: char) -> char {
+    if c == '\u{D7FF}' {
+        return '\u{E000}'
+    }
+    return char(u32(c) + 1)
+}
 
 // ---- Numeric arithmetic ---------------------------------------------------
 //

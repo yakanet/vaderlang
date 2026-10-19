@@ -227,6 +227,7 @@
     fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
     fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.parse_f64  // std_core$parse_f64
     fn std.core.parse_f64_slow  // std_core$parse_f64_slow
     fn std.core.pf_clz64  // std_core$pf_clz64
@@ -235,7 +236,6 @@
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
     fn std.core.scan_decimal  // std_core$scan_decimal
     fn std.core.sd_round_at  // std_core$sd_round_at
     fn std.core.sd_scan  // std_core$sd_scan

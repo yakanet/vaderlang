@@ -1,0 +1,17 @@
+// `char(x)` takes an integer or a `char` : a float, an enum and a type none of whose
+// values is a Unicode scalar value are refused.
+module "snippet"
+
+export Weekday :: enum { Mon, Tue, Wed }
+
+export Below :: Int in -5..=-1
+
+export main :: fn() -> i32 {
+    x: f64: 65.0
+    n: Below: -3
+    a :: char(x)
+    b :: char(Weekday.Tue)
+    c :: char(n)
+    d :: char('A')
+    return 0
+}

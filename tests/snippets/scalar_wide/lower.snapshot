@@ -62,7 +62,18 @@
       i64(x)
   }
   snippet.to_chr :: fn(x: i32) -> char {  // snippet$to_chr
-      char(x)
+      {
+          __in_range_0: i32 = x
+          if __in_range_0 < 0 {
+              @unreachable("value out of range: no Unicode scalar value")
+          }
+          if __in_range_0 > 55295 {
+              if (__in_range_0 < 57344) || (__in_range_0 > 1114111) {
+                  @unreachable("value out of range: no Unicode scalar value")
+              }
+          }
+          char(__in_range_0)
+      } :char
   }
   snippet.from_chr :: fn(x: char) -> i32 {  // snippet$from_chr
       i32(x)
@@ -209,7 +220,6 @@
     fn std.core.pow5_factor  // std_core$pow5_factor
     fn std.core.pow5bits  // std_core$pow5bits
     fn std.core.render  // std_core$render
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
     fn std.core.shiftright128  // std_core$shiftright128
     fn std.core.three_way  // std_core$three_way
     fn std.core.umul128  // std_core$umul128

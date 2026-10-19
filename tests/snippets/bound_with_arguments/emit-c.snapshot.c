@@ -1405,7 +1405,7 @@ static vader_string_t std_core_string_Add_add(vader_string_t l0, vader_string_t 
     vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 436 "lib/std/core/primitives.vader"
+#line 445 "lib/std/core/primitives.vader"
     t0 = concat_2(l0, l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

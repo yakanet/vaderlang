@@ -68,7 +68,7 @@
     fn std.core.i32.step  // std_core$i32$Step$step
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
+    fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.three_way  // std_core$three_way
     fn std.core.usize.compare  // std_core$usize$Comparable$compare
     fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer

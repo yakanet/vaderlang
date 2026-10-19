@@ -181,7 +181,7 @@
     fn std.core.i8.compare  // std_core$i8$Comparable$compare
     fn std.core.i8.step  // std_core$i8$Step$step
     fn std.core.new_byte_buffer  // std_core$new_byte_buffer
-    fn std.core.scalar_or_replacement  // std_core$scalar_or_replacement
+    fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.three_way  // std_core$three_way
     fn std.core.u64.compare  // std_core$u64$Comparable$compare
     fn std.core.u64.step  // std_core$u64$Step$step

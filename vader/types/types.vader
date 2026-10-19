@@ -708,6 +708,7 @@ export TY_ANY        :: AnyType {}
 export TY_VOID       :: PrimitiveType { .name = "void" }
 export TY_BOOL       :: PrimitiveType { .name = "bool" }
 export TY_STRING     :: PrimitiveType { .name = "string" }
+export TY_CHAR       :: PrimitiveType { .name = "char" }
 export TY_NULL       :: PrimitiveType { .name = "null" }
 export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 
@@ -715,6 +716,11 @@ export TY_CPOINTER   :: PrimitiveType { .name = "CPointer" }
 ///
 /// @param t  the type to test.
 export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "null"
+
+/// Whether `t` is `char`, not a distinct over it.
+///
+/// @param t  the type to test.
+export is_char :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "char"
 
 // ---- display --------------------------------------------------------------
 

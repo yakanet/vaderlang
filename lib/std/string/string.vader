@@ -92,9 +92,9 @@ StringChars implements Iterator<char> {
             self.cursor = i + 1
             return [char(b), .Continue]
         }
-        [c, width] :: decode_tail(self.s, b, i)
+        [code, width] :: decode_tail(self.s, b, i)
         self.cursor = i + width
-        return [c, .Continue]
+        return [char(code), .Continue]
     }
 }
 
@@ -127,9 +127,9 @@ string implements Into<Iterator<char>> {
                 i += 1
                 yield char(b)
             } else {
-                [c, width] :: decode_tail(self, b, i)
+                [code, width] :: decode_tail(self, b, i)
                 i += width
-                yield c
+                yield char(code)
             }
         }
     }

@@ -1,14 +1,15 @@
 // vader/lower/lower_range_conversion — `Hour(x)` and `x in Hour`, a value against
 // the bounds of an integer type ; `Weekday(x)` and `x in Weekday`, against the values
-// of an enum ; and the value a generic instance gets back through a `T` it binds to
-// a range.
+// of an enum ; `char(x)` and `x in char`, against the Unicode scalar values ; and the
+// value a generic instance gets back through a `T` it binds to a range.
 //
 // The tested values are runs of integers : a range is one, an enum one per stretch
-// of consecutive values. A value is tested only against what its own type does not
-// already decide : `u8` into `-5..=5` needs no test below. A conversion stops the
-// program off them, in every build : a type's values are what it promises, and the
-// lowering past here reads a range or an enum as the integer it is held in. `x in T`
-// gives the test's outcome, a constant where the type of `x` decides it.
+// of consecutive values, `char` two, around the surrogates. A value is tested only
+// against what its own type does not already decide : `u8` into `-5..=5` needs no
+// test below. A conversion stops the program off them, in every build : a type's
+// values are what it promises, and the lowering past here reads a range or an enum
+// as the integer it is held in. `x in T` gives the test's outcome, a constant where
+// the type of `x` decides it.
 
 module "vader/lower"
 
@@ -38,11 +39,39 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
 /// @return        the value, the program stopped where it is none of `target`'s
 ///                values, held as the integer `target` stores.
 lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -> LoweredExpr {
-    observe_no_call(ctx, call, .Call, "enum check")
+    reason :: "value out of range: no value of `${target.symbol.name}`"
+    return lower_runs_conversion(ctx, call, enum_value_runs(target), target.repr, reason)
+}
+
+/// The conversion `call`, `char(value)` or `G(value)` with `G` a distinct over
+/// `char`, from an integer.
+///
+/// @param call    the conversion, its single argument an integer.
+/// @param target  `char`, or the distinct converted into.
+/// @return        the value, the program stopped where it is no Unicode scalar
+///                value, as a value of `target`.
+lower_char_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) -> LoweredExpr {
+    reason :: "value out of range: no Unicode scalar value"
+    scalar :: lower_runs_conversion(ctx, call, CHAR_VALUES, "char", reason)
+    if target is DistinctType {
+        return LoweredCast { .span = call.span, .type = target, .value = scalar }
+    }
+    return scalar
+}
+
+// The conversion `call`, its single argument an integer, into the integer `held`,
+// the program stopped with `reason` where it lies in none of `runs`.
+lower_runs_conversion :: fn(
+    ctx: FnLowerCtx,
+    call: CallExpr,
+    runs: Interval[],
+    held: string,
+    reason: string,
+) -> LoweredExpr {
+    observe_no_call(ctx, call, .Call, "value check")
     value :: lower_expr(ctx, call.args[0].value)
     source :: values_of(ctx, call.args[0].value, value)
-    reason :: "value out of range: no value of `${target.symbol.name}`"
-    return checked_into(ctx, value, source, enum_value_runs(target), target.repr, reason, call.span)
+    return checked_into(ctx, value, source, runs, held, reason, call.span)
 }
 
 /// `value`, the outcome of `e`, checked against the range its instance binds the
@@ -116,16 +145,51 @@ checked_into :: fn(
     stmts: LoweredStmt[]: []
     widened :: cast_to_width(value, compared.name, span)
     bound :: bind_to_local(ctx, widened, compared, "in_range", span, stmts)
-    stmts.push(stop_if(outside_test(bound, known, runs, compared, span), reason, span))
+    stmts.push_all(stops_outside(bound, known, runs, compared, reason, span))
     return with_prelude(stmts, cast_to_width(bound, held, span), span)
 }
 
-/// The test `binary`, `x in T` or `x !in T`, `T` an integer type or an enum.
+// Stop the program with `reason` where `value`, of the integer type `compared`
+// holding `source`, lies in none of `runs`. Over two runs, `char`'s, the second is
+// tested only past the first : a value of the first makes one comparison. Over
+// more, the test stays one condition, linear in the runs.
+stops_outside :: fn(
+    value: LoweredExpr,
+    source: Interval,
+    runs: Interval[],
+    compared: Type,
+    reason: string,
+    span: Span,
+) -> LoweredStmt[] {
+    reachable :: reachable_runs(source, runs)
+    if reachable.len() != 2 {
+        return [stop_if(outside_test(value, source, runs, compared, span), reason, span)]
+    }
+    first :: reachable[0]
+    beyond :: Interval {
+        .lo = first.hi + 1,
+        .hi = source.hi,
+        .hi_open = source.hi_open,
+    }
+    second :: stop_if(outside_test(value, beyond, [reachable[1]], compared, span), reason, span)
+    stmts: LoweredStmt[]: []
+    if may_lie_below(source, first) {
+        stmts.push(stop_if(bound_test(value, .Lt, first.lo, compared, span), reason, span))
+    }
+    if is_single_value(first) {
+        stmts.push(second)
+        return [if_then(bound_test(value, .Neq, first.lo, compared, span), stmts, span)]
+    }
+    stmts.push(if_then(bound_test(value, .Gt, first.hi, compared, span), [second], span))
+    return stmts
+}
+
+/// The test `binary`, `x in T` or `x !in T`, `T` an integer type, `char` or an enum.
 ///
 /// @param binary  the test, its right operand the type the typecheck recorded.
-/// @return        whether `x` lies within `T`'s bounds, or is one of the enum's
-///                values, negated for `!in` ; a constant where the type of `x`
-///                decides it.
+/// @return        whether `x` lies within `T`'s bounds, or is one of the values of
+///                the enum or of `char`, negated for `!in` ; a constant where the
+///                type of `x` decides it.
 lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
     observe_no_call(ctx, binary, .Operator, "bounds")
     span :: binary.span
@@ -152,10 +216,14 @@ lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
 }
 
 // The values `x in t` tests against, `t` as this instance reads it : an enum's runs of
-// values, an integer type's bounds ; null for any other type.
+// values, the Unicode scalar values, an integer type's bounds ; null for any other
+// type.
 tested_runs :: fn(ctx: FnLowerCtx, t: Type) -> Interval[] | null {
     if t is EnumType && t.data == null {
         return enum_value_runs(t)
+    }
+    if is_char(t) {
+        return CHAR_VALUES
     }
     held :: instance_range(ctx, t) ?? return null
     return [held.bounds]
@@ -178,18 +246,46 @@ may_lie_below :: fn(source: Interval, bounds: Interval) -> bool =
 may_lie_above :: fn(source: Interval, bounds: Interval) -> bool =
     !bounds.hi_open && (source.hi_open || source.hi > bounds.hi)
 
-// The values the converted value can take : a literal's own, those of its type as
-// the typecheck recorded it, a range's bounds included, else of the type it is
-// lowered at.
+// The values the converted value can take : a literal's own, those of a value a
+// widening cast holds (`u32(b)` with `b: u8`), those of its type as the typecheck
+// recorded it, a range's bounds included, else of the type it is lowered at ; a
+// distinct's, its backing's.
 values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | null {
-    if lowered is LoweredIntLit {
-        return interval(lowered.value, lowered.value)
+    widened :: widened_values(lowered)
+    if widened != null {
+        return widened
     }
-    recorded :: integer_values(ctx.types.raw_expr_type(arg))
+    recorded :: integer_values(strip_distinct(ctx.types.raw_expr_type(arg)))
     if recorded != null {
         return recorded
     }
-    return integer_values(lowered.type)
+    return integer_values(strip_distinct(lowered.type))
+}
+
+// The values of `e`, a literal or a cast widening an integer with no loss, through
+// any number of such casts ; null for any other expression.
+widened_values :: fn(e: LoweredExpr) -> Interval | null {
+    if e is LoweredIntLit {
+        return interval(e.value, e.value)
+    }
+    if e !is LoweredCast {
+        return null
+    }
+    inner :: cast_source_values(e.value) ?? return null
+    outer :: integer_values(strip_distinct(e.type)) ?? return null
+    if !interval_within(inner, outer) {
+        return null
+    }
+    return inner
+}
+
+// The values of `e`, a cast's operand : those `widened_values` reads, else its type's.
+cast_source_values :: fn(e: LoweredExpr) -> Interval | null {
+    widened :: widened_values(e)
+    if widened != null {
+        return widened
+    }
+    return integer_values(strip_distinct(e.type))
 }
 
 // The parts of `runs` a value of `source` may lie in, each cut to `source`.
@@ -327,23 +423,22 @@ bound_test :: fn(
 
 // `if stop { @unreachable(reason) }` : a value off its type stops the program, in
 // every build.
-stop_if :: fn(stop: LoweredExpr, reason: string, span: Span) -> LoweredStmt = LoweredExprStmt {
+stop_if :: fn(stop: LoweredExpr, reason: string, span: Span) -> LoweredStmt {
+    trap :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = reason },
+    }
+    return if_then(stop, [trap], span)
+}
+
+// `if cond { body }`.
+if_then :: fn(cond: LoweredExpr, body: LoweredStmt[], span: Span) -> LoweredStmt = LoweredExprStmt {
     .span = span,
     .expr = LoweredIf {
         .span = span,
         .type = TY_VOID,
-        .cond = stop,
-        .then_block = LoweredBlock {
-            .span = span,
-            .type = TY_VOID,
-            .stmts = [
-                LoweredExprStmt {
-                    .span = span,
-                    .expr = LoweredUnreachable { .span = span, .type = TY_VOID, .reason = reason },
-                },
-            ],
-            .trailing = null,
-        },
+        .cond = cond,
+        .then_block = arm_block(body, span),
         .else_block = null,
     },
 }

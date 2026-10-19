@@ -548,7 +548,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
     int32_t t0;
-#line 317 "lib/std/core/primitives.vader"
+#line 318 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
@@ -630,7 +630,7 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
 
 static size_t std_core_usize_Step_step(size_t l0) {
     int64_t t0;
-#line 324 "lib/std/core/primitives.vader"
+#line 325 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(usize, l0, INT64_C(1));
     return (size_t) (int64_t) t0;
 }

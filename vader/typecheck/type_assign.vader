@@ -355,8 +355,9 @@ integer_set :: fn(t: Type) -> Interval[] | null {
     return [values]
 }
 
-// The Unicode scalar values : every code point but the surrogates.
-CHAR_VALUES: Interval[]: [
+/// The values of `char`, the Unicode scalar values : every code point but the
+/// surrogates, in two runs.
+export CHAR_VALUES: Interval[]: [
     Interval { .lo = 0, .hi = 0xD7FF },
     Interval { .lo = 0xE000, .hi = 0x10FFFF },
 ]

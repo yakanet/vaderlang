@@ -1,0 +1,20 @@
+# stdout
+first 0, last 1114111
+-1 is no scalar value
+0 is a scalar value
+55295 is a scalar value
+55296 is no scalar value
+57343 is no scalar value
+57344 is a scalar value
+1114111 is a scalar value
+1114112 is no scalar value
+Hi😀
+❤ ❤ ! gap 32
+in place: 55294 55295 57344 57345
+stepped: 55294 55295 57344
+fused: 225278
+hopped: 55294 55295 57344 57345 55294 55295
+letters: abcde
+pair: 😀
+# exit
+0

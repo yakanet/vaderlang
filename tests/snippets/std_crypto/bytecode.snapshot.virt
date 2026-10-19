@@ -7,13 +7,13 @@ type 4 primitive char
 type 5 primitive u8
 type 6 primitive usize
 type 7 array 5
-type 8 primitive u32
-type 9 struct std_core$Buffer {  }
-type 10 primitive void
-type 11 union 2,7
+type 8 struct std_core$Buffer {  }
+type 9 primitive void
+type 10 union 2,7
+type 11 primitive u32
 type 12 struct std_string_builder$StringBuilder { parts:15 }
 type 13 primitive isize
-type 14 array 8
+type 14 array 11
 type 15 array 2
 string 0 "sha256-empty="
 string 1 ""
@@ -34,7 +34,7 @@ import 0 byte_len std_core$byte_len result_type=6 param_types=2 param_c_out= par
 import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=7 param_c_out= param_by_address= (ref) -> string
 import 2 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=13 param_types=1,7,6 param_c_out= param_by_address= (i32,ref,usize) -> isize
-impl 9 std_core$ByteAccess
+impl 8 std_core$ByteAccess
 impl 12 std_core$Display
 export main 0
 
@@ -42,57 +42,57 @@ fn 0 snippet$main () -> i32
   local $call_2 string
   string.const 1   ; ""
   retag 2   ; string
-  call 7   ; crypto$sha256
+  call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 0   ; "sha256-empty="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 3   ; "abc"
   retag 2   ; string
-  call 7   ; crypto$sha256
+  call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 2   ; "sha256-abc="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 5   ; "The quick brown fox jumps over the lazy dog"
   retag 2   ; string
-  call 7   ; crypto$sha256
+  call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 4   ; "sha256-quick="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 7   ; "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
   retag 2   ; string
-  call 7   ; crypto$sha256
+  call 6   ; crypto$sha256
   local.set 0   ; $call_2
   string.const 6   ; "sha256-long="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 1   ; ""
-  call 8   ; crypto$md5
+  call 7   ; crypto$md5
   local.set 0   ; $call_2
   string.const 8   ; "md5-empty="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 3   ; "abc"
-  call 8   ; crypto$md5
+  call 7   ; crypto$md5
   local.set 0   ; $call_2
   string.const 9   ; "md5-abc="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   string.const 5   ; "The quick brown fox jumps over the lazy dog"
-  call 8   ; crypto$md5
+  call 7   ; crypto$md5
   local.set 0   ; $call_2
   string.const 10   ; "md5-quick="
   local.get 0   ; $call_2
   call 1   ; concat_2
-  call 6   ; std_io$println__string
+  call 5   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -128,24 +128,21 @@ end
 fn 2 std_core$utf8_encode (char) -> ref
   local cp u32
   local out ref
-  local $shr_15 u32
-  local $cast_17 u8
+  local $shr_13 u32
+  local $cast_15 u8
   local.get 0   ; arg 0
   char.to_i32
+  local.tee 1   ; cp
   i32.const 128
   u32.lt
   if $L0 void
-    local.get 0   ; arg 0
-    char.to_i32
+    local.get 1   ; cp
+    u32.to_i32
     i32.const 255
     i32.bitand
     array.new 7 1   ; u8[]
     return
   end $L0
-  local.get 0   ; arg 0
-  char.to_i32
-  call 3   ; std_core$scalar_or_replacement
-  local.set 1   ; cp
   array.new 7 0   ; u8[]
   local.set 2   ; out
   local.get 1   ; cp
@@ -155,30 +152,30 @@ fn 2 std_core$utf8_encode (char) -> ref
     local.get 1   ; cp
     i32.const 6
     u32.shr
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 192
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 128
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 2   ; out
     return
@@ -190,93 +187,93 @@ fn 2 std_core$utf8_encode (char) -> ref
     local.get 1   ; cp
     i32.const 12
     u32.shr
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 224
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
     i32.const 63
     i32.bitand
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 128
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 128
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
   else
     local.get 1   ; cp
     i32.const 18
     u32.shr
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 240
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 12
     u32.shr
     i32.const 63
     i32.bitand
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 128
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
     i32.const 63
     i32.bitand
-    local.set 3   ; $shr_15
+    local.set 3   ; $shr_13
     i32.const 128
-    local.get 3   ; $shr_15
+    local.get 3   ; $shr_13
     i32.bitor
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
     local.get 1   ; cp
     i32.const 63
@@ -288,52 +285,16 @@ fn 2 std_core$utf8_encode (char) -> ref
     u32.to_i32
     i32.const 255
     i32.bitand
-    local.set 4   ; $cast_17
+    local.set 4   ; $cast_15
     local.get 2   ; out
-    local.get 4   ; $cast_17
+    local.get 4   ; $cast_15
     array.push 5   ; u8
   end $L2
   local.get 2   ; out
   return
 end
 
-fn 3 std_core$scalar_or_replacement (u32) -> u32
-  local and_res bool
-  local.get 0   ; arg 0
-  i32.const 55296
-  u32.ge
-  if $L0 void
-    local.get 0   ; arg 0
-    i32.const 57343
-    u32.le
-    local.set 1   ; and_res
-  else
-    bool.const false
-    local.set 1   ; and_res
-  end $L0
-  local.get 1   ; and_res
-  if $L1 void
-    bool.const true
-    local.set 1   ; and_res
-  else
-    local.get 0   ; arg 0
-    i32.const 1114111
-    u32.gt
-    local.set 1   ; and_res
-  end $L1
-  local.get 1   ; and_res
-  if $L2 void
-  else
-    local.get 0   ; arg 0
-    return
-  end $L2
-  i32.const 65533
-  i32.to_char
-  char.to_i32
-  return
-end
-
-fn 4 std_io$write (u8,string) -> void
+fn 3 std_io$write (u8,string) -> void
   local buf ref
   local sent usize
   local $len_6 usize
@@ -369,7 +330,7 @@ fn 4 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 5   ; std_io$write_bytes
+      call 4   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -389,7 +350,7 @@ fn 4 std_io$write (u8,string) -> void
   return
 end
 
-fn 5 std_io$write_bytes (u8,ref,usize) -> i32
+fn 4 std_io$write_bytes (u8,ref,usize) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -409,7 +370,7 @@ fn 5 std_io$write_bytes (u8,ref,usize) -> i32
   return
 end
 
-fn 6 std_io$println__string (string) -> void
+fn 5 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 11   ; "\n"
@@ -417,18 +378,18 @@ fn 6 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 4   ; std_io$write
+  call 3   ; std_io$write
   return
 end
 
-fn 7 crypto$sha256 (any) -> string
+fn 6 crypto$sha256 (any) -> string
   local.get 0   ; arg 0
-  call 10   ; crypto$sha256_bytes
-  call 9   ; crypto$hex_of_bytes
+  call 9   ; crypto$sha256_bytes
+  call 8   ; crypto$hex_of_bytes
   return
 end
 
-fn 8 crypto$md5 (string) -> string
+fn 7 crypto$md5 (string) -> string
   local a0 u32
   local b0 u32
   local c0 u32
@@ -486,7 +447,7 @@ fn 8 crypto$md5 (string) -> string
   i32.const 271733878
   local.set 4   ; d0
   local.get 0   ; arg 0
-  call 11   ; crypto$pad_md5
+  call 10   ; crypto$pad_md5
   local.tee 5   ; msg
   array.len
   i64.const 64
@@ -599,11 +560,11 @@ fn 8 crypto$md5 (string) -> string
           local.get 26   ; $bitor_65
           local.get 27   ; $shl_67
           i32.bitor
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 28   ; $call_69
           local.get 9   ; m
           local.get 28   ; $call_69
-          array.push 8 9   ; u32 m
+          array.push 11 9   ; u32 m
           local.get 10   ; i
           i64.const 1
           i64.add
@@ -640,7 +601,7 @@ fn 8 crypto$md5 (string) -> string
             local.set 36   ; $bitand_87
             local.get 30   ; b
             i32.bitnot
-            call 12   ; crypto$mask32
+            call 11   ; crypto$mask32
             local.get 32   ; d
             i32.bitand
             local.set 37   ; $bitand_90
@@ -661,7 +622,7 @@ fn 8 crypto$md5 (string) -> string
               local.set 38   ; $bitand_94
               local.get 32   ; d
               i32.bitnot
-              call 12   ; crypto$mask32
+              call 11   ; crypto$mask32
               local.get 31   ; c
               i32.bitand
               local.set 39   ; $bitand_97
@@ -699,7 +660,7 @@ fn 8 crypto$md5 (string) -> string
               else
                 local.get 32   ; d
                 i32.bitnot
-                call 12   ; crypto$mask32
+                call 11   ; crypto$mask32
                 local.set 40   ; $call_116
                 local.get 30   ; b
                 local.get 40   ; $call_116
@@ -737,7 +698,7 @@ fn 8 crypto$md5 (string) -> string
           local.get 44   ; $add_126
           local.get 45   ; $idx_127
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 46   ; tmp
           local.get 32   ; d
           local.set 29   ; a
@@ -751,12 +712,12 @@ fn 8 crypto$md5 (string) -> string
           local.set 47   ; $idx_132
           local.get 46   ; tmp
           local.get 47   ; $idx_132
-          call 13   ; crypto$rotl32
+          call 12   ; crypto$rotl32
           local.set 48   ; $call_133
           local.get 30   ; b
           local.get 48   ; $call_133
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 30   ; b
           local.get 33   ; j
           i64.const 1
@@ -768,22 +729,22 @@ fn 8 crypto$md5 (string) -> string
       local.get 1   ; a0
       local.get 29   ; a
       i32.add
-      call 12   ; crypto$mask32
+      call 11   ; crypto$mask32
       local.set 1   ; a0
       local.get 2   ; b0
       local.get 30   ; b
       i32.add
-      call 12   ; crypto$mask32
+      call 11   ; crypto$mask32
       local.set 2   ; b0
       local.get 3   ; c0
       local.get 31   ; c
       i32.add
-      call 12   ; crypto$mask32
+      call 11   ; crypto$mask32
       local.set 3   ; c0
       local.get 4   ; d0
       local.get 32   ; d
       i32.add
-      call 12   ; crypto$mask32
+      call 11   ; crypto$mask32
       local.set 4   ; d0
       local.get 7   ; block_idx
       i64.const 1
@@ -796,22 +757,22 @@ fn 8 crypto$md5 (string) -> string
   struct.new 12   ; std_string_builder$StringBuilder
   local.tee 5   ; msg
   local.get 1   ; a0
-  call 14   ; crypto$append_hex_u32_le
+  call 13   ; crypto$append_hex_u32_le
   local.get 5   ; msg
   local.get 2   ; b0
-  call 14   ; crypto$append_hex_u32_le
+  call 13   ; crypto$append_hex_u32_le
   local.get 5   ; msg
   local.get 3   ; c0
-  call 14   ; crypto$append_hex_u32_le
+  call 13   ; crypto$append_hex_u32_le
   local.get 5   ; msg
   local.get 4   ; d0
-  call 14   ; crypto$append_hex_u32_le
+  call 13   ; crypto$append_hex_u32_le
   local.get 5   ; msg
-  call 23   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 22   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
-fn 9 crypto$hex_of_bytes (ref) -> string
+fn 8 crypto$hex_of_bytes (ref) -> string
   local sb ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -838,7 +799,7 @@ fn 9 crypto$hex_of_bytes (ref) -> string
       local.set 5   ; b
       local.get 1   ; sb
       local.get 5   ; b
-      call 15   ; crypto$append_hex_u8
+      call 14   ; crypto$append_hex_u8
       local.get 4   ; __for_i_2
       i64.const 1
       i64.add
@@ -847,11 +808,11 @@ fn 9 crypto$hex_of_bytes (ref) -> string
     end $L1
   end $L0
   local.get 1   ; sb
-  call 23   ; std_string_builder$StringBuilder$std_core_Display$to_string
+  call 22   ; std_string_builder$StringBuilder$std_core_Display$to_string
   return
 end
 
-fn 10 crypto$sha256_bytes (any) -> ref
+fn 9 crypto$sha256_bytes (any) -> ref
   local data ref
   local h ref
   local blocks usize
@@ -945,7 +906,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
   local $idx_236 u32
   local $call_238 u32
   local.get 0   ; arg 0
-  call 16   ; crypto$to_bytes
+  call 15   ; crypto$to_bytes
   local.set 1   ; data
   i32.const 1779033703
   i32.const -1150833019
@@ -958,7 +919,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
   array.new 14 8   ; u32[]
   local.set 2   ; h
   local.get 1   ; data
-  call 17   ; crypto$pad_sha256_bytes
+  call 16   ; crypto$pad_sha256_bytes
   local.tee 1   ; data
   array.len
   i64.const 64
@@ -1069,11 +1030,11 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.bitor
           local.get 19   ; b3
           i32.bitor
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 24   ; $call_73
           local.get 6   ; w
           local.get 24   ; $call_73
-          array.push 8 6   ; u32 w
+          array.push 11 6   ; u32 w
           local.get 7   ; i
           i64.const 1
           i64.add
@@ -1106,11 +1067,11 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.set 29   ; w_jm2
           local.get 27   ; w_jm15
           i32.const 7
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 30   ; $call_90
           local.get 27   ; w_jm15
           i32.const 18
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 31   ; $call_92
           local.get 30   ; $call_90
           local.get 31   ; $call_92
@@ -1126,11 +1087,11 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.set 34   ; s0
           local.get 29   ; w_jm2
           i32.const 17
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 35   ; $call_99
           local.get 29   ; w_jm2
           i32.const 19
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 36   ; $call_101
           local.get 35   ; $call_99
           local.get 36   ; $call_101
@@ -1167,11 +1128,11 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.add
           local.get 39   ; s1
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 44   ; $call_116
           local.get 6   ; w
           local.get 44   ; $call_116
-          array.push 8   ; u32
+          array.push 11   ; u32
           local.get 25   ; j
           i64.const 1
           i64.add
@@ -1180,7 +1141,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
         end $L5
       end $L4
       local.get 2   ; h
-      call 20   ; std_iter$clone__u32
+      call 19   ; std_iter$clone__u32
       local.set 45   ; v
       i64.const 0
       local.set 46   ; t
@@ -1193,13 +1154,13 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.const 4
           load_slot_i32
           i32.const 6
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 47   ; $call_129
           local.get 45   ; v
           i32.const 4
           load_slot_i32
           i32.const 11
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 48   ; $call_133
           local.get 47   ; $call_129
           local.get 48   ; $call_133
@@ -1209,7 +1170,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.const 4
           load_slot_i32
           i32.const 25
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 50   ; $call_138
           local.get 49   ; $bitxor_134
           local.get 50   ; $call_138
@@ -1231,7 +1192,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.const 4
           load_slot_i32
           i32.bitnot
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 55   ; $call_149
           local.get 45   ; v
           i32.const 6
@@ -1268,19 +1229,19 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.get 61   ; $add_161
           local.get 62   ; $idx_162
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 63   ; t1
           local.get 45   ; v
           i32.const 0
           load_slot_i32
           i32.const 2
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 64   ; $call_169
           local.get 45   ; v
           i32.const 0
           load_slot_i32
           i32.const 13
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 65   ; $call_173
           local.get 64   ; $call_169
           local.get 65   ; $call_173
@@ -1290,7 +1251,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           i32.const 0
           load_slot_i32
           i32.const 22
-          call 18   ; crypto$rotr32
+          call 17   ; crypto$rotr32
           local.set 67   ; $call_178
           local.get 66   ; $bitxor_174
           local.get 67   ; $call_178
@@ -1343,7 +1304,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.get 68   ; sig0
           local.get 79   ; maj_abc
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 80   ; t2
           local.get 45   ; v
           i32.const 6
@@ -1374,7 +1335,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           load_slot_i32
           local.get 63   ; t1
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 84   ; $call_215
           local.get 45   ; v
           i32.const 4
@@ -1407,7 +1368,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.get 63   ; t1
           local.get 80   ; t2
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 88   ; $call_227
           local.get 45   ; v
           i32.const 0
@@ -1438,7 +1399,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
           local.get 90   ; $idx_235
           local.get 91   ; $idx_236
           i32.add
-          call 12   ; crypto$mask32
+          call 11   ; crypto$mask32
           local.set 92   ; $call_238
           local.get 2   ; h
           local.get 89   ; i
@@ -1473,7 +1434,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
       local.set 10   ; b0
       local.get 1   ; data
       local.get 10   ; b0
-      call 19   ; crypto$append_u32_be
+      call 18   ; crypto$append_u32_be
       local.get 3   ; blocks
       i64.const 1
       i64.add
@@ -1485,7 +1446,7 @@ fn 10 crypto$sha256_bytes (any) -> ref
   return
 end
 
-fn 11 crypto$pad_md5 (string) -> ref
+fn 10 crypto$pad_md5 (string) -> ref
   local ib ref
   local bit_len u64
   local k i32
@@ -1500,7 +1461,7 @@ fn 11 crypto$pad_md5 (string) -> ref
   u64.checked_mul
   local.set 2   ; bit_len
   local.get 1   ; ib
-  call 21   ; std_iter$clone__u8
+  call 20   ; std_iter$clone__u8
   local.tee 1   ; ib
   i32.const 128
   array.push 5   ; u8
@@ -1553,20 +1514,20 @@ fn 11 crypto$pad_md5 (string) -> ref
   return
 end
 
-fn 12 crypto$mask32 (u32) -> u32
+fn 11 crypto$mask32 (u32) -> u32
   local.get 0   ; arg 0
   i32.const -1
   i32.bitand
   return
 end
 
-fn 13 crypto$rotl32 (u32,u32) -> u32
+fn 12 crypto$rotl32 (u32,u32) -> u32
   local $call_3 u32
   local $sub_checked_5 u32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.shl
-  call 12   ; crypto$mask32
+  call 11   ; crypto$mask32
   local.set 2   ; $call_3
   i32.const 32
   local.get 1   ; arg 1
@@ -1582,7 +1543,7 @@ fn 13 crypto$rotl32 (u32,u32) -> u32
   return
 end
 
-fn 14 crypto$append_hex_u32_le (ref,u32) -> void
+fn 13 crypto$append_hex_u32_le (ref,u32) -> void
   local i i32
   local $cast_8 u32
   local b u8
@@ -1609,7 +1570,7 @@ fn 14 crypto$append_hex_u32_le (ref,u32) -> void
       local.set 4   ; b
       local.get 0   ; arg 0
       local.get 4   ; b
-      call 15   ; crypto$append_hex_u8
+      call 14   ; crypto$append_hex_u8
       local.get 2   ; i
       i32.const 1
       i32.add
@@ -1620,7 +1581,7 @@ fn 14 crypto$append_hex_u32_le (ref,u32) -> void
   return
 end
 
-fn 15 crypto$append_hex_u8 (ref,u8) -> void
+fn 14 crypto$append_hex_u8 (ref,u8) -> void
   local hi u64
   local lo u64
   local $call_10 char
@@ -1635,21 +1596,21 @@ fn 15 crypto$append_hex_u8 (ref,u8) -> void
   i64.bitand
   local.set 3   ; lo
   local.get 2   ; hi
-  call 24   ; std_numbers$hex_digit
+  call 23   ; std_numbers$hex_digit
   local.set 4   ; $call_10
   local.get 0   ; arg 0
   local.get 4   ; $call_10
-  call 22   ; std_string_builder$append_char
+  call 21   ; std_string_builder$append_char
   local.get 3   ; lo
-  call 24   ; std_numbers$hex_digit
+  call 23   ; std_numbers$hex_digit
   local.set 4   ; $call_10
   local.get 0   ; arg 0
   local.get 4   ; $call_10
-  call 22   ; std_string_builder$append_char
+  call 21   ; std_string_builder$append_char
   return
 end
 
-fn 16 crypto$to_bytes (any) -> ref
+fn 15 crypto$to_bytes (any) -> ref
   local.get 0   ; arg 0
   type_check 2   ; string
   if $L0 void
@@ -1664,7 +1625,7 @@ fn 16 crypto$to_bytes (any) -> ref
   return
 end
 
-fn 17 crypto$pad_sha256_bytes (ref) -> ref
+fn 16 crypto$pad_sha256_bytes (ref) -> ref
   local bit_len u64
   local out ref
   local k i32
@@ -1677,7 +1638,7 @@ fn 17 crypto$pad_sha256_bytes (ref) -> ref
   u64.checked_mul
   local.set 1   ; bit_len
   local.get 0   ; arg 0
-  call 21   ; std_iter$clone__u8
+  call 20   ; std_iter$clone__u8
   local.tee 2   ; out
   i32.const 128
   array.push 5   ; u8
@@ -1730,7 +1691,7 @@ fn 17 crypto$pad_sha256_bytes (ref) -> ref
   return
 end
 
-fn 18 crypto$rotr32 (u32,u32) -> u32
+fn 17 crypto$rotr32 (u32,u32) -> u32
   local $shr_2 u32
   local $sub_checked_4 u32
   local.get 0   ; arg 0
@@ -1744,7 +1705,7 @@ fn 18 crypto$rotr32 (u32,u32) -> u32
   local.get 0   ; arg 0
   local.get 3   ; $sub_checked_4
   i32.shl
-  call 12   ; crypto$mask32
+  call 11   ; crypto$mask32
   local.set 3   ; $sub_checked_4
   local.get 2   ; $shr_2
   local.get 3   ; $sub_checked_4
@@ -1752,7 +1713,7 @@ fn 18 crypto$rotr32 (u32,u32) -> u32
   return
 end
 
-fn 19 crypto$append_u32_be (ref,u32) -> void
+fn 18 crypto$append_u32_be (ref,u32) -> void
   local $cast_6 u8
   local.get 1   ; arg 1
   i32.const 24
@@ -1803,7 +1764,7 @@ fn 19 crypto$append_u32_be (ref,u32) -> void
   return
 end
 
-fn 20 std_iter$clone__u32 (ref) -> ref
+fn 19 std_iter$clone__u32 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 14 0   ; u32[]
@@ -1821,7 +1782,7 @@ fn 20 std_iter$clone__u32 (ref) -> ref
   return
 end
 
-fn 21 std_iter$clone__u8 (ref) -> ref
+fn 20 std_iter$clone__u8 (ref) -> ref
   local $arr_1 ref
   local $len_2 usize
   array.new 7 0   ; u8[]
@@ -1839,7 +1800,7 @@ fn 21 std_iter$clone__u8 (ref) -> ref
   return
 end
 
-fn 22 std_string_builder$append_char (ref,char) -> void
+fn 21 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 12 0   ; arg 0 std_string_builder$StringBuilder.parts
@@ -1854,7 +1815,7 @@ fn 22 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 23 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
+fn 22 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> string
   local n usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -1956,12 +1917,48 @@ fn 23 std_string_builder$StringBuilder$std_core_Display$to_string (ref) -> strin
   return
 end
 
-fn 24 std_numbers$hex_digit (u64) -> char
+fn 23 std_numbers$hex_digit (u64) -> char
   local $cast_4 u32
+  local or_res bool
   local.get 0   ; arg 0
   i64.const 9
   u64.le
   if $L0 void
+    local.get 0   ; arg 0
+    u64.to_i32
+    local.set 1   ; $cast_4
+    i32.const 48
+    local.get 1   ; $cast_4
+    u32.checked_add
+    local.tee 1   ; $cast_4
+    i32.const 55295
+    u32.gt
+    if $L1 void
+      local.get 1   ; $cast_4
+      i32.const 57344
+      u32.lt
+      if $L2 void
+        bool.const true
+        local.set 2   ; or_res
+      else
+        local.get 1   ; $cast_4
+        i32.const 1114111
+        u32.gt
+        local.set 2   ; or_res
+      end $L2
+      local.get 2   ; or_res
+      if $L3 void
+        unreachable
+      else
+        local.get 1   ; $cast_4
+        u32.to_char
+        return
+      end $L3
+    else
+      local.get 1   ; $cast_4
+      u32.to_char
+      return
+    end $L1
   else
     local.get 0   ; arg 0
     u64.to_i32
@@ -1971,15 +1968,34 @@ fn 24 std_numbers$hex_digit (u64) -> char
     u32.checked_add
     i32.const 10
     u32.checked_sub
-    u32.to_char
-    return
+    local.tee 1   ; $cast_4
+    i32.const 55295
+    u32.gt
+    if $L4 void
+      local.get 1   ; $cast_4
+      i32.const 57344
+      u32.lt
+      if $L5 void
+        bool.const true
+        local.set 2   ; or_res
+      else
+        local.get 1   ; $cast_4
+        i32.const 1114111
+        u32.gt
+        local.set 2   ; or_res
+      end $L5
+      local.get 2   ; or_res
+      if $L6 void
+        unreachable
+      else
+        local.get 1   ; $cast_4
+        u32.to_char
+        return
+      end $L6
+    else
+      local.get 1   ; $cast_4
+      u32.to_char
+      return
+    end $L4
   end $L0
-  local.get 0   ; arg 0
-  u64.to_i32
-  local.set 1   ; $cast_4
-  i32.const 48
-  local.get 1   ; $cast_4
-  u32.checked_add
-  u32.to_char
-  return
 end

@@ -554,7 +554,7 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
             "codepoint exceeds U+10FFFF")
         return 0
     }
-    if is_surrogate(char(cp)) {
+    if is_surrogate(cp) {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
             "codepoint is a surrogate, U+D800 to U+DFFF")
         return 0

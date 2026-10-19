@@ -1,6 +1,6 @@
-// Only an integer type or an enum without variant data has bounds : `in` with a
-// type tests an integer against them, and `@min` / `@max` read them. An enum with
-// variant data stores its variant's rank, not a value.
+// Only an integer type, `char` or an enum without variant data has bounds : `in`
+// with a type tests an integer against them, and `@min` / `@max` read them. An enum
+// with variant data stores its variant's rank, not a value.
 module "snippet"
 
 export Hour :: Int in 0..=23

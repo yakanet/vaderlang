@@ -541,7 +541,18 @@ counted_walk :: fn(
     counter_ref :: LoweredIdent { .span = span, .type = counter_type, .symbol = counter_symbol }
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, counter_ref, var_type, span)
     body :: prepend_stmts_to_block(bind_stmts, user_body)
-    return counted_loop(ctx, for_stmt, counter_symbol.name, counter_ref, lo, hi, true, body, [])
+    return counted_loop(
+        ctx,
+        for_stmt,
+        counter_symbol.name,
+        counter_ref,
+        lo,
+        hi,
+        true,
+        body,
+        [],
+        false,
+    )
 }
 
 // The loop counting `counter`, named `name`, from `lo` up to `hi`, `body` run each
@@ -559,6 +570,7 @@ counted_loop :: fn(
     inclusive: bool,
     body: LoweredBlock,
     prelude: LoweredStmt[],
+    hops: bool,
 ) -> LoweredStmt {
     span :: for_stmt.span
     counter_init :: LoweredLet {
@@ -573,14 +585,17 @@ counted_loop :: fn(
         .span = span,
         .label = resolve_loop_label(ctx, for_stmt),
         .cond = control.cond,
-        .body = body,
+        .body = hopping_body(body, counter, hi, inclusive, hops, span),
         .step = control.step,
-        .turns = LoopTurns {
+    }
+    // A hop over the surrogates leaves 2048 values uncounted.
+    if !hops {
+        loop_stmt.turns = LoopTurns {
             .counter = counter.symbol,
             .start = lo,
             .bound = hi,
             .inclusive = inclusive,
-        },
+        }
     }
     block_stmts: LoweredStmt[]: [counter_init]
     block_stmts.push_all(prelude)
@@ -676,6 +691,7 @@ try_lower_for_in_int_range :: fn(
         bind_to_local(ctx, hi_raw, bound_type, "for_hi", span, hoist_stmts)
     }
 
+    hops :: is_char(bound_type) && walk_may_cross_surrogates(range.lower, range.upper)
     return counted_loop(
         ctx,
         for_stmt,
@@ -686,7 +702,64 @@ try_lower_for_in_int_range :: fn(
         range.inclusive,
         user_body,
         hoist_stmts,
+        hops,
     )
+}
+
+// Whether a walk counting `char` values from `lower` to `upper`, as written, may
+// reach the surrogates, which no `char` holds : unless a bound written as a literal
+// keeps it on one side of them.
+walk_may_cross_surrogates :: fn(lower: AST.Expr | null, upper: AST.Expr | null) -> bool {
+    if lower is AST.CharLitExpr && i64(lower.value) >= CHAR_VALUES[1].lo { return false }
+    if upper is AST.CharLitExpr && i64(upper.value) <= CHAR_VALUES[0].hi { return false }
+    return true
+}
+
+// `body`, a walk's on the `char` counter `counter`, led by `hop_surrogates` when
+// `hops`, the walk able to reach the surrogates (`walk_may_cross_surrogates`).
+hopping_body :: fn(
+    body: LoweredBlock,
+    counter: LoweredIdent,
+    hi: LoweredExpr,
+    inclusive: bool,
+    hops: bool,
+    span: Span,
+) -> LoweredBlock {
+    if !hops {
+        return body
+    }
+    return prepend_stmts_to_block([hop_surrogates(counter, hi, inclusive, span)], body)
+}
+
+// At the top of a turn : a counter stepped past U+D7FF lies on U+D800, the first
+// surrogate, and moves on to U+E000 ; an exclusive walk that ends there stops. An
+// inclusive one goes on, its bound a `char` past the surrogates. The test reads the
+// counter as a `u32`, so that no constant holds a surrogate.
+hop_surrogates :: fn(
+    counter: LoweredIdent,
+    hi: LoweredExpr,
+    inclusive: bool,
+    span: Span,
+) -> LoweredStmt {
+    code :: mk_primitive("u32")
+    on_gap :: LoweredBinary {
+        .span = span,
+        .type = TY_BOOL,
+        .op = .Eq,
+        .left = LoweredCast { .span = span, .type = code, .value = counter },
+        .right = LoweredIntLit { .span = span, .type = code, .value = CHAR_VALUES[0].hi + 1 },
+    }
+    past_gap :: LoweredAssign {
+        .span = span,
+        .target = counter,
+        .value = LoweredIntLit { .span = span, .type = counter.type, .value = CHAR_VALUES[1].lo },
+    }
+    hop: LoweredStmt[]: [past_gap]
+    if !inclusive {
+        at_end :: compare_counter(counter, .Gte, hi, span)
+        hop.push(if_then(at_end, [LoweredBreak { .span = span, .label = null }], span))
+    }
+    return if_then(on_gap, hop, span)
 }
 
 extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {

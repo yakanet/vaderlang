@@ -1310,7 +1310,11 @@ numeric_result :: fn(
     // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType && right is FreeIntType     { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
-    if left is FreeCharType && right is FreeCharType   { return left }
+    // Arithmetic on a `char` literal computes on its code point : the outcome is
+    // an integer, a `char` only through `char(…)`, which checks it.
+    if left is FreeCharType | FreeIntType && right is FreeCharType | FreeIntType {
+        return TY_FREE_INT
+    }
     // FreeInt + concrete int → concrete. FreeInt + float (free or concrete)
     // is an error : free numeric only folds to a primitive of its own family.
     if left is FreeIntType {

@@ -1,0 +1,340 @@
+# Lower
+
+## snippet
+  storage
+    const FIRST: char  inline
+    const LAST: char  inline
+  snippet.FIRST: char: '\0'  // snippet$FIRST
+  snippet.LAST: char: '\u{10ffff}'  // snippet$LAST
+  snippet.describe :: fn(n: i64) -> string {  // snippet$describe
+      if ((n >= i64(0)) && (n <= i64(55295))) || ((n >= i64(57344)) && (n <= i64(1114111))) {
+          return {
+              __buf_0: Buffer = std.core.new_byte_buffer(usize(38))
+              __off_1: usize = 0
+              __off_1 = std.core.write_int(__buf_0, __off_1, n)
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, " is a scalar value")
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      }
+      return {
+          __buf_2: Buffer = std.core.new_byte_buffer(usize(39))
+          __off_3: usize = 0
+          __off_3 = std.core.write_int(__buf_2, __off_3, n)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " is no scalar value")
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string
+  }
+  snippet.from_byte :: fn(b: u8) -> char {  // snippet$from_byte
+      char(b)
+  }
+  snippet.from_unit :: fn(n: u32) -> char {  // snippet$from_unit
+      {
+          __in_range_0: u32 = n
+          if __in_range_0 > u32(55295) {
+              if (__in_range_0 < u32(57344)) || (__in_range_0 > u32(1114111)) {
+                  @unreachable("value out of range: no Unicode scalar value")
+              }
+          }
+          char(__in_range_0)
+      } :char
+  }
+  snippet.walk_codes :: fn(c: char) -> string {  // snippet$walk_codes
+      {
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(20))
+          __off_1: usize = 0
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32(c)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string
+  }
+  snippet.Boxed :: struct { code: u8 }  // snippet$Boxed
+  snippet.Boxed.into :: fn(self: Boxed) -> char {  // snippet$Boxed$std_core_Into$into
+      char(self.code)
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(usize(53))
+          __off_1: usize = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "first ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32('\0')))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, ", last ")
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32('\u{10ffff}')))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      {
+          __for_arr_2: i32[] = [-1, 0, 55295, 55296, 57343, 57344, 1114111, 1114112] :i32[]
+          __for_len_3: usize = @array.len(__for_arr_2)
+          __for_i_4: usize = 0
+          for __for_i_4 < __for_len_3 {
+              n: i32 = __for_arr_2[__for_i_4]
+              std.io.println<string>(snippet.describe(i64(n)))
+          } @step {
+              __for_i_4 = __for_i_4 +% usize(1)
+          }
+      }
+      std.io.println<string>(concat_3(std.core.char.to_string(snippet.from_byte(u8(72))), std.core.char.to_string(snippet.from_unit(u32(105))), std.core.char.to_string(snippet.from_unit(u32(128512)))))
+      code: Code = Code(u32(10084))
+      glyph: Glyph = Glyph({
+          __in_range_5: u32 = code + 0
+          if __in_range_5 > u32(55295) {
+              if (__in_range_5 < u32(57344)) || (__in_range_5 > u32(1114111)) {
+                  @unreachable("value out of range: no Unicode scalar value")
+              }
+          }
+          char(__in_range_5)
+      } :char)
+      boxed: Boxed = Boxed { .code = u8(33) }
+      std.io.println<string>({
+          __p_7: string = std.core.char.to_string({
+              __in_range_6: u32 = u32(code)
+              if __in_range_6 > u32(55295) {
+                  if (__in_range_6 < u32(57344)) || (__in_range_6 > u32(1114111)) {
+                      @unreachable("value out of range: no Unicode scalar value")
+                  }
+              }
+              char(__in_range_6)
+          } :char)
+          __p_8: string = std.core.char.to_string(char(glyph))
+          __p_9: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
+          __buf_10: Buffer = std.core.new_byte_buffer(usize(27) +% ((std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)) +% std.core.byte_len(__p_9)))
+          __off_11: usize = 0
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_7)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_8)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_9)
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " gap ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, i64('a' - 'A'))
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      crossing: string[] = [] :string[]
+      {
+          c: char = '\u{d7fe}'
+          for c <= '\u{e001}' {
+              if u32(c) == u32(55296) {
+                  c = 57344
+              }
+              @array.push(crossing, snippet.walk_codes(c))
+          } @step {
+              c = c + char(1)
+          }
+      }
+      std.io.println<string>(concat_2("in place: ", std.string.join(crossing, " ")))
+      stepped: string[] = [] :string[]
+      span: Range<char> = Range<char> {
+          .start = '\u{d7fe}',
+          .end = '\u{e001}',
+          .inclusive = false,
+          .done = false,
+          .cursor = '\u{d7fe}',
+      }
+      {
+          __iter_12: Range<char> = span
+          for {
+              __step_13: [char, Continuation] = std.core.Range<char>.next(__iter_12)
+              if __step_13._1 == u8(1) {
+                  break
+              } else {
+                  c: char = __step_13._0
+                  @array.push(stepped, snippet.walk_codes(c))
+              }
+          }
+      }
+      std.io.println<string>(concat_2("stepped: ", std.string.join(stepped, " ")))
+      fused: u32 = {
+          f: fn(char) -> u32 = __lambda_snippet_0
+          s: u32 = std_core$u32$Zero$zero()
+          {
+              x: char = '\u{d7fe}'
+              for x <= '\u{e001}' {
+                  if u32(x) == u32(55296) {
+                      x = 57344
+                  }
+                  x: u32 = __lambda_snippet_0(x)
+                  s = s + x
+              } @step {
+                  x = x + char(1)
+              }
+          }
+          s
+      }
+      std.io.println<string>({
+          __buf_15: Buffer = std.core.new_byte_buffer(usize(27))
+          __off_16: usize = 0
+          __off_16 = std.core.write_string_at(__buf_15, __off_16, "fused: ")
+          __off_16 = std.core.write_unsigned(__buf_15, __off_16, u64(fused))
+          std.core.finish_buffer(__buf_15, __off_16)
+      } :string)
+      upper: char = '\u{e001}'
+      stop: char = '\u{e000}'
+      hopped: string[] = [] :string[]
+      {
+          c: char = '\u{d7fe}'
+          for c <= upper {
+              if u32(c) == u32(55296) {
+                  c = 57344
+              }
+              @array.push(hopped, snippet.walk_codes(c))
+          } @step {
+              c = c + char(1)
+          }
+      }
+      {
+          c: char = '\u{d7fe}'
+          for c < stop {
+              if u32(c) == u32(55296) {
+                  c = 57344
+                  if c >= stop {
+                      break
+                  }
+              }
+              @array.push(hopped, snippet.walk_codes(c))
+          } @step {
+              c = c + char(1)
+          }
+      }
+      std.io.println<string>(concat_2("hopped: ", std.string.join(hopped, " ")))
+      letters: string[] = [] :string[]
+      {
+          c: char = 'a'
+          for c <= 'e' {
+              @array.push(letters, std.core.char.to_string(c))
+          } @step {
+              c = c + char(1)
+          }
+      }
+      std.io.println<string>(concat_2("letters: ", std.string.join(letters, "")))
+      std.io.println<string>(concat_2("pair: ", std.core.char.to_string(std.string.combine_surrogates(u32(55357), u32(56832)))))
+      return 0
+  }
+  __lambda_snippet_0 :: fn(c: char) -> u32 {
+      u32(c)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      c2: usize = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.usize.new_buffer(c2)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: usize = std.core.byte_len(p0)
+      c1: usize = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.usize.new_buffer(c1)
+      std.core.Buffer.write_string(buf, usize(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Into.into for Boxed  snippet.Boxed.into  // snippet$Boxed$std_core_Into$into
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    fn std_collections$__gen_state_std_collections_1$Iterator$next
+    fn std_collections$__gen_state_std_collections_2$Iterator$next
+    fn std_collections$__gen_state_std_collections_3$Iterator$next
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std_collections$__gen_state_std_collections_0
+    struct std_collections$__gen_state_std_collections_1
+    struct std_collections$__gen_state_std_collections_2
+    struct std_collections$__gen_state_std_collections_3
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<usize>.contains  // std_core$Range$Contains$contains__usize
+    fn std.core.Range<usize>.next  // std_core$Range$Iterator$next__usize
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
+    fn std.core.char.to_string  // std_core$char$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.new_byte_buffer  // std_core$new_byte_buffer
+    fn std.core.next_scalar  // std_core$next_scalar
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.usize.compare  // std_core$usize$Comparable$compare
+    fn std.core.usize.new_buffer  // std_core$usize$BufferAlloc$new_buffer
+    fn std.core.usize.step  // std_core$usize$Step$step
+    fn std.core.utf8_encode  // std_core$utf8_encode
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    fn std_core$u32$Zero$zero
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<usize>  // std_core$Range__usize
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  std/string
+    fn std.string.combine_surrogates  // std_string$combine_surrogates
+    fn std.string.join  // std_string$join
+  std/string_builder
+    fn std.string_builder.StringBuilder.to_string  // std_string_builder$StringBuilder$std_core_Display$to_string
+    fn std.string_builder.append  // std_string_builder$append
+    struct std.string_builder.StringBuilder  // std_string_builder$StringBuilder
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo
