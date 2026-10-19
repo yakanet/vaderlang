@@ -8,15 +8,15 @@
 /* User @extern foreign symbols — resolved by the linker. */
 extern const char* vader_find_data_name(const void*);
 
-static inline size_t vader_host_std_core_byte_len(vader_string_t a0) {
+static inline int64_t vader_host_std_core_byte_len(vader_string_t a0) {
     return vader_string_byte_len(a0);
 }
 
-static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, size_t a1) {
+static inline uint8_t vader_host_std_core_byte_at(vader_string_t a0, int64_t a1) {
     return vader_string_byte_at(a0, a1);
 }
 
-static inline vader_string_t vader_host_std_core_byte_slice(vader_string_t a0, size_t a1, size_t a2) {
+static inline vader_string_t vader_host_std_core_byte_slice(vader_string_t a0, int64_t a1, int64_t a2) {
     return vader_string_byte_slice(a0, a1, a2);
 }
 
@@ -29,7 +29,7 @@ static inline vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
 }
 
 static inline void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 18u, 288u);
+    return (void*) vader_string_bytes_view(a0, 17u, 291u);
 }
 
 static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
@@ -39,7 +39,7 @@ static inline uint64_t vader_host_std_core_string_Hash_hash(vader_string_t a0) {
 static inline vader_box_t vader_host_std_env_get_env(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     const char* r = getenv(c0);
-    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(282u, (int64_t) vader_atom_intern(r, strlen(r)));
+    vader_box_t out = r == NULL ? vader_box_null() : vader_box_i64(285u, (int64_t) vader_atom_intern(r, strlen(r)));
     vader_cstr_free_for(a0, c0);
     return out;
 }
@@ -152,20 +152,20 @@ static inline void vader_host_std_abort_panic(vader_string_t a0) {
     vader_panic(a0);
 }
 
-static inline size_t vader_host_vader_vm_ffi_open(vader_string_t a0) {
+static inline int64_t vader_host_vader_vm_ffi_open(vader_string_t a0) {
     const char* c0 = vader_string_to_cstr(a0);
     void* r = vader_ffi_open(c0);
     vader_cstr_free_for(a0, c0);
     return (size_t) (uintptr_t) r;
 }
 
-static inline size_t vader_host_vader_vm_ffi_symbol(size_t a0, vader_string_t a1) {
+static inline int64_t vader_host_vader_vm_ffi_symbol(int64_t a0, vader_string_t a1) {
     const char* c1 = vader_string_to_cstr(a1);
     void* r = vader_ffi_symbol((void*) (uintptr_t) a0, c1);
     vader_cstr_free_for(a1, c1);
     return (size_t) (uintptr_t) r;
 }
 
-static inline vader_string_t vader_host_vader_vm_ffi_call(size_t a0, void* a1, void* a2, int64_t a3) {
+static inline vader_string_t vader_host_vader_vm_ffi_call(int64_t a0, void* a1, void* a2, int64_t a3) {
     return vader_ffi_call_n((void*) (uintptr_t) a0, (vader_array_t*) a1, (vader_array_t*) a2, a3);
 }
