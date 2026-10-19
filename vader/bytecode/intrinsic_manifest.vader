@@ -54,8 +54,8 @@ is_int_equals :: fn(mangled: string) -> bool {
     return kind != null && is_int_name(kind)
 }
 
-/// True iff `mangled` is a primitive `<T>$Display$to_string` host — one of the
-/// ten integer widths, plus `f32` / `f64` / `bool` / `char` / `string`.
+/// True iff `mangled` is a primitive `<T>$Display$to_string` host : one of the
+/// eight integer widths, plus `f32` / `f64` / `bool` / `char` / `string`.
 ///
 /// @param mangled  the host import's mangled name.
 export is_display_to_string :: fn(mangled: string) -> bool {
@@ -63,14 +63,14 @@ export is_display_to_string :: fn(mangled: string) -> bool {
     return kind != null && is_scalar_type_name(kind) && kind != "void" && kind != "null"
 }
 
-/// Subset of `is_display_to_string` covering the unsigned widths that overflow
-/// the signed `i64` carrier (`u32` / `u64`) — these need the unsigned
-/// reinterpret path. `u8` / `u16` fit the signed carrier losslessly.
+/// Subset of `is_display_to_string` covering the unsigned integers : the VM
+/// carries them in a signed value, which a `u32` or a `u64` past the signed range
+/// leaves negative, so they take the unsigned reinterpret path.
 ///
 /// @param mangled  the host import's mangled name.
 export is_unsigned_display :: fn(mangled: string) -> bool {
-    kind :: strip_core_member(mangled, DISPLAY_SUFFIX)
-    return kind != null && (kind == "u32" || kind == "u64")
+    kind :: strip_core_member(mangled, DISPLAY_SUFFIX) ?? return false
+    return is_unsigned_int_name(kind)
 }
 
 // Return the `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when
@@ -266,6 +266,7 @@ import "vader/lower"
     assert_eq(is_display_to_string(r"std_core$char$Equals$equals"), false)
     assert_eq(is_unsigned_display(r"std_core$u64$Display$to_string"), true)
     assert_eq(is_unsigned_display(r"std_core$i64$Display$to_string"), false)
+    assert_eq(is_unsigned_display(r"std_core$u8$Display$to_string"), true)
 }
 
 @test test_intrinsic_may_collect :: fn() -> void {

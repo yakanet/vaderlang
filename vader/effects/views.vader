@@ -59,28 +59,28 @@ reaches_view :: fn(paths: PathTable, a: Access) -> bool = !paths.first_step_is(a
 // narrowing to a type no byte array is.
 reaches :: fn(paths: PathTable, h: Root) -> bool = !paths.first_step_is(h.path, NARROWED)
 
-// Whether a value of type `t` may be a byte array, as a view is.
-may_hold_bytes :: fn(t: Type | null) -> bool = match t {
-    is ArrayType    -> may_be_byte(t.element)
-    is UnionType    -> t.variants.any_match(may_hold_bytes)
-    is DistinctType -> may_hold_bytes(t.backing)
+// Whether a value of type `t` may be a view, of the array type `view`
+// (`CalleeIndex.view`).
+may_hold_view :: fn(t: Type | null, view: ArrayType) -> bool = match t {
+    is ArrayType    -> may_be_element(t.element, view.element)
+    is UnionType    -> t.variants.any_match((v) -> may_hold_view(v, view))
+    is DistinctType -> may_hold_view(t.backing, view)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
     is InferVar -> leaked_infer_var(t)
     is StructType | TupleType | PrimitiveType | EnumType | RangeType | FnType | TypeMetaType
      | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 
-// Whether a value of type `t` may be a byte, the element of a view.
-may_be_byte :: fn(t: Type) -> bool = match t {
-    // A range of other bounds than `u8`'s takes no byte by inclusion : no
-    // container converts.
-    is RangeType     -> primitive_name(t) == "u8"
-    is UnionType     -> t.variants.any_match(may_be_byte)
-    is DistinctType  -> may_be_byte(t.backing)
+// Whether a value of type `t` may be `element`, the element of a view. A range of
+// other bounds takes no element by inclusion : no container converts.
+may_be_element :: fn(t: Type, element: Type) -> bool = match t {
+    is UnionType     -> t.variants.any_match((v) -> may_be_element(v, element))
+    is DistinctType  -> may_be_element(t.backing, element)
     is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType -> true
     is InferVar -> leaked_infer_var(t)
-    is PrimitiveType | StructType | TupleType | ArrayType | EnumType | FnType | TypeMetaType
-     | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
+    is RangeType | PrimitiveType | StructType | TupleType | ArrayType | EnumType
+     | FnType -> equals_type(t, element)
+    is TypeMetaType | FreeIntType | FreeFloatType | FreeCharType | NeverType -> false
 }
 
 // Whether `r` is a use of a view.

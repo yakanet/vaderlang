@@ -116,18 +116,18 @@ escaped :: fn(code: u32) -> string {
     return "\\u{${to_hex(u64(code))}}"
 }
 
-/// Print `value` as a decimal string ; for `u32` / `u64` types reinterpret the
-/// i64 storage as the matching unsigned width so the snapshot keeps
-/// `18446744073700000000` rather than the sign-flipped `-9551616`.
+/// Print `value` as a decimal string ; for a value held in an unsigned integer,
+/// read a negative `i64` carrier as the unsigned value of that width, so the
+/// snapshot keeps `18446744073700000000` rather than the sign-flipped `-9551616`.
 format_int_value :: fn(value: i64, t: Type) -> string {
-    if value < 0 {
-        name :: primitive_name(t)
-        if name == "u64" {
-            return "${u64(value)}"
-        }
-        if name == "u32" {
-            return "${u32(value)}"
-        }
+    if value >= 0 {
+        return "${value}"
     }
-    return "${value}"
+    held :: integer_representation(strip_distinct(t))
+    if held == null || held.is_signed {
+        return "${value}"
+    }
+    // The carrier's low bits, as many as the integer has.
+    mask :: @max(u64) >> u64(64 - held.bits)
+    return "${u64(value) & mask}"
 }

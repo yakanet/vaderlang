@@ -302,13 +302,14 @@ escape :: fn(ctx: WalkCtx, value: i64 | null, effect: Effect, at: Span) -> void 
     ctx.mark(value, ROOT, effect, at)
 
 // What `value`, of type `from`, holds as a value of type `to`: one `NARROWED` step
-// down when an `is` test narrows a type that may be a byte array to one that is
-// none, so that what is done below is not taken for what a view the value may
-// otherwise be undergoes (`views.vader`).
+// down when an `is` test narrows a type that may be a view to one that is none, so
+// that what is done below is not taken for what a view the value may otherwise be
+// undergoes (`views.vader`).
 narrowed :: fn(
     ctx: WalkCtx, value: i64 | null, from: Type | null, to: Type | null,
 ) -> i64 | null {
-    if !may_hold_bytes(from) || may_hold_bytes(to) {
+    view :: ctx.index.view ?? return value
+    if !may_hold_view(from, view) || may_hold_view(to, view) {
         return value
     }
     return ctx.step_slot(value, NARROWED)

@@ -182,11 +182,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     // doesn't matter at runtime (every integer collapses to `I32Val`),
     // so a single arm covers all the per-width manglings.
     .PrimDisplayToString -> {
-        // `u32` / `u64` literals exceeding `i64.MAX` ride the
-        // same `I64Val` carrier as signed `i64`. Default `display_value`
-        // renders that bit pattern as signed i64 (e.g. `-9551616` instead
-        // of `18446744073700000000`). The lower pass routes wide
-        // unsigned interpolations through this dispatch — recover the
+        // An unsigned integer rides a signed carrier : a `u32` past
+        // `i32.MAX` in an `I32Val`, a `u64` past `i64.MAX` in an `I64Val`.
+        // Default `display_value` renders that bit pattern as signed (e.g.
+        // `-9551616` instead of `18446744073700000000`). The lower pass routes
+        // unsigned interpolations through this dispatch, which recovers the
         // unsigned form by reinterpreting the bit pattern.
         if bc.is_unsigned_display(info.mangled_name) {
             v :: stack[arg_base]

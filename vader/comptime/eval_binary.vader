@@ -166,10 +166,13 @@ result_type_name :: fn(iv: IntValue, rname: string) -> string {
     return iv.type_name
 }
 
-// Wrap an i64 to the given primitive width, keeping the value in that type's
-// range so a comparison, a division or a shift folds as it runs. A `u64` above
-// `i64` cannot be held this way and stays as its bits.
-wrap_to_width :: fn(v: i64, type_name: string) -> i64 {
+/// `v` wrapped to the integer type `type_name`, kept in that type's range so a
+/// comparison, a division or a shift folds as it runs. A `u64` above `i64` cannot
+/// be held this way and stays as its bits.
+///
+/// @param v          the value, an `i64` carrying the integer.
+/// @param type_name  a machine integer's name ; any other leaves `v` as it is.
+export wrap_to_width :: fn(v: i64, type_name: string) -> i64 {
     m :: machine_integer_named(type_name) ?? return v
     if m.bits == 64 {
         return v

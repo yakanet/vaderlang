@@ -11,7 +11,7 @@
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, Counter(18446744073709551615))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Straddle(-9223372036854775806))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Straddle(9223372036854775810))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, Signed(9223372036854775807))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -36,7 +36,7 @@
               std.core.finish_buffer(__buf_4, __off_5)
           } :string)
       }
-      near: Straddle = -9223372036854775807
+      near: Straddle = 9223372036854775809
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(62))
           __off_7: i64 = 0
@@ -47,7 +47,7 @@
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, near % u64(10))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      edge: Straddle = -9223372036854775806
+      edge: Straddle = 9223372036854775810
       if near < edge {
           below_edge: BelowEdge = near
           std.io.println<string>({

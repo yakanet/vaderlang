@@ -734,14 +734,15 @@ hopping_body :: fn(
 // At the top of a turn : a counter stepped past U+D7FF lies on U+D800, the first
 // surrogate, and moves on to U+E000 ; an exclusive walk that ends there stops. An
 // inclusive one goes on, its bound a `char` past the surrogates. The test reads the
-// counter as a `u32`, so that no constant holds a surrogate.
+// counter as the integer holding every code point, so that no constant holds a
+// surrogate.
 hop_surrogates :: fn(
     counter: LoweredIdent,
     hi: LoweredExpr,
     inclusive: bool,
     span: Span,
 ) -> LoweredStmt {
-    code :: mk_primitive("u32")
+    code :: narrowest_integer(interval_join(CHAR_VALUES[0], CHAR_VALUES[1]))
     on_gap :: LoweredBinary {
         .span = span,
         .type = TY_BOOL,

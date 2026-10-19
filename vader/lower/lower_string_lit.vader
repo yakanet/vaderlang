@@ -173,14 +173,21 @@ synth_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
 resolve_writer_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
     lookup_core_symbol(ctx, name)
 
-// The `Buffer` type, read from `write_string_at`'s `self` param. Shared by
-// `lower_interp_buffer` and `synthesize_concat_fn` (both size + write a buffer
-// via the std/core writer API). `null` when the fn type can't be resolved.
-resolve_buffer_type :: fn(ctx: FnLowerCtx, wstr_sym: Symbol) -> Type | null {
-    ft :: lookup_fn_type_anywhere(ctx, wstr_sym)
-    if ft is FnType { return if ft.params.len() == 0 { null } else { ft.params[0] } }
-    return null
+// The type of the parameter at `position` of the std/core writer API fn `writer` :
+// the `Buffer` its `self` is (0), the value it writes (`write_int(self, off, n)`,
+// 2). Shared by `lower_interp_buffer` and `synthesize_concat_fn` (both size +
+// write a buffer). `null` when the fn type can't be resolved.
+writer_param :: fn(ctx: FnLowerCtx, writer: Symbol, position: i64) -> Type | null {
+    ft :: lookup_fn_type_anywhere(ctx, writer)
+    if ft !is FnType || position >= ft.params.len() {
+        return null
+    }
+    return ft.params[position]
 }
+
+// The longest decimal text of an integer of 64 bits or fewer : `i64.min` with its
+// sign, `u64.max`. A writer writes past its buffer when it is short.
+INTEGER_TEXT_BYTES: i64: 20
 
 // How a `${value}` part writes into the buffer. `Str` also covers verbatim text.
 // How a part contributes : `Text` = verbatim literal, `Str` = a runtime string,
@@ -258,8 +265,11 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     wint_sym :: resolve_writer_fn(ctx, "write_int") ?? return unreachable_buffer("write_int")
     wuint_sym :: resolve_writer_fn(ctx, "write_unsigned") ?? return unreachable_buffer("write_unsigned")
     wbool_sym :: resolve_writer_fn(ctx, "write_bool") ?? return unreachable_buffer("write_bool")
-    // Buffer type from `write_string_at`'s self param.
-    buffer_type :: resolve_buffer_type(ctx, wstr_sym) ?? return unreachable_buffer("Buffer")
+    // Buffer type from `write_string_at`'s self param, and the integers the two
+    // integer writers take.
+    buffer_type :: writer_param(ctx, wstr_sym, 0) ?? return unreachable_buffer("Buffer")
+    int_type :: writer_param(ctx, wint_sym, 2) ?? return unreachable_buffer("write_int")
+    uint_type :: writer_param(ctx, wuint_sym, 2) ?? return unreachable_buffer("write_unsigned")
     register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)
@@ -280,12 +290,12 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
         v :: values[i]
         k :: kinds[i]
         if k == .Signed {
-            const_bytes = const_bytes + 20
-            write_values.push(cast_to_width(v, "i64", span))
+            const_bytes = const_bytes + INTEGER_TEXT_BYTES
+            write_values.push(held_as(v, int_type, span))
             write_kinds.push(.Signed)
         } else if k == .Unsigned {
-            const_bytes = const_bytes + 20
-            write_values.push(cast_to_width(v, "u64", span))
+            const_bytes = const_bytes + INTEGER_TEXT_BYTES
+            write_values.push(held_as(v, uint_type, span))
             write_kinds.push(.Unsigned)
         } else if k == .Bool {
             const_bytes = const_bytes + 5

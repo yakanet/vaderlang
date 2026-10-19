@@ -52,19 +52,13 @@ export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.Comp
     is Vm.ObjVal    -> unsupported(span, "heap object (set / map)")
 }
 
-// Build an `IntValue`, zero-extending unsigned ≤32-bit widths. The VM carries
-// `u32` as a signed `I32Val` bit pattern, so a high-bit-set `u32` (e.g. MD5_K's
-// `0xd76aa478`) arrives as a negative `i64` — reinterpret it as unsigned so the
-// baked literal and the dump show the true magnitude (mirrors the VM's own
-// `convert_value` u-prefix normalisation, `vm/value.vader`).
-int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue {
-    value :: if type_name == "u8" || type_name == "u16" || type_name == "u32" {
-        i64(u32(raw))
-    } else {
-        raw
-    }
-    return Ct.int_val_typed(value, type_name)
-}
+// Build an `IntValue` of the integer type `type_name`, wrapped to its width : the
+// VM carries a `u32` as a signed `I32Val` bit pattern, so a high-bit-set `u32`
+// (e.g. MD5_K's `0xd76aa478`) arrives as a negative `i64`, and is read back as the
+// 32 bits it is, so the baked literal and the dump show the true magnitude
+// (mirrors the VM's own `convert_value` u-prefix normalisation, `vm/value.vader`).
+int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue =
+    Ct.int_val_typed(Ct.wrap_to_width(raw, type_name), type_name)
 
 // Primitive name of `ty` (resolving a distinct type to its backing), or
 // `fallback` when `ty` isn't a primitive — the scalar arms then keep the VM

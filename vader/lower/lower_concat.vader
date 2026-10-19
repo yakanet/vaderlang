@@ -78,7 +78,7 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     // `finish_buffer` is resolved for its SIGNATURE only — its first parameter is
     // where the `Buffer` type comes from. The call goes to the impl member below.
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer") ?? return null
-    buffer_type :: resolve_buffer_type(ctx, finish_sym) ?? return null
+    buffer_type :: writer_param(ctx, finish_sym, 0) ?? return null
     // The two other `Buffer` operations are the impl members, not the
     // expression-bodied free wrappers around them (`finish_buffer`). Each wrapper is
     // a one-line forward, but a Vader fn is a GC shadow-stack frame: it builds a

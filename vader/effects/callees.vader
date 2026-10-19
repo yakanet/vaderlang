@@ -30,6 +30,9 @@ export CalleeIndex :: struct {
     /// The declarations of the intrinsics that hand back a frozen view
     /// (`makes_frozen_view`).
     frozen_views: MutableSet<i64> = MutableSet<i64> {}
+    /// The array type of a view, as such an intrinsic declares its result
+    /// (`u8[]`) ; null when the project has none.
+    view: ArrayType | null = null
     /// The nodes that return a view, found once the facts are settled
     /// (`spread_views`).
     view_nodes: MutableSet<i32> = MutableSet<i32> {}
@@ -145,6 +148,7 @@ bodyless_target :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram)
     key :: index.intrinsic_key(decl, typed)
     if makes_frozen_view(key) {
         index.frozen_views.add(decl.id)
+        index.view = returned_array(declared_type_at(typed, decl.name_span))
     }
     known :: intrinsic_effects(index.paths, key)
     if known != null {
@@ -155,6 +159,14 @@ bodyless_target :: fn(index: CalleeIndex, decl: AST.FnDecl, typed: TypedProgram)
     }
     index.unknown.push(key)
     return AnyCallee {}
+}
+
+// The array a function of type `declared` returns ; null for any other result.
+returned_array :: fn(declared: Type | null) -> ArrayType | null {
+    if declared is FnType {
+        return array_backing(declared.return_type)
+    }
+    return null
 }
 
 // C reads a parameter of an `@extern`, and writes one marked `@c_out`.
