@@ -498,20 +498,42 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     return emit_value_cast(ctx, call, type)
 }
 
-// Whether `call` converts an integer into `char` or a distinct over it, a distinct
-// over an integer and a free integer included.
+// Whether `call` converts an integer into `target`, `char` : a free integer and a
+// distinct over an integer count as integers.
 converts_integer_into_char :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) -> bool {
-    if !is_char(strip_distinct(target)) {
+    if !is_char(target) {
         return false
     }
     source :: strip_distinct(ctx.types.raw_expr_type(call.args[0].value))
     return source is FreeIntType || instance_range(ctx, source) != null
 }
 
-/// Emit the lowered form of a single-arg cast/wrap `T(value)` to `type`. Shared
-/// by the direct-ident path (`try_lower_cast_call`) and the namespace path
-/// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
-/// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
+// The conversion `call` into `target`, checked against the values `target` holds :
+// a range, an enum without variant data, `char` from an integer. Null for any other
+// conversion, which checks nothing.
+checked_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) -> LoweredExpr | null {
+    if is_refinement(target) || target is TypeParamType {
+        target_range :: instance_range(ctx, target) ?? return null
+        return lower_range_conversion(ctx, call, target_range)
+    }
+    if target is EnumType && target.data == null {
+        return lower_enum_conversion(ctx, call, target)
+    }
+    if converts_integer_into_char(ctx, call, target) {
+        return lower_char_conversion(ctx, call)
+    }
+    return null
+}
+
+// `value`, converted into the type `target` is over, as a value of `target` : a
+// distinct takes its own name.
+named_as :: fn(value: LoweredExpr, target: Type, span: Span) -> LoweredExpr {
+    if target is DistinctType {
+        return LoweredCast { .span = span, .type = target, .value = value }
+    }
+    return value
+}
+
 // `arg`, the lowered argument of a conversion to the integer `type`, without the
 // conversion a read of a narrowed name or field adds (`stored_read_type`) : the
 // typecheck proved the stored value holds in the narrower integer, so converting
@@ -530,19 +552,16 @@ without_narrowed_read :: fn(source: Expr, arg: LoweredExpr, type: Type) -> Lower
     return arg.value
 }
 
+/// Emit the lowered form of a single-arg cast/wrap `T(value)` to `type`. Shared
+/// by the direct-ident path (`try_lower_cast_call`) and the namespace path
+/// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
+/// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     target :: ctx.types.raw_expr_type(call)
-    if is_refinement(target) || target is TypeParamType {
-        target_range :: instance_range(ctx, target)
-        if target_range != null {
-            return lower_range_conversion(ctx, call, target_range)
-        }
-    }
-    if target is EnumType && target.data == null {
-        return lower_enum_conversion(ctx, call, target)
-    }
-    if converts_integer_into_char(ctx, call, target) {
-        return lower_char_conversion(ctx, call, target)
+    // A distinct converts as the type it is over does, then takes its own name.
+    checked :: checked_conversion(ctx, call, strip_distinct(target))
+    if checked != null {
+        return named_as(checked, target, call.span)
     }
     // The cast itself calls nothing ; an `into` it runs is its value's site.
     observe_no_call(ctx, call, .Call, "cast")

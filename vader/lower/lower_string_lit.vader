@@ -368,7 +368,7 @@ integer_writer :: fn(integer: MachineInteger) -> WriterKind {
 
 // Cast `inner` to the primitive `width` ; identity when it is already held in it.
 cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
-    held :: integer_representation(inner.type)
+    held :: held_integer(inner.type)
     if held != null && held.name == width {
         return inner
     }

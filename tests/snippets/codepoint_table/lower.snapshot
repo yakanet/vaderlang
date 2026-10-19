@@ -74,7 +74,7 @@
       std.io.println<string>(concat_3(std.core.char.to_string(snippet.from_byte(u8(72))), std.core.char.to_string(snippet.from_unit(u32(105))), std.core.char.to_string(snippet.from_unit(u32(128512)))))
       code: Code = Code(u32(10084))
       glyph: Glyph = Glyph({
-          __in_range_5: u32 = code + 0
+          __in_range_5: u32 = code + u32(0)
           if __in_range_5 > u32(55295) {
               if (__in_range_5 < u32(57344)) || (__in_range_5 > u32(1114111)) {
                   @unreachable("value out of range: no Unicode scalar value")
@@ -85,7 +85,7 @@
       boxed: Boxed = Boxed { .code = u8(33) }
       std.io.println<string>({
           __p_7: string = std.core.char.to_string({
-              __in_range_6: u32 = u32(code)
+              __in_range_6: u32 = code
               if __in_range_6 > u32(55295) {
                   if (__in_range_6 < u32(57344)) || (__in_range_6 > u32(1114111)) {
                       @unreachable("value out of range: no Unicode scalar value")

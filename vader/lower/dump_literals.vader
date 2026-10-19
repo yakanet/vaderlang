@@ -123,7 +123,7 @@ format_int_value :: fn(value: i64, t: Type) -> string {
     if value >= 0 {
         return "${value}"
     }
-    held :: integer_representation(strip_distinct(t))
+    held :: held_integer(t)
     if held == null || held.is_signed {
         return "${value}"
     }

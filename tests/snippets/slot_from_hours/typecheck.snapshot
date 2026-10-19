@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/slot_from_hours
+  ConstDecl      Hour                 :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Slot                 :: type
+  FnDecl         slot_of              :: fn(i32) -> Slot
+  expr 10:33    CallExpr       :: Slot
+  expr 10:33    IdentExpr      :: type
+  expr 10:38    IdentExpr      :: i32
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    CallExpr       :: i32
+  expr 13:16    IdentExpr      :: type
+  expr 13:20    CallExpr       :: Slot
+  expr 13:20    IdentExpr      :: fn(i32) -> Slot
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    CallExpr       :: i32
+  expr 14:16    IdentExpr      :: type
+  expr 14:20    CallExpr       :: Slot
+  expr 14:20    IdentExpr      :: fn(i32) -> Slot
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void

@@ -2,6 +2,11 @@
 // range indexes an array, a distinct over a range compares with any integer
 // holding it or held by it, an overload takes the parameter of fewest values
 // holding the argument, and a `char` literal enters a range holding its code point.
+// A range over two `Hour` walks `Hour` values, an `if` joins a literal beside a
+// range by its value, nested or not, and arithmetic on a distinct over a range is
+// computed wide enough for its result. A distinct over a range converts back into
+// it, and what a generic fn's own `T` hands back is a value of the range, with
+// nothing to check.
 
 module "snippet"
 
@@ -10,9 +15,36 @@ import "std/io"
 Hour :: Int in 0..=23
 Slot :: Hour
 Id :: u8
+Wide :: Int in 0..=200
+Dose :: Wide
 
 pick :: fn(x: Hour) -> string = "hour"
 pick :: fn(x: u8) -> string = "byte"
+
+walk :: fn(lo: Hour, hi: Hour) -> i32 {
+    total := 0
+    for x in lo..=hi {
+        at: Hour: x
+        total += i32(at)
+    }
+    return total
+}
+
+later :: fn(c: bool, d: bool, h: Hour) -> i32 {
+    x :: if c { h } else { 30 }
+    y :: if c { h } else if d { 30 } else { 40 }
+    near: 0..=30: x
+    far: 0..=40: y
+    return i32(near) + i32(far)
+}
+
+total :: fn(a: Dose, b: Dose) -> i32 = i32(a + b)
+
+unwrap :: fn(s: Slot) -> Hour = Hour(s)
+
+same :: fn<T>(x: T) -> T = x
+
+kept :: fn<T>(x: T) -> T = same(x)
 
 main :: fn() -> i32 {
     names :: ["midnight", "one", "two", "three"]
@@ -35,5 +67,7 @@ main :: fn() -> i32 {
     println("${pick(tiny)} ${pick(b)}")
     digit: 48..=57: '5'
     println("${digit}")
+    println("${walk(21, 23)} ${later(false, false, 5)} ${total(Dose(150), Dose(150))}")
+    println("${unwrap(Slot(7))} ${kept(h)}")
     return 0
 }

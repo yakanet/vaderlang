@@ -114,9 +114,16 @@ export integer_representation :: fn(t: Type) -> MachineInteger | null {
 ///
 /// @param t  any type.
 export held_values :: fn(t: Type) -> Interval | null {
-    held :: integer_representation(strip_distinct(t)) ?? return null
+    held :: held_integer(t) ?? return null
     return held.values
 }
+
+/// The machine integer a value of `t` is held in, through any distinct ; null for a
+/// type that is no integer.
+///
+/// @param t  any type.
+export held_integer :: fn(t: Type) -> MachineInteger | null =
+    integer_representation(strip_distinct(t))
 
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
@@ -145,6 +152,11 @@ export primitive_name :: fn(t: Type | null) -> string {
 ///
 /// @param r  a range.
 export is_machine_range :: fn(r: RangeType) -> bool = machine_integer_name(r.bounds) != ""
+
+/// Whether `t` is one of the eight machine integers, a range of exactly its bounds.
+///
+/// @param t  any type.
+export is_machine_integer :: fn(t: Type) -> bool = t is RangeType && is_machine_range(t)
 
 /// `t` when it is a range of no machine integer's bounds (`Hour`, `1..=24`) : one
 /// whose arithmetic is exact, computed over the integers ; null for any other type.
@@ -1152,7 +1164,7 @@ export kept_type_argument :: fn(t: Type) -> Type | null {
     if backing is PrimitiveType {
         return backing
     }
-    if backing is RangeType && is_machine_range(backing) {
+    if is_machine_integer(backing) {
         return range_representation(backing)
     }
     if backing is EnumType && backing.data != null {

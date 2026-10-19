@@ -250,9 +250,49 @@ free_range :: fn(e: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic
     if e is AST.UnaryExpr && e.op == .Neg {
         return recorded(e, negated(free_range(e.operand, free, typed, diags)), typed)
     }
+    // A block gives its last expression ; an `if` or a `match` what its branches
+    // give, joined as two branches are (`union_of_paths`).
+    if e is AST.BlockExpr && e.trailing != null {
+        return recorded(e, free_range(e.trailing, free, typed, diags), typed)
+    }
+    if e is AST.IfExpr | AST.MatchExpr {
+        reached: Type[]: []
+        for branch in branch_values(e) {
+            reached.push(branch_range(branch, free, typed, diags))
+        }
+        return recorded(e, union_of_paths(reached), typed)
+    }
     width :: default_if_free(free)
     settle_free_value(e, width, typed, diags)
     return width
+}
+
+// The expression each branch of `e` gives : an `if`'s two, a `match`'s arms.
+branch_values :: fn(e: AST.IfExpr | AST.MatchExpr) -> AST.Expr[] {
+    values: AST.Expr[]: []
+    if e is AST.MatchExpr {
+        for arm in e.arms {
+            values.push(arm.body)
+        }
+        return values
+    }
+    values.push(e.then_block)
+    match e.else_branch as eb {
+        is AST.IfElseBlock -> { values.push(eb.block) }
+        is AST.IfElseIf    -> { values.push(eb.branch) }
+        is null            -> {}
+    }
+    return values
+}
+
+// What the branch giving `value`, of the free kind `free`, gives : a free value the
+// range of its own (`free_range`), a diverging one its `never`.
+branch_range :: fn(value: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    reached :: typed.expr_types[value.id] ?? return free_range(value, free, typed, diags)
+    if is_free_numeric(reached) {
+        return free_range(value, reached, typed, diags)
+    }
+    return reached
 }
 
 // `t`, recorded as `e`'s type.

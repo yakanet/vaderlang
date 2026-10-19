@@ -71,34 +71,45 @@ is_pinned_element :: fn(t: Type) -> bool =
 
 infer_range_from_bounds :: fn(e: AST.RangeExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     lower :: check_expr(e.lower, null, typed, diags)
-    element: Type = pick_bound_or_default(lower)
-    if lower is FreeIntType {
-        upper :: check_expr(e.upper, null, typed, diags)
-        element = pick_bound_or_default(upper)
-        // Retype the still-free side to `element` so downstream
-        // consumers (slice lowering, dump) see the same width ; through
-        // `settle_free_value`, which checks that a literal fits it.
-        target :: if upper is FreeIntType { e.upper } else { e.lower }
-        settle_free_value(target, element, typed, diags)
-    } else {
+    if lower !is RangeType | FreeIntType {
+        element :: pick_bound_or_default(lower)
         check_expr(e.upper, element, typed, diags)
+        return range_of(element, typed)
     }
+    upper :: check_expr(e.upper, null, typed, diags)
+    if lower is RangeType || upper is RangeType {
+        return range_of(joined_bounds(e, lower, upper, typed, diags), typed)
+    }
+    element :: pick_bound_or_default(upper)
+    // Retype the still-free side to `element` so downstream
+    // consumers (slice lowering, dump) see the same width ; through
+    // `settle_free_value`, which checks that a literal fits it.
+    target :: if upper is FreeIntType { e.upper } else { e.lower }
+    settle_free_value(target, element, typed, diags)
     return range_of(element, typed)
 }
 
-pick_bound_or_default :: fn(t: Type) -> Type {
-    // @partial: a bound of its own type is an integer type or `char` ; a free
-    // literal takes its default, and every other type kind defaults to i32.
-    @partial match t {
-        is FreeIntType   -> { return TY_I32 }
-        is FreeCharType  -> { return TY_CHAR }
-        is PrimitiveType | RangeType -> {
-            name :: primitive_name(t)
-            if is_int_name(name) || name == "char" {
-                return t
-            }
-            return TY_I32
-        }
-        _                -> { return TY_I32 }
+// The element of `e`, a range one of whose bounds is an integer type : the two
+// bounds joined as two branches are (`join_branch_types`), a free literal beside a
+// range standing for its own value (`h..=23` on an `Hour` walks an `Hour`,
+// `n..=10` past `n in 0..=2` a `0..=10`). Bounds that join into no integer type
+// are a mismatch, the lower one's type kept.
+joined_bounds :: fn(
+    e: AST.RangeExpr, lower: Type, upper: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    joined :: join_branch_types([e.lower, e.upper], [lower, upper], typed, diags)
+    if joined is RangeType {
+        return joined
     }
+    diags.push(mismatch_diagnostic(upper, lower, e.upper.span, .TypeMismatch, typed))
+    return lower
+}
+
+// The element of a range whose bounds are no integer types (`joined_bounds` takes
+// those) : `char` for `char` bounds, else the `i32` a free literal defaults to.
+pick_bound_or_default :: fn(t: Type) -> Type {
+    if is_char(t) || t is FreeCharType {
+        return TY_CHAR
+    }
+    return TY_I32
 }

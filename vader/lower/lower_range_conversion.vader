@@ -42,20 +42,13 @@ lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -
     return lower_runs_conversion(ctx, call, enum_value_runs(target), target.repr, reason)
 }
 
-/// The conversion `call`, `char(value)` or `G(value)` with `G` a distinct over
-/// `char`, from an integer.
+/// The conversion `call`, `char(value)`, from an integer.
 ///
-/// @param call    the conversion, its single argument an integer.
-/// @param target  `char`, or the distinct converted into.
-/// @return        the value, the program stopped where it is no Unicode scalar
-///                value, as a value of `target`.
-lower_char_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) -> LoweredExpr {
+/// @param call  the conversion, its single argument an integer.
+/// @return      the value, the program stopped where it is no Unicode scalar value.
+lower_char_conversion :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
     reason :: "value out of range: no Unicode scalar value"
-    scalar :: lower_runs_conversion(ctx, call, CHAR_VALUES, "char", reason)
-    if target is DistinctType {
-        return LoweredCast { .span = call.span, .type = target, .value = scalar }
-    }
-    return scalar
+    return lower_runs_conversion(ctx, call, CHAR_VALUES, "char", reason)
 }
 
 // The conversion `call`, its single argument an integer, into the integer `held`,
@@ -73,24 +66,65 @@ lower_runs_conversion :: fn(
     return checked_into(ctx, value, source, runs, held, reason, call.span)
 }
 
-/// `value`, the outcome of `e`, checked against the range its instance binds the
-/// type parameter `e` is a value of. A member reached through such a `T` is the
-/// integer's own (a range borrows its integer's impls), and what it hands back is
-/// a value of the integer : `a + b` of two `Hour` may be 30.
+/// The type a call or an operator of type `type` at this instance is lowered at :
+/// the integer `borrowed` is held in, when it reaches a member that range borrows
+/// from its integer (`borrowed_range`), whose value it is ; `type` otherwise.
 ///
-/// @param e      a call or an operator, its type as the typecheck recorded it.
-/// @param value  `e`, lowered.
-/// @return       `value`, unchanged when `e` is no value of a type parameter bound
-///               to a range, or a conversion `T(x)`, which checks its own.
-kept_in_range :: fn(ctx: FnLowerCtx, e: Expr, value: LoweredExpr) -> LoweredExpr {
+/// @param borrowed  the range `borrowed_range` found, or null.
+/// @param type      the call's or the operator's type at this instance.
+produced_type :: fn(borrowed: RangeType | null, type: Type) -> Type {
+    if borrowed == null {
+        return type
+    }
+    return range_representation(borrowed)
+}
+
+/// `value`, a call or an operator lowered at `produced_type`, checked against the
+/// range `borrowed` its instance binds the type parameter it is a value of.
+///
+/// @param borrowed  the range `borrowed_range` found, or null.
+/// @return          `value`, unchanged when there is no such range.
+kept_in_range :: fn(
+    ctx: FnLowerCtx,
+    value: LoweredExpr,
+    borrowed: RangeType | null,
+    span: Span,
+) -> LoweredExpr {
+    if borrowed == null {
+        return value
+    }
+    return checked_into_range(ctx, value, integer_values(value.type), borrowed, span)
+}
+
+/// The range whose value `e` stands for, through a type parameter its instance binds
+/// to it, where `e` reaches a member the range borrows from its integer : that
+/// member hands back a value of the integer (`a + b` of two `Hour` may be 30). An
+/// operator does, its arithmetic the integer's ; a call does when it reaches a
+/// member through the parameter's bound or one chosen against it
+/// (`calls_borrowed_member`).
+///
+/// @param e  a call or an operator.
+/// @return   null for any other `e` : a generic fn's `T`, a conversion `T(x)`,
+///           which checks its own, give values of the range.
+borrowed_range :: fn(ctx: FnLowerCtx, e: Expr) -> RangeType | null {
     if !ctx.types.subst.binds_refinement {
-        return value
+        return null
     }
-    target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return value
-    if e is CallExpr && recorded_callee(ctx, e, .Call) is Builtin {
-        return value
+    target :: bound_range(ctx.types.subst, ctx.types.raw_expr_type(e)) ?? return null
+    if e is CallExpr && !calls_borrowed_member(recorded_callee(ctx, e, .Call)) {
+        return null
     }
-    return checked_into_range(ctx, value, held_values(value.type), target, e.span)
+    return target
+}
+
+// Whether `callee` is a member an instance serves with the impl of the integer a
+// range is held in : one reached through a type parameter's bound, or an impl
+// member chosen against the parameter.
+calls_borrowed_member :: fn(callee: Callee | null) -> bool {
+    if callee is DirectFn {
+        return callee.per_instance
+    }
+    return callee is BoundMember
 }
 
 /// The integer type `t`, as the typecheck recorded it, is at this instance : a

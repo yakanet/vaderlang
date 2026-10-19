@@ -64,7 +64,8 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // opt out — never pile a T3010 on top of a cascade.
     if not_decidable(src) || not_decidable(target) { return true }
     // A machine integer converts as any primitive : `i32(x)` is no checked conversion.
-    refined :: refinement_of(target)
+    // A distinct over a range converts as the range does.
+    refined :: refinement_of(strip_distinct(target))
     if refined != null {
         return range_conversion_allowed(src, refined)
     }
@@ -122,13 +123,14 @@ holds_an_address :: fn(t: Type) -> bool {
 
 not_decidable :: fn(t: Type) = t is UnresolvedType | TypeParamType | InferVar | TypeMetaType
 
-// A conversion into a range takes an integer some value of which is in it ; the
-// rest are stopped at run time. A float goes through an integer first.
+// A conversion into a range takes an integer some value of which is in it, a
+// distinct over one included ; the rest are stopped at run time. A float goes
+// through an integer first.
 range_conversion_allowed :: fn(src: Type, target: RangeType) -> bool {
     if is_free_numeric(src) {
         return src is FreeIntType
     }
-    values :: integer_values(src) ?? return false
+    values :: integer_values(strip_distinct(src)) ?? return false
     return interval_meet(values, target.bounds) != null
 }
 

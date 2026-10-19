@@ -68,7 +68,11 @@ lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is CharLitExpr   -> { return lower_char_lit(expr, default_if_free(type)) }
         is StringLitExpr -> { return lower_string_lit(ctx, expr, type) }
         is IdentExpr     -> { return lower_ident(ctx, expr, type) }
-        is CallExpr      -> { return kept_in_range(ctx, expr, lower_call(ctx, expr, type)) }
+        is CallExpr      -> {
+            borrowed :: borrowed_range(ctx, expr)
+            lowered :: lower_call(ctx, expr, produced_type(borrowed, type))
+            return kept_in_range(ctx, lowered, borrowed, expr.span)
+        }
         is FieldExpr     -> {
             // `Enum.Variant` — the target is the enum's type name in
             // value position. Lower to the variant's integer index
@@ -137,11 +141,17 @@ lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         }
         is IndexExpr -> { return lower_index(ctx, expr, type) }
         is UnaryExpr -> {
+            borrowed :: borrowed_range(ctx, expr)
             operand :: lower_expr(ctx, expr.operand)
-            lowered :: lower_unary_op_on(lower_unary_op(expr.op), operand, type, expr.span)
-            return kept_in_range(ctx, expr, lowered)
+            produced :: produced_type(borrowed, type)
+            lowered :: lower_unary_op_on(lower_unary_op(expr.op), operand, produced, expr.span)
+            return kept_in_range(ctx, lowered, borrowed, expr.span)
         }
-        is BinaryExpr -> { return kept_in_range(ctx, expr, lower_binary(ctx, expr, type)) }
+        is BinaryExpr -> {
+            borrowed :: borrowed_range(ctx, expr)
+            lowered :: lower_binary(ctx, expr, produced_type(borrowed, type))
+            return kept_in_range(ctx, lowered, borrowed, expr.span)
+        }
         is NullCoalesceExpr -> { return lower_null_coalesce(ctx, expr) }
         is IfExpr -> { return lift_awaiting_value(ctx, lower_if(ctx, expr, type), type) }
         is BlockExpr     -> {

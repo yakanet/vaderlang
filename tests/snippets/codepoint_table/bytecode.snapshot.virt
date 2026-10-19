@@ -206,11 +206,11 @@ fn 5 snippet$main () -> i32
   local __in_range_5 u32
   local or_res bool
   local glyph char
-  local $k_126 char
+  local $k_125 char
   local __iter_12 ref
   local x u32
-  local $k_196 char
-  local $call_elem_234 u8
+  local $k_195 char
+  local $call_elem_233 u8
   i64.const 53
   buffer.new
   local.set 0   ; __buf_0
@@ -452,9 +452,9 @@ fn 5 snippet$main () -> i32
       local.get 4   ; $call_41
       array.push 2   ; string
       i32.const 1
-      local.set 11   ; $k_126
+      local.set 11   ; $k_125
       local.get 10   ; glyph
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       i32.add
       local.set 10   ; glyph
       br $L8
@@ -480,14 +480,14 @@ fn 5 snippet$main () -> i32
   loop $L11 void
     local.get 12   ; __iter_12
     call 10   ; std_core$Range$Iterator$next__char$v
-    local.set 15   ; $call_elem_234
-    local.set 14   ; $k_196
-    local.get 15   ; $call_elem_234
+    local.set 15   ; $call_elem_233
+    local.set 14   ; $k_195
+    local.get 15   ; $call_elem_233
     i32.const 1
     i32.eq
     if $L12 void
     else
-      local.get 14   ; $k_196
+      local.get 14   ; $k_195
       call 3   ; snippet$walk_codes
       local.set 4   ; $call_41
       local.get 0   ; __buf_0
@@ -529,9 +529,9 @@ fn 5 snippet$main () -> i32
       u32.checked_add
       local.set 8   ; __in_range_5
       i32.const 1
-      local.set 11   ; $k_126
+      local.set 11   ; $k_125
       local.get 10   ; glyph
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       i32.add
       local.set 10   ; glyph
       br $L13
@@ -566,66 +566,66 @@ fn 5 snippet$main () -> i32
   array.new 14 0   ; string[]
   local.set 0   ; __buf_0
   char.const 55294
-  local.set 11   ; $k_126
+  local.set 11   ; $k_125
   loop $L16 void
-    local.get 11   ; $k_126
+    local.get 11   ; $k_125
     char.const 57345
     i32.le
     if $L17 void
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       char.to_i32
       i32.const 55296
       i32.eq
       if $L18 void
         i32.const 57344
-        local.set 11   ; $k_126
+        local.set 11   ; $k_125
       end $L18
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       call 3   ; snippet$walk_codes
       local.set 4   ; $call_41
       local.get 0   ; __buf_0
       local.get 4   ; $call_41
       array.push 2   ; string
       i32.const 1
-      local.set 14   ; $k_196
-      local.get 11   ; $k_126
-      local.get 14   ; $k_196
+      local.set 14   ; $k_195
+      local.get 11   ; $k_125
+      local.get 14   ; $k_195
       i32.add
-      local.set 11   ; $k_126
+      local.set 11   ; $k_125
       br $L16
     end $L17
   end $L16
   char.const 55294
-  local.set 11   ; $k_126
+  local.set 11   ; $k_125
   block $L19 void
     loop $L20 void
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       local.get 10   ; glyph
       i32.lt
       if $L21 void
-        local.get 11   ; $k_126
+        local.get 11   ; $k_125
         char.to_i32
         i32.const 55296
         i32.eq
         if $L22 void
           i32.const 57344
-          local.tee 11   ; $k_126
+          local.tee 11   ; $k_125
           local.get 10   ; glyph
           i32.ge
           br_if $L19
         end $L22
-        local.get 11   ; $k_126
+        local.get 11   ; $k_125
         call 3   ; snippet$walk_codes
         local.set 4   ; $call_41
         local.get 0   ; __buf_0
         local.get 4   ; $call_41
         array.push 2   ; string
         i32.const 1
-        local.set 14   ; $k_196
-        local.get 11   ; $k_126
-        local.get 14   ; $k_196
+        local.set 14   ; $k_195
+        local.get 11   ; $k_125
+        local.get 14   ; $k_195
         i32.add
-        local.set 11   ; $k_126
+        local.set 11   ; $k_125
         br $L20
       end $L21
     end $L20
@@ -654,9 +654,9 @@ fn 5 snippet$main () -> i32
       local.get 4   ; $call_41
       array.push 2   ; string
       i32.const 1
-      local.set 11   ; $k_126
+      local.set 11   ; $k_125
       local.get 10   ; glyph
-      local.get 11   ; $k_126
+      local.get 11   ; $k_125
       i32.add
       local.set 10   ; glyph
       br $L23

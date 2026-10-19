@@ -17,7 +17,9 @@ import "vader/typecheck"
 import "vader/types"
 
 /// The integer type an operation is computed in when the integer types it involves
-/// differ : one holding every value of `left`, `right` and the result's.
+/// differ : one holding every value of `left`, `right` and the result's, each read
+/// through any distinct. `Slot == w` (`Slot` over `Hour`, `w: i64`) compares in
+/// `i64`, and `a + b` on a distinct over `Int in 0..=200`, a `0..=400`, adds in `u16`.
 ///
 /// @param left    the left operand's type.
 /// @param right   the right operand's type ; null for a unary operation.
@@ -25,8 +27,8 @@ import "vader/types"
 ///                which takes no part.
 /// @return        null when the integer types are one, or an operand is no integer.
 computation_width :: fn(left: Type, right: Type | null, result: Type) -> MachineInteger | null {
-    l :: integer_representation(left) ?? return null
-    as_integer :: integer_representation(result)
+    l :: held_integer(left) ?? return null
+    as_integer :: held_integer(result)
     r :: operand_width(right, l)
     if r == null {
         return null
@@ -47,22 +49,7 @@ operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger 
     if right == null {
         return left
     }
-    return integer_representation(right)
-}
-
-/// The integer type a binary operation of type `result` is computed in
-/// (`computation_width`). A test reads a distinct over an integer as that integer,
-/// so that `Slot == w` (`Slot` over `Hour`, `w: i64`) compares in `i64` ;
-/// arithmetic on a distinct keeps the width of its own type, where it is checked.
-///
-/// @param left    the left operand's type.
-/// @param right   the right operand's type.
-/// @param result  the operation's type : an integer, or the `bool` of a test.
-operation_width :: fn(left: Type, right: Type, result: Type) -> MachineInteger | null {
-    if result is RangeType {
-        return computation_width(left, right, result)
-    }
-    return computation_width(strip_distinct(left), strip_distinct(right), result)
+    return held_integer(right)
 }
 
 /// `e` converted to `width`, when there is one to compute in.
@@ -79,18 +66,19 @@ in_width :: fn(e: LoweredExpr, width: MachineInteger | null, span: Span) -> Lowe
 /// The type of an operation of type `result` computed in `width` : that integer,
 /// or `result` itself for a test or when there is no other width.
 computed_type :: fn(result: Type, width: MachineInteger | null) -> Type {
-    if width == null || result !is RangeType {
+    if width == null || strip_distinct(result) !is RangeType {
         return result
     }
     return machine_integer_type(width)
 }
 
-/// `computed` held as `result`, the integer type its value is in.
+/// `computed` held as `result`, the integer type its value is in : a distinct as
+/// the integer it is over.
 ///
 /// @param computed  the operation, of its computation's type.
 /// @param result    its type as the typecheck recorded it.
 held_as :: fn(computed: LoweredExpr, result: Type, span: Span) -> LoweredExpr {
-    as_integer :: integer_representation(result) ?? return computed
+    as_integer :: held_integer(result) ?? return computed
     return cast_to_width(computed, as_integer.name, span)
 }
 

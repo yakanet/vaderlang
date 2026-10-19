@@ -1,0 +1,16 @@
+// A distinct over a range converts as the range does : `Slot(x)` checks `x` against
+// `0..=23` and stops the program outside, as `Hour(x)` does.
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+Slot :: Hour
+
+slot_of :: fn(x: i32) -> Slot = Slot(x)
+
+main :: fn() -> i32 {
+    println("${i32(slot_of(7))}")
+    println("${i32(slot_of(40))}")
+    return 0
+}

@@ -1,13 +1,16 @@
 // A conversion into a range takes an integer some value of which the range holds ;
 // the others stop the program at run time. A `u8` never holds a negative, and a
-// float goes through an integer first.
+// float goes through an integer first, into a distinct over a range as well.
 module "snippet"
 
 export Below :: Int in -9..=-1
 export Hour  :: Int in 0..=23
+export Slot  :: Hour
 
 export negative :: fn(b: u8) -> Below = Below(b)
 export rounded :: fn(f: f64) -> Hour = Hour(f)
+export slotted :: fn(f: f64) -> Slot = Slot(f)
 export fine :: fn(x: i32) -> Hour = Hour(x)
+export unwrapped :: fn(s: Slot) -> Hour = Hour(s)
 
 export main :: fn() -> i32 = 0

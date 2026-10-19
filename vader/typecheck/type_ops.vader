@@ -1102,9 +1102,6 @@ literal_family_holds :: fn(got: Type, t: Type) -> bool = match got {
      | UnresolvedType | NeverType | AnyType -> false
 }
 
-// Whether `t` is one of the eight machine integers, a range of exactly its bounds.
-is_machine_integer :: fn(t: Type) -> bool = t is RangeType && is_machine_range(t)
-
 /// Do `a` and `b` share any concrete runtime value ? Powers T3040
 /// ("test can never match") and the match-arm overlap check.
 /// UnionType on either side recurses into its variants.
