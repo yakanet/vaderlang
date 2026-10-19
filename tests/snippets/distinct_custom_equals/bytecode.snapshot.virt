@@ -883,8 +883,12 @@ fn 13 std_string$to_lower_cp (u32) -> u32
   local.get 2   ; and_res
   if $L1 void
     local.get 0   ; arg 0
+    u32.to_i32
+    i32.const 255
+    i32.bitand
     i32.const 32
-    u32.checked_add
+    u8.checked_add
+    u8.to_i32
     local.tee 1   ; if_res
     return
   end $L1
@@ -903,8 +907,12 @@ fn 13 std_string$to_lower_cp (u32) -> u32
   local.get 2   ; and_res
   if $L3 void
     local.get 0   ; arg 0
+    u32.to_i32
+    i32.const 255
+    i32.bitand
     i32.const 32
-    u32.checked_add
+    u8.checked_add
+    u8.to_i32
     local.set 1   ; if_res
   else
     local.get 0   ; arg 0
@@ -922,8 +930,12 @@ fn 13 std_string$to_lower_cp (u32) -> u32
     local.get 2   ; and_res
     if $L5 void
       local.get 0   ; arg 0
+      u32.to_i32
+      i32.const 255
+      i32.bitand
       i32.const 32
-      u32.checked_add
+      u8.checked_add
+      u8.to_i32
       local.set 1   ; if_res
     else
       local.get 0   ; arg 0

@@ -177,7 +177,10 @@
                 "kind": "SimpleBinding",
                 "name": "micros"
               },
-              "type": null,
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i64"
+              },
               "value": {
                 "kind": "BinaryExpr",
                 "op": "mul",
@@ -241,7 +244,10 @@
                         "kind": "SimpleBinding",
                         "name": "early"
                       },
-                      "type": null,
+                      "type": {
+                        "kind": "IdentExpr",
+                        "name": "i64"
+                      },
                       "value": {
                         "kind": "BinaryExpr",
                         "op": "mul",
@@ -320,8 +326,21 @@
                 "kind": "BinaryExpr",
                 "op": "shl",
                 "left": {
-                  "kind": "IdentExpr",
-                  "name": "n"
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "i64"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "n"
+                      },
+                      "spread": false
+                    }
+                  ]
                 },
                 "right": {
                   "kind": "IntLitExpr",
@@ -421,7 +440,10 @@
                 "kind": "SimpleBinding",
                 "name": "count"
               },
-              "type": null,
+              "type": {
+                "kind": "IdentExpr",
+                "name": "u8"
+              },
               "value": {
                 "kind": "IdentExpr",
                 "name": "b"
@@ -453,7 +475,10 @@
                 "kind": "SimpleBinding",
                 "name": "scaled"
               },
-              "type": null,
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
               "value": {
                 "kind": "BinaryExpr",
                 "op": "mul",
@@ -647,38 +672,20 @@
                 "kind": "SimpleBinding",
                 "name": "forward"
               },
-              "type": null,
-              "value": {
-                "kind": "BinaryExpr",
-                "op": "add",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "wide"
-                },
-                "right": {
-                  "kind": "IdentExpr",
-                  "name": "signed"
-                }
-              }
-            },
-            {
-              "kind": "LetStmt",
-              "mutable": true,
-              "binding": {
-                "kind": "SimpleBinding",
-                "name": "backward"
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i64"
               },
-              "type": null,
               "value": {
                 "kind": "BinaryExpr",
                 "op": "add",
                 "left": {
                   "kind": "IdentExpr",
-                  "name": "signed"
+                  "name": "wide"
                 },
                 "right": {
                   "kind": "IdentExpr",
-                  "name": "wide"
+                  "name": "signed"
                 }
               }
             },
@@ -694,25 +701,6 @@
                 "left": {
                   "kind": "IdentExpr",
                   "name": "forward"
-                },
-                "right": {
-                  "kind": "IntLitExpr",
-                  "value": "1000000000n"
-                }
-              }
-            },
-            {
-              "kind": "AssignStmt",
-              "target": {
-                "kind": "IdentExpr",
-                "name": "backward"
-              },
-              "value": {
-                "kind": "BinaryExpr",
-                "op": "mul",
-                "left": {
-                  "kind": "IdentExpr",
-                  "name": "backward"
                 },
                 "right": {
                   "kind": "IntLitExpr",
@@ -743,7 +731,10 @@
                 "kind": "SimpleBinding",
                 "name": "next"
               },
-              "type": null,
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
               "value": {
                 "kind": "BinaryExpr",
                 "op": "add",
@@ -864,17 +855,6 @@
                           "expr": {
                             "kind": "IdentExpr",
                             "name": "forward"
-                          }
-                        },
-                        {
-                          "kind": "text",
-                          "value": ", backward "
-                        },
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "IdentExpr",
-                            "name": "backward"
                           }
                         },
                         {

@@ -161,7 +161,7 @@ fn 4 snippet$millis (u8) -> i64
 end
 
 fn 5 snippet$either (i64,u8,bool) -> i64
-  local chosen i64
+  local chosen u8
   local.get 0   ; arg 0
   i64.const 0
   i64.lt
@@ -177,13 +177,16 @@ fn 5 snippet$either (i64,u8,bool) -> i64
   local.get 2   ; arg 2
   if $L2 void
     local.get 0   ; arg 0
+    i64.to_i32
+    i32.const 255
+    i32.bitand
     local.set 3   ; chosen
   else
     local.get 1   ; arg 1
-    u8.to_i64
     local.set 3   ; chosen
   end $L2
   local.get 3   ; chosen
+  u8.to_i64
   i64.const 1000
   i64.checked_mul
   return

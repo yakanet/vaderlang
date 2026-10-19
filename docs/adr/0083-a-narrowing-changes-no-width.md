@@ -5,6 +5,11 @@
 Accepted (2026-10-18). Step 7 of the type-system charter, its seventh part begun
 (D15): the base a mutable local takes from a narrowed integer, left open by 0077.
 
+**Superseded by [0096](0096-a-narrowed-integer-is-a-value-of-its-range.md)
+(2026-10-19)**: a range has no origin; a narrowed integer is a value of its range, and
+a local keeps its first value's range, so the overflow this record guarded against is
+a compile error instead.
+
 ## Context
 
 A mutable local takes the base of a range computed in place (0075): `n := h + 1` on

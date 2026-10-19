@@ -1,6 +1,6 @@
 # stdout
 early 5000000000
 micros 18000000000, shifted 5497558138880, count 9, scaled 8001
-forward 7000000000, backward 7000000000, next 0
+forward 7000000000, next 0
 # exit
 0

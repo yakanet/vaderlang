@@ -27,6 +27,8 @@ fn 0 snippet$span_until (u8,i64) -> i64
   local or_res bool
   local __buf_0 ref
   local __off_1 i64
+  local $cast_18 i16
+  local $cast_19 i16
   local.get 1   ; arg 1
   i64.const 0
   i64.lt
@@ -42,12 +44,26 @@ fn 0 snippet$span_until (u8,i64) -> i64
   local.get 2   ; or_res
   if $L1 void
   else
-    local.get 0   ; arg 0
-    u8.to_i64
-    local.set 4   ; __off_1
     local.get 1   ; arg 1
-    local.get 4   ; __off_1
-    i64.checked_sub
+    i64.to_i32
+    i32.const 255
+    i32.bitand
+    u8.to_i32
+    local.set 5   ; $cast_18
+    local.get 0   ; arg 0
+    u8.to_i32
+    local.set 6   ; $cast_19
+    local.get 5   ; $cast_18
+    local.get 6   ; $cast_19
+    i16.checked_sub
+    i16.to_i32
+    i32.const 255
+    i32.bitand
+    i32.const 128
+    i32.bitxor
+    i32.const 128
+    i32.sub
+    i8.to_i64
     return
   end $L1
   i64.const 33

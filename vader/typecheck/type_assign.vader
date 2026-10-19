@@ -222,13 +222,13 @@ fn_signature_compatible :: fn(from: Type, to: Type) -> bool =
     is_assignable(from, to) && laid_out_alike(from, to)
 
 // Whether `a` and `b` are laid out alike where both are integer types, as the
-// lowering lays out a type inside another (`erase_nested`) ; true when either is
+// lowering lays out a type inside another (`erase_ranges`) ; true when either is
 // another type, whose own check is somebody else's.
 laid_out_alike :: fn(a: Type, b: Type) -> bool {
     if integer_values(a) == null || integer_values(b) == null {
         return true
     }
-    return equals_type(erase_nested(a), erase_nested(b))
+    return equals_type(erase_ranges(a), erase_ranges(b))
 }
 
 /// T3097 : `t` implements `trait_key` more than once, and `what` reaches the trait

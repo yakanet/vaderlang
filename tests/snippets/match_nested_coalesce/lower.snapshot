@@ -5,20 +5,23 @@
       {
           if (n >= 0) && (n < 10) {
               {
-                  if ((((n == 0) || (n == 2)) || (n == 4)) || (n == 6)) || (n == 8) { 1 } else { 2 } :i32
+                  __scrut_2: u8 = u8(n)
+                  if ((((__scrut_2 == u8(0)) || (__scrut_2 == u8(2))) || (__scrut_2 == u8(4))) || (__scrut_2 == u8(6))) || (__scrut_2 == u8(8)) { 1 } else { 2 } :i32
               } :i32
           } else if (n >= 10) && (n <= 19) {
-              if n < 15 {
+              if u8(n) < u8(15) {
                   {
-                      if (n == 10) || (n == 11) { 3 } else { 4 } :i32
+                      __scrut_0: u8 = u8(n)
+                      if (__scrut_0 == u8(10)) || (__scrut_0 == u8(11)) { 3 } else { 4 } :i32
                   } :i32
               } else {
                   {
-                      if n == 19 { 6 } else { 5 } :i32
+                      __scrut_1: u8 = u8(n)
+                      if __scrut_1 == u8(19) { 6 } else { 5 } :i32
                   } :i32
               } :i32
           } else if (n >= 20) && (n <= 29) {
-              n - 20
+              i32(u8(n) - u8(20))
           } else {
               -1
           } :i32

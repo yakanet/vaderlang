@@ -1071,7 +1071,7 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
 static uint32_t std_string_to_lower_cp(uint32_t l0) {
     uint32_t l1;
     bool l2;
-    int32_t t0;
+    int32_t t0, t1;
 #line 375 "lib/std/string/string.vader"
     if ((l0 >= INT32_C(65))) {
         l2 = (l0 <= INT32_C(90));
@@ -1079,8 +1079,9 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         l2 = false;
     }
     if (l2) {
-        t0 = vader_chk_add(u32, l0, INT32_C(32));
-        l1 = (uint32_t) (int32_t) t0;
+        t0 = vader_chk_add(u8, (((int32_t) (uint32_t) l0) & INT32_C(255)), INT32_C(32));
+        t1 = t0;
+        l1 = (uint32_t) (int32_t) t1;
 #line 374 "lib/std/string/string.vader"
         return l1;
 #line 375 "lib/std/string/string.vader"
@@ -1092,8 +1093,9 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
         l2 = false;
     }
     if (l2) {
-        t0 = vader_chk_add(u32, l0, INT32_C(32));
-        l1 = (uint32_t) (int32_t) t0;
+        t0 = vader_chk_add(u8, (((int32_t) (uint32_t) l0) & INT32_C(255)), INT32_C(32));
+        t1 = t0;
+        l1 = (uint32_t) (int32_t) t1;
 #line 377 "lib/std/string/string.vader"
     } else {
         if ((l0 >= INT32_C(216))) {
@@ -1102,8 +1104,9 @@ static uint32_t std_string_to_lower_cp(uint32_t l0) {
             l2 = false;
         }
         if (l2) {
-            t0 = vader_chk_add(u32, l0, INT32_C(32));
-            l1 = (uint32_t) (int32_t) t0;
+            t0 = vader_chk_add(u8, (((int32_t) (uint32_t) l0) & INT32_C(255)), INT32_C(32));
+            t1 = t0;
+            l1 = (uint32_t) (int32_t) t1;
 #line 378 "lib/std/string/string.vader"
         } else if (l0 == INT32_C(376)) {
             l1 = (uint32_t) 255;

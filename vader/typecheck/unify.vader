@@ -404,14 +404,14 @@ bind_infer_var :: fn(
     }
     existing :: solutions[v.id]
     if existing == null {
-        solutions[v.id] = at_own_width(actual)
+        solutions[v.id] = actual
         return
     }
     if held != null && v.id in held {
         return
     }
     if is_free_numeric(existing) && !is_free_numeric(actual) {
-        solutions[v.id] = at_own_width(actual)
+        solutions[v.id] = actual
     }
 }
 

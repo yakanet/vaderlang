@@ -7,6 +7,11 @@ Accepted (2026-10-18). Step 7 of the type-system charter, its first part: range 
 range (`T.min`, `x in T`, `Interval`), narrowing by a guard (D11) and the integer
 primitives as ranges come later in the same step.
 
+**Amended by [0096](0096-a-narrowed-integer-is-a-value-of-its-range.md)
+(2026-10-19)**: a bitwise operation on a range of no machine integer's bounds is
+refused rather than reading its integer, and a mutable local keeps the range of its
+first value rather than taking a base.
+
 ## Context
 
 The charter makes the integer types ranges of an abstract `Int`: `Hour :: Int in

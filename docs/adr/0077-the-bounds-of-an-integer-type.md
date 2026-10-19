@@ -5,6 +5,11 @@
 Accepted (2026-10-18). Step 7 of the type-system charter, its fourth part: the static
 facts of a range and the test `x in T`. Builds on 0075 and 0076.
 
+**Amended by [0096](0096-a-narrowed-integer-is-a-value-of-its-range.md)
+(2026-10-19)**: the open question below, settled by 0083 for the origin, is settled
+again: a local takes its first value's range, so `acc := n * 1000` is a `0..=23000`
+and `acc * 1_000_000` assigned to it is a compile error.
+
 ## Context
 
 The charter gave every integer type three facts (`T.min`, `T.max`, `T.count`), a trait

@@ -5,6 +5,10 @@
 Accepted (2026-10-18). Step 7 of the type-system charter, its seventh part continued.
 Follows 0084; amends 0083.
 
+**Superseded in part by [0096](0096-a-narrowed-integer-is-a-value-of-its-range.md)
+(2026-10-19)**: a narrowed range is no longer held in its origin; a read of it
+converts to the range's storage.
+
 ## Context
 
 0084 made a `match` over an integer type exhaustive by its values, but an arm did not

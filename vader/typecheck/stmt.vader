@@ -392,10 +392,8 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
-        // A local that takes other values later starts from the base of a range
-        // computed in place, not from its first value's range.
-        if s.mutable {
-            declared = widened_base(declared)
+        if s.binding is AST.SimpleBinding as sb {
+            typed.unwritten_locals.add(sb.name_span.hash())
         }
     } else {
         declared = ann
@@ -497,7 +495,7 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
         // the write fits it.
         slot :: index_write_slot(target, typed, diags) ?? return
         value_ty :: check_expr(s.value, slot, typed, diags)
-        emit_assign_mismatch_if(value_ty, slot, s.span, s.value, typed, diags)
+        emit_assign_mismatch_if(value_ty, slot, s.span, s.value, "", typed, diags)
         // Past an array, the write runs a user `IndexSet`'s `set_at` : a call.
         if typed.expr_types[target.target.id] !is ArrayType {
             retire_narrowings_across_call(typed)
@@ -515,7 +513,10 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
         value_hint = declared
     }
     value_ty :: check_expr(s.value, value_hint, typed, diags)
-    emit_assign_mismatch_if(value_ty, declared, s.span, s.value, typed, diags)
+    emit_assign_mismatch_if(
+        value_ty, declared, s.span, s.value, unwritten_local_hint(s.target, declared, typed),
+        typed, diags,
+    )
     // A write to a narrowed binding / field chain retires its stale
     // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
     invalidate_narrow_on_assign(s.target, value_ty, typed)
@@ -557,27 +558,40 @@ declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram
 
 // Push T3063 when `got` doesn't flow into the declared slot type `expected`.
 // Same gate as `emit_mismatch_if` (via `flows_into`), only the wording and the
-// dedicated code differ. A `null` `expected` — e.g. a receiver with no recorded
-// `IndexSet` impl — has no declared slot to enforce (the read side already
-// surfaced any error), so it no-ops.
+// dedicated code differ, `hint` closing the detail. A `null` `expected` — e.g. a
+// receiver with no recorded `IndexSet` impl — has no declared slot to enforce (the
+// read side already surfaced any error), so it no-ops.
 emit_assign_mismatch_if :: fn(
     got: Type,
     expected: Type | null,
     span: Span,
     value: AST.Expr,
+    hint: string,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> void {
     if expected == null || flows_into(got, expected, value, typed) {
         return
     }
-    diags.push(
-        typecheck_error(
-            .AssignTypeMismatch,
-            span,
-            "cannot assign a value of type ${display_type(got)} to a slot of type ${display_type(expected)}",
-        ),
-    )
+    detail :: "cannot assign a value of type ${display_type(got)} to a slot of type "
+        + "${display_type(expected)}${hint}"
+    diags.push(typecheck_error(.AssignTypeMismatch, span, detail))
+}
+
+// What a T3063 on a write to `target`, a slot of type `declared`, adds when the
+// target is a local of an integer type nobody wrote : it took its first value's
+// type, a range included. "" for any other target.
+unwritten_local_hint :: fn(target: AST.Expr, declared: Type, typed: TypedProgram) -> string {
+    if target !is AST.IdentExpr || declared !is RangeType {
+        return ""
+    }
+    sym :: typed.resolved.idents[target.span.hash()] ?? return ""
+    at :: sym.defined_at ?? return ""
+    if at.hash() !in typed.unwritten_locals {
+        return ""
+    }
+    return "; a local takes the type of its first value: "
+        + "write the type it may hold, as `${target.name}: i64 = …`"
 }
 
 /// Check `[t0, _, ...rest] = value` — one assignment per place, against the
@@ -878,7 +892,7 @@ check_destructure_target :: fn(
         slot :: index_write_slot(target, typed, diags) ?? return
         // The lowering types the element it writes by the target's own type.
         record_expr(typed, target, slot)
-        emit_assign_mismatch_if(elem_ty, slot, target.span, target, typed, diags)
+        emit_assign_mismatch_if(elem_ty, slot, target.span, target, "", typed, diags)
         return
     } else {
         diags.push(typecheck_error(
@@ -889,7 +903,7 @@ check_destructure_target :: fn(
     // Judged against the declaration, as `x = v` is, and retiring the narrowings
     // the write makes stale.
     declared :: declared_lvalue_type(target, check_expr(target, elem_ty, typed, diags), typed)
-    emit_assign_mismatch_if(elem_ty, declared, target.span, target, typed, diags)
+    emit_assign_mismatch_if(elem_ty, declared, target.span, target, "", typed, diags)
     invalidate_narrow_on_assign(target, elem_ty, typed)
 }
 
@@ -1910,6 +1924,25 @@ test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
 test_assign_incompatible_emits_T3063 :: fn() -> void {
     out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = \"nope\" }")
     assert(has_code(out.diags, "T3063"), "expected T3063 on incompatible reassignment")
+}
+
+@test
+test_assign_outside_a_locals_first_range_emits_T3063 :: fn() -> void {
+    src :: """
+Hour :: Int in 0..=23
+f :: fn(h: Hour) -> void {
+    next := h + 1
+    next = next % 24
+}
+"""
+    out :: check_source_bodies(src)
+    hinted := false
+    for d in out.diags {
+        if d.code.id == "T3063" && "write the type it may hold" in d.detail {
+            hinted = true
+        }
+    }
+    assert(hinted, "T3063 says to write the local's type")
 }
 
 @test

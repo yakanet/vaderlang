@@ -74,48 +74,19 @@ export RangeType :: struct {
     /// The alias it was declared as (`Hour`), for display ; "" for a range written
     /// in place or computed by an expression.
     name: string = ""
-    /// The integer type a value narrowed into the range was declared as (`i64` for
-    /// an `n: i64` past `n in Hour`), "" for none : what a mutable local copied
-    /// from it takes. Two ranges of one bounds are one type whatever it is.
-    origin: string = ""
 }
 
-/// The machine integer a value of `r` is held in : the one it was narrowed out of
-/// where that holds it (`narrowed_origin`), since a narrowing changes no width ;
-/// else the narrowest holding it.
+/// The machine integer a value of `r` is held in : the narrowest holding it.
 ///
 /// @param r  a range.
 export storage_integer :: fn(r: RangeType) -> MachineInteger =
-    narrowed_origin(r) ?? narrowest_machine_integer(r.bounds)
+    narrowest_machine_integer(r.bounds)
 
 /// The integer type a value of `r` is held in (`storage_integer`).
 ///
 /// @param r  a range.
 export range_representation :: fn(r: RangeType) -> PrimitiveType =
     PrimitiveType { .name = storage_integer(r).name }
-
-/// The machine integer the range `r` was narrowed out of, where it holds `r`'s
-/// values : the width a narrowing keeps, for a mutable local, a bitwise operation
-/// and the value's storage alike.
-///
-/// @param r  a range.
-/// @return   null for a range with no origin, or one its origin does not hold.
-export narrowed_origin :: fn(r: RangeType) -> MachineInteger | null {
-    if r.origin == "" {
-        return null
-    }
-    m :: machine_integer_named(r.origin) ?? return null
-    if !interval_within(r.bounds, m.values) {
-        return null
-    }
-    return m
-}
-
-/// `r` as a type argument holds it : without the integer it was narrowed out of,
-/// since every instance at one range shares one layout.
-///
-/// @param r  a range a type parameter is bound to.
-export without_origin :: fn(r: RangeType) -> RangeType = RangeType { ...r, .origin = "" }
 
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
@@ -160,18 +131,6 @@ export refinement_of :: fn(t: Type | null) -> RangeType | null {
 ///
 /// @param t  any type, or none.
 export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
-
-/// `t` read at the width of its own values : a range without the integer it was
-/// narrowed out of (`without_origin`), any other type as it is. What a type
-/// parameter binds to, and what an operation closed on a machine integer gives.
-///
-/// @param t  any type.
-export at_own_width :: fn(t: Type) -> Type {
-    if t is RangeType && t.origin != "" {
-        return without_origin(t)
-    }
-    return t
-}
 
 /// The integer type `name` as the typecheck holds it : one of the eight machine
 /// integers as the range of its values, `i32` as `Int in -2147483648..=2147483647`.
@@ -1163,7 +1122,7 @@ export kept_type_argument :: fn(t: Type) -> Type | null {
         return backing
     }
     if backing is RangeType && is_machine_range(backing) {
-        return narrowest_integer(backing.bounds)
+        return range_representation(backing)
     }
     if backing is EnumType && backing.data != null {
         return backing

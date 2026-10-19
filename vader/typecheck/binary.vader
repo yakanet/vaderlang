@@ -59,15 +59,15 @@ infer_binary :: fn(
     // A value of a `T: Int` is computed on as an `i64`.
     left = as_computed(left, typed)
     right = as_computed(right, typed)
+    // A bitwise operation needs a width (`bitwise_operand`).
+    if classify(e.op) == .Integral {
+        left = bitwise_operand(e.left, left, diags)
+        right = integral_right_operand(e, right, diags)
+    }
     // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
     // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
     // repinning its recorded type (and any inner shift / bitwise leaves) and
     // bounds-checking a char literal at its pin.
-    // A bitwise operation reads a range as the integer it is held in.
-    if classify(e.op) == .Integral {
-        left = represented(left)
-        right = represented(right)
-    }
     // A literal beside a range stands for its own value (`range_result`).
     if !is_refinement(left) && !is_refinement(right) {
         left = repin_operand(e.left, left, right, typed, diags)
@@ -1151,7 +1151,14 @@ check_integral :: fn(
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
-    return numeric_result(e, left, right, typed, diags)
+    // A distinct over a range gets here through `distinct_op_fallback` with its
+    // backing, which `infer_binary` never read as a bitwise operand.
+    l :: bitwise_operand(e.left, left, diags)
+    r :: integral_right_operand(e, right, diags)
+    if l is UnresolvedType || r is UnresolvedType {
+        return TY_UNRESOLVED
+    }
+    return numeric_result(e, l, r, typed, diags)
 }
 
 // ---- helpers --------------------------------------------------------------
@@ -1305,9 +1312,9 @@ numeric_result :: fn(
     if is_refinement(left) || is_refinement(right) {
         return range_result(e, left, right, typed, diags)
     }
-    // Past the ranges, an operation on integers is closed : each machine integer
-    // is read at its own width, the operation checked there.
-    return closed_result(e, at_own_width(left), at_own_width(right), diags)
+    // Past the ranges, an operation on integers is closed : checked at its machine
+    // integers' width.
+    return closed_result(e, left, right, diags)
 }
 
 // The type of `e`, numeric, its operands `left` and `right` of no range of exact

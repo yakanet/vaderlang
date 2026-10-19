@@ -277,7 +277,7 @@ integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
         if integer_values(slot) == null || !is_assignable(arg0, slot) {
             continue
         }
-        held :: scalar_backing(erase_nested(slot)) ?? continue
+        held :: scalar_backing(slot) ?? continue
         tightness :: OWN_TYPE_CLOSENESS - i32(primitive_size(held.name))
         if tightness > closest {
             closest = tightness

@@ -4,7 +4,7 @@
   snippet.Reading :: struct { offset: i8 }  // snippet$Reading
   snippet.parse_hour :: fn(n: i64) -> null | u8 {  // snippet$parse_hour
       if (n >= i64(0)) && (n <= i64(23)) {
-          return n
+          return u8(n)
       }
       return null
   }

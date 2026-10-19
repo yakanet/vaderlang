@@ -11,7 +11,7 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
-      return close - i64(open)
+      return i64(i8(i16(u8(close)) - i16(open)))
   }
   snippet.label :: fn(h: u8) -> string {  // snippet$label
       {

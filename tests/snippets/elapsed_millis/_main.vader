@@ -1,11 +1,12 @@
-// A narrowing adds a fact, it changes no width : a mutable local copied from a value
-// narrowed out of an integer type takes that type where it holds the value. Past
-// `n in Hour` with `n: i64`, `micros := n * 3_600_000` is an `i64`, as without the
-// test, so `micros * 1000` does not overflow an `i32` ; so is a product past a
-// guard's narrowing (`is_morning`), and `n << 40` reads `n` as its `i64`. A `u8`
-// narrowed into `0..=10` gives a `u8` copy, and a product past `u8` the narrowest of
-// `i32`, `i64` holding it. Values out of a `u32` and an `i32` give an `i64`, in
-// either order. A declared range keeps the rule : `h + 1` on an `Hour` is an `i32`.
+// A narrowed integer is a value of its range, and a local takes the type of its
+// first value, a range included : past `n in Hour` with `n: i64`, `micros` must
+// write the type it will hold (`micros: i64 = n * 3_600_000`), or `micros * 1000`
+// would not fit the range of its first value. The same holds past a guard's
+// narrowing (`is_morning`) and for a `u8` narrowed into `0..=10`. A bitwise
+// operation names its width (`i64(n) << 40`). Values narrowed out of a `u32` and an
+// `i32` add up as their ranges. A declared range follows the same rule :
+// `next: i32 = h + 1` may later hold `next % 24`.
+
 module "snippet"
 
 import "std/io"
@@ -19,35 +20,33 @@ main :: fn(argv: string[]) -> i32 {
     if n !in Hour {
         return 1
     }
-    micros := n * 3_600_000
+    micros: i64 = n * 3_600_000
     micros = micros * 1000
     if is_morning(n) {
-        early := n * 1000
+        early: i64 = n * 1000
         early = early * 1_000_000
         println("early ${early}")
     }
-    shifted :: n << 40
+    shifted :: i64(n) << 40
     b: u8: u8(argv.len()) + 7
     if b !in 0..=10 {
         return 2
     }
-    count := b
+    count: u8 = b
     count += 1
-    scaled := b * 1000
+    scaled: i32 = b * 1000
     scaled += 1
     wide: u32: u32(argv.len()) + 3
     signed: i32: i32(argv.len()) + 2
     if wide !in 0..=9 || signed !in 0..=9 {
         return 3
     }
-    forward := wide + signed
-    backward := signed + wide
+    forward: i64 = wide + signed
     forward = forward * 1_000_000_000
-    backward = backward * 1_000_000_000
     h: Hour: 23
-    next := h + 1
+    next: i32 = h + 1
     next = next % 24
     println("micros ${micros}, shifted ${shifted}, count ${count}, scaled ${scaled}")
-    println("forward ${forward}, backward ${backward}, next ${next}")
+    println("forward ${forward}, next ${next}")
     return 0
 }

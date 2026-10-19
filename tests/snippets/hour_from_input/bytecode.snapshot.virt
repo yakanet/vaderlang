@@ -34,7 +34,10 @@ fn 0 snippet$parse_hour (i64) -> any
     i64.le
     if $L1 void
       local.get 0   ; arg 0
-      retag 1   ; i64
+      i64.to_i32
+      i32.const 255
+      i32.bitand
+      retag 3   ; u8
       return
     end $L1
     return.lit null.const

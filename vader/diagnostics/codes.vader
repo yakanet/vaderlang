@@ -148,6 +148,7 @@ export TypecheckCode :: enum(CodeInfo) {
     MisshapenGuard                  { .id = "T3112", .message = "a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns" },
     GuardParameterWritten           { .id = "T3113", .message = "a function declaring `@returns` or `@ensures` cannot write its parameters" },
     PostconditionDoesNotHold        { .id = "T3114", .message = "a function returns where its `@ensures` does not hold" },
+    BitwiseOperationOnRange         { .id = "T3115", .message = "a bitwise operation needs an integer of a fixed width" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

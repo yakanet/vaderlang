@@ -1,7 +1,9 @@
 // Integer ranges as types : declared over `Int` or written in place, held in the
 // narrowest integer, widened into any integer holding them. An operation on ranges
 // has the range of what it computes (`(h + 1) % 24` stays an `Hour`, two
-// `0..=200` add up past a byte), and a conversion `Hour(x)` checks its value.
+// `0..=200` add up past a byte), and a conversion `Hour(x)` checks its value. A
+// bitwise operation names its width (`i8(o) & 7`), and a local that leaves the
+// range of its first value writes its type (`count: i32`).
 
 module "snippet"
 
@@ -35,7 +37,7 @@ part_of_day :: fn(h: Hour) -> string = match h {
     _      -> "afternoon"
 }
 
-low_bits :: fn(o: Offset) -> i8 = o & 7
+low_bits :: fn(o: Offset) -> i8 = i8(o) & 7
 
 six_later :: fn(h: Hour) -> Hour = (h + 2 * 3) % 24
 
@@ -59,7 +61,7 @@ main :: fn() -> i32 {
     )
     taken: Hour[]: [0, 1, 2]
     println("first free ${first_free(taken) ?? 0}")
-    count := c.hour + 1
+    count: i32 = c.hour + 1
     count = count * 1000
     println("count ${count}")
     return 0

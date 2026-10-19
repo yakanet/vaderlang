@@ -1,0 +1,45 @@
+// A bitwise operation computes at a width, which a range of no machine integer's
+// bounds does not have: on such a range, declared or narrowed, it is refused, a
+// distinct over one included. Converting the operand first names the width; a
+// machine integer has its own, and a shift's count may be a range.
+module "snippet"
+
+export Hour :: Int in 0..=23
+
+export Shift :: Hour
+
+export narrowed :: fn(n: i64) -> i64 {
+    if n in Hour {
+        return ~n
+    }
+    return 0
+}
+
+export shifted :: fn(n: i64) -> i64 {
+    if n in Hour {
+        return n << 8
+    }
+    return 0
+}
+
+export masked :: fn(h: Hour) -> i64 = h & 1
+
+export wrapped :: fn(h: Hour) -> i64 = h +% 1
+
+export converted :: fn(n: i64, h: Hour) -> i64 {
+    if n in Hour {
+        return ~i64(n) + (i64(n) << 8) + (u8(h) & 1)
+    }
+    return 0
+}
+
+export machine :: fn(b: u8) -> u8 = b & 1
+
+export counted :: fn(x: u32, k: i64) -> u32 {
+    if k in 0..<32 {
+        return x << k
+    }
+    return 0
+}
+
+export distinct :: fn(s: Shift) -> Shift = s & 1

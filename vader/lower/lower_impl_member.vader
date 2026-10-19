@@ -512,6 +512,24 @@ converts_integer_into_char :: fn(ctx: FnLowerCtx, call: CallExpr, target: Type) 
 /// by the direct-ident path (`try_lower_cast_call`) and the namespace path
 /// (`nsM.T(value)` in `try_lower_namespace_call`). The caller has already
 /// confirmed this is a cast (type-shaped callee / TypeMetaType) with one arg.
+// `arg`, the lowered argument of a conversion to the integer `type`, without the
+// conversion a read of a narrowed name or field adds (`stored_read_type`) : the
+// typecheck proved the stored value holds in the narrower integer, so converting
+// the stored value gives the same integer (`i64(n)` past `n in Hour` reads `n`
+// once, not as a byte widened back).
+without_narrowed_read :: fn(source: Expr, arg: LoweredExpr, type: Type) -> LoweredExpr {
+    if source !is IdentExpr && source !is FieldExpr {
+        return arg
+    }
+    if arg !is LoweredCast || !is_integer_primitive(type) || !is_integer_primitive(arg.value.type) {
+        return arg
+    }
+    return arg.value
+}
+
+// Whether `t` is one of the machine integers as the lowering holds them.
+is_integer_primitive :: fn(t: Type) -> bool = t is PrimitiveType && is_int_name(t.name)
+
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     target :: ctx.types.raw_expr_type(call)
     if is_refinement(target) || target is TypeParamType {
@@ -539,7 +557,7 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
         value :: as_written_value(ctx, call.args[0].value, lower_expr(ctx, call.args[0].value))
         return LoweredCast { .span = call.span, .type = type, .value = value }
     }
-    arg :: lower_expr(ctx, call.args[0].value)
+    arg :: without_narrowed_read(call.args[0].value, lower_expr(ctx, call.args[0].value), type)
     // `Target(value)` runs the `into` the typecheck recorded at `value` when
     // `Source implements Into<Target>` ; the numeric-primitive cast then wraps the
     // converted value (`cast → i32 / call into(u)`).

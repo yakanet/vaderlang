@@ -42,7 +42,7 @@
       if (n < i64(0)) || (n > i64(23)) {
           return i64(-1)
       }
-      chosen: i64 = if first { n } else { i64(h) }
+      chosen: u8 = if first { u8(n) } else { h }
       return i64(chosen) * i64(1000)
   }
   snippet.doubled :: fn(n: i64, h: u8) -> i64 {  // snippet$doubled

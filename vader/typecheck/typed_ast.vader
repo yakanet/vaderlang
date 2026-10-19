@@ -325,6 +325,11 @@ export TypedProgram :: struct {
     /// line/column (`diagnostics/diagnostic.vader`).
     local_types: MutableMap<u64, Type>
 
+    /// The `:=` / `::` locals whose type is not written, keyed as `local_types` :
+    /// such a local holds the type of its first value, and a T3063 on a write to it
+    /// says to write the type instead.
+    unwritten_locals: MutableSet<u64> = MutableSet<u64> {}
+
     /// `x := []` — the empty-array initialiser's expression id, keyed by the
     /// same binding span as `local_types`. Read by
     /// `call.vader::widen_empty_array_on_push`, which must widen the LITERAL

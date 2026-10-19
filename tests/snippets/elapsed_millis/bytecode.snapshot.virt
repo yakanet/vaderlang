@@ -16,9 +16,8 @@ string 2 ", shifted "
 string 3 ", count "
 string 4 ", scaled "
 string 5 "forward "
-string 6 ", backward "
-string 7 ", next "
-string 8 "\n"
+string 6 ", next "
+string 7 "\n"
 import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=5,9,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -43,8 +42,8 @@ fn 1 snippet$main (ref) -> i32
   local scaled i32
   local wide u32
   local signed i32
-  local $cast_78 i64
-  local $cast_106 u64
+  local $cast_81 u8
+  local $cast_108 u64
   local.get 0   ; arg 0
   array.len
   i64.const 4
@@ -62,8 +61,13 @@ fn 1 snippet$main (ref) -> i32
     return.lit i32.const 1
   end $L1
   local.get 1   ; n
-  i64.const 3600000
-  i64.checked_mul
+  i64.to_i32
+  i32.const 255
+  i32.bitand
+  u8.to_i32
+  i32.const 3600000
+  u32.checked_mul
+  u32.to_i64
   local.tee 2   ; micros
   i64.const 1000
   i64.checked_mul
@@ -75,8 +79,13 @@ fn 1 snippet$main (ref) -> i32
   call 0   ; snippet$is_morning
   if $L2 void
     local.get 1   ; n
-    i64.const 1000
-    i64.checked_mul
+    i64.to_i32
+    i32.const 255
+    i32.bitand
+    u8.to_i32
+    i32.const 1000
+    u16.checked_mul
+    u16.to_i64
     local.tee 3   ; early
     i64.const 1000000
     i64.checked_mul
@@ -164,33 +173,23 @@ fn 1 snippet$main (ref) -> i32
             i32.le
             if $L8 void
               local.get 9   ; wide
-              u32.to_i64
-              local.set 3   ; early
+              u32.to_i32
+              i32.const 255
+              i32.bitand
+              local.set 6   ; b
               local.get 10   ; signed
-              i32.to_i64
-              local.set 5   ; __off_1
-              local.get 3   ; early
-              local.get 5   ; __off_1
-              i64.checked_add
-              local.set 3   ; early
-              local.get 10   ; signed
-              i32.to_i64
-              local.set 5   ; __off_1
-              local.get 9   ; wide
-              u32.to_i64
-              local.set 11   ; $cast_78
-              local.get 5   ; __off_1
-              local.get 11   ; $cast_78
-              i64.checked_add
-              local.set 5   ; __off_1
-              local.get 3   ; early
+              i32.to_i32
+              i32.const 255
+              i32.bitand
+              local.set 11   ; $cast_81
+              local.get 6   ; b
+              local.get 11   ; $cast_81
+              u8.checked_add
+              u8.to_i64
+              local.tee 3   ; early
               i64.const 1000000000
               i64.checked_mul
               local.set 3   ; early
-              local.get 5   ; __off_1
-              i64.const 1000000000
-              i64.checked_mul
-              local.set 5   ; __off_1
               i32.const 24
               u8.to_i32
               local.tee 10   ; signed
@@ -201,58 +200,58 @@ fn 1 snippet$main (ref) -> i32
               buffer.new
               local.set 4   ; __buf_0
               i64.const 0
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               string.const 1   ; "micros "
               call 4   ; std_core$write_string_at
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               local.get 2   ; micros
               call 5   ; std_core$write_int
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               string.const 2   ; ", shifted "
               call 4   ; std_core$write_string_at
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               local.get 1   ; n
               call 5   ; std_core$write_int
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               string.const 3   ; ", count "
               call 4   ; std_core$write_string_at
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 7   ; count
               u8.to_i64
-              local.set 12   ; $cast_106
+              local.set 12   ; $cast_108
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
-              local.get 12   ; $cast_106
+              local.get 5   ; __off_1
+              local.get 12   ; $cast_108
               call 6   ; std_core$write_unsigned
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               string.const 4   ; ", scaled "
               call 4   ; std_core$write_string_at
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 8   ; scaled
               i32.to_i64
               local.set 1   ; n
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               local.get 1   ; n
               call 5   ; std_core$write_int
-              local.set 11   ; $cast_78
+              local.set 5   ; __off_1
               local.get 4   ; __buf_0
-              local.get 11   ; $cast_78
+              local.get 5   ; __off_1
               call 3   ; std_core$finish_buffer
               call 9   ; std_io$println__string
-              i64.const 86
+              i64.const 55
               buffer.new
               local.set 4   ; __buf_0
               i64.const 0
@@ -269,17 +268,7 @@ fn 1 snippet$main (ref) -> i32
               local.set 1   ; n
               local.get 4   ; __buf_0
               local.get 1   ; n
-              string.const 6   ; ", backward "
-              call 4   ; std_core$write_string_at
-              local.set 1   ; n
-              local.get 4   ; __buf_0
-              local.get 1   ; n
-              local.get 5   ; __off_1
-              call 5   ; std_core$write_int
-              local.set 1   ; n
-              local.get 4   ; __buf_0
-              local.get 1   ; n
-              string.const 7   ; ", next "
+              string.const 6   ; ", next "
               call 4   ; std_core$write_string_at
               local.set 1   ; n
               local.get 10   ; signed
@@ -633,7 +622,7 @@ end
 fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 8   ; "\n"
+  string.const 7   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_3
   i32.const 0

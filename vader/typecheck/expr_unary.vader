@@ -43,7 +43,7 @@ infer_unary :: fn(
                 push_op_undefined(e, operand, "~", diags)
                 return TY_UNRESOLVED
             }
-            return represented(operand)
+            return bitwise_operand(e.operand, operand, diags)
         }
     }
 }

@@ -37,7 +37,7 @@
       } :string
   }
   snippet.low_bits :: fn(o: i8) -> i8 {  // snippet$low_bits
-      o & i8(7)
+      i8(o) & i8(7)
   }
   snippet.six_later :: fn(h: u8) -> u8 {  // snippet$six_later
       (h + (u8(2) * u8(3))) % u8(24)
