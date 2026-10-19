@@ -61,7 +61,7 @@
       {
           __for_v_8: u8 = 9
           for __for_v_8 <= u8(18) {
-              h: u8 = __for_v_8
+              h: Opening = __for_v_8
               hours = hours + i32(h)
           } @step {
               __for_v_8 = __for_v_8 +% u8(1)

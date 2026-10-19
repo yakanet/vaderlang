@@ -88,6 +88,30 @@ export storage_integer :: fn(r: RangeType) -> MachineInteger =
 export range_representation :: fn(r: RangeType) -> PrimitiveType =
     PrimitiveType { .name = storage_integer(r).name }
 
+/// The name a backend reads `t` by : the integer it is held in for an integer
+/// type (`integer_representation`), its display for any other.
+///
+/// @param t  any type.
+export representation_name :: fn(t: Type) -> string {
+    integer :: integer_representation(t) ?? return display_type(t)
+    return integer.name
+}
+
+/// The integer type a value of `t` is held in : a machine integer primitive as
+/// itself, a range as its representation (`range_representation`) ; null for any
+/// other type.
+///
+/// @param t  any type.
+export integer_representation :: fn(t: Type) -> PrimitiveType | null {
+    if t is RangeType {
+        return range_representation(t)
+    }
+    if t is PrimitiveType && is_int_name(t.name) {
+        return t
+    }
+    return null
+}
+
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
 /// in, and an enum's inferred width.
@@ -925,8 +949,8 @@ export canonical_key :: fn(t: Type) -> string {
     }
 }
 
-// A machine integer's range keys as the primitive it is held in after the
-// typecheck, so that a table filled before the ranges are erased answers after.
+// A machine integer's range keys as the primitive of its name, so that the
+// lowering's primitives and the typecheck's ranges reach one entry.
 range_key :: fn(r: RangeType) -> string {
     machine :: machine_integer_name(r.bounds)
     if machine != "" {

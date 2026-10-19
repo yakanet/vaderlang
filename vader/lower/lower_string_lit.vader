@@ -191,9 +191,11 @@ WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 // through its `Display` (`render_part`) — a distinct included, whose own `Display`
 // may differ from its backing's (`Instant`'s ISO-8601 form over `distinct i64`).
 classify_kind :: fn(t: Type) -> WriterKind {
+    integer :: integer_representation(t)
+    if integer != null {
+        return integer_writer(integer)
+    }
     if t is PrimitiveType {
-        if is_signed_int_name(t.name)   { return .Signed }
-        if is_unsigned_int_name(t.name) { return .Unsigned }
         if t.name == "bool"   { return .Bool }
         if t.name == "string" { return .Str }
     }
@@ -228,7 +230,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
                 mark :: ctx.pending_awaits.len()
                 inner :: lower_expr(ctx, part.expr)
                 bind_before_hoisted(ctx, values, mark)
-                shown :: lowered_default(shown_type(ctx, part.expr, inner))
+                shown :: default_if_free(shown_type(ctx, part.expr, inner))
                 rendered :: render_part(ctx, part.expr, inner, shown, span)
                 if rendered != null {
                     observe_replacement(ctx, part.expr, .Display, inner, rendered)
@@ -347,10 +349,18 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     }
 }
 
-// Cast `inner` to the primitive `width` ; identity when it already has that type.
+// The writer of an integer held in `integer`.
+integer_writer :: fn(integer: PrimitiveType) -> WriterKind {
+    if is_signed_int_name(integer.name) {
+        return .Signed
+    }
+    return .Unsigned
+}
+
+// Cast `inner` to the primitive `width` ; identity when it is already held in it.
 cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
-    t :: inner.type
-    if t is PrimitiveType && t.name == width {
+    held :: integer_representation(inner.type)
+    if held != null && held.name == width {
         return inner
     }
     // A literal the width holds is that width's literal : no conversion to run.

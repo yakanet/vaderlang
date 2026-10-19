@@ -175,6 +175,9 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         .left = in_width(bind_one_before_hoisted(ctx, left, mark), computed_in, binary.span),
         .right = in_width(right, computed_in, binary.span),
     }
+    if computed_in == null {
+        return computed
+    }
     return held_as(computed, type, binary.span)
 }
 
@@ -388,7 +391,7 @@ operator_target :: fn(
     info: OpTraitInfo,
     t: Type,
 ) -> RecordedTarget | null {
-    if t is PrimitiveType && !(info.shape == .CompareCmp && is_string_type(t)) {
+    if t is PrimitiveType | RangeType && !(info.shape == .CompareCmp && is_string_type(t)) {
         return null
     }
     return recorded_target(ctx, binary, .Operator, t)

@@ -31,10 +31,8 @@ import "toolchain/span"
 // (no integer context) stays a `LoweredCharLit`. `ty` is already defaulted
 // (FreeChar → char).
 lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
-    if ty is PrimitiveType {
-        if ty.name != "char" {
-            return LoweredIntLit { .span = e.span, .type = ty, .value = i64(e.value) }
-        }
+    if integer_representation(ty) != null {
+        return LoweredIntLit { .span = e.span, .type = ty, .value = i64(e.value) }
     }
     return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value }
 }
@@ -63,11 +61,11 @@ lower_expr_as_typed :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     }
     type :: ctx.types.expr_type(expr)
     match expr {
-        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = lowered_default(type), .value = int_literal_value(expr) } }
-        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = lowered_default(type), .value = expr.value } }
+        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = int_literal_value(expr) } }
+        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = default_if_free(type), .value = expr.value } }
         is BoolLitExpr   -> { return LoweredBoolLit { .span = expr.span, .type = TY_BOOL, .value = expr.value } }
         is NullLitExpr   -> { return LoweredNullLit { .span = expr.span, .type = TY_NULL } }
-        is CharLitExpr   -> { return lower_char_lit(expr, lowered_default(type)) }
+        is CharLitExpr   -> { return lower_char_lit(expr, default_if_free(type)) }
         is StringLitExpr -> { return lower_string_lit(ctx, expr, type) }
         is IdentExpr     -> { return lower_ident(ctx, expr, type) }
         is CallExpr      -> { return kept_in_range(ctx, expr, lower_call(ctx, expr, type)) }
@@ -583,7 +581,7 @@ union_field_read_type :: fn(
 ) -> Type | null {
     if type is UnresolvedType {
         declared :: union_common_field_type(receiver, field, ctx.typed) ?? return null
-        return erase_ranges(declared)
+        return laid_out_unions(declared)
     }
     for v in receiver.variants {
         if v !is StructType {
@@ -613,7 +611,7 @@ narrowed_field_width :: fn(
     field: string,
     use_type: Type,
 ) -> Type | null {
-    if use_type !is PrimitiveType || ctx.types.raw_expr_type(expr) !is RangeType {
+    if integer_representation(use_type) == null || ctx.types.raw_expr_type(expr) !is RangeType {
         return null
     }
     declared :: struct_field_type(ctx, receiver, field)
@@ -662,10 +660,9 @@ stored_read_type :: fn(declared: Type | null, use_type: Type) -> Type | null {
 // Whether a use of type `use_type` reads an integer slot of type `declared` held in
 // another width.
 narrows_integer_width :: fn(declared: Type, use_type: Type) -> bool {
-    if declared !is PrimitiveType || use_type !is PrimitiveType || declared.name == use_type.name {
-        return false
-    }
-    return is_int_name(declared.name) && is_int_name(use_type.name)
+    stored :: integer_representation(declared) ?? return false
+    used :: integer_representation(use_type) ?? return false
+    return stored.name != used.name
 }
 
 // `value`, read at `stored`, as the use of type `use_type` sees it : a cast to the

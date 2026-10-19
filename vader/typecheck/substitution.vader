@@ -16,9 +16,10 @@ import "vader/types"
 export Substitution :: struct {
     type_params: MutableMap<i32, Type>
     self_type:   Type | null
-    /// The range each type parameter an instance binds to one is bound to :
-    /// `type_params` holds its integer, what the instance's types are read as,
-    /// and this the bounds its values are checked against. Null when none is.
+    /// The range each type parameter an instance binds to a range of no machine
+    /// integer's bounds is bound to, as `type_params` holds it : the bounds a
+    /// value handed back through it is checked against (`kept_in_range`). Null
+    /// when none is.
     ranges:      MutableMap<i32, RangeType> | null = null
 }
 

@@ -221,9 +221,9 @@ is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
 fn_signature_compatible :: fn(from: Type, to: Type) -> bool =
     is_assignable(from, to) && laid_out_alike(from, to)
 
-// Whether `a` and `b` are laid out alike where both are integer types, as the
-// lowering lays out a type inside another (`erase_ranges`) ; true when either is
-// another type, whose own check is somebody else's.
+// Whether `a` and `b` are laid out alike where both are integer types, each range
+// held in its integer (`erase_ranges`) ; true when either is another type, whose
+// own check is somebody else's.
 laid_out_alike :: fn(a: Type, b: Type) -> bool {
     if integer_values(a) == null || integer_values(b) == null {
         return true

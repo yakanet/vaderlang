@@ -162,7 +162,7 @@ try_data_pool :: fn(
 ) -> PooledConst | null {
     if cd.type is ArrayType as arr_type {
         if pool_literal_of(cd.value) is LoweredArrayLit as lit {
-            element_type_name :: display_type(arr_type.element)
+            element_type_name :: representation_name(arr_type.element)
             entry :: render_data_pool_entry(lit, element_type_name)
             if entry != null {
                 pool_index :: project.data_pool.len()

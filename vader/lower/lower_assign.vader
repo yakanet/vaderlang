@@ -218,7 +218,7 @@ destructured_leaf :: fn(
         leaf :: build_leaf_access(src, backing, source_type, span, index, null)
         return prepare_node_for_slot(ctx, place, leaf, place_type, span)
     }
-    if integer_primitive(source_type) == null {
+    if integer_representation(source_type) == null {
         return build_leaf_access(src, backing, place_type, span, index, null)
     }
     leaf :: build_leaf_access(src, backing, source_type, span, index, null)

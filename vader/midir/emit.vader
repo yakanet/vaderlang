@@ -1735,12 +1735,9 @@ emit_call_results :: fn(ctx: FnEmitCfg, pos: i64, dsts: LocalId[], span: Span) -
 }
 
 // True when a struct.get / array.get / cell-deref result needs an
-// unboxing `ref.cast` to recover its static primitive type. Skips
+// unboxing `ref.cast` to recover its static primitive or integer type. Skips
 // ref-class statics (ref/any/void) where no narrowing is meaningful.
-needs_ref_cast :: fn(t: Type) -> bool {
-    if t !is PrimitiveType { return false }
-    return t.name != "void"
-}
+needs_ref_cast :: fn(t: Type) -> bool = t is RangeType || t is PrimitiveType && t.name != "void"
 
 // Type an `array.push` is emitted against : the array's own element, since the
 // buffer's kind was set from it at construction — an `i32` pushed into an

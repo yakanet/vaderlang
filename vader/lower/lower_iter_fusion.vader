@@ -202,7 +202,7 @@ descend_chain_concrete :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | nul
         is AST.RangeExpr -> {
             bound :: ctx.types.expr_type(expr.lower)
             if !is_counting_type(bound) { return null }
-            element :: lowered_default(bound)
+            element :: default_if_free(bound)
             return IterChain {
                 .kind = .Range,
                 .range_lower = expr.lower,

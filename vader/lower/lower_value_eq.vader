@@ -94,7 +94,7 @@ distinct_over_reference :: fn(t: Type) -> bool =
 // a float (`nan`, `-0.0`), nor a struct, a tuple, a distinct or a type parameter.
 compares_by_bits :: fn(t: Type) -> bool {
     for v in union_variants(t) ?? [t] {
-        bits :: v is EnumType || v is PrimitiveType && !is_float_name(v.name)
+        bits :: v is EnumType || v is RangeType || v is PrimitiveType && !is_float_name(v.name)
         if !bits {
             return false
         }

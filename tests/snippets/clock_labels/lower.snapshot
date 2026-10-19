@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.am :: fn(m: u8) -> string {  // snippet$am
+  snippet.am :: fn(m: Morning) -> string {  // snippet$am
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
@@ -10,13 +10,13 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet.label :: fn(h: u8) -> string {  // snippet$label
+  snippet.label :: fn(h: Hour) -> string {  // snippet$label
       {
-          if h == u8(0) {
+          if h == Hour(0) {
               "midnight"
-          } else if (h >= u8(1)) && (h <= u8(11)) {
+          } else if (h >= Hour(1)) && (h <= Hour(11)) {
               snippet.am(h)
-          } else if h == u8(12) {
+          } else if h == Hour(12) {
               "noon"
           } else {
               concat_2(snippet.am(h - u8(12)), " later")
@@ -33,27 +33,27 @@
           if (b >= u8(48)) && (b <= u8(57)) { i32(b - u8(48)) } else { -1 } :i32
       } :i32
   }
-  snippet.millis :: fn(h: u8) -> i64 {  // snippet$millis
+  snippet.millis :: fn(h: Hour) -> i64 {  // snippet$millis
       total: i64 = i64(h)
       total = total * i64(3600000)
       return total
   }
-  snippet.either :: fn(n: i64, h: u8, first: bool) -> i64 {  // snippet$either
+  snippet.either :: fn(n: i64, h: Hour, first: bool) -> i64 {  // snippet$either
       if (n < i64(0)) || (n > i64(23)) {
           return i64(-1)
       }
-      chosen: u8 = if first { u8(n) } else { h }
+      chosen: Hour = if first { Hour(n) } else { h }
       return i64(chosen) * i64(1000)
   }
-  snippet.doubled :: fn(n: i64, h: u8) -> i64 {  // snippet$doubled
+  snippet.doubled :: fn(n: i64, h: Hour) -> i64 {  // snippet$doubled
       if (n < i64(0)) || (n > i64(23)) {
           return i64(-1)
       }
-      return (i64(snippet.head<Hour>([u8(n), u8(n)] :u8[])) * i64(100)) + i64(snippet.head<Hour>([h, h] :u8[]))
+      return (i64(snippet.head<Hour>([Hour(n), Hour(n)] :Hour[])) * i64(100)) + i64(snippet.head<Hour>([h, h] :Hour[]))
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      late: u8 = 15
-      std.io.println<string>(concat_7(snippet.label(u8(0)), ", ", snippet.label(u8(9)), ", ", snippet.label(u8(12)), ", ", snippet.label(late)))
+      late: Hour = 15
+      std.io.println<string>(concat_7(snippet.label(Hour(0)), ", ", snippet.label(Hour(9)), ", ", snippet.label(Hour(12)), ", ", snippet.label(late)))
       std.io.println<string>(concat_3(snippet.from_input(i64(7)), ", ", snippet.from_input(i64(40))))
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(41))
@@ -81,7 +81,7 @@
       } :string)
       return 0
   }
-  snippet.head<Hour> :: fn(xs: u8[]) -> u8 {  // snippet$head__Int_in_0___23
+  snippet.head<Hour> :: fn(xs: Hour[]) -> Hour {  // snippet$head__Int_in_0___23
       xs[0]
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

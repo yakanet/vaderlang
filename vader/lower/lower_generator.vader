@@ -41,6 +41,9 @@ generator_element_of :: fn(return_type: Type) -> Type =
 // in `next()` before its first read, but `struct.new` needs every field set.
 // Primitives get their typed zero ; every ref type gets a typed `null`.
 zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
+    if ty is RangeType {
+        return LoweredIntLit { .span = span, .type = ty, .value = 0 }
+    }
     if ty is PrimitiveType {
         if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
         if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }

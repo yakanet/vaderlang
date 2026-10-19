@@ -3,7 +3,7 @@
 ## snippet
   snippet.Walk :: struct { km: i32 }  // snippet$Walk
   snippet.Swim :: struct { laps: i32 }  // snippet$Swim
-  snippet.rest :: fn(d: u8) -> string {  // snippet$rest
+  snippet.rest :: fn(d: Weekend) -> string {  // snippet$rest
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
@@ -12,7 +12,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet.work :: fn(d: u8) -> string {  // snippet$work
+  snippet.work :: fn(d: 0..=4) -> string {  // snippet$work
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
@@ -21,34 +21,34 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
-  snippet.plan :: fn(d: u8) -> string {  // snippet$plan
+  snippet.plan :: fn(d: Weekday) -> string {  // snippet$plan
       if snippet.is_weekend(d) {
           return snippet.rest(d)
       }
       return snippet.work(d)
   }
-  snippet.early_out :: fn(d: u8) -> string {  // snippet$early_out
+  snippet.early_out :: fn(d: Weekday) -> string {  // snippet$early_out
       if !snippet.is_weekend(d) {
           return snippet.work(d)
       }
       return snippet.rest(d)
   }
-  snippet.is_weekend :: fn(d: u8) -> bool {  // snippet$is_weekend
+  snippet.is_weekend :: fn(d: Weekday) -> bool {  // snippet$is_weekend
       d >= u8(5)
   }
-  snippet.is_sunday :: fn(d: u8) -> bool {  // snippet$is_sunday
+  snippet.is_sunday :: fn(d: Weekday) -> bool {  // snippet$is_sunday
       snippet.is_weekend(d) && (d == u8(6))
   }
-  snippet.lie_in :: fn(d: u8) -> null | u8 {  // snippet$lie_in
+  snippet.lie_in :: fn(d: Weekday) -> null | u8 {  // snippet$lie_in
       if snippet.is_sunday(d) {
           return d
       }
       return null
   }
-  snippet.both_off :: fn(a: u8, b: u8) -> bool {  // snippet$both_off
+  snippet.both_off :: fn(a: Weekday, b: Weekday) -> bool {  // snippet$both_off
       snippet.is_weekend(a) && snippet.is_weekend(b)
   }
-  snippet.shared_rest :: fn(a: u8, b: u8) -> string {  // snippet$shared_rest
+  snippet.shared_rest :: fn(a: Weekday, b: Weekday) -> string {  // snippet$shared_rest
       if !snippet.both_off(a, b) {
           return "apart"
       }
@@ -73,18 +73,18 @@
       return concat_2("hello ", string(name))
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_7(snippet.plan(u8(6)), " ", snippet.plan(u8(2)), " ", snippet.early_out(u8(5)), " ", snippet.early_out(u8(0))))
+      std.io.println<string>(concat_7(snippet.plan(Weekday(6)), " ", snippet.plan(Weekday(2)), " ", snippet.early_out(Weekday(5)), " ", snippet.early_out(Weekday(0))))
       std.io.println<string>({
-          __p_1: string = snippet.shared_rest(u8(5), u8(6))
-          __p_2: string = snippet.shared_rest(u8(5), u8(2))
+          __p_1: string = snippet.shared_rest(Weekday(5), Weekday(6))
+          __p_2: string = snippet.shared_rest(Weekday(5), Weekday(2))
           __buf_3: Buffer = std.core.new_byte_buffer(i64(28) +% (std.core.byte_len(__p_1) +% std.core.byte_len(__p_2)))
           __off_4: i64 = 0
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64({
-              __coalesce_0: null | u8 = snippet.lie_in(u8(6))
-              if __coalesce_0 is null { u8(6) } else { u8(__coalesce_0) } :u8
-          } :u8))
+              __coalesce_0: null | u8 = snippet.lie_in(Weekday(6))
+              if __coalesce_0 is null { u8(6) } else { u8(__coalesce_0) } :6..=6
+          } :6..=6))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.lie_in(u8(5)) is null)
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.lie_in(Weekday(5)) is null)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
           __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_1)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")

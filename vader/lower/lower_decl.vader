@@ -123,7 +123,7 @@ impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: Typed
     scratch: Diagnostic[]: []
     direct :: type_from_expr(pty, typed.resolved, scratch)
     if primitive_name(direct) != "" {
-        return erase_ranges(direct)
+        return direct
     }
     return types.param_type(ast_param)
 }
@@ -385,7 +385,7 @@ lower_const_value :: fn(
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
     if baked == null { return lower_expr(fn_ctx, const_decl.value) }
-    return comptime_value_to_lowered(baked, lowered_default(type_val), const_decl.span)
+    return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
 }
 
 lookup_comptime_value :: fn(

@@ -2,18 +2,18 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      top: u64 = 18446744073709551615
+      top: Counter = 18446744073709551615
       held: u64 = top
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(83))
           __off_1: i64 = 0
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, held)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(18446744073709551615))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Counter(18446744073709551615))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(9223372036854775810))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Straddle(-9223372036854775806))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(9223372036854775807))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Signed(9223372036854775807))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       past: u64 = 9223372036854775809
@@ -36,20 +36,20 @@
               std.core.finish_buffer(__buf_4, __off_5)
           } :string)
       }
-      near: u64 = 9223372036854775809
+      near: Straddle = -9223372036854775807
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(62))
           __off_7: i64 = 0
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, top / u64(2))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, top / Counter(2))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, near - u64(5))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, near % u64(10))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      edge: u64 = 9223372036854775810
+      edge: Straddle = -9223372036854775806
       if near < edge {
-          below_edge: u64 = near
+          below_edge: BelowEdge = near
           std.io.println<string>({
               __buf_8: Buffer = std.core.new_byte_buffer(i64(47))
               __off_9: i64 = 0

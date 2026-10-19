@@ -1,15 +1,15 @@
 # Lower
 
 ## snippet
-  snippet.part_of_day :: fn(h: u8) -> string {  // snippet$part_of_day
+  snippet.part_of_day :: fn(h: Hour) -> string {  // snippet$part_of_day
       {
-          if (h >= u8(0)) && (h <= u8(5)) {
+          if (h >= Hour(0)) && (h <= Hour(5)) {
               "night"
-          } else if (h >= u8(6)) && (h <= u8(11)) {
+          } else if (h >= Hour(6)) && (h <= Hour(11)) {
               "morning"
-          } else if (h >= u8(12)) && (h <= u8(17)) {
+          } else if (h >= Hour(12)) && (h <= Hour(17)) {
               "afternoon"
-          } else if (h >= u8(18)) && (h <= u8(23)) {
+          } else if (h >= Hour(18)) && (h <= Hour(23)) {
               "evening"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -55,9 +55,9 @@
   }
   snippet.shift_of :: fn(h: null | u8) -> string {  // snippet$shift_of
       {
-          if ((h is u8) && (u8(h) >= u8(0))) && (u8(h) <= u8(7)) {
+          if ((h is Hour) && (Hour(h) >= Hour(0))) && (Hour(h) <= Hour(7)) {
               "night shift"
-          } else if ((h is u8) && (u8(h) >= u8(8))) && (u8(h) <= u8(23)) {
+          } else if ((h is Hour) && (Hour(h) >= Hour(8))) && (Hour(h) <= Hour(23)) {
               "day shift"
           } else if h == null {
               "off"
@@ -67,8 +67,8 @@
       } :string
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      h: u8 = 14
-      std.io.println<string>(concat_5(snippet.part_of_day(h), " ", snippet.part_of_day(u8(3)), " ", snippet.part_of_day(u8(23))))
+      h: Hour = 14
+      std.io.println<string>(concat_5(snippet.part_of_day(h), " ", snippet.part_of_day(Hour(3)), " ", snippet.part_of_day(Hour(23))))
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(11))
           __off_1: i64 = 0

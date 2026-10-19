@@ -316,7 +316,7 @@ bind_at_instance :: fn(
         if k >= callee_type.params.len() {
             break
         }
-        actual :: lowered_default(ctx.types.instance_argument(ctx.types.raw_expr_type(args[k])))
+        actual :: default_if_free(ctx.types.instance_argument(ctx.types.raw_expr_type(args[k])))
         unify_params(callee_type.params[k], actual, bindings, ctx)
     }
 }

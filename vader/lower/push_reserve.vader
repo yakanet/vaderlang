@@ -223,7 +223,8 @@ never_negative :: fn(bound: LoweredExpr) -> bool {
     if bound is LoweredArrayLen {
         return true
     }
-    return is_unsigned_int_name(primitive_name(bound.type))
+    held :: integer_representation(bound.type) ?? return false
+    return is_unsigned_int_name(held.name)
 }
 
 count_lit :: fn(value: i64, span: Span) -> LoweredExpr = LoweredIntLit {

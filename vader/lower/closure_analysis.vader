@@ -423,7 +423,7 @@ add_capture :: fn(
     if !seen.add(symbol.id) { return }
     captures.push(Capture {
         .symbol = symbol,
-        .type   = erase_ranges(type_of_captured_symbol(symbol, ident, typed)),
+        .type   = laid_out_unions(type_of_captured_symbol(symbol, ident, typed)),
     })
 }
 

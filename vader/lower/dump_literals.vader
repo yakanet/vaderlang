@@ -38,7 +38,7 @@ bare_literal_text :: fn(value: LoweredExpr) -> string | null = @partial match va
 
 // `bare` as a literal of type `t`, where a bare literal takes `bare_type`.
 literal_text :: fn(bare: string, t: Type, bare_type: string) -> string {
-    if t is UnresolvedType || (t is PrimitiveType && t.name == bare_type) {
+    if t is UnresolvedType || primitive_name(t) == bare_type {
         return bare
     }
     return "${conversion_name(t)}(${bare})"

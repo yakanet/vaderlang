@@ -1,20 +1,20 @@
 # Lower
 
 ## snippet
-  snippet.Clock :: struct { hour: u8, minute: u8 }  // snippet$Clock
-  snippet.next_hour :: fn(h: u8) -> u8 {  // snippet$next_hour
+  snippet.Clock :: struct { hour: Hour, minute: 0..=59 }  // snippet$Clock
+  snippet.next_hour :: fn(h: Hour) -> Hour {  // snippet$next_hour
       (h + u8(1)) % u8(24)
   }
-  snippet.shifted :: fn(h: u8, by: i8) -> u8 {  // snippet$shifted
+  snippet.shifted :: fn(h: Hour, by: Offset) -> Hour {  // snippet$shifted
       u8(i16(i8(i16(h) + i16(by))) + i16(24)) % u8(24)
   }
-  snippet.total :: fn(a: u8, b: u8) -> i32 {  // snippet$total
+  snippet.total :: fn(a: Percent, b: Percent) -> i32 {  // snippet$total
       i32(a + b)
   }
   snippet.later :: fn(c: Clock, other: Clock) -> bool {  // snippet$later
       (c.hour > other.hour) || ((c.hour == other.hour) && (c.minute > other.minute))
   }
-  snippet.parse_hour :: fn(raw: i32) -> u8 {  // snippet$parse_hour
+  snippet.parse_hour :: fn(raw: i32) -> Hour {  // snippet$parse_hour
       {
           __in_range_0: i32 = raw
           if (__in_range_0 < 0) || (__in_range_0 > 23) {
@@ -23,31 +23,31 @@
           u8(__in_range_0)
       } :u8
   }
-  snippet.part_of_day :: fn(h: u8) -> string {  // snippet$part_of_day
+  snippet.part_of_day :: fn(h: Hour) -> string {  // snippet$part_of_day
       {
-          if h == u8(0) {
+          if h == Hour(0) {
               "midnight"
-          } else if h == u8(12) {
+          } else if h == Hour(12) {
               "noon"
-          } else if (h >= u8(0)) && (h <= u8(11)) {
+          } else if (h >= Hour(0)) && (h <= Hour(11)) {
               "morning"
           } else {
               "afternoon"
           } :string
       } :string
   }
-  snippet.low_bits :: fn(o: i8) -> i8 {  // snippet$low_bits
+  snippet.low_bits :: fn(o: Offset) -> i8 {  // snippet$low_bits
       i8(o) & i8(7)
   }
-  snippet.six_later :: fn(h: u8) -> u8 {  // snippet$six_later
+  snippet.six_later :: fn(h: Hour) -> Hour {  // snippet$six_later
       (h + (u8(2) * u8(3))) % u8(24)
   }
-  snippet.first_free :: fn(taken: u8[]) -> null | u8 {  // snippet$first_free
+  snippet.first_free :: fn(taken: Hour[]) -> null | u8 {  // snippet$first_free
       {
           h: i32 = 0
           for h < 24 {
               if !({
-                  __fuse_arr_0: u8[] = taken
+                  __fuse_arr_0: Hour[] = taken
                   pred: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = h }
                   __consumed_2: bool = false
                   $exit$i5: {
@@ -55,7 +55,7 @@
                           __fuse_len_0: i64 = @array.len(__fuse_arr_0)
                           __fuse_i_1: i64 = 0
                           for __fuse_i_1 < __fuse_len_0 {
-                              x: u8 = __fuse_arr_0[__fuse_i_1]
+                              x: Hour = __fuse_arr_0[__fuse_i_1]
                               if __lambda_snippet_0(pred, x) {
                                   __consumed_2 = true
                                   break $exit$i5
@@ -83,7 +83,7 @@
       return null
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      c: Clock = Clock { .hour = u8(23), .minute = u8(45) }
+      c: Clock = Clock { .hour = Hour(23), .minute = u8(45) }
       d: Clock = Clock { .hour = snippet.next_hour(c.hour), .minute = u8(5) }
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(101))
@@ -103,17 +103,17 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(79))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "tokyo ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(c.hour, i8(9))))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(c.hour, Offset(9))))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, ", honolulu ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(c.hour, i8(-10))))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(c.hour, Offset(-10))))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, ", ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(u8(2), i8(-10))))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.shifted(Hour(2), Offset(-10))))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(62))
           __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.total(u8(100), u8(100))))
+          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.total(Percent(100), Percent(100))))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.parse_hour(7)))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
@@ -121,9 +121,9 @@
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
-          __p_6: string = snippet.part_of_day(u8(12))
-          __p_7: string = snippet.part_of_day(u8(5))
-          __p_8: string = snippet.part_of_day(u8(20))
+          __p_6: string = snippet.part_of_day(Hour(12))
+          __p_7: string = snippet.part_of_day(Hour(5))
+          __p_8: string = snippet.part_of_day(Hour(20))
           __buf_9: Buffer = std.core.new_byte_buffer(i64(44) +% ((std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)) +% std.core.byte_len(__p_8)))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_6)
@@ -132,20 +132,20 @@
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(snippet.low_bits(i8(-3))))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i64(snippet.low_bits(Offset(-3))))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u64(snippet.six_later(u8(20))))
+          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u64(snippet.six_later(Hour(20))))
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
-      taken: u8[] = [u8(0), u8(1), u8(2)] :u8[]
+      taken: Hour[] = [Hour(0), Hour(1), Hour(2)] :Hour[]
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(31))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "first free ")
           __off_13 = std.core.write_unsigned(__buf_12, __off_13, u64({
               __coalesce_11: null | u8 = snippet.first_free(taken)
-              if __coalesce_11 is null { u8(0) } else { u8(__coalesce_11) } :u8
-          } :u8))
+              if __coalesce_11 is null { Hour(0) } else { Hour(__coalesce_11) } :Hour
+          } :Hour))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       count: i32 = i32(c.hour + u8(1))
@@ -160,7 +160,7 @@
       return 0
   }
   __lambda_env_snippet_1 :: struct { cap_0: i32 }
-  __lambda_snippet_0 :: fn(__env_1: __lambda_env_snippet_1, t: u8) -> bool {
+  __lambda_snippet_0 :: fn(__env_1: __lambda_env_snippet_1, t: Hour) -> bool {
       i32(t) == __env_1.cap_0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

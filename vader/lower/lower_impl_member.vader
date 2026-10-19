@@ -521,14 +521,14 @@ without_narrowed_read :: fn(source: Expr, arg: LoweredExpr, type: Type) -> Lower
     if source !is IdentExpr && source !is FieldExpr {
         return arg
     }
-    if arg !is LoweredCast || !is_integer_primitive(type) || !is_integer_primitive(arg.value.type) {
+    if arg !is LoweredCast || integer_representation(type) == null {
+        return arg
+    }
+    if integer_representation(arg.value.type) == null {
         return arg
     }
     return arg.value
 }
-
-// Whether `t` is one of the machine integers as the lowering holds them.
-is_integer_primitive :: fn(t: Type) -> bool = t is PrimitiveType && is_int_name(t.name)
 
 emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     target :: ctx.types.raw_expr_type(call)
@@ -585,7 +585,10 @@ emit_value_cast :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExp
     // P's backend repr) ; stamp the distinct type so the lowered tree stays
     // well-typed. `bc_type_of(distinct) == bc_type_of(backing)`, so the cast
     // emit is a no-op too. (Unwrap `P(x)` rides the `PrimitiveType` arm above.)
-    if type is DistinctType { return LoweredCast { .span = call.span, .type = type, .value = inner } }
+    // An integer conversion stamps its range the same way.
+    if type is DistinctType | RangeType {
+        return LoweredCast { .span = call.span, .type = type, .value = inner }
+    }
     // Any other target stamps itself too, unless the arg already has it : leaving a
     // distinct over a struct or an array for its backing (`i32[](row)`), whose
     // `Display` must be the backing's, or widening into a union (`(i32 | string)(3)`).

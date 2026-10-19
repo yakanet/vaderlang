@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  snippet.is_morning :: fn(h: u8) -> bool {  // snippet$is_morning
+  snippet.is_morning :: fn(h: Hour) -> bool {  // snippet$is_morning
       h < u8(12)
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
@@ -9,9 +9,9 @@
       if (n < i64(0)) || (n > i64(23)) {
           return 1
       }
-      micros: i64 = i64(u32(u8(n)) * u32(3600000))
+      micros: i64 = i64(u32(Hour(n)) * u32(3600000))
       micros = micros * i64(1000)
-      if snippet.is_morning(u8(n)) {
+      if snippet.is_morning(Hour(n)) {
           early: i64 = i64(u16(u8(n)) * u16(1000))
           early = early * i64(1000000)
           std.io.println<string>({
@@ -38,7 +38,7 @@
       }
       forward: i64 = i64(u8(wide) + u8(signed))
       forward = forward * i64(1000000000)
-      h: u8 = 23
+      h: Hour = 23
       next: i32 = i32(h + u8(1))
       next = next % 24
       std.io.println<string>({

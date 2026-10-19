@@ -2,14 +2,14 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      o: u8 = 200
-      next: u8 = o + u8(55)
-      wrapped: u8 = o +% u8(100)
+      o: Octet = 200
+      next: Octet = o + Octet(55)
+      wrapped: Octet = o +% Octet(100)
       as_byte: u8 = next
-      l: u8 = 254
-      exact: u8 = l + u8(1)
-      held: u8 = exact
-      w: u64 = 18446744073709551615
+      l: Level = 254
+      exact: 1..=255 = l + u8(1)
+      held: Octet = exact
+      w: Wide = 18446744073709551615
       top: u64 = w
       m: Meters = Meters(i64(5))
       std.io.println<string>({

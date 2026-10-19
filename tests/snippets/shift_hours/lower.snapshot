@@ -2,8 +2,8 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      start: u8 = 20
-      short: u8 = 3
+      start: Hour = 20
+      short: Hour = 3
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(28))
           __off_1: i64 = 0
@@ -11,7 +11,7 @@
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.later<Hour>(start, short)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      lengths: u8[] = [u8(2), u8(3), u8(4)] :u8[]
+      lengths: Hour[] = [Hour(2), Hour(3), Hour(4)] :Hour[]
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(27))
           __off_3: i64 = 0
@@ -24,39 +24,39 @@
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "long shifts ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64({
-              __fuse_arr_4: u8[] = lengths
-              pred: fn(u8) -> bool = __lambda_snippet_0
-              s: u8 = {
+              __fuse_arr_4: Hour[] = lengths
+              pred: fn(Hour) -> bool = __lambda_snippet_0
+              s: Hour = {
                   __in_range_0: u8 = std_core$u8$Zero$zero()
                   if __in_range_0 > u8(23) {
                       @unreachable("value out of range: not in `Hour` (0..=23)")
                   }
                   __in_range_0
-              }
+              } :u8
               {
                   __fuse_len_2: i64 = @array.len(__fuse_arr_4)
                   __fuse_i_3: i64 = 0
                   for __fuse_i_3 < __fuse_len_2 {
-                      x: u8 = __fuse_arr_4[__fuse_i_3]
+                      x: Hour = __fuse_arr_4[__fuse_i_3]
                       if __lambda_snippet_0(x) {
-                          x: u8 = x
+                          x: Hour = x
                           s = {
                               __in_range_1: u8 = s + x
                               if __in_range_1 > u8(23) {
                                   @unreachable("value out of range: not in `Hour` (0..=23)")
                               }
                               __in_range_1
-                          }
+                          } :u8
                       }
                   } @step {
                       __fuse_i_3 = __fuse_i_3 +% i64(1)
                   }
               }
               s
-          } :u8))
+          } :Hour))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
-      march: u8 = 3
+      march: Month = 3
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(32))
           __off_9: i64 = 0
@@ -72,7 +72,7 @@
           __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(snippet.later<u8>(bytes, bytes - u8(170))))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
-      long: u8 = 10
+      long: Hour = 10
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(28))
           __off_13: i64 = 0
@@ -82,10 +82,10 @@
       } :string)
       return 0
   }
-  __lambda_snippet_0 :: fn(h: u8) -> bool {
+  __lambda_snippet_0 :: fn(h: Hour) -> bool {
       h > u8(2)
   }
-  snippet.later<Hour> :: fn(start: u8, length: u8) -> u8 {  // snippet$later__Int_in_0___23
+  snippet.later<Hour> :: fn(start: Hour, length: Hour) -> Hour {  // snippet$later__Int_in_0___23
       {
           __in_range_0: u8 = start + length
           if __in_range_0 > u8(23) {
@@ -97,34 +97,34 @@
   snippet.later<u8> :: fn(start: u8, length: u8) -> u8 {  // snippet$later__u8
       start + length
   }
-  snippet.total<Hour> :: fn(lengths: u8[]) -> u8 {  // snippet$total__Int_in_0___23
-      sum: u8 = {
+  snippet.total<Hour> :: fn(lengths: Hour[]) -> Hour {  // snippet$total__Int_in_0___23
+      sum: Hour = {
           __in_range_0: u8 = std_core$u8$Zero$zero()
           if __in_range_0 > u8(23) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
           __in_range_0
-      }
+      } :u8
       {
-          __for_arr_1: u8[] = lengths
+          __for_arr_1: Hour[] = lengths
           __for_len_2: i64 = @array.len(__for_arr_1)
           __for_i_3: i64 = 0
           for __for_i_3 < __for_len_2 {
-              length: u8 = __for_arr_1[__for_i_3]
+              length: Hour = __for_arr_1[__for_i_3]
               sum = {
                   __in_range_4: u8 = sum + length
                   if __in_range_4 > u8(23) {
                       @unreachable("value out of range: not in `Hour` (0..=23)")
                   }
                   __in_range_4
-              }
+              } :u8
           } @step {
               __for_i_3 = __for_i_3 +% i64(1)
           }
       }
       return sum
   }
-  snippet.first_month<Month> :: fn(m: u8) -> u8 {  // snippet$first_month__Int_in_1___12
+  snippet.first_month<Month> :: fn(m: Month) -> Month {  // snippet$first_month__Int_in_1___12
       {
           __in_range_0: u8 = std_core$u8$One$one()
           if (__in_range_0 < u8(1)) || (__in_range_0 > u8(12)) {

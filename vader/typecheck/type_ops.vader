@@ -227,9 +227,9 @@ joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
 }
 
 /// `t` with every range in it replaced by its representation (`Hour` by `u8`,
-/// `Hour[]` by `u8[]`) : what the lowering and every pass after it see, for which
-/// a range is the integer it is held in. A union is rebuilt canonical, so
-/// `Hour | u8` is `u8`.
+/// `Hour[]` by `u8[]`) : `t` as it is laid out, each range the integer it is held
+/// in, for the variants of a union (`laid_out_unions`) and for two integer types
+/// compared by their layout. A union is rebuilt canonical, so `Hour | u8` is `u8`.
 ///
 /// @param t  a type the typecheck recorded.
 export erase_ranges :: fn(t: Type) -> Type {
@@ -273,9 +273,70 @@ erase_ranges_each :: fn(types: Type[]) -> Type[] {
     return out
 }
 
+/// `t` with every union holding a range of no machine integer's bounds laid out as
+/// the union of the integers its ranges are held in (`erase_ranges`), canonical :
+/// `Hour | null` is `u8 | null`, `Hour | u8` is `u8`. A union's variants are the
+/// tags a value of it carries at run time, one per integer, and whether it is a
+/// union at all decides if its values are boxed. Any other range stays a range.
+///
+/// @param t  a type the typecheck recorded.
+export laid_out_unions :: fn(t: Type) -> Type {
+    if !holds_refinement_union(t) {
+        return t
+    }
+    return match t {
+        is UnionType    -> union_of(erase_ranges_each(t.variants))
+        is DistinctType -> mk_distinct(t.symbol, laid_out_unions(t.backing))
+        is StructType   -> mk_struct(t.symbol, laid_out_unions_each(t.args))
+        is TraitType    -> TraitType { ...t, .args = laid_out_unions_each(t.args) }
+        is ArrayType    -> mk_array(laid_out_unions(t.element))
+        is TupleType    -> mk_tuple(laid_out_unions_each(t.elements))
+        is FnType       -> FnType {
+            ...t,
+            .params = laid_out_unions_each(t.params),
+            .return_type = laid_out_unions(t.return_type),
+        }
+        is RangeType | PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType
+         | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+         | NeverType | AnyType -> t
+    }
+}
+
+laid_out_unions_each :: fn(types: Type[]) -> Type[] {
+    out: Type[]: []
+    for t in types {
+        out.push(laid_out_unions(t))
+    }
+    return out
+}
+
+// Whether `t` holds a union holding a range of no machine integer's bounds. Read
+// on every type the lowering reads : a plain walk, as `contains_range` is.
+holds_refinement_union :: fn(t: Type) -> bool = match t {
+    is UnionType    -> contains_range(t, true)
+    is DistinctType -> holds_refinement_union(t.backing)
+    is StructType | TraitType -> any_holds_refinement_union(t.args)
+    is ArrayType    -> holds_refinement_union(t.element)
+    is TupleType    -> any_holds_refinement_union(t.elements)
+    is FnType       -> any_holds_refinement_union(t.params)
+        || holds_refinement_union(t.return_type)
+    is RangeType | PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType -> false
+}
+
+any_holds_refinement_union :: fn(types: Type[]) -> bool {
+    for t in types {
+        if holds_refinement_union(t) {
+            return true
+        }
+    }
+    return false
+}
+
 /// Whether a range sits anywhere in `t`, or with `refinements` a range of exact
-/// arithmetic (`is_refinement`). Read on every type the lowering reads : a plain
-/// walk, no iterator.
+/// arithmetic (`is_refinement`). Read on every type the lowering reads
+/// (`laid_out_unions`) : a plain walk, no iterator.
 ///
 /// @param t            a type the typecheck recorded.
 /// @param refinements  whether a machine integer goes unseen.

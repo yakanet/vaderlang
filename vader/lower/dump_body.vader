@@ -200,6 +200,10 @@ conversion_name :: fn(t: Type) -> string {
     if t is FnType || t is UnionType || t is TupleType {
         return "(${display_type(t)})"
     }
+    // A range no declaration names reads as the integer it is held in.
+    if t is RangeType && t.name == "" {
+        return representation_name(t)
+    }
     return display_type(t)
 }
 
@@ -280,13 +284,11 @@ binary_text :: fn(names: DumpNames, e: LoweredBinary, indent: string) -> string 
 // nothing to check.
 binary_symbol :: fn(op: LoweredBinaryOp, operand: Type) -> string {
     symbol :: binary_op_symbol(op)
-    if (op == .Add || op == .Sub || op == .Mul) && is_integer(strip_distinct(operand)) {
+    if (op == .Add || op == .Sub || op == .Mul) && integer_representation(strip_distinct(operand)) != null {
         return "${symbol}%"
     }
     return symbol
 }
-
-is_integer :: fn(t: Type) -> bool = t is PrimitiveType && is_int_name(t.name)
 
 unary_symbol :: fn(op: LoweredUnaryOp) -> string = match op {
     .Neg    -> "-"

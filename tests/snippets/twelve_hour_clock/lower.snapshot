@@ -1,10 +1,10 @@
 # Lower
 
 ## snippet
-  snippet.Clock :: struct { hour: u8 }  // snippet$Clock
-  snippet.split :: fn(h: u8) -> string {  // snippet$split
+  snippet.Clock :: struct { hour: Hour }  // snippet$Clock
+  snippet.split :: fn(h: Hour) -> string {  // snippet$split
       if h < u8(12) {
-          morning: u8 = h
+          morning: Morning = h
           return {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
@@ -13,7 +13,7 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
-      evening: u8 = h
+      evening: Evening = h
       return {
           __buf_2: Buffer = std.core.new_byte_buffer(i64(23))
           __off_3: i64 = 0
@@ -22,7 +22,7 @@
           std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
-  snippet.twelve_hour :: fn(h: u8) -> u8 {  // snippet$twelve_hour
+  snippet.twelve_hour :: fn(h: Hour) -> 1..=12 {  // snippet$twelve_hour
       if h == u8(0) {
           return u8(12)
       }
@@ -31,53 +31,53 @@
       }
       return h
   }
-  snippet.dial :: fn(c: Clock) -> u8 {  // snippet$dial
+  snippet.dial :: fn(c: Clock) -> Morning {  // snippet$dial
       if !(c.hour < u8(12)) {
           return c.hour - u8(12)
       }
       return c.hour
   }
-  snippet.breakfast :: fn(h: u8) -> null | u8 {  // snippet$breakfast
+  snippet.breakfast :: fn(h: Hour) -> null | u8 {  // snippet$breakfast
       if (h >= u8(6)) && (h <= u8(9)) {
           return h
       }
       return null
   }
-  snippet.daylight :: fn(h: u8) -> null | u8 {  // snippet$daylight
+  snippet.daylight :: fn(h: Hour) -> null | u8 {  // snippet$daylight
       if (h < u8(6)) || (h > u8(20)) {
           return null
       }
       return h
   }
-  snippet.after_dark :: fn(h: u8) -> u8 {  // snippet$after_dark
+  snippet.after_dark :: fn(h: Hour) -> 1..=24 {  // snippet$after_dark
       if (h < u8(6)) || (h > u8(20)) {
           return h + u8(1)
       }
       return u8(24)
   }
-  snippet.next_hour :: fn(h: u8) -> u8 {  // snippet$next_hour
-      rejoined: u8 = if h < u8(12) { h } else { h }
+  snippet.next_hour :: fn(h: Hour) -> Hour {  // snippet$next_hour
+      rejoined: 0..=23 = if h < u8(12) { h } else { h }
       return (rejoined + u8(1)) % u8(24)
   }
-  snippet.shifted :: fn(h: u8, step: i32) -> u8 {  // snippet$shifted
-      moved: u8 = {
+  snippet.shifted :: fn(h: Hour, step: i32) -> Hour {  // snippet$shifted
+      moved: 0..=24 = {
           if step == 0 {
               h
           } else if step == 1 {
               h + u8(1)
           } else {
               u8(12)
-          } :u8
+          } :0..=24
       }
       return moved % u8(24)
   }
-  snippet.rewind :: fn(h: u8) -> u8 {  // snippet$rewind
-      x: u8 = h
+  snippet.rewind :: fn(h: Hour) -> Hour {  // snippet$rewind
+      x: Hour = h
       turns: i32 = 0
       if x == u8(23) {
           {
-              __destr_src_0: [u8, i32] = [u8(0), 1] :[u8, i32]
-              __destr_el_1: u8 = __destr_src_0._0
+              __destr_src_0: [Hour, i32] = [Hour(0), 1] :[Hour, i32]
+              __destr_el_1: 23..=23 = __destr_src_0._0
               __destr_el_2: i32 = __destr_src_0._1
               x = __destr_el_1
               turns = __destr_el_2
@@ -85,71 +85,71 @@
       }
       return x
   }
-  snippet.tick :: fn(h: u8) -> u8 {  // snippet$tick
-      x: u8 = h
+  snippet.tick :: fn(h: Hour) -> Hour {  // snippet$tick
+      x: Hour = h
       if x != u8(23) {
           x = x + u8(1)
       } else {
-          x = 0
+          x = Hour(0)
       }
       return x
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(concat_3(snippet.split(u8(5)), " ", snippet.split(u8(18))))
+      std.io.println<string>(concat_3(snippet.split(Hour(5)), " ", snippet.split(Hour(18))))
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(83))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(u8(0))))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(Hour(0))))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(u8(15))))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(Hour(15))))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(u8(7))))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.twelve_hour(Hour(7))))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.dial(Clock { .hour = u8(20) })))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(snippet.dial(Clock { .hour = Hour(20) })))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(68))
           __off_4: i64 = 0
           __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64({
-              __coalesce_2: null | u8 = snippet.breakfast(u8(7))
-              if __coalesce_2 is null { u8(6) } else { u8(__coalesce_2) } :u8
-          } :u8))
+              __coalesce_2: null | u8 = snippet.breakfast(Hour(7))
+              if __coalesce_2 is null { u8(6) } else { u8(__coalesce_2) } :6..=9
+          } :6..=9))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.breakfast(u8(11)) is null)
+          __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.breakfast(Hour(11)) is null)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.tick(u8(13))))
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.tick(Hour(13))))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.tick(u8(23))))
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.tick(Hour(23))))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(68))
           __off_7: i64 = 0
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.daylight(u8(3)) is null)
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.daylight(Hour(3)) is null)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64({
-              __coalesce_5: null | u8 = snippet.daylight(u8(12))
-              if __coalesce_5 is null { u8(6) } else { u8(__coalesce_5) } :u8
-          } :u8))
+              __coalesce_5: null | u8 = snippet.daylight(Hour(12))
+              if __coalesce_5 is null { u8(6) } else { u8(__coalesce_5) } :6..=20
+          } :6..=20))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(snippet.after_dark(u8(22))))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(snippet.after_dark(Hour(22))))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(snippet.after_dark(u8(9))))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(snippet.after_dark(Hour(9))))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(104))
           __off_9: i64 = 0
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.next_hour(u8(9))))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.next_hour(Hour(9))))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.shifted(u8(23), 1)))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.shifted(Hour(23), 1)))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.shifted(u8(4), 7)))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.shifted(Hour(4), 7)))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.rewind(u8(23))))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.rewind(Hour(23))))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.rewind(u8(8))))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.rewind(Hour(8))))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return 0

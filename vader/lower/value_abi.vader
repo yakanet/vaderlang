@@ -184,17 +184,19 @@ export value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
 }
 
 // One leaf of a candidate composite: a non-reference primitive, an enum (its
-// `repr`), or a nested composite flattened into the same registers.
+// `repr`), a range (its integer), or a nested composite flattened into the same
+// registers.
 /// Size of one LEAF of a candidate composite, or -1 when the leaf disqualifies
 /// it.
 ///
-/// A leaf must cross in ONE register, so it is a non-reference primitive or an
-/// enum (which rides its `repr`) — and nothing else. A nested composite is NOT a
+/// A leaf must cross in ONE register, so it is a non-reference primitive, an
+/// enum (which rides its `repr`) or a range (which rides its integer) — and
+/// nothing else. A nested composite is NOT a
 /// leaf: it is a heap object of its own, and returning it as a "value" would
 /// hand back a reference under a name that promises otherwise. Flattening it
 /// recursively is a different ABI, and nothing implements it.
 ///
-/// @partial: the three shapes below are what a composite can hold and still
+/// @partial: the shapes below are what a composite can hold and still
 /// qualify. Every other variant is a reference or names no storage — one answer
 /// for all of them, not a degraded placeholder.
 value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
@@ -203,8 +205,9 @@ value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
     } else {
         primitive_size(t.name)
     }
-    is EnumType -> primitive_size(t.repr)
-    _           -> -1
+    is EnumType  -> primitive_size(t.repr)
+    is RangeType -> storage_integer(t).bits / 8
+    _            -> -1
 }
 
 over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size }

@@ -32,14 +32,15 @@ make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
     return EntryTypes { .typed = typed, .subst = subst }
 }
 
-/// Apply the entry's substitution to an arbitrary type, every range in it read as
-/// its representation (`erase_ranges`) : the lowering sees integers.
+/// Apply the entry's substitution to an arbitrary type. A range stays a range,
+/// the backend reading the integer it is held in, but in a union
+/// (`laid_out_unions`).
 /// @param self  the entry-types view.
 /// @param t     the type to rewrite.
 /// @return      the rewritten type (may be `t` itself).
 export apply :: fn(self: EntryTypes, t: Type) -> Type {
-    if is_empty_substitution(self.subst) { return erase_ranges(t) }
-    return erase_ranges(substitute(t, self.subst))
+    if is_empty_substitution(self.subst) { return laid_out_unions(t) }
+    return laid_out_unions(substitute(t, self.subst))
 }
 
 /// A type argument as an instance takes it : through the entry's substitution,
@@ -58,72 +59,58 @@ export instance_argument :: fn(self: EntryTypes, t: Type) -> Type {
 // ---- declaration-level reads ----------------------------------------------
 //
 // What the lowering reads off the typecheck's tables beside the per-expression
-// ones, every range in it read as its integer, as `apply` reads the rest.
+// ones, its unions laid out as `apply` lays them out.
 
-/// The signature the typecheck recorded for the fn `callee`, its ranges read as
-/// integers.
+/// The signature the typecheck recorded for the fn `callee`.
 /// @param owner   the typed program declaring `callee`.
 /// @param callee  a fn's symbol.
 /// @return        null when the typecheck recorded no signature.
 fn_signature :: fn(owner: TypedProgram, callee: Symbol) -> FnType | null =
-    erased_signature(owner.decl_types[callee.id])
+    recorded_signature(owner.decl_types[callee.id])
 
-/// The signature the typecheck recorded for the impl member `decl`, its ranges
-/// read as integers.
+/// The signature the typecheck recorded for the impl member `decl`.
 /// @param owner  the typed program declaring the impl.
 /// @param decl   one of its members.
 /// @return       null when the typecheck recorded no signature.
 impl_member_signature :: fn(owner: TypedProgram, decl: FnDecl) -> FnType | null =
-    erased_signature(owner.impl_method_decl_types[decl.name_span.hash()])
+    recorded_signature(owner.impl_method_decl_types[decl.name_span.hash()])
 
-// `t`, a signature the typecheck recorded, its ranges read as integers ; null for
-// no signature.
-erased_signature :: fn(t: Type | null) -> FnType | null {
+// `t`, a signature the typecheck recorded ; null for no signature.
+recorded_signature :: fn(t: Type | null) -> FnType | null {
     if t !is FnType {
         return null
     }
-    erased :: erase_ranges(t)
-    if erased is FnType {
-        return erased
+    laid_out :: laid_out_unions(t)
+    if laid_out is FnType {
+        return laid_out
     }
     return null
 }
 
-/// The type `entry` implements its trait for, its ranges read as integers : the
-/// receiver of each of its members.
+/// The type `entry` implements its trait for : the receiver of each of its members.
 /// @param entry  an impl.
-impl_self_type :: fn(entry: ImplEntry) -> Type = erase_ranges(entry.for_type)
+impl_self_type :: fn(entry: ImplEntry) -> Type = laid_out_unions(entry.for_type)
 
 /// The element a `for` over a value of `iter_type` binds, by the typecheck's own
-/// rule (`for_in_element`), its ranges read as integers.
+/// rule (`for_in_element`).
 /// @param iter_type  the iterated value's type.
 /// @param typed      the module being lowered, for the impl tables.
 iterated_element :: fn(iter_type: Type, typed: TypedProgram) -> Type =
-    erase_ranges(for_in_element(iter_type, typed))
+    laid_out_unions(for_in_element(iter_type, typed))
 
 /// The arguments `concrete` implements the trait `trait_key` at, as the typecheck
-/// recorded them (`lookup_struct_trait_args`), their ranges read as integers.
+/// recorded them (`lookup_struct_trait_args`).
 /// @param concrete   an implementing type.
 /// @param trait_key  the trait.
 /// @param typed      the module being lowered.
 /// @return           null when it records no single argument list.
 recorded_trait_args :: fn(concrete: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
     recorded :: lookup_struct_trait_args(concrete, trait_key, typed) ?? return null
-    erased: Type[]: []
+    laid_out: Type[]: []
     for t in recorded {
-        erased.push(erase_ranges(t))
+        laid_out.push(laid_out_unions(t))
     }
-    return erased
-}
-
-/// `t` with a free literal settled at the width it defaults to (`default_if_free`),
-/// as the lowering reads it : `i32` for an integer, the primitive.
-/// @param t  a type the typecheck recorded, through the entry's substitution.
-lowered_default :: fn(t: Type) -> Type {
-    if is_free_numeric(t) {
-        return erase_ranges(default_if_free(t))
-    }
-    return t
+    return laid_out
 }
 
 // Apply the entry's substitution to a `Type | null` lookup result,
@@ -253,8 +240,7 @@ recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 /// The type of field `name` of the struct `struct_symbol`, as the typecheck
 /// resolved it in the struct's own module : a field's type may name what the
 /// module using the struct does not see. Type parameters stay as written, for
-/// the caller to substitute ; a range is read as its integer (`erase_ranges`) ; a
-/// missing entry panics (`recorded_type_expr`).
+/// the caller to substitute ; a missing entry panics (`recorded_type_expr`).
 ///
 /// @param typed          any module's typed program : the table is shared.
 /// @param struct_symbol  the struct's declaration symbol.
@@ -262,7 +248,7 @@ recorded_type_expr :: fn(self: EntryTypes, type_expr: TypeExpr) -> Type {
 declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: string) -> Type {
     declared :: lookup_pre_resolved_field(struct_symbol.id, name, typed)
         ?? panic("lower: no type recorded for `${struct_symbol.name}.${name}`")
-    return erase_ranges(declared)
+    return laid_out_unions(declared)
 }
 
 /// The type declared at `name_span` (`declared_type_at`), through the entry's
