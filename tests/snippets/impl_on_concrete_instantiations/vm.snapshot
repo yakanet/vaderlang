@@ -2,5 +2,6 @@
 int 1
 str x
 int 1 str x
+wrap <y> wrap wrap <y>
 # exit
 0

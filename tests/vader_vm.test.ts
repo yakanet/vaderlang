@@ -11,7 +11,7 @@
 // with its reason; one with a `helper.c` is skipped, its foreign symbols living
 // only in a native binary.
 
-import { test } from "bun:test";
+import { expect, test } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -69,23 +69,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // Same GATE A+B path (concrete Display dispatch on primitives / interp) —
   // Vader self-emit runs these to their vm.snapshot oracle where the erased
   // TS bytecode diverges. Each verified: dump-with-Vader → run → matches.
-  "squares",
-  "vm_hello",
   "interpolation",
-  "vm_interp_basic",
-  "vm_arith",
   "for_range",
   "loop",
-  "vm_interp_mixed",
-  "vm_interp_loop",
   "enum_typed",
   "enum_match",
-  "match_union",
   "if_field_narrow",
-  "vm_struct_nested",
-  "vm_array_mutate",
-  "vm_for",
-  "vm_if",
   "if_is_narrow",
   "match_literal_patterns",
   "match_partial",
@@ -97,10 +86,8 @@ const VADER_SELF_EMIT = new Set<string>([
   "struct_defaults",
   "op_not_is",
   "match_is_as_binding",
-  "match_struct_pattern_binding",
   "op_overload_arith",
   "op_overload_compound",
-  "primitive_impl",
   "self_ref_struct",
   "struct_spread",
   "intrinsic_field_access",
@@ -148,13 +135,6 @@ const VADER_SELF_EMIT = new Set<string>([
   // fixpoint + deferred flush) ; without it `len__string__JsonValue` is
   // stranded and Vader emit panics with an unresolved callee.
   "json_basics",
-  // `str.trim(...)` : a namespaced call to a NON-generic stdlib fn. Guards
-  // resolve_namespace_member — the namespace form must resolve the member to
-  // its real symbol (+ harvest it), not a bare id=0 placeholder, else emit
-  // can't reserve the callee. (Generic namespaced calls like `io.println` are
-  // a separate follow-up — they need the generic-instance harvest the direct
-  // path does.)
-  "namespace_call_nongeneric",
   // `if x is T as a { … a … }` narrowing-BINDING resolution on the Vader
   // self-emit path. The lowerer must reuse the resolver's binding symbol (not
   // mint a fresh one) so `a` references resolve — without it every `a` use is
@@ -245,18 +225,17 @@ const VADER_SELF_EMIT = new Set<string>([
   // never matched the `vcall Iterator.next`), and the materialised member's synth
   // id-0 symbol needed a mangle fallback to resolve its fn index.
   "iter_coerce_array", "trait_box_range_iter",
-  "_diag_const_string", "_diag_const_cross_module", "alias_union_in_array", "array_view_aliasing",
-  "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
+  "_diag_const_cross_module", "alias_union_in_array", "array_view_aliasing",
+  "for_range_sugar", "b1_fn_boundary", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",
   "enum_trait_self_return", "expr_bodied_fn", "expr_bodied_recursive_typed",
   "file_decorator", "gc_array_survive", "gc_chain_survive", "gc_multi_collect",
   "generic_helper_chain", "generic_struct", "generic_type_alias",
-  "if_is_field_after_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
-  "implicit_dot_variant", "io_roundtrip", "is_union_runtime", "lambda_no_fn",
+  "if_is_field_after_narrow", "if_without_else_stmt", "implicit_dot_variant",
+  "io_roundtrip", "is_union_runtime", "lambda_no_fn",
   "match_struct_pattern_in_union", "multiline_string", "op_overload_eq_ord",
-  "parse_int_match", "std_math", "std_string_builder", "struct_lit_field_order",
-  "struct_name_collision", "trait_virtual_dispatch", "transitive_mono",
-  "ufcs_overload", "ufcs_union_receiver", "union_common_field",
+  "parse_int_match", "std_math", "std_string_builder", "trait_virtual_dispatch",
+  "transitive_mono", "ufcs_union_receiver", "union_common_field",
   // narrow_imported_map : imported-body divergent-guard narrowing (the
   // B0-in-VM bootstrap frontier that made B0 == B1). Self-emit ONLY — only the
   // Vader emitter, not the committed TS `.virt`, exercises the stmt.vader fix.
@@ -304,6 +283,19 @@ function testFromSource(s: Scenario): void {
 }
 
 const scenarios = listSnippets("tests/snippets");
+
+// Every list here selects snippets by name and skips a name that matches none,
+// so a deleted or renamed snippet would leave a dangling entry behind in silence.
+test("vader-vm: name lists resolve to real snippets", () => {
+  const known = new Set(scenarios.map((s) => s.name));
+  const listed = [
+    ...VM_PARITY_UNAVAILABLE_WIN32,
+    ...VADER_SELF_EMIT,
+    ...KNOWN_DIVERGENT,
+    ...ANNOTATED_ROUNDTRIP,
+  ];
+  expect(listed.filter((name) => !known.has(name))).toEqual([]);
+});
 
 for (const s of scenarios) {
   if (KNOWN_DIVERGENT.has(s.name)) {
@@ -402,7 +394,7 @@ for (const s of scenarios) {
 // quoted strings). The guarantee is format-level, not per-snippet, so a small
 // curated set covering strings / structs / fields / calls / interpolation
 // suffices — no need to double the whole self-emit VM cost.
-const ANNOTATED_ROUNDTRIP = ["hello", "struct_defaults", "squares", "interpolation"];
+const ANNOTATED_ROUNDTRIP = ["hello", "struct_defaults", "fn_decl", "interpolation"];
 for (const name of ANNOTATED_ROUNDTRIP) {
   const s = scenarios.find((x) => x.name === name);
   if (!s) continue;

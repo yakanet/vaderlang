@@ -1,8 +1,0 @@
-module "snippet"
-
-fs :: import "std/io"
-
-main :: fn() -> i32 {
-    fs.println("aliased")
-    return 0
-}

@@ -602,9 +602,7 @@ export F64Val :: f64
 /// module's `strings` pool, so the VM never has to allocate.
 export StringVal :: string
 
-/// Boolean payload. Sprint 5a addition — drives `if` / `br_if` once a
-/// snippet's comparison chain uses `bool.*` ops (legacy `i32.*` cmp
-/// arms still push `I32Val(0|1)` for back-compat with vm_if/vm_for).
+/// Boolean payload: what every comparison op pushes.
 export BoolVal :: bool
 
 /// Unicode codepoint payload. Sprint 5a addition. The bytecode emits

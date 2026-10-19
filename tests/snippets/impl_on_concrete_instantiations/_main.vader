@@ -1,5 +1,7 @@
 // An impl written for a concrete instantiation applies to those arguments only :
-// `Box<i32>` and `Box<string>` each get their own `Display`.
+// `Box<i32>` and `Box<string>` each get their own `Display`. An impl written for
+// every instantiation (`Wrap<T>`) is one erased member: `Wrap<Label>` and
+// `Wrap<Wrap<Label>>`, called directly, share it.
 module "snippet"
 
 import "std/io"
@@ -14,11 +16,22 @@ Box<string> implements Display {
     to_string :: fn(self) -> string = "str ${self.value}"
 }
 
+Label :: struct { text: string }
+
+Label implements Display -> "<${self.text}>"
+
+Wrap :: struct<T> { inner: T }
+
+Wrap<T> implements<T: Display> Display -> "wrap ${self.inner}"
+
 main :: fn() -> i32 {
     a :: Box<i32> { .value = 1 }
     b :: Box<string> { .value = "x" }
     println(a.to_string())
     println(b.to_string())
     println("${a} ${b}")
+    once :: Wrap<Label> { .inner = Label { .text = "y" } }
+    twice :: Wrap<Wrap<Label>> { .inner = once }
+    println("${once.to_string()} ${twice.to_string()}")
     return 0
 }

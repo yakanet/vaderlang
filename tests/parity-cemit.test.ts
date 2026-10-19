@@ -179,12 +179,7 @@ const C_PARITY = new Set<string>([
   // entry, `promote_cell_params`, and in a lambda) and a local the closure
   // increments both live in a cell both sides share.
   "closure_sees_rebound_capture",
-  // Generators (`@generator` + `yield`) — the state-machine lowering emits a
-  // synthesized `g$State` struct + an `Iterator::next` state machine consumed by
-  // for-in; the native run validates the whole desugar end-to-end.
-  "generator_basic",       // single loop, one yield
-  "generator_nested",      // nested loops (resume mid-inner-loop)
-  "generator_filter",      // yield inside an `if`
+  // Generators (`@generator` + `yield`).
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
   "generator_escapes",     // stored-then-consumed → boxed state machine (not inlined)
@@ -255,7 +250,6 @@ const C_PARITY = new Set<string>([
   "async_fallible",    // fallible result `T | Error`, narrowed at match
   "async_trailing",    // trailing (implicit-return) await + two awaits per expr
   "async_void",        // void async: `null` done-marker, nested void await
-  "async_main",        // implicit async main: inlined run-driver, exit code
   "async_sleep",       // real suspension via sleep: park scheduler + timer heap
   "async_sleep_main",  // implicit async main routed through run_async_main
   "async_all",         // join_all(xs): concurrent join, input-order results
@@ -622,7 +616,6 @@ const C_PARITY = new Set<string>([
   "expressions",
   "if_branches",
   "interp_display",
-  "interp_string",
   "match_expr",
   "numerics",
   "strings",

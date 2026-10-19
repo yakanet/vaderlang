@@ -3,17 +3,44 @@
 ## tests/snippets/into_across_modules
   FnDecl         main                 :: fn() -> i32
   FnDecl         take                 :: fn(i32) -> i32
-  expr 12:10    StructLitExpr  :: Meters
-  expr 13:13    StringLitExpr  :: string
-  expr 13:16    CallExpr       :: i32
-  expr 13:16    IdentExpr      :: fn(i32) -> i32
-  expr 13:21    IdentExpr      :: Meters
-  expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 9:29     BinaryExpr     :: i32
-  expr 9:29     IdentExpr      :: i32
+  expr 10:29    BinaryExpr     :: i32
+  expr 10:29    IdentExpr      :: i32
+  expr 13:10    StructLitExpr  :: Meters
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    CallExpr       :: i32
+  expr 14:16    IdentExpr      :: fn(i32) -> i32
+  expr 14:21    IdentExpr      :: Meters
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    CallExpr       :: f64
+  expr 15:16    IdentExpr      :: type
+  expr 15:20    BinaryExpr     :: Celsius
+  expr 15:20    CallExpr       :: Celsius
+  expr 15:20    IdentExpr      :: fn(Celsius) -> Celsius
+  expr 15:27    CallExpr       :: Celsius
+  expr 15:27    IdentExpr      :: type
+  expr 15:44    CallExpr       :: Celsius
+  expr 15:44    IdentExpr      :: type
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
 
 ## tests/snippets/into_across_modules/units
+  ConstDecl      Celsius              :: type
   StructDecl     Meters               :: Meters
+  FnDecl         warmer               :: fn(Celsius) -> Celsius
+  expr 11:27    CallExpr       :: Celsius
+  expr 11:27    IdentExpr      :: type
+  expr 11:35    BinaryExpr     :: f64
+  expr 11:35    CallExpr       :: f64
+  expr 11:35    IdentExpr      :: type
+  expr 11:39    IdentExpr      :: Celsius
+  expr 11:47    CallExpr       :: f64
+  expr 11:47    IdentExpr      :: type
+  expr 11:51    IdentExpr      :: Celsius
+  expr 13:46    BinaryExpr     :: Celsius
+  expr 13:46    IdentExpr      :: Celsius
+  expr 13:50    CallExpr       :: Celsius
+  expr 13:50    IdentExpr      :: type
   expr 6:31     FieldExpr      :: i32
   expr 6:31     IdentExpr      :: Meters

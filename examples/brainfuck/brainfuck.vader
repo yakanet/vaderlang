@@ -32,6 +32,7 @@
 module "main"
 
 import "std/io"
+import "std/iter"
 import "std/string"
 import "std/testing"
 bc :: import "vader/bytecode"
@@ -51,22 +52,7 @@ is_bf_char :: fn(c: char) -> bool {
 }
 
 // Decode codepoints from `source` and keep the eight BF characters.
-//
-// Written as an explicit accumulator loop rather than
-// `source.chars().filter(is_bf_char).collect()` : the lazy-iterator chain
-// miscompiles on the self-host backend (the `collect()` result stays a
-// `FilterIterator` struct instead of a `char[]`, so `tokens.len()` traps with
-// "array.len receiver: expected array, got struct"). Captured as a regression
-// in `tests/snippets/_diag_iter_collect/`.
-tokenize_bf :: fn(source: string) -> char[] {
-    out: char[]: []
-    for c in source.chars() {
-        if is_bf_char(c) {
-            out.push(c)
-        }
-    }
-    return out
-}
+tokenize_bf :: fn(source: string) -> char[] = source.chars().filter(is_bf_char).collect()
 
 // ---- bracket matcher -----------------------------------------------------
 

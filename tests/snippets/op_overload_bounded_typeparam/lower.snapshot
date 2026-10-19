@@ -11,6 +11,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<i64>(snippet.total<i64>([i64(3000000000), i64(1)] :i64[]))
       std.io.println<f64>(snippet.total<f64>([1.5, 2.25] :f64[]))
+      std.io.println<string>(snippet.total<string>(["ab", "cd"] :string[]))
       std.io.println<i32>(snippet.total<V>([V { .x = 2 }, V { .x = 3 }] :V[]).x)
       std.io.println<i32>(snippet.largest<i32>([3, 9, 4] :i32[]))
       std.io.println<i32>(snippet.largest<V>([V { .x = 7 }, V { .x = 1 }] :V[]).x)
@@ -59,6 +60,21 @@
           for __for_i_2 < __for_len_1 {
               x: V = __for_arr_0[__for_i_2]
               s = snippet.V.add(s, x)
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      return s
+  }
+  snippet.total<string> :: fn(xs: string[]) -> string {  // snippet$total__string
+      s: string = xs[0]
+      {
+          __for_arr_0: string[] = xs[i64(1)..<@array.len(xs)]
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              x: string = __for_arr_0[__for_i_2]
+              s = concat_2(s, x)
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
@@ -187,6 +203,7 @@
     fn std.io.println<f64>  // std_io$println__f64
     fn std.io.println<i32>  // std_io$println__i32
     fn std.io.println<i64>  // std_io$println__i64
+    fn std.io.println<string>  // std_io$println__string
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   system/posix

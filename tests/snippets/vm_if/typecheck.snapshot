@@ -1,7 +1,0 @@
-# Typecheck
-
-## tests/snippets/vm_if
-  FnDecl         main                 :: fn() -> i32
-  expr 8:5      IfExpr         :: void
-  expr 8:8      BinaryExpr     :: bool
-  expr 8:8      IdentExpr      :: i32

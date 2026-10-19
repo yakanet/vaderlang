@@ -35,6 +35,15 @@ main :: fn() -> i32 {
     }
     println("string len=${names.len()} first=${names[0]} last=${names[8]}")
 
+    // Straight-line pushes of free literals: no counted loop presizes the buffer.
+    direct :: []
+    direct.push(1)
+    direct.push(2)
+    direct.push(3)
+    direct.push(4)
+    direct.push(5)
+    println("direct len=${direct.len()} first=${direct[0]} last=${direct[4]}")
+
     // The annotated form, as the control — it never lost its element type.
     annotated: i32[]: []
     for i in 0..<9 {

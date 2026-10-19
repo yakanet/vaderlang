@@ -2,7 +2,7 @@
 // grants `+` / `+=`, `T: Comparable` grants `<` / `>`, `T: Equals` grants `==`
 // between two `T`s, and `C: Contains<i32>` grants `x in c` inside the generic
 // body ; each instance is monomorphised, so a primitive `T` gets the native
-// op and a struct `T` the call into its impl.
+// op, `string` its own `Add` body and a struct `T` the call into its impl.
 
 module "snippet"
 
@@ -51,6 +51,7 @@ matches :: fn<T: Equals>(found: T | null, wanted: T) -> bool = found == wanted
 main :: fn() -> i32 {
     println(total([i64(3_000_000_000), i64(1)]))
     println(total([1.5, 2.25]))
+    println(total(["ab", "cd"]))
     println(total([V { .x = 2 }, V { .x = 3 }]).x)
     println(largest([3, 9, 4]))
     println(largest([V { .x = 7 }, V { .x = 1 }]).x)

@@ -4,7 +4,8 @@ import "std/io"
 
 // A local holding a UNION, flow-narrowed, then captured by a lambda. The env holds
 // it at the declared type, so it has to be read back at that type — reading it at
-// the narrowed one takes the union box's tag word for the payload.
+// the narrowed one takes the union box's tag word for the payload. A parameter
+// narrowed in place by a `match` arm and captured there takes the same path.
 
 Point :: struct { x: i32, y: i32 }
 
@@ -24,10 +25,22 @@ corner :: fn(p: Point | i32) -> fn() -> i32 {
     return fn() -> i32 { return -1 }
 }
 
+in_arm :: fn(p: Point | i32) -> i32 = match p {
+    is Point -> {
+        sum :: () -> p.x + p.y
+        sum()
+    }
+    is i32 -> {
+        twice :: () -> p * 2
+        twice()
+    }
+}
+
 main :: fn() -> i32 {
     println("${scale(21)()}")
     println("${scale(Point { .x = 1, .y = 2 })()}")
     println("${corner(Point { .x = 3, .y = 4 })()}")
     println("${corner(9)()}")
+    println("${in_arm(Point { .x = 5, .y = 6 })} ${in_arm(4)}")
     return 0
 }

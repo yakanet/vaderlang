@@ -1,8 +1,4 @@
 {
-  "alias_import": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "arith": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -15,14 +11,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "array_push": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "bound_enforced": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "cast_test": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -32,14 +20,6 @@
     "leakedBytes": 0
   },
   "closure_callback": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "closure_counter": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "closure_pattern_binding": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
@@ -131,10 +111,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "expr_bodied_mixed_form": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "expr_bodied_recursive_typed": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -179,10 +155,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "generic_amp_bound": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "generic_brackets": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -215,15 +187,7 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "impl_bounded_typeparam": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "implicit_dot_variant": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "implicit_type_alias": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
@@ -275,10 +239,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "iter_lazy": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "iter_zip_chain": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -299,10 +259,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "map_set_iter": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "match_is_as_binding": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -311,15 +267,7 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "match_struct_pattern_binding": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "match_struct_pattern_in_union": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "match_union": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
@@ -387,10 +335,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "primitive_impl": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "range_widths": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -415,19 +359,11 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "simple_arith": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "spread_destructure": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
   "square_call": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "squares": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
@@ -467,14 +403,6 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "struct_lit_field_order": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "struct_name_collision": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "struct_spread": {
     "leakedNodes": 0,
     "leakedBytes": 0
@@ -488,10 +416,6 @@
     "leakedBytes": 0
   },
   "trait_dispatch_bounded": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "trait_dispatch_eq": {
     "leakedNodes": 0,
     "leakedBytes": 0
   },
@@ -563,15 +487,7 @@
     "leakedNodes": 0,
     "leakedBytes": 0
   },
-  "ufcs_overload": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
   "union_common_field": {
-    "leakedNodes": 0,
-    "leakedBytes": 0
-  },
-  "vm_trait_dispatch": {
     "leakedNodes": 0,
     "leakedBytes": 0
   }

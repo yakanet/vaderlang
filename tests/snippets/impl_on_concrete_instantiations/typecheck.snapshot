@@ -2,28 +2,50 @@
 
 ## tests/snippets/impl_on_concrete_instantiations
   StructDecl     Box                  :: Box<T>
+  StructDecl     Label                :: Label
   FnDecl         main                 :: fn() -> i32
-  expr 10:39    StringLitExpr  :: string
-  expr 10:46    FieldExpr      :: i32
-  expr 10:46    IdentExpr      :: Box<i32>
-  expr 14:39    StringLitExpr  :: string
-  expr 14:46    FieldExpr      :: string
-  expr 14:46    IdentExpr      :: Box<string>
-  expr 18:10    StructLitExpr  :: Box<i32>
-  expr 19:10    StructLitExpr  :: Box<string>
-  expr 19:33    StringLitExpr  :: string
-  expr 20:13    CallExpr       :: string
-  expr 20:13    FieldExpr      :: fn() -> string
-  expr 20:13    IdentExpr      :: Box<i32>
-  expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(T) -> void
-  expr 21:13    CallExpr       :: string
-  expr 21:13    FieldExpr      :: fn() -> string
-  expr 21:13    IdentExpr      :: Box<string>
-  expr 21:5     CallExpr       :: void
-  expr 21:5     IdentExpr      :: fn(T) -> void
-  expr 22:13    StringLitExpr  :: string
-  expr 22:16    IdentExpr      :: Box<i32>
-  expr 22:21    IdentExpr      :: Box<string>
-  expr 22:5     CallExpr       :: void
-  expr 22:5     IdentExpr      :: fn(T) -> void
+  StructDecl     Wrap                 :: Wrap<T>
+  expr 12:39    StringLitExpr  :: string
+  expr 12:46    FieldExpr      :: i32
+  expr 12:46    IdentExpr      :: Box<i32>
+  expr 16:39    StringLitExpr  :: string
+  expr 16:46    FieldExpr      :: string
+  expr 16:46    IdentExpr      :: Box<string>
+  expr 21:29    StringLitExpr  :: string
+  expr 21:33    FieldExpr      :: string
+  expr 21:33    IdentExpr      :: Label
+  expr 25:43    StringLitExpr  :: string
+  expr 25:51    FieldExpr      :: T
+  expr 25:51    IdentExpr      :: Wrap<T>
+  expr 28:10    StructLitExpr  :: Box<i32>
+  expr 29:10    StructLitExpr  :: Box<string>
+  expr 29:33    StringLitExpr  :: string
+  expr 30:13    CallExpr       :: string
+  expr 30:13    FieldExpr      :: fn() -> string
+  expr 30:13    IdentExpr      :: Box<i32>
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    CallExpr       :: string
+  expr 31:13    FieldExpr      :: fn() -> string
+  expr 31:13    IdentExpr      :: Box<string>
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:13    StringLitExpr  :: string
+  expr 32:16    IdentExpr      :: Box<i32>
+  expr 32:21    IdentExpr      :: Box<string>
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StructLitExpr  :: Wrap<Label>
+  expr 33:36    StructLitExpr  :: Label
+  expr 33:52    StringLitExpr  :: string
+  expr 34:14    StructLitExpr  :: Wrap<Wrap<Label>>
+  expr 34:43    IdentExpr      :: Wrap<Label>
+  expr 35:13    StringLitExpr  :: string
+  expr 35:16    CallExpr       :: string
+  expr 35:16    FieldExpr      :: fn() -> string
+  expr 35:16    IdentExpr      :: Wrap<Label>
+  expr 35:36    CallExpr       :: string
+  expr 35:36    FieldExpr      :: fn() -> string
+  expr 35:36    IdentExpr      :: Wrap<Wrap<Label>>
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void

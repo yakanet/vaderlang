@@ -1,8 +1,8 @@
 // A capturing closure (not just a named fn) stored in a struct field and
 // invoked via struct.get + call.indirect. The closure's captured
 // environment (`base`) must survive being boxed into the field and be
-// restored on the indirect call. Complements `fn_value_struct` /
-// `vm_fn_value_struct`, which only store a plain non-capturing named fn.
+// restored on the indirect call. Complements `fn_value_struct`, which
+// only stores a plain non-capturing named fn.
 
 module "snippet"
 

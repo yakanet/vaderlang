@@ -5,3 +5,9 @@ export Meters :: struct { v: i32 }
 Meters implements Into<i32> {
     into :: fn(self) -> i32 = self.v
 }
+
+export Celsius :: f64
+
+Celsius implements Add -> Celsius(f64(self) + f64(other))
+
+export warmer :: fn(c: Celsius) -> Celsius = c + Celsius(1.0)

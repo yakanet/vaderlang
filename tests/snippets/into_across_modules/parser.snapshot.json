@@ -142,6 +142,94 @@
               }
             },
             {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "f64"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "BinaryExpr",
+                                  "op": "add",
+                                  "left": {
+                                    "kind": "CallExpr",
+                                    "callee": {
+                                      "kind": "IdentExpr",
+                                      "name": "warmer"
+                                    },
+                                    "args": [
+                                      {
+                                        "name": null,
+                                        "value": {
+                                          "kind": "CallExpr",
+                                          "callee": {
+                                            "kind": "IdentExpr",
+                                            "name": "Celsius"
+                                          },
+                                          "args": [
+                                            {
+                                              "name": null,
+                                              "value": {
+                                                "kind": "FloatLitExpr",
+                                                "value": 30
+                                              },
+                                              "spread": false
+                                            }
+                                          ]
+                                        },
+                                        "spread": false
+                                      }
+                                    ]
+                                  },
+                                  "right": {
+                                    "kind": "CallExpr",
+                                    "callee": {
+                                      "kind": "IdentExpr",
+                                      "name": "Celsius"
+                                    },
+                                    "args": [
+                                      {
+                                        "name": null,
+                                        "value": {
+                                          "kind": "FloatLitExpr",
+                                          "value": 0.5
+                                        },
+                                        "spread": false
+                                      }
+                                    ]
+                                  }
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ReturnStmt",
               "value": {
                 "kind": "IntLitExpr",

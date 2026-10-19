@@ -1,7 +1,0 @@
-# Typecheck
-
-## tests/snippets/vm_hello
-  FnDecl         main                 :: fn() -> i32
-  expr 8:13     StringLitExpr  :: string
-  expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(T) -> void

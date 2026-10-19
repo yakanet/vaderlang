@@ -16,6 +16,23 @@
       }
       return __lambda_snippet_5
   }
+  snippet.in_arm :: fn(p: i32 | Point) -> i32 {  // snippet$in_arm
+      {
+          if p is Point {
+              {
+                  sum: __lambda_env_snippet_9 = __lambda_env_snippet_9 { .cap_0 = p }
+                  __lambda_snippet_8(sum)
+              } :i32
+          } else if p is i32 {
+              {
+                  twice: __lambda_env_snippet_7 = __lambda_env_snippet_7 { .cap_0 = p }
+                  __lambda_snippet_6(twice)
+              } :i32
+          } else {
+              @unreachable("non-exhaustive match (T3013 should have caught this)")
+          } :i32
+      } :i32
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
@@ -41,6 +58,14 @@
           __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.corner(9)()))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.in_arm(Point { .x = 5, .y = 6 })))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.in_arm(4)))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
       return 0
   }
   __lambda_env_snippet_1 :: struct { cap_0: i32 | Point }
@@ -56,6 +81,14 @@
   }
   __lambda_snippet_5 :: fn() -> i32 {
       return -1
+  }
+  __lambda_env_snippet_7 :: struct { cap_0: i32 | Point }
+  __lambda_snippet_6 :: fn(__env_0: __lambda_env_snippet_7) -> i32 {
+      i32(__env_0.cap_0) * 2
+  }
+  __lambda_env_snippet_9 :: struct { cap_0: i32 | Point }
+  __lambda_snippet_8 :: fn(__env_1: __lambda_env_snippet_9) -> i32 {
+      Point(__env_1.cap_0).x + Point(__env_1.cap_0).y
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
