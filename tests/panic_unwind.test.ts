@@ -4,9 +4,10 @@
 // stdout even though the program aborts.
 //
 // The VM side is also pinned by that snippet's `vm.snapshot` (vader_vm.test.ts);
-// this file adds the NATIVE assertion — the C-emit parity suite skips the
-// output check for programs that exit non-zero — and re-checks the VM stdout
-// explicitly so both backends are asserted side by side.
+// this file adds the NATIVE assertion, which the C-emit parity suite cannot
+// make: it compares stderr and the exit code verbatim, and a VM trap and a
+// native abort differ in both. It also re-checks the VM stdout explicitly so
+// both backends are asserted side by side.
 import { expect, test } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";

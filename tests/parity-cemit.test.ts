@@ -50,6 +50,12 @@ const C_PARITY = new Set<string>([
   // T1d : i64 / u32 / u64 / f64 families, eager integer + f64 div/rem,
   // bool.not, i32<->i64 / i32<->char conversions.
   "scalar_wide",
+  // An unsigned value keeps its full range natively: a `u32` past 2^31 converts
+  // to `f64` and widens by zero-extension, and its shifts and bit-ops keep every
+  // bit.
+  "u32_to_f64",
+  "unsigned_widening",
+  "u32_bitops",
   // T2 : structured control — block / loop / if / else / end / br
   // (jump_table-resolved goto labels, dynamic indent). Counted loop +
   // if/else body ; result via main's exit code (142).
@@ -69,11 +75,13 @@ const C_PARITY = new Set<string>([
   // T4b : heap structs (struct.new) + the GC-frame prologue (gc_roots /
   // gc_frame / gc_top, ref-slot zero-init, framed return). Exit code 7.
   "struct_heap",
-  // T5 : arrays — array.new / set / push / get / len (boxed elements via
-  // box_expr; heap → reuses the GC frame). Exit code 153.
+  // Arrays: new / index write / push / index read / len on a heap `i32[]`, its
+  // elements in raw slots, under the GC frame. Exit code 153.
   "array_ops",
-  // T6 : strings + builder — string.concat / string.eq (atom ==) + the
-  // builder family (interpolation). stdout "hello, world!".
+  // Typed slot loads and stores, one per element kind.
+  "array_index_read_write",
+  // Strings: `+` and an interpolation both lower to `concat_2`, and `==` compares
+  // atoms. stdout "hello, world!".
   "string_ops",
   // T3c : closures + dispatch.
   //   fn_value_local       — fn.ref → vader_fn_tramp/static + call.indirect.
@@ -102,16 +110,24 @@ const C_PARITY = new Set<string>([
   // arg / local.set coercion `todo`s, defer by the upstream Vader bytecode
   // dropping defer ops — a self-host gap, not a C-emit one).
   "chained_divergent_narrow",
+  // `x is A | B` ORs the per-variant tag checks.
+  "is_union_runtime",
   // T12a : boundary ValType coercion (call-arg / return / local.set /
   // struct-field) via `coerce_expr` — boxes a primitive into an erased
   // `ref`/`any` slot (and the inverse), the common monomorphised-generic
   // shape (`fn<T>` params lowered to `ref`). The heavy erasure-boundary
-  // reshape (array-kind / heap-struct) + B1 stay deferred — no reachable
-  // snippet needs them yet.
+  // reshape (array-kind / heap-struct) stays deferred: no reachable
+  // snippet needs it yet.
   "trait_dispatch_param",
   "intrinsic_fields",
   "intrinsic_type_args",
   "comptime_type_value",
+  // One generic fn instantiated at `i32` (concrete, typed slot load) and at a
+  // struct (erased, generic array get).
+  "generic_fn_primitive_and_struct",
+  // A `Node | null` crosses a fn signature, as a param and as a return, as a
+  // bare pointer rather than a box.
+  "b1_fn_boundary",
   // Dead trailing return : an exhaustive-returning match leaves the lowerer's
   // implicit fn-terminator return unreachable with an empty operand stack —
   // `emit_return` traps it (`vader_unreachable`) instead of underflowing. All
@@ -128,12 +144,19 @@ const C_PARITY = new Set<string>([
   // A small integer or an enum entering a union is tagged with its own type
   // natively (a constant reaches the C emitter as an `i32`).
   "union_small_int_and_enum",
+  // `parse_int` / `parse_float` box their result with its own tag.
+  "parse_int_match",
+  // A `null`-typed if/else block result is a box, not `void`.
+  "null_blockres",
   // A field read straight off a union takes its offset from the first variant:
   // the reads of a `Dog` or a `Tag` are what a wrong native offset would garble.
   "union_common_field",
   // The same read around a write through a variant, and a write through the union:
   // an optimised C build is where a read that ignores the write would show.
   "union_field_read_after_write",
+  // `if v is HeapStruct` and the field reads after it load through the narrowed
+  // type, not through the union box.
+  "if_is_field_after_narrow",
   "narrow_imported_map",
   // §9 C-emit audit (the walker now emits C for the whole compiler) :
   //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`
@@ -384,7 +407,6 @@ const C_PARITY = new Set<string>([
   // and its `_Static_assert` layout lines have no other corpus. Oracle 2 links
   // the snippet's `helper.c`, so it also pins that the synthesised prototype
   // agrees with the address the shim actually passes.
-  "array_clear_refill",
   "c_pointer_as_word",
   "c_struct_char_field",
   "extern_cpointer_match",
@@ -413,10 +435,18 @@ const C_PARITY = new Set<string>([
   // writes them back at the loop's end. The VM has no such form, so a missed
   // write-back — a `break` compiled past it — only shows when the C runs.
   "array_push_cache",
+  // `clear()` then refill, on a local array and a singleton's: the buffer's length
+  // shrinks with the array's, so the backing store does not double on each clear.
+  "array_clear_refill",
   // A fn whose only host calls never collect (`byte_at`, the cached string
   // hash) is emitted without a GC frame. Only the native build drops frames,
   // so only its run under forced collections says the classification holds.
   "string_key_lookup_gc",
+  // The converse: a leaf fn whose only allocating op is a slice still gets its
+  // frame, or a collection the slice triggers moves its params.
+  "array_slice_gc_frame",
+  // `bytes()` views survive a moving collection and keep their string alive.
+  "string_bytes_gc",
   // A generic instance keeps an enum with variant data concrete : its key
   // hashing and comparison in a map, and the module-qualified mangle that keeps
   // two same-named enums apart, only show what they emit when the C runs.
@@ -434,6 +464,8 @@ const C_PARITY = new Set<string>([
   "array_content_comparison",
   "distinct_reference_equality",
   "float_ieee_equality",
+  // `===` on a union of references compares the objects.
+  "union_reference_compare",
   // `string.compare` is an op of its own : the VM's arm and the runtime's
   // `vader_string_compare` must order the same.
   "string_ordering",
@@ -610,8 +642,9 @@ const C_PARITY = new Set<string>([
   "trait_impls_on_shapes",
   // An inlined generator of another module keeps its captured counter in a cell.
   "inlined_generator_captured_counter",
-  // Declaration-shape snippets whose `main` runs what they declare.
+  // `@extern` and `@test` declarations build natively; `main` never calls `log`.
   "decorators_ok",
+  // Declaration-shape snippets whose `main` runs what they declare.
   "expressions",
   "if_branches",
   "interp_display",
