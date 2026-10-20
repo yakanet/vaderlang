@@ -1,9 +1,11 @@
-// An enum passed to a generic function. An enum with variant data stores its
-// variant's rank, not its written value, so an instance over one is kept
-// concrete instead of erased to `Any` : inside the body `i64(v)` still knows it
-// converts that enum and reads the written value. A plain enum stores its value
-// and stays erased. A map keyed by such an enum hashes and compares the stored
-// rank inside its kept-concrete instance.
+// An enum passed to a generic function. An instance over an enum is kept
+// concrete instead of erased to `Any`. An enum with variant data stores its
+// variant's rank, not its written value : inside the body `i64(v)` still knows it
+// converts that enum and reads the written value. An array of a plain enum is
+// stored in its integer, which the body reads as such, and a generic impl reaches
+// the enum's own `Display`, through a trait value too : `Box<Color>` and
+// `Box<Direction>` are two instances with two tags. A map keyed by such an enum
+// hashes and compares the stored rank inside its kept-concrete instance.
 
 module "snippet"
 
@@ -25,7 +27,19 @@ Level :: enum(StatusInfo) {
     Warning { .reason = "warning" },
 }
 
+@displayable
 Color :: enum { Red = 7, Green = 9 }
+
+@displayable
+Direction :: enum { North, East }
+
+Box :: struct<T> {
+    value: T
+}
+
+Box<T> implements<T: Display> Display {
+    to_string :: fn(self) -> string = "Box ${self.value}"
+}
 
 as_int :: fn<T>(v: T) -> i64 = i64(v)
 
@@ -40,5 +54,12 @@ main :: fn() -> i32 {
     reasons[.NotFound] = "gone"
     reasons[.Ok] = "here"
     println("${reasons[.NotFound] ?? "?"} ${reasons[.Ok] ?? "?"} ${reasons.len()}")
+    shades: Color[]: [.Red, .Green]
+    boxed :: Box<Direction> { .value = .East }
+    println("${shades.content_equals([.Red, .Green])} ${boxed}")
+    tinted :: Box<Color> { .value = .Green }
+    shown: Display[]: [boxed, tinted]
+    held: Box<Direction> | Box<Color>: boxed
+    println("${shown[1].to_string()} ${held is Box<Color>}")
     return 0
 }

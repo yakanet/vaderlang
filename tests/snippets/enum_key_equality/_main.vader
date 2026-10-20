@@ -1,7 +1,7 @@
 // Enum equality and enum-keyed maps, run natively. An enum's `==` is an integer
-// comparison ; a map keyed by a plain enum shares the erased instance, one keyed
-// by an enum with variant data gets a concrete instance whose key hashing and
-// comparison go through the rank it stores. None of these may reach a host
+// comparison ; a map keyed by an enum gets a concrete instance whose key hashing
+// and comparison go through the integer it stores (its rank, for one with variant
+// data). None of these may reach a host
 // import : the native build has no binding for `<int>$Equals$equals`, so a
 // comparison routed to one traps at run time while the VM runs it fine. Every
 // enum implements `Equals` with no impl : `c.equals(d)` is the comparison itself,

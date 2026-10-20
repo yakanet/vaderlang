@@ -447,9 +447,9 @@ const C_PARITY = new Set<string>([
   "array_slice_gc_frame",
   // `bytes()` views survive a moving collection and keep their string alive.
   "string_bytes_gc",
-  // A generic instance keeps an enum with variant data concrete : its key
-  // hashing and comparison in a map, and the module-qualified mangle that keeps
-  // two same-named enums apart, only show what they emit when the C runs.
+  // A generic instance keeps an enum concrete : its key hashing and comparison
+  // in a map, its arrays, its own `Display` and the module-qualified mangle that
+  // keeps two same-named enums apart only show what they emit when the C runs.
   // `enum_key_equality` also pins that an enum's `==` never becomes a call to
   // a host `<int>$Equals$equals`, which the VM binds and the native build does not.
   "enum_key_equality",

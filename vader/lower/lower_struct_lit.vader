@@ -88,10 +88,10 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
 
 // Erase a generic struct instance's runtime TAG exactly as
 // `materialize_impl_for_instance` erases the impl self : keep every argument
-// `kept_argument` keeps (a primitive, a type an impl on one instance names),
-// collapse every other ref arg to `Any` (`build_mixed_args_list`, the shared
-// kernel). So `Ready<Boom>` and `Ready<User>` intern to the single `Ready<Any>`
-// tag the erased vtable row is keyed on, while `Ready<i32>` stays concrete
+// `kept_argument` keeps, collapse every other ref arg to `Any`
+// (`build_mixed_args_list`, the shared kernel). So `Ready<Boom>` and
+// `Ready<User>` intern to the single `Ready<Any>` tag the erased vtable row is
+// keyed on, while `Ready<i32>` stays concrete
 // (devirtualised dispatch preserved). A non-generic struct (no args) — and any
 // non-struct type — is returned verbatim ; the empty-args guard also skips the
 // allocation on the common non-generic literal. The box LAYOUT is already

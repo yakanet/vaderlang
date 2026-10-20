@@ -227,8 +227,8 @@ build_fn_instance_decl :: fn(
     //   Mono   — a body needing its instance's real types (`fn_needs_concrete_instances`)
     //            OR a bare type-param array return (the result's element kind
     //            must be concrete, S5 Solution A). Full-concrete subst.
-    //   Mixed  — ≥1 arg `kept_type_argument` keeps (a primitive, an enum with variant
-    //            data): keep those concrete (devirt + primops/atom-eq inline), erase
+    //   Mixed  — ≥1 arg `kept_type_argument` keeps: keep those concrete
+    //            (devirt + primops/atom-eq inline), erase
     //            the rest to `Any` via `build_mixed_subst`. Mangle-indexed.
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
     // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
@@ -321,8 +321,8 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //   Mono   — full-concrete subst + `mono_suffix`. A body needing its instance's real
 //            types (`fn_needs_concrete_instances` : a trait dispatch, whose vtable
 //            needs the concrete struct, or a free fn looked up from a type-param
-//            receiver or argument), a `Display` dispatched on an enum
-//            or a distinct (boxed, it would reach its representation's), or a bare
+//            receiver or argument), a `Display` dispatched on a distinct
+//            or a range (shared, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
 //            concrete, S5 Solution A).
 //   Mixed  — `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
@@ -343,7 +343,7 @@ fn_instance_flavor :: fn(
         return .Mono
     }
     if owner_typed.fn_display_dispatches[fn_decl.id] is bool
-        && type_args.any_match((a) -> boxes_as_representation(a)) {
+        && type_args.any_match((a) -> a is DistinctType || is_refinement(a)) {
         return .Mono
     }
     if returns_typeparam_array(fn_decl) { return .Mono }

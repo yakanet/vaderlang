@@ -5,6 +5,10 @@
 Accepted (2026-10-20). Amends 0026: an erased generic slot, a trait value and
 every argument of an indirect or a virtual call no longer keep the class tag.
 
+Amended (2026-10-20) by 0100: an enum type argument is kept, so the `K` of
+`MutableMap<Color, i32>` no longer erases; the tag still matters for a trait
+value, a union and the arguments of an indirect or a virtual call.
+
 ## Context
 
 0026 tagged a scalar entering a union with its own type (`retag`), because its

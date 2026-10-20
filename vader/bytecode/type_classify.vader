@@ -28,8 +28,8 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     // of two modules share. `reserve_struct` keys identically, so a referenced
     // struct dedupes with its reserved definition instead of minting an orphan
     // `ref`.
-    is StructType -> "Struct#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
-    is TraitType  -> "Trait#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
+    is StructType -> "Struct#${symbol_key(t.symbol)}<${argument_keys(t.args)}>"
+    is TraitType  -> "Trait#${symbol_key(t.symbol)}<${argument_keys(t.args)}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
     is EnumType      -> t.repr.name
     // Distinct (newtype) shares its backing primitive's slot, exactly like an
@@ -160,6 +160,28 @@ type_key_join :: fn(args: Type[], sep: string) -> string {
         out = "${out}${prefix}${type_intern_key(args[i])}"
     }
     return out
+}
+
+// A struct's or trait's type arguments as its instance keys them : an enum by its
+// declaration, since an instance over an enum is its own (`kept_type_argument`)
+// and must not share its integer's tag and vtable rows ; any other type as a value
+// of it keys. `argument_hash` and `same_argument_class` follow the same rule.
+argument_keys :: fn(args: Type[]) -> string {
+    out := ""
+    separator := ""
+    for a in args {
+        out = "${out}${separator}${argument_key(a)}"
+        separator = "|"
+    }
+    return out
+}
+
+argument_key :: fn(t: Type) -> string {
+    backing :: strip_distinct(t)
+    if backing is EnumType {
+        return "Enum#${symbol_key(backing.symbol)}"
+    }
+    return type_intern_key(t)
 }
 
 /// Stack-class of a `Type`. Primitive types map by name. The two reference
@@ -366,8 +388,8 @@ export type_intern_hash :: fn(t: Type) -> u64 = match t {
     is RangeType      -> bare_hash(storage_integer(t).name)
     // The composite cases DO carry a distinct prefix (`Struct#`, `Array<`, …),
     // so a tag mirrors what the string already separates.
-    is StructType     -> type_args_hash(mix64(mix64(FNV_OFFSET_64, 1), symbol_hash(t.symbol)), t.args)
-    is TraitType      -> type_args_hash(mix64(mix64(FNV_OFFSET_64, 2), symbol_hash(t.symbol)), t.args)
+    is StructType     -> argument_hashes(mix64(mix64(FNV_OFFSET_64, 1), symbol_hash(t.symbol)), t.args)
+    is TraitType      -> argument_hashes(mix64(mix64(FNV_OFFSET_64, 2), symbol_hash(t.symbol)), t.args)
     is ArrayType      -> mix64(mix64(FNV_OFFSET_64, 3), type_intern_hash(t.element))
     is UnionType      -> type_args_hash(mix64(FNV_OFFSET_64, 4), t.variants)
     is TupleType      -> type_args_hash(mix64(FNV_OFFSET_64, 5), t.elements)
@@ -389,6 +411,23 @@ type_args_hash :: fn(seed: u64, args: Type[]) -> u64 {
         h = mix64(h, type_intern_hash(a))
     }
     return mix64(h, u64(args.len()))
+}
+
+// `argument_keys` as a hash, folded as `type_args_hash` folds.
+argument_hashes :: fn(seed: u64, args: Type[]) -> u64 {
+    h := seed
+    for a in args {
+        h = mix64(h, argument_hash(a))
+    }
+    return mix64(h, u64(args.len()))
+}
+
+argument_hash :: fn(t: Type) -> u64 {
+    backing :: strip_distinct(t)
+    if backing is EnumType {
+        return mix64(mix64(FNV_OFFSET_64, 7), symbol_hash(backing.symbol))
+    }
+    return type_intern_hash(t)
 }
 
 /// Do `a` and `b` land on the same type-table slot — i.e. would
@@ -414,8 +453,8 @@ export same_intern_class :: fn(a: Type, b: Type) -> bool {
         name :: bare_intern_name(a)
         return name != "" && name == bare_intern_name(b)
     }
-    if a is StructType { return b is StructType && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }
-    if a is TraitType  { return b is TraitType  && same_symbol_class(a.symbol, b.symbol) && same_class_list(a.args, b.args) }
+    if a is StructType { return b is StructType && same_symbol_class(a.symbol, b.symbol) && same_argument_list(a.args, b.args) }
+    if a is TraitType  { return b is TraitType  && same_symbol_class(a.symbol, b.symbol) && same_argument_list(a.args, b.args) }
     if a is ArrayType  { return b is ArrayType  && same_intern_class(a.element, b.element) }
     if a is UnionType  { return b is UnionType  && same_class_list(a.variants, b.variants) }
     if a is TupleType  { return b is TupleType  && same_class_list(a.elements, b.elements) }
@@ -451,4 +490,22 @@ same_class_list :: fn(a: Type[], b: Type[]) -> bool {
         if !same_intern_class(a[i], b[i]) { return false }
     }
     return true
+}
+
+same_argument_list :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !same_argument_class(a[i], b[i]) { return false }
+    }
+    return true
+}
+
+// `same_intern_class` for a type argument : an enum matches only itself.
+same_argument_class :: fn(a: Type, b: Type) -> bool {
+    left :: strip_distinct(a)
+    right :: strip_distinct(b)
+    if left is EnumType || right is EnumType {
+        return left is EnumType && right is EnumType && same_symbol_class(left.symbol, right.symbol)
+    }
+    return same_intern_class(a, b)
 }

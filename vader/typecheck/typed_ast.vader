@@ -646,8 +646,8 @@ export TypedProgram :: struct {
 
     /// Generic fn AST-node id → true when its body interpolates a value whose
     /// type mentions a type-param, so renders it through a `Display` dispatched
-    /// on it. Read by the lowerer's instance flavor : an enum or a distinct
-    /// argument then gets a concrete instance, since erasure boxes it as its
+    /// on it. Read by the lowerer's instance flavor : a distinct or a range
+    /// argument then gets a concrete instance, since a shared one reads it as its
     /// representation and the dispatch would reach that type's `Display`.
     fn_display_dispatches: MutableMap<i64, bool>
 

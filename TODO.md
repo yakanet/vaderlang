@@ -188,7 +188,7 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
 
 - [ ] **A generic struct literal is not inferred from its fields — DECISION PENDING** (found 2026-10-02). `Box { .value = Point {…} }` types as a bare `Box`, so a bounded impl (`Box<T> implements<T: Display> Display`) is never checked against `Point` and the program traps at run time (`no impl for type …`); `ok: Box<i32>: Box { .value = 1 }` is T3001 "got Box!". `vader/typecheck/struct_lit.vader::infer_struct_lit` substitutes written type arguments only. Either infer the arguments from the fields, or require `Box<T> { … }` and refuse the bare literal.
 
-- [ ] **A boxed distinct or enum loses its own `Display` — DECISION PENDING** (2026-10-02). `Box<Direction>` prints the variant's rank on both backends, because `kept_type_argument` erases a payload-less enum (`vader/types/types.vader`). The union half is refused rather than miscompiled: `Direction | null` and `Meters | null` (a distinct with its own `Display`) both raise T3086 (`e007309a1`). Either a run-time identity for a boxed enum / distinct, or one instance per enum / distinct argument.
+- [ ] **A boxed distinct loses its own `Display` — DECISION PENDING** (2026-10-02). `Box<Meters>` renders through its backing's `Display`, because a distinct is its backing in a shared instance (`vader/types/types.vader::kept_type_argument`). The union half is refused rather than miscompiled: `Direction | null` and `Meters | null` (a distinct with its own `Display`) both raise T3086 (`e007309a1`). Either a run-time identity for a boxed distinct, or one instance per distinct argument.
 
 ---
 
@@ -294,6 +294,8 @@ typecheck pass, and the cause is probe clustering, not the number of lookups —
 low bits; node-id keys hash to themselves and wrap a growing table). An avalanche
 mix in the hash cuts the typecheck pass by ~45 % with the emitted C unchanged; a
 flat array in place of a map is worth ≤ 8 % once that lands.
+
+- [ ] **The GC's sizing moves the self-compile by a few percent** (measured 2026-10-20). A change that leaves the allocations alike but reshapes the heap (three maps of the compiler storing `u8` arrays instead of boxes, ADR 0100) cost the self-compile 2.5 % of wall time. The old generation's major collection, fired once it passes 1.5 times what survived the previous one (`vader_old_maybe_major`, `runtime/c/vader_runtime.c`), fell later, so `c-emit` ran its minors over a larger old generation, and each minor rescans the old generation's whole card table. With fixed arenas the two builds are within 0.2 %; with `VADER_GC_YOUNG_RATIO=1` the sign flips, and the compiler before the change itself compiles 3.5 % faster than with the default ratio of 2. Before changing a default, measure the run-time benchmarks and the peak RSS too, not the self-compile alone.
 
 - [ ] **(idea 3) Int-keyed side-tables → flat array / `IntMap`** (**to discuss**). Dense
       `Symbol.id`-keyed maps want a flat `T[]` (or `IntMap` for sparse) — cheaper CPU + RAM.

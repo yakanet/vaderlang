@@ -184,7 +184,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         // a `virtual.call` / thunk — the native build has no host binding for an
         // int `equals`. Other trait methods (Hash / Comparable have materialised
         // bodies) fall through to the UFCS direct-call path.
-        if receiver_ty is EnumType || kept_type_argument(receiver_ty) != null {
+        if kept_type_argument(receiver_ty) != null {
             if runs_builtin_equals(ctx, call) && call.args.len() > 0 {
                 mark :: ctx.pending_awaits.len()
                 other :: lower_expr(ctx, call.args[0].value)

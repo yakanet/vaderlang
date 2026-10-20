@@ -1161,24 +1161,21 @@ export scalar_backing :: fn(t: Type) -> PrimitiveType | RangeType | null {
 /// so they always agree on the instance.
 ///
 /// A primitive is kept, and so is a newtype over one, as its backing, a machine
-/// integer under its integer's name (`range_representation`). An enum with
-/// variant data is kept as itself : it stores its variant's rank, so boxing it
-/// would leave `i64(v)` in the shared body reading the rank where the written value
-/// is meant. Every other type erases, any other range included : a test at run time
-/// cannot tell it from its integer. The lowering alone keeps such a range
-/// (`kept_argument`), for the instance at it to check what it gets back.
+/// integer under its integer's name (`range_representation`). An enum is kept as
+/// itself (ADR 0100) : a shared body would read its arrays, stored in its integer,
+/// as boxes, and reach its integer's impls rather than its own. Every other type
+/// erases, any other range included : a test at run time cannot tell it from its
+/// integer. The lowering alone keeps such a range (`kept_argument`), for the
+/// instance at it to check what it gets back.
 ///
 /// @param t  a concrete type argument of the instance.
 export kept_type_argument :: fn(t: Type) -> Type | null {
     backing :: strip_distinct(t)
-    if backing is PrimitiveType {
+    if backing is PrimitiveType | EnumType {
         return backing
     }
     if is_machine_integer(backing) {
         return range_representation(backing)
-    }
-    if backing is EnumType && backing.data != null {
-        return backing
     }
     return null
 }
