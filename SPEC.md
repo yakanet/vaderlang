@@ -2206,6 +2206,8 @@ plus(2, 3)
 
 `a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
 
+**A field comes first.** When `a`'s struct declares a field `f`, `a.f` reads that field: declaring a fn never changes what an existing field access reads. Called, `a.f(b)` calls the field when it holds a function, and goes to the fns named `f` when it holds anything else.
+
 UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
 1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.

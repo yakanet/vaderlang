@@ -1,0 +1,25 @@
+// A struct field comes before a fn of its name; called, a field that holds no
+// function leaves the name to the fns (`c.count()`).
+
+module "snippet"
+
+import "std/io"
+
+Handler :: struct { cb: fn(i32) -> i32 }
+cb :: fn(h: Handler, x: i32) -> i32 = x - 1
+
+Point :: struct { size: i32 }
+size :: fn(p: Point) -> i32 = 99
+
+Counter :: struct { count: i32 }
+count :: fn(c: Counter) -> i32 = c.count * 10
+
+main :: fn() -> i32 {
+    h :: Handler { .cb = (x) -> x * 2 }
+    println("field call ${h.cb(21)}")
+    p :: Point { .size = 1 }
+    println("field read ${p.size}")
+    c :: Counter { .count = 4 }
+    println("fn call ${c.count()}")
+    return 0
+}

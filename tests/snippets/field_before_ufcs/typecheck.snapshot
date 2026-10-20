@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/field_before_ufcs
+  FnDecl         cb                   :: fn(Handler, i32) -> i32
+  FnDecl         count                :: fn(Counter) -> i32
+  StructDecl     Counter              :: Counter
+  StructDecl     Handler              :: Handler
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         size                 :: fn(Point) -> i32
+  expr 15:34    BinaryExpr     :: i32
+  expr 15:34    FieldExpr      :: i32
+  expr 15:34    IdentExpr      :: Counter
+  expr 18:10    StructLitExpr  :: Handler
+  expr 18:26    LambdaExpr     :: fn(i32) -> i32
+  expr 18:33    BinaryExpr     :: i32
+  expr 18:33    IdentExpr      :: i32
+  expr 19:13    StringLitExpr  :: string
+  expr 19:27    CallExpr       :: i32
+  expr 19:27    FieldExpr      :: fn(i32) -> i32
+  expr 19:27    IdentExpr      :: Handler
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 20:10    StructLitExpr  :: Point
+  expr 21:13    StringLitExpr  :: string
+  expr 21:27    FieldExpr      :: i32
+  expr 21:27    IdentExpr      :: Point
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:10    StructLitExpr  :: Counter
+  expr 23:13    StringLitExpr  :: string
+  expr 23:24    CallExpr       :: i32
+  expr 23:24    FieldExpr      :: fn() -> i32
+  expr 23:24    IdentExpr      :: Counter
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 9:39     BinaryExpr     :: i32
+  expr 9:39     IdentExpr      :: i32

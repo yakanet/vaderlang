@@ -1,0 +1,6 @@
+# stdout
+field call 42
+field read 1
+fn call 40
+# exit
+0

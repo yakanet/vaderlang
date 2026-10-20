@@ -3,6 +3,7 @@
 // `infer_field` recursively checks the target, then runs a priority-ordered
 // chain of `try_*` dispatchers and returns the first non-null result :
 //   - namespace-import field access (`mod.foo`),
+//   - a struct field of that name, before any method (SPEC § UFCS),
 //   - array methods ; impl-method / free-fn / trait-method UFCS dispatch ;
 //     bounded-TypeParam trait dispatch ; an enum's built-in `Equals`,
 //   - tuple positional index ; discriminated-union common-field access ;
@@ -48,6 +49,11 @@ infer_field :: fn(
     static_member :: try_static_member(e, target_ty, typed, diags)
     if static_member !is null {
         return static_member
+    }
+    // A field comes before a method of its name (SPEC § UFCS).
+    if takes_struct_field(target_ty, e, typed) {
+        note_callee(typed, e, FN_VALUE_CALLEE)
+        return resolve_struct_field(target_ty, e, typed, diags)
     }
     // Built-in array methods (`len`/`push`/…) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
@@ -971,6 +977,26 @@ report_namespace_alias_method :: fn(
         return true
     }
     return false
+}
+
+// Whether `e` reads the struct field of its name: `target_ty` declares one this
+// module may read and, when `e` is called, that field holds a function. Reports
+// nothing.
+takes_struct_field :: fn(target_ty: Type, e: AST.FieldExpr, typed: TypedProgram) -> bool {
+    st :: struct_backing(target_ty) ?? return false
+    decl :: typed.struct_decls[st.symbol.id] ?? return false
+    at :: field_position(decl, e.field)
+    if at < 0 {
+        return false
+    }
+    if decl.fields[at].visibility == .Private && st.symbol.module != typed.resolved.path {
+        return false
+    }
+    if typed.callee_field_id != e.id {
+        return true
+    }
+    declared :: resolved_field_type(st.symbol.id, decl, e.field, typed, diag_sink()) ?? return false
+    return narrow_field_if_active(e, substitute_struct_args(declared, st, typed), typed) is FnType
 }
 
 // Terminal struct-field lookup + the catch-all diagnostics for any
