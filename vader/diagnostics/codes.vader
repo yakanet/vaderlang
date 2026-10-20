@@ -185,6 +185,7 @@ export ParserCode :: enum(CodeInfo) {
     IsTestBindsName                   { .id = "P1036", .message = "an `is` test cannot bind a name" },
     PatternBindsName                  { .id = "P1037", .message = "a match pattern cannot bind a name" },
     RestNotLast                       { .id = "P1038", .message = "`...rest` must be the last element" },
+    MisshapenMatchBinding             { .id = "P1039", .message = "a `match` header binds one constant name" },
 }
 
 // R-codes belong to the resolver pass (name-binding) ; once shipped,

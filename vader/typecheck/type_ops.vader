@@ -1178,7 +1178,7 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 /// matches every union variant whose nominal carrier implements the trait
 /// (mirroring `c_emit/walker.vader::trait_check_expr` and the VM's
 /// `ref_type_matches`), so those variants leave the remainder too —
-/// `match x: IOError | string { is string …, is Error … }` is exhaustive.
+/// With `x: IOError | string`, `match x { is string …, is Error … }` is exhaustive.
 /// A non-trait `removed` delegates to plain `subtract_type`.
 subtract_type_with_impls :: fn(from: Type, removed: Type, typed: TypedProgram) -> Type {
     if !(removed is TraitType) { return subtract_type(from, removed) }

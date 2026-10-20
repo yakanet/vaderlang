@@ -2224,24 +2224,17 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
         p.advance()  // `:`
         return p.parse_for(label_tok.text, false)
     }
-    // Tuple-destructure let : `[a, b] := expr`, `[a, b] :: expr`, or
-    // `[a, b]: [i32, string] = expr`. Detected by the `[` whose matching `]`
-    // is followed by `:=`, `::`, or `:` (typed form).
-    // A `=` (or a compound operator) after the `]` is a destructuring
+    if p.starts_let() {
+        return p.parse_any_let()
+    }
+    // A `=` (or a compound operator) after a bracket group is a destructuring
     // assignment — its elements are targets, not expressions, so it cannot go
     // through the expression-statement path below.
     if p.check(.LBracket) {
         after :: p.kind_after_bracket_group()
-        if after == .DeclConst || after == .DeclVar || after == .Colon { return p.parse_tuple_let() }
-        if after == .Assign || after.compound_op().matched              { return p.parse_destructure_assign() }
-    }
-    // `name :: expr` or `name := expr`
-    if p.check(.Ident) && (p.check_at(.DeclConst, 1) || p.check_at(.DeclVar, 1)) {
-        return p.parse_let()
-    }
-    // `name: Type = expr` — typed mutable
-    if p.check(.Ident) && p.check_at(.Colon, 1) {
-        return p.parse_typed_let()
+        if after == .Assign || after.compound_op().matched {
+            return p.parse_destructure_assign()
+        }
     }
     // Expression statement (with optional `=` or compound assignment).
     start :: p.peek()
@@ -2284,6 +2277,27 @@ compound_op :: fn(k: TokenKind) = @partial match k {
     .MinusPercentAssign -> CompoundOpResult { .matched = true, .op = .SubWrap }
     .StarPercentAssign  -> CompoundOpResult { .matched = true, .op = .MulWrap }
     _              -> CompoundOpResult { .matched = false, .op = .Add }
+}
+
+// Whether a local declaration starts at the cursor: `name ::`, `name :=`,
+// `name:` (typed), or a bracket group followed by one of them (a destructure).
+starts_let :: fn(p: Parser) -> bool {
+    if p.check(.LBracket) {
+        after :: p.kind_after_bracket_group()
+        return after == .DeclConst || after == .DeclVar || after == .Colon
+    }
+    return p.check(.Ident) && (p.check_at(.DeclConst, 1) || p.check_at(.DeclVar, 1) || p.check_at(.Colon, 1))
+}
+
+// The local declaration `starts_let` found at the cursor.
+parse_any_let :: fn(p: Parser) -> LetStmt {
+    if p.check(.LBracket) {
+        return p.parse_tuple_let()
+    }
+    if p.check_at(.Colon, 1) {
+        return p.parse_typed_let()
+    }
+    return p.parse_let()
 }
 
 parse_typed_let :: fn(p: Parser) -> LetStmt {
@@ -3732,11 +3746,13 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
     start :: p.advance()  // `match`
     saved_restriction :: p.no_struct_lit_at
     p.no_struct_lit_at = p.bracket_depth
-    scrutinee :: p.parse_expr(0)
+    declared :: p.parse_match_declaration()
+    scrutinee :: p.match_scrutinee(declared)
     p.no_struct_lit_at = saved_restriction
-    // `match e as x { … }` — name the scrutinee once for every arm. `as` is not an
-    // infix operator (it has no binding power), so it can only be consumed here.
-    bind_as: AsBinding | null = null
+    bind_as := declared_name(declared)
+    // `match e as x { … }` is read until the bootstrap seed parses `match x :: e`.
+    // `as` is not an infix operator (it has no binding power), so it can only be
+    // consumed here.
     if p.match_kind(.KwAs) != null {
         name_tok :: p.expect(.Ident, "binding name after `as`")
         bind_as = AsBinding { .name = name_tok.text, .span = name_tok.span }
@@ -3759,6 +3775,52 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
         .unreachable = unreachable,
         .bind_as     = bind_as,
     }
+}
+
+// The local declaration opening a `match` header, `match x :: e { … }`, or null
+// when the header is a bare scrutinee. Every declaration form parses, so that a
+// wrong one is diagnosed rather than misread: the binding is one constant name,
+// typed as the scrutinee.
+parse_match_declaration :: fn(p: Parser) -> LetStmt | null {
+    if !p.starts_let() {
+        return null
+    }
+    declared :: p.parse_any_let()
+    binding :: declared.binding
+    if binding !is SimpleBinding {
+        p.error(
+            .MisshapenMatchBinding, declared.span,
+            "bind one name, `match x :: …`, and destructure it in an arm (`[a, b] :: x`)",
+        )
+    } else if declared.mutable {
+        p.error(.MisshapenMatchBinding, declared.span, "write `match ${binding.name} :: …`")
+    } else if declared.ty != null {
+        p.error(
+            .MisshapenMatchBinding, declared.ty.span,
+            "drop the type, the binding has the scrutinee's: `match ${binding.name} :: …`",
+        )
+    }
+    return declared
+}
+
+// The scrutinee a header declaration holds, or the bare one written after `match`.
+match_scrutinee :: fn(p: Parser, declared: LetStmt | null) -> Expr {
+    if declared != null {
+        return declared.value
+    }
+    return p.parse_expr(0)
+}
+
+// The name a header declaration binds ; null without one, or for a pattern.
+declared_name :: fn(declared: LetStmt | null) -> AsBinding | null {
+    if declared == null {
+        return null
+    }
+    binding :: declared.binding
+    if binding is SimpleBinding {
+        return AsBinding { .name = binding.name, .span = binding.name_span }
+    }
+    return null
 }
 
 parse_match_arm :: fn(p: Parser) -> MatchArm {
@@ -4096,6 +4158,18 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     assert_eq(errors.len(), 2)
     assert_eq(errors[0].code.id, "P1036")
     assert_eq(errors[1].code.id, "P1036")
+}
+
+@test test_misshapen_match_binding_is_reported :: fn() -> void {
+    for header in ["x := f()", "x: i32: f()", "[a, b] :: f()"] {
+        src :: "module \"t\"\n" +
+            "f :: fn() -> i32 = 1\n" +
+            "g :: fn() -> i32 = match ${header} {\n" +
+            "    _ -> 0\n" +
+            "}\n"
+        errors :: parse_source(src, "test.vader").errors
+        assert(errors.len() == 1 && errors[0].code.id == "P1039", "one P1039 for `match ${header}`")
+    }
 }
 
 // The first declaration, when the fixture makes it an enum.

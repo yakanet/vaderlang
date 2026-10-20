@@ -2026,12 +2026,12 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
-    self.emit_condition(x.scrutinee)
     bind_as :: x.bind_as
     if bind_as is p.AsBinding {
-        self.write(" as ")
         self.write(bind_as.name)
+        self.write(" :: ")
     }
+    self.emit_condition(x.scrutinee)
     self.write(" {")
     self.depth = self.depth + 1
     // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the

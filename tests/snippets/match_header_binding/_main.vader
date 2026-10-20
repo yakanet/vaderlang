@@ -1,0 +1,41 @@
+// `match x :: e { … }` evaluates `e` once and names it for every arm and guard,
+// each arm narrowing the name to what its pattern matched. The name lives only in
+// the match: past it, the same name is the outer binding again.
+
+module "snippet"
+
+import "std/io"
+
+Leaf :: struct { v: i32 }
+Pair :: struct { l: i32, r: i32 }
+Tree :: Leaf | Pair
+
+Box :: struct { inner: Tree }
+
+pick :: fn(t: Tree) -> Tree {
+    println("picked")
+    return t
+}
+
+size :: fn(t: Tree) -> i32 = match s :: pick(t) {
+    is Leaf             -> s.v
+    is Pair if s.l > s.r -> s.l
+    is Pair             -> s.r
+}
+
+unwrap :: fn(b: Box) -> i32 {
+    inner :: 7
+    total :: match inner :: b.inner {
+        is Leaf -> inner.v
+        is Pair -> inner.l + inner.r
+    }
+    return total + inner
+}
+
+main :: fn() -> i32 {
+    println("leaf ${size(Leaf { .v = 3 })}")
+    println("pair ${size(Pair { .l = 5, .r = 2 })}")
+    println("pair ${size(Pair { .l = 1, .r = 4 })}")
+    println("unwrap ${unwrap(Box { .inner = Pair { .l = 10, .r = 20 } })}")
+    return 0
+}
