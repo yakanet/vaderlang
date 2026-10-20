@@ -8,6 +8,8 @@
 // it, and what a generic fn's own `T` hands back is a value of the range, with
 // nothing to check. A captured binding written where a test narrows it still
 // holds what its declaration does, and an `Hour` goes where an `i64` offset does.
+// A conversion of a converted value checks only what the first value's type leaves
+// open: an `Hour` through `Wide` into `Day` needs no test.
 
 module "snippet"
 
@@ -18,6 +20,7 @@ Slot :: Hour
 Id :: u8
 Wide :: Int in 0..=200
 Dose :: Wide
+Day :: Int in 0..=30
 
 pick :: fn(x: Hour) -> string = "hour"
 pick :: fn(x: u8) -> string = "byte"
@@ -42,6 +45,8 @@ later :: fn(c: bool, d: bool, h: Hour) -> i32 {
 total :: fn(a: Dose, b: Dose) -> i32 = i32(a + b)
 
 unwrap :: fn(s: Slot) -> Hour = Hour(s)
+
+within :: fn(h: Hour) -> Day = Day(Wide(h))
 
 same :: fn<T>(x: T) -> T = x
 
@@ -87,5 +92,6 @@ main :: fn() -> i32 {
     println("${walk(21, 23)} ${later(false, false, 5)} ${total(Dose(150), Dose(150))}")
     println("${unwrap(Slot(7))} ${kept(h)}")
     println("${rebound(5)} ${copied(1)}")
+    println("${within(23)} ${Wide(h) in Day}")
     return 0
 }

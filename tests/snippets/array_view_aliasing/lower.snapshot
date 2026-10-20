@@ -3,7 +3,7 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       arr: i32[] = [10, 20, 30, 40, 50] :i32[]
-      view: i32[] = arr[i64(1)..<i64(4)]
+      view: i32[] = arr[1..<4]
       view[1] = 99
       std.io.println<string>("after view[1]=99")
       std.io.println<string>({

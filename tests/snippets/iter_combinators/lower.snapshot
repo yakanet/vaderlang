@@ -86,7 +86,7 @@
           }
           acc
       }
-      first: i32[] = nums[i64(0)..<i64(3)]
+      first: i32[] = nums[0..<3]
       s3: i32 = {
           __fuse_arr_10: i32[] = first
           s: i32 = std_core$i32$Zero$zero()
@@ -122,21 +122,21 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(34))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "slice mid len=")
-          __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(nums[i64(3)..<i64(7)]))
+          __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(nums[3..<7]))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.io.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(35))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "slice over len=")
-          __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(nums[i64(100)..<i64(200)]))
+          __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(nums[100..<200]))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.io.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(35))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "slice tail len=")
-          __off_19 = std.core.write_int(__buf_18, __off_19, @array.len(nums[i64(8)..<i64(999)]))
+          __off_19 = std.core.write_int(__buf_18, __off_19, @array.len(nums[8..<999]))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       return (((s1 + s2) + p) + s3) + s4

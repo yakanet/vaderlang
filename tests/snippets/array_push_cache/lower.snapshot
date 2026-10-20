@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.tight :: fn(n: i32) -> i32[] {  // snippet$tight
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -35,7 +35,7 @@
       } :string
   }
   snippet.allocates :: fn(n: i32) -> string[] {  // snippet$allocates
-      out: string[] = @array.repeat([] :string[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: string[] = @array.repeat([] :string[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -47,7 +47,7 @@
       return out
   }
   snippet.reads_itself :: fn(n: i32) -> i32[] {  // snippet$reads_itself
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -136,7 +136,7 @@
       return i32(@array.len(row))
   }
   snippet.boxed :: fn(n: i32) -> string[] {  // snippet$boxed
-      out: string[] = @array.repeat([] :string[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: string[] = @array.repeat([] :string[], if 0 < n { n } else { i64(0) } :i64)
       {
           _: i32 = 0
           for _ < n {
@@ -149,7 +149,7 @@
   }
   snippet.into_view :: fn() -> i32[] {  // snippet$into_view
       base: i32[] = [10, 20, 30, 40, 50] :i32[]
-      v: i32[] = base[i64(1)..<i64(3)]
+      v: i32[] = base[1..<3]
       {
           i: i32 = 0
           for i < 3 {
@@ -162,11 +162,11 @@
   }
   snippet.nested :: fn(n: i32) -> i32 {  // snippet$nested
       total: i32 = 0
-      outer: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      outer: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
-              inner: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+              inner: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
               {
                   j: i32 = 0
                   for j < n {
@@ -184,7 +184,7 @@
       return total + i32(@array.len(outer))
   }
   snippet.widths :: fn(n: i32) -> string {  // snippet$widths
-      bytes: u8[] = @array.repeat([] :u8[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      bytes: u8[] = @array.repeat([] :u8[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -193,7 +193,7 @@
               i = i +% 1
           }
       }
-      shorts: i16[] = @array.repeat([] :i16[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      shorts: i16[] = @array.repeat([] :i16[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -202,7 +202,7 @@
               i = i +% 1
           }
       }
-      floats: f32[] = @array.repeat([] :f32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      floats: f32[] = @array.repeat([] :f32[], if 0 < n { n } else { i64(0) } :i64)
       {
           i: i32 = 0
           for i < n {
@@ -278,7 +278,7 @@
       return witness
   }
   snippet.captured :: fn(n: i32) -> i32 {  // snippet$captured
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       observe: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = out }
       witness: i32 = 0
       {
@@ -293,7 +293,7 @@
       return witness
   }
   snippet.two_names :: fn(n: i32) -> i32 {  // snippet$two_names
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       alias: i32[] = out
       witness: i32 = 0
       {
@@ -308,7 +308,7 @@
       return witness
   }
   snippet.rebound :: fn(n: i32) -> i32 {  // snippet$rebound
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       total: i32 = 0
       {
           i: i32 = 0
@@ -325,7 +325,7 @@
       return total + i32(@array.len(out))
   }
   snippet.len_after :: fn(n: i32) -> i32 {  // snippet$len_after
-      out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+      out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
       {
           index: i32 = 0
           for index < n {
@@ -365,7 +365,7 @@
   snippet.collected :: fn(n: i32) -> i32[] {  // snippet$collected
       {
           f: fn(i32) -> i32 = snippet.triple
-          out: i32[] = @array.repeat([] :i32[], if 0 < n { i64(n) } else { i64(0) } :i64)
+          out: i32[] = @array.repeat([] :i32[], if 0 < n { n } else { i64(0) } :i64)
           {
               x: i32 = 0
               for x < n {

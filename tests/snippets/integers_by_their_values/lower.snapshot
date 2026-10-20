@@ -39,7 +39,10 @@
       i32(a + b)
   }
   snippet.unwrap :: fn(s: Slot) -> Hour {  // snippet$unwrap
-      s
+      Hour(s)
+  }
+  snippet.within :: fn(h: Hour) -> Day {  // snippet$within
+      Day(Wide(h))
   }
   snippet.rebound :: fn(start: i64) -> i64 {  // snippet$rebound
       x: @cell<i64> = @cell_new(start)
@@ -131,6 +134,17 @@
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
           __off_11 = std.core.write_int(__buf_10, __off_11, snippet.copied(Hour(1)))
           std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      std.io.println<string>({
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_unsigned(__buf_12, __off_13, snippet.within(Hour(23)))
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_bool(__buf_12, __off_13, {
+              Wide(h)
+              true
+          } :bool)
+          std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       return 0
   }

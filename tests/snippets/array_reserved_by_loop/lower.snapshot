@@ -46,7 +46,7 @@
       return out
   }
   snippet.over_range :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_range
-      out: i64[] = @array.repeat([] :i64[], if lo < hi { i64(hi) -% i64(lo) } else { i64(0) } :i64)
+      out: i64[] = @array.repeat([] :i64[], if lo < hi { hi -% lo } else { i64(0) } :i64)
       {
           i: i32 = lo
           for i < hi {
@@ -58,7 +58,7 @@
       return out
   }
   snippet.over_inclusive :: fn(lo: i32, hi: i32) -> i64[] {  // snippet$over_inclusive
-      out: i64[] = @array.repeat([] :i64[], if lo <= hi { (i64(hi) -% i64(lo)) +% i64(1) } else { i64(0) } :i64)
+      out: i64[] = @array.repeat([] :i64[], if lo <= hi { (hi -% lo) +% i64(1) } else { i64(0) } :i64)
       {
           i: i32 = lo
           __more_turns_0: bool = i <= hi
@@ -72,7 +72,7 @@
       return out
   }
   snippet.span_count :: fn(lo: i8, hi: i8) -> i64 {  // snippet$span_count
-      out: i8[] = @array.repeat([] :i8[], if lo < hi { i64(hi) -% i64(lo) } else { i64(0) } :i64)
+      out: i8[] = @array.repeat([] :i8[], if lo < hi { hi -% lo } else { i64(0) } :i64)
       {
           b: i8 = lo
           for b < hi {

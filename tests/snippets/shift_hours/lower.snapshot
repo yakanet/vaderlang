@@ -32,7 +32,7 @@
                       @unreachable("value out of range: not in `Hour` (0..=23)")
                   }
                   __in_range_0
-              } :u8
+              }
               {
                   __fuse_len_2: i64 = @array.len(__fuse_arr_4)
                   __fuse_i_3: i64 = 0
@@ -46,7 +46,7 @@
                                   @unreachable("value out of range: not in `Hour` (0..=23)")
                               }
                               __in_range_1
-                          } :u8
+                          }
                       }
                   } @step {
                       __fuse_i_3 = __fuse_i_3 +% i64(1)
@@ -92,7 +92,7 @@
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
           __in_range_0
-      } :u8
+      } :Hour
   }
   snippet.later<u8> :: fn(start: u8, length: u8) -> u8 {  // snippet$later__u8
       start + length
@@ -104,7 +104,7 @@
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
           __in_range_0
-      } :u8
+      }
       {
           __for_arr_1: Hour[] = lengths
           __for_len_2: i64 = @array.len(__for_arr_1)
@@ -117,7 +117,7 @@
                       @unreachable("value out of range: not in `Hour` (0..=23)")
                   }
                   __in_range_4
-              } :u8
+              }
           } @step {
               __for_i_3 = __for_i_3 +% i64(1)
           }
@@ -131,7 +131,7 @@
               @unreachable("value out of range: not in `Month` (1..=12)")
           }
           __in_range_0
-      } :u8
+      } :Month
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

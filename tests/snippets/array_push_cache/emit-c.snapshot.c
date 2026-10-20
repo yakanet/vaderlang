@@ -202,7 +202,9 @@ static void* snippet_tight(int32_t l0) {
 #line 21 "tests/snippets/array_push_cache/_main.vader"
 #line 20 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 21 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 20 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -334,7 +336,9 @@ static void* snippet_allocates(int32_t l0) {
 #line 41 "tests/snippets/array_push_cache/_main.vader"
 #line 40 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 41 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 40 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -367,7 +371,9 @@ static void* snippet_reads_itself(int32_t l0) {
 #line 50 "tests/snippets/array_push_cache/_main.vader"
 #line 49 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 50 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 49 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -535,7 +541,9 @@ static void* snippet_boxed(int32_t l0) {
 #line 117 "tests/snippets/array_push_cache/_main.vader"
 #line 116 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 117 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 116 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -603,7 +611,9 @@ static int32_t snippet_nested(int32_t l0) {
 #line 140 "tests/snippets/array_push_cache/_main.vader"
 #line 139 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 140 "tests/snippets/array_push_cache/_main.vader"
         l3 = ((int64_t) (int32_t) l0);
+#line 139 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l3 = INT64_C(0);
     }
@@ -618,7 +628,9 @@ static int32_t snippet_nested(int32_t l0) {
 #line 142 "tests/snippets/array_push_cache/_main.vader"
 #line 141 "tests/snippets/array_push_cache/_main.vader"
         if ((INT32_C(0) < l0)) {
+#line 142 "tests/snippets/array_push_cache/_main.vader"
             l3 = ((int64_t) (int32_t) l0);
+#line 141 "tests/snippets/array_push_cache/_main.vader"
         } else {
             l3 = INT64_C(0);
         }
@@ -704,7 +716,9 @@ static vader_string_t snippet_widths(int32_t l0) {
 #line 159 "tests/snippets/array_push_cache/_main.vader"
 #line 158 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 159 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 158 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -752,7 +766,9 @@ static vader_string_t snippet_widths(int32_t l0) {
 #line 163 "tests/snippets/array_push_cache/_main.vader"
 #line 162 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 163 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 162 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -800,7 +816,9 @@ static vader_string_t snippet_widths(int32_t l0) {
 #line 167 "tests/snippets/array_push_cache/_main.vader"
 #line 166 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 167 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 166 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -967,7 +985,9 @@ static int32_t snippet_captured(int32_t l0) {
 #line 213 "tests/snippets/array_push_cache/_main.vader"
 #line 210 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 213 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 210 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -1010,7 +1030,9 @@ static int32_t snippet_two_names(int32_t l0) {
 #line 226 "tests/snippets/array_push_cache/_main.vader"
 #line 223 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 226 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 223 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -1051,7 +1073,9 @@ static int32_t snippet_rebound(int32_t l0) {
 #line 238 "tests/snippets/array_push_cache/_main.vader"
 #line 236 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 238 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 236 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -1100,7 +1124,9 @@ static int32_t snippet_len_after(int32_t l0) {
 #line 253 "tests/snippets/array_push_cache/_main.vader"
 #line 252 "tests/snippets/array_push_cache/_main.vader"
     if ((INT32_C(0) < l0)) {
+#line 253 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 252 "tests/snippets/array_push_cache/_main.vader"
     } else {
         l2 = INT64_C(0);
     }
@@ -1206,7 +1232,9 @@ static void* snippet_collected(int32_t l0) {
 #line 279 "tests/snippets/array_push_cache/_main.vader"
 #line 87 "lib/std/iter/iter.vader"
     if ((INT32_C(0) < l0)) {
+#line 279 "tests/snippets/array_push_cache/_main.vader"
         l2 = ((int64_t) (int32_t) l0);
+#line 87 "lib/std/iter/iter.vader"
     } else {
         l2 = INT64_C(0);
     }

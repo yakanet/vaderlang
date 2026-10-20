@@ -11,7 +11,7 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
-      return snippet.Weekday.to_string(n)
+      return snippet.Weekday.to_string(u8(n))
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
       std.io.println<string>(concat_4("week ", snippet.Weekday.to_string(u8(0)), " to ", snippet.Weekday.to_string(u8(6))))
@@ -46,7 +46,7 @@
               if !(((__in_range_4 == i64(0)) || (__in_range_4 == i64(50))) || (__in_range_4 == i64(100))) {
                   @unreachable("value out of range: no value of `Discount`")
               }
-              u8(__in_range_4)
+              __in_range_4
           } :u8)
           __buf_6: Buffer = std.core.new_byte_buffer(i64(12) +% std.core.byte_len(__p_5))
           __off_7: i64 = 0

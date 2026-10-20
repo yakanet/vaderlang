@@ -230,12 +230,16 @@ check_instruction_storage :: fn(check: StorageCheck, ins: Instruction) -> void {
         }
         is InstrVirtualCall -> { check_values(check, ins.args, ins.param_types, ins.span) }
         is InstrIntrinsic   -> { check_values(check, ins.args, ins.param_types, ins.span) }
+        is InstrArraySlice  -> {
+            check_slot(check, ins.lo, TY_I64, ins.span)
+            check_slot(check, ins.hi, TY_I64, ins.span)
+        }
         is InstrBinOp       -> { check_operation(check, ins.lhs, ins.rhs, ins.type, ins.span) }
         is InstrUnOp        -> { check_operation(check, ins.operand, null, ins.type, ins.span) }
         // No slot to fill : a constant, a read, a conversion, a closure, a deferred
         // block.
         is InstrConst | InstrFnRef | InstrFnAddr | InstrFieldGet
-         | InstrUnionFieldGet | InstrArrayGet | InstrArrayLen | InstrArraySlice
+         | InstrUnionFieldGet | InstrArrayGet | InstrArrayLen
          | InstrDataConst | InstrGlobalGet | InstrTypeCheck | InstrTypeConst | InstrCast
          | InstrCellGet | InstrMakeClosure | InstrDeferPush | InstrDeferPopExec -> {}
     }

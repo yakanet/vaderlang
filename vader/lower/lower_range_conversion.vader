@@ -22,8 +22,8 @@ import "vader/types"
 ///
 /// @param call    the conversion, its single argument the value.
 /// @param target  the range converted into, at this instance (`instance_range`).
-/// @return        the value, checked where it may leave the range, then
-///                converted to the integer the range is held in.
+/// @return        the value, checked where it may leave the range, as a value of
+///                `target`.
 lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType) -> LoweredExpr {
     observe_no_call(ctx, call, .Call, "range check")
     value :: lower_expr(ctx, call.args[0].value)
@@ -39,7 +39,8 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
 ///                values, held as the integer `target` stores.
 lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -> LoweredExpr {
     reason :: "value out of range: no value of `${target.symbol.name}`"
-    return lower_runs_conversion(ctx, call, enum_value_runs(target), target.repr, reason)
+    held :: mk_primitive(target.repr)
+    return lower_runs_conversion(ctx, call, enum_value_runs(target), held, reason)
 }
 
 /// The conversion `call`, `char(value)`, from an integer.
@@ -48,22 +49,22 @@ lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -
 /// @return      the value, the program stopped where it is no Unicode scalar value.
 lower_char_conversion :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
     reason :: "value out of range: no Unicode scalar value"
-    return lower_runs_conversion(ctx, call, CHAR_VALUES, "char", reason)
+    return lower_runs_conversion(ctx, call, CHAR_VALUES, TY_CHAR, reason)
 }
 
-// The conversion `call`, its single argument an integer, into the integer `held`,
+// The conversion `call`, its single argument an integer, into a value of `result`,
 // the program stopped with `reason` where it lies in none of `runs`.
 lower_runs_conversion :: fn(
     ctx: FnLowerCtx,
     call: CallExpr,
     runs: Interval[],
-    held: string,
+    result: Type,
     reason: string,
 ) -> LoweredExpr {
     observe_no_call(ctx, call, .Call, "value check")
     value :: lower_expr(ctx, call.args[0].value)
     source :: values_of(ctx, call.args[0].value, value)
-    return checked_into(ctx, value, source, runs, held, reason, call.span)
+    return checked_into(ctx, value, source, runs, result, reason, call.span)
 }
 
 /// The type a call or an operator of type `type` at this instance is lowered at :
@@ -148,39 +149,59 @@ checked_into_range :: fn(
     target: RangeType,
     span: Span,
 ) -> LoweredExpr {
-    held :: storage_integer(target).name
     reason :: "value out of range: not in ${display_range(target)}"
-    return checked_into(ctx, value, source, [target.bounds], held, reason, span)
+    return checked_into(ctx, value, source, [target.bounds], target, reason, span)
 }
 
-// `value` converted into the integer `held`, the program stopped with `reason` where
+// `value` converted into a value of `result`, the program stopped with `reason` where
 // it lies in none of `runs`. Only what `source`, the values it can take, does not
-// already decide is tested.
+// already decide is tested, on the value held as a range of `source`.
 checked_into :: fn(
     ctx: FnLowerCtx,
     value: LoweredExpr,
     source: Interval | null,
     runs: Interval[],
-    held: string,
+    result: Type,
     reason: string,
     span: Span,
 ) -> LoweredExpr {
-    known :: source ?? return cast_to_width(value, held, span)
+    known :: source ?? return converted(value, result, span)
     if decided_inside(known, runs) == true {
-        return cast_to_width(value, held, span)
+        return converted(value, result, span)
     }
-    compared :: narrowest_integer(known)
+    compared :: RangeType { .bounds = known }
     stmts: LoweredStmt[]: []
-    widened :: cast_to_width(value, compared.name, span)
-    bound :: bind_to_local(ctx, widened, compared, "in_range", span, stmts)
+    bound :: bind_to_local(ctx, value, compared, "in_range", span, stmts)
     stmts.push_all(stops_outside(bound, known, runs, compared, reason, span))
-    return with_prelude(stmts, cast_to_width(bound, held, span), span)
+    return with_prelude(stmts, checked_read(bound, result, span), span)
 }
 
-// Stop the program with `reason` where `value`, of the integer type `compared`
-// holding `source`, lies in none of `runs`. Over two runs, `char`'s, the second is
-// tested only past the first : a value of the first makes one comparison. Over
-// more, the test stays one condition, linear in the runs.
+// The checked local `bound` as a value of `result` : a read at `result` for a range,
+// converted only where the CFG holds the two in different integers ; a conversion
+// otherwise (`char`).
+checked_read :: fn(bound: LoweredIdent, result: Type, span: Span) -> LoweredExpr {
+    if result is RangeType {
+        return LoweredIdent { ...bound, .type = result }
+    }
+    return LoweredCast { .span = span, .type = result, .value = bound }
+}
+
+// `value`, which the conversion has proved a value of `result`, as one : itself when
+// it is, a literal of `result` for an integer literal into a range, else converted.
+converted :: fn(value: LoweredExpr, result: Type, span: Span) -> LoweredExpr {
+    if equals_type(value.type, result) {
+        return value
+    }
+    if value is LoweredIntLit && result is RangeType {
+        return LoweredIntLit { ...value, .type = result }
+    }
+    return LoweredCast { .span = span, .type = result, .value = value }
+}
+
+// Stop the program with `reason` where `value`, holding `source`, lies in none of
+// `runs`. Over two runs, `char`'s, the second is tested only past the first : a
+// value of the first makes one comparison. Over more, the test stays one condition,
+// linear in the runs.
 stops_outside :: fn(
     value: LoweredExpr,
     source: Interval,
@@ -227,11 +248,11 @@ lower_in_type :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr {
     if outcome != null {
         return decided(value, outcome != negated, span)
     }
-    compared :: narrowest_integer(source)
+    compared :: RangeType { .bounds = source }
     stmts: LoweredStmt[]: []
-    tested: LoweredExpr = cast_to_width(value, compared.name, span)
-    if comparison_count(source, runs) > 1 {
-        tested = bind_unless_stable(ctx, tested, "in_x", span, stmts)
+    tested: LoweredExpr = value
+    if !is_stable_operand(value) && comparison_count(source, runs) > 1 {
+        tested = bind_to_local(ctx, value, compared, "in_x", span, stmts)
     }
     if negated {
         return with_prelude(stmts, outside_test(tested, source, runs, compared, span), span)
@@ -279,13 +300,16 @@ values_of :: fn(ctx: FnLowerCtx, arg: Expr, lowered: LoweredExpr) -> Interval | 
     if widened != null {
         return widened
     }
-    recorded :: integer_values(strip_distinct(ctx.types.raw_expr_type(arg)))
+    recorded :: lowered_values(ctx.types.raw_expr_type(arg))
     if recorded != null {
         return recorded
     }
-    return held_values(lowered.type)
+    return lowered_values(lowered.type)
 }
 
+// The values a value of type `t` lies in : its range's bounds, a distinct's
+// backing's ; null for a type that is no integer.
+lowered_values :: fn(t: Type) -> Interval | null = integer_values(strip_distinct(t))
 
 // The values of `e`, a literal or a cast widening an integer with no loss, through
 // any number of such casts ; null for any other expression.
@@ -297,7 +321,7 @@ widened_values :: fn(e: LoweredExpr) -> Interval | null {
         return null
     }
     inner :: cast_source_values(e.value) ?? return null
-    outer :: held_values(e.type) ?? return null
+    outer :: lowered_values(e.type) ?? return null
     if !interval_within(inner, outer) {
         return null
     }
@@ -310,7 +334,7 @@ cast_source_values :: fn(e: LoweredExpr) -> Interval | null {
     if widened != null {
         return widened
     }
-    return held_values(e.type)
+    return lowered_values(e.type)
 }
 
 // The parts of `runs` a value of `source` may lie in, each cut to `source`.
@@ -363,10 +387,10 @@ ends_tested :: fn(source: Interval, run: Interval) -> i64 {
 
 is_single_value :: fn(run: Interval) -> bool = run.lo == run.hi && !run.lo_open && !run.hi_open
 
-// Whether `value`, of the integer type `compared` holding `source`, lies in one of
-// `runs` : one test per reachable run, each comparing only the ends `source` may
-// pass ; `false` when none is reachable. Every bound compared lies within `source`,
-// so `compared` holds it.
+// Whether `value`, holding `source`, lies in one of `runs` : one test per reachable
+// run, each comparing only the ends `source` may pass ; `false` when none is
+// reachable. Every bound compared lies within `source`, so `compared`, the range of
+// `source`, holds it.
 inside_test :: fn(
     value: LoweredExpr,
     source: Interval,
@@ -381,9 +405,8 @@ inside_test :: fn(
     return or_all(span, parts)
 }
 
-// Whether `value`, of the integer type `compared` holding `source`, lies in none of
-// `runs` : past an end of the one reachable run, or in none of several ; `true` when
-// none is reachable.
+// Whether `value`, holding `source`, lies in none of `runs` : past an end of the
+// one reachable run, or in none of several ; `true` when none is reachable.
 outside_test :: fn(
     value: LoweredExpr,
     source: Interval,
@@ -431,7 +454,7 @@ run_test :: fn(
     return and_all(span, tests)
 }
 
-// `value op bound`.
+// `value op bound`, the bound a literal of `compared`.
 bound_test :: fn(
     value: LoweredExpr,
     op: LoweredBinaryOp,

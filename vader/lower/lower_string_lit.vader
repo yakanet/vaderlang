@@ -197,9 +197,8 @@ WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
 // through its `Display` (`render_part`) — a distinct included, whose own `Display`
 // may differ from its backing's (`Instant`'s ISO-8601 form over `distinct i64`).
 classify_kind :: fn(t: Type) -> WriterKind {
-    integer :: integer_representation(t)
-    if integer != null {
-        return integer_writer(integer)
+    if t is RangeType {
+        return integer_writer(t.bounds)
     }
     if t is PrimitiveType {
         if t.name == "bool"   { return .Bool }
@@ -354,31 +353,13 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     }
 }
 
-// The writer of an integer held in `integer`.
-integer_writer :: fn(integer: MachineInteger) -> WriterKind {
-    if integer.is_signed {
+// The writer of an integer of `values` : the signed one where a value may be
+// negative.
+integer_writer :: fn(values: Interval) -> WriterKind {
+    if values.lo < 0 {
         return .Signed
     }
     return .Unsigned
-}
-
-// Cast `inner` to the primitive `width` ; identity when it is already held in it.
-cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
-    held :: held_integer(inner.type)
-    if held != null && held.name == width {
-        return inner
-    }
-    // A literal the width holds is that width's literal : no conversion to run.
-    if inner is LoweredIntLit && literal_fits(inner.value, width) {
-        return LoweredIntLit { ...inner, .type = mk_primitive(width) }
-    }
-    return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
-}
-
-// Whether the integer type `width` holds `value`.
-literal_fits :: fn(value: i64, width: string) -> bool {
-    values :: primitive_interval(width) ?? return false
-    return interval_within(interval(value, value), values)
 }
 
 // What renders the interpolated `value` of type `shown`, as the typecheck recorded

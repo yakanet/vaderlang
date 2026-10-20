@@ -469,7 +469,7 @@ loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = arm_block(lp.step, lp.s
 bind_to_local :: fn(
     ctx: FnLowerCtx, value: LoweredExpr, type: Type, name: string, span: Span,
     out: LoweredStmt[],
-) -> LoweredExpr {
+) -> LoweredIdent {
     symbol :: fresh_synthetic_symbol(ctx, name)
     out.push(LoweredLet {
         .span = span, .name = symbol.name, .symbol = symbol, .type = type, .value = value,

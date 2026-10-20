@@ -1568,8 +1568,8 @@ build_array_push :: fn(fn_ctx: FnCtx, e: LoweredArrayPush) -> LocalId | null {
 
 build_array_slice :: fn(fn_ctx: FnCtx, e: LoweredArraySlice) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target)
-    lo :: build_expr(fn_ctx, e.lo)
-    hi :: build_expr(fn_ctx, e.hi)
+    lo :: build_held(fn_ctx, e.lo, TY_I64)
+    hi :: build_held(fn_ctx, e.hi, TY_I64)
     if target is null { return null }
     if lo is null { return null }
     if hi is null { return null }

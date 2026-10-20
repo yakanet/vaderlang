@@ -808,6 +808,17 @@ INTRINSIC_ARRAY_CLEAR :: "array.clear"
 // Constructors
 // ============================================================================
 
+// `[source] * count`, of the array type `type` : the `array.repeat` intrinsic, the
+// count going in as the `i64` the runtime takes.
+mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type, span: Span) =
+    LoweredIntrinsicCall {
+        .span = span,
+        .type = type,
+        .name = INTRINSIC_ARRAY_REPEAT,
+        .args = [source, count],
+        .param_types = [type, TY_I64],
+    }
+
 /// Construct an empty `LoweredProject`. The lowering orchestrator fills
 /// `modules` and the vtable / data pool tables as it processes each module.
 /// @return  a fresh project with empty modules + side-tables.

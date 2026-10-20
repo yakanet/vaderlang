@@ -7,7 +7,7 @@
       {
           _: i32 = 0
           for _ < 5000 {
-              s: i32[] = arr[i64(0)..<i64(3)]
+              s: i32[] = arr[0..<3]
               acc = (acc + x.v) + i32(@array.len(s))
           } @step {
               _ = _ +% 1

@@ -76,7 +76,7 @@
           __buf_13: Buffer = std.core.new_byte_buffer(i64(30))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "log slice ")
-          __off_14 = std.core.write_int(__buf_13, __off_14, @array.len(l[i64(1)..<i64(3)]))
+          __off_14 = std.core.write_int(__buf_13, __off_14, @array.len(l[1..<3]))
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       return 0

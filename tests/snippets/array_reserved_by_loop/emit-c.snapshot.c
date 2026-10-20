@@ -355,8 +355,10 @@ static void* snippet_over_range(int32_t l0, int32_t l1) {
     vader_array_t* _a0_arr = vader_array_new(5u, 0u, 8u, 2u);
     l2 = (void*) _a0_arr;
     if ((l0 < l1)) {
+#line 38 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = ((int64_t) (int32_t) l1);
         l4 = ((int64_t) (int32_t) l0);
+#line 37 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = (l3 - l4);
     } else {
         l3 = INT64_C(0);
@@ -413,8 +415,10 @@ static void* snippet_over_inclusive(int32_t l0, int32_t l1) {
     vader_array_t* _a0_arr = vader_array_new(5u, 0u, 8u, 2u);
     l2 = (void*) _a0_arr;
     if ((l0 <= l1)) {
+#line 46 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = ((int64_t) (int32_t) l1);
         l4 = ((int64_t) (int32_t) l0);
+#line 45 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = ((l3 - l4) + INT64_C(1));
     } else {
         l3 = INT64_C(0);
@@ -474,8 +478,10 @@ static int64_t snippet_span_count(int8_t l0, int8_t l1) {
     vader_array_t* _a0_arr = vader_array_new(24u, 0u, 5u, 8u);
     l2 = (void*) _a0_arr;
     if ((l0 < l1)) {
+#line 55 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = ((int64_t) (int8_t) l1);
         l4 = ((int64_t) (int8_t) l0);
+#line 54 "tests/snippets/array_reserved_by_loop/_main.vader"
         l3 = (l3 - l4);
     } else {
         l3 = INT64_C(0);

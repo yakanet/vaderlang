@@ -20,8 +20,8 @@
           if (__in_range_0 < 0) || (__in_range_0 > 23) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
-          u8(__in_range_0)
-      } :u8
+          __in_range_0
+      } :Hour
   }
   snippet.part_of_day :: fn(h: Hour) -> string {  // snippet$part_of_day
       {
@@ -73,8 +73,8 @@
                       if (__in_range_3 < 0) || (__in_range_3 > 23) {
                           @unreachable("value out of range: not in `Hour` (0..=23)")
                       }
-                      u8(__in_range_3)
-                  } :u8
+                      __in_range_3
+                  } :Hour
               }
           } @step {
               h = h +% 1

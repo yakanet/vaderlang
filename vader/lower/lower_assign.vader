@@ -321,15 +321,12 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
     match expr.index as range_lit {
         is RangeExpr -> {
             parts :: lower_in_order(ctx, [expr.target, range_lit.lower, range_lit.upper])
-            target_lowered :: parts[0]
-            lo_value :: cast_to_i64(parts[1], range_lit.span)
-            hi_raw   :: cast_to_i64(parts[2], range_lit.span)
-            hi_value :: adjust_hi_inclusive(hi_raw, range_lit.inclusive, range_lit.span)
+            hi_value :: adjust_hi_inclusive(parts[2], range_lit.inclusive, range_lit.span)
             return LoweredArraySlice {
                 .span = expr.span,
                 .type = type,
-                .target = target_lowered,
-                .lo = lo_value,
+                .target = parts[0],
+                .lo = parts[1],
                 .hi = hi_value,
             }
         }
@@ -360,12 +357,18 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
         }
         range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
         bound_type :: if idx_type.args.len() > 0 { idx_type.args[0] } else { TY_I64 }
-        lo_value :: cast_to_i64(LoweredFieldAccess {
-            .span = span, .type = bound_type, .target = range_ref, .field = "start",
-        }, span)
-        hi_raw :: cast_to_i64(LoweredFieldAccess {
-            .span = span, .type = bound_type, .target = range_ref, .field = "end",
-        }, span)
+        lo_value :: LoweredFieldAccess {
+            .span = span,
+            .type = bound_type,
+            .target = range_ref,
+            .field = "start",
+        }
+        hi_raw :: LoweredFieldAccess {
+            .span = span,
+            .type = bound_type,
+            .target = range_ref,
+            .field = "end",
+        }
         hi_value :: adjust_hi_inclusive_dynamic(hi_raw, LoweredFieldAccess {
             .span = span, .type = TY_BOOL, .target = range_ref, .field = "inclusive",
         }, span)
@@ -401,8 +404,6 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span:
         .left = hi, .right = delta,
     }
 }
-
-cast_to_i64 :: fn(value: LoweredExpr, span: Span) = cast_to_width(value, "i64", span)
 
 adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
     if !inclusive { return hi }

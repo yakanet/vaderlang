@@ -3,7 +3,7 @@
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
       arr: i32[] = [10, 20, 30, 40, 50] :i32[]
-      s1: i32[] = arr[i64(1)..<i64(4)]
+      s1: i32[] = arr[1..<4]
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
           __off_1: i64 = 0
@@ -28,7 +28,7 @@
               __for_i_4 = __for_i_4 +% i64(1)
           }
       }
-      s2: i32[] = arr[i64(0)..<i64(2) +% i64(1)]
+      s2: i32[] = arr[0..<2 +% i64(1)]
       std.io.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(29))
           __off_8: i64 = 0
@@ -62,7 +62,7 @@
       }
       s3: i32[] = {
           __slice_r_14: Range<i32> = r
-          arr[i64(__slice_r_14.start)..<i64(__slice_r_14.end) +% (if __slice_r_14.inclusive { i64(1) } else { i64(0) } :i64)]
+          arr[__slice_r_14.start..<__slice_r_14.end +% (if __slice_r_14.inclusive { i64(1) } else { i64(0) } :i64)]
       }
       std.io.println<string>({
           __buf_15: Buffer = std.core.new_byte_buffer(i64(29))
@@ -114,7 +114,7 @@
               __for_i_26 = __for_i_26 +% i64(1)
           }
       }
-      s5: i32[] = arr[i64(2)..<i64(2)]
+      s5: i32[] = arr[2..<2]
       std.io.println<string>({
           __buf_29: Buffer = std.core.new_byte_buffer(i64(29))
           __off_30: i64 = 0

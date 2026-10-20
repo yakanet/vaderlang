@@ -4,7 +4,7 @@
 // integer holds it, a distinct's being the one it is over.
 //
 // - Where a value moves into a slot (a local, a field, an element, a parameter, a
-//   result, a cell, a global), it is converted to the slot's integer when the two
+//   result, a cell, a global, a slice's bounds), it is converted to the slot's integer when the two
 //   differ (an `Hour`, held in a `u8`, into an `i64` slot), an integer literal
 //   built at that integer rather than converted. A union slot holds an integer in
 //   the variant of its own integer, else in the narrowest holding its values.

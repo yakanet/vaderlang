@@ -8,7 +8,7 @@
   snippet.slice_fill :: fn(q: i32[], n: i64) -> void  // snippet$slice_fill
   snippet.main :: fn() -> i32 {  // snippet$main
       ys: i32[] = [5, 3, 9, 1, 7, 2, 8, 4] :i32[]
-      early: i32[] = ys[i64(2)..<i64(6)]
+      early: i32[] = ys[2..<6]
       snippet.slice_set_cb(snippet.churn)
       snippet.slice_fill(ys, i64(8))
       std.io.println<string>({
@@ -25,7 +25,7 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       xs: i32[] = [5, 3, 9, 1, 7, 2, 8, 4] :i32[]
-      view: i32[] = xs[i64(2)..<i64(6)]
+      view: i32[] = xs[2..<6]
       snippet.slice_fill(xs, i64(8))
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(88))
