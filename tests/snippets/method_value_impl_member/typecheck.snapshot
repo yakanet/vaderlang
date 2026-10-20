@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/method_value_impl_member
+  EnumDecl       Color                :: Color
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 12:39    StringLitExpr  :: string
+  expr 12:44    FieldExpr      :: i32
+  expr 12:44    IdentExpr      :: Point
+  expr 16:38    BinaryExpr     :: i32
+  expr 16:38    FieldExpr      :: i32
+  expr 16:38    IdentExpr      :: Point
+  expr 16:47    IdentExpr      :: i32
+  expr 20:38    BinaryExpr     :: f64
+  expr 20:38    CallExpr       :: f64
+  expr 20:38    IdentExpr      :: type
+  expr 20:42    FieldExpr      :: i32
+  expr 20:42    IdentExpr      :: Point
+  expr 20:52    IdentExpr      :: f64
+  expr 26:10    StructLitExpr  :: Point
+  expr 27:13    FieldExpr      :: fn() -> string
+  expr 27:13    IdentExpr      :: Point
+  expr 28:13    StringLitExpr  :: string
+  expr 28:23    CallExpr       :: string
+  expr 28:23    IdentExpr      :: fn() -> string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 29:31    FieldExpr      :: fn(i32) -> i32
+  expr 29:31    IdentExpr      :: Point
+  expr 30:33    FieldExpr      :: fn(f64) -> f64
+  expr 30:33    IdentExpr      :: Point
+  expr 31:13    StringLitExpr  :: string
+  expr 31:24    CallExpr       :: i32
+  expr 31:24    IdentExpr      :: fn(i32) -> i32
+  expr 31:39    CallExpr       :: f64
+  expr 31:39    IdentExpr      :: fn(f64) -> f64
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:17    FieldExpr      :: Color
+  expr 32:17    FieldExpr      :: fn(Color) -> bool
+  expr 32:17    IdentExpr      :: Color
+  expr 33:13    StringLitExpr  :: string
+  expr 33:21    CallExpr       :: bool
+  expr 33:21    IdentExpr      :: fn(Color) -> bool
+  expr 33:30    DotVariantExpr :: Color
+  expr 33:41    CallExpr       :: bool
+  expr 33:41    IdentExpr      :: fn(Color) -> bool
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 33:50    DotVariantExpr :: Color

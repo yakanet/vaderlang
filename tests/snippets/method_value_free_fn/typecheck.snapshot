@@ -1,0 +1,93 @@
+# Typecheck
+
+## tests/snippets/method_value_free_fn
+  StructDecl     Handler              :: Handler
+  FnDecl         label                :: fn(Point) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         scale                :: fn(Point, i32) -> Point
+  FnDecl         scaler               :: fn(Point) -> fn(i32) -> Point
+  FnDecl         tag                  :: fn(T, U) -> string
+  FnDecl         twice                :: fn(fn() -> string) -> string
+  expr 13:35    StringLitExpr  :: string
+  expr 13:39    FieldExpr      :: i32
+  expr 13:39    IdentExpr      :: Point
+  expr 13:47    FieldExpr      :: i32
+  expr 13:47    IdentExpr      :: Point
+  expr 14:42    StructLitExpr  :: Point
+  expr 14:55    BinaryExpr     :: i32
+  expr 14:55    FieldExpr      :: i32
+  expr 14:55    IdentExpr      :: Point
+  expr 14:61    IdentExpr      :: i32
+  expr 14:69    BinaryExpr     :: i32
+  expr 14:69    FieldExpr      :: i32
+  expr 14:69    IdentExpr      :: Point
+  expr 14:75    IdentExpr      :: i32
+  expr 15:59    StringLitExpr  :: string
+  expr 15:62    IdentExpr      :: T
+  expr 15:67    IdentExpr      :: U
+  expr 19:44    BinaryExpr     :: string
+  expr 19:44    BinaryExpr     :: string
+  expr 19:44    CallExpr       :: string
+  expr 19:44    IdentExpr      :: fn() -> string
+  expr 19:50    StringLitExpr  :: string
+  expr 19:56    CallExpr       :: string
+  expr 19:56    IdentExpr      :: fn() -> string
+  expr 22:12    FieldExpr      :: fn(i32) -> Point
+  expr 22:12    IdentExpr      :: Point
+  expr 26:10    StructLitExpr  :: Point
+  expr 27:13    FieldExpr      :: fn() -> string
+  expr 27:13    IdentExpr      :: Point
+  expr 28:5     IdentExpr      :: Point
+  expr 28:9     StructLitExpr  :: Point
+  expr 29:13    StringLitExpr  :: string
+  expr 29:21    CallExpr       :: string
+  expr 29:21    IdentExpr      :: fn() -> string
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:13    StringLitExpr  :: string
+  expr 30:25    CallExpr       :: string
+  expr 30:25    IdentExpr      :: fn(fn() -> string) -> string
+  expr 30:31    FieldExpr      :: fn() -> string
+  expr 30:31    IdentExpr      :: Point
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    StringLitExpr  :: string
+  expr 31:25    CallExpr       :: Point
+  expr 31:25    CallExpr       :: fn(i32) -> Point
+  expr 31:25    CallExpr       :: string
+  expr 31:25    FieldExpr      :: fn() -> string
+  expr 31:25    IdentExpr      :: fn(Point) -> fn(i32) -> Point
+  expr 31:32    IdentExpr      :: Point
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:10    StructLitExpr  :: Handler
+  expr 32:30    FieldExpr      :: fn() -> string
+  expr 32:30    IdentExpr      :: Point
+  expr 33:13    StringLitExpr  :: string
+  expr 33:22    CallExpr       :: string
+  expr 33:22    FieldExpr      :: fn() -> string
+  expr 33:22    IdentExpr      :: Handler
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
+  expr 34:13    CallExpr       :: __genstate_map<Point>
+  expr 34:13    CallExpr       :: __genstate_map<string>
+  expr 34:13    CallExpr       :: string[]
+  expr 34:13    FieldExpr      :: fn() -> string[]
+  expr 34:13    FieldExpr      :: fn(fn(Point) -> string) -> Iterator<string>
+  expr 34:13    FieldExpr      :: fn(fn(i32) -> Point) -> Iterator<Point>
+  expr 34:13    SeqLitExpr     :: i32[]
+  expr 34:24    FieldExpr      :: fn(i32) -> Point
+  expr 34:24    IdentExpr      :: Point
+  expr 34:37    IdentExpr      :: fn(Point) -> string
+  expr 35:13    StringLitExpr  :: string
+  expr 35:23    IdentExpr      :: string[]
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:35    FieldExpr      :: fn(string) -> string
+  expr 37:13    StringLitExpr  :: string
+  expr 37:24    CallExpr       :: string
+  expr 37:24    IdentExpr      :: fn(string) -> string
+  expr 37:31    StringLitExpr  :: string
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void

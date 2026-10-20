@@ -185,7 +185,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         // int `equals`. Other trait methods (Hash / Comparable have materialised
         // bodies) fall through to the UFCS direct-call path.
         if kept_type_argument(receiver_ty) != null {
-            if runs_builtin_equals(ctx, call) && call.args.len() > 0 {
+            if runs_builtin_equals(recorded_callee(ctx, call, .Call)) && call.args.len() > 0 {
                 mark :: ctx.pending_awaits.len()
                 other :: lower_expr(ctx, call.args[0].value)
                 return equals_primop(bind_one_before_hoisted(ctx, receiver, mark), other, call.span)
@@ -399,68 +399,89 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     // carries the array intrinsics : the lowered target is the value itself, which
     // is the backing array at runtime.
     array :: array_backing(ctx.types.expr_type(callee.target)) ?? return null
-    if callee.field == "len" && call.args.len() == 0 {
-        return LoweredArrayLen {
-            .span = call.span,
-            .type = type,
-            .target = lower_expr(ctx, callee.target),
-        }
-    }
-    if callee.field == "push" && call.args.len() == 1 {
+    op :: array_op_of(callee.field, call.args.len()) ?? return null
+    if op == .Push {
         target :: lower_expr(ctx, callee.target)
         mark :: ctx.pending_awaits.len()
         value :: lower_for_slot(ctx, call.args[0].value, array.element, call.span)
-        return LoweredArrayPush {
-            .span = call.span,
-            .type = TY_VOID,
-            .target = bind_one_before_hoisted(ctx, target, mark),
-            .value = value,
-        }
+        operands :: [bind_one_before_hoisted(ctx, target, mark), value]
+        return array_op(op, operands, type, call.span, [])
     }
-    // `push_all` / `copy_to` / `remove_last` / `clear` lower to `array.*`
-    // intrinsics : the receiver is args[0], the rest are the call args in source
-    // order (the bytecode op pops them in reverse). `type` is the typer's result
-    // type (void, or `T | null` for remove_last). Backed by parameterless ops : the
-    // runtime reads the element kind/tag off the array buf.
-    if callee.field == "push_all" && call.args.len() == 1 {
-        return LoweredIntrinsicCall {
-            .span = call.span,
-            .type = type,
-            .name = INTRINSIC_ARRAY_PUSH_ALL,
-            .args = lower_in_order(ctx, [callee.target, call.args[0].value]),
-            .param_types = array_op_params(ctx, callee),
-        }
+    written: Expr[]: [callee.target]
+    for a in call.args {
+        written.push(a.value)
     }
-    if callee.field == "copy_to" && call.args.len() == 4 {
-        return LoweredIntrinsicCall {
-            .span = call.span,
-            .type = type,
-            .name = INTRINSIC_ARRAY_COPY,
-            .args = lower_in_order(ctx, [
-                callee.target,
-                call.args[0].value,
-                call.args[1].value,
-                call.args[2].value,
-                call.args[3].value,
-            ]),
-            .param_types = array_op_params(ctx, callee),
-        }
+    operands :: lower_in_order(ctx, written)
+    if op == .PushAll || op == .CopyTo {
+        return array_op(op, operands, type, call.span, array_op_params(ctx, callee))
     }
-    if callee.field == "remove_last" && call.args.len() == 0 {
-        return LoweredIntrinsicCall {
-            .span = call.span,
-            .type = type,
-            .name = INTRINSIC_ARRAY_REMOVE_LAST,
-            .args = [lower_expr(ctx, callee.target)],
-        }
-    }
-    if callee.field == "clear" && call.args.len() == 0 {
-        return LoweredIntrinsicCall {
-            .span = call.span,
-            .type = type,
-            .name = INTRINSIC_ARRAY_CLEAR,
-            .args = [lower_expr(ctx, callee.target)],
-        }
-    }
+    return array_op(op, operands, type, call.span, [])
+}
+
+/// An array member an operation serves instead of a call.
+ArrayOp :: enum {
+    Len,
+    Push,
+    PushAll,
+    CopyTo,
+    RemoveLast,
+    Clear,
+}
+
+/// The operation serving the array member `name` called with `arity` arguments
+/// besides its receiver ; null for a member a call runs.
+///
+/// @param name   the member.
+/// @param arity  the arguments it is called with, its receiver not counted.
+array_op_of :: fn(name: string, arity: i64) -> ArrayOp | null {
+    if name == "len" && arity == 0         { return .Len }
+    if name == "push" && arity == 1        { return .Push }
+    if name == "push_all" && arity == 1    { return .PushAll }
+    if name == "copy_to" && arity == 4     { return .CopyTo }
+    if name == "remove_last" && arity == 0 { return .RemoveLast }
+    if name == "clear" && arity == 0       { return .Clear }
     return null
+}
+
+/// The operation `op` on `operands`, the array first.
+///
+/// @param operands     the array, then the member's arguments, lowered.
+/// @param type         the member's result type.
+/// @param param_types  the type each operand goes in as, the array's first ; read
+///                     by the operations that copy elements in.
+/// @return             the dedicated node, or the `array.*` intrinsic the bytecode
+///                     op pops its operands for in reverse ; a parameterless op,
+///                     the runtime reading the element's kind off the array.
+array_op :: fn(
+    op: ArrayOp,
+    operands: LoweredExpr[],
+    type: Type,
+    span: Span,
+    param_types: Type[],
+) -> LoweredExpr = match op {
+    .Len        -> LoweredArrayLen { .span = span, .type = type, .target = operands[0] }
+    .Push       -> LoweredArrayPush {
+        .span = span,
+        .type = TY_VOID,
+        .target = operands[0],
+        .value = operands[1],
+    }
+    .PushAll    -> array_intrinsic(INTRINSIC_ARRAY_PUSH_ALL, operands, type, span, param_types)
+    .CopyTo     -> array_intrinsic(INTRINSIC_ARRAY_COPY, operands, type, span, param_types)
+    .RemoveLast -> array_intrinsic(INTRINSIC_ARRAY_REMOVE_LAST, operands, type, span, [])
+    .Clear      -> array_intrinsic(INTRINSIC_ARRAY_CLEAR, operands, type, span, [])
+}
+
+array_intrinsic :: fn(
+    name: string,
+    args: LoweredExpr[],
+    type: Type,
+    span: Span,
+    param_types: Type[],
+) -> LoweredIntrinsicCall = LoweredIntrinsicCall {
+    .span = span,
+    .type = type,
+    .name = name,
+    .args = args,
+    .param_types = param_types,
 }

@@ -27,15 +27,8 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     callee_field :: as_field_expr(call.callee) ?? return null
     if callee_field is FieldExpr {
         receiver :: lower_expr(ctx, callee_field.target)
-        // Inline `EnumName.Variant` receivers lower to their integer repr, so
-        // `receiver.type` = i32 and `Direction.East.to_string()` would
-        // wrongly route to `i32$Display$to_string`. Recover the enum identity
-        // from the surface (typed-AST) type for impl lookup — but ONLY for
-        // enums : a generic/monomorphised receiver's surface type is the
-        // unresolved type-param, so it must keep the concrete lowered type.
-        // The lowered node (the repr value) is still passed as the `self` arg.
-        surface_type :: ctx.types.expr_type(callee_field.target)
-        recv_type :: if surface_type is EnumType { surface_type } else { receiver.type }
+        // An enum receiver still passes its lowered integer as the `self` arg.
+        recv_type :: impl_lookup_type(ctx, callee_field.target, receiver)
         // A free fn typecheck chose is the call : it ranked the candidates the
         // call site's file can see, which neither an impl member probed here nor
         // a search over every loaded module reproduces. In a generic body it chose
@@ -72,7 +65,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         args :: build_ufcs_args(ctx, callee_field.target, receiver, call, free_params, 1)
         // A generic target names its instance at the type arguments the typecheck
         // recorded, as the ident path does (`emit_generic_fn_call`).
-        callee_sym :: ufcs_callee_symbol(ctx, call, chosen)
+        callee_sym :: ufcs_callee_symbol(ctx, call, .Call, chosen)
         return LoweredCall {
             .span = call.span, .type = type,
             .callee = LoweredIdent {
@@ -82,6 +75,18 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         }
     }
     return null
+}
+
+// The type the impl member a method-form site reaches is looked up for, on
+// `receiver`, the lowered value of `target` : an enum's own, which its integer
+// lowering loses (`Direction.East.to_string()` is not `i32`'s) ; the lowered type
+// otherwise, concrete at a generic body's instance where the surface one is `T`.
+impl_lookup_type :: fn(ctx: FnLowerCtx, target: Expr, receiver: LoweredExpr) -> Type {
+    surface :: ctx.types.expr_type(target)
+    if surface is EnumType {
+        return surface
+    }
+    return receiver.type
 }
 
 // Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
@@ -171,11 +176,12 @@ register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> 
     ctx.project.nongeneric_imported_const_order.push(const_sym)
 }
 
-// The symbol a UFCS call to the free fn `fn_sym` names : its instance at the type
-// arguments the typecheck recorded for a generic fn, the fn itself otherwise. A
-// fn of a module lowered lazily is harvested either way, so its body is emitted.
-ufcs_callee_symbol :: fn(ctx: FnLowerCtx, call: CallExpr, fn_sym: Symbol) -> Symbol {
-    mangled :: recorded_instance_mangle(ctx, call, .Call, fn_sym)
+// The symbol the free fn `fn_sym` a UFCS site calls is named by : its instance at
+// the type arguments the typecheck recorded for the site `role` plays at `node`
+// for a generic fn, the fn itself otherwise. A fn of a module lowered lazily is
+// harvested either way, so its body is emitted.
+ufcs_callee_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol) -> Symbol {
+    mangled :: recorded_instance_mangle(ctx, node, role, fn_sym)
     if mangled == null {
         register_nongeneric_imported_fn(ctx, fn_sym)
         return fn_sym

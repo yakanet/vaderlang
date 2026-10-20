@@ -1,0 +1,26 @@
+// A member taken as a value on a receiver dispatching through its trait : a trait
+// value's goes through the vtable, a bounded `T`'s through the impl each instance
+// implements.
+
+module "snippet"
+
+import "std/io"
+
+Point :: struct { x: i32 }
+
+Point implements Display {
+    to_string :: fn(self) -> string = "P(${self.x})"
+}
+
+shown :: fn(d: Display) -> fn() -> string = d.to_string
+
+rendered :: fn<T: Display>(t: T) -> string {
+    render :: t.to_string
+    return render()
+}
+
+main :: fn() -> i32 {
+    println("trait value ${shown(Point { .x = 3 })()}")
+    println("bound ${rendered(Point { .x = 4 })} ${rendered(5)}")
+    return 0
+}

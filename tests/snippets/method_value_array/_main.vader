@@ -1,0 +1,35 @@
+// An array member taken as a value : the closure runs the array's operation on
+// the array it holds, which later pushes reach. A free fn taking an `Iterator`
+// converts the array at each call, so each call iterates afresh ; on a struct
+// implementing `Iterator<i32>`, its impl binds the fn's `T`.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Countdown :: struct { n: i32 }
+
+Countdown implements Iterator<i32> {
+    next :: fn(self) -> [i32, Continuation] {
+        if self.n <= 0 {
+            return [0, .Stop]
+        }
+        v :: self.n
+        self.n = self.n - 1
+        return [v, .Continue]
+    }
+}
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3]
+    count :: xs.len
+    add :: xs.push
+    add(4)
+    println("len ${count()}")
+    total :: xs.sum
+    println("sum ${total()} ${total()}")
+    counted :: Countdown { .n = 3 }.sum
+    println("countdown ${counted()}")
+    return 0
+}

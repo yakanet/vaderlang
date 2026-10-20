@@ -58,7 +58,7 @@ infer_field :: fn(
     // Built-in array methods (`len`/`push`/…) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
     // `try_impl_method_ufcs`'s `[]`-keyed lookup + `impl_member_type`.
-    candidate:= try_impl_method_ufcs(target_ty, e, typed, diags)
+    candidate:= try_impl_method_ufcs(target_ty, e, expected, typed, diags)
     if candidate !is null {
         return candidate
     }
@@ -73,7 +73,7 @@ infer_field :: fn(
     if candidate !is null {
         return candidate
     }
-    candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed, diags)
+    candidate = try_free_fn_ufcs_dispatch(target_ty, e, expected, typed, diags)
     if candidate !is null {
         repin_free_ufcs_receiver(e, typed, diags)
         return candidate
@@ -113,10 +113,12 @@ infer_field :: fn(
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
 // Indexed by orchestrate.vader at impl-load time (`impl_candidates`). A member
 // several impls of one trait offer (`Add<f64>`, `Add<Vec2>`) is left to the call,
-// which picks it by its arguments (`pick_member_overload`).
+// which picks it by its arguments (`pick_member_overload`) ; taken as a value, the
+// slot it fills picks it.
 try_impl_method_ufcs :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
+    expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type | null {
@@ -140,18 +142,41 @@ try_impl_method_ufcs :: fn(
             }
         }
         if typed.callee_field_id != e.id {
-            sigs: Type[]: []
-            for m in candidates {
-                sigs.push(m.ty)
-            }
-            hint :: "are offered ; call it so its arguments pick one"
-            diags.push(member_ambiguity_error(e, sigs, hint))
-            return TY_UNRESOLVED
+            return settle_member_in_slot(candidates, e, target_ty, expected, typed, diags)
         }
         typed.overloaded_members[e.id] = candidates
         return impl_member_type(candidates[0], target_ty, typed)
     }
     return settle_impl_member(candidates[0], e, target_ty, typed, diags)
+}
+
+// The member several impls offer as `e`, taken as a value : the one whose signature
+// fits the function type of the slot it fills. T3032 when no slot, or several
+// members, fit.
+settle_member_in_slot :: fn(
+    candidates: ImplMethod[],
+    e: AST.FieldExpr,
+    target_ty: Type,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    slot :: settled_slot(expected, typed)
+    sigs: Type[]: []
+    fitting: ImplMethod[]: []
+    for m in candidates {
+        sig :: impl_member_type(m, target_ty, typed)
+        sigs.push(sig)
+        if slot is FnType && is_assignable(sig, slot) {
+            fitting.push(m)
+        }
+    }
+    if fitting.len() == 1 {
+        return settle_impl_member(fitting[0], e, target_ty, typed, diags)
+    }
+    hint :: "are offered ; call it, or give it a function-typed slot, so one is picked"
+    diags.push(member_ambiguity_error(e, sigs, hint))
+    return TY_UNRESOLVED
 }
 
 // Whether `members` all come from impls of one trait.
@@ -612,9 +637,11 @@ rejects_static_member :: fn(
 // `target_ty`. Walks the local module's `fn_overloads` bucket and
 // returns the curried fn type (receiver stripped). Records the
 // receiver type in `ufcs_receiver_types` for the call-site lowerer.
+// Taken as a value, a generic `foo` is instantiated there.
 try_free_fn_ufcs_dispatch :: fn(
     target_ty: Type,
     e: AST.FieldExpr,
+    expected: Type | null,
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type | null {
@@ -631,7 +658,6 @@ try_free_fn_ufcs_dispatch :: fn(
         keep_instances_concrete(typed)
     }
     typed.chosen_fns[e.id] = free_ufcs.winner
-    note_callee(typed, e, direct_callee(free_ufcs.winner.decl, false))
     // A `T[]` receiver fitting an `Iterator` first param coerces through the very
     // `.into()` the lowerer synthesizes at `lower_ufcs`, whatever the element : the
     // dispatch already accepted the receiver. Record it on the receiver expr so the
@@ -649,6 +675,12 @@ try_free_fn_ufcs_dispatch :: fn(
     if target_ty is ArrayType && !type_contains_type_param(first_param) {
         _ :: fits_by_widening(typed, e.target, target_ty, first_param)
     }
+    decl :: free_ufcs.winner.decl
+    ft :: free_ufcs.winner.ty
+    if typed.callee_field_id != e.id && decl != null && ft.type_params.len() > 0 {
+        return method_value_instance(e, decl, ft, target_ty, expected, typed, diags)
+    }
+    note_callee(typed, e, direct_callee(decl, false))
     return free_ufcs.curried
 }
 

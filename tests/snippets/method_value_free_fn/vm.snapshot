@@ -1,0 +1,9 @@
+# stdout
+kept (1, 2)
+argument (7, 8) (7, 8)
+returned (21, 24)
+field (7, 8)
+mapped [(7, 8), (14, 16)]
+generic 5/a
+# exit
+0

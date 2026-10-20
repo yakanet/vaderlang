@@ -1,0 +1,1 @@
+[20:15] error[T3032] ambiguous overload resolution: several impls' `add` are offered ; call it, or give it a function-typed slot, so one is picked: `fn(i32) -> i32`, `fn(f64) -> f64`

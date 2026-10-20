@@ -229,8 +229,8 @@ target_key :: fn(typed: TypedProgram, sym: Symbol) -> i64 {
     return i64(sym.id)
 }
 
-// The fns the record names at one node : the call's, and those run without being
-// named.
+// The fns the record names at one node : the call's or the method value's, and
+// those run without being named.
 RecordedFns :: struct {
     called: AST.FnDecl[] = []
     implicit: AST.FnDecl[] = []
@@ -251,9 +251,9 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<i64, RecordedFns> {
                 }
                 at :: out[id] ?? new_recorded(out, id)
                 match role {
-                    .Call      -> { at.called.push(decl) }
-                    .Reference -> { at.referenced.push(decl) }
-                    _          -> { at.implicit.push(decl) }
+                    .Call | .MethodValue -> { at.called.push(decl) }
+                    .Reference           -> { at.referenced.push(decl) }
+                    _                    -> { at.implicit.push(decl) }
                 }
             }
         }
@@ -268,10 +268,11 @@ new_recorded :: fn(out: MutableMap<i64, RecordedFns>, id: i64) -> RecordedFns {
 }
 
 // The sites of the fns recorded at `e` : a call refers to its fn at the callee's
-// name, any other role at `e` itself, once per fn, and not again for the fn the
-// call names (a `for` stepping a generator it calls). A name aliasing a generic fn
-// (`g :: id`) stays the local's : the fn it names is an implicit site there, and a
-// fn named as a value by its own name is the identifier's site already.
+// name, a method value at the member's, any other role at `e` itself, once per fn,
+// and not again for the fn the call names (a `for` stepping a generator it calls).
+// A name aliasing a generic fn (`g :: id`) stays the local's : the fn it names is
+// an implicit site there, and a fn named as a value by its own name is the
+// identifier's site already.
 add_recorded_sites :: fn(
     index: IndexBuilder, typed: TypedProgram, e: AST.Expr, at: RecordedFns,
 ) -> void {
@@ -279,8 +280,8 @@ add_recorded_sites :: fn(
     if names_through_alias(typed, e) {
         add_implicit_sites(index, e, at.called, listed)
         add_implicit_sites(index, e, at.referenced, listed)
-    } else if e is AST.CallExpr {
-        span :: callee_name_span(e.callee)
+    } else {
+        span :: callee_name_span(site_name(e))
         if span != null {
             for decl in at.called {
                 add_named(index, RefSite { .span = span, .key = fn_key(decl) })

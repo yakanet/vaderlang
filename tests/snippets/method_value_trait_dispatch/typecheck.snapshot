@@ -1,0 +1,31 @@
+# Typecheck
+
+## tests/snippets/method_value_trait_dispatch
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         rendered             :: fn(T) -> string
+  FnDecl         shown                :: fn(Display) -> fn() -> string
+  expr 12:39    StringLitExpr  :: string
+  expr 12:44    FieldExpr      :: i32
+  expr 12:44    IdentExpr      :: Point
+  expr 15:45    FieldExpr      :: fn() -> string
+  expr 15:45    IdentExpr      :: Display
+  expr 18:15    FieldExpr      :: fn() -> string
+  expr 18:15    IdentExpr      :: T
+  expr 19:12    CallExpr       :: string
+  expr 19:12    IdentExpr      :: fn() -> string
+  expr 23:13    StringLitExpr  :: string
+  expr 23:28    CallExpr       :: fn() -> string
+  expr 23:28    CallExpr       :: string
+  expr 23:28    IdentExpr      :: fn(Display) -> fn() -> string
+  expr 23:34    StructLitExpr  :: Point
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:22    CallExpr       :: string
+  expr 24:22    IdentExpr      :: fn(T) -> string
+  expr 24:31    StructLitExpr  :: Point
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 24:52    CallExpr       :: string
+  expr 24:52    IdentExpr      :: fn(T) -> string

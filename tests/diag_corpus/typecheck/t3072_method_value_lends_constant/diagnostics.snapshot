@@ -1,0 +1,1 @@
+[11:12] error[T3072] a frozen value cannot be lent to a function that modifies it: `WEIGHTS` is a module constant, and `push` modifies it (`WEIGHTS` grows) ; a name bound to it holds a copy to modify

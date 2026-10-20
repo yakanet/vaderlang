@@ -2208,6 +2208,19 @@ plus(2, 3)
 
 **A field comes first.** When `a`'s struct declares a field `f`, `a.f` reads that field: declaring a fn never changes what an existing field access reads. Called, `a.f(b)` calls the field when it holds a function, and goes to the fns named `f` when it holds anything else.
 
+**A method taken as a value.** Outside a call, `a.f` is `f` with `a` bound: a function of `f`'s other parameters. `a` is evaluated once, where the value is taken, and the value keeps it.
+
+```vader
+show :: p.label                // fn() -> string
+p = q
+show()                         // the first `p`'s label
+twice(p.label)                 // as an argument
+xs.map(p.scale)                // fn(i32) -> Point, each element a `k`
+plus: fn(f64) -> f64: v.add    // several impls offer `add`: the slot picks one
+```
+
+Every form a call takes works: a free fn by UFCS, an impl member, a trait value's member (dispatched on the value), a bounded `T`'s, an array member (`xs.len`, `xs.push`). A conversion of the receiver toward a free fn's first parameter (an array reaching an `Iterator`) runs at each call. A member several impls of one trait offer is picked by the function type of the slot the value fills, `T3032` without one. A generic free fn is instantiated where it is taken: the receiver binds what its first parameter names, the slot the rest (`T3069` for one the slot leaves unbound). A static member is called, never taken (`T3093`).
+
 UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
 1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.

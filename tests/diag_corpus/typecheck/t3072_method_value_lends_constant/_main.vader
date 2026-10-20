@@ -1,0 +1,14 @@
+// A member that modifies its receiver, taken as a value on a module constant : the
+// value lends the constant to it.
+
+module "main"
+
+import "std/io"
+
+WEIGHTS :: [1, 2]
+
+main :: fn() -> i32 {
+    add :: WEIGHTS.push
+    add(3)
+    return 0
+}

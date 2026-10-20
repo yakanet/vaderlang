@@ -79,6 +79,10 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             ns_const :: try_lower_namespace_const(ctx, expr, type)
             if ns_const != null { return ns_const }
             if type is FnType {
+                method_value :: try_lower_method_value(ctx, expr, type)
+                if method_value != null {
+                    return method_value
+                }
                 reference :: recorded_fn_reference(ctx, expr, type)
                 if reference != null { return reference }
             }

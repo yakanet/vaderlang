@@ -1,0 +1,22 @@
+// A member several impls of one trait offer, taken as a value with no function
+// type to pick one by.
+
+module "main"
+
+import "std/io"
+
+Point :: struct { x: i32 }
+
+Point implements Add<i32, i32> {
+    add :: fn(self, k: i32) -> i32 = self.x + k
+}
+
+Point implements Add<f64, f64> {
+    add :: fn(self, k: f64) -> f64 = f64(self.x) + k
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 2 }
+    plus :: p.add
+    return 0
+}

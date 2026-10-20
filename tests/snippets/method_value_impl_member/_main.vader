@@ -1,0 +1,35 @@
+// An impl member taken as a value on its receiver. Several impls of one trait
+// offering it (`Add<i32, i32>`, `Add<f64, f64>`) : the slot's function type picks
+// one. An enum's built-in `equals` compares in place.
+
+module "snippet"
+
+import "std/io"
+
+Point :: struct { x: i32 }
+
+Point implements Display {
+    to_string :: fn(self) -> string = "P(${self.x})"
+}
+
+Point implements Add<i32, i32> {
+    add :: fn(self, k: i32) -> i32 = self.x + k
+}
+
+Point implements Add<f64, f64> {
+    add :: fn(self, k: f64) -> f64 = f64(self.x) + k
+}
+
+Color :: enum { Red, Green }
+
+main :: fn() -> i32 {
+    p :: Point { .x = 2 }
+    show :: p.to_string
+    println("member ${show()}")
+    plus_int: fn(i32) -> i32: p.add
+    plus_float: fn(f64) -> f64: p.add
+    println("by slot ${plus_int(3)} ${plus_float(1.5)}")
+    is_green :: Color.Green.equals
+    println("enum ${is_green(.Green)} ${is_green(.Red)}")
+    return 0
+}

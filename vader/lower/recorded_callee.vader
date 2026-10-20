@@ -31,15 +31,19 @@ populate_fn_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> 
     }
 }
 
-/// The free fn the typecheck recorded for `call`, as the symbol its declaring
-/// module gives it. Null for any other callee: an impl member, a member dispatched
-/// through a trait, a value of fn type.
+/// The free fn the typecheck recorded at the site `role` plays at `node`, as the
+/// symbol its declaring module gives it. Null for any other callee: an impl member,
+/// a member dispatched through a trait, a value of fn type.
 ///
-/// @param ctx   the fn-body context ; its module is the one `call` was checked in.
-/// @param call  the call.
-recorded_fn_symbol :: fn(ctx: FnLowerCtx, call: CallExpr) -> Symbol | null {
-    decl :: recorded_decl(ctx.typed, call) ?? return null
-    return ctx.project.fn_symbols[decl.id]
+/// @param ctx   the fn-body context ; its module is the one `node` was checked in.
+/// @param node  the site : a call, a fn named or taken as a value.
+/// @param role  the part the site plays at `node`.
+recorded_fn_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole = .Call) -> Symbol | null {
+    callee :: recorded_callee(ctx, node, role)
+    if callee !is DirectFn {
+        return null
+    }
+    return ctx.project.fn_symbols[callee.decl.id]
 }
 
 /// What the typecheck recorded at the site `role` plays at `node`.
@@ -210,13 +214,13 @@ impl_receiver :: fn(entry: ImplEntry, receiver: Type) -> Type {
     return receiver
 }
 
-/// Whether the call `call` runs an `equals` the comparison primop answers : an
-/// enum's built-in one, or a bound's on an instance whose `T` is an enum or a
-/// primitive.
+/// Whether a site recorded as `callee` runs an `equals` the comparison primop
+/// answers : an enum's built-in one, or a bound's on an instance whose `T` is an
+/// enum or a primitive.
 ///
-/// @param call  a method call on an enum or primitive receiver.
-runs_builtin_equals :: fn(ctx: FnLowerCtx, call: CallExpr) -> bool {
-    callee :: recorded_callee(ctx, call, .Call) ?? return false
+/// @param callee  the record of a method call, or a method value, on an enum or
+///                primitive receiver.
+runs_builtin_equals :: fn(callee: Callee | null) -> bool {
     if callee is Builtin {
         return true
     }
@@ -265,11 +269,7 @@ recorded_type_args :: fn(
 /// @param node  the name.
 /// @param type  the instance's fn type, as the site takes it.
 recorded_fn_reference :: fn(ctx: FnLowerCtx, node: Expr, type: Type) -> LoweredIdent | null {
-    callee :: recorded_callee(ctx, node, .Reference) ?? return null
-    if callee !is DirectFn {
-        return null
-    }
-    fn_sym :: ctx.project.fn_symbols[callee.decl.id] ?? return null
+    fn_sym :: recorded_fn_symbol(ctx, node, .Reference) ?? return null
     mangled :: recorded_instance_mangle(ctx, node, .Reference, fn_sym) ?? return null
     return LoweredIdent { .span = node.span, .type = type, .symbol = instance_symbol(fn_sym, mangled) }
 }

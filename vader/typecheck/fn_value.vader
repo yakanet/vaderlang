@@ -12,6 +12,10 @@
 // annotation (`g :: id`). Such a binding is an alias : every use of `g` names `id`,
 // instantiated where it is used.
 // docs/adr/0072-a-generic-function-as-a-value-is-instantiated-where-it-is-used.md
+//
+// A generic function taken as a method value (`g :: xs.first`) is instantiated
+// where it is taken, its receiver binding what its first parameter names : the
+// value is a closure over that receiver, no alias. The site is a `.MethodValue`.
 
 module "vader/typecheck"
 
@@ -82,20 +86,76 @@ instance_in_slot :: fn(
         bindings[tp.symbol.id] = v
         own.push(v)
     }
-    solutions :: typed.infer_solutions
-    held :: seed_explicit_infer(type_args, own, typed, solutions, diags)
+    held :: seed_explicit_infer(type_args, own, typed, typed.infer_solutions, diags)
     instance :: substitute_fn_map(fn_ty, bindings)
-    if type_args.len() < own.len() {
+    open :: type_args.len() < own.len()
+    return bound_by_slot(
+        site, .Reference, decl, instance, bindings, open, held, expected, typed, diags,
+    ) ?? fn_ty
+}
+
+/// The instance a generic free function takes as the method value `e` : the
+/// receiver binds what its first parameter names, as at a call, the slot the rest.
+///
+/// @param e         the field access taking the value.
+/// @param decl      the function UFCS chose for the receiver.
+/// @param fn_ty     its quantified type.
+/// @param receiver  the receiver's type.
+/// @param expected  the slot the value flows into ; null for none.
+/// @param typed     the module ; receives the `.MethodValue` site.
+/// @param diags     receives T3069 when the slot leaves a parameter unbound.
+/// @return          the instance without its receiver, and without a quantifier.
+method_value_instance :: fn(
+    e: AST.FieldExpr,
+    decl: AST.FnDecl,
+    fn_ty: FnType,
+    receiver: Type,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    bindings :: MutableMap<i32, Type> {}
+    for tp in fn_ty.type_params {
+        bindings[tp.symbol.id] = fresh_infer_var(typed, tp)
+    }
+    full :: substitute_fn_map(fn_ty, bindings)
+    solutions :: typed.infer_solutions
+    actual :: default_if_free(receiver)
+    unify_infer(full.params[0], actual, solutions)
+    unify_struct_to_trait_infer(full.params[0], actual, typed, solutions, null)
+    instance :: FnType { ...mk_fn_drop_self(full), .type_params = [] }
+    open :: type_contains_infer_var(zonk(instance, solutions))
+    return bound_by_slot(
+        e, .MethodValue, decl, instance, bindings, open, null, expected, typed, diags,
+    ) ?? TY_UNRESOLVED
+}
+
+// `instance`, the instance of `decl` at the site `role` plays at `site`, its
+// variables still `open` bound by the slot `expected`, the site recorded with
+// `bindings`. Null when they are open with no function-typed slot, reported.
+bound_by_slot :: fn(
+    site: AST.Expr,
+    role: CallRole,
+    decl: AST.FnDecl,
+    instance: FnType,
+    bindings: MutableMap<i32, Type>,
+    open: bool,
+    held: MutableSet<i32> | null,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type | null {
+    if open {
         slot :: settled_slot(expected, typed)
         if slot !is FnType {
-            report_unbound_fn_value(site.span, decl, diags)
-            return fn_ty
+            report_unbound(role, site.span, decl, diags)
+            return null
         }
-        unify_infer(instance, slot, solutions, held)
+        unify_infer(instance, slot, typed.infer_solutions, held)
     }
-    record_site(typed, site, .Reference, DirectFn { .decl = decl, .bindings = bindings })
+    record_site(typed, site, role, DirectFn { .decl = decl, .bindings = bindings })
     note_instantiation_site(typed, site.id, site.span)
-    solved :: zonk(instance, solutions)
+    solved :: zonk(instance, typed.infer_solutions)
     // The slot of an enclosing call may still hold its variables : the tables are
     // then swept once the module's bodies are walked.
     if type_contains_infer_var(solved) {
@@ -112,16 +172,18 @@ settled_slot :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
     return zonk(expected, typed.infer_solutions)
 }
 
-report_unbound_fn_value :: fn(span: Span, decl: AST.FnDecl, diags: Diagnostic[]) -> void {
-    diags.push(
-        typecheck_error(
-            .TypeArgumentNotInferable,
-            span,
-            "`${decl.name}` is generic : used as a value, it needs a function-typed slot"
-                + " (`h: fn(i32) -> i32: ${decl.name}`) or its type arguments"
-                + " (`${decl.name}<i32>`)",
-        ),
-    )
+// T3069 for `decl`, instantiated as a value at the site `role` plays at `span`
+// with a parameter nothing binds.
+report_unbound :: fn(role: CallRole, span: Span, decl: AST.FnDecl, diags: Diagnostic[]) -> void =
+    diags.push(typecheck_error(.TypeArgumentNotInferable, span, unbound_hint(role, decl.name)))
+
+unbound_hint :: fn(role: CallRole, name: string) -> string {
+    if role == .MethodValue {
+        return "`${name}` is generic : taken as a value on its receiver, it needs a"
+            + " function-typed slot (`h: fn(i32) -> string: x.${name}`)"
+    }
+    return "`${name}` is generic : used as a value, it needs a function-typed slot"
+        + " (`h: fn(i32) -> i32: ${name}`) or its type arguments (`${name}<i32>`)"
 }
 
 /// Note a `::` binding with no annotation whose value names a generic function :
@@ -143,14 +205,23 @@ note_fn_alias :: fn(s: AST.LetStmt, got: Type, typed: TypedProgram) -> void {
     typed.fn_aliases[sym.id] = decl
 }
 
-/// Settle the instance each `.Reference` site of the module names, once its bodies
-/// are walked : the variables solved, free literals at their default, the bounds
-/// checked. A parameter nothing bound is T3069, and recorded as unresolved.
+/// Settle the instance each `.Reference` and `.MethodValue` site of the module
+/// names, once its bodies are walked : the variables solved, free literals at their
+/// default, the bounds checked. A parameter nothing bound is T3069, and recorded as
+/// unresolved.
 ///
 /// @param typed  the module.
 /// @param diags  receives T3069 and T3006.
 settle_fn_references :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
-    for [id, callee] in typed.call_sites.references {
+    roles: CallRole[]: [.Reference, .MethodValue]
+    for role in roles {
+        settle_instances(role, typed, diags)
+    }
+}
+
+// Settle the instance each site playing `role` names.
+settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for [id, callee] in sites_of(typed.call_sites, role) {
         if callee !is DirectFn {
             continue
         }
@@ -159,7 +230,7 @@ settle_fn_references :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
         zonk_table(bindings, typed.infer_solutions)
         default_free_bindings(bindings)
         if leaves_a_variable(bindings) {
-            report_unbound_fn_value(span, callee.decl, diags)
+            report_unbound(role, span, callee.decl, diags)
             continue
         }
         check_typeparam_bounds(span, callee.decl.name, bindings, typed, diags)

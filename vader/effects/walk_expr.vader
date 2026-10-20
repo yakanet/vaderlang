@@ -126,9 +126,16 @@ ident_value :: fn(ctx: WalkCtx, e: AST.IdentExpr) -> i64 | null {
     return ctx.frozen_use(e, sym)
 }
 
-// `target.field`: a step below the target's slot, or a use of the frozen constant a
-// namespace alias's member names (`M.CONST`).
+// `target.field`: a step below the target's slot, a use of the frozen constant a
+// namespace alias's member names (`M.CONST`), or a method value.
 field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> i64 | null {
+    // A method value, a closure that calls `taken` on the target it holds: the call
+    // counts where the value is taken, which is where the target is lent.
+    taken :: ctx.site_callee(.MethodValue, e.id)
+    if taken != null {
+        _ :: ctx.call(taken, [ctx.value(e.target)], e.span, [e.target])
+        return null
+    }
     member :: ctx.namespace_member(e) ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
     return ctx.frozen_use(e, member)
 }

@@ -1,0 +1,13 @@
+// A generic free fn taken as a value on its receiver, which binds its first
+// parameter only, with no function type to bind the other.
+
+module "main"
+
+import "std/io"
+
+tag :: fn<T: Display, U: Display>(x: T, y: U) -> string = "${x}/${y}"
+
+main :: fn() -> i32 {
+    tagged :: 5.tag
+    return 0
+}

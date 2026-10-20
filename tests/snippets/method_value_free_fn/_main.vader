@@ -1,0 +1,39 @@
+// A free fn taken as a value on its receiver (`p.label`) : a closure over the
+// receiver, evaluated once where the value is taken. A generic one is
+// instantiated there, the receiver binding its first parameter and the slot the
+// others.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+Point :: struct { x: i32, y: i32 }
+
+label :: fn(p: Point) -> string = "(${p.x}, ${p.y})"
+scale :: fn(p: Point, k: i32) -> Point = Point { .x = p.x * k, .y = p.y * k }
+tag :: fn<T: Display, U: Display>(x: T, y: U) -> string = "${x}/${y}"
+
+Handler :: struct { render: fn() -> string }
+
+twice :: fn(f: fn() -> string) -> string = f() + " " + f()
+
+scaler :: fn(p: Point) -> fn(i32) -> Point {
+    return p.scale
+}
+
+main :: fn() -> i32 {
+    p := Point { .x = 1, .y = 2 }
+    show :: p.label
+    p = Point { .x = 7, .y = 8 }
+    println("kept ${show()}")
+    println("argument ${twice(p.label)}")
+    println("returned ${scaler(p)(3).label()}")
+    h :: Handler { .render = p.label }
+    println("field ${h.render()}")
+    by_x :: [1, 2].map(p.scale).map(label).collect()
+    println("mapped ${by_x}")
+    tagged: fn(string) -> string: 5.tag
+    println("generic ${tagged("a")}")
+    return 0
+}

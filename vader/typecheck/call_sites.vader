@@ -116,6 +116,9 @@ export CallRole :: enum {
     Display,
     /// A generic function named as a value, at the name : the instance it takes.
     Reference,
+    /// A member, or a free function by UFCS, taken as a value on its receiver
+    /// (`g :: p.label`), at the field access : what the closure calls.
+    MethodValue,
 }
 
 /// The sites of a module, one table per role, each keyed by the node's id. A node
@@ -126,8 +129,9 @@ export CallSites :: struct {
     calls_in_fn: MutableMap<i64, i64[]> = MutableMap<i64, i64[]> {}
     calls: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     /// Where each instantiation of a generic fn sits, by its node id : the calls
-    /// `calls` records with bindings, every site `references` records, and every
-    /// member access `receiver_instances` records.
+    /// `calls` records with bindings, every site `references` records, each generic
+    /// fn `method_values` records, and every member access `receiver_instances`
+    /// records.
     instantiation_spans: MutableMap<i64, Span> = MutableMap<i64, Span> {}
     /// The function each of those sites sits in, by its declaration's id ; none at
     /// module level.
@@ -140,6 +144,7 @@ export CallSites :: struct {
     iterator_steps: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     displays: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     references: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    method_values: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
     /// The member accesses on an array receiver whose element names a type
     /// parameter, by node id : the member, with what the receiver gives the impl's
     /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).
@@ -172,15 +177,16 @@ current_fn_id :: fn(typed: TypedProgram) -> i64 | null {
 /// @param sites  a module's sites (`TypedProgram.call_sites`).
 /// @param role   the part the sites play.
 export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<i64, Callee> = match role {
-    .Call       -> sites.calls
-    .Operator   -> sites.operators
-    .IndexRead  -> sites.index_reads
-    .IndexWrite -> sites.index_writes
-    .Into       -> sites.conversions
-    .IterInto   -> sites.iterator_conversions
-    .IterNext   -> sites.iterator_steps
-    .Display    -> sites.displays
-    .Reference  -> sites.references
+    .Call        -> sites.calls
+    .Operator    -> sites.operators
+    .IndexRead   -> sites.index_reads
+    .IndexWrite  -> sites.index_writes
+    .Into        -> sites.conversions
+    .IterInto    -> sites.iterator_conversions
+    .IterNext    -> sites.iterator_steps
+    .Display     -> sites.displays
+    .Reference   -> sites.references
+    .MethodValue -> sites.method_values
 }
 
 /// Every role, for a reader that walks them all : a role added to `CallRole` is
@@ -195,6 +201,7 @@ export all_roles :: fn() -> CallRole[] = [
     .IterNext,
     .Display,
     .Reference,
+    .MethodValue,
 ]
 
 /// The declarations `callee` runs by name: a known fn's, each of a structural
@@ -221,10 +228,16 @@ BUILTIN_CALLEE   :: Builtin {}
 ERRONEOUS_CALLEE :: ErroneousCallee {}
 UNSETTLED_CALLEE :: UnsettledCallee {}
 
-// Note what the member access `e` invokes, when `e` is the callee being typed.
+// Note what the member access `e` invokes : as the callee being typed, or as the
+// method value it takes outside a call (`g :: p.label`). A field holds its value
+// and invokes nothing.
 note_callee :: fn(typed: TypedProgram, e: AST.FieldExpr, callee: Callee) -> void {
     if typed.callee_field_id == e.id {
         typed.callees[e.id] = callee
+        return
+    }
+    if callee !is FnValue {
+        record_site(typed, e, .MethodValue, callee)
     }
 }
 
@@ -728,15 +741,16 @@ comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
 ///
 /// @param role  a site's role.
 export role_label :: fn(role: CallRole) -> string = match role {
-    .Call       -> "call"
-    .Operator   -> "operator"
-    .IndexRead  -> "index"
-    .IndexWrite -> "index-write"
-    .Into       -> "into"
-    .IterInto   -> "iter-into"
-    .IterNext   -> "iter-next"
-    .Display    -> "display"
-    .Reference  -> "reference"
+    .Call        -> "call"
+    .Operator    -> "operator"
+    .IndexRead   -> "index"
+    .IndexWrite  -> "index-write"
+    .Into        -> "into"
+    .IterInto    -> "iter-into"
+    .IterNext    -> "iter-next"
+    .Display     -> "display"
+    .Reference   -> "reference"
+    .MethodValue -> "method-value"
 }
 
 // A call inside a materialised default method sits at a synthetic span, the same

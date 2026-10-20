@@ -56,7 +56,13 @@ reject_growing_recursion :: fn(
     growing: GrowingCall[]: []
     for [_, typed] in per_module {
         sites :: typed.call_sites
-        for table in [sites.calls, sites.references, sites.receiver_instances] {
+        instantiating :: [
+            sites.calls,
+            sites.references,
+            sites.method_values,
+            sites.receiver_instances,
+        ]
+        for table in instantiating {
             for [id, callee] in table {
                 if callee !is DirectFn {
                     continue
