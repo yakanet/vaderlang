@@ -18,8 +18,8 @@
 //     namespace aliases in `namespace_aliases`, the wildcard paths and the
 //     names their modifier lists drop in `wildcards`.
 //
-//   * `as` bindings — `match e as y`, scoped to the match and declared at its
-//     name token.
+//   * `match` header bindings — `match y :: e`, scoped to the match and
+//     declared at their name token.
 //
 // Lambda captures and pattern destructuring inside match arms aren't indexed
 // yet.
@@ -219,7 +219,7 @@ lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
         }
         is YieldStmt             -> { lj_expr(s.value, stack, out) }
         is DeferStmt             -> {
-            match s.body as ds {
+            match ds :: s.body {
                 is DeferStmtBody  -> { lj_stmt(ds.stmt, stack, out) }
                 is DeferBlockBody -> { lj_block(ds.block, stack, out) }
             }
@@ -235,7 +235,7 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
         is IfExpr    -> {
             lj_expr(e.cond, stack, out)
             lj_block(e.then_block, stack, out)
-            match e.else_branch as ei {
+            match ei :: e.else_branch {
                 is IfElseIf    -> { lj_expr(ei.branch, stack, out) }
                 is IfElseBlock -> { lj_block(ei.block, stack, out) }
                 is null        -> {}
@@ -579,7 +579,7 @@ binding_entry :: fn(
 // ---- fn body walk : params + locals + for-in -----------------------------
 
 ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
-    match f.body as body {
+    match body :: f.body {
         is null      -> {}
         is BlockExpr -> {
             scope :: body.span
@@ -655,7 +655,7 @@ ix_walk_stmt :: fn(s: Stmt, block_span: Span, source: string, entries: DeclEntry
         is BreakStmt             -> {}
         is ContinueStmt          -> {}
         is DeferStmt             -> {
-            match s.body as ds {
+            match ds :: s.body {
                 is DeferStmtBody  -> { ix_walk_stmt(ds.stmt, block_span, source, entries) }
                 is DeferBlockBody -> { ix_walk_block(ds.block, source, entries) }
             }
@@ -716,12 +716,12 @@ type_expr_slice :: fn(t: Expr, source: string) =
     source.byte_slice(t.span.start.offset, t.span.end.offset).trim()
 
 ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {
-    match f.form as w {
+    match w :: f.form {
         is InfiniteFor -> {}
         is WhileFor    -> { ix_walk_expr(w.cond, source, entries) }
         is InFor       -> {
             // for-in binding scope = the loop's body block.
-            match w.loop_var as nv {
+            match nv :: w.loop_var {
                 is NamedVar       -> {
                     sig :: "for " + nv.name + " in ..."
                     entries.push(binding_entry(nv.name, .ForIn, nv.span, f.body.span, sig))
@@ -750,7 +750,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         is IfExpr -> {
             ix_walk_expr(e.cond, source, entries)
             ix_walk_block(e.then_block, source, entries)
-            match e.else_branch as ei {
+            match ei :: e.else_branch {
                 is null        -> {}
                 is IfElseIf    -> { ix_walk_expr(ei.branch, source, entries) }
                 is IfElseBlock -> { ix_walk_block(ei.block, source, entries) }
@@ -758,10 +758,8 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         }
         is MatchExpr -> {
             ix_walk_expr(e.scrutinee, source, entries)
-            alias :: e.bind_as
-            if alias != null {
-                sig :: local_sig(alias.name, "", e.span.start.offset, e.span.end.offset, source)
-                entries.push(binding_entry(alias.name, .Local, alias.span, e.span, sig))
+            if e.binding != null {
+                collect_let_binding(e.binding, e.span, source, "", entries)
             }
             for arm in e.arms {
                 if arm.guard != null {
@@ -950,7 +948,7 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEnt
             i = i + 1
             continue
         }
-        match d.scope_span as sp {
+        match sp :: d.scope_span {
             is null -> {
                 if !has_best {
                     best_idx = i

@@ -270,14 +270,14 @@ import "std/string"
 collect_file_intrinsics :: fn(decl: AST.Decl, out: AST.IntrinsicCallExpr[]) -> void {
     match decl {
         is AST.FnDecl -> {
-            match decl.body as b {
+            match b :: decl.body {
                 is null          -> {}
                 is AST.BlockExpr -> { collect_in_block(b, out) }
             }
         }
         is AST.ImplDecl -> {
             for m in decl.members {
-                match m.body as b {
+                match b :: m.body {
                     is null          -> {}
                     is AST.BlockExpr -> { collect_in_block(b, out) }
                 }
@@ -316,7 +316,7 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]) -> void {
             }
         }
         is AST.ForStmt               -> {
-            match s.form as wf {
+            match wf :: s.form {
                 is AST.WhileFor -> { collect_in_expr(wf.cond, out) }
                 is AST.InFor    -> { collect_in_expr(wf.iter, out) }
                 _               -> {}
@@ -324,7 +324,7 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]) -> void {
             collect_in_block(s.body, out)
         }
         is AST.DeferStmt             -> {
-            match s.body as dsb {
+            match dsb :: s.body {
                 is AST.DeferStmtBody  -> { collect_in_stmt(dsb.stmt, out) }
                 is AST.DeferBlockBody -> { collect_in_block(dsb.block, out) }
             }
@@ -356,7 +356,7 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
         is AST.IfExpr -> {
             collect_in_expr(e.cond, out)
             collect_in_block(e.then_block, out)
-            match e.else_branch as eb {
+            match eb :: e.else_branch {
                 is null            -> {}
                 is AST.IfElseBlock -> { collect_in_block(eb.block, out) }
                 is AST.IfElseIf    -> { collect_in_expr(eb.branch, out) }

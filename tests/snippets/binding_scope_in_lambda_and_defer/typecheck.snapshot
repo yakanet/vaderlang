@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/as_alias_scope
+## tests/snippets/binding_scope_in_lambda_and_defer
   FnDecl         apply                :: fn(Leaf | Pair, fn(Leaf | Pair) -> void) -> void
   FnDecl         defer_form           :: fn(Leaf | Pair) -> i32
   FnDecl         if_form              :: fn(Leaf | Pair) -> i32
@@ -31,9 +31,9 @@
   expr 32:27    FieldExpr      :: i32
   expr 32:27    IdentExpr      :: Leaf
   expr 39:11    LambdaExpr     :: fn(Leaf | Pair) -> void
-  expr 40:15    CallExpr       :: Leaf | Pair
-  expr 40:15    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
-  expr 40:22    IdentExpr      :: Leaf | Pair
+  expr 40:20    CallExpr       :: Leaf | Pair
+  expr 40:20    IdentExpr      :: fn(Leaf | Pair) -> Leaf | Pair
+  expr 40:27    IdentExpr      :: Leaf | Pair
   expr 40:9     MatchExpr      :: void
   expr 41:26    CallExpr       :: void
   expr 41:26    IdentExpr      :: fn(T) -> void

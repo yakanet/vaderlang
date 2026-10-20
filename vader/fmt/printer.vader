@@ -327,7 +327,7 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     // down to the first decl is handled by the loop's `has_module` branch.
     module_end_line: i32 = 0
     has_module: bool = false
-    match prog.module as m {
+    match m :: prog.module {
         is null         -> {}
         is p.ModuleDecl -> {
             self.flush_leading_comments(m.span.start.offset, m.span.start.line)
@@ -557,7 +557,7 @@ emit_visibility :: fn(self: Printer, v: p.Visibility) -> void {
 
 emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
     self.emit_decorators(d.decorators, d.span.start.line)
-    match d.binding as nn {
+    match nn :: d.binding {
         is p.NamedNamespaceImport -> {
             self.write(nn.name)
             self.write(" :: import \"")
@@ -602,7 +602,7 @@ flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> i64 {
 
 emit_import_name :: fn(self: Printer, n: p.ImportName) -> void {
     self.write(n.name)
-    match n.alias as a {
+    match a :: n.alias {
         is null   -> {}
         is string -> {
             self.write(" as ")
@@ -627,12 +627,12 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
         self.write(" =")
         // Expression-bodied : body is normalised to BlockExpr with empty
         // stmts + trailing expr. Re-emit the trailing expr alone.
-        match d.body as b {
+        match b :: d.body {
             is null        -> self.write(" /* missing body */")
             is p.BlockExpr -> self.emit_expression_body(b.trailing)
         }
     } else {
-        match d.body as b {
+        match b :: d.body {
             is null -> {}    // signature-only (@intrinsic / @extern)
             is p.BlockExpr -> {
                 self.write(" ")
@@ -1014,7 +1014,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     // rather than the synthesised `name :: fn(args) { … }` shape.
     if d.members.len() == 1 && d.members[0].sam_synthetic {
         m :: d.members[0]
-        match m.body as b {
+        match b :: m.body {
             is null        -> {}
             is p.BlockExpr -> {
                 // Arrow form : block body is a no-stmt wrapper around the
@@ -1284,7 +1284,7 @@ emit_destructure_assign_stmt :: fn(self: Printer, s: p.DestructureAssignStmt) ->
         if i > 0 {
             self.write(", ")
         }
-        match s.targets[i] as t {
+        match t :: s.targets[i] {
             is p.PlaceTarget    -> self.emit_expr(t.place)
             is p.WildcardTarget -> self.write("_")
             is p.RestTarget     -> {
@@ -1316,7 +1316,7 @@ emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
             self.write(" ")
             // `value` is a BinaryExpr with `lhs` on the left ; emit only
             // the right operand so `i += 1` round-trips as `i += 1`.
-            match s.value as b {
+            match b :: s.value {
                 is p.BinaryExpr -> self.emit_expr(b.right)
                 _ -> self.emit_expr(s.value)   // unreachable per `aug`
             }
@@ -1342,7 +1342,7 @@ emit_yield_stmt :: fn(self: Printer, s: p.YieldStmt) -> void {
 }
 
 emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
-    match s.label as l {
+    match l :: s.label {
         is null   -> {}
         is string -> {
             self.write(l)
@@ -1350,7 +1350,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
         }
     }
     self.write("for")
-    match s.form as form {
+    match form :: s.form {
         is p.InfiniteFor -> {}
         is p.WhileFor    -> {
             self.write(" ")
@@ -1359,7 +1359,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
         is p.InFor       -> {
             // The loop variable lives structurally on the node (no parse-time
             // desugaring), so each shape re-prints verbatim — no span heuristics.
-            match form.loop_var as nv {
+            match nv :: form.loop_var {
                 is p.NamedVar       -> {
                     self.write(" ")
                     self.write(nv.name)
@@ -1386,7 +1386,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
 
 emit_break_stmt :: fn(self: Printer, s: p.BreakStmt) -> void {
     self.write("break")
-    match s.label as l {
+    match l :: s.label {
         is null   -> {}
         is string -> {
             self.write(" ")
@@ -1397,7 +1397,7 @@ emit_break_stmt :: fn(self: Printer, s: p.BreakStmt) -> void {
 
 emit_continue_stmt :: fn(self: Printer, s: p.ContinueStmt) -> void {
     self.write("continue")
-    match s.label as l {
+    match l :: s.label {
         is null   -> {}
         is string -> {
             self.write(" ")
@@ -1408,7 +1408,7 @@ emit_continue_stmt :: fn(self: Printer, s: p.ContinueStmt) -> void {
 
 emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
     self.write("defer ")
-    match s.body as b {
+    match b :: s.body {
         is p.DeferStmtBody  -> self.emit_stmt(b.stmt)
         is p.DeferBlockBody -> self.emit_block_expr(b.block)
     }
@@ -1716,7 +1716,7 @@ emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
 
 emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
     if a.spread { self.write("...") }
-    match a.name as n {
+    match n :: a.name {
         is null   -> {}
         is string -> {
             self.write(n)
@@ -1786,7 +1786,7 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     // `!is` sugar : parser produces `Not(Is(...))` ; restore the spelling
     // for round-trip stability.
     if x.op == .Not {
-        match x.operand as inner {
+        match inner :: x.operand {
             is p.BinaryExpr -> {
                 if inner.op == .Is {
                     self.emit_binary_operand(inner.left, inner.op, true)
@@ -1994,7 +1994,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     }
     self.write(" ")
     self.emit_block_expr(x.then_block)
-    match x.else_branch as else_branch {
+    match else_branch :: x.else_branch {
         is null          -> {}
         is p.IfElseIf    -> {
             // Preserve source : if the `else if` branch started on a new
@@ -2026,9 +2026,9 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
-    bind_as :: x.bind_as
-    if bind_as is p.AsBinding {
-        self.write(bind_as.name)
+    binding :: x.binding
+    if binding != null {
+        self.write(binding.name)
         self.write(" :: ")
     }
     self.emit_condition(x.scrutinee)
@@ -2510,7 +2510,7 @@ emit_range_pattern :: fn(self: Printer, x: p.RangePattern) -> void {
 emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
     self.write("is ")
     self.emit_type_expr(x.ty)
-    match x.inner as inner {
+    match inner :: x.inner {
         is null                 -> {}
         is p.IsPattern          -> {
             self.write(" ")
@@ -2546,7 +2546,7 @@ emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
         if i > 0 { self.write(", ") }
         f :: x.fields[i]
         self.write(f.name)
-        match f.value as value {
+        match value :: f.value {
             is p.PatternBinding -> {
                 if value.name != f.name {
                     self.write(": ")

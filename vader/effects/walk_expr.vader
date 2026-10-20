@@ -253,9 +253,8 @@ else_value :: fn(ctx: WalkCtx, branch: AST.IfElse | null) -> i64 | null = match 
 // Each arm's bindings hold parts of the scrutinee ; the match is worth any arm.
 match_value :: fn(ctx: WalkCtx, e: AST.MatchExpr) -> i64 | null {
     scrutinee :: ctx.value(e.scrutinee)
-    alias :: e.bind_as
-    if alias != null {
-        ctx.bind_symbol(alias.span, scrutinee)
+    if e.binding != null {
+        ctx.bind(e.binding, scrutinee)
     }
     arms: (i64 | null)[]: []
     for arm in e.arms {

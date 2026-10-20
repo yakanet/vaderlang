@@ -33,7 +33,7 @@ export Walk :: enum {
 /// once: the place of a compound assignment `x op= y` is the left operand of its
 /// value, and a `@comptime` const leaves its `comptime_body` and its type to the
 /// helper fn the parser synthesised, which holds both. What is not a node (a
-/// binding, a field name, an `as` alias) is for the visitor to read on the node
+/// binding, a field name) is for the visitor to read on the node
 /// that carries it.
 ///
 /// @param n      the root.
@@ -126,7 +126,7 @@ inspect_if :: fn(i: IfExpr, visit: fn(Node) -> Walk) -> bool {
     if inspect(i.cond, visit) || inspect(i.then_block, visit) {
         return true
     }
-    return match i.else_branch as tail {
+    return match tail :: i.else_branch {
         is null        -> false
         is IfElseIf    -> inspect(tail.branch, visit)
         is IfElseBlock -> inspect(tail.block, visit)

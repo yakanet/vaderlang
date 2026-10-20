@@ -1,0 +1,10 @@
+module "snippet"
+
+// The header names its scrutinee as a declaration does, name first:
+// `match r :: f()`, not `match f() as r`.
+f :: fn() -> i32 | null = 1
+
+main :: fn() -> i32 = match f() as r {
+    is i32  -> r
+    is null -> 0
+}

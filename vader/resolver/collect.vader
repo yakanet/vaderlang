@@ -275,7 +275,7 @@ collect_import :: fn(
             }
             excluded: string[]: []
             for n in b.names {
-                match n.alias as alias {
+                match alias :: n.alias {
                     is null   -> {
                         diags.push(resolver_error(.PlainNameInImportModifiers, n.span, "`${n.name}`"))
                     }

@@ -1,0 +1,2 @@
+[7:33] error[P1039] a `match` header binds one constant name: name the scrutinee first: `match r :: …`
+[8:16] error[R2006] unresolved identifier: `r`

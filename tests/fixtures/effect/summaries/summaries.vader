@@ -67,7 +67,7 @@ export through_narrowing :: fn(s: Point | Holder) -> void {
 }
 
 export through_alias :: fn(s: Point | Holder) -> void {
-    match s.items_of() as found {
+    match found :: s.items_of() {
         is Point[] -> { found.clear() }
         is null    -> {}
     }

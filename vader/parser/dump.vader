@@ -716,7 +716,7 @@ write_for_form :: fn(sb: StringBuilder, f: ForForm, level: i32) -> void {
         }
         is InFor -> {
             sb.kind_entry(level + 1, "in")
-            match f.loop_var as nv {
+            match nv :: f.loop_var {
                 is NamedVar       -> {
                     sb.entry(false, level + 1, "binding")
                     sb.write_string(nv.name)
@@ -884,7 +884,7 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.entry(false, level + 1, "left")
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "fallback")
-            match e.fallback as s {
+            match s :: e.fallback {
                 is ReturnStmt | BreakStmt | ContinueStmt -> sb.write_stmt(s, level + 1)
                 is Expr                                  -> sb.write_expr(s, level + 1)
             }
@@ -922,10 +922,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
                 sb.entry(false, level + 1, "unreachable")
                 sb.append("true")
             }
-            bind_as :: e.bind_as
-            if bind_as is AsBinding {
-                sb.entry(false, level + 1, "bindAs")
-                sb.write_string(bind_as.name)
+            binding :: e.binding
+            if binding != null {
+                sb.entry(false, level + 1, "binding")
+                sb.write_string(binding.name)
             }
             sb.close_obj(level)
         }

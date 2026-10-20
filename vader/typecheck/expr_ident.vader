@@ -139,7 +139,7 @@ check_test_module :: fn(src: string) -> CheckedSrc {
 infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     checked :: check_test_module(src)
     f :: first_fn_decl(checked.program.decls) ?? return "<not a FnDecl>"
-    match f.body as b {
+    match b :: f.body {
         is null -> { return "<no body>" }
         is AST.BlockExpr -> {
             found :: scan_block_for_ident(b, target) ?? return "<not found>"
@@ -211,12 +211,12 @@ main :: fn() -> i32 { return add(1, 2) }
 """
     checked :: check_test_module(src)
     // Pick the `add` ident inside `main`'s call expression.
-    match checked.program.decls[checked.program.decls.len() - 1] as f {
+    match f :: checked.program.decls[checked.program.decls.len() - 1] {
         is AST.FnDecl -> {
-            match f.body as b {
+            match b :: f.body {
                 is null          -> { assert(false, "main has no body") }
                 is AST.BlockExpr -> {
-                    match scan_block_for_ident(b, "add") as found {
+                    match found :: scan_block_for_ident(b, "add") {
                         is null          -> { assert(false, "add ident not found") }
                         is AST.IdentExpr -> {
                             assert_eq(display_type(infer_ident(found, checked.typed)), "fn(i32, i32) -> i32")

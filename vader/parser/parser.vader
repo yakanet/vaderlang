@@ -3749,14 +3749,12 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
     declared :: p.parse_match_declaration()
     scrutinee :: p.match_scrutinee(declared)
     p.no_struct_lit_at = saved_restriction
-    bind_as := declared_name(declared)
-    // `match e as x { … }` is read until the bootstrap seed parses `match x :: e`.
-    // `as` is not an infix operator (it has no binding power), so it can only be
-    // consumed here.
-    if p.match_kind(.KwAs) != null {
-        name_tok :: p.expect(.Ident, "binding name after `as`")
-        bind_as = AsBinding { .name = name_tok.text, .span = name_tok.span }
-    }
+    // The header's name comes first, as in any declaration. `as` is not an infix
+    // operator, so an `as <name>` after the scrutinee is only met here.
+    p.reject_as_binder(
+        .MisshapenMatchBinding,
+        (name) -> "name the scrutinee first: `match ${name} :: …`",
+    )
 
     p.expect(.LBrace, "`{` to open match arms")
     p.skip_newlines()
@@ -3773,7 +3771,7 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
         .arms        = arms,
         .partial     = partial,
         .unreachable = unreachable,
-        .bind_as     = bind_as,
+        .binding     = declared_binding(declared),
     }
 }
 
@@ -3812,13 +3810,13 @@ match_scrutinee :: fn(p: Parser, declared: LetStmt | null) -> Expr {
 }
 
 // The name a header declaration binds ; null without one, or for a pattern.
-declared_name :: fn(declared: LetStmt | null) -> AsBinding | null {
+declared_binding :: fn(declared: LetStmt | null) -> SimpleBinding | null {
     if declared == null {
         return null
     }
     binding :: declared.binding
     if binding is SimpleBinding {
-        return AsBinding { .name = binding.name, .span = binding.name_span }
+        return binding
     }
     return null
 }
@@ -3930,9 +3928,9 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         if p.check(.LBrace) {
             inner = p.parse_struct_pattern()
         }
-        // A match arm binds nothing: the binder lives in the header, `match e
-        // as x { is T -> … x … }`, where every arm and guard sees it.
-        p.reject_as_binder(.PatternBindsName, (name) -> "name the scrutinee in the header: `match … as ${name}`")
+        // A match arm binds nothing: the binder lives in the header, `match x ::
+        // e { is T -> … x … }`, where every arm and guard sees it.
+        p.reject_as_binder(.PatternBindsName, (name) -> "name the scrutinee in the header: `match ${name} :: …`")
         return IsPattern {
             .span  = p.span_of(t, p.peek_at(-1)),
             .ty    = ty,
@@ -3945,11 +3943,11 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     }
     if t.kind == .Ident {
         // A lone name matched everything and bound it. `_` matches everything;
-        // the header binds (`match e as x { … _ -> x }`).
+        // the header binds (`match x :: e { … _ -> x }`).
         p.advance()
         p.error(
             .PatternBindsName, t.span,
-            "write `_`, and name the scrutinee in the header: `match … as ${t.text}`",
+            "write `_`, and name the scrutinee in the header: `match ${t.text} :: …`",
         )
         return WildcardPattern { .span = t.span }
     }

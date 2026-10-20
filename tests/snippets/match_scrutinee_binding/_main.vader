@@ -1,7 +1,7 @@
-// `match e as x { … }` — name the scrutinee once, for every arm.
+// `match x :: e { … }` — name the scrutinee once, for every arm.
 //
-// The alias exists so an EXPRESSION scrutinee can be referred to without being
-// re-evaluated; a scrutinee that is already a name needs no alias, since each arm
+// The binding exists so an EXPRESSION scrutinee can be referred to without being
+// re-evaluated; a scrutinee that is already a name needs none, since each arm
 // narrows it in place. The binding spans every arm and each one narrows it to what
 // its pattern matched.
 
@@ -25,14 +25,14 @@ shape_at :: fn(n: i32) -> Shape {
 }
 
 // The scrutinee is a call : evaluated once, bound to `s`, narrowed per arm.
-area :: fn(n: i32) -> i32 = match shape_at(n) as s {
+area :: fn(n: i32) -> i32 = match s :: shape_at(n) {
     is Circle -> s.radius * s.radius * 3
     is Square -> s.side * s.side
     is Point  -> 0
 }
 
-// A guard sees the alias too.
-describe :: fn(n: i32) -> string = match shape_at(n) as s {
+// A guard sees the binding too.
+describe :: fn(n: i32) -> string = match s :: shape_at(n) {
     is Circle if s.radius > 10 -> "big circle"
     is Circle                  -> "circle"
     is Square                  -> "square"

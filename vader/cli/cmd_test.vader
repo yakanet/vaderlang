@@ -98,7 +98,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         }
         for t in fresh {
             ran.add(t.mangled)
-            match exec_fn(state, t.mangled) as tr {
+            match tr :: exec_fn(state, t.mangled) {
                 is Ok   -> {
                     println("  ${TTY.green("ok")} ${t.display}")
                     total_pass += 1

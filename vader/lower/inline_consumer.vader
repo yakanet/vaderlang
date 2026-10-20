@@ -240,7 +240,7 @@ if_holds :: fn(e: AST.IfExpr, into_loops: bool, test: fn(AST.Stmt) -> bool) -> b
     if block_holds(e.then_block, into_loops, test) {
         return true
     }
-    return match e.else_branch as branch {
+    return match branch :: e.else_branch {
         is null            -> false
         is AST.IfElseIf    -> if_holds(branch.branch, into_loops, test)
         is AST.IfElseBlock -> block_holds(branch.block, into_loops, test)

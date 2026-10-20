@@ -229,7 +229,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
 }
 
 lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
-    match let_stmt.binding as simple {
+    match simple :: let_stmt.binding {
         is SimpleBinding   -> {
             symbol_or_null :: resolve_binding(ctx, simple.name_span)
             // Synthesise a Local symbol when the resolver dropped this
@@ -337,7 +337,7 @@ ensure_local_symbol_index :: fn(
     index :: MutableMap<u64, Symbol> {}
     // `idents` first — every referenced binding's defined_at lands here.
     for [_, symbol] in resolved.idents {
-        match symbol.defined_at as defined {
+        match defined :: symbol.defined_at {
             is null -> {}
             is Span -> { index[defined.hash()] = symbol }
         }
@@ -346,7 +346,7 @@ ensure_local_symbol_index :: fn(
     // bindings, unused params). Resolver writes `defined_at` for every
     // minted Symbol.
     for symbol in resolved.symbols {
-        match symbol.defined_at as defined {
+        match defined :: symbol.defined_at {
             is null -> {}
             is Span -> {
                 key :: defined.hash()
@@ -495,7 +495,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             return lower_comptime_for_in(ctx, for_stmt, for_stmt.form)
         }
     }
-    match for_stmt.form as while_for {
+    match while_for :: for_stmt.form {
         is InfiniteFor -> {
             body :: lower_block(ctx, for_stmt.body, false, for_stmt.id)
             return LoweredLoop {

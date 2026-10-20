@@ -145,7 +145,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
         }
         is AST.IfExpr -> {
             new_else: AST.IfElse | null = null
-            match e.else_branch as eb {
+            match eb :: e.else_branch {
                 is null            -> {}
                 is AST.IfElseBlock -> {
                     new_else = AST.IfElseBlock { .block = substitute_block(eb.block, subst) }
@@ -190,7 +190,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 .arms = new_arms,
                 .partial = e.partial,
                 .unreachable = e.unreachable,
-                .bind_as = e.bind_as,
+                .binding = clone_header_binding(e.binding),
             }
         }
         is AST.BlockExpr -> { return substitute_block(e, subst) }
@@ -387,7 +387,7 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
         }
         is AST.ForStmt               -> {
             new_form: AST.ForForm = s.form
-            match s.form as form {
+            match form :: s.form {
                 is AST.WhileFor    -> {
                     new_form = AST.WhileFor { .cond = substitute_expr_full(form.cond, subst) }
                 }
@@ -437,6 +437,12 @@ clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> A
 /// the local Symbol on `binding.name_span` ; sharing the trait node would
 /// collide across impls/generations). Spans are carried over and re-stamped
 /// by `stamp_binding_spans`.
+// A `match` header's binding, cloned as a declaration's is.
+clone_header_binding :: fn(b: AST.SimpleBinding | null) -> AST.SimpleBinding | null {
+    present :: b ?? return null
+    return AST.SimpleBinding { ...present, .id = AST.UNASSIGNED_NODE_ID }
+}
+
 clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
     match b {
         is AST.SimpleBinding -> {
@@ -577,10 +583,10 @@ stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
         }
         is AST.ForStmt               -> {
             s.span = next_clone_span(stamp)
-            match s.form as form {
+            match form :: s.form {
                 is AST.WhileFor    -> { stamp_expr_spans(form.cond, stamp) }
                 is AST.InFor       -> {
-                    match form.loop_var as nv {
+                    match nv :: form.loop_var {
                         is AST.NamedVar -> { form.loop_var = AST.NamedVar { .name = nv.name, .span = next_clone_span(stamp) } }
                         is AST.DestructureVar -> { stamp_binding_spans(nv.pattern, stamp) }
                         is AST.DiscardVar     -> {}
@@ -636,7 +642,7 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.cond, stamp)
             stamp_block_spans(e.then_block, stamp)
-            match e.else_branch as eb {
+            match eb :: e.else_branch {
                 is null            -> {}
                 is AST.IfElseBlock -> { stamp_block_spans(eb.block, stamp) }
                 is AST.IfElseIf    -> { stamp_expr_spans(eb.branch, stamp) }
@@ -645,9 +651,9 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
         is AST.MatchExpr -> {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.scrutinee, stamp)
-            alias :: e.bind_as
-            if alias != null {
-                e.bind_as = AST.AsBinding { .name = alias.name, .span = next_clone_span(stamp) }
+            binding :: e.binding
+            if binding != null {
+                stamp_binding_spans(binding, stamp)
             }
             for a in e.arms {
                 a.span = next_clone_span(stamp)

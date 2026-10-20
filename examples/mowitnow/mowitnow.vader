@@ -234,7 +234,7 @@ main :: fn(argv: string[]) -> i32 {
             return 1
         }
         is string -> {
-            match run(raw) as out {
+            match out :: run(raw) {
                 is string     -> println(out)
                 is ParseError -> {
                     eprintln("parse error: ${out.message()}")

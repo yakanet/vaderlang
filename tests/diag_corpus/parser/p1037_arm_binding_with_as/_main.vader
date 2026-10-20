@@ -1,6 +1,6 @@
 module "snippet"
 
-// An arm does not bind: the header does, `match v as s { is string -> s }`, and
+// An arm does not bind: the header does, `match s :: v { is string -> s }`, and
 // a scrutinee that is already a name needs no binder at all.
 describe :: fn(v: i32 | string) -> string {
     return match v {

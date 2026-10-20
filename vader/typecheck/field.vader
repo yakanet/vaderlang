@@ -1937,7 +1937,7 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     result :: check_module(parsed.program, rm, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     if last is AST.FnDecl {
-        match last.body as b {
+        match b :: last.body {
             is null          -> {
                 return FieldFixture { .typed = result.typed, .field = null }
             }
@@ -1964,7 +1964,7 @@ Point :: struct {
 get_x :: fn(p: Point) -> i32 { return p.x }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field as f {
+    match f :: fx.field {
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []
@@ -1983,7 +1983,7 @@ Point :: struct {
 get_z :: fn(p: Point) -> i32 { return p.z }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field as f {
+    match f :: fx.field {
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []
@@ -2000,7 +2000,7 @@ test_field_on_non_struct_emits_T3008 :: fn() -> void {
 f :: fn(n: i32) -> i32 { return n.x }
 """
     fx :: first_field_in_last_fn(src)
-    match fx.field as f {
+    match f :: fx.field {
         is null          -> { assert(false, "expected a field expr") }
         is AST.FieldExpr -> {
             diags: Diagnostic[]: []

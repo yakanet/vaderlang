@@ -49,7 +49,7 @@ collect_ast_idents :: fn(li: LineIndex, uri: string, out: RawToken[]) -> void {
     // not a `Kw*` token at the lexer level (it stays an Ident). Surface
     // the keyword colour here using the parsed AST.ModuleDecl's nameSpan
     // start to anchor the 6-char "module" span.
-    match program.module as md {
+    match md :: program.module {
         is null           -> {}
         is AST.ModuleDecl -> { push_module_keyword_span(md, out) }
     }
@@ -243,7 +243,7 @@ walk_type_params :: fn(ps: AST.TypeParam[], out: RawToken[]) -> void {
 
 walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken[]) -> void {
     walk_decorators(d.decorators, out)
-    match d.binding as dest {
+    match dest :: d.binding {
         is AST.NamedNamespaceImport -> {}
         is AST.WildcardImport       -> {}
         is AST.DestructureImport    -> {
@@ -379,11 +379,11 @@ walk_binding :: fn(b: AST.LetBinding, out: RawToken[]) -> void {
 }
 
 walk_for :: fn(s: AST.ForStmt, out: RawToken[]) -> void {
-    match s.form as w {
+    match w :: s.form {
         is AST.InfiniteFor -> {}
         is AST.WhileFor    -> { walk_expr(w.cond, out) }
         is AST.InFor       -> {
-            match w.loop_var as nv {
+            match nv :: w.loop_var {
                 is AST.NamedVar       -> { push_span(out, nv.span, .Variable) }
                 is AST.DestructureVar -> { walk_binding(nv.pattern, out) }
                 is AST.DiscardVar     -> {}
@@ -395,7 +395,7 @@ walk_for :: fn(s: AST.ForStmt, out: RawToken[]) -> void {
 }
 
 walk_defer :: fn(s: AST.DeferStmt, out: RawToken[]) -> void {
-    match s.body as x {
+    match x :: s.body {
         is AST.DeferStmtBody  -> { walk_stmt(x.stmt, out) }
         is AST.DeferBlockBody -> { walk_block(x.block, out) }
     }
@@ -491,7 +491,7 @@ walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
     // Upgrade the callee's bare-ident position to Function — unless the
     // ident names a primitive type, in which case the call is a cast
     // (`i32(x)`, `i64(n)`) and the callee is a type.
-    match c.callee as callee {
+    match callee :: c.callee {
         is AST.IdentExpr -> {
             if callee.name.is_primitive_type_name() {
                 push_span(out, callee.span, .Type)
@@ -512,7 +512,7 @@ walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
 walk_if :: fn(e: AST.IfExpr, out: RawToken[]) -> void {
     walk_expr(e.cond, out)
     walk_block(e.then_block, out)
-    match e.else_branch as x {
+    match x :: e.else_branch {
         is null            -> {}
         is AST.IfElseIf    -> { walk_if(x.branch, out) }
         is AST.IfElseBlock -> { walk_block(x.block, out) }
@@ -520,19 +520,14 @@ walk_if :: fn(e: AST.IfExpr, out: RawToken[]) -> void {
 }
 
 walk_match :: fn(e: AST.MatchExpr, out: RawToken[]) -> void {
+    if e.binding != null {
+        walk_binding(e.binding, out)
+    }
     walk_expr(e.scrutinee, out)
-    walk_opt_alias(e.bind_as, out)
     for arm in e.arms {
         walk_pattern(arm.pattern, out)
         walk_opt_expr(arm.guard, out)
         walk_expr(arm.body, out)
-    }
-}
-
-// The name a `match e as x` header declares, tagged like a local declaration's.
-walk_opt_alias :: fn(alias: AST.AsBinding | null, out: RawToken[]) -> void {
-    if alias != null {
-        push_span(out, alias.span, .Variable)
     }
 }
 
@@ -545,7 +540,7 @@ walk_pattern :: fn(p: AST.Pattern, out: RawToken[]) -> void {
         is AST.StructPattern -> {
             for f in p.fields {
                 push_span(out, f.name_span, .Variable)
-                match f.value as lit {
+                match lit :: f.value {
                     is AST.PatternBinding -> {}
                     is AST.PatternLiteral -> { walk_expr(lit.value, out) }
                 }

@@ -120,7 +120,7 @@ trace :: fn(ctx: TraceCtx, start: Link, index: i64) -> FaultChain {
         call :: origin_call(how) ?? return chain
         site :: at.s.sites[call.0]
         param :: call.2
-        callee :: match site.targets[call.1] as target {
+        callee :: match target :: site.targets[call.1] {
             is CalleeNode   -> target
             is KnownEffects -> {
                 by :: display_callee(site.callee)

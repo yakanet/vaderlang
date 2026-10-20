@@ -716,7 +716,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
     if idx < 0 || i64(idx) >= types.len() {
         return "?"
     }
-    return match types[idx] as t {
+    return match t :: types[idx] {
         is BcScalar -> "p:${i32(t.val)}"
         // Structs key by NAME, not by their fields: the name is unique after
         // monomorphisation, and descending would not terminate on a recursive

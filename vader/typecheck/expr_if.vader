@@ -103,7 +103,7 @@ infer_if :: fn(
     pushed :: push_cond_narrows(e.cond, true, typed, diags)
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx)
     pop_narrows(pushed, typed)
-    match e.else_branch as eb {
+    match eb :: e.else_branch {
         is null            -> {
             return collapse_if_unresolved(union_of([then_ty, TY_VOID]), then_ty, TY_VOID)
         }
@@ -443,7 +443,7 @@ first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body as b {
+            match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_if)

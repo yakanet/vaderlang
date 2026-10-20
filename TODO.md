@@ -244,8 +244,8 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
       reassigns the scrutinee (`cur = nxt`) in the same arm, a read of the
       narrowed `cur` (e.g. `cur.key`) compiles to a null deref — the emitted box
       reads the wrong field (observed tag = pointer low bits). Surfaced writing
-      `MutableMap.grow` (the resize chantier) ; worked around with an `as e`
-      alias (`stdlib/std/collections/collections.vader`), reading/writing through
+      `MutableMap.grow` (the resize chantier) ; worked around with a `match e :: …`
+      header binding (`stdlib/std/collections/collections.vader`), reading/writing through
       the stable binding instead of `cur`. The sibling walks (`put` / `get` /
       `remove`) are unaffected — they reassign `cur` only after the last read.
       Real fix is in the narrowing → c_emit path : a flow-narrowed local that is

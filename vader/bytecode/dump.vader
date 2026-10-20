@@ -1037,7 +1037,7 @@ type_label :: fn(module: BytecodeModule, type_id: i32) = type_label_at(module, t
 type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string {
     if depth > 6 { return "..." }
     if type_id < 0 || i64(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
-    return match module.types[type_id] as p {
+    return match p :: module.types[type_id] {
         is BcScalar    -> val_type_name(p.val)
         is BcStruct    -> p.name
         is BcArray     -> "${type_label_at(module, p.element, depth + 1)}[]"

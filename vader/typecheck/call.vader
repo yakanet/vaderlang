@@ -1375,7 +1375,7 @@ add :: fn(a: i32, b: i32) -> i32 { return a + b }
 main :: fn() -> i32 { return add(1, 2) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1392,7 +1392,7 @@ add :: fn(a: i32, b: i32) -> i32 { return a + b }
 main :: fn() -> i32 { return add(1) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1410,7 +1410,7 @@ add :: fn(a: i32, b: i32) -> i32 { return a + b }
 main :: fn() -> i32 { return add(1, 2, 3) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1427,7 +1427,7 @@ test_cast_string_to_int_emits_T3010 :: fn() -> void {
 f :: fn() -> i32 { return i32("hello") }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1449,7 +1449,7 @@ test_cast_numeric_widen_ok :: fn() -> void {
 f :: fn(a: i32) -> i64 { return i64(a) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find the cast call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1472,7 +1472,7 @@ greet :: fn(name: i32, prefix: i32 = 7) -> i32 { return name }
 main :: fn() -> i32 { return greet(1) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []
@@ -1490,7 +1490,7 @@ greet :: fn(name: string) -> void { }
 main :: fn() -> void { greet(42) }
 """
     fx :: first_call_in_last_fn(src)
-    match fx.call as c {
+    match c :: fx.call {
         is null         -> { assert(false, "expected to find a call") }
         is AST.CallExpr -> {
             diags: Diagnostic[]: []

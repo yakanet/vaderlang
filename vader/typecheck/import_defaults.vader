@@ -61,7 +61,11 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
         is AST.IdentExpr -> { copy_span(n.span, from, into) }
         is AST.LetStmt -> { copy_binding_resolutions(n.binding, from, into) }
         is AST.ForStmt -> { copy_loop_var_resolutions(n.form, from, into) }
-        is AST.MatchExpr -> { copy_alias(n.bind_as, from, into) }
+        is AST.MatchExpr -> {
+            if n.binding != null {
+                copy_binding_resolutions(n.binding, from, into)
+            }
+        }
         is AST.LambdaExpr -> {
             for p in n.params {
                 copy_span(p.span, from, into)
@@ -113,11 +117,6 @@ copy_binding_resolutions :: fn(b: AST.LetBinding, from: TypedProgram, into: Type
             }
         }
     }
-}
-
-copy_alias :: fn(alias: AST.AsBinding | null, from: TypedProgram, into: TypedProgram) -> void {
-    present :: alias ?? return
-    copy_span(present.span, from, into)
 }
 
 // One span the resolver keyed: a use, or a binding it introduced. A declaration

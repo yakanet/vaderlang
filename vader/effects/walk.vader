@@ -136,19 +136,19 @@ result_effect_of :: fn(decl: AST.FnDecl) -> Effect {
 }
 
 defer_stmt :: fn(ctx: WalkCtx, s: AST.DeferStmt) -> void {
-    match s.body as body {
+    match body :: s.body {
         is AST.DeferStmtBody  -> { ctx.stmt(body.stmt) }
         is AST.DeferBlockBody -> { _ :: ctx.block_value(body.block) }
     }
 }
 
 for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
-    match s.form as form {
+    match form :: s.form {
         is AST.InfiniteFor -> {}
         is AST.WhileFor    -> { ctx.discard(form.cond) }
         is AST.InFor       -> {
             element :: ctx.loop_element(form.iter, ctx.value(form.iter))
-            match form.loop_var as var {
+            match var :: form.loop_var {
                 is AST.NamedVar       -> { ctx.bind_symbol(var.span, element) }
                 is AST.DestructureVar -> { ctx.bind(var.pattern, element) }
                 is AST.DiscardVar     -> {}

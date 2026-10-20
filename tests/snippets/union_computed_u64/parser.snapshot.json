@@ -285,7 +285,7 @@
                 }
               }
             ],
-            "bindAs": "n"
+            "binding": "n"
           }
         },
         "decorators": []

@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/match_scrutinee_alias
+## tests/snippets/match_scrutinee_binding
   FnDecl         area                 :: fn(i32) -> i32
   StructDecl     Circle               :: Circle
   FnDecl         describe             :: fn(i32) -> string
@@ -19,9 +19,9 @@
   expr 22:16    StructLitExpr  :: Square
   expr 24:12    StructLitExpr  :: Point
   expr 28:29    MatchExpr      :: i32
-  expr 28:35    CallExpr       :: Circle | Point | Square
-  expr 28:35    IdentExpr      :: fn(i32) -> Circle | Point | Square
-  expr 28:44    IdentExpr      :: i32
+  expr 28:40    CallExpr       :: Circle | Point | Square
+  expr 28:40    IdentExpr      :: fn(i32) -> Circle | Point | Square
+  expr 28:49    IdentExpr      :: i32
   expr 29:18    BinaryExpr     :: i32
   expr 29:18    BinaryExpr     :: i32
   expr 29:18    FieldExpr      :: i32
@@ -34,9 +34,9 @@
   expr 30:27    FieldExpr      :: i32
   expr 30:27    IdentExpr      :: Square
   expr 35:36    MatchExpr      :: string
-  expr 35:42    CallExpr       :: Circle | Point | Square
-  expr 35:42    IdentExpr      :: fn(i32) -> Circle | Point | Square
-  expr 35:51    IdentExpr      :: i32
+  expr 35:47    CallExpr       :: Circle | Point | Square
+  expr 35:47    IdentExpr      :: fn(i32) -> Circle | Point | Square
+  expr 35:56    IdentExpr      :: i32
   expr 36:18    BinaryExpr     :: bool
   expr 36:18    FieldExpr      :: i32
   expr 36:18    IdentExpr      :: Circle

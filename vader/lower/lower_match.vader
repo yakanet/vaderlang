@@ -2,8 +2,8 @@
 //
 // Flattens `match scrutinee { arm... }` to a let-bind on the scrutinee + a chain
 // of `if (predicate) <arm-body>` blocks. Struct-destructure bindings are
-// introduced inside the arm block so they're scoped per-arm; the header alias
-// (`match e as x`) is bound once, ahead of the arms.
+// introduced inside the arm block so they're scoped per-arm; the header binding
+// (`match x :: e`) is bound once, ahead of the arms.
 
 module "vader/lower"
 
@@ -50,23 +50,21 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
         })
         spilled
     }
-    // `match e as x { … }` binds `x` to the ONE evaluation above — a binding of
+    // `match x :: e { … }` binds `x` to the ONE evaluation above — a binding of
     // its own, not the match's own slot, because a lambda in an arm may capture
     // it and a captured binding is heap-promoted to a `Cell` while the pattern
     // predicates need the bare value.
-    alias_symbol :: if expr.bind_as is AsBinding {
-        resolve_ident(ctx, expr.bind_as.span)
-    } else {
-        null
-    }
-    if alias_symbol is Symbol {
-        alias_span :: scrut_value.span
-        read :: LoweredIdent {
-            .span = alias_span, .type = scrut_type, .symbol = scrut_symbol,
+    binding :: expr.binding
+    if binding != null {
+        bound :: resolve_ident(ctx, binding.name_span)
+        if bound is Symbol {
+            read :: LoweredIdent {
+                .span   = scrut_value.span,
+                .type   = scrut_type,
+                .symbol = scrut_symbol,
+            }
+            stmts.push(cell_aware_let(ctx, bound, bound.name, read, scrut_type, scrut_value.span))
         }
-        stmts.push(
-            cell_aware_let(ctx, alias_symbol, alias_symbol.name, read, scrut_type, alias_span),
-        )
     }
 
     // `@unreachable` asserts the uncovered variants can't occur, so its
@@ -364,7 +362,7 @@ walk_pattern_bindings :: fn(
         }
         is StructPattern -> {
             for field in pattern.fields {
-                match field.value as binding {
+                match binding :: field.value {
                     is PatternBinding -> {
                         field_type :: struct_field_type(ctx, target_type, field.name)
                         field_access :: LoweredFieldAccess {

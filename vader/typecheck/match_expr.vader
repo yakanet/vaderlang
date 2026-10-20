@@ -2,8 +2,8 @@
 //
 // `match scrutinee { p1 -> b1, p2 -> b2 }` types as the join of its arm bodies
 // (`join_branch_types`: their union, a free literal arm repinned to a concrete one).
-// An `is T` arm narrows the scrutinee (a name, a field chain, or the header alias
-// of `match e as x`) to `T`, the wildcard arm to what the arms above leave
+// An `is T` arm narrows the scrutinee (a name, a field chain, or the header
+// binding of `match x :: e`) to `T`, the wildcard arm to what the arms above leave
 // (`arm_narrow_for`). Every match is exhaustive (T3013) : a union or an enum by
 // its variants, an integer type by its values (its literal and range arms, an
 // integer variant of a union alike), any other scrutinee by `_`. Guards must be
@@ -49,6 +49,12 @@ check_pattern_bound_exprs :: fn(
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
 /// `let x: i32 = match v { is Foo -> 1, is Bar -> 2 }` narrows each
 /// arm to i32.
+// The symbol the resolver minted for a `match` header's binding ; null without one.
+header_symbol :: fn(binding: AST.SimpleBinding | null, typed: TypedProgram) -> Symbol | null {
+    present :: binding ?? return null
+    return typed.resolved.idents[present.name_span.hash()]
+}
+
 infer_match :: fn(
     e: AST.MatchExpr,
     expected: Type | null,
@@ -58,19 +64,19 @@ infer_match :: fn(
 ) -> Type {
     raw_scrut :: check_expr(e.scrutinee, null, typed, diags)
     scrut_ty :: lift_enum_placeholder(raw_scrut, typed)
-    // `match e as x { … }` : the alias IS the narrowing slot, so an EXPRESSION
+    // `match x :: e { … }` : the binding IS the narrowing slot, so an EXPRESSION
     // scrutinee narrows exactly like a named one — which is the whole point of the
     // form. The resolver minted the binding at the `x` token and registered it in
     // `idents`, so the symbol is reachable from the MatchExpr alone. The
-    // field-narrow key is empty for an alias : a binding is a slot, not a chain.
+    // field-narrow key is empty for a binding : it is a slot, not a chain.
     scrut :: e.scrutinee
-    alias :: e.bind_as
-    alias_sym :: if alias != null { typed.resolved.idents[alias.span.hash()] } else { null }
-    if alias != null && alias_sym is Symbol {
-        typed.local_types[alias.span.hash()] = scrut_ty
+    binding :: e.binding
+    bound :: header_symbol(binding, typed)
+    if binding != null && bound != null {
+        assign_binding_types(binding, scrut_ty, typed, diags)
     }
-    scrut_sym_id    :: if alias_sym is Symbol { alias_sym.id } else { scrutinee_sym_id(scrut, typed) }
-    scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
+    scrut_sym_id    :: if bound is Symbol { bound.id } else { scrutinee_sym_id(scrut, typed) }
+    scrut_field_key :: if bound is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
     arm_types: Type[]: []
     bodies: AST.Expr[]: []
     remaining := scrut_ty
@@ -155,7 +161,7 @@ infer_match :: fn(
         // cannot make a type-impossible test reachable.) A literal field in the
         // pattern (`is P { x: 10 }`) is a guard written inline, and counts the same.
         guarded :: arm.guard != null || is_constrained(arm.pattern)
-        match arm.pattern as pattern {
+        match pattern :: arm.pattern {
             is AST.IsPattern          -> {
                 matched :: pattern_type_of(pattern.ty, typed, scratch_diags())
                 check_is_test_target(matched, pattern.span, typed, diags)
@@ -679,7 +685,7 @@ bind_struct_pattern :: fn(
         }
         // `Box<i32> { value }` reads `value` as `i32`, not as the declared `T`.
         ft :: substitute_struct_args(raw, st, typed)
-        match field.value as value {
+        match value :: field.value {
             is AST.PatternBinding -> { typed.local_types[value.span.hash()] = ft }
             is AST.PatternLiteral -> {
                 check_pattern_literal(value.value, value.value, ft, ft, typed, diags)
@@ -887,7 +893,7 @@ expect_match :: fn(src: string) -> ExpectedMatch {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body as b {
+            match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_match)

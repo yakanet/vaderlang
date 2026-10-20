@@ -277,7 +277,7 @@ branch_values :: fn(e: AST.IfExpr | AST.MatchExpr) -> AST.Expr[] {
         return values
     }
     values.push(e.then_block)
-    match e.else_branch as eb {
+    match eb :: e.else_branch {
         is AST.IfElseBlock -> { values.push(eb.block) }
         is AST.IfElseIf    -> { values.push(eb.branch) }
         is null            -> {}

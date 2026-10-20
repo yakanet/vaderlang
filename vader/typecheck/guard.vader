@@ -526,7 +526,7 @@ visit_branch :: fn(
 }
 
 // The value the `else` of `e` gives : its block's trailing, or the next `if`.
-else_value_of :: fn(e: AST.IfExpr) -> AST.Expr | null = match e.else_branch as eb {
+else_value_of :: fn(e: AST.IfExpr) -> AST.Expr | null = match eb :: e.else_branch {
     is null            -> null
     is AST.IfElseBlock -> eb.block.trailing
     is AST.IfElseIf    -> eb.branch

@@ -142,7 +142,7 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
 
     for i in 0..<run.len() {
         im :: run[i]
-        match im.binding as dst {
+        match dst :: im.binding {
             is AST.DestructureImport    -> {
                 existing :: modifiers[im.path]
                 if existing == null {

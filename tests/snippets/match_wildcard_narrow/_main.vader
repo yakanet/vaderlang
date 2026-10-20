@@ -38,7 +38,7 @@ greet_wildcard :: fn(p: Pet | null) -> string {
 // directly — same narrowing as the `_` arm above, through a name of its
 // own, which is what an expression scrutinee needs.
 greet_binding :: fn(p: Pet | null) -> string {
-    return match p as pet {
+    return match pet :: p {
         is null -> "no pet"
         _       -> "howdy ${pet.name}"
     }

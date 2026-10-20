@@ -291,7 +291,7 @@ export driver_entry_path :: fn(root: string) -> string =
 /// @error       H6001 when no `build` fn is declared ; H6002 when one is declared
 ///              with a signature the generated entry cannot call.
 export validate_driver :: fn(path: string) -> Diagnostic | null {
-    source :: match read_file_string(path) as s {
+    source :: match s :: read_file_string(path) {
         is string  -> s
         is IOError -> ""
     }

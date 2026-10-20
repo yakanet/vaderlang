@@ -1,12 +1,12 @@
 # Typecheck
 
-## tests/snippets/match_as_capture
+## tests/snippets/match_binding_capture
   FnDecl         deferred             :: fn(i32 | Point) -> fn() -> i32
   FnDecl         main                 :: fn() -> i32
   FnDecl         mixed                :: fn(i32 | Point) -> i32
   StructDecl     Point                :: Point
   expr 12:12    MatchExpr      :: fn() -> i32
-  expr 12:18    IdentExpr      :: i32 | Point
+  expr 12:23    IdentExpr      :: i32 | Point
   expr 13:23    LambdaExpr     :: fn() -> i32
   expr 13:44    BinaryExpr     :: i32
   expr 13:44    FieldExpr      :: i32
@@ -17,7 +17,7 @@
   expr 14:44    BinaryExpr     :: i32
   expr 14:44    IdentExpr      :: i32
   expr 20:14    MatchExpr      :: fn() -> i32
-  expr 20:20    IdentExpr      :: i32 | Point
+  expr 20:25    IdentExpr      :: i32 | Point
   expr 21:23    LambdaExpr     :: fn() -> i32
   expr 21:44    FieldExpr      :: i32
   expr 21:44    IdentExpr      :: Point

@@ -367,7 +367,7 @@
                             }
                           }
                         ],
-                        "bindAs": "rg"
+                        "binding": "rg"
                       }
                     }
                   },
@@ -436,7 +436,7 @@
                     }
                   }
                 ],
-                "bindAs": "ver"
+                "binding": "ver"
               }
             },
             {
@@ -572,7 +572,7 @@
                 }
               }
             ],
-            "bindAs": "v"
+            "binding": "v"
           }
         },
         "decorators": []

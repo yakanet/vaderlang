@@ -630,7 +630,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
                 // one-module-owns-one-declaration invariant: R2026 (module
                 // redesign, decision #28).
                 if existing.kind != .Fn || sym.kind != .Fn {
-                    span :: match sym.defined_at as s {
+                    span :: match s :: sym.defined_at {
                         is Span -> s
                         is null -> zero_span("")
                     }

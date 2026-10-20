@@ -218,7 +218,7 @@ arms_placement :: fn(arms: AST.MatchArm[], tail: bool) -> YieldPlacement {
 
 if_placement :: fn(e: AST.IfExpr, tail: bool) -> YieldPlacement {
     then_placement :: block_placement(e.then_block, tail)
-    return match e.else_branch as branch {
+    return match branch :: e.else_branch {
         is null            -> then_placement
         is AST.IfElseIf    -> worse_placement(then_placement, if_placement(branch.branch, tail))
         is AST.IfElseBlock -> worse_placement(then_placement, block_placement(branch.block, tail))

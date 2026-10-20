@@ -221,7 +221,7 @@ collect_expr_deps :: fn(
         is AST.IfExpr     -> {
             collect_expr_deps(e.cond, typed, nodes, seen, record)
             collect_block_deps(e.then_block, typed, nodes, seen, record)
-            match e.else_branch as else_if {
+            match else_if :: e.else_branch {
                 is null            -> {}
                 is AST.IfElseIf -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
                 is AST.IfElseBlock -> { collect_block_deps(else_if.block, typed, nodes, seen, record) }
@@ -310,7 +310,7 @@ collect_stmt_deps :: fn(
             collect_expr_deps(s.value, typed, nodes, seen, record)
         }
         is AST.ForStmt    -> {
-            match s.form as while_for {
+            match while_for :: s.form {
                 is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
                 is AST.InFor -> { collect_expr_deps(while_for.iter, typed, nodes, seen, record) }
                 // `for { ... }` — no header expression, only the body below.
@@ -320,7 +320,7 @@ collect_stmt_deps :: fn(
         }
         is AST.YieldStmt -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
         is AST.DeferStmt -> {
-            match s.body as dsb {
+            match dsb :: s.body {
                 is AST.DeferStmtBody  -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
                 is AST.DeferBlockBody -> { collect_block_deps(dsb.block, typed, nodes, seen, record) }
             }

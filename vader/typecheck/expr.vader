@@ -127,7 +127,7 @@ settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagno
         }
         is AST.IfExpr           -> {
             settle_free_value(e.then_block, t, typed, diags)
-            match e.else_branch as eb {
+            match eb :: e.else_branch {
                 is AST.IfElseBlock -> { settle_free_value(eb.block, t, typed, diags) }
                 is AST.IfElseIf    -> { settle_free_value(eb.branch, t, typed, diags) }
                 is null            -> {}

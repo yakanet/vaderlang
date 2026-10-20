@@ -29,8 +29,8 @@
   expr 23:19    StringLitExpr  :: string
   expr 24:19    StringLitExpr  :: string
   expr 25:19    StringLitExpr  :: string
-  expr 30:11    CallExpr       :: Direction | ParseError
-  expr 30:11    IdentExpr      :: fn(char) -> Direction | ParseError
+  expr 30:16    CallExpr       :: Direction | ParseError
+  expr 30:16    IdentExpr      :: fn(char) -> Direction | ParseError
   expr 30:5     MatchExpr      :: void
   expr 31:26    CallExpr       :: void
   expr 31:26    IdentExpr      :: fn(T) -> void
@@ -40,8 +40,8 @@
   expr 32:26    CallExpr       :: void
   expr 32:26    IdentExpr      :: fn(T) -> void
   expr 32:34    StringLitExpr  :: string
-  expr 34:11    CallExpr       :: Direction | ParseError
-  expr 34:11    IdentExpr      :: fn(char) -> Direction | ParseError
+  expr 34:16    CallExpr       :: Direction | ParseError
+  expr 34:16    IdentExpr      :: fn(char) -> Direction | ParseError
   expr 34:5     MatchExpr      :: void
   expr 35:26    CallExpr       :: void
   expr 35:26    IdentExpr      :: fn(T) -> void

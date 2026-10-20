@@ -129,7 +129,7 @@ lambda_params :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> LoweredParam[] {
 find_param_symbol :: fn(ctx: FnLowerCtx, fn_param: AST.FnParam) -> Symbol | null {
     target_key :: fn_param.span.hash()
     for [_, symbol] in ctx.typed.resolved.idents {
-        match symbol.defined_at as defined {
+        match defined :: symbol.defined_at {
             is null -> {}
             is Span -> {
                 if defined.hash() == target_key { return symbol }

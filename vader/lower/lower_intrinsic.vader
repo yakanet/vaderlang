@@ -369,7 +369,7 @@ try_fold_satisfies :: fn(
     trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
     value: bool = false
     if !(target_or_null is null) && !(trait_or_null is null) {
-        match arg_ty_or_unresolved(trait_or_null) as tt {
+        match tt :: arg_ty_or_unresolved(trait_or_null) {
             is TraitType -> {
                 target :: arg_ty_or_unresolved(target_or_null)
                 value = (has_impl_for(ctx.project, target, tt.symbol)

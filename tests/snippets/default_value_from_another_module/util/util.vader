@@ -14,11 +14,11 @@ export greet :: fn(s: string = greeting()) -> string = s
 // The default is a lambda whose body names a private fn of this module.
 export apply :: fn(x: i32, f: fn(i32) -> i32 = (n: i32) -> { scale(n) }) -> i32 = f(x)
 
-// The default holds statements: a local, a loop, a match with an alias.
+// The default holds statements: a local, a loop, a match with a header binding.
 export total :: fn(xs: i32[], f: fn(i32[]) -> i32 = (items: i32[]) -> {
     sum := 0
     for item in items {
-        step :: match item * 2 as doubled {
+        step :: match doubled :: item * 2 {
             2 -> 100
             _ -> doubled
         }

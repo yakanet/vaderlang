@@ -76,7 +76,7 @@ find_first_in_expr :: fn(
             if cond !is null { return cond }
             then :: find_first_in_block(e.then_block, pred)
             if then !is null { return then }
-            match e.else_branch as eb {
+            match eb :: e.else_branch {
                 is null            -> { return null }
                 is AST.IfElseBlock -> { return find_first_in_block(eb.block, pred) }
                 is AST.IfElseIf    -> {

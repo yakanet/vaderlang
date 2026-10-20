@@ -167,7 +167,7 @@ lower_destructuring_assign :: fn(ctx: FnLowerCtx, s: DestructureAssignStmt) -> L
     writes: Expr[]: []
     reads: LoweredExpr[]: []
     for i in 0..<s.targets.len() {
-        match s.targets[i] as t {
+        match t :: s.targets[i] {
             is PlaceTarget    -> {
                 elem_ty :: ctx.types.expr_type(t.place)
                 tmp :: fresh_synthetic_symbol(ctx, "destr_el")
@@ -318,7 +318,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
 // The zero-copy view `arr[r]` for a `Range` index, literal or value ; null for any
 // other index.
 try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr | null {
-    match expr.index as range_lit {
+    match range_lit :: expr.index {
         is RangeExpr -> {
             parts :: lower_in_order(ctx, [expr.target, range_lit.lower, range_lit.upper])
             hi_value :: adjust_hi_inclusive(parts[2], range_lit.inclusive, range_lit.span)

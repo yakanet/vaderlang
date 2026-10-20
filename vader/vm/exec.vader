@@ -1307,7 +1307,7 @@ export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
         eprintln("vader run: ${display_verify_error(state)}")
         return 1
     }
-    return match exec(state, host_argv) as o {
+    return match o :: exec(state, host_argv) {
         is Ok   -> o.value
         is Trap -> {
             eprintln("vader vm: ${o.message}")

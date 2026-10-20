@@ -455,14 +455,14 @@ test_call_sites_are_tagged_function :: fn() -> void {
     assert(token_at(toks, 2, 4, 12, i32(TokenType.Function)), "`mk_primitive` tagged Function")
 }
 
-// An `as` alias is a local like any other : its name is tagged where it is
-// declared (`as x`) as well as where it is read.
+// A `match` header's binding is a local like any other : its name is tagged where
+// it is declared (`match x ::`) as well as where it is read.
 @test
-test_as_alias_names_are_tagged :: fn() -> void {
-    src :: "f :: fn(v: i32 | string) -> i32 = match v as n {\n    is i32    -> n\n    is string -> 0\n}\n"
+test_match_binding_names_are_tagged :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 = match n :: v {\n    is i32    -> n\n    is string -> 0\n}\n"
     toks :: build_sorted_for_test(src, "file:///a.vader")
     var :: i32(TokenType.Variable)
-    assert(token_at(toks, 0, 45, 1, var), "`n` of `match v as n` tagged Variable")
+    assert(token_at(toks, 0, 40, 1, var), "`n` of `match n :: v` tagged Variable")
     assert(token_at(toks, 1, 17, 1, var), "`n` read in an arm tagged Variable")
 }
 

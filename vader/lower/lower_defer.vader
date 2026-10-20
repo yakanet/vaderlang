@@ -101,7 +101,7 @@ lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Captu
 
 // Wrap the defer body (single Stmt OR BlockExpr) into a BlockExpr `lower_block` can drive.
 synth_body_block :: fn(defer_stmt: AST.DeferStmt) -> AST.BlockExpr {
-    match defer_stmt.body as bb {
+    match bb :: defer_stmt.body {
         is AST.DeferBlockBody -> { return bb.block }
         is AST.DeferStmtBody  -> {
             stmts: AST.Stmt[]: []

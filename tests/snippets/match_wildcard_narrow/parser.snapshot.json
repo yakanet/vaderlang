@@ -250,7 +250,7 @@
                     }
                   }
                 ],
-                "bindAs": "pet"
+                "binding": "pet"
               }
             }
           ],

@@ -131,7 +131,7 @@ export EmitCtx :: struct {
 new_ctx :: fn(m: BytecodeModule, opts: EmitOptions, internal_fns: bool[] = []) -> EmitCtx {
     names: string[]: []
     for i in 0..<m.types.len() {
-        match m.types[i] as s {
+        match s :: m.types[i] {
             is BcStruct -> names.push(struct_c_name(s.name))
             _           -> names.push("")
         }
@@ -1214,7 +1214,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // the payload).
     rows: CExpression[]: []
     for j in 0..<count {
-        match types[j] as entry {
+        match entry :: types[j] {
             is BcStruct -> rows.push(
                 struct_info_row(ctx, entry, classify_struct_fields(ctx, entry, j), j),
             )

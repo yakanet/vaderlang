@@ -922,8 +922,9 @@ reject_const_reassign :: fn(
 }
 
 // T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
-// pattern or an `as` makes, a local declared with `:=`. A `::` local gets the `:=`
-// hint, a loop variable the hint to copy it. Any other name is a declaration.
+// pattern makes, a local declared with `:=`. A `::` local gets the `:=` hint, a loop
+// variable or a `match` header's name the hint to copy it. Any other name is a
+// declaration.
 const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
     sym :: bare_name_symbol(ident, typed) ?? return null
     return match sym.kind {
@@ -950,6 +951,8 @@ local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram
     return match why {
         .Declared     -> "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
         .LoopVariable -> "`${ident.name}` is the variable of a `for … in`, bound anew each turn ; "
+            + "copy it into a `:=` local to change it"
+        .MatchHeader  -> "`${ident.name}` names the scrutinee of its `match` ; "
             + "copy it into a `:=` local to change it"
     }
 }
@@ -1074,7 +1077,7 @@ check_for :: fn(
     // What the loop repeats (a condition, the body) runs after the body's own
     // writes, so the narrowings they may falsify retire first ; an `in`
     // iterable runs once, before them.
-    match s.form as w {
+    match w :: s.form {
         is AST.InfiniteFor -> { retire_narrowings_entering_loop(s, typed) }
         is AST.WhileFor    -> {
             retire_narrowings_entering_loop(s, typed)
@@ -1098,7 +1101,7 @@ check_for :: fn(
         }
         is AST.InFor       -> {
             elem :: in_for_element(s, w, typed, diags)
-            match w.loop_var as nv {
+            match nv :: w.loop_var {
                 is AST.NamedVar       -> {
                     typed.local_types[nv.span.hash()] = elem
                     // A real user name is var-targetable ; the `_` wildcard is not.
@@ -1330,7 +1333,7 @@ check_defer :: fn(
     prev_ctx :: typed.current_fn_ctx
     typed.loop_stack = []
     typed.current_fn_ctx = body_ctx
-    match s.body as b {
+    match b :: s.body {
         is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
         is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
     }

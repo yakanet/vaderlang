@@ -1234,7 +1234,7 @@ import "std/testing"
     // buf->length shrink in the runtime — no capacity-doubling detach).
     sb :: StringBuilder {}
     for _ in 0..<1500 { sb.append("a?") }
-    match compile(sb.to_string()) as p {
+    match p :: compile(sb.to_string()) {
         is Pattern    -> {
             assert(p.matches(""), "a?x1500 matches the empty string")
             assert(p.matches("aaa"), "a?x1500 matches `aaa`")

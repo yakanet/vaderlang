@@ -39,6 +39,8 @@ export ConstLocal :: enum {
     Declared
     /// The variable of a `for … in`, bound anew each turn.
     LoopVariable
+    /// The name a `match` header gives its scrutinee.
+    MatchHeader
 }
 
 /// Resolution output. `idents` keys every resolved `AST.IdentExpr`
@@ -198,7 +200,7 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
 //   W0008 — it shadows an outer LOCAL or PARAMETER (an enclosing non-root frame).
 // A top-level name (root frame, index 0) is intentionally NOT flagged — a local
 // may legitimately share a name with a module-level fn/type/const. A `match`
-// header's `as x` doesn't route here : reusing the scrutinee's name there is
+// header's `x ::` doesn't route here : reusing the scrutinee's name there is
 // idiomatic, not problematic shadowing.
 bind_local_checked :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
     // `_` is the discard wildcard — many `_` bindings coexist by design
@@ -354,7 +356,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
         }
     }
     self.walk_opt_expr(d.return_type)
-    match d.body as b {
+    match b :: d.body {
         is null          -> {}
         is AST.BlockExpr -> { self.walk_body(b) }
     }
@@ -586,7 +588,7 @@ declare_loop_local :: fn(self: ResolveState, sym: Symbol) -> void {
 }
 
 walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
-    match d.body as x {
+    match x :: d.body {
         is AST.DeferStmtBody  -> { self.walk_stmt(x.stmt) }
         is AST.DeferBlockBody -> { self.walk_block(x.block) }
     }
@@ -622,15 +624,15 @@ bind_let_binding :: fn(self: ResolveState, b: AST.LetBinding, out: Symbol[]) -> 
 }
 
 walk_for :: fn(self: ResolveState, s: AST.ForStmt) -> void {
-    match s.form as form {
+    match form :: s.form {
         is AST.InfiniteFor -> {}
         is AST.WhileFor    -> { self.walk_expr(form.cond) }
         is AST.InFor       -> { self.walk_expr(form.iter) }
     }
     self.scope.push()
-    match s.form as f {
+    match f :: s.form {
         is AST.InFor                      -> {
-            match f.loop_var as nv {
+            match nv :: f.loop_var {
                 // `for [k, v] in …` binds each pattern leaf ; `for x in …` binds
                 // the single var ; `for <range>` (DiscardVar) binds nothing.
                 // The minted Symbol is recorded in `idents` under the loop var's own
@@ -818,7 +820,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
         }
         is AST.NullCoalesceExpr -> {
             self.walk_expr(e.left)
-            match e.fallback as fallback {
+            match fallback :: e.fallback {
                 is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> { self.walk_stmt(fallback) }
                 is AST.Expr -> { self.walk_expr(fallback) }
             }
@@ -868,7 +870,7 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
 walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
     self.walk_expr(e.cond)
     self.walk_block(e.then_block)
-    match e.else_branch as x {
+    match x :: e.else_branch {
         is null            -> {}
         is AST.IfElseIf    -> { self.walk_if(x.branch) }
         is AST.IfElseBlock -> { self.walk_block(x.block) }
@@ -877,16 +879,17 @@ walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {
     self.walk_expr(e.scrutinee)
-    // `match e as x { … }` — one scope around every arm, minted AFTER the
+    // `match x :: e { … }` — one scope around every arm, minted AFTER the
     // scrutinee is walked so `x` cannot refer to itself. Registered in `idents`
     // at the `x` token so the type-checker can find the symbol from the
     // MatchExpr alone (mirrors the param / type-param declarations above).
     self.scope.push()
-    alias :: e.bind_as
-    if alias != null {
-        sym :: self.mint_local(.Binding, alias.name, alias.span)
-        self.scope.bind(alias.name, sym)
-        self.idents[alias.span.hash()] = sym
+    binding :: e.binding
+    if binding != null {
+        sym :: self.mint_local(.Local, binding.name, binding.name_span)
+        self.scope.bind(binding.name, sym)
+        self.idents[binding.name_span.hash()] = sym
+        self.immutable_locals[sym.id] = .MatchHeader
     }
     for arm in e.arms {
         self.scope.push()
@@ -908,7 +911,7 @@ bind_pattern :: fn(self: ResolveState, p: AST.Pattern) -> void {
         }
         is AST.StructPattern -> {
             for f in p.fields {
-                match f.value as lit {
+                match lit :: f.value {
                     is AST.PatternBinding -> {
                         sym :: self.mint_local(.Binding, f.name, f.name_span)
                         self.scope.bind(f.name, sym)

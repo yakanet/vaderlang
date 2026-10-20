@@ -34,11 +34,11 @@ length :: fn(n: Node | null) -> i32 {
 main :: fn() -> i32 {
     head :: cons(1, cons(2, cons(3, null)))
     println("length=${length(head)}")
-    match find(head, 2) as h {
+    match h :: find(head, 2) {
         is null -> { println("not found") }
         is Node -> { println("found ${h.value}") }
     }
-    match find(head, 42) as h {
+    match h :: find(head, 42) {
         is null -> { println("not found") }
         is Node -> { println("found ${h.value}") }
     }

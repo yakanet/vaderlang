@@ -19,9 +19,9 @@
   expr 23:21    IdentExpr      :: type
   expr 23:31    CallExpr       :: u64
   expr 23:31    IdentExpr      :: type
-  expr 27:11    CallExpr       :: Err | u64
-  expr 27:11    IdentExpr      :: fn(u64) -> Err | u64
-  expr 27:17    IdentExpr      :: u64
+  expr 27:16    CallExpr       :: Err | u64
+  expr 27:16    IdentExpr      :: fn(u64) -> Err | u64
+  expr 27:22    IdentExpr      :: u64
   expr 27:5     MatchExpr      :: never
   expr 28:28    CallExpr       :: i32
   expr 28:28    IdentExpr      :: type

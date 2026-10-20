@@ -1368,7 +1368,7 @@ match value {
 }
 ```
 
-- **Header binding — `match x :: e { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value `e` evaluated to — once — and is narrowed by each arm to what that arm's pattern matched. Its scope is the match: past it, `x` is whatever it named before. It is one constant name, typed as the scrutinee: `match x := e`, `match x: T: e` and `match [a, b] :: e` are **P1039**. `match e as x`, the former spelling, is still read.
+- **Header binding — `match x :: e { … }`**: names the scrutinee for the whole match. `x` is visible in every arm (and in every guard), holds the value `e` evaluated to — once — and is narrowed by each arm to what that arm's pattern matched. Its scope is the match: past it, `x` is whatever it named before. It is one constant name (assigning it is **T3041**), typed as the scrutinee: `match x := e`, `match x: T: e`, `match [a, b] :: e` and `match e as x` are **P1039**.
 
   The binding exists for an *expression* scrutinee. A scrutinee that is already a name needs none, since each arm narrows it in place. It is the only binder a `match` has: an arm cannot bind with `as` (`is T as x ->` is `P1037`), so every arm reads the one name the header gives:
 
@@ -1966,7 +1966,7 @@ So with a type annotation the separator decides mutability: `:` → immutable, `
 
 Vader separates **who may rebind a name** from **who may mutate what it points at**.
 
-**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a name an `as` or a pattern binds, and a `:=` local may be rebound; the variable of a `for … in` may not (§`for`). An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
+**The binding.** `::` freezes it, `:=` allows rebinding. If `p :: Point { ... }`, `p = otherPoint` is rejected (T3041), and so is rebinding any declaration (a module const, a fn, a type), written bare, renamed by its import or through a namespace (`P.SEP = 'x'`). Only a parameter, a name a pattern binds, and a `:=` local may be rebound; the variable of a `for … in` and the name a `match` header binds may not (§`for`, §`match`). An assignment writes to a name, a field or an element; any other target (`get() = 3`, `xs.len() = 5`, `Color.Red = .Green`) is T3082.
 
 **The referent.** A value may be modified through any name that reaches it: a parameter, a local, a field, an element. A signature does not say what a function does with what it is lent; the compiler reads it from the body (see *What a function does with what it is lent*). Two values are **frozen**, never modified in place: the value of a **module constant**, at every level, and a **view of a string's bytes** (`s.bytes()`).
 

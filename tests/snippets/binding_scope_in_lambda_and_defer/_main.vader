@@ -1,7 +1,7 @@
 // A name bound to a tested value inside a scope that `closure_analysis` walks on
 // its own (a lambda body, or a `defer` block) is a local of that scope, never a
 // capture of the enclosing function. Three shapes: a binding narrowed by
-// `if … is T` in a lambda, `match … as x` in a lambda, and the same `if` in a
+// `if … is T` in a lambda, `match x :: …` in a lambda, and the same `if` in a
 // `defer` block, which carries no lambda at all. Each tested value is a call
 // (`unwrap(x)`), so the binding is the only name it has.
 //
@@ -37,7 +37,7 @@ if_form :: fn(t: Tree) -> i32 {
 
 match_form :: fn(t: Tree) -> i32 {
     cb :: (x: Tree) -> {
-        match unwrap(x) as s {
+        match s :: unwrap(x) {
             is Leaf -> { println("s=${s.v}") }
             is Pair -> { println("s=${s.l}") }
         }

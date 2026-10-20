@@ -444,7 +444,7 @@ lower_first_param_type :: fn(src: string) -> string {
 
 @test
 test_primitive_from_name_recognises_primitives :: fn() -> void {
-    match primitive_from_name("string") as p {
+    match p :: primitive_from_name("string") {
         is PrimitiveType -> { assert_eq(p.name, "string") }
         _                -> { assert(false, "string should be primitive") }
     }

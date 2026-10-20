@@ -972,14 +972,6 @@ export unary_op_symbol :: fn(op: UnaryOp) -> string = match op {
     .BitNot -> "~"
 }
 
-/// The `as <name>` of `match e as x`.
-export AsBinding :: struct {
-    name: string
-    /// The name token: the binding's declaration, which the resolver mints the
-    /// symbol at and every side table keys it by.
-    span: Span
-}
-
 /// An infix operator applied to two operands.
 export BinaryExpr :: struct {
     span:  Span
@@ -1042,9 +1034,10 @@ export MatchExpr :: struct {
     // value. Mutually exclusive with `partial`. Defaulted so existing
     // `MatchExpr { … }` literals and old snapshots are unaffected.
     unreachable: bool = false
-    /// `match e as x { … }` — the name the scrutinee is aliased under, visible in
-    /// every arm and narrowed by each one.
-    bind_as: AsBinding | null = null
+    /// `match x :: e { … }` — the name the scrutinee is bound to, visible in every
+    /// arm and guard and narrowed by each arm. Its `name_span` is the declaration
+    /// the resolver mints the symbol at.
+    binding: SimpleBinding | null = null
 }
 
 /// One arm of a `match`, with its optional `if` guard.
@@ -1197,7 +1190,7 @@ export DotVariantExpr :: struct {
 /// A type test in a pattern, `is T`. `inner` nests a further pattern.
 ///
 /// Binds nothing: the arm reads the scrutinee, narrowed in place, or the name
-/// the `match` header gives it (`MatchExpr.bind_as`).
+/// the `match` header gives it (`MatchExpr.binding`).
 export IsPattern :: struct {
     span:  Span
     id:    i64 = UNASSIGNED_NODE_ID

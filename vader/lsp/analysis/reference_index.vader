@@ -474,11 +474,11 @@ collect_stmt :: fn(s: AST.Stmt, out: Collected) -> void {
         is AST.ReturnStmt            -> { collect_opt_expr(s.value, out) }
         is AST.YieldStmt             -> { collect_expr(s.value, out) }
         is AST.ForStmt               -> {
-            match s.form as w {
+            match w :: s.form {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor    -> { collect_expr(w.cond, out) }
                 is AST.InFor       -> {
-                    match w.loop_var as nv {
+                    match nv :: w.loop_var {
                         is AST.NamedVar       -> { out.spans.push(nv.span) }
                         is AST.DestructureVar -> { collect_binding(nv.pattern, out) }
                         is AST.DiscardVar     -> {}
@@ -491,7 +491,7 @@ collect_stmt :: fn(s: AST.Stmt, out: Collected) -> void {
         is AST.BreakStmt             -> {}
         is AST.ContinueStmt          -> {}
         is AST.DeferStmt             -> {
-            match s.body as b {
+            match b :: s.body {
                 is AST.DeferStmtBody  -> { collect_stmt(b.stmt, out) }
                 is AST.DeferBlockBody -> { collect_block(b.block, out) }
             }
@@ -531,7 +531,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         is AST.IfExpr -> {
             collect_expr(e.cond, out)
             collect_block(e.then_block, out)
-            match e.else_branch as b {
+            match b :: e.else_branch {
                 is null            -> {}
                 is AST.IfElseIf    -> { collect_expr(b.branch, out) }
                 is AST.IfElseBlock -> { collect_block(b.block, out) }
@@ -539,8 +539,8 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         }
         is AST.MatchExpr -> {
             collect_expr(e.scrutinee, out)
-            if e.bind_as is AST.AsBinding {
-                out.spans.push(e.bind_as.span)
+            if e.binding != null {
+                collect_binding(e.binding, out)
             }
             for arm in e.arms {
                 collect_pattern(arm.pattern, out)
@@ -607,7 +607,7 @@ collect_pattern :: fn(p: AST.Pattern, out: Collected) -> void {
         }
         is AST.StructPattern -> {
             for f in p.fields {
-                match f.value as lit {
+                match lit :: f.value {
                     is AST.PatternBinding -> {}
                     is AST.PatternLiteral -> { collect_expr(lit.value, out) }
                 }

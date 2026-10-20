@@ -1,0 +1,1 @@
+[8:9] error[T3041] cannot reassign a constant binding: `r` names the scrutinee of its `match` ; copy it into a `:=` local to change it

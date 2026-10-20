@@ -57,9 +57,9 @@ mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
 // Exactly two arms, no guards, arm 0 reducible to an `if` condition, arm 1
 // droppable to the `else`. Everything else declines (lossy = refuse).
 is_convertible :: fn(m: AST.MatchExpr) -> bool {
-    // `match e as x` : an `if` has no place to put the alias, and dropping it
-    // leaves every `x` in the arms unbound.
-    if m.bind_as != null { return false }
+    // `match x :: e` : an `if` has no place to scope the binding, and dropping
+    // it leaves every `x` in the arms unbound.
+    if m.binding != null { return false }
     if m.arms.len() != 2 { return false }
     a0 :: m.arms[0]
     a1 :: m.arms[1]
@@ -301,7 +301,7 @@ g :: fn(v: i32 | string) -> void {
 @test
 test_match_to_if_declines_header_binding :: fn() -> void {
     // The header names the scrutinee `s` for both arms — an `if` has no place for it.
-    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match v as s {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
+    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match s :: v {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
     parsed :: Parse.parse_source(src, "t.vader")
     m :: tm_find_match(parsed.program.decls)
     if m == null {

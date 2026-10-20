@@ -216,7 +216,7 @@ expect_struct_lit :: fn(src: string) -> ExpectedSL {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body as b {
+            match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_struct_lit)

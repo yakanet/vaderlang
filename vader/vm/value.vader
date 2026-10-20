@@ -469,7 +469,7 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
 export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     for i in 0..<state.bc.types.len() {
-        match state.bc.types[i] as p {
+        match p :: state.bc.types[i] {
             is bc.BcScalar -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
             _              -> { }
         }

@@ -141,7 +141,7 @@ infer_null_coalesce :: fn(
     if equals_type(result, left_ty) {
         diags.push(typecheck_error(.NullCoalesceOnNonOptional, e.span, ""))
     }
-    match e.fallback as fallback {
+    match fallback :: e.fallback {
         is AST.ReturnStmt | AST.BreakStmt | AST.ContinueStmt -> {
             // A divergent fallback is checked in the enclosing fn / loop context via
             // `check_stmt`'s existing `return` / `break` / `continue` dispatch
@@ -1482,7 +1482,7 @@ expect_binary :: fn(src: string) -> ExpectedBinary {
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
     match last {
         is AST.FnDecl -> {
-            match last.body as b {
+            match b :: last.body {
                 is null          -> {}
                 is AST.BlockExpr -> {
                     hit :: find_first_in_block(b, accept_binary)

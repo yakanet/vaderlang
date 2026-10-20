@@ -1,1 +1,1 @@
-[8:19] error[P1037] a match pattern cannot bind a name: name the scrutinee in the header: `match … as s`
+[8:19] error[P1037] a match pattern cannot bind a name: name the scrutinee in the header: `match s :: …`

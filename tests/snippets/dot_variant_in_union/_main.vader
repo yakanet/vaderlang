@@ -27,11 +27,11 @@ dir_label :: fn(d: Direction) -> string {
 }
 
 main :: fn() -> i32 {
-    match parse('N') as d {
+    match d :: parse('N') {
         is Direction  -> println(dir_label(d))
         is ParseError -> println("err")
     }
-    match parse('?') as d {
+    match d :: parse('?') {
         is Direction  -> println(dir_label(d))
         is ParseError -> println("err")
     }

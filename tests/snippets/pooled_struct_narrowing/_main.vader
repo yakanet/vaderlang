@@ -31,7 +31,7 @@ find :: fn(name: string) -> Spec | null {
     return null
 }
 
-describe :: fn(name: string) -> string = match find(name) as s {
+describe :: fn(name: string) -> string = match s :: find(name) {
     is null -> "${name}: unknown"
     is Spec -> "${name}: ${s.arity}"
 }

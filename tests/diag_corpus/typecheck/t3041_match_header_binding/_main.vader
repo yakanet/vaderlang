@@ -1,0 +1,12 @@
+module "snippet"
+
+// The name a `match` header binds is a constant, as any `::` declaration.
+f :: fn() -> i32 | null = 1
+
+main :: fn() -> i32 = match r :: f() {
+    is i32  -> {
+        r = 2
+        r
+    }
+    is null -> 0
+}

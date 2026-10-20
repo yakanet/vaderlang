@@ -343,7 +343,7 @@
                 }
               }
             ],
-            "bindAs": "s"
+            "binding": "s"
           }
         },
         "decorators": [],
@@ -488,7 +488,7 @@
                 }
               }
             ],
-            "bindAs": "s"
+            "binding": "s"
           }
         },
         "decorators": [],

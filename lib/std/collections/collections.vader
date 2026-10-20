@@ -398,7 +398,7 @@ import "std/testing"
     m["two"] = 2
     m["three"] = 3
     assert_eq(m.len(), 3)
-    match m.get("two") as v {
+    match v :: m.get("two") {
         is i32  -> assert_eq(v, 2)
         is null -> assert(false, "expected key two")
     }
@@ -413,7 +413,7 @@ import "std/testing"
     m["k"] = 1
     m["k"] = 99
     assert_eq(m.len(), 1)
-    match m.get("k") as v {
+    match v :: m.get("k") {
         is i32  -> assert_eq(v, 99)
         is null -> assert(false, "key k expected")
     }
@@ -488,7 +488,7 @@ import "std/testing"
     assert_eq(m.len(), 100)
     for i in 0..<100 {
         expected :: if i % 3 == 0 { i * 7 } else { i }
-        match m.get(i) as v {
+        match v :: m.get(i) {
             is i32  -> assert_eq(v, expected)
             is null -> assert(false, "key should be present")
         }

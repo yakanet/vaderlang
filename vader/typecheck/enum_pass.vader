@@ -155,7 +155,7 @@ export declared_enum_data :: fn(decl: EnumDecl, typed: TypedProgram) -> StructTy
 
 // Where a variant's value is written, or the variant itself when it has none.
 span_of_value :: fn(v: EnumVariant) -> Span {
-    match v.value_span as s {
+    match s :: v.value_span {
         is null -> { return v.span }
         is Span -> { return s }
     }

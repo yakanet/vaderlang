@@ -1857,15 +1857,15 @@ test("lsp: a trait default copied into an impl is no reference", async () => {
   expect(sites[0]!.uri.endsWith("lsp-test.vader")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// An `as` alias is declared by its NAME token.
-const AS_ALIAS_SOURCE = `module "lsptest"
+// A `match` header's binding is declared by its NAME token.
+const HEADER_BINDING_SOURCE = `module "lsptest"
 
 A :: struct { n: i32 }
 B :: struct { s: string }
 
 make :: fn() -> A | B = A { .n = 1 }
 
-via_match :: fn() -> i32 = match make() as x {
+via_match :: fn() -> i32 = match x :: make() {
     is A -> x.n
     is B -> 0
 }
@@ -1877,9 +1877,9 @@ function textAt(source: string, range: RangeT): string {
   return line.slice(range.start.character, range.end.character);
 }
 
-test("lsp: an `as` alias is declared, renamed and hovered at its name", async () => {
-  const results = await driveLsp(AS_ALIAS_SOURCE, [
-    // 0: goto-def on `x` in `x.n` (line 8) → the `x` of `match make() as x`.
+test("lsp: a match header's binding is declared, renamed and hovered at its name", async () => {
+  const results = await driveLsp(HEADER_BINDING_SOURCE, [
+    // 0: goto-def on `x` in `x.n` (line 8) → the `x` of `match x :: make()`.
     { method: "textDocument/definition", position: { line: 8, character: 12 } },
     // 1: rename from the same use.
     { method: "textDocument/rename", position: { line: 8, character: 12 } },
@@ -1887,12 +1887,12 @@ test("lsp: an `as` alias is declared, renamed and hovered at its name", async ()
     { method: "textDocument/hover", position: { line: 8, character: 12 } },
   ]);
 
-  expect((results[0]!.result as { range: RangeT }).range.start).toEqual({ line: 7, character: 43 });
+  expect((results[0]!.result as { range: RangeT }).range.start).toEqual({ line: 7, character: 33 });
   const edits = soleFileEdits(results[1]!.result as WorkspaceEditT);
   // Declaration + one use, and every range covers the name itself.
   expect(edits).toHaveLength(2);
-  for (const e of edits) expect(textAt(AS_ALIAS_SOURCE, e.range)).toBe("x");
-  // A use reads the alias at the type its arm narrowed it to.
+  for (const e of edits) expect(textAt(HEADER_BINDING_SOURCE, e.range)).toBe("x");
+  // A use reads the binding at the type its arm narrowed it to.
   expect((results[2]!.result as { contents: { value: string } }).contents.value).toBe("```vader\nA\n```");
 }, { timeout: MEDIUM_BUILD });
 
@@ -2121,7 +2121,7 @@ import "std/io"
 import "std/iter"
 
 main :: fn() -> i32 {
-    match (10..=15).last() as v {
+    match v :: (10..=15).last() {
         is i32  -> println(v)
         is null -> println("none")
     }
@@ -2133,8 +2133,8 @@ main :: fn() -> i32 {
 // to the `Iterator` one.
 test("lsp: hover and goto-def follow the overload typecheck chose", async () => {
   const results = await driveLsp(RANGE_LAST_SOURCE, [
-    { method: "textDocument/hover", position: { line: 6, character: 21 } },
-    { method: "textDocument/definition", position: { line: 6, character: 21 } },
+    { method: "textDocument/hover", position: { line: 6, character: 26 } },
+    { method: "textDocument/definition", position: { line: 6, character: 26 } },
   ]);
   const hover = results[0]!.result as Hover;
   expect(hover.contents.value).toContain("last :: fn<T>(it: Iterator<T>) -> T | null");
@@ -2142,11 +2142,11 @@ test("lsp: hover and goto-def follow the overload typecheck chose", async () => 
   expect(loc.uri.split("/").pop()).toBe("iter.vader");
 });
 
-// A `match` header's alias hovers as the scrutinee's type, not as the `match`'s
+// A `match` header's binding hovers as the scrutinee's type, not as the `match`'s
 // `void`, and as the narrowed type inside an arm.
-test("lsp: a match header's alias hovers as its scrutinee", async () => {
+test("lsp: a match header's binding hovers as its scrutinee", async () => {
   const results = await driveLsp(RANGE_LAST_SOURCE, [
-    { method: "textDocument/hover", position: { line: 6, character: 30 } },
+    { method: "textDocument/hover", position: { line: 6, character: 10 } },
     { method: "textDocument/hover", position: { line: 7, character: 27 } },
   ]);
   expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32 | null\n```");
