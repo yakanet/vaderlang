@@ -1,11 +1,11 @@
 module _main
-type 0 primitive null
-type 1 primitive string
-type 2 primitive i64
+type 0 scalar null
+type 1 scalar string
+type 2 scalar i64
 type 3 ref std_core$Async
-type 4 primitive i32
+type 4 scalar i32
 type 5 struct __defer_env_snippet_1 { cap_0:1 }
-type 6 primitive void
+type 6 scalar void
 type 7 struct __asyncstate_snippet_2 { s0:1,s1:2,s2:0,__defers:12,awaited:14,state:4 }
 type 8 union 1,9
 type 9 struct std_core$Suspended { wake_at:2 }
@@ -14,8 +14,8 @@ type 11 union 4,9
 type 12 array 13
 type 13 fn () -> 6
 type 14 ref std_core$Async
-type 15 primitive bool
-type 16 primitive u8
+type 15 scalar bool
+type 16 scalar u8
 type 17 struct std_core$Buffer {  }
 type 18 array 16
 type 19 struct std_async$Race__string { children:24,wake_at:25 }

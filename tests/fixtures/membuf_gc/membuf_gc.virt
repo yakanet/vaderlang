@@ -5,8 +5,8 @@
 ; garbage()'s buffer is rooted only for its call -> dead/collectible on return.
 ; Compiled via `vader build … --target=c/native` (see tests/membuf_gc.test.ts).
 module membuf
-type 0 primitive i32
-type 1 primitive void
+type 0 scalar i32
+type 1 scalar void
 fn 0 membuf$garbage () -> void
   i32.const 4096
   buffer.new

@@ -1,23 +1,23 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Log { lines:10 }
-type 2 primitive string
-type 3 primitive i32
-type 4 primitive void
+type 2 scalar string
+type 3 scalar i32
+type 4 scalar void
 type 5 ref std_core$IndexSet
 type 6 ref std_core$Index
 type 7 ref std_core$IndexSet
 type 8 struct std_collections$MutableMap__string__i32 { ekeys:10,evals:24,index:24,mask:12,size:12,tombs:12 }
 type 9 struct std_collections$MutableMap__i64__i32 { ekeys:26,evals:24,index:24,mask:12,size:12,tombs:12 }
 type 10 array 2
-type 11 primitive u64
-type 12 primitive i64
-type 13 primitive bool
-type 14 primitive u8
+type 11 scalar u64
+type 12 scalar i64
+type 13 scalar bool
+type 14 scalar u8
 type 15 struct std_core$Range__i64 { start:12,end:12,inclusive:13,done:13,cursor:12 }
 type 16 struct std_core$Buffer {  }
-type 17 primitive char
-type 18 primitive u32
+type 17 scalar char
+type 18 scalar u32
 type 19 array 14
 type 20 struct std_collections$MutableMap__i32__bool { ekeys:24,evals:25,index:24,mask:12,size:12,tombs:12 }
 type 21 union 13,0

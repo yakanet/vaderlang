@@ -1,20 +1,20 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct std_core$Range__u8 { start:9,end:9,inclusive:8,done:8,cursor:9 }
-type 2 primitive i32
+type 2 scalar i32
 type 3 struct std_core$Range__i8 { start:11,end:11,inclusive:8,done:8,cursor:11 }
 type 4 struct std_core$Range__u64 { start:12,end:12,inclusive:8,done:8,cursor:12 }
 type 5 struct std_core$Range__char { start:7,end:7,inclusive:8,done:8,cursor:7 }
-type 6 primitive string
-type 7 primitive char
-type 8 primitive bool
-type 9 primitive u8
-type 10 primitive i64
-type 11 primitive i8
-type 12 primitive u64
+type 6 scalar string
+type 7 scalar char
+type 8 scalar bool
+type 9 scalar u8
+type 10 scalar i64
+type 11 scalar i8
+type 12 scalar u64
 type 13 struct std_core$Buffer {  }
 type 14 array 9
-type 15 primitive void
+type 15 scalar void
 string 0 ""
 string 1 " "
 string 2 "true"

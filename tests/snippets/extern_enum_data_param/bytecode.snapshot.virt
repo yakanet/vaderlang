@@ -1,15 +1,15 @@
 module _main
-type 0 primitive null
-type 1 primitive u8
-type 2 primitive i64
+type 0 scalar null
+type 1 scalar u8
+type 2 scalar i64
 type 3 fn (1) -> 4
-type 4 primitive i32
-type 5 primitive string
+type 4 scalar i32
+type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 array 1
-type 8 primitive void
+type 8 scalar void
 type 9 struct snippet_status$StatusInfo { reason:5 }
-type 10 primitive i16
+type 10 scalar i16
 type 11 array 9
 type 12 array 10
 string 0 " "

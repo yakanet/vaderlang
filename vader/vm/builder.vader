@@ -9,7 +9,7 @@
 //
 //   builder :: new_module_builder()
 //   string_pool_index :: builder.intern_string("hello")
-//   type_id_i32 :: builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
+//   type_id_i32 :: builder.add_type(bc.BcScalar { .val = bc.ValType.I32 })
 //
 //   function :: new_function_builder("main", [], 0)
 //   function.push(bc.I32Const { .value = 42 })

@@ -1,20 +1,20 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Sq { s:2 }
-type 2 primitive f64
+type 2 scalar f64
 type 3 struct snippet$Circle { r:2 }
 type 4 union 3,1
-type 5 primitive i32
-type 6 primitive string
-type 7 primitive bool
-type 8 primitive u8
-type 9 primitive i64
-type 10 primitive u64
+type 5 scalar i32
+type 6 scalar string
+type 7 scalar bool
+type 8 scalar u8
+type 9 scalar i64
+type 10 scalar u64
 type 11 struct std_core$Dec64 { mantissa:10,exp:5 }
 type 12 struct __Tuple_u64_u64_u64_2d035edd { _0:10,_1:10,_2:10 }
 type 13 struct std_core$Buffer {  }
 type 14 array 8
-type 15 primitive void
+type 15 scalar void
 type 16 array 10
 string 0 " "
 string 1 "nan"

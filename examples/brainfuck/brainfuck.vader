@@ -194,8 +194,8 @@ emit_bf_char :: fn(
 // (`match_brackets`), which must be complete.
 compile_brainfuck :: fn(tokens: char[], partner: i32[]) -> bc.BytecodeModule {
     module_builder :: new_module_builder()
-    primitive_i32_type_id :: module_builder.add_type(bc.BcPrimitive { .val = .I32 })
-    cells_type_id :: module_builder.add_type(bc.BcArray { .element = primitive_i32_type_id })
+    i32_type_id :: module_builder.add_type(bc.BcScalar { .val = .I32 })
+    cells_type_id :: module_builder.add_type(bc.BcArray { .element = i32_type_id })
 
     // ---- fn bf_main() -> i32[] -------------------------------------------
     bf_main :: new_function_builder("bf_main", [], 3)

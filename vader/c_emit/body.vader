@@ -232,31 +232,31 @@ ref_box :: fn(value: CExpression) -> CExpression = call("vader_ref_box", [value]
 box_call :: fn(class: string, type_index: i32, value: CExpression) -> CExpression =
     call("vader_box_${class}", [verbatim("${type_index}u"), value])
 
-/// BcType index of the primitive whose stack class is `val`, or `0` when no
-/// such primitive is materialised in the type table. Used to tag a box when
+/// BcType index of the scalar whose stack class is `val`, or `0` when no
+/// such scalar is materialised in the type table. Used to tag a box when
 /// the call site has no explicit target type-index (`box_expr_unknown`). A
-/// missing primitive falls back to tag 0 — the receiver's `type_check` simply
+/// missing scalar falls back to tag 0 : the receiver's `type_check` simply
 /// misses.
 ///
 /// @param types  the module type table.
-/// @param val    the primitive stack class to find a tag for.
+/// @param val    the stack class to find a tag for.
 /// @return       the BcType index, or `0` if absent.
-export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
+export class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcPrimitive {
+        if t is BcScalar {
             if t.val == val { return i32(i) }
         }
     }
     // f32/f64 share the F64 box representation — an f32 value flows with class
-    // F64 (there is no distinct F32 payload). If the exact class has no primitive
+    // F64 (there is no distinct F32 payload). If the exact class has no scalar
     // in the table (e.g. an `i32 | f32` union carries only the f32 row), fall back
-    // to the OTHER float primitive so the box gets a real float tag rather than
+    // to the OTHER float scalar so the box gets a real float tag rather than
     // the 0/null default. `one_variant_check` aliases f32/f64 tags, so either
     // float index resolves `is f32` / `is f64` downstream.
     if is_float_val(val) {
         for i in 0..<types.len() {
-            if types[i] is BcPrimitive as p {
+            if types[i] is BcScalar as p {
                 if is_float_val(p.val) { return i32(i) }
             }
         }
@@ -265,19 +265,19 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
 }
 
 /// Box `name` to a `vader_box_t` without an explicit target type-index — the
-/// tag is the primitive's own BcType index (`primitive_tag_of`). Used by
+/// tag is its stack class's own BcType index (`class_tag_of`). Used by
 /// `coerce_expr` when widening a primitive into a `ref` / `any` slot (fn-arg
 /// boxing, dispatcher result wrapping).
 box_expr_unknown :: fn(types: BcType[], value: CExpression, val: ValType) -> CExpression =
-    box_expr(value, val, primitive_tag_of(types, val))
+    box_expr(value, val, class_tag_of(types, val))
 
 
-/// True when the type at `type_index` is exactly the primitive of class
-/// `slot_val` — the compile-time answer for `type_check` on a primitively-
-/// typed value (no runtime tag to inspect).
-export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
+/// True when the type at `type_index` is exactly the scalar of class
+/// `slot_val` : the compile-time answer for `type_check` on a value held in
+/// a scalar slot (no runtime tag to inspect).
+export class_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
     t :: types[type_index]
-    if t is BcPrimitive { return t.val == slot_val }
+    if t is BcScalar { return t.val == slot_val }
     return false
 }
 
@@ -356,10 +356,10 @@ export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_b
 /// these.
 ///
 /// @param t  the bytecode type-table entry.
-/// @return   the stack-machine value class — primitive name for
-///           `BcPrimitive`, `Ref` for every heap shape.
+/// @return   the stack-machine value class : a `BcScalar`'s own, `Ref` for
+///           every heap shape.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
-    is BcPrimitive -> t.val
+    is BcScalar -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
     // Mirrors `type_classify.vader::val_type_of_type` (T12).
     is BcStruct -> .Ref

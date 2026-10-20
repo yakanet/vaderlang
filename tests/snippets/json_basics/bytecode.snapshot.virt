@@ -1,22 +1,22 @@
 module _main
-type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 primitive u64
-type 5 primitive char
-type 6 primitive bool
-type 7 primitive u8
-type 8 primitive i64
+type 0 scalar null
+type 1 scalar string
+type 2 scalar void
+type 3 scalar i32
+type 4 scalar u64
+type 5 scalar char
+type 6 scalar bool
+type 7 scalar u8
+type 8 scalar i64
 type 9 union 10,0
-type 10 primitive f64
+type 10 scalar f64
 type 11 struct std_core$Buffer {  }
 type 12 array 7
 type 13 union 14,0
 type 14 struct std_core$DecimalParts { w:4,q:3,negative:6,too_many_digits:6 }
 type 15 struct std_core$SlowParts { d:16,e:3 }
 type 16 array 17
-type 17 primitive u32
+type 17 scalar u32
 type 18 struct __Tuple_Array_u32_u32_6fc96a7e { _0:16,_1:17 }
 type 19 struct std_core$Dec64 { mantissa:4,exp:3 }
 type 20 struct __Tuple_u64_u64_u64_2d035edd { _0:4,_1:4,_2:4 }

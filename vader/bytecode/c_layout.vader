@@ -60,7 +60,7 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
         return null
     }
     t :: types[f.type_index]
-    if t is BcPrimitive {
+    if t is BcScalar {
         return t.val
     }
     return null

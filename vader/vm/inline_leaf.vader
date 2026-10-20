@@ -179,7 +179,7 @@ leaf_module :: fn(main_body: string) -> bc.BytecodeModule | null {
     halve :: "fn 1 halve (i32) -> i32\n  local.get 0\n  i32.const 2\n  i32.div\n  return\nend\n"
     stale :: "fn 2 stale (i32) -> i32\n  local acc i32\n  local.get 1\n  drop\n  local.get 0\n  return\nend\n"
     main :: "fn 3 main () -> i32\n${main_body}end\nexport main 3\n"
-    parsed :: parse_virt_bc("module demo\ntype 0 primitive i32\n${square}${halve}${stale}${main}")
+    parsed :: parse_virt_bc("module demo\ntype 0 scalar i32\n${square}${halve}${stale}${main}")
     if parsed is VirtParseError {
         assert(false, "the test module parses: ${parsed.reason}")
         return null

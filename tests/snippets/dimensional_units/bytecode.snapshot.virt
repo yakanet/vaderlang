@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
-type 1 primitive i64
-type 2 primitive i32
-type 3 primitive string
-type 4 primitive bool
-type 5 primitive u8
+type 0 scalar null
+type 1 scalar i64
+type 2 scalar i32
+type 3 scalar string
+type 4 scalar bool
+type 5 scalar u8
 type 6 struct std_core$Buffer {  }
 type 7 array 5
-type 8 primitive void
+type 8 scalar void
 string 0 "true"
 string 1 "false"
 string 2 "\n"

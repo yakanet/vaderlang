@@ -85,7 +85,7 @@ export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     string_idx: i32 = -1
     for i in 0..<types.len() {
         t :: types[i]
-        if t is bc.BcPrimitive {
+        if t is bc.BcScalar {
             if t.val == .String { string_idx = i32(i) }
         }
     }
@@ -107,7 +107,7 @@ export find_io_error_type_id :: fn(types: bc.BcType[]) = bc.struct_type_index(ty
 
 /// Locate the module's `u8[]` `ArrayType` index — the tag a host-produced
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
-/// `find_string_array_type_id`. Returns 0 when no `u8` primitive or no
+/// `find_string_array_type_id`. Returns 0 when no `u8` scalar or no
 /// `u8[]` array entry exists. Compute once per run.
 /// @param types  the running module's type table.
 /// @return       the `u8[]` ArrayType index, or 0 when absent.
@@ -115,7 +115,7 @@ export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     u8_idx: i32 = -1
     for i in 0..<types.len() {
         t :: types[i]
-        if t is bc.BcPrimitive {
+        if t is bc.BcScalar {
             if t.val == .U8 { u8_idx = i32(i) }
         }
     }
@@ -381,7 +381,7 @@ export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
     if type_id < 0 || i64(type_id) >= state.bc.types.len() { return false }
     type_decl :: state.bc.types[type_id]
     return match type_decl {
-        is bc.BcPrimitive -> primitive_matches(v, type_decl.val)
+        is bc.BcScalar -> class_matches(v, type_decl.val)
         // @partial: only StructVal carries a matchable tag; every other Value → false.
         is bc.BcStruct        -> @partial match v {
             is StructVal -> v.type_id == type_id
@@ -451,7 +451,7 @@ export trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i
 
 /// Receiver `type_id` extraction for `virtual.call`. Struct / Array
 /// receivers carry their type_id directly ; primitives need a module-
-/// level lookup via the type table to find the `PrimitiveType` entry
+/// level lookup via the type table to find the `BcScalar` entry
 /// matching the value's runtime tag. Returns `-1` when nothing matches
 /// (caller traps).
 export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
@@ -463,15 +463,15 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
     }
 }
 
-/// Find the `BcPrimitive` entry in `state.bc.types` whose value class matches
+/// Find the `BcScalar` entry in `state.bc.types` whose value class matches
 /// `v`'s runtime tag. Used by `receiver_type_id_of` to dispatch trait
 /// methods implemented on primitives (e.g. `i32 implements Doubler`).
 export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     for i in 0..<state.bc.types.len() {
         match state.bc.types[i] as p {
-            is bc.BcPrimitive -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
-            _                 -> { }
+            is bc.BcScalar -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
+            _              -> { }
         }
     }
     return -1
@@ -508,13 +508,13 @@ lookup_vtable_row :: fn(vtables: bc.VtableRow[], row: i32, type_id: i32) -> i32 
     return -1
 }
 
-/// Match a value against a `BcPrimitive.val` value class. Direct classes
+/// Match a value against a `BcScalar.val` value class. Direct classes
 /// (`i32` / `string` / `bool` / `null` / `char`) lookup reuses
 /// `describe_value_tag`. Width-suffixed integer classes (i8 / i64 / u32 / …)
 /// collapse onto `I32Val` — **latent miscompile risk** : a snippet
 /// `if x is i64 { … }` against an `I32Val` matches and runs with i32
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
-export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
+export class_matches :: fn(v: Value, val: bc.ValType) -> bool {
     if bc.val_type_name(val) == describe_value_tag(v) { return true }
     // Width-suffixed integer classes have no dedicated Value variant — they
     // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64 ; i64
@@ -543,7 +543,7 @@ export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
 }
 
 /// Width-suffixed integer classes that have no dedicated `Value` variant —
-/// they ride in `I32Val` or `I64Val` (see `primitive_matches`). `i32` has
+/// they ride in `I32Val` or `I64Val` (see `class_matches`). `i32` has
 /// its own `I32Val` tag (caught by the direct check) so it's excluded here.
 export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
     .I8    -> true

@@ -1,18 +1,18 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Group { items:8 }
 type 2 union 3,4
 type 3 struct snippet$A { n:6 }
 type 4 struct snippet$B { m:6 }
-type 5 primitive bool
-type 6 primitive i32
-type 7 primitive string
+type 5 scalar bool
+type 6 scalar i32
+type 7 scalar string
 type 8 array 2
-type 9 primitive u8
-type 10 primitive i64
+type 9 scalar u8
+type 10 scalar i64
 type 11 struct std_core$Buffer {  }
 type 12 array 9
-type 13 primitive void
+type 13 scalar void
 string 0 "\n"
 import 0 byte_len std_core$byte_len result_type=10 param_types=7 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=12 param_types=7 param_c_out= param_by_address= (string) -> ref

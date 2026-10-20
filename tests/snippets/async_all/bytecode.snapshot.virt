@@ -1,19 +1,19 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
+type 0 scalar null
+type 1 scalar i32
 type 2 ref std_core$Async
 type 3 struct __asyncstate_snippet_0 { s0:1,s1:0,awaited:9,state:1 }
 type 4 union 1,5
 type 5 struct std_core$Suspended { wake_at:11 }
-type 6 primitive void
+type 6 scalar void
 type 7 struct __asyncstate_snippet_1 { s0:10,s1:10,s2:10,s3:11,s4:11,s5:1,awaited:9,state:1 }
-type 8 primitive string
+type 8 scalar string
 type 9 ref std_core$Async
 type 10 array 1
-type 11 primitive i64
-type 12 primitive u64
-type 13 primitive bool
-type 14 primitive u8
+type 11 scalar i64
+type 12 scalar u64
+type 13 scalar bool
+type 14 scalar u8
 type 15 struct std_core$Buffer {  }
 type 16 array 14
 type 17 struct std_async$JoinAll__i32 { children:22,results:24,wake_at:25 }

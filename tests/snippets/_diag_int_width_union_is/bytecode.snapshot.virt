@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 union 2,3,4
-type 2 primitive i32
-type 3 primitive i64
-type 4 primitive u8
-type 5 primitive string
+type 2 scalar i32
+type 3 scalar i64
+type 4 scalar u8
+type 5 scalar string
 type 6 struct std_core$Buffer {  }
 type 7 array 4
-type 8 primitive void
+type 8 scalar void
 string 0 " "
 string 1 "\n"
 import 0 byte_len std_core$byte_len result_type=3 param_types=5 param_c_out= param_by_address= (string) -> i64

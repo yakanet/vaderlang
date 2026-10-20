@@ -398,12 +398,12 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
 }
 
 /// Primitive kind ("string" / "char" / "i32" / …) of `types[type_id]`,
-/// or "" when the slot isn't a primitive. Used by the virtual.call intrinsic
+/// or "" when the entry isn't a `BcScalar`. Used by the virtual.call intrinsic
 /// fallback to rebuild a host mangle.
 primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
     if type_id < 0 || i64(type_id) >= types.len() { return "" }
     t :: types[type_id]
-    if t is bc.BcPrimitive { return bc.val_type_name(t.val) }
+    if t is bc.BcScalar { return bc.val_type_name(t.val) }
     return ""
 }
 
@@ -574,7 +574,7 @@ slot_valtype :: fn(body: bc.BcFunction, slot: i32) -> bc.ValType {
 field_valtype :: fn(types: bc.BcType[], type_index: i32) -> bc.ValType {
     if type_index < 0 || i64(type_index) >= types.len() { return .Ref }
     t :: types[type_index]
-    if t is bc.BcPrimitive { return t.val }
+    if t is bc.BcScalar { return t.val }
     return .Ref
 }
 

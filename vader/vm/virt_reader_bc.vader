@@ -12,7 +12,7 @@
 // Lossy-by-design vs the emitter's in-memory module: the `.virt` text carries
 // no signature `BcType` indices (`param_types` / `result_type`), no struct
 // `symbol_id`, and no debug spans. The first is RECONSTRUCTED here from the
-// type table via `primitive_index_for` (exact for primitive slots ; `0` for
+// type table via `class_tag_of` (exact for scalar slots ; `0` for
 // ref/any slots, which `c_emit::box_expr` ignores anyway — Ref/Any box to a
 // bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
 // identity the data section names it by (`bytecode/dump`) — and `debug` all-null
@@ -439,9 +439,9 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
         })
         return null
     }
-    if rest.starts_with("primitive ") {
-        kind :: rest.trim_prefix("primitive ").trim()
-        types.push(bc.BcPrimitive { .val = vt_or_void(kind) })
+    if rest.starts_with("scalar ") {
+        kind :: rest.trim_prefix("scalar ").trim()
+        types.push(bc.BcScalar { .val = vt_or_void(kind) })
         return null
     }
     if rest.starts_with("array ") {
@@ -1005,8 +1005,8 @@ tokenize_agg :: fn(s: string) -> string[] {
 
 /// Parse the `(p0,p1) -> r` slice of a `fn`/`import` line into a `BcSignature`.
 /// The `.virt` carries only ValType names ; `param_types` / `result_type`
-/// (BcType indices) are reconstructed via `primitive_index_for` — exact for
-/// primitive slots, `0` for ref/any (which `c_emit` doesn't tag).
+/// (BcType indices) are reconstructed via `class_tag_of` : exact for
+/// scalar slots, `0` for ref/any (which `c_emit` doesn't tag).
 parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
@@ -1017,7 +1017,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
         for p in inner.split(",") {
             v :: vt_or_void(p.trim())
             params.push(v)
-            param_types.push(primitive_index_for(types, v))
+            param_types.push(class_tag_of(types, v))
         }
     }
     result := bc.ValType.Void
@@ -1034,7 +1034,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
             for r in inner.split(",") {
                 v :: vt_or_void(r.trim())
                 results.push(v)
-                result_types.push(primitive_index_for(types, v))
+                result_types.push(class_tag_of(types, v))
             }
         } else {
             result = vt_or_void(rtext)
@@ -1044,7 +1044,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
         // No parenthesised list, so the header named one result — or none, which
         // the representation spells as a single `Void` entry.
         results.push(result)
-        result_types.push(primitive_index_for(types, result))
+        result_types.push(class_tag_of(types, result))
     }
     return bc.BcSignature {
         .params      = params,
@@ -1066,14 +1066,14 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
 
 // ---- small reconstruction helpers -----------------------------------------
 
-/// BcType index of the `BcPrimitive` whose stack class is `val`, or `0` when
-/// none is materialised. Local mirror of `c_emit::primitive_tag_of` (kept here
-/// to avoid the vm → c_emit import). Ref/Any return `0` — harmless, since
+/// BcType index of the `BcScalar` whose stack class is `val`, or `0` when
+/// none is materialised. Local mirror of `c_emit::class_tag_of` (the VM does
+/// not import `vader/c_emit`). Ref/Any return `0`, harmless since
 /// `box_expr` boxes Ref/Any as bare values without a tag.
-primitive_index_for :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
+class_tag_of :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is bc.BcPrimitive {
+        if t is bc.BcScalar {
             if t.val == val { return i32(i) }
         }
     }
@@ -1210,7 +1210,7 @@ import "std/testing"
     // A minimal module exercising the metadata the VM reader drops: a struct
     // with typed fields, a fn with a typed signature + a declared local.
     // Single-line `\n`-joined to dodge triple-quote / `$`-interpolation rules.
-    src :: "module demo\ntype 0 primitive i32\ntype 1 primitive void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
+    src :: "module demo\ntype 0 scalar i32\ntype 1 scalar void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
     m :: parse_virt_bc(src)
     if m is VirtParseError {
         assert(false, "well-formed dump should parse: line ${m.line_number}: ${m.reason}")
@@ -1258,7 +1258,7 @@ import "std/testing"
     // `if` … `end` takes one op per line.
     lines :: [
         "module demo",
-        "type 0 primitive i32",
+        "type 0 scalar i32",
         "fn 0 main () -> i32",
         "  local x i32",
         "  i32.const 1   ; one",
@@ -1285,7 +1285,7 @@ import "std/testing"
 @test test_unknown_instruction_stops_the_parse :: fn() -> void {
     // `frobnicate` on line 5, between two real ops, is what a stale dump looks
     // like after an opcode leaves the set.
-    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const 1\n  frobnicate 7\n  return\nend\nexport main 0\n"
+    src :: "module demo\ntype 0 scalar i32\nfn 0 main () -> i32\n  i32.const 1\n  frobnicate 7\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
     if r is VirtParseError {
         assert_eq(r.line_number, 5)
@@ -1297,7 +1297,7 @@ import "std/testing"
 }
 
 @test test_unknown_directive_stops_the_parse :: fn() -> void {
-    src :: "module demo\ntype 0 primitive i32\nsprocket 3\nfn 0 main () -> i32\n  return\nend\nexport main 0\n"
+    src :: "module demo\ntype 0 scalar i32\nsprocket 3\nfn 0 main () -> i32\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
     if r is VirtParseError {
         assert_eq(r.line_number, 3)
@@ -1322,7 +1322,7 @@ import "std/testing"
     // What `vader dump --stage=bytecode` writes for a compile that warned: the
     // module, then a report. The report parses as neither directive nor op, so
     // the reader has to recognise it as the end rather than choke on it.
-    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  return\nend\nexport main 0\n\n# Diagnostics\n[21:10] warning[W0001] use of deprecated declaration: `old_helper`\n"
+    src :: "module demo\ntype 0 scalar i32\nfn 0 main () -> i32\n  return\nend\nexport main 0\n\n# Diagnostics\n[21:10] warning[W0001] use of deprecated declaration: `old_helper`\n"
     m :: parse_virt_bc(src)
     if m is VirtParseError {
         assert(false, "a trailing diagnostics block should end the module, not fail it: ${m.reason}")
@@ -1381,7 +1381,7 @@ import "std/testing"
 @test test_malformed_operands_stop_the_parse :: fn() -> void {
     // A head the reader knows, operands it can't read: `parse_int_const_text`
     // returns null, the op never lands, and every later pc used to shift by one.
-    src :: "module demo\ntype 0 primitive i32\nfn 0 main () -> i32\n  i32.const\n  return\nend\nexport main 0\n"
+    src :: "module demo\ntype 0 scalar i32\nfn 0 main () -> i32\n  i32.const\n  return\nend\nexport main 0\n"
     r :: parse_virt_bc(src)
     if r is VirtParseError {
         assert_eq(r.line_number, 4)

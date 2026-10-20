@@ -233,7 +233,7 @@ data_items_hex :: fn(entry: BcPrimData) -> string {
 
 
 format_bc_type :: fn(t: BcType) -> string = match t {
-    is BcPrimitive -> "primitive ${val_type_name(t.val)}"
+    is BcScalar    -> "scalar ${val_type_name(t.val)}"
     is BcStruct    -> {
         // `as "<c type>"` only when the struct mirrors one — an ordinary struct
         // writes exactly what it did before, so no committed snapshot moves.
@@ -1038,7 +1038,7 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
     if depth > 6 { return "..." }
     if type_id < 0 || i64(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
     return match module.types[type_id] as p {
-        is BcPrimitive -> val_type_name(p.val)
+        is BcScalar    -> val_type_name(p.val)
         is BcStruct    -> p.name
         is BcArray     -> "${type_label_at(module, p.element, depth + 1)}[]"
         is BcUnion     -> "union"

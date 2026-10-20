@@ -1,24 +1,24 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 union 2,3
-type 2 primitive i32
-type 3 primitive string
+type 2 scalar i32
+type 3 scalar string
 type 4 union 5,6,7,3
-type 5 primitive bool
-type 6 primitive char
-type 7 primitive f64
+type 5 scalar bool
+type 6 scalar char
+type 7 scalar f64
 type 8 union 3,9
-type 9 primitive u8
+type 9 scalar u8
 type 10 struct snippet$Circle { r:2 }
 type 11 struct snippet$Square { side:2 }
 type 12 struct snippet$Holder { label:3,cell:8 }
-type 13 primitive i64
+type 13 scalar i64
 type 14 struct std_core$Buffer {  }
-type 15 primitive u64
+type 15 scalar u64
 type 16 array 9
 type 17 struct std_core$Dec64 { mantissa:15,exp:2 }
 type 18 struct __Tuple_u64_u64_u64_2d035edd { _0:15,_1:15,_2:15 }
-type 19 primitive void
+type 19 scalar void
 type 20 array 15
 type 21 array 1
 type 22 array 4

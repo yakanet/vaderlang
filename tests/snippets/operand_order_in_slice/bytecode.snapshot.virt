@@ -1,16 +1,16 @@
 module _main
-type 0 primitive null
-type 1 primitive string
-type 2 primitive i32
+type 0 scalar null
+type 1 scalar string
+type 2 scalar i32
 type 3 array 2
 type 4 struct std_core$Range__i64 { start:8,end:8,inclusive:6,done:6,cursor:8 }
-type 5 primitive u64
-type 6 primitive bool
-type 7 primitive u8
-type 8 primitive i64
+type 5 scalar u64
+type 6 scalar bool
+type 7 scalar u8
+type 8 scalar i64
 type 9 struct std_core$Buffer {  }
 type 10 array 7
-type 11 primitive void
+type 11 scalar void
 type 12 struct std_collections$MutableMap__i32__bool { ekeys:3,evals:14,index:3,mask:8,size:8,tombs:8 }
 type 13 struct std_collections$MutableSet__i32 { inner:12 }
 type 14 array 6

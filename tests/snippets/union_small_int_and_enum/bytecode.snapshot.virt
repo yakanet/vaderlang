@@ -1,29 +1,29 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 union 2,3
-type 2 primitive string
-type 3 primitive u8
+type 2 scalar string
+type 3 scalar u8
 type 4 union 2,5
-type 5 primitive u32
+type 5 scalar u32
 type 6 union 3,2
-type 7 primitive i32
+type 7 scalar i32
 type 8 struct snippet$Plain { tag:7 }
 type 9 array 2
 type 10 struct __lambda_env_snippet_1 { cap_0:13 }
-type 11 primitive void
+type 11 scalar void
 type 12 struct snippet$Holder { b:1 }
 type 13 ref _
-type 14 primitive u64
-type 15 primitive bool
-type 16 primitive i64
+type 14 scalar u64
+type 15 scalar bool
+type 16 scalar i64
 type 17 struct std_core$Buffer {  }
-type 18 primitive i8
-type 19 primitive i16
-type 20 primitive u16
-type 21 primitive char
+type 18 scalar i8
+type 19 scalar i16
+type 20 scalar u16
+type 21 scalar char
 type 22 ref _
-type 23 primitive f32
-type 24 primitive f64
+type 23 scalar f32
+type 24 scalar f64
 type 25 array 3
 type 26 struct std_collections$MutableSet__string___u8 { inner:27 }
 type 27 struct std_collections$MutableMap__string___u8__bool { ekeys:30,evals:29,index:28,mask:16,size:16,tombs:16 }

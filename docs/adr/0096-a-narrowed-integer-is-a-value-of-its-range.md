@@ -6,6 +6,10 @@ Accepted (2026-10-19). Supersedes 0083 ("a narrowing changes no width") and the 
 of 0085 that holds a narrowed range in its origin; amends 0075 on bitwise operations
 and on the type of a mutable local, and 0077 on the type `acc := n * 1000` takes.
 
+Amended (2026-10-20) by 0097: a narrowed read is taken as it is stored and converted
+once, to where it goes, rather than to the range's storage where it is read; an
+index and a conversion to anything but an integer still convert it where it is read.
+
 ## Context
 
 Past `if n in Hour`, an `n: i64` was typed as `Hour` with a note of the integer it

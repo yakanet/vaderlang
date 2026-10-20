@@ -1,18 +1,18 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Probe { until:9,drives:3 }
 type 2 union 3,4
-type 3 primitive i32
+type 3 scalar i32
 type 4 struct std_core$Suspended { wake_at:9 }
-type 5 primitive void
+type 5 scalar void
 type 6 ref std_core$Async
 type 7 struct __asyncstate_snippet_0 { s0:0,s1:0,awaited:10,state:3 }
-type 8 primitive string
-type 9 primitive i64
+type 8 scalar string
+type 9 scalar i64
 type 10 ref std_core$Async
-type 11 primitive u64
-type 12 primitive bool
-type 13 primitive u8
+type 11 scalar u64
+type 12 scalar bool
+type 13 scalar u8
 type 14 struct std_core$Buffer {  }
 type 15 array 13
 type 16 ref _

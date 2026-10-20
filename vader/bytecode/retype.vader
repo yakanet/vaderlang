@@ -170,9 +170,9 @@ remap_signature :: fn(sig: BcSignature, remap: i32[]) -> BcSignature = BcSignatu
 // variant that carries a type index has to trip T3013 here rather than fall
 // through unrewritten and point at a slot from the pre-union numbering.
 remap_type :: fn(t: BcType, remap: i32[]) -> BcType = match t {
-    // No type index to rewrite — a primitive names itself, and an opaque ref
+    // No type index to rewrite : a scalar names its class, and an opaque ref
     // carries only a trait name.
-    is BcPrimitive | BcRef -> t
+    is BcScalar | BcRef -> t
     is BcStruct -> {
         fields: BcField[]: []
         for f in t.fields {

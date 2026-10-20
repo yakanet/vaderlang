@@ -143,7 +143,7 @@ new_ctx :: fn(m: BytecodeModule, opts: EmitOptions, internal_fns: bool[] = []) -
         .struct_c_names = names,
         .atom_ids = compute_atom_ids(m.strings, opts.atom_universe),
         .atom_table = atom_table_of(m.strings, opts.atom_universe),
-        .null_tag = null_primitive_tag(m.types),
+        .null_tag = class_tag_of(m.types, .Null),
         .string_tag = string_tag,
         .string_array_tag = string_array_tag(m.types, string_tag),
         .may_alloc = compute_may_alloc(m.functions, import_may_collect),
@@ -863,7 +863,7 @@ box_slot :: fn(
 ) -> CExpression {
     types :: ctx.module.types
     if v is BcValStr {
-        return boxed_string(primitive_tag_of(types, .String), atom_for(atom_of, v.value))
+        return boxed_string(class_tag_of(types, .String), atom_for(atom_of, v.value))
     }
     if v is BcValPrim {
         return boxed_scalar(scalar_tag(types, v.kind), v.kind, v.bits)
@@ -872,10 +872,10 @@ box_slot :: fn(
     return boxed_object(own, emit_data_value(ctx, items, v, name, atom_of))
 }
 
-// Type-table index of the primitive a baked number of `kind` is, or 0.
+// Type-table index of the scalar a baked number of `kind` is, or 0.
 scalar_tag :: fn(types: BcType[], kind: ArrayKind) -> i32 {
     for i in 0..<types.len() {
-        if types[i] is BcPrimitive as p {
+        if types[i] is BcScalar as p {
             if p.val != .Pointer && array_kind_of_val(p.val) == kind { return i32(i) }
         }
     }
@@ -1339,7 +1339,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         // a 24 B box, forwarding garbage / never updating the field → a stale ref
         // after a move (the `MutableMap` ekeys UAF). Only `string` primitives take
         // a `str_offsets` tracking slot ; other primitives carry no heap ref.
-        if ftype is BcPrimitive {
+        if ftype is BcScalar {
             if is_string_val(ftype.val) { offsets.str_offsets.push(offset) }
         } else if val_type_of_bc_type(ftype) == .Ref {
             offsets.ref_offsets.push(offset)
@@ -1522,25 +1522,12 @@ find_main :: fn(m: BytecodeModule, entry_mangled: string) -> i32 {
     return -1
 }
 
-/// BcType index of the `null` primitive, or `0` when absent. Tags the
-/// boxed null literal so `type_check` stays consistent across boxed and
-/// unboxed paths. Called once by `new_ctx` (cached in `EmitCtx.null_tag`).
-null_primitive_tag :: fn(types: BcType[]) -> i32 {
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is BcPrimitive {
-            if t.val == .Null { return i32(i) }
-        }
-    }
-    return 0
-}
-
 /// BcType index of the `string` primitive, or `-1` when absent. Called
 /// once by `new_ctx` (cached in `EmitCtx.string_tag`).
 string_primitive_tag :: fn(types: BcType[]) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcPrimitive {
+        if t is BcScalar {
             if is_string_val(t.val) { return i32(i) }
         }
     }

@@ -5,10 +5,8 @@
 Accepted (2026-10-19). Step 7 of the type-system charter, its seventh part continued
 (D10). Extends to the primitives the widening 0075 gave the ranges.
 
-Amended (2026-10-20): the slot is no longer noted on the expression. The CFG build
-converts a value where it fills a slot (`vader/midir/storage.vader`), reading the
-slot from its declaration (a local, a struct's layout, the callee's parameters, an
-operation's operand types), and `--verify` holds every such point to it (I7013).
+Amended (2026-10-20) by 0097: the slot is no longer noted on the expression; the
+CFG build converts a value where it fills a slot.
 
 ## Context
 

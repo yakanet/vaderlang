@@ -503,7 +503,7 @@ is_abi_nullable_pointer :: fn(types: BcType[], type_index: i32) -> bool {
                 continue
             }
             v :: types[vi]
-            if v is BcPrimitive {
+            if v is BcScalar {
                 if v.val == .Null {
                     has_null = true
                 }
@@ -541,7 +541,7 @@ is_abi_nullable_string :: fn(types: BcType[], type_index: i32) -> bool {
             continue
         }
         v :: types[vi]
-        if v is BcPrimitive {
+        if v is BcScalar {
             if v.val == .Null   { has_null = true }
             if v.val == .String { has_str = true }
         }
@@ -631,7 +631,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     .ByteSlice -> { return [returning("vader_string_byte_slice", [a0, a1, argument(2)])] }
     .IsAscii -> { return [returning("vader_string_is_ascii", [a0])] }
     .Bytes -> {
-        u8 :: prim_tag(types, .U8)
+        u8 :: class_index(types, .U8)
         if u8 < 0 { return [trap("bytes: no u8 type")] }
         u8arr :: array_tag(types, u8)
         if u8arr < 0 { return [trap("bytes: no u8[] type")] }
@@ -1033,19 +1033,19 @@ extern_c_type :: fn(v: ValType) -> string {
 
 // ---- tag lookups ----------------------------------------------------------
 
-/// BcType index of the primitive `val`, or `0` when it is absent. A shim
+/// BcType index of the scalar of class `val`, or `0` when it is absent. A shim
 /// referencing an absent tag only runs when the program actually uses that
 /// value, by which point the type is present.
 present_tag :: fn(types: BcType[], val: ValType) -> i32 {
-    tag :: prim_tag(types, val)
+    tag :: class_index(types, val)
     return if tag < 0 { 0 } else { tag }
 }
 
-/// BcType index of the primitive `val`, or `-1` when absent.
-prim_tag :: fn(types: BcType[], val: ValType) -> i32 {
+/// BcType index of the scalar of class `val`, or `-1` when absent.
+class_index :: fn(types: BcType[], val: ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is BcPrimitive {
+        if t is BcScalar {
             if t.val == val { return i32(i) }
         }
     }

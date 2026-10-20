@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Dog { name:4,age:5 }
 type 2 union 3,1
 type 3 struct snippet$Cat { name:4,age:5 }
-type 4 primitive string
-type 5 primitive i32
-type 6 primitive void
-type 7 primitive u8
-type 8 primitive i64
+type 4 scalar string
+type 5 scalar i32
+type 6 scalar void
+type 7 scalar u8
+type 8 scalar i64
 type 9 struct std_core$Buffer {  }
 type 10 array 7
 string 0 "after"

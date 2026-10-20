@@ -463,15 +463,15 @@ export BcValArray :: struct {
 /// is a `BcType[]` and every `typeIndex` in this file (`BcField.type_index`,
 /// `BcArray.element`, `BcFn.params`, `BcFn.return_type`, `BcUnion.variants`)
 /// is an index into that array.
-export BcType :: BcPrimitive
+export BcType :: BcScalar
     | BcStruct
     | BcArray
     | BcUnion
     | BcRef
     | BcFn
 
-/// Plain primitive — wraps a `ValType` with a stable index.
-export BcPrimitive :: struct {
+/// A value held in one stack slot, of the value class `val`.
+export BcScalar :: struct {
     val: ValType
 }
 
@@ -581,7 +581,7 @@ export BcFn :: struct {
 // Helpers
 // =========================================================================
 
-/// Byte size of a `ValType` — primitives use their native widths, every
+/// Byte size of a `ValType` : a scalar class its native width, every
 /// reference shape collapses to the box-slot width (16 B). Shared
 /// between `size_of_bc_type` and any caller that already narrowed to
 /// a primitive class.
@@ -617,7 +617,7 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
 /// @param t  the bytecode type-table entry.
 /// @return   the byte size in the runtime layout.
 export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
-    is BcPrimitive -> size_of_val_type(t.val)
+    is BcScalar -> size_of_val_type(t.val)
     is BcStruct -> 8
     is BcArray -> 8
     is BcFn -> 8
@@ -627,7 +627,7 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
 
 /// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
 /// header-bearing heap object, or `null` (a `NULL` slot). Drives `array_kind_of`'s
-/// `Ref` decision. A non-null primitive / `string` (no object header) and an
+/// `Ref` decision. A non-null scalar (no object header) and an
 /// erased `BcRef` (may box a distinct-primitive impl) are NOT ref-only — any
 /// doubt stays boxed. A `BcUnion` is ref-only iff EVERY variant is (so
 /// `Expr[]` / `Stmt[]` / `T | null` qualify) — recurse via the `types` table.
@@ -637,7 +637,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
     is BcStruct -> true
     is BcArray -> true
     is BcFn -> true
-    is BcPrimitive -> t.val == .Null
+    is BcScalar -> t.val == .Null
     is BcRef -> false
     is BcUnion -> {
         for v in t.variants {
@@ -652,7 +652,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// T12/P3: a concrete heap ref (struct/array/fn) — and a union of only such refs
 /// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
 /// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
-/// may box a primitive) and a mixed / primitive-bearing union stay `Boxed` (24 B).
+/// may box a scalar) and a mixed / scalar-bearing union stay `Boxed` (24 B).
 /// Access sites runtime-dispatch on `buf->element_kind` because the SAME array type
 /// is constructed `Ref` at a concrete site but `Boxed` in erased generic code.
 ///
@@ -660,7 +660,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 /// @param types    the module type table (to resolve union variant indices).
 /// @return         the storage discriminator the runtime reads off the buffer.
 export array_kind_of :: fn(element: BcType, types: BcType[]) -> ArrayKind = match element {
-    is BcPrimitive -> array_kind_of_val(element.val)
+    is BcScalar -> array_kind_of_val(element.val)
     is BcStruct -> .Ref
     is BcArray -> .Ref
     is BcFn -> .Ref
@@ -717,7 +717,7 @@ export bc_type_key :: fn(types: BcType[], idx: i32) -> string {
         return "?"
     }
     return match types[idx] as t {
-        is BcPrimitive -> "p:${i32(t.val)}"
+        is BcScalar -> "p:${i32(t.val)}"
         // Structs key by NAME, not by their fields: the name is unique after
         // monomorphisation, and descending would not terminate on a recursive
         // struct.
@@ -744,9 +744,9 @@ key_join :: fn(types: BcType[], indices: i32[], sep: string) -> string {
 import "std/testing"
 
 @test
-test_slot_size_of_primitive_is_its_width :: fn() -> void {
-    assert_eq(size_of_bc_type(BcPrimitive { .val = .U8 }), 1)
-    assert_eq(size_of_bc_type(BcPrimitive { .val = .I64 }), 8)
+test_size_of_a_scalar_is_its_width :: fn() -> void {
+    assert_eq(size_of_bc_type(BcScalar { .val = .U8 }), 1)
+    assert_eq(size_of_bc_type(BcScalar { .val = .I64 }), 8)
 }
 
 @test

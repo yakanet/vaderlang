@@ -1,20 +1,20 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 ref std_core$Async
 type 2 ref std_core$Async
-type 3 primitive i32
+type 3 scalar i32
 type 4 struct __asyncstate_snippet_0 { s0:3,s1:3,s2:6,s3:6,s4:6,s5:12,s6:13,awaited:14,state:3 }
 type 5 union 6,7
-type 6 primitive string
+type 6 scalar string
 type 7 struct std_core$Suspended { wake_at:13 }
 type 8 struct snippet$Ready__i32 { v:3 }
 type 9 union 3,7
-type 10 primitive void
+type 10 scalar void
 type 11 struct snippet$Ready__string { v:6 }
 type 12 struct std_core$Buffer {  }
-type 13 primitive i64
+type 13 scalar i64
 type 14 ref std_core$Async
-type 15 primitive u8
+type 15 scalar u8
 type 16 array 15
 string 0 "hi"
 string 1 ""

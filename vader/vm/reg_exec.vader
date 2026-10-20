@@ -1299,7 +1299,7 @@ array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {
     for op in setup + ops {
         body = "${body}  ${op}\n"
     }
-    header :: "module demo\ntype 0 primitive i32\ntype 1 array 0\nfn 0 main () -> i32\n"
+    header :: "module demo\ntype 0 scalar i32\ntype 1 array 0\nfn 0 main () -> i32\n"
     return parse_test_module("${header}${body}end\nexport main 0\n")
 }
 
@@ -1359,11 +1359,11 @@ test_array_element_write_out_of_bounds_traps :: fn() -> void {
 string_module :: fn(body: string[]) -> bc.BytecodeModule | null {
     header :: [
         "module demo",
-        "type 0 primitive i32",
-        "type 1 primitive u8",
-        "type 2 primitive i64",
-        "type 3 primitive string",
-        "type 4 primitive bool",
+        "type 0 scalar i32",
+        "type 1 scalar u8",
+        "type 2 scalar i64",
+        "type 3 scalar string",
+        "type 4 scalar bool",
         "string 0 \"héllo\"",
         r"import 0 byte_len std_core$byte_len result_type=2 param_types=3 param_c_out=0"
             + " param_by_address= (string) -> i64",
@@ -1408,7 +1408,7 @@ test_string_byte_out_of_bounds_traps :: fn() -> void {
 char_conversion_module :: fn() -> bc.BytecodeModule | null {
     lines :: [
         "module demo",
-        "type 0 primitive i32",
+        "type 0 scalar i32",
         "fn 0 main () -> i32",
         "  i32.const 233",
         "  u32.to_char",

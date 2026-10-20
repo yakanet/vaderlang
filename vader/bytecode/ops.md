@@ -20,7 +20,7 @@ Names the module. First line of the file.
 
 ### `type <index> <kind> …`
 Declares entry `<index>` of the type table. Kinds:
-`primitive <name>` (`i32`, `string`, `void`, …), `struct <name> { <field>:<type>, … }`,
+`scalar <name>` (`i32`, `string`, `void`, …), `struct <name> { <field>:<type>, … }`,
 `array <element type>`, `union <type>,<type>,…`, `fn (<param types>) -> <return type>`,
 and `ref <trait>` / `ref _` — a reference whose concrete type is known only at run time.
 

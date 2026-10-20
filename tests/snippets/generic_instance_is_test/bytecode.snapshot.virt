@@ -1,16 +1,16 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 union 2,3
 type 2 struct snippet$Spec__bool { name:4,dflt:6 }
 type 3 struct snippet$Spec__string { name:4,dflt:4 }
-type 4 primitive string
-type 5 primitive i32
-type 6 primitive bool
-type 7 primitive u8
-type 8 primitive i64
+type 4 scalar string
+type 5 scalar i32
+type 6 scalar bool
+type 7 scalar u8
+type 8 scalar i64
 type 9 struct std_core$Buffer {  }
 type 10 array 7
-type 11 primitive void
+type 11 scalar void
 type 12 array 1
 string 0 " is a flag, default "
 string 1 " takes a value, default "

@@ -1,18 +1,18 @@
 module _main
-type 0 primitive null
-type 1 primitive i64
-type 2 primitive void
-type 3 primitive i32
+type 0 scalar null
+type 1 scalar i64
+type 2 scalar void
+type 3 scalar i32
 type 4 array 3
 type 5 ref std_core$Iterator
 type 6 struct __lambda_env_snippet_1 { cap_0:11 }
 type 7 struct snippet$__genstate_produced { s0:3,s1:3,state:3 }
 type 8 struct __Tuple_i32_u8_99ae0d29 { _0:3,_1:9 }
-type 9 primitive u8
-type 10 primitive string
+type 9 scalar u8
+type 10 scalar string
 type 11 ref _
 type 12 struct std_core$Range__i32 { start:3,end:3,inclusive:13,done:13,cursor:3 }
-type 13 primitive bool
+type 13 scalar bool
 type 14 struct std_core$Range__i64 { start:1,end:1,inclusive:13,done:13,cursor:1 }
 type 15 struct __Tuple_i64_u8_87057322 { _0:1,_1:9 }
 type 16 struct std_core$Buffer {  }

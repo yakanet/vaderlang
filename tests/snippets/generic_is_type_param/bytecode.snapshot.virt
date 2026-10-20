@@ -1,18 +1,18 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
+type 0 scalar null
+type 1 scalar i32
 type 2 array 3
 type 3 struct snippet$Circle { r:1 }
 type 4 union 3,5
 type 5 struct snippet$Square { s:1 }
-type 6 primitive bool
+type 6 scalar bool
 type 7 array 5
-type 8 primitive string
-type 9 primitive u8
-type 10 primitive i64
+type 8 scalar string
+type 9 scalar u8
+type 10 scalar i64
 type 11 struct std_core$Buffer {  }
 type 12 array 9
-type 13 primitive void
+type 13 scalar void
 string 0 " "
 string 1 "yes"
 string 2 "no"

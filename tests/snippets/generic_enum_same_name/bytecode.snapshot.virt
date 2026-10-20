@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
-type 2 primitive u8
-type 3 primitive i64
-type 4 primitive string
-type 5 primitive u64
+type 0 scalar null
+type 1 scalar i32
+type 2 scalar u8
+type 3 scalar i64
+type 4 scalar string
+type 5 scalar u64
 type 6 struct std_core$Buffer {  }
 type 7 array 2
-type 8 primitive void
+type 8 scalar void
 type 9 struct std_collections$MutableMap__snippet_alpha_Status__i64 { ekeys:7,evals:11,index:12,mask:3,size:3,tombs:3 }
 type 10 union 3,0
 type 11 array 3

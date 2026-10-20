@@ -5,13 +5,8 @@
 // (e.g. the data-pool encoder, the WASM emit, the LSP type-info
 // renderer).
 //
-// The trap to know before touching anything here : `bc_type_of` is the
-// CONTEXT-FREE projection and collapses every composite to a
-// `BcPrimitive{.val=Ref}` placeholder ; `bc_type_of_with_ctx` is the production
-// path (reached through `intern_type`) and is the only one that recursively
-// interns nested types into accurate `BcArray` / `BcUnion` / `BcFn` / `BcStruct`
-// shapes. Reaching for the former where the latter is meant degrades the type
-// silently — a missing arm there once collapsed every tuple to an opaque `ref`.
+// `bc_type_of_with_ctx` (reached through `intern_type`) interns a type's nested
+// types into their own `BcArray` / `BcUnion` / `BcFn` / `BcStruct` entries.
 
 module "vader/bytecode"
 
@@ -235,8 +230,8 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 /// @return            the `BcType` for the type table.
 export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> BcType {
     match t {
-        is PrimitiveType -> { return BcPrimitive { .val = val_type_of_primitive_name(t.name) } }
-        is EnumType | RangeType -> { return BcPrimitive { .val = val_type_of_type(t) } }
+        is PrimitiveType -> { return BcScalar { .val = val_type_of_primitive_name(t.name) } }
+        is EnumType | RangeType -> { return BcScalar { .val = val_type_of_type(t) } }
         is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
         is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
         is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }

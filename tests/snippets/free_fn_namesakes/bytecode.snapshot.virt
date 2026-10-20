@@ -1,17 +1,17 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 struct snippet$Box__i32 { value:3,render:4 }
-type 2 primitive string
-type 3 primitive i32
+type 2 scalar string
+type 3 scalar i32
 type 4 fn (3) -> 2
-type 5 primitive char
-type 6 primitive bool
-type 7 primitive u8
-type 8 primitive i64
+type 5 scalar char
+type 6 scalar bool
+type 7 scalar u8
+type 8 scalar i64
 type 9 struct std_core$Buffer {  }
-type 10 primitive u32
+type 10 scalar u32
 type 11 array 7
-type 12 primitive void
+type 12 scalar void
 string 0 "ab"
 string 1 "field "
 string 2 "\n"

@@ -1,7 +1,7 @@
 module _main
-type 0 primitive null
-type 1 primitive string
-type 2 primitive i32
+type 0 scalar null
+type 1 scalar string
+type 2 scalar i32
 type 3 ref std_core$Async
 type 4 struct snippet$Counter { base:2 }
 type 5 struct snippet$Pair { left:2,right:2,extra:2 }
@@ -11,13 +11,13 @@ type 8 union 2,9
 type 9 struct std_core$Suspended { wake_at:18 }
 type 10 struct __asyncstate_snippet_1 { s0:2,awaited:16,state:2 }
 type 11 struct snippet$Ready__i32 { v:2 }
-type 12 primitive void
+type 12 scalar void
 type 13 struct std_core$Range__i32 { start:2,end:2,inclusive:15,done:15,cursor:2 }
 type 14 struct __Tuple_i32_i32_3103e027 { _0:2,_1:2 }
-type 15 primitive bool
+type 15 scalar bool
 type 16 ref std_core$Async
-type 17 primitive u8
-type 18 primitive i64
+type 17 scalar u8
+type 18 scalar i64
 type 19 struct std_core$Buffer {  }
 type 20 array 17
 string 0 "  "

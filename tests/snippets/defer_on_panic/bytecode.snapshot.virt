@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
+type 0 scalar null
+type 1 scalar i32
 type 2 struct __defer_env_snippet_1 {  }
-type 3 primitive void
+type 3 scalar void
 type 4 struct __defer_env_snippet_3 {  }
 type 5 struct __defer_env_snippet_5 {  }
-type 6 primitive string
-type 7 primitive u8
-type 8 primitive i64
+type 6 scalar string
+type 7 scalar u8
+type 8 scalar i64
 type 9 struct std_core$Buffer {  }
 type 10 array 7
 type 11 fn () -> 3

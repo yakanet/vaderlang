@@ -1386,7 +1386,7 @@ void vader_gc_init(void) {
      * being a scan no-op. A hoisted stack storage is zero-init'd (type 0) and may
      * be handed to vader_gc_scan_object in the window before its `struct.new`
      * writes the real header — that scan must trace no fields. Type 0 is reserved
-     * for the `null` primitive (VADER_BOX_TAG_NULL) and a BcPrimitive emits no
+     * for the `null` primitive (VADER_BOX_TAG_NULL) and a BcScalar emits no
      * info row, so slot 0 stays KIND_NONE with no pointer/ref fields. Assert the
      * contract here: a future seed that put a pointer-bearing type at index 0
      * would make that pre-init scan walk past the storage (silent OOB). */

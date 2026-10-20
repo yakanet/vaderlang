@@ -715,7 +715,7 @@ ffi_result_is_opt :: fn(types: bc.BcType[], result_type: i32, want: bc.ValType) 
             continue
         }
         v :: types[vi]
-        if v is bc.BcPrimitive {
+        if v is bc.BcScalar {
             if v.val == .Null { has_null = true }
             if v.val == want            { has_want = true }
         }
@@ -884,7 +884,7 @@ lent_element_val_type :: fn(types: bc.BcType[], array_type_id: i32) -> bc.ValTyp
         return null
     }
     element :: types[t.element]
-    if element !is bc.BcPrimitive {
+    if element !is bc.BcScalar {
         return null
     }
     if !bc.is_integer_val(element.val) {

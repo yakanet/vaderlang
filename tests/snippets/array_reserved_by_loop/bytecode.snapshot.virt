@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
-type 2 primitive i64
-type 3 primitive bool
-type 4 primitive string
+type 0 scalar null
+type 1 scalar i32
+type 2 scalar i64
+type 3 scalar bool
+type 4 scalar string
 type 5 array 2
-type 6 primitive void
+type 6 scalar void
 type 7 array 1
-type 8 primitive i8
+type 8 scalar i8
 type 9 struct snippet$Bag { items:7 }
 type 10 ref std_core$Async
 type 11 struct __asyncstate_snippet_0 { s0:7,s1:5,s2:7,s3:2,s4:2,s5:1,s6:0,awaited:16,state:1 }
@@ -16,7 +16,7 @@ type 13 struct std_core$Suspended { wake_at:2 }
 type 14 struct __asyncstate_snippet_1 { s0:7,s1:7,s2:5,s3:5,awaited:16,state:1 }
 type 15 union 1,13
 type 16 ref std_core$Async
-type 17 primitive u8
+type 17 scalar u8
 type 18 struct std_core$Buffer {  }
 type 19 array 17
 type 20 ref std_core$Async

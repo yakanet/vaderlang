@@ -581,7 +581,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         receiver_slot :: ctx.type_key[receiver_key]
         if receiver_slot !is i32 { continue }
         // NO `is BcStruct` guard here, unlike the impl table: a vtable dispatches
-        // on any receiver shape — `i32 implements Display` pins a `BcPrimitive`
+        // on any receiver shape : `i32 implements Display` pins a `BcScalar`
         // slot — and requiring a struct drops those rows into a runtime
         // "vtable miss in std/core.Display.to_string".
         receiver_idx :: receiver_slot

@@ -1,13 +1,13 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive bool
-type 4 primitive u8
-type 5 primitive i64
+type 0 scalar null
+type 1 scalar i32
+type 2 scalar string
+type 3 scalar bool
+type 4 scalar u8
+type 5 scalar i64
 type 6 struct std_core$Buffer {  }
 type 7 array 4
-type 8 primitive void
+type 8 scalar void
 type 9 union 10,0
 type 10 struct std_io$IOError { msg:2,kind:4,code:1 }
 type 11 union 10,12
@@ -15,7 +15,7 @@ type 12 array 2
 type 13 struct __defer_env_std_io_1 { cap_0:16 }
 type 14 union 10,7
 type 15 union 0,2
-type 16 primitive pointer
+type 16 scalar pointer
 type 17 union 16,0
 type 18 ref std_core$Error
 type 19 fn () -> 8

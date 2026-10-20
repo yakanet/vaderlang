@@ -1,8 +1,8 @@
 module _main
-type 0 primitive null
+type 0 scalar null
 type 1 array 2
-type 2 primitive i64
-type 3 primitive i32
+type 2 scalar i64
+type 3 scalar i32
 type 4 union 0,2
 export main 2
 

@@ -1,16 +1,16 @@
 module _main
-type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
+type 0 scalar null
+type 1 scalar i32
+type 2 scalar string
 type 3 struct snippet$Pair as "div_t" { quot:6,rem:1 }
-type 4 primitive i64
-type 5 primitive pointer
-type 6 primitive char
-type 7 primitive bool
-type 8 primitive u8
+type 4 scalar i64
+type 5 scalar pointer
+type 6 scalar char
+type 7 scalar bool
+type 8 scalar u8
 type 9 struct std_core$Buffer {  }
 type 10 array 8
-type 11 primitive void
+type 11 scalar void
 string 0 "before quot="
 string 1 " rem="
 string 2 "after quot="

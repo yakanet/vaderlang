@@ -123,7 +123,7 @@ type_tags :: fn(types: bc.BcType[], index: i32, nesting: i32) -> u8 {
     }
     t :: types[index]
     return match t {
-        is bc.BcPrimitive -> tags_of_val(t.val)
+        is bc.BcScalar -> tags_of_val(t.val)
         is bc.BcStruct | bc.BcArray | bc.BcFn -> TAGS_REF
         is bc.BcRef -> TAGS_ANY
         is bc.BcUnion -> {

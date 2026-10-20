@@ -282,7 +282,7 @@ returns_void :: fn(module: bc.BytecodeModule, type_index: i32) -> bool {
         return false
     }
     t :: module.types[type_index]
-    return t is bc.BcPrimitive && t.val == .Void
+    return t is bc.BcScalar && t.val == .Void
 }
 
 // A key with no row is served by a host impl, which always leaves one value.
@@ -320,7 +320,7 @@ struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect 
 
 import "std/testing"
 
-VIRT_HEAD :: r"module t" + "\n" + r"type 0 primitive null" + "\n" + r"type 1 primitive i32" + "\n" + r"export main 0" + "\n\n"
+VIRT_HEAD :: r"module t" + "\n" + r"type 0 scalar null" + "\n" + r"type 1 scalar i32" + "\n" + r"export main 0" + "\n\n"
 
 // Verify a one-function module whose `-> i32` body is `body` ; "" when accepted.
 rejection :: fn(body: string) -> string {

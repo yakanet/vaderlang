@@ -1,10 +1,10 @@
 module _main
-type 0 primitive null
-type 1 primitive u8
-type 2 primitive bool
-type 3 primitive i32
+type 0 scalar null
+type 1 scalar u8
+type 2 scalar bool
+type 3 scalar i32
 type 4 union 2,3,5
-type 5 primitive string
+type 5 scalar string
 type 6 union 2,3
 string 0 "x"
 export main 3
