@@ -1,0 +1,2 @@
+[6:20] error[P1036] an `is` test cannot bind a name: `v` is narrowed in place: drop `as s` and read `v`
+[7:16] error[R2006] unresolved identifier: `s`

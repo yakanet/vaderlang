@@ -19,12 +19,10 @@
 //       _ -> { return … }      }
 //   }
 //
-// Lossy policy = REFUSE : exactly two arms, no guards, the first arm an
-// `is T [as y]` (no nested sub-pattern) or a literal (→ the condition), and the
-// second arm droppable to the `else` — a `_`, a literal, or an `is T` with NO
-// `as` binding. The second arm's predicate is implied by the match's
-// exhaustiveness, so it may bind nothing its body uses ; a binding-introducing
-// second arm declines.
+// Lossy policy = REFUSE : exactly two arms, no guards, the first arm an `is T`
+// (no nested sub-pattern) or a literal (→ the condition), and the second arm
+// droppable to the `else` — a `_`, a literal, or an `is T`. The second arm's
+// predicate is implied by the match's exhaustiveness.
 
 module "vader/lsp/actions"
 

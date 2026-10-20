@@ -199,7 +199,8 @@ file_constants :: fn(decls: AST.Decl[]) -> MutableMap<i64, AST.ConstDecl> {
     out :: MutableMap<i64, AST.ConstDecl> {}
     for decl in decls {
         if decl is AST.ConstDecl {
-            if decl.value is AST.IntrinsicCallExpr as ic {
+            ic :: decl.value
+            if ic is AST.IntrinsicCallExpr {
                 if ic.name == "file" {
                     out[ic.id] = decl
                 }
@@ -377,8 +378,10 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
 // nullary call `f()` ; returns null for any other shape (the caller keeps the
 // C4001). The callee `f` is staged + executed by the `comptime_vm` pass.
 build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram, module_id: string) -> VmRequiredDecl | null {
-    if decl.value is AST.CallExpr as call {
-        if call.callee is AST.IdentExpr as callee_id {
+    call :: decl.value
+    if call is AST.CallExpr {
+        callee_id :: call.callee
+        if callee_id is AST.IdentExpr {
             if call.args.len() == 0 {
                 decl_type :: typed.decl_types[symbol.id]
                 if decl_type != null {

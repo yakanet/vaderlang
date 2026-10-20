@@ -166,16 +166,17 @@ static vader_box_t snippet_load(bool l0) {
 
 static void snippet_report(vader_box_t l0) {
     vader_box_t l1 = vader_box_null();
-    void* l2 = NULL;
-    vader_string_t l3 = 0;
+    vader_string_t l2 = 0;
+    void* l3 = NULL;
     int64_t l4, l5;
     int32_t t0;
     vader_string_t t1 = 0;
+    void* t2 = NULL;
     vader_box_t* gc_roots[2] = { &l0, &l1 };
-    void** gc_raw_roots[1] = { &l2 };
-    vader_string_t* gc_atom_roots[2] = { &l3, &t1 };
+    void** gc_raw_roots[2] = { &l3, &t2 };
+    vader_string_t* gc_atom_roots[2] = { &l2, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 25 "tests/snippets/async_fallible/_main.vader"
@@ -188,21 +189,21 @@ static void snippet_report(vader_box_t l0) {
 #line 27 "tests/snippets/async_fallible/_main.vader"
     if (!(l1.tag == 8u)) {
 #line 28 "tests/snippets/async_fallible/_main.vader"
-        l2 = (void*) vader_buffer_new((size_t) INT64_C(24));
+        l3 = (void*) vader_buffer_new((size_t) INT64_C(24));
         l4 = INT64_C(0);
-        l4 = std_core_write_string_at(l2, l4, 3u);
+        l4 = std_core_write_string_at(l3, l4, 3u);
         t0 = ((int32_t) l1.payload.i);
         l5 = ((int64_t) (int32_t) t0);
-        l4 = std_core_write_int(l2, l4, l5);
-        t1 = std_core_finish_buffer(l2, l4);
+        l4 = std_core_write_int(l3, l4, l5);
+        t1 = std_core_finish_buffer(l3, l4);
         std_io_println__string(t1);
 #line 24 "tests/snippets/async_fallible/_main.vader"
         { vader_gc_top = gc_frame.prev; return; }
 #line 27 "tests/snippets/async_fallible/_main.vader"
     }
-    l2 = l1.payload.obj;
-    l3 = ((vader_struct_snippet_LoadError_t*) l2)->f_reason;
-    t1 = concat_2(2u, l3);
+    t2 = l1.payload.obj;
+    l2 = ((vader_struct_snippet_LoadError_t*) t2)->f_reason;
+    t1 = concat_2(2u, l2);
     std_io_println__string(t1);
     { vader_gc_top = gc_frame.prev; return; }
 }

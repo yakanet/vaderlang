@@ -66,7 +66,7 @@ const VADER_SELF_EMIT = new Set<string>([
   "expr_bodied_fn", "expr_bodied_recursive_typed", "field_narrowing",
   "file_decorator", "for_range", "gc_survival", "generic_helper_chain",
   "generic_struct", "generic_type_alias", "hello", "i64_const_width",
-  "if_is_as_bind", "if_is_field_after_narrow", "if_is_narrow", "if_null_narrow",
+  "if_is_field_after_narrow", "if_is_narrow", "if_null_narrow",
   "if_without_else_stmt", "implicit_dot_variant", "in_range_element",
   "interpolation", "intrinsic_field_access", "io_roundtrip", "is_union_runtime",
   "iter_coerce_method_arg", "iterator_terminals", "json_basics", "lambda_no_fn",

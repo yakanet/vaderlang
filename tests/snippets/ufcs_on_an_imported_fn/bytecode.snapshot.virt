@@ -72,10 +72,10 @@ export main 0
 fn 0 snippet$main () -> i32
   local path string
   local wrote any
-  local e ref
-  local $field_11 string
+  local $field_10 string
+  local __buf_0 ref
   local __off_1 i64
-  local $call_27 i64
+  local $call_25 i64
   call 9   ; std_io$temp_dir
   string.const 0   ; "/vader_ufcs_import_probe"
   call 1   ; concat_2
@@ -87,12 +87,11 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 1   ; wrote
     ref.cast 11   ; std_io$IOError
-    local.set 2   ; e
-    local.field 2 11 0   ; e std_io$IOError.msg
+    struct.get 11 0   ; std_io$IOError.msg
     ref.cast 2   ; string
-    local.set 3   ; $field_11
+    local.set 2   ; $field_10
     string.const 2   ; "setup failed: "
-    local.get 3   ; $field_11
+    local.get 2   ; $field_10
     call 1   ; concat_2
     call 21   ; std_io$println__string
     return.lit i32.const 1
@@ -103,33 +102,31 @@ fn 0 snippet$main () -> i32
   local.tee 1   ; wrote
   type_check 2   ; string
   if $L1 void
-    local.get 1   ; wrote
-    ref.cast 2   ; string
-    local.set 3   ; $field_11
     i64.const 37
     buffer.new
-    local.set 2   ; e
+    local.set 3   ; __buf_0
     i64.const 0
     local.set 4   ; __off_1
-    local.get 2   ; e
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
     string.const 3   ; "defaulted: "
     call 4   ; std_core$write_string_at
     local.set 4   ; __off_1
-    local.get 3   ; $field_11
+    local.get 1   ; wrote
+    ref.cast 2   ; string
     call 2   ; std_core$len
-    local.set 5   ; $call_27
-    local.get 2   ; e
+    local.set 5   ; $call_25
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
-    local.get 5   ; $call_27
+    local.get 5   ; $call_25
     call 5   ; std_core$write_int
     local.set 4   ; __off_1
-    local.get 2   ; e
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
     string.const 4   ; " bytes"
     call 4   ; std_core$write_string_at
     local.set 4   ; __off_1
-    local.get 2   ; e
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
     call 3   ; std_core$finish_buffer
     call 21   ; std_io$println__string
@@ -137,36 +134,32 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   i64.const 4
   call 11   ; std_io$read_file_string
+  local.tee 1   ; wrote
   type_check 11   ; std_io$IOError
   if $L2 void
-    local.get 0   ; path
-    i64.const 4
-    call 11   ; std_io$read_file_string
+    local.get 1   ; wrote
     ref.cast 11   ; std_io$IOError
-    local.set 2   ; e
-    local.field 2 11 0   ; e std_io$IOError.msg
+    struct.get 11 0   ; std_io$IOError.msg
     ref.cast 2   ; string
-    local.set 3   ; $field_11
+    local.set 2   ; $field_10
     string.const 5   ; "bound 4:   "
-    local.get 3   ; $field_11
+    local.get 2   ; $field_10
     call 1   ; concat_2
     call 21   ; std_io$println__string
   end $L2
   local.get 0   ; path
   i64.const 4
   call 11   ; std_io$read_file_string
+  local.tee 1   ; wrote
   type_check 11   ; std_io$IOError
   if $L3 void
-    local.get 0   ; path
-    i64.const 4
-    call 11   ; std_io$read_file_string
+    local.get 1   ; wrote
     ref.cast 11   ; std_io$IOError
-    local.set 2   ; e
-    local.field 2 11 0   ; e std_io$IOError.msg
+    struct.get 11 0   ; std_io$IOError.msg
     ref.cast 2   ; string
-    local.set 3   ; $field_11
+    local.set 2   ; $field_10
     string.const 6   ; "named 4:   "
-    local.get 3   ; $field_11
+    local.get 2   ; $field_10
     call 1   ; concat_2
     call 21   ; std_io$println__string
   end $L3
@@ -177,8 +170,7 @@ fn 0 snippet$main () -> i32
   if $L4 void
     local.get 1   ; wrote
     ref.cast 11   ; std_io$IOError
-    local.set 2   ; e
-    local.field 2 11 0   ; e std_io$IOError.msg
+    struct.get 11 0   ; std_io$IOError.msg
     ref.cast 2   ; string
     local.set 0   ; path
     string.const 7   ; "cleanup failed: "

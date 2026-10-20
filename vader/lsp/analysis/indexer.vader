@@ -18,8 +18,8 @@
 //     namespace aliases in `namespace_aliases`, the wildcard paths and the
 //     names their modifier lists drop in `wildcards`.
 //
-//   * `as` bindings — `if x is T as y` (scoped to the then-block) and
-//     `match e as y` (scoped to the match), declared at their name token.
+//   * `as` bindings — `match e as y`, scoped to the match and declared at its
+//     name token.
 //
 // Lambda captures and pattern destructuring inside match arms aren't indexed
 // yet.
@@ -250,8 +250,10 @@ lj_expr :: fn(e: Expr, stack: LjFrame[], out: LoopJump[]) -> void {
 // style, infinite, `_`, or a `for [k, v]` destructure) — those are targeted by
 // a label, not a single variable.
 lj_for_binding :: fn(f: ForStmt) -> string | null {
-    if f.form is InFor as i {
-        if i.loop_var is NamedVar as nv {
+    i :: f.form
+    if i is InFor {
+        nv :: i.loop_var
+        if nv is NamedVar {
             if nv.name != "_" { return nv.name }
         }
     }
@@ -747,13 +749,6 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
         }
         is IfExpr -> {
             ix_walk_expr(e.cond, source, entries)
-            if e.cond is BinaryExpr as cond {
-                alias :: cond.bind_as
-                if alias != null {
-                    sig :: local_sig(alias.name, type_expr_slice(cond.right, source), 0, 0, source)
-                    entries.push(binding_entry(alias.name, .Local, alias.span, e.then_block.span, sig))
-                }
-            }
             ix_walk_block(e.then_block, source, entries)
             match e.else_branch as ei {
                 is null        -> {}

@@ -1849,7 +1849,8 @@ tag_equals :: fn(tag: CExpression, type_id: i32) -> CExpression =
 float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpression {
     parts: CExpression[]: []
     for i in 0..<types.len() {
-        if types[i] is BcScalar as p {
+        p :: types[i]
+        if p is BcScalar {
             if is_float_val(p.val) {
                 parts.push(tag_equals(tag_expr, i32(i)))
             }
@@ -2067,7 +2068,8 @@ find_layout_siblings :: fn(types: BcType[], struct_idx: i32) -> i32[] {
             if i32(i) == struct_idx {
                 continue
             }
-            if types[i] is BcStruct as cand {
+            cand :: types[i]
+            if cand is BcStruct {
                 same_group :: et.symbol_id >= 0 && cand.symbol_id == et.symbol_id || is_tuple && "__Tuple" in cand.name
                 if same_group && fields_are_layout_siblings(types, et, cand) {
                     out.push(i32(i))

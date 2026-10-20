@@ -65,7 +65,6 @@ export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeE
                 .op = expr.op,
                 .left = substitute_type_expr(expr.left, subst),
                 .right = substitute_type_expr(expr.right, subst),
-                .bind_as = expr.bind_as,
             }
         }
         is AST.FnTypeExpr -> {

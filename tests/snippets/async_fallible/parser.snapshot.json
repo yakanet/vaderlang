@@ -430,8 +430,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "LoadError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -460,7 +459,7 @@
                                     "kind": "FieldExpr",
                                     "target": {
                                       "kind": "IdentExpr",
-                                      "name": "e"
+                                      "name": "r"
                                     },
                                     "field": "reason"
                                   }

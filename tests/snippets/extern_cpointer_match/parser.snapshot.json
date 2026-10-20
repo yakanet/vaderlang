@@ -230,8 +230,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -260,7 +259,7 @@
                                     "kind": "FieldExpr",
                                     "target": {
                                       "kind": "IdentExpr",
-                                      "name": "e"
+                                      "name": "wrote"
                                     },
                                     "field": "msg"
                                   }

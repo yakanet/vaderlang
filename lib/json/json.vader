@@ -2,7 +2,7 @@
 //
 // `JsonValue` is the tagged union of every JSON shape. `parse` returns
 // `JsonValue | JsonError` ; parse failures surface as the `JsonError` variant,
-// propagated by an explicit `is JsonError as e { return e }` narrowing guard.
+// propagated by an explicit `if e is JsonError { return e }` narrowing guard.
 // `stringify` and `stringify_pretty` build a string via std/string_builder.
 //
 // Numbers are stored as `f64` for MVP — fine for the compiler's use cases
@@ -249,7 +249,8 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 /// @return   the decoded string body.
 /// @error    `JsonError` on unterminated input or a bad escape.
 parse_string :: fn(p: Parser) -> string | JsonError {
-    if expect_byte(p, '"') is JsonError as e { return e }
+    opening :: expect_byte(p, '"')
+    if opening is JsonError { return opening }
     start :: p.pos
     for scan in p.pos..<p.src.byte_len() {
         b :: p.src.byte_at(scan)
@@ -383,7 +384,8 @@ decode_unicode_escape :: fn(p: Parser, sb: StringBuilder) -> bool {
 // ---- array parser ---------------------------------------------------------
 
 parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
-    if expect_byte(p, '[') is JsonError as e { return e }
+    opening :: expect_byte(p, '[')
+    if opening is JsonError { return opening }
     items: JsonValue[]: []
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == ']' {
@@ -416,7 +418,8 @@ parse_array :: fn(p: Parser, depth: i32) -> JsonArray | JsonError {
 // ---- object parser --------------------------------------------------------
 
 parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
-    if expect_byte(p, '{') is JsonError as e { return e }
+    opening :: expect_byte(p, '{')
+    if opening is JsonError { return opening }
     entries :: MutableMap<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
@@ -428,7 +431,8 @@ parse_object :: fn(p: Parser, depth: i32) -> JsonObject | JsonError {
         key :: parse_string(p)
         if key is JsonError { return key }
         skip_ws(p)
-        if expect_byte(p, ':') is JsonError as e { return e }
+        colon :: expect_byte(p, ':')
+        if colon is JsonError { return colon }
         value :: parse_value(p, depth + 1)
         if value is JsonError { return value }
         entries[key] = value

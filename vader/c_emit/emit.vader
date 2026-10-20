@@ -344,7 +344,8 @@ emit_mirrored_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     forwards: CTopLevel[]: []
     definitions: CTopLevel[]: []
     for i in 0..<ctx.module.types.len() {
-        if ctx.module.types[i] is BcStruct as s {
+        s :: ctx.module.types[i]
+        if s is BcStruct {
             if s.c_name != "" {
                 forwards.push(CStructForward { .name = ctx.struct_c_names[i] })
                 definitions.push(struct_definition(ctx, s, i))
@@ -369,7 +370,8 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     forwards: CTopLevel[]: []
     definitions: CTopLevel[]: []
     for i in 0..<ctx.module.types.len() {
-        if ctx.module.types[i] is BcStruct as s {
+        s :: ctx.module.types[i]
+        if s is BcStruct {
             if s.c_name == "" || !ctx.split {
                 forwards.push(CStructForward { .name = ctx.struct_c_names[i] })
                 definitions.push(struct_definition(ctx, s, i))
@@ -758,7 +760,8 @@ emit_data_value :: fn(
         type_id :: type_id_for_struct_symbol(ctx.module.types, v.symbol_id)
         type :: "struct ${ctx.struct_c_names[type_id]}"
         members: CExpression[]: [object_header(unsigned(i64(type_id)))]
-        if ctx.module.types[type_id] is BcStruct as bcs {
+        bcs :: ctx.module.types[type_id]
+        if bcs is BcStruct {
             for k in 0..<v.fields.len() {
                 field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
                 members.push(
@@ -875,7 +878,8 @@ box_slot :: fn(
 // Type-table index of the scalar a baked number of `kind` is, or 0.
 scalar_tag :: fn(types: BcType[], kind: ArrayKind) -> i32 {
     for i in 0..<types.len() {
-        if types[i] is BcScalar as p {
+        p :: types[i]
+        if p is BcScalar {
             if p.val != .Pointer && array_kind_of_val(p.val) == kind { return i32(i) }
         }
     }
@@ -915,7 +919,8 @@ boxed_string :: fn(tag: i32, atom: i32) -> CExpression = initializer_list([
 // arrays store at the repr width), or Boxed for struct / string / array elements.
 element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
     if elements.len() == 0 { return .Boxed }
-    if elements[0] is BcValPrim as p { return p.kind }
+    p :: elements[0]
+    if p is BcValPrim { return p.kind }
     return .Boxed
 }
 
@@ -934,7 +939,8 @@ type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
 // Type-table index of a `BcStruct` by display name, or 0 (nested-array element).
 type_index_for_name :: fn(types: BcType[], name: string) -> i32 {
     for i in 0..<types.len() {
-        if types[i] is BcStruct as s {
+        s :: types[i]
+        if s is BcStruct {
             if struct_c_name(s.name) == struct_c_name(name) { return i32(i) }
         }
     }
@@ -944,7 +950,8 @@ type_index_for_name :: fn(types: BcType[], name: string) -> i32 {
 // Type-table index of the `BcArray` whose element is `elem_index`, or 0.
 array_type_index_for_element :: fn(types: BcType[], elem_index: i32) -> i32 {
     for i in 0..<types.len() {
-        if types[i] is BcArray as ar {
+        ar :: types[i]
+        if ar is BcArray {
             if ar.element == elem_index { return i32(i) }
         }
     }

@@ -327,8 +327,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "Error"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -357,7 +356,7 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "e"
+                                    "name": "r"
                                   },
                                   "field": "message"
                                 },

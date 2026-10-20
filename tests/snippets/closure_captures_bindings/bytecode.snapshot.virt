@@ -12,7 +12,7 @@ type 9 struct __lambda_env_snippet_5 { cap_0:2,cap_1:2 }
 type 10 struct __lambda_env_snippet_7 { cap_0:2,cap_1:23 }
 type 11 struct __lambda_env_snippet_9 { cap_0:2,cap_1:24 }
 type 12 struct __lambda_env_snippet_11 { cap_0:25,cap_1:2 }
-type 13 struct __lambda_env_snippet_13 { cap_0:25 }
+type 13 struct __lambda_env_snippet_13 { cap_0:4 }
 type 14 struct __lambda_env_snippet_15 { cap_0:2 }
 type 15 struct snippet$__genstate_offset { s0:2,s1:26,s2:2,state:2 }
 type 16 struct __Tuple_i32_u8_99ae0d29 { _0:2,_1:17 }
@@ -57,10 +57,9 @@ type 54 array 29
 type 55 array 3
 type 56 array 24
 type 57 struct $Cell_i32 { value:2 }
-type 58 struct "$Cell_Struct#snippet.Leaf<>" { value:5 }
-type 59 ref std_core$Iterator
-type 60 ref __genstate_indexed
-type 61 ref __genstate_array_iter
+type 58 ref std_core$Iterator
+type 59 ref __genstate_indexed
+type 60 ref __genstate_array_iter
 string 0 "four"
 string 1 "array "
 string 2 "tuple "
@@ -69,7 +68,7 @@ string 4 "fused "
 string 5 "lazy "
 string 6 "rest "
 string 7 "reassigned "
-string 8 "alias "
+string 8 "narrowed "
 string 9 "generator "
 string 10 "combinator "
 string 11 "="
@@ -357,18 +356,17 @@ fn 7 snippet$reassigned () -> i32
   return
 end
 
-fn 8 snippet$from_alias (any) -> i32
+fn 8 snippet$from_narrowed (any) -> i32
+  local picked any
   local.get 0   ; arg 0
   call 1   ; snippet$pick
+  local.tee 1   ; picked
   type_check 5   ; snippet$Leaf
   if $L0 void
   else
     return.lit i32.const 0
   end $L0
-  local.get 0   ; arg 0
-  call 1   ; snippet$pick
-  ref.cast 5   ; snippet$Leaf
-  struct.new 58   ; $Cell_Struct#snippet.Leaf<>
+  local.get 1   ; picked
   struct.new 13   ; __lambda_env_snippet_13
   call 19   ; __lambda_snippet_12
   return
@@ -654,19 +652,19 @@ fn 12 snippet$main () -> i32
   local.get 1   ; __off_1
   call 32   ; std_core$finish_buffer
   call 40   ; std_io$println__string
-  i64.const 26
+  i64.const 29
   buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  string.const 8   ; "alias "
+  string.const 8   ; "narrowed "
   call 33   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 6
   struct.new 5   ; snippet$Leaf
-  call 8   ; snippet$from_alias
+  call 8   ; snippet$from_narrowed
   i32.to_i64
   local.set 2   ; $cast_8
   local.get 0   ; __buf_0
@@ -852,7 +850,7 @@ end
 
 fn 19 __lambda_snippet_12 (ref) -> i32
   local.field 0 13 0   ; arg 0 __lambda_env_snippet_13.cap_0
-  struct.get 58 0   ; $Cell_Struct#snippet.Leaf<>.value
+  ref.cast 5   ; snippet$Leaf
   struct.get 5 0   ; snippet$Leaf.v
   ref.cast 2   ; i32
   return

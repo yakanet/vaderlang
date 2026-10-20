@@ -289,7 +289,8 @@ impl_member_arg_types :: fn(
             found = m
         }
     }
-    if found.ty is FnType as ft { return ft.params }
+    ft :: found.ty
+    if ft is FnType { return ft.params }
     return []
 }
 

@@ -35,7 +35,7 @@ infer_ident :: fn(e: AST.IdentExpr, typed: TypedProgram) -> Type {
     redirected :: declared_symbol(sym, typed)
     static_ty :: type_of_symbol(redirected, typed)
     // Consult `narrow.vader` : if a flow-sensitive narrowing is active
-    // for this symbol (e.g. inside the then-branch of `if x is T as a`),
+    // for this symbol (e.g. inside the then-branch of `if x is T`),
     // return the narrowed type instead of the binding's static type.
     return narrow_for_binding(typed, redirected.id, static_ty)
 }

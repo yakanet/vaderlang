@@ -69,31 +69,31 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is PrimitiveType  -> b is PrimitiveType && a.name == b.name
     // Two ranges are equal by their bounds, whatever their names.
     is RangeType      -> b is RangeType && same_interval(a.bounds, b.bounds)
-    is TypeParamType  -> if b is TypeParamType as bx { a.symbol.id == bx.symbol.id } else { false }
-    is InferVar       -> if b is InferVar as bx { a.id == bx.id } else { false }
+    is TypeParamType  -> b is TypeParamType && a.symbol.id == b.symbol.id
+    is InferVar       -> b is InferVar && a.id == b.id
     // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
     // for enum names ; treat it as equivalent to the real `EnumType` so
     // body-time assignability (annotation vs inferred) doesn't fight the
     // placeholder/proper distinction.
-    is EnumType  -> if b is EnumType as bx {
-        a.symbol.id == bx.symbol.id
+    is EnumType  -> if b is EnumType {
+        a.symbol.id == b.symbol.id
     } else if b is StructType {
         b.symbol.id == a.symbol.id
     } else { false }
-    is StructType  -> if b is StructType as bx {
-        nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args)
+    is StructType  -> if b is StructType {
+        nominal_eq(a.symbol.id, a.args, b.symbol.id, b.args)
     } else if b is EnumType {
         a.symbol.id == b.symbol.id
     } else { false }
-    is TraitType -> if b is TraitType as bx { nominal_eq(a.symbol.id, a.args, bx.symbol.id, bx.args) } else { false }
-    is ArrayType -> if b is ArrayType as bx { equals_type(a.element, bx.element) } else { false }
-    is TupleType -> if b is TupleType as bx { type_list_equals(a.elements, bx.elements) } else { false }
-    is FnType    -> if b is FnType as bx { type_list_equals(a.params, bx.params) && equals_type(a.return_type, bx.return_type) } else { false }
-    is UnionType -> if b is UnionType as bx { type_list_equals(a.variants, bx.variants) } else { false }
+    is TraitType -> b is TraitType && nominal_eq(a.symbol.id, a.args, b.symbol.id, b.args)
+    is ArrayType -> b is ArrayType && equals_type(a.element, b.element)
+    is TupleType -> b is TupleType && type_list_equals(a.elements, b.elements)
+    is FnType    -> b is FnType && type_list_equals(a.params, b.params) && equals_type(a.return_type, b.return_type)
+    is UnionType -> b is UnionType && type_list_equals(a.variants, b.variants)
     // Distinct (newtype) types : nominal identity by symbol id. A distinct
     // type equals only itself, never its backing primitive nor another
     // distinct over the same backing — that's the whole point.
-    is DistinctType  -> if b is DistinctType as bx { a.symbol.id == bx.symbol.id } else { false }
+    is DistinctType  -> b is DistinctType && a.symbol.id == b.symbol.id
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {

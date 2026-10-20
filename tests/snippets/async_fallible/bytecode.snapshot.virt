@@ -53,10 +53,10 @@ end
 
 fn 2 snippet$report (any) -> void
   local r any
-  local e ref
-  local $field_10 string
+  local $field_8 string
+  local __buf_0 ref
   local __off_1 i64
-  local $cast_20 i64
+  local $cast_18 i64
   local.get 0   ; arg 0
   virtual.call 1 std_core$Async.resume
   local.tee 1   ; r
@@ -72,10 +72,10 @@ fn 2 snippet$report (any) -> void
   else
     i64.const 24
     buffer.new
-    local.set 2   ; e
+    local.set 3   ; __buf_0
     i64.const 0
     local.set 4   ; __off_1
-    local.get 2   ; e
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
     string.const 2   ; "ok: "
     call 8   ; std_core$write_string_at
@@ -83,13 +83,13 @@ fn 2 snippet$report (any) -> void
     local.get 1   ; r
     ref.cast 5   ; i32
     i32.to_i64
-    local.set 5   ; $cast_20
-    local.get 2   ; e
+    local.set 5   ; $cast_18
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
-    local.get 5   ; $cast_20
+    local.get 5   ; $cast_18
     call 9   ; std_core$write_int
     local.set 4   ; __off_1
-    local.get 2   ; e
+    local.get 3   ; __buf_0
     local.get 4   ; __off_1
     call 7   ; std_core$finish_buffer
     call 12   ; std_io$println__string
@@ -97,12 +97,11 @@ fn 2 snippet$report (any) -> void
   end $L1
   local.get 1   ; r
   ref.cast 8   ; snippet$LoadError
-  local.set 2   ; e
-  local.field 2 8 0   ; e snippet$LoadError.reason
+  struct.get 8 0   ; snippet$LoadError.reason
   ref.cast 12   ; string
-  local.set 3   ; $field_10
+  local.set 2   ; $field_8
   string.const 1   ; "err: "
-  local.get 3   ; $field_10
+  local.get 2   ; $field_8
   call 6   ; concat_2
   call 12   ; std_io$println__string
   return

@@ -200,12 +200,11 @@ fn 2 snippet$main () -> i32
   string.const 8   ; "ten"
   string.const 9   ; "twenty"
   array.new 12 2   ; string[]
-  local.tee 0   ; cells
   call 1   ; snippet$first_name
+  local.tee 4   ; x
   type_check 3   ; string
   if $L5 void
-    local.get 0   ; cells
-    call 1   ; snippet$first_name
+    local.get 4   ; x
     ref.cast 3   ; string
     local.set 3   ; $call_17
     string.const 10   ; "widened argument: "

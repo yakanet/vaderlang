@@ -17,8 +17,8 @@ build :: fn(args: string[]) -> i32 {
     ctx.out = "app"
     rounds := 0
     for msg in ctx.messages() {
-        if msg is PhaseMessage as p {
-            if p.phase == .Typechecked {
+        if msg is PhaseMessage {
+            if msg.phase == .Typechecked {
                 rounds += 1
                 ctx.emit_module("gen/tick", "export tick_${rounds} :: fn() -> i32 = ${rounds}")
             }

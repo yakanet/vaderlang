@@ -21,7 +21,7 @@ build :: fn(args: string[]) -> i32 {
 
     exit := 0
     for msg in ctx.messages() {
-        if msg is TypecheckedMessage as t {
+        if msg is TypecheckedMessage {
             // Every typed module is yielded, stdlib included — which modules
             // are "this project" is the driver's call.
             //
@@ -29,20 +29,20 @@ build :: fn(args: string[]) -> i32 {
             // carried the loader's filesystem key instead, this matched nothing
             // and the rule ran over the stdlib too — so the committed
             // expectation showing no `std/…` report is what pins that fix.
-            if t.module_name.starts_with("std/") {
+            if msg.module_name.starts_with("std/") {
                 continue
             }
-            for d in t.declarations {
-                if d is AST.StructDecl as s {
-                    first :: s.name[0..<1]
+            for d in msg.declarations {
+                if d is AST.StructDecl {
+                    first :: d.name[0..<1]
                     if first.to_upper() != first {
-                        ctx.report(s.name_span, "struct `${s.name}` should be PascalCase")
+                        ctx.report(d.name_span, "struct `${d.name}` should be PascalCase")
                     }
                 }
             }
         }
-        if msg is CompleteMessage as c {
-            exit = c.code
+        if msg is CompleteMessage {
+            exit = msg.code
         }
     }
 

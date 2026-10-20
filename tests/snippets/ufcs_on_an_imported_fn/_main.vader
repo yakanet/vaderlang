@@ -10,25 +10,27 @@ import "std/io"
 main :: fn() -> i32 {
     path :: "${temp_dir()}/vader_ufcs_import_probe"
     wrote :: write_file_string(path, "0123456789")
-    if wrote is IOError as e {
-        println("setup failed: ${e.msg}")
+    if wrote is IOError {
+        println("setup failed: ${wrote.msg}")
         return 1
     }
     // Defaulted: the ceiling comes from the declaration, in the other module.
     r :: path.read_file_string()
-    if r is string as s {
-        println("defaulted: ${s.len()} bytes")
+    if r is string {
+        println("defaulted: ${r.len()} bytes")
     }
     // Explicit, then named — both through the same dispatch.
-    if path.read_file_string(4) is IOError as e {
-        println("bound 4:   ${e.msg}")
+    bound :: path.read_file_string(4)
+    if bound is IOError {
+        println("bound 4:   ${bound.msg}")
     }
-    if path.read_file_string(max_bytes = 4) is IOError as e {
-        println("named 4:   ${e.msg}")
+    named :: path.read_file_string(max_bytes = 4)
+    if named is IOError {
+        println("named 4:   ${named.msg}")
     }
     removed :: remove_file(path)
-    if removed is IOError as e {
-        println("cleanup failed: ${e.msg}")
+    if removed is IOError {
+        println("cleanup failed: ${removed.msg}")
     }
     return 0
 }

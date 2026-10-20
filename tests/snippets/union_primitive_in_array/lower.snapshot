@@ -57,9 +57,9 @@
           }
       }
       names: string[] = ["ten", "twenty"] :string[]
-      if snippet.first_name(names) is string {
-          n: string = string(snippet.first_name(names))
-          std.io.println<string>(concat_2("widened argument: ", n))
+      first: null | string = snippet.first_name(names)
+      if first is string {
+          std.io.println<string>(concat_2("widened argument: ", string(first)))
       }
       return 0
   }

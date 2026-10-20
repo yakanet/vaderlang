@@ -27,8 +27,8 @@ main :: fn() -> i32 {
     // Explicit type args : `U | E` can't be inferred from the union (which side
     // is which is ambiguous), same as `try_join_all`.
     r :: await join_any<string, Boom>([fail_fast(), win_slow()])
-    if r is Error as e {
-        println("all failed: ${e.message()}")
+    if r is Error {
+        println("all failed: ${r.message()}")
     } else {
         println("first success: ${r}")
     }

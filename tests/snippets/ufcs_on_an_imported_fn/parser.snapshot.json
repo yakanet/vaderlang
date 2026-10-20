@@ -109,8 +109,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -139,7 +138,7 @@
                                     "kind": "FieldExpr",
                                     "target": {
                                       "kind": "IdentExpr",
-                                      "name": "e"
+                                      "name": "wrote"
                                     },
                                     "field": "msg"
                                   }
@@ -199,8 +198,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "string"
-                  },
-                  "bindAs": "s"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -229,7 +227,7 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "s"
+                                    "name": "r"
                                   },
                                   "field": "len"
                                 },
@@ -251,6 +249,36 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "bound"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "path"
+                  },
+                  "field": "read_file_string"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "4n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "IfExpr",
@@ -258,31 +286,13 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "path"
-                      },
-                      "field": "read_file_string"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "4n"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "bound"
                   },
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -309,7 +319,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "e"
+                                  "name": "bound"
                                 },
                                 "field": "msg"
                               }
@@ -325,6 +335,36 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "named"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "path"
+                  },
+                  "field": "read_file_string"
+                },
+                "args": [
+                  {
+                    "name": "max_bytes",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "4n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "IfExpr",
@@ -332,31 +372,13 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "FieldExpr",
-                      "target": {
-                        "kind": "IdentExpr",
-                        "name": "path"
-                      },
-                      "field": "read_file_string"
-                    },
-                    "args": [
-                      {
-                        "name": "max_bytes",
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "4n"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "named"
                   },
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -383,7 +405,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "e"
+                                  "name": "named"
                                 },
                                 "field": "msg"
                               }
@@ -438,8 +460,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -466,7 +487,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "e"
+                                  "name": "removed"
                                 },
                                 "field": "msg"
                               }

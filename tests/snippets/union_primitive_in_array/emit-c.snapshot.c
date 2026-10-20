@@ -151,11 +151,12 @@ static int32_t snippet_main(void) {
     vader_box_t t0 = vader_box_null();
     vader_string_t t1 = 0;
     int32_t t2;
+    void* t3 = NULL;
     vader_box_t* gc_roots[2] = { &l4, &t0 };
-    void** gc_raw_roots[2] = { &l0, &l5 };
+    void** gc_raw_roots[3] = { &l0, &l5, &t3 };
     vader_string_t* gc_atom_roots[2] = { &l3, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 24 "tests/snippets/union_primitive_in_array/_main.vader"
@@ -230,20 +231,20 @@ static int32_t snippet_main(void) {
     vader_array_t* _a5_arr = vader_array_new(12u, 2u, 0u, 3u);
     vader_array_box_slots(_a5_arr->buf)[_a5_arr->offset + 1u] = vader_box_string(3u, 10u);
     vader_array_box_slots(_a5_arr->buf)[_a5_arr->offset + 0u] = vader_box_string(3u, 9u);
-    l0 = (void*) _a5_arr;
+    t3 = (void*) _a5_arr;
 #line 43 "tests/snippets/union_primitive_in_array/_main.vader"
-    t0 = snippet_first_name(l0);
-    if (t0.tag == 3u) {
-        t0 = snippet_first_name(l0);
-        l3 = t0.payload.s;
+    l4 = snippet_first_name(t3);
 #line 44 "tests/snippets/union_primitive_in_array/_main.vader"
+    if (l4.tag == 3u) {
+#line 45 "tests/snippets/union_primitive_in_array/_main.vader"
+        l3 = l4.payload.s;
         t1 = concat_2(11u, l3);
         std_io_println__string(t1);
-#line 46 "tests/snippets/union_primitive_in_array/_main.vader"
+#line 47 "tests/snippets/union_primitive_in_array/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 43 "tests/snippets/union_primitive_in_array/_main.vader"
+#line 44 "tests/snippets/union_primitive_in_array/_main.vader"
     }
-#line 46 "tests/snippets/union_primitive_in_array/_main.vader"
+#line 47 "tests/snippets/union_primitive_in_array/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

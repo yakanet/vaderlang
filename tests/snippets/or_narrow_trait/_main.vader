@@ -25,11 +25,11 @@ Refused implements Err {
 // Two variants implement the trait, one does not.
 classify :: fn(x: Timeout | Refused | string) -> i32 {
     if x is Err || x is string {
-        if x is Timeout as t {
-            return t.seconds
+        if x is Timeout {
+            return x.seconds
         }
-        if x is Refused as r {
-            return r.port
+        if x is Refused {
+            return x.port
         }
         return 0
     }

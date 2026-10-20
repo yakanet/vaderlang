@@ -34,32 +34,32 @@ build :: fn(args: string[]) -> i32 {
     points   := 0
     generated_decls := 0
     for msg in ctx.messages() {
-        if msg is TypecheckedMessage as t {
-            if t.module_name != "app" && t.module_name != "gen/describe" {
+        if msg is TypecheckedMessage {
+            if msg.module_name != "app" && msg.module_name != "gen/describe" {
                 continue
             }
-            for d in t.declarations {
-                if d is AST.StructDecl as s {
+            for d in msg.declarations {
+                if d is AST.StructDecl {
                     points += 1
-                    ctx.emit_module("gen/describe", render_standalone(s))
-                    ctx.emit_module("app", render_in_module(s))
+                    ctx.emit_module("gen/describe", render_standalone(d))
+                    ctx.emit_module("app", render_in_module(d))
                 }
-                if d is AST.FnDecl as f {
+                if d is AST.FnDecl {
                     // Only generated code declares fns in these two modules
                     // besides `main`, so this counts what came back.
-                    if f.name != "main" {
+                    if d.name != "main" {
                         generated_decls += 1
                     }
                 }
             }
         }
-        if msg is PhaseMessage as p {
-            if p.phase == .Typechecked {
+        if msg is PhaseMessage {
+            if msg.phase == .Typechecked {
                 rounds += 1
             }
         }
-        if msg is CompleteMessage as c {
-            exit = c.code
+        if msg is CompleteMessage {
+            exit = msg.code
         }
     }
 

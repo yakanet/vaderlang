@@ -898,7 +898,7 @@
       },
       {
         "kind": "FnDecl",
-        "name": "from_alias",
+        "name": "from_narrowed",
         "visibility": "private",
         "typeParams": [],
         "params": [
@@ -920,6 +920,32 @@
           "kind": "BlockExpr",
           "stmts": [
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "picked"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "pick"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "t"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "IfExpr",
@@ -927,27 +953,13 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "pick"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IdentExpr",
-                          "name": "t"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "picked"
                   },
                   "right": {
                     "kind": "IdentExpr",
                     "name": "Leaf"
-                  },
-                  "bindAs": "lf"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -971,7 +983,7 @@
                             "kind": "FieldExpr",
                             "target": {
                               "kind": "IdentExpr",
-                              "name": "lf"
+                              "name": "picked"
                             },
                             "field": "v"
                           }
@@ -1910,7 +1922,7 @@
                       "parts": [
                         {
                           "kind": "text",
-                          "value": "alias "
+                          "value": "narrowed "
                         },
                         {
                           "kind": "interp",
@@ -1918,7 +1930,7 @@
                             "kind": "CallExpr",
                             "callee": {
                               "kind": "IdentExpr",
-                              "name": "from_alias"
+                              "name": "from_narrowed"
                             },
                             "args": [
                               {

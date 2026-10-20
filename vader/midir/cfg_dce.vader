@@ -61,8 +61,7 @@ fold_moves_in_block :: fn(
         if !(ins is InstrMove) { folded.push(ins)  continue }
         if ins is InstrMove {
             if param_locals.contains(ins.src) { folded.push(ins)  continue }
-            count_opt :: use_count[ins.src]
-            count :: if count_opt is i32 as c { c } else { 0 }
+            count :: use_count[ins.src] ?? 0
             if count != 1 || move_retags(locals, ins) { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
             // Folding rewrites the producer to write `m.dst` at the

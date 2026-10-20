@@ -182,6 +182,7 @@ export ParserCode :: enum(CodeInfo) {
     DecoratorArgumentCount            { .id = "P1032", .message = "wrong number of decorator arguments" },
     DecoratorArgumentForm             { .id = "P1033", .message = "decorator argument has the wrong form" },
     CompoundAssignToPattern           { .id = "P1035", .message = "compound assignment needs a single target" },
+    IsTestBindsName                   { .id = "P1036", .message = "an `is` test cannot bind a name" },
     PatternBindsName                  { .id = "P1037", .message = "a match pattern cannot bind a name" },
     RestNotLast                       { .id = "P1038", .message = "`...rest` must be the last element" },
 }
@@ -217,7 +218,6 @@ export ResolverCode :: enum(CodeInfo) {
     DuplicateNonFnDeclInModule   { .id = "R2026", .message = "duplicate non-fn declaration across files of the same module" },
     VisibilityLeak               { .id = "R2027", .message = "exported decl references a module-private decl in its signature" },
     ExplicitCorePreludeImport    { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" },
-    AsBindingInConjunction       { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" },
     ConflictingImpl              { .id = "R2030", .message = "conflicting trait impl for the same type" },
     AmbiguousWildcardImport      { .id = "R2031", .message = "name is exported by several wildcard-imported modules" },
     PathImportedTwice            { .id = "R2032", .message = "the same path is wildcard-imported twice in one file" },

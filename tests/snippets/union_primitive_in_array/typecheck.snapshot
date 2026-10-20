@@ -54,13 +54,14 @@
   expr 42:22    SeqLitExpr     :: string[]
   expr 42:23    StringLitExpr  :: string
   expr 42:30    StringLitExpr  :: string
-  expr 43:19    IdentExpr      :: string[]
-  expr 43:29    IdentExpr      :: string
-  expr 43:5     IfExpr         :: void
-  expr 43:8     BinaryExpr     :: bool
-  expr 43:8     CallExpr       :: null | string
-  expr 43:8     IdentExpr      :: fn((null | string)[]) -> null | string
-  expr 44:17    StringLitExpr  :: string
-  expr 44:38    IdentExpr      :: string
-  expr 44:9     CallExpr       :: void
-  expr 44:9     IdentExpr      :: fn(T) -> void
+  expr 43:14    CallExpr       :: null | string
+  expr 43:14    IdentExpr      :: fn((null | string)[]) -> null | string
+  expr 43:25    IdentExpr      :: string[]
+  expr 44:17    IdentExpr      :: string
+  expr 44:5     IfExpr         :: void
+  expr 44:8     BinaryExpr     :: bool
+  expr 44:8     IdentExpr      :: null | string
+  expr 45:17    StringLitExpr  :: string
+  expr 45:38    IdentExpr      :: string
+  expr 45:9     CallExpr       :: void
+  expr 45:9     IdentExpr      :: fn(T) -> void

@@ -61,7 +61,7 @@ export or :: fn<T>(x: T | Error, d: T) -> T {
 /// @param f  computes the fallback from the error ; called only on the error path.
 /// @return   `x` narrowed to `T`, otherwise `f(err)`.
 export or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
-    if x is Error as e { return f(e) }
+    if x is Error { return f(x) }
     return x
 }
 
@@ -71,7 +71,7 @@ export or_else :: fn<T>(x: T | Error, f: fn(Error) -> T) -> T {
 /// @param f  applied to the ok value.
 /// @return   `f(x)` on success, otherwise the original error.
 export map :: fn<T, U>(x: T | Error, f: fn(T) -> U) -> U | Error {
-    if x is Error as e { return e }
+    if x is Error { return x }
     return f(x)
 }
 
@@ -82,7 +82,7 @@ export map :: fn<T, U>(x: T | Error, f: fn(T) -> U) -> U | Error {
 /// @param f  the next fallible step, applied to the ok value.
 /// @return   `f(x)` on success, otherwise the original error.
 export and_then :: fn<T, U>(x: T | Error, f: fn(T) -> U | Error) -> U | Error {
-    if x is Error as e { return e }
+    if x is Error { return x }
     return f(x)
 }
 
@@ -92,7 +92,7 @@ export and_then :: fn<T, U>(x: T | Error, f: fn(T) -> U | Error) -> U | Error {
 /// @param x  a fallible value.
 /// @return   `x` narrowed to `T` ; never returns on the error path.
 export unwrap :: fn<T>(x: T | Error) -> T {
-    if x is Error as e { panic(e.message()) }
+    if x is Error { panic(x.message()) }
     return x
 }
 

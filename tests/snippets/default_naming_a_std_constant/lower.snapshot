@@ -29,9 +29,9 @@
               std.core.finish_buffer(__buf_3, __off_4)
           } :string)
       }
-      if std.io.read_file_string(path, i64(4)) is IOError {
-          e: IOError = IOError(std.io.read_file_string(path, i64(4)))
-          std.io.println<string>(concat_2("explicit 4: ", e.msg))
+      explicit: IOError | string = std.io.read_file_string(path, i64(4))
+      if explicit is IOError {
+          std.io.println<string>(concat_2("explicit 4: ", IOError(explicit).msg))
       }
       {
           @defer_run(1)

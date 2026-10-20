@@ -35,7 +35,8 @@ infer_lambda :: fn(
     ctx :: new_fn_context(ctx_return, null)
     // A lambda is lowered inside each instance of its enclosing fn, so what keeps
     // those instances concrete from the lambda body is the enclosing fn's to keep.
-    if typed.current_fn_ctx is FnContext as enclosing {
+    enclosing :: typed.current_fn_ctx
+    if enclosing is FnContext {
         ctx.fn_id = enclosing.fn_id
     }
     // Mirror `check_fn_body`: push the lambda's ctx onto the global

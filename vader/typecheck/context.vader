@@ -76,10 +76,9 @@ new_fn_context :: fn(return_type: Type, self_type: Type | null) -> FnContext {
 // than erased (`T` → `Any`) — see `TypedProgram.fn_needs_concrete_instances`. Each
 // call site says why its construct needs the instance's real types.
 keep_instances_concrete :: fn(typed: TypedProgram) -> void {
-    if typed.current_fn_ctx is FnContext as fctx {
-        if fctx.fn_id != 0 {
-            typed.fn_needs_concrete_instances[fctx.fn_id] = true
-        }
+    fctx :: typed.current_fn_ctx ?? return
+    if fctx.fn_id != 0 {
+        typed.fn_needs_concrete_instances[fctx.fn_id] = true
     }
 }
 

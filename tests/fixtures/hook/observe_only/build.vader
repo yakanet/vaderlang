@@ -20,8 +20,8 @@ build :: fn(args: string[]) -> i32 {
         if msg is TypecheckedMessage {
             seen += 1
         }
-        if msg is PhaseMessage as p {
-            if p.phase == .BeforeEmit {
+        if msg is PhaseMessage {
+            if msg.phase == .BeforeEmit {
                 break
             }
         }

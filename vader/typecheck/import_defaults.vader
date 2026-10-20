@@ -61,7 +61,6 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
         is AST.IdentExpr -> { copy_span(n.span, from, into) }
         is AST.LetStmt -> { copy_binding_resolutions(n.binding, from, into) }
         is AST.ForStmt -> { copy_loop_var_resolutions(n.form, from, into) }
-        is AST.BinaryExpr -> { copy_alias(n.bind_as, from, into) }
         is AST.MatchExpr -> { copy_alias(n.bind_as, from, into) }
         is AST.LambdaExpr -> {
             for p in n.params {
@@ -84,7 +83,7 @@ copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram)
             | AST.FnTypeExpr | AST.AwaitExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
             | AST.YieldStmt | AST.DeferStmt | AST.DestructureAssignStmt | AST.IsPattern
             | AST.EnumVariantPattern | AST.WildcardPattern | AST.RangePattern | AST.LiteralPattern
-            | AST.OrPattern -> {}
+            | AST.OrPattern | AST.BinaryExpr -> {}
         // A default value holds no declaration.
         is AST.Decl -> {}
     }

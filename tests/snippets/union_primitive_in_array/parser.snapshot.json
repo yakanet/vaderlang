@@ -554,6 +554,32 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "first"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "first_name"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "names"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "IfExpr",
@@ -561,27 +587,13 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "first_name"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IdentExpr",
-                          "name": "names"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "first"
                   },
                   "right": {
                     "kind": "IdentExpr",
                     "name": "string"
-                  },
-                  "bindAs": "n"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -606,7 +618,7 @@
                               "kind": "interp",
                               "expr": {
                                 "kind": "IdentExpr",
-                                "name": "n"
+                                "name": "first"
                               }
                             }
                           ]

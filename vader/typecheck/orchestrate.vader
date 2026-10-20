@@ -2687,9 +2687,8 @@ walk_fn_body :: fn(
     // silently leave every skipped body at `:?` (lowerer → degraded bytecode,
     // no error).
     if mode == .ReturnsOnly && !needs_return_inference(fd) { return }
-    if fd.body is AST.BlockExpr as body {
-        check_fn_body(fd, body, typed, diags)
-    }
+    body :: fd.body ?? return
+    check_fn_body(fd, body, typed, diags)
 }
 
 // T3036 : report every trait member the impl doesn't provide, unless the trait

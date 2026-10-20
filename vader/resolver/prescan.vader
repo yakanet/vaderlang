@@ -81,7 +81,8 @@ lookup_trait_sym :: fn(
     bindings: MutableMap<string, Symbol>,
     wire_targets: ImportTargetTable,
 ) -> Symbol | null {
-    if module_symbols[decl.trait_name] is Symbol as declared {
+    declared :: module_symbols[decl.trait_name]
+    if declared is Symbol {
         return resolve_import_redirect(declared, wire_targets)
     }
     bound :: bindings[decl.trait_name] ?? return null
@@ -104,8 +105,8 @@ for_type_owner_sym :: fn(
         return resolve_import_redirect(raw, wire_targets)
     }
     if t is AST.GenericInstExpr {
-        if t.callee is AST.IdentExpr as i {
-            raw :: idents[i.span.hash()] ?? return null
+        if t.callee is AST.IdentExpr {
+            raw :: idents[t.callee.span.hash()] ?? return null
             return resolve_import_redirect(raw, wire_targets)
         }
     }
@@ -118,7 +119,7 @@ for_type_display_name :: fn(t: AST.TypeExpr) -> string {
     }
     if t is AST.IdentExpr { return t.name }
     if t is AST.GenericInstExpr {
-        if t.callee is AST.IdentExpr as i { return i.name }
+        if t.callee is AST.IdentExpr { return t.callee.name }
     }
     return "?"
 }

@@ -3,7 +3,7 @@
 // Type of `if cond { then } else { else }` is the union of branch
 // types. Surface T3019 when the condition isn't `bool`-assignable.
 //
-// Branch-condition narrowing (`if x is T as a { … }`, `x == null`,
+// Branch-condition narrowing (`if x is T { … }`, `x == null`,
 // `x.f != null`, including `&&` and `||` chains) is applied through
 // `narrow.vader` in the then/else branches ; free-numeric branch types repin via
 // `join_branch_types` ; divergent guards (`if … { return }`) narrow the
@@ -386,18 +386,6 @@ detect_is_narrow :: fn(
     }
     if cond.op != .Is { return null }
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
-    // `if <scrut> is T as a { … }` — write the bind's type into `local_types`
-    // so `IdentExpr` lookups inside the then-block resolve `a` to T. Recorded
-    // regardless of the scrutinee's shape : the binding's type is `T`,
-    // independent of whether `<scrut>` is a bare ident (narrowable below) or a
-    // field chain (`x.y is T as a`). Without this an `as`-binding off a
-    // field-chain scrutinee has no type, so field / iterable accesses on it
-    // degrade — e.g. `for d in a.items` falls to the iterator path and emits an
-    // unresolved `next`.
-    alias :: cond.bind_as
-    if alias != null {
-        typed.local_types[alias.span.hash()] = narrowed
-    }
     // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
     if cond.left is AST.IdentExpr {
         sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
@@ -419,8 +407,8 @@ detect_is_narrow :: fn(
     // `is T` on a field never narrows (only `== null` did), so a field read
     // after a divergent `if x.y is null { return }` guard degrades — the
     // `convert_function` `body :: d.body ; body.span` drop.
-    if cond.left is AST.FieldExpr as field_lhs {
-        field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
+    if cond.left is AST.FieldExpr {
+        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
         // Compose against the field's current flow-narrowed type so chained
         // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
         // resetting to the declared type (mirrors the ident path / stmt.vader).

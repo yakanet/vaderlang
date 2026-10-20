@@ -191,8 +191,8 @@ lower_call_in_type_position :: fn(
 ) -> Type {
     args: Type[]: []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
-    if e.callee is AST.IdentExpr as id {
-        target :: lookup_type_name(id, resolved) ?? return TY_UNRESOLVED
+    if e.callee is AST.IdentExpr {
+        target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
         return instantiate_named(target, args, resolved)
     }
     return TY_UNRESOLVED
@@ -213,8 +213,8 @@ lower_generic_inst :: fn(
     e: AST.GenericInstExpr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     args :: written_type_args(e.type_args, resolved, diags)
-    if e.callee is AST.IdentExpr as id {
-        target :: lookup_type_name(id, resolved) ?? return TY_UNRESOLVED
+    if e.callee is AST.IdentExpr {
+        target :: lookup_type_name(e.callee, resolved) ?? return TY_UNRESOLVED
         return instantiate_named(target, args, resolved)
     }
     return TY_UNRESOLVED

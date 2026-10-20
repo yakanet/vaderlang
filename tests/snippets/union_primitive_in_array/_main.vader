@@ -40,8 +40,9 @@ main :: fn() -> i32 {
     }
 
     names: string[]: ["ten", "twenty"]
-    if first_name(names) is string as n {
-        println("widened argument: ${n}")
+    first :: first_name(names)
+    if first is string {
+        println("widened argument: ${first}")
     }
     return 0
 }

@@ -104,23 +104,24 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
             _ :: ctx.bound.add(s.symbol.id)
             // `let L = <bare fn ref>` : record the named alias L -> S and DON'T scan
             // the value (the RHS fn ident is the alias binding, not an escaping use).
-            if s.value is LoweredIdent as v {
-                if v.symbol.kind == .Fn {
-                    ctx.aliases[s.symbol.id] = v.symbol
+            value :: s.value
+            if value is LoweredIdent {
+                if value.symbol.kind == .Fn {
+                    ctx.aliases[s.symbol.id] = value.symbol
                     return
                 }
             }
             // `let L = LoweredMakeClosure { fn_symbol, env }` : record the closure
             // alias, then scan the env (its captured idents are genuine value uses).
-            if s.value is LoweredMakeClosure as mc {
+            if value is LoweredMakeClosure {
                 ctx.closures[s.symbol.id] = ClosureAlias {
-                    .fn_sym = mc.fn_symbol,
-                    .env_type = mc.env.type,
+                    .fn_sym = value.fn_symbol,
+                    .env_type = value.env.type,
                 }
-                analyze_expr(mc.env, ctx)
+                analyze_expr(value.env, ctx)
                 return
             }
-            analyze_expr(s.value, ctx)
+            analyze_expr(value, ctx)
         }
         is LoweredAssign -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
         is LoweredCellSet -> { analyze_expr(s.target, ctx) analyze_expr(s.value, ctx) }
@@ -210,7 +211,8 @@ rewrite_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
             // first arg. `f` stops being a fn-value ; the closure is never built.
             clo :: ctx.closures[s.symbol.id]
             if clo != null && !ctx.escaped.contains(s.symbol.id) {
-                if s.value is LoweredMakeClosure as mc {
+                mc :: s.value
+                if mc is LoweredMakeClosure {
                     s.value = mc.env
                     s.type = clo.env_type
                 }
@@ -244,7 +246,8 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
     match e {
         is LoweredIdent -> {}
         is LoweredCall -> {
-            if e.callee is LoweredIdent as old {
+            old :: e.callee
+            if old is LoweredIdent {
                 for a in e.args { rewrite_expr(a, ctx) }
                 named :: ctx.aliases[old.symbol.id]
                 clo :: ctx.closures[old.symbol.id]

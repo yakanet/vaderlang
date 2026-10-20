@@ -1,5 +1,5 @@
 // A closure captures a name however it was bound — a destructuring leaf or its
-// `...rest`, an `if … is T as a` alias, a generator's parameter once the
+// `...rest`, a binding narrowed by `if … is T`, a generator's parameter once the
 // generator is fused into its loop — and reads the value the binding gave it,
 // or the one written to it since.
 module "snippet"
@@ -66,9 +66,10 @@ reassigned :: fn() -> i32 {
     return f()
 }
 
-from_alias :: fn(t: Tree) -> i32 {
-    if pick(t) is Leaf as lf {
-        f :: () -> lf.v
+from_narrowed :: fn(t: Tree) -> i32 {
+    picked :: pick(t)
+    if picked is Leaf {
+        f :: () -> picked.v
         return f()
     }
     return 0
@@ -123,7 +124,7 @@ main :: fn() -> i32 {
     println("lazy ${over_lazy_indexed()}")
     println("rest ${with_rest()}")
     println("reassigned ${reassigned()}")
-    println("alias ${from_alias(Leaf { .v = 6 })}")
+    println("narrowed ${from_narrowed(Leaf { .v = 6 })}")
     println("generator ${over_fused_generator()}")
     println("combinator ${over_fused_combinator()}")
     return 0

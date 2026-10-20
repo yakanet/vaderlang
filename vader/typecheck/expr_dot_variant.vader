@@ -66,7 +66,8 @@ infer_dot_variant :: fn(
         return found
     }
     // Nothing resolved — say which of the two reasons it was.
-    if lift_enum_placeholder(expected, typed) is EnumType as slot {
+    slot :: lift_enum_placeholder(expected, typed)
+    if slot is EnumType {
         diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
             "`${e.variant}` is not a variant of ${display_type(slot)}"))
         return TY_UNRESOLVED

@@ -6,7 +6,7 @@
 // the static type when no narrowing is in effect.
 //
 // Producers are wired : `expr_if.vader` narrows in the then/else branches of
-// `if x is T as a` / `if x == null` (idents and `expr.field` chains alike),
+// `if x is T` / `if x == null` (idents and `expr.field` chains alike),
 // `match_expr.vader` narrows per arm, and `stmt.vader` narrows on
 // early-return guards. Each pushes before the narrowed region and restores
 // via the paired `pop_*` on exit.
@@ -56,7 +56,7 @@ export NarrowSlot :: struct {
 export NarrowState :: struct {
     /// Per-binding narrowed type stack (`Symbol.id → NarrowSlot`). `push_narrow`
     /// / `pop_narrow` write when a flow-sensitive narrowing is active (inside
-    /// the then-branch of `if x is T as a`, or a match arm); readers go through
+    /// the then-branch of `if x is T`, or a match arm); readers go through
     /// `narrow_for_binding`, which falls back to the static type when no
     /// narrowing is in effect or the entry's generation is stale. Producers live
     /// in `expr_if.vader`, `match_expr.vader` and `stmt.vader`.

@@ -2,7 +2,7 @@
 //
 // Extends the top-level decl walker in `resolve.vader` with a full
 // scope-tracking walk over fn bodies, blocks, lambdas, for-loops,
-// if-is-as bindings, and match patterns. Produces a span-keyed
+// match headers, and match patterns. Produces a span-keyed
 // `AST.IdentExpr → Symbol` map that downstream consumers (the LSP today,
 // the self-host typechecker tomorrow) read instead of re-walking the
 // AST themselves.
@@ -197,9 +197,9 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
 //   W0009 — the name is already bound in the CURRENT block (redeclaration).
 //   W0008 — it shadows an outer LOCAL or PARAMETER (an enclosing non-root frame).
 // A top-level name (root frame, index 0) is intentionally NOT flagged — a local
-// may legitimately share a name with a module-level fn/type/const. Narrowing
-// binds (`is T as x`, patterns) don't route here : reusing the scrutinee's name
-// there is idiomatic, not problematic shadowing.
+// may legitimately share a name with a module-level fn/type/const. A `match`
+// header's `as x` doesn't route here : reusing the scrutinee's name there is
+// idiomatic, not problematic shadowing.
 bind_local_checked :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
     // `_` is the discard wildcard — many `_` bindings coexist by design
     // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
@@ -866,51 +866,13 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
 }
 
 walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
-    // Push a scope spanning the condition + then-block so `is T as a`
-    // bindings — minted left-to-right by `bind_cond_is_as` — resolve in any
-    // later `&&` operand and in the then-block. The else / post-if scopes
-    // don't see them (the bind only holds when the test is true). Mirrors
-    // `bind_pattern`'s IsPattern path.
-    self.scope.push()
-    self.bind_cond_is_as(e.cond, false)
+    self.walk_expr(e.cond)
     self.walk_block(e.then_block)
-    self.scope.pop()
     match e.else_branch as x {
         is null            -> {}
         is AST.IfElseIf    -> { self.walk_if(x.branch) }
         is AST.IfElseBlock -> { self.walk_block(x.block) }
     }
-}
-
-// Walk an if-condition, resolving its sub-expressions and minting any
-// `is T as a` binding into the current scope BEFORE the parts that use it
-// (later `&&` operands, the then-block). An `as` binding inside a `&&` is
-// rejected (R2029) — its scope across short-circuit operands is ambiguous —
-// but still minted so the use doesn't cascade into a spurious R2006.
-bind_cond_is_as :: fn(self: ResolveState, cond: AST.Expr, in_conjunction: bool) -> void {
-    if cond is AST.BinaryExpr {
-        if cond.op == .And {
-            self.bind_cond_is_as(cond.left, true)
-            self.bind_cond_is_as(cond.right, true)
-            return
-        }
-        if cond.op == .Is {
-            self.walk_expr(cond.left)
-            self.walk_expr(cond.right)
-            alias :: cond.bind_as
-            if alias != null {
-                if in_conjunction {
-                    self.diags.push(resolver_error(.AsBindingInConjunction, alias.span,
-                        "an `as` binding cannot appear in a `&&` condition ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`)"))
-                }
-                sym :: self.mint_local(.Binding, alias.name, alias.span)
-                self.scope.bind(alias.name, sym)
-                self.idents[alias.span.hash()] = sym
-            }
-            return
-        }
-    }
-    self.walk_expr(cond)
 }
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {

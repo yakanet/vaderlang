@@ -343,19 +343,20 @@ gb_compile_ctrl :: fn(gb: GenBuild, s: LoweredStmt, cont: i64) -> i64 {
         return gb_new_state(gb, gb_complete(gb, gb_retarget_opt(gb, s.value)))
     }
     if s is LoweredExprStmt {
-        if s.expr is LoweredIf as ie {
-            then_entry :: gb_compile_block(gb, ie.then_block, cont)
-            else_entry :: if ie.else_block == null { cont } else { gb_compile_block(gb, ie.else_block, cont) }
+        expr :: s.expr
+        if expr is LoweredIf {
+            then_entry :: gb_compile_block(gb, expr.then_block, cont)
+            else_entry :: if expr.else_block == null { cont } else { gb_compile_block(gb, expr.else_block, cont) }
             // A dispatch state: `if cond { state = then } else { state = else }`.
             branch :: LoweredIf {
-                .span = gb.span, .type = TY_VOID, .cond = gb_retarget_expr(gb, ie.cond),
+                .span = gb.span, .type = TY_VOID, .cond = gb_retarget_expr(gb, expr.cond),
                 .then_block = gb_block(gb, [gb_set_state(gb, then_entry)]),
                 .else_block = gb_block(gb, [gb_set_state(gb, else_entry)]),
             }
             return gb_new_state(gb, [LoweredExprStmt { .span = gb.span, .expr = branch }])
         }
-        if s.expr is LoweredBlock as bl {
-            return gb_compile_block(gb, bl, cont)
+        if expr is LoweredBlock {
+            return gb_compile_block(gb, expr, cont)
         }
     }
     if s is LoweredLoop {

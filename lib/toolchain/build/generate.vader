@@ -204,15 +204,15 @@ export flush_generated :: fn(ctx: BuildContext) -> string[] {
             continue
         }
         made :: create_dir(dir)
-        if made is IOError as de {
+        if made is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
-                "`${dir}` for module `${g.name}`: ${de.msg}"))
+                "`${dir}` for module `${g.name}`: ${made.msg}"))
             continue
         }
         written :: write_file_string(path, content)
-        if written is IOError as we {
+        if written is IOError {
             ctx.diagnostics.push(hook_error(.GeneratedModuleNotWritten, driver_span(ctx),
-                "`${path}`: ${we.msg}"))
+                "`${path}`: ${written.msg}"))
             continue
         }
         ctx.generated.push(path)

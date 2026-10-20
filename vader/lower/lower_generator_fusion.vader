@@ -451,8 +451,10 @@ extract_gen_source_loops :: fn(decl: AST.FnDecl) -> GenSourceLoop[] | null {
 // returned `prelude` is empty ; the caller fills it with the preceding non-loop run.
 match_source_loop :: fn(stmt: AST.Stmt, decl: AST.FnDecl) -> GenSourceLoop | null {
     if stmt is AST.ForStmt {
-        if stmt.form is AST.InFor as inf {
-            if inf.iter is AST.IdentExpr as it {
+        inf :: stmt.form
+        if inf is AST.InFor {
+            it :: inf.iter
+            if it is AST.IdentExpr {
                 for i in 0..<decl.params.len() {
                     if decl.params[i].name == it.name {
                         return GenSourceLoop {

@@ -331,7 +331,8 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 _ -> {}
             }
         }
-        if b.terminator is TermReturn as r {
+        r :: b.terminator
+        if r is TermReturn {
             for v in r.values {
                 escaping.add(v)
             }

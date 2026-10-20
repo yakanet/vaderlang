@@ -354,6 +354,40 @@
               }
             },
             {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "explicit"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "read_file_string"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "path"
+                    },
+                    "spread": false
+                  },
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "4n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
               "kind": "ExprStmt",
               "expr": {
                 "kind": "IfExpr",
@@ -361,35 +395,13 @@
                   "kind": "BinaryExpr",
                   "op": "is",
                   "left": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "read_file_string"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IdentExpr",
-                          "name": "path"
-                        },
-                        "spread": false
-                      },
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "4n"
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "kind": "IdentExpr",
+                    "name": "explicit"
                   },
                   "right": {
                     "kind": "IdentExpr",
                     "name": "IOError"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -416,7 +428,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "e"
+                                  "name": "explicit"
                                 },
                                 "field": "msg"
                               }

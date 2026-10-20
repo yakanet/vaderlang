@@ -15,8 +15,8 @@ work :: fn() -> Async<string> {
 
 main :: fn() -> i32 {
     r :: await timeout(10, work())
-    if r is Error as e {
-        println("timed out: ${e.message()}")
+    if r is Error {
+        println("timed out: ${r.message()}")
     } else {
         println("got: ${r}")
     }

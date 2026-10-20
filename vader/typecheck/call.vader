@@ -538,8 +538,9 @@ call_needs_arg_normalisation :: fn(c: AST.CallExpr, callee_ty: FnType) -> bool {
 // Returns null when no decl is reachable (fn-values, imported overloads,
 // impl-block methods) — those stay positional.
 callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
-    if c.callee is AST.IdentExpr as ie {
-        sym :: typed.resolved.idents[ie.span.hash()]
+    callee :: c.callee
+    if callee is AST.IdentExpr {
+        sym :: typed.resolved.idents[callee.span.hash()]
         // Params of the resolved declaration — but matching ARITY is not enough to
         // trust them. On an overloaded name the resolver binds the ident to the
         // PRIMARY (first-declared) sibling while `pick_overload` may have retained
@@ -566,27 +567,27 @@ callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram
                 }
             }
         }
-        picked :: overload_params_matching(ie.name, callee_ty, typed)
+        picked :: overload_params_matching(callee.name, callee_ty, typed)
         if picked != null {
             return picked
         }
         return arity_match
     }
-    if c.callee is AST.FieldExpr as fe {
+    if callee is AST.FieldExpr {
         // Genuine UFCS dispatch (the dispatched fn's own first param was stashed
         // when the FieldExpr was typed) curries away `self`.
         // The pick itself, when the dispatch could keep it: its params minus the
         // receiver, which is what lines up with the curried callee type. Beats
         // re-deriving the winner from the receiver type — the same answer, and
         // one the imported half cannot give at all.
-        chosen :: chosen_decl(typed, fe.id)
+        chosen :: chosen_decl(typed, callee.id)
         if chosen is AST.FnDecl {
             return ufcs_tail_params(chosen)
         }
         // Otherwise a namespace member call (`mod.foo(...)`) : reach the
         // export's declared params so named args + defaults fill, same as the
         // IdentExpr path above.
-        return namespace_member_params(fe, callee_ty, typed)
+        return namespace_member_params(callee, callee_ty, typed)
     }
     return null
 }
@@ -725,8 +726,8 @@ type_call :: fn(
             // positional check below to avoid double-reporting. A null result
             // (nothing to reorder, variadic, error) leaves `c.args` as it is.
             normalised = true
-            if norm is AST.CallArg[] as na {
-                c.args = na
+            if norm is AST.CallArg[] {
+                c.args = norm
             }
         }
     }

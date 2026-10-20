@@ -256,7 +256,8 @@ export class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     // float index resolves `is f32` / `is f64` downstream.
     if is_float_val(val) {
         for i in 0..<types.len() {
-            if types[i] is BcScalar as p {
+            p :: types[i]
+            if p is BcScalar {
                 if is_float_val(p.val) { return i32(i) }
             }
         }

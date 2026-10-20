@@ -258,8 +258,7 @@
                           "right": {
                             "kind": "IdentExpr",
                             "name": "Timeout"
-                          },
-                          "bindAs": "t"
+                          }
                         },
                         "then": {
                           "kind": "BlockExpr",
@@ -270,7 +269,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "t"
+                                  "name": "x"
                                 },
                                 "field": "seconds"
                               }
@@ -295,8 +294,7 @@
                           "right": {
                             "kind": "IdentExpr",
                             "name": "Refused"
-                          },
-                          "bindAs": "r"
+                          }
                         },
                         "then": {
                           "kind": "BlockExpr",
@@ -307,7 +305,7 @@
                                 "kind": "FieldExpr",
                                 "target": {
                                   "kind": "IdentExpr",
-                                  "name": "r"
+                                  "name": "x"
                                 },
                                 "field": "port"
                               }

@@ -13,9 +13,7 @@
 //   } else { …e… }          }
 //
 // Lossy = refuse : a non-`is`/`==` condition, a different scrutinee in any
-// branch, an `as` binder, or a missing final `else` all decline. An `as` over a
-// plain name has no place in the match: its arms cannot bind, and the header
-// would re-name a scrutinee that already has a name.
+// branch, or a missing final `else` all decline.
 
 module "vader/lsp/actions"
 
@@ -61,15 +59,13 @@ is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
     return chain_ok(ch)
 }
 
-// ≥ 2 conditions all discriminating the same identifier scrutinee on the left,
-// none of them binding with `as`.
+// ≥ 2 conditions all discriminating the same identifier scrutinee on the left.
 chain_ok :: fn(ch: IfChain) -> bool {
     if ch.conds.len() < 2 { return false }
     name :: scrutinee_name(ch.conds[0])
     if name == "" { return false }
     for c in ch.conds {
         if scrutinee_name(c) != name { return false }
-        if c.bind_as != null { return false }
     }
     return true
 }
@@ -77,7 +73,7 @@ chain_ok :: fn(ch: IfChain) -> bool {
 // Left-hand identifier name of a discriminating condition, or "" when the
 // condition's left operand isn't a plain identifier.
 scrutinee_name :: fn(c: AST.BinaryExpr) -> string {
-    if c.left is AST.IdentExpr as id { return id.name }
+    if c.left is AST.IdentExpr { return c.left.name }
     return ""
 }
 
@@ -178,19 +174,6 @@ test_if_to_match_converts :: fn() -> void {
     // `_ ` (wildcard arm head) — the `->` may be padded to align with the
     // longer arms, so match on the head rather than the exact `_ ->`.
     assert("_ " in out, "renders the wildcard arm from the else")
-}
-
-@test
-test_if_to_match_declines_as_binder :: fn() -> void {
-    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
-    parsed :: Parse.parse_source(src, "t.vader")
-    ifx :: tif_find_if(parsed.program.decls)
-    if ifx == null {
-        assert(false, "expected an if")
-        return
-    }
-    ctx :: ActionCtx { .source = src }
-    assert(!itm_applicable(ifx, ctx), "an `as` binder has no place in the match -> decline")
 }
 
 @test

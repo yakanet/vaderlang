@@ -1219,7 +1219,8 @@ import "std/testing"
     assert_eq(m.name, "demo")
     assert_eq(m.types.len(), 3)
     // struct fields recovered (the VM reader keeps only a count)
-    if m.types[2] is bc.BcStruct as s {
+    s :: m.types[2]
+    if s is bc.BcStruct {
         assert_eq(s.name, "Pair")
         assert_eq(s.fields.len(), 2)
         assert_eq(s.fields[0].name, "lhs")

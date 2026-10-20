@@ -730,7 +730,7 @@ coalesce_diverge_block :: fn(ctx: FnLowerCtx, s: Stmt, result: Type) -> LoweredB
 
 lower_if :: fn(ctx: FnLowerCtx, if_expr: IfExpr, type: Type) -> LoweredExpr {
     cond :: lower_expr(ctx, if_expr.cond)
-    then_block :: lower_then_with_binding(ctx, if_expr)
+    then_block :: lower_block(ctx, if_expr.then_block, false, null)
     else_block :: lower_if_else(ctx, if_expr.else_branch)
     // Else-less `if` : the body's value is unobservable (the typechecker
     // widens to `T | void`, but `void` has no representation), so force
@@ -845,34 +845,6 @@ voidify_block :: fn(block: LoweredBlock) -> LoweredBlock {
         .span = block.span, .type = TY_VOID,
         .stmts = block_stmts_with_trailing(block), .trailing = null,
     }
-}
-
-/// Prepend a `let <bind_as> = cast → T (scrut)` when the if-condition is
-/// `<scrut> is T as <bind_as>`. The binding only lives inside the
-/// then-block ; the lowering site materialises its slot once and every
-/// downstream read sees the narrowed type.
-lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock {
-    block :: lower_block(ctx, if_expr.then_block, false, null)
-    cond :: if_expr.cond
-    if !(cond is BinaryExpr) { return block }
-    if cond.op != .Is { return block }
-    alias :: cond.bind_as ?? return block
-    scrut_type :: ctx.types.expr_type(cond.left)
-    inner_type :: ctx.types.recorded_type_expr(cond.right)
-    scrut_value :: lower_expr(ctx, cond.left)
-    cast_value: LoweredExpr: if scrut_type is UnionType {
-        LoweredCast { .span = cond.span, .type = inner_type, .value = scrut_value }
-    } else {
-        scrut_value
-    }
-    // Reuse the binding symbol the resolver minted for `as a` (keyed by
-    // the `a` token, `alias.span`), so references to `a` inside the
-    // then-block — which `resolved.idents` wires to THAT symbol — resolve
-    // to this slot. A `fresh_synthetic_symbol` here mints a different id,
-    // leaving every `a` reference unresolved (build_ident → unreachable).
-    symbol :: resolve_pattern_symbol(ctx, alias.span, alias.name)
-    let_stmt :: cell_aware_let(ctx, symbol, alias.name, cast_value, inner_type, cond.span)
-    return prepend_stmts_to_block([let_stmt], block)
 }
 
 lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | null {

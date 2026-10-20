@@ -23,7 +23,8 @@ import "vader/types"
 /// couldn't represent a completed-but-void coroutine.
 async_call_result_type :: fn(c: AST.CallExpr, typed: TypedProgram, concrete_ret: Type) -> Type | null {
     async_sym :: typed.async_symbol ?? return null
-    if c.callee is AST.IdentExpr as id {
+    id :: c.callee
+    if id is AST.IdentExpr {
         sym :: typed.resolved.idents[id.span.hash()] ?? return null
         fd :: typed.fn_decls[sym.id]
         if fd is AST.FnDecl {

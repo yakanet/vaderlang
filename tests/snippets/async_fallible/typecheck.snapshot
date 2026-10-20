@@ -28,11 +28,11 @@
   expr 26:8     BinaryExpr     :: bool
   expr 26:8     IdentExpr      :: i32 | LoadError | Suspended
   expr 27:13    IdentExpr      :: LoadError
-  expr 27:30    CallExpr       :: void
-  expr 27:30    IdentExpr      :: fn(T) -> void
-  expr 27:38    StringLitExpr  :: string
-  expr 27:46    FieldExpr      :: string
-  expr 27:46    IdentExpr      :: LoadError
+  expr 27:25    CallExpr       :: void
+  expr 27:25    IdentExpr      :: fn(T) -> void
+  expr 27:33    StringLitExpr  :: string
+  expr 27:41    FieldExpr      :: string
+  expr 27:41    IdentExpr      :: LoadError
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     IdentExpr      :: i32 | LoadError

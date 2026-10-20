@@ -6,8 +6,8 @@ import "std/io"
 // trapped at runtime (`vm: reached unreachable`) because the lowerer passed
 // the union-typed target through to the inner StructPattern, so the field
 // reads landed on the union slot instead of the narrowed Point variant.
-// Fix mirrors the `is T as p` flow: insert a LoweredCast to the inner type
-// before recursing into the nested pattern.
+// The lowerer inserts a LoweredCast to the inner type before recursing into
+// the nested pattern.
 Point :: struct { x: i32, y: i32 }
 
 describe :: fn(value: Point | null) -> string {

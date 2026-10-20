@@ -1,0 +1,12 @@
+module "snippet"
+
+// An `is` test binds no name: `v` has one already, and the test narrows it in
+// place.
+text_length :: fn(v: i32 | string) -> i32 {
+    if v is string as s {
+        return s.byte_len()
+    }
+    return 0
+}
+
+main :: fn() -> i32 = text_length(1)

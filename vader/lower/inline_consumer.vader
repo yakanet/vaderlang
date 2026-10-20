@@ -171,7 +171,8 @@ is_defer :: fn(s: AST.Stmt) -> bool = s is AST.DeferStmt
 // would run its body once per element of a constant.
 loops_over :: fn(s: AST.Stmt, owner: TypedProgram, symbol: Symbol) -> bool {
     if s is AST.ForStmt {
-        if s.form is AST.InFor as form {
+        form :: s.form
+        if form is AST.InFor {
             return !s.is_comptime && names_symbol(form.iter, owner, symbol)
         }
     }
@@ -212,7 +213,7 @@ stmt_holds :: fn(s: AST.Stmt, into_loops: bool, test: fn(AST.Stmt) -> bool) -> b
         is AST.ExprStmt   -> expr_holds(s.expr, into_loops, test)
         is AST.LetStmt    -> expr_holds(s.value, into_loops, test)
         is AST.AssignStmt -> expr_holds(s.value, into_loops, test)
-        is AST.ReturnStmt -> if s.value is AST.Expr as v { expr_holds(v, into_loops, test) } else { false }
+        is AST.ReturnStmt -> s.value is AST.Expr && expr_holds(s.value, into_loops, test)
         _                 -> false
     }
 }
@@ -401,10 +402,9 @@ assign_consumed :: fn(result: Symbol, type: Type, value: LoweredExpr, span: Span
 assign_consumer_return :: fn(
     ctx: FnLowerCtx, consumer: InlineConsumer, stmt: AST.ReturnStmt, out: LoweredStmt[],
 ) -> void {
-    if stmt.value is AST.Expr as v {
-        value :: slot_result(ctx, v, lower_expr(ctx, v), consumer.result_type, stmt.span)
-        out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
-    }
+    v :: stmt.value ?? return
+    value :: slot_result(ctx, v, lower_expr(ctx, v), consumer.result_type, stmt.span)
+    out.push(assign_consumed(consumer.result, consumer.result_type, value, stmt.span))
 }
 
 /// The chain a `for … in <iter>` in an inlined consumer drains: the consumed

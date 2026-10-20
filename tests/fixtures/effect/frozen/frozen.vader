@@ -174,7 +174,4 @@ export keeps_a_failure :: fn(s: string, out: Failure[]) -> void {
         r.msg = "kept"
         out.push(r)
     }
-    if view_or_failure(s, true) is Failure as f {
-        out.push(f)
-    }
 }

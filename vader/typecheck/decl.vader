@@ -956,7 +956,8 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
         last :: d.args[d.args.len() - 1]
         if last is AST.StringLitExpr {
             if last.parts.len() == 1 {
-                if last.parts[0] is AST.StringLitText as t {
+                t :: last.parts[0]
+                if t is AST.StringLitText {
                     return t.value
                 }
             }
@@ -1159,7 +1160,8 @@ check_main_signature :: fn(
         return
     }
     if params.len() == 1 {
-        if params[0] is ArrayType as a {
+        a :: params[0]
+        if a is ArrayType {
             if primitive_name(a.element) == "string" {
                 return
             }

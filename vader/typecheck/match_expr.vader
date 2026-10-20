@@ -69,7 +69,7 @@ infer_match :: fn(
     if alias != null && alias_sym is Symbol {
         typed.local_types[alias.span.hash()] = scrut_ty
     }
-    scrut_sym_id    :: if alias_sym is Symbol as a { a.id } else { scrutinee_sym_id(scrut, typed) }
+    scrut_sym_id    :: if alias_sym is Symbol { alias_sym.id } else { scrutinee_sym_id(scrut, typed) }
     scrut_field_key :: if alias_sym is Symbol { "" } else { scrutinee_field_key(scrut, typed) }
     arm_types: Type[]: []
     bodies: AST.Expr[]: []

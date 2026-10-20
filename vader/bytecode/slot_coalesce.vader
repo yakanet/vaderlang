@@ -281,12 +281,12 @@ push_scope :: fn(kinds: string[], starts: i32[], sp: i64, kind: string, start_pc
 // True when `body[i]`, `body[i+1]` are an adjacent same-slot self-copy
 // (`local.get N ; local.tee/set N`) safe to fold. The store op must NOT be a
 // branch target : a jump landing on it arrives with a foreign stack top, where
-// the store is a real write, not a self-copy. (`is … as` can't sit inside `&&`
-// (R2029), so the get / store tests nest.)
+// the store is a real write, not a self-copy.
 foldable_self_copy :: fn(body: Op[], i: i64, n: i64, is_jump_target: bool[]) -> bool {
     if i + 1 >= n { return false }
     if is_jump_target[i + 1] { return false }
-    if body[i] is LocalGet as g {
+    g :: body[i]
+    if g is LocalGet {
         next :: body[i + 1]
         if next is LocalTee { return next.slot == g.slot }
         if next is LocalSet  { return next.slot  == g.slot }

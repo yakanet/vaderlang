@@ -160,8 +160,10 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
 try_data_pool :: fn(
     cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject,
 ) -> PooledConst | null {
-    if cd.type is ArrayType as arr_type {
-        if pool_literal_of(cd.value) is LoweredArrayLit as lit {
+    arr_type :: cd.type
+    if arr_type is ArrayType {
+        lit :: pool_literal_of(cd.value)
+        if lit is LoweredArrayLit {
             element_type_name :: representation_name(arr_type.element)
             entry :: render_data_pool_entry(lit, element_type_name)
             if entry != null {
@@ -228,8 +230,10 @@ pool_literal_of :: fn(value: LoweredExpr) -> LoweredExpr | null {
         if value.name != INTRINSIC_ARRAY_REPEAT || value.args.len() != 2 {
             return null
         }
-        if value.args[0] is LoweredArrayLit as base {
-            if value.args[1] is LoweredIntLit as count {
+        base :: value.args[0]
+        if base is LoweredArrayLit {
+            count :: value.args[1]
+            if count is LoweredIntLit {
                 if count.value <= 0 { return null }
                 elements: LoweredExpr[]: []
                 for _ in 0..<count.value {
@@ -296,7 +300,8 @@ is_bakeable_value :: fn(el: LoweredExpr) -> bool {
 // at the backend by `symbol_id` alone, which a tuple lacks and a generic shares
 // across monomorphized instances.
 is_bakeable_struct :: fn(s: LoweredStructLit) -> bool {
-    if s.type is StructType as st {
+    st :: s.type
+    if st is StructType {
         if st.args.len() > 0 { return false }
         for f in s.fields {
             if !is_bakeable_value(f.value) { return false }

@@ -391,8 +391,8 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     declared: Type = TY_UNRESOLVED
     if ann == null {
         declared = default_free_members(got)
-        if s.binding is AST.SimpleBinding as sb {
-            typed.unwritten_locals.add(sb.name_span.hash())
+        if s.binding is AST.SimpleBinding {
+            typed.unwritten_locals.add(s.binding.name_span.hash())
         }
     } else {
         declared = ann
@@ -406,7 +406,8 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     // top-level `register_alias_const` path.
     is_let_type_alias := false
     if !s.mutable && declared is TypeMetaType {
-        if s.binding is AST.SimpleBinding as sb {
+        sb :: s.binding
+        if sb is AST.SimpleBinding {
             if is_type_expr(s.value, typed.resolved) {
                 sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
                 if sym_or_null is Symbol {
@@ -484,7 +485,8 @@ check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) 
             "an assignment writes to a name, a field or an element, not to this"))
         return
     }
-    if s.target is AST.FieldExpr as fe {
+    fe :: s.target
+    if fe is AST.FieldExpr {
         if reject_field_write(fe, typed, diags) {
             return
         }
@@ -664,7 +666,8 @@ check_destructuring_assign :: fn(
     // A literal of the wrong length is refused on its count alone : checked
     // against the targets' shape it would fail once per element, and read as
     // an array it would lose its arity.
-    if s.value is AST.SeqLitExpr as lit {
+    lit :: s.value
+    if lit is AST.SeqLitExpr {
         if lit.elements.len() != s.targets.len() {
             _ :: check_expr(s.value, null, typed, diags)
             diags.push(typecheck_error(
@@ -682,7 +685,8 @@ check_destructuring_assign :: fn(
         return
     }
     for i in 0..<s.targets.len() {
-        if s.targets[i] is AST.PlaceTarget as t {
+        t :: s.targets[i]
+        if t is AST.PlaceTarget {
             check_destructure_target(t.place, elem_types[i], typed, diags)
         }
     }
@@ -1586,8 +1590,8 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
     // mirroring the `x.y == null` field path above. The divergent guard
     // `if d.body is null { return }` then flows `Block` (not `Block | null`)
     // to `body :: d.body` — the `convert_function` drop this closes.
-    if cond.left is AST.FieldExpr as field_lhs {
-        field_info :: resolve_field_chain_static(field_lhs, typed) ?? return null
+    if cond.left is AST.FieldExpr {
+        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
         current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
         narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
         return BlockNarrow {
@@ -1984,7 +1988,8 @@ test_for_in_array_narrows_binding :: fn() -> void {
 first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
     parsed :: parse_source(with_integers(src), "t.vader")
     f :: first_fn_decl(parsed.program.decls) ?? return null
-    if f.body is AST.BlockExpr as b {
+    b :: f.body
+    if b is AST.BlockExpr {
         for s in b.stmts {
             if s is AST.LetStmt {
                 if s.binding is AST.SimpleBinding {
@@ -1999,13 +2004,16 @@ first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
 first_for_in_binding_span :: fn(src: string) -> Span | null {
     parsed :: parse_source(with_integers(src), "t.vader")
     f :: first_fn_decl(parsed.program.decls) ?? return null
-    if f.body is AST.BlockExpr as b {
+    b :: f.body
+    if b is AST.BlockExpr {
         for s in b.stmts {
             if s !is AST.ForStmt {
                 continue
             }
-            if s.form is AST.InFor as inf {
-                if inf.loop_var is AST.NamedVar as nv {
+            inf :: s.form
+            if inf is AST.InFor {
+                nv :: inf.loop_var
+                if nv is AST.NamedVar {
                     return nv.span
                 }
             }

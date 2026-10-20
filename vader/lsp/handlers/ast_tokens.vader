@@ -445,7 +445,6 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
         is AST.BinaryExpr -> {
             walk_expr(e.left, out)
             walk_expr(e.right, out)
-            walk_opt_alias(e.bind_as, out)
         }
         is AST.IfExpr        -> { walk_if(e, out) }
         is AST.MatchExpr     -> { walk_match(e, out) }
@@ -530,8 +529,7 @@ walk_match :: fn(e: AST.MatchExpr, out: RawToken[]) -> void {
     }
 }
 
-// The name an `as` declares (`if e is T as x`, `match e as x`), tagged like a
-// local declaration's.
+// The name a `match e as x` header declares, tagged like a local declaration's.
 walk_opt_alias :: fn(alias: AST.AsBinding | null, out: RawToken[]) -> void {
     if alias != null {
         push_span(out, alias.span, .Variable)

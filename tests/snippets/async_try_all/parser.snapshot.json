@@ -433,8 +433,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "Error"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -463,7 +462,7 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "e"
+                                    "name": "bad"
                                   },
                                   "field": "message"
                                 },
@@ -610,8 +609,7 @@
                   "right": {
                     "kind": "IdentExpr",
                     "name": "Error"
-                  },
-                  "bindAs": "e"
+                  }
                 },
                 "then": {
                   "kind": "BlockExpr",
@@ -640,7 +638,7 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "e"
+                                    "name": "good"
                                   },
                                   "field": "message"
                                 },

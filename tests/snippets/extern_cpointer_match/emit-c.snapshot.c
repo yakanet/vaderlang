@@ -210,15 +210,15 @@ static int32_t vader_host_system_posix_sys_unlink(vader_string_t a0) {
 
 static int32_t snippet_main(void) {
     vader_string_t l0 = 0;
-    vader_string_t l3 = 0;
+    vader_string_t l2 = 0;
     vader_box_t l1 = vader_box_null();
-    void* l2 = NULL;
     vader_string_t t0 = 0;
-    vader_string_t t2 = 0;
-    void* t1;
+    vader_string_t t3 = 0;
+    void* t1 = NULL;
+    void* t2;
     vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l2 };
-    vader_string_t* gc_atom_roots[4] = { &l0, &l3, &t0, &t2 };
+    void** gc_raw_roots[1] = { &t1 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l2, &t0, &t3 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
@@ -230,10 +230,10 @@ static int32_t snippet_main(void) {
     l1 = std_io_write_file_string(l0, 2u);
 #line 36 "tests/snippets/extern_cpointer_match/_main.vader"
     if (l1.tag == 11u) {
-        l2 = l1.payload.obj;
 #line 37 "tests/snippets/extern_cpointer_match/_main.vader"
-        l3 = ((vader_struct_std_io_IOError_t*) l2)->f_msg;
-        t0 = concat_2(3u, l3);
+        t1 = l1.payload.obj;
+        l2 = ((vader_struct_std_io_IOError_t*) t1)->f_msg;
+        t0 = concat_2(3u, l2);
         std_io_println__string(t0);
 #line 38 "tests/snippets/extern_cpointer_match/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
@@ -246,8 +246,8 @@ static int32_t snippet_main(void) {
 #line 43 "tests/snippets/extern_cpointer_match/_main.vader"
         std_io_println__string(5u);
 #line 44 "tests/snippets/extern_cpointer_match/_main.vader"
-        t1 = ((void*) (intptr_t) l1.payload.i);
-        vader_host_snippet_c_fclose(t1);
+        t2 = ((void*) (intptr_t) l1.payload.i);
+        vader_host_snippet_c_fclose(t2);
 #line 42 "tests/snippets/extern_cpointer_match/_main.vader"
 #line 46 "tests/snippets/extern_cpointer_match/_main.vader"
     } else {
@@ -263,15 +263,15 @@ static int32_t snippet_main(void) {
     std_io_println__string(7u);
 #line 50 "tests/snippets/extern_cpointer_match/_main.vader"
     t0 = std_io_temp_dir();
-    t2 = concat_2(t0, 8u);
-    l1 = vader_host_snippet_c_fopen(t2, 4u);
+    t3 = concat_2(t0, 8u);
+    l1 = vader_host_snippet_c_fopen(t3, 4u);
 #line 52 "tests/snippets/extern_cpointer_match/_main.vader"
     if (l1.tag == 4u) {
 #line 53 "tests/snippets/extern_cpointer_match/_main.vader"
         std_io_println__string(9u);
 #line 54 "tests/snippets/extern_cpointer_match/_main.vader"
-        t1 = ((void*) (intptr_t) l1.payload.i);
-        vader_host_snippet_c_fclose(t1);
+        t2 = ((void*) (intptr_t) l1.payload.i);
+        vader_host_snippet_c_fclose(t2);
 #line 58 "tests/snippets/extern_cpointer_match/_main.vader"
         std_io_remove_file(l0);
 #line 59 "tests/snippets/extern_cpointer_match/_main.vader"

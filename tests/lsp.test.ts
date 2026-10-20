@@ -1857,7 +1857,7 @@ test("lsp: a trait default copied into an impl is no reference", async () => {
   expect(sites[0]!.uri.endsWith("lsp-test.vader")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
-// An `as` alias is declared by its NAME token, in both forms.
+// An `as` alias is declared by its NAME token.
 const AS_ALIAS_SOURCE = `module "lsptest"
 
 A :: struct { n: i32 }
@@ -1868,13 +1868,6 @@ make :: fn() -> A | B = A { .n = 1 }
 via_match :: fn() -> i32 = match make() as x {
     is A -> x.n
     is B -> 0
-}
-
-via_if :: fn(v: A | B) -> i32 {
-    if v is A as y {
-        return y.n
-    }
-    return 0
 }
 `;
 
@@ -1890,27 +1883,17 @@ test("lsp: an `as` alias is declared, renamed and hovered at its name", async ()
     { method: "textDocument/definition", position: { line: 8, character: 12 } },
     // 1: rename from the same use.
     { method: "textDocument/rename", position: { line: 8, character: 12 } },
-    // 2: goto-def on `y` in `return y.n` (line 14) → the `y` of `is A as y`.
-    { method: "textDocument/definition", position: { line: 14, character: 15 } },
-    // 3: rename from the same use.
-    { method: "textDocument/rename", position: { line: 14, character: 15 } },
-    // 4, 5: hover on each use.
+    // 2: hover on the use.
     { method: "textDocument/hover", position: { line: 8, character: 12 } },
-    { method: "textDocument/hover", position: { line: 14, character: 15 } },
   ]);
 
   expect((results[0]!.result as { range: RangeT }).range.start).toEqual({ line: 7, character: 43 });
-  expect((results[2]!.result as { range: RangeT }).range.start).toEqual({ line: 13, character: 17 });
-  for (const [i, name] of [[1, "x"], [3, "y"]] as const) {
-    const edits = soleFileEdits(results[i]!.result as WorkspaceEditT);
-    // Declaration + one use, and every range covers the name itself.
-    expect(edits).toHaveLength(2);
-    for (const e of edits) expect(textAt(AS_ALIAS_SOURCE, e.range)).toBe(name);
-  }
-  // A use reads the alias at the type its arm / condition narrowed it to.
-  for (const i of [4, 5]) {
-    expect((results[i]!.result as { contents: { value: string } }).contents.value).toBe("```vader\nA\n```");
-  }
+  const edits = soleFileEdits(results[1]!.result as WorkspaceEditT);
+  // Declaration + one use, and every range covers the name itself.
+  expect(edits).toHaveLength(2);
+  for (const e of edits) expect(textAt(AS_ALIAS_SOURCE, e.range)).toBe("x");
+  // A use reads the alias at the type its arm narrowed it to.
+  expect((results[2]!.result as { contents: { value: string } }).contents.value).toBe("```vader\nA\n```");
 }, { timeout: MEDIUM_BUILD });
 
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
@@ -2170,30 +2153,31 @@ test("lsp: a match header's alias hovers as its scrutinee", async () => {
   expect((results[1]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
 });
 
-const IF_ALIAS_SOURCE = `module "lsptest"
+const NARROWED_LOCAL_SOURCE = `module "lsptest"
 
 import "std/io"
 
 value :: fn() -> i32 | string = 3
 
 main :: fn() -> i32 {
-    if value() is i32 as n {
+    n :: value()
+    if n is i32 {
         println("\${n}")
     }
     return 0
 }
 `;
 
-// An `is T as x` alias hovers as the narrowed type, not as the tested value's, and
-// a use of it jumps back to the alias.
-test("lsp: an if condition's alias hovers as the narrowed type", async () => {
-  const results = await driveLsp(IF_ALIAS_SOURCE, [
-    { method: "textDocument/hover", position: { line: 7, character: 25 } },
-    { method: "textDocument/definition", position: { line: 8, character: 19 } },
+// A binding an `if` tests hovers as the narrowed type inside the then-block, and a
+// use of it jumps back to the binding.
+test("lsp: a name an if narrows hovers as the narrowed type", async () => {
+  const results = await driveLsp(NARROWED_LOCAL_SOURCE, [
+    { method: "textDocument/hover", position: { line: 9, character: 19 } },
+    { method: "textDocument/definition", position: { line: 9, character: 19 } },
   ]);
   expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
   const def = results[1]!.result as Location;
-  expect(def.range.start).toEqual({ line: 7, character: 25 });
+  expect(def.range.start).toEqual({ line: 7, character: 4 });
 });
 
 const SIGNATURE_SOURCE = `module "lsptest"

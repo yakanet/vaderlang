@@ -496,8 +496,8 @@ run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
                     // resolves through an absolute path, so printing it verbatim
                     // put the DEVELOPER'S home directory in a committed snapshot
                     // — green locally, red on any other machine.
-                    origin :: if body is BlockExpr as b {
-                        "${relative_to(b.span.start.file, cwd)}:${b.span.start.line}"
+                    origin :: if body is BlockExpr {
+                        "${relative_to(body.span.start.file, cwd)}:${body.span.start.line}"
                     } else {
                         "(no body)"
                     }

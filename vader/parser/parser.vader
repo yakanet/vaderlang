@@ -1809,19 +1809,40 @@ reject_removed_const :: fn(p: Parser) -> void {
     }
 }
 
-// A match arm binds nothing: the binder lives in the header, `match e as x
-// { is T -> … x … }`, where every arm and guard sees it. The arm form is
-// consumed so the rest of the arm still parses, and diagnosed only when a name
-// follows — a missing one is already `expect`'s error.
-reject_arm_binding :: fn(p: Parser) -> void {
+// An `as <name>` written where nothing binds. It is consumed so the rest still
+// parses, and diagnosed only when a name follows — a missing one is already
+// `expect`'s error. `hint` turns the written name into the detail.
+reject_as_binder :: fn(p: Parser, code: ParserCode, hint: fn(string) -> string) -> void {
     as_tok :: p.match_kind(.KwAs) ?? return
     name_tok :: p.expect(.Ident, "binding name after `as`")
     if name_tok.kind == .Ident {
-        p.error(
-            .PatternBindsName, p.span_of(as_tok, name_tok),
-            "name the scrutinee in the header: `match … as ${name_tok.text}`",
-        )
+        p.error(code, p.span_of(as_tok, name_tok), hint(name_tok.text))
     }
+}
+
+// What to write instead of `<tested> is T as <name>`: a name or a field chain is
+// narrowed in place by the test, any other value is bound first.
+is_binding_hint :: fn(tested: Expr, name: string, negated: bool) -> string {
+    place :: place_text(tested)
+    if place != null {
+        return "`${place}` is narrowed in place: drop `as ${name}` and read `${place}`"
+    }
+    if negated {
+        return "bind the value first, `${name} :: …`, then test `${name} !is …`"
+    }
+    return "bind the value first, `${name} :: …`, then test `${name} is …`"
+}
+
+// The spelling of a name or of a field chain over one ; null for any other expression.
+place_text :: fn(e: Expr) -> string | null {
+    if e is IdentExpr {
+        return e.name
+    }
+    if e is FieldExpr {
+        target :: place_text(e.target) ?? return null
+        return "${target}.${e.field}"
+    }
+    return null
 }
 
 // `T & U & V` — left-associative `bitand` chain, tighter than `|` and
@@ -2358,7 +2379,8 @@ parse_destructure_assign :: fn(p: Parser) -> DestructureAssignStmt {
         p.error(.DestructureTooFewElements, p.span_of(start, end), "an assignment takes at least one target")
     }
     for i in 1..<targets.len() {
-        if targets[i - 1] is RestTarget as rest {
+        rest :: targets[i - 1]
+        if rest is RestTarget {
             p.error(.RestNotLast, rest.span, "")
         }
     }
@@ -2458,7 +2480,8 @@ parse_let_binding :: fn(p: Parser) -> LetBinding {
             p.error(.DestructureTooFewElements, p.span_of(start, end), "a declaration takes at least two")
         }
         for i in 1..<elements.len() {
-            if elements[i - 1] is RestBinding as rest {
+            rest :: elements[i - 1]
+            if rest is RestBinding {
                 p.error(.RestNotLast, rest.span, "")
             }
         }
@@ -2936,8 +2959,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
 
         // `!is` desugars to `Not(BinaryExpr.Is)` ; the narrower already
         // flips then/else on `Not`, and the formatter restores the
-        // spelling. `as` is rejected because the binding has no live
-        // then-branch when the check is negated.
+        // spelling.
         if t.kind == .Bang && p.peek_at(1).kind == .KwIs && 20 >= min_bp {
             if last_non_assoc_level == 20 {
                 p.error(.NonAssocChained, t.span, "chained `!is`")
@@ -2948,12 +2970,7 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             // `!is` takes a TYPE on the right — route through `parse_type` (see
             // the `is` arm below) so `!(x is Foo<T>)` and friends parse.
             right :: p.parse_type()
-            if p.peek().kind == .KwAs {
-                as_tok :: p.advance()
-                if p.peek().kind == .Ident { p.advance() }
-                p.error(.UnexpectedToken, as_tok.span,
-                    "`as` binding not allowed after `!is`: the binding would have no live then-branch since the type-check is negated")
-            }
+            p.reject_as_binder(.IsTestBindsName, (name) -> is_binding_hint(left, name, true))
             is_expr :: BinaryExpr {
                 .span  = Span { .start = left.span.start, .end = right.span.end },
                 .op    = .Is,
@@ -3008,23 +3025,14 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
                     .upper     = right,
                 }
             } else {
-                // `is T as <ident>` — binds the narrowed RHS in the
-                // enclosing if's then-branch. A match arm has no such form:
-                // its binder is the header's (`parse_match_expr`).
-                bind_as: AsBinding | null = null
-                end_pos := right.span.end
-                if infix.op == .Is && p.peek().kind == .KwAs {
-                    p.advance()
-                    name_tok :: p.expect(.Ident, "binding name after `as`")
-                    bind_as = AsBinding { .name = name_tok.text, .span = name_tok.span }
-                    end_pos = name_tok.span.end
+                if infix.op == .Is {
+                    p.reject_as_binder(.IsTestBindsName, (name) -> is_binding_hint(left, name, false))
                 }
                 left = BinaryExpr {
-                    .span    = Span { .start = left.span.start, .end = end_pos },
-                    .op      = infix.op,
-                    .left    = left,
-                    .right   = right,
-                    .bind_as = bind_as,
+                    .span  = Span { .start = left.span.start, .end = right.span.end },
+                    .op    = infix.op,
+                    .left  = left,
+                    .right = right,
                 }
             }
             last_non_assoc_level = if infix.non_assoc { infix.left_bp } else { -1 }
@@ -3860,7 +3868,9 @@ parse_pattern :: fn(p: Parser) -> Pattern {
         if p.check(.LBrace) {
             inner = p.parse_struct_pattern()
         }
-        p.reject_arm_binding()
+        // A match arm binds nothing: the binder lives in the header, `match e
+        // as x { is T -> … x … }`, where every arm and guard sees it.
+        p.reject_as_binder(.PatternBindsName, (name) -> "name the scrutinee in the header: `match … as ${name}`")
         return IsPattern {
             .span  = p.span_of(t, p.peek_at(-1)),
             .ty    = ty,
@@ -4051,12 +4061,11 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
 
 @test test_is_common_forms_still_parse :: fn() -> void {
     // Guard the shapes the fix must not regress : `is null`, `is <primitive>`,
-    // `is T as <bind>`, and `!is`.
+    // and `!is`.
     src :: "module \"t\"\n" +
         "d :: fn(x: i32 | string | null) -> i32 {\n" +
         "    if x is null { return 0 }\n" +
         "    if x is i32 { return 1 }\n" +
-        "    if x is string as s { return s.byte_len() }\n" +
         "    return 3\n" +
         "}\n" +
         "n :: fn(x: i32 | string) -> bool = x !is i32\n"
@@ -4072,6 +4081,21 @@ parse_error_count :: fn(src: string) -> i32 = i32(parse_source(src, "test.vader"
     errors :: parse_source(src, "test.vader").errors
     assert_eq(errors.len(), 1)
     assert_eq(errors[0].code.id, "P1027")
+}
+
+@test test_is_binding_is_reported :: fn() -> void {
+    // An `is` test binds no name. Both spellings name the removal (P1036) once,
+    // and the condition still parses around it.
+    src :: "module \"t\"\n" +
+        "f :: fn(x: i32 | string) -> i32 {\n" +
+        "    if x is string as s { return 1 }\n" +
+        "    if x !is i32 as n { return 2 }\n" +
+        "    return 3\n" +
+        "}\n"
+    errors :: parse_source(src, "test.vader").errors
+    assert_eq(errors.len(), 2)
+    assert_eq(errors[0].code.id, "P1036")
+    assert_eq(errors[1].code.id, "P1036")
 }
 
 // The first declaration, when the fixture makes it an enum.

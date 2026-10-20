@@ -422,16 +422,6 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     match e {
         is AST.BlockExpr -> { binding_hv_walk_block(e, typed, st) }
         is AST.IfExpr -> {
-            // `if v is T as x` binds `x` at the condition's head — the resolver
-            // refuses one deeper (R2029).
-            cond :: e.cond
-            if cond is AST.BinaryExpr {
-                alias_ty :: alias_type_at(cond.bind_as, typed, st.line, st.col)
-                if alias_ty != null {
-                    st.ty = alias_ty
-                    return
-                }
-            }
             binding_hv_walk_block(e.then_block, typed, st)
             match e.else_branch as ei {
                 is null            -> {}
@@ -453,9 +443,8 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-// The type typecheck gave the binding `alias` when the cursor is on it — the
-// narrowed type for an `is T as x` test, the scrutinee's for a `match` header ;
-// null otherwise.
+// The type typecheck gave the binding `alias` of a `match` header when the cursor
+// is on it ; null otherwise.
 alias_type_at :: fn(
     alias: AST.AsBinding | null, typed: TypedProgram, line: i32, col: i32,
 ) -> Type | null {

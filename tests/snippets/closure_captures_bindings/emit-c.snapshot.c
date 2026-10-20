@@ -45,7 +45,6 @@ typedef struct vader_struct___Tuple_string_i32_4ccf6d4f_t vader_struct___Tuple_s
 typedef struct vader_struct_std_collections_MutableSet__i32_t vader_struct_std_collections_MutableSet__i32_t;
 typedef struct vader_struct_std_collections___gen_state_std_collections_3_t vader_struct_std_collections___gen_state_std_collections_3_t;
 typedef struct vader_struct__Cell_i32_t vader_struct__Cell_i32_t;
-typedef struct vader_struct__Cell_Struct_snippet_Leaf___t vader_struct__Cell_Struct_snippet_Leaf___t;
 
 struct vader_struct___Tuple_i32_string_d0b3dcb6_t {
     vader_obj_header_t header;
@@ -287,10 +286,6 @@ struct vader_struct__Cell_i32_t {
     vader_obj_header_t header;
     int32_t f_value;
 };
-struct vader_struct__Cell_Struct_snippet_Leaf___t {
-    vader_obj_header_t header;
-    void* f_value;
-};
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
@@ -302,7 +297,7 @@ static const char vader_atom_blob[] =
     "lazy " "\0"
     "rest " "\0"
     "reassigned " "\0"
-    "alias " "\0"
+    "narrowed " "\0"
     "generator " "\0"
     "combinator " "\0"
     "=" "\0"
@@ -317,11 +312,11 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33] },
     { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[39] },
     { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[57] },
-    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64] },
-    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[75] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[87] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[89] },
+    { 0u, 0u, 9u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[57] },
+    { 0u, 0u, 10u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[67] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[78] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[90] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[92] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 13u
@@ -334,7 +329,7 @@ static int32_t snippet_over_pairs(void);
 static int32_t snippet_over_fused_indexed(void);
 static int32_t snippet_with_rest(void);
 static int32_t snippet_reassigned(void);
-static int32_t snippet_from_alias(vader_box_t l0);
+static int32_t snippet_from_narrowed(vader_box_t l0);
 static int32_t snippet_over_fused_generator(void);
 static int32_t snippet_over_fused_combinator(void);
 static int32_t snippet_over_lazy_indexed(void);
@@ -388,7 +383,7 @@ static vader_box_t vader_fn_lift___lambda_snippet_18(void* env, vader_box_t a0) 
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[62] = {
+const vader_type_info_t vader_type_info_table[61] = {
     [1] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_string_d0b3dcb6_t),
         .slot_size = 8,
@@ -635,17 +630,11 @@ const vader_type_info_t vader_type_info_table[62] = {
     [57] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_i32_t), .slot_size = 8,
     },
-    [58] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct__Cell_Struct_snippet_Leaf___t),
-        .slot_size = 8,
-        .ref_offsets = (const uint16_t[]){ offsetof(vader_struct__Cell_Struct_snippet_Leaf___t, f_value) },
-        .ref_count = 1,
-    },
+    [58] = { .slot_size = 16 },
     [59] = { .slot_size = 16 },
     [60] = { .slot_size = 16 },
-    [61] = { .slot_size = 16 },
 };
-const size_t vader_type_info_count = 62;
+const size_t vader_type_info_count = 61;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -950,35 +939,30 @@ static int32_t snippet_reassigned(void) {
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
-static int32_t snippet_from_alias(vader_box_t l0) {
-    vader_box_t t0 = vader_box_null();
-    void* t1 = NULL;
-    int32_t t2;
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
-    void** gc_raw_roots[1] = { &t1 };
+static int32_t snippet_from_narrowed(vader_box_t l0) {
+    vader_box_t l1 = vader_box_null();
+    void* t0 = NULL;
+    int32_t t1;
+    vader_box_t* gc_roots[2] = { &l0, &l1 };
+    void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 70 "tests/snippets/closure_captures_bindings/_main.vader"
-    t0 = snippet_pick(l0);
-    if (!(t0.tag == 5u)) {
-#line 74 "tests/snippets/closure_captures_bindings/_main.vader"
-        { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 70 "tests/snippets/closure_captures_bindings/_main.vader"
-    }
-    t0 = snippet_pick(l0);
-    t1 = t0.payload.obj;
-    vader_struct__Cell_Struct_snippet_Leaf___t* _a0_obj = (vader_struct__Cell_Struct_snippet_Leaf___t*) vader_gc_alloc(sizeof(vader_struct__Cell_Struct_snippet_Leaf___t));
-    vader_obj_header_init(_a0_obj, 58u);
-    _a0_obj->f_value = t1;
-    t1 = (void*) _a0_obj;
+    l1 = snippet_pick(l0);
 #line 71 "tests/snippets/closure_captures_bindings/_main.vader"
-    vader_struct___lambda_env_snippet_13_t* _a1_obj = (vader_struct___lambda_env_snippet_13_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_13_t));
-    vader_obj_header_init(_a1_obj, 13u);
-    _a1_obj->f_cap_0 = vader_ref_box(t1);
-    t1 = (void*) _a1_obj;
+    if (!(l1.tag == 5u)) {
+#line 75 "tests/snippets/closure_captures_bindings/_main.vader"
+        { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+#line 71 "tests/snippets/closure_captures_bindings/_main.vader"
+    }
 #line 72 "tests/snippets/closure_captures_bindings/_main.vader"
-    t2 = __lambda_snippet_12(t1);
-    { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_struct___lambda_env_snippet_13_t* _a0_obj = (vader_struct___lambda_env_snippet_13_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_13_t));
+    vader_obj_header_init(_a0_obj, 13u);
+    _a0_obj->f_cap_0 = l1;
+    t0 = (void*) _a0_obj;
+#line 73 "tests/snippets/closure_captures_bindings/_main.vader"
+    t1 = __lambda_snippet_12(t0);
+    { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_over_fused_generator(void) {
@@ -987,25 +971,25 @@ static int32_t snippet_over_fused_generator(void) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 85 "tests/snippets/closure_captures_bindings/_main.vader"
-    l0 = INT32_C(0);
 #line 86 "tests/snippets/closure_captures_bindings/_main.vader"
-#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
+    l0 = INT32_C(0);
+#line 87 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
     vader_struct___lambda_env_snippet_17_t* _a0_obj = (vader_struct___lambda_env_snippet_17_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_17_t));
     vader_obj_header_init(_a0_obj, 18u);
     _a0_obj->f_cap_0 = INT32_C(10);
     l1 = (void*) _a0_obj;
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
     l2 = INT32_C(0);
     while ((l2 < INT32_C(3))) {
-#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 81 "tests/snippets/closure_captures_bindings/_main.vader"
         l3 = __lambda_snippet_16(l1, l2);
-#line 87 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 88 "tests/snippets/closure_captures_bindings/_main.vader"
         l0 = vader_chk_add(i32, l0, l3);
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
         l2 = (l2 + INT32_C(1));
     }
-#line 89 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 90 "tests/snippets/closure_captures_bindings/_main.vader"
     { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1017,20 +1001,20 @@ static int32_t snippet_over_fused_combinator(void) {
     void** gc_raw_roots[2] = { &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 100 "tests/snippets/closure_captures_bindings/_main.vader"
-    l0 = INT32_C(0);
 #line 101 "tests/snippets/closure_captures_bindings/_main.vader"
+    l0 = INT32_C(0);
+#line 102 "tests/snippets/closure_captures_bindings/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(24u, 3u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a0_arr;
-#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
     vader_struct___lambda_env_snippet_21_t* _a1_obj = (vader_struct___lambda_env_snippet_21_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_21_t));
     vader_obj_header_init(_a1_obj, 21u);
     _a1_obj->f_cap_0 = INT32_C(4);
     l2 = (void*) _a1_obj;
-#line 101 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 102 "tests/snippets/closure_captures_bindings/_main.vader"
     l3 = ((vader_array_t*) l1)->length;
     l4 = INT64_C(0);
     while ((l4 < l3)) {
@@ -1038,14 +1022,14 @@ static int32_t snippet_over_fused_combinator(void) {
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
         l5 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 96 "tests/snippets/closure_captures_bindings/_main.vader"
         l6 = __lambda_snippet_20(l2, l5);
-#line 102 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 103 "tests/snippets/closure_captures_bindings/_main.vader"
         l0 = vader_chk_add(i32, l0, l6);
-#line 101 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 102 "tests/snippets/closure_captures_bindings/_main.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 104 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 105 "tests/snippets/closure_captures_bindings/_main.vader"
     { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1061,9 +1045,9 @@ static int32_t snippet_over_lazy_indexed(void) {
     void** gc_raw_roots[3] = { &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 109 "tests/snippets/closure_captures_bindings/_main.vader"
-    l0 = INT32_C(0);
 #line 110 "tests/snippets/closure_captures_bindings/_main.vader"
+    l0 = INT32_C(0);
+#line 111 "tests/snippets/closure_captures_bindings/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(24u, 3u, 7u, 2u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
@@ -1071,7 +1055,7 @@ static int32_t snippet_over_lazy_indexed(void) {
     t0 = (void*) _a0_arr;
     t1 = std_core____Into_into__i32(t0);
     l1 = std_iter_indexed__i32(t1);
-#line 111 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 112 "tests/snippets/closure_captures_bindings/_main.vader"
     for (;;) {
         t1 = vader_vt_std_core_Iterator__next(l1);
         l2 = t1.payload.obj;
@@ -1079,21 +1063,21 @@ static int32_t snippet_over_lazy_indexed(void) {
             l3 = ((vader_struct___Tuple_Tuple_i32_i64_u8_1ef34e19_t*) l2)->f__0;
             l4 = ((vader_struct___Tuple_i32_i64_30f9f427_t*) l3)->f__0;
             l5 = ((vader_struct___Tuple_i32_i64_30f9f427_t*) l3)->f__1;
-#line 112 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 113 "tests/snippets/closure_captures_bindings/_main.vader"
             vader_struct___lambda_env_snippet_23_t* _a1_obj = (vader_struct___lambda_env_snippet_23_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_23_t));
             vader_obj_header_init(_a1_obj, 22u);
             _a1_obj->f_cap_0 = l4;
             _a1_obj->f_cap_1 = l5;
             t0 = (void*) _a1_obj;
-#line 113 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 114 "tests/snippets/closure_captures_bindings/_main.vader"
             l6 = __lambda_snippet_22(t0);
             l0 = vader_chk_add(i32, l0, l6);
-#line 111 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 112 "tests/snippets/closure_captures_bindings/_main.vader"
             continue;
         }
         break;
     }
-#line 115 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 116 "tests/snippets/closure_captures_bindings/_main.vader"
     { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1110,7 +1094,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 119 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 120 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 2u);
@@ -1119,11 +1103,11 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 120 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 121 "tests/snippets/closure_captures_bindings/_main.vader"
     l3 = snippet_from_tuple();
     t1 = concat_2(3u, l3);
     std_io_println__string(t1);
-#line 121 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 122 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 4u);
@@ -1132,7 +1116,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 122 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 123 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 5u);
@@ -1141,7 +1125,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 123 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 124 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 6u);
@@ -1150,7 +1134,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 124 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 125 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 7u);
@@ -1159,7 +1143,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 125 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 126 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(31));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 8u);
@@ -1168,20 +1152,20 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 126 "tests/snippets/closure_captures_bindings/_main.vader"
-    l0 = (void*) vader_buffer_new((size_t) INT64_C(26));
+#line 127 "tests/snippets/closure_captures_bindings/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(29));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 9u);
     vader_struct_snippet_Leaf_t* _a0_obj = (vader_struct_snippet_Leaf_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Leaf_t));
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_v = INT32_C(6);
     t2 = (void*) _a0_obj;
-    t0 = snippet_from_alias(vader_ref_box(t2));
+    t0 = snippet_from_narrowed(vader_ref_box(t2));
     l2 = ((int64_t) (int32_t) t0);
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 127 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 128 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(30));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 10u);
@@ -1190,7 +1174,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 128 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 129 "tests/snippets/closure_captures_bindings/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(31));
     l1 = INT64_C(0);
     l1 = std_core_write_string_at(l0, l1, 11u);
@@ -1199,7 +1183,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l2);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 129 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 130 "tests/snippets/closure_captures_bindings/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -1286,16 +1270,18 @@ static int32_t __lambda_snippet_10(void* l0) {
 }
 
 static int32_t __lambda_snippet_12(void* l0) {
-    int32_t t0;
-#line 71 "tests/snippets/closure_captures_bindings/_main.vader"
-    t0 = ((vader_struct_snippet_Leaf_t*) ((vader_struct__Cell_Struct_snippet_Leaf___t*) ((vader_struct___lambda_env_snippet_13_t*) l0)->f_cap_0.payload.obj)->f_value)->f_v;
-    return t0;
+    void* t0;
+    int32_t t1;
+#line 72 "tests/snippets/closure_captures_bindings/_main.vader"
+    t0 = ((vader_struct___lambda_env_snippet_13_t*) l0)->f_cap_0.payload.obj;
+    t1 = ((vader_struct_snippet_Leaf_t*) t0)->f_v;
+    return t1;
 }
 
 static int32_t __lambda_snippet_14(void* l0, int32_t l1) {
     int32_t l2;
     int32_t t0;
-#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
     l2 = ((vader_struct___lambda_env_snippet_15_t*) l0)->f_cap_0;
     t0 = vader_chk_add(i32, l1, l2);
     return t0;
@@ -1312,7 +1298,7 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
     void** gc_raw_roots[4] = { &l0, &l2, &l3, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1326,25 +1312,25 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
             t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
             if (t0 == INT32_C(2)) {
                 t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_s2;
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
                 if ((t0 < INT32_C(3))) {
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                     ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(4);
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(1);
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
                 }
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_s2;
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
                     l1 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_offset_t*) l0)->f_s2 = l1;
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                     ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
@@ -1352,11 +1338,11 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
                         ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(3);
                         l2 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_s1;
                         t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_s2;
-#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 81 "tests/snippets/closure_captures_bindings/_main.vader"
                         vader_fn_t* _a0_fnobj = (vader_fn_t*) l2;
                         t1 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, t0));
                         t0 = ((int32_t) t1.payload.i);
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                         vader_obj_header_init(_a1_obj, 16u);
                         _a1_obj->f__0 = t0;
@@ -1366,9 +1352,9 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
                     }
                     t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 80 "tests/snippets/closure_captures_bindings/_main.vader"
                         ((vader_struct_snippet___genstate_offset_t*) l0)->f_s2 = INT32_C(0);
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                         ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_state;
@@ -1381,7 +1367,7 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
                             { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         t0 = ((vader_struct_snippet___genstate_offset_t*) l0)->f_s0;
-#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
                         vader_struct___lambda_env_snippet_15_t* _a3_obj = (vader_struct___lambda_env_snippet_15_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_15_t));
                         vader_obj_header_init(_a3_obj, 14u);
                         _a3_obj->f_cap_0 = t0;
@@ -1393,7 +1379,7 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
                         l3 = (void*) _a4_closure;
                         ((vader_struct_snippet___genstate_offset_t*) l0)->f_s1 = l3;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_offset_t*) l0);
-#line 77 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
                         ((vader_struct_snippet___genstate_offset_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -1407,7 +1393,7 @@ static void* snippet___genstate_offset_Iterator_next(void* l0) {
 static int32_t __lambda_snippet_16(void* l0, int32_t l1) {
     int32_t l2;
     int32_t t0;
-#line 78 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 79 "tests/snippets/closure_captures_bindings/_main.vader"
     l2 = ((vader_struct___lambda_env_snippet_17_t*) l0)->f_cap_0;
     t0 = vader_chk_add(i32, l1, l2);
     return t0;
@@ -1416,7 +1402,7 @@ static int32_t __lambda_snippet_16(void* l0, int32_t l1) {
 static int32_t __lambda_snippet_18(void* l0, int32_t l1) {
     int32_t l2;
     int32_t t0;
-#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
     l2 = ((vader_struct___lambda_env_snippet_19_t*) l0)->f_cap_0;
     t0 = vader_chk_mul(i32, l1, l2);
     return t0;
@@ -1435,7 +1421,7 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
     void** gc_raw_roots[5] = { &l0, &l1, &l3, &l5, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 5u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1471,11 +1457,11 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                                     ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(6);
                                     l1 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s2;
                                     t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s5;
-#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 96 "tests/snippets/closure_captures_bindings/_main.vader"
                                     vader_fn_t* _a0_fnobj = (vader_fn_t*) l1;
                                     t1 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(2u, t0));
                                     t0 = ((int32_t) t1.payload.i);
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                     vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                                     vader_obj_header_init(_a1_obj, 16u);
                                     _a1_obj->f__0 = t0;
@@ -1485,43 +1471,43 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                                 }
                                 t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
                                 if (t0 == INT32_C(8)) {
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
                                     l2 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s4)->f__0;
                                     ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s5 = l2;
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                     ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(7);
                                 } else {
                                     t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
                                     if (t0 == INT32_C(9)) {
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
                                         if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s4)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                             ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(5);
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                         } else {
                                             ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(8);
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
                                         }
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                     } else {
                                         t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
                                         if (t0 == INT32_C(10)) {
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
                                             t1 = vader_vt_std_core_Iterator__next(((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3);
                                             l3 = t1.payload.obj;
                                             ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s4 = l3;
                                             VADER_WRITE_BARRIER((vader_struct_snippet___genstate_scaled_t*) l0);
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                             ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(9);
                                         } else {
                                             t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
                                             if (t0 == INT32_C(11)) {
                                                 l4 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s0;
-#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 95 "tests/snippets/closure_captures_bindings/_main.vader"
                                                 ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s3 = l4;
                                                 VADER_WRITE_BARRIER((vader_struct_snippet___genstate_scaled_t*) l0);
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                                 ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(2);
                                             } else {
                                                 t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state;
@@ -1534,7 +1520,7 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                                                     { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                                                 }
                                                 t0 = ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s1;
-#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
                                                 vader_struct___lambda_env_snippet_19_t* _a3_obj = (vader_struct___lambda_env_snippet_19_t*) vader_gc_alloc(sizeof(vader_struct___lambda_env_snippet_19_t));
                                                 vader_obj_header_init(_a3_obj, 19u);
                                                 _a3_obj->f_cap_0 = t0;
@@ -1546,7 +1532,7 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
                                                 l5 = (void*) _a4_closure;
                                                 ((vader_struct_snippet___genstate_scaled_t*) l0)->f_s2 = l5;
                                                 VADER_WRITE_BARRIER((vader_struct_snippet___genstate_scaled_t*) l0);
-#line 92 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
                                                 ((vader_struct_snippet___genstate_scaled_t*) l0)->f_state = INT32_C(11);
                                             }
                                         }
@@ -1566,7 +1552,7 @@ static void* snippet___genstate_scaled_Iterator_next(void* l0) {
 static int32_t __lambda_snippet_20(void* l0, int32_t l1) {
     int32_t l2;
     int32_t t0;
-#line 93 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 94 "tests/snippets/closure_captures_bindings/_main.vader"
     l2 = ((vader_struct___lambda_env_snippet_21_t*) l0)->f_cap_0;
     t0 = vader_chk_mul(i32, l1, l2);
     return t0;
@@ -1576,7 +1562,7 @@ static int32_t __lambda_snippet_22(void* l0) {
     int32_t l1, l2;
     int64_t t0;
     int32_t t1;
-#line 112 "tests/snippets/closure_captures_bindings/_main.vader"
+#line 113 "tests/snippets/closure_captures_bindings/_main.vader"
     l1 = ((vader_struct___lambda_env_snippet_23_t*) l0)->f_cap_0;
     t0 = ((vader_struct___lambda_env_snippet_23_t*) l0)->f_cap_1;
     l2 = ((int32_t) (int64_t) t0);

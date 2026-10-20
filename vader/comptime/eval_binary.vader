@@ -152,7 +152,8 @@ export evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) 
 // comparisons, string from concat) pass through, as do unknown / 64-bit widths
 // — a missing or `i64`/`u64` width is NEVER truncated.
 normalize_int_result :: fn(r: EvalResult, rname: string) -> EvalResult {
-    if r.value is IntValue as iv {
+    iv :: r.value
+    if iv is IntValue {
         return ok(int_val_typed(wrap_to_width(iv.value, rname), result_type_name(iv, rname)))
     }
     return r

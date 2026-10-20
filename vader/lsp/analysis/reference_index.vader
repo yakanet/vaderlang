@@ -527,9 +527,6 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         is AST.BinaryExpr -> {
             collect_expr(e.left, out)
             collect_expr(e.right, out)
-            if e.bind_as is AST.AsBinding {
-                out.spans.push(e.bind_as.span)
-            }
         }
         is AST.IfExpr -> {
             collect_expr(e.cond, out)

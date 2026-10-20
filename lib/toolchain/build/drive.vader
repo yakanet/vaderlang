@@ -268,8 +268,8 @@ export emit_c :: fn(ctx: BuildContext) -> string[] {
 drain :: fn(ctx: BuildContext) -> i32 {
     code := 1
     for msg in ctx.messages() {
-        if msg is CompleteMessage as c {
-            code = c.code
+        if msg is CompleteMessage {
+            code = msg.code
         }
     }
     return code

@@ -248,7 +248,8 @@ first_loop_body :: fn(source: string) -> AST.BlockExpr {
     decl :: parse_source(source, "t.vader").program.decls[0]
     if decl is AST.FnDecl {
         body :: decl.body ?? panic("the fn has no body")
-        if body.stmts[0] is AST.ForStmt as loop {
+        loop :: body.stmts[0]
+        if loop is AST.ForStmt {
             return loop.body
         }
     }

@@ -50,13 +50,13 @@
       return 0
   }
   __lambda_snippet_0 :: fn(x: Leaf | Pair) -> void {
-      if snippet.unwrap(x) is Leaf {
-          lf: Leaf = Leaf(snippet.unwrap(x))
+      lf: Leaf | Pair = snippet.unwrap(x)
+      if lf is Leaf {
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "lf=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, lf.v)
+              __off_1 = std.core.write_int(__buf_0, __off_1, Leaf(lf).v)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
@@ -92,13 +92,13 @@
   }
   __defer_env_snippet_3 :: struct { cap_0: Leaf | Pair }
   __defer_snippet_2 :: fn(__env_0: __defer_env_snippet_3) -> void {
-      if snippet.unwrap(__env_0.cap_0) is Leaf {
-          df: Leaf = Leaf(snippet.unwrap(__env_0.cap_0))
+      df: Leaf | Pair = snippet.unwrap(__env_0.cap_0)
+      if df is Leaf {
           std.io.println<string>({
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "df=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, df.v)
+              __off_1 = std.core.write_int(__buf_0, __off_1, Leaf(df).v)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }

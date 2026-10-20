@@ -328,22 +328,27 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         return TimeError { .msg = "iso8601: too short" }
     }
     year   :: parse_digits(s, 0,  4)
-    if year is TimeError as e { return e }
-    if expect_byte(s, 4,  '-') is TimeError as e { return e }
+    if year is TimeError { return year }
+    after_year :: expect_byte(s, 4, '-')
+    if after_year is TimeError { return after_year }
     month  :: parse_digits(s, 5,  2)
-    if month is TimeError as e { return e }
-    if expect_byte(s, 7,  '-') is TimeError as e { return e }
+    if month is TimeError { return month }
+    after_month :: expect_byte(s, 7, '-')
+    if after_month is TimeError { return after_month }
     day    :: parse_digits(s, 8,  2)
-    if day is TimeError as e { return e }
-    if expect_byte(s, 10, 'T') is TimeError as e { return e }
+    if day is TimeError { return day }
+    after_day :: expect_byte(s, 10, 'T')
+    if after_day is TimeError { return after_day }
     hours  :: parse_digits(s, 11, 2)
-    if hours is TimeError as e { return e }
-    if expect_byte(s, 13, ':') is TimeError as e { return e }
+    if hours is TimeError { return hours }
+    after_hours :: expect_byte(s, 13, ':')
+    if after_hours is TimeError { return after_hours }
     minutes :: parse_digits(s, 14, 2)
-    if minutes is TimeError as e { return e }
-    if expect_byte(s, 16, ':') is TimeError as e { return e }
+    if minutes is TimeError { return minutes }
+    after_minutes :: expect_byte(s, 16, ':')
+    if after_minutes is TimeError { return after_minutes }
     seconds_part :: parse_digits(s, 17, 2)
-    if seconds_part is TimeError as e { return e }
+    if seconds_part is TimeError { return seconds_part }
 
     // Fractional seconds : optional `.fff` block, then required `Z`.
     cursor: i64 = 19
@@ -368,7 +373,8 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
             cursor = cursor + 1
         }
     }
-    if expect_byte(s, cursor, 'Z') is TimeError as e { return e }
+    zone :: expect_byte(s, cursor, 'Z')
+    if zone is TimeError { return zone }
     // `Z` must be the final byte — reject trailing garbage (`…Z…`), which the
     // per-field parse would otherwise silently ignore.
     if cursor + 1 != s.byte_len() {

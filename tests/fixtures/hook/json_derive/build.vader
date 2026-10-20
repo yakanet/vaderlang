@@ -33,14 +33,14 @@ build :: fn(args: string[]) -> i32 {
 
     exit := 0
     for msg in ctx.messages() {
-        if msg is TypecheckedMessage as t {
-            if !(t.module_name in DERIVED_MODULES) {
+        if msg is TypecheckedMessage {
+            if !(msg.module_name in DERIVED_MODULES) {
                 continue
             }
-            derive_module(ctx, t)
+            derive_module(ctx, msg)
         }
-        if msg is CompleteMessage as c {
-            exit = c.code
+        if msg is CompleteMessage {
+            exit = msg.code
         }
     }
 
@@ -56,8 +56,8 @@ build :: fn(args: string[]) -> i32 {
 derive_module :: fn(ctx: BuildContext, t: TypecheckedMessage) -> void {
     structs: AST.StructDecl[]: []
     for d in t.declarations {
-        if d is AST.StructDecl as s {
-            structs.push(s)
+        if d is AST.StructDecl {
+            structs.push(d)
         }
     }
     if structs.len() == 0 {
@@ -105,7 +105,8 @@ render_field :: fn(ctx: BuildContext, f: AST.StructField, siblings: string[]) ->
     if scalar != "" {
         return "    entries[\"${f.name}\"] = ${scalar}\n"
     }
-    if f.ty is AST.ArrayTypeExpr as arr {
+    arr :: f.ty
+    if arr is AST.ArrayTypeExpr {
         element :: scalar_value(arr.element, "element", siblings)
         if element != "" {
             items :: "items_${f.name}"
@@ -126,20 +127,20 @@ render_field :: fn(ctx: BuildContext, f: AST.StructField, siblings: string[]) ->
 // Numbers go through `f64`, which is what `JsonNumber` carries; `stringify`
 // prints an integral one without a decimal point.
 scalar_value :: fn(ty: AST.TypeExpr, access: string, siblings: string[]) -> string {
-    if ty is AST.IdentExpr as id {
-        if id.name in NUMERIC_TYPES {
+    if ty is AST.IdentExpr {
+        if ty.name in NUMERIC_TYPES {
             return "J.JsonNumber { .value = f64(${access}) }"
         }
-        if id.name == "string" {
+        if ty.name == "string" {
             return "J.JsonString { .value = ${access} }"
         }
-        if id.name == "bool" {
+        if ty.name == "bool" {
             return "J.JsonBool { .value = ${access} }"
         }
         // A sibling struct: recurse through its own generated serialiser. Only a
         // struct the driver actually saw — anything else would not compile, and a
         // report is better than emitting code that fails against the user.
-        if id.name in siblings {
+        if ty.name in siblings {
             return "to_json_value(${access})"
         }
     }

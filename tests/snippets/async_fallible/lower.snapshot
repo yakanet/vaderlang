@@ -21,8 +21,7 @@
           return
       }
       if r is LoadError {
-          e: LoadError = LoadError((i32 | LoadError)(r))
-          std.io.println<string>(concat_2("err: ", e.reason))
+          std.io.println<string>(concat_2("err: ", LoadError(r).reason))
           return
       }
       std.io.println<string>({

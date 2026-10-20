@@ -8,10 +8,9 @@
 // Forms, one labelled line each: `!= null` with an else branch; `== null` and
 // `is null` as a divergent guard, the narrowing holding for the rest of the body
 // and a local bound from the field taking the narrowed type; `!(x.f is null)`,
-// narrowing the then-block rather than guarding; `x.f is T`; `x.f is T as p`,
-// whose alias must resolve to the resolver's binding and carry the type even
-// though the scrutinee is not a bare name; a `match` on the field, the wildcard
-// arm seeing the non-null type; a two-level path in a `match` and in a guard.
+// narrowing the then-block rather than guarding; `x.f is T`; a `match` on the
+// field, the wildcard arm seeing the non-null type; a two-level path in a
+// `match` and in a guard.
 
 module "snippet"
 
@@ -70,13 +69,6 @@ span_if_block :: fn(d: Decl) -> i32 {
     return -1
 }
 
-span_via_alias :: fn(d: Decl) -> i32 {
-    if d.body is Block as found {
-        return found.span
-    }
-    return -1
-}
-
 span_if_present :: fn(d: Decl) -> i32 {
     if !(d.body is null) {
         return d.body.span
@@ -115,7 +107,6 @@ main :: fn() -> i32 {
     none :: Decl { .body = null, .name = "none" }
     println("guard is null: ${convert(some)} ${convert(none)}")
     println("is T: ${span_if_block(some)} ${span_if_block(none)}")
-    println("is T as: ${span_via_alias(some)} ${span_via_alias(none)}")
     println("not is null: ${span_if_present(some)} ${span_if_present(none)}")
 
     set :: Outer { .inner = Inner { .flag = 42 } }

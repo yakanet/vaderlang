@@ -53,13 +53,13 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
         for decl in source_file.program.decls {
             match decl {
                 is AST.FnDecl -> {
-                    if decl.body is null { continue }
-                    if decl.body is AST.BlockExpr as body { analyze_fn_body(decl, body, typed, symbol_index, analysis) }
+                    body :: decl.body ?? continue
+                    analyze_fn_body(decl, body, typed, symbol_index, analysis)
                 }
                 is AST.ImplDecl -> {
                     for member in decl.members {
-                        if member.body is null { continue }
-                        if member.body is AST.BlockExpr as body { analyze_fn_body(member, body, typed, symbol_index, analysis) }
+                        body :: member.body ?? continue
+                        analyze_fn_body(member, body, typed, symbol_index, analysis)
                     }
                 }
                 is AST.ConstDecl -> { analyze_const_body(decl, typed, symbol_index, analysis) }
@@ -307,20 +307,8 @@ walk_expr :: fn(
             walk_expr(expr.right, scope, out_captures, out_seen, ctx)
         }
         is AST.IfExpr -> {
-            // `if x is T as a` binds `a` across cond + then-block only
-            // (`resolver/body.vader::walk_cond`), minted at the `a` token
-            // (`cond.bind_as.span`). Without this the alias reads as a
-            // free variable and a lambda around it captures a symbol the
-            // enclosing fn has no local for.
-            added: i32[]: []
-            if expr.cond is AST.BinaryExpr as cond {
-                if cond.op == .Is {
-                    add_bind_as(cond.bind_as, scope, ctx.symbol_index, added)
-                }
-            }
             walk_expr(expr.cond, scope, out_captures, out_seen, ctx)
             walk_body(expr.then_block, scope, out_captures, out_seen, ctx)
-            for id in added { _ :: scope.remove(id) }
             match expr.else_branch as eif {
                 is null            -> {}
                 is AST.IfElseIf    -> {
@@ -334,8 +322,9 @@ walk_expr :: fn(
         is AST.MatchExpr -> {
             walk_expr(expr.scrutinee, scope, out_captures, out_seen, ctx)
             // `match e as x` binds ONE alias around every arm, minted at the
-            // `x` token (`resolver/body.vader::walk_match`). Same hazard
-            // as the `if` above, and it survives the whole arm loop.
+            // `x` token (`resolver/body.vader::walk_match`). Without this the
+            // alias reads as a free variable and a lambda around it captures a
+            // symbol the enclosing fn has no local for.
             match_added: i32[]: []
             add_bind_as(expr.bind_as, scope, ctx.symbol_index, match_added)
             for arm in expr.arms {
@@ -486,8 +475,8 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
 /// Put the symbol an `as` alias mints into `scope`, recording it in `added` when
 /// it is new so the caller drops exactly what it introduced.
 ///
-/// The alias of an `if` / `match` is a binding like any other, but it lives on
-/// the expression rather than in a pattern, so `walk_pattern_for_bindings` below
+/// The alias of a `match` is a binding like any other, but it lives on the
+/// expression rather than in a pattern, so `walk_pattern_for_bindings` below
 /// never sees it.
 add_bind_as :: fn(
     alias: AST.AsBinding | null, scope: MutableSet<i32>,

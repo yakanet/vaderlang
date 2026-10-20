@@ -29,8 +29,9 @@ main :: fn() -> i32 {
     if ufcs is string {
         println("ufcs: ${ufcs.len()}")
     }
-    if read_file_string(path, 4) is IOError as e {
-        println("explicit 4: ${e.msg}")
+    explicit :: read_file_string(path, 4)
+    if explicit is IOError {
+        println("explicit 4: ${explicit.msg}")
     }
     return 0
 }

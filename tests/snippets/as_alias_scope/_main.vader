@@ -1,9 +1,9 @@
-// An `as` alias bound inside a scope that `closure_analysis` walks on its own
-// (a lambda body, or a `defer` block) is a local of that scope, never a capture
-// of the enclosing function. Three shapes: `if … is T as x` in a lambda,
-// `match … as x` in a lambda, and `if … is T as x` in a `defer` block, which
-// carries no lambda at all. Each scrutinee is a call (`unwrap(x)`), so the
-// alias is the only name it has.
+// A name bound to a tested value inside a scope that `closure_analysis` walks on
+// its own (a lambda body, or a `defer` block) is a local of that scope, never a
+// capture of the enclosing function. Three shapes: a binding narrowed by
+// `if … is T` in a lambda, `match … as x` in a lambda, and the same `if` in a
+// `defer` block, which carries no lambda at all. Each tested value is a call
+// (`unwrap(x)`), so the binding is the only name it has.
 //
 // Two shapes here are load bearing rather than ceremony:
 //   - every enclosing fn returns a value `main` CONSUMES. Behind a `-> void` fn,
@@ -27,7 +27,8 @@ apply :: fn(t: Tree, visit: fn(Tree) -> void) -> void {
 
 if_form :: fn(t: Tree) -> i32 {
     apply(t, (x: Tree) -> {
-        if unwrap(x) is Leaf as lf {
+        lf :: unwrap(x)
+        if lf is Leaf {
             println("lf=${lf.v}")
         }
     })
@@ -47,7 +48,8 @@ match_form :: fn(t: Tree) -> i32 {
 
 defer_form :: fn(t: Tree) -> i32 {
     defer {
-        if unwrap(t) is Leaf as df {
+        df :: unwrap(t)
+        if df is Leaf {
             println("df=${df.v}")
         }
     }

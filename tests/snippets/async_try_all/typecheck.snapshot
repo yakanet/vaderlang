@@ -34,12 +34,12 @@
   expr 25:9     CallExpr       :: Async<i32 | Outage>
   expr 25:9     IdentExpr      :: fn(string, i64, bool) -> Async<i32 | Outage>
   expr 27:15    IdentExpr      :: Error
-  expr 27:28    CallExpr       :: void
-  expr 27:28    IdentExpr      :: fn(T) -> void
-  expr 27:36    StringLitExpr  :: string
-  expr 27:47    CallExpr       :: string
-  expr 27:47    FieldExpr      :: fn() -> string
-  expr 27:47    IdentExpr      :: Error
+  expr 27:23    CallExpr       :: void
+  expr 27:23    IdentExpr      :: fn(T) -> void
+  expr 27:31    StringLitExpr  :: string
+  expr 27:42    CallExpr       :: string
+  expr 27:42    FieldExpr      :: fn() -> string
+  expr 27:42    IdentExpr      :: Error
   expr 27:5     IfExpr         :: void
   expr 27:8     BinaryExpr     :: bool
   expr 27:8     IdentExpr      :: (i32 | Outage)[] | Error

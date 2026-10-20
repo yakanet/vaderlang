@@ -68,7 +68,8 @@ new_project_ctx :: fn(lp: LoweredProject, diags: Diagnostic[]) -> ProjectCtx {
             note_slot_types(slot_types, d)
             if d is LoweredFnDecl {
                 if fn_metadata(d).is_extern {
-                    if d.origin.symbol is Symbol as sym {
+                    sym :: d.origin.symbol
+                    if sym is Symbol {
                         slots :: MutableSet<i64> {}
                         for i in 0..<d.params.len() {
                             if d.params[i].type is FnType {
@@ -335,7 +336,8 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     c_header := ""
     c_library := ""
     c_variadic_fixed: i32 = -1
-    if d.origin.decl is FnDecl as fn_decl {
+    fn_decl :: d.origin.decl
+    if fn_decl is FnDecl {
         extern_name = extern_symbol_name(fn_decl)
         // A body is the Vader function an `@extern` taking an enum with variant
         // data lowers to (`lower_extern_values.vader`), not the import.
@@ -424,7 +426,8 @@ extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
         last :: dec.args[dec.args.len() - 1]
         if last is StringLitExpr {
             if last.parts.len() == 1 {
-                if last.parts[0] is StringLitText as t { return t.value }
+                t :: last.parts[0]
+                if t is StringLitText { return t.value }
             }
         }
     }
@@ -966,12 +969,13 @@ const_accessor :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> ConstFnWrap | null {
 }
 
 build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
-    if e.callee is LoweredIdent as callee_id {
+    callee_id :: e.callee
+    if callee_id is LoweredIdent {
         if callee_id.symbol.kind == .Fn {
             slots :: fn_ctx.project.extern_callbacks[callee_id.symbol.id]
             params :: params_of(fn_ctx.project.slots, callee_id.symbol)
-            args :: if slots is MutableSet<i64> as cb {
-                build_extern_args(fn_ctx, e.args, params, cb, callee_id.symbol.name) ?? return null
+            args :: if slots is MutableSet<i64> {
+                build_extern_args(fn_ctx, e.args, params, slots, callee_id.symbol.name) ?? return null
             } else {
                 build_args(fn_ctx, e.args, params) ?? return null
             }

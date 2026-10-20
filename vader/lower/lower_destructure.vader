@@ -104,7 +104,8 @@ seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
 // The field name of a `self.<field>` access, or "" for any other expression.
 self_field_name :: fn(e: Expr) -> string {
     if e is FieldExpr {
-        if e.target is IdentExpr as id {
+        id :: e.target
+        if id is IdentExpr {
             if id.name == "self" { return e.field }
         }
     }

@@ -163,14 +163,12 @@ fn 0 snippet$main () -> i32
   local.get 0   ; path
   i64.const 4
   call 13   ; std_io$read_file_string
+  local.tee 1   ; wrote
   type_check 12   ; std_io$IOError
   if $L3 void
-    local.get 0   ; path
-    i64.const 4
-    call 13   ; std_io$read_file_string
+    local.get 1   ; wrote
     ref.cast 12   ; std_io$IOError
-    local.set 3   ; __buf_1
-    local.field 3 12 0   ; __buf_1 std_io$IOError.msg
+    struct.get 12 0   ; std_io$IOError.msg
     ref.cast 4   ; string
     local.set 0   ; path
     string.const 5   ; "explicit 4: "

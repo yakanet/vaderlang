@@ -1156,7 +1156,7 @@ emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
 
 // True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
 // candidate for the multi-line layout in `emit_const_decl`.
-is_bitor_chain :: fn(e: p.Expr) -> bool = if e is p.BinaryExpr as b { b.op == .BitOr } else { false }
+is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
 
 // `collect_bitor_variants` now lives in `vader/parser/ast` so both the
 // formatter and the typechecker share one implementation.
@@ -1784,12 +1784,11 @@ postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
 
 emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
     // `!is` sugar : parser produces `Not(Is(...))` ; restore the spelling
-    // for round-trip stability. A non-null `bind_as` would mean an `is T as x`
-    // wrapped in an outer `Not` — never produced by the sugar path.
+    // for round-trip stability.
     if x.op == .Not {
         match x.operand as inner {
             is p.BinaryExpr -> {
-                if inner.op == .Is && inner.bind_as == null {
+                if inner.op == .Is {
                     self.emit_binary_operand(inner.left, inner.op, true)
                     self.write(" !is ")
                     self.emit_binary_operand(inner.right, inner.op, false)
@@ -1842,14 +1841,6 @@ emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
     self.emit_binary_operand(x.right, x.op, false)
     if place.at != .Inline {
         self.depth -= 1
-    }
-    // `is T as <ident>` — only meaningful for `op == .Is` ; reproduce
-    // the optional binding when present so the formatter is round-trip
-    // stable.
-    bind_as :: x.bind_as
-    if bind_as is p.AsBinding {
-        self.write(" as ")
-        self.write(bind_as.name)
     }
 }
 
@@ -2097,7 +2088,8 @@ MATCH_ALIGN_MAX: i64: 44
 // lookup-table idiom) ; a lone one is expanded like any other control-flow body.
 inline_if_stmt :: fn(s: p.Stmt) -> bool {
     if s is p.ExprStmt {
-        if s.expr is p.IfExpr as iff {
+        iff :: s.expr
+        if iff is p.IfExpr {
             if iff.else_branch != null { return false }
             tb :: iff.then_block
             if tb.span.start.line != tb.span.end.line { return false }
@@ -2133,8 +2125,8 @@ block_mode_for :: fn(stmts: p.Stmt[], i: i64) -> BlockLayout {
 // or 0 when `s` isn't an inline `if`.
 if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
     if s is p.ExprStmt {
-        if s.expr is p.IfExpr as iff {
-            return format_expr(source, iff.cond).byte_len()
+        if s.expr is p.IfExpr {
+            return format_expr(source, s.expr.cond).byte_len()
         }
     }
     return 0

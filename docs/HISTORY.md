@@ -1320,3 +1320,9 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 ### Priority: next up
 
 - [x] **Type-system charter, step 5: the foundation (D1, D2)**, **closed 2026-10-18** (opened 2026-10-17): one symbol per type parameter, quantified function types instantiated afresh at each call (ADR 0070), a recursion that grows its type argument refused (T3104), written type arguments on every call form (ADR 0071), a generic function as a value instantiated where it is used (ADR 0072), types told apart by identity, and no interning: rendering, keying and comparing types cost about 2 % of a self-build (ADR 0073). A member with type parameters of its own runs one instance per call (ADR 0074), arrays included, and a recursion growing through an array receiver (`[self].depth(n - 1)` inside `T[]`'s impl) is T3104 too. A generic struct's receiver does not grow: its impl member runs once per written instance and once as a representative for the others.
+
+## Archived from TODO.md, 2026-10-20
+
+### Priority: next up
+
+- [x] **`if f() is T as e` evaluated `f()` twice**, **closed 2026-10-20** (opened 2026-10-20): the form is gone rather than fixed. An `is` test binds no name (ADR 0101): `x is T as y` is P1036, R2029 is retired, and the 208 sites of the tree bind the tested value first (`r :: f()`) or test a name in place. `tests/snippets/default_naming_a_std_constant/lower.snapshot` now holds one `read_file_string(path, 4)` call.

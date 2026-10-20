@@ -141,7 +141,6 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 .op = e.op,
                 .left = substitute_expr_full(e.left, subst),
                 .right = substitute_expr_full(e.right, subst),
-                .bind_as = e.bind_as,
             }
         }
         is AST.IfExpr -> {
@@ -421,7 +420,8 @@ export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
 // its own, evaluating the place's operands twice.
 clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> AST.Expr {
     if AST.compound_assign_op(s) != null {
-        if s.value is AST.BinaryExpr as value {
+        value :: s.value
+        if value is AST.BinaryExpr {
             return AST.BinaryExpr {
                 .span = value.span, .id = AST.UNASSIGNED_NODE_ID,
                 .op = value.op,
@@ -631,10 +631,6 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             e.span = next_clone_span(stamp)
             stamp_expr_spans(e.left, stamp)
             stamp_expr_spans(e.right, stamp)
-            alias :: e.bind_as
-            if alias != null {
-                e.bind_as = AST.AsBinding { .name = alias.name, .span = next_clone_span(stamp) }
-            }
         }
         is AST.IfExpr -> {
             e.span = next_clone_span(stamp)

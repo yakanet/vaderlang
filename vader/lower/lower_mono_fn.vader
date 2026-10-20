@@ -305,7 +305,8 @@ build_fn_instance_decl :: fn(
 returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
     rt :: fn_decl.return_type ?? return false
     if rt is ArrayTypeExpr {
-        if rt.element is IdentExpr as id {
+        id :: rt.element
+        if id is IdentExpr {
             for tp in fn_decl.type_params {
                 if tp.name == id.name { return true }
             }

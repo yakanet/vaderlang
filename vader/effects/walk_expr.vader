@@ -178,7 +178,8 @@ call_value :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
 // is not an argument is walked here.
 call_sources :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> AST.Expr[] {
     sources: AST.Expr[]: []
-    if c.callee is AST.FieldExpr as method {
+    method :: c.callee
+    if method is AST.FieldExpr {
         if ctx.passes_receiver(c, method, callee) {
             sources.push(method.target)
         } else {
@@ -214,16 +215,10 @@ single :: fn(args: (i64 | null)[]) -> i64 | null {
 }
 
 // `left op right`: an operator an impl serves is a call, `in` taking its
-// container first. An `is` test binds its `as` name to the tested value.
+// container first.
 binary_value :: fn(ctx: WalkCtx, e: AST.BinaryExpr) -> i64 | null {
     left :: ctx.value(e.left)
     right :: ctx.value(e.right)
-    alias :: e.bind_as
-    if alias != null {
-        tested :: ctx.typed.expr_types[e.left.id]
-        held :: ctx.narrowed(left, tested, ctx.typed.local_types[alias.span.hash()])
-        ctx.bind_symbol(alias.span, held)
-    }
     operator :: ctx.site_callee(.Operator, e.id) ?? return null
     if e.op == .In || e.op == .NotIn {
         return ctx.call(operator, [right, left], e.span, [e.right, e.left])

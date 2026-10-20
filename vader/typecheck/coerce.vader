@@ -27,7 +27,8 @@ AST :: import "toolchain/ast"
 try_into :: fn(got: Type, expected: Type, typed: TypedProgram, value: AST.Expr) -> bool {
     targeted :: into_impl_method(typed, got, expected)
     if targeted !is null {
-        if targeted.ty is FnType as f {
+        f :: targeted.ty
+        if f is FnType {
             if is_assignable(f.return_type, expected) {
                 note_into(typed, value, got, expected)
                 return true

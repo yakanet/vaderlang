@@ -238,7 +238,8 @@ is_fn_root :: fn(fn_decl: LoweredFnDecl, is_entry: bool, has_main: bool, keep_te
     if is_entry && !has_main { return true }
     if fn_decl.body == null { return true }
     if fn_decl.origin.is_main { return true }
-    if fn_decl.origin.decl is FnDecl as ast {
+    ast :: fn_decl.origin.decl
+    if ast is FnDecl {
         for dec in ast.decorators {
             if dec.name == "export" { return true }
             if dec.name == "extern" { return true }

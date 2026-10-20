@@ -24,12 +24,12 @@ main :: fn() -> i32 {
         fetch("orders", 1, false),
         fetch("carts", 2, true),
     ])
-    if bad is Error as e { println("failed: ${e.message()}") }
+    if bad is Error { println("failed: ${bad.message()}") }
 
     // every child succeeds → results in input order.
     good :: await try_join_all<i32, Outage>([fetch("users", 3, true), fetch("orders", 1, true)])
-    if good is Error as e {
-        println("unexpected: ${e.message()}")
+    if good is Error {
+        println("unexpected: ${good.message()}")
     } else {
         for v in good {
             if v is Outage { println("?") } else { println("ok ${v}") }

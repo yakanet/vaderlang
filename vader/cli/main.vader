@@ -172,7 +172,8 @@ named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
             if !d.origin.is_main {
                 continue
             }
-            if d.origin.decl is FnDecl as ast {
+            ast :: d.origin.decl
+            if ast is FnDecl {
                 decl_base :: ast.span.start.file.to_posix().to_path().filename()
                 if decl_base == named_base {
                     return d.mangled

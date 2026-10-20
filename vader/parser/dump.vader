@@ -876,12 +876,6 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "right")
             sb.write_expr(e.right, level + 1)
-            // `bindAs` only emitted when present (optional on BinaryExpr).
-            bind_as :: e.bind_as
-            if bind_as is AsBinding {
-                sb.entry(false, level + 1, "bindAs")
-                sb.write_string(bind_as.name)
-            }
             sb.close_obj(level)
         }
         is NullCoalesceExpr -> {

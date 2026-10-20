@@ -12,12 +12,10 @@
   snippet.classify :: fn(x: Refused | string | Timeout) -> i32 {  // snippet$classify
       if (x is Err) || (x is string) {
           if x is Timeout {
-              t: Timeout = Timeout(x)
-              return t.seconds
+              return Timeout(x).seconds
           }
           if x is Refused {
-              r: Refused = Refused((Refused | string)(x))
-              return r.port
+              return Refused(x).port
           }
           return 0
       }

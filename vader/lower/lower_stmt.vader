@@ -143,8 +143,10 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             // In an inlined generator, `return` ends the generator: it leaves the
             // instance, not the function the instance is inlined into. An inlined
             // consumer's carries the call's result there.
-            if ctx.instance is InlineInstance as instance {
-                if ctx.inline_consumer is InlineConsumer as consumer {
+            instance :: ctx.instance
+            if instance is InlineInstance {
+                consumer :: ctx.inline_consumer
+                if consumer is InlineConsumer {
                     assign_consumer_return(ctx, consumer, stmt, out)
                 }
                 out.push(leave_instance(instance, stmt.span))
@@ -153,7 +155,8 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             out.push(lower_return(ctx, stmt))
         }
         is YieldStmt             -> {
-            if ctx.gen_inline_sink is GenInlineSink as sink {
+            sink :: ctx.gen_inline_sink
+            if sink is GenInlineSink {
                 // Couche 4 generator inline: `yield e` becomes the consumer's
                 // loop-var binding + its body, splicing the consumption site in
                 // place of the boxed `next()` dispatch. Multi-yield generators
@@ -414,7 +417,8 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     // fall-through drain doesn't emit a duplicate pop_exec after a
     // wrapped exit.
     if s is LoweredExprStmt {
-        if s.expr is LoweredBlock as lb {
+        lb :: s.expr
+        if lb is LoweredBlock {
             n :: lb.stmts.len()
             if n > 0 { return stmt_diverges(lb.stmts[n - 1]) }
         }
@@ -487,8 +491,8 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     // substitution through `ctx.comptime_bindings` so `lower_ident`
     // folds loop-var reads to their literal.
     if for_stmt.is_comptime {
-        if for_stmt.form is InFor as in_form {
-            return lower_comptime_for_in(ctx, for_stmt, in_form)
+        if for_stmt.form is InFor {
+            return lower_comptime_for_in(ctx, for_stmt, for_stmt.form)
         }
     }
     match for_stmt.form as while_for {

@@ -7,8 +7,7 @@
       path: string = concat_2(std.io.temp_dir(), "/vader_cpointer_probe")
       wrote: IOError | null = std.io.write_file_string(path, "x")
       if wrote is IOError {
-          e: IOError = IOError(wrote)
-          std.io.println<string>(concat_2("setup failed: ", e.msg))
+          std.io.println<string>(concat_2("setup failed: ", IOError(wrote).msg))
           return 1
       }
       r: CPointer | null = snippet.c_fopen(path, "rb")

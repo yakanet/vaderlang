@@ -364,11 +364,13 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 13    | `??` (null-coalescing)                 | left (non-chaining) |
 | 14    | `=` (statement-level only)             | n/a            |
 
-Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. A `-` written against a number literal, with nothing in between, where an operand is expected, is not the level-2 prefix operator but part of the literal, so a postfix applies to the negative value: `-5.to_string()` is `"-5"` and `-5.abs()` is `5`, while `-x.abs()`, `-(5).abs()` and `- 5.abs()` negate the call (§Default integer). After an operand, `-` is the subtraction: `a -5` is `a - 5`. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
+Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. A `-` written against a number literal, with nothing in between, where an operand is expected, is not the level-2 prefix operator but part of the literal, so a postfix applies to the negative value: `-5.to_string()` is `"-5"` and `-5.abs()` is `5`, while `-x.abs()`, `-(5).abs()` and `- 5.abs()` negate the call (§Default integer). After an operand, `-` is the subtraction: `a -5` is `a - 5`. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else.
 
 `is` checks the runtime *struct-tag* of the value. A **union on the right-hand side is a membership test**: `x is A | B` — and equally `x is MyUnion` for a `MyUnion :: A | B` alias — is true when `x`'s tag is one of that union's members, and narrows `x` to it in the then-branch. So given `U :: A | B | C` and `AB :: A | B`, a value of type `U` holding a `B` satisfies `v is AB`, and inside that branch `v` may be passed where an `AB` is expected. A test that *cannot* match — the right-hand side shares no values with the scrutinee's type, e.g. `v is D` on a `v: A | B` — is the error `T3040`, not a warning.
 
-Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
+An `is` test binds no name: it narrows the name or field chain it tests, in place. A value with no name of its own gets one first, `r :: f()`, then the test narrows that name: `if r is T { … r … }`. `x is T as y` (and `x !is T as y`) is **P1036**.
+
+Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed).
 
 Narrowing flows through a `||` condition in the mirror direction. The **false** branch of a disjunction narrows every binding its operands tested — reaching it means *each* operand was false — so `if x is A || x is B { … } else { … }` sees `x` as its declared type minus `A | B` in the else, and the same complement applies to the rest of the block after a divergent guard (`if x is A || x is B { return }`). The **true** branch narrows only when *every* operand tests the same binding, and then to the **union** of what they matched: `if x is A || x is B { … }` sees `x` as `A | B`. A disjunction with one non-narrowing operand (`if x is A || flag`) narrows nothing on the true side — a true condition doesn't reveal which operand fired — while the false side still narrows `x`; likewise `if x is A || y is B` narrows neither on the true side and both on the false one.
 
@@ -2432,7 +2434,7 @@ Block-scoped, executed when leaving the block where it was written:
 ```vader
 process :: fn(path: string) -> string | Error {
     file := open(path)
-    if file is Error as e { return e }
+    if file is Error { return file }
     defer close(file)
 
     {
@@ -2443,7 +2445,7 @@ process :: fn(path: string) -> string | Error {
 
     // file closed at the end of the function
     result := read_all(file)
-    if result is Error as e { return e }
+    if result is Error { return result }
     return result
 }
 ```
@@ -2583,9 +2585,9 @@ the compiler narrows the value to its success type:
 ```vader
 process :: fn(path: string) -> string | Error {
     raw := read_file(path)
-    if raw is Error as e { return e }    // raw is `string` below
+    if raw is Error { return raw }    // raw is `string` below
     parsed := parse(raw)
-    if parsed is Error as e { return e }
+    if parsed is Error { return parsed }
     return parsed
 }
 ```
@@ -4348,9 +4350,9 @@ import "std/string" { parse_int, trim }
 
 read_count :: fn(path: string) -> i32 | Error {
     raw := read_file(path)             // read_file → string | Error
-    if raw is Error as e { return e }
+    if raw is Error { return raw }
     n := parse_int(trim(raw))          // parse_int → i32 | ParseError; ParseError widens to Error
-    if n is Error as e { return e }
+    if n is Error { return n }
     return n
 }
 

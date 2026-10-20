@@ -337,8 +337,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         new_fn :: remap[old_fn]
         if new_fn < 0 { continue }
         existing :: new_pins_by_fn[new_fn]
-        if existing is i32[] as ex {
-            for p in pins { ex.push(p) }
+        if existing is i32[] {
+            for p in pins { existing.push(p) }
         } else {
             new_pins_by_fn[new_fn] = pins
         }

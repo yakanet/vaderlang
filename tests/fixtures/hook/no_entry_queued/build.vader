@@ -10,8 +10,8 @@ build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
     exit := 0
     for msg in ctx.messages() {
-        if msg is CompleteMessage as c {
-            exit = c.code
+        if msg is CompleteMessage {
+            exit = msg.code
         }
     }
     _ :: ctx.flush_reports()

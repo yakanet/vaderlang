@@ -223,7 +223,8 @@ ref_stmt :: fn(s: LoweredStmt, visit_fn: fn(i32, string) -> void, visit_virtual:
 ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual: fn(string, string) -> void) -> void {
     match e {
         is LoweredCall -> {
-            if e.callee is LoweredIdent as callee_ident {
+            callee_ident :: e.callee
+            if callee_ident is LoweredIdent {
                 visit_fn(callee_ident.symbol.id, callee_ident.symbol.name)
             }
             ref_expr(e.callee, visit_fn, visit_virtual)

@@ -61,8 +61,8 @@ export scope_or_entry :: fn(module_filter: string[], entry_display_path: string)
 /// @param loaded         supplies the entry's display path for the fallback.
 export dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> string[] {
     entry_module :: loaded.modules[loaded.entry]
-    entry_dp :: if entry_module is LoadedModule as em {
-        em.module.display_path
+    entry_dp :: if entry_module is LoadedModule {
+        entry_module.module.display_path
     } else {
         loaded.entry
     }

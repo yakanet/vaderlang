@@ -39,10 +39,7 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
 
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
-    // expression, not a value. The `bind_as` parsing is handled inside
-    // `if x is T as alias` where the if's then-branch consumes the
-    // alias — that path lives in the typechecker's narrowing logic
-    // and lowers to a regular `LoweredCast` reaching the alias slot.
+    // expression, not a value.
     if binary.op == .Is {
         observe_no_call(ctx, binary, .Operator, "type check")
         check_type :: ctx.types.expr_type(binary.right)
@@ -66,7 +63,8 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         if recorded_callee(ctx, binary, .Operator) is Builtin {
             return lower_in_type(ctx, binary)
         }
-        if binary.right is RangeExpr as range_lit {
+        range_lit :: binary.right
+        if range_lit is RangeExpr {
             if scalar_backing(ctx.types.expr_type(binary.left)) != null {
                 return lower_in_literal_range(ctx, binary, range_lit)
             }
@@ -173,9 +171,6 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
 }
 
-// True iff `t` is the `string` primitive — the predicate that routes `+` to the
-// StringBuilder-chain concat lowering. A standalone fn (not an `&& as` guard)
-// to avoid the `as`-binding-inside-`&&` miscompile.
 // `x in lo..=hi` / `x in lo..<hi` over a literal range, `x` a scalar (a primitive,
 // or a distinct over one) : `lo <= x && x <= hi` (or `< hi`) inline, without the
 // `Range` heap allocation and `contains` call. The hot cases are the char predicates

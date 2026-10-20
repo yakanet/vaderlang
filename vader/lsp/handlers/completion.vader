@@ -508,11 +508,11 @@ stmt_expected_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: Typed
 }
 
 scan_fn_body :: fn(fd: AST.FnDecl, line: i32, col: i32, typed: TypedProgram) -> Type | null {
-    if fd.body is AST.BlockExpr as b {
-        if !span_contains(b.span, line, col) { return null }
-        return scan_block(b, line, col, fd.return_type, typed, true)
+    b :: fd.body ?? return null
+    if !span_contains(b.span, line, col) {
+        return null
     }
-    return null
+    return scan_block(b, line, col, fd.return_type, typed, true)
 }
 
 scan_block :: fn(b: AST.BlockExpr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram, fn_body: bool) -> Type | null {

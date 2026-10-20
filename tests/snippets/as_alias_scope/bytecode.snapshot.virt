@@ -147,18 +147,15 @@ fn 5 snippet$main () -> i32
 end
 
 fn 6 __lambda_snippet_0 (any) -> void
-  local lf ref
+  local lf any
   local __buf_0 ref
   local __off_1 i64
-  local $cast_14 i64
+  local $cast_13 i64
   local.get 0   ; arg 0
   call 0   ; snippet$unwrap
+  local.tee 1   ; lf
   type_check 2   ; snippet$Leaf
   if $L0 void
-    local.get 0   ; arg 0
-    call 0   ; snippet$unwrap
-    ref.cast 2   ; snippet$Leaf
-    local.set 1   ; lf
     i64.const 23
     buffer.new
     local.set 2   ; __buf_0
@@ -169,13 +166,15 @@ fn 6 __lambda_snippet_0 (any) -> void
     string.const 3   ; "lf="
     call 11   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.field 1 2 0   ; lf snippet$Leaf.v
+    local.get 1   ; lf
+    ref.cast 2   ; snippet$Leaf
+    struct.get 2 0   ; snippet$Leaf.v
     ref.cast 6   ; i32
     i32.to_i64
-    local.set 4   ; $cast_14
+    local.set 4   ; $cast_13
     local.get 2   ; __buf_0
     local.get 3   ; __off_1
-    local.get 4   ; $cast_14
+    local.get 4   ; $cast_13
     call 12   ; std_core$write_int
     local.set 3   ; __off_1
     local.get 2   ; __buf_0
@@ -262,18 +261,15 @@ fn 7 __lambda_snippet_1 (any) -> void
 end
 
 fn 8 __defer_snippet_2 (ref) -> void
-  local df ref
+  local df any
   local __buf_0 ref
   local __off_1 i64
-  local $cast_16 i64
+  local $cast_14 i64
   local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
   call 0   ; snippet$unwrap
+  local.tee 1   ; df
   type_check 2   ; snippet$Leaf
   if $L0 void
-    local.field 0 7 0   ; arg 0 __defer_env_snippet_3.cap_0
-    call 0   ; snippet$unwrap
-    ref.cast 2   ; snippet$Leaf
-    local.set 1   ; df
     i64.const 23
     buffer.new
     local.set 2   ; __buf_0
@@ -284,13 +280,15 @@ fn 8 __defer_snippet_2 (ref) -> void
     string.const 5   ; "df="
     call 11   ; std_core$write_string_at
     local.set 3   ; __off_1
-    local.field 1 2 0   ; df snippet$Leaf.v
+    local.get 1   ; df
+    ref.cast 2   ; snippet$Leaf
+    struct.get 2 0   ; snippet$Leaf.v
     ref.cast 6   ; i32
     i32.to_i64
-    local.set 4   ; $cast_16
+    local.set 4   ; $cast_14
     local.get 2   ; __buf_0
     local.get 3   ; __off_1
-    local.get 4   ; $cast_16
+    local.get 4   ; $cast_14
     call 12   ; std_core$write_int
     local.set 3   ; __off_1
     local.get 2   ; __buf_0

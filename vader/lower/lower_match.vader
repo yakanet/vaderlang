@@ -40,8 +40,8 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     } else {
         scrut_ident_symbol(scrut_value)
     }
-    scrut_symbol :: if elide_symbol is Symbol as reused {
-        reused
+    scrut_symbol :: if elide_symbol is Symbol {
+        elide_symbol
     } else {
         spilled :: fresh_synthetic_symbol(ctx, "scrut")
         stmts.push(LoweredLet {
@@ -135,7 +135,7 @@ any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
 
 // The symbol behind a scrutinee that lowered to a direct local/param read, or
 // null for anything else — the read the elision can safely reuse in place.
-scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent as id { id.symbol } else { null }
+scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent { e.symbol } else { null }
 
 lower_arm :: fn(
     ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
@@ -202,7 +202,8 @@ pattern_predicate :: fn(
             // `is P { x: 10 }` — the field tests run on the narrowed target, on
             // the right of a short-circuit `&&` : a field is only read once the
             // type test has confirmed the variant that carries it.
-            if pattern.inner is StructPattern as inner {
+            inner :: pattern.inner
+            if inner is StructPattern {
                 narrowed :: narrow_target(target, target_type, check_type, span)
                 fields :: struct_pattern_predicate(ctx, inner, narrowed, span)
                 if fields == null {
@@ -280,7 +281,8 @@ struct_pattern_predicate :: fn(
 ) -> LoweredExpr | null {
     tests: LoweredExpr[]: []
     for field in pattern.fields {
-        if field.value is PatternLiteral as literal {
+        literal :: field.value
+        if literal is PatternLiteral {
             value :: lower_expr(ctx, literal.value)
             field_type :: struct_field_type(ctx, target.type, field.name)
             access :: field_of(target, field_type, field.name, field.span)

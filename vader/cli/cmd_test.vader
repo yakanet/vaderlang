@@ -148,7 +148,8 @@ find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
                 if d.body == null {
                     continue
                 }
-                if d.origin.decl is FnDecl as ast {
+                ast :: d.origin.decl
+                if ast is FnDecl {
                     if has_test_decorator(ast) {
                         out.push(DiscoveredTest {
                             .mangled = d.mangled,
@@ -268,7 +269,7 @@ file_facts :: fn(f: Path) -> FileFacts {
         return FileFacts { .declared = "", .imports = [] }
     }
     header :: parse_module_header(src, f.as_string())
-    declared :: if header is ModuleHeader as h { h.name } else { "" }
+    declared :: if header is ModuleHeader { header.name } else { "" }
     imports: string[]: []
     for line in src.split("\n") {
         path :: import_path(line)

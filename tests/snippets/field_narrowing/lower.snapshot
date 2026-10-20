@@ -41,13 +41,6 @@
       }
       return -1
   }
-  snippet.span_via_alias :: fn(d: Decl) -> i32 {  // snippet$span_via_alias
-      if d.body is Block {
-          found: Block = Block(d.body)
-          return found.span
-      }
-      return -1
-  }
   snippet.span_if_present :: fn(d: Decl) -> i32 {  // snippet$span_if_present
       if !(d.body is null) {
           return d.body.span
@@ -137,42 +130,33 @@
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(50))
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(54))
           __off_13: i64 = 0
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, "is T as: ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_via_alias(some))
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "not is null: ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_if_present(some))
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_via_alias(none))
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_if_present(none))
           std.core.finish_buffer(__buf_12, __off_13)
-      } :string)
-      std.io.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(54))
-          __off_15: i64 = 0
-          __off_15 = std.core.write_string_at(__buf_14, __off_15, "not is null: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.span_if_present(some))
-          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.span_if_present(none))
-          std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       set: Outer = Outer { .inner = Inner { .flag = 42 } }
       unset: Outer = Outer { .inner = Inner { .flag = null } }
       std.io.println<string>({
-          __buf_16: Buffer = std.core.new_byte_buffer(i64(55))
-          __off_17: i64 = 0
-          __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested match: ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.count_match(set))
-          __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.count_match(unset))
-          std.core.finish_buffer(__buf_16, __off_17)
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(55))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "nested match: ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.count_match(set))
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.count_match(unset))
+          std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.io.println<string>({
-          __buf_18: Buffer = std.core.new_byte_buffer(i64(55))
-          __off_19: i64 = 0
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, "nested guard: ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.unwrap(set))
-          __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.unwrap(unset))
-          std.core.finish_buffer(__buf_18, __off_19)
+          __buf_16: Buffer = std.core.new_byte_buffer(i64(55))
+          __off_17: i64 = 0
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested guard: ")
+          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.unwrap(set))
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
+          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.unwrap(unset))
+          std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       return 0
   }
@@ -224,4 +208,4 @@
     struct system.windows.StartupInfo  // system_windows$StartupInfo
 
 # Diagnostics
-[87:38] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `i32 | null` — enumerate its variants or mark the match `@partial`
+[79:38] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `i32 | null` — enumerate its variants or mark the match `@partial`

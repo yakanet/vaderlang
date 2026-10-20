@@ -214,7 +214,8 @@ collect_pattern_names :: fn(p: AST.Pattern, out: string[]) -> void {
         }
         is AST.StructPattern      -> {
             for f in p.fields {
-                if f.value is AST.PatternLiteral as lit {
+                lit :: f.value
+                if lit is AST.PatternLiteral {
                     collect_expr_names(lit.value, out)
                 }
             }

@@ -194,7 +194,8 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
     if impl_.type_params.len() > 0 {
         return true
     }
-    if impl_.for_type is GenericInstExpr as gi {
+    gi :: impl_.for_type
+    if gi is GenericInstExpr {
         for ta in gi.type_args {
             bound :: resolved.idents[ta.span.hash()] ?? continue
             if bound.kind == .TypeParam {
@@ -210,7 +211,8 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
 /// An impl member's signature quantifies over them.
 export impl_type_params_of :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> TypeParamType[] {
     out :: quantifier_of(impl_.type_params, resolved)
-    if impl_.for_type is GenericInstExpr as gi {
+    gi :: impl_.for_type
+    if gi is GenericInstExpr {
         for ta in gi.type_args {
             bound :: resolved.idents[ta.span.hash()] ?? continue
             if bound.kind == .TypeParam && !out.any_match((tp) -> tp.symbol.id == bound.id) {

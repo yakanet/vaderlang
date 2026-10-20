@@ -609,7 +609,8 @@ export AssignStmt :: struct {
 /// @param s  the assignment.
 /// @return   the arithmetic operator the `op=` spells, or null.
 export compound_assign_op :: fn(s: AssignStmt) -> BinaryOp | null {
-    if s.value is BinaryExpr as value {
+    value :: s.value
+    if value is BinaryExpr {
         if value.left.span == s.target.span && is_arith_op(value.op) {
             return value.op
         }
@@ -971,7 +972,7 @@ export unary_op_symbol :: fn(op: UnaryOp) -> string = match op {
     .BitNot -> "~"
 }
 
-/// The `as <name>` of `if e is T as x` and `match e as x`.
+/// The `as <name>` of `match e as x`.
 export AsBinding :: struct {
     name: string
     /// The name token: the binding's declaration, which the resolver mints the
@@ -980,19 +981,12 @@ export AsBinding :: struct {
 }
 
 /// An infix operator applied to two operands.
-///
-/// `bind_as` carries the name of an `is T as name` narrowing when the test appears
-/// inside a larger boolean expression.
 export BinaryExpr :: struct {
     span:  Span
     id:    i64 = UNASSIGNED_NODE_ID
     op:    BinaryOp
     left:  Expr
     right: Expr
-    /// When `op == BinaryOp.Is`, the optional binding parsed from
-    /// `… is T as <ident>`. The binding lives in the enclosing `if`'s
-    /// then-branch. Always `null` when `op != Is`.
-    bind_as: AsBinding | null = null
 }
 
 /// Null-coalescing `left ?? fallback`. `left` must be typed `T | null` ;

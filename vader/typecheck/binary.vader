@@ -523,8 +523,8 @@ distinct_op_fallback :: fn(
         push_unrelated_distincts(e, left, right, diags)
         return TY_UNRESOLVED
     }
-    lb :: if left is DistinctType as ld { ld.backing } else { left }
-    rb :: if right is DistinctType as rd { rd.backing } else { right }
+    lb :: if left is DistinctType { left.backing } else { left }
+    rb :: if right is DistinctType { right.backing } else { right }
     // A free literal beside a distinct takes the backing's type : the distinct, which
     // no literal takes, left it free.
     [pinned_left, pinned_right] :: repinned_operands(e, lb, rb, typed, diags)

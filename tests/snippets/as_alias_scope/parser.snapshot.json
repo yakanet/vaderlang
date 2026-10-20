@@ -219,13 +219,16 @@
                       "returnType": null,
                       "body": {
                         "kind": "BlockExpr",
-                        "stmts": [],
-                        "trailing": {
-                          "kind": "IfExpr",
-                          "cond": {
-                            "kind": "BinaryExpr",
-                            "op": "is",
-                            "left": {
+                        "stmts": [
+                          {
+                            "kind": "LetStmt",
+                            "mutable": false,
+                            "binding": {
+                              "kind": "SimpleBinding",
+                              "name": "lf"
+                            },
+                            "type": null,
+                            "value": {
                               "kind": "CallExpr",
                               "callee": {
                                 "kind": "IdentExpr",
@@ -241,12 +244,22 @@
                                   "spread": false
                                 }
                               ]
+                            }
+                          }
+                        ],
+                        "trailing": {
+                          "kind": "IfExpr",
+                          "cond": {
+                            "kind": "BinaryExpr",
+                            "op": "is",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "lf"
                             },
                             "right": {
                               "kind": "IdentExpr",
                               "name": "Leaf"
-                            },
-                            "bindAs": "lf"
+                            }
                           },
                           "then": {
                             "kind": "BlockExpr",
@@ -543,13 +556,16 @@
               "kind": "DeferStmt",
               "body": {
                 "kind": "BlockExpr",
-                "stmts": [],
-                "trailing": {
-                  "kind": "IfExpr",
-                  "cond": {
-                    "kind": "BinaryExpr",
-                    "op": "is",
-                    "left": {
+                "stmts": [
+                  {
+                    "kind": "LetStmt",
+                    "mutable": false,
+                    "binding": {
+                      "kind": "SimpleBinding",
+                      "name": "df"
+                    },
+                    "type": null,
+                    "value": {
                       "kind": "CallExpr",
                       "callee": {
                         "kind": "IdentExpr",
@@ -565,12 +581,22 @@
                           "spread": false
                         }
                       ]
+                    }
+                  }
+                ],
+                "trailing": {
+                  "kind": "IfExpr",
+                  "cond": {
+                    "kind": "BinaryExpr",
+                    "op": "is",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "df"
                     },
                     "right": {
                       "kind": "IdentExpr",
                       "name": "Leaf"
-                    },
-                    "bindAs": "df"
+                    }
                   },
                   "then": {
                     "kind": "BlockExpr",

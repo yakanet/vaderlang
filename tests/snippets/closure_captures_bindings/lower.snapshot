@@ -83,10 +83,10 @@
       @cell(a) = 5
       return __lambda_snippet_10(f)
   }
-  snippet.from_alias :: fn(t: Leaf | Pair) -> i32 {  // snippet$from_alias
-      if snippet.pick(t) is Leaf {
-          lf: @cell<Leaf> = @cell_new(Leaf(snippet.pick(t)))
-          f: __lambda_env_snippet_13 = __lambda_env_snippet_13 { .cap_0 = lf }
+  snippet.from_narrowed :: fn(t: Leaf | Pair) -> i32 {  // snippet$from_narrowed
+      picked: Leaf | Pair = snippet.pick(t)
+      if picked is Leaf {
+          f: __lambda_env_snippet_13 = __lambda_env_snippet_13 { .cap_0 = picked }
           return __lambda_snippet_12(f)
       }
       return 0
@@ -210,10 +210,10 @@
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
-          __buf_12: Buffer = std.core.new_byte_buffer(i64(26))
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(29))
           __off_13: i64 = 0
-          __off_13 = std.core.write_string_at(__buf_12, __off_13, "alias ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.from_alias(Leaf { .v = 6 }))
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "narrowed ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.from_narrowed(Leaf { .v = 6 }))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.io.println<string>({
@@ -264,9 +264,9 @@
   __lambda_snippet_10 :: fn(__env_1: __lambda_env_snippet_11) -> i32 {
       (@cell(__env_1.cap_0) * 10) + __env_1.cap_1
   }
-  __lambda_env_snippet_13 :: struct { cap_0: ? }
+  __lambda_env_snippet_13 :: struct { cap_0: Leaf | Pair }
   __lambda_snippet_12 :: fn(__env_0: __lambda_env_snippet_13) -> i32 {
-      @cell(__env_0.cap_0).v
+      Leaf(__env_0.cap_0).v
   }
   __lambda_env_snippet_15 :: struct { cap_0: i32 }
   __lambda_snippet_14 :: fn(__env_0: __lambda_env_snippet_15, x: i32) -> i32 {

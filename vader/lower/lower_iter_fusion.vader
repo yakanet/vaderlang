@@ -334,7 +334,7 @@ descend_array_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> IterChain | nul
         if has_instance_impl(arr_ty, core_trait_key(TRAIT_INTO), ctx.typed) {
             return null
         }
-        elem :: if arr_ty is ArrayType as a { a.element } else { TY_UNRESOLVED }
+        elem :: if arr_ty is ArrayType { arr_ty.element } else { TY_UNRESOLVED }
         return mk_array_chain(into_arr, elem, call.span, false)
     }
     return null
@@ -365,7 +365,7 @@ array_from_into_call :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> AST.Expr | nu
 
 chain_element_type :: fn(chain: IterChain) -> Type = match chain.kind {
     .Range | .Array | .OpaqueIter | .GenSource -> chain.element_type
-    .Generator -> if chain.gen_layer is GenComboLayer as gl { gl.output_elem } else { TY_UNRESOLVED }
+    .Generator -> if chain.gen_layer is GenComboLayer { chain.gen_layer.output_elem } else { TY_UNRESOLVED }
 }
 
 // ---- operands -------------------------------------------------------------

@@ -63,8 +63,7 @@ export main 0
 fn 0 snippet$main () -> i32
   local path string
   local wrote any
-  local e ref
-  local $field_11 string
+  local $field_10 string
   call 2   ; std_io$temp_dir
   string.const 0   ; "/vader_cpointer_probe"
   call 1   ; concat_2
@@ -76,12 +75,11 @@ fn 0 snippet$main () -> i32
   if $L0 void
     local.get 1   ; wrote
     ref.cast 11   ; std_io$IOError
-    local.set 2   ; e
-    local.field 2 11 0   ; e std_io$IOError.msg
+    struct.get 11 0   ; std_io$IOError.msg
     ref.cast 2   ; string
-    local.set 3   ; $field_11
+    local.set 2   ; $field_10
     string.const 2   ; "setup failed: "
-    local.get 3   ; $field_11
+    local.get 2   ; $field_10
     call 1   ; concat_2
     call 12   ; std_io$println__string
     return.lit i32.const 1
