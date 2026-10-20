@@ -1,4 +1,4 @@
-[21:5] error[T3070]
-[26:5] error[T3070]
-[27:5] error[T3070]
-[28:10] error[T3072]
+[21:5] error[T3070] a frozen value cannot be modified: `Info(…)` reads the data of a variant, which every read shares, and `Info(…).code` is assigned ; a name bound to it holds a copy to modify
+[26:5] error[T3070] a frozen value cannot be modified: `Info(…)` reads the data of a variant, which every read shares, and `Info(…).code` is assigned ; a name bound to it holds a copy to modify
+[27:5] error[T3070] a frozen value cannot be modified: `code` is read from the data of a variant, which every read shares ; a name bound to `Info(…)` holds a copy to modify
+[28:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `Info(…)` reads the data of a variant, which every read shares, and `bump` modifies it (`i.code` is assigned) ; a name bound to it holds a copy to modify

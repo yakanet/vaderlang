@@ -1,5 +1,0 @@
-# compile errors
-[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
-[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
-[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
-[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`

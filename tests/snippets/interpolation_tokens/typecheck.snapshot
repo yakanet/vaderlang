@@ -2,18 +2,28 @@
 
 ## tests/snippets/interpolation_tokens
   ConstDecl      expr                 :: string
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      name                 :: string
   ConstDecl      nested               :: string
   ConstDecl      simple               :: string
-  expr 3:18     StringLitExpr  :: string
-  expr 3:26     IdentExpr      :: ?
-  expr 4:16     StringLitExpr  :: string
-  expr 4:27     BinaryExpr     :: ?
-  expr 4:27     IdentExpr      :: ?
-  expr 5:18     StringLitExpr  :: string
-  expr 5:27     StringLitExpr  :: string
-  expr 5:36     IdentExpr      :: ?
-
-# Diagnostics
-[3:26] error[R2006] unresolved identifier: `name`
-[4:27] error[R2006] unresolved identifier: `x`
-[5:36] error[R2006] unresolved identifier: `y`
+  ConstDecl      x                    :: i32
+  ConstDecl      y                    :: string
+  expr 10:6     StringLitExpr  :: string
+  expr 12:18    StringLitExpr  :: string
+  expr 12:26    IdentExpr      :: string
+  expr 13:16    StringLitExpr  :: string
+  expr 13:27    BinaryExpr     :: i32
+  expr 13:27    IdentExpr      :: i32
+  expr 14:18    StringLitExpr  :: string
+  expr 14:27    StringLitExpr  :: string
+  expr 14:36    IdentExpr      :: string
+  expr 17:13    IdentExpr      :: string
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    IdentExpr      :: string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:13    IdentExpr      :: string
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 8:9      StringLitExpr  :: string

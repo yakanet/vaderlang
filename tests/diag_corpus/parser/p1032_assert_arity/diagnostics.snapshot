@@ -1,1 +1,1 @@
-[7:1] error[P1032]
+[7:1] error[P1032] wrong number of decorator arguments: `@assert` expects 1 or 2 arguments : `@assert(cond)` or `@assert(cond, "message")`

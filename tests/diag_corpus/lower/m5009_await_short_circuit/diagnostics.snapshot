@@ -1,8 +1,8 @@
-[13:1] warning[W0007]
-[14:15] error[M5009]
-[18:1] warning[W0007]
-[21:1] warning[W0007]
-[22:15] error[M5009]
-[27:1] warning[W0007]
-[29:14] error[M5009]
-[8:1] warning[W0007]
+[13:1] warning[W0007] declaration is never used in its module: `combine` is never used
+[14:15] error[M5009] `await` in a short-circuit operand, loop condition or match guard is not yet supported
+[18:1] warning[W0007] declaration is never used in its module: `count_of` is never used
+[21:1] warning[W0007] declaration is never used in its module: `fallback` is never used
+[22:15] error[M5009] `await` in a short-circuit operand, loop condition or match guard is not yet supported
+[27:1] warning[W0007] declaration is never used in its module: `guarded` is never used
+[29:14] error[M5009] `await` in a short-circuit operand, loop condition or match guard is not yet supported
+[8:1] warning[W0007] declaration is never used in its module: `flag_of` is never used

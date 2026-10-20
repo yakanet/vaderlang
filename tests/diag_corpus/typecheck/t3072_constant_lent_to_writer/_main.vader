@@ -1,6 +1,7 @@
 // A module constant lent to a function that writes what it is lent: the write
-// would land on a throwaway copy, the constant having no storage. A local of the
-// very same type is fine (`bump(local)` below): it is the program's own. T3072.
+// would land on a throwaway copy, the constant having no storage. A field write
+// and an element write are both caught. A local of the very same type is fine
+// (`bump(local)` below): it is the program's own. T3072.
 module "snippet"
 
 Cfg :: struct {
@@ -9,12 +10,19 @@ Cfg :: struct {
 
 CFG :: Cfg { .count = 1 }
 
+DIGITS :: [10, 20, 30]
+
 bump :: fn(c: Cfg) -> void {
     c.count += 1
 }
 
+write_first :: fn(a: i32[]) -> void {
+    a[0] = 99
+}
+
 main :: fn() -> i32 {
     bump(CFG)
+    write_first(DIGITS)
     local :: Cfg { .count = 0 }
     bump(local)
     return local.count

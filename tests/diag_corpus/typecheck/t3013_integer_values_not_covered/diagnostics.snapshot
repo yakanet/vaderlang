@@ -1,5 +1,5 @@
-[14:35] error[T3013]
-[20:39] error[T3013]
-[24:52] error[T3013]
-[29:48] error[T3013]
-[9:37] error[T3013]
+[14:35] error[T3013] non-exhaustive match: value `127` of i8 is not covered
+[20:39] error[T3013] non-exhaustive match: code points `128..=55295` of char are not covered
+[24:52] error[T3013] non-exhaustive match: values `12..=23` of Hour are not covered
+[29:48] error[T3013] non-exhaustive match: values `21..=23` of Hour are not covered
+[9:37] error[T3013] non-exhaustive match: value `12` of Hour is not covered

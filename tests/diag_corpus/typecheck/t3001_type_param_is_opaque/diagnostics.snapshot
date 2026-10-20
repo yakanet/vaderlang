@@ -1,2 +1,2 @@
-[13:5] error[T3020]
-[7:5] error[T3001]
+[13:5] error[T3020] function body returns a value incompatible with its declared return type: expected T, got i64
+[7:5] error[T3001] type mismatch: expected i64, got T

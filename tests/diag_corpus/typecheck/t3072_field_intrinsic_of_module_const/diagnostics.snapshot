@@ -1,2 +1,2 @@
-[29:17] error[T3072]
-[30:16] error[T3072]
+[29:17] error[T3072] a frozen value cannot be lent to a function that modifies it: `BOX` is a module constant, and `reset_inner` modifies it (`b.inner.n` is assigned) ; a name bound to it holds a copy to modify
+[30:16] error[T3072] a frozen value cannot be lent to a function that modifies it: `BOX` is a module constant, and `reset_each` modifies it (`b.inner.n` is assigned) ; a name bound to it holds a copy to modify

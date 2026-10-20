@@ -1,1 +1,1 @@
-[5:1] warning[W0011]
+[5:1] warning[W0011] empty modifier list on an import — `import "p" {}` is just a wildcard, write `import "p"`: `std/io`

@@ -1,2 +1,2 @@
-[14:10] error[T3006]
-[15:10] error[T3006]
+[14:10] error[T3006] trait not satisfied: type parameter `T` of `lowest` is an `Int`, an integer type within `i64`, got `u64`
+[15:10] error[T3006] trait not satisfied: type parameter `T` of `lowest` is an `Int`, an integer type within `i64`, got `string`

@@ -1,1 +1,1 @@
-[21:15] error[T3087]
+[21:15] error[T3087] the instances of a generic that share one body cannot be told apart: `==` on `Box<Point> | Point` would test for `Box<Point>`, which only `null` can be told from

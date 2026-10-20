@@ -1,1 +1,1 @@
-[4:11] error[T3061]
+[4:11] error[T3061] yielded value type does not match the generator's element type: expected i32, got string

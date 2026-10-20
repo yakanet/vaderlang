@@ -1,0 +1,33 @@
+// An `Into` impl converts to its own target only: `A -> B` and `B -> C` do not
+// compose into `A -> C`, and a union target picks no variant to convert into. Each
+// binding is a plain T3001.
+
+module "snippet"
+
+export A :: struct { value: i32 }
+B :: struct { value: i32 }
+export C :: struct { value: i32 }
+
+A implements Into<B> {
+    into :: fn(self) -> B = B { .value = self.value }
+}
+
+B implements Into<C> {
+    into :: fn(self) -> C = C { .value = self.value }
+}
+
+export Foo :: struct { value: i32 }
+
+Foo implements Into<i32> {
+    into :: fn(self) -> i32 = self.value
+}
+
+export not_transitive :: fn(a: A) -> C {
+    c: C: a
+    return c
+}
+
+export union_target :: fn(f: Foo) -> i32 | string {
+    x: i32 | string: f
+    return x
+}

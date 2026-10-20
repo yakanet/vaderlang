@@ -1,3 +1,3 @@
-[16:5] warning[W0014]
-[9:5] warning[W0014]
-[9:9] warning[W0014]
+[16:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every value of `u8` is already matched above
+[9:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: its values are matched by an earlier arm
+[9:9] warning[W0014] match arm can never be taken — an earlier arm already covers it: its values are matched by an earlier arm

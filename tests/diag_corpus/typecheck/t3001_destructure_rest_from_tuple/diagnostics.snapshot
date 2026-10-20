@@ -1,1 +1,1 @@
-[10:20] error[T3001]
+[10:20] error[T3001] type mismatch: a `...rest` target collects from an array, got `[i32, string]`

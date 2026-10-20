@@ -1,5 +1,5 @@
-[19:15] error[T3110]
-[20:10] error[T3110]
-[21:15] error[T3110]
-[22:15] error[T3110]
-[23:15] error[T3110]
+[19:15] error[T3110] only an integer type, `char` or an enum without variant data has bounds: `in` takes an integer type, `char` or an enum, got `string`
+[20:10] error[T3110] only an integer type, `char` or an enum without variant data has bounds: `in Hour` tests an integer, got `string`
+[21:15] error[T3110] only an integer type, `char` or an enum without variant data has bounds: `in` takes an enum without variant data, got `Level`
+[22:15] error[T3110] only an integer type, `char` or an enum without variant data has bounds: `@min` takes an integer type, `char` or an enum, got `string`
+[23:15] error[T3110] only an integer type, `char` or an enum without variant data has bounds: `@max` takes an integer type, `char` or an enum, got `bool`

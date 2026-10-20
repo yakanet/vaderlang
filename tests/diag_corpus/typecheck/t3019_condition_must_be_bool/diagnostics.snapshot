@@ -1,1 +1,1 @@
-[5:8] error[T3019]
+[5:8] error[T3019] condition must be `bool`: if condition must be `bool`, got {integer}

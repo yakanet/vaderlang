@@ -1,2 +1,2 @@
-[13:13] error[T3071]
-[18:33] error[T3071]
+[13:13] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep
+[18:33] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep

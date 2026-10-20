@@ -1,6 +1,6 @@
-[25:56] error[T3043]
-[35:16] error[T3043]
-[36:16] error[T3043]
-[37:16] error[T3043]
-[38:16] error[T3001]
-[39:16] error[T3001]
+[25:56] error[T3043] operand type does not implement the trait this operator requires: `T` does not implement `Equals`
+[35:16] error[T3043] operand type does not implement the trait this operator requires: `Box` does not implement `Equals`
+[36:16] error[T3043] operand type does not implement the trait this operator requires: `i32[]` does not implement `Equals` ; compare the contents with `content_equals` or `is_permutation_of`, the references with `===`
+[37:16] error[T3043] operand type does not implement the trait this operator requires: `fn(i32) -> i32` does not implement `Equals`
+[38:16] error[T3001] type mismatch: expected `[i32, string]`, got `[string, i32]`
+[39:16] error[T3001] type mismatch: expected `[i32, [i32, i32]]`, got `[i32, [i32, i32, i32]]`

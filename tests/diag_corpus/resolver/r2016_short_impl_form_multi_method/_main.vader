@@ -1,0 +1,18 @@
+// The short impl forms (an arrow, or an anonymous block) only apply to a trait
+// with one method: a trait with several takes every method spelled out. R2016,
+// with the T3036 the missing second method raises.
+
+module "snippet"
+
+export TwoFns :: trait {
+    first  :: fn(self) -> i32
+    second :: fn(self) -> i32
+}
+
+// Two different receivers so this stays focused on the short-form error :
+// re-using the same receiver would also trip the coherence rule (R2030).
+i32 implements TwoFns -> 0
+
+i64 implements TwoFns {
+    self + 1
+}

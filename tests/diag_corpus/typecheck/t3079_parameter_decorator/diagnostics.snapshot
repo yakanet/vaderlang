@@ -1,1 +1,1 @@
-[5:19] error[T3079]
+[5:19] error[T3079] decorator not allowed on this parameter: `@c_pointer` only means something on an `@extern` declaration

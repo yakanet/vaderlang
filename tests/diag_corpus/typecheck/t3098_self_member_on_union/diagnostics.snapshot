@@ -1,1 +1,1 @@
-[22:46] error[T3098]
+[22:46] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `compare` takes another `Self`, which may be another variant ; narrow `A | B` first

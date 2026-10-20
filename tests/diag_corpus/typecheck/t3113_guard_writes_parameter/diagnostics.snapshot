@@ -1,3 +1,3 @@
-[12:5] error[T3113]
-[20:9] error[T3113]
-[28:5] error[T3113]
+[12:5] error[T3113] a function declaring `@returns` or `@ensures` cannot write its parameters: `always` writes `d`
+[20:9] error[T3113] a function declaring `@returns` or `@ensures` cannot write its parameters: `through_a_lambda` writes `d`
+[28:5] error[T3113] a function declaring `@returns` or `@ensures` cannot write its parameters: `forces` writes `d`

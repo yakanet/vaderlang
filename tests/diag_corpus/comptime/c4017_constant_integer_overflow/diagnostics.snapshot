@@ -1,1 +1,1 @@
-[8:15] error[C4017]
+[8:15] error[C4017] integer overflow in a constant expression: the result leaves `u8`

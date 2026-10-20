@@ -1,1 +1,1 @@
-[5:6] error[T3099]
+[5:6] error[T3099] a constant cannot depend on its own value: `B` is read while its own value is typed

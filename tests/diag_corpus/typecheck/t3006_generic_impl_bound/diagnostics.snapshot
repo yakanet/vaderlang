@@ -1,1 +1,1 @@
-[14:12] error[T3006]
+[14:12] error[T3006] trait not satisfied: type parameter `T` of `show` requires `Display`, and `Box<Point>` does not implement it ; its impl requires `T: Display`, and `Point` does not implement it

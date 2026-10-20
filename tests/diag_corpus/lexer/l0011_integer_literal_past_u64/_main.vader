@@ -1,0 +1,6 @@
+// An integer literal beyond the u64 range is rejected at lex time rather than
+// wrapped modulo 2^64. L0011.
+
+module "snippet"
+
+export STARS :: 1000000000000000000000000

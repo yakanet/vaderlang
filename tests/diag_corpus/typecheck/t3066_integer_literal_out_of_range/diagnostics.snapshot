@@ -1,23 +1,23 @@
-[12:22] error[T3066]
-[13:22] error[T3066]
-[14:23] error[T3066]
-[15:32] error[T3066]
-[16:29] error[T3066]
-[17:30] error[T3066]
-[18:29] error[T3066]
-[21:5] error[T3066]
-[22:9] error[T3066]
-[23:5] warning[W0014]
-[26:42] error[T3066]
-[30:18] error[T3066]
-[39:22] error[T3066]
-[45:35] error[T3066]
-[50:40] error[T3066]
-[55:37] error[T3066]
-[60:28] error[T3066]
-[65:40] error[T3066]
-[76:15] error[T3066]
-[77:10] error[T3066]
-[78:10] error[T3066]
-[79:17] error[T3066]
-[80:10] error[T3066]
+[12:22] error[T3066] integer literal does not fit the target integer type: `128` is not in `i8`
+[13:22] error[T3066] integer literal does not fit the target integer type: `-129` is not in `i8`
+[14:23] error[T3066] integer literal does not fit the target integer type: `2147483648` is not in `i32`
+[15:32] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u32`
+[16:29] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[17:30] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[18:29] error[T3066] integer literal does not fit the target integer type: `9000000000` does not fit in `i32`, the type it defaults to
+[21:5] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u8`
+[22:9] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[23:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every value of `u8` is already matched above
+[26:42] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u8`
+[30:18] error[T3066] integer literal does not fit the target integer type: `9000000000` is not in `i32`
+[39:22] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[45:35] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[50:40] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[55:37] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[60:28] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[65:40] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[76:15] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[77:10] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[78:10] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[79:17] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`
+[80:10] error[T3066] integer literal does not fit the target integer type: `300` is not in `u8`

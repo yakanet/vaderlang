@@ -1,1 +1,1 @@
-[19:14] error[T3097]
+[19:14] error[T3097] a type implementing a trait more than once cannot fill it here: `Pair` implements `Iterator` more than once ; `for` cannot tell its impls apart

@@ -1,0 +1,10 @@
+// A tuple literal with more elements than its annotation. T3001, reported
+// twice for the one literal: the arity check, then the binding check against the
+// literal's own three-element type.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    pair: [i32, string]: [1, "x", true]
+    return 0
+}

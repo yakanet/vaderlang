@@ -1,1 +1,1 @@
-[10:1] error[T3096]
+[10:1] error[T3096] variant data holds only values: the data of `Kind` holds `xs: i32[]`, which every read of it would share

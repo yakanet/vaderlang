@@ -1,0 +1,1 @@
+[8:9] error[T3031] duplicate enum variant value: value 1 already used by `X`

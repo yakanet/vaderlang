@@ -1,3 +1,0 @@
-# compile errors
-[R2001] module not found: `std/nonexistent`
-[R2006] unresolved identifier: `do_thing`

@@ -1,2 +1,2 @@
-[4:1] error[P1006]
-[6:6] error[P1006]
+[4:1] error[P1006] expected a declaration: got `println`
+[6:6] error[P1006] expected a declaration: got `::`

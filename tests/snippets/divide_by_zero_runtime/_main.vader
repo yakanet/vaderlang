@@ -4,8 +4,8 @@
 // the op through the `vader_div_i32` runtime guard (runtime/c/vader.h), which
 // traps identically instead of arm64's silent zero / x86 SIGFPE. Regression
 // guard for audit item B2. The divisor is a mutable local so the comptime
-// folder leaves the divide for runtime (no C4005) ; `bad_div_zero` covers the
-// comptime-folded form.
+// folder leaves the divide for runtime (no C4005) ; the diagnostic fixture
+// `c4005_division_by_zero` covers the comptime-folded form.
 
 module "snippet"
 

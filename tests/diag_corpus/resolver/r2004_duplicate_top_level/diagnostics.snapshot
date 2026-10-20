@@ -1,1 +1,1 @@
-[6:1] error[R2004]
+[6:1] error[R2004] duplicate top-level symbol in module: `foo` already declared in this module

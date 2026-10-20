@@ -1,0 +1,2 @@
+[7:60] error[P1006] expected a declaration: got `==`
+[7:60] error[P1010] non-associative operator chained: chained ``==``

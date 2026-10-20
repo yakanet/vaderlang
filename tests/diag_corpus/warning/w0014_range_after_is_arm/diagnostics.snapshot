@@ -1,1 +1,1 @@
-[7:5] warning[W0014]
+[7:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every `i32` is matched by an earlier arm

@@ -1,4 +1,4 @@
-[14:9] error[T3041]
-[18:9] error[T3041]
-[21:9] error[T3041]
-[24:9] error[T3041]
+[14:9] error[T3041] cannot reassign a constant binding: `i` is the variable of a `for … in`, bound anew each turn ; copy it into a `:=` local to change it
+[18:9] error[T3041] cannot reassign a constant binding: `word` is the variable of a `for … in`, bound anew each turn ; copy it into a `:=` local to change it
+[21:9] error[T3041] cannot reassign a constant binding: `z` is the variable of a `for … in`, bound anew each turn ; copy it into a `:=` local to change it
+[24:9] error[T3041] cannot reassign a constant binding: `a` is the variable of a `for … in`, bound anew each turn ; copy it into a `:=` local to change it

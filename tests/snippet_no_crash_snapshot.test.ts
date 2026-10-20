@@ -12,6 +12,11 @@
 // Scope: only COMPILE-stage snapshots. `vm.snapshot` (run output) is excluded —
 // a RUNTIME panic can legitimately be a snippet's subject (panic_runs_defers).
 // `_diag_` snippets are diagnostic-only by convention and excluded.
+//
+// The same scan keeps compile ERRORS out: a snippet pins what the pipeline emits
+// for a program that compiles, and a diagnostic belongs in `tests/diag_corpus/`.
+// A snippet that stops compiling records its errors in its stage snapshots on
+// the next refresh, so this is the check that catches it.
 
 import { test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
@@ -20,8 +25,8 @@ import { listSnippets } from "./snapshot.ts";
 
 // Compiler-crash markers (ICE / abort / segv) — never the intended output of a
 // feature snippet's compile stages. Deliberately NOT the generic "vader CLI
-// failed", which also covers ordinary compile-ERROR (diagnostic) test snippets
-// exiting non-zero; these three are unambiguous crashes.
+// failed", which also covers a compile error; these three are unambiguous
+// crashes.
 const CRASH_MARKERS: readonly RegExp[] = [
   /panic —/,             // "vader: panic — <ICE message>"
   /reached unreachable/, // an `@unreachable` arm was hit
@@ -33,17 +38,40 @@ const CRASH_MARKERS: readonly RegExp[] = [
 // compiler is expected to crash while compiling it.
 const ALLOW: ReadonlySet<string> = new Set<string>();
 
-test("no feature snippet has a compiler-crash compile-stage snapshot", () => {
-  const offenders: string[] = [];
+// A diagnostic line of severity error, as the stage dumps write it.
+const COMPILE_ERROR = /\berror\[[A-Z]\d{4}\]/;
+
+// Every compile-stage snapshot of every feature snippet, as `[name/file, content]`.
+function compileStageSnapshots(allow: ReadonlySet<string>): [string, string][] {
+  const out: [string, string][] = [];
   for (const s of listSnippets("tests/snippets")) {
-    if (s.name.startsWith("_diag_") || ALLOW.has(s.name)) continue;
+    if (s.name.startsWith("_diag_") || allow.has(s.name)) continue;
     for (const f of readdirSync(s.dir)) {
       if (f === "vm.snapshot") continue; // run output — runtime panic may be the subject
       if (!f.includes(".snapshot")) continue;
-      const content = readFileSync(join(s.dir, f), "utf8");
-      if (CRASH_MARKERS.some((m) => m.test(content))) offenders.push(`${s.name}/${f}`);
+      out.push([`${s.name}/${f}`, readFileSync(join(s.dir, f), "utf8")]);
     }
   }
+  return out;
+}
+
+test("no feature snippet reports a compile error", () => {
+  const offenders = compileStageSnapshots(new Set())
+    .filter(([, content]) => COMPILE_ERROR.test(content))
+    .map(([path]) => path);
+  if (offenders.length > 0) {
+    throw new Error(
+      `Feature snippet(s) whose compile-stage snapshots record a compile error:\n` +
+      offenders.map((o) => `  ${o}`).join("\n") +
+      `\n\nA snippet must compile. A diagnostic is pinned by a fixture under tests/diag_corpus/.`,
+    );
+  }
+});
+
+test("no feature snippet has a compiler-crash compile-stage snapshot", () => {
+  const offenders = compileStageSnapshots(ALLOW)
+    .filter(([, content]) => CRASH_MARKERS.some((m) => m.test(content)))
+    .map(([path]) => path);
   if (offenders.length > 0) {
     throw new Error(
       `Feature snippet(s) regressed to a compiler crash — masked as passing by their snapshots:\n` +

@@ -1,1 +1,1 @@
-[8:20] error[C4018]
+[8:20] error[C4018] a `@singleton` function cannot run at comptime: `size`

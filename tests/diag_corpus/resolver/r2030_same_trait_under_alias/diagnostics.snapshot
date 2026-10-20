@@ -1,1 +1,1 @@
-[5:1] error[R2030]
+[5:1] error[R2030] conflicting trait impl for the same type: `Point` already implements `D2` — only one impl per (type, trait) is allowed

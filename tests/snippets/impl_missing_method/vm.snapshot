@@ -1,2 +1,0 @@
-# compile errors
-[T3036] impl block missing required trait method: `TwoFn` requires method `second` — not provided in this impl block

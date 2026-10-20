@@ -1,0 +1,1 @@
+[7:8] error[T3034] recursive expression-bodied function requires an explicit `-> Type` annotation: `fact`

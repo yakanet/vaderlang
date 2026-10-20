@@ -1,1 +1,1 @@
-[7:15] error[T3001]
+[7:15] error[T3001] type mismatch: expected `u8`, got `string`

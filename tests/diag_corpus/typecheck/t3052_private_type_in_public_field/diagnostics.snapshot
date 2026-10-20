@@ -1,1 +1,1 @@
-[9:13] error[T3052]
+[9:13] error[T3052] exported declaration exposes a non-exported type: exported `Config` exposes a field of type `Secret`, which is not exported from its module ; export `Secret` or make `Config` private

@@ -1,3 +1,3 @@
-[10:47] error[T3010]
-[11:45] error[T3010]
-[12:45] error[T3010]
+[10:47] error[T3010] invalid cast: cannot cast u8 to Below
+[11:45] error[T3010] invalid cast: cannot cast f64 to Hour
+[12:45] error[T3010] invalid cast: cannot cast f64 to Slot

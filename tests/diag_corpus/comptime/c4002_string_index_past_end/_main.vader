@@ -1,0 +1,10 @@
+// A comptime string index past the end is a C4002: the evaluator runs `oob()`
+// in the interpreter, where the walk behind `s[i]` reads the byte at the
+// string's length and traps, and the comptime pass reports the trap.
+
+module "snippet"
+
+oob :: fn() -> char = "abc"[10]
+
+@comptime
+export BAD :: oob()

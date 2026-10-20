@@ -1,1 +1,1 @@
-[11:5] error[T3094]
+[11:5] error[T3094] an impl member must be declared by its trait: `not_equals` is not a member of `Equals`

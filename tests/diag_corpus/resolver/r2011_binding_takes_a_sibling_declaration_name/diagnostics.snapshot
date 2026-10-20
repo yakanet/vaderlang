@@ -1,1 +1,1 @@
-[8:23] error[R2011]
+[8:23] error[R2011] duplicate import binding: `Tidy`

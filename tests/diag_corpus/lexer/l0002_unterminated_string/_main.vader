@@ -1,0 +1,8 @@
+// A string literal with no closing quote. L0002.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    s :: "unterminated
+    return 0
+}

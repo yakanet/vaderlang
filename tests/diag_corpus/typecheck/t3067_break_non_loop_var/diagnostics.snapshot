@@ -1,1 +1,1 @@
-[6:13] error[T3067]
+[6:13] error[T3067] `break` / `continue` target must be an enclosing loop's iteration variable or label: `x` is not an enclosing loop's iteration variable or label

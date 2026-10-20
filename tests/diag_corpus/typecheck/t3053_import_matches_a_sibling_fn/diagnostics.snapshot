@@ -1,1 +1,1 @@
-[7:24] error[T3053]
+[7:24] error[T3053] function defined more than once with the same signature in a module: `double` has the same signature as a function of this module

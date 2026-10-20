@@ -1,1 +1,1 @@
-[15:1] error[C4002]
+[15:1] error[C4002] comptime evaluation panicked: comptime evaluation exceeded 100000000 steps (non-terminating @comptime?)

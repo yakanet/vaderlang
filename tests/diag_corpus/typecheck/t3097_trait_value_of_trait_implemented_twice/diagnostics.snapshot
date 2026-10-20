@@ -1,1 +1,1 @@
-[28:5] error[T3097]
+[28:5] error[T3097] a type implementing a trait more than once cannot fill it here: `Mon` implements `Into` more than once ; a `Into<Tag>` value, which dispatches by the trait alone, cannot tell its impls apart

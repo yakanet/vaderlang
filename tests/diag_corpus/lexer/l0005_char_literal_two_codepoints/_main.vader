@@ -1,0 +1,8 @@
+// A char literal holding two codepoints. L0005.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    c :: 'ab'
+    return 0
+}

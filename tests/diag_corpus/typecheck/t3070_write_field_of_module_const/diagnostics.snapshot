@@ -1,1 +1,1 @@
-[13:5] error[T3070]
+[13:5] error[T3070] a frozen value cannot be modified: `CFG` is a module constant, and `CFG.count` is assigned ; a name bound to it holds a copy to modify

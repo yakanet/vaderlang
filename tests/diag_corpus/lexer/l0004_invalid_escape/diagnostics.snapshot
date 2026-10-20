@@ -1,1 +1,1 @@
-[5:14] error[L0004]
+[5:14] error[L0004] invalid escape sequence: unknown escape \q

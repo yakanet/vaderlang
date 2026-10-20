@@ -1,4 +1,4 @@
-[16:10] error[T3017]
-[17:10] error[T3017]
-[19:10] error[T3017]
-[21:14] error[T3017]
+[16:10] error[T3017] operator not defined for these operand types: `+%` is not defined for `f64` and `f64`
+[17:10] error[T3017] operator not defined for these operand types: `*%` is not defined for `string` and `string`
+[19:10] error[T3017] operator not defined for these operand types: `-%` is not defined for `i32` and `{float}`
+[21:14] error[T3017] operator not defined for these operand types: `+%` is not defined for `Money` and `Money`

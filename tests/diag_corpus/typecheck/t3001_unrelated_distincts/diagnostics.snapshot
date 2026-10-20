@@ -1,8 +1,8 @@
-[10:1] warning[W0007]
-[10:45] error[T3001]
-[11:1] warning[W0007]
-[11:47] error[T3001]
-[12:1] warning[W0007]
-[12:49] error[T3001]
-[7:1] warning[W0007]
-[8:1] warning[W0007]
+[10:1] warning[W0007] declaration is never used in its module: `same` is never used
+[10:45] error[T3001] type mismatch: `Meters` and `Seconds` are unrelated distinct types
+[11:1] warning[W0007] declaration is never used in its module: `before` is never used
+[11:47] error[T3001] type mismatch: `Meters` and `Seconds` are unrelated distinct types
+[12:1] warning[W0007] declaration is never used in its module: `total` is never used
+[12:49] error[T3001] type mismatch: `Meters` and `Seconds` are unrelated distinct types
+[7:1] warning[W0007] declaration is never used in its module: `Meters` is never used
+[8:1] warning[W0007] declaration is never used in its module: `Seconds` is never used

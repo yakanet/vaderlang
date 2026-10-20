@@ -1,1 +1,1 @@
-[16:12] error[T3008]
+[16:12] error[T3008] expression is not indexable: `.x` on non-struct type Color | Point

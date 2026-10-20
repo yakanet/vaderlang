@@ -1,1 +1,1 @@
-[17:16] error[T3084]
+[17:16] error[T3084] enum variant data must be a struct: got i32[]

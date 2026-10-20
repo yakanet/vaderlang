@@ -1,2 +1,2 @@
-[6:13] error[T3003]
-[7:12] error[T3003]
+[6:13] error[T3003] wrong number of arguments: a cast to `i32[]` takes one value, got 0
+[7:12] error[T3003] wrong number of arguments: a cast to `i64` takes one value, got 2

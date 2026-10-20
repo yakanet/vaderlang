@@ -1,1 +1,1 @@
-[15:23] error[T3006]
+[15:23] error[T3006] trait not satisfied: type parameter `T` of `sum` requires `Zero`, and `Meters` does not implement it

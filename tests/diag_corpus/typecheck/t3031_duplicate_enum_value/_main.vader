@@ -1,0 +1,9 @@
+// Two variants of one enum written with the same value. T3031.
+
+module "snippet"
+
+export DupVal :: enum {
+    X = 1
+    Y = 2
+    Z = 1
+}

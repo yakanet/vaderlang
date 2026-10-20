@@ -1,2 +1,2 @@
-[22:19] error[T3107]
-[36:44] error[T3107]
+[22:19] error[T3107] a generic member cannot be called where its impl is picked at run time: `conv` takes type parameters of its own, and is called on a trait value : call it on the type that implements it
+[36:44] error[T3107] a generic member cannot be called where its impl is picked at run time: `conv` takes type parameters of its own, and is called in an impl member, whose body the impl's instances share : call it on the type that implements it

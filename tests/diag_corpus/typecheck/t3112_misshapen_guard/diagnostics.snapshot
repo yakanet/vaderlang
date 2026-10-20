@@ -1,8 +1,8 @@
-[12:8] error[T3112]
-[15:8] error[T3112]
-[17:10] error[T3112]
-[20:10] error[T3112]
-[24:8] error[T3112]
-[26:10] error[T3112]
-[30:8] error[T3112]
-[36:8] error[T3112]
+[12:8] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: `not_a_predicate` returns i32
+[15:8] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: `generic` is generic
+[17:10] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: the condition proves nothing of the parameters of `says_nothing`
+[20:10] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: the condition proves nothing of the parameters of `goes_round`
+[24:8] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: `generic_check` is generic
+[26:10] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: the condition proves nothing of the parameters of `ensures_nothing`
+[30:8] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: `weekend_days` is a generator : its body runs after the call has returned
+[36:8] error[T3112] a contract states a condition over the parameters of a non-generic function, `@returns` the `bool` it returns: `check_day` has no body to hold to it

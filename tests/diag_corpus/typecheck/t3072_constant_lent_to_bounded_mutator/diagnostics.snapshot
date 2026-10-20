@@ -1,2 +1,2 @@
-[31:10] error[T3072]
-[32:11] error[T3072]
+[31:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `poke` modifies it through `bump` (`self.n` is assigned) ; a name bound to it holds a copy to modify
+[32:11] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `relay` modifies it through `poke`, `bump` (`self.n` is assigned) ; a name bound to it holds a copy to modify

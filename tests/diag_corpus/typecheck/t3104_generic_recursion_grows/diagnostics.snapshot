@@ -1,2 +1,2 @@
-[11:12] error[T3104]
-[18:12] error[T3104]
+[11:12] error[T3104] a generic recursion cannot grow its type argument: this call passes `T` on as `T[]` to `wrap`, and the calls lead back here : each instance would ask for a larger one
+[18:12] error[T3104] a generic recursion cannot grow its type argument: this call passes `A` on as `A[]` to `pong`, and the calls lead back here : each instance would ask for a larger one

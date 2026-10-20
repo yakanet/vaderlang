@@ -1,5 +1,5 @@
-[10:12] error[T3017]
-[13:54] error[T3017]
-[15:56] error[T3017]
-[17:65] error[T3017]
-[19:56] error[T3017]
+[10:12] error[T3017] operator not defined for these operand types: operator in on Range<i32> expects i32, found i64
+[13:54] error[T3017] operator not defined for these operand types: operator in on Range<i32> expects i32, found i32 | null
+[15:56] error[T3017] operator not defined for these operand types: operator in on i32[] expects i32, found i32 | null
+[17:65] error[T3017] operator not defined for these operand types: operator in on i32[] expects i32, found i32 | null
+[19:56] error[T3017] operator not defined for these operand types: operator in on i64[] expects i64, found Meters

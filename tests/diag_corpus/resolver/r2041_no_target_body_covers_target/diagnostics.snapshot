@@ -1,1 +1,1 @@
-[14:1] error[R2041]
+[14:1] error[R2041] no `@target` body covers the target being built: `platform_tag` has no body for `linux-x86_64` and no general body ; its `@target` bodies cover .wasi

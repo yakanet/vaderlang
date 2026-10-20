@@ -1,3 +1,0 @@
-# compile errors
-[R2008] symbol is not exported from its module: `secret_helper`
-[R2006] unresolved identifier: `secret_helper`

@@ -1,2 +1,2 @@
-[15:5] error[P1014]
-[9:1] error[P1014]
+[15:5] error[P1014] unknown decorator placement: `@singleton` applies to a free function ; it does not apply to an impl member
+[9:1] error[P1014] unknown decorator placement: `@singleton` applies to a free function ; it does not apply to a trait

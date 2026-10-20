@@ -1,2 +1,2 @@
-[11:59] error[T3054]
-[9:75] error[T3054]
+[11:59] error[T3054] access to a struct field marked `@internal` from outside its declaring module: `size` is `@internal` to module `lib/std/collections`
+[9:75] error[T3054] access to a struct field marked `@internal` from outside its declaring module: `ekeys` is `@internal` to module `lib/std/collections`

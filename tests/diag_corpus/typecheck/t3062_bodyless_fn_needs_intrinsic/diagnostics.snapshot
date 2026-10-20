@@ -1,1 +1,1 @@
-[5:1] error[T3062]
+[5:1] error[T3062] a bodyless function must be `@intrinsic` (host-provided) or `@extern` (foreign symbol): `frobnicate` is bodyless and otherwise unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration

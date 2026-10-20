@@ -1,1 +1,1 @@
-[6:12] error[T3013]
+[6:12] error[T3013] non-exhaustive match: match on non-union bool requires a wildcard arm

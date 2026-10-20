@@ -1,1 +1,1 @@
-[7:27] error[T3069]
+[7:27] error[T3069] cannot infer type argument — nothing at this call site binds the type parameter: `T` — annotate the result slot, or pass the type argument explicitly

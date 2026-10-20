@@ -1,10 +1,10 @@
-[17:41] error[T3066]
-[20:5] error[T3066]
-[21:10] error[T3066]
-[26:17] error[T3066]
-[27:18] error[T3066]
-[28:28] error[T3066]
-[29:24] error[T3066]
-[30:23] error[T3066]
-[31:18] error[T3066]
-[32:23] error[T3066]
+[17:41] error[T3066] integer literal does not fit the target integer type: `24` is not in `Hour` (0..=23)
+[20:5] error[T3066] integer literal does not fit the target integer type: `30` is not in `Hour` (0..=23)
+[21:10] error[T3066] integer literal does not fit the target integer type: `40` is not in `Hour` (0..=23)
+[26:17] error[T3066] integer literal does not fit the target integer type: `30` is not in `Hour` (0..=23)
+[27:18] error[T3066] integer literal does not fit the target integer type: `-1` is not in `Hour` (0..=23)
+[28:28] error[T3066] integer literal does not fit the target integer type: `99` is not in `Hour` (0..=23)
+[29:24] error[T3066] integer literal does not fit the target integer type: `24` is not in `Hour` (0..=23)
+[30:23] error[T3066] integer literal does not fit the target integer type: `25` is not in `Hour` (0..=23)
+[31:18] error[T3066] integer literal does not fit the target integer type: `26` is not in `Hour` (0..=23)
+[32:23] error[T3066] integer literal does not fit the target integer type: `-1` is not in `u32`

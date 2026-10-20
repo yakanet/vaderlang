@@ -1,6 +1,0 @@
-module "snippet"
-
-main :: fn() -> i32 {
-    nope_here()
-    return 0
-}

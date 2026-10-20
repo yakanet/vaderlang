@@ -1,2 +1,2 @@
-[11:28] error[T3089]
-[11:47] error[T3089]
+[11:28] error[T3089] literal could take several members of the union: could be `i16`, `u8` — convert it explicitly, e.g. `i16(…)`
+[11:47] error[T3089] literal could take several members of the union: could be `i16`, `u8` — convert it explicitly, e.g. `i16(…)`

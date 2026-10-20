@@ -1,0 +1,1 @@
+[10:16] error[R2031] name is exported by several wildcard-imported modules: `Animal` is exported by snippet/farm, snippet/zoo — qualify it with a namespace import (`Ns :: import "…"` then `Ns.Animal`) or destructure the one you mean

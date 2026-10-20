@@ -1,0 +1,1 @@
+[13:23] error[T3006] trait not satisfied: type parameter `T` of `double` requires `Add`, and `Vec` does not implement it

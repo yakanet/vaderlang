@@ -1,3 +1,3 @@
-[13:1] error[R2039]
-[13:1] error[T3053]
-[19:1] error[R2039]
+[13:1] error[R2039] duplicate bare `@target` declaration: `tag` is already declared at tests/diag_corpus/resolver/r2039_duplicate_target_declaration/_main.vader:10
+[13:1] error[T3053] function defined more than once with the same signature in a module: `tag` is already defined with the same signature in this module
+[19:1] error[R2039] duplicate bare `@target` declaration: `over` is already declared at tests/diag_corpus/resolver/r2039_duplicate_target_declaration/_main.vader:16 — `@target` groups are keyed by name alone, so a name cannot carry two overloads

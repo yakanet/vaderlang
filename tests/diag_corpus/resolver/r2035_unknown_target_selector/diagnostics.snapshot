@@ -1,2 +1,2 @@
-[16:9] error[R2035]
-[22:9] error[R2035]
+[16:9] error[R2035] unknown target selector: `.Drawin` names no operating system
+[22:9] error[R2035] unknown target selector: a `@target` selector must be an operating-system variant, written `.Linux`, `.Darwin`, `.Windows`, `.Wasi` or `.Browser`

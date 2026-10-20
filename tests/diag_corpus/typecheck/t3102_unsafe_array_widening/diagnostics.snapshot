@@ -1,5 +1,5 @@
-[50:66] error[T3102]
-[55:16] error[T3102]
-[56:5] error[T3102]
-[57:16] error[T3102]
-[58:15] error[T3102]
+[50:66] error[T3102] array argument cannot be widened: a function value may do anything with it
+[55:16] error[T3102] array argument cannot be widened: `add_square` may grow `shapes`
+[56:5] error[T3102] array argument cannot be widened: `add_square` may grow `shapes`
+[57:16] error[T3102] array argument cannot be widened: `group` may keep `shapes`
+[58:15] error[T3102] array argument cannot be widened: `same` may return `shapes`

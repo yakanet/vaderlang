@@ -1,1 +1,1 @@
-[15:9] error[T3001]
+[15:9] error[T3001] type mismatch: cannot destructure a value of type Point ; a `[...]` pattern requires a tuple or array

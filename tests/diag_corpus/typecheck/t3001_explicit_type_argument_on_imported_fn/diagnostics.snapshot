@@ -1,1 +1,1 @@
-[8:21] error[T3001]
+[8:21] error[T3001] type mismatch: expected string, got {integer}

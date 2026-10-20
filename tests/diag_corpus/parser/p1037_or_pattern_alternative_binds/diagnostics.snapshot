@@ -1,2 +1,2 @@
-[9:12] error[P1037]
-[9:25] error[P1037]
+[9:12] error[P1037] a match pattern cannot bind a name: an alternative binds nothing: test `is A | B` and read `.x` through the scrutinee, or split the arm
+[9:25] error[P1037] a match pattern cannot bind a name: an alternative binds nothing: test `is A | B` and read `.x` through the scrutinee, or split the arm

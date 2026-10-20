@@ -1,0 +1,35 @@
+// A reassignment retires the flow narrowing of the written binding or field
+// chain. Each fn re-labels a numeric ticket as a string after a guard narrowed
+// it to `i32`, so the `+ 1` that follows is checked on the union: T3098, since
+// `add` takes another `Self`, which the `string` variant would fill.
+
+module "snippet"
+
+export after_guard :: fn() -> i32 | string {
+    ticket: i32 | string = 5
+    if ticket is string {
+        return 0
+    }
+    ticket = "expedited"
+    return ticket + 1
+}
+
+export inside_branch :: fn() -> i32 | string {
+    ticket: i32 | string = 5
+    if ticket is i32 {
+        ticket = "expedited"
+        return ticket + 1
+    }
+    return 0
+}
+
+Desk :: struct { current: i32 | string }
+
+export on_field :: fn() -> i32 | string {
+    desk :: Desk { .current = 5 }
+    if desk.current is string {
+        return 0
+    }
+    desk.current = "expedited"
+    return desk.current + 1
+}

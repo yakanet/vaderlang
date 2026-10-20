@@ -1,7 +1,7 @@
-[11:1] error[P1014]
-[15:1] error[P1014]
-[16:1] warning[W0007]
-[18:1] error[P1014]
-[19:1] warning[W0007]
-[21:1] error[P1014]
-[22:1] warning[W0007]
+[11:1] error[P1014] unknown decorator placement: `@c_pointer` decorates a PARAMETER of an `@extern` ; it does not apply to a function
+[15:1] error[P1014] unknown decorator placement: `@c_struct` names the C type a STRUCT mirrors ; it does not apply to a function
+[16:1] warning[W0007] declaration is never used in its module: `noop` is never used
+[18:1] error[P1014] unknown decorator placement: `@c_pointer` decorates a PARAMETER of an `@extern` ; it does not apply to an enum
+[19:1] warning[W0007] declaration is never used in its module: `E` is never used
+[21:1] error[P1014] unknown decorator placement: `@c_struct` names the C type a STRUCT mirrors ; it does not apply to a trait
+[22:1] warning[W0007] declaration is never used in its module: `Tr` is never used

@@ -1,1 +1,1 @@
-[7:15] error[T3015]
+[7:15] error[T3015] `break` / `continue` only allowed inside a loop: `break` / `continue` only allowed inside a loop

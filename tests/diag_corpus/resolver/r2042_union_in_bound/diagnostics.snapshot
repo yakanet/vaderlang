@@ -1,3 +1,3 @@
-[10:22] error[R2042]
-[14:35] error[R2042]
-[16:28] error[R2042]
+[10:22] error[R2042] a bound cannot be a union: `T` — put `null` where `T` is used instead: `x: T | null`
+[14:35] error[R2042] a bound cannot be a union: `T` — a bound names traits, joined by `&`
+[16:28] error[R2042] a bound cannot be a union: `Bumpable` — a trait requires traits, joined by `&`

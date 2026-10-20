@@ -1,0 +1,8 @@
+// A numeric literal with two underscores in a row. L0006.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: 1__0
+    return x
+}

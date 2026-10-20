@@ -1,1 +1,1 @@
-[19:23] error[T3086]
+[19:23] error[T3086] a union holding an enum or a distinct cannot dispatch through a trait: narrow it to `HttpStatus` first

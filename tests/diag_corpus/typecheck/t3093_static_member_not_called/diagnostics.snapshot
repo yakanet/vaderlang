@@ -1,1 +1,1 @@
-[6:14] error[T3093]
+[6:14] error[T3093] a static member is called, not taken as a value: write `i64.zero(…)`

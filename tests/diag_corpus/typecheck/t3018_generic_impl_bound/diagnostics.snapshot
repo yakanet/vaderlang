@@ -1,1 +1,1 @@
-[16:13] error[T3018]
+[16:13] error[T3018] string interpolation expression must implement `Display`: `Box<Point>` does not implement it ; its impl requires `T: Display`, and `Point` does not implement it

@@ -1,11 +1,9 @@
 // VM parity: every snippet's `vm.snapshot` is checked against the Vader VM.
 //
-// - A run snapshot is compared with `./build/vader run` on the snippet's
-//   `bytecode.snapshot.virt`, or on bytecode built from source when the snippet
-//   has none or is listed in `VADER_SELF_EMIT`. The output goes through
-//   `formatRun`, as the native run in `parity-cemit.test.ts` does.
-// - A `# compile errors` snapshot is compared with the errors `vader check`
-//   reports, and the check must fail.
+// It is compared with `./build/vader run` on the snippet's
+// `bytecode.snapshot.virt`, or on bytecode built from source when the snippet
+// has none or is listed in `VADER_SELF_EMIT`. The output goes through
+// `formatRun`, as the native run in `parity-cemit.test.ts` does.
 //
 // A snippet whose VM run is known to be wrong is listed in `KNOWN_DIVERGENT`
 // with its reason; one with a `helper.c` is skipped, its foreign symbols living
@@ -16,7 +14,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { COMPILE_ERRORS, type Scenario, expectsCompileErrors, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { type Scenario, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
@@ -227,8 +225,8 @@ const VADER_SELF_EMIT = new Set<string>([
   "iter_coerce_array", "trait_box_range_iter",
   "_diag_const_cross_module", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "comptime_type_value",
-  "const_array_basic", "contains_op", "decorator_deprecated",
-  "enum_trait_self_return", "expr_bodied_fn", "expr_bodied_recursive_typed",
+  "const_array_basic", "contains_op", "enum_trait_self_return", "expr_bodied_fn",
+  "expr_bodied_recursive_typed",
   "file_decorator", "gc_array_survive", "gc_chain_survive", "gc_multi_collect",
   "generic_helper_chain", "generic_struct", "generic_type_alias",
   "if_is_field_after_narrow", "if_without_else_stmt", "implicit_dot_variant",
@@ -250,15 +248,6 @@ const VADER_SELF_EMIT = new Set<string>([
 // `bun test tests/vader_vm.test.ts`, and copy the failing names back.
 const KNOWN_DIVERGENT = new Set<string>([
 ]);
-
-// The error lines `vader check` reports, as a `vm.snapshot` lists them:
-// `[CODE] message: detail`, in the order the compiler emits them.
-function compileErrorLines(output: string): string[] {
-  return output.split("\n").flatMap((line) => {
-    const m = line.match(/^\[[^\]]*\] error\[([A-Z][0-9]+)\] (.*)$/);
-    return m ? [`[${m[1]}] ${m[2]}`] : [];
-  });
-}
 
 // Build `s` from source and run Vader's own bytecode, against `vm.snapshot`.
 // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle needs
@@ -306,33 +295,6 @@ for (const s of scenarios) {
   // the committed TS `.virt`), and compare to the same `vm.snapshot` oracle.
   if (VADER_SELF_EMIT.has(s.name)) {
     testFromSource(s);
-    continue;
-  }
-  // A snippet that must not compile: its `vm.snapshot` lists the errors, and the
-  // compiler has to report exactly those and fail. A snippet that compiles, or
-  // whose errors change, fails here.
-  if (expectsCompileErrors(s.dir)) {
-    test.concurrent(`vader-vm-compile-errors: ${s.name}`, async () => {
-      const { stdout, stderr, exit } = await runCli(["check", s.mainPath]);
-      const lines = compileErrorLines(`${stdout}\n${stderr}`);
-      // Checked before the comparison, so `test:update` cannot record an empty
-      // list and keep a snippet that now compiles out of every run.
-      if (lines.length === 0 || exit !== 1) {
-        throw new Error(
-          `${s.name}: \`vader check\` reported ${lines.length} error(s) and exited ${exit}; ` +
-          `a snippet that compiles records its run in vm.snapshot instead\n${stdout}${stderr}`,
-        );
-      }
-      const actual = `${COMPILE_ERRORS}\n${lines.join("\n")}\n`;
-      const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
-      if (!cmp.ok) {
-        throw new Error(
-          `vader-vm compile errors mismatch: ${s.name}\n` +
-          `  snap: ${cmp.snapPath}\n\n` +
-          snapshotDiff(cmp.snapPath, cmp.expected, actual),
-        );
-      }
-    }, { timeout: MEDIUM_BUILD });
     continue;
   }
   // A snippet with a `helper.c` defines its OWN foreign symbols, which live in

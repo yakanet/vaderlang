@@ -12,14 +12,14 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { EXE_SUFFIX, hermeticEnv } from "./cli-bin.ts";
-import { COMPILE_ERRORS, listSnippets } from "./snapshot.ts";
+import { listSnippets } from "./snapshot.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
 const VADER_BIN = resolve(import.meta.dir, "../build/vader");
 
 interface Result {
   name: string;
-  status: "clean" | "leak" | "skipped" | "emit_fail" | "build_fail" | "run_fail" | "leaks_fail" | "mismatch";
+  status: "clean" | "leak" | "emit_fail" | "build_fail" | "run_fail" | "leaks_fail" | "mismatch";
   nodes?: number;
   bytes?: number;
   leakedNodes?: number;
@@ -58,12 +58,6 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
   const cFile = join(s.dir, "native.c");
   const binFile = join(s.dir, `native${EXE_SUFFIX}`);
 
-  // Error snapshots never produce a clean native run — classify them up front
-  // so a non-zero `dump` exit on them counts as a skip, not an emit failure.
-  let expected: string | undefined;
-  try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch {}
-  const isErrorSnap = expected !== undefined && expected.startsWith(COMPILE_ERRORS);
-
   // Emit C with the Vader self-compiled compiler (./build/vader), NOT the TS
   // pipeline. `dump --stage=c` writes the generated C source to stdout.
   const emitProc = Bun.spawn(
@@ -73,12 +67,8 @@ async function check(s: { name: string; dir: string; mainPath: string }): Promis
   const cText = await new Response(emitProc.stdout).text();
   const emitErr = await new Response(emitProc.stderr).text();
   if ((await emitProc.exited) !== 0) {
-    // Error snapshots are meant not to compile — skip them quietly. Everything
-    // else is a genuine gap in the Vader c_emit pass, so surface it.
-    if (isErrorSnap) return { name: s.name, status: "skipped", detail: "error snapshot (vader dump failed as expected)" };
     return { name: s.name, status: "emit_fail", detail: `vader dump --stage=c: ${emitErr.slice(0, 200)}` };
   }
-  if (isErrorSnap) return { name: s.name, status: "skipped", detail: "vm.snapshot is an error snapshot" };
 
   // On snippets that emit warnings, `dump --stage=c` appends a trailing
   // `# Diagnostics` block to stdout after the C source. That marker can never
@@ -204,7 +194,6 @@ results.sort((a, b) => a.name.localeCompare(b.name));
 
 const leaks = results.filter((r) => r.status === "leak");
 const clean = results.filter((r) => r.status === "clean");
-const skipped = results.filter((r) => r.status === "skipped");
 const emitFailed = results.filter((r) => r.status === "emit_fail");
 const failed = results.filter((r) => r.status === "emit_fail" || r.status === "build_fail" || r.status === "run_fail" || r.status === "leaks_fail");
 
@@ -212,7 +201,6 @@ console.log("\n===== SUMMARY =====");
 console.log(`total:     ${results.length}`);
 console.log(`clean:     ${clean.length}`);
 console.log(`leaking:   ${leaks.length}`);
-console.log(`skipped:   ${skipped.length}`);
 console.log(`emit_fail: ${emitFailed.length}  (Vader c_emit could not produce C)`);
 console.log(`failed:    ${failed.length}`);
 

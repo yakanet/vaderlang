@@ -1,1 +1,1 @@
-[20:14] error[T3097]
+[20:14] error[T3097] a type implementing a trait more than once cannot fill it here: `Two` implements `Into` more than once ; `for` cannot tell its impls apart

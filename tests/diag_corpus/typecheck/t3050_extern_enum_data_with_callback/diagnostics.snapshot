@@ -1,1 +1,1 @@
-[14:45] error[T3050]
+[14:45] error[T3050] invalid `@extern` declaration: `@extern` fn `on_status` takes both an enum with variant data and a callback

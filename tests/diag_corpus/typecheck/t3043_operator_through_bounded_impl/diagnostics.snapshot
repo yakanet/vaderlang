@@ -1,1 +1,1 @@
-[20:14] error[T3043]
+[20:14] error[T3043] operand type does not implement the trait this operator requires: `Pair<Plain>` does not implement `Add` ; its impl requires `T: Add`, and `Plain` does not implement it

@@ -1,5 +1,5 @@
-[22:5] warning[W0014]
-[26:40] warning[W0005]
-[28:5] warning[W0014]
-[35:5] warning[W0014]
-[41:5] warning[W0014]
+[22:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every value of `A | B` is already matched above
+[26:40] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `A | B` — enumerate its variants or mark the match `@partial`
+[28:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: every value of `A | B` is already matched above
+[35:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: `.X` is matched by an earlier arm
+[41:5] warning[W0014] match arm can never be taken — an earlier arm already covers it: `A` is matched by an earlier arm

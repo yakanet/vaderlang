@@ -1,1 +1,1 @@
-[8:5] warning[W0002]
+[8:5] warning[W0002] unreachable code: code after a divergent statement

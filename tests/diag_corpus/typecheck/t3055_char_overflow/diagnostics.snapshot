@@ -1,5 +1,5 @@
-[12:15] error[T3055]
-[13:10] error[T3055]
-[14:10] error[T3055]
-[18:21] error[T3055]
-[20:17] error[T3055]
+[12:15] error[T3055] character literal's codepoint does not fit the target integer type: character literal (codepoint 128169) is not in `u8`
+[13:10] error[T3055] character literal's codepoint does not fit the target integer type: character literal (codepoint 128169) is not in `u8`
+[14:10] error[T3055] character literal's codepoint does not fit the target integer type: character literal (codepoint 128169) is not in `u8`
+[18:21] error[T3055] character literal's codepoint does not fit the target integer type: character literal (codepoint 122) is not in `48..=57`
+[20:17] error[T3055] character literal's codepoint does not fit the target integer type: character literal (codepoint 128169) is not in `u8`

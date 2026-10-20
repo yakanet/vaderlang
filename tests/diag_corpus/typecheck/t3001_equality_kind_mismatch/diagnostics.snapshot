@@ -1,4 +1,4 @@
-[5:1] warning[W0007]
-[7:1] warning[W0007]
-[9:1] warning[W0007]
-[9:39] error[T3001]
+[5:1] warning[W0007] declaration is never used in its module: `Handle` is never used
+[7:1] warning[W0007] declaration is never used in its module: `INVALID_HANDLE` is never used
+[9:1] warning[W0007] declaration is never used in its module: `is_invalid` is never used
+[9:39] error[T3001] type mismatch: expected `Handle`, got `i64`

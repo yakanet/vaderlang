@@ -1,1 +1,1 @@
-[6:19] error[R2033]
+[6:19] error[R2033] a plain name in an `import "p" { … }` modifier list — use `x as _` (exclude) or `x as y` (rename): `println`

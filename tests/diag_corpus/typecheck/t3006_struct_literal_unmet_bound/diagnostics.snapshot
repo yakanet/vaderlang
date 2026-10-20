@@ -1,2 +1,2 @@
-[54:10] error[T3006]
-[55:10] error[T3006]
+[54:10] error[T3006] trait not satisfied: type parameter `T` of `Wrapper` requires `Bump`, and `Plain` does not implement it
+[55:10] error[T3006] trait not satisfied: type parameter `S` of `Holder` requires `Source<i32>`, and `Src64` does not implement it

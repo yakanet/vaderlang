@@ -1,1 +1,1 @@
-[7:25] error[T3052]
+[7:25] error[T3052] exported declaration exposes a non-exported type: exported `consume` takes a parameter of type `Secret`, which is not exported from its module ; export `Secret` or make `consume` private

@@ -1,1 +1,1 @@
-[26:15] error[T3072]
+[26:15] error[T3072] a frozen value cannot be lent to a function that modifies it: `TABLE` is a module constant, and `bump` modifies it (`p.x` is assigned) ; a name bound to it holds a copy to modify

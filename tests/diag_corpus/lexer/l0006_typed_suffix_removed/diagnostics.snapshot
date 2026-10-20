@@ -1,1 +1,1 @@
-[6:10] error[L0006]
+[6:10] error[L0006] malformed numeric literal: typed numeric suffix `i32` is no longer supported — the literal coerces from context

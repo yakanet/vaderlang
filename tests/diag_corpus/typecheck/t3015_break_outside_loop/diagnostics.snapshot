@@ -1,2 +1,2 @@
-[5:5] error[T3015]
-[6:5] warning[W0002]
+[5:5] error[T3015] `break` / `continue` only allowed inside a loop: `break` / `continue` only allowed inside a loop
+[6:5] warning[W0002] unreachable code: code after a divergent statement

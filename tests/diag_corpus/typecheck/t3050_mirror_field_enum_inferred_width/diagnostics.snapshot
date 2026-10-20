@@ -1,1 +1,1 @@
-[14:20] error[T3050]
+[14:20] error[T3050] invalid `@extern` declaration: field `mode` of `@c_struct` `Reply`: enum `Mode` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `enum(u8)`

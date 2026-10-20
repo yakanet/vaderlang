@@ -1,2 +1,2 @@
-[10:1] error[P1014]
-[5:1] error[P1014]
+[10:1] error[P1014] unknown decorator placement: `@ensures` states what holds once a free function returns ; it does not apply to a struct
+[5:1] error[P1014] unknown decorator placement: `@returns` states what a free function returns ; it does not apply to a struct

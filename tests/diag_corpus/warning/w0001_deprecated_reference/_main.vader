@@ -1,0 +1,11 @@
+// Every reference to a `@deprecated` declaration is a W0001 carrying the
+// decorator's reason; the reference still compiles.
+module "snippet"
+
+@deprecated("use new_helper instead")
+old_helper :: fn(x: i32) -> i32 = x + 1
+
+@deprecated("KING is too dramatic, prefer THE_BEST")
+KING :: 42
+
+main :: fn() -> i32 = old_helper(KING) + old_helper(5)

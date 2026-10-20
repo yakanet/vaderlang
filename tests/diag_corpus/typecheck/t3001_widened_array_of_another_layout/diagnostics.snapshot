@@ -1,4 +1,4 @@
-[35:26] error[T3001]
-[35:47] error[T3001]
-[36:36] error[T3001]
-[36:53] error[T3001]
+[35:26] error[T3001] type mismatch: expected (i32 | string)[], got i32[]
+[35:47] error[T3001] type mismatch: expected (Circle | string)[], got Circle[]
+[36:36] error[T3001] type mismatch: expected ([i32, i32] | null | string)[], got ([i32, i32] | null)[]
+[36:53] error[T3001] type mismatch: expected [i32 | string, i32], got [i32, i32]

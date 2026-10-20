@@ -1,0 +1,4 @@
+[14:16] error[T3036] impl block missing required trait method: `TwoFns` requires method `second` — not provided in this impl block
+[14:23] error[R2016] short impl form requires a trait with exactly one method: trait `TwoFns` has 2 required methods
+[16:16] error[T3036] impl block missing required trait method: `TwoFns` requires method `second` — not provided in this impl block
+[16:23] error[R2016] short impl form requires a trait with exactly one method: trait `TwoFns` has 2 required methods

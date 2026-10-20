@@ -18,7 +18,7 @@ import { tmpdir } from "node:os";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
-import { C_SNAPSHOT, SNAPSHOT_TARGET, expectsCompileErrors, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { C_SNAPSHOT, SNAPSHOT_TARGET, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
@@ -712,7 +712,7 @@ for (const s of scenarios) {
     // A `C_PARITY` entry is listed to be run: a `vm.snapshot` that records no run
     // fails here instead of turning the comparison into a skip.
     const snapPath = join(s.dir, "vm.snapshot");
-    if (!existsSync(snapPath) || expectsCompileErrors(s.dir)) {
+    if (!existsSync(snapPath)) {
       throw new Error(`c-emit-run: ${s.name} is in C_PARITY but its vm.snapshot records no run`);
     }
     const expected = readFileSync(snapPath, "utf8");

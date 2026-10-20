@@ -1,0 +1,5 @@
+module "snippet/lib"
+
+secret_helper :: fn() -> i32 = 42
+
+export public_helper :: fn() -> i32 = secret_helper()

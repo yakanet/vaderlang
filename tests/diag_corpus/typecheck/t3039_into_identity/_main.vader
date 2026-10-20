@@ -1,0 +1,10 @@
+// `T implements Into<T>` is forbidden by SPEC *Type coercion*: identity
+// coercion would shadow simple assignment. T3039 fires at the impl site.
+
+module "snippet"
+
+export Foo :: struct { value: i32 }
+
+Foo implements Into<Foo> {
+    into :: fn(self) -> Foo = self
+}

@@ -1,1 +1,1 @@
-[15:47] error[T3087]
+[15:47] error[T3087] the instances of a generic that share one body cannot be told apart: `T` names a type parameter, and an impl member keeps no body per instance ; dispatch through a trait instead

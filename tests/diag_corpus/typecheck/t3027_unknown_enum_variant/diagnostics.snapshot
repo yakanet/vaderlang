@@ -1,1 +1,1 @@
-[7:16] error[T3027]
+[7:16] error[T3027] unknown enum variant: `Bogus` is not a variant of Color

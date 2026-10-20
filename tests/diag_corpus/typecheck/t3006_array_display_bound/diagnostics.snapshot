@@ -1,1 +1,1 @@
-[12:16] error[T3006]
+[12:16] error[T3006] trait not satisfied: an array renders only when interpolated directly, not through type parameter `T` of `show`

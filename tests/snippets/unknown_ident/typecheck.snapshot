@@ -1,9 +1,0 @@
-# Typecheck
-
-## tests/snippets/unknown_ident
-  FnDecl         main                 :: fn() -> i32
-  expr 4:5      CallExpr       :: ?
-  expr 4:5      IdentExpr      :: ?
-
-# Diagnostics
-[4:5] error[R2006] unresolved identifier: `nope_here`

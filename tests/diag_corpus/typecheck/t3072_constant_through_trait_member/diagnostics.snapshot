@@ -1,1 +1,1 @@
-[24:28] error[T3072]
+[24:28] error[T3072] a frozen value cannot be lent to a function that modifies it: `ORIGIN` is a module constant, and `look` modifies it through `peek` (`self.x` is assigned) ; a name bound to it holds a copy to modify

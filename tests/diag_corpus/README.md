@@ -9,8 +9,9 @@ paths those never reach.
 Driven by `tests/diagnostics-corpus.test.ts`, which dumps the native
 compiler at the `lowered-ast` stage — the point where every front-end
 diagnostic has accumulated (lexer → parser → resolver → typecheck →
-comptime) — and snapshots the emitted `[span] severity[CODE]` set per
-fixture. **The self-hosted compiler is the oracle.** The former TS↔Vader
+comptime) — and snapshots every emitted `[span] severity[CODE] message` line
+per fixture, so a changed wording shows in the diff as a changed code does.
+**The self-hosted compiler is the oracle.** The former TS↔Vader
 set-parity was dropped when the TypeScript reference was removed.
 
 ## Layout
@@ -47,8 +48,8 @@ the snapshot all move in the same commit.
 
 ## Coverage
 
-74 of the 173 codes defined in `vader/diagnostics/codes.vader` have a
-fixture here (2026-07-28). Recompute with:
+The codes defined in `vader/diagnostics/codes.vader` that have no fixture
+here:
 
 ```sh
 python3 - <<'PY'

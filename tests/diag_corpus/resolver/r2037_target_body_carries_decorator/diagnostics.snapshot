@@ -1,1 +1,1 @@
-[10:1] error[R2037]
+[10:1] error[R2037] `@target` body carries what its declaration owns: `@singleton` belongs on the bare `@target` declaration

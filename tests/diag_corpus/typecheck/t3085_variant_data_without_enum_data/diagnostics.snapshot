@@ -1,1 +1,1 @@
-[7:5] error[T3085]
+[7:5] error[T3085] variant data on an enum whose header declares none: `Circle`

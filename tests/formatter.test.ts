@@ -33,7 +33,6 @@ const SNIPPETS = [
   "generic_struct",
   "trait_dispatch_bounded",
   "iter_combinators",
-  "generator_surface",
   "tuple_destructure_let",
   "tuple_for_destructure",
   "struct_defaults",

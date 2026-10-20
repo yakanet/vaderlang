@@ -1,1 +1,1 @@
-[7:26] error[T3006]
+[7:26] error[T3006] trait not satisfied: type parameter `C` of `holds` requires `Contains<i32>`, and `string[]` does not implement it

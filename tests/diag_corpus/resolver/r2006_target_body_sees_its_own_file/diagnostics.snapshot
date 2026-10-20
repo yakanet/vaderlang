@@ -1,1 +1,1 @@
-[6:36] error[R2006]
+[6:36] error[R2006] unresolved identifier: `trim`

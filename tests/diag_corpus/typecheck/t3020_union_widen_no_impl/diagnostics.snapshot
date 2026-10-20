@@ -1,4 +1,4 @@
-[7:1] warning[W0007]
-[8:1] warning[W0007]
-[9:1] warning[W0007]
-[9:33] error[T3020]
+[7:1] warning[W0007] declaration is never used in its module: `NonErr` is never used
+[8:1] warning[W0007] declaration is never used in its module: `mk` is never used
+[9:1] warning[W0007] declaration is never used in its module: `bad` is never used
+[9:33] error[T3020] function body returns a value incompatible with its declared return type: expected Error | string, got NonErr | string

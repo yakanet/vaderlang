@@ -1,1 +1,1 @@
-[16:15] error[T3032]
+[16:15] error[T3032] ambiguous overload resolution: `describe` on Point is ambiguous between traits: snippet/tr_a.Describe, snippet/tr_b.Describe

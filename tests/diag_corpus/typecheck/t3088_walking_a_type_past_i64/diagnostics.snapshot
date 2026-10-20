@@ -1,2 +1,2 @@
-[10:14] error[T3088]
-[7:14] error[T3088]
+[10:14] error[T3088] not iterable: a `for` over a type walks an integer type within `i64` or an enum, got `string`
+[7:14] error[T3088] not iterable: a `for` over a type walks an integer type within `i64` or an enum, got `u64`

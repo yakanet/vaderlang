@@ -1,6 +1,6 @@
-[10:1] warning[W0007]
-[11:1] error[R2004]
-[11:1] warning[W0007]
-[7:1] warning[W0007]
-[8:1] error[R2004]
-[8:1] warning[W0007]
+[10:1] warning[W0007] declaration is never used in its module: `LIMIT` is never used
+[11:1] error[R2004] duplicate top-level symbol in module: `LIMIT` already declared in this module
+[11:1] warning[W0007] declaration is never used in its module: `LIMIT` is never used
+[7:1] warning[W0007] declaration is never used in its module: `Shape` is never used
+[8:1] error[R2004] duplicate top-level symbol in module: `Shape` already declared in this module
+[8:1] warning[W0007] declaration is never used in its module: `Shape` is never used

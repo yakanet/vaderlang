@@ -1,1 +1,1 @@
-[10:19] error[R2009]
+[10:19] error[R2009] trait name does not refer to a trait: `NotATrait` is a struct

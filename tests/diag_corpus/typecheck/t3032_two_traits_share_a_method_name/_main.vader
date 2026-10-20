@@ -1,0 +1,14 @@
+// When two distinct traits provide the same method name on the same receiver
+// type, an unqualified `c.greet()` is ambiguous. T3032.
+
+module "snippet"
+
+Greet :: trait { greet :: fn(self) -> string }
+Annot :: trait { greet :: fn(self) -> string }
+
+export Cat :: struct { name: string }
+
+Cat implements Greet { greet :: fn(self) -> string = "G:${self.name}" }
+Cat implements Annot { greet :: fn(self) -> string = "A:${self.name}" }
+
+export hello :: fn(c: Cat) -> string = c.greet()

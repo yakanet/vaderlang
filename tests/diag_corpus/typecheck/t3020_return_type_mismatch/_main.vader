@@ -1,0 +1,7 @@
+// A body returning a `string` from a fn declared `-> i32`. T3020.
+
+module "snippet"
+
+export length :: fn(s: string) -> i32 {
+    return s
+}

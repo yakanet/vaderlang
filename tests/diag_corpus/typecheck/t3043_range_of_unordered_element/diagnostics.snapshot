@@ -1,2 +1,2 @@
-[6:43] error[T3043]
-[8:37] error[T3043]
+[6:43] error[T3043] operand type does not implement the trait this operator requires: `Range<string>` does not implement `Contains` ; its impl requires `T: Step`, and `string` does not implement it
+[8:37] error[T3043] operand type does not implement the trait this operator requires: `Range<f64>` does not implement `Contains` ; its impl requires `T: Comparable`, and `f64` does not implement it

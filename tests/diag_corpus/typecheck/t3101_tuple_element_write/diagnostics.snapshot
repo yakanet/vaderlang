@@ -1,4 +1,4 @@
-[15:5] error[T3101]
-[17:5] error[T3101]
-[19:5] error[T3101]
-[21:6] error[T3101]
+[15:5] error[T3101] a tuple's element cannot be written: build a new `[i32, i32]` instead
+[17:5] error[T3101] a tuple's element cannot be written: build a new `[i32, string]` instead
+[19:5] error[T3101] a tuple's element cannot be written: build a new `Pair` instead
+[21:6] error[T3101] a tuple's element cannot be written: build a new `[i32, i32]` instead

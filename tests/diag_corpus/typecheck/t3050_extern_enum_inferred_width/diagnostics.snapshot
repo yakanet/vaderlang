@@ -1,1 +1,1 @@
-[11:20] error[T3050]
+[11:20] error[T3050] invalid `@extern` declaration: enum `Direction` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `enum(u8)`

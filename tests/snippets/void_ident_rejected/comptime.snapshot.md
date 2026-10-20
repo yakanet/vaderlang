@@ -1,7 +1,0 @@
-# Comptime
-
-## tests/snippets/void_ident_rejected
-
-# Diagnostics
-
-- `` [7:5] error[R2019] `void` is reserved and cannot be used as an identifier: `void` ``

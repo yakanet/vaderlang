@@ -1,2 +1,2 @@
-[15:58] error[T3017]
-[17:70] error[T3017]
+[15:58] error[T3017] operator not defined for these operand types: operator add on i32[] expects i32[], found string[]
+[17:70] error[T3017] operator not defined for these operand types: operator add on Pair<i32> expects Pair<i32>, found Pair<string>

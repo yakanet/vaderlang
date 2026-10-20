@@ -1,0 +1,9 @@
+// A block comment with no closing `*/`. L0003.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    return 0
+}
+
+/* unclosed comment

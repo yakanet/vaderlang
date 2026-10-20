@@ -1,9 +1,0 @@
-module "snippet"
-
-import "snippet/lib" { secret_helper as leaked }
-
-main :: fn() -> i32 {
-    public_helper()
-    secret_helper()
-    return 0
-}

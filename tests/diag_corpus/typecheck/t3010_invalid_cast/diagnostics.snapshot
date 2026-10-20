@@ -1,2 +1,2 @@
-[14:19] error[T3010]
-[15:13] error[T3010]
+[14:19] error[T3010] invalid cast: cannot cast {integer} to CPointer
+[15:13] error[T3010] invalid cast: cannot cast CPointer to u8

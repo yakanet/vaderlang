@@ -1,1 +1,1 @@
-[7:15] error[P1033]
+[7:15] error[P1033] decorator argument has the wrong form: `@assert` message must be a static string literal (no interpolation)

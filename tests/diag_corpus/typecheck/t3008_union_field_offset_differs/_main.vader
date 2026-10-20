@@ -1,0 +1,28 @@
+// `u.field` on a union of structs reads the field WITHOUT narrowing, at the
+// offset the first variant gives it. That is only sound while every variant
+// places the field at the same offset: the same position, and the same type for
+// it and for every field before it. Each disagreement is a T3008 naming the
+// first difference: the position (`label_of`), the field's own type (`age_of`),
+// or the type of a field before it (`wide_name_of`). The agreeing case
+// (`name_of`) passes.
+module "snippet"
+
+export Aligned :: struct { name: string, tag: i32 }
+export AlsoAligned :: struct { name: string, extra: bool }
+
+export name_of :: fn(n: Aligned | AlsoAligned) -> string = n.name
+
+export Front :: struct { tag: i32, label: string }
+export Back :: struct { label: string, tag: i32 }
+
+export label_of :: fn(n: Front | Back) -> string = n.label
+
+export Kitten :: struct { name: string, age: i32 }
+export Puppy :: struct { name: string, age: i64 }
+
+export age_of :: fn(a: Kitten | Puppy) -> i64 = a.age
+
+export Narrow :: struct { tag: u8, name: string }
+export Wide :: struct { tag: i64, name: string }
+
+export wide_name_of :: fn(n: Narrow | Wide) -> string = n.name

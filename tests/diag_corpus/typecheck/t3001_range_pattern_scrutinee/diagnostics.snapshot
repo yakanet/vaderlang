@@ -1,5 +1,5 @@
-[13:5] error[T3001]
-[19:5] error[T3001]
-[24:11] error[T3001]
-[24:5] error[T3001]
-[7:5] error[T3001]
+[13:5] error[T3001] type mismatch: a range pattern matches an integer or a `char`, got `f64 | string`
+[19:5] error[T3001] type mismatch: a range orders an integer or `char` variant of `i32 | string`, got `string`
+[24:11] error[T3001] type mismatch: expected i32, got {float}
+[24:5] error[T3001] type mismatch: expected i32, got {float}
+[7:5] error[T3001] type mismatch: a range pattern matches an integer or a `char`, got `string`

@@ -1,2 +1,2 @@
-[6:1] error[T3050]
-[9:1] error[T3050]
+[6:1] error[T3050] invalid `@extern` declaration: `@c_type` names the C type of an `@extern` result ; `count` has no `@extern`
+[9:1] error[T3050] invalid `@extern` declaration: `@c_type` respells an integer for C, got a `string` result

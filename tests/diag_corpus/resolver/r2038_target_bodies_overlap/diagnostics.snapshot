@@ -1,2 +1,2 @@
-[16:1] error[R2038]
-[22:1] error[R2038]
+[16:1] error[R2038] two `@target` bodies cover the same platform: `tag` already has a body for `.linux` at tests/diag_corpus/resolver/r2038_target_bodies_overlap/_main.vader:13
+[22:1] error[R2038] two `@target` bodies cover the same platform: `twice` lists `.darwin` twice in the same `@target`

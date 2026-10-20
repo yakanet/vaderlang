@@ -1,1 +1,1 @@
-[4:1] error[L0008]
+[4:1] error[L0008] shebang only allowed on first line

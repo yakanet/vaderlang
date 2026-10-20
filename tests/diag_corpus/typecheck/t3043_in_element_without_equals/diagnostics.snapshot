@@ -1,1 +1,1 @@
-[12:15] error[T3043]
+[12:15] error[T3043] operand type does not implement the trait this operator requires: `Point[]` does not implement `Contains` ; its impl requires `T: Equals`, and `Point` does not implement it

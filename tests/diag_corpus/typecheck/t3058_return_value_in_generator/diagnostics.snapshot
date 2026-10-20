@@ -1,1 +1,1 @@
-[5:5] error[T3058]
+[5:5] error[T3058] a generator produces values via `yield`; `return` with a value is not allowed (use a bare `return` to stop)

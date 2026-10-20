@@ -1,1 +1,1 @@
-[18:14] error[T3017]
+[18:14] error[T3017] operator not defined for these operand types: operator add on Vec expects Vec, found Other

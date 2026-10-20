@@ -1,4 +1,4 @@
-[13:9] error[T3001]
-[16:9] error[T3001]
-[20:9] error[T3001]
-[26:9] error[T3001]
+[13:9] error[T3001] type mismatch: expected Evening, got 0..=19
+[16:9] error[T3001] type mismatch: expected 0..=11, got Hour
+[20:9] error[T3001] type mismatch: expected 0..=9, got i32
+[26:9] error[T3001] type mismatch: expected 23..=23, got Hour

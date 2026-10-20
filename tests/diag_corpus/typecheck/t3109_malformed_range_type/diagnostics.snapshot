@@ -1,5 +1,5 @@
-[10:28] error[T3109]
-[11:24] error[T3109]
-[12:17] error[T3109]
-[13:24] error[T3109]
-[9:24] error[T3109]
+[10:28] error[T3109] a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`: a bound is an integer literal
+[11:24] error[T3109] a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`: `9223372036854775808` is past `i64`
+[12:17] error[T3109] a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`: a range is written over `Int`: `Int in 0..=255`
+[13:24] error[T3109] a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`: the range holds no integer
+[9:24] error[T3109] a range type takes integer literal bounds, the least first, within `i64` but for the greatest, up to `u64.max`: the range holds no integer

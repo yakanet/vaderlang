@@ -1,4 +1,4 @@
-[12:1] warning[W0007]
-[15:1] warning[W0007]
-[18:1] warning[W0007]
-[39:1] warning[W0007]
+[12:1] warning[W0007] declaration is never used in its module: `stale_fn` is never used
+[15:1] warning[W0007] declaration is never used in its module: `STALE_CONST` is never used
+[18:1] warning[W0007] declaration is never used in its module: `StaleType` is never used
+[39:1] warning[W0007] declaration is never used in its module: `STALE_TABLE` is never used

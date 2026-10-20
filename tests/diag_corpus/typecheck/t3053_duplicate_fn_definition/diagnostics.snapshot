@@ -1,1 +1,1 @@
-[9:1] error[T3053]
+[9:1] error[T3053] function defined more than once with the same signature in a module: `foo` is already defined with the same signature in this module

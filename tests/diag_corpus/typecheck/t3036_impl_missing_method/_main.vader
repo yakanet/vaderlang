@@ -1,0 +1,15 @@
+// An impl block must provide every method its trait requires, and is rejected
+// at the declaration when it does not. T3036.
+
+module "snippet"
+
+TwoFn :: trait {
+    first  :: fn(self) -> i32
+    second :: fn(self) -> i32
+}
+
+export Foo :: struct { x: i32 }
+
+Foo implements TwoFn {
+    first :: fn(self) -> i32 = self.x
+}

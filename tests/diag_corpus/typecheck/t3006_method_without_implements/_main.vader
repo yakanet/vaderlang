@@ -1,0 +1,13 @@
+// Conformance is explicit, never structural: a struct with a free `add` whose
+// signature matches `Add` does not satisfy an `Add` bound without an
+// `implements` line. T3006 fires at the generic call site.
+
+module "snippet"
+
+Vec :: struct { x: i32 }
+
+add :: fn(self: Vec, other: Vec) -> Vec = Vec { .x = self.x + other.x }
+
+double :: fn<T: Add>(x: T) -> T = x.add(x)
+
+main :: fn() -> i32 = double(Vec { .x = 1 }).x

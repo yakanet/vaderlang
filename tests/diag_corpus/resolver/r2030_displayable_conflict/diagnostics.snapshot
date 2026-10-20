@@ -1,1 +1,1 @@
-[6:1] error[R2030]
+[6:1] error[R2030] conflicting trait impl for the same type: `@displayable` generates the `Display` of `Direction`, which already implements it

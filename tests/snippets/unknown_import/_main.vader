@@ -1,8 +1,0 @@
-module "snippet"
-
-import "std/nonexistent"
-
-main :: fn() -> i32 {
-    do_thing()
-    return 0
-}

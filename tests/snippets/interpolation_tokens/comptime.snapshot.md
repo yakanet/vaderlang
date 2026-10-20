@@ -2,8 +2,9 @@
 
 ## tests/snippets/interpolation_tokens
 
-# Diagnostics
-
-- `` [3:26] error[R2006] unresolved identifier: `name` ``
-- `` [4:27] error[R2006] unresolved identifier: `x` ``
-- `` [5:36] error[R2006] unresolved identifier: `y` ``
+- `const expr = "result: 42"`, folded
+- `const name = "world"`, folded
+- `const nested = "outer inner deep"`, folded
+- `const simple = "hello world"`, folded
+- `const x = 41_i32`, folded
+- `const y = "deep"`, folded

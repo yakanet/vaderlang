@@ -1,1 +1,1 @@
-[6:12] error[T3007]
+[6:12] error[T3007] expression is not callable: callee has type i32, not a function

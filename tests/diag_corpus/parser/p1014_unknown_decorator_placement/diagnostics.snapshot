@@ -1,1 +1,1 @@
-[5:5] error[P1014]
+[5:5] error[P1014] unknown decorator placement: `@deprecated` is not allowed in expression position

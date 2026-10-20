@@ -1,1 +1,1 @@
-[6:12] error[T3008]
+[6:12] error[T3008] expression is not indexable: i32 is not indexable

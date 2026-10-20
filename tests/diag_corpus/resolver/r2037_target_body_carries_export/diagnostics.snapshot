@@ -1,1 +1,1 @@
-[10:8] error[R2037]
+[10:8] error[R2037] `@target` body carries what its declaration owns: `tag` is a body ; the bare `@target` declaration carries `export`

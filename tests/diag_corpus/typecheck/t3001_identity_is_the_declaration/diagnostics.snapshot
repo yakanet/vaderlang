@@ -1,0 +1,2 @@
+[11:58] error[T3001] type mismatch: expected Animal, got Foo
+[13:59] error[T3001] type mismatch: expected Animal, got Foo

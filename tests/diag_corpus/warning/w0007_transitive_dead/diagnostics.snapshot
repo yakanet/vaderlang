@@ -1,2 +1,2 @@
-[8:1] warning[W0007]
-[9:1] warning[W0007]
+[8:1] warning[W0007] declaration is never used in its module: `orphan_a` is never used
+[9:1] warning[W0007] declaration is never used in its module: `orphan_b` is never used

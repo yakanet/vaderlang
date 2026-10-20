@@ -1,1 +1,1 @@
-[6:5] error[T3063]
+[6:5] error[T3063] assigned value's type is not assignable to the target's declared type: cannot assign a value of type string to a slot of type i32; a local takes the type of its first value: write the type it may hold, as `y: i64 = …`

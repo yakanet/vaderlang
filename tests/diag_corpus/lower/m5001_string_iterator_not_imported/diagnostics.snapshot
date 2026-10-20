@@ -1,1 +1,1 @@
-[7:5] error[M5001]
+[7:5] error[M5001] for-in receiver has no `Iterator` impl: `for x in iter` requires an Iterator impl on string

@@ -1,0 +1,7 @@
+// Recursion in an expression-bodied fn with no `-> Type` is rejected: its type
+// cannot be inferred from a body that depends on it. `-> i32` breaks the cycle.
+// T3034.
+
+module "snippet"
+
+export fact :: fn(n: i32) = if n <= 1 { 1 } else { n * fact(n - 1) }

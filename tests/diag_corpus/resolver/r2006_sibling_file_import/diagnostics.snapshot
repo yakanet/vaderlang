@@ -1,2 +1,2 @@
-[10:10] error[R2006]
-[11:10] error[R2006]
+[10:10] error[R2006] unresolved identifier: `trim`
+[11:10] error[R2006] unresolved identifier: `Text`

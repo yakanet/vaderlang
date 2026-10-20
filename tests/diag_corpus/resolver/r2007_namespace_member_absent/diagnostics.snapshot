@@ -1,1 +1,1 @@
-[19:14] error[R2007]
+[19:14] error[R2007] unresolved type name: `Absent`

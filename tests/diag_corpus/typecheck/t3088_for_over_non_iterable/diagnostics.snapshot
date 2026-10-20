@@ -1,2 +1,2 @@
-[10:14] error[T3088]
-[7:14] error[T3088]
+[10:14] error[T3088] not iterable: a `for` walks an array, a string or an `Iterator`, got `i32`
+[7:14] error[T3088] not iterable: a `for` walks an array, a string or an `Iterator`, got `i32[] | string[]`

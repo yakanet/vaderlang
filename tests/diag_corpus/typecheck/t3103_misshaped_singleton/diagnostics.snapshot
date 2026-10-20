@@ -1,3 +1,3 @@
-[10:1] error[T3103]
-[13:1] error[T3103]
-[7:1] error[T3103]
+[10:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `empty` is generic
+[13:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `counting` yields
+[7:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `scaled` takes parameters

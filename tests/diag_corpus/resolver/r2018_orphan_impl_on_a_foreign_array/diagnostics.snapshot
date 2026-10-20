@@ -1,1 +1,1 @@
-[11:1] error[R2018]
+[11:1] error[R2018] orphan impl forbidden: B for Foo[] — neither type nor trait is owned by this module

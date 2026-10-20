@@ -1,1 +1,1 @@
-[10:6] error[T3070]
+[10:6] error[T3070] a frozen value cannot be modified: `CFG` is a module constant, and `CFG.height` is assigned ; a name bound to it holds a copy to modify

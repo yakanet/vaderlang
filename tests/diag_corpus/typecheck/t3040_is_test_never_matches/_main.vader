@@ -1,0 +1,32 @@
+// `is T` against a scrutinee whose static type can never hold a `T` is a
+// T3040: `is null` on a non-nullable union and on a primitive, `is X` on a union
+// that does not include `X`, in a match arm and in an `if`.
+
+module "snippet"
+
+export Cat :: struct { name: string }
+export Dog :: struct { name: string }
+export Bird :: struct { song: string }
+export Pet :: Cat | Dog
+
+export m1 :: fn(p: Pet) -> bool = match p {
+    is null      -> false
+    is Cat | Dog -> true
+}
+
+export m2 :: fn(p: Pet) -> bool = match p {
+    is Bird      -> false
+    is Cat | Dog -> true
+}
+
+export m3 :: fn(n: i32) -> bool = match n {
+    is null -> false
+    _       -> true
+}
+
+export m4 :: fn(p: Pet) -> bool {
+    if p is null {
+        return false
+    }
+    return true
+}

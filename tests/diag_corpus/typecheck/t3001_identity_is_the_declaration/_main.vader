@@ -1,0 +1,13 @@
+// A type and a trait are each identified by their declaration, not by their
+// name. `snippet/b` declares another `Foo`, which does not implement
+// `snippet/a`'s `Animal`; `snippet/c` declares another `Animal`, which `a`'s
+// `Foo` does not implement. Each call is a T3001.
+module "snippet"
+
+A :: import "snippet/a"
+B :: import "snippet/b"
+C :: import "snippet/c"
+
+export same_named_type :: fn(fb: B.Foo) -> i32 = A.count(fb)
+
+export same_named_trait :: fn(fa: A.Foo) -> i32 = C.count(fa)

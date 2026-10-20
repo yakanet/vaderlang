@@ -1,1 +1,1 @@
-[13:27] error[T3050]
+[13:27] error[T3050] invalid `@extern` declaration: enum `HttpStatus` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `enum(StatusInfo, u16)`

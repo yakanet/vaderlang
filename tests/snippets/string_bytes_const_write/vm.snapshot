@@ -1,2 +1,0 @@
-# compile errors
-[T3070] a frozen value cannot be modified: `bytes()` returns a view of a string's bytes, and `bs[]` is assigned ; `.clone()` makes a copy to modify

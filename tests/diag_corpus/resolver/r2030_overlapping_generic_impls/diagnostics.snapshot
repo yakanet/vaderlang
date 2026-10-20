@@ -1,1 +1,1 @@
-[28:1] error[R2030]
+[28:1] error[R2030] conflicting trait impl for the same type: this impl and the one at tests/diag_corpus/resolver/r2030_overlapping_generic_impls/_main.vader:24:1 may both cover an instance of `Wrapper<T>` — two generic impls of one trait cannot overlap

@@ -1,7 +1,7 @@
-[29:30] error[T3105]
-[30:18] error[T3105]
-[31:22] error[T3105]
-[32:10] error[T3105]
-[33:24] error[T3105]
-[34:10] error[T3105]
-[35:14] error[T3105]
+[29:30] error[T3105] wrong number of type arguments: `pair` takes at most 2, got 3
+[30:18] error[T3105] wrong number of type arguments: `plain` takes no type argument, got 1
+[31:22] error[T3105] wrong number of type arguments: `plain` takes no type argument, got 1
+[32:10] error[T3105] wrong number of type arguments: `Pair` takes 2, got 1
+[33:24] error[T3105] wrong number of type arguments: `Pair` takes 2, got 1
+[34:10] error[T3105] wrong number of type arguments: `Pair` takes 2, got 3
+[35:14] error[T3105] wrong number of type arguments: `i32` takes no type argument

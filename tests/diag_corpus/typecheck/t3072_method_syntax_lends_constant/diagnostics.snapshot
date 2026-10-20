@@ -1,1 +1,1 @@
-[25:14] error[T3072]
+[25:14] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `absorb` modifies it (`other.count` is assigned) ; a name bound to it holds a copy to modify

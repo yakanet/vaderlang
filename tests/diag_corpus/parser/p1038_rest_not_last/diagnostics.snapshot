@@ -1,1 +1,1 @@
-[7:6] error[P1038]
+[7:6] error[P1038] `...rest` must be the last element

@@ -1,1 +1,1 @@
-[7:26] error[T3006]
+[7:26] error[T3006] trait not satisfied: type parameter `T` of `same` requires `Equals`, and `i32[]` does not implement it

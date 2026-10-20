@@ -1,1 +1,1 @@
-[9:10] error[T3099]
+[9:10] error[T3099] a constant cannot depend on its own value: `FIRST` is read while its own value is typed

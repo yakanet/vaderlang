@@ -1,7 +1,7 @@
 // A module constant has no runtime storage: `lower/inline_consts` rebuilds its
 // value at every read, so a write through it would land on a throwaway copy.
-// `::` freezes only the binding of a local (`p.x = 10` stays legal, see
-// snippets/const_binding_no_mutate); at module scope the value is frozen too.
+// `::` freezes only the binding of a local (`p.x = 10` stays legal); at module
+// scope the value is frozen too.
 // T3070.
 module "snippet"
 

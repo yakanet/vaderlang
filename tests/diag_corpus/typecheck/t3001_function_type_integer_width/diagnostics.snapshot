@@ -1,1 +1,1 @@
-[18:16] error[T3001]
+[18:16] error[T3001] type mismatch: expected fn() -> i32, got fn() -> u8

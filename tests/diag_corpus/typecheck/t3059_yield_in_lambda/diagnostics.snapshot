@@ -1,1 +1,1 @@
-[4:17] error[T3059]
+[4:17] error[T3059] `yield` is only allowed in a generator's own body, not in a nested lambda or a `defer`

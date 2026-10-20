@@ -1,1 +1,1 @@
-[10:14] error[T3081]
+[10:14] error[T3081] value cannot be destructured into this many elements: cannot destructure `[i32, string, bool]` into 2 elements

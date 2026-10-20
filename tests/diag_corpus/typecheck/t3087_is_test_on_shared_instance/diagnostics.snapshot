@@ -1,1 +1,1 @@
-[9:53] error[T3087]
+[9:53] error[T3087] the instances of a generic that share one body cannot be told apart: `Box<Foo>` has the type argument `Foo`, which erases ; test the field that holds it instead (`x.value is Foo`)

@@ -1,1 +1,1 @@
-[19:15] error[T3043]
+[19:15] error[T3043] operand type does not implement the trait this operator requires: `Square` does not implement `Equals`

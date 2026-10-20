@@ -1,3 +1,3 @@
-[14:16] error[T3114]
-[24:5] error[T3114]
-[28:62] error[T3114]
+[14:16] error[T3114] a function returns where its `@ensures` does not hold: `early` returns where `n` is `i64`, not within `Hour` (0..=23)
+[24:5] error[T3114] a function returns where its `@ensures` does not hold: `untested` ends where `n` is `i64`, not within `Hour` (0..=23)
+[28:62] error[T3114] a function returns where its `@ensures` does not hold: `half` ends where `n` is `i64`, not within `Hour` (0..=23)

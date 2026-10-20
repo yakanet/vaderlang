@@ -1,5 +1,21 @@
+// The three interpolation forms the lexer splits a string into: a bare `$name`,
+// a `${expression}`, and a `${…}` whose expression is itself a string holding
+// an interpolation.
 module "snippet"
+
+import "std/io"
+
+name :: "world"
+x :: 41
+y :: "deep"
 
 export simple :: "hello $name"
 export expr :: "result: ${x + 1}"
 export nested :: "outer ${"inner ${y}"}"
+
+main :: fn() -> i32 {
+    println(simple)
+    println(expr)
+    println(nested)
+    return 0
+}

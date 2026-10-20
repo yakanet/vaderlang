@@ -1,4 +1,6 @@
-# compile errors
-[R2006] unresolved identifier: `name`
-[R2006] unresolved identifier: `x`
-[R2006] unresolved identifier: `y`
+# stdout
+hello world
+result: 42
+outer inner deep
+# exit
+0

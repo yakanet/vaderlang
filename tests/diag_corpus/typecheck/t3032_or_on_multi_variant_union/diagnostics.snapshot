@@ -1,1 +1,1 @@
-[21:17] error[T3032]
+[21:17] error[T3032] ambiguous overload resolution: `fn(null | T, T) -> T` and `fn(Error | T, T) -> T` both accept Error | i32 | null for `or` : narrow it with `if`/`match` first

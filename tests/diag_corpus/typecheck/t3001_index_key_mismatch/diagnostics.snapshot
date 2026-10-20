@@ -1,2 +1,2 @@
-[10:14] error[T3001]
-[9:7] error[T3001]
+[10:14] error[T3001] type mismatch: expected key `i64`, got `string`
+[9:7] error[T3001] type mismatch: expected key `i64`, got `string`

@@ -1,2 +1,2 @@
-[5:5] error[R2006]
-[5:7] error[L0007]
+[5:5] error[R2006] unresolved identifier: `x`
+[5:7] error[L0007] stray backslash (Vader has no line continuation)

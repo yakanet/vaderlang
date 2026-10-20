@@ -1,1 +1,1 @@
-[23:15] error[T3006]
+[23:15] error[T3006] trait not satisfied: type parameter `T` of `first_equals` requires `Equals`, and `Box<Point> | Point` does not implement it

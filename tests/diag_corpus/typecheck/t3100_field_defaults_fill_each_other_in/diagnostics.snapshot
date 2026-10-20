@@ -1,1 +1,1 @@
-[7:22] error[T3100]
+[7:22] error[T3100] field defaults cannot fill each other in: `Leaf.branch` fills in `Branch.leaf`, which fills in `Leaf.branch`

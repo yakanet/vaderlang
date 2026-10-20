@@ -1,3 +1,3 @@
-[10:14] error[T3079]
-[13:13] error[T3079]
-[7:14] error[T3079]
+[10:14] error[T3079] decorator not allowed on this parameter: `@c_type` respells an integer for C, got `f64`
+[13:13] error[T3079] decorator not allowed on this parameter: `@c_type` takes one plain string, the C type : `@c_type("size_t")`
+[7:14] error[T3079] decorator not allowed on this parameter: `@c_type` respells an integer for C, got `string`

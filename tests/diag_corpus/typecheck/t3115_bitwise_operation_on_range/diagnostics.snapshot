@@ -1,5 +1,5 @@
-[13:17] error[T3115]
-[20:16] error[T3115]
-[25:39] error[T3115]
-[27:40] error[T3115]
-[45:44] error[T3115]
+[13:17] error[T3115] a bitwise operation needs an integer of a fixed width: `Hour` (0..=23) has no width of its own; convert it first, as `i64(…)`
+[20:16] error[T3115] a bitwise operation needs an integer of a fixed width: `Hour` (0..=23) has no width of its own; convert it first, as `i64(…)`
+[25:39] error[T3115] a bitwise operation needs an integer of a fixed width: `Hour` (0..=23) has no width of its own; convert it first, as `i64(…)`
+[27:40] error[T3115] a bitwise operation needs an integer of a fixed width: `Hour` (0..=23) has no width of its own; convert it first, as `i64(…)`
+[45:44] error[T3115] a bitwise operation needs an integer of a fixed width: `Hour` (0..=23) has no width of its own; convert it first, as `i64(…)`

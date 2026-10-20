@@ -1,0 +1,5 @@
+// An import modifier that renames a name the module does not export. R2008.
+
+module "snippet"
+
+import "snippet/lib" { secret_helper as leaked }

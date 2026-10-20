@@ -1,2 +1,2 @@
-[16:5] error[T3008]
-[18:5] error[T3008]
+[16:5] error[T3008] expression is not indexable: `Grid` has no `IndexSet` to write through
+[18:5] error[T3008] expression is not indexable: `string` has no `IndexSet` to write through

@@ -1,6 +1,0 @@
-module "snippet"
-
-export bad :: fn() {
-    a == b == c
-    x = 1 + +
-}

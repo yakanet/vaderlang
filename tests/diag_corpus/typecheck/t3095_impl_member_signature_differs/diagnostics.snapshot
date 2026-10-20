@@ -1,3 +1,3 @@
-[23:5] error[T3095]
-[27:23] error[T3095]
-[31:5] error[T3095]
+[23:5] error[T3095] an impl member must have its trait method's signature: `score`: expected 2 parameter(s), got 1
+[27:23] error[T3095] an impl member must have its trait method's signature: `score` parameter `k`: expected `i32`, got `i64`
+[31:5] error[T3095] an impl member must have its trait method's signature: `score` return: expected `i32`, got `string`

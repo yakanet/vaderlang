@@ -1,5 +1,5 @@
-[24:13] error[T3001]
-[25:5] error[T3001]
-[34:10] error[T3001]
-[44:11] error[T3001]
-[57:18] error[T3001]
+[24:13] error[T3001] type mismatch: expected fn(T) -> void, got fn(Inner) -> void
+[25:5] error[T3001] type mismatch: expected Inner, got T
+[34:10] error[T3001] type mismatch: expected T, got string
+[44:11] error[T3001] type mismatch: expected T, got {integer}
+[57:18] error[T3001] type mismatch: expected T, got {integer}

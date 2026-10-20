@@ -1,2 +1,2 @@
-[11:5] error[T3070]
-[13:5] error[T3070]
+[11:5] error[T3070] a frozen value cannot be modified: `bytes()` returns a view of a string's bytes, and `view[]` is assigned ; `.clone()` makes a copy to modify
+[13:5] error[T3070] a frozen value cannot be modified: `bytes_of()` returns a view of a string's bytes, and `handed[]` is assigned ; `.clone()` makes a copy to modify

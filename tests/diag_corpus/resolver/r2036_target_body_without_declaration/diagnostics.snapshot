@@ -1,1 +1,1 @@
-[9:1] error[R2036]
+[9:1] error[R2036] `@target` body matches no declaration: `orphan` has no bare `@target` declaration in this module

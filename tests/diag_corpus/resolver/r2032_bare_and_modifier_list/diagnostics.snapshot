@@ -1,1 +1,1 @@
-[7:1] error[R2032]
+[7:1] error[R2032] the same path is wildcard-imported twice in one file: `std/io`

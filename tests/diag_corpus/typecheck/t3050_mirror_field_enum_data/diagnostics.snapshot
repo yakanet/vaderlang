@@ -1,1 +1,1 @@
-[17:20] error[T3050]
+[17:20] error[T3050] invalid `@extern` declaration: field `status` of `@c_struct` `Reply`: enum `HttpStatus` carries variant data: it stores a rank, not the value C expects

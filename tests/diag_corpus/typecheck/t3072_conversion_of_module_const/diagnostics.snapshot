@@ -1,1 +1,1 @@
-[14:14] error[T3072]
+[14:14] error[T3072] a frozen value cannot be lent to a function that modifies it: `TABLE` is a module constant, and `poke` modifies it (`xs[]` is assigned) ; a name bound to it holds a copy to modify

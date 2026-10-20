@@ -1,0 +1,7 @@
+// An enum backed by a type that is not a primitive integer. T3029.
+
+module "snippet"
+
+export NotInt :: enum(string) {
+    A
+}

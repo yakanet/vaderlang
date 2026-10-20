@@ -1,1 +1,1 @@
-[10:27] error[R2029]
+[10:27] error[R2029] `as` binding not allowed in a `&&` condition: an `as` binding cannot appear in a `&&` condition ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`)

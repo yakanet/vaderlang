@@ -1,5 +1,5 @@
-[39:5] warning[W0015]
-[46:5] warning[W0015]
-[53:5] warning[W0015]
-[67:5] warning[W0015]
-[82:5] warning[W0015]
+[39:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `b`
+[46:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `xs`
+[53:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `n`
+[67:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `a`, `b`
+[82:5] warning[W0015] local is declared mutable but never reassigned — declare it with `::`: `n`

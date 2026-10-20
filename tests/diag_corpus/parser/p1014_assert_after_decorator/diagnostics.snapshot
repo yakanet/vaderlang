@@ -1,1 +1,1 @@
-[5:11] error[P1014]
+[5:11] error[P1014] unknown decorator placement: `@assert` stands on its own line, before any decorator

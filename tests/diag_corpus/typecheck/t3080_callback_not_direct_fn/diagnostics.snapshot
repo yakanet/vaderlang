@@ -1,1 +1,1 @@
-[9:34] error[T3080]
+[9:34] error[T3080] callback argument must name a function directly: argument 1 of `call_twice`

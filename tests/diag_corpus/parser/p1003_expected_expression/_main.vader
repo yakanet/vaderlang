@@ -1,0 +1,8 @@
+// A binding whose value starts with a token no expression starts with. P1003.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: )
+    return 0
+}

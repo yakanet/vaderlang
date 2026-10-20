@@ -1,2 +1,2 @@
-[10:1] error[P1032]
-[7:1] error[P1032]
+[10:1] error[P1032] wrong number of decorator arguments: `@ensures` expects one condition over the parameters : `@ensures(h in Hour)`
+[7:1] error[P1032] wrong number of decorator arguments: `@returns` expects one condition over the parameters : `@returns(h in Hour)`

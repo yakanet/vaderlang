@@ -1,1 +1,2 @@
-[17:10] error[T3072]
+[24:10] error[T3072] a frozen value cannot be lent to a function that modifies it: `CFG` is a module constant, and `bump` modifies it (`c.count` is assigned) ; a name bound to it holds a copy to modify
+[25:17] error[T3072] a frozen value cannot be lent to a function that modifies it: `DIGITS` is a module constant, and `write_first` modifies it (`a[]` is assigned) ; a name bound to it holds a copy to modify

@@ -1,1 +1,1 @@
-[8:9] error[T3001]
+[8:9] error[T3001] type mismatch: a `...rest` binding collects from an array, got `[i32, string]`

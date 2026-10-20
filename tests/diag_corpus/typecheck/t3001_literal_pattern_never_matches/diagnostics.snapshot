@@ -1,1 +1,1 @@
-[7:5] error[T3001]
+[7:5] error[T3001] type mismatch: `i64 | string` and `bool` share no variant

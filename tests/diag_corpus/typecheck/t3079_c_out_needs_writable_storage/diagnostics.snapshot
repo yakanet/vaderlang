@@ -1,1 +1,1 @@
-[8:27] error[T3079]
+[8:27] error[T3079] decorator not allowed on this parameter: `@c_out` needs an array or a `@c_struct` for C to write into, got `u32` — to read a scalar back, lend a one-element array

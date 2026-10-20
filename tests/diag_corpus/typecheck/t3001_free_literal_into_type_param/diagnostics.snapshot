@@ -1,1 +1,1 @@
-[6:5] error[T3001]
+[6:5] error[T3001] type mismatch: expected T, got {integer}

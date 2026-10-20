@@ -1,1 +1,1 @@
-[4:5] error[T3060]
+[4:5] error[T3060] `defer` is not yet supported inside a generator

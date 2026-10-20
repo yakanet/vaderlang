@@ -1,3 +1,3 @@
-[10:42] error[T3030]
-[6:1] warning[W0007]
-[8:1] warning[W0007]
+[10:42] error[T3030] enum variant value out of range for its written width: 404 not in [0, 255] for `u8`
+[6:1] warning[W0007] declaration is never used in its module: `StatusInfo` is never used
+[8:1] warning[W0007] declaration is never used in its module: `HttpStatus` is never used

@@ -1,1 +1,1 @@
-[24:13] error[T3072]
+[24:13] error[T3072] a frozen value cannot be lent to a function that modifies it: `ORIGIN` is a module constant, and `bump` modifies it (`self.n` is assigned) ; a name bound to it holds a copy to modify
