@@ -1,0 +1,18 @@
+module "snippet"
+
+// A variant is no type: `t is Target.I32` would test nothing. Compare it with
+// `==` instead (`t == .I32`).
+Target :: enum {
+    I32
+    I64
+}
+
+pick :: fn() -> Target | null = .I32
+
+main :: fn() -> i32 {
+    t :: pick()
+    if t is Target.I32 {
+        return 0
+    }
+    return 1
+}

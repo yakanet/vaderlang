@@ -1,0 +1,2 @@
+[11:13] error[T3002] expected an expression of a known type: `Point.x` is no type ; `Point` names a struct
+[14:13] error[T3002] expected an expression of a known type: `Point.x.y` is no type

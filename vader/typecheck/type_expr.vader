@@ -98,9 +98,18 @@ export type_from_expr :: fn(
 /// @error R2008 when `P.Decl` names a PRIVATE (non-`export`) type of the
 ///        target module — visibility enforcement, mirroring the
 ///        destructured-import check in `wire.vader`.
+/// @error T3002 when the target names no namespace — an enum (`E.V` is a
+///        variant, which `x is E.V` would not test), any other declaration
+///        or value, or a longer chain: the type would resolve to nothing.
 namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: Diagnostic[]) -> Type {
-    if !(e.target is AST.IdentExpr) { return TY_UNRESOLVED }
+    if e.target !is AST.IdentExpr {
+        return no_member_type(e, "", diags)
+    }
     target_sym :: resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
+    target :: redirect_import(target_sym, resolved)
+    if target.kind != .ImportBinding {
+        return no_member_type(e, not_a_namespace(target), diags)
+    }
     members :: resolved.namespace_member_types[target_sym.id] ?? return TY_UNRESOLVED
     ty :: members[e.field]
     if ty is null {
@@ -114,6 +123,22 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
         return TY_UNRESOLVED
     }
     return ty
+}
+
+// T3002 for a field chain in a type slot that names no namespace member ;
+// `why` follows the chain in the detail.
+no_member_type :: fn(e: AST.FieldExpr, why: string, diags: Diagnostic[]) -> Type {
+    diags.push(typecheck_error(.ExpectedKnownType, e.span, "`${path_name(e, "…")}` is no type${why}"))
+    return TY_UNRESOLVED
+}
+
+// What the target of `x.y` is, when it is no namespace: an enum's variants
+// compare with `==`.
+not_a_namespace :: fn(target: Symbol) -> string {
+    if target.kind == .Enum {
+        return " ; `${target.name}` is an enum, whose variants compare with `==`"
+    }
+    return " ; `${target.name}` names a ${target.kind.label}"
 }
 
 /// Fire R2008 when `field` names a PRIVATE member of the namespace binding

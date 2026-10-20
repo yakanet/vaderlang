@@ -1,0 +1,18 @@
+module "snippet"
+
+// Only a namespace has members a type slot can name: a field of a struct is no
+// type, and neither is a longer chain.
+Point :: struct { x: i32 }
+
+Shape :: Point | i32
+
+main :: fn() -> i32 {
+    s: Shape: 3
+    if s is Point.x {
+        return 1
+    }
+    if s is Point.x.y {
+        return 2
+    }
+    return 0
+}
