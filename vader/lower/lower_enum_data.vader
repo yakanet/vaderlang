@@ -120,7 +120,7 @@ lower_enum_value :: fn(
             .right = LoweredIntLit { .span = span, .type = TY_I64, .value = values[0] },
         }
     }
-    element :: mk_primitive(value_element_width(values))
+    element :: machine_integer_type(narrowest_width(values))
     return LoweredIndex {
         .span   = span,
         .type   = element,
@@ -143,12 +143,6 @@ is_consecutive :: fn(values: i64[]) -> bool {
         }
     }
     return true
-}
-
-// The narrowest integer holding every written value.
-value_element_width :: fn(values: i64[]) -> string {
-    [smallest, largest] :: value_bounds(values)
-    return narrowest_width(smallest, largest)
 }
 
 // The const holding one of `enum_type`'s tables, minted at its first read and
@@ -235,7 +229,7 @@ lower_data_table :: fn(
 // The `<Enum>$value` const : each variant's written value, at its rank.
 lower_value_table :: fn(decl: EnumDecl, due: EnumTable, typed: TypedProgram) -> LoweredConstDecl {
     values :: due.enum_type.values
-    element :: mk_primitive(value_element_width(values))
+    element :: machine_integer_type(narrowest_width(values))
     elements: LoweredExpr[]: []
     for value in values {
         elements.push(LoweredIntLit { .span = decl.span, .type = element, .value = value })

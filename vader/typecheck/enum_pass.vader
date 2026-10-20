@@ -2,8 +2,8 @@
 //
 // Walks `EnumDecl.variants` and produces the canonical `name → value` map :
 // explicit `= N` values land verbatim ; bare variants take `previous + 1`
-// (starting at 0). Range checking against the repr's `[min, max]` bounds
-// and duplicate-value detection emit T3030 / T3031.
+// (starting at 0). Range checking against the written width's bounds and
+// duplicate-value detection emit T3030 / T3031.
 //
 // The header's resolution is `decl.vader`'s `build_enum_type` (via
 // `type_from_expr`). This file handles only what needs no type-expression
@@ -20,20 +20,17 @@ import "vader/parser"
 import "vader/types"
 import "toolchain/span"
 
-/// Compute the canonical `name → value` map for `decl`. `repr` is the
-/// already-resolved backing type name (e.g. `"i32"`, `"u8"`) ; pass
-/// `"i64"` when the source wrote none — the width is then inferred from
-/// the indices.
+/// Compute the canonical `name → value` map for `decl`. `width` is the integer the
+/// header writes, which bounds the values ; null leaves them unbounded.
 ///
 /// Side effects : pushes T3030 (out-of-range) and T3031 (duplicate value)
 /// onto `diags`. The map still includes every variant even on error so
 /// downstream phases don't cascade with "unknown variant" noise.
 resolve_enum_indices :: fn(
-    decl: EnumDecl, repr: string, diags: Diagnostic[],
+    decl: EnumDecl, width: MachineInteger | null, diags: Diagnostic[],
 ) -> MutableMap<string, i64> {
     out :: MutableMap<string, i64> {}
     seen_values :: MutableSet<i64> {}
-    values :: primitive_interval(repr)
     cursor: i64 = 0
     for variant in decl.variants {
         value :: variant.value
@@ -41,11 +38,11 @@ resolve_enum_indices :: fn(
             is i64 -> value
             is null -> cursor
         }
-        if values != null && (v < values.lo || v > values.hi) {
+        if width != null && !holds_value(width.values, v) {
             span :: span_of_value(variant)
             diags.push(typecheck_error(
                 .EnumVariantValueOutOfRange, span,
-                "${v} not in [${values.lo}, ${values.hi}] for `${repr}`",
+                "${v} not in [${width.values.lo}, ${width.values.hi}] for `${width.name}`",
             ))
         }
         if !seen_values.add(v) {
@@ -71,13 +68,17 @@ find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
 
 // ---- inferred width -------------------------------------------------------
 
-/// The narrowest integer holding every index in `[smallest, largest]` : unsigned when
-/// none is negative.
-export narrowest_width :: fn(smallest: i64, largest: i64) -> string =
-    narrowest_machine_integer(interval(smallest, largest)).name
+/// The narrowest integer holding every one of `values` : unsigned when none is
+/// negative. An enum's inferred width, and the one its written values cross C at.
+///
+/// @param values  the values to hold ; none is held by the narrowest of all.
+export narrowest_width :: fn(values: i64[]) -> MachineInteger {
+    [smallest, largest] :: value_bounds(values)
+    return narrowest_machine_integer(interval(smallest, largest))
+}
 
-/// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
-export value_bounds :: fn(values: i64[]) -> [i64, i64] {
+// `[smallest, largest]` of `values` ; `[0, 0]` when there are none.
+value_bounds :: fn(values: i64[]) -> [i64, i64] {
     if values.len() == 0 {
         return [0, 0]
     }
@@ -187,7 +188,7 @@ Color :: enum {
         is null -> { assert(false, "Color enum should parse") }
         is EnumDecl -> {
             diags: Diagnostic[]: []
-            indices :: resolve_enum_indices(enum_decl, "i32", diags)
+            indices :: resolve_enum_indices(enum_decl, null, diags)
             expect_index(indices, "Red",   0)
             expect_index(indices, "Green", 1)
             expect_index(indices, "Blue",  2)
@@ -212,7 +213,7 @@ Flag :: enum {
         is null -> { assert(false, "Flag enum should parse") }
         is EnumDecl -> {
             diags: Diagnostic[]: []
-            indices :: resolve_enum_indices(enum_decl, "i32", diags)
+            indices :: resolve_enum_indices(enum_decl, null, diags)
             expect_index(indices, "A",   5)
             expect_index(indices, "B",   6)
             expect_index(indices, "C", 100)
@@ -235,7 +236,7 @@ Bad :: enum {
         is null -> { assert(false, "Bad enum should parse") }
         is EnumDecl -> {
             diags: Diagnostic[]: []
-            resolve_enum_indices(enum_decl, "i32", diags)
+            resolve_enum_indices(enum_decl, null, diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3031")
         }
@@ -255,7 +256,7 @@ Overflow :: enum {
         is null -> { assert(false, "Overflow enum should parse") }
         is EnumDecl -> {
             diags: Diagnostic[]: []
-            resolve_enum_indices(enum_decl, "u8", diags)
+            resolve_enum_indices(enum_decl, machine_integer_named("u8"), diags)
             assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3030")
         }

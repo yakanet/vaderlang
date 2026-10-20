@@ -13,7 +13,7 @@
           __iter_1: Iterator<[i32, i64]> = it
           for {
               __step_2: [[i32, i64], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
-              if __step_2._1 == u8(1) {
+              if __step_2._1 == Continuation(1) {
                   break
               } else {
                   __for_elem_3: [i32, i64] = __step_2._0

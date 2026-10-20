@@ -205,9 +205,8 @@ value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
     } else {
         primitive_size(t.name)
     }
-    is EnumType  -> primitive_size(t.repr)
-    is RangeType -> storage_integer(t).bits / 8
-    _            -> -1
+    is EnumType | RangeType -> slot_byte_size(t)
+    _                       -> -1
 }
 
 over :: fn(size: i64, budget: i64) -> i64 = if size > budget { -1 } else { size }

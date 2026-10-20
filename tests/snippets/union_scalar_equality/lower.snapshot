@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.maybe_direction :: fn(found: bool) -> Direction | null {  // snippet$maybe_direction
-      if found { u8(1) } else { null } :Direction | null
+      if found { Direction(1) } else { null } :Direction | null
   }
   snippet.maybe_count :: fn(found: bool) -> i32 | null {  // snippet$maybe_count
       if found { 0 } else { null } :i32 | null
@@ -13,21 +13,21 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(17))
           __off_1: i64 = 0
-          __off_1 = std.core.write_bool(__buf_0, __off_1, v == u8(1))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, v == Direction(1))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, v == u8(0))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, v == Direction(0))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, v != u8(1))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, v != Direction(1))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
           __off_3: i64 = 0
-          __off_3 = std.core.write_bool(__buf_2, __off_3, none == u8(0))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, none == Direction(0))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, u8(0) == none)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, Direction(0) == none)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, none != u8(0))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, none != Direction(0))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       zero: i32 | null = snippet.maybe_count(true)

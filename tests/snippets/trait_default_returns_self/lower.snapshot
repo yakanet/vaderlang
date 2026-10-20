@@ -21,7 +21,7 @@
       snippet$Point$Floor$lowest()
   }
   snippet$Day$Floor$lowest :: fn() -> Day {
-      u8(1)
+      Day(1)
   }
   snippet$Day$Floor$floor :: fn() -> Day {
       snippet$Day$Floor$lowest()
@@ -50,9 +50,9 @@
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(11))
           __off_5: i64 = 0
-          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Day$Floor$floor() == u8(1))
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet$Day$Floor$floor() == Day(1))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.Day.reset(u8(2)) == u8(1))
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.Day.reset(Day(2)) == Day(1))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       return 0

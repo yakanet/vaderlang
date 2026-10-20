@@ -230,7 +230,7 @@
           __iter_1: Iterator<[i32, i64]> = pairs
           for {
               __step_2: [[i32, i64], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
-              if __step_2._1 == u8(1) {
+              if __step_2._1 == Continuation(1) {
                   break
               } else {
                   __for_elem_3: [i32, i64] = __step_2._0
@@ -253,7 +253,7 @@
           __iter_7: Iterator<[i32, i32]> = zipped
           for {
               __step_8: [[i32, i32], Continuation] = @vcall(std.core.Iterator.next, __iter_7)
-              if __step_8._1 == u8(1) {
+              if __step_8._1 == Continuation(1) {
                   break
               } else {
                   __for_elem_9: [i32, i32] = __step_8._0
@@ -276,7 +276,7 @@
           __iter_12: Iterator<i32> = windows
           for {
               __step_13: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_12)
-              if __step_13._1 == u8(1) {
+              if __step_13._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_13._0
@@ -300,7 +300,7 @@
           __iter_0: Iterator<i32> = ay
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_1._0
@@ -321,7 +321,7 @@
           __iter_4: Iterator<i32> = rl
           for {
               __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == u8(1) {
+              if __step_5._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_5._0
@@ -356,12 +356,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, u8(0)] :[i32, Continuation]
+              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -385,7 +385,7 @@
               __self_0.state = 3
           } else if __self_0.state == 5 {
               __self_0.state = 4
-              return [__self_0.s2 + 100, u8(0)] :[i32, Continuation]
+              return [__self_0.s2 + 100, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 6 {
               __self_0.s2 = __self_0.s1 * 2
               __self_0.state = 5
@@ -397,12 +397,12 @@
               }
           } else if __self_0.state == 8 {
               __self_0.state = 7
-              return [__self_0.s1, u8(0)] :[i32, Continuation]
+              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 9 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -439,7 +439,7 @@
               __self_6.state = 4
           } else if __self_6.state == 9 {
               __self_6.state = 8
-              return [__self_6.s16 * 100, u8(0)] :[i32, Continuation]
+              return [__self_6.s16 * 100, Continuation(0)] :[i32, Continuation]
           } else if __self_6.state == 10 {
               if __self_6.s16 > __self_6.s8 {
                   __self_6.state = 9
@@ -460,7 +460,7 @@
               __self_6.state = 5
           } else if __self_6.state == 13 {
               __self_6.state = 12
-              return [__self_6.s8, u8(0)] :[i32, Continuation]
+              return [__self_6.s8, Continuation(0)] :[i32, Continuation]
           } else if __self_6.state == 14 {
               __self_6.s6 = __self_6.s1[__self_6.s5]
               __self_6.s7 = __self_6.s2(__self_6.s6)
@@ -474,7 +474,7 @@
               __self_6.s5 = 0
               __self_6.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

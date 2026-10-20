@@ -63,7 +63,7 @@
           __iter_5: Iterator<i32> = it
           for {
               __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
-              if __step_6._1 == u8(1) {
+              if __step_6._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_6._0
@@ -109,7 +109,7 @@
           __iter_2: Iterator<i32> = it
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   _: i32 = __step_3._0
@@ -173,7 +173,7 @@
           __iter_2: Iterator<i32> = it
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   _: i32 = __step_3._0
@@ -225,7 +225,7 @@
           __iter_2: Iterator<i32> = it
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   _: i32 = __step_3._0
@@ -279,7 +279,7 @@
           __iter_6: Iterator<i32> = it
           for {
               __step_7: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_6)
-              if __step_7._1 == u8(1) {
+              if __step_7._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_7._0
@@ -326,7 +326,7 @@
           __iter_5: Iterator<i32> = it
           for {
               __step_6: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_5)
-              if __step_6._1 == u8(1) {
+              if __step_6._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_6._0
@@ -384,7 +384,7 @@
           __iter_2: Iterator<i32> = outer
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   a: i32 = __step_3._0
@@ -393,7 +393,7 @@
                       __iter_4: Iterator<i32> = inner
                       for {
                           __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-                          if __step_5._1 == u8(1) {
+                          if __step_5._1 == Continuation(1) {
                               break
                           } else {
                               b: i32 = __step_5._0
@@ -478,7 +478,7 @@
           __iter_8: Iterator<i32> = outer
           for {
               __step_9: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_8)
-              if __step_9._1 == u8(1) {
+              if __step_9._1 == Continuation(1) {
                   break
               } else {
                   a: i32 = __step_9._0
@@ -487,7 +487,7 @@
                       __iter_10: Iterator<i32> = inner
                       for {
                           __step_11: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_10)
-                          if __step_11._1 == u8(1) {
+                          if __step_11._1 == Continuation(1) {
                               break
                           } else {
                               b: i32 = __step_11._0
@@ -518,7 +518,7 @@
           {
               for {
                   __fuse_step_0: [char, Continuation] = std.string.StringChars.next(__fuse_iter_0)
-                  if __fuse_step_0._1 == u8(1) {
+                  if __fuse_step_0._1 == Continuation(1) {
                       break
                   } else {
                       x: char = __fuse_step_0._0
@@ -540,7 +540,7 @@
           __iter_2: Iterator<char> = it
           for {
               __step_3: [char, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   _: char = __step_3._0
@@ -584,7 +584,7 @@
           __iter_0: Iterator<i32> = it
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_1._0
@@ -679,7 +679,7 @@
                   __iter_4: Iterator<i32> = it
                   for {
                       __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-                      if __step_5._1 == u8(1) {
+                      if __step_5._1 == Continuation(1) {
                           break
                       } else {
                           v: i32 = __step_5._0
@@ -737,12 +737,12 @@
               __self_2.state = 3
           } else if __self_2.state == 7 {
               __self_2.state = 6
-              return [__self_2.s4 * __self_2.s1, u8(0)] :[i32, Continuation]
+              return [__self_2.s4 * __self_2.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_2.state == 8 {
               __self_2.s4 = __self_2.s3._0
               __self_2.state = 7
           } else if __self_2.state == 9 {
-              if __self_2.s3._1 == u8(1) {
+              if __self_2.s3._1 == Continuation(1) {
                   __self_2.state = 5
               } else {
                   __self_2.state = 8
@@ -754,7 +754,7 @@
               __self_2.s2 = __self_2.s0
               __self_2.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -776,12 +776,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, u8(0)] :[i32, Continuation]
+              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -839,7 +839,7 @@
               }
           } else if __self_0.state == 10 {
               __self_0.state = 9
-              return [(__self_0.s0 * 10) + __self_0.s1, u8(0)] :[i32, Continuation]
+              return [(__self_0.s0 * 10) + __self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 11 {
               __self_0.s1 = 0
               __self_0.state = 5
@@ -847,7 +847,7 @@
               __self_0.s0 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

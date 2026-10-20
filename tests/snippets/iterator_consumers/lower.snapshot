@@ -26,7 +26,7 @@
           __iter_0: Iterator<i64> = it
           for {
               __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i64 = __step_1._0
@@ -41,7 +41,7 @@
           __iter_0: Iterator<i64> = it
           for {
               __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i64 = __step_1._0
@@ -58,7 +58,7 @@
           __iter_0: Iterator<string> = it
           for {
               __step_1: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   s: string = __step_1._0
@@ -78,7 +78,7 @@
           __iter_1: Iterator<[i32, i32]> = it
           for {
               __step_2: [[i32, i32], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
-              if __step_2._1 == u8(1) {
+              if __step_2._1 == Continuation(1) {
                   break
               } else {
                   __for_elem_3: [i32, i32] = __step_2._0
@@ -100,7 +100,7 @@
           __iter_0: Iterator<i64> = it
           for {
               __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i64 = __step_1._0
@@ -116,7 +116,7 @@
           __iter_0: Iterator<i64> = it
           for {
               __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i64 = __step_1._0
@@ -132,7 +132,7 @@
           __iter_0: Iterator<i32> = it
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0
@@ -144,7 +144,7 @@
           __iter_2: Iterator<i32> = it
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_3._0

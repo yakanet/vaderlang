@@ -29,7 +29,7 @@
           __iter_0: Iterator<i32> = it
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0
@@ -48,7 +48,7 @@
           __iter_4: Iterator<i32> = p
           for {
               __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == u8(1) {
+              if __step_5._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_5._0
@@ -82,12 +82,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, u8(0)] :[i32, Continuation]
+              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -120,7 +120,7 @@
               __self_6.state = 5
           } else if __self_6.state == 7 {
               __self_6.state = 6
-              return [__self_6.s5 + __self_6.s9, u8(0)] :[i32, Continuation]
+              return [__self_6.s5 + __self_6.s9, Continuation(0)] :[i32, Continuation]
           } else if __self_6.state == 8 {
               __self_6.s9 = __self_6.s6[__self_6.s8]
               __self_6.state = 7
@@ -138,7 +138,7 @@
               __self_6.s4 = 0
               __self_6.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

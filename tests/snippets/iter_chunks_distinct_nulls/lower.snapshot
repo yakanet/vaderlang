@@ -40,7 +40,7 @@
                   __iter_0: Iterator<i32> = self
                   for {
                       __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                      if __step_1._1 == u8(1) {
+                      if __step_1._1 == Continuation(1) {
                           break
                       } else {
                           x: i32 = __step_1._0
@@ -64,7 +64,7 @@
           __iter_8: Iterator<i32[]> = chunks
           for {
               __step_9: [i32[], Continuation] = @vcall(std.core.Iterator.next, __iter_8)
-              if __step_9._1 == u8(1) {
+              if __step_9._1 == Continuation(1) {
                   break
               } else {
                   c: i32[] = __step_9._0
@@ -107,7 +107,7 @@
           __iter_15: Iterator<string> = words
           for {
               __step_16: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_15)
-              if __step_16._1 == u8(1) {
+              if __step_16._1 == Continuation(1) {
                   break
               } else {
                   w: string = __step_16._0
@@ -141,7 +141,7 @@
           __iter_22: Iterator<i32> = present
           for {
               __step_23: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_22)
-              if __step_23._1 == u8(1) {
+              if __step_23._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_23._0

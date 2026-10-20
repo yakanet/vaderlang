@@ -9,11 +9,11 @@
   snippet.StatusInfo :: struct { code: i32, reason: string, retry: bool }  // snippet$StatusInfo
   snippet.describe :: fn(s: HttpStatus) -> string {  // snippet$describe
       {
-          if s == u8(0) {
+          if s == HttpStatus(0) {
               "fine"
-          } else if s == u8(1) {
+          } else if s == HttpStatus(1) {
               "missing"
-          } else if s == u8(2) {
+          } else if s == HttpStatus(2) {
               "later"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -34,7 +34,7 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      statuses: HttpStatus[] = [u8(0), u8(1), u8(2)] :HttpStatus[]
+      statuses: HttpStatus[] = [HttpStatus(0), HttpStatus(1), HttpStatus(2)] :HttpStatus[]
       {
           __for_arr_0: HttpStatus[] = statuses
           __for_len_1: i64 = @array.len(__for_arr_0)
@@ -64,7 +64,7 @@
           }
       }
       {
-          __for_arr_8: Level[] = [u8(0), u8(1), u8(2)] :Level[]
+          __for_arr_8: Level[] = [Level(0), Level(1), Level(2)] :Level[]
           __for_len_9: i64 = @array.len(__for_arr_8)
           __for_i_10: i64 = 0
           for __for_i_10 < __for_len_9 {
@@ -89,13 +89,13 @@
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "constant: ")
           __off_15 = std.core.write_int(__buf_14, __off_15, i32(i64(404)))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_bool(__buf_14, __off_15, statuses[1] == u8(1))
+          __off_15 = std.core.write_bool(__buf_14, __off_15, statuses[1] == HttpStatus(1))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
           __off_15 = std.core.write_int(__buf_14, __off_15, i64(1))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       {
-          __for_arr_16: Reply[] = [u8(0), u8(1), u8(2)] :Reply[]
+          __for_arr_16: Reply[] = [Reply(0), Reply(1), Reply(2)] :Reply[]
           __for_len_17: i64 = @array.len(__for_arr_16)
           __for_i_18: i64 = 0
           for __for_i_18 < __for_len_17 {
@@ -105,10 +105,10 @@
               __for_i_18 = __for_i_18 +% i64(1)
           }
       }
-      info: StatusInfo = snippet.Reply$data[i64(u8(1))]
+      info: StatusInfo = snippet.Reply$data[i64(Reply(1))]
       std.io.println<string>({
           __p_19: string = info.reason
-          __p_20: string = snippet.Level$data[i64(u8(1))].reason
+          __p_20: string = snippet.Level$data[i64(Level(1))].reason
           __buf_21: Buffer = std.core.new_byte_buffer(i64(31) +% (std.core.byte_len(__p_19) +% std.core.byte_len(__p_20)))
           __off_22: i64 = 0
           __off_22 = std.core.write_string_at(__buf_21, __off_22, "whole: ")
@@ -132,11 +132,11 @@
   }
   snippet.HttpStatus.to_string :: fn(self: HttpStatus) -> string {  // snippet$HttpStatus$std_core_Display$to_string
       {
-          if self == u8(0) {
+          if self == HttpStatus(0) {
               "Ok"
-          } else if self == u8(1) {
+          } else if self == HttpStatus(1) {
               "NotFound"
-          } else if self == u8(2) {
+          } else if self == HttpStatus(2) {
               "Unavailable"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")

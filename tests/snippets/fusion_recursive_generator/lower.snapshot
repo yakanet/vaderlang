@@ -29,7 +29,7 @@
                   __iter_0: Iterator<i32> = snippet.countdown(n - 1)
                   for {
                       __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                      if __step_1._1 == u8(1) {
+                      if __step_1._1 == Continuation(1) {
                           break
                       } else {
                           x: i32 = __step_1._0
@@ -52,7 +52,7 @@
           __iter_2: Iterator<i32> = it
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_3._0
@@ -94,13 +94,13 @@
               __self_0.state = 6
           } else if __self_0.state == 10 {
               __self_0.state = 9
-              return [__self_0.s2, u8(0)] :[i32, Continuation]
+              return [__self_0.s2, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 11 {
               __self_0.s5 = __self_0.s4._0
               __self_0.s2 = __self_0.s5
               __self_0.state = 10
           } else if __self_0.state == 12 {
-              if __self_0.s4._1 == u8(1) {
+              if __self_0.s4._1 == Continuation(1) {
                   __self_0.state = 8
               } else {
                   __self_0.state = 11
@@ -113,7 +113,7 @@
               __self_0.state = 5
           } else if __self_0.state == 15 {
               __self_0.state = 14
-              return [__self_0.s2, u8(0)] :[i32, Continuation]
+              return [__self_0.s2, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 16 {
               __self_0.s2 = __self_0.s1
               __self_0.state = 15
@@ -128,7 +128,7 @@
               __self_0.state = 17
           } else if __self_0.state == 19 {
               __self_0.state = 18
-              return [__self_0.s0, u8(0)] :[i32, Continuation]
+              return [__self_0.s0, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 20 {
               if __self_0.s0 > 0 {
                   __self_0.state = 19
@@ -136,7 +136,7 @@
                   __self_0.state = 0
               }
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

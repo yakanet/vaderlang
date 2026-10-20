@@ -19,7 +19,7 @@
           __iter_0: Iterator<i64> = it
           for {
               __step_1: [i64, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   n: i64 = __step_1._0

@@ -36,11 +36,10 @@ lower_range_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: RangeType)
 /// @param call    the conversion, its single argument the value.
 /// @param target  an enum without variant data.
 /// @return        the value, the program stopped where it is none of `target`'s
-///                values, held as the integer `target` stores.
+///                values, as a value of `target`.
 lower_enum_conversion :: fn(ctx: FnLowerCtx, call: CallExpr, target: EnumType) -> LoweredExpr {
     reason :: "value out of range: no value of `${target.symbol.name}`"
-    held :: mk_primitive(target.repr)
-    return lower_runs_conversion(ctx, call, enum_value_runs(target), held, reason)
+    return lower_runs_conversion(ctx, call, enum_value_runs(target), target, reason)
 }
 
 /// The conversion `call`, `char(value)`, from an integer.
@@ -187,12 +186,13 @@ checked_read :: fn(bound: LoweredIdent, result: Type, span: Span) -> LoweredExpr
 }
 
 // `value`, which the conversion has proved a value of `result`, as one : itself when
-// it is, a literal of `result` for an integer literal into a range, else converted.
+// it is, a literal of `result` for an integer literal into a range or an enum, else
+// converted.
 converted :: fn(value: LoweredExpr, result: Type, span: Span) -> LoweredExpr {
     if equals_type(value.type, result) {
         return value
     }
-    if value is LoweredIntLit && result is RangeType {
+    if value is LoweredIntLit && result is RangeType | EnumType {
         return LoweredIntLit { ...value, .type = result }
     }
     return LoweredCast { .span = span, .type = result, .value = value }

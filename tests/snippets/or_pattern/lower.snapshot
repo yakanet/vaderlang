@@ -3,9 +3,9 @@
 ## snippet
   snippet.can_go :: fn(l: Light) -> bool {  // snippet$can_go
       {
-          if l == u8(2) {
+          if l == Light(2) {
               true
-          } else if ((l == u8(0)) || (l == u8(1))) || (l == u8(3)) {
+          } else if ((l == Light(0)) || (l == Light(1))) || (l == Light(3)) {
               false
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -35,8 +35,8 @@
       } :i32
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      go: i32 = if snippet.can_go(u8(2)) { 100 } else { 0 }
-      stop: i32 = if snippet.can_go(u8(0)) { 0 } else { 10 }
+      go: i32 = if snippet.can_go(Light(2)) { 100 } else { 0 }
+      stop: i32 = if snippet.can_go(Light(0)) { 0 } else { 10 }
       return ((((go + stop) + snippet.points(6)) + snippet.points(3)) + snippet.kind(true)) + snippet.kind("x")
   }
 

@@ -11,11 +11,11 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
-      return snippet.Weekday.to_string(u8(n))
+      return snippet.Weekday.to_string(Weekday(n))
   }
   snippet.main :: fn(argv: string[]) -> i32 {  // snippet$main
-      std.io.println<string>(concat_4("week ", snippet.Weekday.to_string(u8(0)), " to ", snippet.Weekday.to_string(u8(6))))
-      std.io.println<string>(concat_4("discounts ", snippet.Discount.to_string(u8(0)), " to ", snippet.Discount.to_string(u8(100))))
+      std.io.println<string>(concat_4("week ", snippet.Weekday.to_string(Weekday(0)), " to ", snippet.Weekday.to_string(Weekday(6))))
+      std.io.println<string>(concat_4("discounts ", snippet.Discount.to_string(Discount(0)), " to ", snippet.Discount.to_string(Discount(100))))
       std.io.println<string>(concat_3(snippet.day_of(4), ", ", snippet.day_of(7)))
       {
           __for_v_0: u8 = 0
@@ -28,7 +28,7 @@
       }
       std.io.println<string>("")
       {
-          __for_arr_1: Discount[] = [u8(100), u8(0), u8(50)] :Discount[]
+          __for_arr_1: Discount[] = [Discount(100), Discount(0), Discount(50)] :Discount[]
           __for_len_2: i64 = @array.len(__for_arr_1)
           __for_i_3: i64 = 0
           for __for_i_3 < __for_len_2 {
@@ -46,8 +46,8 @@
               if !(((__in_range_4 == i64(0)) || (__in_range_4 == i64(50))) || (__in_range_4 == i64(100))) {
                   @unreachable("value out of range: no value of `Discount`")
               }
-              __in_range_4
-          } :u8)
+              Discount(__in_range_4)
+          } :Discount)
           __buf_6: Buffer = std.core.new_byte_buffer(i64(12) +% std.core.byte_len(__p_5))
           __off_7: i64 = 0
           __off_7 = std.core.write_bool(__buf_6, __off_7, ((rate == i64(0)) || (rate == i64(50))) || (rate == i64(100)))
@@ -91,19 +91,19 @@
   }
   snippet.Weekday.to_string :: fn(self: Weekday) -> string {  // snippet$Weekday$std_core_Display$to_string
       {
-          if self == u8(0) {
+          if self == Weekday(0) {
               "Mon"
-          } else if self == u8(1) {
+          } else if self == Weekday(1) {
               "Tue"
-          } else if self == u8(2) {
+          } else if self == Weekday(2) {
               "Wed"
-          } else if self == u8(3) {
+          } else if self == Weekday(3) {
               "Thu"
-          } else if self == u8(4) {
+          } else if self == Weekday(4) {
               "Fri"
-          } else if self == u8(5) {
+          } else if self == Weekday(5) {
               "Sat"
-          } else if self == u8(6) {
+          } else if self == Weekday(6) {
               "Sun"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -112,11 +112,11 @@
   }
   snippet.Discount.to_string :: fn(self: Discount) -> string {  // snippet$Discount$std_core_Display$to_string
       {
-          if self == u8(100) {
+          if self == Discount(100) {
               "Full"
-          } else if self == u8(0) {
+          } else if self == Discount(0) {
               "None"
-          } else if self == u8(50) {
+          } else if self == Discount(50) {
               "Half"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")

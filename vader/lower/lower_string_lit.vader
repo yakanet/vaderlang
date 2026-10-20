@@ -413,8 +413,8 @@ writes_itself :: fn(ctx: FnLowerCtx, t: Type) -> bool {
 }
 
 // The type whose `Display` renders an interpolated value : its checked type when
-// that is an enum, since an enum literal lowers to its bare integer — a variant
-// of an enum with variant data, to its rank.
+// that is an enum, which the lowered value may not say (a bound folded at comptime
+// is typed by the integer the enum is stored in).
 shown_type :: fn(ctx: FnLowerCtx, source: Expr, lowered: LoweredExpr) -> Type {
     checked :: enum_type_or_unwrap(ctx, ctx.types.expr_type(source))
     return if checked is EnumType { checked } else { lowered.type }

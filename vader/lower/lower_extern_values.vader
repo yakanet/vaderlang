@@ -77,7 +77,7 @@ lower_extern_through_values :: fn(
             args.push(arg)
             continue
         }
-        width :: mk_primitive(crossing_width(enum_type))
+        width :: crossing_type(enum_type)
         import_params.push(LoweredParam { ...p, .type = width })
         args.push(
             LoweredCast {
@@ -119,9 +119,10 @@ lower_extern_through_values :: fn(
 // this one there, and `cc` refuses the second definition.
 import_mangle :: fn(mangled: string) -> string = "${mangled}\$extern_import"
 
-// The width `e` crosses at: the one its header writes, which typecheck
+// The integer `e` crosses at: the width its header writes, which typecheck
 // requires (T3050), else the narrowest holding its values.
-crossing_width :: fn(e: EnumType) -> string = e.written_width ?? value_element_width(e.values)
+crossing_type :: fn(e: EnumType) =
+    machine_integer_type(e.written_width ?? narrowest_width(e.values))
 
 // `return call`, or `call` alone when nothing comes back.
 forwarding_block :: fn(call: LoweredExpr, return_type: Type, span: Span) -> LoweredBlock {

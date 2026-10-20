@@ -343,7 +343,7 @@
           __iter_48: Range<i32> = r
           for {
               __step_49: [i32, Continuation] = std.core.Range<i32>.next(__iter_48)
-              if __step_49._1 == u8(1) {
+              if __step_49._1 == Continuation(1) {
                   break
               } else {
                   i: i32 = __step_49._0

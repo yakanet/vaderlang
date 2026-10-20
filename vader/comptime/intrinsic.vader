@@ -48,15 +48,7 @@ intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
     if is_char(arg_type) {
         return ok(CharValue { .value = u32(bound) })
     }
-    return ok(int_val_typed(bound, bound_holder(arg_type)))
-}
-
-// The integer a bound of `t` is held in : an enum's stored integer, else `t`'s own.
-bound_holder :: fn(t: Type) -> string {
-    if t is EnumType {
-        return t.repr
-    }
-    return display_type(erase_ranges(t))
+    return ok(int_val_typed(bound, representation_name(arg_type)))
 }
 
 // `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.

@@ -32,11 +32,11 @@
   snippet.lane_call :: fn(l: Lane, rush: bool) -> string {  // snippet$lane_call
       return {
           __scrut_0: Lane = l
-          if (__scrut_0 == u8(1)) && rush {
+          if (__scrut_0 == Lane(1)) && rush {
               "hold trucks"
-          } else if __scrut_0 == u8(1) {
+          } else if __scrut_0 == Lane(1) {
               "trucks go"
-          } else if __scrut_0 == u8(0) {
+          } else if __scrut_0 == Lane(0) {
               "cars go"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -46,7 +46,7 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>(concat_5(snippet.inspect(250), " ", snippet.inspect(40), " ", snippet.inspect("sealed")))
       std.io.println<string>(concat_3(snippet.wave_through(40, true), " ", snippet.wave_through(40, false)))
-      std.io.println<string>(concat_5(snippet.lane_call(u8(1), true), " ", snippet.lane_call(u8(1), false), " ", snippet.lane_call(u8(0), false)))
+      std.io.println<string>(concat_5(snippet.lane_call(Lane(1), true), " ", snippet.lane_call(Lane(1), false), " ", snippet.lane_call(Lane(0), false)))
       return 0
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {

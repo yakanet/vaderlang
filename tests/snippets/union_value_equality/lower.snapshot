@@ -92,13 +92,13 @@
           __off_13 = std.core.write_bool(__buf_12, __off_13, (t1._0 == t2._0) && ((((t1._1 is Label) && (t2._1 is Label)) && snippet.Label.equals(Label(t1._1), Label(t2._1))) || (((t1._1 is Point) && (t2._1 is Point)) && snippet.Point.equals(Point(t1._1), Point(t2._1)))))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
-      c: Color | null = u8(0)
+      c: Color | null = Color(0)
       std.io.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(11))
           __off_15: i64 = 0
-          __off_15 = std.core.write_bool(__buf_14, __off_15, c == u8(0))
+          __off_15 = std.core.write_bool(__buf_14, __off_15, c == Color(0))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_bool(__buf_14, __off_15, c == u8(1))
+          __off_15 = std.core.write_bool(__buf_14, __off_15, c == Color(1))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       nan: f64 = 0.0 / 0.0

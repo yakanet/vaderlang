@@ -5,9 +5,9 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(41))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$as_int__snippet_alpha_Status(u8(0)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$as_int__snippet_alpha_Status(Status(0)))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$as_int__snippet_beta_Status(u8(0)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet$as_int__snippet_beta_Status(Status(0)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       by_alpha: MutableMap<Status, i64> = MutableMap<Status, i64> {
@@ -26,24 +26,24 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_alpha_Status__i64(by_alpha, u8(1), i64(405))
-      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64(by_beta, u8(1), i64(1001))
-      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64(by_beta, u8(0), snippet$as_int__snippet_beta_Status(u8(0)))
+      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_alpha_Status__i64(by_alpha, Status(1), i64(405))
+      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64(by_beta, Status(1), i64(1001))
+      std_collections$MutableMap$std_core_IndexSet$set_at__snippet_beta_Status__i64(by_beta, Status(0), snippet$as_int__snippet_beta_Status(Status(0)))
       std.io.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(62))
           __off_6: i64 = 0
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_2: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_alpha_Status__i64(by_alpha, u8(1))
+              __coalesce_2: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_alpha_Status__i64(by_alpha, Status(1))
               if __coalesce_2 is null { i64(-1) } else { i64(__coalesce_2) } :i64
           } :i64)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_3: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64(by_beta, u8(1))
+              __coalesce_3: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64(by_beta, Status(1))
               if __coalesce_3 is null { i64(-1) } else { i64(__coalesce_3) } :i64
           } :i64)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
           __off_6 = std.core.write_int(__buf_5, __off_6, {
-              __coalesce_4: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64(by_beta, u8(0))
+              __coalesce_4: i64 | null = std_collections$MutableMap$std_core_Index$at__snippet_beta_Status__i64(by_beta, Status(0))
               if __coalesce_4 is null { i64(-1) } else { i64(__coalesce_4) } :i64
           } :i64)
           std.core.finish_buffer(__buf_5, __off_6)

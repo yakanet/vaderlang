@@ -64,7 +64,7 @@
                   __iter_0: Iterator<[i32, i32]> = self
                   for {
                       __step_1: [[i32, i32], Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                      if __step_1._1 == u8(1) {
+                      if __step_1._1 == Continuation(1) {
                           break
                       } else {
                           x: [i32, i32] = __step_1._0
@@ -118,7 +118,7 @@
                       __iter_0: Iterator<[i32, i32]> = self
                       for {
                           __step_1: [[i32, i32], Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                          if __step_1._1 == u8(1) {
+                          if __step_1._1 == Continuation(1) {
                               break
                           } else {
                               x: [i32, i32] = __step_1._0

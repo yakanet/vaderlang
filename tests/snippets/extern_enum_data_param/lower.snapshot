@@ -12,33 +12,33 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(62))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(u8(0)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(HttpStatus(0)))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(u8(1)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(HttpStatus(1)))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(u8(2)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.status.abs_status(HttpStatus(2)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(62))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(u8(0)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(Step(0)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(u8(1)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(Step(1)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(u8(2)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.labs_step(Step(2)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
-          __p_4: string = snippet.status.HttpStatus$data[i64(u8(2))].reason
+          __p_4: string = snippet.status.HttpStatus$data[i64(HttpStatus(2))].reason
           __buf_5: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_4))
           __off_6: i64 = 0
-          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.apply(snippet.status.abs_status, u8(2)))
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.apply(snippet.status.abs_status, HttpStatus(2)))
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
           __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
-      snippet.status.seed_with(u8(1))
+      snippet.status.seed_with(HttpStatus(1))
       return 0
   }
   snippet$labs_step$extern_import :: fn(step: i64) -> i64

@@ -36,7 +36,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is StructType -> "Struct#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
     is TraitType  -> "Trait#${symbol_key(t.symbol)}<${type_key_join(t.args, "|")}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
-    is EnumType      -> t.repr
+    is EnumType      -> t.repr.name
     // Distinct (newtype) shares its backing primitive's slot, exactly like an
     // enum shares its `repr` — no separate type-table entry, so it rides the
     // backing's zero-cost representation end to end.
@@ -185,7 +185,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is StructType    -> .Ref
     // Enums ride the operand stack as their backing integer repr, not a boxed
     // ref.
-    is EnumType -> val_type_of_primitive_name(t.repr)
+    is EnumType -> val_type_of_primitive_name(t.repr.name)
     // Distinct (newtype) rides its backing primitive's stack repr — zero-cost,
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
     // a register scalar, not a boxed `Ref`.
@@ -236,9 +236,8 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
 export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> BcType {
     match t {
         is PrimitiveType -> { return BcPrimitive { .val = val_type_of_primitive_name(t.name) } }
-        is EnumType      -> { return BcPrimitive { .val = val_type_of_primitive_name(t.repr) } }
+        is EnumType | RangeType -> { return BcPrimitive { .val = val_type_of_type(t) } }
         is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
-        is RangeType     -> { return BcPrimitive { .val = val_type_of_type(t) } }
         is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
         is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
         is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
@@ -363,7 +362,7 @@ export type_intern_hash :: fn(t: Type) -> u64 = match t {
     // the same text collapse to one slot there and MUST collapse here too — no
     // per-variant tag, or the table forks where the string merged.
     is PrimitiveType  -> bare_hash(t.name)
-    is EnumType       -> bare_hash(t.repr)
+    is EnumType       -> bare_hash(t.repr.name)
     is AnyType        -> bare_hash("Any")
     is TypeParamType | TypeMetaType | SelfType | UnresolvedType
      | FreeIntType | FreeCharType | FreeFloatType | NeverType -> bare_hash(display_type(t))
@@ -435,7 +434,7 @@ export same_intern_class :: fn(a: Type, b: Type) -> bool {
 // has a composite key instead.
 bare_intern_name :: fn(t: Type) -> string = match t {
     is PrimitiveType -> t.name
-    is EnumType      -> t.repr
+    is EnumType      -> t.repr.name
     is RangeType     -> storage_integer(t).name
     is AnyType       -> "Any"
     is TypeParamType | TypeMetaType | SelfType | UnresolvedType

@@ -2,7 +2,7 @@
 
 ## snippet
   snippet.main :: fn() -> i32 {  // snippet$main
-      c: Code = u8(1)
+      c: Code = 1
       std.io.println<string>(concat_3(snippet.codes.Code$data[i64(c)].id, ": ", snippet.codes.Code$data[i64(c)].message))
       std.io.println<string>(snippet.codes.Code$data[i64(c)].id)
       x: Info = Info { .id = "a", .message = "b" }

@@ -19,7 +19,7 @@
               __iter_0: Iterator<i32> = self
               for {
                   __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                  if __step_1._1 == u8(1) {
+                  if __step_1._1 == Continuation(1) {
                       break
                   } else {
                       x: i32 = __step_1._0
@@ -54,7 +54,7 @@
                   __tup_0: [string, Continuation] = @vcall(std.core.Iterator.next, other)
                   y: string = __tup_0._0
                   c: Continuation = __tup_0._1
-                  if c == u8(1) {
+                  if c == Continuation(1) {
                       break $exit$i18
                   }
                   __gen_elem_7: [i32, string] = [x, y] :[i32, string]
@@ -137,7 +137,7 @@
               __self_2.state = -1
           } else if __self_2.state == 1 {
               __self_2.state = 0
-              return [__self_2.s1, u8(0)] :[i32, Continuation]
+              return [__self_2.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_2.state == 2 {
               __self_2.state = 1
           } else if __self_2.state == 3 {
@@ -152,12 +152,12 @@
               __self_2.state = 4
           } else if __self_2.state == 8 {
               __self_2.state = 7
-              return [__self_2.s4, u8(0)] :[i32, Continuation]
+              return [__self_2.s4, Continuation(0)] :[i32, Continuation]
           } else if __self_2.state == 9 {
               __self_2.s4 = __self_2.s3._0
               __self_2.state = 8
           } else if __self_2.state == 10 {
-              if __self_2.s3._1 == u8(1) {
+              if __self_2.s3._1 == Continuation(1) {
                   __self_2.state = 6
               } else {
                   __self_2.state = 9
@@ -169,7 +169,7 @@
               __self_2.s2 = __self_2.s0
               __self_2.state = 3
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

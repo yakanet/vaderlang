@@ -304,20 +304,12 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     // unresolved here (earlier diagnostics apply) → unreachable.
     @partial match resolved {
         is EnumType -> {
-            index :: resolved.indices[name]
-            match index {
-                is null -> {
-                    return LoweredUnreachable {
-                        .span = span, .type = TY_UNRESOLVED,
-                        .reason = "unknown variant `${name}` on `${resolved.symbol.name}`",
-                    }
-                }
-                is i64 -> {
-                    return LoweredIntLit {
-                        .span = span, .type = mk_primitive(resolved.repr), .value = index,
-                    }
-                }
+            index :: resolved.indices[name] ?? return LoweredUnreachable {
+                .span = span,
+                .type = TY_UNRESOLVED,
+                .reason = "unknown variant `${name}` on `${resolved.symbol.name}`",
             }
+            return LoweredIntLit { .span = span, .type = resolved, .value = index }
         }
         _ -> {
             return LoweredUnreachable {

@@ -27,7 +27,7 @@
       for cont {
           __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
           c: Continuation = __tup_0._1
-          if c == u8(1) {
+          if c == Continuation(1) {
               cont = false
           } else {
               n = n + 1

@@ -198,7 +198,7 @@ fold_integer_bound :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Ty
         hull :: type_bounds(bounded) ?? return null
         return LoweredIntLit {
             .span = intrinsic.span,
-            .type = mk_primitive(bounded.repr),
+            .type = bounded,
             .value = integer_bound(hull, greatest),
         }
     }

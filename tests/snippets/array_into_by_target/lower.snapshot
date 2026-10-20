@@ -21,7 +21,7 @@
           __iter_0: Iterator<Mon> = it
           for {
               __step_1: [Mon, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   m: Mon = __step_1._0
@@ -114,7 +114,7 @@
                       __off_4 = std.core.write_int(__buf_3, __off_4, __self_5.s4.v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string,
-              }, u8(0)] :[Label, Continuation]
+              }, Continuation(0)] :[Label, Continuation]
           } else if __self_5.state == 5 {
               __self_5.s4 = __self_5.s1[__self_5.s3]
               __self_5.state = 4
@@ -124,7 +124,7 @@
               __self_5.s3 = 0
               __self_5.state = 2
           } else {
-              return [null, u8(1)] :[Label, Continuation]
+              return [null, Continuation(1)] :[Label, Continuation]
           }
       }
   }

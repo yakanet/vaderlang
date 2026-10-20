@@ -6,25 +6,25 @@
       @vcall(std.core.Equals.equals, a, b)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      c: Color = u8(1)
+      c: Color = 1
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(17))
           __off_1: i64 = 0
-          __off_1 = std.core.write_bool(__buf_0, __off_1, c == u8(1))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, c == Color(1))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, c == u8(2))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, c == Color(2))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, c != u8(0))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, c != Color(0))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(17))
           __off_3: i64 = 0
-          __off_3 = std.core.write_bool(__buf_2, __off_3, c == u8(1))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, c == Color(1))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, c == u8(2))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, c == Color(2))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, !(c == u8(0)))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, !(c == Color(0)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
@@ -43,23 +43,23 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<Any, i32>.set_at(by_color, u8(0), 1)
-      std.collections.MutableMap<Any, i32>.set_at(by_color, u8(2), 3)
+      std.collections.MutableMap<Any, i32>.set_at(by_color, Color(0), 1)
+      std.collections.MutableMap<Any, i32>.set_at(by_color, Color(2), 3)
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(62))
           __off_10: i64 = 0
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_6: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(0))
+              __coalesce_6: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, Color(0))
               if __coalesce_6 is null { -1 } else { i32(__coalesce_6) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_7: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(1))
+              __coalesce_7: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, Color(1))
               if __coalesce_7 is null { -1 } else { i32(__coalesce_7) } :i32
           } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
           __off_10 = std.core.write_int(__buf_9, __off_10, {
-              __coalesce_8: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(2))
+              __coalesce_8: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, Color(2))
               if __coalesce_8 is null { -1 } else { i32(__coalesce_8) } :i32
           } :i32)
           std.core.finish_buffer(__buf_9, __off_10)
@@ -72,16 +72,16 @@
           .size = i64(0),
           .tombs = i64(0),
       }
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, u8(1), "gone")
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, u8(0), "here")
-      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, u8(1), "missing")
+      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(1), "gone")
+      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(0), "here")
+      std.collections.MutableMap<HttpStatus, string>.set_at(by_status, HttpStatus(1), "missing")
       std.io.println<string>({
           __p_13: string = {
-              __coalesce_11: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, u8(1))
+              __coalesce_11: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, HttpStatus(1))
               if __coalesce_11 is null { "?" } else { string(__coalesce_11) } :string
           }
           __p_14: string = {
-              __coalesce_12: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, u8(0))
+              __coalesce_12: null | string = std.collections.MutableMap<HttpStatus, string>.at(by_status, HttpStatus(0))
               if __coalesce_12 is null { "?" } else { string(__coalesce_12) } :string
           }
           __buf_15: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_13) +% std.core.byte_len(__p_14)))
@@ -96,9 +96,9 @@
       std.io.println<string>({
           __buf_17: Buffer = std.core.new_byte_buffer(i64(11))
           __off_18: i64 = 0
-          __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(u8(0), u8(0)))
+          __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(Color(0), Color(0)))
           __off_18 = std.core.write_string_at(__buf_17, __off_18, " ")
-          __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(u8(0), u8(2)))
+          __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(Color(0), Color(2)))
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
       return 0

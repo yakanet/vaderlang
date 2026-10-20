@@ -6,7 +6,7 @@
           __iter_0: StringChars = std.string.chars("vader")
           for {
               __step_1: [char, Continuation] = std.string.StringChars.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   c: char = __step_1._0
@@ -18,7 +18,7 @@
           __iter_2: StringChars = std.string.chars("你好嗎？")
           for {
               __step_3: [char, Continuation] = std.string.StringChars.next(__iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   c: char = __step_3._0
@@ -31,7 +31,7 @@
           __iter_4: StringChars = std.string.chars("héllo")
           for {
               __step_5: [char, Continuation] = std.string.StringChars.next(__iter_4)
-              if __step_5._1 == u8(1) {
+              if __step_5._1 == Continuation(1) {
                   break
               } else {
                   c: char = __step_5._0
@@ -52,7 +52,7 @@
           __iter_8: StringChars = std.string.chars("")
           for {
               __step_9: [char, Continuation] = std.string.StringChars.next(__iter_8)
-              if __step_9._1 == u8(1) {
+              if __step_9._1 == Continuation(1) {
                   break
               } else {
                   c: char = __step_9._0

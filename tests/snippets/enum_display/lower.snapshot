@@ -12,21 +12,21 @@
       } :string
   }
   snippet.maybe_direction :: fn(found: bool) -> Direction | null {  // snippet$maybe_direction
-      if found { u8(1) } else { null } :Direction | null
+      if found { Direction(1) } else { null } :Direction | null
   }
   snippet.maybe_byte :: fn(found: bool) -> null | u8 {  // snippet$maybe_byte
       if found { u8(7) } else { null } :null | u8
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      d: Direction = u8(2)
-      std.io.println<string>(concat_5(snippet.Direction.to_string(d), " ", snippet.Direction.to_string(u8(3)), " ", snippet.Direction.to_string(d)))
+      d: Direction = 2
+      std.io.println<string>(concat_5(snippet.Direction.to_string(d), " ", snippet.Direction.to_string(Direction(3)), " ", snippet.Direction.to_string(d)))
       v: Direction | null = snippet.maybe_direction(true)
       if !(v is null) {
           std.io.println<string>(concat_2("narrowed ", snippet.Direction.to_string(Direction(v))))
       }
-      std.io.println<string>(std.core.Direction[].to_string([u8(0), u8(3)] :Direction[]))
+      std.io.println<string>(std.core.Direction[].to_string([Direction(0), Direction(3)] :Direction[]))
       std.io.println<string>({
-          __p_0: string = snippet.Status.to_string(u8(1))
+          __p_0: string = snippet.Status.to_string(Status(1))
           __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
@@ -34,21 +34,21 @@
           __off_2 = std.core.write_int(__buf_1, __off_2, i32(i64(404)))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
-      std.io.println<string>(concat_5(snippet.show<Direction>(d), " ", snippet.show<Status>(u8(0)), " ", snippet.pair<Direction>(u8(0), u8(1))))
-      std.io.println<string>(snippet.listed<Direction>([u8(1), u8(2)] :Direction[]))
+      std.io.println<string>(concat_5(snippet.show<Direction>(d), " ", snippet.show<Status>(Status(0)), " ", snippet.pair<Direction>(Direction(0), Direction(1))))
+      std.io.println<string>(snippet.listed<Direction>([Direction(1), Direction(2)] :Direction[]))
       std.io.println<string>(concat_3(snippet.show<Weight>(Weight(u8(3))), " ", snippet.show<u8>(u8(3))))
       std.io.println<string>(concat_2("byte ", @vcall(std.core.Display.to_string, snippet.maybe_byte(true))))
       return 0
   }
   snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core_Display$to_string
       {
-          if self == u8(0) {
+          if self == Direction(0) {
               "North"
-          } else if self == u8(1) {
+          } else if self == Direction(1) {
               "East"
-          } else if self == u8(2) {
+          } else if self == Direction(2) {
               "South"
-          } else if self == u8(3) {
+          } else if self == Direction(3) {
               "West"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -57,9 +57,9 @@
   }
   snippet.Status.to_string :: fn(self: Status) -> string {  // snippet$Status$std_core_Display$to_string
       {
-          if self == u8(0) {
+          if self == Status(0) {
               "Ok"
-          } else if self == u8(1) {
+          } else if self == Status(1) {
               "Missing"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")

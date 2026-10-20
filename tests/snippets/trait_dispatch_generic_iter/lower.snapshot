@@ -8,7 +8,7 @@
           __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
           v: i32 = __tup_0._0
           c: Continuation = __tup_0._1
-          if c == u8(1) {
+          if c == Continuation(1) {
               cont = false
           } else {
               sum = sum + v
@@ -38,19 +38,19 @@
   snippet.Repeat<i32> :: struct { value: i32, remaining: i32 }  // snippet$Repeat__i32
   snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> [i32, Continuation] {  // snippet$Repeat$std_core_Iterator$next__i32
       if self.remaining <= 0 {
-          return [self.value, u8(1)] :[i32, Continuation]
+          return [self.value, Continuation(1)] :[i32, Continuation]
       }
       v: i32 = self.value
       self.remaining = self.remaining - 1
-      return [v, u8(0)] :[i32, Continuation]
+      return [v, Continuation(0)] :[i32, Continuation]
   }
   snippet.Once<i32> :: struct { value: i32, yielded: bool }  // snippet$Once__i32
   snippet.Once<i32>.next :: fn(self: Once<i32>) -> [i32, Continuation] {  // snippet$Once$std_core_Iterator$next__i32
       if self.yielded {
-          return [self.value, u8(1)] :[i32, Continuation]
+          return [self.value, Continuation(1)] :[i32, Continuation]
       }
       self.yielded = true
-      return [self.value, u8(0)] :[i32, Continuation]
+      return [self.value, Continuation(0)] :[i32, Continuation]
   }
   snippet.Repeat<Any> :: struct { value: Any, remaining: i32 }  // snippet$Repeat__Any
   snippet.Once<Any> :: struct { value: Any, yielded: bool }  // snippet$Once__Any

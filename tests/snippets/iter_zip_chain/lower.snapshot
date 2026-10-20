@@ -110,7 +110,7 @@
           __iter_25: Iterator<i32> = bursts
           for {
               __step_26: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_25)
-              if __step_26._1 == u8(1) {
+              if __step_26._1 == Continuation(1) {
                   break
               } else {
                   n: i32 = __step_26._0

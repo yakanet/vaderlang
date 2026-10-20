@@ -5,11 +5,11 @@
   snippet.None :: struct {}  // snippet$None
   snippet.show_day :: fn(d: Day) -> string {  // snippet$show_day
       return {
-          if d == u8(0) {
+          if d == Day(0) {
               "Mon"
-          } else if d == u8(1) {
+          } else if d == Day(1) {
               "Tue"
-          } else if d == u8(2) {
+          } else if d == Day(2) {
               "Wed"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -17,9 +17,9 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      a: Day = u8(0)
+      a: Day = 0
       std.io.println<string>(snippet.show_day(a))
-      days: Day[] = [u8(0), u8(2)] :Day[]
+      days: Day[] = [Day(0), Day(2)] :Day[]
       {
           __for_arr_0: Day[] = days
           __for_len_1: i64 = @array.len(__for_arr_0)

@@ -237,19 +237,19 @@
               __self_3.s1 = @unreachable("non-exhaustive match (T3013 should have caught this)")
               __self_3.state = 8
           } else if __self_3.state == 13 {
-              if __self_3.s0 == u8(2) {
+              if __self_3.s0 == Color(2) {
                   __self_3.state = 11
               } else {
                   __self_3.state = 12
               }
           } else if __self_3.state == 14 {
-              if __self_3.s0 == u8(1) {
+              if __self_3.s0 == Color(1) {
                   __self_3.state = 7
               } else {
                   __self_3.state = 13
               }
           } else if __self_3.state == 15 {
-              if __self_3.s0 == u8(0) {
+              if __self_3.s0 == Color(0) {
                   __self_3.state = 5
               } else {
                   __self_3.state = 14
@@ -432,7 +432,7 @@
                   __self_30.state = 11
               }
           } else if __self_30.state == 13 {
-              __self_30.awaited = Async<Any>(snippet.by_color(u8(2)))
+              __self_30.awaited = Async<Any>(snippet.by_color(Color(2)))
               __self_30.state = 12
           } else if __self_30.state == 14 {
               std.io.println<string>({
@@ -451,7 +451,7 @@
                   __self_30.state = 14
               }
           } else if __self_30.state == 16 {
-              __self_30.awaited = Async<Any>(snippet.by_color(u8(0)))
+              __self_30.awaited = Async<Any>(snippet.by_color(Color(0)))
               __self_30.state = 15
           } else if __self_30.state == 17 {
               std.io.println<string>({
@@ -470,7 +470,7 @@
                   __self_30.state = 17
               }
           } else if __self_30.state == 19 {
-              __self_30.awaited = Async<Any>(snippet.by_color(u8(1)))
+              __self_30.awaited = Async<Any>(snippet.by_color(Color(1)))
               __self_30.state = 18
           } else if __self_30.state == 20 {
               std.io.println<string>({

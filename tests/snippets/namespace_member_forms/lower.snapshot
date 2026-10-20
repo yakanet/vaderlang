@@ -6,13 +6,13 @@
       Budget { .retries = i64(3), .label = "hi" }
   }
   snippet.green_code :: fn() -> i32 {  // snippet$green_code
-      i32(u8(1))
+      i32(Color(1))
   }
   snippet.name_of :: fn(c: Color) -> string {  // snippet$name_of
-      if c == u8(0) {
+      if c == Color(0) {
           return "red"
       }
-      if c == u8(1) {
+      if c == Color(1) {
           return "green"
       }
       return "blue"
@@ -36,7 +36,7 @@
           __off_4 = std.core.write_int(__buf_3, __off_4, snippet.green_code())
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      std.io.println<string>(concat_2("variant argument: ", snippet.name_of(u8(2))))
+      std.io.println<string>(concat_2("variant argument: ", snippet.name_of(Color(2))))
       m: Meters = Meters(5)
       back: i32 = i32(m)
       std.io.println<string>({

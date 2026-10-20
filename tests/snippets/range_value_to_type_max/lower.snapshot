@@ -7,7 +7,7 @@
           __iter_0: Range<u8> = r
           for {
               __step_1: [u8, Continuation] = std.core.Range<u8>.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   b: u8 = __step_1._0
@@ -23,7 +23,7 @@
           __iter_0: Range<i8> = r
           for {
               __step_1: [i8, Continuation] = std.core.Range<i8>.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   b: i8 = __step_1._0
@@ -39,7 +39,7 @@
           __iter_0: Range<u64> = r
           for {
               __step_1: [u64, Continuation] = std.core.Range<u64>.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   v: u64 = __step_1._0
@@ -55,7 +55,7 @@
           __iter_0: Range<char> = r
           for {
               __step_1: [char, Continuation] = std.core.Range<char>.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   c: char = __step_1._0

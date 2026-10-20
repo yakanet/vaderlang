@@ -76,7 +76,7 @@
           {
               for {
                   __fuse_step_0: [i32, Continuation] = std.core.Range<i32>.next(__fuse_iter_0)
-                  if __fuse_step_0._1 == u8(1) {
+                  if __fuse_step_0._1 == Continuation(1) {
                       break
                   } else {
                       x: i32 = __fuse_step_0._0
@@ -94,7 +94,7 @@
           {
               for {
                   __fuse_step_0: [i32, Continuation] = std.core.Range<i32>.next(__fuse_iter_0)
-                  if __fuse_step_0._1 == u8(1) {
+                  if __fuse_step_0._1 == Continuation(1) {
                       break
                   } else {
                       _: i32 = __fuse_step_0._0
@@ -112,7 +112,7 @@
           {
               for {
                   __fuse_step_0: [i32, Continuation] = std.core.Range<i32>.next(__fuse_iter_0)
-                  if __fuse_step_0._1 == u8(1) {
+                  if __fuse_step_0._1 == Continuation(1) {
                       break
                   } else {
                       _: i32 = __fuse_step_0._0

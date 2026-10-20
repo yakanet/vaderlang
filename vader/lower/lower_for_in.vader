@@ -510,7 +510,7 @@ try_lower_for_over_type :: fn(
         values :: walked.indices.values()
         if values.len() > 0 && is_consecutive(values) {
             bounds :: interval(values[0], values[values.len() - 1])
-            counter_type :: mk_primitive(walked.repr)
+            counter_type :: machine_integer_type(walked.repr)
             return counted_walk(ctx, for_stmt, in_form, bounds, counter_type, var_type)
         }
         return walk_enum_values(ctx, for_stmt, in_form, walked, values, var_type)
@@ -620,10 +620,9 @@ walk_enum_values :: fn(
     var_type: Type,
 ) -> LoweredStmt | null {
     span :: for_stmt.span
-    held :: mk_primitive(walked.repr)
     elements: LoweredExpr[]: []
     for v in values {
-        elements.push(LoweredIntLit { .span = span, .type = held, .value = v })
+        elements.push(LoweredIntLit { .span = span, .type = walked, .value = v })
     }
     array_type :: mk_array(var_type)
     table :: LoweredArrayLit { .span = span, .type = array_type, .elements = elements }

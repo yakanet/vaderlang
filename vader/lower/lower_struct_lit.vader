@@ -121,19 +121,16 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
     // non-enum context here → stub (earlier diagnostics apply).
     @partial match resolved {
         is EnumType -> {
-            index :: resolved.indices[expr.variant]
-            match index {
-                is null -> { return stub(expr.span, type, "unknown variant `${expr.variant}` on `${resolved.symbol.name}`") }
-                is i64 -> {
-                    return LoweredIntLit {
-                        .span = expr.span, .type = mk_primitive(resolved.repr), .value = index,
-                    }
-                }
-            }
+            index :: resolved.indices[expr.variant] ?? return unknown_variant(expr, resolved, type)
+            return LoweredIntLit { .span = expr.span, .type = resolved, .value = index }
         }
         _ -> { return stub(expr.span, type, "`.${expr.variant}` against non-enum context type") }
     }
 }
+
+// A stub for `expr`, a variant `enum_type` does not have.
+unknown_variant :: fn(expr: DotVariantExpr, enum_type: EnumType, type: Type) -> LoweredExpr =
+    stub(expr.span, type, "unknown variant `${expr.variant}` on `${enum_type.symbol.name}`")
 
 // A field access on an enum-typed receiver : `v.field` the typecheck recorded
 // as a variant-data read (`enum_data_reads`) reads its table slot, and any
@@ -154,7 +151,7 @@ try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> Lowe
         }
     }
     index :: enum_type.indices[expr.field] ?? return null
-    return LoweredIntLit { .span = expr.span, .type = mk_primitive(enum_type.repr), .value = index }
+    return LoweredIntLit { .span = expr.span, .type = enum_type, .value = index }
 }
 
 // Resolve `expr` to its namespace import-binding symbol when it is the bare

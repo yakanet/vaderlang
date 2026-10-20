@@ -797,8 +797,8 @@ emit_nested_array :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> CExpression {
-    // The storage kind comes from the ELEMENTS (an enum array's name resolves to
-    // Boxed, but its values are prim leaves at the repr width), not the type name.
+    // The storage kind comes from the elements, prim leaves at the width they are
+    // stored in.
     kind :: element_storage_kind(a.elements)
     element_tag :: type_index_for_name(ctx.module.types, a.element_type_name)
     array :: PoolArray {

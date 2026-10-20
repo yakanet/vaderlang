@@ -23,6 +23,7 @@ module "vader/typecheck"
 import "std/collections"
 import "std/iter"
 import "vader/diagnostics"
+import "vader/integer"
 import "vader/resolver"
 import "vader/resolver/symbol"
 AST :: import "toolchain/ast"
@@ -701,9 +702,8 @@ extern_enum_refusal :: fn(e: EnumType) -> string | null {
 
 // The header that pins `e` at the width it has now.
 pinned_header :: fn(e: EnumType) -> string {
-    data :: e.data ?? return "enum(${e.repr})"
-    [smallest, largest] :: value_bounds(e.values)
-    return "enum(${data.symbol.name}, ${narrowest_width(smallest, largest)})"
+    data :: e.data ?? return "enum(${e.repr.name})"
+    return "enum(${data.symbol.name}, ${narrowest_width(e.values).name})"
 }
 
 // The callback among `params` when they also hold an enum with variant data
@@ -1336,18 +1336,16 @@ build_enum_type :: fn(
     sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     header :: classify_enum_header(decl, resolved, diags)
-    // A written width bounds the values; `i64` admits every value otherwise.
-    indices :: resolve_enum_indices(decl, header.repr ?? "i64", diags)
+    indices :: resolve_enum_indices(decl, header.width, diags)
     if header.data != null {
         return build_data_enum_type(sym, decl, header, indices)
     }
     // Without a written width, the enum takes the narrowest one its values fit.
-    [smallest, largest] :: value_bounds(indices.values())
     return EnumType {
         .symbol        = sym,
-        .repr          = header.repr ?? narrowest_width(smallest, largest),
+        .repr          = header.width ?? narrowest_width(indices.values()),
         .indices       = indices,
-        .written_width = header.repr,
+        .written_width = header.width,
     }
 }
 
@@ -1368,18 +1366,18 @@ build_data_enum_type :: fn(
     last_rank :: if values.len() > 0 { values.len() - 1 } else { 0 }
     return EnumType {
         .symbol        = sym,
-        .repr          = narrowest_width(0, last_rank),
+        .repr          = narrowest_machine_integer(interval(0, last_rank)),
         .indices       = ranks,
         .data          = header.data,
         .values        = values,
-        .written_width = header.repr,
+        .written_width = header.width,
     }
 }
 
 // The header's two roles once resolved ; null when the header leaves it out.
 EnumHeader :: struct {
-    repr: string | null = null
-    data: StructType | null = null
+    width: MachineInteger | null = null
+    data:  StructType | null = null
 }
 
 // A lone argument is the data when it is a struct and the width otherwise ;
@@ -1393,24 +1391,24 @@ classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: 
         if first is StructType {
             return EnumHeader { .data = first }
         }
-        return EnumHeader { .repr = enum_width(first, decl.header[0], diags) }
+        return EnumHeader { .width = enum_width(first, decl.header[0], diags) }
     }
     data :: if first is StructType { first } else { null }
     if data == null {
         diags.push(typecheck_error(.EnumDataNotStruct, decl.header[0].span, "got ${display_type(first)}"))
     }
     width :: type_from_expr(decl.header[1], resolved, diags)
-    return EnumHeader { .repr = enum_width(width, decl.header[1], diags), .data = data }
+    return EnumHeader { .width = enum_width(width, decl.header[1], diags), .data = data }
 }
 
 // The integer a width names — directly, or through a distinct over one.
-enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> string {
-    name :: primitive_name(strip_distinct(ty))
-    if is_int_name(name) {
-        return name
+enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> MachineInteger {
+    found :: machine_integer_named(primitive_name(strip_distinct(ty)))
+    if found != null {
+        return found
     }
     diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, written.span, "got ${display_type(ty)}"))
-    return "i32"
+    return storage_integer(TY_I32)
 }
 
 // ---- tests ----------------------------------------------------------------

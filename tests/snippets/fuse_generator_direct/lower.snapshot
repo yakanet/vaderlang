@@ -122,7 +122,7 @@
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
-              return [__self_3.s4 * 2, u8(0)] :[i32, Continuation]
+              return [__self_3.s4 * 2, Continuation(0)] :[i32, Continuation]
           } else if __self_3.state == 5 {
               __self_3.s4 = __self_3.s1[__self_3.s3]
               __self_3.state = 4
@@ -132,7 +132,7 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -156,7 +156,7 @@
               __self_3.state = 3
           } else if __self_3.state == 5 {
               __self_3.state = 4
-              return [__self_3.s4, u8(0)] :[i32, Continuation]
+              return [__self_3.s4, Continuation(0)] :[i32, Continuation]
           } else if __self_3.state == 6 {
               if (__self_3.s4 % 2) == 0 {
                   __self_3.state = 5
@@ -172,7 +172,7 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -205,7 +205,7 @@
               __self_6.state = 5
           } else if __self_6.state == 7 {
               __self_6.state = 6
-              return [__self_6.s8, u8(0)] :[i32, Continuation]
+              return [__self_6.s8, Continuation(0)] :[i32, Continuation]
           } else if __self_6.state == 8 {
               __self_6.s8 = __self_6.s5[__self_6.s7]
               __self_6.state = 7
@@ -223,7 +223,7 @@
               __self_6.s3 = 0
               __self_6.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

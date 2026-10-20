@@ -7,7 +7,7 @@
           __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
           v: i32 = __tup_0._0
           c: Continuation = __tup_0._1
-          if c == u8(1) {
+          if c == Continuation(1) {
               return sum
           }
           sum = sum + v
@@ -23,7 +23,7 @@
           __iter_0: Iterator<i32> = a
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0
@@ -35,7 +35,7 @@
           __iter_2: Iterator<i32> = b
           for {
               __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   y: i32 = __step_3._0
@@ -52,7 +52,7 @@
           __iter_0: Iterator<i32> = xs
           for {
               __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0
@@ -103,7 +103,7 @@
                   __iter_2: Iterator<i32> = b
                   for {
                       __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-                      if __step_3._1 == u8(1) {
+                      if __step_3._1 == Continuation(1) {
                           break
                       } else {
                           y: i32 = __step_3._0
@@ -132,7 +132,7 @@
                   __iter_2: Iterator<i32> = b
                   for {
                       __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-                      if __step_3._1 == u8(1) {
+                      if __step_3._1 == Continuation(1) {
                           break
                       } else {
                           y: i32 = __step_3._0

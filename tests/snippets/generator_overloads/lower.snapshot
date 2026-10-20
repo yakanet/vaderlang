@@ -74,7 +74,7 @@
           __iter_2: Iterator<string> = words
           for {
               __step_3: [string, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-              if __step_3._1 == u8(1) {
+              if __step_3._1 == Continuation(1) {
                   break
               } else {
                   w: string = __step_3._0
@@ -86,7 +86,7 @@
           __iter_4: Iterator<i32> = numbers
           for {
               __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
-              if __step_5._1 == u8(1) {
+              if __step_5._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_5._0
@@ -104,7 +104,7 @@
           __iter_8: Iterator<f64> = halves
           for {
               __step_9: [f64, Continuation] = @vcall(std.core.Iterator.next, __iter_8)
-              if __step_9._1 == u8(1) {
+              if __step_9._1 == Continuation(1) {
                   break
               } else {
                   h: f64 = __step_9._0
@@ -211,12 +211,12 @@
               __self_0.state = 2
           } else if __self_0.state == 4 {
               __self_0.state = 3
-              return [__self_0.s1, u8(0)] :[i32, Continuation]
+              return [__self_0.s1, Continuation(0)] :[i32, Continuation]
           } else if __self_0.state == 5 {
               __self_0.s1 = 0
               __self_0.state = 2
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -245,13 +245,13 @@
                   __self_4.s5 = std.core.write_string_at(__self_4.s4, __self_4.s5, __self_4.s3)
                   __self_4.s5 = std.core.write_int(__self_4.s4, __self_4.s5, __self_4.s1)
                   std.core.finish_buffer(__self_4.s4, __self_4.s5)
-              } :string, u8(0)] :[string, Continuation]
+              } :string, Continuation(0)] :[string, Continuation]
           } else if __self_4.state == 5 {
               __self_4.s1 = 0
               __self_4.s2 = std.core.byte_len(__self_4.s0)
               __self_4.state = 2
           } else {
-              return ["", u8(1)] :[string, Continuation]
+              return ["", Continuation(1)] :[string, Continuation]
           }
       }
   }
@@ -296,12 +296,12 @@
               __self_0.state = 1
           } else if __self_0.state == 3 {
               __self_0.state = 2
-              return [__self_0.s1, u8(0)] :[f64, Continuation]
+              return [__self_0.s1, Continuation(0)] :[f64, Continuation]
           } else if __self_0.state == 4 {
               __self_0.s1 = 0.5
               __self_0.state = 1
           } else {
-              return [0.0, u8(1)] :[f64, Continuation]
+              return [0.0, Continuation(1)] :[f64, Continuation]
           }
       }
   }

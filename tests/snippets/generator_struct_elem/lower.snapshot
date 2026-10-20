@@ -80,7 +80,7 @@
               __self_6.state = 5
           } else if __self_6.state == 7 {
               __self_6.state = 6
-              return [__self_6.s8, u8(0)] :[Decl, Continuation]
+              return [__self_6.s8, Continuation(0)] :[Decl, Continuation]
           } else if __self_6.state == 8 {
               __self_6.s8 = __self_6.s5[__self_6.s7]
               __self_6.state = 7
@@ -98,7 +98,7 @@
               __self_6.s3 = 0
               __self_6.state = 2
           } else {
-              return [null, u8(1)] :[Decl, Continuation]
+              return [null, Continuation(1)] :[Decl, Continuation]
           }
       }
   }

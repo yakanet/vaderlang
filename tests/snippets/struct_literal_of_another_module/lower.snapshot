@@ -48,7 +48,7 @@
 ## snippet/util
   snippet.util.make :: fn() -> Config {  // snippet_util$make
       Config {
-          .level = u8(2),
+          .level = Level(2),
           .label = Label { .text = "made" },
           .count = i64(1),
       }
@@ -56,11 +56,11 @@
   snippet.util.describe :: fn(c: Config) -> string {  // snippet_util$describe
       name: string = {
           __scrut_0: Level = c.level
-          if __scrut_0 == u8(0) {
+          if __scrut_0 == Level(0) {
               "low"
-          } else if __scrut_0 == u8(1) {
+          } else if __scrut_0 == Level(1) {
               "mid"
-          } else if __scrut_0 == u8(2) {
+          } else if __scrut_0 == Level(2) {
               "high"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")

@@ -26,7 +26,7 @@
   snippet.Rule :: struct { name: string, modes: Mode[], result: string }  // snippet$Rule
   snippet.MAX: i32: 42  // snippet$MAX
   snippet.GREETING: string: "hello"  // snippet$GREETING
-  snippet.MODE: Mode: u8(0)  // snippet$MODE
+  snippet.MODE: Mode: 0  // snippet$MODE
   snippet.PAIR: [i32, string]: [7 :?, "seven"] :[i32, string]  // snippet$PAIR
   snippet.counts :: fn() -> i32[] {  // snippet$counts
       if @global(0) == 2 {
@@ -91,7 +91,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_bool(__buf_1, __off_2, snippet.MODE == u8(0))
+          __off_2 = std.core.write_bool(__buf_1, __off_2, snippet.MODE == Mode(0))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       std.io.println<string>({

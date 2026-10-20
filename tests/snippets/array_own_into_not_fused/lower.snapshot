@@ -42,7 +42,7 @@
           __iter_0: Iterator<Mon> = it
           for {
               __step_1: [Mon, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   m: Mon = __step_1._0
@@ -58,7 +58,7 @@
           __iter_0: Iterator<Label> = it
           for {
               __step_1: [Label, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   l: Label = __step_1._0
@@ -85,7 +85,7 @@
               __iter_0: Iterator<Pt> = self
               for {
                   __step_1: [Pt, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
-                  if __step_1._1 == u8(1) {
+                  if __step_1._1 == Continuation(1) {
                       break
                   } else {
                       x: Pt = __step_1._0
@@ -121,7 +121,7 @@
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
-              return [Mon { .v = __self_3.s4.v * 100 }, u8(0)] :[Mon, Continuation]
+              return [Mon { .v = __self_3.s4.v * 100 }, Continuation(0)] :[Mon, Continuation]
           } else if __self_3.state == 5 {
               __self_3.s4 = __self_3.s1[__self_3.s3]
               __self_3.state = 4
@@ -131,7 +131,7 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [null, u8(1)] :[Mon, Continuation]
+              return [null, Continuation(1)] :[Mon, Continuation]
           }
       }
   }
@@ -161,7 +161,7 @@
                       __off_4 = std.core.write_int(__buf_3, __off_4, __self_5.s4.v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string,
-              }, u8(0)] :[Label, Continuation]
+              }, Continuation(0)] :[Label, Continuation]
           } else if __self_5.state == 5 {
               __self_5.s4 = __self_5.s1[__self_5.s3]
               __self_5.state = 4
@@ -171,7 +171,7 @@
               __self_5.s3 = 0
               __self_5.state = 2
           } else {
-              return [null, u8(1)] :[Label, Continuation]
+              return [null, Continuation(1)] :[Label, Continuation]
           }
       }
   }
@@ -193,7 +193,7 @@
               __self_3.state = 2
           } else if __self_3.state == 4 {
               __self_3.state = 3
-              return [Pt { .x = __self_3.s4.x + 1000 }, u8(0)] :[Pt, Continuation]
+              return [Pt { .x = __self_3.s4.x + 1000 }, Continuation(0)] :[Pt, Continuation]
           } else if __self_3.state == 5 {
               __self_3.s4 = __self_3.s1[__self_3.s3]
               __self_3.state = 4
@@ -203,7 +203,7 @@
               __self_3.s3 = 0
               __self_3.state = 2
           } else {
-              return [null, u8(1)] :[Pt, Continuation]
+              return [null, Continuation(1)] :[Pt, Continuation]
           }
       }
   }

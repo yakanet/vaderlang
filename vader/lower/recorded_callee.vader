@@ -191,7 +191,8 @@ settled_bound_member :: fn(
     }
     // An enum's built-in `Hash` is its stored integer's ; its built-in `Equals` is
     // the comparison itself, which the caller emits.
-    return resolve_impl_member(ctx, mk_primitive(receiver.repr), callee.trait_key, callee.member)
+    held :: machine_integer_type(receiver.repr)
+    return resolve_impl_member(ctx, held, callee.trait_key, callee.member)
 }
 
 // `receiver` as the impl `entry` is written for : a distinct reaches its backing's
@@ -204,7 +205,7 @@ impl_receiver :: fn(entry: ImplEntry, receiver: Type) -> Type {
         return impl_receiver(entry, receiver.backing)
     }
     if receiver is EnumType {
-        return mk_primitive(receiver.repr)
+        return machine_integer_type(receiver.repr)
     }
     return receiver
 }

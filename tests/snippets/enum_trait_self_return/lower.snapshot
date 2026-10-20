@@ -3,14 +3,14 @@
 ## snippet
   snippet.Direction.turn_left :: fn(self: Direction) -> Direction {  // snippet$Direction$Turnable$turn_left
       {
-          if self == u8(0) {
-              u8(3)
-          } else if self == u8(3) {
-              u8(2)
-          } else if self == u8(2) {
-              u8(1)
-          } else if self == u8(1) {
-              u8(0)
+          if self == Direction(0) {
+              Direction(3)
+          } else if self == Direction(3) {
+              Direction(2)
+          } else if self == Direction(2) {
+              Direction(1)
+          } else if self == Direction(1) {
+              Direction(0)
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           } :Direction
@@ -18,14 +18,14 @@
   }
   snippet.Direction.turn_right :: fn(self: Direction) -> Direction {  // snippet$Direction$Turnable$turn_right
       {
-          if self == u8(0) {
-              u8(1)
-          } else if self == u8(1) {
-              u8(2)
-          } else if self == u8(2) {
-              u8(3)
-          } else if self == u8(3) {
-              u8(0)
+          if self == Direction(0) {
+              Direction(1)
+          } else if self == Direction(1) {
+              Direction(2)
+          } else if self == Direction(2) {
+              Direction(3)
+          } else if self == Direction(3) {
+              Direction(0)
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           } :Direction
@@ -33,13 +33,13 @@
   }
   snippet.Direction.to_string :: fn(self: Direction) -> string {  // snippet$Direction$std_core_Display$to_string
       {
-          if self == u8(0) {
+          if self == Direction(0) {
               "N"
-          } else if self == u8(1) {
+          } else if self == Direction(1) {
               "E"
-          } else if self == u8(2) {
+          } else if self == Direction(2) {
               "S"
-          } else if self == u8(3) {
+          } else if self == Direction(3) {
               "W"
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
@@ -47,15 +47,15 @@
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      d: Direction = u8(0)
+      d: Direction = 0
       std.io.println<string>(concat_2("to_string: ", snippet.Direction.to_string(d)))
       std.io.println<string>(concat_2("turn_left: ", snippet.Direction.to_string(snippet.Direction.turn_left(d))))
       std.io.println<string>(concat_2("turn_right: ", snippet.Direction.to_string(snippet.Direction.turn_right(d))))
       std.io.print<string>("println value: ")
       std.io.println<Direction>(d)
       std.io.print<string>("println variant: ")
-      std.io.println<Direction>(u8(1))
-      s: Direction = u8(2)
+      std.io.println<Direction>(Direction(1))
+      s: Direction = 2
       std.io.print<string>("println other binding: ")
       std.io.println<Direction>(s)
       return 0

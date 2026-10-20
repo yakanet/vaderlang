@@ -1291,8 +1291,10 @@ test_default_if_free :: fn() -> void {
 }
 
 // The values of the machine integer `name`, for the tests below.
-values_of_named :: fn(name: string) -> Interval =
-    primitive_interval(name) ?? panic("`${name}` is no machine integer")
+values_of_named :: fn(name: string) -> Interval {
+    m :: machine_integer_named(name) ?? panic("`${name}` is no machine integer")
+    return m.values
+}
 
 @test
 test_literal_fits_machine_bounds :: fn() -> void {

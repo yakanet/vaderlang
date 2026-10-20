@@ -4,11 +4,11 @@
   snippet.Countdown :: struct { current: i32 }  // snippet$Countdown
   snippet.Countdown.next :: fn(self: Countdown) -> [i32, Continuation] {  // snippet$Countdown$std_core_Iterator$next
       if self.current <= 0 {
-          return [0, u8(1)] :[i32, Continuation]
+          return [0, Continuation(1)] :[i32, Continuation]
       }
       v: i32 = self.current
       self.current = self.current - 1
-      return [v, u8(0)] :[i32, Continuation]
+      return [v, Continuation(0)] :[i32, Continuation]
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       it: Countdown = Countdown { .current = 5 }
@@ -16,7 +16,7 @@
           __iter_0: Countdown = it
           for {
               __step_1: [i32, Continuation] = snippet.Countdown.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0

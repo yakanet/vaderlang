@@ -8,7 +8,7 @@
           __iter_0: Repeat<i32> = it
           for {
               __step_1: [i32, Continuation] = snippet.Repeat<i32>.next(__iter_0)
-              if __step_1._1 == u8(1) {
+              if __step_1._1 == Continuation(1) {
                   break
               } else {
                   x: i32 = __step_1._0
@@ -27,11 +27,11 @@
   snippet.Repeat<i32> :: struct { value: i32, remaining: i32 }  // snippet$Repeat__i32
   snippet.Repeat<i32>.next :: fn(self: Repeat<i32>) -> [i32, Continuation] {  // snippet$Repeat$std_core_Iterator$next__i32
       if self.remaining <= 0 {
-          return [self.value, u8(1)] :[i32, Continuation]
+          return [self.value, Continuation(1)] :[i32, Continuation]
       }
       v: i32 = self.value
       self.remaining = self.remaining - 1
-      return [v, u8(0)] :[i32, Continuation]
+      return [v, Continuation(0)] :[i32, Continuation]
   }
   snippet.Repeat<Any> :: struct { value: Any, remaining: i32 }  // snippet$Repeat__Any
   concat_2 :: fn(p0: string, p1: string) -> string {

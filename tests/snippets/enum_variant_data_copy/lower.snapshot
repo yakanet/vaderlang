@@ -6,7 +6,7 @@
   snippet.StatusInfo :: struct { code: i32, reason: string }  // snippet$StatusInfo
   snippet.Holder :: struct { info: StatusInfo }  // snippet$Holder
   snippet.main :: fn() -> i32 {  // snippet$main
-      s: HttpStatus = u8(1)
+      s: HttpStatus = 1
       info: StatusInfo = {
           __data_0: StatusInfo = snippet.HttpStatus$data[i64(s)]
           StatusInfo { .code = __data_0.code, .reason = __data_0.reason }

@@ -27,8 +27,10 @@ export StructType :: struct {
 
 export EnumType :: struct {
     symbol:        Symbol
-    /// Backing integer type : written in the header, else inferred.
-    repr:          string
+    /// The integer a value is stored in : the width the header writes, else the
+    /// narrowest holding the values ; for an enum with variant data, the narrowest
+    /// holding its ranks.
+    repr:          MachineInteger
     /// What a variant stores, keyed by name : its written value, or for an enum
     /// with variant data its rank (0, 1, 2… in declaration order).
     indices:       MutableMap<string, i64>
@@ -41,7 +43,7 @@ export EnumType :: struct {
     /// The width the header writes, or null when it leaves it out: `repr` for
     /// an enum without variant data, the width of the written values for one
     /// with variant data, whose rank is stored at an inferred width.
-    written_width: string | null = null
+    written_width: MachineInteger | null = null
 }
 
 /// Distinct (newtype) over a primitive — nominal at typecheck, but its
@@ -89,10 +91,14 @@ export storage_integer :: fn(r: RangeType) -> MachineInteger =
 export range_representation :: fn(r: RangeType) -> RangeType = narrowest_integer(r.bounds)
 
 /// The name a backend reads `t` by : the integer it is held in for an integer
-/// type (`integer_representation`), its display for any other.
+/// type (`integer_representation`) or an enum (its `repr`), its display for any
+/// other.
 ///
 /// @param t  any type.
 export representation_name :: fn(t: Type) -> string {
+    if t is EnumType {
+        return t.repr.name
+    }
     integer :: integer_representation(t) ?? return display_type(t)
     return integer.name
 }
@@ -185,20 +191,11 @@ export is_refinement :: fn(t: Type | null) -> bool = refinement_of(t) != null
 export machine_integer_type :: fn(m: MachineInteger) -> RangeType =
     RangeType { .bounds = m.values, .name = m.name }
 
-/// The values of the primitive integer type `name`.
-///
-/// @return  null for a name that is no integer type. A 64-bit unsigned type's
-///          upper end lies past every `i64`, at `u64.max` exactly.
-export primitive_interval :: fn(name: string) -> Interval | null {
-    m :: machine_integer_named(name) ?? return null
-    return m.values
-}
-
 /// The least value of an integer type holding `values`, or its greatest, as an
 /// `i64` carries it : a greatest value past `i64` is its bit pattern, `-1` for
 /// `u64.max`.
 ///
-/// @param values    the type's values (`primitive_interval`, a range's bounds).
+/// @param values    the type's values (a machine integer's, a range's bounds).
 /// @param greatest  the greatest rather than the least.
 export integer_bound :: fn(values: Interval, greatest: bool) -> i64 {
     if !greatest {
@@ -505,10 +502,8 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// @return  0 for the comptime-only and unsized kinds — they name no storage.
 export slot_byte_size :: fn(t: Type) -> i64 = match t {
     is PrimitiveType -> primitive_size(t.name)
-    // An enum rides its `repr`, so `enum(u8)` is one byte and the i32 default
-    // four. Reporting a uniform 16 was the difference between a packed array of
-    // enums and one that is four times denser.
-    is EnumType     -> primitive_size(t.repr)
+    // An enum rides its `repr` : `enum(u8)` is one byte.
+    is EnumType     -> t.repr.bits / 8
     is DistinctType -> slot_byte_size(t.backing)
     is RangeType    -> storage_integer(t).bits / 8
     is StructType | ArrayType | TupleType | FnType   -> REF_SLOT_BYTES
@@ -1375,13 +1370,12 @@ test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
 
 @test
 test_slot_size_of_a_byte_enum_is_one :: fn() -> void {
-    // `enum(u8)` emits a `uint8_t` field ; a uniform 16 was the difference
-    // between a packed array of enums and one four times larger.
+    // `enum(u8)` emits a `uint8_t` field.
     assert_eq(slot_byte_size(slot_size_test_enum("u8")), 1)
 }
 
 @test
-test_slot_size_of_a_default_enum_is_four :: fn() -> void {
+test_slot_size_of_an_i32_enum_is_four :: fn() -> void {
     assert_eq(slot_byte_size(slot_size_test_enum("i32")), 4)
 }
 
@@ -1417,7 +1411,7 @@ test_slot_align_of_a_narrow_scalar_is_its_width :: fn() -> void {
 
 slot_size_test_enum :: fn(repr: string) -> Type = EnumType {
     .symbol = slot_size_test_sym(),
-    .repr = repr,
+    .repr = machine_integer_named(repr) ?? panic("`${repr}` is no machine integer"),
     .indices = MutableMap<string, i64> {},
 }
 

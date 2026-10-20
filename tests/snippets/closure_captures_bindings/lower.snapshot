@@ -152,7 +152,7 @@
           __iter_1: Iterator<[i32, i64]> = it
           for {
               __step_2: [[i32, i64], Continuation] = @vcall(std.core.Iterator.next, __iter_1)
-              if __step_2._1 == u8(1) {
+              if __step_2._1 == Continuation(1) {
                   break
               } else {
                   __for_elem_3: [i32, i64] = __step_2._0
@@ -290,7 +290,7 @@
               __self_1.state = 2
           } else if __self_1.state == 4 {
               __self_1.state = 3
-              return [__self_1.s1(__self_1.s2), u8(0)] :[i32, Continuation]
+              return [__self_1.s1(__self_1.s2), Continuation(0)] :[i32, Continuation]
           } else if __self_1.state == 5 {
               __self_1.s2 = 0
               __self_1.state = 2
@@ -298,7 +298,7 @@
               __self_1.s1 = @closure(__lambda_snippet_14, __lambda_env_snippet_15 { .cap_0 = __self_1.s0 })
               __self_1.state = 5
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
@@ -329,12 +329,12 @@
               __self_3.state = 3
           } else if __self_3.state == 7 {
               __self_3.state = 6
-              return [__self_3.s2(__self_3.s5), u8(0)] :[i32, Continuation]
+              return [__self_3.s2(__self_3.s5), Continuation(0)] :[i32, Continuation]
           } else if __self_3.state == 8 {
               __self_3.s5 = __self_3.s4._0
               __self_3.state = 7
           } else if __self_3.state == 9 {
-              if __self_3.s4._1 == u8(1) {
+              if __self_3.s4._1 == Continuation(1) {
                   __self_3.state = 5
               } else {
                   __self_3.state = 8
@@ -349,7 +349,7 @@
               __self_3.s2 = @closure(__lambda_snippet_18, __lambda_env_snippet_19 { .cap_0 = __self_3.s1 })
               __self_3.state = 11
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }

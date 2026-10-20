@@ -47,7 +47,7 @@
           __iter_7: Iterator<i32> = it
           for {
               __step_8: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_7)
-              if __step_8._1 == u8(1) {
+              if __step_8._1 == Continuation(1) {
                   break
               } else {
                   v: i32 = __step_8._0
@@ -90,7 +90,7 @@
               __self_1.state = 2
           } else if __self_1.state == 4 {
               __self_1.state = 3
-              return [__self_1.s1(__self_1.s2), u8(0)] :[i32, Continuation]
+              return [__self_1.s1(__self_1.s2), Continuation(0)] :[i32, Continuation]
           } else if __self_1.state == 5 {
               __self_1.s2 = 0
               __self_1.state = 2
@@ -98,7 +98,7 @@
               __self_1.s1 = @closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = __self_1.s0 :? })
               __self_1.state = 5
           } else {
-              return [0, u8(1)] :[i32, Continuation]
+              return [0, Continuation(1)] :[i32, Continuation]
           }
       }
   }
