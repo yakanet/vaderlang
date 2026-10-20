@@ -124,11 +124,15 @@ end
 
 fn 1 snippet$fill (any) -> void
   string.const 1   ; "a"
+  retag 2   ; string
   i32.const 1
+  retag 3   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   string.const 2   ; "b"
+  retag 2   ; string
   i32.const 2
+  retag 3   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   return
@@ -137,6 +141,7 @@ end
 fn 2 snippet$peek (any,string) -> i32
   local __coalesce_0 any
   local.get 1   ; arg 1
+  retag 2   ; string
   local.get 0   ; arg 0
   virtual.call 2 std_core$Index.at
   local.tee 2   ; __coalesce_0
@@ -151,7 +156,9 @@ end
 
 fn 3 snippet$put_wide (any) -> void
   i64.const 9000000000
+  retag 12   ; i64
   i32.const 7
+  retag 3   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   return

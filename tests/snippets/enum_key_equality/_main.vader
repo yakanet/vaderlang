@@ -6,7 +6,9 @@
 // comparison routed to one traps at run time while the VM runs it fine. Every
 // enum implements `Equals` with no impl : `c.equals(d)` is the comparison itself,
 // and an enum passed where `Equals` is a type boxes as its integer, whose
-// `Equals` the vtable reaches.
+// `Equals` the vtable reaches. A key set from a variable is found from a literal,
+// and one set from a literal is found from a conversion ; a literal passed through
+// a trait value or to a closure built in a generic compares as the variable does.
 
 module "snippet"
 
@@ -25,6 +27,10 @@ HttpStatus :: enum(StatusInfo) {
 }
 
 same_through_trait :: fn(a: Equals, b: Equals) -> bool = a.equals(b)
+
+has_blue :: fn(c: Contains<Color>) -> bool = Color.Blue in c
+
+matcher :: fn<T: Equals>(t: T) -> fn(T) -> bool = (x: T) -> x == t
 
 main :: fn() -> i32 {
     c :: Color.Green
@@ -45,5 +51,16 @@ main :: fn() -> i32 {
     println(
         "${same_through_trait(Color.Red, Color.Red)} ${same_through_trait(Color.Red, Color.Blue)}",
     )
+
+    walked :: MutableMap<Color, i32> {}
+    for each in Color {
+        walked[each] = 7
+        if each == .Blue {
+            is_blue :: matcher(each)
+            println("${is_blue(.Blue)}")
+        }
+    }
+    rank: i32: 2
+    println("${walked[.Blue] ?? -1} ${by_color[Color(rank)] ?? -1} ${has_blue(walked)}")
     return 0
 }

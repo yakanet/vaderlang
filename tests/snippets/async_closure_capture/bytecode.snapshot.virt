@@ -144,6 +144,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
       local.field 0 5 2   ; arg 0 __asyncstate_snippet_2.s2
       local.set 1   ; $field_15
       i32.const 3
+      retag 1   ; i32
       local.get 1   ; $field_15
       call.indirect 11   ; fn
       local.get 0   ; arg 0
@@ -197,6 +198,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
             local.field 0 5 2   ; arg 0 __asyncstate_snippet_2.s2
             local.set 5   ; $field_39
             i32.const 2
+            retag 1   ; i32
             local.get 5   ; $field_39
             call.indirect 11   ; fn
             local.get 0   ; arg 0
@@ -274,6 +276,7 @@ fn 3 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                 local.field 0 5 2   ; arg 0 __asyncstate_snippet_2.s2
                 local.set 13   ; $field_68
                 i32.const 1
+                retag 1   ; i32
                 local.get 13   ; $field_68
                 call.indirect 11   ; fn
                 local.get 0   ; arg 0

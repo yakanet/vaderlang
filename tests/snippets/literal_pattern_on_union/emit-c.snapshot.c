@@ -377,96 +377,89 @@ static int32_t snippet_main(void) {
     double l4;
     void* l6 = NULL;
     bool l7;
-    vader_box_t t0 = vader_box_null();
-    vader_string_t t1 = 0;
-    void* t2 = NULL;
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[2] = { &l6, &t2 };
-    vader_string_t* gc_atom_roots[5] = { &l1, &l2, &l3, &l5, &t1 };
+    vader_string_t t0 = 0;
+    void* t1 = NULL;
+    void** gc_raw_roots[2] = { &l6, &t1 };
+    vader_string_t* gc_atom_roots[5] = { &l1, &l2, &l3, &l5, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 87 "tests/snippets/literal_pattern_on_union/_main.vader"
     l0 = INT64_C(5);
 #line 88 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = vader_box_i64(4u, l0);
-    l1 = snippet_describe(t0);
+    l1 = snippet_describe(vader_box_i64(4u, l0));
     l2 = snippet_describe(vader_box_string(1u, 2u));
     l3 = snippet_describe(vader_box_i64(4u, INT64_C(7)));
-    t1 = concat_5(l1, 17u, l2, 17u, l3);
-    std_io_println__string(t1);
+    t0 = concat_5(l1, 17u, l2, 17u, l3);
+    std_io_println__string(t0);
 #line 89 "tests/snippets/literal_pattern_on_union/_main.vader"
     l4 = -0.0;
 #line 90 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = vader_box_f64(6u, l4);
-    l1 = snippet_describe_float(t0);
+    l1 = snippet_describe_float(vader_box_f64(6u, l4));
     l2 = snippet_describe_float(vader_box_f64(6u, 1.5));
-    t1 = concat_3(l1, 17u, l2);
-    std_io_println__string(t1);
+    t0 = concat_3(l1, 17u, l2);
+    std_io_println__string(t0);
 #line 91 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = vader_box_i64(4u, l0);
     vader_struct_snippet_Holder_t* _a0_obj = (vader_struct_snippet_Holder_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Holder_t));
     vader_obj_header_init(_a0_obj, 7u);
-    _a0_obj->f_v = t0;
-    t2 = (void*) _a0_obj;
-    l1 = snippet_held(t2);
+    _a0_obj->f_v = vader_box_i64(4u, l0);
+    t1 = (void*) _a0_obj;
+    l1 = snippet_held(t1);
     vader_struct_snippet_Holder_t* _a1_obj = (vader_struct_snippet_Holder_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Holder_t));
     vader_obj_header_init(_a1_obj, 7u);
     _a1_obj->f_v = vader_box_string(1u, 2u);
-    t2 = (void*) _a1_obj;
-    l2 = snippet_held(t2);
+    t1 = (void*) _a1_obj;
+    l2 = snippet_held(t1);
     vader_struct_snippet_Holder_t* _a2_obj = (vader_struct_snippet_Holder_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Holder_t));
     vader_obj_header_init(_a2_obj, 7u);
     _a2_obj->f_v = vader_box_i64(4u, INT64_C(6));
-    t2 = (void*) _a2_obj;
-    l3 = snippet_held(t2);
-    t1 = concat_5(l1, 17u, l2, 17u, l3);
-    std_io_println__string(t1);
+    t1 = (void*) _a2_obj;
+    l3 = snippet_held(t1);
+    t0 = concat_5(l1, 17u, l2, 17u, l3);
+    std_io_println__string(t0);
 #line 92 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = vader_box_f64(6u, l4);
     vader_struct_snippet_Measure_t* _a3_obj = (vader_struct_snippet_Measure_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Measure_t));
     vader_obj_header_init(_a3_obj, 8u);
-    _a3_obj->f_m = t0;
-    t2 = (void*) _a3_obj;
-    l1 = snippet_measured(t2);
+    _a3_obj->f_m = vader_box_f64(6u, l4);
+    t1 = (void*) _a3_obj;
+    l1 = snippet_measured(t1);
     vader_struct_snippet_Measure_t* _a4_obj = (vader_struct_snippet_Measure_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Measure_t));
     vader_obj_header_init(_a4_obj, 8u);
     _a4_obj->f_m = vader_box_string(1u, 18u);
-    t2 = (void*) _a4_obj;
-    l2 = snippet_measured(t2);
-    t1 = concat_3(l1, 17u, l2);
-    std_io_println__string(t1);
+    t1 = (void*) _a4_obj;
+    l2 = snippet_measured(t1);
+    t0 = concat_3(l1, 17u, l2);
+    std_io_println__string(t0);
 #line 93 "tests/snippets/literal_pattern_on_union/_main.vader"
-    t0 = vader_box_i64(4u, l0);
     vader_struct_snippet_Boxed__i64_t* _a5_obj = (vader_struct_snippet_Boxed__i64_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Boxed__i64_t));
     vader_obj_header_init(_a5_obj, 9u);
-    _a5_obj->f_v = t0;
-    t2 = (void*) _a5_obj;
-    l1 = snippet_boxed(t2);
+    _a5_obj->f_v = vader_box_i64(4u, l0);
+    t1 = (void*) _a5_obj;
+    l1 = snippet_boxed(t1);
     vader_struct_snippet_Boxed__i64_t* _a6_obj = (vader_struct_snippet_Boxed__i64_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Boxed__i64_t));
     vader_obj_header_init(_a6_obj, 9u);
     _a6_obj->f_v = vader_box_string(1u, 2u);
-    t2 = (void*) _a6_obj;
-    l2 = snippet_boxed(t2);
-    t1 = concat_3(l1, 17u, l2);
-    std_io_println__string(t1);
+    t1 = (void*) _a6_obj;
+    l2 = snippet_boxed(t1);
+    t0 = concat_3(l1, 17u, l2);
+    std_io_println__string(t0);
 #line 94 "tests/snippets/literal_pattern_on_union/_main.vader"
     l1 = snippet_named(19u);
     l2 = snippet_named(20u);
-    t1 = concat_3(l1, 17u, l2);
-    std_io_println__string(t1);
+    t0 = concat_3(l1, 17u, l2);
+    std_io_println__string(t0);
 #line 95 "tests/snippets/literal_pattern_on_union/_main.vader"
     l1 = snippet_shape(vader_box_obj(0u, NULL));
     vader_struct_snippet_Point_t* _a7_obj = (vader_struct_snippet_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Point_t));
     vader_obj_header_init(_a7_obj, 11u);
     _a7_obj->f_x = INT32_C(1);
-    t2 = (void*) _a7_obj;
-    l2 = snippet_shape(vader_ref_box(t2));
+    t1 = (void*) _a7_obj;
+    l2 = snippet_shape(vader_ref_box(t1));
     l3 = snippet_shape(vader_box_string(1u, 2u));
     l5 = snippet_shape(vader_box_string(1u, 21u));
-    t1 = concat_7(l1, 17u, l2, 17u, l3, 17u, l5);
-    std_io_println__string(t1);
+    t0 = concat_7(l1, 17u, l2, 17u, l3, 17u, l5);
+    std_io_println__string(t0);
 #line 96 "tests/snippets/literal_pattern_on_union/_main.vader"
     l6 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l0 = INT64_C(0);
@@ -475,16 +468,16 @@ static int32_t snippet_main(void) {
     l0 = std_core_write_string_at(l6, l0, 17u);
     l7 = vader_box_eq(vader_box_i64(4u, INT64_C(5)), vader_box_i64(4u, INT64_C(5)));
     l0 = std_core_write_bool(l6, l0, l7);
-    t1 = std_core_finish_buffer(l6, l0);
-    std_io_println__string(t1);
+    t0 = std_core_finish_buffer(l6, l0);
+    std_io_println__string(t0);
 #line 97 "tests/snippets/literal_pattern_on_union/_main.vader"
     l6 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l0 = INT64_C(0);
     l0 = std_core_write_bool(l6, l0, false);
     l0 = std_core_write_string_at(l6, l0, 17u);
     l0 = std_core_write_bool(l6, l0, true);
-    t1 = std_core_finish_buffer(l6, l0);
-    std_io_println__string(t1);
+    t0 = std_core_finish_buffer(l6, l0);
+    std_io_println__string(t0);
 #line 98 "tests/snippets/literal_pattern_on_union/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

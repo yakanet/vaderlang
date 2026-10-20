@@ -4,6 +4,10 @@
 
 Accepted (2026-09-29).
 
+Amended (2026-10-20) by 0098: an erased generic slot, a trait value and every
+argument of an indirect or a virtual call are tagged too, so a key carries one
+tag whether it is a constant or a variable.
+
 ## Context
 
 A union value is a 16-byte box, a type tag beside the payload; `is u8` compares

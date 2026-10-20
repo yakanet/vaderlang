@@ -167,12 +167,12 @@ static int32_t snippet_main(void) {
     l2 = snippet_as_int__snippet_Level((uint8_t) 1);
     l1 = std_core_write_int(l0, l1, l2);
     l1 = std_core_write_string_at(l0, l1, 1u);
-    l2 = snippet_as_int__snippet_Color(vader_box_i32(1u, INT32_C(9)));
+    l2 = snippet_as_int__snippet_Color(vader_box_i32(4u, INT32_C(9)));
     l1 = std_core_write_int(l0, l1, l2);
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
 #line 36 "tests/snippets/generic_enum_argument/_main.vader"
-    t0 = snippet_pair__snippet_HttpStatus__Any((uint8_t) 1, vader_box_i32(1u, INT32_C(7)));
+    t0 = snippet_pair__snippet_HttpStatus__Any((uint8_t) 1, vader_box_i32(4u, INT32_C(7)));
     std_io_println__string(t0);
 #line 37 "tests/snippets/generic_enum_argument/_main.vader"
     l3 = (uint8_t) 0;
@@ -852,8 +852,7 @@ static vader_box_t std_collections_get__snippet_HttpStatus__string(void* l0, uin
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t2 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4];
                     t3 = t2.payload.s;
-                    t2 = vader_box_string(5u, t3);
-                    return t2;
+                    return vader_box_string(5u, t3);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

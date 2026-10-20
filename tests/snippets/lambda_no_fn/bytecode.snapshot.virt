@@ -25,6 +25,7 @@ export main 3
 
 fn 0 snippet$call_it (ref,i32) -> i32
   local.get 1   ; arg 1
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 1   ; fn
   return
@@ -32,7 +33,9 @@ end
 
 fn 1 snippet$call_two (ref,i32,i32) -> i32
   local.get 1   ; arg 1
+  retag 2   ; i32
   local.get 2   ; arg 2
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 3   ; fn
   return

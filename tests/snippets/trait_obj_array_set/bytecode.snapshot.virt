@@ -63,6 +63,7 @@ fn 2 snippet$main () -> i32
   array.new 9 0   ; ref snippet$Shape[]
   local.tee 0   ; shapes
   i32.const 2
+  retag 1   ; i32
   array.push 10   ; ref snippet$Shape
   i32.const 10
   struct.new 2   ; snippet$Circle
@@ -73,6 +74,7 @@ fn 2 snippet$main () -> i32
   local.get 0   ; shapes
   i32.const 0
   i32.const 5
+  retag 1   ; i32
   array.set 9   ; ref snippet$Shape[]
   i32.const 4
   struct.new 2   ; snippet$Circle

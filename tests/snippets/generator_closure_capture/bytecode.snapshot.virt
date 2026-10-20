@@ -180,6 +180,7 @@ fn 3 snippet$__genstate_gen$Iterator$next (ref) -> ref
             local.set 2   ; $field_28
             local.field 0 4 3   ; arg 0 snippet$__genstate_gen.s3
             ref.cast 1   ; i32
+            retag 1   ; i32
             local.get 2   ; $field_28
             call.indirect 8   ; fn
             i32.const 0

@@ -121,23 +121,20 @@ static vader_box_t snippet_fetch(bool l0) {
 
 static vader_box_t snippet_halve(int32_t l0) {
     int32_t t0;
-    vader_box_t t1 = vader_box_null();
-    void* t2 = NULL;
-    vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[1] = { &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
+    void* t1 = NULL;
+    void** gc_raw_roots[1] = { &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/and_then_infer/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     if (!(t0 != INT32_C(0))) {
         t0 = vader_div_i32(l0, INT32_C(2));
-        t1 = vader_box_i32(6u, t0);
-        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(6u, t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_snippet_Boom_t* _a0_obj = (vader_struct_snippet_Boom_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Boom_t));
     vader_obj_header_init(_a0_obj, 1u);
-    t2 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = (void*) _a0_obj;
+    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_main(void) {

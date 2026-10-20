@@ -385,8 +385,7 @@ static int32_t snippet_main(void* l0) {
     t1 = ((vader_array_t*) l0)->length;
     t2 = vader_chk_add(i32, ((int32_t) (int64_t) t1), INT32_C(6));
 #line 58 "tests/snippets/union_small_int_and_enum/_main.vader"
-    t3 = vader_box_i32(3u, (t2 & INT32_C(255)));
-    t0 = snippet_show_byte(t3);
+    t0 = snippet_show_byte(vader_box_i32(3u, (t2 & INT32_C(255))));
     std_io_println__string(t0);
 #line 59 "tests/snippets/union_small_int_and_enum/_main.vader"
     t0 = snippet_show_word(vader_box_i32(5u, INT32_C(7)));

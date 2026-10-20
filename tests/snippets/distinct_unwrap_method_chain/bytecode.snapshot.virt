@@ -959,6 +959,7 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
         local.get 7   ; b
         u8.to_char
         local.tee 8   ; c
+        retag 5   ; char
         local.get 1   ; arg 1
         call.indirect 11   ; fn
         if $L3 void
@@ -1008,6 +1009,7 @@ fn 20 std_string$replace_chars_where (string,ref,string) -> string
       local.get 9   ; code
       u32.to_char
       local.tee 11   ; c
+      retag 5   ; char
       local.get 1   ; arg 1
       call.indirect 11   ; fn
       if $L7 void

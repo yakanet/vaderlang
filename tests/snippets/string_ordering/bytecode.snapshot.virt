@@ -391,7 +391,9 @@ fn 1 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 17   ; "ant"
+  retag 3   ; string
   string.const 18   ; "bee"
+  retag 3   ; string
   call 0   ; snippet$order
   i32.to_i64
   local.set 3   ; $cast_124
@@ -406,7 +408,9 @@ fn 1 snippet$main () -> i32
   call 8   ; std_core$write_string_at
   local.set 1   ; __off_1
   string.const 18   ; "bee"
+  retag 3   ; string
   string.const 18   ; "bee"
+  retag 3   ; string
   call 0   ; snippet$order
   i32.to_i64
   local.set 3   ; $cast_124

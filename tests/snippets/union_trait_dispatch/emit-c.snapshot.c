@@ -5338,8 +5338,7 @@ static vader_box_t std_collections_get__i32__bool(void* l0, int32_t l1) {
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t2 = vader_box_bool(18u, ((uint8_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4]);
                     t3 = t2.payload.b;
-                    t2 = vader_box_bool(18u, t3);
-                    return t2;
+                    return vader_box_bool(18u, t3);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }
@@ -5362,7 +5361,6 @@ static vader_box_t std_collections_get__i32__i32(void* l0, int32_t l1) {
     int64_t l3, l4, l5;
     int64_t t0;
     int32_t t1;
-    vader_box_t t2;
 #line 185 "lib/std/collections/collections.vader"
     t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__i32_t*) l0)->f_index)->length;
     if (t0 == INT64_C(0)) {
@@ -5398,8 +5396,7 @@ static vader_box_t std_collections_get__i32__i32(void* l0, int32_t l1) {
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i32(6u, t1);
-                    return t2;
+                    return vader_box_i32(6u, t1);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }
@@ -5460,8 +5457,7 @@ static vader_box_t std_collections_get__string__i32(void* l0, vader_string_t l1)
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i32(6u, t1);
-                    return t2;
+                    return vader_box_i32(6u, t1);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

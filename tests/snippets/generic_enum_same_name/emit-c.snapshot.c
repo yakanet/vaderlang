@@ -1096,8 +1096,7 @@ static vader_box_t std_collections_get__snippet_alpha_Status__i64(void* l0, uint
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i64(3u, t0);
-                    return t2;
+                    return vader_box_i64(3u, t0);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }
@@ -1156,8 +1155,7 @@ static vader_box_t std_collections_get__snippet_beta_Status__i64(void* l0, uint8
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t0 = ((int64_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i64(3u, t0);
-                    return t2;
+                    return vader_box_i64(3u, t0);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

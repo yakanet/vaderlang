@@ -32,6 +32,7 @@ export main 1
 
 fn 0 snippet$apply (ref,i32) -> string
   local.get 1   ; arg 1
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 1   ; fn
   return
@@ -168,8 +169,10 @@ end
 
 fn 10 snippet$twice__i32 (ref,i32) -> i32
   local.get 1   ; arg 1
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 7   ; fn
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 7   ; fn
   return

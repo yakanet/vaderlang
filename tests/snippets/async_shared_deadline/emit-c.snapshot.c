@@ -214,11 +214,9 @@ static vader_box_t snippet_Probe_std_core_Async_resume(void* l0) {
     int32_t l1;
     int64_t l2, l3;
     int32_t t0;
-    vader_box_t t1 = vader_box_null();
-    void* t2 = NULL;
-    vader_box_t* gc_roots[1] = { &t1 };
-    void** gc_raw_roots[2] = { &l0, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    void* t1 = NULL;
+    void** gc_raw_roots[2] = { &l0, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 19 "tests/snippets/async_shared_deadline/_main.vader"
     t0 = ((vader_struct_snippet_Probe_t*) l0)->f_drives;
@@ -230,8 +228,7 @@ static vader_box_t snippet_Probe_std_core_Async_resume(void* l0) {
     if (!((l2 < l3))) {
 #line 23 "tests/snippets/async_shared_deadline/_main.vader"
         t0 = ((vader_struct_snippet_Probe_t*) l0)->f_drives;
-        t1 = vader_box_i32(3u, t0);
-        { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(3u, t0); vader_gc_top = gc_frame.prev; return __vret; }
 #line 20 "tests/snippets/async_shared_deadline/_main.vader"
     }
 #line 225 "lib/std/core/core.vader"
@@ -239,8 +236,8 @@ static vader_box_t snippet_Probe_std_core_Async_resume(void* l0) {
     vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
     vader_obj_header_init(_a0_obj, 4u);
     _a0_obj->f_wake_at = INT64_C(0);
-    t2 = (void*) _a0_obj;
-    { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
+    t1 = (void*) _a0_obj;
+    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void snippet_Probe_std_core_Async_cancel(void* l0) {
@@ -1285,7 +1282,6 @@ static vader_box_t std_collections_get__i64__i32(void* l0, int64_t l1) {
     int64_t l3, l4, l5;
     int64_t t0;
     int32_t t1;
-    vader_box_t t2;
 #line 185 "lib/std/collections/collections.vader"
     t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i64__i32_t*) l0)->f_index)->length;
     if (t0 == INT64_C(0)) {
@@ -1321,8 +1317,7 @@ static vader_box_t std_collections_get__i64__i32(void* l0, int64_t l1) {
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i32(3u, t1);
-                    return t2;
+                    return vader_box_i32(3u, t1);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

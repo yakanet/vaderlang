@@ -2,109 +2,152 @@
 
 ## tests/snippets/enum_key_equality
   EnumDecl       Color                :: Color
+  FnDecl         has_blue             :: fn(Contains<Color>) -> bool
   EnumDecl       HttpStatus           :: HttpStatus
   FnDecl         main                 :: fn() -> i32
+  FnDecl         matcher              :: fn(T) -> fn(T) -> bool
   FnDecl         same_through_trait   :: fn(Equals, Equals) -> bool
   StructDecl     StatusInfo           :: StatusInfo
-  expr 23:26    StringLitExpr  :: string
-  expr 24:26    StringLitExpr  :: string
-  expr 27:58    CallExpr       :: bool
-  expr 27:58    FieldExpr      :: fn(Equals) -> bool
-  expr 27:58    IdentExpr      :: Equals
-  expr 27:67    IdentExpr      :: Equals
-  expr 30:10    FieldExpr      :: Color
-  expr 30:10    IdentExpr      :: Color
-  expr 31:13    StringLitExpr  :: string
-  expr 31:16    BinaryExpr     :: bool
-  expr 31:16    IdentExpr      :: Color
-  expr 31:21    DotVariantExpr :: Color
-  expr 31:31    BinaryExpr     :: bool
-  expr 31:31    IdentExpr      :: Color
-  expr 31:36    DotVariantExpr :: Color
-  expr 31:45    BinaryExpr     :: bool
-  expr 31:45    IdentExpr      :: Color
-  expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 31:50    DotVariantExpr :: Color
-  expr 32:13    StringLitExpr  :: string
-  expr 32:16    CallExpr       :: bool
-  expr 32:16    FieldExpr      :: fn(Color) -> bool
-  expr 32:16    IdentExpr      :: Color
-  expr 32:25    DotVariantExpr :: Color
-  expr 32:36    CallExpr       :: bool
-  expr 32:36    FieldExpr      :: fn(Color) -> bool
-  expr 32:36    IdentExpr      :: Color
-  expr 32:45    DotVariantExpr :: Color
-  expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(T) -> void
-  expr 32:55    UnaryExpr      :: bool
-  expr 32:56    CallExpr       :: bool
-  expr 32:56    FieldExpr      :: fn(Color) -> bool
-  expr 32:56    IdentExpr      :: Color
-  expr 32:65    DotVariantExpr :: Color
-  expr 33:13    StringLitExpr  :: string
-  expr 33:16    IntrinsicCallExpr :: bool
-  expr 33:45    IntrinsicCallExpr :: bool
-  expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(T) -> void
-  expr 35:17    StructLitExpr  :: MutableMap<Color, i32>
-  expr 36:14    DotVariantExpr :: Color
-  expr 36:5     IdentExpr      :: MutableMap<Color, i32>
-  expr 37:14    DotVariantExpr :: Color
-  expr 37:5     IdentExpr      :: MutableMap<Color, i32>
+  expr 25:26    StringLitExpr  :: string
+  expr 26:26    StringLitExpr  :: string
+  expr 29:58    CallExpr       :: bool
+  expr 29:58    FieldExpr      :: fn(Equals) -> bool
+  expr 29:58    IdentExpr      :: Equals
+  expr 29:67    IdentExpr      :: Equals
+  expr 31:46    BinaryExpr     :: bool
+  expr 31:46    FieldExpr      :: Color
+  expr 31:46    IdentExpr      :: Color
+  expr 31:60    IdentExpr      :: Contains<Color>
+  expr 33:51    LambdaExpr     :: fn(T) -> bool
+  expr 33:61    BinaryExpr     :: bool
+  expr 33:61    IdentExpr      :: T
+  expr 33:66    IdentExpr      :: T
+  expr 36:10    FieldExpr      :: Color
+  expr 36:10    IdentExpr      :: Color
+  expr 37:13    StringLitExpr  :: string
+  expr 37:16    BinaryExpr     :: bool
+  expr 37:16    IdentExpr      :: Color
+  expr 37:21    DotVariantExpr :: Color
+  expr 37:31    BinaryExpr     :: bool
+  expr 37:31    IdentExpr      :: Color
+  expr 37:36    DotVariantExpr :: Color
+  expr 37:45    BinaryExpr     :: bool
+  expr 37:45    IdentExpr      :: Color
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 37:50    DotVariantExpr :: Color
   expr 38:13    StringLitExpr  :: string
-  expr 38:16    IdentExpr      :: MutableMap<Color, i32>
-  expr 38:16    IndexExpr      :: i32 | null
-  expr 38:16    NullCoalesceExpr :: i32
+  expr 38:16    CallExpr       :: bool
+  expr 38:16    FieldExpr      :: fn(Color) -> bool
+  expr 38:16    IdentExpr      :: Color
   expr 38:25    DotVariantExpr :: Color
-  expr 38:40    IdentExpr      :: MutableMap<Color, i32>
-  expr 38:40    IndexExpr      :: i32 | null
-  expr 38:40    NullCoalesceExpr :: i32
-  expr 38:49    DotVariantExpr :: Color
+  expr 38:36    CallExpr       :: bool
+  expr 38:36    FieldExpr      :: fn(Color) -> bool
+  expr 38:36    IdentExpr      :: Color
+  expr 38:45    DotVariantExpr :: Color
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 38:66    IdentExpr      :: MutableMap<Color, i32>
-  expr 38:66    IndexExpr      :: i32 | null
-  expr 38:66    NullCoalesceExpr :: i32
-  expr 38:75    DotVariantExpr :: Color
-  expr 40:18    StructLitExpr  :: MutableMap<HttpStatus, string>
-  expr 41:15    DotVariantExpr :: HttpStatus
-  expr 41:28    StringLitExpr  :: string
-  expr 41:5     IdentExpr      :: MutableMap<HttpStatus, string>
-  expr 42:15    DotVariantExpr :: HttpStatus
-  expr 42:22    StringLitExpr  :: string
-  expr 42:5     IdentExpr      :: MutableMap<HttpStatus, string>
-  expr 43:15    DotVariantExpr :: HttpStatus
-  expr 43:28    StringLitExpr  :: string
-  expr 43:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 38:55    UnaryExpr      :: bool
+  expr 38:56    CallExpr       :: bool
+  expr 38:56    FieldExpr      :: fn(Color) -> bool
+  expr 38:56    IdentExpr      :: Color
+  expr 38:65    DotVariantExpr :: Color
+  expr 39:13    StringLitExpr  :: string
+  expr 39:16    IntrinsicCallExpr :: bool
+  expr 39:45    IntrinsicCallExpr :: bool
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void
+  expr 41:17    StructLitExpr  :: MutableMap<Color, i32>
+  expr 42:14    DotVariantExpr :: Color
+  expr 42:5     IdentExpr      :: MutableMap<Color, i32>
+  expr 43:14    DotVariantExpr :: Color
+  expr 43:5     IdentExpr      :: MutableMap<Color, i32>
   expr 44:13    StringLitExpr  :: string
-  expr 44:16    IdentExpr      :: MutableMap<HttpStatus, string>
-  expr 44:16    IndexExpr      :: null | string
-  expr 44:16    NullCoalesceExpr :: string
-  expr 44:26    DotVariantExpr :: HttpStatus
-  expr 44:40    StringLitExpr  :: string
-  expr 44:47    IdentExpr      :: MutableMap<HttpStatus, string>
-  expr 44:47    IndexExpr      :: null | string
-  expr 44:47    NullCoalesceExpr :: string
+  expr 44:16    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:16    IndexExpr      :: i32 | null
+  expr 44:16    NullCoalesceExpr :: i32
+  expr 44:25    DotVariantExpr :: Color
+  expr 44:40    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:40    IndexExpr      :: i32 | null
+  expr 44:40    NullCoalesceExpr :: i32
+  expr 44:49    DotVariantExpr :: Color
   expr 44:5     CallExpr       :: void
   expr 44:5     IdentExpr      :: fn(T) -> void
-  expr 44:57    DotVariantExpr :: HttpStatus
-  expr 44:65    StringLitExpr  :: string
-  expr 44:72    CallExpr       :: i64
-  expr 44:72    FieldExpr      :: fn() -> i64
-  expr 44:72    IdentExpr      :: MutableMap<HttpStatus, string>
-  expr 45:5     CallExpr       :: void
-  expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 46:12    CallExpr       :: bool
-  expr 46:12    IdentExpr      :: fn(Equals, Equals) -> bool
-  expr 46:31    FieldExpr      :: Color
-  expr 46:31    IdentExpr      :: Color
-  expr 46:42    FieldExpr      :: Color
-  expr 46:42    IdentExpr      :: Color
-  expr 46:56    CallExpr       :: bool
-  expr 46:56    IdentExpr      :: fn(Equals, Equals) -> bool
-  expr 46:75    FieldExpr      :: Color
-  expr 46:75    IdentExpr      :: Color
-  expr 46:86    FieldExpr      :: Color
-  expr 46:86    IdentExpr      :: Color
-  expr 46:9     StringLitExpr  :: string
+  expr 44:66    IdentExpr      :: MutableMap<Color, i32>
+  expr 44:66    IndexExpr      :: i32 | null
+  expr 44:66    NullCoalesceExpr :: i32
+  expr 44:75    DotVariantExpr :: Color
+  expr 46:18    StructLitExpr  :: MutableMap<HttpStatus, string>
+  expr 47:15    DotVariantExpr :: HttpStatus
+  expr 47:28    StringLitExpr  :: string
+  expr 47:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 48:15    DotVariantExpr :: HttpStatus
+  expr 48:22    StringLitExpr  :: string
+  expr 48:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 49:15    DotVariantExpr :: HttpStatus
+  expr 49:28    StringLitExpr  :: string
+  expr 49:5     IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:13    StringLitExpr  :: string
+  expr 50:16    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:16    IndexExpr      :: null | string
+  expr 50:16    NullCoalesceExpr :: string
+  expr 50:26    DotVariantExpr :: HttpStatus
+  expr 50:40    StringLitExpr  :: string
+  expr 50:47    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 50:47    IndexExpr      :: null | string
+  expr 50:47    NullCoalesceExpr :: string
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 50:57    DotVariantExpr :: HttpStatus
+  expr 50:65    StringLitExpr  :: string
+  expr 50:72    CallExpr       :: i64
+  expr 50:72    FieldExpr      :: fn() -> i64
+  expr 50:72    IdentExpr      :: MutableMap<HttpStatus, string>
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:12    CallExpr       :: bool
+  expr 52:12    IdentExpr      :: fn(Equals, Equals) -> bool
+  expr 52:31    FieldExpr      :: Color
+  expr 52:31    IdentExpr      :: Color
+  expr 52:42    FieldExpr      :: Color
+  expr 52:42    IdentExpr      :: Color
+  expr 52:56    CallExpr       :: bool
+  expr 52:56    IdentExpr      :: fn(Equals, Equals) -> bool
+  expr 52:75    FieldExpr      :: Color
+  expr 52:75    IdentExpr      :: Color
+  expr 52:86    FieldExpr      :: Color
+  expr 52:86    IdentExpr      :: Color
+  expr 52:9     StringLitExpr  :: string
+  expr 55:15    StructLitExpr  :: MutableMap<Color, i32>
+  expr 56:17    IdentExpr      :: Color
+  expr 57:16    IdentExpr      :: Color
+  expr 57:9     IdentExpr      :: MutableMap<Color, i32>
+  expr 58:12    BinaryExpr     :: bool
+  expr 58:12    IdentExpr      :: Color
+  expr 58:20    DotVariantExpr :: Color
+  expr 58:9     IfExpr         :: void
+  expr 59:24    CallExpr       :: fn(Color) -> bool
+  expr 59:24    IdentExpr      :: fn(T) -> fn(T) -> bool
+  expr 59:32    IdentExpr      :: Color
+  expr 60:13    CallExpr       :: void
+  expr 60:13    IdentExpr      :: fn(T) -> void
+  expr 60:21    StringLitExpr  :: string
+  expr 60:24    CallExpr       :: bool
+  expr 60:24    IdentExpr      :: fn(Color) -> bool
+  expr 60:32    DotVariantExpr :: Color
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    IdentExpr      :: MutableMap<Color, i32>
+  expr 64:16    IndexExpr      :: i32 | null
+  expr 64:16    NullCoalesceExpr :: i32
+  expr 64:23    DotVariantExpr :: Color
+  expr 64:39    IdentExpr      :: MutableMap<Color, i32>
+  expr 64:39    IndexExpr      :: i32 | null
+  expr 64:39    NullCoalesceExpr :: i32
+  expr 64:48    CallExpr       :: Color
+  expr 64:48    IdentExpr      :: Color
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 64:54    IdentExpr      :: i32
+  expr 64:70    CallExpr       :: bool
+  expr 64:70    IdentExpr      :: fn(Contains<Color>) -> bool
+  expr 64:79    IdentExpr      :: MutableMap<Color, i32>

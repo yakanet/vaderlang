@@ -1160,8 +1160,7 @@ static vader_box_t std_collections_get__Any__string(void* l0, vader_box_t l1) {
                     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l4)
                     t3 = vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l4];
                     t4 = t3.payload.s;
-                    t3 = vader_box_string(6u, t4);
-                    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+                    { vader_box_t __vret = vader_box_string(6u, t4); vader_gc_top = gc_frame.prev; return __vret; }
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

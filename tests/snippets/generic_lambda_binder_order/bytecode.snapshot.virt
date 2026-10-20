@@ -128,6 +128,7 @@ fn 5 snippet$zip_with__string (ref,ref) -> i64
       local.get 5   ; __for_i_2
       array.get 2   ; string[]
       ref.cast 3   ; string
+      retag 3   ; string
       local.get 1   ; arg 1
       call.indirect 6   ; fn
       local.set 6   ; $call_ind_14

@@ -78,6 +78,7 @@ fn 0 snippet$main () -> i32
   call 7   ; std_core$write_string_at
   local.set 1   ; __off_1
   i32.const 9
+  retag 4   ; u8
   call 1   ; snippet$as_int__snippet_Color
   local.set 2   ; $call_6
   local.get 0   ; __buf_0
@@ -91,6 +92,7 @@ fn 0 snippet$main () -> i32
   call 23   ; std_io$println__string
   i32.const 1
   i32.const 7
+  retag 4   ; u8
   call 4   ; snippet$pair__snippet_HttpStatus__Any
   call 23   ; std_io$println__string
   i32.const 0

@@ -78,7 +78,7 @@ inlinable_op :: fn(op: bc.Op) -> bool {
         is bc.LocalGet | bc.LocalSet | bc.LocalTee | bc.Drop -> true
         is bc.CheckedArith | bc.CheckedNeg -> true
         is bc.I32Const | bc.I64Const | bc.F64Const | bc.BoolConst | bc.CharConst | bc.NullConst -> true
-        is bc.Convert -> true
+        is bc.Convert | bc.Retag -> true
         is bc.I32Add | bc.I32Sub | bc.I32Mul | bc.I32Neg | bc.I32BitNot | bc.I32BitAnd -> true
         is bc.I32BitOr | bc.I32BitXor | bc.I32Shl | bc.I32Shr | bc.I32ShrU -> true
         is bc.I32Eq | bc.I32Ne | bc.I32Lt | bc.I32Le | bc.I32Gt | bc.I32Ge -> true

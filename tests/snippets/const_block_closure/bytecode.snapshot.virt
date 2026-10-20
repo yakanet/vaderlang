@@ -31,6 +31,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 5
+  retag 1   ; i32
   local.get 0   ; add
   call.indirect 9   ; fn
   i32.to_i64
@@ -50,6 +51,7 @@ fn 0 snippet$main () -> i32
   i64.const 0
   local.set 2   ; __off_1
   i32.const 90
+  retag 1   ; i32
   local.get 0   ; add
   call.indirect 9   ; fn
   i32.to_i64

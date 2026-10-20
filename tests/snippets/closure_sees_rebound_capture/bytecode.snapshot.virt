@@ -305,6 +305,7 @@ fn 5 snippet$__genstate_stepped$Iterator$next (ref) -> ref
             local.set 4   ; $field_33
             local.field 0 5 2   ; arg 0 snippet$__genstate_stepped.s2
             ref.cast 1   ; i32
+            retag 1   ; i32
             local.get 4   ; $field_33
             call.indirect 13   ; fn
             i32.const 0

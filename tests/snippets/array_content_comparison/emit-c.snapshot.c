@@ -629,8 +629,7 @@ static vader_box_t std_core_first_unmatched__i32(void* l0, void* l1, int32_t l2)
             t2 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l3];
             if (t2 == l2) {
 #line 148 "lib/std/core/array.vader"
-                t0 = vader_box_i64(7u, l3);
-                return t0;
+                return vader_box_i64(7u, l3);
 #line 147 "lib/std/core/array.vader"
             }
         }

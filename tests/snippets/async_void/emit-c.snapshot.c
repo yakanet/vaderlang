@@ -336,11 +336,9 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
 
 static vader_box_t snippet_Ready_std_core_Async_resume__i32(void* l0) {
     int32_t t0;
-    vader_box_t t1;
 #line 9 "tests/snippets/async_void/_main.vader"
     t0 = ((vader_struct_snippet_Ready__i32_t*) l0)->f_v;
-    t1 = vader_box_i32(3u, t0);
-    return t1;
+    return vader_box_i32(3u, t0);
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

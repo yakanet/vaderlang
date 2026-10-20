@@ -5,6 +5,9 @@
   snippet.same_through_trait :: fn(a: Equals, b: Equals) -> bool {  // snippet$same_through_trait
       @vcall(std.core.Equals.equals, a, b)
   }
+  snippet.has_blue :: fn(c: Contains<Color>) -> bool {  // snippet$has_blue
+      @vcall(std.core.Contains.contains, c, Color(2))
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       c: Color = 1
       std.io.println<string>({
@@ -101,7 +104,62 @@
           __off_18 = std.core.write_bool(__buf_17, __off_18, snippet.same_through_trait(Color(0), Color(2)))
           std.core.finish_buffer(__buf_17, __off_18)
       } :string)
+      walked: MutableMap<Color, i32> = MutableMap<Any, i32> {
+          .ekeys = [] :Any[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      {
+          __for_v_21: u8 = 0
+          for __for_v_21 <= u8(2) {
+              each: Color = __for_v_21
+              std.collections.MutableMap<Any, i32>.set_at(walked, each, 7)
+              if each == Color(2) {
+                  is_blue: fn(Color) -> bool = snippet.matcher<Color>(each)
+                  std.io.println<string>({
+                      __buf_19: Buffer = std.core.new_byte_buffer(i64(5))
+                      __off_20: i64 = 0
+                      __off_20 = std.core.write_bool(__buf_19, __off_20, is_blue(Color(2)))
+                      std.core.finish_buffer(__buf_19, __off_20)
+                  } :string)
+              }
+          } @step {
+              __for_v_21 = __for_v_21 +% u8(1)
+          }
+      }
+      rank: i32 = 2
+      std.io.println<string>({
+          __buf_24: Buffer = std.core.new_byte_buffer(i64(47))
+          __off_25: i64 = 0
+          __off_25 = std.core.write_int(__buf_24, __off_25, {
+              __coalesce_22: i32 | null = std.collections.MutableMap<Any, i32>.at(walked, Color(2))
+              if __coalesce_22 is null { -1 } else { i32(__coalesce_22) } :i32
+          } :i32)
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
+          __off_25 = std.core.write_int(__buf_24, __off_25, {
+              __coalesce_23: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, {
+                  if (rank < 0) || (rank > 2) {
+                      @unreachable("value out of range: no value of `Color`")
+                  }
+                  Color(rank)
+              } :Color)
+              if __coalesce_23 is null { -1 } else { i32(__coalesce_23) } :i32
+          } :i32)
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
+          __off_25 = std.core.write_bool(__buf_24, __off_25, snippet.has_blue(walked))
+          std.core.finish_buffer(__buf_24, __off_25)
+      } :string)
       return 0
+  }
+  snippet.matcher<Color> :: fn(t: Any) -> fn(Any) -> bool {  // snippet$matcher__snippet_Color
+      @closure(__lambda_snippet_0, __lambda_env_snippet_1 { .cap_0 = t })
+  }
+  __lambda_env_snippet_1 :: struct { cap_0: Any }
+  __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1, x: Any) -> bool {
+      @vcall(std.core.Equals.equals, x, __env_0.cap_0)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

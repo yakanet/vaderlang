@@ -1544,6 +1544,7 @@ fn 17 snippet$__genstate_relay$Iterator$next (ref) -> ref
                         local.set 12   ; $field_74
                         local.field 0 13 14   ; arg 0 snippet$__genstate_relay.s14
                         ref.cast 1   ; i32
+                        retag 1   ; i32
                         local.get 12   ; $field_74
                         call.indirect 15   ; fn
                         local.set 13   ; $call_ind_76
@@ -1554,6 +1555,7 @@ fn 17 snippet$__genstate_relay$Iterator$next (ref) -> ref
                         local.set 14   ; $field_77
                         local.field 0 13 15   ; arg 0 snippet$__genstate_relay.s15
                         ref.cast 1   ; i32
+                        retag 1   ; i32
                         local.get 14   ; $field_77
                         call.indirect 15   ; fn
                         local.set 15   ; $call_ind_79
@@ -1632,6 +1634,7 @@ fn 17 snippet$__genstate_relay$Iterator$next (ref) -> ref
                             local.set 23   ; $field_104
                             local.field 0 13 6   ; arg 0 snippet$__genstate_relay.s6
                             ref.cast 1   ; i32
+                            retag 1   ; i32
                             local.get 23   ; $field_104
                             call.indirect 15   ; fn
                             local.set 24   ; $call_ind_106
@@ -1642,6 +1645,7 @@ fn 17 snippet$__genstate_relay$Iterator$next (ref) -> ref
                             local.set 25   ; $field_107
                             local.field 0 13 7   ; arg 0 snippet$__genstate_relay.s7
                             ref.cast 1   ; i32
+                            retag 1   ; i32
                             local.get 25   ; $field_107
                             call.indirect 15   ; fn
                             local.set 26   ; $call_ind_109
@@ -3298,6 +3302,7 @@ fn 45 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                     local.set 1   ; $field_43
                     local.field 0 38 4   ; arg 0 std_iter$__gen_state_std_iter_0.s4
                     ref.cast 1   ; i32
+                    retag 1   ; i32
                     local.get 1   ; $field_43
                     call.indirect 37   ; fn
                     if $L11 void

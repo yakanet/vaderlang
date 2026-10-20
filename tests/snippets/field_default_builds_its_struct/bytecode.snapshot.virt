@@ -32,11 +32,13 @@ fn 0 snippet$main () -> i32
   local.field 0 2 1   ; $fn_ref_1 snippet$Node.child
   local.set 1   ; $field_4
   i32.const 1
+  retag 1   ; i32
   local.get 1   ; $field_4
   call.indirect 3   ; fn
   struct.get 2 1   ; snippet$Node.child
   local.set 1   ; $field_4
   i32.const 2
+  retag 1   ; i32
   local.get 1   ; $field_4
   call.indirect 3   ; fn
   local.set 1   ; $field_4

@@ -5552,6 +5552,7 @@ fn 56 std_iter$__gen_state_std_iter_3$Iterator$next (ref) -> ref
                           local.set 7   ; $field_65
                           local.field 0 46 4   ; arg 0 std_iter$__gen_state_std_iter_3.s4
                           ref.cast 3   ; i32
+                          retag 3   ; i32
                           local.get 7   ; $field_65
                           call.indirect 45   ; fn
                           local.set 8   ; $call_ind_67

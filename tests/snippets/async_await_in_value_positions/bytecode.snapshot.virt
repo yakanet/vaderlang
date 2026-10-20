@@ -43,6 +43,7 @@ export main 5
 
 fn 0 snippet$maybe (i32) -> any
   local.get 0   ; arg 0
+  retag 1   ; i32
   struct.new 12   ; snippet$Ready__Any
   return
 end

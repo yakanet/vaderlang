@@ -126,6 +126,7 @@ fn 3 snippet$fn_i32_____i32$Shout$shout (ref) -> string
   call 14   ; std_core$write_string_at
   local.set 2   ; __off_1
   i32.const 1
+  retag 2   ; i32
   local.get 0   ; arg 0
   call.indirect 5   ; fn
   i32.to_i64
@@ -156,6 +157,7 @@ fn 4 snippet$fn_string_____i32$Shout$shout (ref) -> string
   call 14   ; std_core$write_string_at
   local.set 2   ; __off_1
   string.const 5   ; "x"
+  retag 3   ; string
   local.get 0   ; arg 0
   call.indirect 6   ; fn
   i32.to_i64

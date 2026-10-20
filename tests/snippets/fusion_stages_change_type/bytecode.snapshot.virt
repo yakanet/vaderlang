@@ -924,6 +924,7 @@ fn 18 std_iter$__gen_state_std_iter_0$Iterator$next (ref) -> ref
                   local.set 1   ; $field_33
                   local.field 0 18 4   ; arg 0 std_iter$__gen_state_std_iter_0.s4
                   ref.cast 1   ; i32
+                  retag 1   ; i32
                   local.get 1   ; $field_33
                   call.indirect 16   ; fn
                   i32.const 0
@@ -1111,6 +1112,7 @@ fn 20 std_iter$__gen_state_std_iter_1$Iterator$next (ref) -> ref
                   local.set 1   ; $field_33
                   local.field 0 22 4   ; arg 0 std_iter$__gen_state_std_iter_1.s4
                   ref.cast 2   ; string
+                  retag 2   ; string
                   local.get 1   ; $field_33
                   call.indirect 20   ; fn
                   i32.const 0

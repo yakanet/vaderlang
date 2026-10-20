@@ -29,6 +29,7 @@ fn 0 snippet$through_field (ref) -> string
   local.set 1   ; $field_1
   local.field 0 1 0   ; arg 0 snippet$Box__i32.value
   ref.cast 3   ; i32
+  retag 3   ; i32
   local.get 1   ; $field_1
   call.indirect 4   ; fn
   return

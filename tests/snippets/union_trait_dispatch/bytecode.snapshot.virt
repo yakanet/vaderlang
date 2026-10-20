@@ -292,11 +292,15 @@ end
 
 fn 7 snippet$put (any) -> void
   string.const 3   ; "k"
+  retag 7   ; string
   i32.const 1
+  retag 6   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   string.const 4   ; "j"
+  retag 7   ; string
   i32.const 2
+  retag 6   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   return
@@ -351,16 +355,20 @@ end
 fn 12 snippet$bump (any) -> i32
   local $add_checked_5 i32
   string.const 5   ; "a"
+  retag 7   ; string
   local.get 0   ; arg 0
   virtual.call 2 std_core$Index.at
   i32.const 1
   i32.checked_add
   local.set 1   ; $add_checked_5
   string.const 5   ; "a"
+  retag 7   ; string
   local.get 1   ; $add_checked_5
+  retag 6   ; i32
   local.get 0   ; arg 0
   virtual.call 3 std_core$IndexSet.set_at
   string.const 5   ; "a"
+  retag 7   ; string
   local.get 0   ; arg 0
   virtual.call 2 std_core$Index.at
   return
@@ -377,6 +385,7 @@ end
 
 fn 14 snippet$holds (any,i64) -> bool
   local.get 1   ; arg 1
+  retag 17   ; i64
   local.get 0   ; arg 0
   virtual.call 2 std_core$Contains.contains
   return
@@ -384,6 +393,7 @@ end
 
 fn 15 snippet$lacks (any,i64) -> bool
   local.get 1   ; arg 1
+  retag 17   ; i64
   local.get 0   ; arg 0
   virtual.call 2 std_core$Contains.contains
   bool.not
@@ -392,6 +402,7 @@ end
 
 fn 16 snippet$holds_value (any,i64) -> bool
   local.get 1   ; arg 1
+  retag 17   ; i64
   local.get 0   ; arg 0
   virtual.call 2 std_core$Contains.contains
   return
@@ -437,6 +448,7 @@ end
 
 fn 19 snippet$plus_five (any) -> any
   i32.const 5
+  retag 6   ; i32
   local.get 0   ; arg 0
   virtual.call 2 std_core$Add.add
   return
@@ -445,6 +457,7 @@ end
 fn 20 snippet$plus_one (any) -> string
   local sum any
   i32.const 1
+  retag 6   ; i32
   local.get 0   ; arg 0
   virtual.call 2 std_core$Add.add
   local.tee 1   ; sum

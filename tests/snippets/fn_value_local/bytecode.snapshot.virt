@@ -52,6 +52,7 @@ end
 
 fn 4 snippet$apply (ref,i32) -> i32
   local.get 1   ; arg 1
+  retag 1   ; i32
   local.get 0   ; arg 0
   call.indirect 2   ; fn
   return
@@ -136,6 +137,7 @@ fn 5 snippet$main () -> i32
   array.get 11   ; fn[]
   local.set 4   ; $idx_40
   i32.const 7
+  retag 1   ; i32
   local.get 4   ; $idx_40
   call.indirect 2   ; fn
   local.set 5   ; $call_ind_42
@@ -144,6 +146,7 @@ fn 5 snippet$main () -> i32
   array.get 11   ; fn[]
   local.set 0   ; __buf_0
   i32.const 3
+  retag 1   ; i32
   local.get 0   ; __buf_0
   call.indirect 2   ; fn
   local.set 6   ; $call_ind_46
@@ -177,7 +180,9 @@ fn 5 snippet$main () -> i32
   local.field 0 4 0   ; __buf_0 snippet$Op.op
   local.set 0   ; __buf_0
   i32.const 4
+  retag 1   ; i32
   i32.const 5
+  retag 1   ; i32
   local.get 0   ; __buf_0
   call.indirect 5   ; fn
   i32.to_i64

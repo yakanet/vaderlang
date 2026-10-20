@@ -1260,8 +1260,7 @@ static int32_t snippet_main(void* l0) {
 #line 47 "tests/snippets/narrow_int_wrap/_main.vader"
     t2 = (l12 & INT32_C(255));
     l1 = (uint8_t) (int32_t) t2;
-    t5 = vader_box_i32(1u, (int32_t)(uint32_t) l1);
-    vader_array_push((vader_array_t*) l3, t5);
+    vader_array_push((vader_array_t*) l3, vader_box_i32(1u, (int32_t)(uint32_t) l1));
 #line 48 "tests/snippets/narrow_int_wrap/_main.vader"
     vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)

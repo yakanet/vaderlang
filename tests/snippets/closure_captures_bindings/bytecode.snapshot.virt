@@ -941,6 +941,7 @@ fn 21 snippet$__genstate_offset$Iterator$next (ref) -> ref
             local.set 2   ; $field_28
             local.field 0 15 2   ; arg 0 snippet$__genstate_offset.s2
             ref.cast 2   ; i32
+            retag 2   ; i32
             local.get 2   ; $field_28
             call.indirect 26   ; fn
             i32.const 0
@@ -1094,6 +1095,7 @@ fn 24 snippet$__genstate_scaled$Iterator$next (ref) -> ref
                   local.set 1   ; $field_33
                   local.field 0 20 5   ; arg 0 snippet$__genstate_scaled.s5
                   ref.cast 2   ; i32
+                  retag 2   ; i32
                   local.get 1   ; $field_33
                   call.indirect 26   ; fn
                   i32.const 0

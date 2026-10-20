@@ -418,7 +418,7 @@ static int32_t snippet_main(void) {
                 }
 #line 335 "lib/std/iter/iter.vader"
                 l7 = false;
-                goto end_100;
+                goto end_102;
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
             }
 #line 333 "lib/std/iter/iter.vader"
@@ -427,7 +427,7 @@ static int32_t snippet_main(void) {
 #line 338 "lib/std/iter/iter.vader"
         l7 = true;
 #line 47 "tests/snippets/iter_chain_operands/_main.vader"
-    } end_100: ;
+    } end_102: ;
     l3 = std_core_write_bool(l2, l3, l7);
     t4 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t4);
@@ -463,7 +463,7 @@ static int32_t snippet_main(void) {
             if (t3) {
 #line 348 "lib/std/iter/iter.vader"
                 l10 = vader_box_i32(3u, l11);
-                goto end_164;
+                goto end_168;
 #line 347 "lib/std/iter/iter.vader"
             }
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
@@ -475,7 +475,7 @@ static int32_t snippet_main(void) {
 #line 351 "lib/std/iter/iter.vader"
         l10 = vader_box_obj(0u, NULL);
 #line 48 "tests/snippets/iter_chain_operands/_main.vader"
-    } end_164: ;
+    } end_168: ;
     if (l10.tag == 0u) {
         l11 = INT32_C(0);
     } else {
@@ -517,7 +517,7 @@ static int32_t snippet_main(void) {
             if (t3) {
 #line 322 "lib/std/iter/iter.vader"
                 l7 = true;
-                goto end_243;
+                goto end_249;
 #line 321 "lib/std/iter/iter.vader"
             }
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
@@ -529,7 +529,7 @@ static int32_t snippet_main(void) {
 #line 325 "lib/std/iter/iter.vader"
         l7 = false;
 #line 49 "tests/snippets/iter_chain_operands/_main.vader"
-    } end_243: ;
+    } end_249: ;
     l3 = std_core_write_bool(l2, l3, l7);
     t4 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t4);

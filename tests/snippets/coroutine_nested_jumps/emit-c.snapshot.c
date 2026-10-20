@@ -569,22 +569,18 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
 static vader_box_t snippet_even(int32_t l0) {
     int32_t t0;
-    vader_box_t t1;
 #line 12 "tests/snippets/coroutine_nested_jumps/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     if (t0 == INT32_C(0)) {
-        t1 = vader_box_i32(1u, l0);
-        return t1;
+        return vader_box_i32(1u, l0);
     }
     return vader_box_obj(0u, NULL);
 }
 
 static vader_box_t snippet_below(int32_t l0, int32_t l1) {
-    vader_box_t t0;
 #line 14 "tests/snippets/coroutine_nested_jumps/_main.vader"
     if ((l0 < l1)) {
-        t0 = vader_box_i32(1u, l0);
-        return t0;
+        return vader_box_i32(1u, l0);
     }
     return vader_box_obj(0u, NULL);
 }
@@ -1402,10 +1398,10 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     vader_box_t l4 = vader_box_null(), l9 = vader_box_null(), l11 = vader_box_null();
     vader_box_t l10;
     int32_t t0;
-    vader_box_t t1 = vader_box_null();
-    void* t2 = NULL;
-    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t1 };
-    void** gc_raw_roots[2] = { &l0, &t2 };
+    void* t1 = NULL;
+    vader_box_t t2 = vader_box_null();
+    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t2 };
+    void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
@@ -1419,8 +1415,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
         if (t0 == INT32_C(1)) {
             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(-1);
             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1;
-            t1 = vader_box_i32(1u, t0);
-            { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+            { vader_box_t __vret = vader_box_i32(1u, t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
@@ -1474,8 +1469,8 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     if (t0 == INT32_C(5)) {
                         l9 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited);
                         if (l9.tag == 15u) {
-                            t2 = l9.payload.obj;
-                            { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
+                            t1 = l9.payload.obj;
+                            { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                         }
                         l10 = l9;
                         ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s3 = l10;
@@ -1484,9 +1479,9 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                         if (t0 == INT32_C(6)) {
 #line 75 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            t1 = std_async_sleep(INT64_C(0));
+                            t2 = std_async_sleep(INT64_C(0));
 #line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            l11 = t1;
+                            l11 = t2;
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited = l11;
                             VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(5);
@@ -1503,8 +1498,8 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                     vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
                                     vader_obj_header_init(_a0_obj, 15u);
                                     _a0_obj->f_wake_at = INT64_C(0);
-                                    t2 = (void*) _a0_obj;
-                                    { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
+                                    t1 = (void*) _a0_obj;
+                                    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                                 }
 #line 73 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = INT32_C(0);
@@ -1530,10 +1525,10 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
     void* l15 = NULL;
     int32_t t0;
     int64_t t1;
-    vader_box_t t2 = vader_box_null();
-    void* t3 = NULL;
-    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t2 };
-    void** gc_raw_roots[4] = { &l0, &l12, &l15, &t3 };
+    void* t2 = NULL;
+    vader_box_t t3 = vader_box_null();
+    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t3 };
+    void** gc_raw_roots[4] = { &l0, &l12, &l15, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
@@ -1583,8 +1578,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                     if (t0 == INT32_C(5)) {
                         ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(-1);
                         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s7;
-                        t2 = vader_box_i32(1u, t0);
-                        { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+                        { vader_box_t __vret = vader_box_i32(1u, t0); vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                     if (t0 == INT32_C(6)) {
@@ -1625,8 +1619,8 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                         if (t0 == INT32_C(7)) {
                             l9 = vader_vt_std_core_Async__resume(((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited);
                             if (l9.tag == 15u) {
-                                t3 = l9.payload.obj;
-                                { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+                                t2 = l9.payload.obj;
+                                { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                             }
                             l10 = l9;
                             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s6 = l10;
@@ -1635,9 +1629,9 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                             if (t0 == INT32_C(8)) {
 #line 83 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                t2 = std_async_sleep(INT64_C(0));
+                                t3 = std_async_sleep(INT64_C(0));
 #line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                l11 = t2;
+                                l11 = t3;
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited = l11;
                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(7);
@@ -1660,8 +1654,8 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                         vader_struct_std_core_Suspended_t* _a1_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
                                         vader_obj_header_init(_a1_obj, 15u);
                                         _a1_obj->f_wake_at = INT64_C(0);
-                                        t3 = (void*) _a1_obj;
-                                        { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+                                        t2 = (void*) _a1_obj;
+                                        { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                                     }
                                     l15 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s0;
 #line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"

@@ -164,7 +164,7 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.BoolEq | vm.BoolNe                     { return true }
     if op is vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe                                                { return true }
     if op is vm.BoolAnd | vm.BoolOr | vm.BoolNot                                                                               { return true }
-    if op is vm.Convert | vm.BitsToF32 | vm.BitsToF64 | vm.F32ToBits | vm.F64ToBits | vm.RefCast { return true }
+    if op is vm.Convert | vm.BitsToF32 | vm.BitsToF64 | vm.F32ToBits | vm.F64ToBits | vm.RefCast | vm.Retag { return true }
     if op is vm.Drop                                                                                                           { return true }
     return false
 }
@@ -2274,10 +2274,10 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
     push_into_temporary(s, coerced_as(s, v, target_val), target_val)
 }
 
-/// Turn a concrete primitive on the stack into a `vader_box_t` — the 16-byte
-/// tag + payload value of a union, no allocation — tagged with the op's
-/// SEMANTIC `type_id` rather than the `class_tag_of` its coarse `ValType`
-/// would give. A value that is already a ref keeps its header's tag.
+/// Turn a concrete primitive on the stack into a `vader_box_t`, the 16-byte
+/// tag + payload value of a union or an erased slot, with no allocation, tagged
+/// with the op's SEMANTIC `type_id` rather than the `class_tag_of` its coarse
+/// `ValType` would give. A value that is already a ref keeps its header's tag.
 emit_retag_op :: fn(s: FnState, op: vm.Retag) -> void {
     v :: pop(s)
     if val_of(v) == .Any {
@@ -2290,12 +2290,13 @@ emit_retag_op :: fn(s: FnState, op: vm.Retag) -> void {
         return
     }
     boxed :: box_expr(expression_of(v), val_of(v), op.type_id)
-    // A boxed literal holds no pointer : it needs no GC-rooted temporary.
+    // A boxed scalar holds no pointer : it needs no GC-rooted temporary, and is
+    // built at its consumer like the scalar it wraps.
     if v is StackLit {
         push_lit(s, .Any, boxed)
         return
     }
-    push_into_temporary(s, boxed, .Any)
+    push_expr(s, .Any, boxed)
 }
 
 // ---- arrays ---------------------------------------------------------------

@@ -370,6 +370,7 @@ end
 
 fn 8 snippet$passed__i32 (i32) -> string
   local.get 0   ; arg 0
+  retag 5   ; i32
   call 1   ; snippet$show
   return
 end

@@ -425,12 +425,10 @@ static int32_t snippet_id(int32_t l0) {
 
 static vader_box_t snippet_maybe(int32_t l0) {
     int32_t t0;
-    vader_box_t t1;
 #line 19 "tests/snippets/counted_loop_continue/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     if (t0 == INT32_C(0)) {
-        t1 = vader_box_i32(1u, l0);
-        return t1;
+        return vader_box_i32(1u, l0);
     }
     return vader_box_obj(0u, NULL);
 }

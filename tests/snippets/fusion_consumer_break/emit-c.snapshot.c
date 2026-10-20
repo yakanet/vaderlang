@@ -3272,8 +3272,7 @@ static vader_box_t std_iter_find__i32(vader_box_t l0, void* l1) {
                 continue;
             }
 #line 348 "lib/std/iter/iter.vader"
-            t0 = vader_box_i32(1u, l4);
-            { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+            { vader_box_t __vret = vader_box_i32(1u, l4); vader_gc_top = gc_frame.prev; return __vret; }
 #line 346 "lib/std/iter/iter.vader"
         }
         break;

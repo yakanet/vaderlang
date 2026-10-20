@@ -165,15 +165,14 @@ static int32_t snippet_main(void) {
     vader_string_t l12 = 0;
     vader_string_t t0 = 0;
     void* t1 = NULL;
-    vader_box_t t2 = vader_box_null();
-    double t3;
-    vader_box_t* gc_roots[4] = { &l2, &l3, &l4, &t2 };
+    double t2;
+    vader_box_t* gc_roots[3] = { &l2, &l3, &l4 };
     void** gc_raw_roots[3] = { &l5, &l13, &t1 };
     vader_struct_snippet_Holder_t _a2_storage = {0};
     void* gc_stack_objs[1] = { (void*) &_a2_storage };
     vader_string_t* gc_atom_roots[3] = { &l11, &l12, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 4u, 3u, gc_roots, gc_raw_roots, 1u, gc_stack_objs, 3u, gc_atom_roots,
+        vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 1u, gc_stack_objs, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 23 "tests/snippets/float_ieee_equality/_main.vader"
@@ -368,10 +367,9 @@ static int32_t snippet_main(void) {
     t0 = std_core_finish_buffer(l5, l6);
     std_io_println__string(t0);
 #line 35 "tests/snippets/float_ieee_equality/_main.vader"
-    t2 = vader_box_f64(2u, l0);
     vader_struct_snippet_Holder_t* _a3_obj = &_a2_storage;
     vader_obj_header_init(_a3_obj, 6u);
-    _a3_obj->f_v = t2;
+    _a3_obj->f_v = vader_box_f64(2u, l0);
     l5 = (void*) _a3_obj;
 #line 36 "tests/snippets/float_ieee_equality/_main.vader"
     l13 = (void*) vader_buffer_new((size_t) INT64_C(22));
@@ -379,8 +377,8 @@ static int32_t snippet_main(void) {
     l6 = std_core_write_string_at(l13, l6, 9u);
     l2 = ((vader_struct_snippet_Holder_t*) l5)->f_v;
     if ((l2.tag == 2u || l2.tag == 18u)) {
-        t3 = ((double) l2.payload.f);
-        l7 = t3 == 0.0;
+        t2 = ((double) l2.payload.f);
+        l7 = t2 == 0.0;
     } else {
         l7 = false;
     }

@@ -222,8 +222,10 @@ fn 5 snippet$main () -> i32
         local.get 4   ; __fuse_arr_0
         local.get 9   ; __fuse_i_1
         load_slot_i32
+        retag 3   ; i32
         local.get 5   ; f
         call.indirect 5   ; fn
+        retag 3   ; i32
         local.get 6   ; pred
         call.indirect 6   ; fn
         if $L3 void
@@ -286,8 +288,10 @@ fn 5 snippet$main () -> i32
         local.get 4   ; __fuse_arr_0
         local.get 9   ; __fuse_i_1
         load_slot_i32
+        retag 3   ; i32
         local.get 5   ; f
         call.indirect 5   ; fn
+        retag 3   ; i32
         local.get 6   ; pred
         call.indirect 6   ; fn
         if $L7 void
@@ -350,9 +354,11 @@ fn 5 snippet$main () -> i32
         local.get 4   ; __fuse_arr_0
         local.get 9   ; __fuse_i_1
         load_slot_i32
+        retag 3   ; i32
         local.get 5   ; f
         call.indirect 5   ; fn
         local.tee 11   ; x
+        retag 3   ; i32
         local.get 6   ; pred
         call.indirect 6   ; fn
         if $L11 void
@@ -429,8 +435,10 @@ fn 5 snippet$main () -> i32
         local.get 1   ; empty
         local.get 9   ; __fuse_i_1
         load_slot_i32
+        retag 3   ; i32
         local.get 4   ; __fuse_arr_0
         call.indirect 5   ; fn
+        retag 3   ; i32
         local.get 5   ; f
         call.indirect 6   ; fn
         if $L16 void
@@ -492,8 +500,10 @@ fn 5 snippet$main () -> i32
       local.get 2   ; __buf_2
       local.get 12   ; __fuse_i_1
       load_slot_i32
+      retag 3   ; i32
       local.get 4   ; __fuse_arr_0
       call.indirect 5   ; fn
+      retag 3   ; i32
       local.get 5   ; f
       call.indirect 6   ; fn
       if $L19 void
@@ -617,6 +627,7 @@ fn 5 snippet$main () -> i32
       local.get 9   ; __fuse_i_1
       load_slot_i32
       local.tee 11   ; x
+      retag 3   ; i32
       local.get 4   ; __fuse_arr_0
       call.indirect 6   ; fn
       if $L26 void
@@ -668,9 +679,11 @@ fn 5 snippet$main () -> i32
       local.get 0   ; xs
       local.get 8   ; __fuse_len_0
       load_slot_i32
+      retag 3   ; i32
       local.get 1   ; empty
       call.indirect 5   ; fn
       local.tee 11   ; x
+      retag 3   ; i32
       local.get 2   ; __buf_2
       call.indirect 6   ; fn
       if $L29 void
@@ -735,6 +748,7 @@ fn 5 snippet$main () -> i32
     i32.lt
     if $L31 void
       local.get 15   ; x
+      retag 3   ; i32
       local.get 1   ; empty
       call.indirect 5   ; fn
       drop

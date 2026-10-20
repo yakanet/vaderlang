@@ -2168,12 +2168,10 @@ static int32_t __lambda_snippet_12(int32_t l0) {
 
 static vader_box_t __lambda_snippet_13(int32_t l0) {
     int32_t t0;
-    vader_box_t t1;
 #line 149 "tests/snippets/iterator_consumers/_main.vader"
     if ((l0 > INT32_C(4))) {
         t0 = vader_chk_mul(i32, l0, INT32_C(100));
-        t1 = vader_box_i32(1u, t0);
-        return t1;
+        return vader_box_i32(1u, t0);
     }
     return vader_box_obj(0u, NULL);
 }

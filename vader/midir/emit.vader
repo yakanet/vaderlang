@@ -942,7 +942,7 @@ push_op_with_span :: fn(ctx: FnEmitCfg, op: Op, span: Span) -> i32 {
     return pc
 }
 
-// Tag a scalar returned into a union result (see `emit_retag_into`) : an
+// Tag a scalar returned into a boxed result (see `emit_retag_into`) : an
 // expression-bodied fn and a block tail hand their value back with no Move.
 emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: i64, span: Span) -> void {
     // A scalarised return hands back each value under ITS OWN declared type, so
@@ -954,22 +954,23 @@ emit_return_retag :: fn(ctx: FnEmitCfg, value: LocalId, index: i64, span: Span) 
     } else {
         ctx.fn_.return_type
     }
-    emit_retag_into(ctx, value, is_union_slot(declared), span)
+    emit_retag_into(ctx, value, is_boxed_slot(declared), span)
 }
 
-// True when `m` is where a scalar is tagged entering a union : the producer of
-// its source is typed as the scalar, so it must not write the union slot itself.
+// True when `m` is where a scalar is tagged entering a boxed slot : the producer
+// of its source is typed as the scalar, so it must not write that slot itself.
 move_retags :: fn(locals: CFGLocal[], m: InstrMove) -> bool =
-    is_union_slot(locals[i64(m.dst)].type)
+    is_boxed_slot(locals[i64(m.dst)].type)
         && is_scalar_class(val_type_of_type(locals[i64(m.src)].type))
 
-// Tag `value`, just pushed, when it enters a union slot. A scalar names its own
-// type there, which its class cannot — a `u8` constant is an `i32.const`, an enum
-// variant too — and `is` reads the tag. Every place a value is stored into a
-// slot calls this, whatever lowering path built the instruction. An erased
-// generic slot is left to the class tag.
-emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, union_slot: bool, span: Span) -> void {
-    if !union_slot {
+// Tag `value`, just pushed, when it enters a slot that boxes it (`is_boxed_slot`).
+// A scalar names its own type there, which its class cannot : a `u8` constant is
+// an `i32.const`, an enum variant too. `is` reads the tag, and a shared generic
+// instance dispatches its trait calls on it, so a key must carry one tag however
+// it was built. Every place a value is stored into a slot calls this, whatever
+// lowering path built the instruction.
+emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, boxed: bool, span: Span) -> void {
+    if !boxed {
         return
     }
     t :: ctx.fn_.locals[i64(value)].type
@@ -981,10 +982,10 @@ emit_retag_into :: fn(ctx: FnEmitCfg, value: LocalId, union_slot: bool, span: Sp
 // A value of this class carries no tag of its own ; a ref's header does.
 is_scalar_class :: fn(v: ValType) -> bool = !(v == .Ref || v == .Any || v == .Void || v == .Null)
 
-// Push `operands` in order — the first through the scheduler's elision — each
-// tagged when its slot is a union (`union_slots[i]` ; none past its end).
+// Push `operands` in order, the first through the scheduler's elision, each
+// tagged when its slot boxes it (`boxed_slots[i]` ; none past its end).
 emit_operands_into :: fn(
-    ctx: FnEmitCfg, pos: i64, operands: LocalId[], union_slots: bool[], span: Span,
+    ctx: FnEmitCfg, pos: i64, operands: LocalId[], boxed_slots: bool[], span: Span,
 ) -> void {
     for i in 0..<operands.len() {
         if i == 0 {
@@ -992,7 +993,7 @@ emit_operands_into :: fn(
         } else {
             emit_get(ctx, operands[i], span)
         }
-        emit_retag_into(ctx, operands[i], i < union_slots.len() && union_slots[i], span)
+        emit_retag_into(ctx, operands[i], i < boxed_slots.len() && boxed_slots[i], span)
     }
 }
 
@@ -1006,34 +1007,42 @@ compares_boxes :: fn(op: LoweredBinaryOp, other: Type) -> bool =
 is_union_slot :: fn(t: Type) -> bool =
     t is UnionType || (t is DistinctType && is_union_slot(t.backing))
 
-union_slots_of :: fn(types: Type[]) -> bool[] = types.map((t) -> is_union_slot(t)).collect()
+// A slot of type `t` boxes a scalar entering it : its value class is `Any`, a
+// union's, an erased generic slot's, a trait value's.
+is_boxed_slot :: fn(t: Type) -> bool = val_type_of_type(t) == .Any
 
-// The type-table row `type_index` is a union.
-is_union_row :: fn(ctx: EmitterCtx, type_index: i32) -> bool =
-    ctx.types[type_index] is BcUnion
+// Every operand of a call through a function value or a vtable, the receiver
+// included, is boxed natively whatever its parameter declares : the function or
+// the impl reached may be a shared instance that erases it and reads its tag.
+every_operand_boxed :: fn(operands: LocalId[]) -> bool[] = [true] * operands.len()
 
-union_params_of :: fn(ctx: EmitterCtx, sig: BcSignature) -> bool[] =
-    sig.param_types.map((i) -> is_union_row(ctx, i)).collect()
+// The type-table row `type_index` boxes a scalar entering it : a union, or a `ref`
+// row (an erased slot, a trait value ; a struct row never receives a scalar).
+is_boxed_row :: fn(ctx: EmitterCtx, type_index: i32) -> bool =
+    ctx.types[type_index] is BcUnion | BcRef
 
-// Which of a `BcStruct` row's fields are union slots, in order ; none for another row.
-union_fields_of :: fn(ctx: EmitterCtx, type_index: i32) -> bool[] {
+boxed_params_of :: fn(ctx: EmitterCtx, sig: BcSignature) -> bool[] =
+    sig.param_types.map((i) -> is_boxed_row(ctx, i)).collect()
+
+// Which of a `BcStruct` row's fields box a scalar, in order ; none for another row.
+boxed_fields_of :: fn(ctx: EmitterCtx, type_index: i32) -> bool[] {
     t :: ctx.types[type_index]
     if t is BcStruct {
-        return t.fields.map((f) -> is_union_row(ctx, f.type_index)).collect()
+        return t.fields.map((f) -> is_boxed_row(ctx, f.type_index)).collect()
     }
     return []
 }
 
-// Field `index` of the row `type_index` is a union slot.
-union_field :: fn(ctx: EmitterCtx, type_index: i32, index: i64) -> bool {
+// Field `index` of the row `type_index` boxes a scalar.
+boxed_field :: fn(ctx: EmitterCtx, type_index: i32, index: i64) -> bool {
     t :: ctx.types[type_index]
-    return t is BcStruct && is_union_row(ctx, t.fields[index].type_index)
+    return t is BcStruct && is_boxed_row(ctx, t.fields[index].type_index)
 }
 
-// An element of the array (or array-backed distinct) `t` is a union slot.
-union_element :: fn(t: Type) -> bool {
+// An element of the array (or array-backed distinct) `t` boxes a scalar.
+boxed_element :: fn(t: Type) -> bool {
     array :: array_backing(t) ?? return false
-    return is_union_slot(array.element)
+    return is_boxed_slot(array.element)
 }
 
 // True when the last op emitted leaves the current scope, so nothing after it in
@@ -1068,7 +1077,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrMove {
         emit_first_get(ctx, pos, ins.src, ins.span)
-        emit_retag_into(ctx, ins.src, is_union_slot(ctx.fn_.locals[i64(ins.dst)].type), ins.span)
+        emit_retag_into(ctx, ins.src, is_boxed_slot(ctx.fn_.locals[i64(ins.dst)].type), ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
@@ -1106,8 +1115,8 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             pins.push(intern_type(ctx.fn_.locals[i64(cdst)].type, ctx.project))
         }
         target :: resolve_direct_call(ctx, ins)
-        union_params :: union_params_of(ctx.project, target.signature)
-        emit_operands_into(ctx, pos, ins.args, union_params, ins.span)
+        boxed_params :: boxed_params_of(ctx.project, target.signature)
+        emit_operands_into(ctx, pos, ins.args, boxed_params, ins.span)
         push_emit(ctx, target.op, ins.span)
         emit_call_results(ctx, pos, ins.dsts, ins.span)
         return
@@ -1123,8 +1132,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrCallIndirect {
-        union_params :: union_slots_of(param_types_of(ins.fn_type))
-        emit_operands_into(ctx, pos, ins.args, union_params, ins.span)
+        emit_operands_into(ctx, pos, ins.args, every_operand_boxed(ins.args), ins.span)
         if ins.args.len() == 0 {
             emit_first_get(ctx, pos, ins.callee, ins.span)
         } else {
@@ -1162,12 +1170,13 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         return
     }
     if ins is InstrVirtualCall {
-        emit_operands_into(ctx, pos, ins.args, union_slots_of(ins.param_types), ins.span)
+        emit_operands_into(ctx, pos, ins.args, every_operand_boxed(ins.args), ins.span)
         if ins.args.len() == 0 {
             emit_first_get(ctx, pos, ins.receiver, ins.span)
         } else {
             emit_get(ctx, ins.receiver, ins.span)
         }
+        emit_retag_into(ctx, ins.receiver, true, ins.span)
         push_emit(ctx, VirtualCall { .vtable_key = vtable_key(ins.trait_name, ins.method), .parameter_count = i32(ins.args.len() + 1) }, ins.span)
         emit_result_if_any(ctx, pos, ins.dst, ins.span)
         return
@@ -1224,7 +1233,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         }
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, union_field(ctx.project, type_index, field_slot), ins.span)
+        emit_retag_into(ctx, ins.value, boxed_field(ctx.project, type_index, field_slot), ins.span)
         // Mirror the field-get guard : a field-set whose target isn't a real
         // struct member is an upstream lowering bug. The old code emitted a
         // silent `Drop ; Drop` and dropped the store on the floor. Fail loud.
@@ -1257,7 +1266,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             ?? panic(no_common_field(ctx, ins.field, target_type))
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, union_field(ctx.project, layout, field_slot), ins.span)
+        emit_retag_into(ctx, ins.value, boxed_field(ctx.project, layout, field_slot), ins.span)
         set :: UnionFieldSet { .type_id = type_index, .field_index = i32(field_slot) }
         push_emit(ctx, set, ins.span)
         return
@@ -1290,7 +1299,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.index, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, union_element(target_type), ins.span)
+        emit_retag_into(ctx, ins.value, boxed_element(target_type), ins.span)
         // S5 access flip (Solution A) — symmetric with the get above : a
         // concrete-primitive element stores through the typed slot op (no box,
         // no element-kind switch, no write barrier — primitives hold no refs).
@@ -1315,7 +1324,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         )
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, is_union_slot(value_type), ins.span)
+        emit_retag_into(ctx, ins.value, is_boxed_slot(value_type), ins.span)
         // Resolve the array's local to its bytecode slot only when the lift was
         // proven safe — that slot IS the hint the backend needs, and it cannot be
         // filled earlier: slots are assigned here, not in `lower`.
@@ -1334,15 +1343,15 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrStructNew {
         type_index :: intern_type(ins.type, ctx.project)
-        emit_operands_into(ctx, pos, ins.fields, union_fields_of(ctx.project, type_index), ins.span)
+        emit_operands_into(ctx, pos, ins.fields, boxed_fields_of(ctx.project, type_index), ins.span)
         push_emit(ctx, StructNew { .type_id = type_index, .stack = ins.stack }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
     }
     if ins is InstrArrayNew {
         type_index :: intern_type(ins.type, ctx.project)
-        union_elements :: [union_element(ins.type)] * ins.elements.len()
-        emit_operands_into(ctx, pos, ins.elements, union_elements, ins.span)
+        boxed_elements :: [boxed_element(ins.type)] * ins.elements.len()
+        emit_operands_into(ctx, pos, ins.elements, boxed_elements, ins.span)
         push_emit(ctx, ArrayNew { .type_id = type_index, .length = ins.length }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1360,7 +1369,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrGlobalSet {
         emit_first_get(ctx, pos, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, is_union_slot(ins.type), ins.span)
+        emit_retag_into(ctx, ins.value, is_boxed_slot(ins.type), ins.span)
         push_emit(ctx, GlobalSet { .index = ins.slot }, ins.span)
         return
     }
@@ -1383,7 +1392,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         from_type :: ctx.fn_.locals[i64(ins.value)].type
         from_val :: val_type_of_type(from_type)
         to_val :: val_type_of_type(ins.type)
-        if is_union_slot(ins.type) && is_scalar_class(from_val) {
+        if to_val == .Any && is_scalar_class(from_val) {
             push_emit(ctx, Retag { .type_id = intern_type(from_type, ctx.project) }, ins.span)
         } else if from_val != to_val {
             // Numeric / char ↔ numeric / char routes through Convert,
@@ -1408,7 +1417,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrCellNew {
         cell_type_idx :: intern_cell_type(ins.value_type, ctx.project)
         emit_first_get(ctx, pos, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, is_union_slot(ins.value_type), ins.span)
+        emit_retag_into(ctx, ins.value, is_boxed_slot(ins.value_type), ins.span)
         push_emit(ctx, StructNew { .type_id = cell_type_idx, .stack = false }, ins.span)
         emit_result(ctx, pos, ins.dst, ins.span)
         return
@@ -1433,7 +1442,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         cell_type_idx :: intern_cell_type(ins.value_type, ctx.project)
         emit_first_get(ctx, pos, ins.cell, ins.span)
         emit_get(ctx, ins.value, ins.span)
-        emit_retag_into(ctx, ins.value, is_union_slot(ins.value_type), ins.span)
+        emit_retag_into(ctx, ins.value, is_boxed_slot(ins.value_type), ins.span)
         push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = 0, .stack = false }, ins.span)
         return
     }

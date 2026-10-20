@@ -395,14 +395,15 @@ export RefCast :: struct { type_id: i32 }
 
 /// Name the type of the concrete primitive on the stack as it enters a union or
 /// an erased `ref` slot : `type_id` is the value's SEMANTIC BcType. Nothing is
-/// allocated — the native backend writes this tag into the 16-byte union value.
+/// allocated : the native backend writes this tag into the 16-byte box.
 /// Needed because a constant or a conversion carries only the coarse `ValType`
 /// (a `u8` constant is an `i32.const`, a `u64` an `i64` one), from which the
 /// tag would be wrong and a downstream `is u8` / `is u64` would miss. midir
-/// emits it wherever a primitive is stored into a union slot, and for one
-/// returned into an erased result. The VM's value tags are coarse (`I32Val`
-/// matches any `is`-of-a-32-bit-or-narrower integer), so it drops the op, like
-/// `RefCast`.
+/// emits it wherever a primitive is stored into a slot of the `Any` class (a
+/// union, an erased generic slot, a trait value) and for every argument of an
+/// indirect or a virtual call, which the native backend boxes whatever the
+/// parameter. The VM's value tags are coarse (`I32Val` matches any
+/// `is`-of-a-32-bit-or-narrower integer), so it drops the op, like `RefCast`.
 export Retag :: struct { type_id: i32 }
 
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`

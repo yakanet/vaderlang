@@ -964,12 +964,11 @@ static vader_box_t std_core_parse_f64(vader_string_t l0) {
     uint64_t t1;
     int64_t t2;
     double t3;
-    vader_box_t t4 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l2, &t4 };
+    vader_box_t* gc_roots[1] = { &l2 };
     void** gc_raw_roots[1] = { &l1 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 183 "lib/std/core/parse_float.vader"
@@ -995,8 +994,7 @@ static vader_box_t std_core_parse_f64(vader_string_t l0) {
         if (l3 != l5) {
             l6 = ((vader_struct_std_core_DecimalParts_t*) l1)->f_negative;
             t3 = std_core_parse_f64_slow(l0, l6);
-            t4 = vader_box_f64(7u, t3);
-            { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+            { vader_box_t __vret = vader_box_f64(7u, t3); vader_gc_top = gc_frame.prev; return __vret; }
         }
 #line 187 "lib/std/core/parse_float.vader"
     }
@@ -1012,13 +1010,11 @@ static vader_box_t std_core_parse_f64(vader_string_t l0) {
         t2 = (l3 | l5);
         l3 = (uint64_t) (int64_t) t2;
 #line 194 "lib/std/core/parse_float.vader"
-        t4 = vader_box_f64(7u, (((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(l3) }).__vd));
-        { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_f64(7u, (((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(l3) }).__vd)); vader_gc_top = gc_frame.prev; return __vret; }
 #line 193 "lib/std/core/parse_float.vader"
     }
 #line 194 "lib/std/core/parse_float.vader"
-    t4 = vader_box_f64(7u, (((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(l3) }).__vd));
-    { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_f64(7u, (((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(l3) }).__vd)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_core_scan_decimal(vader_string_t l0) {
@@ -2585,13 +2581,11 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
     void* t0 = NULL;
     uint8_t t1;
     int32_t t2;
-    vader_box_t t3 = vader_box_null();
-    int64_t t4;
-    vader_box_t* gc_roots[1] = { &t3 };
+    int64_t t3;
     void** gc_raw_roots[1] = { &t0 };
     vader_string_t* gc_atom_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 425 "lib/std/string/string.vader"
@@ -2679,13 +2673,11 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
 #line 449 "lib/std/string/string.vader"
     if (!(l3)) {
 #line 450 "lib/std/string/string.vader"
-        t3 = vader_box_i32(1u, ((int32_t) (int64_t) l4));
-        { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+        { vader_box_t __vret = vader_box_i32(1u, ((int32_t) (int64_t) l4)); vader_gc_top = gc_frame.prev; return __vret; }
 #line 449 "lib/std/string/string.vader"
     }
-    t4 = vader_chk_neg(i64, l4);
-    t3 = vader_box_i32(1u, ((int32_t) (int64_t) t4));
-    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    t3 = vader_chk_neg(i64, l4);
+    { vader_box_t __vret = vader_box_i32(1u, ((int32_t) (int64_t) t3)); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t std_string_parse_float(vader_string_t l0) {
@@ -2693,12 +2685,11 @@ static vader_box_t std_string_parse_float(vader_string_t l0) {
     vader_string_t t0 = 0;
     void* t1 = NULL;
     double t2;
-    vader_box_t t3 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l1, &t3 };
+    vader_box_t* gc_roots[1] = { &l1 };
     void** gc_raw_roots[1] = { &t1 };
     vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 465 "lib/std/string/string.vader"
@@ -2713,8 +2704,7 @@ static vader_box_t std_string_parse_float(vader_string_t l0) {
     }
     t2 = ((double) l1.payload.f);
 #line 466 "lib/std/string/string.vader"
-    t3 = vader_box_f64(7u, t2);
-    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
+    { vader_box_t __vret = vader_box_f64(7u, t2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 int main(int argc, char** argv) {

@@ -39,6 +39,7 @@ end
 
 fn 1 snippet$apply (ref,u8) -> i32
   local.get 1   ; arg 1
+  retag 1   ; u8
   local.get 0   ; arg 0
   call.indirect 3   ; fn
   return

@@ -909,6 +909,7 @@ fn 10 snippet$__asyncstate_snippet_0$Async$resume (ref) -> any
                         local.set 13   ; $field_84
                         local.field 0 12 6   ; arg 0 __asyncstate_snippet_0.s6
                         ref.cast 1   ; i32
+                        retag 1   ; i32
                         local.get 13   ; $field_84
                         call.indirect 16   ; fn
                         if $L14 void
@@ -1661,6 +1662,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                               local.set 38   ; $field_224
                                               local.field 0 15 14   ; arg 0 __asyncstate_snippet_2.s14
                                               ref.cast 1   ; i32
+                                              retag 1   ; i32
                                               local.get 38   ; $field_224
                                               call.indirect 21   ; fn
                                               local.set 39   ; $call_ind_226
@@ -1796,6 +1798,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                 local.set 44   ; $field_278
                                                                 local.field 0 15 14   ; arg 0 __asyncstate_snippet_2.s14
                                                                 ref.cast 1   ; i32
+                                                                retag 1   ; i32
                                                                 local.get 44   ; $field_278
                                                                 call.indirect 21   ; fn
                                                                 local.set 45   ; $call_ind_280
@@ -2135,6 +2138,7 @@ fn 12 snippet$__asyncstate_snippet_2$Async$resume (ref) -> any
                                                                                 local.set 79   ; $field_435
                                                                                 local.field 0 15 8   ; arg 0 __asyncstate_snippet_2.s8
                                                                                 ref.cast 1   ; i32
+                                                                                retag 1   ; i32
                                                                                 local.get 79   ; $field_435
                                                                                 call.indirect 16   ; fn
                                                                                 if $L69 void

@@ -177,6 +177,7 @@ fn 6 snippet$main () -> i32
   call 9   ; concat_4
   call 61   ; std_io$println__string
   i32.const 7
+  retag 1   ; i32
   string.const 9   ; ">"
   call 2   ; snippet$tag
   local.set 0   ; $call_2
@@ -218,6 +219,7 @@ fn 6 snippet$main () -> i32
   call 9   ; concat_4
   call 61   ; std_io$println__string
   i32.const 7
+  retag 1   ; i32
   string.const 18   ; "#"
   call 2   ; snippet$tag
   local.set 0   ; $call_2

@@ -1260,8 +1260,7 @@ static vader_box_t std_collections_get__string__i32(void* l0, vader_string_t l1)
                     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                     t1 = ((int32_t*) _a2_slotarr->buf->slots)[_a2_slotarr->offset + (size_t) l4];
-                    t2 = vader_box_i32(1u, t1);
-                    return t2;
+                    return vader_box_i32(1u, t1);
                 }
 #line 189 "lib/std/collections/collections.vader"
             }

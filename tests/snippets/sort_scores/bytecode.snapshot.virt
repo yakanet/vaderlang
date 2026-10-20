@@ -496,7 +496,9 @@ fn 9 std_sort$merge_sort_range__i32 (ref,ref,i64,i64,ref) -> void
           load_slot_i32
           local.set 12   ; $idx_33
           local.get 11   ; $idx_32
+          retag 1   ; i32
           local.get 12   ; $idx_33
+          retag 1   ; i32
           local.get 4   ; arg 4
           call.indirect 10   ; fn
           if $L8 void
@@ -576,7 +578,9 @@ fn 10 std_sort$insertion_sort_range__i32 (ref,i64,i64,ref) -> void
             load_slot_i32
             local.set 8   ; $idx_14
             local.get 5   ; x
+            retag 1   ; i32
             local.get 8   ; $idx_14
+            retag 1   ; i32
             local.get 3   ; arg 3
             call.indirect 10   ; fn
             if $L5 void

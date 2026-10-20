@@ -385,6 +385,7 @@ fn 12 std_option$and_then__i32__i32 (any,ref) -> any
   else
     local.get 0   ; arg 0
     ref.cast 6   ; i32
+    retag 6   ; i32
     local.get 1   ; arg 1
     call.indirect 12   ; fn
     return

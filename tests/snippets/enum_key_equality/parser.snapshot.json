@@ -175,6 +175,134 @@
       },
       {
         "kind": "FnDecl",
+        "name": "has_blue",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "c",
+            "type": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Contains"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Color"
+                }
+              ]
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "bool"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "BinaryExpr",
+            "op": "in",
+            "left": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "Color"
+              },
+              "field": "Blue"
+            },
+            "right": {
+              "kind": "IdentExpr",
+              "name": "c"
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "matcher",
+        "visibility": "private",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": {
+              "kind": "IdentExpr",
+              "name": "Equals"
+            },
+            "isComptimeValue": false
+          }
+        ],
+        "params": [
+          {
+            "name": "t",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "FnTypeExpr",
+          "params": [
+            {
+              "kind": "IdentExpr",
+              "name": "T"
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "bool"
+          }
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "LambdaExpr",
+            "params": [
+              {
+                "name": "x",
+                "type": {
+                  "kind": "IdentExpr",
+                  "name": "T"
+                },
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": null,
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "BinaryExpr",
+                "op": "eq",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "x"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "t"
+                }
+              }
+            }
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
         "typeParams": [],
@@ -878,6 +1006,277 @@
                                     "name": "Color"
                                   },
                                   "field": "Blue"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "walked"
+              },
+              "type": null,
+              "value": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "GenericInstExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "MutableMap"
+                  },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "Color"
+                    },
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    }
+                  ]
+                },
+                "items": []
+              }
+            },
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "in",
+                "binding": "each",
+                "iter": {
+                  "kind": "IdentExpr",
+                  "name": "Color"
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "AssignStmt",
+                    "target": {
+                      "kind": "IndexExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "walked"
+                      },
+                      "index": {
+                        "kind": "IdentExpr",
+                        "name": "each"
+                      }
+                    },
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "7n"
+                    }
+                  }
+                ],
+                "trailing": {
+                  "kind": "IfExpr",
+                  "cond": {
+                    "kind": "BinaryExpr",
+                    "op": "eq",
+                    "left": {
+                      "kind": "IdentExpr",
+                      "name": "each"
+                    },
+                    "right": {
+                      "kind": "DotVariantExpr",
+                      "variant": "Blue"
+                    }
+                  },
+                  "then": {
+                    "kind": "BlockExpr",
+                    "stmts": [
+                      {
+                        "kind": "LetStmt",
+                        "mutable": false,
+                        "binding": {
+                          "kind": "SimpleBinding",
+                          "name": "is_blue"
+                        },
+                        "type": null,
+                        "value": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "IdentExpr",
+                            "name": "matcher"
+                          },
+                          "args": [
+                            {
+                              "name": null,
+                              "value": {
+                                "kind": "IdentExpr",
+                                "name": "each"
+                              },
+                              "spread": false
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "trailing": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "CallExpr",
+                                  "callee": {
+                                    "kind": "IdentExpr",
+                                    "name": "is_blue"
+                                  },
+                                  "args": [
+                                    {
+                                      "name": null,
+                                      "value": {
+                                        "kind": "DotVariantExpr",
+                                        "variant": "Blue"
+                                      },
+                                      "spread": false
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  "else": null
+                }
+              },
+              "isComptime": false
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "rank"
+              },
+              "type": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "2n"
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "NullCoalesceExpr",
+                            "left": {
+                              "kind": "IndexExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "walked"
+                              },
+                              "index": {
+                                "kind": "DotVariantExpr",
+                                "variant": "Blue"
+                              }
+                            },
+                            "fallback": {
+                              "kind": "IntLitExpr",
+                              "value": "-1n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "NullCoalesceExpr",
+                            "left": {
+                              "kind": "IndexExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "by_color"
+                              },
+                              "index": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "IdentExpr",
+                                  "name": "Color"
+                                },
+                                "args": [
+                                  {
+                                    "name": null,
+                                    "value": {
+                                      "kind": "IdentExpr",
+                                      "name": "rank"
+                                    },
+                                    "spread": false
+                                  }
+                                ]
+                              }
+                            },
+                            "fallback": {
+                              "kind": "IntLitExpr",
+                              "value": "-1n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "has_blue"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "IdentExpr",
+                                  "name": "walked"
                                 },
                                 "spread": false
                               }

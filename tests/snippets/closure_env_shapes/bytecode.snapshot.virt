@@ -67,6 +67,7 @@ fn 2 snippet$capture_in_field () -> i32
   struct.get 8 0   ; snippet$Adder.f
   local.set 0   ; $field_6
   i32.const 3
+  retag 1   ; i32
   local.get 0   ; $field_6
   call.indirect 9   ; fn
   return

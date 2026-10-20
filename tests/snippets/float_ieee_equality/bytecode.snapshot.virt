@@ -518,6 +518,7 @@ fn 1 snippet$main () -> i32
   call 6   ; std_core$finish_buffer
   call 25   ; std_io$println__string
   local.get 0   ; nz
+  retag 2   ; f64
   local.set 2   ; u
   i64.const 16
   buffer.new
@@ -530,6 +531,7 @@ fn 1 snippet$main () -> i32
   call 7   ; std_core$write_string_at
   local.set 6   ; __off_1
   f64.const 0.0 0
+  retag 2   ; f64
   local.get 2   ; u
   virtual.call 2 std_core$Equals.equals
   local.set 7   ; and_res

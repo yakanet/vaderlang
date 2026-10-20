@@ -42,6 +42,7 @@ end
 
 fn 1 snippet$apply__i32 (i32,ref) -> i32
   local.get 0   ; arg 0
+  retag 1   ; i32
   local.get 1   ; arg 1
   call.indirect 2   ; fn
   return
