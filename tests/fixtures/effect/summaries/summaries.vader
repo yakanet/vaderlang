@@ -1,4 +1,4 @@
-// tests/effect_fixtures/summaries — one function per case of the effect summary.
+// tests/fixtures/effect/summaries — one function per case of the effect summary.
 //
 // `tests/effect_summary.test.ts` reads `vader dump --stage=effects` of this file
 // and pins what each function is summarised to do with its parameters.

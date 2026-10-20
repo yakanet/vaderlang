@@ -13,7 +13,7 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const FIXTURES = join(import.meta.dir, "target_fixtures");
+const FIXTURES = join(import.meta.dir, "fixtures", "target");
 const BROKEN_ON_WINDOWS = join(FIXTURES, "discarded_body_not_typed", "main.vader");
 
 // The property the whole mechanism rests on, from the outside: the error is in a

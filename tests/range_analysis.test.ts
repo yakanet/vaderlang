@@ -15,8 +15,8 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const VERDICTS = join(import.meta.dir, "range_fixtures", "verdicts.vader");
-const ELISION = join(import.meta.dir, "range_fixtures", "elision", "elision.vader");
+const VERDICTS = join(import.meta.dir, "fixtures", "range", "verdicts.vader");
+const ELISION = join(import.meta.dir, "fixtures", "range", "elision", "elision.vader");
 
 /** Each function's sites, `<operation> -> <verdict>` in source order. */
 function sitesByFunction(dump: string): Map<string, string[]> {

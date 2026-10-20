@@ -2,8 +2,8 @@
 // with no file argument, finding and running a project's own `build.vader`.
 //
 // A driven project is a whole-project shape, not a pipeline-stage snapshot, so
-// it belongs beside `lint_fixtures/` rather than in `snippets/` — hence a corpus
-// of its own under `tests/hook_fixtures/`. Each fixture is a real project
+// it belongs beside `fixtures/lint/` rather than in `snippets/` — hence a corpus
+// of its own under `tests/fixtures/hook/`. Each fixture is a real project
 // directory the CLI is run *inside*, since the driver is discovered relative to
 // the invocation directory.
 //
@@ -48,7 +48,7 @@ import { containsTestFn } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
-const FIXTURES = "tests/hook_fixtures";
+const FIXTURES = "tests/fixtures/hook";
 const LINT = `${FIXTURES}/pascal_case_lint`;
 const GENERATE = `${FIXTURES}/generate_module`;
 const JSON_DERIVE = `${FIXTURES}/json_derive`;

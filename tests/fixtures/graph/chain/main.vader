@@ -1,4 +1,4 @@
-// tests/graph_fixtures/chain — a three-module chain for `vader graph`.
+// tests/fixtures/graph/chain — a three-module chain for `vader graph`.
 //
 // `main` imports both `alpha` and `beta` ; `alpha` imports `beta`. That gives a
 // diamond-free shape with one transitive edge, so a renderer that drops an edge

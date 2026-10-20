@@ -10,14 +10,16 @@
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, LONG_BUILD, MEDIUM_BUILD } from "./cli-bin.ts";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 
 ensureCliBuilt();
 
 const ROOT = join(import.meta.dir, "..");
-const SITES = join(import.meta.dir, "callee_fixtures", "sites.vader");
+const SITES = join(import.meta.dir, "fixtures", "callee", "sites.vader");
+// The fixture as a report prints it from the repo root, `/` on every host.
+const SITES_SHOWN = relative(ROOT, SITES).split("\\").join("/");
 const VERIFY = { VADER_VERIFY_CALLEES: "1" };
 
 /** The disagreements a report lists, as `<recorded> / <lowered>  [position]`. */
@@ -32,8 +34,8 @@ test("the verifier lists the fixture's sites the lowering gets wrong", async () 
   const r = await runCli(["dump", "--stage=lowered-ast", SITES], VERIFY, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   const own = disagreements(r.stderr)
-    .filter((l) => l.includes("callee_fixtures/sites.vader:"))
-    .map((l) => l.replace(/\[\S*callee_fixtures\//, "["));
+    .filter((l) => l.includes(`${SITES_SHOWN}:`))
+    .map((l) => l.replace(/\[\S*\//, "["));
   expect(own).toEqual([
     // The generators are fused into the loop: their `next` runs in place, and a
     // string's `into` is one.

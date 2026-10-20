@@ -1,4 +1,4 @@
-// tests/graph_fixtures/chain/alpha — the middle of the chain.
+// tests/fixtures/graph/chain/alpha — the middle of the chain.
 
 module "chain/alpha"
 

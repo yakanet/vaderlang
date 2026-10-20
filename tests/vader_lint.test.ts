@@ -12,8 +12,8 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const DEAD = "tests/lint_fixtures/dead_export/_main.vader";
-const CLEAN = "tests/lint_fixtures/all_reached/_main.vader";
+const DEAD = "tests/fixtures/lint/dead_export/_main.vader";
+const CLEAN = "tests/fixtures/lint/all_reached/_main.vader";
 
 function countW0012(out: string): number {
   return (out.match(/W0012/g) ?? []).length;

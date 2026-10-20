@@ -7,11 +7,11 @@
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
-import { join } from "node:path";
+import { dirname, join, relative } from "node:path";
 
 ensureCliBuilt();
 
-const CHAIN = join(import.meta.dir, "graph_fixtures", "chain", "main.vader");
+const CHAIN = join(import.meta.dir, "fixtures", "graph", "chain", "main.vader");
 
 test("graph draws every module and every import edge", async () => {
   const r = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
@@ -36,7 +36,8 @@ test("graph draws every module and every import edge", async () => {
 // the suite runs it from the repo root — so a regression here drops every edge.
 test("graph names modules by their module name, not their folder", async () => {
   const r = await runCli(["graph", CHAIN], undefined, MEDIUM_BUILD);
-  expect(r.stdout).not.toContain("graph_fixtures");
+  const folderKey = relative(join(import.meta.dir, ".."), dirname(CHAIN)).split("\\").join("/");
+  expect(r.stdout).not.toContain(folderKey);
 });
 
 test("graph emits DOT on request", async () => {
@@ -62,7 +63,7 @@ test("scope=all reaches the library, the default does not", async () => {
 // code. Filtering on provenance alone drew all 18 of them as "the project"; the
 // module NAME is what separates them, exactly as `diagnose_import_path` does.
 test("scope=project hides the compiler from a driven project", async () => {
-  const driven = join(import.meta.dir, "hook_fixtures", "observe_only", "build.vader");
+  const driven = join(import.meta.dir, "fixtures", "hook", "observe_only", "build.vader");
   const r = await runCli(["graph", driven], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).not.toContain("vader/pipeline");

@@ -1,4 +1,4 @@
-// tests/effect_fixtures/frozen — one function per outcome of the frozen checks.
+// tests/fixtures/effect/frozen — one function per outcome of the frozen checks.
 //
 // `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
 // --stage=effects` on this file, and the errors the faults and the kept views

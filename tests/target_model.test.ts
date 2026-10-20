@@ -13,7 +13,7 @@
 //   - not `diag_corpus/` — that harness provokes a diagnostic by dumping ONE
 //     file (`vader dump --stage=lowered-ast <file>`). `@target` is multi-file by
 //     nature: a declaration in one file, a body in another. This is the exact
-//     argument that puts the `H6xxx` family in `hook_fixtures/`.
+//     argument that puts the `H6xxx` family in `fixtures/hook/`.
 //   - not `snippets/` — a snippet carries an `emit-c.snapshot.c` and a `vm.snapshot` per
 //     pipeline stage, and those would become target-dependent. The plan pins the
 //     invariant "no snippet in the corpus reaches a module that selects"; putting
@@ -49,13 +49,13 @@ import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
 import { snapshotDiff } from "./diff.ts";
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 
 // Registers a `beforeAll`, so it belongs at module scope — calling it inside a
 // test is a hard error in Bun.
 ensureCliBuilt();
 
-const CORPUS = join(import.meta.dir, "target_fixtures");
+const CORPUS = join(import.meta.dir, "fixtures", "target");
 
 /** A target triple a snapshot may be named after. Mirrors the plan's §2 table. */
 const KNOWN_TARGETS = new Set([
@@ -188,26 +188,20 @@ for (const fx of FIXTURES) {
  * lives beside it.
  */
 function renderSections(stdout: string, stderr: string, fixtureDir: string): string {
-  // The compiler reports the path it was GIVEN, which the driver passes
-  // absolute. Snapshots have to be portable, so the fixture directory is
-  // stripped here rather than having the stage lie about what it read.
-  //
-  // Both separators, and that is not defensive coding: `join()` yields
-  // `C:\vader\tests\…` on Windows while the compiler normalises every path it
-  // reports to `/` (the resolver keeps one internal separator). Matching only
-  // the platform form left absolute paths in the snapshots — a failure invisible
-  // on macOS and caught on the Windows guest.
+  // Snapshots have to be portable, so the fixture directory is stripped here
+  // rather than having the stage lie about what it read. The compiler names a
+  // file relative to the working directory when it lies under it, absolute
+  // otherwise, always with `/` (`vader/diagnostics/render.vader`), while `join()`
+  // yields `C:\vader\tests\…` on Windows: strip whichever form it printed. The
+  // absolute form goes first, since stripping the relative one inside it would
+  // leave a prefix the absolute one no longer matches.
   const posixDir = fixtureDir.split("\\").join("/");
-  // Diagnostics now name a path RELATIVE to the working directory when the file
-  // is under it (`vader/diagnostics/render.vader`), so the repo-relative form
-  // has to be stripped as well — without it these snapshots grew a
-  // `tests/target_fixtures/<name>/` prefix on every line.
-  const relDir = posixDir.split("/").slice(-3).join("/");
-  const strip = (s: string) =>
-    s
-      .split(`${fixtureDir}/`).join("")
-      .split(`${posixDir}/`).join("")
-      .split(`${relDir}/`).join("");
+  const relDir = relative(process.cwd(), fixtureDir).split("\\").join("/");
+  const strip = (s: string) => {
+    let out = s;
+    for (const dir of [posixDir, relDir]) out = out.split(`${dir}/`).join("");
+    return out;
+  };
   // `build` prints its own `# Diagnostics` banner; the section header belongs to
   // the snapshot format, so the banner is dropped rather than nested.
   const raw = strip(stderr.trim()).replace(/^# Diagnostics\n?/, "").trim();

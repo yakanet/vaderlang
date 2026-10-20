@@ -14,10 +14,10 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const SUMMARIES = join(import.meta.dir, "effect_fixtures", "summaries", "summaries.vader");
-const FROZEN = join(import.meta.dir, "effect_fixtures", "frozen", "frozen.vader");
-const VARIANCE = join(import.meta.dir, "effect_fixtures", "variance", "variance.vader");
-const IMPORTED = join(import.meta.dir, "effect_fixtures", "imported", "app", "main.vader");
+const SUMMARIES = join(import.meta.dir, "fixtures", "effect", "summaries", "summaries.vader");
+const FROZEN = join(import.meta.dir, "fixtures", "effect", "frozen", "frozen.vader");
+const VARIANCE = join(import.meta.dir, "fixtures", "effect", "variance", "variance.vader");
+const IMPORTED = join(import.meta.dir, "fixtures", "effect", "imported", "app", "main.vader");
 const COMPILER = join(import.meta.dir, "..", "vader", "cli", "main.vader");
 
 /** Each function of the `summaries` module with its accesses, in source order. */

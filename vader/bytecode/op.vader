@@ -715,9 +715,9 @@ export ReturnLit :: struct { value: ConstOp }
 /// Emitted from the core library's buffer allocation only, `new_byte_buffer`,
 /// mapped in `bytecode/intrinsics.vader`. Its accessors have no Vader-level
 /// trigger at all; what exercises the whole family end to end, this op included,
-/// is the hand-authored `tests/fixtures/membuf_gc.virt` (down to surviving a
-/// moving collection). A caller count alone therefore understates what removing
-/// any of them would break.
+/// is the hand-authored `tests/fixtures/membuf_gc/membuf_gc.virt` (down to
+/// surviving a moving collection). A caller count alone therefore understates
+/// what removing any of them would break.
 export BufferNew :: struct {}
 
 // The multi-byte members of this family (`LoadI32` / `I64` / `F64` and their

@@ -28,7 +28,7 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const SITES = join(import.meta.dir, "callee_fixtures", "sites.vader");
+const SITES = join(import.meta.dir, "fixtures", "callee", "sites.vader");
 
 const EXPECTED = [
   "clone call fn area",

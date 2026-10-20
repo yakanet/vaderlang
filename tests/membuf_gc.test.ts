@@ -2,7 +2,7 @@
 //
 // The 12 memory opcodes are consumer-inert (no .vader source lowers to them
 // until the Buffer type lands), so this exercises them through a hand-authored
-// .virt op stream (tests/fixtures/membuf_gc.virt) compiled via the new
+// .virt op stream (tests/fixtures/membuf_gc/membuf_gc.virt) compiled via the new
 // `vader build --emit=c/native x.virt` path. It asserts two things the unit
 // suite cannot: (1) the c-emit arms emit the real `vader_buffer_*` helpers, not
 // `todo()` stubs; (2) a buffer's stored bytes survive a forced *moving*
@@ -21,7 +21,7 @@ import { join } from "node:path";
 
 ensureCliBuilt();
 
-const FIXTURE = "tests/fixtures/membuf_gc.virt";
+const FIXTURE = "tests/fixtures/membuf_gc/membuf_gc.virt";
 
 test("membuf .virt -> C emits the buffer ABI helpers (not stubs)", async () => {
   const dir = mkdtempSync(join(tmpdir(), "membuf-"));

@@ -127,8 +127,8 @@ diag_less_with_file :: fn(a: Diagnostic, b: Diagnostic) -> bool {
 // the machine channel stays plain so the `*.snapshot` fixtures are byte-stable.
 // `file` shortened against `base`, or unchanged when it is not underneath it.
 //
-// A run from the project root turns a 78-character absolute path into
-// `tests/target_fixtures/…`, which is the difference between a readable console
+// A run from the project root turns a 78-character absolute path into a short
+// one under `tests/`, which is the difference between a readable console
 // line and one that scrolls. Relativising a path OUTSIDE `base` is refused on
 // purpose: it would produce a `../../..` chain, longer than the absolute form
 // and harder to follow — the stdlib of an installed toolchain is exactly that

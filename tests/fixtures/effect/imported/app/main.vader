@@ -1,4 +1,4 @@
-// tests/effect_fixtures/imported — constants and singletons another module
+// tests/fixtures/effect/imported — constants and singletons another module
 // declares.
 //
 // `tests/effect_summary.test.ts` reads the `# frozen` section of `vader dump
