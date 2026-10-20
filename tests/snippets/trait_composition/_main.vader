@@ -1,24 +1,46 @@
-// Layer 7c — trait composition. Two declaration shapes :
+// Trait composition, in its two declaration shapes:
 //   `Foo :: trait<T> = A & B & C`        pure alias, no own methods
 //   `Foo :: trait<T> : A & B { ... }`    requires + own methods
-// Both record the composition in `TraitDecl.requires` ; the typechecker
-// (in a future Layer 7e step) will desugar `T: Foo` bound checking through
-// `@satisfies(T, Foo)` against the composed trait list.
+// plus a single-trait alias. The `=` aliases are only declared. `Hashable`,
+// the second shape, serves as a bound: `fingerprint_of` reaches the impl of
+// its own method through `T: Hashable`.
+//
+// Expected: prints "fingerprint 62".
 
-// Pure alias — Numeric requires Add, Sub, Mul (no own methods).
 module "snippet"
 
+import "std/io"
+
+// Pure alias: Numeric requires Add, Sub, Mul (no own methods).
 @allow_unused
 Numeric :: trait<T> = Add & Sub & Mul
 
-// With own methods — Hashable requires Hash and Equals, plus declares its own.
-@allow_unused
+// With own methods: Hashable requires Hash and Equals, plus declares its own.
 Hashable :: trait<T> : Hash & Equals {
     fingerprint :: fn(self: T) -> u64
 }
 
-// Single-trait alias is also valid (no `&`).
+// Single-trait alias (no `&`).
 @allow_unused
 Aliased :: trait<T> = Numeric
 
-main :: fn() -> i32 { return 0 }
+Tag :: struct { id: i32 }
+
+Tag implements Hash {
+    hash :: fn(self) -> u64 = u64(self.id)
+}
+
+Tag implements Equals {
+    equals :: fn(self, other: Tag) -> bool = self.id == other.id
+}
+
+Tag implements Hashable {
+    fingerprint :: fn(self) -> u64 = u64(self.id) * 31
+}
+
+fingerprint_of :: fn<T: Hashable>(x: T) -> u64 = x.fingerprint()
+
+main :: fn() -> i32 {
+    println("fingerprint ${fingerprint_of(Tag { .id = 2 })}")
+    return 0
+}

@@ -1,2 +1,5 @@
+# stdout
+greeting: hello, world
+nine:     9
 # exit
 42

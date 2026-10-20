@@ -1,7 +1,16 @@
-// helper for the namespace_member_forms snippet — a distinct type + a free fn,
-// both reached from `_main` through a namespace import (`H :: import "..."`).
+// helper for the namespace_member_forms snippet: one export of each kind the
+// caller reaches through its namespace alias (`H :: import "snippet/helper"`).
 
 module "snippet/helper"
+
+export MAX_RETRIES: i64: 3
+export GREETING    :: "hi"
+
+export Color :: enum {
+    Red,
+    Green,
+    Blue,
+}
 
 export Meters :: i32
 

@@ -1,0 +1,20 @@
+# stdout
+slot: first=42 second=answer
+destructure: n=42 word=answer
+wildcard: a=7 c=true
+nested: id=7 label=seven active=true
+arity 3: 1 x true
+arity 4: 9 q false true
+field: id=1 x=true y=true
+row: 1 -> one
+row: 2 -> two
+row: 3 -> three
+for destructure: a=1
+for destructure: b=2
+for destructure: c=3
+inferred array: 10
+inferred array: 20
+inferred array: 30
+inferred tuple: id=42 label=answer
+# exit
+0

@@ -1,0 +1,34 @@
+# stdout
+i32 keys: size=3
+i32 keys: 1=10
+i32 keys: 17=170
+i32 keys: 2 in=true 99 in=false
+i32 keys: 1 updated=999
+string keys: size=3
+string keys: vader=42
+string keys: hello in=true missing in=false
+string keys: hello updated=99
+string keys: absent missing
+string keys: world in
+string keys: z !in
+read back: 'alpha'=0
+read back: 'beta'=1
+read back: 'gamma'=2
+read back: 'MutableMap'=3
+read back: 'x'=4
+read back: 'hello world'=5
+read back: 'a'=6
+read back: ''=7
+read back: size=8
+for destructure: a=1
+for destructure: b=2
+for destructure: c=3
+for destructure: sum=6
+set: add 10 new=true
+set: add 20 new=true
+set: add 10 again new=false
+set: len=3 10 in=true 40 in=false
+set: 30 in
+set: 3 !in
+# exit
+0

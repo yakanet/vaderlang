@@ -18,20 +18,40 @@ struct vader_struct_std_core_Buffer_t {
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
     "caller " "\0"
+    "namespace, omitted: " "\0"
+    "Bob" "\0"
+    "Hi" "\0"
+    "namespace, positional: " "\0"
+    "Eve" "\0"
+    "Hello" "\0"
+    "namespace, named: " "\0"
+    "Al" "\0"
+    "Yo" "\0"
     "\n" "\0"
     "tagged" "\0"
+    ", " "\0"
     "item " "\0"
     "hello" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
-    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[10] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[17] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23] },
+    { 0u, 0u, 20u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[8] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[33] },
+    { 0u, 0u, 23u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[36] },
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[60] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[64] },
+    { 0u, 0u, 18u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[70] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[89] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[92] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[95] },
+    { 0u, 0u, 6u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[97] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[104] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[107] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[113] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 5u
+#define VADER_COMPTIME_ATOM_COUNT 15u
 
 static vader_string_t snippet_label(int32_t l0);
 static int32_t snippet_main(void);
@@ -41,6 +61,7 @@ static int32_t __lambda_snippet_2(void* l0);
 static int32_t __lambda_snippet_4(void* l0);
 static void* __lambda_snippet_3(void);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2);
 static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
@@ -49,6 +70,7 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
 static vader_string_t snippet_labels_tagged(vader_string_t l0);
 static vader_string_t snippet_labels_tag(void);
+static vader_string_t snippet_labels_salute(vader_string_t l0, vader_string_t l1);
 static vader_string_t snippet_util_named(vader_string_t l0);
 static vader_string_t snippet_util_label(int32_t l0);
 static vader_string_t snippet_util_greet(vader_string_t l0);
@@ -174,7 +196,7 @@ static vader_string_t snippet_label(int32_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 11 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 19 "tests/snippets/default_value_from_another_module/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(27));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l1, l2, 1u);
@@ -189,46 +211,47 @@ static int32_t snippet_main(void) {
     void* l2 = NULL;
     void* l4 = NULL;
     int64_t l1, l3;
+    vader_string_t l5 = 0;
     vader_string_t t0 = 0;
     vader_string_t t1 = 0;
     int32_t t2;
     void* t3 = NULL;
     void** gc_raw_roots[4] = { &l0, &l2, &l4, &t3 };
-    vader_string_t* gc_atom_roots[2] = { &t0, &t1 };
+    vader_string_t* gc_atom_roots[3] = { &l5, &t0, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 9 "tests/snippets/default_value_from_another_module/util/util.vader"
     t0 = snippet_util_label(INT32_C(7));
-#line 14 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 22 "tests/snippets/default_value_from_another_module/_main.vader"
     t1 = snippet_util_named(t0);
     std_io_println__string(t1);
-#line 15 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 23 "tests/snippets/default_value_from_another_module/_main.vader"
     t0 = snippet_label(INT32_C(1));
     std_io_println__string(t0);
 #line 12 "tests/snippets/default_value_from_another_module/util/util.vader"
     t0 = snippet_base_greeting();
-#line 16 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 24 "tests/snippets/default_value_from_another_module/_main.vader"
     t1 = snippet_util_greet(t0);
     std_io_println__string(t1);
 #line 6 "tests/snippets/default_value_from_another_module/labels/labels.vader"
     t0 = snippet_labels_tag();
-#line 17 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 25 "tests/snippets/default_value_from_another_module/_main.vader"
     t1 = snippet_labels_tagged(t0);
     std_io_println__string(t1);
-#line 18 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 26 "tests/snippets/default_value_from_another_module/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
 #line 15 "tests/snippets/default_value_from_another_module/util/util.vader"
     l2 = (void*) &vader_fn_static___lambda_snippet_0;
-#line 18 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 26 "tests/snippets/default_value_from_another_module/_main.vader"
     t2 = snippet_util_apply(INT32_C(4), l2);
     l3 = ((int64_t) (int32_t) t2);
     l1 = std_core_write_int(l0, l1, l3);
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
-#line 19 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 27 "tests/snippets/default_value_from_another_module/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     l2 = (void*) &vader_fn_static___lambda_snippet_1;
@@ -237,7 +260,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l3);
     t0 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t0);
-#line 20 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 28 "tests/snippets/default_value_from_another_module/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     vader_array_t* _a0_arr = vader_array_new(3u, 3u, 7u, 1u);
@@ -247,7 +270,7 @@ static int32_t snippet_main(void) {
     l2 = (void*) _a0_arr;
 #line 18 "tests/snippets/default_value_from_another_module/util/util.vader"
     l4 = (void*) &vader_fn_static___lambda_snippet_2;
-#line 20 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 28 "tests/snippets/default_value_from_another_module/_main.vader"
     t2 = snippet_util_total(l2, l4);
     l3 = ((int64_t) (int32_t) t2);
     l1 = std_core_write_int(l0, l1, l3);
@@ -255,10 +278,22 @@ static int32_t snippet_main(void) {
     std_io_println__string(t0);
 #line 31 "tests/snippets/default_value_from_another_module/util/util.vader"
     t3 = (void*) &vader_fn_static___lambda_snippet_3;
-#line 21 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 29 "tests/snippets/default_value_from_another_module/_main.vader"
     t0 = snippet_util_turns(t3);
     std_io_println__string(t0);
-#line 22 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 30 "tests/snippets/default_value_from_another_module/_main.vader"
+    l5 = snippet_labels_salute(3u, 4u);
+    t0 = concat_2(2u, l5);
+    std_io_println__string(t0);
+#line 31 "tests/snippets/default_value_from_another_module/_main.vader"
+    l5 = snippet_labels_salute(6u, 7u);
+    t0 = concat_2(5u, l5);
+    std_io_println__string(t0);
+#line 32 "tests/snippets/default_value_from_another_module/_main.vader"
+    l5 = snippet_labels_salute(9u, 10u);
+    t0 = concat_2(8u, l5);
+    std_io_println__string(t0);
+#line 33 "tests/snippets/default_value_from_another_module/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -271,7 +306,7 @@ static int32_t __lambda_snippet_0(int32_t l0) {
 
 static int32_t __lambda_snippet_1(int32_t l0) {
     int32_t t0;
-#line 19 "tests/snippets/default_value_from_another_module/_main.vader"
+#line 27 "tests/snippets/default_value_from_another_module/_main.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
@@ -370,6 +405,29 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) INT64_C(0), l0);
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {
+    int64_t l3, l4, l5;
+    void* l6 = NULL;
+    vader_string_t t0 = 0;
+    void** gc_raw_roots[1] = { &l6 };
+    vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    l3 = vader_host_std_core_byte_len(l0);
+    l4 = vader_host_std_core_byte_len(l1);
+    l4 = (l3 + l4);
+    l5 = vader_host_std_core_byte_len(l2);
+    l5 = (l4 + l5);
+    l6 = (void*) vader_buffer_new((size_t) l5);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) INT64_C(0), l0);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l3, l1);
+    vader_buffer_write_string((vader_buffer_t*) l6, (size_t) l4, l2);
+    t0 = vader_buffer_intern_string((vader_buffer_t*) l6, (size_t) l5);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -537,7 +595,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 236 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 2u);
+    l1 = concat_2(l0, 11u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -549,7 +607,17 @@ static vader_string_t snippet_labels_tagged(vader_string_t l0) {
 
 static vader_string_t snippet_labels_tag(void) {
 #line 3 "tests/snippets/default_value_from_another_module/labels/labels.vader"
-    return 3u;
+    return 12u;
+}
+
+static vader_string_t snippet_labels_salute(vader_string_t l0, vader_string_t l1) {
+    vader_string_t t0 = 0;
+    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
+    vader_gc_top = &gc_frame;
+#line 10 "tests/snippets/default_value_from_another_module/labels/labels.vader"
+    t0 = concat_3(l1, 13u, l0);
+    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_string_t snippet_util_named(vader_string_t l0) {
@@ -570,7 +638,7 @@ static vader_string_t snippet_util_label(int32_t l0) {
 #line 6 "tests/snippets/default_value_from_another_module/util/util.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l2 = INT64_C(0);
-    l2 = std_core_write_string_at(l1, l2, 4u);
+    l2 = std_core_write_string_at(l1, l2, 14u);
     l3 = ((int64_t) (int32_t) l0);
     l2 = std_core_write_int(l1, l2, l3);
     t0 = std_core_finish_buffer(l1, l2);
@@ -665,7 +733,7 @@ static vader_string_t snippet_util_turns(void* l0) {
 
 static vader_string_t snippet_base_greeting(void) {
 #line 3 "tests/snippets/default_value_from_another_module/base/base.vader"
-    return 5u;
+    return 15u;
 }
 
 int main(int argc, char** argv) {

@@ -1,5 +1,6 @@
 # stdout
-weekend
-weekday
+partial, uncovered variants: weekend weekday
+partial, wildcard: weekend weekday
+unreachable: red green
 # exit
 0

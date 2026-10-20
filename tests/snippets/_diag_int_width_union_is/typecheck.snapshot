@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/_diag_int_width_union_is
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         tag                  :: fn(i32 | i64 | u8) -> i32
+  expr 19:13    IdentExpr      :: u8
+  expr 19:5     IfExpr         :: void
+  expr 19:8     BinaryExpr     :: bool
+  expr 19:8     IdentExpr      :: i32 | i64 | u8
+  expr 20:13    IdentExpr      :: i64
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: i32 | i64
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: i32
+  expr 27:16    IdentExpr      :: fn(i32 | i64 | u8) -> i32
+  expr 27:20    IdentExpr      :: u8
+  expr 27:26    CallExpr       :: i32
+  expr 27:26    IdentExpr      :: fn(i32 | i64 | u8) -> i32
+  expr 27:30    IdentExpr      :: i64
+  expr 27:36    CallExpr       :: i32
+  expr 27:36    IdentExpr      :: fn(i32 | i64 | u8) -> i32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

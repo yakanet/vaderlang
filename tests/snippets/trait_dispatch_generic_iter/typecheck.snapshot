@@ -5,62 +5,62 @@
   StructDecl     Once                 :: Once<T>
   StructDecl     Repeat               :: Repeat<T>
   FnDecl         walk                 :: fn(Iterator<i32>) -> i32
-  expr 24:12    BinaryExpr     :: bool
-  expr 24:12    FieldExpr      :: i32
-  expr 24:12    IdentExpr      :: Repeat<T>
-  expr 24:9     IfExpr         :: void
-  expr 25:20    SeqLitExpr     :: [T, Continuation]
-  expr 25:21    FieldExpr      :: T
-  expr 25:21    IdentExpr      :: Repeat<T>
-  expr 25:33    DotVariantExpr :: Continuation
-  expr 27:14    FieldExpr      :: T
-  expr 27:14    IdentExpr      :: Repeat<T>
-  expr 28:26    BinaryExpr     :: i32
-  expr 28:26    FieldExpr      :: i32
-  expr 28:26    IdentExpr      :: Repeat<T>
-  expr 28:9     FieldExpr      :: i32
-  expr 28:9     IdentExpr      :: Repeat<T>
-  expr 29:16    SeqLitExpr     :: [T, Continuation]
-  expr 29:17    IdentExpr      :: T
-  expr 29:20    DotVariantExpr :: Continuation
-  expr 40:12    FieldExpr      :: bool
-  expr 40:12    IdentExpr      :: Once<T>
-  expr 40:9     IfExpr         :: void
-  expr 41:20    SeqLitExpr     :: [T, Continuation]
-  expr 41:21    FieldExpr      :: T
-  expr 41:21    IdentExpr      :: Once<T>
-  expr 41:33    DotVariantExpr :: Continuation
-  expr 43:9     FieldExpr      :: bool
-  expr 43:9     IdentExpr      :: Once<T>
-  expr 44:16    SeqLitExpr     :: [T, Continuation]
-  expr 44:17    FieldExpr      :: T
-  expr 44:17    IdentExpr      :: Once<T>
-  expr 44:29    DotVariantExpr :: Continuation
-  expr 51:9     IdentExpr      :: bool
-  expr 52:19    CallExpr       :: [i32, Continuation]
-  expr 52:19    FieldExpr      :: fn() -> [i32, Continuation]
-  expr 52:19    IdentExpr      :: Iterator<i32>
-  expr 53:12    BinaryExpr     :: bool
-  expr 53:12    IdentExpr      :: Continuation
-  expr 53:17    DotVariantExpr :: Continuation
-  expr 53:9     IfExpr         :: void
-  expr 54:13    IdentExpr      :: bool
-  expr 56:13    IdentExpr      :: i32
-  expr 56:19    BinaryExpr     :: i32
-  expr 56:19    IdentExpr      :: i32
-  expr 56:25    IdentExpr      :: i32
-  expr 59:12    IdentExpr      :: i32
-  expr 63:10    StructLitExpr  :: Repeat<i32>
-  expr 64:10    StructLitExpr  :: Once<i32>
-  expr 65:13    StringLitExpr  :: string
-  expr 65:23    CallExpr       :: i32
-  expr 65:23    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 65:28    IdentExpr      :: Repeat<i32>
-  expr 65:5     CallExpr       :: void
-  expr 65:5     IdentExpr      :: fn(T) -> void
-  expr 66:13    StringLitExpr  :: string
-  expr 66:21    CallExpr       :: i32
-  expr 66:21    IdentExpr      :: fn(Iterator<i32>) -> i32
-  expr 66:26    IdentExpr      :: Once<i32>
-  expr 66:5     CallExpr       :: void
-  expr 66:5     IdentExpr      :: fn(T) -> void
+  expr 18:12    BinaryExpr     :: bool
+  expr 18:12    FieldExpr      :: i32
+  expr 18:12    IdentExpr      :: Repeat<T>
+  expr 18:9     IfExpr         :: void
+  expr 19:20    SeqLitExpr     :: [T, Continuation]
+  expr 19:21    FieldExpr      :: T
+  expr 19:21    IdentExpr      :: Repeat<T>
+  expr 19:33    DotVariantExpr :: Continuation
+  expr 21:14    FieldExpr      :: T
+  expr 21:14    IdentExpr      :: Repeat<T>
+  expr 22:26    BinaryExpr     :: i32
+  expr 22:26    FieldExpr      :: i32
+  expr 22:26    IdentExpr      :: Repeat<T>
+  expr 22:9     FieldExpr      :: i32
+  expr 22:9     IdentExpr      :: Repeat<T>
+  expr 23:16    SeqLitExpr     :: [T, Continuation]
+  expr 23:17    IdentExpr      :: T
+  expr 23:20    DotVariantExpr :: Continuation
+  expr 34:12    FieldExpr      :: bool
+  expr 34:12    IdentExpr      :: Once<T>
+  expr 34:9     IfExpr         :: void
+  expr 35:20    SeqLitExpr     :: [T, Continuation]
+  expr 35:21    FieldExpr      :: T
+  expr 35:21    IdentExpr      :: Once<T>
+  expr 35:33    DotVariantExpr :: Continuation
+  expr 37:9     FieldExpr      :: bool
+  expr 37:9     IdentExpr      :: Once<T>
+  expr 38:16    SeqLitExpr     :: [T, Continuation]
+  expr 38:17    FieldExpr      :: T
+  expr 38:17    IdentExpr      :: Once<T>
+  expr 38:29    DotVariantExpr :: Continuation
+  expr 45:9     IdentExpr      :: bool
+  expr 46:19    CallExpr       :: [i32, Continuation]
+  expr 46:19    FieldExpr      :: fn() -> [i32, Continuation]
+  expr 46:19    IdentExpr      :: Iterator<i32>
+  expr 47:12    BinaryExpr     :: bool
+  expr 47:12    IdentExpr      :: Continuation
+  expr 47:17    DotVariantExpr :: Continuation
+  expr 47:9     IfExpr         :: void
+  expr 48:13    IdentExpr      :: bool
+  expr 50:13    IdentExpr      :: i32
+  expr 50:19    BinaryExpr     :: i32
+  expr 50:19    IdentExpr      :: i32
+  expr 50:25    IdentExpr      :: i32
+  expr 53:12    IdentExpr      :: i32
+  expr 57:10    StructLitExpr  :: Repeat<i32>
+  expr 58:10    StructLitExpr  :: Once<i32>
+  expr 59:13    StringLitExpr  :: string
+  expr 59:23    CallExpr       :: i32
+  expr 59:23    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 59:28    IdentExpr      :: Repeat<i32>
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:21    CallExpr       :: i32
+  expr 60:21    IdentExpr      :: fn(Iterator<i32>) -> i32
+  expr 60:26    IdentExpr      :: Once<i32>
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

@@ -1,3 +1,14 @@
+// Enum representation: the backing type, explicit and implicit values, and
+// conversions to an integer.
+//   - explicit non-consecutive values (`enum(u8)`), newline-separated
+//   - implicit values counting on from an explicit one (`Push = 100` → `Pop`
+//     is 101), in a `u16` enum
+//   - a signed backing type carrying negative values, the implicit value after
+//     one counting from it (`Mid = -1` → `High` is 0)
+//   - a `u32` value past the `i32` range, converted to `u32` and widened to
+//     `u64` (zero-extended, never sign-extended), and the default width
+//   - matches over a typed enum, as a value and as a statement
+
 module "snippet"
 
 import "std/io"
@@ -16,6 +27,30 @@ export Op :: enum(u16) {
     Add
 }
 
+Level :: enum(i8) {
+    Low = -128,
+    Mid = -1,
+    High,
+    Top = 127,
+}
+
+Day :: enum(u8) {
+    Mon = 1,
+    Tue,
+    Wed = 200,
+}
+
+Big :: enum(u32) {
+    A = 0,
+    B = 4_000_000_000,
+}
+
+Color :: enum {
+    Red,
+    Green,
+    Blue,
+}
+
 export describe :: fn(d: Direction) -> string {
     return match d {
         .North -> "N"
@@ -25,17 +60,35 @@ export describe :: fn(d: Direction) -> string {
     }
 }
 
+name :: fn(l: Level) -> string = match l {
+    .Low  -> "low"
+    .Mid  -> "mid"
+    .High -> "high"
+    .Top  -> "top"
+}
+
 main :: fn() -> i32 {
-    println(describe(.North))
-    println(describe(.West))
+    println("explicit u8: ${describe(.North)} ${describe(.West)} ${i32(Direction.West)}")
 
     op: Op: .Pop
     match op {
-        .Halt -> println("halt")
-        .Push -> println("push")
-        .Pop  -> println("pop")
-        .Add  -> println("add")
+        .Halt -> println("implicit u16: halt")
+        .Push -> println("implicit u16: push")
+        .Pop  -> println("implicit u16: pop")
+        .Add  -> println("implicit u16: add")
+    }
+    println("implicit u16 values: ${i32(Op.Halt)} ${i32(Op.Push)} ${i32(op)} ${i32(Op.Add)}")
+
+    for l in [Level.Low, Level.Mid, Level.High, Level.Top] {
+        println("signed i8: ${name(l)} ${i32(l)}")
     }
 
+    a :: u8(Day.Tue)
+    b :: u32(Big.B)
+    c :: i32(Day.Mon)
+    d :: i32(Color.Green)
+    e :: u64(Big.B)
+    f :: i32(Big.A)
+    println("conversions: ${a} ${b} ${c} ${d} ${e} ${f}")
     return 0
 }

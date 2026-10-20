@@ -930,11 +930,15 @@
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
     fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
     fn std.core.array_iter<i32>  // std_core$array_iter__i32
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
     fn std.core.decode_tail  // std_core$decode_tail
     fn std.core.finish_buffer  // std_core$finish_buffer
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
@@ -944,6 +948,7 @@
     fn std.core.i64.compare  // std_core$i64$Comparable$compare
     fn std.core.i64.step  // std_core$i64$Step$step
     fn std.core.is_utf8_continuation  // std_core$is_utf8_continuation
+    fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.string.hash  // std_core$string$Hash$hash
     fn std.core.three_way  // std_core$three_way
     fn std.core.write_bool  // std_core$write_bool
@@ -955,6 +960,7 @@
     fn std_core$string$Equals$equals$guard
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std_core$__gen_state_std_core_0

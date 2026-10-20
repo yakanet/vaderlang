@@ -128,24 +128,6 @@ export function snapshotEquals(scenarioDir: string, snapName: string, actual: st
 // `./build/vader dump --stage=<S> <file>`, the self-hosted compiler being the
 // snapshot oracle for every stage.
 
-// Extra GC arenas for the one snippet that needs them : under the strict
-// resolver the typecheck stage loads the full transitive closure of every
-// visited module, which the default young/old can't hold for the heaviest
-// cross-module entry (`namespace_alias_dedupe` walks the full `vader/parser`
-// closure). Scope the bump to that snippet so we don't pay the GC cost (and
-// OOM risk under `--parallel`) on every spawn. `runCli` merges these over
-// `process.env`, so only the overrides live here.
-const SLOW_TYPECHECK_SNIPPETS = new Set(["namespace_alias_dedupe"]);
-const SLOW_TYPECHECK_ENV: Record<string, string> = {
-  VADER_GC_YOUNG_BYTES: String(16 * 1024 * 1024),
-  VADER_GC_OLD_BYTES:   String(128 * 1024 * 1024),
-};
-
-function envForSnippet(entryPath: string): Record<string, string> | undefined {
-  const name = entryPath.split("/").slice(-2, -1)[0] ?? "";
-  return SLOW_TYPECHECK_SNIPPETS.has(name) ? SLOW_TYPECHECK_ENV : undefined;
-}
-
 export async function dumpTypecheckViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {
   return runVaderDump("typed-ast", entryPath, modules);
 }
@@ -219,7 +201,7 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
   if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
   if (extra) args.push(...extra);
   args.push(entryPath);
-  const { stdout, stderr, exit } = await runCli(args, envForSnippet(entryPath));
+  const { stdout, stderr, exit } = await runCli(args);
   if (exit !== 0) return `${CLI_FAILED_PREFIX} (exit ${canonicalExit(exit, stderr)})\n${stderr}${stdout}`;
   return stdout;
 }

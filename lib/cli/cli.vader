@@ -371,6 +371,11 @@ test_specs :: fn() -> FlagSpec[] = [
     assert_eq(parsed.string_flag("out", "fallback"), "fallback")
 }
 
+@test test_str_flag_unknown_name_uses_default :: fn() -> void {
+    parsed :: parse(["--out=/tmp/x"], test_specs())
+    assert_eq(parsed.string_flag("absent", "fallback"), "fallback")
+}
+
 @test test_str_flag_missing_value_errors :: fn() -> void {
     parsed :: parse(["--out"], test_specs())
     assert_eq(parsed.errors.len(), 1)
@@ -433,7 +438,7 @@ test_specs :: fn() -> FlagSpec[] = [
     parsed :: parse(["--unknown"], test_specs())
     assert_eq(parsed.errors.len(), 1)
     assert_eq(parsed.positionals.len(), 0)
-    assert("--unknown" in parsed.errors[0], "the error should echo the token")
+    assert_eq(parsed.errors[0], "unknown flag --unknown")
 }
 
 @test test_unknown_short_flag_errors :: fn() -> void {

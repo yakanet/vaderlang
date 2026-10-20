@@ -84,11 +84,11 @@
                       "typeArgs": [
                         {
                           "kind": "IdentExpr",
-                          "name": "i32"
+                          "name": "u8"
                         },
                         {
                           "kind": "IdentExpr",
-                          "name": "string"
+                          "name": "i64"
                         }
                       ]
                     }
@@ -155,11 +155,11 @@
                       "typeArgs": [
                         {
                           "kind": "IdentExpr",
-                          "name": "i32"
+                          "name": "u8"
                         },
                         {
                           "kind": "IdentExpr",
-                          "name": "string"
+                          "name": "i64"
                         }
                       ]
                     }

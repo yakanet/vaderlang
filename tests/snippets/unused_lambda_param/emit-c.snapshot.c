@@ -97,7 +97,7 @@ static int32_t snippet_apply(int32_t l0, void* l1) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 12 "tests/snippets/unused_lambda_param/_main.vader"
+#line 9 "tests/snippets/unused_lambda_param/_main.vader"
     vader_fn_t* _a0_fnobj = (vader_fn_t*) l1;
     t0 = ((vader_fn_erased_sig_1_t) _a0_fnobj->code)(_a0_fnobj->env, vader_box_i32(1u, l0));
     t1 = ((int32_t) t0.payload.i);
@@ -116,7 +116,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 16 "tests/snippets/unused_lambda_param/_main.vader"
+#line 13 "tests/snippets/unused_lambda_param/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     l2 = (void*) &vader_fn_static___lambda_snippet_0;
@@ -125,7 +125,7 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l3);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 18 "tests/snippets/unused_lambda_param/_main.vader"
+#line 15 "tests/snippets/unused_lambda_param/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l1 = INT64_C(0);
     l2 = (void*) &vader_fn_static___lambda_snippet_1;
@@ -134,18 +134,18 @@ static int32_t snippet_main(void) {
     l1 = std_core_write_int(l0, l1, l3);
     t1 = std_core_finish_buffer(l0, l1);
     std_io_println__string(t1);
-#line 19 "tests/snippets/unused_lambda_param/_main.vader"
+#line 16 "tests/snippets/unused_lambda_param/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static int32_t __lambda_snippet_0(int32_t l0) {
-#line 16 "tests/snippets/unused_lambda_param/_main.vader"
+#line 13 "tests/snippets/unused_lambda_param/_main.vader"
     return INT32_C(7);
 }
 
 static int32_t __lambda_snippet_1(int32_t l0) {
     int32_t t0;
-#line 18 "tests/snippets/unused_lambda_param/_main.vader"
+#line 15 "tests/snippets/unused_lambda_param/_main.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }

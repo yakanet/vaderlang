@@ -113,7 +113,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 22 "tests/snippets/intrinsic_fields/_main.vader"
+#line 28 "tests/snippets/intrinsic_fields/_main.vader"
     l0 = vader_box_obj(0u, (void*)(uintptr_t)1u);
     vader_struct_std_core_Field_t* _a0_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
     vader_obj_header_init(_a0_obj, 8u);
@@ -144,7 +144,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l5)
         l2 = vader_array_ref_load_obj(_a4_slotarr->buf, _a4_slotarr->offset + (size_t) l5);
-#line 23 "tests/snippets/intrinsic_fields/_main.vader"
+#line 29 "tests/snippets/intrinsic_fields/_main.vader"
         l6 = ((vader_struct_std_core_Field_t*) l2)->f_name;
         l7 = vader_host_std_core_byte_len(l6);
         l3 = (void*) vader_buffer_new((size_t) (INT64_C(26) + l7));
@@ -155,10 +155,10 @@ static int32_t snippet_main(void) {
         l8 = std_core_write_int(l3, l8, l9);
         t0 = std_core_finish_buffer(l3, l8);
         std_io_println__string(t0);
-#line 22 "tests/snippets/intrinsic_fields/_main.vader"
+#line 28 "tests/snippets/intrinsic_fields/_main.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 25 "tests/snippets/intrinsic_fields/_main.vader"
+#line 31 "tests/snippets/intrinsic_fields/_main.vader"
     l0 = vader_box_obj(0u, (void*)(uintptr_t)2u);
     vader_struct_std_core_Field_t* _a5_obj = (vader_struct_std_core_Field_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Field_t));
     vader_obj_header_init(_a5_obj, 8u);
@@ -182,7 +182,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l5)
         l2 = vader_array_ref_load_obj(_a8_slotarr->buf, _a8_slotarr->offset + (size_t) l5);
-#line 26 "tests/snippets/intrinsic_fields/_main.vader"
+#line 32 "tests/snippets/intrinsic_fields/_main.vader"
         l6 = ((vader_struct_std_core_Field_t*) l2)->f_name;
         l7 = vader_host_std_core_byte_len(l6);
         l3 = (void*) vader_buffer_new((size_t) (INT64_C(31) + l7));
@@ -194,10 +194,10 @@ static int32_t snippet_main(void) {
         l8 = std_core_write_int(l3, l8, l9);
         t0 = std_core_finish_buffer(l3, l8);
         std_io_println__string(t0);
-#line 25 "tests/snippets/intrinsic_fields/_main.vader"
+#line 31 "tests/snippets/intrinsic_fields/_main.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 28 "tests/snippets/intrinsic_fields/_main.vader"
+#line 34 "tests/snippets/intrinsic_fields/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

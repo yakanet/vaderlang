@@ -1,9 +1,12 @@
 # stdout
-<P(2)>
-<P(3)>
-<P(4)>
-6
-5
-7
+bound as argument, struct: <P(1)>
+bound as argument, i32: <7>
+bound as return: <P(3)>
+ufcs on T: <P(2)>
+ufcs on T in a lambda: <P(3)>
+ufcs on a receiver holding T: <P(4)>
+generic call on I, ufcs: 6
+generic call on I, free: 5
+generic call whose T only I determines: 7
 # exit
 0

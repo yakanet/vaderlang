@@ -1,0 +1,31 @@
+// tests/snippets/map_field_and_generic_param: a stdlib generic struct as the
+// type of a struct field and of a generic fn's parameter.
+//
+// The field `MutableMap<string, i32>` materialises the concrete
+// `MutableMap(string, i32)` in the bytecode type table, not an opaque
+// `ref MutableMap`. The instance `bump<string, i32>` takes the same concrete
+// type for its `MutableMap<K, V>` parameter, so its signature resolves onto
+// that slot instead of minting a `ref MutableMap` of its own.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+Counts :: struct {
+    by_name: MutableMap<string, i32>
+}
+
+bump :: fn<K: Hash & Equals, V>(m: MutableMap<K, V>, k: K, v: V) -> void {
+    m[k] = v
+}
+
+main :: fn() -> i32 {
+    c :: Counts { .by_name = MutableMap<string, i32> {} }
+    c.by_name["x"] = 7
+    v :: c.by_name["x"] ?? return 1
+    println("field: x=${v}")
+    bump(c.by_name, "y", 1)
+    println("generic parameter: len=${c.by_name.len()}")
+    return 0
+}

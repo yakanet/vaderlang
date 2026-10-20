@@ -1,3 +1,0 @@
-# Comptime
-
-## tests/snippets/tuple_destructure_wildcard

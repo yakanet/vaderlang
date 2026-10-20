@@ -55,8 +55,8 @@ struct vader_struct_std_async_Sleep_t {
 static const char vader_atom_blob[] =
     "cleanup " "\0"
     "winner: " "\0"
-    "fast" "\0"
     "slow" "\0"
+    "fast" "\0"
     "\n" "\0"
     "async deadlock: a task is suspended with nothing left to wake it" "\0";
 
@@ -511,8 +511,8 @@ static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
                     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                 }
 #line 17 "tests/snippets/async_race/_main.vader"
-                l5 = snippet_leg(3u, INT64_C(10));
-                l6 = snippet_leg(4u, INT64_C(100));
+                l5 = snippet_leg(3u, INT64_C(100));
+                l6 = snippet_leg(4u, INT64_C(10));
                 vader_array_t* _a1_arr = vader_array_new(24u, 2u, 0u, 3u);
                 vader_array_box_slots(_a1_arr->buf)[_a1_arr->offset + 1u] = l6;
                 vader_array_box_slots(_a1_arr->buf)[_a1_arr->offset + 0u] = l5;

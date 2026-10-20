@@ -1,7 +1,12 @@
 # stdout
-int 4
-int 6
-int 5
-text five
+alias element: int 4
+alias element: int 6
+alias element: int 5
+alias element: text five
+int-only literal: int 1
+int-only literal: int 2
+int-only literal: int 3
+int-only literal: str hi
+widened argument: ten
 # exit
 0

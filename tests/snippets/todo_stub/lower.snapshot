@@ -10,6 +10,7 @@
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       snippet.run_mode("list")
+      snippet.run_mode("compact")
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

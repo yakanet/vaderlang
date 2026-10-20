@@ -1,0 +1,11 @@
+# stdout
+implicit call:   43
+implicit let:    42
+implicit return: 42
+implicit field:  tag=user_42 n=42
+explicit i32:    7
+explicit string: user_7
+overload into:   84
+overload direct: 100
+# exit
+0

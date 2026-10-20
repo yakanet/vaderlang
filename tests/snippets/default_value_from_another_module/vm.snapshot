@@ -7,5 +7,8 @@ tagged
 5
 110
 012
+namespace, omitted: Hi, Bob
+namespace, positional: Hello, Eve
+namespace, named: Yo, Al
 # exit
 0

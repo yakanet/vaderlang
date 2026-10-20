@@ -1,0 +1,338 @@
+# Lower
+
+## snippet
+  snippet.show :: fn(label: string, v: i32 | null) -> void {  // snippet$show
+      if v is null {
+          std.io.println<string>(concat_2(label, " missing"))
+      } else {
+          std.io.println<string>({
+              __p_0: string = label
+              __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
+              __off_2: i64 = 0
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+              __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
+              __off_2 = std.core.write_int(__buf_1, __off_2, i64(i32(v)))
+              std.core.finish_buffer(__buf_1, __off_2)
+          } :string)
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      ints: MutableMap<i32, i32> = MutableMap<i32, i32> {
+          .ekeys = [] :i32[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      std.collections.MutableMap<i32, i32>.set_at(ints, 1, 10)
+      std.collections.MutableMap<i32, i32>.set_at(ints, 2, 20)
+      std.collections.MutableMap<i32, i32>.set_at(ints, 17, 170)
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(35))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "i32 keys: size=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, std.collections.len<i32, i32>(ints))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      snippet.show("i32 keys: 1", std.collections.MutableMap<i32, i32>.at(ints, 1))
+      snippet.show("i32 keys: 17", std.collections.MutableMap<i32, i32>.at(ints, 17))
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(32))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "i32 keys: 2 in=")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.MutableMap<i32, i32>.contains(ints, 2))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " 99 in=")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, std.collections.MutableMap<i32, i32>.contains(ints, 99))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      std.collections.MutableMap<i32, i32>.set_at(ints, 1, 999)
+      snippet.show("i32 keys: 1 updated", std.collections.MutableMap<i32, i32>.at(ints, 1))
+      words: MutableMap<string, i32> = MutableMap<string, i32> {
+          .ekeys = [] :string[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      std.collections.MutableMap<string, i32>.set_at(words, "hello", 1)
+      std.collections.MutableMap<string, i32>.set_at(words, "world", 2)
+      std.collections.MutableMap<string, i32>.set_at(words, "vader", 42)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "string keys: size=")
+          __off_5 = std.core.write_int(__buf_4, __off_5, std.collections.len<string, i32>(words))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      snippet.show("string keys: vader", std.collections.MutableMap<string, i32>.at(words, "vader"))
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(44))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "string keys: hello in=")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.MutableMap<string, i32>.contains(words, "hello"))
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " missing in=")
+          __off_7 = std.core.write_bool(__buf_6, __off_7, std.collections.MutableMap<string, i32>.contains(words, "missing"))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.collections.MutableMap<string, i32>.set_at(words, "hello", 99)
+      snippet.show("string keys: hello updated", std.collections.MutableMap<string, i32>.at(words, "hello"))
+      snippet.show("string keys: absent", std.collections.MutableMap<string, i32>.at(words, "absent"))
+      if std.collections.MutableMap<string, i32>.contains(words, "world") {
+          std.io.println<string>("string keys: world in")
+      }
+      if !std.collections.MutableMap<string, i32>.contains(words, "z") {
+          std.io.println<string>("string keys: z !in")
+      }
+      keys: string[] = ["alpha", "beta", "gamma", "MutableMap", "x", "hello world", "a", ""] :string[]
+      table: MutableMap<string, i32> = MutableMap<string, i32> {
+          .ekeys = [] :string[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      i: i32 = 0
+      {
+          __for_arr_8: string[] = keys
+          __for_len_9: i64 = @array.len(__for_arr_8)
+          __for_i_10: i64 = 0
+          for __for_i_10 < __for_len_9 {
+              k: string = __for_arr_8[__for_i_10]
+              std.collections.MutableMap<string, i32>.set_at(table, k, i)
+              i = i + 1
+          } @step {
+              __for_i_10 = __for_i_10 +% i64(1)
+          }
+      }
+      {
+          __for_arr_11: string[] = keys
+          __for_len_12: i64 = @array.len(__for_arr_11)
+          __for_i_13: i64 = 0
+          for __for_i_13 < __for_len_12 {
+              k: string = __for_arr_11[__for_i_13]
+              snippet.show(concat_3("read back: '", k, "'"), std.collections.MutableMap<string, i32>.at(table, k))
+          } @step {
+              __for_i_13 = __for_i_13 +% i64(1)
+          }
+      }
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(36))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "read back: size=")
+          __off_15 = std.core.write_int(__buf_14, __off_15, std.collections.len<string, i32>(table))
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      ordered: MutableMap<string, i32> = MutableMap<string, i32> {
+          .ekeys = [] :string[],
+          .evals = [] :i32[],
+          .index = [] :i32[],
+          .mask = i64(0),
+          .size = i64(0),
+          .tombs = i64(0),
+      }
+      std.collections.MutableMap<string, i32>.set_at(ordered, "a", 1)
+      std.collections.MutableMap<string, i32>.set_at(ordered, "b", 2)
+      std.collections.MutableMap<string, i32>.set_at(ordered, "c", 3)
+      sum: i32 = 0
+      {
+          self: MutableMap<string, i32> = ordered
+          keys: string[] = self.ekeys
+          values: i32[] = self.evals
+          {
+              i: i64 = 0
+              __for_hi_0: i64 = self.size
+              for i < __for_hi_0 {
+                  __gen_elem_20: [string, i32] = [keys[i], values[i]] :[string, i32]
+                  k: string = __gen_elem_20._0
+                  v: i32 = __gen_elem_20._1
+                  std.io.println<string>({
+                      __p_17: string = k
+                      __buf_18: Buffer = std.core.new_byte_buffer(i64(38) +% std.core.byte_len(__p_17))
+                      __off_19: i64 = 0
+                      __off_19 = std.core.write_string_at(__buf_18, __off_19, "for destructure: ")
+                      __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_17)
+                      __off_19 = std.core.write_string_at(__buf_18, __off_19, "=")
+                      __off_19 = std.core.write_int(__buf_18, __off_19, i64(v))
+                      std.core.finish_buffer(__buf_18, __off_19)
+                  } :string)
+                  sum = sum + v
+              } @step {
+                  i = i +% i64(1)
+              }
+          }
+      }
+      std.io.println<string>({
+          __buf_21: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_22: i64 = 0
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, "for destructure: sum=")
+          __off_22 = std.core.write_int(__buf_21, __off_22, i64(sum))
+          std.core.finish_buffer(__buf_21, __off_22)
+      } :string)
+      s: MutableSet<i32> = MutableSet<i32> {
+          .inner = MutableMap<i32, bool> {
+              .ekeys = [] :i32[],
+              .evals = [] :bool[],
+              .index = [] :i32[],
+              .mask = i64(0),
+              .size = i64(0),
+              .tombs = i64(0),
+          },
+      }
+      std.io.println<string>({
+          __buf_23: Buffer = std.core.new_byte_buffer(i64(21))
+          __off_24: i64 = 0
+          __off_24 = std.core.write_string_at(__buf_23, __off_24, "set: add 10 new=")
+          __off_24 = std.core.write_bool(__buf_23, __off_24, std.collections.add<i32>(s, 10))
+          std.core.finish_buffer(__buf_23, __off_24)
+      } :string)
+      std.io.println<string>({
+          __buf_25: Buffer = std.core.new_byte_buffer(i64(21))
+          __off_26: i64 = 0
+          __off_26 = std.core.write_string_at(__buf_25, __off_26, "set: add 20 new=")
+          __off_26 = std.core.write_bool(__buf_25, __off_26, std.collections.add<i32>(s, 20))
+          std.core.finish_buffer(__buf_25, __off_26)
+      } :string)
+      std.io.println<string>({
+          __buf_27: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_28: i64 = 0
+          __off_28 = std.core.write_string_at(__buf_27, __off_28, "set: add 10 again new=")
+          __off_28 = std.core.write_bool(__buf_27, __off_28, std.collections.add<i32>(s, 10))
+          std.core.finish_buffer(__buf_27, __off_28)
+      } :string)
+      std.collections.add<i32>(s, 30)
+      std.io.println<string>({
+          __buf_29: Buffer = std.core.new_byte_buffer(i64(53))
+          __off_30: i64 = 0
+          __off_30 = std.core.write_string_at(__buf_29, __off_30, "set: len=")
+          __off_30 = std.core.write_int(__buf_29, __off_30, std.collections.len<i32>(s))
+          __off_30 = std.core.write_string_at(__buf_29, __off_30, " 10 in=")
+          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.MutableSet<i32>.contains(s, 10))
+          __off_30 = std.core.write_string_at(__buf_29, __off_30, " 40 in=")
+          __off_30 = std.core.write_bool(__buf_29, __off_30, std.collections.MutableSet<i32>.contains(s, 40))
+          std.core.finish_buffer(__buf_29, __off_30)
+      } :string)
+      if std.collections.MutableSet<i32>.contains(s, 30) {
+          std.io.println<string>("set: 30 in")
+      }
+      if !std.collections.MutableSet<i32>.contains(s, 3) {
+          std.io.println<string>("set: 3 !in")
+      }
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.add<i32>  // std_collections$add__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.len<i32, i32>  // std_collections$len__i32__i32
+    fn std.collections.len<i32>  // std_collections$len__i32
+    fn std.collections.len<string, i32>  // std_collections$len__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    fn std_collections$__gen_state_std_collections_1$Iterator$next
+    fn std_collections$__gen_state_std_collections_2$Iterator$next
+    fn std_collections$__gen_state_std_collections_3$Iterator$next
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std_collections$__gen_state_std_collections_0
+    struct std_collections$__gen_state_std_collections_1
+    struct std_collections$__gen_state_std_collections_2
+    struct std_collections$__gen_state_std_collections_3
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

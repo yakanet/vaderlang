@@ -90,7 +90,7 @@
                   __self_1.state = 2
               }
           } else if __self_1.state == 4 {
-              __self_1.awaited = Async<Any>(std.async.race<string>([snippet.leg("fast", i64(10)), snippet.leg("slow", i64(100))] :Async<string>[]))
+              __self_1.awaited = Async<Any>(std.async.race<string>([snippet.leg("slow", i64(100)), snippet.leg("fast", i64(10))] :Async<string>[]))
               __self_1.state = 3
           } else {
               return Suspended { .wake_at = i64(0) }

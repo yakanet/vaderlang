@@ -2,11 +2,10 @@ module "snippet"
 
 import "std/io"
 
-// Regression: VM and C backend must agree on unsigned 32-bit shifts and
-// bit-ops. The VM used to Int32-coerce results via `| 0`, which turned
-// `0xFFFFFFFF` into `-1` on read-back; the C backend operates directly on
-// `uint32_t` and stays correct. Native-parity (VM == C) is what asserts
-// the fix.
+// Unsigned 32-bit shifts and bit-ops keep the full `u32` range: `>>`
+// zero-fills, `<<` wraps modulo 2^32, and a result with the top bit set reads
+// back as a large `u32`, never as a negative number. Each check prints its
+// name, or `BAD`.
 
 check :: fn(name: string, ok: bool) -> void {
     if ok { println(name) } else { println("BAD") }
@@ -29,7 +28,7 @@ main :: fn() -> i32 {
     check("or",  b | 1 == 0x80000001)
     check("xor", a ^ b == 0x7FFFFFFF)
 
-    // bitnot — `~0u32` must equal 0xFFFFFFFF (not -1).
+    // bitnot: `~0` compared with a `u32` must equal 0xFFFFFFFF (not -1).
     check("not_zero", ~0 == a)
     check("not_top",  ~b == 0x7FFFFFFF)
 

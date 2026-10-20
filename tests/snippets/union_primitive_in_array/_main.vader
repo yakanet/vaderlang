@@ -1,7 +1,14 @@
 // A primitive stored into an array whose element type is a union keeps its own
-// tag. Every array write boxes it — the literal, `a[i] = v` and `push` — and
+// tag. Every array write boxes it (the literal, `a[i] = v` and `push`) and
 // each must stamp the value's type (`i32`), never the element's (the union), or
 // `is i32` misses on the read and the payload is reinterpreted as the other arm.
+//
+// A fresh array literal is materialised directly into the target's element
+// representation, so a literal of `i32` alone may initialise a wider
+// union-typed slot. An argument may widen its element when its callee puts no
+// wider element into it, and the wider element reads the slots the source
+// wrote: boxed `string` slots read as boxed `string | null`. Guards the array
+// invariance and the slot-layout rule against over-rejection.
 
 module "snippet"
 
@@ -11,13 +18,30 @@ Cell :: i32 | string
 
 show :: fn(c: Cell) -> string = if c is i32 { "int ${c}" } else { "text ${c}" }
 
+first_name :: fn(names: (string | null)[]) -> string | null = names[0]
+
 main :: fn() -> i32 {
     cells: Cell[]: [4, "four"]
     cells[1] = 6
     cells.push(5)
     cells.push("five")
     for c in cells {
-        println(show(c))
+        println("alias element: ${show(c)}")
+    }
+
+    xs: (i32 | string)[]: [1, 2, 3]
+    xs.push("hi")
+    for x in xs {
+        if x is string {
+            println("int-only literal: str ${x}")
+        } else {
+            println("int-only literal: int ${x}")
+        }
+    }
+
+    names: string[]: ["ten", "twenty"]
+    if first_name(names) is string as n {
+        println("widened argument: ${n}")
     }
     return 0
 }

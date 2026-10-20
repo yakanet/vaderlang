@@ -1,0 +1,8 @@
+# stdout
+arith: s=(13,24) d=(7,16) m=(30,80) q=(3,5) r=(1,0)
+compound primitive: n=2
+compound struct: v=(3,4)
+equals: x==y true  x!=z true  x==z false
+compare: x<z true  z>x true  x>=y true  z<=z true  z<x false
+# exit
+0

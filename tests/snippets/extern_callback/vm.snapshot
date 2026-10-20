@@ -1,4 +1,5 @@
 # stdout
-42
+only argument: 42
+argument in a slot, GC inside: 88
 # exit
 0

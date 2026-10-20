@@ -1,8 +1,6 @@
-// UFCS dispatch on a union receiver (§3.8). When the target of a `.method()`
-// call has a union type and no variant carries a struct field of that name,
-// the typechecker falls through to UFCS free-fn lookup with the union as
-// the first-param type. Free fn `describe(v: Shape) -> string` is reachable
-// as `shape.describe()` without an explicit `match`.
+// UFCS on a union receiver (SPEC *UFCS*): `a.describe()` with `a: Shape`
+// calls the free fn `describe(s: Shape)`, whose first parameter takes the
+// whole union, with no `match` at the call site.
 
 module "snippet"
 

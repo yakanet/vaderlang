@@ -1,0 +1,8 @@
+# stdout
+break i:    0
+break i:    1
+continue i: 0
+continue i: 10
+continue i: 20
+# exit
+0

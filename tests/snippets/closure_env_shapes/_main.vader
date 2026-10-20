@@ -1,0 +1,51 @@
+// The environment a closure captures, in three shapes, each observed through
+// the value it computes:
+// - a block-bodied local fn over an immutable local: its env is a struct
+//   holding a copy, and the call stays direct (`__lambda(env, args)`);
+// - two closures over one mutable local: both envs hold the same cell, so the
+//   increments made through one are read through the other;
+// - a capturing lambda stored in a struct field: boxed with its env into a
+//   closure value, which survives the field and is called indirectly from it.
+module "snippet"
+
+import "std/io"
+
+Adder :: struct {
+    f: fn(i32) -> i32
+}
+
+copied_capture :: fn() -> i32 {
+    x :: 10
+    add_x :: fn(y: i32) -> i32 {
+        return x + y
+    }
+    return add_x(5)
+}
+
+shared_capture :: fn() -> i32 {
+    n := 0
+    inc :: fn() {
+        n += 1
+    }
+    get :: fn() -> i32 {
+        return n
+    }
+    inc()
+    inc()
+    inc()
+    inc()
+    return get()
+}
+
+capture_in_field :: fn() -> i32 {
+    base :: 50
+    a :: Adder { .f = (x: i32) -> base + x }
+    return a.f(3)
+}
+
+main :: fn() -> i32 {
+    println("copied capture:   ${copied_capture()}")
+    println("shared capture:   ${shared_capture()}")
+    println("capture in field: ${capture_in_field()}")
+    return 0
+}

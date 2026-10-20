@@ -1,0 +1,11 @@
+# Typecheck
+
+## tests/snippets/struct_param_before_its_declaration
+  StructDecl     Box                  :: Box
+  FnDecl         handle               :: fn(Box) -> i32
+  FnDecl         main                 :: fn() -> i32
+  expr 14:12    CallExpr       :: i32
+  expr 14:12    IdentExpr      :: fn(Box) -> i32
+  expr 14:19    StructLitExpr  :: Box
+  expr 9:31     FieldExpr      :: i32
+  expr 9:31     IdentExpr      :: Box

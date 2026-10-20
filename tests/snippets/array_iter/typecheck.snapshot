@@ -6,7 +6,7 @@
   expr 11:22    IdentExpr      :: i32
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
-  expr 14:14    SeqLitExpr     :: i32[]
+  expr 14:19    SeqLitExpr     :: i32[]
   expr 16:9     IdentExpr      :: i32[]
   expr 17:9     BinaryExpr     :: i32
   expr 17:9     IdentExpr      :: i32

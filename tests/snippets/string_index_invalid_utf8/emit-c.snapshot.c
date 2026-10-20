@@ -53,21 +53,21 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 
 const vader_type_info_t vader_type_info_table[13] = {
     [1] = { .slot_size = 4 },
-    [2] = { .slot_size = 1 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 1 },
-    [4] = {
+    [4] = { .slot_size = 1 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i64_t),
         .slot_size = 8,
     },
-    [5] = { .slot_size = 8 },
-    [6] = { .slot_size = 16 },
-    [7] = { .slot_size = 4 },
-    [8] = {
+    [6] = { .slot_size = 8 },
+    [7] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
+    [9] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [9] = { .slot_size = 8 },
-    [10] = { .slot_size = 4 },
+    [10] = { .slot_size = 8 },
     [11] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
@@ -99,7 +99,7 @@ static vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 11u, 3u);
+    return (void*) vader_string_bytes_view(a0, 11u, 4u);
 }
 
 static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -127,7 +127,7 @@ static int32_t snippet_main(void) {
     };
     vader_gc_top = &gc_frame;
 #line 12 "tests/snippets/string_index_invalid_utf8/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(11u, 7u, 1u, 3u);
+    vader_array_t* _a0_arr = vader_array_new(11u, 7u, 1u, 4u);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 6u] = (uint8_t) INT32_C(130);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 5u] = (uint8_t) INT32_C(226);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 4u] = (uint8_t) INT32_C(100);
@@ -201,7 +201,7 @@ static int32_t snippet_main(void) {
     std_io_println__i64(l1);
 #line 22 "tests/snippets/string_index_invalid_utf8/_main.vader"
     vader_struct_std_core_Range__i64_t* _a1_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
-    vader_obj_header_init(_a1_obj, 4u);
+    vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_start = INT64_C(1);
     _a1_obj->f_end = INT64_C(3);
     _a1_obj->f_inclusive = false;
@@ -213,7 +213,7 @@ static int32_t snippet_main(void) {
     std_io_println__i64(t1);
 #line 23 "tests/snippets/string_index_invalid_utf8/_main.vader"
     vader_struct_std_core_Range__i64_t* _a2_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
-    vader_obj_header_init(_a2_obj, 4u);
+    vader_obj_header_init(_a2_obj, 5u);
     _a2_obj->f_start = INT64_C(2);
     _a2_obj->f_end = INT64_C(10);
     _a2_obj->f_inclusive = false;
@@ -225,7 +225,7 @@ static int32_t snippet_main(void) {
     std_io_println__i64(t1);
 #line 24 "tests/snippets/string_index_invalid_utf8/_main.vader"
     vader_struct_std_core_Range__i64_t* _a3_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
-    vader_obj_header_init(_a3_obj, 4u);
+    vader_obj_header_init(_a3_obj, 5u);
     _a3_obj->f_start = INT64_C(4);
     _a3_obj->f_end = INT64_C(2);
     _a3_obj->f_inclusive = false;

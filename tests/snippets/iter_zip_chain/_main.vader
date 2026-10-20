@@ -1,10 +1,14 @@
+// `std/iter` combinators over arrays. `zip`, `chain` and `indexed` consumed by
+// a `for` fuse into index loops (`chain` into two, one per array); `flat_map`
+// bound to a local first runs as its state machine.
+
 module "snippet"
 
 import "std/io"
 import "std/iter"
 
 main :: fn() -> i32 {
-    // count + collect on arrays — eager forms, no laziness yet.
+    // `len` and `clone` on an array.
     nums :: [10, 20, 30]
     println("count=${nums.len()}")
     cloned :: nums.clone()

@@ -1,22 +1,14 @@
-// wide_literal_pin — free integer literals wider than i32 must repin to a
-// resolved wide concrete type instead of defaulting to i32 and truncating.
+// wide_literal_pin: a free integer literal wider than i32 takes the wide type
+// its context resolves, in three positions:
+//   1. index-key read   `m[9000000000]`     : the `Index<K, _>` key type K.
+//   2. index-set value  `m[k] = 9000000000` : the `IndexSet<K, V>` value type V,
+//      and the set key `m[9000000000] = v`  : K.
+//   3. explicit type arg `takes<i64>(9000000000)`: the named type binds T
+//      before the argument is checked.
 //
-// Three faces of one pre-existing typer gap, all fixed by pinning the
-// literal's `expected` type at the check site (see `vader/typecheck`):
-//   1. index-key read   `m[9000000000]`     — `Index<K, _>` key type K.
-//   2. index-set value  `m[k] = 9000000000` — `IndexSet<K, V>` value type V,
-//      and the set key `m[9000000000] = v`  — K.
-//   3. explicit type arg `takes<i64>(9000000000)` — the named type seeds the
-//      generic binding before the arg is checked.
-//
-// Before the fix every literal above silently became `410065408`
-// (9000000000 truncated through i32). Both the typecheck and bytecode
-// snapshots encode the repinned i64, so a regression is caught even without
-// a native run (the truncation is baked in at lowering, not at VM-vs-native).
-//
-// NOTE: a bare `c :: 9000000000` const still defaults to i32 by design (a
-// free literal with no pinning context) — out of scope here; annotate with
-// `i64(...)` to widen.
+// The lower and bytecode snapshots carry the `i64` literal. With no context
+// the literal defaults to i32, which it does not fit: `c :: 9000000000` is
+// T3066.
 
 module "snippet"
 

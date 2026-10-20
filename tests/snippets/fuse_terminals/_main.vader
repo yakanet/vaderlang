@@ -1,0 +1,56 @@
+// A terminal over a fusible lazy chain (`map` / `filter` over an array or an
+// integer range) lowers to one flat loop: no `MappedIterator` /
+// `FilterIterator` struct and no `Iterator.next()` dispatch (see the lower
+// snapshot). Per terminal:
+// - `collect()` pushes each element into a fresh array; its element type is
+//   concrete (bound from the receiver), so reading an element works natively;
+// - `count()` is std's free fn with one `for` over its argument, inlined into
+//   `total += 1`; on a bare array it is the O(1) array overload, no loop;
+// - `any_match` / `all_match` / `find` apply the predicate inline, keep an
+//   accumulator and `break` as soon as the answer is known; `find` gives the
+//   first match or null.
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+main :: fn() -> i32 {
+    xs :: [1, 2, 3, 4, 5, 6]
+
+    // collect: map + filter over an array, filter over a range.
+    ys :: [1, 2, 3, 4, 5, 6].map((x: i32) -> x * 2).filter((x: i32) -> x > 6).collect()
+    println("collect array: len ${ys.len()} [0]=${ys[0]} [1]=${ys[1]} [2]=${ys[2]}")
+    zs :: (0..<10).filter((x: i32) -> x % 3 == 0).collect()
+    println("collect range: len ${zs.len()} [0]=${zs[0]} [3]=${zs[3]}")
+
+    // count: map + filter over an array, filter over a range, a bare array.
+    a :: [1, 2, 3, 4, 5, 6].map((x: i32) -> x * 2).filter((x: i32) -> x > 6).count()
+    println("count array:   ${a}")
+    b :: (0..<10).filter((x: i32) -> x % 2 == 0).count()
+    println("count range:   ${b}")
+    c :: [10, 20, 30].count()
+    println("count bare:    ${c}")
+
+    // any_match stops at the first match, all_match at the first failure.
+    found_any :: xs.map((x: i32) -> x * 2).any_match((x: i32) -> x > 8)
+    println("any_match:     ${found_any}")
+    all_false :: xs.filter((x: i32) -> x > 0).all_match((x: i32) -> x < 4)
+    all_true :: xs.map((x: i32) -> x * 2).all_match((x: i32) -> x % 2 == 0)
+    println("all_match:     ${all_false} ${all_true}")
+
+    // find: the first match, or null when none.
+    f :: xs.map((x: i32) -> x * 10).find((x: i32) -> x > 25)
+    if f == null {
+        println("find hit:      none")
+    } else {
+        println("find hit:      ${f}")
+    }
+    g :: xs.filter((x: i32) -> x > 100).find((x: i32) -> x > 0)
+    if g == null {
+        println("find miss:     none")
+    } else {
+        println("find miss:     ${g}")
+    }
+
+    return 0
+}

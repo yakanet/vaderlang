@@ -153,12 +153,12 @@ const vader_type_info_t vader_type_info_table[21] = {
         .slot_size = 8,
     },
     [12] = { .slot_size = 4 },
-    [13] = { .slot_size = 1 },
-    [14] = {
+    [13] = { .slot_size = 4 },
+    [14] = { .slot_size = 1 },
+    [15] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
         .slot_size = 8,
     },
-    [15] = { .slot_size = 4 },
     [16] = { .slot_size = 4 },
     [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
@@ -193,7 +193,7 @@ static vader_string_t vader_host_std_core_bytes_to_string(void* a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 17u, 13u);
+    return (void*) vader_string_bytes_view(a0, 17u, 14u);
 }
 
 static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -811,14 +811,14 @@ static void* std_core_utf8_encode(uint32_t l0) {
 #line 34 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(128))) {
 #line 35 "lib/std/core/utf8.vader"
-        vader_array_t* _a0_arr = vader_array_new(17u, 1u, 1u, 13u);
+        vader_array_t* _a0_arr = vader_array_new(17u, 1u, 1u, 14u);
         ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) (((int32_t) (uint32_t) l1) & INT32_C(255));
         t1 = (void*) _a0_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 #line 34 "lib/std/core/utf8.vader"
     }
 #line 37 "lib/std/core/utf8.vader"
-    vader_array_t* _a1_arr = vader_array_new(17u, 0u, 1u, 13u);
+    vader_array_t* _a1_arr = vader_array_new(17u, 0u, 1u, 14u);
     l2 = (void*) _a1_arr;
 #line 38 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(2048))) {

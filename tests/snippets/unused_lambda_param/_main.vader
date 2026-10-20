@@ -1,10 +1,7 @@
-// A lambda that never references one of its parameters used to be lifted with
-// that param DROPPED : the resolver only recorded a lambda param in `idents` at
-// a use-site, so an unused param had no entry and `build_lifted_params` skipped
-// it. The lifted fn then had one fewer param than the closure calling convention
-// (env + params) expected, so invoking it via `call.indirect` tripped an arity
-// mismatch (VM trap / native miscompile). Fixed by recording lambda params at
-// their def-site, mirroring `walk_fn_decl`.
+// A lambda that never reads one of its parameters still takes it: the lifted
+// fn keeps every declared parameter, so it matches the closure calling
+// convention (env + params) that `call.indirect` uses. The resolver records a
+// lambda parameter where it is declared, not at its first use.
 module "snippet"
 
 import "std/io"
@@ -12,9 +9,9 @@ import "std/io"
 apply :: fn(x: i32, f: fn(i32) -> i32) -> i32 = f(x)
 
 main :: fn() -> i32 {
-    // `v` is never used in the body — the regressing case.
+    // `v` is never read in the body.
     println("${apply(5, fn(v: i32) { return 7 })}")   // 7
-    // a used param still works (the always-worked case, kept as a foil).
+    // a lambda that reads its param, as the control.
     println("${apply(5, fn(v: i32) { return v + 1 })}") // 6
     return 0
 }

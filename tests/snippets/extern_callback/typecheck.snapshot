@@ -1,14 +1,30 @@
 # Typecheck
 
 ## tests/snippets/extern_callback
+  FnDecl         apply_twice          :: fn(i32, fn(i32) -> i32, i32) -> i32
+  FnDecl         bump                 :: fn(i32) -> i32
   FnDecl         call_twice           :: fn(fn(i32) -> i32) -> i32
   FnDecl         double_it            :: fn(i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 14:34    BinaryExpr     :: i32
-  expr 14:34    IdentExpr      :: i32
-  expr 19:13    StringLitExpr  :: string
-  expr 19:16    CallExpr       :: i32
-  expr 19:16    IdentExpr      :: fn(fn(i32) -> i32) -> i32
-  expr 19:27    IdentExpr      :: fn(i32) -> i32
-  expr 19:5     CallExpr       :: void
-  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 25:34    BinaryExpr     :: i32
+  expr 25:34    IdentExpr      :: i32
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn() -> void
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    IdentExpr      :: i32
+  expr 37:13    StringLitExpr  :: string
+  expr 37:31    CallExpr       :: i32
+  expr 37:31    IdentExpr      :: fn(fn(i32) -> i32) -> i32
+  expr 37:42    IdentExpr      :: fn(i32) -> i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void
+  expr 39:15    RangeExpr      :: Range<i32>
+  expr 40:18    CallExpr       :: i32
+  expr 40:18    IdentExpr      :: fn(i32, fn(i32) -> i32, i32) -> i32
+  expr 40:34    IdentExpr      :: fn(i32) -> i32
+  expr 40:9     BinaryExpr     :: i32
+  expr 40:9     IdentExpr      :: i32
+  expr 42:13    StringLitExpr  :: string
+  expr 42:47    IdentExpr      :: i32
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

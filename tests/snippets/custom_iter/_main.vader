@@ -2,7 +2,7 @@ module "snippet"
 
 import "std/io"
 
-// A simple countdown iterator: yields n-1, n-2, ..., 0 then null.
+// A countdown iterator: yields n, n-1, ..., 1, then stops.
 export Countdown :: struct {
     current: i32
 }

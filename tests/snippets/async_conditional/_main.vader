@@ -1,12 +1,16 @@
-// `await` in a conditional branch — the flow-sensitive ANF hoists it INTO the
-// taken branch. The false branch takes no await.
+// `await` in a conditional branch: the flow-sensitive ANF hoists it INTO the
+// taken branch. The false branch takes no await, so `Ready.resume` logs
+// "awaited" for `pick(true)` only.
 module "snippet"
 
 import "std/io"
 
 Ready :: struct<T> { v: T }
 Ready<T> implements Async<T> {
-    resume :: fn(self) -> T | Suspended { return self.v }
+    resume :: fn(self) -> T | Suspended {
+        println("awaited")
+        return self.v
+    }
 }
 
 fetch :: fn() -> Async<i32> = Ready<i32> { .v = 7 }

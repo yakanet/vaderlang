@@ -1,0 +1,439 @@
+# Lower
+
+## snippet
+  snippet.main :: fn() -> i32 {  // snippet$main
+      xs: i32[] = [1, 2, 3, 4, 5, 6] :i32[]
+      ys: i32[] = {
+          __fuse_arr_0: i32[] = [1, 2, 3, 4, 5, 6] :i32[]
+          f: fn(i32) -> i32 = __lambda_snippet_0
+          pred: fn(i32) -> bool = __lambda_snippet_1
+          out: i32[] = [] :i32[]
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_0)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: i32 = __fuse_arr_0[__fuse_i_1]
+                  x: i32 = __lambda_snippet_0(x)
+                  if __lambda_snippet_1(x) {
+                      x: i32 = x
+                      @array.push_cached(out, x)
+                  }
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          out
+      }
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(114))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "collect array: len ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(ys))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " [0]=")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[0]))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " [1]=")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[1]))
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " [2]=")
+          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[2]))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      zs: i32[] = {
+          pred: fn(i32) -> bool = __lambda_snippet_2
+          out: i32[] = [] :i32[]
+          {
+              x: i32 = 0
+              for x < 10 {
+                  if __lambda_snippet_2(x) {
+                      x: i32 = x
+                      @array.push_cached(out, x)
+                  }
+              } @step {
+                  x = x +% 1
+              }
+          }
+          out
+      }
+      std.io.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(89))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, "collect range: len ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(zs))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " [0]=")
+          __off_6 = std.core.write_int(__buf_5, __off_6, i64(zs[0]))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " [3]=")
+          __off_6 = std.core.write_int(__buf_5, __off_6, i64(zs[3]))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      a: i64 = {
+          __fuse_arr_7: i32[] = [1, 2, 3, 4, 5, 6] :i32[]
+          f: fn(i32) -> i32 = __lambda_snippet_3
+          pred: fn(i32) -> bool = __lambda_snippet_4
+          total: i64 = 0
+          {
+              __fuse_len_0: i64 = @array.len(__fuse_arr_7)
+              __fuse_i_1: i64 = 0
+              for __fuse_i_1 < __fuse_len_0 {
+                  x: i32 = __fuse_arr_7[__fuse_i_1]
+                  x: i32 = __lambda_snippet_3(x)
+                  if __lambda_snippet_4(x) {
+                      _: i32 = x
+                      total = total + i64(1)
+                  }
+              } @step {
+                  __fuse_i_1 = __fuse_i_1 +% i64(1)
+              }
+          }
+          total
+      }
+      std.io.println<string>({
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(35))
+          __off_10: i64 = 0
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, "count array:   ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, a)
+          std.core.finish_buffer(__buf_9, __off_10)
+      } :string)
+      b: i64 = {
+          pred: fn(i32) -> bool = __lambda_snippet_5
+          total: i64 = 0
+          {
+              x: i32 = 0
+              for x < 10 {
+                  if __lambda_snippet_5(x) {
+                      _: i32 = x
+                      total = total + i64(1)
+                  }
+              } @step {
+                  x = x +% 1
+              }
+          }
+          total
+      }
+      std.io.println<string>({
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(35))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "count range:   ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, b)
+          std.core.finish_buffer(__buf_12, __off_13)
+      } :string)
+      c: i64 = std.iter.count<i32>([10, 20, 30] :i32[])
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(35))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "count bare:    ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, c)
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      found_any: bool = {
+          __fuse_arr_16: i32[] = xs
+          f: fn(i32) -> i32 = __lambda_snippet_6
+          pred: fn(i32) -> bool = __lambda_snippet_7
+          __consumed_17: bool = false
+          $exit$i74: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_16)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_16[__fuse_i_1]
+                      x: i32 = __lambda_snippet_6(x)
+                      if __lambda_snippet_7(x) {
+                          __consumed_17 = true
+                          break $exit$i74
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_17 = false
+          }
+          __consumed_17
+      }
+      std.io.println<string>({
+          __buf_18: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_19: i64 = 0
+          __off_19 = std.core.write_string_at(__buf_18, __off_19, "any_match:     ")
+          __off_19 = std.core.write_bool(__buf_18, __off_19, found_any)
+          std.core.finish_buffer(__buf_18, __off_19)
+      } :string)
+      all_false: bool = {
+          __fuse_arr_20: i32[] = xs
+          pred: fn(i32) -> bool = __lambda_snippet_8
+          pred: fn(i32) -> bool = __lambda_snippet_9
+          __consumed_21: bool = false
+          $exit$i90: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_20)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_20[__fuse_i_1]
+                      if __lambda_snippet_8(x) {
+                          x: i32 = x
+                          if !__lambda_snippet_9(x) {
+                              __consumed_21 = false
+                              break $exit$i90
+                          }
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_21 = true
+          }
+          __consumed_21
+      }
+      all_true: bool = {
+          __fuse_arr_22: i32[] = xs
+          f: fn(i32) -> i32 = __lambda_snippet_10
+          pred: fn(i32) -> bool = __lambda_snippet_11
+          __consumed_23: bool = false
+          $exit$i104: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_22)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_22[__fuse_i_1]
+                      x: i32 = __lambda_snippet_10(x)
+                      if !__lambda_snippet_11(x) {
+                          __consumed_23 = false
+                          break $exit$i104
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_23 = true
+          }
+          __consumed_23
+      }
+      std.io.println<string>({
+          __buf_24: Buffer = std.core.new_byte_buffer(i64(26))
+          __off_25: i64 = 0
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, "all_match:     ")
+          __off_25 = std.core.write_bool(__buf_24, __off_25, all_false)
+          __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
+          __off_25 = std.core.write_bool(__buf_24, __off_25, all_true)
+          std.core.finish_buffer(__buf_24, __off_25)
+      } :string)
+      f: i32 | null = {
+          __fuse_arr_26: i32[] = xs
+          f: fn(i32) -> i32 = __lambda_snippet_12
+          pred: fn(i32) -> bool = __lambda_snippet_13
+          __consumed_27: i32 | null = null
+          $exit$i120: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_26)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_26[__fuse_i_1]
+                      x: i32 = __lambda_snippet_12(x)
+                      if __lambda_snippet_13(x) {
+                          __consumed_27 = x
+                          break $exit$i120
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_27 = null
+          }
+          __consumed_27
+      }
+      if f is null {
+          std.io.println<string>("find hit:      none")
+      } else {
+          std.io.println<string>({
+              __buf_28: Buffer = std.core.new_byte_buffer(i64(35))
+              __off_29: i64 = 0
+              __off_29 = std.core.write_string_at(__buf_28, __off_29, "find hit:      ")
+              __off_29 = std.core.write_int(__buf_28, __off_29, i64(i32(f)))
+              std.core.finish_buffer(__buf_28, __off_29)
+          } :string)
+      }
+      g: i32 | null = {
+          __fuse_arr_30: i32[] = xs
+          pred: fn(i32) -> bool = __lambda_snippet_14
+          pred: fn(i32) -> bool = __lambda_snippet_15
+          __consumed_31: i32 | null = null
+          $exit$i136: {
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_30)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_30[__fuse_i_1]
+                      if __lambda_snippet_14(x) {
+                          x: i32 = x
+                          if __lambda_snippet_15(x) {
+                              __consumed_31 = x
+                              break $exit$i136
+                          }
+                      }
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              __consumed_31 = null
+          }
+          __consumed_31
+      }
+      if g is null {
+          std.io.println<string>("find miss:     none")
+      } else {
+          std.io.println<string>({
+              __buf_32: Buffer = std.core.new_byte_buffer(i64(35))
+              __off_33: i64 = 0
+              __off_33 = std.core.write_string_at(__buf_32, __off_33, "find miss:     ")
+              __off_33 = std.core.write_int(__buf_32, __off_33, i64(i32(g)))
+              std.core.finish_buffer(__buf_32, __off_33)
+          } :string)
+      }
+      return 0
+  }
+  __lambda_snippet_0 :: fn(x: i32) -> i32 {
+      x * 2
+  }
+  __lambda_snippet_1 :: fn(x: i32) -> bool {
+      x > 6
+  }
+  __lambda_snippet_2 :: fn(x: i32) -> bool {
+      (x % 3) == 0
+  }
+  __lambda_snippet_3 :: fn(x: i32) -> i32 {
+      x * 2
+  }
+  __lambda_snippet_4 :: fn(x: i32) -> bool {
+      x > 6
+  }
+  __lambda_snippet_5 :: fn(x: i32) -> bool {
+      (x % 2) == 0
+  }
+  __lambda_snippet_6 :: fn(x: i32) -> i32 {
+      x * 2
+  }
+  __lambda_snippet_7 :: fn(x: i32) -> bool {
+      x > 8
+  }
+  __lambda_snippet_8 :: fn(x: i32) -> bool {
+      x > 0
+  }
+  __lambda_snippet_9 :: fn(x: i32) -> bool {
+      x < 4
+  }
+  __lambda_snippet_10 :: fn(x: i32) -> i32 {
+      x * 2
+  }
+  __lambda_snippet_11 :: fn(x: i32) -> bool {
+      (x % 2) == 0
+  }
+  __lambda_snippet_12 :: fn(x: i32) -> i32 {
+      x * 10
+  }
+  __lambda_snippet_13 :: fn(x: i32) -> bool {
+      x > 25
+  }
+  __lambda_snippet_14 :: fn(x: i32) -> bool {
+      x > 100
+  }
+  __lambda_snippet_15 :: fn(x: i32) -> bool {
+      x > 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/collections
+    fn std.collections.MutableMap<i32, bool>.at  // std_collections$MutableMap$std_core_Index$at__i32__bool
+    fn std.collections.MutableMap<i32, bool>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__bool
+    fn std.collections.MutableMap<i32, bool>.into  // std_collections$MutableMap$std_core_Into$into__i32__bool
+    fn std.collections.MutableMap<i32, bool>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
+    fn std.collections.MutableMap<i32, i32>.at  // std_collections$MutableMap$std_core_Index$at__i32__i32
+    fn std.collections.MutableMap<i32, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__i32__i32
+    fn std.collections.MutableMap<i32, i32>.into  // std_collections$MutableMap$std_core_Into$into__i32__i32
+    fn std.collections.MutableMap<i32, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__i32__i32
+    fn std.collections.MutableMap<string, i32>.at  // std_collections$MutableMap$std_core_Index$at__string__i32
+    fn std.collections.MutableMap<string, i32>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i32
+    fn std.collections.MutableMap<string, i32>.into  // std_collections$MutableMap$std_core_Into$into__string__i32
+    fn std.collections.MutableMap<string, i32>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i32
+    fn std.collections.MutableSet<i32>.contains  // std_collections$MutableSet$std_core_Contains$contains__i32
+    fn std.collections.MutableSet<i32>.into  // std_collections$MutableSet$std_core_Into$into__i32
+    fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
+    fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
+    fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
+    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
+    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
+    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
+    fn std.collections.first_slot  // std_collections$first_slot
+    fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
+    fn std.collections.get<i32, i32>  // std_collections$get__i32__i32
+    fn std.collections.get<string, i32>  // std_collections$get__string__i32
+    fn std.collections.next_slot  // std_collections$next_slot
+    fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
+    fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
+    fn std.collections.put<string, i32>  // std_collections$put__string__i32
+    fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
+    fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
+    fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
+    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
+    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
+    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
+    fn std_collections$__gen_state_std_collections_0$Iterator$next
+    fn std_collections$__gen_state_std_collections_1$Iterator$next
+    fn std_collections$__gen_state_std_collections_2$Iterator$next
+    fn std_collections$__gen_state_std_collections_3$Iterator$next
+    struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
+    struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
+    struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
+    struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
+    struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
+    struct std.collections.MutableSet<i32>  // std_collections$MutableSet__i32
+    struct std_collections$__gen_state_std_collections_0
+    struct std_collections$__gen_state_std_collections_1
+    struct std_collections$__gen_state_std_collections_2
+    struct std_collections$__gen_state_std_collections_3
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.hash  // std_core$i32$Hash$hash
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.string.hash  // std_core$string$Hash$hash
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std_core$i32$Equals$equals$guard
+    fn std_core$string$Equals$equals$guard
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  std/iter
+    fn std.iter.count<i32>  // std_iter$count__i32
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

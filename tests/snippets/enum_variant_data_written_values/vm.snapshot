@@ -1,10 +1,15 @@
 # stdout
-200 Ok OK fine
-404 NotFound Not Found missing
-503 Unavailable Service Unavailable later
-1 error
-2 warning
-3 info
-404 true 1
+written: 200 Ok OK fine code=0
+written: 404 NotFound Not Found missing code=0
+written: 503 Unavailable Service Unavailable later code=0
+consecutive: 1 error
+consecutive: 2 warning
+consecutive: 3 info
+constant: 404 true 1
+field code: 200 OK retry=false
+field code: 404 Not Found retry=false
+field code: 503 Service Unavailable retry=true
+whole: Not Found / warning 2
+sizes: 1 1
 # exit
 0

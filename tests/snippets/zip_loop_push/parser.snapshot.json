@@ -23,6 +23,33 @@
         "decorators": []
       },
       {
+        "kind": "StructDecl",
+        "name": "Point",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "x",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          },
+          {
+            "name": "y",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "products",
         "visibility": "private",
@@ -291,6 +318,10 @@
                       "kind": "StringLitExpr",
                       "parts": [
                         {
+                          "kind": "text",
+                          "value": "push: "
+                        },
+                        {
                           "kind": "interp",
                           "expr": {
                             "kind": "CallExpr",
@@ -347,6 +378,257 @@
                   }
                 ]
               }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "labels"
+              },
+              "type": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "string"
+                }
+              },
+              "value": {
+                "kind": "SeqLitExpr",
+                "elements": [
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "a"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "b"
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "pts"
+              },
+              "type": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "Point"
+                }
+              },
+              "value": {
+                "kind": "SeqLitExpr",
+                "elements": [
+                  {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Point"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "x",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "10n"
+                        }
+                      },
+                      {
+                        "kind": "field",
+                        "name": "y",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "1n"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Point"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "x",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "20n"
+                        }
+                      },
+                      {
+                        "kind": "field",
+                        "name": "y",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "2n"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "StructLitExpr",
+                    "typeName": {
+                      "kind": "IdentExpr",
+                      "name": "Point"
+                    },
+                    "items": [
+                      {
+                        "kind": "field",
+                        "name": "x",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "30n"
+                        }
+                      },
+                      {
+                        "kind": "field",
+                        "name": "y",
+                        "value": {
+                          "kind": "IntLitExpr",
+                          "value": "3n"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "in",
+                "pattern": {
+                  "kind": "TupleBinding",
+                  "elements": [
+                    {
+                      "kind": "SimpleBinding",
+                      "name": "label"
+                    },
+                    {
+                      "kind": "SimpleBinding",
+                      "name": "pt"
+                    }
+                  ]
+                },
+                "iter": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "zip"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "labels"
+                      },
+                      "spread": false
+                    },
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "IdentExpr",
+                        "name": "pts"
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "struct field: "
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "IdentExpr",
+                              "name": "label"
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "value": ":"
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "pt"
+                              },
+                              "field": "x"
+                            }
+                          },
+                          {
+                            "kind": "text",
+                            "value": ","
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "pt"
+                              },
+                              "field": "y"
+                            }
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "isComptime": false
             },
             {
               "kind": "ReturnStmt",

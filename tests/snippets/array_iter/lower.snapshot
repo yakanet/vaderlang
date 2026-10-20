@@ -22,7 +22,7 @@
           __off_4 = std.core.write_int(__buf_3, __off_4, i64(sum))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
-      empty: i32[] = [0, 0, 0] :i32[]
+      empty: i32[] = [] :i32[]
       n: i32 = 0
       {
           __for_arr_6: i32[] = empty

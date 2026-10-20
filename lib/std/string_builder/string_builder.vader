@@ -13,7 +13,7 @@
 // an `@intrinsic` free fn, the others `@intrinsic` impl members resolved through
 // the impl registry. `bytes` /
 // `bytes_to_string` / `utf8_encode` are likewise ambient std/core primitives. So
-// this module needs no `import` of its own.
+// the builder itself imports nothing; only its tests import `std/testing`.
 //
 // Usage:
 //   sb := StringBuilder {}
@@ -94,4 +94,41 @@ StringBuilder implements Display {
         }
         return buf.intern_string(total)
     }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_append_strings_and_char :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append("Hello")
+    sb.append(", ")
+    sb.append("World")
+    sb.append_char('!')
+    assert_eq(sb.to_string(), "Hello, World!")
+}
+
+@test test_to_string_empty :: fn() -> void {
+    sb :: StringBuilder {}
+    assert_eq(sb.to_string(), "")
+}
+
+@test test_to_string_single_part :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append("solo")
+    assert_eq(sb.to_string(), "solo")
+}
+
+@test test_append_char_multibyte :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append_char('€')
+    sb.append_char(')')
+    assert_eq(sb.to_string(), "€)")
+}
+
+@test test_append_repeated :: fn() -> void {
+    sb :: StringBuilder {}
+    sb.append_repeated('-', 3)
+    assert_eq(sb.to_string(), "---")
 }

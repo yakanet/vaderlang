@@ -4,21 +4,21 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair<K, V>
   StructDecl     Point                :: Point
-  expr 22:14    IntrinsicCallExpr :: Field[]
-  expr 23:17    StringLitExpr  :: string
-  expr 23:20    FieldExpr      :: string
-  expr 23:20    IdentExpr      :: Field
-  expr 23:35    IntrinsicCallExpr :: i64
-  expr 23:44    FieldExpr      :: type
-  expr 23:44    IdentExpr      :: Field
-  expr 23:9     CallExpr       :: void
-  expr 23:9     IdentExpr      :: fn(T) -> void
-  expr 25:14    IntrinsicCallExpr :: Field[]
-  expr 26:17    StringLitExpr  :: string
-  expr 26:25    FieldExpr      :: string
-  expr 26:25    IdentExpr      :: Field
-  expr 26:40    IntrinsicCallExpr :: i64
-  expr 26:49    FieldExpr      :: type
-  expr 26:49    IdentExpr      :: Field
-  expr 26:9     CallExpr       :: void
-  expr 26:9     IdentExpr      :: fn(T) -> void
+  expr 28:14    IntrinsicCallExpr :: Field[]
+  expr 29:17    StringLitExpr  :: string
+  expr 29:20    FieldExpr      :: string
+  expr 29:20    IdentExpr      :: Field
+  expr 29:35    IntrinsicCallExpr :: i64
+  expr 29:44    FieldExpr      :: type
+  expr 29:44    IdentExpr      :: Field
+  expr 29:9     CallExpr       :: void
+  expr 29:9     IdentExpr      :: fn(T) -> void
+  expr 31:14    IntrinsicCallExpr :: Field[]
+  expr 32:17    StringLitExpr  :: string
+  expr 32:25    FieldExpr      :: string
+  expr 32:25    IdentExpr      :: Field
+  expr 32:40    IntrinsicCallExpr :: i64
+  expr 32:49    FieldExpr      :: type
+  expr 32:49    IdentExpr      :: Field
+  expr 32:9     CallExpr       :: void
+  expr 32:9     IdentExpr      :: fn(T) -> void

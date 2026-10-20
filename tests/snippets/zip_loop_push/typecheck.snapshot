@@ -2,34 +2,55 @@
 
 ## tests/snippets/zip_loop_push
   FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
   FnDecl         products             :: fn(i32[], i32[]) -> i64[]
-  expr 11:17    SeqLitExpr     :: i64[]
-  expr 12:19    CallExpr       :: __genstate_zip<[i32, i32]>
-  expr 12:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
-  expr 12:23    IdentExpr      :: i32[]
-  expr 12:26    IdentExpr      :: i32[]
-  expr 13:18    BinaryExpr     :: i64
-  expr 13:18    CallExpr       :: i64
-  expr 13:18    IdentExpr      :: type
-  expr 13:22    IdentExpr      :: i32
-  expr 13:27    CallExpr       :: i64
-  expr 13:27    IdentExpr      :: type
-  expr 13:31    IdentExpr      :: i32
-  expr 13:9     CallExpr       :: void
-  expr 13:9     FieldExpr      :: fn(i64) -> void
-  expr 13:9     IdentExpr      :: i64[]
-  expr 15:12    IdentExpr      :: i64[]
-  expr 19:10    CallExpr       :: i64[]
-  expr 19:10    IdentExpr      :: fn(i32[], i32[]) -> i64[]
-  expr 19:19    SeqLitExpr     :: i32[]
-  expr 19:33    SeqLitExpr     :: i32[]
-  expr 20:13    StringLitExpr  :: string
-  expr 20:16    CallExpr       :: i64
-  expr 20:16    FieldExpr      :: fn() -> i64
-  expr 20:16    IdentExpr      :: i64[]
-  expr 20:27    IdentExpr      :: i64[]
-  expr 20:27    IndexExpr      :: i64
-  expr 20:35    IdentExpr      :: i64[]
-  expr 20:35    IndexExpr      :: i64
-  expr 20:5     CallExpr       :: void
-  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 17:17    SeqLitExpr     :: i64[]
+  expr 18:19    CallExpr       :: __genstate_zip<[i32, i32]>
+  expr 18:19    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
+  expr 18:23    IdentExpr      :: i32[]
+  expr 18:26    IdentExpr      :: i32[]
+  expr 19:18    BinaryExpr     :: i64
+  expr 19:18    CallExpr       :: i64
+  expr 19:18    IdentExpr      :: type
+  expr 19:22    IdentExpr      :: i32
+  expr 19:27    CallExpr       :: i64
+  expr 19:27    IdentExpr      :: type
+  expr 19:31    IdentExpr      :: i32
+  expr 19:9     CallExpr       :: void
+  expr 19:9     FieldExpr      :: fn(i64) -> void
+  expr 19:9     IdentExpr      :: i64[]
+  expr 21:12    IdentExpr      :: i64[]
+  expr 25:10    CallExpr       :: i64[]
+  expr 25:10    IdentExpr      :: fn(i32[], i32[]) -> i64[]
+  expr 25:19    SeqLitExpr     :: i32[]
+  expr 25:33    SeqLitExpr     :: i32[]
+  expr 26:13    StringLitExpr  :: string
+  expr 26:22    CallExpr       :: i64
+  expr 26:22    FieldExpr      :: fn() -> i64
+  expr 26:22    IdentExpr      :: i64[]
+  expr 26:33    IdentExpr      :: i64[]
+  expr 26:33    IndexExpr      :: i64
+  expr 26:41    IdentExpr      :: i64[]
+  expr 26:41    IndexExpr      :: i64
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 28:23    SeqLitExpr     :: string[]
+  expr 28:24    StringLitExpr  :: string
+  expr 28:29    StringLitExpr  :: string
+  expr 28:34    StringLitExpr  :: string
+  expr 29:19    SeqLitExpr     :: Point[]
+  expr 30:9     StructLitExpr  :: Point
+  expr 31:9     StructLitExpr  :: Point
+  expr 32:9     StructLitExpr  :: Point
+  expr 34:24    CallExpr       :: __genstate_zip<[string, Point]>
+  expr 34:24    IdentExpr      :: fn(T[], U[]) -> Iterator<[T, U]>
+  expr 34:28    IdentExpr      :: string[]
+  expr 34:36    IdentExpr      :: Point[]
+  expr 35:17    StringLitExpr  :: string
+  expr 35:34    IdentExpr      :: string
+  expr 35:43    FieldExpr      :: i32
+  expr 35:43    IdentExpr      :: Point
+  expr 35:51    FieldExpr      :: i32
+  expr 35:51    IdentExpr      :: Point
+  expr 35:9     CallExpr       :: void
+  expr 35:9     IdentExpr      :: fn(T) -> void

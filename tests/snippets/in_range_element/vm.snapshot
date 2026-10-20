@@ -1,9 +1,18 @@
 # stdout
-true false
-true true true
-true false
-true false true false
-true true
-true false true true
+i64 bounds: true false
+u8 bounds: true true true
+distinct bounds: true false
+byte array: true false
+i64 arrays: true false
+Contains<i64>: true true
+Range<i64>: true false
+i64[]: true true
+free ranges: true true true
+i32 array: true true
+bytes view: true true
+user impl: true true true
+char digit: true false false
+char digit ends: true true
+char alpha: true true false
 # exit
 0

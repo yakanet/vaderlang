@@ -3,22 +3,32 @@ type 0 primitive null
 type 1 union 2,3
 type 2 primitive i32
 type 3 primitive string
-type 4 primitive u8
-type 5 primitive i64
-type 6 struct std_core$Buffer {  }
-type 7 array 4
-type 8 primitive void
-type 9 array 1
+type 4 array 5
+type 5 union 0,3
+type 6 primitive u8
+type 7 primitive i64
+type 8 struct std_core$Buffer {  }
+type 9 array 6
+type 10 primitive void
+type 11 array 1
+type 12 array 3
 string 0 "int "
 string 1 "text "
 string 2 "four"
 string 3 "five"
-string 4 "\n"
-import 0 byte_len std_core$byte_len result_type=5 param_types=3 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=7 param_types=3 param_c_out= param_by_address= (string) -> ref
-import 2 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=2,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 6 std_core$ByteAccess
-export main 1
+string 4 "alias element: "
+string 5 "hi"
+string 6 "int-only literal: str "
+string 7 "int-only literal: int "
+string 8 "ten"
+string 9 "twenty"
+string 10 "widened argument: "
+string 11 "\n"
+import 0 byte_len std_core$byte_len result_type=7 param_types=3 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=9 param_types=3 param_c_out= param_by_address= (string) -> ref
+import 2 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=2,9,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 8 std_core$ByteAccess
+export main 2
 
 fn 0 snippet$show (any) -> string
   local __buf_0 ref
@@ -36,7 +46,7 @@ fn 0 snippet$show (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     string.const 0   ; "int "
-    call 4   ; std_core$write_string_at
+    call 5   ; std_core$write_string_at
     local.set 2   ; __off_1
     local.get 0   ; arg 0
     ref.cast 2   ; i32
@@ -45,11 +55,11 @@ fn 0 snippet$show (any) -> string
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
     local.get 3   ; $cast_11
-    call 5   ; std_core$write_int
+    call 6   ; std_core$write_int
     local.set 2   ; __off_1
     local.get 1   ; __buf_0
     local.get 2   ; __off_1
-    call 3   ; std_core$finish_buffer
+    call 4   ; std_core$finish_buffer
     return
   end $L0
   local.get 0   ; arg 0
@@ -57,24 +67,36 @@ fn 0 snippet$show (any) -> string
   local.set 4   ; $cast_15
   string.const 1   ; "text "
   local.get 4   ; $cast_15
-  call 2   ; concat_2
+  call 3   ; concat_2
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 snippet$first_name (ref) -> any
+  local.get 0   ; arg 0
+  i32.const 0
+  array.get 4   ; union[]
+  return
+end
+
+fn 2 snippet$main () -> i32
   local cells ref
   local __for_len_1 i64
   local __for_i_2 i64
+  local $call_17 string
+  local x any
+  local __buf_6 ref
+  local __off_7 i64
+  local $cast_47 i64
   i32.const 4
   retag 2   ; i32
   string.const 2   ; "four"
   retag 3   ; string
-  array.new 9 2   ; union[]
+  array.new 11 2   ; union[]
   local.tee 0   ; cells
   i32.const 1
   i32.const 6
   retag 2   ; i32
-  array.set 9   ; union[]
+  array.set 11   ; union[]
   local.get 0   ; cells
   i32.const 5
   retag 2   ; i32
@@ -95,9 +117,13 @@ fn 1 snippet$main () -> i32
     if $L1 void
       local.get 0   ; cells
       local.get 2   ; __for_i_2
-      array.get 9   ; union[]
+      array.get 11   ; union[]
       call 0   ; snippet$show
-      call 8   ; std_io$println__string
+      local.set 3   ; $call_17
+      string.const 4   ; "alias element: "
+      local.get 3   ; $call_17
+      call 3   ; concat_2
+      call 9   ; std_io$println__string
       local.get 2   ; __for_i_2
       i64.const 1
       i64.add
@@ -105,10 +131,93 @@ fn 1 snippet$main () -> i32
       br $L0
     end $L1
   end $L0
+  i32.const 1
+  retag 2   ; i32
+  i32.const 2
+  retag 2   ; i32
+  i32.const 3
+  retag 2   ; i32
+  array.new 11 3   ; union[]
+  local.tee 0   ; cells
+  string.const 5   ; "hi"
+  retag 3   ; string
+  array.push 1   ; union
+  local.get 0   ; cells
+  array.len
+  local.set 1   ; __for_len_1
+  i64.const 0
+  local.set 2   ; __for_i_2
+  loop $L2 void
+    local.get 2   ; __for_i_2
+    local.get 1   ; __for_len_1
+    i64.lt
+    if $L3 void
+      local.get 0   ; cells
+      local.get 2   ; __for_i_2
+      array.get 11   ; union[]
+      local.tee 4   ; x
+      type_check 3   ; string
+      if $L4 void
+        local.get 4   ; x
+        ref.cast 3   ; string
+        local.set 3   ; $call_17
+        string.const 6   ; "int-only literal: str "
+        local.get 3   ; $call_17
+        call 3   ; concat_2
+        call 9   ; std_io$println__string
+      else
+        i64.const 42
+        buffer.new
+        local.set 5   ; __buf_6
+        i64.const 0
+        local.set 6   ; __off_7
+        local.get 5   ; __buf_6
+        local.get 6   ; __off_7
+        string.const 7   ; "int-only literal: int "
+        call 5   ; std_core$write_string_at
+        local.set 6   ; __off_7
+        local.get 4   ; x
+        ref.cast 2   ; i32
+        i32.to_i64
+        local.set 7   ; $cast_47
+        local.get 5   ; __buf_6
+        local.get 6   ; __off_7
+        local.get 7   ; $cast_47
+        call 6   ; std_core$write_int
+        local.set 6   ; __off_7
+        local.get 5   ; __buf_6
+        local.get 6   ; __off_7
+        call 4   ; std_core$finish_buffer
+        call 9   ; std_io$println__string
+      end $L4
+      local.get 2   ; __for_i_2
+      i64.const 1
+      i64.add
+      local.set 2   ; __for_i_2
+      br $L2
+    end $L3
+  end $L2
+  string.const 8   ; "ten"
+  string.const 9   ; "twenty"
+  array.new 12 2   ; string[]
+  local.tee 0   ; cells
+  call 1   ; snippet$first_name
+  type_check 3   ; string
+  if $L5 void
+    local.get 0   ; cells
+    call 1   ; snippet$first_name
+    ref.cast 3   ; string
+    local.set 3   ; $call_17
+    string.const 10   ; "widened argument: "
+    local.get 3   ; $call_17
+    call 3   ; concat_2
+    call 9   ; std_io$println__string
+    return.lit i32.const 0
+  end $L5
   return.lit i32.const 0
 end
 
-fn 2 concat_2 (string,string) -> string
+fn 3 concat_2 (string,string) -> string
   local c0 i64
   local $call_4 i64
   local buf ref
@@ -137,14 +246,14 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$finish_buffer (ref,i64) -> string
+fn 4 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_string_at (ref,i64,string) -> i64
+fn 5 std_core$write_string_at (ref,i64,string) -> i64
   local $call_3 i64
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -159,7 +268,7 @@ fn 4 std_core$write_string_at (ref,i64,string) -> i64
   return
 end
 
-fn 5 std_core$write_int (ref,i64,i64) -> i64
+fn 6 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -273,7 +382,7 @@ fn 5 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 6 std_io$write (u8,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -302,14 +411,14 @@ fn 6 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 7   ; u8[]
+      array.slice 9   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 7   ; std_io$write_bytes
+      call 8   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -329,7 +438,7 @@ fn 6 std_io$write (u8,string) -> void
   return
 end
 
-fn 7 std_io$write_bytes (u8,ref,i64) -> i32
+fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -349,14 +458,14 @@ fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 8 std_io$println__string (string) -> void
+fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 4   ; "\n"
-  call 2   ; concat_2
+  string.const 11   ; "\n"
+  call 3   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 6   ; std_io$write
+  call 7   ; std_io$write
   return
 end

@@ -28,6 +28,17 @@
           __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.Path.equals(p, "abc"))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(25))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "both  : ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.Path.equals(p, Path("readme")))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, !snippet.Path.equals(p, Path("readme")))
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.Path.equals(p, Path("abc")))
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

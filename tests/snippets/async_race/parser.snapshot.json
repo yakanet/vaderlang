@@ -183,7 +183,7 @@
                                   "parts": [
                                     {
                                       "kind": "text",
-                                      "value": "fast"
+                                      "value": "slow"
                                     }
                                   ]
                                 },
@@ -193,7 +193,7 @@
                                 "name": null,
                                 "value": {
                                   "kind": "IntLitExpr",
-                                  "value": "10n"
+                                  "value": "100n"
                                 },
                                 "spread": false
                               }
@@ -213,7 +213,7 @@
                                   "parts": [
                                     {
                                       "kind": "text",
-                                      "value": "slow"
+                                      "value": "fast"
                                     }
                                   ]
                                 },
@@ -223,7 +223,7 @@
                                 "name": null,
                                 "value": {
                                   "kind": "IntLitExpr",
-                                  "value": "100n"
+                                  "value": "10n"
                                 },
                                 "spread": false
                               }

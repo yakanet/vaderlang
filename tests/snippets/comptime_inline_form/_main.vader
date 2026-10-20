@@ -1,0 +1,55 @@
+// The inline form of `@comptime` on a constant's right-hand side, in three
+// shapes: a block ending in `return`, a bare call, and a block whose early
+// `return` sits inside a narrowing `if`.
+//
+// Each `NAME :: @comptime <expr>` desugars to a nullary `__comptime_NAME` fn
+// plus a `@comptime` constant calling it (parser and lower snapshots). `ANSWER`
+// folds on the tree-walk, `SQUARES` and `PICKED` run on the comptime VM
+// (comptime snapshot). `PICKED` must bake 7: its trailing `return 0` evaluated
+// alone, without the binding and the early return before it, would bake 0.
+//
+// Expected: prints "9", "42", then "7".
+
+module "snippet"
+
+import "std/io"
+
+// Block form with an imperative `return`.
+SQUARES :: @comptime {
+    r: u32[]: []
+    for i in 0..<6 {
+        r.push(u32(i * i))
+    }
+    return r
+}
+
+build_answer :: fn() -> i32 = 41 + 1
+
+// Bare-call form.
+ANSWER :: @comptime build_answer()
+
+Maybe :: struct { n: i32 }
+
+some_or_none :: fn(k: i32) -> Maybe | null {
+    if k == 0 {
+        return null
+    }
+    return Maybe { .n = k }
+}
+
+// Block with a binding, an early `return` under a narrowing `if`, and a
+// trailing `return`.
+PICKED :: @comptime {
+    m :: some_or_none(7)
+    if m is Maybe {
+        return m.n
+    }
+    return 0
+}
+
+main :: fn() -> i32 {
+    println("${SQUARES[3]}")
+    println("${ANSWER}")
+    println("${PICKED}")
+    return 0
+}

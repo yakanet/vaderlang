@@ -59,14 +59,13 @@
 [11:27-11:28] rparen         ")"
 [12:1-12:1  ] newline        "\n"
 [14:5-14:10 ] ident          "empty"
-[14:11-14:13] decl_const     "::"
-[14:14-14:15] lbracket       "["
-[14:15-14:16] int_literal    "0" =0n
-[14:16-14:17] comma          ","
-[14:18-14:19] int_literal    "0" =0n
-[14:19-14:20] comma          ","
-[14:21-14:22] int_literal    "0" =0n
-[14:22-14:23] rbracket       "]"
+[14:10-14:11] colon          ":"
+[14:12-14:15] ident          "i32"
+[14:15-14:16] lbracket       "["
+[14:16-14:17] rbracket       "]"
+[14:17-14:18] colon          ":"
+[14:19-14:20] lbracket       "["
+[14:20-14:21] rbracket       "]"
 [15:1-15:1  ] newline        "\n"
 [15:5-15:6  ] ident          "n"
 [15:7-15:9  ] decl_var       ":="

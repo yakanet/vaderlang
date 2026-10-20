@@ -1,0 +1,67 @@
+// tests/snippets/tuple_basics: the fixed-arity tuple `[A, B, ...]`, element
+// types mixed.
+//
+// One labelled line per form: a tuple returned by a fn and read by slot
+// (`p.0`, `p.1`); let-destructuring, flat, with a `_` hole and nested
+// (`[[id, label], active]`); arities 3 and 4 read up to `.3`; a tuple as a
+// struct field, reached by `e.coord.0`; an array of tuples walked by
+// `for row in rows` and by `for [k, v] in pairs`. An unannotated bracket
+// literal is an array when its elements share one type and a tuple when they
+// do not.
+
+module "snippet"
+
+import "std/io"
+
+Entry :: struct {
+    id:    i32
+    coord: [f64, f64]
+}
+
+make_pair :: fn() -> [i32, string] = [42, "answer"]
+
+triple :: fn() -> [i32, string, bool] = [7, "ignored", true]
+
+make_record :: fn() -> [[i32, string], bool] = [[7, "seven"], true]
+
+main :: fn() -> i32 {
+    p :: make_pair()
+    println("slot: first=${p.0} second=${p.1}")
+
+    [n, word] :: make_pair()
+    println("destructure: n=${n} word=${word}")
+
+    [a, _, c] :: triple()
+    println("wildcard: a=${a} c=${c}")
+
+    [[id, label], active] :: make_record()
+    println("nested: id=${id} label=${label} active=${active}")
+
+    three: [i32, string, bool]: [1, "x", true]
+    println("arity 3: ${three.0} ${three.1} ${three.2}")
+    four: [i32, string, bool, f64]: [9, "q", false, 3.14]
+    println("arity 4: ${four.0} ${four.1} ${four.2} ${four.3 == 3.14}")
+
+    e :: Entry { .id = 1, .coord = [3.5, 7.25] }
+    println("field: id=${e.id} x=${e.coord.0 == 3.5} y=${e.coord.1 == 7.25}")
+
+    rows: [i32, string][]: [[1, "one"], [2, "two"], [3, "three"]]
+    for row in rows {
+        println("row: ${row.0} -> ${row.1}")
+    }
+
+    pairs: [string, i32][]: [["a", 1], ["b", 2], ["c", 3]]
+    for [k, v] in pairs {
+        println("for destructure: ${k}=${v}")
+    }
+
+    scores :: [10, 20, 30]
+    for s in scores {
+        println("inferred array: ${s}")
+    }
+
+    entry :: [42, "answer"]
+    println("inferred tuple: id=${entry.0} label=${entry.1}")
+
+    return 0
+}

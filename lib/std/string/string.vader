@@ -863,6 +863,41 @@ import "std/testing"
     assert_eq(trim_suffix("no-match", "xxx"), "no-match")
 }
 
+@test test_replace_first_occurrence_only :: fn() -> void {
+    assert_eq("hello world".replace("o", "0"), "hell0 world")
+}
+
+@test test_replace_without_match :: fn() -> void {
+    assert_eq("no-match".replace("z", "Z"), "no-match")
+}
+
+@test test_replace_all :: fn() -> void {
+    assert_eq("a.b.c".replace_all(".", "-"), "a-b-c")
+}
+
+@test test_repeat :: fn() -> void {
+    assert_eq("ab".repeat(3), "ababab")
+}
+
+@test test_repeat_zero_times :: fn() -> void {
+    assert_eq("x".repeat(0), "")
+}
+
+@test test_contains_char :: fn() -> void {
+    assert("hello".contains_char('e'), "hello has e")
+    assert(!"hello".contains_char('z'), "hello has no z")
+}
+
+@test test_replace_chars_where :: fn() -> void {
+    out :: replace_chars_where("std::io.print!", (c: char) -> c !in 'a'..='z', "_")
+    assert_eq(out, "std__io_print_")
+}
+
+@test test_split_where_drops_empty_pieces :: fn() -> void {
+    is_blank :: (c: char) -> c == ' ' || c == '\t' || c == '\n'
+    assert_eq(split_where("  hello  world\tfoo\n bar  ", is_blank).join("|"), "hello|world|foo|bar")
+}
+
 @test test_len :: fn() -> void {
     assert_eq(len(""), 0)
     assert_eq(len("abc"), 3)

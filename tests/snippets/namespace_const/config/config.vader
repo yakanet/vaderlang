@@ -1,7 +1,0 @@
-// Sub-module exporting a scalar const. Reached from `_main` via a namespace
-// import (`C :: import "snippet/config"`) so `C.MAX_RETRIES` exercises
-// namespace-qualified CONST access.
-module "snippet/config"
-
-export MAX_RETRIES :: i64(3)
-export GREETING :: "hi"

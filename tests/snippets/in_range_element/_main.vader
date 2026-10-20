@@ -1,8 +1,16 @@
+// tests/snippets/in_range_element: `x in c` and `x !in c`, the `Contains`
+// sugar, one labelled line per container.
+//
 // `x in lo..=hi` types a literal range's bounds as `x`: over an `i64` they reach
-// past `i32`, over a `u8` a char bound lands as a byte, over a distinct they are
-// its backing's. A literal array takes the element's type the same way. A free
-// element takes the container's type, an `i64` on a `Range<i64>` or an `i64[]`,
-// and the trait's on a container dispatching through `Contains`.
+// past `i32`, over a `u8` a char bound lands as a byte, over a `char` they stay
+// codepoints, over a distinct they are its backing's. A literal array takes the
+// element's type the same way. A free element takes the container's type: an
+// `i64` on a `Range<i64>` or an `i64[]`, a byte on a `bytes()` view, and the
+// trait's on a container dispatching through a user `Contains` impl, whether
+// the impl is called directly, through a bound `C` or through the trait value.
+// With both sides free, a range and an array are `i32`. Arrays go through the
+// std/core blanket `T[] implements<T> Contains<T>`.
+
 module "snippet"
 
 import "std/io"
@@ -17,12 +25,31 @@ near :: fn(m: Meters) -> bool = m in 0..=9 && m !in 10..<20
 
 blank :: fn(b: u8) -> bool = b in [' ', '\t']
 
+is_digit :: fn(c: char) -> bool = c in '0'..='9'
+
+is_alpha :: fn(c: char) -> bool = c in 'a'..='z' || c in 'A'..='Z'
+
 Bag :: struct {
     items: i64[]
 }
 
 Bag implements Contains<i64> {
     contains :: fn(self, value: i64) -> bool = value in self.items
+}
+
+/// Bit `i` set when digit `i` is in the set.
+DigitSet :: struct {
+    bits: i32
+}
+
+DigitSet implements Contains<i32> {
+    contains :: fn(self, value: i32) -> bool {
+        if value < 0 || value > 9 {
+            return false
+        }
+        mask :: 1 << value
+        return (self.bits & mask) != 0
+    }
 }
 
 has_big :: fn<C: Contains<i64>>(c: C) -> bool = 4_000_000_000 in c
@@ -34,12 +61,26 @@ listed :: fn(n: i64, m: Meters) -> bool = n in [1, 2] && m in [3, 4]
 main :: fn() -> i32 {
     r: Range<i64>: 0..<5_000_000_000
     xs: i64[]: [5_000_000_000, 7]
-    println("${wide(5_500_000_000)} ${wide(1_500_000_000)}")
-    println("${byte('q')} ${byte(255)} ${byte(100)}")
-    println("${near(Meters(5))} ${near(Meters(15))}")
-    println("${blank(' ')} ${blank('x')} ${listed(2, Meters(3))} ${listed(3, Meters(3))}")
+    println("i64 bounds: ${wide(5_500_000_000)} ${wide(1_500_000_000)}")
+    println("u8 bounds: ${byte('q')} ${byte(255)} ${byte(100)}")
+    println("distinct bounds: ${near(Meters(5))} ${near(Meters(15))}")
+    println("byte array: ${blank(' ')} ${blank('x')}")
+    println("i64 arrays: ${listed(2, Meters(3))} ${listed(3, Meters(3))}")
     bag :: Bag { .items = [4_000_000_000, 7] }
-    println("${has_big(bag)} ${has_big_value(bag)}")
-    println("${4_000_000_000 in r} ${6_000_000_000 in r} ${5_000_000_000 in xs} ${7 in xs}")
+    println("Contains<i64>: ${has_big(bag)} ${has_big_value(bag)}")
+    println("Range<i64>: ${4_000_000_000 in r} ${6_000_000_000 in r}")
+    println("i64[]: ${5_000_000_000 in xs} ${7 in xs}")
+
+    println("free ranges: ${5 in 0..<10} ${10 !in 0..<10} ${10 in 0..=10}")
+    primes :: [2, 3, 5, 7, 11]
+    println("i32 array: ${7 in primes} ${4 !in primes}")
+    vowels :: "aeiou".bytes()
+    println("bytes view: ${'e' in vowels} ${'z' !in vowels}")
+    digits :: DigitSet { .bits = (1 << 1) | (1 << 4) | (1 << 7) }
+    println("user impl: ${4 in digits} ${5 !in digits} ${7 in digits}")
+
+    println("char digit: ${is_digit('5')} ${is_digit('a')} ${is_digit(':')}")
+    println("char digit ends: ${is_digit('0')} ${is_digit('9')}")
+    println("char alpha: ${is_alpha('z')} ${is_alpha('Z')} ${is_alpha('5')}")
     return 0
 }

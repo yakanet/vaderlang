@@ -1,3 +1,0 @@
-# Comptime
-
-## tests/snippets/gc_array_survive

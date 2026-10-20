@@ -171,90 +171,13 @@ fn 0 snippet$show (string,string) -> void
     return
   end $L0
   local.get 2   ; parsed
-  type_check 29   ; json$JsonString
-  if $L1 void
-    local.get 2   ; parsed
-    ref.cast 29   ; json$JsonString
-    call 55   ; json$stringify
-    local.set 3   ; $field_7
-    local.get 0   ; arg 0
-    string.const 1   ; ": "
-    local.get 3   ; $field_7
-    call 2   ; concat_3
-    call 53   ; std_io$println__string
-  else
-    local.get 2   ; parsed
-    type_check 27   ; json$JsonNumber
-    if $L2 void
-      local.get 2   ; parsed
-      ref.cast 27   ; json$JsonNumber
-      call 55   ; json$stringify
-      local.set 3   ; $field_7
-      local.get 0   ; arg 0
-      string.const 1   ; ": "
-      local.get 3   ; $field_7
-      call 2   ; concat_3
-      call 53   ; std_io$println__string
-    else
-      local.get 2   ; parsed
-      type_check 24   ; json$JsonBool
-      if $L3 void
-        local.get 2   ; parsed
-        ref.cast 24   ; json$JsonBool
-        call 55   ; json$stringify
-        local.set 3   ; $field_7
-        local.get 0   ; arg 0
-        string.const 1   ; ": "
-        local.get 3   ; $field_7
-        call 2   ; concat_3
-        call 53   ; std_io$println__string
-      else
-        local.get 2   ; parsed
-        type_check 26   ; json$JsonNull
-        if $L4 void
-          local.get 2   ; parsed
-          ref.cast 26   ; json$JsonNull
-          call 55   ; json$stringify
-          local.set 3   ; $field_7
-          local.get 0   ; arg 0
-          string.const 1   ; ": "
-          local.get 3   ; $field_7
-          call 2   ; concat_3
-          call 53   ; std_io$println__string
-        else
-          local.get 2   ; parsed
-          type_check 23   ; json$JsonArray
-          if $L5 void
-            local.get 2   ; parsed
-            ref.cast 23   ; json$JsonArray
-            call 55   ; json$stringify
-            local.set 3   ; $field_7
-            local.get 0   ; arg 0
-            string.const 1   ; ": "
-            local.get 3   ; $field_7
-            call 2   ; concat_3
-            call 53   ; std_io$println__string
-          else
-            local.get 2   ; parsed
-            type_check 28   ; json$JsonObject
-            if $L6 void
-            else
-              unreachable
-            end $L6
-            local.get 2   ; parsed
-            ref.cast 28   ; json$JsonObject
-            call 55   ; json$stringify
-            local.set 3   ; $field_7
-            local.get 0   ; arg 0
-            string.const 1   ; ": "
-            local.get 3   ; $field_7
-            call 2   ; concat_3
-            call 53   ; std_io$println__string
-          end $L5
-        end $L4
-      end $L3
-    end $L2
-  end $L1
+  call 55   ; json$stringify
+  local.set 3   ; $field_7
+  local.get 0   ; arg 0
+  string.const 1   ; ": "
+  local.get 3   ; $field_7
+  call 2   ; concat_3
+  call 53   ; std_io$println__string
   return
 end
 

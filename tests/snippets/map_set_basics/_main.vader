@@ -1,0 +1,93 @@
+// tests/snippets/map_set_basics: `MutableMap` and `MutableSet` through their
+// operator sugar, one labelled line per case.
+//
+// `m[k]` reads `V | null` (Index), `m[k] = v` inserts or overwrites (IndexSet),
+// `k in m` and `k !in m` test membership (Contains), all dispatched to the impls
+// in `std/collections`. Keys are `i32` or `string`, the string keys including
+// `""`, one with a space and the name of a stdlib type; every key is read back,
+// so a put/get hashing mismatch prints `missing`. `for [k, v] in m` destructures
+// each `Entry<K, V>` through `Entry implements Into<[K, V]>`, in insertion
+// order. A set has `add`, true when the value was new, and `in` / `!in` but no
+// index: `MutableSet<i32>` reaches the erased `MutableMap` impl members from its
+// own erased `add`, and the key lookup dispatches `Equals` on an integer.
+
+module "snippet"
+
+import "std/collections"
+import "std/io"
+
+// Print `label=v`, or `label missing` for a key the map does not hold.
+show :: fn(label: string, v: i32 | null) -> void {
+    if v == null {
+        println("${label} missing")
+    } else {
+        println("${label}=${v}")
+    }
+}
+
+main :: fn() -> i32 {
+    ints :: MutableMap<i32, i32> {}
+    ints[1] = 10
+    ints[2] = 20
+    ints[17] = 170
+    println("i32 keys: size=${ints.len()}")
+    show("i32 keys: 1", ints[1])
+    show("i32 keys: 17", ints[17])
+    println("i32 keys: 2 in=${2 in ints} 99 in=${99 in ints}")
+    ints[1] = 999
+    show("i32 keys: 1 updated", ints[1])
+
+    words :: MutableMap<string, i32> {}
+    words["hello"] = 1
+    words["world"] = 2
+    words["vader"] = 42
+    println("string keys: size=${words.len()}")
+    show("string keys: vader", words["vader"])
+    println("string keys: hello in=${"hello" in words} missing in=${"missing" in words}")
+    words["hello"] = 99
+    show("string keys: hello updated", words["hello"])
+    show("string keys: absent", words["absent"])
+    if "world" in words {
+        println("string keys: world in")
+    }
+    if "z" !in words {
+        println("string keys: z !in")
+    }
+
+    keys :: ["alpha", "beta", "gamma", "MutableMap", "x", "hello world", "a", ""]
+    table :: MutableMap<string, i32> {}
+    i: i32 = 0
+    for k in keys {
+        table[k] = i
+        i += 1
+    }
+    for k in keys {
+        show("read back: '${k}'", table[k])
+    }
+    println("read back: size=${table.len()}")
+
+    ordered :: MutableMap<string, i32> {}
+    ordered["a"] = 1
+    ordered["b"] = 2
+    ordered["c"] = 3
+    sum: i32 = 0
+    for [k, v] in ordered {
+        println("for destructure: ${k}=${v}")
+        sum += v
+    }
+    println("for destructure: sum=${sum}")
+
+    s :: MutableSet<i32> {}
+    println("set: add 10 new=${s.add(10)}")
+    println("set: add 20 new=${s.add(20)}")
+    println("set: add 10 again new=${s.add(10)}")
+    s.add(30)
+    println("set: len=${s.len()} 10 in=${10 in s} 40 in=${40 in s}")
+    if 30 in s {
+        println("set: 30 in")
+    }
+    if 3 !in s {
+        println("set: 3 !in")
+    }
+    return 0
+}

@@ -3,38 +3,10 @@
 ## snippet
   snippet.show :: fn(label: string, src: string) -> void {  // snippet$show
       parsed: JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString = json.parse(src)
-      {
-          if parsed is JsonError {
-              {
-                  std.io.println<string>(concat_3(label, ": error: ", JsonError(parsed).msg))
-              }
-          } else if parsed is JsonString {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonString(parsed))))
-              }
-          } else if parsed is JsonNumber {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonNumber(parsed))))
-              }
-          } else if parsed is JsonBool {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonBool(parsed))))
-              }
-          } else if parsed is JsonNull {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonNull(parsed))))
-              }
-          } else if parsed is JsonArray {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonArray(parsed))))
-              }
-          } else if parsed is JsonObject {
-              {
-                  std.io.println<string>(concat_3(label, ": ", json.stringify(JsonObject(parsed))))
-              }
-          } else {
-              @unreachable("non-exhaustive match (T3013 should have caught this)")
-          }
+      if parsed is JsonError {
+          std.io.println<string>(concat_3(label, ": error: ", JsonError(parsed).msg))
+      } else {
+          std.io.println<string>(concat_3(label, ": ", json.stringify((JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString)(parsed))))
       }
   }
   snippet.main :: fn() -> i32 {  // snippet$main

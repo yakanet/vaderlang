@@ -1,2 +1,8 @@
+# stdout
+const in literal: retries=3 label=hi
+variant cast:     1
+variant argument: blue
+distinct cast:    5
+fn value:         15
 # exit
-0
+3

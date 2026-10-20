@@ -1,9 +1,9 @@
-// Real suspension via `sleep` (Phase 2b): the cooperative scheduler + timer
-// heap. A coroutine parks on `sleep`, the driver blocks on the nearest timer
-// (never spins) and re-drives as the virtual clock advances. Driven explicitly
-// through `run_async_main` (the compiler-internal entry driver) — wiring an
-// implicit `@async main` to it is the next step. Small sleeps keep the test
-// fast; output is fixed by deadline ordering, not wall-clock.
+// Real suspension through `sleep`: the cooperative scheduler and its timer heap.
+// A coroutine parks on `sleep`; the driver blocks on the nearest timer (it never
+// spins) and re-drives as the scheduler clock advances. `main` stays synchronous
+// and calls `run_async_main` itself, the driver the compiler routes an awaiting
+// `main` through (`async_sleep_main` covers that form). Small sleeps keep the
+// test fast; the output is fixed by deadline order, not wall-clock time.
 module "snippet"
 
 import "std/io"

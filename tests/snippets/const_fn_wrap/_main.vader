@@ -1,12 +1,11 @@
-// tests/snippets/const_fn_wrap — module-level struct-array const referenced in
-// a loop, exercising the `inline_consts` fn-wrap accessor path. An array of
-// ≥4 struct literals lowers to a synthetic `__const_<name>` accessor fn ; every
-// reference becomes a `call` to it. Guards the Vader-emitter side of that path
-// (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
+// tests/snippets/const_fn_wrap: a module-level struct-array const read in a
+// loop, through the `inline_consts` fn-wrap route. An array of four or more
+// literals that the data pool cannot bake is replaced by a synthetic accessor fn
+// `__const_<name>`, and every reference becomes a `call` to it.
 //
-// The GENERIC struct element is LOAD-BEARING: every module const is frozen, so the
-// pool would bake a plain `Spec[]` and leave fn-wrap with no regression guard;
-// `inline_consts::is_bakeable_struct` refuses a struct carrying type args.
+// The GENERIC struct element is LOAD-BEARING: `is_bakeable_struct` refuses a
+// struct carrying type args, which keeps the const out of the data pool. A
+// plain `Spec[]` would be pooled, and nothing would exercise fn-wrap.
 
 module "snippet"
 

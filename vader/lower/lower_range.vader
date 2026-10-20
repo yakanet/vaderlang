@@ -66,5 +66,5 @@ build_range_lit :: fn(ctx: FnLowerCtx, expr: RangeExpr, result_type: Type) -> Lo
 // `FnLowerCtx` that the lowerer can thread through ; the test
 // scaffolding to build one stub-free without dragging in the resolver
 // + typechecker is more code than the function under test. The
-// behaviour is exercised by the snippet harness via the `range_*`
-// fixtures (e.g. `tests/snippets/range_widths`).
+// behaviour is exercised by the snippet harness via the range fixtures
+// (e.g. `tests/snippets/for_range`).

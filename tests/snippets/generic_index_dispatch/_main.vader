@@ -1,12 +1,8 @@
-// Regression: the index OPERATOR dispatches through the `Index` / `IndexSet`
-// trait bounds, not just on a concrete receiver.
-//
-// `c[i]` (read) and `c[i] = v` (write) on a `[C: Index]` / `[C: IndexSet]`
-// type-param bound must route to the impl's `at` / `set_at` via a virtual call.
-// Before the fix, `c[i]` on a bound gave T3008 "not indexable" and `c[i] = v`
-// mis-lowered to a built-in `array.set` (runtime "expected array, got struct").
-// Direct indexing on a concrete `Index` / `IndexSet` struct is the baseline the
-// generic form must match.
+// The index operator dispatches through `Index` / `IndexSet` bounds, not only
+// on a concrete receiver: `c[i]` (read) and `c[i] = v` (write) on a
+// `C: Index<i64, i32>` / `C: IndexSet<i64, i32>` type parameter route to the
+// impl's `at` / `set_at`, which each instance calls directly. Direct indexing
+// on the concrete `Cell` is the baseline the generic form must match.
 
 module "snippet"
 
@@ -43,7 +39,7 @@ main :: fn() -> i32 {
     cell[1] = 99
     println("direct_after_write=${cell[1]}")
 
-    // Generic-bounded dispatch — the fixed operator path.
+    // Generic-bounded dispatch.
     println("generic_read=${read_nth<Cell>(cell, 2)}")
     write_nth<Cell>(cell, 2, 77)
     println("generic_after_write=${read_nth<Cell>(cell, 2)}")

@@ -202,8 +202,8 @@ lower_project_impl :: fn(
     // `materialize_representatives` / `close_over_field_shapes` below only push
     // struct decls (no body lowering), so they register nothing — keep it that way.
     flush_generic_fn_instances(project_ctx, project)
-    // Representative "any-args" structs come AFTER fn instances so
-    // generic_brackets etc. keep a stable emission order.
+    // Representative "any-args" structs come AFTER fn instances so the
+    // emission order stays stable (`tests/snippets/generic_angle_decl` pins it).
     materialize_representatives(typed, project_ctx, project)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),

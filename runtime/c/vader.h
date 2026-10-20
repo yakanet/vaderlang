@@ -711,8 +711,8 @@ void* vader_gc_alloc(size_t bytes);
 /* Guarded integer division / remainder. The C-emit backend routes every
  * integer `div` / `mod` through these instead of a bare `a / b` so native
  * aligns on the VM, which raises a labelled trap on a zero divisor
- * (`apply_div_mod_binop`, `vader/vm/exec.vader`) rather than the arm64
- * silent-zero / x86 SIGFPE that a raw divide gives. The trap messages match
+ * (`vader/vm/reg_exec.vader`) rather than the arm64 silent-zero / x86
+ * SIGFPE that a raw divide gives. The trap messages match
  * the VM's op labels verbatim so both backends print the same diagnostic.
  *
  * The signed helpers also special-case `INT_MIN / -1` (and its remainder),

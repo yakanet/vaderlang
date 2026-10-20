@@ -1,0 +1,21 @@
+// One generic free fn reading an element of `T[]`, instantiated at a primitive
+// (`i32`) and at a struct (`Point`) in the same program. The `i32` instance is
+// concrete: it takes an `i32[]` and reads it with a typed slot load. The
+// `Point` instance stays erased over `Any[]` and reads through the generic
+// array get. Both instances are emitted (lower and bytecode snapshots).
+//
+// Exit code 22 = nums[1] (20) + pts[1].x (2).
+
+module "snippet"
+
+second :: fn<T>(xs: T[]) -> T = xs[1]
+
+Point :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    nums :: [10, 20, 30]
+    s :: second(nums)
+    pts :: [Point { .x = 1 }, Point { .x = 2 }]
+    p :: second(pts)
+    return s + p.x
+}

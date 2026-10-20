@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/closure_env_shapes
+  StructDecl     Adder                :: Adder
+  FnDecl         capture_in_field     :: fn() -> i32
+  FnDecl         copied_capture       :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         shared_capture       :: fn() -> i32
+  expr 19:14    LambdaExpr     :: fn(i32) -> i32
+  expr 20:16    BinaryExpr     :: i32
+  expr 20:16    IdentExpr      :: i32
+  expr 20:20    IdentExpr      :: i32
+  expr 22:12    CallExpr       :: i32
+  expr 22:12    IdentExpr      :: fn(i32) -> i32
+  expr 27:12    LambdaExpr     :: fn() -> void
+  expr 28:9     BinaryExpr     :: i32
+  expr 28:9     IdentExpr      :: i32
+  expr 30:12    LambdaExpr     :: fn() -> i32
+  expr 31:16    IdentExpr      :: i32
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn() -> void
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn() -> void
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn() -> void
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn() -> void
+  expr 37:12    CallExpr       :: i32
+  expr 37:12    IdentExpr      :: fn() -> i32
+  expr 42:10    StructLitExpr  :: Adder
+  expr 42:23    LambdaExpr     :: fn(i32) -> i32
+  expr 42:35    BinaryExpr     :: i32
+  expr 42:35    IdentExpr      :: i32
+  expr 42:42    IdentExpr      :: i32
+  expr 43:12    CallExpr       :: i32
+  expr 43:12    FieldExpr      :: fn(i32) -> i32
+  expr 43:12    IdentExpr      :: Adder
+  expr 47:13    StringLitExpr  :: string
+  expr 47:34    CallExpr       :: i32
+  expr 47:34    IdentExpr      :: fn() -> i32
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(T) -> void
+  expr 48:13    StringLitExpr  :: string
+  expr 48:34    CallExpr       :: i32
+  expr 48:34    IdentExpr      :: fn() -> i32
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(T) -> void
+  expr 49:13    StringLitExpr  :: string
+  expr 49:34    CallExpr       :: i32
+  expr 49:34    IdentExpr      :: fn() -> i32
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void

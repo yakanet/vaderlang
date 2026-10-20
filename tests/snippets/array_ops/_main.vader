@@ -1,15 +1,9 @@
-// tests/snippets/array_ops — T5 array coverage.
+// tests/snippets/array_ops: the core array operations on a heap `i32[]`.
 //
-// Exercises the C body walker's array ops on a heap array (so the fn is
-// may-alloc → framed, T4b): array.new (literal), array.set (index assign),
-// array.push (grow), array.get (index read), array.len. Elements are
-// stored boxed (vader_array_set/get + box_expr / ref.cast). Result via exit
-// code: 10 + 99 + 40 + len(4) = 153.
-//
-// array.slice + data.const are emitted by the walker but unreachable via
-// surface syntax today (`xs[lo..hi]` lowers to call.indirect; const arrays
-// to array.new, leaving module.data_pool empty), so no snippet exercises
-// them — see the plan.
+// A literal (`array.new`), an index write, a `push` that grows the array, index
+// reads and `len`, in a `main` the C backend gives a GC frame because it
+// allocates. Elements sit in raw `i32` slots. Result via exit code:
+// 10 + 99 + 40 + len(4) = 153.
 
 module "snippet"
 

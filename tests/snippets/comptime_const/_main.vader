@@ -1,7 +1,14 @@
 // `@comptime` decls are evaluated at compile time and baked into the lowered
-// IR as literals. The arith below never runs at runtime.
+// IR as literals: arithmetic, a string concatenation, and a call to a user fn
+// of the same module (`square(3)`). None of it runs at runtime.
 
 module "snippet"
+
+import "std/io"
+
+export square :: fn(x: i32) -> i32 {
+    return x * x
+}
 
 @comptime
 export ANSWER :: (40 + 2) * 1
@@ -9,6 +16,11 @@ export ANSWER :: (40 + 2) * 1
 @comptime
 export GREETING :: "hello, " + "world"
 
+@comptime
+export NINE :: square(3)
+
 main :: fn() -> i32 {
+    println("greeting: ${GREETING}")
+    println("nine:     ${NINE}")
     return ANSWER
 }

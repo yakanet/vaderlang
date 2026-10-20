@@ -1,14 +1,8 @@
-// Virtual trait-method dispatch over a generic-struct receiver. Two distinct
-// generic iterators (`Repeat(i32)` and `Once(i32)`) implement `Iterator(i32)`.
-// `walk` takes an `Iterator(i32)` trait-typed parameter and calls `.next()`
-// directly — the lowerer must enumerate every concrete (struct, args)
-// instance observed at compile time and emit one `is Struct(args)` arm per.
-//
-// Without the generic-struct branch in `lowerVirtualDispatch` the call hits
-// `unreachable` at runtime ; without the trait-arg substitution in the
-// typechecker (`Substitution { typeParams }` for the trait's own params) the
-// match would reject the concrete arms because `next` would be typed as
-// returning `[$T, Continuation]`.
+// Virtual trait-method dispatch over generic-struct receivers. Two generic
+// iterators, `Repeat<T>` and `Once<T>`, implement `Iterator<T>`; `walk` takes
+// an `Iterator<i32>` parameter and calls `.next()` on it directly. Each
+// instance observed (`Repeat<i32>`, `Once<i32>`) gets its own vtable entry,
+// with `next` typed by the impl's substituted `T`.
 
 module "snippet"
 

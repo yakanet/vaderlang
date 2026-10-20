@@ -2,10 +2,11 @@
 
 ## snippet
   storage
-    const HttpStatus$data: StatusInfo[]  data pool #1
-    const HttpStatus$value: u16[]  data pool #0
-    const Level$data: StatusInfo[]  data pool #2
-  snippet.StatusInfo :: struct { reason: string }  // snippet$StatusInfo
+    const HttpStatus$data: StatusInfo[]  data pool #2
+    const HttpStatus$value: u16[]  data pool #1
+    const Level$data: StatusInfo[]  data pool #3
+    const Reply$data: StatusInfo[]  data pool #0
+  snippet.StatusInfo :: struct { code: i32, reason: string, retry: bool }  // snippet$StatusInfo
   snippet.describe :: fn(s: HttpStatus) -> string {  // snippet$describe
       {
           if s == u8(0) {
@@ -17,6 +18,19 @@
           } else {
               @unreachable("non-exhaustive match (T3013 should have caught this)")
           } :string
+      } :string
+  }
+  snippet.describe_reply :: fn(r: Reply) -> string {  // snippet$describe_reply
+      {
+          __p_0: string = snippet.Reply$data[i64(r)].reason
+          __buf_1: Buffer = std.core.new_byte_buffer(i64(33) +% std.core.byte_len(__p_0))
+          __off_2: i64 = 0
+          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet.Reply$data[i64(r)].code))
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
+          __off_2 = std.core.write_string_at(__buf_1, __off_2, " retry=")
+          __off_2 = std.core.write_bool(__buf_1, __off_2, snippet.Reply$data[i64(r)].retry)
+          std.core.finish_buffer(__buf_1, __off_2)
       } :string
   }
   snippet.main :: fn() -> i32 {  // snippet$main
@@ -31,8 +45,9 @@
                   __p_3: string = snippet.HttpStatus.to_string(s)
                   __p_4: string = snippet.HttpStatus$data[i64(s)].reason
                   __p_5: string = snippet.describe(s)
-                  __buf_6: Buffer = std.core.new_byte_buffer(i64(23) +% ((std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)) +% std.core.byte_len(__p_5)))
+                  __buf_6: Buffer = std.core.new_byte_buffer(i64(58) +% ((std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)) +% std.core.byte_len(__p_5)))
                   __off_7: i64 = 0
+                  __off_7 = std.core.write_string_at(__buf_6, __off_7, "written: ")
                   __off_7 = std.core.write_int(__buf_6, __off_7, i64(i32(snippet.HttpStatus$value[i64(s)])))
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_3)
@@ -40,6 +55,8 @@
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_4)
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
+                  __off_7 = std.core.write_string_at(__buf_6, __off_7, " code=")
+                  __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.HttpStatus$data[i64(s)].code))
                   std.core.finish_buffer(__buf_6, __off_7)
               } :string)
           } @step {
@@ -54,8 +71,9 @@
               level: Level = __for_arr_8[__for_i_10]
               std.io.println<string>({
                   __p_11: string = snippet.Level$data[i64(level)].reason
-                  __buf_12: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_11))
+                  __buf_12: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_11))
                   __off_13: i64 = 0
+                  __off_13 = std.core.write_string_at(__buf_12, __off_13, "consecutive: ")
                   __off_13 = std.core.write_int(__buf_12, __off_13, i64(i32(i64(level) +% i64(1))))
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
@@ -66,14 +84,49 @@
           }
       }
       std.io.println<string>({
-          __buf_14: Buffer = std.core.new_byte_buffer(i64(47))
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(57))
           __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "constant: ")
           __off_15 = std.core.write_int(__buf_14, __off_15, i64(i32(i64(404))))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
           __off_15 = std.core.write_bool(__buf_14, __off_15, statuses[1] == u8(1))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
           __off_15 = std.core.write_int(__buf_14, __off_15, i64(1))
           std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      {
+          __for_arr_16: Reply[] = [u8(0), u8(1), u8(2)] :Reply[]
+          __for_len_17: i64 = @array.len(__for_arr_16)
+          __for_i_18: i64 = 0
+          for __for_i_18 < __for_len_17 {
+              r: Reply = __for_arr_16[__for_i_18]
+              std.io.println<string>(concat_2("field code: ", snippet.describe_reply(r)))
+          } @step {
+              __for_i_18 = __for_i_18 +% i64(1)
+          }
+      }
+      info: StatusInfo = snippet.Reply$data[i64(u8(1))]
+      std.io.println<string>({
+          __p_19: string = info.reason
+          __p_20: string = snippet.Level$data[i64(u8(1))].reason
+          __buf_21: Buffer = std.core.new_byte_buffer(i64(31) +% (std.core.byte_len(__p_19) +% std.core.byte_len(__p_20)))
+          __off_22: i64 = 0
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, "whole: ")
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_19)
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, " / ")
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_20)
+          __off_22 = std.core.write_string_at(__buf_21, __off_22, " ")
+          __off_22 = std.core.write_int(__buf_21, __off_22, i64(i32(i64(2))))
+          std.core.finish_buffer(__buf_21, __off_22)
+      } :string)
+      std.io.println<string>({
+          __buf_23: Buffer = std.core.new_byte_buffer(i64(48))
+          __off_24: i64 = 0
+          __off_24 = std.core.write_string_at(__buf_23, __off_24, "sizes: ")
+          __off_24 = std.core.write_int(__buf_23, __off_24, i64(1))
+          __off_24 = std.core.write_string_at(__buf_23, __off_24, " ")
+          __off_24 = std.core.write_int(__buf_23, __off_24, i64(1))
+          std.core.finish_buffer(__buf_23, __off_24)
       } :string)
       return 0
   }

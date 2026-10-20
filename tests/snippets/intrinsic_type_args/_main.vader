@@ -1,5 +1,12 @@
-/// `@type_args(T)` exposes a generic instance's type-args as a `type[]`
-/// literal. Sibling of `@fields(T)` ; non-generic types yield `[]`.
+// `@type_args(T)` exposes a generic instance's type arguments as a `type[]`
+// literal, sibling of `@fields(T)`; a non-generic type yields `[]`. Each
+// argument is a runtime `type` value, so `@size_of` on it goes through the
+// runtime `size_of.type` path.
+//
+// The `size=16` printed for `string` is known wrong: SPEC gives 4, the width of
+// an interned atom id, as the static fold answers (`comptime_type_alias`). It
+// stays pinned until the runtime `size_of.type` path is fixed.
+
 module "snippet"
 
 import "std/io"

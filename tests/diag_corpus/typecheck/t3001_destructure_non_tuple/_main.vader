@@ -2,7 +2,7 @@
 // type error (T3001) — unless its type implements `Into<[...]>` of matching
 // arity. `Point` implements no such coercion, so destructuring it errors.
 // (A struct that DOES implement it — e.g. `Entry` — destructures fine; see
-// the `map_kv_destructure` snippet.)
+// the `map_set_basics` snippet.)
 module "snippet"
 
 Point :: struct {

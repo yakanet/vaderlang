@@ -1,0 +1,33 @@
+# Typecheck
+
+## tests/snippets/char_literal_escapes
+  FnDecl         main                 :: fn() -> i32
+  expr 14:13    StringLitExpr  :: string
+  expr 14:18    CallExpr       :: i32
+  expr 14:18    IdentExpr      :: type
+  expr 14:22    IdentExpr      :: char
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:19    CallExpr       :: i32
+  expr 15:19    IdentExpr      :: type
+  expr 15:23    IdentExpr      :: char
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:19    CallExpr       :: i32
+  expr 16:19    IdentExpr      :: type
+  expr 16:23    IdentExpr      :: char
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:19    CallExpr       :: i32
+  expr 17:19    IdentExpr      :: type
+  expr 17:23    IdentExpr      :: char
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 19:13    StringLitExpr  :: string
+  expr 19:19    BinaryExpr     :: bool
+  expr 19:19    IdentExpr      :: char
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void

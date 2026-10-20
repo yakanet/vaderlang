@@ -1,0 +1,10 @@
+// Shapes module for the namespace_alias_dedupe snippet: two structs and their union.
+
+module "snippet/shapes"
+
+export Circle :: struct { radius: f64 }
+
+export Square :: struct { side: f64 }
+
+/// A union alias: the declaration both import forms of this module reach.
+export Shape :: Circle | Square

@@ -1075,8 +1075,15 @@ import "std/testing"
     p :: compile("^foo")
     match p {
         is Pattern -> {
-            assert(p.find("foo bar") is Match,  "^foo finds prefix")
-            assert(p.find("bar foo") is null,   "^foo rejects suffix")
+            r :: p.find("foo bar")
+            if r == null {
+                assert(false, "^foo finds prefix")
+            } else {
+                assert_eq(r.start, 0)
+                assert_eq(r.end, 3)
+                assert_eq(r.groups[0], "foo")
+            }
+            assert(p.find("bar foo") is null, "^foo rejects suffix")
         }
         is RegexError -> assert(false, "compile ^foo failed")
     }
@@ -1233,5 +1240,56 @@ import "std/testing"
             assert(p.matches("aaa"), "a?x1500 matches `aaa`")
         }
         is RegexError -> assert(false, "a?x1500 must compile")
+    }
+}
+
+@test test_counted_shorthand_class :: fn() -> void {
+    p :: compile("\\d{3}-\\d{4}")
+    match p {
+        is Pattern -> {
+            assert(p.matches("555-1234"), "\\d{3}-\\d{4} matches 555-1234")
+            assert(!p.matches("55-1234"), "\\d{3}-\\d{4} rejects 55-1234")
+        }
+        is RegexError -> assert(false, "compile \\d{3}-\\d{4} failed")
+    }
+}
+
+@test test_find_capture_groups :: fn() -> void {
+    p :: compile("(\\w+)@(\\w+)\\.(\\w+)")
+    match p {
+        is Pattern -> {
+            r :: p.find("contact user@domain.com please")
+            match r {
+                is Match -> {
+                    assert_eq(r.groups[0], "user@domain.com")
+                    assert_eq(r.groups[1], "user")
+                    assert_eq(r.groups[2], "domain")
+                    assert_eq(r.groups[3], "com")
+                }
+                is null -> assert(false, "the address should be found")
+            }
+        }
+        is RegexError -> assert(false, "compile the address pattern failed")
+    }
+}
+
+@test test_alternation_of_words :: fn() -> void {
+    p :: compile("cat|dog|bird")
+    match p {
+        is Pattern -> {
+            assert(p.matches("cat"), "cat|dog|bird matches cat")
+            assert(p.matches("dog"), "cat|dog|bird matches dog")
+            assert(p.matches("bird"), "cat|dog|bird matches bird")
+            assert(!p.matches("fish"), "cat|dog|bird rejects fish")
+        }
+        is RegexError -> assert(false, "compile cat|dog|bird failed")
+    }
+}
+
+@test test_replace_all_swaps_groups :: fn() -> void {
+    p :: compile("(\\w+) (\\w+)")
+    match p {
+        is Pattern -> assert_eq(p.replace_all("Mathieu Broutin", "$2 $1"), "Broutin Mathieu")
+        is RegexError -> assert(false, "compile (\\w+) (\\w+) failed")
     }
 }

@@ -9,13 +9,17 @@ type 6 struct std_core$Buffer {  }
 type 7 array 4
 type 8 primitive void
 type 9 primitive pointer
-string 0 "\n"
+string 0 "only argument: "
+string 1 "argument in a slot, GC inside: "
+string 2 "\n"
 import 0 extern call_twice snippet$call_twice result_type=1 param_types=3 param_c_out= param_by_address= (ref) -> i32
-import 1 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
-import 2 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
+import 1 extern apply_twice snippet$apply_twice result_type=1 param_types=1,3,1 param_c_out= param_by_address= (i32,ref,i32) -> i32
+import 2 byte_len std_core$byte_len result_type=5 param_types=2 param_c_out= param_by_address= (string) -> i64
+import 3 bytes std_core$bytes result_type=7 param_types=2 param_c_out= param_by_address= (string) -> ref
+import 4 collect std_runtime$collect result_type=8 () -> void
+import 5 extern write system_posix$sys_write header=<unistd.h> result_type=5 param_types=1,7,5 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 6 std_core$ByteAccess
-export main 1
+export main 2
 
 fn 0 snippet$double_it (i32) -> i32
   local.get 0   ; arg 0
@@ -24,40 +28,106 @@ fn 0 snippet$double_it (i32) -> i32
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 snippet$bump (i32) -> i32
+  call.import 4   ; std_runtime$collect
+  local.get 0   ; arg 0
+  i32.const 1
+  i32.checked_add
+  return
+end
+
+fn 2 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
-  local $cast_7 i64
-  i64.const 20
+  local $cast_9 i64
+  local total i32
+  local _r i32
+  local $fn_addr_19 pointer
+  local $call_21 i32
+  i64.const 35
   buffer.new
   local.set 0   ; __buf_0
   i64.const 0
   local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 0   ; "only argument: "
+  call 5   ; std_core$write_string_at
+  local.set 1   ; __off_1
   fn.addr 0   ; snippet$double_it
   call.import 0   ; snippet$call_twice
   i32.to_i64
-  local.set 2   ; $cast_7
+  local.set 2   ; $cast_9
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  local.get 2   ; $cast_7
-  call 4   ; std_core$write_int
+  local.get 2   ; $cast_9
+  call 6   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  call 3   ; std_core$finish_buffer
-  call 7   ; std_io$println__string
+  call 4   ; std_core$finish_buffer
+  call 9   ; std_io$println__string
+  i32.const 0
+  local.set 3   ; total
+  i32.const 0
+  local.set 4   ; _r
+  loop $L0 void
+    local.get 4   ; _r
+    i32.const 2
+    i32.lt
+    if $L1 void
+      fn.addr 1   ; snippet$bump
+      local.set 5   ; $fn_addr_19
+      i32.const 10
+      local.get 5   ; $fn_addr_19
+      i32.const 3
+      call.import 1   ; snippet$apply_twice
+      local.set 6   ; $call_21
+      local.get 3   ; total
+      local.get 6   ; $call_21
+      i32.checked_add
+      local.set 3   ; total
+      local.get 4   ; _r
+      i32.const 1
+      i32.add
+      local.set 4   ; _r
+      br $L0
+    end $L1
+  end $L0
+  i64.const 51
+  buffer.new
+  local.set 0   ; __buf_0
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 1   ; "argument in a slot, GC inside: "
+  call 5   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 3   ; total
+  i32.to_i64
+  local.set 2   ; $cast_9
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 2   ; $cast_9
+  call 6   ; std_core$write_int
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 4   ; std_core$finish_buffer
+  call 9   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 2 concat_2 (string,string) -> string
+fn 3 concat_2 (string,string) -> string
   local c0 i64
   local $call_4 i64
   local buf ref
   local.get 0   ; arg 0
-  call.import 1   ; std_core$byte_len
+  call.import 2   ; std_core$byte_len
   local.set 2   ; c0
   local.get 1   ; arg 1
-  call.import 1   ; std_core$byte_len
+  call.import 2   ; std_core$byte_len
   local.set 3   ; $call_4
   local.get 2   ; c0
   local.get 3   ; $call_4
@@ -78,14 +148,29 @@ fn 2 concat_2 (string,string) -> string
   return
 end
 
-fn 3 std_core$finish_buffer (ref,i64) -> string
+fn 4 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 4 std_core$write_int (ref,i64,i64) -> i64
+fn 5 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 2   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 6 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -199,7 +284,7 @@ fn 4 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 5 std_io$write (u8,string) -> void
+fn 7 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -209,7 +294,7 @@ fn 5 std_io$write (u8,string) -> void
   local n i32
   local $cast_16 i64
   local.get 1   ; arg 1
-  call.import 2   ; std_core$bytes
+  call.import 3   ; std_core$bytes
   local.set 2   ; buf
   i64.const 0
   local.set 3   ; sent
@@ -235,7 +320,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 6   ; std_io$write_bytes
+      call 8   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -255,7 +340,7 @@ fn 5 std_io$write (u8,string) -> void
   return
 end
 
-fn 6 std_io$write_bytes (u8,ref,i64) -> i32
+fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -263,26 +348,26 @@ fn 6 std_io$write_bytes (u8,ref,i64) -> i32
     i32.const 1
     local.get 1   ; arg 1
     local.get 2   ; arg 2
-    call.import 3   ; system_posix$sys_write
+    call.import 5   ; system_posix$sys_write
     i64.to_i32
     return
   end $L0
   i32.const 2
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call.import 3   ; system_posix$sys_write
+  call.import 5   ; system_posix$sys_write
   i64.to_i32
   return
 end
 
-fn 7 std_io$println__string (string) -> void
+fn 9 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 0   ; "\n"
-  call 2   ; concat_2
+  string.const 2   ; "\n"
+  call 3   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 5   ; std_io$write
+  call 7   ; std_io$write
   return
 end

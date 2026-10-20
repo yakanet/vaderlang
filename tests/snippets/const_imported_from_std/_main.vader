@@ -1,0 +1,16 @@
+// A constant exported by a standard-library module (`pi` from `std/math`),
+// read in an expression of this module. Lowering inlines its value at each
+// read site (lower snapshot).
+//
+// Expected: prints pi and pi * 2, exits 0.
+
+module "snippet"
+
+import "std/io"
+import "std/math"
+
+main :: fn() -> i32 {
+    println("${pi}")
+    println("${pi * 2.0}")
+    return 0
+}

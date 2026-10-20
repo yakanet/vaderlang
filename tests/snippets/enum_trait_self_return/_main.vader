@@ -1,7 +1,12 @@
-// Trait method returning `Self`, implemented by an enum, with an
-// expression-bodied impl method that needs the trait's return type
-// (Self → forType, here Direction) propagated as the body's expected type
-// so the dot-shorthand arms (`.West`, `.South`, ...) can resolve.
+// An enum implementing traits.
+//   - A trait method returning `Self`, with an expression-bodied impl method
+//     that needs the trait's return type (Self → forType, here Direction)
+//     propagated as the body's expected type so the dot-shorthand arms
+//     (`.West`, `.South`, ...) can resolve.
+//   - A brace-bodied `Display` impl whose value is a trailing `match`.
+//   - Dispatch on an enum value (`d.to_string()`, `println(d)`) and straight
+//     on `EnumName.Variant`: lowering must tell the dotted variant apart from
+//     `enum_value.method` on the same dotted-target shape.
 
 module "snippet"
 
@@ -31,18 +36,30 @@ Direction implements Turnable {
 }
 
 Direction implements Display {
-    to_string :: fn(self) = match self {
-        .North -> "N"
-        .East  -> "E"
-        .South -> "S"
-        .West  -> "W"
+    to_string :: fn(self) -> string {
+        match self {
+            .North -> "N"
+            .East  -> "E"
+            .South -> "S"
+            .West  -> "W"
+        }
     }
 }
 
 main :: fn() -> i32 {
     d :: Direction.North
-    println(d.to_string())
-    println(d.turn_left().to_string())
-    println(d.turn_right().to_string())
+    println("to_string: ${d.to_string()}")
+    println("turn_left: ${d.turn_left().to_string()}")
+    println("turn_right: ${d.turn_right().to_string()}")
+    // `println<Direction>` reaches the Display impl
+    print("println value: ")
+    println(d)
+    // straight on `EnumName.Variant`
+    print("println variant: ")
+    println(Direction.East)
+    // through a let binding from a different variant
+    s :: Direction.South
+    print("println other binding: ")
+    println(s)
     return 0
 }

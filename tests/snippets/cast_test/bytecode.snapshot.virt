@@ -36,6 +36,23 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __off_1
   call 2   ; std_core$finish_buffer
   call 6   ; std_io$println__string
+  i32.const -42
+  i32.to_i64
+  local.set 0   ; m
+  i64.const 20
+  buffer.new
+  local.set 1   ; __buf_0
+  i64.const 0
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  local.get 0   ; m
+  call 3   ; std_core$write_unsigned
+  local.set 2   ; __off_1
+  local.get 1   ; __buf_0
+  local.get 2   ; __off_1
+  call 2   ; std_core$finish_buffer
+  call 6   ; std_io$println__string
   return.lit i32.const 0
 end
 

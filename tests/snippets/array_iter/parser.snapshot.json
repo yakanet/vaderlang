@@ -147,23 +147,16 @@
                 "kind": "SimpleBinding",
                 "name": "empty"
               },
-              "type": null,
+              "type": {
+                "kind": "ArrayTypeExpr",
+                "element": {
+                  "kind": "IdentExpr",
+                  "name": "i32"
+                }
+              },
               "value": {
                 "kind": "SeqLitExpr",
-                "elements": [
-                  {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  },
-                  {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  },
-                  {
-                    "kind": "IntLitExpr",
-                    "value": "0n"
-                  }
-                ]
+                "elements": []
               }
             },
             {

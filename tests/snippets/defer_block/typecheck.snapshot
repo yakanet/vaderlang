@@ -1,16 +1,40 @@
 # Typecheck
 
 ## tests/snippets/defer_block
+  FnDecl         compute              :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 10:17    StringLitExpr  :: string
-  expr 10:9     CallExpr       :: void
-  expr 10:9     IdentExpr      :: fn(T) -> void
-  expr 6:11     CallExpr       :: void
-  expr 6:11     IdentExpr      :: fn(T) -> void
-  expr 6:19     StringLitExpr  :: string
-  expr 7:13     StringLitExpr  :: string
-  expr 7:5      CallExpr       :: void
-  expr 7:5      IdentExpr      :: fn(T) -> void
-  expr 9:15     CallExpr       :: void
-  expr 9:15     IdentExpr      :: fn(T) -> void
-  expr 9:23     StringLitExpr  :: string
+  FnDecl         value_trailing       :: fn() -> i32
+  FnDecl         void_trailing        :: fn() -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 20:11    CallExpr       :: void
+  expr 20:11    IdentExpr      :: fn(T) -> void
+  expr 20:19    StringLitExpr  :: string
+  expr 21:13    StringLitExpr  :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 25:11    CallExpr       :: void
+  expr 25:11    IdentExpr      :: fn(T) -> void
+  expr 25:19    StringLitExpr  :: string
+  expr 26:5     CallExpr       :: i32
+  expr 26:5     IdentExpr      :: fn() -> i32
+  expr 30:11    CallExpr       :: void
+  expr 30:11    IdentExpr      :: fn(T) -> void
+  expr 30:19    StringLitExpr  :: string
+  expr 31:13    StringLitExpr  :: string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 33:15    CallExpr       :: void
+  expr 33:15    IdentExpr      :: fn(T) -> void
+  expr 33:23    StringLitExpr  :: string
+  expr 34:17    StringLitExpr  :: string
+  expr 34:9     CallExpr       :: void
+  expr 34:9     IdentExpr      :: fn(T) -> void
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn() -> void
+  expr 37:13    StringLitExpr  :: string
+  expr 37:36    CallExpr       :: i32
+  expr 37:36    IdentExpr      :: fn() -> i32
+  expr 37:5     CallExpr       :: void
+  expr 37:5     IdentExpr      :: fn(T) -> void

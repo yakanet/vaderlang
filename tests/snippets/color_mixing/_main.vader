@@ -1,14 +1,15 @@
-// tests/snippets/color_mixing — distinct newtypes over a struct and a tuple.
+// tests/snippets/color_mixing: distinct newtypes over a struct and a tuple.
 //
 // A distinct newtype can wrap a COMPOSITE backing (a struct or a tuple), not
-// just a primitive. It stays nominal — carrying its own trait impls (operator
-// overloads) — while the STRUCTURAL ops forward to the backing:
-//   - struct-backed  (`Color :: Rgb`)     : `Color { … }` construction, `c.r`
-//     field access, and a nominal `Add` impl that blends two colors.
-//   - tuple-backed   (`Coord :: [i32, i32]`) : `[x, y]` literal, `p.0` / `p.1`
+// just a primitive. It stays nominal, carrying its own trait impls (operator
+// overloads), while the STRUCTURAL ops forward to the backing:
+//   - struct-backed (`Color :: Rgb`): `Color { … }` construction, `c.r` field
+//     access, and a nominal `Add` impl that blends two colors.
+//   - tuple-backed (`Coord :: [i32, i32]`): `[x, y]` literal, `p.0` / `p.1`
 //     positional access, `[x, y] :: p` destructure.
+//   - a tuple newtype whose element is itself a newtype (`Swatch`).
 //
-// Expected: prints "100 0 100", "3 4", "7".
+// Expected: prints "100 0 100", "3 4", "7", "200 x5".
 
 module "snippet"
 

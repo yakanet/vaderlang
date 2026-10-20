@@ -1,0 +1,209 @@
+# Lower
+
+## snippet
+  snippet.break_outer :: fn() -> Iterator<i32> {  // snippet$break_outer
+      return __genstate_break_outer {
+          .s0 = 0,
+          .s1 = 0,
+          .state = 12,
+      }
+  }
+  snippet.continue_outer :: fn() -> Iterator<i32> {  // snippet$continue_outer
+      return __genstate_continue_outer {
+          .s0 = 0,
+          .s1 = 0,
+          .state = 12,
+      }
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      broken: __genstate_break_outer<i32> = snippet.break_outer()
+      {
+          __iter_0: Iterator<i32> = broken
+          for {
+              __step_1: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_0)
+              if __step_1._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_1._0
+                  std.io.println<string>({
+                      __buf_2: Buffer = std.core.new_byte_buffer(i64(32))
+                      __off_3: i64 = 0
+                      __off_3 = std.core.write_string_at(__buf_2, __off_3, "break i:    ")
+                      __off_3 = std.core.write_int(__buf_2, __off_3, i64(v))
+                      std.core.finish_buffer(__buf_2, __off_3)
+                  } :string)
+              }
+          }
+      }
+      continued: __genstate_continue_outer<i32> = snippet.continue_outer()
+      {
+          __iter_4: Iterator<i32> = continued
+          for {
+              __step_5: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_4)
+              if __step_5._1 == u8(1) {
+                  break
+              } else {
+                  v: i32 = __step_5._0
+                  std.io.println<string>({
+                      __buf_6: Buffer = std.core.new_byte_buffer(i64(32))
+                      __off_7: i64 = 0
+                      __off_7 = std.core.write_string_at(__buf_6, __off_7, "continue i: ")
+                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(v))
+                      std.core.finish_buffer(__buf_6, __off_7)
+                  } :string)
+              }
+          }
+      }
+      return 0
+  }
+  snippet$__genstate_break_outer :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$__genstate_break_outer$Iterator$next :: fn(self: __genstate_break_outer) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+          } else if __self_0.state == 2 {
+              if __self_0.s0 < 3 {
+                  __self_0.state = 11
+              } else {
+                  __self_0.state = 1
+              }
+          } else if __self_0.state == 3 {
+              __self_0.s0 = __self_0.s0 +% 1
+              __self_0.state = 2
+          } else if __self_0.state == 4 {
+              __self_0.state = 3
+          } else if __self_0.state == 5 {
+              if __self_0.s1 < 3 {
+                  __self_0.state = 10
+              } else {
+                  __self_0.state = 4
+              }
+          } else if __self_0.state == 6 {
+              __self_0.s1 = __self_0.s1 +% 1
+              __self_0.state = 5
+          } else if __self_0.state == 7 {
+              __self_0.state = 6
+          } else if __self_0.state == 8 {
+              __self_0.state = 1
+          } else if __self_0.state == 9 {
+              if __self_0.s1 == 1 {
+                  __self_0.state = 8
+              } else {
+                  __self_0.state = 6
+              }
+          } else if __self_0.state == 10 {
+              __self_0.state = 9
+              return [(__self_0.s0 * 10) + __self_0.s1, u8(0)] :[i32, Continuation]
+          } else if __self_0.state == 11 {
+              __self_0.s1 = 0
+              __self_0.state = 5
+          } else if __self_0.state == 12 {
+              __self_0.s0 = 0
+              __self_0.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  snippet$__genstate_continue_outer :: struct { s0: i32, s1: i32, state: i32 }
+  snippet$__genstate_continue_outer$Iterator$next :: fn(self: __genstate_continue_outer) -> [i32, Continuation] {
+      dispatch$: for {
+          if __self_0.state == 0 {
+              __self_0.state = -1
+          } else if __self_0.state == 1 {
+              __self_0.state = 0
+          } else if __self_0.state == 2 {
+              if __self_0.s0 < 3 {
+                  __self_0.state = 11
+              } else {
+                  __self_0.state = 1
+              }
+          } else if __self_0.state == 3 {
+              __self_0.s0 = __self_0.s0 +% 1
+              __self_0.state = 2
+          } else if __self_0.state == 4 {
+              __self_0.state = 3
+          } else if __self_0.state == 5 {
+              if __self_0.s1 < 3 {
+                  __self_0.state = 10
+              } else {
+                  __self_0.state = 4
+              }
+          } else if __self_0.state == 6 {
+              __self_0.s1 = __self_0.s1 +% 1
+              __self_0.state = 5
+          } else if __self_0.state == 7 {
+              __self_0.state = 6
+              return [(__self_0.s0 * 10) + __self_0.s1, u8(0)] :[i32, Continuation]
+          } else if __self_0.state == 8 {
+              __self_0.state = 7
+          } else if __self_0.state == 9 {
+              __self_0.s0 = __self_0.s0 +% 1
+              __self_0.state = 2
+          } else if __self_0.state == 10 {
+              if __self_0.s1 == 1 {
+                  __self_0.state = 9
+              } else {
+                  __self_0.state = 7
+              }
+          } else if __self_0.state == 11 {
+              __self_0.s1 = 0
+              __self_0.state = 5
+          } else if __self_0.state == 12 {
+              __self_0.s0 = 0
+              __self_0.state = 2
+          } else {
+              return [0, u8(1)] :[i32, Continuation]
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+  vtable std.core.Iterator.next for __genstate_break_outer  snippet$__genstate_break_outer$Iterator$next
+  vtable std.core.Iterator.next for __genstate_continue_outer  snippet$__genstate_continue_outer$Iterator$next
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,0 +1,25 @@
+// `@assert` over `@satisfies`. The committed comptime output is WRONG.
+//
+// Each assertion below holds, so `comptime.snapshot.md` should read `holds` for
+// all five. It reads `not evaluated`: `@satisfies` folds at lowering, and the
+// comptime pass checks the `@assert`s before that, so it finds no constant to
+// judge and skips the assertion. A false `@satisfies` under `@assert` therefore
+// passes the build in silence.
+//
+// The same intrinsic in `main` folds at lowering and prints `true`, which the
+// `vm.snapshot` pins correctly.
+
+module "snippet"
+
+import "std/io"
+
+@assert(@satisfies(string, Add),  "string implements Add (concat)")
+@assert(@satisfies(string, Hash), "string implements Hash")
+@assert(@satisfies(i32, Hash),    "i32 implements Hash")
+@assert(@satisfies(u32, Hash),    "u32 implements Hash")
+@assert(@satisfies(u64, Hash),    "u64 implements Hash")
+
+main :: fn() -> i32 {
+    println("folded in main: ${@satisfies(u64, Hash)}")
+    return 0
+}

@@ -1,0 +1,139 @@
+// tests/snippets/intrinsic_reflection: the type-query intrinsics, one printed
+// line per intrinsic.
+//
+// `@size_of` and `@align_of` report the width of the SLOT that carries the type,
+// what the C emitter declares for a field or a local, not the size of the object
+// a reference points at: `string` is an interned atom id, an enum rides its repr
+// (written, or the narrowest its values fit), a concrete reference is a bare
+// pointer, and only an erased slot keeps a box. `@type_kind` names the shape and
+// `@type_name` the type. `@field_count` counts the fields of a struct or the
+// elements of a tuple, 0 for any other shape; `@variant_count` counts the
+// variants of an enum or a union. `@field_index(T, "name")` is the 0-based
+// position of a struct field, named by a static string literal.
+// `@satisfies(T, Trait)` is true when `T` has an impl of `Trait`.
+//
+// Every intrinsic folds to a constant. At the top level, under `@assert`, the
+// comptime pass checks the result and fails the build on a false one; the
+// verdicts are in `comptime.snapshot.md`, one per assertion. In `main` the
+// lowering folds it and the program prints it.
+
+module "snippet"
+
+import "std/io"
+
+Pair :: struct {
+    first:  i32
+    second: i32
+}
+
+Triple :: struct {
+    a: i8
+    b: i8
+    c: i8
+}
+
+Vec3 :: struct {
+    x: f32
+    y: f32
+    z: f32
+}
+
+Side :: enum {
+    Left,
+    Right,
+}
+
+Color :: enum(u8) { Red, Green }
+Wide  :: enum(i32) { A, B }
+
+// ---- checked by the comptime pass ------------------------------------------
+
+@assert(@size_of(i8)     == 1)
+@assert(@size_of(i32)    == 4)
+@assert(@size_of(i64)    == 8)
+@assert(@size_of(string) == 4)
+
+@assert(@align_of(i32) == 4)
+@assert(@align_of(i64) == 8)
+
+@assert(@type_kind(i32)        == "primitive")
+@assert(@type_kind(i32[])      == "array")
+@assert(@type_kind([i32, i32]) == "tuple")
+
+@assert(@type_name(i32)    == "i32")
+@assert(@type_name(string) == "string")
+
+// The optional message is appended to the C4015 detail when the assertion fails.
+@assert(@size_of(i32) == 4, "i32 must be 4 bytes on this target")
+
+@assert(@field_count(Pair)           == 2)
+@assert(@field_count(Triple)         == 3)
+@assert(@field_count([i32, i32])     == 2)
+@assert(@field_count(i32)            == 0)
+@assert(@variant_count(Side)         == 2)
+@assert(@variant_count(i32 | string) == 2)
+
+@assert(@field_index(Vec3, "x") == 0)
+@assert(@field_index(Vec3, "y") == 1)
+@assert(@field_index(Vec3, "z") == 2)
+
+// ---- folded by the lowering ------------------------------------------------
+
+main :: fn() -> i32 {
+    s8   :: @size_of(i8)
+    s32  :: @size_of(i32)
+    s64  :: @size_of(i64)
+    sstr :: @size_of(string)
+    println("size_of primitive: i8=${s8} i32=${s32} i64=${s64} string=${sstr}")
+
+    narrow   :: @size_of(Color)
+    wide     :: @size_of(Wide)
+    inferred :: @size_of(Side)
+    println("size_of enum: u8=${narrow} i32=${wide} inferred=${inferred}")
+
+    ref    :: @size_of(Pair)
+    arr    :: @size_of(i32[])
+    erased :: @size_of(i32 | string)
+    println("size_of reference: struct=${ref} array=${arr} erased=${erased}")
+
+    a32  :: @align_of(i32)
+    a64  :: @align_of(i64)
+    abox :: @align_of(i32 | string)
+    println("align_of: i32=${a32} i64=${a64} erased=${abox}")
+
+    kp :: @type_kind(i32)
+    ks :: @type_kind(Pair)
+    ka :: @type_kind(i32[])
+    kt :: @type_kind([i32, i32])
+    println("type_kind: ${kp} ${ks} ${ka} ${kt}")
+    matches :: kp == "primitive" && ks == "struct" && ka == "array" && kt == "tuple"
+    println("type_kind compared: ${matches}")
+
+    name :: @type_name(i32)
+    println("type_name: ${name} ${@type_name(string)}")
+
+    pair   :: @field_count(Pair)
+    triple :: @field_count(Triple)
+    tuple  :: @field_count([i32, i32])
+    scalar :: @field_count(i32)
+    println("field_count: Pair=${pair} Triple=${triple} tuple=${tuple} i32=${scalar}")
+
+    variants_enum  :: @variant_count(Side)
+    variants_union :: @variant_count(i32 | string)
+    println("variant_count: enum=${variants_enum} union=${variants_union}")
+
+    index_x :: @field_index(Vec3, "x")
+    index_y :: @field_index(Vec3, "y")
+    index_z :: @field_index(Vec3, "z")
+    println("field_index: x=${index_x} y=${index_y} z=${index_z}")
+
+    concat    :: @satisfies(string, Add)
+    hash_text :: @satisfies(string, Hash)
+    hash_int  :: @satisfies(i32, Hash)
+    println("satisfies: string Add=${concat} string Hash=${hash_text} i32 Hash=${hash_int}")
+    // `std/core` declares `i32 implements Add` (`@intrinsic`).
+    if @satisfies(i32, Add) {
+        println("satisfies in a condition: i32 Add taken")
+    }
+    return 0
+}

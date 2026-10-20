@@ -14,7 +14,7 @@ leg :: fn(label: string, ms: i64) -> Async<string> {
 }
 
 main :: fn() -> i32 {
-    winner :: await race([leg("fast", 10), leg("slow", 100)])
+    winner :: await race([leg("slow", 100), leg("fast", 10)])
     println("winner: ${winner}")
     return 0
 }

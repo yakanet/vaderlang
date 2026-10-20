@@ -1,5 +1,8 @@
 # stdout
-3
-3
+user trait on i32:  140
+hash+equals i32:    3
+hash+equals string: 3
+equals same:        true
+equals different:   false
 # exit
 0

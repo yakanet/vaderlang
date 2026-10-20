@@ -92,10 +92,7 @@ import "std/string"
 
 @test test_sort_i32_asc :: fn() -> void {
     out :: sort([3, 1, 4, 1, 5, 9, 2, 6, 5, 3], (a: i32, b: i32) -> a < b)
-    assert_eq(out.len(), 10)
-    assert_eq(out[0], 1)
-    assert_eq(out[1], 1)
-    assert_eq(out[9], 9)
+    assert_eq("${out}", "[1, 1, 2, 3, 3, 4, 5, 5, 6, 9]")
 }
 
 @test test_sort_i32_desc :: fn() -> void {
@@ -130,4 +127,27 @@ import "std/string"
     assert_eq(out[0], "apple")
     assert_eq(out[1], "banana")
     assert_eq(out[2], "cherry")
+}
+
+@test test_sort_already_sorted :: fn() -> void {
+    out :: sort([1, 2, 3, 4, 5], (a: i32, b: i32) -> a < b)
+    assert_eq("${out}", "[1, 2, 3, 4, 5]")
+}
+
+@test test_sort_reversed_input :: fn() -> void {
+    out :: sort([5, 4, 3, 2, 1], (a: i32, b: i32) -> a < b)
+    assert_eq("${out}", "[1, 2, 3, 4, 5]")
+}
+
+@test test_sort_past_insertion_cutoff :: fn() -> void {
+    // 30 elements: more than `INSERTION_CUTOFF`, so the merge path runs.
+    input :: [
+        10, 20, 5, 15, 25, 1, 30, 8, 12, 18, 3, 27, 22, 7, 14,
+        11, 19, 6, 24, 16, 9, 21, 13, 4, 26, 2, 17, 23, 28, 29,
+    ]
+    out :: sort(input, (a: i32, b: i32) -> a < b)
+    assert_eq(out.len(), 30)
+    for i in 0..<out.len() {
+        assert_eq(out[i], i32(i) + 1)
+    }
 }

@@ -1,8 +1,12 @@
 # stdout
-n = 42
-e = 42
-b = 7
+inferred, bare = 10
+inferred, ufcs = 42
+explicit = 42
+two params = 2
+array param = 10
+pair = 30 0
+box = 7
 nested = 99
-c = true
+comparison in args = true
 # exit
 0

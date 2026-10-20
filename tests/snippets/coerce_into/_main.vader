@@ -1,0 +1,59 @@
+// `Into<Target>` coercion of a user struct (`UserId`, with one impl to `i32` and
+// one to `string`), in every form that reaches the matching `into` impl:
+// - implicit, at the four value slots: a call argument with a typed parameter,
+//   a typed let, a return, a struct field;
+// - explicit, `Target(value)`: for a non-numeric target the call routes through
+//   the impl instead of emitting a primitive cast;
+// - overload resolution: when no candidate's first parameter takes `UserId`,
+//   one reachable through `Into` is accepted (`double(i32)`), while a direct
+//   `UserId` candidate still beats the `Into` fallback (`preferred`).
+module "snippet"
+
+import "std/io"
+
+UserId :: struct { value: i32 }
+
+UserId implements Into<i32> {
+    into :: fn(self) -> i32 = self.value
+}
+
+UserId implements Into<string> {
+    into :: fn(self) -> string = "user_${self.value}"
+}
+
+take_i32 :: fn(x: i32) -> i32 = x + 1
+
+get_id :: fn(u: UserId) -> i32 { return u }
+
+Pair :: struct { tag: string, n: i32 }
+
+// Neither overload's first parameter matches `UserId` directly.
+double :: fn(n: i32) -> i32 = n + n
+double :: fn(n: f64) -> f64 = n + n
+
+preferred :: fn(u: UserId) -> i32 = 100
+preferred :: fn(n: i32) -> i32 = n + 1
+
+main :: fn() -> i32 {
+    u :: UserId { .value = 42 }
+
+    println("implicit call:   ${take_i32(u)}")
+    n: i32: u
+    println("implicit let:    ${n}")
+    println("implicit return: ${get_id(u)}")
+    p :: Pair { .tag = u, .n = u }
+    println("implicit field:  tag=${p.tag} n=${p.n}")
+
+    v :: UserId { .value = 7 }
+    explicit_n :: i32(v)
+    println("explicit i32:    ${explicit_n}")
+    explicit_s :: string(v)
+    println("explicit string: ${explicit_s}")
+
+    a :: double(u)
+    println("overload into:   ${a}")
+    b :: preferred(u)
+    println("overload direct: ${b}")
+
+    return 0
+}

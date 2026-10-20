@@ -1,5 +1,6 @@
 # stdout
-free=36 ufcs=36
-member=106 want=106
+slots: a=60 b=28 c=600
+method arg, free fn: free=36 ufcs=36
+method arg, impl member: member=106 want=106
 # exit
 0

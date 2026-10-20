@@ -1,10 +1,20 @@
 # stdout
-cat felix
-dog says woof
-cat garfield
-dog says bark
-pig of 200 kg
-int 42
-str hello
+is, cat: cat felix
+is, dog: dog says woof
+!(is), cat: cat garfield
+!(is), dog: dog says bark
+!is, cat: cat tom
+!is, dog: dog says grr
+guard cascade, cat: cat kitty
+guard cascade, dog: dog says yap
+guard cascade, pig: pig of 200 kg
+primitive is, int: int 42
+primitive is, str: str hello
+primitive !is, int: int 7
+primitive !is, str: str world
+!is null, cat: cat garfield
+!is null, null: nothing
+!is as bool, cat: true
+!is as bool, dog: false
 # exit
 0

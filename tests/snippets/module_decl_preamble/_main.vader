@@ -1,0 +1,12 @@
+#!/usr/bin/env vader
+// What may precede the `module` declaration without hiding it: a shebang on
+// the first line, line comments, and a block comment. The parser still takes
+// `module "main"` as the identity of the file.
+
+/* A block comment may also precede the module keyword. */
+
+module "main"
+
+main :: fn() -> i32 {
+    return 0
+}

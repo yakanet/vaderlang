@@ -206,40 +206,122 @@
               }
             },
             {
-              "kind": "ExprStmt",
-              "expr": {
-                "kind": "CallExpr",
-                "callee": {
-                  "kind": "IdentExpr",
-                  "name": "println"
+              "kind": "LetStmt",
+              "mutable": true,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "cursor"
+              },
+              "type": {
+                "kind": "BinaryExpr",
+                "op": "bitor",
+                "left": {
+                  "kind": "GenericInstExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "Node"
+                  },
+                  "typeArgs": [
+                    {
+                      "kind": "IdentExpr",
+                      "name": "i32"
+                    }
+                  ]
                 },
-                "args": [
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "null"
+                }
+              },
+              "value": {
+                "kind": "IdentExpr",
+                "name": "head"
+              }
+            },
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "infinite"
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [
                   {
-                    "name": null,
+                    "kind": "LetStmt",
+                    "mutable": false,
+                    "binding": {
+                      "kind": "SimpleBinding",
+                      "name": "node"
+                    },
+                    "type": null,
                     "value": {
-                      "kind": "StringLitExpr",
-                      "parts": [
+                      "kind": "NullCoalesceExpr",
+                      "left": {
+                        "kind": "IdentExpr",
+                        "name": "cursor"
+                      },
+                      "fallback": {
+                        "kind": "BreakStmt",
+                        "label": null
+                      }
+                    }
+                  },
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
                         {
-                          "kind": "text",
-                          "value": "head.value = "
-                        },
-                        {
-                          "kind": "interp",
-                          "expr": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "head"
-                            },
-                            "field": "value"
-                          }
+                          "name": null,
+                          "value": {
+                            "kind": "StringLitExpr",
+                            "parts": [
+                              {
+                                "kind": "text",
+                                "value": "value = "
+                              },
+                              {
+                                "kind": "interp",
+                                "expr": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "node"
+                                  },
+                                  "field": "value"
+                                }
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
+                    }
+                  },
+                  {
+                    "kind": "AssignStmt",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "cursor"
                     },
-                    "spread": false
+                    "value": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "node"
+                      },
+                      "field": "next"
+                    }
                   }
-                ]
-              }
+                ],
+                "trailing": null
+              },
+              "isComptime": false
             },
             {
               "kind": "ReturnStmt",

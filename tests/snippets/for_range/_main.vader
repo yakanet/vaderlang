@@ -1,3 +1,12 @@
+// `for` over a range.
+//   - exclusive `..<`, inclusive `..=`, and an empty range that never runs
+//   - the `for <range> { ... }` shorthand, which parses to a for-in over a
+//     synthetic, unused binding; nested too
+//   - `Range<T>` over other integer widths (`u64`, `i64`, `u8`, `i16`): the
+//     bound type is picked from the first concrete operand, so a free literal
+//     on the left adopts the upper bound's width
+//   - a char range, inclusive and exclusive, walks a counter in place
+
 module "snippet"
 
 import "std/io"
@@ -5,21 +14,80 @@ import "std/io"
 main :: fn() -> i32 {
     sum := 0
     for i in 0..<5 {
-        sum = sum + i
+        sum += i
     }
-    println("0..<5 -> ${sum}")
+    println("0..<5 sum: ${sum}")
 
     total := 0
     for j in 1..=4 {
-        total = total + j
+        total += j
     }
-    println("1..=4 -> ${total}")
+    println("1..=4 sum: ${total}")
 
-    // empty range
     n := 0
     for k in 5..<3 {
-        n = n + 1
+        n += 1
     }
-    println("5..<3 iters -> ${n}")
+    println("5..<3 iterations: ${n}")
+
+    count := 0
+    for 0..<5 {
+        count += 1
+    }
+    println("shorthand 0..<5 iterations: ${count}")
+
+    inclusive := 0
+    for 1..=4 {
+        inclusive += 1
+    }
+    println("shorthand 1..=4 iterations: ${inclusive}")
+
+    cells := 0
+    for 0..<3 {
+        for 0..<2 {
+            cells += 1
+        }
+    }
+    println("nested shorthand iterations: ${cells}")
+
+    nu: u64: 3
+    su: u64 = 0
+    for i in 0..<nu {
+        su += i
+    }
+    println("u64 sum: ${su}")
+
+    ni: i64: 4
+    si: i64 = 0
+    for i in 0..<ni {
+        si += i
+    }
+    println("i64 sum: ${si}")
+
+    nb: u8: 6
+    sb: u32 = 0
+    for i in 0..<nb {
+        sb += u32(i)
+    }
+    println("u8 sum: ${sb}")
+
+    hi: i16: 4
+    sh: i32 = 0
+    for i in 1..=hi {
+        sh += i32(i)
+    }
+    println("i16 inclusive sum: ${sh}")
+
+    letters := 0
+    for c in 'a'..='e' {
+        letters += 1
+    }
+    println("'a'..='e' iterations: ${letters}")
+
+    digits := 0
+    for c in '0'..<'5' {
+        digits += 1
+    }
+    println("'0'..<'5' iterations: ${digits}")
     return 0
 }

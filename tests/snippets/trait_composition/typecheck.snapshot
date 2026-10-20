@@ -2,6 +2,31 @@
 
 ## tests/snippets/trait_composition
   TraitDecl      Aliased              :: Aliased<T>
+  FnDecl         fingerprint_of       :: fn(T) -> u64
   TraitDecl      Hashable             :: Hashable<T>
   FnDecl         main                 :: fn() -> i32
   TraitDecl      Numeric              :: Numeric<T>
+  StructDecl     Tag                  :: Tag
+  expr 30:31    CallExpr       :: u64
+  expr 30:31    IdentExpr      :: type
+  expr 30:35    FieldExpr      :: i32
+  expr 30:35    IdentExpr      :: Tag
+  expr 34:46    BinaryExpr     :: bool
+  expr 34:46    FieldExpr      :: i32
+  expr 34:46    IdentExpr      :: Tag
+  expr 34:57    FieldExpr      :: i32
+  expr 34:57    IdentExpr      :: Tag
+  expr 38:38    BinaryExpr     :: u64
+  expr 38:38    CallExpr       :: u64
+  expr 38:38    IdentExpr      :: type
+  expr 38:42    FieldExpr      :: i32
+  expr 38:42    IdentExpr      :: Tag
+  expr 41:50    CallExpr       :: u64
+  expr 41:50    FieldExpr      :: fn() -> u64
+  expr 41:50    IdentExpr      :: T
+  expr 44:13    StringLitExpr  :: string
+  expr 44:28    CallExpr       :: u64
+  expr 44:28    IdentExpr      :: fn(T) -> u64
+  expr 44:43    StructLitExpr  :: Tag
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void

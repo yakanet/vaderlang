@@ -19,9 +19,9 @@
   expr 17:27    CallExpr       :: Async<string>
   expr 17:27    IdentExpr      :: fn(string, i64) -> Async<string>
   expr 17:31    StringLitExpr  :: string
-  expr 17:44    CallExpr       :: Async<string>
-  expr 17:44    IdentExpr      :: fn(string, i64) -> Async<string>
-  expr 17:48    StringLitExpr  :: string
+  expr 17:45    CallExpr       :: Async<string>
+  expr 17:45    IdentExpr      :: fn(string, i64) -> Async<string>
+  expr 17:49    StringLitExpr  :: string
   expr 18:13    StringLitExpr  :: string
   expr 18:24    IdentExpr      :: string
   expr 18:5     CallExpr       :: void

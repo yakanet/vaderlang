@@ -1,0 +1,26 @@
+// A fused `range.filter(p).map(f)` chain whose map widens the element type
+// from i32 to i64. The loop variable `x` holds the i64 the map returns, so a
+// square past the i32 range reaches `total` whole. That `x` shadows the
+// fusion counter, also named `x`, and the counter's step still advances the
+// counter (lower snapshot).
+//
+// Even x over [46340, 46350): 46340 * 46340 fits in i32, the four other
+// squares do not. Their sum is 10738831720.
+
+module "snippet"
+
+import "std/io"
+import "std/iter"
+
+is_even :: fn(x: i32) -> bool = x % 2 == 0
+
+square_i64 :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+main :: fn() -> i32 {
+    total: i64 = 0
+    for x in (46_340..<46_350).filter(is_even).map(square_i64) {
+        total += x
+    }
+    println("fuse_filter_map_widening total=${total}")
+    return 0
+}

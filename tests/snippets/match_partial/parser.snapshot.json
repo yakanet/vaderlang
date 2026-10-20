@@ -59,8 +59,32 @@
         "decorators": []
       },
       {
+        "kind": "EnumDecl",
+        "name": "Color",
+        "visibility": "private",
+        "header": [],
+        "variants": [
+          {
+            "name": "Red",
+            "value": null,
+            "data": null
+          },
+          {
+            "name": "Green",
+            "value": null,
+            "data": null
+          },
+          {
+            "name": "Blue",
+            "value": null,
+            "data": null
+          }
+        ],
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
-        "name": "weekend_only",
+        "name": "day_kind",
         "visibility": "private",
         "typeParams": [],
         "params": [
@@ -80,136 +104,214 @@
         },
         "body": {
           "kind": "BlockExpr",
-          "stmts": [
-            {
-              "kind": "ReturnStmt",
-              "value": {
-                "kind": "MatchExpr",
-                "scrutinee": {
-                  "kind": "IdentExpr",
-                  "name": "d"
+          "stmts": [],
+          "trailing": {
+            "kind": "MatchExpr",
+            "scrutinee": {
+              "kind": "IdentExpr",
+              "name": "d"
+            },
+            "arms": [
+              {
+                "pattern": {
+                  "kind": "EnumVariantPattern",
+                  "variant": "Saturday"
                 },
-                "arms": [
-                  {
-                    "pattern": {
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "weekend"
+                    }
+                  ]
+                }
+              },
+              {
+                "pattern": {
+                  "kind": "EnumVariantPattern",
+                  "variant": "Sunday"
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "weekend"
+                    }
+                  ]
+                }
+              },
+              {
+                "pattern": {
+                  "kind": "EnumVariantPattern",
+                  "variant": "Monday"
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "weekday"
+                    }
+                  ]
+                }
+              }
+            ],
+            "partial": true
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "weekend_or_not",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "d",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Day"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "MatchExpr",
+            "scrutinee": {
+              "kind": "IdentExpr",
+              "name": "d"
+            },
+            "arms": [
+              {
+                "pattern": {
+                  "kind": "OrPattern",
+                  "patterns": [
+                    {
                       "kind": "EnumVariantPattern",
                       "variant": "Saturday"
                     },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekend"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "pattern": {
+                    {
                       "kind": "EnumVariantPattern",
                       "variant": "Sunday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekend"
-                        }
-                      ]
                     }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "EnumVariantPattern",
-                      "variant": "Monday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekday"
-                        }
-                      ]
+                  ]
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "weekend"
                     }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "EnumVariantPattern",
-                      "variant": "Tuesday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekday"
-                        }
-                      ]
+                  ]
+                }
+              },
+              {
+                "pattern": {
+                  "kind": "WildcardPattern"
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "weekday"
                     }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "EnumVariantPattern",
-                      "variant": "Wednesday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekday"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "EnumVariantPattern",
-                      "variant": "Thursday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekday"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "pattern": {
-                      "kind": "EnumVariantPattern",
-                      "variant": "Friday"
-                    },
-                    "guard": null,
-                    "body": {
-                      "kind": "StringLitExpr",
-                      "parts": [
-                        {
-                          "kind": "text",
-                          "value": "weekday"
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "partial": true
+                  ]
+                }
               }
-            }
-          ],
-          "trailing": null
+            ],
+            "partial": true
+          }
         },
-        "decorators": []
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "label",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "c",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Color"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "MatchExpr",
+            "scrutinee": {
+              "kind": "IdentExpr",
+              "name": "c"
+            },
+            "arms": [
+              {
+                "pattern": {
+                  "kind": "EnumVariantPattern",
+                  "variant": "Red"
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "red"
+                    }
+                  ]
+                }
+              },
+              {
+                "pattern": {
+                  "kind": "EnumVariantPattern",
+                  "variant": "Green"
+                },
+                "guard": null,
+                "body": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "green"
+                    }
+                  ]
+                }
+              }
+            ],
+            "unreachable": true
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
       },
       {
         "kind": "FnDecl",
@@ -236,19 +338,55 @@
                   {
                     "name": null,
                     "value": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "weekend_only"
-                      },
-                      "args": [
+                      "kind": "StringLitExpr",
+                      "parts": [
                         {
-                          "name": null,
-                          "value": {
-                            "kind": "DotVariantExpr",
-                            "variant": "Saturday"
-                          },
-                          "spread": false
+                          "kind": "text",
+                          "value": "partial, uncovered variants: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "day_kind"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Saturday"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "day_kind"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Monday"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
                         }
                       ]
                     },
@@ -269,19 +407,124 @@
                   {
                     "name": null,
                     "value": {
-                      "kind": "CallExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "weekend_only"
-                      },
-                      "args": [
+                      "kind": "StringLitExpr",
+                      "parts": [
                         {
-                          "name": null,
-                          "value": {
-                            "kind": "DotVariantExpr",
-                            "variant": "Wednesday"
-                          },
-                          "spread": false
+                          "kind": "text",
+                          "value": "partial, wildcard: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "weekend_or_not"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Sunday"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "weekend_or_not"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Wednesday"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "unreachable: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "label"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Red"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "label"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "DotVariantExpr",
+                                  "variant": "Green"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
                         }
                       ]
                     },

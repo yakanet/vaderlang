@@ -428,3 +428,8 @@ test_is_ascii :: fn() -> void {
     assert("héllo".byte_slice(3, 6).is_ascii(), "an ASCII slice of a string that is not")
     assert(!bytes_to_string([0x61, 0xFF]).is_ascii(), "a malformed byte is not ASCII")
 }
+
+@test
+test_bytes_to_string_of_a_bytes_slice :: fn() -> void {
+    assert_eq("hello world".bytes()[6..<11].bytes_to_string(), "world")
+}

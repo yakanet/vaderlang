@@ -16,6 +16,12 @@
       }
       return concat_2("cat ", Cat(p).name)
   }
+  snippet.not_is :: fn(p: Cat | Dog) -> string {  // snippet$not_is
+      if !(p is Cat) {
+          return concat_2("dog says ", Dog(p).sound)
+      }
+      return concat_2("cat ", Cat(p).name)
+  }
   snippet.cascade :: fn(p: Cat | Dog | Pig) -> string {  // snippet$cascade
       if p is Cat {
           return concat_2("cat ", Cat(p).name)
@@ -44,14 +50,59 @@
       }
       return concat_2("str ", string(v))
   }
+  snippet.primitive_not_is :: fn(v: i32 | string) -> string {  // snippet$primitive_not_is
+      if !(v is string) {
+          return {
+              __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
+              __off_1: i64 = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "int ")
+              __off_1 = std.core.write_int(__buf_0, __off_1, i64(i32(v)))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string
+      }
+      return concat_2("str ", string(v))
+  }
+  snippet.unwrap_or :: fn(value: Cat | null, fallback: string) -> string {  // snippet$unwrap_or
+      if !(value is null) {
+          return concat_2("cat ", Cat(value).name)
+      }
+      return fallback
+  }
+  snippet.is_not_dog :: fn(p: Cat | Dog) -> bool {  // snippet$is_not_dog
+      !(p is Dog)
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
-      std.io.println<string>(snippet.direct(Cat { .name = "felix" }))
-      std.io.println<string>(snippet.direct(Dog { .sound = "woof" }))
-      std.io.println<string>(snippet.negated(Cat { .name = "garfield" }))
-      std.io.println<string>(snippet.negated(Dog { .sound = "bark" }))
-      std.io.println<string>(snippet.cascade(Pig { .weight = 200 }))
-      std.io.println<string>(snippet.primitive_is(42))
-      std.io.println<string>(snippet.primitive_is("hello"))
+      std.io.println<string>(concat_2("is, cat: ", snippet.direct(Cat { .name = "felix" })))
+      std.io.println<string>(concat_2("is, dog: ", snippet.direct(Dog { .sound = "woof" })))
+      std.io.println<string>(concat_2("!(is), cat: ", snippet.negated(Cat { .name = "garfield" })))
+      std.io.println<string>(concat_2("!(is), dog: ", snippet.negated(Dog { .sound = "bark" })))
+      std.io.println<string>(concat_2("!is, cat: ", snippet.not_is(Cat { .name = "tom" })))
+      std.io.println<string>(concat_2("!is, dog: ", snippet.not_is(Dog { .sound = "grr" })))
+      std.io.println<string>(concat_2("guard cascade, cat: ", snippet.cascade(Cat { .name = "kitty" })))
+      std.io.println<string>(concat_2("guard cascade, dog: ", snippet.cascade(Dog { .sound = "yap" })))
+      std.io.println<string>(concat_2("guard cascade, pig: ", snippet.cascade(Pig { .weight = 200 })))
+      std.io.println<string>(concat_2("primitive is, int: ", snippet.primitive_is(42)))
+      std.io.println<string>(concat_2("primitive is, str: ", snippet.primitive_is("hello")))
+      std.io.println<string>(concat_2("primitive !is, int: ", snippet.primitive_not_is(7)))
+      std.io.println<string>(concat_2("primitive !is, str: ", snippet.primitive_not_is("world")))
+      std.io.println<string>(concat_2("!is null, cat: ", snippet.unwrap_or(Cat { .name = "garfield" }, "nothing")))
+      std.io.println<string>(concat_2("!is null, null: ", snippet.unwrap_or(null, "nothing")))
+      cat: Cat = Cat { .name = "felix" }
+      dog: Dog = Dog { .sound = "woof" }
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "!is as bool, cat: ")
+          __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.is_not_dog(cat))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(23))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "!is as bool, dog: ")
+          __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.is_not_dog(dog))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

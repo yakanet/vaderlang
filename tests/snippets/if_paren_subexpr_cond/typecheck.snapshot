@@ -1,0 +1,32 @@
+# Typecheck
+
+## tests/snippets/if_paren_subexpr_cond
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 13:27    CallExpr       :: void
+  expr 13:27    IdentExpr      :: fn(T) -> void
+  expr 13:35    StringLitExpr  :: string
+  expr 13:5     IfExpr         :: void
+  expr 13:9     BinaryExpr     :: bool
+  expr 13:9     BinaryExpr     :: i32
+  expr 13:9     BinaryExpr     :: i32
+  expr 13:9     IdentExpr      :: i32
+  expr 14:18    CallExpr       :: void
+  expr 14:18    IdentExpr      :: fn(T) -> void
+  expr 14:26    StringLitExpr  :: string
+  expr 14:5     IfExpr         :: void
+  expr 14:9     BinaryExpr     :: bool
+  expr 14:9     IdentExpr      :: i32
+  expr 15:16    CallExpr       :: void
+  expr 15:16    IdentExpr      :: fn(T) -> void
+  expr 15:24    StringLitExpr  :: string
+  expr 15:5     IfExpr         :: void
+  expr 15:8     BinaryExpr     :: bool
+  expr 15:8     IdentExpr      :: i32
+  expr 16:35    CallExpr       :: void
+  expr 16:35    IdentExpr      :: fn(T) -> void
+  expr 16:43    StringLitExpr  :: string
+  expr 16:5     IfExpr         :: void
+  expr 16:9     BinaryExpr     :: bool
+  expr 16:9     FieldExpr      :: i32
+  expr 16:9     StructLitExpr  :: Point

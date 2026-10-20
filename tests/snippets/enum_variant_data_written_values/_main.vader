@@ -1,15 +1,22 @@
-// Enum variant data with written values : the enum stores its variant's rank,
-// the data table is indexed by it, and a conversion to an integer reads the
-// written value back — folded for a constant, `rank + first` for consecutive
-// values, a read of the value table otherwise. Interpolated, a variant renders
-// through `Display`, here the variant name `@displayable` generates.
+// Enum variant data: each variant carries a constant `StatusInfo`, read back
+// as a field (`s.reason`, `Level.Warning.reason`) or whole (`StatusInfo(s)`),
+// and a field the variant leaves out takes the struct's default.
+//
+// With written values, the enum stores its variant's rank, the data table is
+// indexed by it, and a conversion to an integer reads the written value back:
+// folded for a constant, `rank + first` for consecutive values, a read of the
+// value table otherwise. Interpolated, a variant renders through `Display`,
+// here the variant name `@displayable` generates. `Reply` has no written
+// value and carries its protocol code in a field instead.
 
 module "snippet"
 
 import "std/io"
 
 StatusInfo :: struct {
+    code: i32 = 0
     reason: string
+    retry: bool = false
 }
 
 @displayable
@@ -17,6 +24,12 @@ HttpStatus :: enum(StatusInfo) {
     Ok          { .reason = "OK" }                  = 200,
     NotFound    { .reason = "Not Found" }           = 404,
     Unavailable { .reason = "Service Unavailable" } = 503,
+}
+
+Reply :: enum(StatusInfo) {
+    Ok          { .code = 200, .reason = "OK" },
+    NotFound    { .code = 404, .reason = "Not Found" },
+    Unavailable { .code = 503, .reason = "Service Unavailable", .retry = true },
 }
 
 Level :: enum(StatusInfo) {
@@ -31,14 +44,24 @@ describe :: fn(s: HttpStatus) -> string = match s {
     .Unavailable -> "later"
 }
 
+describe_reply :: fn(r: Reply) -> string = "${r.code} ${r.reason} retry=${r.retry}"
+
 main :: fn() -> i32 {
     statuses :: [HttpStatus.Ok, HttpStatus.NotFound, HttpStatus.Unavailable]
     for s in statuses {
-        println("${i32(s)} ${s} ${s.reason} ${describe(s)}")
+        println("written: ${i32(s)} ${s} ${s.reason} ${describe(s)} code=${s.code}")
     }
     for level in [Level.Error, Level.Warning, Level.Info] {
-        println("${i32(level)} ${level.reason}")
+        println("consecutive: ${i32(level)} ${level.reason}")
     }
-    println("${i32(HttpStatus.NotFound)} ${statuses[1] == .NotFound} ${@size_of(HttpStatus)}")
+    println(
+        "constant: ${i32(HttpStatus.NotFound)} ${statuses[1] == .NotFound} ${@size_of(HttpStatus)}",
+    )
+    for r in [Reply.Ok, Reply.NotFound, Reply.Unavailable] {
+        println("field code: ${describe_reply(r)}")
+    }
+    info :: StatusInfo(Reply.NotFound)
+    println("whole: ${info.reason} / ${Level.Warning.reason} ${i32(Level.Warning)}")
+    println("sizes: ${@size_of(Reply)} ${@size_of(Level)}")
     return 0
 }

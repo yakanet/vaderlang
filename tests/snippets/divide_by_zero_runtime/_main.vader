@@ -1,11 +1,9 @@
-// Integer division by a runtime-zero divisor traps on BOTH backends with
-// aligned messages : the VM raises `i32.div by zero`
-// (`apply_div_mod_binop`, vader/vm/exec.vader) and the native backend routes
-// the op through the `vader_div_i32` runtime guard (runtime/c/vader.h), which
-// traps identically instead of arm64's silent zero / x86 SIGFPE. Regression
-// guard for audit item B2. The divisor is a mutable local so the comptime
-// folder leaves the divide for runtime (no C4005) ; the diagnostic fixture
-// `c4005_division_by_zero` covers the comptime-folded form.
+// Integer division by zero at run time traps on both backends with the same
+// message, `i32.div by zero`: the VM raises it itself (vader/vm/reg_exec.vader),
+// and the C backend routes the divide through the `vader_div_i32` guard
+// (runtime/c/vader.h) instead of a raw divide, which gives 0 on arm64 and
+// SIGFPE on x86. Outside `@comptime` nothing folds the divide; the `@comptime`
+// form is C4005 (diag fixture `c4005_division_by_zero`).
 
 module "snippet"
 

@@ -1,7 +1,12 @@
-// A free fn reached from a type parameter : a UFCS call on it (also from inside
-// a lambda, also on a receiver that only contains it), and a generic call whose
-// own `T` it alone determines. All need the instance's real type, so the
-// enclosing fn's instances stay concrete even for a struct `T`.
+// A type parameter is opaque in its generic body, but it IS the traits its bound
+// names, and a free fn reached from it needs the instance's real type.
+//   - `x: T` with `T: Display` fits a `Display` argument and a `Display`
+//     return; nothing in those bodies needs the real type, so a struct `T`
+//     instance stays erased.
+//   - A free fn reached from a type parameter: a UFCS call on it (also from
+//     inside a lambda, also on a receiver that only contains it), and a generic
+//     call whose own `T` it alone determines. All need the instance's real
+//     type, so the enclosing fn's instances stay concrete even for a struct `T`.
 
 module "snippet"
 
@@ -26,6 +31,10 @@ steps :: fn<T>(it: Iterator<T>) -> i32 {
     return n
 }
 
+passed :: fn<T: Display>(x: T) -> string = show(x)
+
+returned :: fn<T: Display>(x: T) -> Display = x
+
 first_shown :: fn<U: Display>(xs: U[]) -> string = xs[0].show()
 
 shown :: fn<T: Display>(x: T) -> string = x.show()
@@ -41,11 +50,14 @@ counted :: fn<I: Iterator<i32>>(it: I) -> i64 = count(it)
 stepped :: fn<I: Iterator<i32>>(it: I) -> i32 = steps(it)
 
 main :: fn() -> i32 {
-    println(shown(P { .x = 2 }))
-    println(shown_later(P { .x = 3 }))
-    println(shown_first([P { .x = 4 }]))
-    println(summed(0..<4))
-    println(counted(0..<5))
-    println(stepped(0..<7))
+    println("bound as argument, struct: ${passed(P { .x = 1 })}")
+    println("bound as argument, i32: ${passed(7)}")
+    println("bound as return: ${show(returned(P { .x = 3 }))}")
+    println("ufcs on T: ${shown(P { .x = 2 })}")
+    println("ufcs on T in a lambda: ${shown_later(P { .x = 3 })}")
+    println("ufcs on a receiver holding T: ${shown_first([P { .x = 4 }])}")
+    println("generic call on I, ufcs: ${summed(0..<4)}")
+    println("generic call on I, free: ${counted(0..<5)}")
+    println("generic call whose T only I determines: ${stepped(0..<7)}")
     return 0
 }

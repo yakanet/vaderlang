@@ -1,15 +1,46 @@
+// Every kind of member reached through a namespace alias (`H.member`) lowers to
+// what it names, never to an unresolved `H`:
+// - a const (`H.MAX_RETRIES`, `H.GREETING`) folds to its value in a struct
+//   literal and in the returned exit code; an unresolved one turns the
+//   enclosing literal into a drop;
+// - an enum variant (`H.Color.Green`) folds to its index, although the variant
+//   chain is a FieldExpr over the namespace FieldExpr `H.Color`, not over a
+//   bare enum ident: cast to its repr, compared, passed as an argument;
+// - a distinct type is a cast callee (`H.Meters(5)`);
+// - a fn is a first-class value (`H.triple` bound, then called).
+
 module "snippet"
 
-// A3 (decision B): a namespace member used as a CAST callee (`H.Meters(5)`)
-// and as a first-class FN-VALUE (`H.triple` stored, then called). Both used to
-// mis-lower silently; now they lower to a cast and a fn-ref respectively.
+import "std/io"
 H :: import "snippet/helper"
 
+Budget :: struct {
+    retries: i64
+    label:   string
+}
+
+mk :: fn() -> Budget = Budget { .retries = H.MAX_RETRIES, .label = H.GREETING }
+
+green_code :: fn() -> i32 = i32(H.Color.Green)
+
+name_of :: fn(c: H.Color) -> string {
+    if c == H.Color.Red   { return "red" }
+    if c == H.Color.Green { return "green" }
+    return "blue"
+}
+
 main :: fn() -> i32 {
-    m :: H.Meters(5)     // cast i32 -> Meters (distinct) through the namespace
-    back :: i32(m)       // unwrap the distinct
-    f :: H.triple        // fn-value through the namespace (not called here)
-    r :: f(back)         // indirect call: triple(5) = 15
-    if back == 5 && r == 15 { return 0 }
-    return 1
+    b :: mk()
+    println("const in literal: retries=${b.retries} label=${b.label}")
+    println("variant cast:     ${green_code()}")
+    println("variant argument: ${name_of(H.Color.Blue)}")
+
+    m :: H.Meters(5)
+    back :: i32(m)
+    println("distinct cast:    ${back}")
+    f :: H.triple
+    r :: f(back)
+    println("fn value:         ${r}")
+
+    return i32(H.MAX_RETRIES)
 }

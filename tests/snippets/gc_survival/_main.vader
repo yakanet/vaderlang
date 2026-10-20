@@ -1,0 +1,125 @@
+// Values reachable from a live local survive an explicit `collect()`, and each
+// scenario checks through `collections()` that exactly the collections it
+// asked for ran in between (no fewer, and no implicit one):
+// - a 200-node linked list of structs (`Node | null` links), one collection;
+// - a 50-node list, three collections in a row, each copying the same live set;
+// - a populated `i32[]` on the shadow stack, one collection: its buffer moves
+//   with the array, and the reads after the swap see the elements, not garbage.
+// Each scenario walks its data after the collection and checks the sum.
+module "snippet"
+
+import "std/io"
+import "std/runtime"
+
+export Node :: struct {
+    value: i32
+    next:  Node | null
+}
+
+// A list of `n` nodes holding `n - 1` down to 0, head first.
+build_chain :: fn(n: i32) -> Node {
+    head := Node { .value = 0, .next = null }
+    for i in 1..<n {
+        head = Node { .value = i, .next = head }
+    }
+    return head
+}
+
+sum_chain :: fn(head: Node) -> i32 {
+    sum := 0
+    cur: Node | null = head
+    for {
+        node :: cur ?? break
+        sum += node.value
+        cur = node.next
+    }
+    return sum
+}
+
+chain_survives :: fn() -> i32 {
+    head :: build_chain(200)
+
+    before :: collections()
+    collect()
+    after :: collections()
+
+    diff :: after - before
+    if diff != 1 {
+        println("chain: expected 1 collection, got ${diff}")
+        return 1
+    }
+
+    sum :: sum_chain(head)
+    expected :: 200 * 199 / 2
+    if sum != expected {
+        println("chain: sum mismatch: got ${sum}, expected ${expected}")
+        return 2
+    }
+
+    println("chain: 200 nodes survived GC; sum=${sum}")
+    return 0
+}
+
+chain_survives_three_collections :: fn() -> i32 {
+    head :: build_chain(50)
+
+    c1 :: collections()
+    collect()
+    collect()
+    collect()
+    c2 :: collections()
+
+    diff :: c2 - c1
+    if diff != 3 {
+        println("multi: expected 3 collections, got ${diff}")
+        return 1
+    }
+
+    sum :: sum_chain(head)
+    expected :: 50 * 49 / 2
+    if sum != expected {
+        println("multi: sum mismatch after 3 collections: ${sum} vs ${expected}")
+        return 2
+    }
+
+    println("multi: 50 nodes survived 3 collections; sum=${sum}")
+    return 0
+}
+
+array_survives :: fn() -> i32 {
+    list: i32[]: []
+    for i in 0..<200 {
+        list.push(i)
+    }
+
+    before :: collections()
+    collect()
+    after :: collections()
+
+    diff :: after - before
+    if diff != 1 {
+        println("array: expected 1 collection, got ${diff}")
+        return 1
+    }
+
+    sum := 0
+    for x in list {
+        sum += x
+    }
+
+    expected :: 200 * 199 / 2
+    if sum != expected {
+        println("array: sum mismatch: got ${sum}, expected ${expected}")
+        return 2
+    }
+
+    println("array: 200 array elements survived GC; sum=${sum}")
+    return 0
+}
+
+main :: fn() -> i32 {
+    chain :: chain_survives()
+    multi :: chain_survives_three_collections()
+    array :: array_survives()
+    return chain + multi + array
+}

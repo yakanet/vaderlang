@@ -120,6 +120,8 @@ const C_PARITY = new Set<string>([
   "alias_union_in_array",
   // A primitive written into a union-element array (literal, `a[i] =`, push)
   // boxes with its OWN tag — the VM always did, the emitted C stamped the union.
+  // A widened array argument: natively an `i32[]` read as `(i32 | string)[]` took
+  // its raw words for boxes; the widening kept here reads boxes as boxes.
   "union_primitive_in_array",
   "union_of_distincts_sibling_file",
   "distinct_wide_literal",
@@ -182,6 +184,7 @@ const C_PARITY = new Set<string>([
   // Generators (`@generator` + `yield`).
   "generator_break",       // break + continue across a yield
   "generator_struct_elem", // struct element type, flattened
+  "generator_label_jumps", // labelled break and continue out of a generator loop
   "generator_escapes",     // stored-then-consumed → boxed state machine (not inlined)
   // A generator local captured by a closure, read at each yield : nothing
   // reassigns it, so the closure's env holds its value and the frame carries the
@@ -393,7 +396,6 @@ const C_PARITY = new Set<string>([
   // prints, which is what makes Oracle 2 discriminate — `helper.c` calls the
   // callback, so a wrong address crashes instead of passing quietly.
   "extern_callback",
-  "extern_callback_slot",
   "extern_lend_across_callback",
   // A slice and its parent share one buffer, and emitted accesses do not
   // re-check where it lives: a lend that moved it behind the view's back would
@@ -530,9 +532,6 @@ const C_PARITY = new Set<string>([
   // `x is U` on a generic fn's own type parameter: natively the shared body compared
   // the `ref _` tag (false where the VM said true).
   "generic_is_type_param",
-  // A widened array argument: natively an `i32[]` read as `(i32 | string)[]` took
-  // its raw words for boxes; the widening kept here reads boxes as boxes.
-  "array_union_literal_ok",
   // A `Circle[]` read as a `Shape[]` (trait) and as a `(Circle | null)[]`, one
   // array deeper too, and a struct literal taking a trait array's element.
   "array_argument_widened",

@@ -2,6 +2,11 @@
 hi
 nested
 inner cleanup
+void trailing: body
+void trailing: deferred
+value trailing: computed
+value trailing: deferred
+value trailing: got 7
 outer cleanup
 # exit
 0

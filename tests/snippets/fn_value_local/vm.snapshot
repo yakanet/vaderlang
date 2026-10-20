@@ -1,2 +1,7 @@
+# stdout
+local: 5
+argument: 42
+array: 14
+field: 20
 # exit
-5
+0

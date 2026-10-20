@@ -12,11 +12,11 @@ type 9 struct snippet$Boxed__i64 { v:3 }
 type 10 union 0,11,1
 type 11 struct snippet$Point { x:12 }
 type 12 primitive i32
-type 13 primitive u8
-type 14 struct std_core$Buffer {  }
-type 15 primitive u32
-type 16 primitive char
-type 17 array 13
+type 13 primitive char
+type 14 primitive u8
+type 15 struct std_core$Buffer {  }
+type 16 primitive u32
+type 17 array 14
 type 18 primitive void
 type 19 struct std_string_builder$StringBuilder { parts:20 }
 type 20 array 1
@@ -46,11 +46,11 @@ string 22 "false"
 string 23 "\n"
 string 24 ""
 import 0 byte_len std_core$byte_len result_type=4 param_types=1 param_c_out= param_by_address= (string) -> i64
-import 1 byte_at std_core$byte_at result_type=13 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
+import 1 byte_at std_core$byte_at result_type=14 param_types=1,4 param_c_out= param_by_address= (string,i64) -> u8
 import 2 bytes_to_string std_core$bytes_to_string result_type=1 param_types=17 param_c_out= param_by_address= (ref) -> string
 import 3 bytes std_core$bytes result_type=17 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 4 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=12,17,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 14 std_core$ByteAccess
+impl 15 std_core$ByteAccess
 impl 19 std_core$Display
 export main 8
 
@@ -1038,7 +1038,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1052,7 +1052,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 2   ; out
     return
   end $L1
@@ -1073,7 +1073,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1089,7 +1089,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1103,7 +1103,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
   else
     local.get 1   ; cp
     i32.const 18
@@ -1118,7 +1118,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 12
     u32.shr
@@ -1134,7 +1134,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 6
     u32.shr
@@ -1150,7 +1150,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
     local.get 1   ; cp
     i32.const 63
     i32.bitand
@@ -1164,7 +1164,7 @@ fn 17 std_core$utf8_encode (char) -> ref
     local.set 4   ; $cast_15
     local.get 2   ; out
     local.get 4   ; $cast_15
-    array.push 13   ; u8
+    array.push 14   ; u8
   end $L2
   local.get 2   ; out
   return

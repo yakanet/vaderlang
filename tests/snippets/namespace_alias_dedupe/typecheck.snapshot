@@ -1,8 +1,13 @@
 # Typecheck
 
 ## tests/snippets/namespace_alias_dedupe
-  FnDecl         via_file             :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
-  FnDecl         via_folder           :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
-  expr 28:12    CallExpr       :: i32
-  expr 28:12    IdentExpr      :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
-  expr 28:23    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
+  FnDecl         via_alias            :: fn(Circle | Square) -> i32
+  FnDecl         via_bare             :: fn(Circle | Square) -> i32
+  expr 20:35    CallExpr       :: i32
+  expr 20:35    IdentExpr      :: fn(Circle | Square) -> i32
+  expr 20:45    IdentExpr      :: Circle | Square
+
+## tests/snippets/namespace_alias_dedupe/shapes
+  StructDecl     Circle               :: Circle
+  ConstDecl      Shape                :: type
+  StructDecl     Square               :: Square

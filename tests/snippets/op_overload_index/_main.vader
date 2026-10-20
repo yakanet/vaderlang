@@ -1,8 +1,6 @@
-// Index / IndexSet trait dispatch for `a[i]` (read) and `a[i] = v` (write).
-// `Cell` is a tiny key-value pair store ; the typechecker resolves the
-// index/assign through the matching Index($I, $T) / IndexSet($I, $T) impl
-// and substitutes the trait's type-parameters from the impl's declared
-// `traitArgs`. The lowerer rewrites both forms into direct calls.
+// `a[i]` (read) and `a[i] = v` (write) on a struct dispatch through its
+// `Index<I, T>` / `IndexSet<I, T>` impls, here with a `string` key: `Cell` is
+// a tiny key-value store. Both forms lower to direct calls to `at` / `set_at`.
 
 module "snippet"
 

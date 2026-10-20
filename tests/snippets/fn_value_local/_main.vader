@@ -1,10 +1,37 @@
+// tests/snippets/fn_value_local: a named fn used as a value, then called
+// through that value, one labelled line per holder.
+//
+// A local bound to a named fn (`f :: add`) is resolved at the call: `f(2, 3)`
+// is a direct call to `add`. Held anywhere else, the value is a `fn.ref` (a
+// trampoline on the native side) and the call through it a `call.indirect`: a
+// parameter (`apply(inc, 41)`), an element of an array literal (`fs[0](7)`), a
+// struct field (`o.op(4, 5)`).
+
 module "snippet"
 
-export add :: fn(a: i32, b: i32) -> i32 {
-    return a + b
+import "std/io"
+
+export Op :: struct {
+    op: fn(i32, i32) -> i32
 }
+
+export add :: fn(a: i32, b: i32) -> i32 = a + b
+
+export mul :: fn(a: i32, b: i32) -> i32 = a * b
+
+export inc :: fn(x: i32) -> i32 = x + 1
+
+export double :: fn(x: i32) -> i32 = x * 2
+
+export apply :: fn(g: fn(i32) -> i32, x: i32) -> i32 = g(x)
 
 main :: fn() -> i32 {
     f :: add
-    return f(2, 3)
+    println("local: ${f(2, 3)}")
+    println("argument: ${apply(inc, 41)}")
+    fs :: [inc, double]
+    println("array: ${fs[0](7) + fs[1](3)}")
+    o :: Op { .op = mul }
+    println("field: ${o.op(4, 5)}")
+    return 0
 }

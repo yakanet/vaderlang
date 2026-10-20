@@ -1,8 +1,14 @@
-/// `@fields(T)` exposes a struct's fields as a `Field[]` literal at lower
-/// time. Each entry carries the field name (string) and its declared type
-/// reified as a `type` runtime value, which feeds back through `@size_of`.
-/// Covered shapes : (1) non-generic struct, (2) generic instance — the
-/// substitution flows so `Pair(string, i64)` reports `value` as 8 bytes.
+// `@fields(T)` exposes a struct's fields as a `Field[]` literal at lower time.
+// Each entry carries the field name and its declared type reified as a runtime
+// `type` value, which `@size_of` reads through the runtime `size_of.type` path.
+// Two shapes: a non-generic struct, and a generic instance, whose substitution
+// flows so that `Pair<string, i64>` reports `value` as 8 bytes.
+//
+// The `size=16` printed for each `string` field is known wrong: SPEC gives 4,
+// the width of an interned atom id, as the static fold answers
+// (`comptime_type_alias`). It stays pinned until the runtime `size_of.type`
+// path is fixed.
+
 module "snippet"
 
 import "std/io"

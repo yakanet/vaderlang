@@ -3,148 +3,148 @@
 ## tests/snippets/map_primitive_keys
   FnDecl         get_or               :: fn(MutableMap<K, i32>, K, i32) -> i32
   FnDecl         main                 :: fn() -> i32
-  expr 22:10    IdentExpr      :: MutableMap<K, i32>
-  expr 22:10    IndexExpr      :: i32 | null
-  expr 22:12    IdentExpr      :: K
-  expr 23:27    IdentExpr      :: i32
-  expr 23:5     IfExpr         :: void
-  expr 23:8     BinaryExpr     :: bool
-  expr 23:8     IdentExpr      :: i32 | null
-  expr 24:12    IdentExpr      :: i32
-  expr 29:12    StructLitExpr  :: MutableMap<u8, i32>
-  expr 30:14    RangeExpr      :: Range<i32>
-  expr 30:23    IdentExpr      :: MutableMap<u8, i32>
-  expr 30:27    CallExpr       :: u8
-  expr 30:27    IdentExpr      :: type
-  expr 30:30    IdentExpr      :: i32
-  expr 30:36    BinaryExpr     :: i32
-  expr 30:36    IdentExpr      :: i32
-  expr 31:102   CallExpr       :: i32
-  expr 31:102   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 31:109   IdentExpr      :: MutableMap<u8, i32>
-  expr 31:114   CallExpr       :: u8
-  expr 31:114   IdentExpr      :: type
+  expr 15:10    IdentExpr      :: MutableMap<K, i32>
+  expr 15:10    IndexExpr      :: i32 | null
+  expr 15:12    IdentExpr      :: K
+  expr 16:27    IdentExpr      :: i32
+  expr 16:5     IfExpr         :: void
+  expr 16:8     BinaryExpr     :: bool
+  expr 16:8     IdentExpr      :: i32 | null
+  expr 17:12    IdentExpr      :: i32
+  expr 22:12    StructLitExpr  :: MutableMap<u8, i32>
+  expr 23:14    RangeExpr      :: Range<i32>
+  expr 23:23    IdentExpr      :: MutableMap<u8, i32>
+  expr 23:27    CallExpr       :: u8
+  expr 23:27    IdentExpr      :: type
+  expr 23:30    IdentExpr      :: i32
+  expr 23:36    BinaryExpr     :: i32
+  expr 23:36    IdentExpr      :: i32
+  expr 24:102   CallExpr       :: i32
+  expr 24:102   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 24:109   IdentExpr      :: MutableMap<u8, i32>
+  expr 24:114   CallExpr       :: u8
+  expr 24:114   IdentExpr      :: type
+  expr 24:13    StringLitExpr  :: string
+  expr 24:24    CallExpr       :: i64
+  expr 24:24    FieldExpr      :: fn() -> i64
+  expr 24:24    IdentExpr      :: MutableMap<u8, i32>
+  expr 24:40    CallExpr       :: i32
+  expr 24:40    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 24:47    IdentExpr      :: MutableMap<u8, i32>
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 24:52    CallExpr       :: u8
+  expr 24:52    IdentExpr      :: type
+  expr 24:70    CallExpr       :: i32
+  expr 24:70    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 24:77    IdentExpr      :: MutableMap<u8, i32>
+  expr 24:82    CallExpr       :: u8
+  expr 24:82    IdentExpr      :: type
+  expr 27:13    StructLitExpr  :: MutableMap<u16, i32>
+  expr 28:5     IdentExpr      :: MutableMap<u16, i32>
+  expr 29:5     IdentExpr      :: MutableMap<u16, i32>
+  expr 30:5     IdentExpr      :: MutableMap<u16, i32>
+  expr 31:100   IdentExpr      :: MutableMap<u16, i32>
+  expr 31:106   CallExpr       :: u16
+  expr 31:106   IdentExpr      :: type
   expr 31:13    StringLitExpr  :: string
-  expr 31:24    CallExpr       :: i64
-  expr 31:24    FieldExpr      :: fn() -> i64
-  expr 31:24    IdentExpr      :: MutableMap<u8, i32>
-  expr 31:40    CallExpr       :: i32
-  expr 31:40    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 31:47    IdentExpr      :: MutableMap<u8, i32>
+  expr 31:22    CallExpr       :: i32
+  expr 31:22    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 31:29    IdentExpr      :: MutableMap<u16, i32>
+  expr 31:35    CallExpr       :: u16
+  expr 31:35    IdentExpr      :: type
   expr 31:5     CallExpr       :: void
   expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 31:52    CallExpr       :: u8
-  expr 31:52    IdentExpr      :: type
-  expr 31:70    CallExpr       :: i32
-  expr 31:70    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 31:77    IdentExpr      :: MutableMap<u8, i32>
-  expr 31:82    CallExpr       :: u8
-  expr 31:82    IdentExpr      :: type
-  expr 34:13    StructLitExpr  :: MutableMap<u16, i32>
-  expr 35:5     IdentExpr      :: MutableMap<u16, i32>
-  expr 36:5     IdentExpr      :: MutableMap<u16, i32>
-  expr 37:5     IdentExpr      :: MutableMap<u16, i32>
-  expr 38:100   IdentExpr      :: MutableMap<u16, i32>
-  expr 38:106   CallExpr       :: u16
-  expr 38:106   IdentExpr      :: type
+  expr 31:56    CallExpr       :: i32
+  expr 31:56    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 31:63    IdentExpr      :: MutableMap<u16, i32>
+  expr 31:69    CallExpr       :: u16
+  expr 31:69    IdentExpr      :: type
+  expr 31:93    CallExpr       :: i32
+  expr 31:93    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 34:13    StructLitExpr  :: MutableMap<i16, i32>
+  expr 35:5     IdentExpr      :: MutableMap<i16, i32>
+  expr 36:5     IdentExpr      :: MutableMap<i16, i32>
+  expr 37:5     IdentExpr      :: MutableMap<i16, i32>
+  expr 38:101   IdentExpr      :: MutableMap<i16, i32>
+  expr 38:107   CallExpr       :: i16
+  expr 38:107   IdentExpr      :: type
   expr 38:13    StringLitExpr  :: string
-  expr 38:22    CallExpr       :: i32
-  expr 38:22    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 38:29    IdentExpr      :: MutableMap<u16, i32>
-  expr 38:35    CallExpr       :: u16
-  expr 38:35    IdentExpr      :: type
+  expr 38:24    CallExpr       :: i32
+  expr 38:24    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 38:31    IdentExpr      :: MutableMap<i16, i32>
+  expr 38:37    CallExpr       :: i16
+  expr 38:37    IdentExpr      :: type
   expr 38:5     CallExpr       :: void
   expr 38:5     IdentExpr      :: fn(T) -> void
-  expr 38:56    CallExpr       :: i32
-  expr 38:56    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 38:63    IdentExpr      :: MutableMap<u16, i32>
-  expr 38:69    CallExpr       :: u16
-  expr 38:69    IdentExpr      :: type
-  expr 38:93    CallExpr       :: i32
-  expr 38:93    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 41:13    StructLitExpr  :: MutableMap<i16, i32>
-  expr 42:5     IdentExpr      :: MutableMap<i16, i32>
-  expr 43:5     IdentExpr      :: MutableMap<i16, i32>
-  expr 44:5     IdentExpr      :: MutableMap<i16, i32>
-  expr 45:101   IdentExpr      :: MutableMap<i16, i32>
-  expr 45:107   CallExpr       :: i16
-  expr 45:107   IdentExpr      :: type
+  expr 38:60    CallExpr       :: i32
+  expr 38:60    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 38:67    IdentExpr      :: MutableMap<i16, i32>
+  expr 38:73    CallExpr       :: i16
+  expr 38:73    IdentExpr      :: type
+  expr 38:94    CallExpr       :: i32
+  expr 38:94    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 41:11    StructLitExpr  :: MutableMap<char, i32>
+  expr 42:5     IdentExpr      :: MutableMap<char, i32>
+  expr 43:5     IdentExpr      :: MutableMap<char, i32>
+  expr 44:5     IdentExpr      :: MutableMap<char, i32>
+  expr 45:103   CallExpr       :: i32
+  expr 45:103   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 45:110   IdentExpr      :: MutableMap<char, i32>
   expr 45:13    StringLitExpr  :: string
-  expr 45:24    CallExpr       :: i32
-  expr 45:24    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 45:31    IdentExpr      :: MutableMap<i16, i32>
-  expr 45:37    CallExpr       :: i16
-  expr 45:37    IdentExpr      :: type
+  expr 45:23    CallExpr       :: i32
+  expr 45:23    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 45:30    IdentExpr      :: MutableMap<char, i32>
+  expr 45:48    CallExpr       :: i32
+  expr 45:48    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
   expr 45:5     CallExpr       :: void
   expr 45:5     IdentExpr      :: fn(T) -> void
-  expr 45:60    CallExpr       :: i32
-  expr 45:60    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 45:67    IdentExpr      :: MutableMap<i16, i32>
-  expr 45:73    CallExpr       :: i16
-  expr 45:73    IdentExpr      :: type
-  expr 45:94    CallExpr       :: i32
-  expr 45:94    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 48:11    StructLitExpr  :: MutableMap<char, i32>
-  expr 49:5     IdentExpr      :: MutableMap<char, i32>
-  expr 50:5     IdentExpr      :: MutableMap<char, i32>
-  expr 51:5     IdentExpr      :: MutableMap<char, i32>
-  expr 52:103   CallExpr       :: i32
-  expr 52:103   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 52:110   IdentExpr      :: MutableMap<char, i32>
-  expr 52:13    StringLitExpr  :: string
-  expr 52:23    CallExpr       :: i32
-  expr 52:23    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 52:30    IdentExpr      :: MutableMap<char, i32>
-  expr 52:48    CallExpr       :: i32
-  expr 52:48    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 52:5     CallExpr       :: void
-  expr 52:5     IdentExpr      :: fn(T) -> void
-  expr 52:55    IdentExpr      :: MutableMap<char, i32>
-  expr 52:75    CallExpr       :: i32
-  expr 52:75    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 52:82    IdentExpr      :: MutableMap<char, i32>
-  expr 56:13    StructLitExpr  :: MutableMap<i64, i32>
-  expr 59:10    IdentExpr      :: i64
-  expr 59:5     IdentExpr      :: MutableMap<i64, i32>
-  expr 60:10    IdentExpr      :: i64
-  expr 60:5     IdentExpr      :: MutableMap<i64, i32>
-  expr 61:13    StringLitExpr  :: string
-  expr 61:24    CallExpr       :: i32
-  expr 61:24    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 61:31    IdentExpr      :: MutableMap<i64, i32>
-  expr 61:37    IdentExpr      :: i64
-  expr 61:5     CallExpr       :: void
-  expr 61:5     IdentExpr      :: fn(T) -> void
-  expr 61:57    CallExpr       :: i32
-  expr 61:57    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 61:64    IdentExpr      :: MutableMap<i64, i32>
-  expr 61:70    IdentExpr      :: i64
-  expr 64:12    StructLitExpr  :: MutableMap<u64, i32>
-  expr 65:14    RangeExpr      :: Range<i32>
-  expr 65:23    IdentExpr      :: MutableMap<u64, i32>
-  expr 65:27    CallExpr       :: u64
-  expr 65:27    IdentExpr      :: type
-  expr 65:31    IdentExpr      :: i32
-  expr 65:37    BinaryExpr     :: i32
-  expr 65:37    IdentExpr      :: i32
-  expr 66:105   CallExpr       :: i32
-  expr 66:105   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 66:112   IdentExpr      :: MutableMap<u64, i32>
-  expr 66:117   CallExpr       :: u64
-  expr 66:117   IdentExpr      :: type
-  expr 66:13    StringLitExpr  :: string
-  expr 66:25    CallExpr       :: i64
-  expr 66:25    FieldExpr      :: fn() -> i64
-  expr 66:25    IdentExpr      :: MutableMap<u64, i32>
-  expr 66:41    CallExpr       :: i32
-  expr 66:41    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 66:48    IdentExpr      :: MutableMap<u64, i32>
-  expr 66:5     CallExpr       :: void
-  expr 66:5     IdentExpr      :: fn(T) -> void
-  expr 66:53    CallExpr       :: u64
-  expr 66:53    IdentExpr      :: type
-  expr 66:72    CallExpr       :: i32
-  expr 66:72    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
-  expr 66:79    IdentExpr      :: MutableMap<u64, i32>
-  expr 66:84    CallExpr       :: u64
-  expr 66:84    IdentExpr      :: type
+  expr 45:55    IdentExpr      :: MutableMap<char, i32>
+  expr 45:75    CallExpr       :: i32
+  expr 45:75    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 45:82    IdentExpr      :: MutableMap<char, i32>
+  expr 48:13    StructLitExpr  :: MutableMap<i64, i32>
+  expr 51:10    IdentExpr      :: i64
+  expr 51:5     IdentExpr      :: MutableMap<i64, i32>
+  expr 52:10    IdentExpr      :: i64
+  expr 52:5     IdentExpr      :: MutableMap<i64, i32>
+  expr 53:13    StringLitExpr  :: string
+  expr 53:24    CallExpr       :: i32
+  expr 53:24    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 53:31    IdentExpr      :: MutableMap<i64, i32>
+  expr 53:37    IdentExpr      :: i64
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 53:57    CallExpr       :: i32
+  expr 53:57    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 53:64    IdentExpr      :: MutableMap<i64, i32>
+  expr 53:70    IdentExpr      :: i64
+  expr 56:12    StructLitExpr  :: MutableMap<u64, i32>
+  expr 57:14    RangeExpr      :: Range<i32>
+  expr 57:23    IdentExpr      :: MutableMap<u64, i32>
+  expr 57:27    CallExpr       :: u64
+  expr 57:27    IdentExpr      :: type
+  expr 57:31    IdentExpr      :: i32
+  expr 57:37    BinaryExpr     :: i32
+  expr 57:37    IdentExpr      :: i32
+  expr 58:105   CallExpr       :: i32
+  expr 58:105   IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 58:112   IdentExpr      :: MutableMap<u64, i32>
+  expr 58:117   CallExpr       :: u64
+  expr 58:117   IdentExpr      :: type
+  expr 58:13    StringLitExpr  :: string
+  expr 58:25    CallExpr       :: i64
+  expr 58:25    FieldExpr      :: fn() -> i64
+  expr 58:25    IdentExpr      :: MutableMap<u64, i32>
+  expr 58:41    CallExpr       :: i32
+  expr 58:41    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 58:48    IdentExpr      :: MutableMap<u64, i32>
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 58:53    CallExpr       :: u64
+  expr 58:53    IdentExpr      :: type
+  expr 58:72    CallExpr       :: i32
+  expr 58:72    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
+  expr 58:79    IdentExpr      :: MutableMap<u64, i32>
+  expr 58:84    CallExpr       :: u64
+  expr 58:84    IdentExpr      :: type

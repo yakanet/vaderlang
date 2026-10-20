@@ -10,8 +10,8 @@ main :: fn() -> i32 {
     }
     println("sum = ${sum}")
 
-    // empty array iterates 0 times
-    empty :: [0, 0, 0]      // can't write `[]` without type annotation yet
+    // an empty array iterates 0 times
+    empty: i32[]: []
     n := 0
     for empty {
         n += 1

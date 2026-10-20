@@ -269,10 +269,9 @@ offsets for the codepoint indices and clamps out-of-bounds ranges
 ### Phase 7 — Tests (LANDED)
 
 - ✅ `tests/snippets/array_view_aliasing/` — Phase 1.
-- ✅ `tests/snippets/string_codepoint_slice/` — `"héllo"[0..<2]` → `"hé"` ; clamping, ASCII parity, empty-range cases. Active under both TS VM and Vader VM (Phase 6).
-- ✅ `tests/snippets/std_string/` covers the codepoint `s[i]` form post-P3 (`"你好嗎？"[0]` → `你`).
+- ✅ `tests/snippets/string_codepoints/` — `"héllo"[0..<2]` → `"hé"` ; clamping, ASCII parity, empty-range cases, and `len()` (renamed from `count_chars` in P4b).
+- ✅ `test_string_index_every_width` (`lib/std/core/utf8.vader`) covers the codepoint `s[i]` form post-P3 (`"你好嗎？"[0]` → `你`).
 - ✅ `tests/snippets/string_bytes/` — exercises `for b in s.bytes()` iteration plus the new `u8[]` surface (`.len()`, random `bs[i]` indexing) introduced by P4c.
-- ✅ `tests/snippets/string_codepoints/` — exercises `len()` (renamed from `count_chars` in P4b).
 
 ### Phase 8 — SPEC.md sync (LANDED across P3/P4/P5)
 

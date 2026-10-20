@@ -310,6 +310,10 @@ assert_decodes :: fn(s: string, want: char[]) -> void {
     assert_decodes(bytes_to_string([0x61, 0xE2, 0x82]), ['a', REPLACEMENT_CHAR])
 }
 
+@test test_string_index_ascii :: fn() -> void {
+    assert_eq("hello"[1], 'e')
+}
+
 @test test_string_index_every_width :: fn() -> void {
     // "aé€😀": one codepoint of each UTF-8 width.
     assert_eq("aé€😀"[0], 'a')

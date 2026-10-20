@@ -29,11 +29,10 @@ import "toolchain/span"
 
 /// One module search root (GCC `-I` style). A module name maps to a folder under
 /// `dir`. `prefix` names the namespace `dir` roots : the entry declares
-/// `module "main"` in a folder physically named `namespace_const/`, so
-/// `{dir = namespace_const, prefix = "main"}` resolves `main/config` →
-/// `namespace_const/config` and `main` → `namespace_const`. The stdlib / project
-/// roots reflect the namespace in their own layout, so they use `prefix = ""`
-/// (`module "std/io"` → `<dir>/std/io`).
+/// `module "main"` in a folder physically named `app/`, so `{dir = app,
+/// prefix = "main"}` resolves `main/config` → `app/config` and `main` → `app`.
+/// The stdlib / project roots reflect the namespace in their own layout, so they
+/// use `prefix = ""` (`module "std/io"` → `<dir>/std/io`).
 export IncludePath :: struct {
     dir:    string
     prefix: string

@@ -18,6 +18,7 @@ static const char vader_atom_blob[] =
     " " "\0"
     "abc" "\0"
     "right : " "\0"
+    "both  : " "\0"
     "true" "\0"
     "false" "\0"
     "\n" "\0";
@@ -29,12 +30,13 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[23] },
     { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[25] },
     { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[29] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[43] },
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[49] },
+    { 0u, 0u, 8u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[38] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[47] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[52] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[58] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 9u
+#define VADER_COMPTIME_ATOM_COUNT 10u
 
 static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1);
 static int32_t snippet_main(void);
@@ -85,7 +87,7 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 
 static bool snippet_Path_std_core_Equals_equals(vader_string_t l0, vader_string_t l1) {
     int64_t l2, l3;
-#line 10 "tests/snippets/distinct_equality_either_side/_main.vader"
+#line 12 "tests/snippets/distinct_equality_either_side/_main.vader"
     l2 = vader_host_std_core_byte_len(l0);
     l3 = vader_host_std_core_byte_len(l1);
     return l2 == l3;
@@ -104,9 +106,9 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 13 "tests/snippets/distinct_equality_either_side/_main.vader"
+#line 15 "tests/snippets/distinct_equality_either_side/_main.vader"
     l0 = 1u;
-#line 14 "tests/snippets/distinct_equality_either_side/_main.vader"
+#line 16 "tests/snippets/distinct_equality_either_side/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l1, l2, 2u);
@@ -121,7 +123,7 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 15 "tests/snippets/distinct_equality_either_side/_main.vader"
+#line 17 "tests/snippets/distinct_equality_either_side/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l1, l2, 6u);
@@ -136,7 +138,22 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 16 "tests/snippets/distinct_equality_either_side/_main.vader"
+#line 18 "tests/snippets/distinct_equality_either_side/_main.vader"
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(25));
+    l2 = INT64_C(0);
+    l2 = std_core_write_string_at(l1, l2, 7u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 3u);
+    l2 = std_core_write_bool(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 4u);
+    t0 = snippet_Path_std_core_Equals_equals(l0, 3u);
+    l3 = !(t0);
+    l2 = std_core_write_bool(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 4u);
+    l3 = snippet_Path_std_core_Equals_equals(l0, 5u);
+    l2 = std_core_write_bool(l1, l2, l3);
+    t1 = std_core_finish_buffer(l1, l2);
+    std_io_println__string(t1);
+#line 19 "tests/snippets/distinct_equality_either_side/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -189,11 +206,11 @@ static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
 #line 184 "lib/std/core/primitives.vader"
     if (!(l2)) {
 #line 185 "lib/std/core/primitives.vader"
-        t0 = std_core_write_string_at(l0, l1, 8u);
+        t0 = std_core_write_string_at(l0, l1, 9u);
         return t0;
 #line 184 "lib/std/core/primitives.vader"
     }
-    t0 = std_core_write_string_at(l0, l1, 7u);
+    t0 = std_core_write_string_at(l0, l1, 8u);
     return t0;
 }
 
@@ -267,7 +284,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 236 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 9u);
+    l1 = concat_2(l0, 10u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }

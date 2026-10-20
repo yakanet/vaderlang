@@ -84,6 +84,7 @@
   }
   snippet.Ready<i32> :: struct { v: i32 }  // snippet$Ready__i32
   snippet.Ready<i32>.resume :: fn(self: Ready<i32>) -> i32 | Suspended {  // snippet$Ready$std_core_Async$resume__i32
+      std.io.println<string>("awaited")
       return self.v
   }
   snippet.Ready<i32>.cancel :: fn(self: Ready<i32>) -> void {  // snippet$Ready$std_core_Async$cancel__i32

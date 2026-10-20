@@ -1,38 +1,121 @@
 # Typecheck
 
 ## tests/snippets/enum_typed
+  EnumDecl       Big                  :: Big
+  EnumDecl       Color                :: Color
+  EnumDecl       Day                  :: Day
   FnDecl         describe             :: fn(Direction) -> string
   EnumDecl       Direction            :: Direction
+  EnumDecl       Level                :: Level
   FnDecl         main                 :: fn() -> i32
+  FnDecl         name                 :: fn(Level) -> string
   EnumDecl       Op                   :: Op
-  expr 20:12    MatchExpr      :: string
-  expr 20:18    IdentExpr      :: Direction
-  expr 21:19    StringLitExpr  :: string
-  expr 22:19    StringLitExpr  :: string
-  expr 23:19    StringLitExpr  :: string
-  expr 24:19    StringLitExpr  :: string
-  expr 29:13    CallExpr       :: string
-  expr 29:13    IdentExpr      :: fn(Direction) -> string
-  expr 29:22    DotVariantExpr :: Direction
-  expr 29:5     CallExpr       :: void
-  expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 30:13    CallExpr       :: string
-  expr 30:13    IdentExpr      :: fn(Direction) -> string
-  expr 30:22    DotVariantExpr :: Direction
-  expr 30:5     CallExpr       :: void
-  expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 32:13    DotVariantExpr :: Op
-  expr 33:11    IdentExpr      :: Op
-  expr 33:5     MatchExpr      :: void
-  expr 34:18    CallExpr       :: void
-  expr 34:18    IdentExpr      :: fn(T) -> void
-  expr 34:26    StringLitExpr  :: string
-  expr 35:18    CallExpr       :: void
-  expr 35:18    IdentExpr      :: fn(T) -> void
-  expr 35:26    StringLitExpr  :: string
-  expr 36:18    CallExpr       :: void
-  expr 36:18    IdentExpr      :: fn(T) -> void
-  expr 36:26    StringLitExpr  :: string
-  expr 37:18    CallExpr       :: void
-  expr 37:18    IdentExpr      :: fn(T) -> void
-  expr 37:26    StringLitExpr  :: string
+  expr 55:12    MatchExpr      :: string
+  expr 55:18    IdentExpr      :: Direction
+  expr 56:19    StringLitExpr  :: string
+  expr 57:19    StringLitExpr  :: string
+  expr 58:19    StringLitExpr  :: string
+  expr 59:19    StringLitExpr  :: string
+  expr 63:34    MatchExpr      :: string
+  expr 63:40    IdentExpr      :: Level
+  expr 64:14    StringLitExpr  :: string
+  expr 65:14    StringLitExpr  :: string
+  expr 66:14    StringLitExpr  :: string
+  expr 67:14    StringLitExpr  :: string
+  expr 71:13    StringLitExpr  :: string
+  expr 71:29    CallExpr       :: string
+  expr 71:29    IdentExpr      :: fn(Direction) -> string
+  expr 71:38    DotVariantExpr :: Direction
+  expr 71:49    CallExpr       :: string
+  expr 71:49    IdentExpr      :: fn(Direction) -> string
+  expr 71:5     CallExpr       :: void
+  expr 71:5     IdentExpr      :: fn(T) -> void
+  expr 71:58    DotVariantExpr :: Direction
+  expr 71:68    CallExpr       :: i32
+  expr 71:68    IdentExpr      :: type
+  expr 71:72    FieldExpr      :: Direction
+  expr 71:72    IdentExpr      :: Direction
+  expr 73:13    DotVariantExpr :: Op
+  expr 74:11    IdentExpr      :: Op
+  expr 74:5     MatchExpr      :: void
+  expr 75:18    CallExpr       :: void
+  expr 75:18    IdentExpr      :: fn(T) -> void
+  expr 75:26    StringLitExpr  :: string
+  expr 76:18    CallExpr       :: void
+  expr 76:18    IdentExpr      :: fn(T) -> void
+  expr 76:26    StringLitExpr  :: string
+  expr 77:18    CallExpr       :: void
+  expr 77:18    IdentExpr      :: fn(T) -> void
+  expr 77:26    StringLitExpr  :: string
+  expr 78:18    CallExpr       :: void
+  expr 78:18    IdentExpr      :: fn(T) -> void
+  expr 78:26    StringLitExpr  :: string
+  expr 80:13    StringLitExpr  :: string
+  expr 80:37    CallExpr       :: i32
+  expr 80:37    IdentExpr      :: type
+  expr 80:41    FieldExpr      :: Op
+  expr 80:41    IdentExpr      :: Op
+  expr 80:5     CallExpr       :: void
+  expr 80:5     IdentExpr      :: fn(T) -> void
+  expr 80:53    CallExpr       :: i32
+  expr 80:53    IdentExpr      :: type
+  expr 80:57    FieldExpr      :: Op
+  expr 80:57    IdentExpr      :: Op
+  expr 80:69    CallExpr       :: i32
+  expr 80:69    IdentExpr      :: type
+  expr 80:73    IdentExpr      :: Op
+  expr 80:80    CallExpr       :: i32
+  expr 80:80    IdentExpr      :: type
+  expr 80:84    FieldExpr      :: Op
+  expr 80:84    IdentExpr      :: Op
+  expr 82:14    SeqLitExpr     :: Level[]
+  expr 82:15    FieldExpr      :: Level
+  expr 82:15    IdentExpr      :: Level
+  expr 82:26    FieldExpr      :: Level
+  expr 82:26    IdentExpr      :: Level
+  expr 82:37    FieldExpr      :: Level
+  expr 82:37    IdentExpr      :: Level
+  expr 82:49    FieldExpr      :: Level
+  expr 82:49    IdentExpr      :: Level
+  expr 83:17    StringLitExpr  :: string
+  expr 83:31    CallExpr       :: string
+  expr 83:31    IdentExpr      :: fn(Level) -> string
+  expr 83:36    IdentExpr      :: Level
+  expr 83:42    CallExpr       :: i32
+  expr 83:42    IdentExpr      :: type
+  expr 83:46    IdentExpr      :: Level
+  expr 83:9     CallExpr       :: void
+  expr 83:9     IdentExpr      :: fn(T) -> void
+  expr 86:10    CallExpr       :: u8
+  expr 86:10    IdentExpr      :: type
+  expr 86:13    FieldExpr      :: Day
+  expr 86:13    IdentExpr      :: Day
+  expr 87:10    CallExpr       :: u32
+  expr 87:10    IdentExpr      :: type
+  expr 87:14    FieldExpr      :: Big
+  expr 87:14    IdentExpr      :: Big
+  expr 88:10    CallExpr       :: i32
+  expr 88:10    IdentExpr      :: type
+  expr 88:14    FieldExpr      :: Day
+  expr 88:14    IdentExpr      :: Day
+  expr 89:10    CallExpr       :: i32
+  expr 89:10    IdentExpr      :: type
+  expr 89:14    FieldExpr      :: Color
+  expr 89:14    IdentExpr      :: Color
+  expr 90:10    CallExpr       :: u64
+  expr 90:10    IdentExpr      :: type
+  expr 90:14    FieldExpr      :: Big
+  expr 90:14    IdentExpr      :: Big
+  expr 91:10    CallExpr       :: i32
+  expr 91:10    IdentExpr      :: type
+  expr 91:14    FieldExpr      :: Big
+  expr 91:14    IdentExpr      :: Big
+  expr 92:13    StringLitExpr  :: string
+  expr 92:29    IdentExpr      :: u8
+  expr 92:34    IdentExpr      :: u32
+  expr 92:39    IdentExpr      :: i32
+  expr 92:44    IdentExpr      :: i32
+  expr 92:49    IdentExpr      :: u64
+  expr 92:5     CallExpr       :: void
+  expr 92:5     IdentExpr      :: fn(T) -> void
+  expr 92:54    IdentExpr      :: i32

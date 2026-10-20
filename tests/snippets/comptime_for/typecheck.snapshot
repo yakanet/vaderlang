@@ -3,18 +3,18 @@
 ## tests/snippets/comptime_for
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair<K, V>
-  expr 16:24    IntrinsicCallExpr :: type[]
-  expr 17:17    StringLitExpr  :: string
-  expr 17:34    IntrinsicCallExpr :: i64
-  expr 17:43    IdentExpr      :: type
-  expr 17:9     CallExpr       :: void
-  expr 17:9     IdentExpr      :: fn(T) -> void
-  expr 19:24    IntrinsicCallExpr :: Field[]
-  expr 20:17    StringLitExpr  :: string
-  expr 20:20    FieldExpr      :: string
-  expr 20:20    IdentExpr      :: Field
-  expr 20:35    IntrinsicCallExpr :: i64
-  expr 20:44    FieldExpr      :: type
-  expr 20:44    IdentExpr      :: Field
-  expr 20:9     CallExpr       :: void
-  expr 20:9     IdentExpr      :: fn(T) -> void
+  expr 17:24    IntrinsicCallExpr :: type[]
+  expr 18:17    StringLitExpr  :: string
+  expr 18:34    IntrinsicCallExpr :: i64
+  expr 18:43    IdentExpr      :: type
+  expr 18:9     CallExpr       :: void
+  expr 18:9     IdentExpr      :: fn(T) -> void
+  expr 20:24    IntrinsicCallExpr :: Field[]
+  expr 21:17    StringLitExpr  :: string
+  expr 21:20    FieldExpr      :: string
+  expr 21:20    IdentExpr      :: Field
+  expr 21:35    IntrinsicCallExpr :: i64
+  expr 21:44    FieldExpr      :: type
+  expr 21:44    IdentExpr      :: Field
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void

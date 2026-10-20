@@ -1,6 +1,30 @@
+// `defer` runs when its block exits, innermost block first.
+//   - a function-level `defer`, and one inside a nested `{ ... }` block
+//   - a void function whose trailing expression is itself void takes no
+//     temporary to protect it from the drain: one would leave a `void` local
+//     read back onto the stack before `return`, which the VM reads as "this
+//     frame returned something"
+//   - a value trailing expression still gets its temporary: the drain runs
+//     after the value is computed, and before it escapes
+
 module "snippet"
 
 import "std/io"
+
+compute :: fn() -> i32 {
+    println("value trailing: computed")
+    return 7
+}
+
+void_trailing :: fn() -> void {
+    defer println("void trailing: deferred")
+    println("void trailing: body")
+}
+
+value_trailing :: fn() -> i32 {
+    defer println("value trailing: deferred")
+    compute()
+}
 
 main :: fn() -> i32 {
     defer println("outer cleanup")
@@ -9,5 +33,7 @@ main :: fn() -> i32 {
         defer println("inner cleanup")
         println("nested")
     }
+    void_trailing()
+    println("value trailing: got ${value_trailing()}")
     return 0
 }

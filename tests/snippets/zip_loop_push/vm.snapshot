@@ -1,4 +1,7 @@
 # stdout
-3 10 90
+push: 3 10 90
+struct field: a:10,1
+struct field: b:20,2
+struct field: c:30,3
 # exit
 0

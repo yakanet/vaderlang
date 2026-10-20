@@ -1,0 +1,43 @@
+// `break i` / `continue i`, targeting the OUTER loop by its iteration variable,
+// across a `yield` in an escaping generator (stored in a local, so the state
+// machine runs, not fusion). The block split resolves each jump to the loop it
+// names, not to the innermost one: `break i` ends the whole loop nest after
+// `0, 1`, and `continue i` advances the outer loop (`0, 10, 20`). Resolved to
+// the inner loop, `break i` acts as `continue i`, and `continue i` spins forever.
+module "snippet"
+
+import "std/io"
+
+break_outer :: fn() -> Iterator<i32> {
+    for i in 0..<3 {
+        for j in 0..<3 {
+            yield i * 10 + j
+            if j == 1 {
+                break i
+            }
+        }
+    }
+}
+
+continue_outer :: fn() -> Iterator<i32> {
+    for i in 0..<3 {
+        for j in 0..<3 {
+            if j == 1 {
+                continue i
+            }
+            yield i * 10 + j
+        }
+    }
+}
+
+main :: fn() -> i32 {
+    broken :: break_outer()
+    for v in broken {
+        println("break i:    ${v}")
+    }
+    continued :: continue_outer()
+    for v in continued {
+        println("continue i: ${v}")
+    }
+    return 0
+}

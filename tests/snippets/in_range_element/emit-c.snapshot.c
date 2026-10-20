@@ -5,6 +5,8 @@
 #include <string.h>
 
 typedef struct vader_struct_snippet_Bag_t vader_struct_snippet_Bag_t;
+typedef struct vader_struct_snippet_DigitSet_t vader_struct_snippet_DigitSet_t;
+typedef struct vader_struct_std_core_Range__char_t vader_struct_std_core_Range__char_t;
 typedef struct vader_struct_std_core_Range__i32_t vader_struct_std_core_Range__i32_t;
 typedef struct vader_struct_std_core_Range__i64_t vader_struct_std_core_Range__i64_t;
 typedef struct vader_struct_std_core_Range__u8_t vader_struct_std_core_Range__u8_t;
@@ -13,6 +15,18 @@ typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 struct vader_struct_snippet_Bag_t {
     vader_obj_header_t header;
     void* f_items;
+};
+struct vader_struct_snippet_DigitSet_t {
+    vader_obj_header_t header;
+    int32_t f_bits;
+};
+struct vader_struct_std_core_Range__char_t {
+    vader_obj_header_t header;
+    uint32_t f_start;
+    uint32_t f_end;
+    bool f_inclusive;
+    bool f_done;
+    uint32_t f_cursor;
 };
 struct vader_struct_std_core_Range__i32_t {
     vader_obj_header_t header;
@@ -43,27 +57,67 @@ struct vader_struct_std_core_Buffer_t {
 };
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
-static const char vader_atom_blob[] = " " "\0" "true" "\0" "false" "\0" "\n" "\0";
+static const char vader_atom_blob[] =
+    "i64 bounds: " "\0"
+    " " "\0"
+    "u8 bounds: " "\0"
+    "distinct bounds: " "\0"
+    "byte array: " "\0"
+    "i64 arrays: " "\0"
+    "Contains<i64>: " "\0"
+    "Range<i64>: " "\0"
+    "i64[]: " "\0"
+    "free ranges: " "\0"
+    "i32 array: " "\0"
+    "aeiou" "\0"
+    "bytes view: " "\0"
+    "user impl: " "\0"
+    "char digit: " "\0"
+    "char digit ends: " "\0"
+    "char alpha: " "\0"
+    "true" "\0"
+    "false" "\0"
+    "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
-    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[7] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
     { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[13] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[15] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[27] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[45] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[58] },
+    { 0u, 0u, 15u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[71] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[87] },
+    { 0u, 0u, 7u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[100] },
+    { 0u, 0u, 13u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[108] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[122] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[134] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[140] },
+    { 0u, 0u, 11u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[153] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[165] },
+    { 0u, 0u, 17u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[178] },
+    { 0u, 0u, 12u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[196] },
+    { 0u, 0u, 4u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[209] },
+    { 0u, 0u, 5u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[214] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[220] },
 };
 
-#define VADER_COMPTIME_ATOM_COUNT 4u
+#define VADER_COMPTIME_ATOM_COUNT 20u
 
 static bool snippet_wide(int64_t l0);
 static bool snippet_byte(uint8_t l0);
 static bool snippet_near(int64_t l0);
 static bool snippet_blank(uint8_t l0);
+static bool snippet_is_digit(uint32_t l0);
+static bool snippet_is_alpha(uint32_t l0);
 static bool snippet_Bag_std_core_Contains_contains(void* l0, int64_t l1);
+static bool snippet_DigitSet_std_core_Contains_contains(void* l0, int32_t l1);
 static bool snippet_has_big_value(vader_box_t l0);
 static bool snippet_listed(int64_t l0, int64_t l1);
 static int32_t snippet_main(void);
 static bool snippet_has_big__snippet_Bag(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
+static bool std_core_Range_Contains_contains__char(void* l0, uint32_t l1);
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1);
 static bool std_core_Range_Contains_contains__i64(void* l0, int64_t l1);
 static bool std_core_Range_Contains_contains__u8(void* l0, uint8_t l1);
@@ -72,6 +126,7 @@ static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2)
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2);
 static bool std_core____Contains_contains__u8(void* l0, uint8_t l1);
 static bool std_core____Contains_contains__i64(void* l0, int64_t l1);
+static bool std_core____Contains_contains__i32(void* l0, int32_t l1);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
@@ -80,44 +135,57 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[15] = {
+const vader_type_info_t vader_type_info_table[19] = {
     [1] = { .slot_size = 8 },
     [2] = { .slot_size = 1 },
     [3] = { .slot_size = 1 },
-    [4] = {
+    [4] = { .slot_size = 4 },
+    [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Bag_t), .slot_size = 8,
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Bag_t, f_items) },
         .ref_count = 1,
     },
-    [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 16 },
-    [8] = {
+    [6] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_DigitSet_t),
+        .slot_size = 8,
+    },
+    [7] = { .slot_size = 4 },
+    [8] = { .slot_size = 16 },
+    [9] = { .slot_size = 16 },
+    [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
-    [9] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),
-        .slot_size = 8,
-    },
-    [10] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i64_t),
-        .slot_size = 8,
-    },
     [11] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__u8_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__char_t),
         .slot_size = 8,
     },
     [12] = {
-        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),
         .slot_size = 8,
     },
     [13] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i64_t),
+        .slot_size = 8,
+    },
+    [14] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__u8_t),
+        .slot_size = 8,
+    },
+    [15] = {
+        .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),
+        .slot_size = 8,
+    },
+    [16] = {
+        .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
+        .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
+    },
+    [17] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
 };
-const size_t vader_type_info_count = 15;
+const size_t vader_type_info_count = 19;
 
 /* Headers named by `@c_header` — they own the prototypes below. */
 #include <unistd.h>
@@ -127,7 +195,7 @@ static int64_t vader_host_std_core_byte_len(vader_string_t a0) {
 }
 
 static void* vader_host_std_core_bytes(vader_string_t a0) {
-    return (void*) vader_string_bytes_view(a0, 13u, 3u);
+    return (void*) vader_string_bytes_view(a0, 16u, 3u);
 }
 
 static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a2) {
@@ -139,7 +207,7 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 static bool vader_vt_std_core_Contains__contains(vader_box_t recv, vader_box_t a0);
 
 static bool snippet_wide(int64_t l0) {
-#line 12 "tests/snippets/in_range_element/_main.vader"
+#line 20 "tests/snippets/in_range_element/_main.vader"
     if ((INT64_C(5000000000) <= l0)) {
         return (l0 <= INT64_C(6000000000));
     }
@@ -148,7 +216,7 @@ static bool snippet_wide(int64_t l0) {
 
 static bool snippet_byte(uint8_t l0) {
     bool l1;
-#line 14 "tests/snippets/in_range_element/_main.vader"
+#line 22 "tests/snippets/in_range_element/_main.vader"
     if ((INT32_C(97) <= l0)) {
         l1 = (l0 <= INT32_C(122));
     } else {
@@ -167,7 +235,7 @@ static bool snippet_byte(uint8_t l0) {
 
 static bool snippet_near(int64_t l0) {
     bool l1;
-#line 16 "tests/snippets/in_range_element/_main.vader"
+#line 24 "tests/snippets/in_range_element/_main.vader"
     if ((INT64_C(0) <= l0)) {
         l1 = (l0 <= INT64_C(9));
     } else {
@@ -190,8 +258,8 @@ static bool snippet_blank(uint8_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 18 "tests/snippets/in_range_element/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(13u, 2u, 1u, 3u);
+#line 26 "tests/snippets/in_range_element/_main.vader"
+    vader_array_t* _a0_arr = vader_array_new(16u, 2u, 1u, 3u);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (uint8_t) INT32_C(9);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(32);
     t0 = (void*) _a0_arr;
@@ -199,11 +267,59 @@ static bool snippet_blank(uint8_t l0) {
     { bool __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+static bool snippet_is_digit(uint32_t l0) {
+#line 28 "tests/snippets/in_range_element/_main.vader"
+    if ((48u <= l0)) {
+        return (l0 <= 57u);
+    }
+    return false;
+}
+
+static bool snippet_is_alpha(uint32_t l0) {
+    bool l1;
+#line 30 "tests/snippets/in_range_element/_main.vader"
+    if ((97u <= l0)) {
+        l1 = (l0 <= 122u);
+    } else {
+        l1 = false;
+    }
+    if (l1) {
+        return true;
+    }
+    if ((65u <= l0)) {
+        l1 = (l0 <= 90u);
+    } else {
+        l1 = false;
+    }
+    return l1;
+}
+
 static bool snippet_Bag_std_core_Contains_contains(void* l0, int64_t l1) {
     bool t0;
-#line 25 "tests/snippets/in_range_element/_main.vader"
+#line 37 "tests/snippets/in_range_element/_main.vader"
     t0 = std_core____Contains_contains__i64(((vader_struct_snippet_Bag_t*) l0)->f_items, l1);
     return t0;
+}
+
+static bool snippet_DigitSet_std_core_Contains_contains(void* l0, int32_t l1) {
+    int32_t l2;
+    int32_t t0;
+#line 47 "tests/snippets/in_range_element/_main.vader"
+    if ((l1 < INT32_C(0))) {
+#line 48 "tests/snippets/in_range_element/_main.vader"
+        return false;
+#line 47 "tests/snippets/in_range_element/_main.vader"
+    }
+    if (!((l1 > INT32_C(9)))) {
+#line 50 "tests/snippets/in_range_element/_main.vader"
+        l2 = (INT32_C(1) << l1);
+#line 51 "tests/snippets/in_range_element/_main.vader"
+        t0 = ((vader_struct_snippet_DigitSet_t*) l0)->f_bits;
+        return (t0 & l2) != INT32_C(0);
+#line 47 "tests/snippets/in_range_element/_main.vader"
+    }
+#line 48 "tests/snippets/in_range_element/_main.vader"
+    return false;
 }
 
 static bool snippet_has_big_value(vader_box_t l0) {
@@ -211,7 +327,7 @@ static bool snippet_has_big_value(vader_box_t l0) {
     vader_box_t* gc_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 30 "tests/snippets/in_range_element/_main.vader"
+#line 57 "tests/snippets/in_range_element/_main.vader"
     t0 = vader_vt_std_core_Contains__contains(l0, vader_box_i64(1u, INT64_C(4000000000)));
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -222,14 +338,14 @@ static bool snippet_listed(int64_t l0, int64_t l1) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 32 "tests/snippets/in_range_element/_main.vader"
-    vader_array_t* _a0_arr = vader_array_new(8u, 2u, 8u, 1u);
+#line 59 "tests/snippets/in_range_element/_main.vader"
+    vader_array_t* _a0_arr = vader_array_new(10u, 2u, 8u, 1u);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int64_t) INT64_C(2);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int64_t) INT64_C(1);
     t0 = (void*) _a0_arr;
     t1 = std_core____Contains_contains__i64(t0, l0);
     if (t1) {
-        vader_array_t* _a1_arr = vader_array_new(8u, 2u, 8u, 1u);
+        vader_array_t* _a1_arr = vader_array_new(10u, 2u, 8u, 1u);
         ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int64_t) INT64_C(4);
         ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int64_t) INT64_C(3);
         t0 = (void*) _a1_arr;
@@ -246,119 +362,261 @@ static int32_t snippet_main(void) {
     void* l5 = NULL;
     int64_t l3;
     bool l4;
+    int32_t l6, l7;
     vader_string_t t0 = 0;
     void* t1 = NULL;
+    bool t2;
     void** gc_raw_roots[5] = { &l0, &l1, &l2, &l5, &t1 };
     vader_string_t* gc_atom_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 35 "tests/snippets/in_range_element/_main.vader"
+#line 62 "tests/snippets/in_range_element/_main.vader"
     vader_struct_std_core_Range__i64_t* _a0_obj = (vader_struct_std_core_Range__i64_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Range__i64_t));
-    vader_obj_header_init(_a0_obj, 10u);
+    vader_obj_header_init(_a0_obj, 13u);
     _a0_obj->f_start = INT64_C(0);
     _a0_obj->f_end = INT64_C(5000000000);
     _a0_obj->f_inclusive = false;
     _a0_obj->f_done = false;
     _a0_obj->f_cursor = INT64_C(0);
     l0 = (void*) _a0_obj;
-#line 36 "tests/snippets/in_range_element/_main.vader"
-    vader_array_t* _a1_arr = vader_array_new(8u, 2u, 8u, 1u);
+#line 63 "tests/snippets/in_range_element/_main.vader"
+    vader_array_t* _a1_arr = vader_array_new(10u, 2u, 8u, 1u);
     ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int64_t) INT64_C(7);
     ((int64_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int64_t) INT64_C(5000000000);
     l1 = (void*) _a1_arr;
-#line 37 "tests/snippets/in_range_element/_main.vader"
-    l2 = (void*) vader_buffer_new((size_t) INT64_C(11));
+#line 64 "tests/snippets/in_range_element/_main.vader"
+    l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 1u);
     l4 = snippet_wide(INT64_C(5500000000));
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_wide(INT64_C(1500000000));
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 38 "tests/snippets/in_range_element/_main.vader"
-    l2 = (void*) vader_buffer_new((size_t) INT64_C(17));
+#line 65 "tests/snippets/in_range_element/_main.vader"
+    l2 = (void*) vader_buffer_new((size_t) INT64_C(28));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 3u);
     l4 = snippet_byte((uint8_t) 113);
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_byte((uint8_t) 255);
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_byte((uint8_t) 100);
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 39 "tests/snippets/in_range_element/_main.vader"
-    l2 = (void*) vader_buffer_new((size_t) INT64_C(11));
+#line 66 "tests/snippets/in_range_element/_main.vader"
+    l2 = (void*) vader_buffer_new((size_t) INT64_C(28));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 4u);
     l4 = snippet_near(INT64_C(5));
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_near(INT64_C(15));
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 40 "tests/snippets/in_range_element/_main.vader"
+#line 67 "tests/snippets/in_range_element/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 5u);
     l4 = snippet_blank((uint8_t) 32);
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_blank((uint8_t) 120);
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    t0 = std_core_finish_buffer(l2, l3);
+    std_io_println__string(t0);
+#line 68 "tests/snippets/in_range_element/_main.vader"
+    l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 6u);
     l4 = snippet_listed(INT64_C(2), INT64_C(3));
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = snippet_listed(INT64_C(3), INT64_C(3));
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 41 "tests/snippets/in_range_element/_main.vader"
-    vader_array_t* _a2_arr = vader_array_new(8u, 2u, 8u, 1u);
+#line 69 "tests/snippets/in_range_element/_main.vader"
+    vader_array_t* _a2_arr = vader_array_new(10u, 2u, 8u, 1u);
     ((int64_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int64_t) INT64_C(7);
     ((int64_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int64_t) INT64_C(4000000000);
     t1 = (void*) _a2_arr;
     vader_struct_snippet_Bag_t* _a3_obj = (vader_struct_snippet_Bag_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Bag_t));
-    vader_obj_header_init(_a3_obj, 4u);
+    vader_obj_header_init(_a3_obj, 5u);
     _a3_obj->f_items = t1;
     l2 = (void*) _a3_obj;
-#line 42 "tests/snippets/in_range_element/_main.vader"
-    l5 = (void*) vader_buffer_new((size_t) INT64_C(11));
+#line 70 "tests/snippets/in_range_element/_main.vader"
+    l5 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l5, l3, 7u);
     l4 = snippet_has_big__snippet_Bag(l2);
     l3 = std_core_write_bool(l5, l3, l4);
-    l3 = std_core_write_string_at(l5, l3, 1u);
+    l3 = std_core_write_string_at(l5, l3, 2u);
     l4 = snippet_has_big_value(vader_ref_box(l2));
     l3 = std_core_write_bool(l5, l3, l4);
     t0 = std_core_finish_buffer(l5, l3);
     std_io_println__string(t0);
-#line 43 "tests/snippets/in_range_element/_main.vader"
+#line 71 "tests/snippets/in_range_element/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(23));
     l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l2, l3, 8u);
     l4 = std_core_Range_Contains_contains__i64(l0, INT64_C(4000000000));
     l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
+    l3 = std_core_write_string_at(l2, l3, 2u);
     l4 = std_core_Range_Contains_contains__i64(l0, INT64_C(6000000000));
-    l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
-    l4 = std_core____Contains_contains__i64(l1, INT64_C(5000000000));
-    l3 = std_core_write_bool(l2, l3, l4);
-    l3 = std_core_write_string_at(l2, l3, 1u);
-    l4 = std_core____Contains_contains__i64(l1, INT64_C(7));
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 44 "tests/snippets/in_range_element/_main.vader"
+#line 72 "tests/snippets/in_range_element/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(18));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l0, l3, 9u);
+    l4 = std_core____Contains_contains__i64(l1, INT64_C(5000000000));
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = std_core____Contains_contains__i64(l1, INT64_C(7));
+    l3 = std_core_write_bool(l0, l3, l4);
+    t0 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t0);
+#line 74 "tests/snippets/in_range_element/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(30));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l0, l3, 10u);
+    if ((INT32_C(0) <= INT32_C(5))) {
+        l4 = (INT32_C(5) < INT32_C(10));
+    } else {
+        l4 = false;
+    }
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    if ((INT32_C(0) <= INT32_C(10))) {
+        l4 = (INT32_C(10) < INT32_C(10));
+    } else {
+        l4 = false;
+    }
+    l4 = !(l4);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    if ((INT32_C(0) <= INT32_C(10))) {
+        l4 = (INT32_C(10) <= INT32_C(10));
+    } else {
+        l4 = false;
+    }
+    l3 = std_core_write_bool(l0, l3, l4);
+    t0 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t0);
+#line 75 "tests/snippets/in_range_element/_main.vader"
+    vader_array_t* _a4_arr = vader_array_new(17u, 5u, 7u, 7u);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 4u] = (int32_t) INT32_C(11);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 3u] = (int32_t) INT32_C(7);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 2u] = (int32_t) INT32_C(5);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (int32_t) INT32_C(3);
+    ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(2);
+    l0 = (void*) _a4_arr;
+#line 76 "tests/snippets/in_range_element/_main.vader"
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(22));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l1, l3, 11u);
+    l4 = std_core____Contains_contains__i32(l0, INT32_C(7));
+    l3 = std_core_write_bool(l1, l3, l4);
+    l3 = std_core_write_string_at(l1, l3, 2u);
+    t2 = std_core____Contains_contains__i32(l0, INT32_C(4));
+    l4 = !(t2);
+    l3 = std_core_write_bool(l1, l3, l4);
+    t0 = std_core_finish_buffer(l1, l3);
+    std_io_println__string(t0);
+#line 77 "tests/snippets/in_range_element/_main.vader"
+    l0 = vader_host_std_core_bytes(12u);
+#line 78 "tests/snippets/in_range_element/_main.vader"
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(23));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l1, l3, 13u);
+    l4 = std_core____Contains_contains__u8(l0, (uint8_t) 101);
+    l3 = std_core_write_bool(l1, l3, l4);
+    l3 = std_core_write_string_at(l1, l3, 2u);
+    t2 = std_core____Contains_contains__u8(l0, (uint8_t) 122);
+    l4 = !(t2);
+    l3 = std_core_write_bool(l1, l3, l4);
+    t0 = std_core_finish_buffer(l1, l3);
+    std_io_println__string(t0);
+#line 79 "tests/snippets/in_range_element/_main.vader"
+    l6 = (INT32_C(1) << INT32_C(1));
+    l7 = (INT32_C(1) << INT32_C(4));
+    l6 = (l6 | l7);
+    l7 = (INT32_C(1) << INT32_C(7));
+    vader_struct_snippet_DigitSet_t* _a5_obj = (vader_struct_snippet_DigitSet_t*) vader_gc_alloc(sizeof(vader_struct_snippet_DigitSet_t));
+    vader_obj_header_init(_a5_obj, 6u);
+    _a5_obj->f_bits = (l6 | l7);
+    l0 = (void*) _a5_obj;
+#line 80 "tests/snippets/in_range_element/_main.vader"
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(28));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l1, l3, 14u);
+    l4 = snippet_DigitSet_std_core_Contains_contains(l0, INT32_C(4));
+    l3 = std_core_write_bool(l1, l3, l4);
+    l3 = std_core_write_string_at(l1, l3, 2u);
+    t2 = snippet_DigitSet_std_core_Contains_contains(l0, INT32_C(5));
+    l4 = !(t2);
+    l3 = std_core_write_bool(l1, l3, l4);
+    l3 = std_core_write_string_at(l1, l3, 2u);
+    l4 = snippet_DigitSet_std_core_Contains_contains(l0, INT32_C(7));
+    l3 = std_core_write_bool(l1, l3, l4);
+    t0 = std_core_finish_buffer(l1, l3);
+    std_io_println__string(t0);
+#line 82 "tests/snippets/in_range_element/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(29));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l0, l3, 15u);
+    l4 = snippet_is_digit(53u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = snippet_is_digit(97u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = snippet_is_digit(58u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    t0 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t0);
+#line 83 "tests/snippets/in_range_element/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(28));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l0, l3, 16u);
+    l4 = snippet_is_digit(48u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = snippet_is_digit(57u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    t0 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t0);
+#line 84 "tests/snippets/in_range_element/_main.vader"
+    l0 = (void*) vader_buffer_new((size_t) INT64_C(29));
+    l3 = INT64_C(0);
+    l3 = std_core_write_string_at(l0, l3, 17u);
+    l4 = snippet_is_alpha(122u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = snippet_is_alpha(90u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    l3 = std_core_write_string_at(l0, l3, 2u);
+    l4 = snippet_is_alpha(53u);
+    l3 = std_core_write_bool(l0, l3, l4);
+    t0 = std_core_finish_buffer(l0, l3);
+    std_io_println__string(t0);
+#line 85 "tests/snippets/in_range_element/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static bool snippet_has_big__snippet_Bag(void* l0) {
     bool t0;
-#line 28 "tests/snippets/in_range_element/_main.vader"
+#line 55 "tests/snippets/in_range_element/_main.vader"
     t0 = snippet_Bag_std_core_Contains_contains(l0, INT64_C(4000000000));
     return t0;
 }
@@ -381,6 +639,26 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
     vader_buffer_write_string((vader_buffer_t*) l4, (size_t) l2, l1);
     t0 = vader_buffer_intern_string((vader_buffer_t*) l4, (size_t) l3);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
+static bool std_core_Range_Contains_contains__char(void* l0, uint32_t l1) {
+    uint32_t l2, l3;
+    bool t0;
+#line 286 "lib/std/core/core.vader"
+    l2 = ((vader_struct_std_core_Range__char_t*) l0)->f_start;
+    if ((l1 < l2)) {
+        return false;
+    }
+#line 287 "lib/std/core/core.vader"
+    t0 = ((vader_struct_std_core_Range__char_t*) l0)->f_inclusive;
+    if (!(t0)) {
+#line 288 "lib/std/core/core.vader"
+        l3 = ((vader_struct_std_core_Range__char_t*) l0)->f_end;
+        return (l1 < l3);
+#line 287 "lib/std/core/core.vader"
+    }
+    l2 = ((vader_struct_std_core_Range__char_t*) l0)->f_end;
+    return (l1 <= l2);
 }
 
 static bool std_core_Range_Contains_contains__i32(void* l0, int32_t l1) {
@@ -472,11 +750,11 @@ static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
 #line 184 "lib/std/core/primitives.vader"
     if (!(l2)) {
 #line 185 "lib/std/core/primitives.vader"
-        t0 = std_core_write_string_at(l0, l1, 3u);
+        t0 = std_core_write_string_at(l0, l1, 19u);
         return t0;
 #line 184 "lib/std/core/primitives.vader"
     }
-    t0 = std_core_write_string_at(l0, l1, 2u);
+    t0 = std_core_write_string_at(l0, l1, 18u);
     return t0;
 }
 
@@ -519,6 +797,30 @@ static bool std_core____Contains_contains__i64(void* l0, int64_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = ((int64_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
+#line 341 "lib/std/core/core.vader"
+        if (t0 == l1) {
+            return true;
+        }
+#line 340 "lib/std/core/core.vader"
+        l4 = (l4 + INT64_C(1));
+    }
+#line 343 "lib/std/core/core.vader"
+    return false;
+}
+
+static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
+    void* l2;
+    int64_t l3, l4;
+    int32_t t0;
+#line 340 "lib/std/core/core.vader"
+    l2 = l0;
+    l3 = ((vader_array_t*) l2)->length;
+    l4 = INT64_C(0);
+    while ((l4 < l3)) {
+        vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
+        VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
+        VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
+        t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
 #line 341 "lib/std/core/core.vader"
         if (t0 == l1) {
             return true;
@@ -600,7 +902,7 @@ static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
 #line 236 "lib/std/io/io.vader"
-    l1 = concat_2(l0, 4u);
+    l1 = concat_2(l0, 20u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -608,12 +910,15 @@ static void std_io_println__string(vader_string_t l0) {
 /* vtable dispatchers */
 static bool vader_vt_std_core_Contains__contains(vader_box_t recv, vader_box_t a0) {
     switch (recv.tag) {
-        case 4u: return snippet_Bag_std_core_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
-        case 9u: return std_core_Range_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
-        case 10u: return std_core_Range_Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
-        case 11u: return std_core_Range_Contains_contains__u8(recv.payload.obj, ((uint8_t) a0.payload.i));
-        case 13u: return std_core____Contains_contains__u8(recv.payload.obj, ((uint8_t) a0.payload.i));
-        case 8u: return std_core____Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 5u: return snippet_Bag_std_core_Contains_contains(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 6u: return snippet_DigitSet_std_core_Contains_contains(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 11u: return std_core_Range_Contains_contains__char(recv.payload.obj, ((uint32_t) a0.payload.i));
+        case 12u: return std_core_Range_Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
+        case 13u: return std_core_Range_Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 14u: return std_core_Range_Contains_contains__u8(recv.payload.obj, ((uint8_t) a0.payload.i));
+        case 16u: return std_core____Contains_contains__u8(recv.payload.obj, ((uint8_t) a0.payload.i));
+        case 10u: return std_core____Contains_contains__i64(recv.payload.obj, ((int64_t) a0.payload.i));
+        case 17u: return std_core____Contains_contains__i32(recv.payload.obj, ((int32_t) a0.payload.i));
         default: vader_unreachable("vtable miss in std_core$Contains.contains");
     }
     vader_unreachable("vtable miss in std_core$Contains.contains");

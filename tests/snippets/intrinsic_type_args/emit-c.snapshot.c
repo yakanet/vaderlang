@@ -84,7 +84,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 24 "tests/snippets/intrinsic_type_args/_main.vader"
     l0 = vader_box_obj(0u, (void*)(uintptr_t)2u);
     l1 = vader_box_obj(0u, (void*)(uintptr_t)3u);
     vader_array_t* _a0_arr = vader_array_new(8u, 2u, 0u, 9u);
@@ -98,7 +98,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         l0 = vader_array_ref_load_box(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l4);
-#line 18 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 25 "tests/snippets/intrinsic_type_args/_main.vader"
         l5 = (void*) vader_buffer_new((size_t) INT64_C(34));
         l6 = INT64_C(0);
         l6 = std_core_write_string_at(l5, l6, 1u);
@@ -106,13 +106,13 @@ static int32_t snippet_main(void) {
         l6 = std_core_write_int(l5, l6, l7);
         t0 = std_core_finish_buffer(l5, l6);
         std_io_println__string(t0);
-#line 17 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 24 "tests/snippets/intrinsic_type_args/_main.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 20 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 27 "tests/snippets/intrinsic_type_args/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(8u, 0u, 0u, 9u);
     l2 = (void*) _a2_arr;
-#line 21 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 28 "tests/snippets/intrinsic_type_args/_main.vader"
     l5 = (void*) vader_buffer_new((size_t) INT64_C(38));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l5, l3, 2u);
@@ -120,7 +120,7 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_int(l5, l3, l4);
     t0 = std_core_finish_buffer(l5, l3);
     std_io_println__string(t0);
-#line 22 "tests/snippets/intrinsic_type_args/_main.vader"
+#line 29 "tests/snippets/intrinsic_type_args/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

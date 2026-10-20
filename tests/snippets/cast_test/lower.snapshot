@@ -10,6 +10,14 @@
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, m)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
+      k: i32 = -42
+      w: u64 = u64(k)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, w)
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
       return 0
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

@@ -1,3 +1,7 @@
+// A generic struct whose field refers to its own type (`Node<T> | null`): a
+// three-node chain built back to front, then walked from `head` until the
+// `null` link, printing every value in order.
+
 module "snippet"
 
 import "std/io"
@@ -11,6 +15,11 @@ main :: fn() -> i32 {
     tail :: Node<i32> { .value = 30, .next = null }
     mid  :: Node<i32> { .value = 20, .next = tail }
     head :: Node<i32> { .value = 10, .next = mid }
-    println("head.value = ${head.value}")
+    cursor: Node<i32> | null = head
+    for {
+        node :: cursor ?? break
+        println("value = ${node.value}")
+        cursor = node.next
+    }
     return 0
 }

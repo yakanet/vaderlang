@@ -1,5 +1,6 @@
 # stdout
 left  : true false false
 right : true false false
+both  : true false false
 # exit
 0

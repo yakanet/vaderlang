@@ -1,4 +1,6 @@
 # stdout
 listing entries
+# stderr
+vader vm: vader: panic — not yet implemented: compact mode dispatch
 # exit
-0
+1

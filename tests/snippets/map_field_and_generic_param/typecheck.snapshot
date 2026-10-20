@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/map_field_and_generic_param
+  FnDecl         bump                 :: fn(MutableMap<K, V>, K, V) -> void
+  StructDecl     Counts               :: Counts
+  FnDecl         main                 :: fn() -> i32
+  expr 20:12    IdentExpr      :: V
+  expr 20:5     IdentExpr      :: MutableMap<K, V>
+  expr 20:7     IdentExpr      :: K
+  expr 24:10    StructLitExpr  :: Counts
+  expr 24:30    StructLitExpr  :: MutableMap<string, i32>
+  expr 25:15    StringLitExpr  :: string
+  expr 25:5     FieldExpr      :: MutableMap<string, i32>
+  expr 25:5     IdentExpr      :: Counts
+  expr 26:10    FieldExpr      :: MutableMap<string, i32>
+  expr 26:10    IdentExpr      :: Counts
+  expr 26:10    IndexExpr      :: i32 | null
+  expr 26:10    NullCoalesceExpr :: i32
+  expr 26:20    StringLitExpr  :: string
+  expr 27:13    StringLitExpr  :: string
+  expr 27:25    IdentExpr      :: i32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:10    FieldExpr      :: MutableMap<string, i32>
+  expr 28:10    IdentExpr      :: Counts
+  expr 28:21    StringLitExpr  :: string
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(MutableMap<K, V>, K, V) -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:39    CallExpr       :: i64
+  expr 29:39    FieldExpr      :: MutableMap<string, i32>
+  expr 29:39    FieldExpr      :: fn() -> i64
+  expr 29:39    IdentExpr      :: Counts
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void

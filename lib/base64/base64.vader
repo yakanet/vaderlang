@@ -208,7 +208,7 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
 @test test_decode_rejects_bad_length :: fn() -> void {
     bad :: decode("abc")
     if bad is Base64Error {
-        assert(true, "length error caught")
+        assert_eq(bad.message(), "base64: input length must be a multiple of 4")
     } else {
         assert(false, "should have rejected length 3")
     }
@@ -217,7 +217,7 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
 @test test_decode_rejects_invalid_char :: fn() -> void {
     bad :: decode("ab!d")
     if bad is Base64Error {
-        assert(true, "invalid char caught")
+        assert_eq(bad.message(), "base64: invalid character in final quad")
     } else {
         assert(false, "should have rejected `!`")
     }

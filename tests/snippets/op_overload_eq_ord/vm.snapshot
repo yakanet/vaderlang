@@ -1,5 +1,0 @@
-# stdout
-a==b true  a!=c true
-a<c true  c>a true  a>=b true  c<=c true
-# exit
-0

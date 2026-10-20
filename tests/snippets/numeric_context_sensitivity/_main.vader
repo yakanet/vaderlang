@@ -1,10 +1,7 @@
-// Numeric-literal context-sensitivity (Zig comptime-int style).
-//
-// A `FreeInt` literal flowing into a slot of any integer width adopts that
-// width. Covers : typed let, struct field defaults, arithmetic with a
-// non-default width on the other side, comparisons, return values,
-// generic UFCS arguments (via an import alias), and negated literals
-// flowing into signed slots.
+// A free integer literal takes the width of the slot it flows into. Covered:
+// typed locals of every integer width, arithmetic against a non-default width,
+// a negated literal in a signed slot, struct field defaults, comparisons, the
+// bounds of a slice range, and an annotated return value.
 
 module "snippet"
 
@@ -36,7 +33,7 @@ main :: fn() -> i32 {
     h64_2 :: h64 + 1
     println("arith: ${signed_wide_next} ${unsigned_wide_next} ${d64_2} ${h64_2}")
 
-    // (3) negated literal into a signed slot — `-1` lowers as `i64.neg`
+    // (3) negated literal into a signed slot
     neg: i64: -100
     neg2 :: neg - 1
     println("neg: ${neg} ${neg2}")

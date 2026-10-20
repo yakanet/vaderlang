@@ -1,31 +1,64 @@
+// A string is indexed by codepoints while its bytes stay UTF-8:
+// - `chars()` yields one `char` per codepoint, over ASCII, 3-byte CJK and
+//   mixed widths; the empty string runs zero iterations;
+// - `len()` counts codepoints, `bytes().len()` bytes;
+// - `codepoint_at_byte` decodes one sequence and returns `[char, i64]`, the
+//   width a manual walk steps by (what `chars()` does inside);
+//   `codepoint_byte_len` gives the width a char takes once encoded;
+// - `s[r]` slices by codepoint indices: the walk in `std/core/utf8.vader`
+//   finds the byte boundaries, then `byte_slice` returns a zero-copy view, so
+//   a slice never cuts a sequence. An out-of-range bound clamps to the
+//   codepoint count, not the byte count; on ASCII both indexings coincide.
 module "snippet"
 
 import "std/io"
 import "std/string"
 
 main :: fn() -> i32 {
-    // len vs bytes().len(): codepoints, not bytes.
-    println("ascii  cp=${len("vader")} bytes=${"vader".bytes().len()}")
-    println("mixed  cp=${len("héllo")} bytes=${"héllo".bytes().len()}")
-    println("cjk    cp=${len("你好嗎？")} bytes=${"你好嗎？".bytes().len()}")
-    println("emoji  cp=${len("a\u{1F600}b")} bytes=${"a\u{1F600}b".bytes().len()}")
-    println("empty  cp=${len("")} bytes=${"".bytes().len()}")
-
-    // codepoint_at_byte walks one sequence at a time. Manual iteration mimics
-    // what `chars()` does internally, demonstrating the [char, i64] return.
-    s :: "你好"
-    n :: s.bytes().len()
-    i: i64 = 0
-    for i < n {
-        [c, w] :: codepoint_at_byte(s, i)
-        println("at ${i}: '${c}' (${w} bytes)")
-        i = i + w
+    for c in "vader".chars() {
+        println("chars ascii: ${c}")
+    }
+    for c in "你好嗎？".chars() {
+        println("chars cjk:   ${c}")
+    }
+    n := 0
+    for c in "héllo".chars() {
+        n += 1
+    }
+    println("chars mixed: codepoints=${n} bytes=${"héllo".bytes().len()}")
+    for c in "".chars() {
+        println("chars empty: never")
     }
 
-    // codepoint_byte_len gives the width a char takes once encoded.
-    println("'a' width=${codepoint_byte_len('a')}")
-    println("'é' width=${codepoint_byte_len('é')}")
-    println("'你' width=${codepoint_byte_len('你')}")
-    println("emoji width=${codepoint_byte_len('\u{1F600}')}")
+    println("len ascii  cp=${len("vader")} bytes=${"vader".bytes().len()}")
+    println("len mixed  cp=${len("héllo")} bytes=${"héllo".bytes().len()}")
+    println("len cjk    cp=${len("你好嗎？")} bytes=${"你好嗎？".bytes().len()}")
+    println("len emoji  cp=${len("a\u{1F600}b")} bytes=${"a\u{1F600}b".bytes().len()}")
+    println("len empty  cp=${len("")} bytes=${"".bytes().len()}")
+
+    s :: "你好"
+    byte_count :: s.bytes().len()
+    i: i64 = 0
+    for i < byte_count {
+        [c, w] :: codepoint_at_byte(s, i)
+        println("walk at ${i}: '${c}' (${w} bytes)")
+        i += w
+    }
+
+    println("width 'a'   = ${codepoint_byte_len('a')}")
+    println("width 'é'   = ${codepoint_byte_len('é')}")
+    println("width '你'  = ${codepoint_byte_len('你')}")
+    println("width emoji = ${codepoint_byte_len('\u{1F600}')}")
+
+    h :: "héllo"
+    println("slice [0..<2]   = [${h[0..<2]}]")
+    println("slice [1..<3]   = [${h[1..<3]}]")
+    println("slice [0..<5]   = [${h[0..<5]}]")
+    println("slice [2..=4]   = [${h[2..=4]}]")
+    println("slice [0..<99]  = [${h[0..<99]}]")
+    println("slice [99..<99] = [${h[99..<99]}]")
+    a :: "hello"
+    println("slice ascii [1..<4] = [${a[1..<4]}]")
+
     return 0
 }

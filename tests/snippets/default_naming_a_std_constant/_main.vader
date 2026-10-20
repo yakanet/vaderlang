@@ -1,0 +1,36 @@
+// A default value naming a constant of a std module: `read_file_string`
+// defaults `max_bytes` to `READ_LIMIT_DEFAULT`. The default is lowered in the
+// caller's context, so that name crosses with it; a miss lowers the ident to
+// `unreachable` and the call does nothing, with no diagnostic (lower
+// snapshot). Bare and UFCS calls both fill it, and an explicit argument still
+// wins.
+//
+// The file path is fixed, which holds while only the VM runs this snippet: a
+// native run overlapping it would race on the file.
+
+module "snippet"
+
+import "std/io"
+
+main :: fn() -> i32 {
+    path :: "${temp_dir()}/vader_default_naming_a_std_constant"
+    wrote :: write_file_string(path, "0123456789")
+    if wrote is IOError {
+        println("setup failed: ${wrote.msg}")
+        return 1
+    }
+    defer remove_file(path)
+
+    bare :: read_file_string(path)
+    if bare is string {
+        println("bare: ${bare.len()}")
+    }
+    ufcs :: path.read_file_string()
+    if ufcs is string {
+        println("ufcs: ${ufcs.len()}")
+    }
+    if read_file_string(path, 4) is IOError as e {
+        println("explicit 4: ${e.msg}")
+    }
+    return 0
+}

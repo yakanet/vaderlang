@@ -1,7 +1,0 @@
-# stdout
-body last
-deferred first
-deferred second
-got 7
-# exit
-0

@@ -4,3 +4,7 @@ tag :: fn() -> string = "tagged"
 
 // Reached only through a namespace alias by the caller.
 export tagged :: fn(s: string = tag()) -> string = s
+
+/// Build a greeting, `prefix` defaulting to "Hi". The caller reaches it only
+/// through its namespace alias: omitted, positional and named arguments.
+export salute :: fn(name: string, prefix: string = "Hi") -> string = "${prefix}, ${name}"

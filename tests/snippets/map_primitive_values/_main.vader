@@ -1,14 +1,10 @@
-// map_primitive_values — MutableMap<string, V> for the wider primitive
-// value set (u8 / bool / char / f32 / f64 / i16 / u16 / i64).
+// map_primitive_values: MutableMap<string, V> for the wider primitive value
+// set (u8 / bool / char / f32 / f64 / i16 / u16 / i64).
 //
-// Under the flavor-based erasure model the value lands RAW in the bucket entry — a
-// box-vs-raw miscompile surfaces as a wrong read-back. The `V | null` get
-// result also exercises nullable-of-raw-primitive narrowing.
-//
-// The wide i64 value flows through a TYPED LOCAL : a free literal in
-// index-set position isn't repinned to the map's value type and truncates
-// via i32 — a separate, pre-existing typer gap (free literal not repinned
-// to a resolved wide concrete type), not an erasure-model issue.
+// Each value type gets its own `MutableMap` instance, which keeps its values
+// raw in an array of that type: a value stored at the wrong width surfaces as
+// a wrong read-back. The `V | null` result of a read also exercises null
+// narrowing on a primitive.
 
 module "snippet"
 
@@ -56,7 +52,7 @@ main :: fn() -> i32 {
     if vb == null { println("u16: missing") } else { println("u16 big=${vb}") }
 
     mi64 :: MutableMap<string, i64> {}
-    huge: i64: 9000000000   // typed local : a free literal would truncate via i32 here
+    huge: i64: 9000000000
     mi64["huge"] = huge
     vh :: mi64["huge"]
     if vh == null { println("i64: missing") } else { println("i64 huge=${vh}") }

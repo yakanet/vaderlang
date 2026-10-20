@@ -1,10 +1,9 @@
-// tests/snippets/io_println — T3b call.import + import-shim coverage.
+// tests/snippets/io_println: `println` down to the host.
 //
-// Exercises the host-fn dispatch: `println` (a Vader stdlib fn compiled
-// normally) reaches the runtime via `call.import` to `write` and the
-// `Display.to_string` shims. Prints a string then an i32 to cover
-// vader_import for write + to_string(string) + to_string(i32). The
-// compile/run oracle matches the VM-recorded stdout.
+// Both instances (`println<string>`, `println<i32>`) are ordinary stdlib code
+// that reaches the host through `call.import`: the `byte_len` and `bytes`
+// intrinsics and the `write` extern from `<unistd.h>`. The native run must
+// print what the VM prints.
 
 module "snippet"
 

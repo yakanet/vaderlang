@@ -862,13 +862,13 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 2u, gc_stack_objs, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 23 "tests/snippets/struct_decl/_main.vader"
+#line 16 "tests/snippets/struct_decl/_main.vader"
     vader_struct_snippet_Point_t* _a1_obj = &_a0_storage;
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_x = 1.5;
     _a1_obj->f_y = -2.0;
     l0 = (void*) _a1_obj;
-#line 24 "tests/snippets/struct_decl/_main.vader"
+#line 17 "tests/snippets/struct_decl/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(6u, 3u, 7u, 1u);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -879,7 +879,7 @@ static int32_t snippet_main(void) {
     _a4_obj->f_items = t0;
     _a4_obj->f_len = (uint32_t) 3;
     l1 = (void*) _a4_obj;
-#line 25 "tests/snippets/struct_decl/_main.vader"
+#line 18 "tests/snippets/struct_decl/_main.vader"
     t1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = std_core_f64_Display_to_string(t1);
     t1 = ((vader_struct_snippet_Point_t*) l0)->f_y;
@@ -902,7 +902,7 @@ static int32_t snippet_main(void) {
     l4 = std_core_write_unsigned(l0, l4, l6);
     t4 = std_core_finish_buffer(l0, l4);
     std_io_println__string(t4);
-#line 26 "tests/snippets/struct_decl/_main.vader"
+#line 19 "tests/snippets/struct_decl/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 

@@ -3,13 +3,19 @@
 ## tests/snippets/self_ref_struct
   FnDecl         main                 :: fn() -> i32
   StructDecl     Node                 :: Node<T>
-  expr 11:13    StructLitExpr  :: Node<i32>
-  expr 12:13    StructLitExpr  :: Node<i32>
-  expr 12:46    IdentExpr      :: Node<i32>
-  expr 13:13    StructLitExpr  :: Node<i32>
-  expr 13:46    IdentExpr      :: Node<i32>
-  expr 14:13    StringLitExpr  :: string
-  expr 14:29    FieldExpr      :: i32
-  expr 14:29    IdentExpr      :: Node<i32>
-  expr 14:5     CallExpr       :: void
-  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StructLitExpr  :: Node<i32>
+  expr 16:13    StructLitExpr  :: Node<i32>
+  expr 16:46    IdentExpr      :: Node<i32>
+  expr 17:13    StructLitExpr  :: Node<i32>
+  expr 17:46    IdentExpr      :: Node<i32>
+  expr 18:32    IdentExpr      :: Node<i32>
+  expr 20:17    IdentExpr      :: Node<i32> | null
+  expr 20:17    NullCoalesceExpr :: Node<i32>
+  expr 21:17    StringLitExpr  :: string
+  expr 21:28    FieldExpr      :: i32
+  expr 21:28    IdentExpr      :: Node<i32>
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
+  expr 22:18    FieldExpr      :: Node<i32> | null
+  expr 22:18    IdentExpr      :: Node<i32>
+  expr 22:9     IdentExpr      :: Node<i32> | null

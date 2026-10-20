@@ -1,7 +1,12 @@
-// Flow-narrowing on `if x is T { ... }` over arbitrary unions.
-// Mirrors what `match` already does inside arm bodies, with three forms :
-//   - direct `if x is T { use(x) }` narrows x to T in the then-branch
+// Flow-narrowing on `if x is T { ... }` and `if x !is T { ... }` over unions.
+// Mirrors what `match` already does inside arm bodies:
+//   - direct `if x is T { use(x) }` narrows x to T in the then-branch, and the
+//     else-branch sees the complement
 //   - `if !(x is T) { ... }` flips then/else
+//   - `x !is T` parses to `Not(BinaryExpr.Is)`, so it narrows exactly like the
+//     longer `!(x is T)`: on a struct union, a primitive union, and `!is null`
+//     against a `T | null`
+//   - `!is` in a plain boolean position (no narrowing required)
 //   - a divergent guard (`if x is T { return }`) propagates the complement
 //     narrowing to subsequent statements
 
@@ -28,6 +33,13 @@ negated :: fn(p: Cat | Dog) -> string {
     return "cat ${p.name}"
 }
 
+not_is :: fn(p: Cat | Dog) -> string {
+    if p !is Cat {
+        return "dog says ${p.sound}"
+    }
+    return "cat ${p.name}"
+}
+
 cascade :: fn(p: Cat | Dog | Pig) -> string {
     if p is Cat { return "cat ${p.name}" }
     if p is Dog { return "dog says ${p.sound}" }
@@ -36,17 +48,49 @@ cascade :: fn(p: Cat | Dog | Pig) -> string {
 }
 
 primitive_is :: fn(v: i32 | string) -> string {
-    if v is i32 { return "int ${v}" }
+    if v is i32 {
+        return "int ${v}"
+    }
     return "str ${v}"
 }
 
+primitive_not_is :: fn(v: i32 | string) -> string {
+    if v !is string {
+        return "int ${v}"
+    }
+    return "str ${v}"
+}
+
+// `!is null` narrows away the null variant.
+unwrap_or :: fn(value: Cat | null, fallback: string) -> string {
+    if value !is null {
+        return "cat ${value.name}"
+    }
+    return fallback
+}
+
+// Only the `bool` typing of the negated check matters here.
+is_not_dog :: fn(p: Cat | Dog) -> bool = p !is Dog
+
 main :: fn() -> i32 {
-    println(direct(Cat { .name = "felix" }))
-    println(direct(Dog { .sound = "woof" }))
-    println(negated(Cat { .name = "garfield" }))
-    println(negated(Dog { .sound = "bark" }))
-    println(cascade(Pig { .weight = 200 }))
-    println(primitive_is(42))
-    println(primitive_is("hello"))
+    println("is, cat: ${direct(Cat { .name = "felix" })}")
+    println("is, dog: ${direct(Dog { .sound = "woof" })}")
+    println("!(is), cat: ${negated(Cat { .name = "garfield" })}")
+    println("!(is), dog: ${negated(Dog { .sound = "bark" })}")
+    println("!is, cat: ${not_is(Cat { .name = "tom" })}")
+    println("!is, dog: ${not_is(Dog { .sound = "grr" })}")
+    println("guard cascade, cat: ${cascade(Cat { .name = "kitty" })}")
+    println("guard cascade, dog: ${cascade(Dog { .sound = "yap" })}")
+    println("guard cascade, pig: ${cascade(Pig { .weight = 200 })}")
+    println("primitive is, int: ${primitive_is(42)}")
+    println("primitive is, str: ${primitive_is("hello")}")
+    println("primitive !is, int: ${primitive_not_is(7)}")
+    println("primitive !is, str: ${primitive_not_is("world")}")
+    println("!is null, cat: ${unwrap_or(Cat { .name = "garfield" }, "nothing")}")
+    println("!is null, null: ${unwrap_or(null, "nothing")}")
+    cat :: Cat { .name = "felix" }
+    dog :: Dog { .sound = "woof" }
+    println("!is as bool, cat: ${is_not_dog(cat)}")
+    println("!is as bool, dog: ${is_not_dog(dog)}")
     return 0
 }

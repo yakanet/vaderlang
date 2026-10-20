@@ -11,8 +11,9 @@ type 8 ref _
 string 0 "list"
 string 1 "listing entries"
 string 2 " mode dispatch"
-string 3 "\n"
-string 4 "not yet implemented: "
+string 3 "compact"
+string 4 "\n"
+string 5 "not yet implemented: "
 import 0 byte_len std_core$byte_len result_type=5 param_types=1 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=7 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 2 panic std_abort$panic result_type=2 param_types=1 param_c_out= param_by_address= (string) -> void
@@ -39,6 +40,8 @@ end
 
 fn 1 snippet$main () -> i32
   string.const 0   ; "list"
+  call 0   ; snippet$run_mode
+  string.const 3   ; "compact"
   call 0   ; snippet$run_mode
   return.lit i32.const 0
 end
@@ -151,7 +154,7 @@ end
 fn 5 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 3   ; "\n"
+  string.const 4   ; "\n"
   call 2   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
@@ -161,7 +164,7 @@ fn 5 std_io$println__string (string) -> void
 end
 
 fn 6 std_abort$todo (string) -> void
-  string.const 4   ; "not yet implemented: "
+  string.const 5   ; "not yet implemented: "
   local.get 0   ; arg 0
   call 2   ; concat_2
   call.import 2   ; std_abort$panic

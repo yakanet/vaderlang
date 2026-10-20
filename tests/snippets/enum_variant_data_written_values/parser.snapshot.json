@@ -21,6 +21,18 @@
         "typeParams": [],
         "fields": [
           {
+            "name": "code",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": {
+              "kind": "IntLitExpr",
+              "value": "0n"
+            }
+          },
+          {
             "name": "reason",
             "type": {
               "kind": "IdentExpr",
@@ -28,6 +40,18 @@
             },
             "visibility": "public",
             "default": null
+          },
+          {
+            "name": "retry",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "bool"
+            },
+            "visibility": "public",
+            "default": {
+              "kind": "BoolLitExpr",
+              "value": false
+            }
           }
         ],
         "decorators": []
@@ -107,6 +131,109 @@
             "args": []
           }
         ]
+      },
+      {
+        "kind": "EnumDecl",
+        "name": "Reply",
+        "visibility": "private",
+        "header": [
+          {
+            "kind": "IdentExpr",
+            "name": "StatusInfo"
+          }
+        ],
+        "variants": [
+          {
+            "name": "Ok",
+            "value": null,
+            "data": [
+              {
+                "kind": "field",
+                "name": "code",
+                "value": {
+                  "kind": "IntLitExpr",
+                  "value": "200n"
+                }
+              },
+              {
+                "kind": "field",
+                "name": "reason",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "OK"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "NotFound",
+            "value": null,
+            "data": [
+              {
+                "kind": "field",
+                "name": "code",
+                "value": {
+                  "kind": "IntLitExpr",
+                  "value": "404n"
+                }
+              },
+              {
+                "kind": "field",
+                "name": "reason",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "Not Found"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Unavailable",
+            "value": null,
+            "data": [
+              {
+                "kind": "field",
+                "name": "code",
+                "value": {
+                  "kind": "IntLitExpr",
+                  "value": "503n"
+                }
+              },
+              {
+                "kind": "field",
+                "name": "reason",
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "Service Unavailable"
+                    }
+                  ]
+                }
+              },
+              {
+                "kind": "field",
+                "name": "retry",
+                "value": {
+                  "kind": "BoolLitExpr",
+                  "value": true
+                }
+              }
+            ]
+          }
+        ],
+        "decorators": []
       },
       {
         "kind": "EnumDecl",
@@ -265,6 +392,79 @@
       },
       {
         "kind": "FnDecl",
+        "name": "describe_reply",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "r",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "Reply"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "string"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "StringLitExpr",
+            "parts": [
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "r"
+                  },
+                  "field": "code"
+                }
+              },
+              {
+                "kind": "text",
+                "value": " "
+              },
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "r"
+                  },
+                  "field": "reason"
+                }
+              },
+              {
+                "kind": "text",
+                "value": " retry="
+              },
+              {
+                "kind": "interp",
+                "expr": {
+                  "kind": "FieldExpr",
+                  "target": {
+                    "kind": "IdentExpr",
+                    "name": "r"
+                  },
+                  "field": "retry"
+                }
+              }
+            ]
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
         "typeParams": [],
@@ -341,6 +541,10 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
+                            "kind": "text",
+                            "value": "written: "
+                          },
+                          {
                             "kind": "interp",
                             "expr": {
                               "kind": "CallExpr",
@@ -409,6 +613,21 @@
                                 }
                               ]
                             }
+                          },
+                          {
+                            "kind": "text",
+                            "value": " code="
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "s"
+                              },
+                              "field": "code"
+                            }
                           }
                         ]
                       },
@@ -471,6 +690,10 @@
                         "kind": "StringLitExpr",
                         "parts": [
                           {
+                            "kind": "text",
+                            "value": "consecutive: "
+                          },
+                          {
                             "kind": "interp",
                             "expr": {
                               "kind": "CallExpr",
@@ -528,6 +751,10 @@
                     "value": {
                       "kind": "StringLitExpr",
                       "parts": [
+                        {
+                          "kind": "text",
+                          "value": "constant: "
+                        },
                         {
                           "kind": "interp",
                           "expr": {
@@ -591,6 +818,258 @@
                               {
                                 "kind": "IdentExpr",
                                 "name": "HttpStatus"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ForStmt",
+              "label": null,
+              "form": {
+                "kind": "in",
+                "binding": "r",
+                "iter": {
+                  "kind": "SeqLitExpr",
+                  "elements": [
+                    {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "Reply"
+                      },
+                      "field": "Ok"
+                    },
+                    {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "Reply"
+                      },
+                      "field": "NotFound"
+                    },
+                    {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "Reply"
+                      },
+                      "field": "Unavailable"
+                    }
+                  ]
+                }
+              },
+              "body": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "field code: "
+                          },
+                          {
+                            "kind": "interp",
+                            "expr": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "IdentExpr",
+                                "name": "describe_reply"
+                              },
+                              "args": [
+                                {
+                                  "name": null,
+                                  "value": {
+                                    "kind": "IdentExpr",
+                                    "name": "r"
+                                  },
+                                  "spread": false
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "isComptime": false
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "info"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "StatusInfo"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "IdentExpr",
+                        "name": "Reply"
+                      },
+                      "field": "NotFound"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "whole: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "info"
+                            },
+                            "field": "reason"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " / "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "FieldExpr",
+                              "target": {
+                                "kind": "IdentExpr",
+                                "name": "Level"
+                              },
+                              "field": "Warning"
+                            },
+                            "field": "reason"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "i32"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "Level"
+                                  },
+                                  "field": "Warning"
+                                },
+                                "spread": false
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "sizes: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "size_of",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Reply"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "size_of",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Level"
                               }
                             ]
                           }

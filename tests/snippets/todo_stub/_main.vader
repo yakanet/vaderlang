@@ -3,12 +3,13 @@ module "snippet"
 import "std/io"
 import "std/abort"
 
-// A command dispatcher where the `compact` mode isn't built yet : its branch
-// calls `todo` (a `@no_return` primitive from std/abort) rather than returning
-// a silently-wrong result. `todo` types as `never`, so it satisfies the
-// `void` body without a trailing `return` — the loud-stub pattern the
-// match-exhaustiveness convention recommends. This run only exercises the
-// implemented `list` mode, so the stub stays a compile-time placeholder here.
+// A command dispatcher where the `compact` mode isn't built yet: its branch
+// calls `todo` (a `@no_return` fn from std/abort) rather than returning a
+// silently-wrong result. `todo` types as `never`, so it satisfies the `void`
+// body without a trailing `return`. The run takes the implemented `list` mode,
+// then reaches the stub, which stops the program with a panic naming the
+// missing path: stderr carries `not yet implemented: compact mode dispatch`
+// and the exit code is 1.
 run_mode :: fn(mode: string) -> void {
     if mode == "list" {
         println("listing entries")
@@ -19,5 +20,6 @@ run_mode :: fn(mode: string) -> void {
 
 main :: fn() -> i32 {
     run_mode("list")
+    run_mode("compact")
     return 0
 }

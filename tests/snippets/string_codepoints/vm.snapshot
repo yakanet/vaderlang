@@ -1,14 +1,31 @@
 # stdout
-ascii  cp=5 bytes=5
-mixed  cp=5 bytes=6
-cjk    cp=4 bytes=12
-emoji  cp=3 bytes=6
-empty  cp=0 bytes=0
-at 0: '你' (3 bytes)
-at 3: '好' (3 bytes)
-'a' width=1
-'é' width=2
-'你' width=3
-emoji width=4
+chars ascii: v
+chars ascii: a
+chars ascii: d
+chars ascii: e
+chars ascii: r
+chars cjk:   你
+chars cjk:   好
+chars cjk:   嗎
+chars cjk:   ？
+chars mixed: codepoints=5 bytes=6
+len ascii  cp=5 bytes=5
+len mixed  cp=5 bytes=6
+len cjk    cp=4 bytes=12
+len emoji  cp=3 bytes=6
+len empty  cp=0 bytes=0
+walk at 0: '你' (3 bytes)
+walk at 3: '好' (3 bytes)
+width 'a'   = 1
+width 'é'   = 2
+width '你'  = 3
+width emoji = 4
+slice [0..<2]   = [hé]
+slice [1..<3]   = [él]
+slice [0..<5]   = [héllo]
+slice [2..=4]   = [llo]
+slice [0..<99]  = [héllo]
+slice [99..<99] = []
+slice ascii [1..<4] = [ell]
 # exit
 0

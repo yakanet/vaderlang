@@ -2,6 +2,11 @@
 42 hello true
 1 30 beta origin
 7seven
+floats: true true
+a\b
+lengths: 3 2 code=1
+cast
+nested: 2 1 i64
 counts=2,0,1
 slots=runtime-slot-0/runtime-slot-23 lost=0/24 collected=true
 flags=false,true len=4

@@ -1,0 +1,15 @@
+# stdout
+size_of primitive: i8=1 i32=4 i64=8 string=4
+size_of enum: u8=1 i32=4 inferred=1
+size_of reference: struct=8 array=8 erased=16
+align_of: i32=4 i64=8 erased=8
+type_kind: primitive struct array tuple
+type_kind compared: true
+type_name: i32 string
+field_count: Pair=2 Triple=3 tuple=2 i32=0
+variant_count: enum=2 union=2
+field_index: x=0 y=1 z=2
+satisfies: string Add=true string Hash=true i32 Hash=true
+satisfies in a condition: i32 Add taken
+# exit
+0

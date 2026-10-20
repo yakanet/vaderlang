@@ -1,29 +1,20 @@
-// `Decl` declared in `toolchain/ast/ast.vader` is reached through two
-// different modules :
+// `Shape`, a union alias declared in the sibling module `snippet/shapes`, is
+// reached through the same path in its two import forms:
 //
-//   - unqualified, via the bare `import "toolchain/ast"`
-//   - through an alias, via `P :: import "toolchain/ast"`
+//   - unqualified, via the bare `import "snippet/shapes"`
+//   - through an alias, via `P :: import "snippet/shapes"`
 //
-// The same path, in its two import FORMS. Each form collects the module's
-// symbols independently, so the one source declaration gets two `Symbol` ids.
-//
-// Each module loads `ast.vader` independently via `collectModuleSymbols`,
-// producing fresh `Symbol` ids for the SAME source declaration. Without
-// the `equalsType` fallback this snippet reports T3001 with the union
-// spelled identically on both sides ; with the fallback the call type-
-// checks because both symbols share the same source location.
+// Both spellings name the one source declaration, so they are the same type:
+// `via_bare` passes its `Shape` to `via_alias`'s `P.Shape` without a T3001
+// (typecheck snapshot).
 
 module "snippet"
 
-import "toolchain/ast"
-P :: import "toolchain/ast"
+import "snippet/shapes"
+P :: import "snippet/shapes"
 
 @allow_unused
-via_folder :: fn(d: P.Decl) -> i32 {
-    return 0
-}
+via_alias :: fn(d: P.Shape) -> i32 = 0
 
 @allow_unused
-via_file :: fn(d: Decl) -> i32 {
-    return via_folder(d)
-}
+via_bare :: fn(d: Shape) -> i32 = via_alias(d)

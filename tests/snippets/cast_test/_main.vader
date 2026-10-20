@@ -1,3 +1,5 @@
+// Widening an `i32` to `u64` with a cast sign-extends: 42 stays 42, and -42
+// becomes 2^64 - 42 (a zero-extension would give 2^32 - 42).
 module "snippet"
 
 import "std/io"
@@ -6,5 +8,8 @@ main :: fn() -> i32 {
     n: i32: 42
     m: u64: u64(n)
     println("${m}")
+    k: i32: -42
+    w: u64: u64(k)
+    println("${w}")
     return 0
 }

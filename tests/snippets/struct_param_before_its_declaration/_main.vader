@@ -1,0 +1,15 @@
+// A fn whose parameter is a struct declared later in the same module. The
+// bytecode type table holds one `struct` entry for `Box`, which the field read
+// in `handle` and the struct literal in `main` both use (bytecode snapshot).
+//
+// Exit code 7 is the field read back.
+
+module "snippet"
+
+handle :: fn(b: Box) -> i32 = b.v
+
+Box :: struct { v: i32 }
+
+main :: fn() -> i32 {
+    return handle(Box { .v = 7 })
+}

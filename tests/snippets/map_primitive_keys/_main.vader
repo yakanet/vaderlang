@@ -1,17 +1,10 @@
-// map_primitive_keys — MutableMap keyed by the wider Hashable primitives.
+// map_primitive_keys: MutableMap keyed by the wider Hashable primitives.
 //
-// Under the flavor-based erasure model the key lands RAW in the bucket entry
-// (`MutableMap__i64__i32`, key stored as raw `i64`). Exercise insert / get /
-// collision / miss across u8 / u16 / i16 / char / i64 / u64 so a box-vs-raw
-// miscompile of the key surfaces as a wrong lookup. The generic `get_or`
-// wrapper reads the key as a Mixed type-param, crossing the box-vs-raw
-// frontier on the way in.
-//
-// Wide-magnitude key literals (> i32 range) flow through TYPED LOCALS : a
-// free literal in index / generic-arg position is not repinned to the
-// resolved i64 and truncates via i32 — a separate, pre-existing typer gap
-// (free literal not repinned to a resolved wide concrete type), not an
-// erasure-model issue.
+// Each key type gets its own `MutableMap` instance (`MutableMap__i64__i32`),
+// which keeps its keys raw in an array of that type. Insert / get / collision /
+// miss run across u8 / u16 / i16 / char / i64 / u64, so a key stored or
+// compared at the wrong width surfaces as a wrong lookup. Every lookup goes
+// through the generic `get_or`, instantiated per key type.
 
 module "snippet"
 
@@ -51,8 +44,7 @@ main :: fn() -> i32 {
     mc['é'] = 99
     println("char a=${get_or(mc, 'a', -1)} Z=${get_or(mc, 'Z', -1)} acc=${get_or(mc, 'é', -1)} miss=${get_or(mc, 'q', -1)}")
 
-    // i64 keys, large values past i32 range. Routed through typed locals
-    // (see header) so the key value isn't truncated before the lookup.
+    // i64 keys, values past the i32 range.
     mi64 :: MutableMap<i64, i32> {}
     kbig: i64: 9000000000
     knegbig: i64: -9000000000

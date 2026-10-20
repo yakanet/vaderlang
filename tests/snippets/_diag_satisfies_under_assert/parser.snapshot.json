@@ -1,0 +1,182 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Add"
+            }
+          ]
+        },
+        "message": "string implements Add (concat)",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Hash"
+            }
+          ]
+        },
+        "message": "string implements Hash",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Hash"
+            }
+          ]
+        },
+        "message": "i32 implements Hash",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "u32"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Hash"
+            }
+          ]
+        },
+        "message": "u32 implements Hash",
+        "decorators": []
+      },
+      {
+        "kind": "AssertDecl",
+        "condition": {
+          "kind": "IntrinsicCallExpr",
+          "name": "satisfies",
+          "args": [
+            {
+              "kind": "IdentExpr",
+              "name": "u64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "Hash"
+            }
+          ]
+        },
+        "message": "u64 implements Hash",
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "folded in main: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IntrinsicCallExpr",
+                            "name": "satisfies",
+                            "args": [
+                              {
+                                "kind": "IdentExpr",
+                                "name": "u64"
+                              },
+                              {
+                                "kind": "IdentExpr",
+                                "name": "Hash"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

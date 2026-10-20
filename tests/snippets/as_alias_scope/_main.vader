@@ -1,16 +1,15 @@
-// An `as` alias bound inside a scope that `closure_analysis` walks on its own —
-// a lambda body, or a `defer` block. Three shapes, all of which compiled the
-// ENCLOSING function to an EMPTY body until `closure_analysis` learnt to read
-// `BinaryExpr.bind_as` / `MatchExpr.bind_as`: it filed the alias as a CAPTURE,
-// and midir then found no local for it. The `defer` case carries no lambda at
-// all, which is what puts the fault on the re-walked scope, not on closures.
+// An `as` alias bound inside a scope that `closure_analysis` walks on its own
+// (a lambda body, or a `defer` block) is a local of that scope, never a capture
+// of the enclosing function. Three shapes: `if … is T as x` in a lambda,
+// `match … as x` in a lambda, and `if … is T as x` in a `defer` block, which
+// carries no lambda at all. Each scrutinee is a call (`unwrap(x)`), so the
+// alias is the only name it has.
 //
 // Two shapes here are load bearing rather than ceremony:
-//   - every enclosing fn returns a value `main` CONSUMES. Make one `-> void` and
-//     a regression goes quiet: exit 0, one missing line of output.
-//   - the lambda travels through `apply`. Bind it to a local instead and it
-//     devirtualises (no `LoweredMakeClosure` left), so it would stop exercising
-//     the closure path this pins.
+//   - every enclosing fn returns a value `main` CONSUMES. Behind a `-> void` fn,
+//     a body lowered empty goes quiet: exit 0, one missing line of output.
+//   - each lambda reaches its call through `apply`, as a function value. A
+//     lambda called through a local is devirtualised into a direct call.
 
 module "snippet"
 

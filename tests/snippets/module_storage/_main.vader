@@ -1,10 +1,15 @@
-// tests/snippets/module_storage — where a module's constants and its state live.
+// tests/snippets/module_storage: where a module's constants and its state live.
 //
 // A module constant is frozen. Its value is inlined at each use site, fn-wrapped
 // behind a synthetic accessor, or baked into the data pool as a `static const`
-// blob in `.rodata`, shared process-wide. A module's state lives in the instance
-// of a `@singleton`, held by a global slot that a permanent GC frame roots by what
-// it holds.
+// blob in `.rodata`, shared process-wide. The data pool holds arrays of strings,
+// of integers and of floats (each element's IEEE-754 bits at its own width, 8
+// bytes for `f64`, 4 for `f32`), a string holding a backslash (escaped in the
+// `.virt` text and read back), arrays of structs, a struct nesting an array of
+// enums (baked recursively) and a lone struct.
+//
+// A module's state lives in the instance of a `@singleton`, held by a global
+// slot that a permanent GC frame roots by what it holds.
 //
 // VM/native EQUIVALENCE is the point of this snippet, and both harnesses share
 // `vm.snapshot` as their oracle. On the native side alone, writing through a
@@ -27,6 +32,12 @@ Spec :: struct {
 
 Mode :: enum(u8) { Fast, Small }
 
+Rule :: struct {
+    name:   string
+    modes:  Mode[]
+    result: string
+}
+
 // ---- constants: frozen, inlined or baked into `.rodata` -------------------
 
 // Primitive: inlined at each use site, no pool entry.
@@ -39,6 +50,9 @@ MODE: Mode: .Fast
 DIGITS: string[]: ["0", "1", "2"]
 // Unannotated -> same storage.
 LIMITS :: [10, 20, 30]
+WIDE: f64[]: [1.5, 2.5, 3.5]
+NARROW: f32[]: [0.25, 0.5]
+TRICKY: string[]: [r"a\b", "x"]
 // Struct elements pool as an aggregate.
 SPECS: Spec[]: [
     Spec { .name = "alpha", .code = 1 },
@@ -47,6 +61,19 @@ SPECS: Spec[]: [
 // A lone struct is baked too: the single element of an aggregate entry, each
 // read a `pool[k][0]` pointer to one read-only static.
 ORIGIN: Spec: Spec { .name = "origin", .code = 0 }
+// Depth 2: each struct points at its own baked array of enums.
+RULES: Rule[]: [
+    Rule {
+        .name = "size_of",
+        .modes = [.Small],
+        .result = "i64",
+    },
+    Rule {
+        .name = "cast",
+        .modes = [.Fast, .Small],
+        .result = "T",
+    },
+]
 PAIR: [i32, string]: [7, "seven"]
 
 // ---- state: singletons, rooted for the collector ---------------------------
@@ -72,6 +99,11 @@ main :: fn() -> i32 {
     println("${MAX} ${GREETING} ${MODE == .Fast}")
     println("${DIGITS[1]} ${LIMITS[2]} ${SPECS[1].name} ${ORIGIN.name}")
     println("${PAIR.0}${PAIR.1}")
+    println("floats: ${WIDE[1] == 2.5} ${NARROW[0] == 0.25}")
+    println(TRICKY[0])
+    println("lengths: ${DIGITS.len()} ${TRICKY.len()} code=${SPECS[0].code}")
+    println(RULES[1].name)
+    println("nested: ${RULES[1].modes.len()} ${i32(RULES[1].modes[1])} ${RULES[0].result}")
 
     // Writes through the instance persist across calls: one shared allocation.
     bump(0)

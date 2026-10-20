@@ -1,0 +1,14 @@
+# stdout
+not null: count=3
+not null: empty
+guard == null: 3 -1
+match: count=3
+match: empty
+guard is null: 42 -1
+is T: 42 -1
+is T as: 42 -1
+not is null: 42 -1
+nested match: 43 0
+nested guard: 42 -1
+# exit
+0

@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/generator_label_jumps
+  FnDecl         break_outer          :: fn() -> Iterator<i32>
+  FnDecl         continue_outer       :: fn() -> Iterator<i32>
+  FnDecl         main                 :: fn() -> i32
+  expr 12:14    RangeExpr      :: Range<i32>
+  expr 13:18    RangeExpr      :: Range<i32>
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:19    BinaryExpr     :: i32
+  expr 14:19    IdentExpr      :: i32
+  expr 14:28    IdentExpr      :: i32
+  expr 15:13    IfExpr         :: void
+  expr 15:16    BinaryExpr     :: bool
+  expr 15:16    IdentExpr      :: i32
+  expr 23:14    RangeExpr      :: Range<i32>
+  expr 24:18    RangeExpr      :: Range<i32>
+  expr 25:13    IfExpr         :: void
+  expr 25:16    BinaryExpr     :: bool
+  expr 25:16    IdentExpr      :: i32
+  expr 28:19    BinaryExpr     :: i32
+  expr 28:19    BinaryExpr     :: i32
+  expr 28:19    IdentExpr      :: i32
+  expr 28:28    IdentExpr      :: i32
+  expr 34:15    CallExpr       :: __genstate_break_outer<i32>
+  expr 34:15    IdentExpr      :: fn() -> Iterator<i32>
+  expr 35:14    IdentExpr      :: __genstate_break_outer<i32>
+  expr 36:17    StringLitExpr  :: string
+  expr 36:32    IdentExpr      :: i32
+  expr 36:9     CallExpr       :: void
+  expr 36:9     IdentExpr      :: fn(T) -> void
+  expr 38:18    CallExpr       :: __genstate_continue_outer<i32>
+  expr 38:18    IdentExpr      :: fn() -> Iterator<i32>
+  expr 39:14    IdentExpr      :: __genstate_continue_outer<i32>
+  expr 40:17    StringLitExpr  :: string
+  expr 40:32    IdentExpr      :: i32
+  expr 40:9     CallExpr       :: void
+  expr 40:9     IdentExpr      :: fn(T) -> void

@@ -1,5 +1,0 @@
-# stdout
-path == path   : true
-path == string : true
-# exit
-0

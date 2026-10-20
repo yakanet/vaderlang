@@ -1,0 +1,71 @@
+// Operator overloading on a user struct.
+//   - `+ - * / %` route to Add / Sub / Mul / Div / Rem when neither operand is
+//     a primitive numeric: the typechecker records the resolution and the
+//     lowerer rewrites the binary into a direct call against the impl member.
+//   - Compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`) is desugared by the
+//     parser into `lhs = lhs <op> rhs`, so a user type reuses the same
+//     dispatch; on a primitive it stays the built-in path.
+//   - `==` / `!=` route to `Equals.equals` when both operands share a struct
+//     type with an Equals impl, written here in the short `-> expr` form.
+//   - `<` / `<=` / `>` / `>=` route to `Comparable.compare`; the lowerer
+//     rewrites the comparison into `compare(a, b) <op> 0` on `i32`.
+
+module "snippet"
+
+import "std/io"
+
+Vec :: struct { x: i32, y: i32 }
+
+Vec implements Add {
+    add :: fn(self, other: Vec) -> Vec = Vec { .x = self.x + other.x, .y = self.y + other.y }
+}
+Vec implements Sub {
+    sub :: fn(self, other: Vec) -> Vec = Vec { .x = self.x - other.x, .y = self.y - other.y }
+}
+Vec implements Mul {
+    mul :: fn(self, other: Vec) -> Vec = Vec { .x = self.x * other.x, .y = self.y * other.y }
+}
+Vec implements Div {
+    div :: fn(self, other: Vec) -> Vec = Vec { .x = self.x / other.x, .y = self.y / other.y }
+}
+Vec implements Rem {
+    rem :: fn(self, other: Vec) -> Vec = Vec { .x = self.x % other.x, .y = self.y % other.y }
+}
+
+Money :: struct { amount: i32 }
+
+Money implements Equals -> self.amount == other.amount
+Money implements Comparable -> self.amount.compare(other.amount)
+
+main :: fn() -> i32 {
+    a :: Vec { .x = 10, .y = 20 }
+    b :: Vec { .x = 3, .y = 4 }
+    s :: a + b
+    d :: a - b
+    m :: a * b
+    q :: a / b
+    r :: a % b
+    println(
+        "arith: s=(${s.x},${s.y}) d=(${d.x},${d.y}) m=(${m.x},${m.y}) q=(${q.x},${q.y}) r=(${r.x},${r.y})",
+    )
+    n := 5
+    n += 3
+    n -= 1
+    n *= 2
+    n /= 2
+    n %= 5
+    println("compound primitive: n=${n}")
+    v := Vec { .x = 1, .y = 2 }
+    v += Vec { .x = 10, .y = 20 }
+    v -= Vec { .x = 1, .y = 1 }
+    v *= Vec { .x = 3, .y = 2 }
+    v /= Vec { .x = 2, .y = 3 }
+    v %= Vec { .x = 4, .y = 5 }
+    println("compound struct: v=(${v.x},${v.y})")
+    x :: Money { .amount = 100 }
+    y :: Money { .amount = 100 }
+    z :: Money { .amount = 200 }
+    println("equals: x==y ${x == y}  x!=z ${x != z}  x==z ${x == z}")
+    println("compare: x<z ${x < z}  z>x ${z > x}  x>=y ${x >= y}  z<=z ${z <= z}  z<x ${z < x}")
+    return 0
+}

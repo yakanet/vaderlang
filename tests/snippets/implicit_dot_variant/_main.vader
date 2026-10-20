@@ -2,12 +2,10 @@ module "snippet"
 
 import "std/io"
 
-// `.Variant` shorthand triggers when the expected type at the call site
-// supplies the variant set : enum literals, tagged-union match arms, and
-// array elements all resolve the leading-dot name without a fully
-// qualified prefix. Plain global lookup is bypassed (R2007 is suppressed
-// in the resolver for `implicitDot` named types) — the typechecker
-// resolves them against the scrutinee / expected type instead.
+// `.Variant` shorthand resolves against the type the context expects, with no
+// type prefix written: a typed enum local, the elements of a `Day[]` literal,
+// the arms of a `match` on an enum, and `is .Some` / `is .None` arms, which
+// name a member of the union being matched.
 
 Day :: enum { Monday, Tuesday, Wednesday }
 

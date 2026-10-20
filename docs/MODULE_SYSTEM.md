@@ -355,8 +355,8 @@ no longer determines module identity.
 - Update `src/parser/ast.ts` types + `tests/snapshot.ts:formatProgram`
   to render the new node in the AST dump.
 
-Verify : add positive snippets (`module_basic`, `module_with_shebang`,
-`module_with_comments`). Negative fixtures (`module_missing`,
+Verify : add a positive snippet (`module_decl_preamble`: shebang, comments,
+then `module`). Negative fixtures (`module_missing`,
 `module_invalid_name`, `module_repeated`) land in Phase 7 when the
 strict mode activates.
 

@@ -28,8 +28,8 @@ type 25 array 2
 string 0 ""
 string 1 "cleanup "
 string 2 "winner: "
-string 3 "fast"
-string 4 "slow"
+string 3 "slow"
+string 4 "fast"
 string 5 "\n"
 string 6 "async deadlock: a task is suspended with nothing left to wake it"
 import 0 byte_len std_core$byte_len result_type=2 param_types=1 param_c_out= param_by_address= (string) -> i64
@@ -399,12 +399,12 @@ fn 5 snippet$__asyncstate_snippet_3$Async$resume (ref) -> any
           struct.new 9   ; std_core$Suspended
           return
         end $L6
-        string.const 3   ; "fast"
-        i64.const 10
+        string.const 3   ; "slow"
+        i64.const 100
         call 0   ; snippet$leg
         local.set 5   ; $call_33
-        string.const 4   ; "slow"
-        i64.const 100
+        string.const 4   ; "fast"
+        i64.const 10
         call 0   ; snippet$leg
         local.set 6   ; $call_36
         local.get 5   ; $call_33

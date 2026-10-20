@@ -31,20 +31,20 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/array_ops/_main.vader"
+#line 11 "tests/snippets/array_ops/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     l0 = (void*) _a0_arr;
-#line 18 "tests/snippets/array_ops/_main.vader"
+#line 12 "tests/snippets/array_ops/_main.vader"
     vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a1_slotarr, INT32_C(1))
     ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) INT32_C(1)] = (int32_t) INT32_C(99);
-#line 19 "tests/snippets/array_ops/_main.vader"
+#line 13 "tests/snippets/array_ops/_main.vader"
     vader_array_push_i32((vader_array_t*) l0, INT32_C(40));
-#line 20 "tests/snippets/array_ops/_main.vader"
+#line 14 "tests/snippets/array_ops/_main.vader"
     vader_array_t* _a2_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a2_slotarr, INT32_C(0))

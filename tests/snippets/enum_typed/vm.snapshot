@@ -1,6 +1,11 @@
 # stdout
-N
-W
-pop
+explicit u8: N W 8
+implicit u16: pop
+implicit u16 values: 0 100 101 102
+signed i8: low -128
+signed i8: mid -1
+signed i8: high 0
+signed i8: top 127
+conversions: 2 4000000000 1 1 4000000000 0
 # exit
 0

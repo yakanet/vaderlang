@@ -1,0 +1,29 @@
+// `is` on a union mixing integer widths. The committed VM output is WRONG.
+//
+// For `x: i32 | i64 | u8`, `tag` must report 1 for a u8, 2 for an i64 and 3
+// for a free i32 literal: `1 2 3`, which the native build prints. The VM
+// prints `1 1 1`. A VM value records no integer width narrower than its
+// 32-bit / 64-bit split, so its `is u8` accepts any integer value, and the
+// first test in `tag` matches all three arguments although each call site
+// retags its argument with its own width (bytecode snapshot).
+//
+// Open design question: reject width-mixed integer unions at the typer, let
+// `is` treat every integer width alike, or carry the exact width in the VM's
+// values.
+
+module "snippet"
+
+import "std/io"
+
+tag :: fn(x: i32 | i64 | u8) -> i32 {
+    if x is u8  { return 1 }
+    if x is i64 { return 2 }
+    return 3
+}
+
+main :: fn() -> i32 {
+    a: u8: 5
+    b: i64: 9999999999
+    println("${tag(a)} ${tag(b)} ${tag(7)}")
+    return 0
+}

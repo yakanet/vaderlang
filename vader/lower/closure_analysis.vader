@@ -311,7 +311,7 @@ walk_expr :: fn(
             // (`resolver/body.vader::walk_cond`), minted at the `a` token
             // (`cond.bind_as.span`). Without this the alias reads as a
             // free variable and a lambda around it captures a symbol the
-            // enclosing fn has no local for : `tests/snippets/_diag_as_alias_scope`.
+            // enclosing fn has no local for.
             added: i32[]: []
             if expr.cond is AST.BinaryExpr as cond {
                 if cond.op == .Is {

@@ -1,9 +1,10 @@
-// A directly-consumed `@generator` inlines into the for-in (Couche 2/4): the
-// generator body becomes the fused loop, each `yield e` becomes the consumer's
-// loop-var binding + body. `main`'s loops carry NO g$State / boxed Iterator /
-// `next()` — a flat index loop (see the lower snapshot). The standalone
-// `__gen_state_N$next` state machines still emit (the escaping-value fallback),
-// dead here since every use is inlined. The lower snapshot is the guard.
+// A generator (a fn that `yield`s) consumed directly by a `for` inlines into it:
+// the generator body becomes the fused loop, and each `yield e` binds the
+// consumer's loop variable and runs its body. `main` keeps no generator state,
+// no boxed `Iterator` and no `next()`, only flat index loops (the lower
+// snapshot is the guard). Each generator still lowers to its
+// `__genstate_<name>` state machine, the fallback for a generator value that
+// escapes; nothing uses it here, and it is gone by the bytecode stage.
 module "snippet"
 
 import "std/io"

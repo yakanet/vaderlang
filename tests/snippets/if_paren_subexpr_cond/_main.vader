@@ -1,8 +1,7 @@
-// Regression: an `if` condition that STARTS with `(` but continues with an
-// infix operator must parse as the full expression. The parser used to grab
-// the leading parenthesised group `(n + 1)` as the whole condition and choke
-// on the trailing `% 4 == 0`. A leading `(` is now an ordinary parenthesised
-// primary (struct literals re-enabled inside, infix chain preserved).
+// An `if` condition that STARTS with `(` but continues with an infix operator
+// parses as the whole expression: `(n + 1) % 4 == 0` is one condition, not the
+// group `(n + 1)` followed by stray tokens. A leading `(` is an ordinary
+// parenthesised primary, and a struct literal is allowed inside it.
 module "snippet"
 
 import "std/io"

@@ -1,14 +1,7 @@
-// A generator combinator (an `@generator` whose FIRST param is the source
-// iterator) fuses as a `descend_chain` LAYER, recursing into the receiver — so a
-// single combinator over a bare array and a nested direct-call chain both flatten
-// to one loop (0 boxed `next()` in `main`).
-//
-// KNOWN LIMIT (stream-fusion §5.3): the fluent UFCS chain form
-// `arr.my_map(f).my_filter(p)` does NOT fuse — the 2nd combinator's
-// receiver is the 1st's ERASED `Iterator<U>` result, which the typer resolves to
-// a virtual `Iterator.my_filter` dispatch instead of a free-fn UFCS call, so the
-// chain never forms. The direct-call form below sidesteps that (the iterator is a
-// plain first argument). Fixing UFCS chains needs the erased-receiver UFCS gate.
+// A generator combinator (a generator whose FIRST param is the source iterator)
+// fuses as a layer of the chain (`descend_chain`), recursing into its receiver:
+// a single combinator over a bare array and a nested direct-call chain both
+// flatten to one loop, with no boxed `next()` left in `main`.
 module "snippet"
 
 import "std/io"

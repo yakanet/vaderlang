@@ -82,452 +82,116 @@
             }
           ],
           "trailing": {
-            "kind": "MatchExpr",
-            "scrutinee": {
-              "kind": "IdentExpr",
-              "name": "parsed"
+            "kind": "IfExpr",
+            "cond": {
+              "kind": "BinaryExpr",
+              "op": "is",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "parsed"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "JsonError"
+              }
             },
-            "arms": [
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonError"
-                  },
-                  "inner": null
+            "then": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
                 },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "label"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": ": error: "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "parsed"
+                            },
+                            "field": "msg"
+                          }
+                        }
+                      ]
                     },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "else": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "label"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": ": "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "stringify"
                             },
-                            {
-                              "kind": "text",
-                              "value": ": error: "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "FieldExpr",
-                                "target": {
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
                                   "kind": "IdentExpr",
                                   "name": "parsed"
                                 },
-                                "field": "msg"
+                                "spread": false
                               }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonString"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
+                            ]
+                          }
+                        }
+                      ]
                     },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "spread": false
                   }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonNumber"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonBool"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonNull"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonArray"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "pattern": {
-                  "kind": "IsPattern",
-                  "type": {
-                    "kind": "IdentExpr",
-                    "name": "JsonObject"
-                  },
-                  "inner": null
-                },
-                "guard": null,
-                "body": {
-                  "kind": "BlockExpr",
-                  "stmts": [],
-                  "trailing": {
-                    "kind": "CallExpr",
-                    "callee": {
-                      "kind": "IdentExpr",
-                      "name": "println"
-                    },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "StringLitExpr",
-                          "parts": [
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "IdentExpr",
-                                "name": "label"
-                              }
-                            },
-                            {
-                              "kind": "text",
-                              "value": ": "
-                            },
-                            {
-                              "kind": "interp",
-                              "expr": {
-                                "kind": "CallExpr",
-                                "callee": {
-                                  "kind": "IdentExpr",
-                                  "name": "stringify"
-                                },
-                                "args": [
-                                  {
-                                    "name": null,
-                                    "value": {
-                                      "kind": "IdentExpr",
-                                      "name": "parsed"
-                                    },
-                                    "spread": false
-                                  }
-                                ]
-                              }
-                            }
-                          ]
-                        },
-                        "spread": false
-                      }
-                    ]
-                  }
-                }
+                ]
               }
-            ]
+            }
           }
         },
         "decorators": []

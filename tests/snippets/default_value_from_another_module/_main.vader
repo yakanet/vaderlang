@@ -2,6 +2,14 @@
 // every name inside it resolves as it does in its own module, even where the
 // call site declares the same name, imports the callee through a namespace, or
 // does not import what the default names.
+//
+// Through a namespace alias (`L.salute`), the callee's declared parameters are
+// what the call is normalised against: an omitted argument takes its default,
+// and named arguments are reordered.
+//
+// A default naming a constant of a std module is covered by
+// `default_naming_a_std_constant`.
+
 module "snippet"
 
 import "std/io"
@@ -19,5 +27,8 @@ main :: fn() -> i32 {
     println("${apply(4, (n: i32) -> n + 1)}")
     println("${total([1, 2, 3])}")
     println(turns())
+    println("namespace, omitted: ${L.salute("Bob")}")
+    println("namespace, positional: ${L.salute("Eve", "Hello")}")
+    println("namespace, named: ${L.salute(name = "Al", prefix = "Yo")}")
     return 0
 }

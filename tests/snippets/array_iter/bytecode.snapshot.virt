@@ -78,10 +78,7 @@ fn 0 snippet$main () -> i32
   local.get 2   ; __for_len_1
   call 2   ; std_core$finish_buffer
   call 7   ; std_io$println__string
-  i32.const 0
-  i32.const 0
-  i32.const 0
-  array.new 8 3   ; i32[]
+  array.new 8 0   ; i32[]
   local.set 1   ; __for_arr_0
   i32.const 0
   local.set 0   ; sum

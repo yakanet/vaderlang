@@ -1,5 +1,7 @@
 // A distinct with an `Equals` of its own compares through it on either side of
-// `==` : `"readme" == p` reads the string as a `Path`, as `p == "readme"` does.
+// `==` : `"readme" == p` reads the string as a `Path`, as `p == "readme"` does,
+// and between two `Path` values too. The impl compares lengths, so the built-in
+// string equality would answer otherwise on every `true` below.
 
 module "snippet"
 
@@ -13,5 +15,6 @@ main :: fn() -> i32 {
     p :: Path("abcdef")
     println("left  : ${p == "readme"} ${p != "readme"} ${p == "abc"}")
     println("right : ${"readme" == p} ${"readme" != p} ${"abc" == p}")
+    println("both  : ${p == Path("readme")} ${p != Path("readme")} ${p == Path("abc")}")
     return 0
 }

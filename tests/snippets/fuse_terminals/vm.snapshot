@@ -1,0 +1,12 @@
+# stdout
+collect array: len 3 [0]=8 [1]=10 [2]=12
+collect range: len 4 [0]=0 [3]=9
+count array:   3
+count range:   5
+count bare:    3
+any_match:     true
+all_match:     false true
+find hit:      30
+find miss:     none
+# exit
+0

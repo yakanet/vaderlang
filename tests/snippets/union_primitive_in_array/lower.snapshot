@@ -14,6 +14,9 @@
           concat_2("text ", string(c))
       } :string
   }
+  snippet.first_name :: fn(names: (null | string)[]) -> null | string {  // snippet$first_name
+      names[0]
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       cells: (i32 | string)[] = [4, "four"] :(i32 | string)[]
       cells[1] = 6
@@ -25,10 +28,38 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               c: i32 | string = __for_arr_0[__for_i_2]
-              std.io.println<string>(snippet.show(c))
+              std.io.println<string>(concat_2("alias element: ", snippet.show(c)))
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
+      }
+      xs: (i32 | string)[] = [1, 2, 3] :(i32 | string)[]
+      @array.push(xs, "hi")
+      {
+          __for_arr_3: (i32 | string)[] = xs
+          __for_len_4: i64 = @array.len(__for_arr_3)
+          __for_i_5: i64 = 0
+          for __for_i_5 < __for_len_4 {
+              x: i32 | string = __for_arr_3[__for_i_5]
+              if x is string {
+                  std.io.println<string>(concat_2("int-only literal: str ", string(x)))
+              } else {
+                  std.io.println<string>({
+                      __buf_6: Buffer = std.core.new_byte_buffer(i64(42))
+                      __off_7: i64 = 0
+                      __off_7 = std.core.write_string_at(__buf_6, __off_7, "int-only literal: int ")
+                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(i32(x)))
+                      std.core.finish_buffer(__buf_6, __off_7)
+                  } :string)
+              }
+          } @step {
+              __for_i_5 = __for_i_5 +% i64(1)
+          }
+      }
+      names: string[] = ["ten", "twenty"] :string[]
+      if snippet.first_name(names) is string {
+          n: string = string(snippet.first_name(names))
+          std.io.println<string>(concat_2("widened argument: ", n))
       }
       return 0
   }

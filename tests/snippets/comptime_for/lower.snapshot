@@ -7,14 +7,14 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(34))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "type-arg size=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(4))
+              __off_1 = std.core.write_int(__buf_0, __off_1, i64(1))
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
           std.io.println<string>({
               __buf_2: Buffer = std.core.new_byte_buffer(i64(34))
               __off_3: i64 = 0
               __off_3 = std.core.write_string_at(__buf_2, __off_3, "type-arg size=")
-              __off_3 = std.core.write_int(__buf_2, __off_3, i64(4))
+              __off_3 = std.core.write_int(__buf_2, __off_3, i64(8))
               std.core.finish_buffer(__buf_2, __off_3)
           } :string)
       }
@@ -25,7 +25,7 @@
               __off_6: i64 = 0
               __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
               __off_6 = std.core.write_string_at(__buf_5, __off_6, " size=")
-              __off_6 = std.core.write_int(__buf_5, __off_6, i64(4))
+              __off_6 = std.core.write_int(__buf_5, __off_6, i64(1))
               std.core.finish_buffer(__buf_5, __off_6)
           } :string)
           std.io.println<string>({
@@ -34,13 +34,13 @@
               __off_9: i64 = 0
               __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
               __off_9 = std.core.write_string_at(__buf_8, __off_9, " size=")
-              __off_9 = std.core.write_int(__buf_8, __off_9, i64(4))
+              __off_9 = std.core.write_int(__buf_8, __off_9, i64(8))
               std.core.finish_buffer(__buf_8, __off_9)
           } :string)
       }
       return 0
   }
-  snippet.Pair<i32, string> :: struct { key: i32, value: string }  // snippet$Pair__i32__string
+  snippet.Pair<u8, i64> :: struct { key: u8, value: i64 }  // snippet$Pair__u8__i64
   snippet.Pair<Any, Any> :: struct { key: Any, value: Any }  // snippet$Pair__Any__Any
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)

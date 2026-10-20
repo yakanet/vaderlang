@@ -90,7 +90,7 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 26 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 19 "tests/snippets/fuse_generator_chain/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(9u, 5u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 4u] = (int32_t) INT32_C(5);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 3u] = (int32_t) INT32_C(4);
@@ -105,9 +105,9 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
         t0 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
-#line 17 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 10 "tests/snippets/fuse_generator_chain/_main.vader"
         l3 = __lambda_snippet_0(t0);
-#line 26 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 19 "tests/snippets/fuse_generator_chain/_main.vader"
         l4 = (void*) vader_buffer_new((size_t) INT64_C(22));
         l5 = INT64_C(0);
         l5 = std_core_write_string_at(l4, l5, 1u);
@@ -117,7 +117,7 @@ static int32_t snippet_main(void) {
         std_io_println__string(t1);
         l2 = (l2 + INT64_C(1));
     }
-#line 27 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 20 "tests/snippets/fuse_generator_chain/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(9u, 5u, 7u, 1u);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 4u] = (int32_t) INT32_C(5);
     ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 3u] = (int32_t) INT32_C(4);
@@ -132,11 +132,11 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l2)
         l3 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l2];
-#line 21 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 14 "tests/snippets/fuse_generator_chain/_main.vader"
         t2 = __lambda_snippet_1(l3);
         if (t2) {
             l7 = l3;
-#line 27 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 20 "tests/snippets/fuse_generator_chain/_main.vader"
             l4 = (void*) vader_buffer_new((size_t) INT64_C(22));
             l5 = INT64_C(0);
             l5 = std_core_write_string_at(l4, l5, 2u);
@@ -144,12 +144,12 @@ static int32_t snippet_main(void) {
             l5 = std_core_write_int(l4, l5, l6);
             t1 = std_core_finish_buffer(l4, l5);
             std_io_println__string(t1);
-#line 21 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 14 "tests/snippets/fuse_generator_chain/_main.vader"
         }
-#line 27 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 20 "tests/snippets/fuse_generator_chain/_main.vader"
         l2 = (l2 + INT64_C(1));
     }
-#line 29 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 22 "tests/snippets/fuse_generator_chain/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(9u, 6u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 5u] = (int32_t) INT32_C(6);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 4u] = (int32_t) INT32_C(5);
@@ -165,13 +165,13 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l2)
         t0 = ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l2];
-#line 17 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 10 "tests/snippets/fuse_generator_chain/_main.vader"
         l3 = __lambda_snippet_2(t0);
-#line 21 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 14 "tests/snippets/fuse_generator_chain/_main.vader"
         t2 = __lambda_snippet_3(l3);
         if (t2) {
             l7 = l3;
-#line 30 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 23 "tests/snippets/fuse_generator_chain/_main.vader"
             l4 = (void*) vader_buffer_new((size_t) INT64_C(22));
             l5 = INT64_C(0);
             l5 = std_core_write_string_at(l4, l5, 3u);
@@ -179,39 +179,39 @@ static int32_t snippet_main(void) {
             l5 = std_core_write_int(l4, l5, l6);
             t1 = std_core_finish_buffer(l4, l5);
             std_io_println__string(t1);
-#line 21 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 14 "tests/snippets/fuse_generator_chain/_main.vader"
         }
-#line 29 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 22 "tests/snippets/fuse_generator_chain/_main.vader"
         l2 = (l2 + INT64_C(1));
     }
-#line 32 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 25 "tests/snippets/fuse_generator_chain/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
 static int32_t __lambda_snippet_0(int32_t l0) {
     int32_t t0;
-#line 26 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 19 "tests/snippets/fuse_generator_chain/_main.vader"
     t0 = vader_chk_mul(i32, l0, INT32_C(10));
     return t0;
 }
 
 static bool __lambda_snippet_1(int32_t l0) {
     int32_t t0;
-#line 27 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 20 "tests/snippets/fuse_generator_chain/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     return t0 == INT32_C(1);
 }
 
 static int32_t __lambda_snippet_2(int32_t l0) {
     int32_t t0;
-#line 29 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 22 "tests/snippets/fuse_generator_chain/_main.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
 
 static bool __lambda_snippet_3(int32_t l0) {
     int32_t t0;
-#line 29 "tests/snippets/fuse_generator_chain/_main.vader"
+#line 22 "tests/snippets/fuse_generator_chain/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     return t0 == INT32_C(0);
 }

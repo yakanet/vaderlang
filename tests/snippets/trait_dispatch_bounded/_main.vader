@@ -1,26 +1,48 @@
-// Trait-method dispatch on a `where T: Trait` bound. The mono pass
-// materialises the impl member matching the call-site substitution; the
-// lowerer rewrites `x.hash()` into a direct call against the specialised fn.
+// A trait method called on a bounded type parameter dispatches to the impl
+// that the call site's substitution picks: the mono pass materialises the
+// instance, and the lowerer turns each member call into a direct call to the
+// specialised fn, never an erased `virtual.call`.
+// - a user trait (`Tagger`) implemented on `i32`, under `T: Tagger`: user
+//   traits take the same path as built-in ones;
+// - `T: Hash & Equals`, instantiated on `i32` and on `string`: `x.hash()` and
+//   `x.equals(target)` reach each type's own impl;
+// - `T: Equals` behind `==`.
 
 module "snippet"
 
 import "std/io"
 
+export Tagger :: trait {
+    tag :: fn(self) -> i32
+}
+
+i32 implements Tagger {
+    tag :: fn(self) -> i32 = self * 10
+}
+
+export apply_tag :: fn<T: Tagger>(x: T) -> i32 = x.tag() + x.tag()
+
 export count_matching :: fn<T: Hash & Equals>(items: T[], target: T) -> i32 {
     n := 0
     for x in items {
         if x.hash() == target.hash() && x.equals(target) {
-            n = n + 1
+            n += 1
         }
     }
     return n
 }
 
-main :: fn() -> i32 {
-    nums :: [1, 2, 3, 2, 5, 2]
-    println("${count_matching(nums, 2)}")
+export are_eq :: fn<T: Equals>(a: T, b: T) -> bool = a == b
 
+main :: fn() -> i32 {
+    println("user trait on i32:  ${apply_tag(7)}")
+
+    nums :: [1, 2, 3, 2, 5, 2]
+    println("hash+equals i32:    ${count_matching(nums, 2)}")
     words :: ["foo", "bar", "foo", "baz", "foo"]
-    println("${count_matching(words, "foo")}")
+    println("hash+equals string: ${count_matching(words, "foo")}")
+
+    println("equals same:        ${are_eq(1, 1)}")
+    println("equals different:   ${are_eq(1, 2)}")
     return 0
 }

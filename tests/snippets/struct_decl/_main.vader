@@ -12,13 +12,6 @@ export List :: struct<T> {
     len: u32
 }
 
-// `($N: i32)` is a comptime *value* parameter (not a type) — kept in
-// the legacy paren form for now ; bracketed comptime-value params are
-// post-MVP.
-export Buffer :: struct($N: i32) {
-    data: u8[]
-}
-
 main :: fn() -> i32 {
     p :: Point { .x = 1.5, .y = -2.0 }
     l :: List<i32> { .items = [1, 2, 3], .len = 3 }

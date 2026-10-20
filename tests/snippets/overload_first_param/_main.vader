@@ -1,8 +1,9 @@
-// Function overloading by first-param type (SPEC *Function overloading*). Two free fns
-// share the name `describe` and dispatch on the receiver, both via direct
-// call and UFCS. Also covers stdlib `min` / `max` / `abs` which now ship
-// i32 + f64 overloads — free integer literals default to i32 so the
-// integer overload wins on `abs(-7)` etc.
+// Function overloading by first-param type (SPEC *Function overloading*). Two
+// free fns share the name `describe` and dispatch on the receiver, through a
+// direct call and through UFCS. The stdlib `min` / `max` / `abs` / `clamp`
+// overloads (`f64`, `i32`, `i64`) resolve the same way: a free integer literal
+// defaults to `i32`, so `abs(-7)` picks the `i32` overload, and a float
+// literal picks the `f64` one.
 
 module "snippet"
 
@@ -21,7 +22,7 @@ main :: fn() -> i32 {
     // Direct calls.
     println(describe(a))
     println(describe(b))
-    // UFCS — the same dispatch policy applies via `inferUfcsFreeBound`.
+    // UFCS, same dispatch.
     println(a.describe())
     println(b.describe())
 

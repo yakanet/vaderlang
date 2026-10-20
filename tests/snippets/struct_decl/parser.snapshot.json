@@ -78,36 +78,6 @@
         "decorators": []
       },
       {
-        "kind": "StructDecl",
-        "name": "Buffer",
-        "visibility": "public",
-        "typeParams": [
-          {
-            "name": "N",
-            "bound": {
-              "kind": "IdentExpr",
-              "name": "i32"
-            },
-            "isComptimeValue": true
-          }
-        ],
-        "fields": [
-          {
-            "name": "data",
-            "type": {
-              "kind": "ArrayTypeExpr",
-              "element": {
-                "kind": "IdentExpr",
-                "name": "u8"
-              }
-            },
-            "visibility": "public",
-            "default": null
-          }
-        ],
-        "decorators": []
-      },
-      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",

@@ -1,6 +1,9 @@
 # stdout
-N
-W
-E
+to_string: N
+turn_left: W
+turn_right: E
+println value: N
+println variant: E
+println other binding: S
 # exit
 0

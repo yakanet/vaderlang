@@ -70,6 +70,8 @@
     fn std.core.BigInt.mul  // std_core$BigInt$Mul$mul
     fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
     fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<char>.contains  // std_core$Range$Contains$contains__char
+    fn std.core.Range<char>.next  // std_core$Range$Iterator$next__char
     fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
     fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
     fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
@@ -77,6 +79,8 @@
     fn std.core.any_below  // std_core$any_below
     fn std.core.bit_len  // std_core$bit_len
     fn std.core.bits64  // std_core$bits64
+    fn std.core.char.compare  // std_core$char$Comparable$compare
+    fn std.core.char.step  // std_core$char$Step$step
     fn std.core.clz32  // std_core$clz32
     fn std.core.eisel_lemire  // std_core$eisel_lemire
     fn std.core.i32.compare  // std_core$i32$Comparable$compare
@@ -86,6 +90,7 @@
     fn std.core.is_zero  // std_core$is_zero
     fn std.core.limb  // std_core$limb
     fn std.core.mul_add_small  // std_core$mul_add_small
+    fn std.core.next_scalar  // std_core$next_scalar
     fn std.core.parse_f64  // std_core$parse_f64
     fn std.core.parse_f64_slow  // std_core$parse_f64_slow
     fn std.core.pf_clz64  // std_core$pf_clz64
@@ -101,6 +106,7 @@
     struct std.core.Buffer  // std_core$Buffer
     struct std.core.DecimalParts  // std_core$DecimalParts
     struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<char>  // std_core$Range__char
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64
     struct std.core.SlowParts  // std_core$SlowParts

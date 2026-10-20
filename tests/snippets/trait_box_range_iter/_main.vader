@@ -1,12 +1,11 @@
-// Trait-object boxing — generic fns whose param is a trait type now infer
-// the trait's `$T` from any concrete arg by walking the impl table. Several
-// call shapes covered :
-//   - `Iterator($T)` from a `Range`              → `0..<5`
-//   - `Iterator($T)` from a raw array            → `[10, 20, 30]`
-//   - user `Greeter($T)` from a user struct       → `Hello {}`
-//   - user `Doubler($T)` from a primitive (i32)   → `7`
-// Each case dispatches `step` / `greet` / `doubled` through the per-(trait,
-// method) vtable populated from `mono.implMethodEntries`.
+// Trait-object boxing: a generic fn whose parameter is a trait type
+// (`it: Iterator<T>`) infers the trait's `T` from a concrete argument through
+// that argument's impl, then calls through the trait's vtable. Call shapes:
+//   - `Iterator<T>` from a `Range`               → `0..<5`
+//   - `Iterator<T>` from an array (via `into`)   → `[10, 20, 30]`
+//   - user `Greeter<T>` from a user struct       → `Hello {}`
+//   - user `Doubler<T>` from a primitive (i32)   → `7`
+// Result via exit code: 5 + 3 + 100 + 14 = 122.
 
 module "snippet"
 

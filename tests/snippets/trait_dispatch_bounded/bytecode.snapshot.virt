@@ -4,28 +4,67 @@ type 1 primitive i32
 type 2 array 1
 type 3 array 4
 type 4 primitive string
-type 5 primitive u8
-type 6 primitive i64
-type 7 struct std_core$Buffer {  }
-type 8 primitive u64
-type 9 array 5
-type 10 primitive void
-string 0 "foo"
-string 1 "bar"
-string 2 "baz"
-string 3 "\n"
-import 0 byte_len std_core$byte_len result_type=6 param_types=4 param_c_out= param_by_address= (string) -> i64
-import 1 bytes std_core$bytes result_type=9 param_types=4 param_c_out= param_by_address= (string) -> ref
-import 2 hash std_core$string$Hash$hash result_type=8 param_types=4 param_c_out= param_by_address= (string) -> u64
-import 3 extern write system_posix$sys_write header=<unistd.h> result_type=6 param_types=1,9,6 param_c_out= param_by_address= (i32,ref,i64) -> i64
-impl 7 std_core$ByteAccess
-export main 0
+type 5 primitive bool
+type 6 primitive u8
+type 7 primitive i64
+type 8 struct std_core$Buffer {  }
+type 9 primitive u64
+type 10 array 6
+type 11 primitive void
+string 0 "user trait on i32:  "
+string 1 "hash+equals i32:    "
+string 2 "foo"
+string 3 "bar"
+string 4 "baz"
+string 5 "hash+equals string: "
+string 6 "equals same:        "
+string 7 "equals different:   "
+string 8 "true"
+string 9 "false"
+string 10 "\n"
+import 0 byte_len std_core$byte_len result_type=7 param_types=4 param_c_out= param_by_address= (string) -> i64
+import 1 bytes std_core$bytes result_type=10 param_types=4 param_c_out= param_by_address= (string) -> ref
+import 2 hash std_core$string$Hash$hash result_type=9 param_types=4 param_c_out= param_by_address= (string) -> u64
+import 3 extern write system_posix$sys_write header=<unistd.h> result_type=7 param_types=1,10,7 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 8 std_core$ByteAccess
+export main 1
 
-fn 0 snippet$main () -> i32
-  local nums ref
+fn 0 snippet$i32$Tagger$tag (i32) -> i32
+  local.get 0   ; arg 0
+  i32.const 10
+  i32.checked_mul
+  return
+end
+
+fn 1 snippet$main () -> i32
   local __buf_0 ref
   local __off_1 i64
-  local $cast_15 i64
+  local $cast_9 i64
+  local __buf_2 ref
+  local $call_60 bool
+  i64.const 40
+  buffer.new
+  local.set 0   ; __buf_0
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 0   ; "user trait on i32:  "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  i32.const 7
+  call 2   ; snippet$apply_tag__i32
+  i32.to_i64
+  local.set 2   ; $cast_9
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 2   ; $cast_9
+  call 9   ; std_core$write_int
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 14   ; std_io$println__string
   i32.const 1
   i32.const 2
   i32.const 3
@@ -33,56 +72,127 @@ fn 0 snippet$main () -> i32
   i32.const 5
   i32.const 2
   array.new 2 6   ; i32[]
-  local.set 0   ; nums
-  i64.const 20
+  local.set 0   ; __buf_0
+  i64.const 40
   buffer.new
-  local.set 1   ; __buf_0
+  local.set 3   ; __buf_2
   i64.const 0
-  local.set 2   ; __off_1
-  local.get 0   ; nums
+  local.set 1   ; __off_1
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  string.const 1   ; "hash+equals i32:    "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
   i32.const 2
-  call 1   ; snippet$count_matching__i32
+  call 3   ; snippet$count_matching__i32
   i32.to_i64
-  local.set 3   ; $cast_15
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $cast_15
-  call 5   ; std_core$write_int
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 4   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
-  string.const 0   ; "foo"
-  string.const 1   ; "bar"
-  string.const 0   ; "foo"
-  string.const 2   ; "baz"
-  string.const 0   ; "foo"
+  local.set 2   ; $cast_9
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  local.get 2   ; $cast_9
+  call 9   ; std_core$write_int
+  local.set 1   ; __off_1
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 14   ; std_io$println__string
+  string.const 2   ; "foo"
+  string.const 3   ; "bar"
+  string.const 2   ; "foo"
+  string.const 4   ; "baz"
+  string.const 2   ; "foo"
   array.new 3 5   ; string[]
-  local.set 0   ; nums
-  i64.const 20
+  local.set 0   ; __buf_0
+  i64.const 40
   buffer.new
-  local.set 1   ; __buf_0
+  local.set 3   ; __buf_2
   i64.const 0
-  local.set 2   ; __off_1
-  local.get 0   ; nums
-  string.const 0   ; "foo"
-  call 2   ; snippet$count_matching__string
+  local.set 1   ; __off_1
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  string.const 5   ; "hash+equals string: "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  string.const 2   ; "foo"
+  call 4   ; snippet$count_matching__string
   i32.to_i64
-  local.set 3   ; $cast_15
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  local.get 3   ; $cast_15
-  call 5   ; std_core$write_int
-  local.set 2   ; __off_1
-  local.get 1   ; __buf_0
-  local.get 2   ; __off_1
-  call 4   ; std_core$finish_buffer
-  call 9   ; std_io$println__string
+  local.set 2   ; $cast_9
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  local.get 2   ; $cast_9
+  call 9   ; std_core$write_int
+  local.set 1   ; __off_1
+  local.get 3   ; __buf_2
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 14   ; std_io$println__string
+  i64.const 25
+  buffer.new
+  local.set 0   ; __buf_0
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 6   ; "equals same:        "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  i32.const 1
+  i32.const 1
+  call 5   ; snippet$are_eq__i32
+  local.set 4   ; $call_60
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 4   ; $call_60
+  call 10   ; std_core$write_bool
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 14   ; std_io$println__string
+  i64.const 25
+  buffer.new
+  local.set 0   ; __buf_0
+  i64.const 0
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  string.const 7   ; "equals different:   "
+  call 8   ; std_core$write_string_at
+  local.set 1   ; __off_1
+  i32.const 1
+  i32.const 2
+  call 5   ; snippet$are_eq__i32
+  local.set 4   ; $call_60
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  local.get 4   ; $call_60
+  call 10   ; std_core$write_bool
+  local.set 1   ; __off_1
+  local.get 0   ; __buf_0
+  local.get 1   ; __off_1
+  call 7   ; std_core$finish_buffer
+  call 14   ; std_io$println__string
   return.lit i32.const 0
 end
 
-fn 1 snippet$count_matching__i32 (ref,i32) -> i32
+fn 2 snippet$apply_tag__i32 (i32) -> i32
+  local $call_1 i32
+  local $call_2 i32
+  local.get 0   ; arg 0
+  call 0   ; snippet$i32$Tagger$tag
+  local.set 1   ; $call_1
+  local.get 0   ; arg 0
+  call 0   ; snippet$i32$Tagger$tag
+  local.set 2   ; $call_2
+  local.get 1   ; $call_1
+  local.get 2   ; $call_2
+  i32.checked_add
+  return
+end
+
+fn 3 snippet$count_matching__i32 (ref,i32) -> i32
   local n i32
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -107,10 +217,10 @@ fn 1 snippet$count_matching__i32 (ref,i32) -> i32
       local.get 5   ; __for_i_2
       load_slot_i32
       local.tee 6   ; x
-      call 6   ; std_core$i32$Hash$hash
+      call 11   ; std_core$i32$Hash$hash
       local.set 7   ; $call_12
       local.get 1   ; arg 1
-      call 6   ; std_core$i32$Hash$hash
+      call 11   ; std_core$i32$Hash$hash
       local.set 8   ; $call_13
       local.get 7   ; $call_12
       local.get 8   ; $call_13
@@ -137,7 +247,7 @@ fn 1 snippet$count_matching__i32 (ref,i32) -> i32
   return
 end
 
-fn 2 snippet$count_matching__string (ref,string) -> i32
+fn 4 snippet$count_matching__string (ref,string) -> i32
   local n i32
   local __for_arr_0 ref
   local __for_len_1 i64
@@ -163,10 +273,10 @@ fn 2 snippet$count_matching__string (ref,string) -> i32
       array.get 3   ; string[]
       ref.cast 4   ; string
       local.tee 6   ; x
-      call 10   ; std_core$string$Hash$hash_vt
+      call 15   ; std_core$string$Hash$hash_vt
       local.set 7   ; $call_12
       local.get 1   ; arg 1
-      call 10   ; std_core$string$Hash$hash_vt
+      call 15   ; std_core$string$Hash$hash_vt
       local.set 8   ; $call_13
       local.get 7   ; $call_12
       local.get 8   ; $call_13
@@ -193,7 +303,14 @@ fn 2 snippet$count_matching__string (ref,string) -> i32
   return
 end
 
-fn 3 concat_2 (string,string) -> string
+fn 5 snippet$are_eq__i32 (i32,i32) -> bool
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  i32.eq
+  return
+end
+
+fn 6 concat_2 (string,string) -> string
   local c0 i64
   local $call_4 i64
   local buf ref
@@ -222,14 +339,29 @@ fn 3 concat_2 (string,string) -> string
   return
 end
 
-fn 4 std_core$finish_buffer (ref,i64) -> string
+fn 7 std_core$finish_buffer (ref,i64) -> string
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$write_int (ref,i64,i64) -> i64
+fn 8 std_core$write_string_at (ref,i64,string) -> i64
+  local $call_3 i64
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  local.get 2   ; arg 2
+  buffer_write_string
+  local.get 2   ; arg 2
+  call.import 0   ; std_core$byte_len
+  local.set 3   ; $call_3
+  local.get 1   ; arg 1
+  local.get 3   ; $call_3
+  i64.checked_add
+  return
+end
+
+fn 9 std_core$write_int (ref,i64,i64) -> i64
   local neg bool
   local ndigits i64
   local m i64
@@ -343,13 +475,30 @@ fn 5 std_core$write_int (ref,i64,i64) -> i64
   return
 end
 
-fn 6 std_core$i32$Hash$hash (i32) -> u64
+fn 10 std_core$write_bool (ref,i64,bool) -> i64
+  local.get 2   ; arg 2
+  if $L0 void
+  else
+    local.get 0   ; arg 0
+    local.get 1   ; arg 1
+    string.const 9   ; "false"
+    call 8   ; std_core$write_string_at
+    return
+  end $L0
+  local.get 0   ; arg 0
+  local.get 1   ; arg 1
+  string.const 8   ; "true"
+  call 8   ; std_core$write_string_at
+  return
+end
+
+fn 11 std_core$i32$Hash$hash (i32) -> u64
   local.get 0   ; arg 0
   i32.to_i64
   return
 end
 
-fn 7 std_io$write (u8,string) -> void
+fn 12 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -378,14 +527,14 @@ fn 7 std_io$write (u8,string) -> void
       local.get 2   ; buf
       local.get 3   ; sent
       local.get 5   ; $len_8
-      array.slice 9   ; u8[]
+      array.slice 10   ; u8[]
       local.tee 6   ; chunk
       array.len
       local.set 7   ; $len_11
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 8   ; std_io$write_bytes
+      call 13   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -405,7 +554,7 @@ fn 7 std_io$write (u8,string) -> void
   return
 end
 
-fn 8 std_io$write_bytes (u8,ref,i64) -> i32
+fn 13 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -425,19 +574,19 @@ fn 8 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 14 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 3   ; "\n"
-  call 3   ; concat_2
+  string.const 10   ; "\n"
+  call 6   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 7   ; std_io$write
+  call 12   ; std_io$write
   return
 end
 
-fn 10 std_core$string$Hash$hash_vt (string) -> u64
+fn 15 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
   call.import 2   ; std_core$string$Hash$hash
   return

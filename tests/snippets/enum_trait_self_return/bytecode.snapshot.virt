@@ -11,7 +11,13 @@ string 0 "N"
 string 1 "E"
 string 2 "S"
 string 3 "W"
-string 4 "\n"
+string 4 "to_string: "
+string 5 "turn_left: "
+string 6 "turn_right: "
+string 7 "println value: "
+string 8 "println variant: "
+string 9 "println other binding: "
+string 10 "\n"
 import 0 byte_len std_core$byte_len result_type=4 param_types=2 param_c_out= param_by_address= (string) -> i64
 import 1 bytes std_core$bytes result_type=6 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=4 param_types=3,6,4 param_c_out= param_by_address= (i32,ref,i64) -> i64
@@ -137,18 +143,43 @@ end
 
 fn 3 snippet$main () -> i32
   local d u8
+  local $call_3 string
   i32.const 0
   local.tee 0   ; d
   call 2   ; snippet$Direction$std_core_Display$to_string
-  call 7   ; std_io$println__string
+  local.set 1   ; $call_3
+  string.const 4   ; "to_string: "
+  local.get 1   ; $call_3
+  call 4   ; concat_2
+  call 10   ; std_io$println__string
   local.get 0   ; d
   call 0   ; snippet$Direction$Turnable$turn_left
   call 2   ; snippet$Direction$std_core_Display$to_string
-  call 7   ; std_io$println__string
+  local.set 1   ; $call_3
+  string.const 5   ; "turn_left: "
+  local.get 1   ; $call_3
+  call 4   ; concat_2
+  call 10   ; std_io$println__string
   local.get 0   ; d
   call 1   ; snippet$Direction$Turnable$turn_right
   call 2   ; snippet$Direction$std_core_Display$to_string
-  call 7   ; std_io$println__string
+  local.set 1   ; $call_3
+  string.const 6   ; "turn_right: "
+  local.get 1   ; $call_3
+  call 4   ; concat_2
+  call 10   ; std_io$println__string
+  string.const 7   ; "println value: "
+  call 8   ; std_io$print__string
+  local.get 0   ; d
+  call 9   ; std_io$println__snippet_Direction
+  string.const 8   ; "println variant: "
+  call 8   ; std_io$print__string
+  i32.const 1
+  call 9   ; std_io$println__snippet_Direction
+  string.const 9   ; "println other binding: "
+  call 8   ; std_io$print__string
+  i32.const 2
+  call 9   ; std_io$println__snippet_Direction
   return.lit i32.const 0
 end
 
@@ -181,7 +212,12 @@ fn 4 concat_2 (string,string) -> string
   return
 end
 
-fn 5 std_io$write (u8,string) -> void
+fn 5 std_core$string$Display$to_string (string) -> string
+  local.get 0   ; arg 0
+  return
+end
+
+fn 6 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -217,7 +253,7 @@ fn 5 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 6   ; std_io$write_bytes
+      call 7   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -237,7 +273,7 @@ fn 5 std_io$write (u8,string) -> void
   return
 end
 
-fn 6 std_io$write_bytes (u8,ref,i64) -> i32
+fn 7 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -257,14 +293,38 @@ fn 6 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 7 std_io$println__string (string) -> void
+fn 8 std_io$print__string (string) -> void
+  local $call_2 string
+  local.get 0   ; arg 0
+  call 5   ; std_core$string$Display$to_string
+  local.set 1   ; $call_2
+  i32.const 0
+  local.get 1   ; $call_2
+  call 6   ; std_io$write
+  return
+end
+
+fn 9 std_io$println__snippet_Direction (u8) -> void
+  local $call_4 string
+  local.get 0   ; arg 0
+  call 2   ; snippet$Direction$std_core_Display$to_string
+  string.const 10   ; "\n"
+  call 4   ; concat_2
+  local.set 1   ; $call_4
+  i32.const 0
+  local.get 1   ; $call_4
+  call 6   ; std_io$write
+  return
+end
+
+fn 10 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
-  string.const 4   ; "\n"
+  string.const 10   ; "\n"
   call 4   ; concat_2
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 5   ; std_io$write
+  call 6   ; std_io$write
   return
 end

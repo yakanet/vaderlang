@@ -1,6 +1,22 @@
 # Lower
 
 ## snippet
+  snippet.walk :: fn(it: Iterator<i32>) -> i32 {  // snippet$walk
+      sum: i32 = 0
+      for {
+          __tup_0: [i32, Continuation] = @vcall(std.core.Iterator.next, it)
+          v: i32 = __tup_0._0
+          c: Continuation = __tup_0._1
+          if c == u8(1) {
+              return sum
+          }
+          sum = sum + v
+      }
+  }
+  snippet.make_iter :: fn() -> Iterator<i32> {  // snippet$make_iter
+      arr: i32[] = [100, 200, 300] :i32[]
+      return std.core.i32[].into(arr)
+  }
   snippet.sum_both :: fn(a: Iterator<i32>, b: Iterator<i32>) -> i32 {  // snippet$sum_both
       total: i32 = 0
       {
@@ -47,42 +63,29 @@
       return out
   }
   snippet.main :: fn() -> i32 {  // snippet$main
+      a: i32 = snippet.walk(std.core.i32[].into([10, 20, 30] :i32[]))
+      typed_iter: Iterator<i32> = std.core.i32[].into([1, 2, 3, 4] :i32[])
+      typed_iter_spaced: Iterator<i32> = std.core.i32[].into([5, 6, 7] :i32[])
+      b: i32 = snippet.walk(typed_iter) + snippet.walk(typed_iter_spaced)
+      c: i32 = snippet.walk(snippet.make_iter())
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(75))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "slots: a=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(a))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " b=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(b))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " c=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(c))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
       xs: i32[] = [1, 2, 3] :i32[]
       ys: i32[] = [10, 20] :i32[]
       std.io.println<string>({
-          __buf_4: Buffer = std.core.new_byte_buffer(i64(51))
-          __off_5: i64 = 0
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, "free=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64({
-              __fuse_arr_0: i32[] = xs
-              b: Iterator<i32> = std.core.i32[].into(ys)
-              total: i32 = 0
-              {
-                  __fuse_len_0: i64 = @array.len(__fuse_arr_0)
-                  __fuse_i_1: i64 = 0
-                  for __fuse_i_1 < __fuse_len_0 {
-                      x: i32 = __fuse_arr_0[__fuse_i_1]
-                      total = total + x
-                  } @step {
-                      __fuse_i_1 = __fuse_i_1 +% i64(1)
-                  }
-              }
-              {
-                  __iter_2: Iterator<i32> = b
-                  for {
-                      __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
-                      if __step_3._1 == u8(1) {
-                          break
-                      } else {
-                          y: i32 = __step_3._0
-                          total = total + y
-                      }
-                  }
-              }
-              total
-          } :i32))
-          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ufcs=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(72))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "method arg, free fn: free=")
+          __off_7 = std.core.write_int(__buf_6, __off_7, i64({
               __fuse_arr_2: i32[] = xs
               b: Iterator<i32> = std.core.i32[].into(ys)
               total: i32 = 0
@@ -110,16 +113,45 @@
               }
               total
           } :i32))
-          std.core.finish_buffer(__buf_4, __off_5)
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, " ufcs=")
+          __off_7 = std.core.write_int(__buf_6, __off_7, i64({
+              __fuse_arr_4: i32[] = xs
+              b: Iterator<i32> = std.core.i32[].into(ys)
+              total: i32 = 0
+              {
+                  __fuse_len_0: i64 = @array.len(__fuse_arr_4)
+                  __fuse_i_1: i64 = 0
+                  for __fuse_i_1 < __fuse_len_0 {
+                      x: i32 = __fuse_arr_4[__fuse_i_1]
+                      total = total + x
+                  } @step {
+                      __fuse_i_1 = __fuse_i_1 +% i64(1)
+                  }
+              }
+              {
+                  __iter_2: Iterator<i32> = b
+                  for {
+                      __step_3: [i32, Continuation] = @vcall(std.core.Iterator.next, __iter_2)
+                      if __step_3._1 == u8(1) {
+                          break
+                      } else {
+                          y: i32 = __step_3._0
+                          total = total + y
+                      }
+                  }
+              }
+              total
+          } :i32))
+          std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       t: Tally = Tally { .base = 100 }
       std.io.println<string>({
-          __buf_6: Buffer = std.core.new_byte_buffer(i64(36))
-          __off_7: i64 = 0
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, "member=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.Tally.add_all(t, std.core.i32[].into(xs))))
-          __off_7 = std.core.write_string_at(__buf_6, __off_7, " want=106")
-          std.core.finish_buffer(__buf_6, __off_7)
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(61))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "method arg, impl member: member=")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.Tally.add_all(t, std.core.i32[].into(xs))))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " want=106")
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return 0
   }

@@ -34,7 +34,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  i64.const 4
+  i64.const 1
   call 4   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -53,7 +53,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  i64.const 4
+  i64.const 8
   call 4   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -83,7 +83,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  i64.const 4
+  i64.const 1
   call 4   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
@@ -113,7 +113,7 @@ fn 0 snippet$main () -> i32
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
-  i64.const 4
+  i64.const 8
   call 4   ; std_core$write_int
   local.set 1   ; __off_1
   local.get 0   ; __buf_0

@@ -1,0 +1,227 @@
+# Lower
+
+## snippet
+  snippet.Bag :: struct { items: i32[] | null }  // snippet$Bag
+  snippet.Block :: struct { span: i32 }  // snippet$Block
+  snippet.Decl :: struct { body: Block | null, name: string }  // snippet$Decl
+  snippet.Inner :: struct { flag: i32 | null }  // snippet$Inner
+  snippet.Outer :: struct { inner: Inner }  // snippet$Outer
+  snippet.count :: fn(items: i32[]) -> i32 {  // snippet$count
+      i32(@array.len(items))
+  }
+  snippet.report :: fn(b: Bag) -> void {  // snippet$report
+      if !(b.items is null) {
+          std.io.println<string>({
+              __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
+              __off_1: i64 = 0
+              __off_1 = std.core.write_string_at(__buf_0, __off_1, "not null: count=")
+              __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.count(b.items)))
+              std.core.finish_buffer(__buf_0, __off_1)
+          } :string)
+      } else {
+          std.io.println<string>("not null: empty")
+      }
+  }
+  snippet.total :: fn(b: Bag) -> i32 {  // snippet$total
+      if b.items is null {
+          return -1
+      }
+      return snippet.count(b.items)
+  }
+  snippet.convert :: fn(d: Decl) -> i32 {  // snippet$convert
+      if d.body is null {
+          return -1
+      }
+      body: Block = d.body
+      return body.span
+  }
+  snippet.span_if_block :: fn(d: Decl) -> i32 {  // snippet$span_if_block
+      if d.body is Block {
+          return d.body.span
+      }
+      return -1
+  }
+  snippet.span_via_alias :: fn(d: Decl) -> i32 {  // snippet$span_via_alias
+      if d.body is Block {
+          found: Block = Block(d.body)
+          return found.span
+      }
+      return -1
+  }
+  snippet.span_if_present :: fn(d: Decl) -> i32 {  // snippet$span_if_present
+      if !(d.body is null) {
+          return d.body.span
+      }
+      return -1
+  }
+  snippet.count_match :: fn(o: Outer) -> i32 {  // snippet$count_match
+      {
+          __scrut_0: i32 | null = o.inner.flag
+          if __scrut_0 is null { 0 } else { o.inner.flag + 1 } :i32
+      } :i32
+  }
+  snippet.unwrap :: fn(o: Outer) -> i32 {  // snippet$unwrap
+      if o.inner.flag is null {
+          return -1
+      }
+      return o.inner.flag
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      full: Bag = Bag { .items = [1, 2, 3] :i32[] }
+      empty: Bag = Bag { .items = null }
+      snippet.report(full)
+      snippet.report(empty)
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "guard == null: ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.total(full)))
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
+          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.total(empty)))
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      {
+          __scrut_2: i32[] | null = full.items
+          if __scrut_2 is null {
+              {
+                  std.io.println<string>("match: empty")
+              }
+          } else {
+              {
+                  std.io.println<string>({
+                      __buf_3: Buffer = std.core.new_byte_buffer(i64(33))
+                      __off_4: i64 = 0
+                      __off_4 = std.core.write_string_at(__buf_3, __off_4, "match: count=")
+                      __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.count(full.items)))
+                      std.core.finish_buffer(__buf_3, __off_4)
+                  } :string)
+              }
+          }
+      }
+      {
+          __scrut_5: i32[] | null = empty.items
+          if __scrut_5 is null {
+              {
+                  std.io.println<string>("match: empty")
+              }
+          } else {
+              {
+                  std.io.println<string>({
+                      __buf_6: Buffer = std.core.new_byte_buffer(i64(33))
+                      __off_7: i64 = 0
+                      __off_7 = std.core.write_string_at(__buf_6, __off_7, "match: count=")
+                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.count(empty.items)))
+                      std.core.finish_buffer(__buf_6, __off_7)
+                  } :string)
+              }
+          }
+      }
+      some: Decl = Decl { .body = Block { .span = 42 }, .name = "some" }
+      none: Decl = Decl { .body = null, .name = "none" }
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(56))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, "guard is null: ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.convert(some)))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.convert(none)))
+          std.core.finish_buffer(__buf_8, __off_9)
+      } :string)
+      std.io.println<string>({
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(47))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, "is T: ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.span_if_block(some)))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.span_if_block(none)))
+          std.core.finish_buffer(__buf_10, __off_11)
+      } :string)
+      std.io.println<string>({
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(50))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "is T as: ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, i64(snippet.span_via_alias(some)))
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, i64(snippet.span_via_alias(none)))
+          std.core.finish_buffer(__buf_12, __off_13)
+      } :string)
+      std.io.println<string>({
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(54))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "not is null: ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, i64(snippet.span_if_present(some)))
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
+          __off_15 = std.core.write_int(__buf_14, __off_15, i64(snippet.span_if_present(none)))
+          std.core.finish_buffer(__buf_14, __off_15)
+      } :string)
+      set: Outer = Outer { .inner = Inner { .flag = 42 } }
+      unset: Outer = Outer { .inner = Inner { .flag = null } }
+      std.io.println<string>({
+          __buf_16: Buffer = std.core.new_byte_buffer(i64(55))
+          __off_17: i64 = 0
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested match: ")
+          __off_17 = std.core.write_int(__buf_16, __off_17, i64(snippet.count_match(set)))
+          __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
+          __off_17 = std.core.write_int(__buf_16, __off_17, i64(snippet.count_match(unset)))
+          std.core.finish_buffer(__buf_16, __off_17)
+      } :string)
+      std.io.println<string>({
+          __buf_18: Buffer = std.core.new_byte_buffer(i64(55))
+          __off_19: i64 = 0
+          __off_19 = std.core.write_string_at(__buf_18, __off_19, "nested guard: ")
+          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.unwrap(set)))
+          __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
+          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.unwrap(unset)))
+          std.core.finish_buffer(__buf_18, __off_19)
+      } :string)
+      return 0
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo
+
+# Diagnostics
+[87:38] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `i32 | null` — enumerate its variants or mark the match `@partial`
