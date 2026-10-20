@@ -608,12 +608,10 @@ void* std_sort_sort__i32(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__i32(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__i32(l0);
@@ -627,12 +625,10 @@ void* std_sort_sort__i64(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__i64(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__i64(l0);
@@ -646,12 +642,10 @@ void* std_sort_sort__string(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__string(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__string(l0);
@@ -665,12 +659,10 @@ void* std_sort_sort__vader_comptime_GenericInstance(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__vader_comptime_GenericInstance(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__vader_comptime_GenericInstance(l0);
@@ -684,12 +676,10 @@ void* std_sort_sort__vader_diagnostics_Diagnostic(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__vader_diagnostics_Diagnostic(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__vader_diagnostics_Diagnostic(l0);
@@ -703,12 +693,10 @@ void* std_sort_sort__vader_lower_PendingFnInstance(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__vader_lower_PendingFnInstance(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__vader_lower_PendingFnInstance(l0);
@@ -722,12 +710,10 @@ void* std_sort_sort__vader_resolver_symbol_Symbol(void* l0, void* l1) {
     int64_t l2;
     void* l3 = NULL;
     void* l4 = NULL;
-    size_t t0;
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_array_t*) l0)->length;
-    l2 = (int64_t) (size_t) t0;
+    l2 = ((vader_array_t*) l0)->length;
     l3 = std_iter_clone__vader_resolver_symbol_Symbol(l0);
     if (!((l2 < INT64_C(2)))) {
         l4 = std_iter_clone__vader_resolver_symbol_Symbol(l0);

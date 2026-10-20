@@ -127,7 +127,7 @@ static vader_box_t json_expect_byte(void* l0, uint32_t l1) {
     vader_gc_top = &gc_frame;
     t0 = json_at_end(l0);
     if (t0) {
-        t1 = json_fail(l0, 2561u);
+        t1 = json_fail(l0, 2586u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     t2 = json_peek_byte(l0);
@@ -135,7 +135,7 @@ static vader_box_t json_expect_byte(void* l0, uint32_t l1) {
         json_advance(l0);
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    t1 = json_fail(l0, 2560u);
+    t1 = json_fail(l0, 2585u);
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -150,7 +150,7 @@ static void* json_fail(void* l0, vader_string_t l1) {
     vader_gc_top = &gc_frame;
     l2 = ((vader_struct_json_Parser_t*) l0)->f_pos;
     vader_struct_json_JsonError_t* _a0_obj = (vader_struct_json_JsonError_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonError_t));
-    vader_obj_header_init(_a0_obj, 367u);
+    vader_obj_header_init(_a0_obj, 372u);
     _a0_obj->f_msg = l1;
     _a0_obj->f_pos = l2;
     t0 = (void*) _a0_obj;
@@ -183,7 +183,7 @@ static void* json_new_parser(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     vader_struct_json_Parser_t* _a0_obj = (vader_struct_json_Parser_t*) vader_gc_alloc(sizeof(vader_struct_json_Parser_t));
-    vader_obj_header_init(_a0_obj, 372u);
+    vader_obj_header_init(_a0_obj, 377u);
     _a0_obj->f_src = l0;
     _a0_obj->f_pos = INT64_C(0);
     t0 = (void*) _a0_obj;
@@ -204,69 +204,67 @@ vader_box_t json_parse(vader_string_t l0) {
     vader_gc_top = &gc_frame;
     l1 = json_new_parser(l0);
     l2 = json_parse_value(l1, INT32_C(0));
-    if (l2.tag == 367u) {
+    if (l2.tag == 372u) {
         t0 = l2.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     json_skip_ws(l1);
     t1 = json_at_end(l1);
     if (!(t1)) {
-        t0 = json_fail(l1, 2480u);
+        t0 = json_fail(l1, 2506u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     { vader_box_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_array(void* l0, int32_t l1) {
-    void* l2 = NULL;
-    int32_t l3;
-    vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
+    vader_box_t l2 = vader_box_null(), l5 = vader_box_null();
+    void* l3 = NULL;
+    int32_t l4;
     uint32_t l6;
-    vader_box_t t0 = vader_box_null();
-    void* t1 = NULL;
-    bool t2;
-    uint32_t t3;
-    vader_box_t* gc_roots[3] = { &l4, &l5, &t0 };
-    void** gc_raw_roots[3] = { &l0, &l2, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
+    void* t0 = NULL;
+    bool t1;
+    uint32_t t2;
+    vader_box_t* gc_roots[2] = { &l2, &l5 };
+    void** gc_raw_roots[3] = { &l0, &l3, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = json_expect_byte(l0, 91u);
-    if (t0.tag == 367u) {
-        t0 = json_expect_byte(l0, 91u);
-        t1 = t0.payload.obj;
-        { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    l2 = json_expect_byte(l0, 91u);
+    if (l2.tag == 372u) {
+        t0 = l2.payload.obj;
+        { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    vader_array_t* _a0_arr = vader_array_new(212u, 0u, 13u, 1404u);
-    l2 = (void*) _a0_arr;
+    vader_array_t* _a0_arr = vader_array_new(213u, 0u, 13u, 1414u);
+    l3 = (void*) _a0_arr;
     json_skip_ws(l0);
-    t2 = json_at_end(l0);
-    if (!(t2)) {
-        t3 = json_peek_byte(l0);
-        if (t3 == 93u) {
+    t1 = json_at_end(l0);
+    if (!(t1)) {
+        t2 = json_peek_byte(l0);
+        if (t2 == 93u) {
             json_advance(l0);
             vader_struct_json_JsonArray_t* _a1_obj = (vader_struct_json_JsonArray_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonArray_t));
-            vader_obj_header_init(_a1_obj, 365u);
-            _a1_obj->f_items = l2;
-            t1 = (void*) _a1_obj;
-            { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            vader_obj_header_init(_a1_obj, 370u);
+            _a1_obj->f_items = l3;
+            t0 = (void*) _a1_obj;
+            { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
     for (;;) {
-        t2 = json_at_end(l0);
-        if (!(t2)) {
-            l3 = vader_chk_add(i32, l1, INT32_C(1));
-            l4 = json_parse_value(l0, l3);
-            if (l4.tag == 367u) {
-                t1 = l4.payload.obj;
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+        t1 = json_at_end(l0);
+        if (!(t1)) {
+            l4 = vader_chk_add(i32, l1, INT32_C(1));
+            l2 = json_parse_value(l0, l4);
+            if (l2.tag == 372u) {
+                t0 = l2.payload.obj;
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            l5 = l4;
-            vader_array_push((vader_array_t*) l2, l5);
+            l5 = l2;
+            vader_array_push((vader_array_t*) l3, l5);
             json_skip_ws(l0);
-            t2 = json_at_end(l0);
-            if (t2) {
-                t1 = json_fail(l0, 2584u);
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            t1 = json_at_end(l0);
+            if (t1) {
+                t0 = json_fail(l0, 2609u);
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
             l6 = json_peek_byte(l0);
             if (l6 == 44u) {
@@ -275,20 +273,20 @@ static vader_box_t json_parse_array(void* l0, int32_t l1) {
                 continue;
             }
             if (!(l6 == 93u)) {
-                t1 = json_fail(l0, 1686u);
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+                t0 = json_fail(l0, 1716u);
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
             json_advance(l0);
             vader_struct_json_JsonArray_t* _a2_obj = (vader_struct_json_JsonArray_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonArray_t));
-            vader_obj_header_init(_a2_obj, 365u);
-            _a2_obj->f_items = l2;
-            t1 = (void*) _a2_obj;
-            { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            vader_obj_header_init(_a2_obj, 370u);
+            _a2_obj->f_items = l3;
+            t0 = (void*) _a2_obj;
+            { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         break;
     }
-    t1 = json_fail(l0, 2584u);
-    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = json_fail(l0, 2609u);
+    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_bool(void* l0) {
@@ -297,21 +295,21 @@ static vader_box_t json_parse_bool(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = json_match_keyword(l0, 2488u);
+    t0 = json_match_keyword(l0, 2514u);
     if (t0) {
         vader_struct_json_JsonBool_t* _a0_obj = (vader_struct_json_JsonBool_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonBool_t));
-        vader_obj_header_init(_a0_obj, 366u);
+        vader_obj_header_init(_a0_obj, 371u);
         _a0_obj->f_value = true;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t0 = json_match_keyword(l0, 1747u);
+    t0 = json_match_keyword(l0, 1777u);
     if (!(t0)) {
-        t1 = json_fail(l0, 1690u);
+        t1 = json_fail(l0, 1720u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_json_JsonBool_t* _a1_obj = (vader_struct_json_JsonBool_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonBool_t));
-    vader_obj_header_init(_a1_obj, 366u);
+    vader_obj_header_init(_a1_obj, 371u);
     _a1_obj->f_value = false;
     t1 = (void*) _a1_obj;
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
@@ -323,13 +321,13 @@ static vader_box_t json_parse_null(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = json_match_keyword(l0, 2179u);
+    t0 = json_match_keyword(l0, 2207u);
     if (!(t0)) {
-        t1 = json_fail(l0, 1689u);
+        t1 = json_fail(l0, 1719u);
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_struct_json_JsonNull_t* _a0_obj = (vader_struct_json_JsonNull_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonNull_t));
-    vader_obj_header_init(_a0_obj, 368u);
+    vader_obj_header_init(_a0_obj, 373u);
     t1 = (void*) _a0_obj;
     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -366,7 +364,7 @@ static vader_box_t json_parse_number(void* l0) {
         l2 = !(t1);
     }
     if (l2) {
-        t2 = json_fail(l0, 1700u);
+        t2 = json_fail(l0, 1730u);
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l3 = json_peek_byte(l0);
@@ -377,7 +375,7 @@ static vader_box_t json_parse_number(void* l0) {
             t0 = json_peek_byte(l0);
             t1 = std_char_is_digit(t0);
             if (t1) {
-                t2 = json_fail(l0, 2032u);
+                t2 = json_fail(l0, 2061u);
                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
             }
         }
@@ -409,7 +407,7 @@ static vader_box_t json_parse_number(void* l0) {
                 l2 = !(t1);
             }
             if (l2) {
-                t2 = json_fail(l0, 1701u);
+                t2 = json_fail(l0, 1731u);
                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
             }
             for (;;) {
@@ -467,7 +465,7 @@ static vader_box_t json_parse_number(void* l0) {
             l2 = !(t1);
         }
         if (l2) {
-            t2 = json_fail(l0, 1702u);
+            t2 = json_fail(l0, 1732u);
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
         for (;;) {
@@ -488,182 +486,178 @@ static vader_box_t json_parse_number(void* l0) {
     l6 = ((vader_struct_json_Parser_t*) l0)->f_pos;
     t3 = vader_host_std_core_byte_slice(l5, l1, l6);
     l7 = std_string_parse_float(t3);
-    if ((l7.tag == 281u || l7.tag == 282u)) {
+    if ((l7.tag == 294u || l7.tag == 295u)) {
         t4 = ((double) l7.payload.f);
         vader_struct_json_JsonNumber_t* _a0_obj = (vader_struct_json_JsonNumber_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonNumber_t));
-        vader_obj_header_init(_a0_obj, 369u);
+        vader_obj_header_init(_a0_obj, 374u);
         _a0_obj->f_value = t4;
         t2 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    if (!(l7.tag == 521u)) {
+    if (!(l7.tag == 528u)) {
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
     }
-    t2 = json_fail(l0, 1983u);
+    t2 = json_fail(l0, 2013u);
     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_object(void* l0, int32_t l1) {
-    void* l2 = NULL;
+    vader_box_t l2 = vader_box_null(), l6 = vader_box_null(), l8 = vader_box_null(), l10 = vader_box_null();
     void* l3 = NULL;
     void* l4 = NULL;
-    vader_box_t l5 = vader_box_null(), l7 = vader_box_null(), l9 = vader_box_null();
-    int32_t l6;
-    vader_string_t l8 = 0;
-    uint32_t l10;
-    vader_box_t t0 = vader_box_null();
-    void* t1 = NULL;
-    bool t2;
-    uint32_t t3;
-    vader_box_t* gc_roots[4] = { &l5, &l7, &l9, &t0 };
-    void** gc_raw_roots[5] = { &l0, &l2, &l3, &l4, &t1 };
-    vader_string_t* gc_atom_roots[1] = { &l8 };
+    void* l5 = NULL;
+    int32_t l7;
+    vader_string_t l9 = 0;
+    uint32_t l11;
+    void* t0 = NULL;
+    bool t1;
+    uint32_t t2;
+    vader_box_t* gc_roots[4] = { &l2, &l6, &l8, &l10 };
+    void** gc_raw_roots[5] = { &l0, &l3, &l4, &l5, &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l9 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 4u, 5u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = json_expect_byte(l0, 123u);
-    if (t0.tag == 367u) {
-        t0 = json_expect_byte(l0, 123u);
-        t1 = t0.payload.obj;
-        { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    l2 = json_expect_byte(l0, 123u);
+    if (l2.tag == 372u) {
+        t0 = l2.payload.obj;
+        { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     vader_array_t* _a0_arr = vader_array_new(14u, 0u, 0u, 285u);
-    l2 = (void*) _a0_arr;
+    l3 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_new(21u, 0u, 0u, 296u);
-    l3 = (void*) _a1_arr;
+    l4 = (void*) _a1_arr;
     vader_array_t* _a2_arr = vader_array_new(15u, 0u, 7u, 288u);
-    l4 = (void*) _a2_arr;
+    l5 = (void*) _a2_arr;
     vader_struct_std_collections_MutableMap__string__Any_t* _a3_obj = (vader_struct_std_collections_MutableMap__string__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string__Any_t));
-    vader_obj_header_init(_a3_obj, 442u);
-    _a3_obj->f_ekeys = l2;
-    _a3_obj->f_evals = l3;
-    _a3_obj->f_index = l4;
+    vader_obj_header_init(_a3_obj, 448u);
+    _a3_obj->f_ekeys = l3;
+    _a3_obj->f_evals = l4;
+    _a3_obj->f_index = l5;
     _a3_obj->f_mask = INT64_C(0);
     _a3_obj->f_size = INT64_C(0);
     _a3_obj->f_tombs = INT64_C(0);
-    l2 = (void*) _a3_obj;
+    l3 = (void*) _a3_obj;
     json_skip_ws(l0);
-    t2 = json_at_end(l0);
-    if (!(t2)) {
-        t3 = json_peek_byte(l0);
-        if (t3 == 125u) {
+    t1 = json_at_end(l0);
+    if (!(t1)) {
+        t2 = json_peek_byte(l0);
+        if (t2 == 125u) {
             json_advance(l0);
             vader_struct_json_JsonObject_t* _a4_obj = (vader_struct_json_JsonObject_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonObject_t));
-            vader_obj_header_init(_a4_obj, 370u);
-            _a4_obj->f_entries = l2;
-            t1 = (void*) _a4_obj;
-            { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            vader_obj_header_init(_a4_obj, 375u);
+            _a4_obj->f_entries = l3;
+            t0 = (void*) _a4_obj;
+            { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
     }
     for (;;) {
-        t2 = json_at_end(l0);
-        if (!(t2)) {
+        t1 = json_at_end(l0);
+        if (!(t1)) {
             json_skip_ws(l0);
-            l5 = json_parse_string(l0);
-            if (l5.tag == 367u) {
-                t1 = l5.payload.obj;
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            l2 = json_parse_string(l0);
+            if (l2.tag == 372u) {
+                t0 = l2.payload.obj;
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
             json_skip_ws(l0);
-            t0 = json_expect_byte(l0, 58u);
-            if (t0.tag == 367u) {
-                t0 = json_expect_byte(l0, 58u);
-                t1 = t0.payload.obj;
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            l6 = json_expect_byte(l0, 58u);
+            if (l6.tag == 372u) {
+                t0 = l6.payload.obj;
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            l6 = vader_chk_add(i32, l1, INT32_C(1));
-            l7 = json_parse_value(l0, l6);
-            if (l7.tag == 367u) {
-                t1 = l7.payload.obj;
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            l7 = vader_chk_add(i32, l1, INT32_C(1));
+            l8 = json_parse_value(l0, l7);
+            if (l8.tag == 372u) {
+                t0 = l8.payload.obj;
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            l8 = l5.payload.s;
-            l9 = l7;
-            std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(l2, l8, l9);
+            l9 = l2.payload.s;
+            l10 = l8;
+            std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(l3, l9, l10);
             json_skip_ws(l0);
-            t2 = json_at_end(l0);
-            if (t2) {
-                t1 = json_fail(l0, 2588u);
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            t1 = json_at_end(l0);
+            if (t1) {
+                t0 = json_fail(l0, 2613u);
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-            l10 = json_peek_byte(l0);
-            if (l10 == 44u) {
+            l11 = json_peek_byte(l0);
+            if (l11 == 44u) {
                 json_advance(l0);
                 continue;
             }
-            if (!(l10 == 125u)) {
-                t1 = json_fail(l0, 1687u);
-                { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            if (!(l11 == 125u)) {
+                t0 = json_fail(l0, 1717u);
+                { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
             json_advance(l0);
             vader_struct_json_JsonObject_t* _a5_obj = (vader_struct_json_JsonObject_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonObject_t));
-            vader_obj_header_init(_a5_obj, 370u);
-            _a5_obj->f_entries = l2;
-            t1 = (void*) _a5_obj;
-            { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+            vader_obj_header_init(_a5_obj, 375u);
+            _a5_obj->f_entries = l3;
+            t0 = (void*) _a5_obj;
+            { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
         break;
     }
-    t1 = json_fail(l0, 2588u);
-    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = json_fail(l0, 2613u);
+    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_string(void* l0) {
-    int64_t l1, l2, l3, l5;
-    uint8_t l4;
-    void* l6 = NULL;
-    vader_string_t l7 = 0;
-    vader_box_t t0 = vader_box_null();
-    void* t1 = NULL;
+    vader_box_t l1 = vader_box_null();
+    int64_t l2, l3, l4, l6;
+    uint8_t l5;
+    void* l7 = NULL;
+    vader_string_t l8 = 0;
+    void* t0 = NULL;
+    vader_string_t t1 = 0;
     vader_string_t t2 = 0;
-    vader_string_t t3 = 0;
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[3] = { &l0, &l6, &t1 };
-    vader_string_t* gc_atom_roots[3] = { &l7, &t2, &t3 };
+    vader_box_t t3 = vader_box_null();
+    vader_box_t* gc_roots[2] = { &l1, &t3 };
+    void** gc_raw_roots[3] = { &l0, &l7, &t0 };
+    vader_string_t* gc_atom_roots[3] = { &l8, &t1, &t2 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
+        vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    t0 = json_expect_byte(l0, 34u);
-    if (t0.tag == 367u) {
-        t0 = json_expect_byte(l0, 34u);
-        t1 = t0.payload.obj;
-        { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    l1 = json_expect_byte(l0, 34u);
+    if (l1.tag == 372u) {
+        t0 = l1.payload.obj;
+        { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-    l1 = ((vader_struct_json_Parser_t*) l0)->f_pos;
     l2 = ((vader_struct_json_Parser_t*) l0)->f_pos;
-    t2 = ((vader_struct_json_Parser_t*) l0)->f_src;
-    l3 = vader_host_std_core_byte_len(t2);
-    while ((l2 < l3)) {
-        t2 = ((vader_struct_json_Parser_t*) l0)->f_src;
-        l4 = vader_host_std_core_byte_at(t2, l2);
-        if (l4 == INT32_C(34)) {
-            l5 = vader_chk_add(i64, l2, INT64_C(1));
-            ((vader_struct_json_Parser_t*) l0)->f_pos = l5;
-            t2 = ((vader_struct_json_Parser_t*) l0)->f_src;
-            t3 = vader_host_std_core_byte_slice(t2, l1, l2);
-            t0 = vader_box_string(285u, t3);
-            { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    l3 = ((vader_struct_json_Parser_t*) l0)->f_pos;
+    t1 = ((vader_struct_json_Parser_t*) l0)->f_src;
+    l4 = vader_host_std_core_byte_len(t1);
+    while ((l3 < l4)) {
+        t1 = ((vader_struct_json_Parser_t*) l0)->f_src;
+        l5 = vader_host_std_core_byte_at(t1, l3);
+        if (l5 == INT32_C(34)) {
+            l6 = vader_chk_add(i64, l3, INT64_C(1));
+            ((vader_struct_json_Parser_t*) l0)->f_pos = l6;
+            t1 = ((vader_struct_json_Parser_t*) l0)->f_src;
+            t2 = vader_host_std_core_byte_slice(t1, l2, l3);
+            { vader_box_t __vret = vader_box_string(285u, t2); vader_gc_top = gc_frame.prev; return __vret; }
         }
-        if (l4 == INT32_C(92)) {
+        if (l5 == INT32_C(92)) {
             vader_array_t* _a0_arr = vader_array_new(14u, 0u, 0u, 285u);
-            t1 = (void*) _a0_arr;
+            t0 = (void*) _a0_arr;
             vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
-            vader_obj_header_init(_a1_obj, 522u);
-            _a1_obj->f_parts = t1;
-            l6 = (void*) _a1_obj;
-            t2 = ((vader_struct_json_Parser_t*) l0)->f_src;
-            l7 = vader_host_std_core_byte_slice(t2, l1, l2);
-            std_string_builder_append(l6, l7);
-            ((vader_struct_json_Parser_t*) l0)->f_pos = l2;
-            t0 = json_parse_string_with_escapes(l0, l6);
-            { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+            vader_obj_header_init(_a1_obj, 529u);
+            _a1_obj->f_parts = t0;
+            l7 = (void*) _a1_obj;
+            t1 = ((vader_struct_json_Parser_t*) l0)->f_src;
+            l8 = vader_host_std_core_byte_slice(t1, l2, l3);
+            std_string_builder_append(l7, l8);
+            ((vader_struct_json_Parser_t*) l0)->f_pos = l3;
+            t3 = json_parse_string_with_escapes(l0, l7);
+            { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
         }
-        l2 = (l2 + INT64_C(1));
+        l3 = (l3 + INT64_C(1));
     }
-    t1 = json_fail(l0, 2589u);
-    { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
+    t0 = json_fail(l0, 2614u);
+    { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
@@ -677,14 +671,12 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
     uint32_t l5, l6, l7;
     bool t0;
     vader_string_t t1 = 0;
-    vader_box_t t2 = vader_box_null();
-    void* t3 = NULL;
-    uint8_t t4;
-    vader_box_t* gc_roots[1] = { &t2 };
-    void** gc_raw_roots[3] = { &l0, &l1, &t3 };
+    void* t2 = NULL;
+    uint8_t t3;
+    void** gc_raw_roots[3] = { &l0, &l1, &t2 };
     vader_string_t* gc_atom_roots[6] = { &l2, &l9, &l11, &l13, &l15, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
+        vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
     for (;;) {
@@ -696,15 +688,14 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
             if (l4 == INT32_C(34)) {
                 json_advance(l0);
                 t1 = std_string_builder_StringBuilder_std_core_Display_to_string(l1);
-                t2 = vader_box_string(285u, t1);
-                { vader_box_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
+                { vader_box_t __vret = vader_box_string(285u, t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
             if (l4 == INT32_C(92)) {
                 json_advance(l0);
                 t0 = json_at_end(l0);
                 if (t0) {
-                    t3 = json_fail(l0, 2587u);
-                    { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+                    t2 = json_fail(l0, 2612u);
+                    { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                 }
                 l5 = json_peek_byte(l0);
                 json_advance(l0);
@@ -728,13 +719,13 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
                     std_string_builder_append_char(l1, l7);
                 } else {
                     if (!(l5 == 117u)) {
-                        t3 = json_fail(l0, 2569u);
-                        { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+                        t2 = json_fail(l0, 2594u);
+                        { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                     }
                     t0 = json_decode_unicode_escape(l0, l1);
                     if (!(t0)) {
-                        t3 = json_fail(l0, 1973u);
-                        { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+                        t2 = json_fail(l0, 2003u);
+                        { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                     }
                 }
                 continue;
@@ -745,14 +736,14 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
                 if (!(t0)) {
                     l9 = ((vader_struct_json_Parser_t*) l0)->f_src;
                     l10 = ((vader_struct_json_Parser_t*) l0)->f_pos;
-                    t4 = vader_host_std_core_byte_at(l9, l10);
-                    if (!(t4 != INT32_C(34))) {
+                    t3 = vader_host_std_core_byte_at(l9, l10);
+                    if (!(t3 != INT32_C(34))) {
                         break;
                     }
                     l11 = ((vader_struct_json_Parser_t*) l0)->f_src;
                     l12 = ((vader_struct_json_Parser_t*) l0)->f_pos;
-                    t4 = vader_host_std_core_byte_at(l11, l12);
-                    if (!(t4 != INT32_C(92))) {
+                    t3 = vader_host_std_core_byte_at(l11, l12);
+                    if (!(t3 != INT32_C(92))) {
                         break;
                     }
                     json_advance(l0);
@@ -768,8 +759,8 @@ static vader_box_t json_parse_string_with_escapes(void* l0, void* l1) {
         }
         break;
     }
-    t3 = json_fail(l0, 2589u);
-    { vader_box_t __vret = vader_ref_box(t3); vader_gc_top = gc_frame.prev; return __vret; }
+    t2 = json_fail(l0, 2614u);
+    { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static vader_box_t json_parse_value(void* l0, int32_t l1) {
@@ -787,22 +778,22 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
     };
     vader_gc_top = &gc_frame;
     if ((l1 > INT32_C(200))) {
-        t0 = json_fail(l0, 2079u);
+        t0 = json_fail(l0, 2108u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     json_skip_ws(l0);
     t1 = json_at_end(l0);
     if (t1) {
-        t0 = json_fail(l0, 2561u);
+        t0 = json_fail(l0, 2586u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l2 = json_peek_byte(l0);
     if (l2 == 34u) {
         l3 = json_parse_string(l0);
-        if (!(l3.tag == 367u)) {
+        if (!(l3.tag == 372u)) {
             t2 = l3.payload.s;
             vader_struct_json_JsonString_t* _a0_obj = (vader_struct_json_JsonString_t*) vader_gc_alloc(sizeof(vader_struct_json_JsonString_t));
-            vader_obj_header_init(_a0_obj, 371u);
+            vader_obj_header_init(_a0_obj, 376u);
             _a0_obj->f_value = t2;
             t0 = (void*) _a0_obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
@@ -812,7 +803,7 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
     }
     if (l2 == 123u) {
         l3 = json_parse_object(l0, l1);
-        if (!(l3.tag == 367u)) {
+        if (!(l3.tag == 372u)) {
             t0 = l3.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -821,7 +812,7 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
     }
     if (l2 == 91u) {
         l3 = json_parse_array(l0, l1);
-        if (!(l3.tag == 367u)) {
+        if (!(l3.tag == 372u)) {
             t0 = l3.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -835,7 +826,7 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
     }
     if (l4) {
         l3 = json_parse_bool(l0);
-        if (!(l3.tag == 367u)) {
+        if (!(l3.tag == 372u)) {
             t0 = l3.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -844,7 +835,7 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
     }
     if (l2 == 110u) {
         l3 = json_parse_null(l0);
-        if (!(l3.tag == 367u)) {
+        if (!(l3.tag == 372u)) {
             t0 = l3.payload.obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
@@ -857,11 +848,11 @@ static vader_box_t json_parse_value(void* l0, int32_t l1) {
         l4 = std_char_is_digit(l2);
     }
     if (!(l4)) {
-        t0 = json_fail(l0, 2560u);
+        t0 = json_fail(l0, 2585u);
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
     l3 = json_parse_number(l0);
-    if (!(l3.tag == 367u)) {
+    if (!(l3.tag == 372u)) {
         t0 = l3.payload.obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }

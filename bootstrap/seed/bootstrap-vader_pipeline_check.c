@@ -12,9 +12,8 @@ void* vader_pipeline_check_assemble_typed_project(void* l0) {
     vader_string_t l8 = 0;
     int64_t l6, l7;
     bool t0;
-    size_t t1;
-    vader_box_t t2 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t2 };
+    vader_box_t t1 = vader_box_null();
+    vader_box_t* gc_roots[1] = { &t1 };
     void** gc_raw_roots[8] = { &l0, &l1, &l2, &l3, &l5, &l9, &l10, &l11 };
     vader_string_t* gc_atom_roots[2] = { &l4, &l8 };
     vader_gc_frame_t gc_frame = {
@@ -30,8 +29,7 @@ void* vader_pipeline_check_assemble_typed_project(void* l0) {
     t0 = std_collections_is_empty__string__Any(((vader_struct_vader_typecheck_CheckResult_t*) l2)->f_all_modules);
     if (t0) {
         l9 = ((vader_struct_vader_typecheck_CheckResult_t*) l2)->f_others;
-        t1 = ((vader_array_t*) l9)->length;
-        l6 = (int64_t) (size_t) t1;
+        l6 = ((vader_array_t*) l9)->length;
         l7 = INT64_C(0);
         while ((l7 < l6)) {
             vader_array_t* _a0_slotarr = ((vader_array_t*) l9);
@@ -53,8 +51,8 @@ void* vader_pipeline_check_assemble_typed_project(void* l0) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
-        t2 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l6];
-        l4 = t2.payload.s;
+        t1 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l6];
+        l4 = t1.payload.s;
         vader_array_t* _a2_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l6)
@@ -82,7 +80,7 @@ void* vader_pipeline_check_check_project(void* l0, void* l1, bool l2) {
     l5 = vader_effects_frozen_diagnostics(l4);
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l5);
     vader_struct_vader_pipeline_check_CheckedProject_t* _a0_obj = (vader_struct_vader_pipeline_check_CheckedProject_t*) vader_gc_alloc(sizeof(vader_struct_vader_pipeline_check_CheckedProject_t));
-    vader_obj_header_init(_a0_obj, 1144u);
+    vader_obj_header_init(_a0_obj, 1154u);
     _a0_obj->f_result = l3;
     _a0_obj->f_effects = l4;
     t0 = (void*) _a0_obj;
