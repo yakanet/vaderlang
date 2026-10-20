@@ -135,6 +135,17 @@ export held_integer :: fn(t: Type) -> MachineInteger | null {
     return integer_representation(t)
 }
 
+/// Whether a value of `t` is held in an integer (`held_integer`), found without
+/// choosing which : `t` is a range, through any distinct.
+///
+/// @param t  any type.
+export is_stored_as_integer :: fn(t: Type) -> bool {
+    if t is DistinctType {
+        return is_stored_as_integer(t.backing)
+    }
+    return t is RangeType
+}
+
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held
 /// in, and an enum's inferred width.

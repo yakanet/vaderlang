@@ -29,13 +29,12 @@
   }
   snippet.from_unit :: fn(n: u32) -> char {  // snippet$from_unit
       {
-          __in_range_0: u32 = n
-          if __in_range_0 > u32(55295) {
-              if (__in_range_0 < u32(57344)) || (__in_range_0 > u32(1114111)) {
+          if n > u32(55295) {
+              if (n < u32(57344)) || (n > u32(1114111)) {
                   @unreachable("value out of range: no Unicode scalar value")
               }
           }
-          char(__in_range_0)
+          char(n)
       } :char
   }
   snippet.walk_codes :: fn(c: char) -> string {  // snippet$walk_codes
@@ -84,27 +83,26 @@
       } :char)
       boxed: Boxed = Boxed { .code = u8(33) }
       std.io.println<string>({
-          __p_7: string = std.core.char.to_string({
-              __in_range_6: u32 = code
-              if __in_range_6 > u32(55295) {
-                  if (__in_range_6 < u32(57344)) || (__in_range_6 > u32(1114111)) {
+          __p_6: string = std.core.char.to_string({
+              if code > u32(55295) {
+                  if (code < u32(57344)) || (code > u32(1114111)) {
                       @unreachable("value out of range: no Unicode scalar value")
                   }
               }
-              char(__in_range_6)
+              char(code)
           } :char)
-          __p_8: string = std.core.char.to_string(char(glyph))
-          __p_9: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
-          __buf_10: Buffer = std.core.new_byte_buffer(i64(27) +% ((std.core.byte_len(__p_7) +% std.core.byte_len(__p_8)) +% std.core.byte_len(__p_9)))
-          __off_11: i64 = 0
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_7)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_8)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_9)
-          __off_11 = std.core.write_string_at(__buf_10, __off_11, " gap ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, 'a' - 'A')
-          std.core.finish_buffer(__buf_10, __off_11)
+          __p_7: string = std.core.char.to_string(char(glyph))
+          __p_8: string = std.core.char.to_string(char(snippet.Boxed.into(boxed)))
+          __buf_9: Buffer = std.core.new_byte_buffer(i64(27) +% ((std.core.byte_len(__p_6) +% std.core.byte_len(__p_7)) +% std.core.byte_len(__p_8)))
+          __off_10: i64 = 0
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_6)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_7)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
+          __off_10 = std.core.write_string_at(__buf_9, __off_10, " gap ")
+          __off_10 = std.core.write_int(__buf_9, __off_10, 'a' - 'A')
+          std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       crossing: string[] = [] :string[]
       {
@@ -128,13 +126,13 @@
           .cursor = '\u{d7fe}',
       }
       {
-          __iter_12: Range<char> = span
+          __iter_11: Range<char> = span
           for {
-              __step_13: [char, Continuation] = std.core.Range<char>.next(__iter_12)
-              if __step_13._1 == Continuation(1) {
+              __step_12: [char, Continuation] = std.core.Range<char>.next(__iter_11)
+              if __step_12._1 == Continuation(1) {
                   break
               } else {
-                  c: char = __step_13._0
+                  c: char = __step_12._0
                   @array.push(stepped, snippet.walk_codes(c))
               }
           }
@@ -158,11 +156,11 @@
           s
       }
       std.io.println<string>({
-          __buf_15: Buffer = std.core.new_byte_buffer(i64(27))
-          __off_16: i64 = 0
-          __off_16 = std.core.write_string_at(__buf_15, __off_16, "fused: ")
-          __off_16 = std.core.write_unsigned(__buf_15, __off_16, fused)
-          std.core.finish_buffer(__buf_15, __off_16)
+          __buf_14: Buffer = std.core.new_byte_buffer(i64(27))
+          __off_15: i64 = 0
+          __off_15 = std.core.write_string_at(__buf_14, __off_15, "fused: ")
+          __off_15 = std.core.write_unsigned(__buf_14, __off_15, fused)
+          std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       upper: char = '\u{e001}'
       stop: char = '\u{e000}'

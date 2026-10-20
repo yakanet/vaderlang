@@ -970,25 +970,23 @@ static int64_t snippet_to_long(int32_t l0) {
 }
 
 static uint32_t snippet_to_chr(int32_t l0) {
-    int32_t l1;
-    bool l2;
+    bool l1;
 #line 31 "tests/snippets/scalar_wide/_main.vader"
-    l1 = l0;
-    if ((l1 < INT32_C(0))) {
+    if ((l0 < INT32_C(0))) {
         vader_unreachable("value out of range: no Unicode scalar value");
-    } else if ((l1 > INT32_C(55295))) {
-        if ((l1 < INT32_C(57344))) {
-            l2 = true;
+    } else if ((l0 > INT32_C(55295))) {
+        if ((l0 < INT32_C(57344))) {
+            l1 = true;
         } else {
-            l2 = (l1 > INT32_C(1114111));
+            l1 = (l0 > INT32_C(1114111));
         }
-        if (l2) {
+        if (l1) {
             vader_unreachable("value out of range: no Unicode scalar value");
         } else {
-            return ((uint32_t) (int32_t) l1);
+            return ((uint32_t) (int32_t) l0);
         }
     } else {
-        return ((uint32_t) (int32_t) l1);
+        return ((uint32_t) (int32_t) l0);
     }
 }
 

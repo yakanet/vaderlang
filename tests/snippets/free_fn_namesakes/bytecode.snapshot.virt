@@ -40,10 +40,10 @@ fn 1 snippet$main () -> i32
   local i i64
   local $call_9 i64
   local b u8
+  local code u32
   local width i64
-  local __in_range_1 u32
   local or_res bool
-  local $call_elem_41 i64
+  local $call_elem_40 i64
   fn.ref 2 4   ; __lambda_snippet_0 fn
   local.set 0   ; $fn_ref_1
   i32.const 7
@@ -84,26 +84,26 @@ fn 1 snippet$main () -> i32
       local.get 4   ; b
       local.get 2   ; i
       call 7   ; std_core$decode_tail
-      local.set 8   ; $call_elem_41
-      local.set 6   ; __in_range_1
-      local.get 8   ; $call_elem_41
-      local.set 5   ; width
+      local.set 8   ; $call_elem_40
+      local.set 5   ; code
+      local.get 8   ; $call_elem_40
+      local.set 6   ; width
       local.get 2   ; i
-      local.get 5   ; width
+      local.get 6   ; width
       i64.checked_add
       local.set 2   ; i
-      local.get 6   ; __in_range_1
+      local.get 5   ; code
       i32.const 55295
       u32.gt
       if $L3 void
-        local.get 6   ; __in_range_1
+        local.get 5   ; code
         i32.const 57344
         u32.lt
         if $L4 void
           bool.const true
           local.set 7   ; or_res
         else
-          local.get 6   ; __in_range_1
+          local.get 5   ; code
           i32.const 1114111
           u32.gt
           local.set 7   ; or_res
@@ -113,7 +113,7 @@ fn 1 snippet$main () -> i32
           unreachable
         end $L5
       end $L3
-      local.get 6   ; __in_range_1
+      local.get 5   ; code
       u32.to_char
       call 9   ; std_core$char$Display$to_string
       call 13   ; std_io$println__string

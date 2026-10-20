@@ -16,11 +16,10 @@
   }
   snippet.parse_hour :: fn(raw: i32) -> Hour {  // snippet$parse_hour
       {
-          __in_range_0: i32 = raw
-          if (__in_range_0 < 0) || (__in_range_0 > 23) {
+          if (raw < 0) || (raw > 23) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
-          __in_range_0
+          Hour(raw)
       } :Hour
   }
   snippet.part_of_day :: fn(h: Hour) -> string {  // snippet$part_of_day
@@ -50,7 +49,7 @@
                   __fuse_arr_0: Hour[] = taken
                   pred: __lambda_env_snippet_1 = __lambda_env_snippet_1 { .cap_0 = h }
                   __consumed_2: bool = false
-                  $exit$i5: {
+                  $exit$i4: {
                       {
                           __fuse_len_0: i64 = @array.len(__fuse_arr_0)
                           __fuse_i_1: i64 = 0
@@ -58,7 +57,7 @@
                               x: Hour = __fuse_arr_0[__fuse_i_1]
                               if __lambda_snippet_0(pred, x) {
                                   __consumed_2 = true
-                                  break $exit$i5
+                                  break $exit$i4
                               }
                           } @step {
                               __fuse_i_1 = __fuse_i_1 +% i64(1)
@@ -69,11 +68,10 @@
                   __consumed_2
               } :bool) {
                   return {
-                      __in_range_3: i32 = h
-                      if (__in_range_3 < 0) || (__in_range_3 > 23) {
+                      if (h < 0) || (h > 23) {
                           @unreachable("value out of range: not in `Hour` (0..=23)")
                       }
-                      __in_range_3
+                      Hour(h)
                   } :Hour
               }
           } @step {

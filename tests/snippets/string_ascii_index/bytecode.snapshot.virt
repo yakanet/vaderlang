@@ -1613,8 +1613,8 @@ end
 
 fn 18 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local b u8
+  local code u32
   local width i64
-  local __in_range_1 u32
   local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -1632,20 +1632,20 @@ fn 18 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local.get 2   ; b
   local.get 1   ; arg 1
   call 11   ; std_core$decode_tail
-  local.set 3   ; width
-  local.set 4   ; __in_range_1
-  local.get 4   ; __in_range_1
+  local.set 4   ; width
+  local.set 3   ; code
+  local.get 3   ; code
   i32.const 55295
   u32.gt
   if $L1 void
-    local.get 4   ; __in_range_1
+    local.get 3   ; code
     i32.const 57344
     u32.lt
     if $L2 void
       bool.const true
       local.set 5   ; or_res
     else
-      local.get 4   ; __in_range_1
+      local.get 3   ; code
       i32.const 1114111
       u32.gt
       local.set 5   ; or_res
@@ -1654,15 +1654,15 @@ fn 18 std_core$codepoint_at_byte (string,i64) -> (char,i64)
     if $L3 void
       unreachable
     else
-      local.get 4   ; __in_range_1
+      local.get 3   ; code
       u32.to_char
-      local.get 3   ; width
+      local.get 4   ; width
       return
     end $L3
   else
-    local.get 4   ; __in_range_1
+    local.get 3   ; code
     u32.to_char
-    local.get 3   ; width
+    local.get 4   ; width
     return
   end $L1
 end

@@ -5984,10 +5984,10 @@ fn 61 std_string$StringChars$std_core_Iterator$next$v (ref) -> (char,u8)
   local i i64
   local $call_4 i64
   local b u8
-  local __in_range_1 u32
+  local code u32
   local or_res bool
-  local $cast_36 char
-  local $call_elem_40 i64
+  local $cast_35 char
+  local $call_elem_39 i64
   local.field 0 48 1   ; arg 0 std_string$StringChars.cursor
   ref.cast 18   ; i64
   local.set 1   ; i
@@ -6028,9 +6028,9 @@ fn 61 std_string$StringChars$std_core_Iterator$next$v (ref) -> (char,u8)
   local.get 3   ; b
   local.get 1   ; i
   call 38   ; std_core$decode_tail
-  local.set 7   ; $call_elem_40
-  local.set 4   ; __in_range_1
-  local.get 7   ; $call_elem_40
+  local.set 7   ; $call_elem_39
+  local.set 4   ; code
+  local.get 7   ; $call_elem_39
   local.set 2   ; $call_4
   local.get 1   ; i
   local.get 2   ; $call_4
@@ -6039,18 +6039,18 @@ fn 61 std_string$StringChars$std_core_Iterator$next$v (ref) -> (char,u8)
   local.get 0   ; arg 0
   local.get 1   ; i
   struct.set 48 1   ; std_string$StringChars.cursor
-  local.get 4   ; __in_range_1
+  local.get 4   ; code
   i32.const 55295
   u32.gt
   if $L2 void
-    local.get 4   ; __in_range_1
+    local.get 4   ; code
     i32.const 57344
     u32.lt
     if $L3 void
       bool.const true
       local.set 5   ; or_res
     else
-      local.get 4   ; __in_range_1
+      local.get 4   ; code
       i32.const 1114111
       u32.gt
       local.set 5   ; or_res
@@ -6059,22 +6059,22 @@ fn 61 std_string$StringChars$std_core_Iterator$next$v (ref) -> (char,u8)
     if $L4 void
       unreachable
     else
-      local.get 4   ; __in_range_1
+      local.get 4   ; code
       u32.to_char
-      local.set 6   ; $cast_36
+      local.set 6   ; $cast_35
       i32.const 0
       local.set 3   ; b
-      local.get 6   ; $cast_36
+      local.get 6   ; $cast_35
       local.get 3   ; b
       return
     end $L4
   else
-    local.get 4   ; __in_range_1
+    local.get 4   ; code
     u32.to_char
-    local.set 6   ; $cast_36
+    local.set 6   ; $cast_35
     i32.const 0
     local.set 3   ; b
-    local.get 6   ; $cast_36
+    local.get 6   ; $cast_35
     local.get 3   ; b
     return
   end $L2

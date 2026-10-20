@@ -169,41 +169,39 @@ fn 19 snippet$to_long (i32) -> i64
 end
 
 fn 20 snippet$to_chr (i32) -> char
-  local __in_range_0 i32
   local or_res bool
   local.get 0   ; arg 0
-  local.tee 1   ; __in_range_0
   i32.const 0
   i32.lt
   if $L0 void
     unreachable
   else
-    local.get 1   ; __in_range_0
+    local.get 0   ; arg 0
     i32.const 55295
     i32.gt
     if $L1 void
-      local.get 1   ; __in_range_0
+      local.get 0   ; arg 0
       i32.const 57344
       i32.lt
       if $L2 void
         bool.const true
-        local.set 2   ; or_res
+        local.set 1   ; or_res
       else
-        local.get 1   ; __in_range_0
+        local.get 0   ; arg 0
         i32.const 1114111
         i32.gt
-        local.set 2   ; or_res
+        local.set 1   ; or_res
       end $L2
-      local.get 2   ; or_res
+      local.get 1   ; or_res
       if $L3 void
         unreachable
       else
-        local.get 1   ; __in_range_0
+        local.get 0   ; arg 0
         i32.to_char
         return
       end $L3
     else
-      local.get 1   ; __in_range_0
+      local.get 0   ; arg 0
       i32.to_char
       return
     end $L1

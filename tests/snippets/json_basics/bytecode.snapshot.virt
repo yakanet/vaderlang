@@ -6506,12 +6506,12 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
   local hi_val i32
   local hi u32
   local or_res bool
-  local $cast_19 char
-  local $add_checked_24 i64
-  local $call_26 i64
-  local $field_28 string
-  local $cast_51 u32
-  local $cast_55 char
+  local $cast_18 char
+  local $add_checked_23 i64
+  local $call_25 i64
+  local $field_27 string
+  local $cast_50 u32
+  local $cast_54 char
   local.get 0   ; arg 0
   call 80   ; json$read_hex4
   local.tee 2   ; hi_val
@@ -6532,51 +6532,51 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
       ref.cast 8   ; i64
       i64.const 2
       i64.checked_add
-      local.set 6   ; $add_checked_24
+      local.set 6   ; $add_checked_23
       local.field 0 31 0   ; arg 0 json$Parser.src
       ref.cast 1   ; string
       call.import 0   ; std_core$byte_len
-      local.set 7   ; $call_26
-      local.get 6   ; $add_checked_24
-      local.get 7   ; $call_26
+      local.set 7   ; $call_25
+      local.get 6   ; $add_checked_23
+      local.get 7   ; $call_25
       i64.le
       if $L3 void
         local.field 0 31 0   ; arg 0 json$Parser.src
         ref.cast 1   ; string
-        local.set 8   ; $field_28
+        local.set 8   ; $field_27
         local.field 0 31 1   ; arg 0 json$Parser.pos
         ref.cast 8   ; i64
-        local.set 6   ; $add_checked_24
-        local.get 8   ; $field_28
-        local.get 6   ; $add_checked_24
+        local.set 6   ; $add_checked_23
+        local.get 8   ; $field_27
+        local.get 6   ; $add_checked_23
         call.import 1   ; std_core$byte_at
         i32.const 92
         i32.eq
         if $L4 void
           local.field 0 31 0   ; arg 0 json$Parser.src
           ref.cast 1   ; string
-          local.set 8   ; $field_28
+          local.set 8   ; $field_27
           local.field 0 31 1   ; arg 0 json$Parser.pos
           ref.cast 8   ; i64
           i64.const 1
           i64.checked_add
-          local.set 6   ; $add_checked_24
-          local.get 8   ; $field_28
-          local.get 6   ; $add_checked_24
+          local.set 6   ; $add_checked_23
+          local.get 8   ; $field_27
+          local.get 6   ; $add_checked_23
           call.import 1   ; std_core$byte_at
           i32.const 117
           i32.eq
           if $L5 void
             local.field 0 31 1   ; arg 0 json$Parser.pos
             ref.cast 8   ; i64
-            local.set 6   ; $add_checked_24
+            local.set 6   ; $add_checked_23
             local.field 0 31 1   ; arg 0 json$Parser.pos
             ref.cast 8   ; i64
             i64.const 2
             i64.checked_add
-            local.set 7   ; $call_26
+            local.set 7   ; $call_25
             local.get 0   ; arg 0
-            local.get 7   ; $call_26
+            local.get 7   ; $call_25
             struct.set 31 1   ; json$Parser.pos
             local.get 0   ; arg 0
             call 80   ; json$read_hex4
@@ -6590,19 +6590,19 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
               if $L7 void
                 local.get 2   ; hi_val
                 i32.to_i32
-                local.set 9   ; $cast_51
+                local.set 9   ; $cast_50
                 local.get 3   ; hi
-                local.get 9   ; $cast_51
+                local.get 9   ; $cast_50
                 call 88   ; std_string$combine_surrogates
-                local.set 5   ; $cast_19
+                local.set 5   ; $cast_18
                 local.get 1   ; arg 1
-                local.get 5   ; $cast_19
+                local.get 5   ; $cast_18
                 call 93   ; std_string_builder$append_char
                 return.lit bool.const true
               end $L7
             end $L6
             local.get 0   ; arg 0
-            local.get 6   ; $add_checked_24
+            local.get 6   ; $add_checked_23
             struct.set 31 1   ; json$Parser.pos
           end $L5
         end $L4
@@ -6610,9 +6610,9 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
     end $L2
     i32.const 65533
     i32.to_char
-    local.set 10   ; $cast_55
+    local.set 10   ; $cast_54
     local.get 1   ; arg 1
-    local.get 10   ; $cast_55
+    local.get 10   ; $cast_54
     call 93   ; std_string_builder$append_char
     return.lit bool.const true
   end $L1
@@ -6639,9 +6639,9 @@ fn 79 json$decode_unicode_escape (ref,ref) -> bool
   end $L8
   local.get 3   ; hi
   u32.to_char
-  local.set 5   ; $cast_19
+  local.set 5   ; $cast_18
   local.get 1   ; arg 1
-  local.get 5   ; $cast_19
+  local.get 5   ; $cast_18
   call 93   ; std_string_builder$append_char
   return.lit bool.const true
 end

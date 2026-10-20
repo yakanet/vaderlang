@@ -63,16 +63,15 @@
   }
   snippet.to_chr :: fn(x: i32) -> char {  // snippet$to_chr
       {
-          __in_range_0: i32 = x
-          if __in_range_0 < 0 {
+          if x < 0 {
               @unreachable("value out of range: no Unicode scalar value")
           }
-          if __in_range_0 > 55295 {
-              if (__in_range_0 < 57344) || (__in_range_0 > 1114111) {
+          if x > 55295 {
+              if (x < 57344) || (x > 1114111) {
                   @unreachable("value out of range: no Unicode scalar value")
               }
           }
-          char(__in_range_0)
+          char(x)
       } :char
   }
   snippet.from_chr :: fn(x: char) -> i32 {  // snippet$from_chr

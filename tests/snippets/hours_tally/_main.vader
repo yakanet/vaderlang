@@ -1,0 +1,45 @@
+// A value narrowed to `Hour` while stored in an `i64` is read as it is stored: it
+// joins an `i64` sum without a conversion, a `match` on it tests it in the `i64`
+// it is stored in, as does a test against an `i64` constant, and `Hour(x)` on a
+// parameter tests the parameter itself.
+
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+
+LIMIT: i64: 256
+
+tally :: fn(xs: i64[]) -> i64 {
+    total: i64 = 0
+    for x in xs {
+        if x in Hour {
+            total += x
+            match x {
+                0      -> { total += 100 }
+                12     -> { total += 200 }
+                0..=11 -> { total += 300 }
+                _      -> { total += 400 }
+            }
+        }
+    }
+    return total
+}
+
+hour_of :: fn(raw: i64) -> Hour = Hour(raw)
+
+below_limit :: fn(n: i64) -> bool {
+    if n in Hour {
+        return n < LIMIT && LIMIT > n
+    }
+    return false
+}
+
+main :: fn() -> i32 {
+    xs: i64[]: [0, 5, 12, 23, 24, -1, 30, 11]
+    println("${tally(xs)}")
+    println("${hour_of(17)}")
+    println("${below_limit(7)} ${below_limit(300)}")
+    return 0
+}

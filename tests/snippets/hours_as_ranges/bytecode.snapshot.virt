@@ -127,25 +127,23 @@ fn 3 snippet$later (ref,ref) -> bool
 end
 
 fn 4 snippet$parse_hour (i32) -> u8
-  local __in_range_0 i32
   local or_res bool
   local.get 0   ; arg 0
-  local.tee 1   ; __in_range_0
   i32.const 0
   i32.lt
   if $L0 void
     bool.const true
-    local.set 2   ; or_res
+    local.set 1   ; or_res
   else
-    local.get 1   ; __in_range_0
+    local.get 0   ; arg 0
     i32.const 23
     i32.gt
-    local.set 2   ; or_res
+    local.set 1   ; or_res
   end $L0
-  local.get 2   ; or_res
+  local.get 1   ; or_res
   if $L1 void
   else
-    local.get 1   ; __in_range_0
+    local.get 0   ; arg 0
     i32.to_i32
     i32.const 255
     i32.bitand
@@ -224,7 +222,6 @@ fn 8 snippet$first_free (ref) -> any
   local __fuse_len_0 i64
   local __fuse_i_1 i64
   local x u8
-  local __in_range_3 i32
   local or_res bool
   i32.const 0
   local.set 1   ; h
@@ -283,22 +280,21 @@ fn 8 snippet$first_free (ref) -> any
         br $L0
       end $L6
       local.get 1   ; h
-      local.tee 8   ; __in_range_3
       i32.const 0
       i32.lt
       if $L7 void
         bool.const true
-        local.set 9   ; or_res
+        local.set 8   ; or_res
       else
-        local.get 8   ; __in_range_3
+        local.get 1   ; h
         i32.const 23
         i32.gt
-        local.set 9   ; or_res
+        local.set 8   ; or_res
       end $L7
-      local.get 9   ; or_res
+      local.get 8   ; or_res
       if $L8 void
       else
-        local.get 8   ; __in_range_3
+        local.get 1   ; h
         i32.to_i32
         i32.const 255
         i32.bitand

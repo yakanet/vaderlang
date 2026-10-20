@@ -154,7 +154,8 @@ checked_into_range :: fn(
 
 // `value` converted into a value of `result`, the program stopped with `reason` where
 // it lies in none of `runs`. Only what `source`, the values it can take, does not
-// already decide is tested, on the value held as a range of `source`.
+// already decide is tested, on the value itself when it is stable, else on a local
+// holding it as a range of `source`.
 checked_into :: fn(
     ctx: FnLowerCtx,
     value: LoweredExpr,
@@ -169,6 +170,10 @@ checked_into :: fn(
         return converted(value, result, span)
     }
     compared :: RangeType { .bounds = known }
+    if is_stable_operand(value) {
+        tests :: stops_outside(value, known, runs, compared, reason, span)
+        return with_prelude(tests, converted(value, result, span), span)
+    }
     stmts: LoweredStmt[]: []
     bound :: bind_to_local(ctx, value, compared, "in_range", span, stmts)
     stmts.push_all(stops_outside(bound, known, runs, compared, reason, span))

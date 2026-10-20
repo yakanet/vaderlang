@@ -134,9 +134,9 @@ static vader_string_t snippet_through_field(void* l0) {
 static int32_t snippet_main(void) {
     void* l0 = NULL;
     vader_string_t l1 = 0;
-    int64_t l2, l3, l5, l8;
+    int64_t l2, l3, l6, l8;
     uint8_t l4;
-    uint32_t l6;
+    uint32_t l5;
     bool l7;
     void* t0 = NULL;
     vader_string_t t1 = 0;
@@ -182,23 +182,23 @@ static int32_t snippet_main(void) {
 #line 130 "lib/std/string/string.vader"
             std_core_decode_tail(l1, l4, l2, &t2, &t3);
             l8 = t3;
-            l6 = t2;
-            l5 = l8;
+            l5 = t2;
+            l6 = l8;
 #line 131 "lib/std/string/string.vader"
-            l2 = vader_chk_add(i64, l2, l5);
+            l2 = vader_chk_add(i64, l2, l6);
 #line 132 "lib/std/string/string.vader"
-            if ((l6 > INT32_C(55295))) {
-                if ((l6 < INT32_C(57344))) {
+            if ((l5 > INT32_C(55295))) {
+                if ((l5 < INT32_C(57344))) {
                     l7 = true;
                 } else {
-                    l7 = (l6 > INT32_C(1114111));
+                    l7 = (l5 > INT32_C(1114111));
                 }
                 if (l7) {
                     vader_unreachable("value out of range: no Unicode scalar value");
                 }
             }
 #line 28 "tests/snippets/free_fn_namesakes/_main.vader"
-            t1 = std_core_char_Display_to_string(((uint32_t) (uint32_t) l6));
+            t1 = std_core_char_Display_to_string(((uint32_t) (uint32_t) l5));
             std_io_println__string(t1);
 #line 129 "lib/std/string/string.vader"
             continue;

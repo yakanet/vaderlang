@@ -95,7 +95,7 @@ fn 1 snippet$main (ref) -> i32
   local __for_i_3 i64
   local or_res bool
   local hours i32
-  local $cast_95 i32
+  local $cast_94 i32
   i32.const 0
   call 2   ; snippet$Weekday$std_core_Display$to_string
   local.set 1   ; $call_3
@@ -186,17 +186,16 @@ fn 1 snippet$main (ref) -> i32
   call 15   ; std_io$println__string
   i64.const 50
   local.tee 5   ; __for_len_2
-  local.tee 6   ; __for_i_3
   i64.const 0
   i64.eq
   if $L4 void
   else
-    local.get 6   ; __for_i_3
+    local.get 5   ; __for_len_2
     i64.const 50
     i64.eq
     if $L5 void
     else
-      local.get 6   ; __for_i_3
+      local.get 5   ; __for_len_2
       i64.const 100
       i64.eq
       if $L6 void
@@ -205,7 +204,7 @@ fn 1 snippet$main (ref) -> i32
       end $L6
     end $L5
   end $L4
-  local.get 6   ; __for_i_3
+  local.get 5   ; __for_len_2
   i64.to_i32
   i32.const 255
   i32.bitand
@@ -282,9 +281,9 @@ fn 1 snippet$main (ref) -> i32
     if $L10 void
       local.get 3   ; __for_v_0
       u8.to_i32
-      local.set 9   ; $cast_95
+      local.set 9   ; $cast_94
       local.get 8   ; hours
-      local.get 9   ; $cast_95
+      local.get 9   ; $cast_94
       i32.checked_add
       local.set 8   ; hours
       local.get 3   ; __for_v_0
@@ -297,7 +296,7 @@ fn 1 snippet$main (ref) -> i32
     end $L10
   end $L9
   i32.const 0
-  local.set 9   ; $cast_95
+  local.set 9   ; $cast_94
   i32.const 0
   local.tee 3   ; __for_v_0
   i32.const 255
@@ -306,10 +305,10 @@ fn 1 snippet$main (ref) -> i32
   loop $L11 void
     local.get 7   ; or_res
     if $L12 void
-      local.get 9   ; $cast_95
+      local.get 9   ; $cast_94
       i32.const 1
       i32.checked_add
-      local.set 9   ; $cast_95
+      local.set 9   ; $cast_94
       local.get 3   ; __for_v_0
       i32.const 255
       u32.lt
@@ -341,7 +340,7 @@ fn 1 snippet$main (ref) -> i32
   string.const 5   ; " "
   call 8   ; std_core$write_string_at
   local.set 5   ; __for_len_2
-  local.get 9   ; $cast_95
+  local.get 9   ; $cast_94
   i32.to_i64
   local.set 6   ; __for_i_3
   local.get 4   ; __for_arr_1

@@ -1124,7 +1124,7 @@ field_read_type :: fn(
     holder: LocalId,
     place: LoweredFieldAccess | LoweredUnionField,
 ) -> Type {
-    if held_integer(place.type) == null {
+    if !is_stored_as_integer(place.type) {
         return place.type
     }
     return read_type(place_slot(fn_ctx, holder, place), place.type)
@@ -1158,11 +1158,11 @@ build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
 }
 
 // A binary operation is computed in an integer holding both operands' values and
-// its result's (`computation_width`), each operand converted to it as it is built ;
+// its result's (`binary_width`), each operand converted to it as it is built ;
 // the result is then held as its own type's integer.
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if is_short_circuit_op(e.op) { return build_short_circuit(fn_ctx, e, null) }
-    width :: computation_width(e.left.type, e.right.type, e.type)
+    width :: binary_width(fn_ctx, e)
     lhs :: build_held(fn_ctx, e.left, width) ?? return null
     rhs :: build_held(fn_ctx, e.right, width) ?? return null
     computed :: computed_type(e.type, width)
@@ -1171,6 +1171,47 @@ build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
         .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = computed, .span = e.span,
     })
     return held_in(fn_ctx, dst, e.type, e.span)
+}
+
+// The integer `e` is computed in (`computation_width`) ; a test of a narrowed local
+// against a constant compares in the integer the local is stored in (`stored_test`),
+// so the local is read as it is stored.
+binary_width :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> RangeType | null {
+    if !is_stored_as_integer(e.type) {
+        stored :: stored_test(fn_ctx, e)
+        if stored != null {
+            return stored
+        }
+    }
+    return computation_width(e.left.type, e.right.type, e.type)
+}
+
+// The integer the test `e` compares in when one operand is a constant and the other
+// a local the typecheck narrowed (`narrowed_local_width`) ; null otherwise.
+stored_test :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> RangeType | null {
+    if e.right is LoweredIntLit {
+        return narrowed_local_width(fn_ctx, e.left, e.right.type)
+    }
+    if e.left is LoweredIntLit {
+        return narrowed_local_width(fn_ctx, e.right, e.left.type)
+    }
+    return null
+}
+
+// The integer holding `e`, a local the typecheck narrowed to a range held in another
+// integer, as it is stored, and a constant of type `constant` ; null when `e` is no
+// such local.
+narrowed_local_width :: fn(fn_ctx: FnCtx, e: LoweredExpr, constant: Type) -> RangeType | null {
+    if e !is LoweredIdent {
+        return null
+    }
+    slot :: fn_ctx.local_by_sym_id[e.symbol.id] ?? return null
+    stored :: fn_ctx.locals[i64(slot)].type
+    if !narrowed_read(stored, e.type) {
+        return null
+    }
+    held :: held_integer(stored) ?? return null
+    return computation_width(stored, constant, TY_BOOL) ?? machine_integer_type(held)
 }
 
 build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
@@ -1506,18 +1547,23 @@ build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
 // stored one gives the same integer (`i64(n)` past `n in Hour` reads `n` once, not
 // as a byte widened back).
 build_cast_source :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
-    if held_integer(e.type) == null {
+    if !is_stored_as_integer(e.type) {
         return build_expr(fn_ctx, e.value)
     }
-    source :: e.value
+    return build_stored(fn_ctx, e.value)
+}
+
+// `e` built as its slot stores it when it is a read, a read the typecheck narrowed
+// left unconverted for its caller to convert once ; any other value as it builds.
+build_stored :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
     // @partial: only a read has a form stored apart from its use ; any other value
     // builds as it is.
-    @partial match source {
-        is LoweredIdent       -> { return stored_ident(fn_ctx, source) }
-        is LoweredFieldAccess -> { return stored_field(fn_ctx, source) }
-        is LoweredUnionField  -> { return stored_union_field(fn_ctx, source) }
-        is LoweredCellGet     -> { return stored_cell(fn_ctx, source) }
-        _ -> { return build_expr(fn_ctx, source) }
+    @partial match e {
+        is LoweredIdent       -> { return stored_ident(fn_ctx, e) }
+        is LoweredFieldAccess -> { return stored_field(fn_ctx, e) }
+        is LoweredUnionField  -> { return stored_union_field(fn_ctx, e) }
+        is LoweredCellGet     -> { return stored_cell(fn_ctx, e) }
+        _ -> { return build_expr(fn_ctx, e) }
     }
 }
 
@@ -1637,21 +1683,26 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
 // Bookkeeping helpers
 // ============================================================================
 
-// `e`, built, as a slot of type `slot` holds it (`held_in`) : an integer literal the
-// slot's integer holds is built at that integer, with nothing left to convert.
+// `e`, built, as a slot of type `slot` holds it : an integer literal the slot's
+// integer holds is built at that integer, with nothing left to convert ; an integer
+// read is taken as it is stored and converted once (`held_use_in`).
 build_held :: fn(fn_ctx: FnCtx, e: LoweredExpr, slot: Type | null) -> LocalId | null {
     if fn_ctx.current is null {
         return null
     }
     if e is LoweredIntLit {
-        target :: stored_conversion(e.type, slot)
-        if target != null && holds_value(target.values, e.value) {
+        target :: stored_conversion(e.type, slot) ?? return build_expr(fn_ctx, e)
+        if holds_value(target.values, e.value) {
             constant :: ConstInt { .value = e.value }
             return emit_const(fn_ctx, machine_integer_type(target), constant, e.span)
         }
     }
-    value :: build_expr(fn_ctx, e) ?? return null
-    return held_in(fn_ctx, value, slot, e.span)
+    if !is_stored_as_integer(e.type) {
+        value :: build_expr(fn_ctx, e) ?? return null
+        return held_in(fn_ctx, value, slot, e.span)
+    }
+    stored :: build_stored(fn_ctx, e) ?? return null
+    return held_use_in(fn_ctx, stored, e.type, slot, e.span)
 }
 
 emit :: fn(fn_ctx: FnCtx, instr: Instruction) -> void {

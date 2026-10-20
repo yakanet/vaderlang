@@ -1276,13 +1276,13 @@ fn 22 std_string$to_lower (string) -> string
   local __in_range_0 u32
   local or_res bool
   local $cast_28 char
+  local code u32
   local width i64
-  local __in_range_1 u32
   local or_res bool
   local __in_range_0 u32
   local or_res bool
-  local $cast_58 char
-  local $call_elem_61 i64
+  local $cast_57 char
+  local $call_elem_60 i64
   array.new 20 0   ; string[]
   struct.new 19   ; std_string_builder$StringBuilder
   local.set 1   ; sb
@@ -1346,26 +1346,26 @@ fn 22 std_string$to_lower (string) -> string
       local.get 5   ; b
       local.get 3   ; i
       call 16   ; std_core$decode_tail
-      local.set 15   ; $call_elem_61
-      local.set 10   ; __in_range_1
-      local.get 15   ; $call_elem_61
-      local.set 9   ; width
+      local.set 15   ; $call_elem_60
+      local.set 9   ; code
+      local.get 15   ; $call_elem_60
+      local.set 10   ; width
       local.get 3   ; i
-      local.get 9   ; width
+      local.get 10   ; width
       i64.checked_add
       local.set 3   ; i
-      local.get 10   ; __in_range_1
+      local.get 9   ; code
       i32.const 55295
       u32.gt
       if $L6 void
-        local.get 10   ; __in_range_1
+        local.get 9   ; code
         i32.const 57344
         u32.lt
         if $L7 void
           bool.const true
           local.set 11   ; or_res
         else
-          local.get 10   ; __in_range_1
+          local.get 9   ; code
           i32.const 1114111
           u32.gt
           local.set 11   ; or_res
@@ -1375,7 +1375,7 @@ fn 22 std_string$to_lower (string) -> string
           unreachable
         end $L8
       end $L6
-      local.get 10   ; __in_range_1
+      local.get 9   ; code
       u32.to_char
       char.to_i32
       call 23   ; std_string$to_lower_cp
@@ -1402,9 +1402,9 @@ fn 22 std_string$to_lower (string) -> string
       end $L9
       local.get 12   ; __in_range_0
       u32.to_char
-      local.set 14   ; $cast_58
+      local.set 14   ; $cast_57
       local.get 1   ; sb
-      local.get 14   ; $cast_58
+      local.get 14   ; $cast_57
       call 24   ; std_string_builder$append_char
       br $L0
     end $L1

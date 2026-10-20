@@ -2564,8 +2564,8 @@ static int64_t std_core_codepoint_offset(vader_string_t l0, int64_t l1, int64_t 
 
 static void std_core_codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* __o0, int64_t* __o1) {
     uint8_t l2;
-    int64_t l3;
-    uint32_t l4;
+    uint32_t l3;
+    int64_t l4;
     bool l5;
     uint32_t t0;
     int64_t t1;
@@ -2579,22 +2579,22 @@ static void std_core_codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* 
     }
 #line 73 "lib/std/core/utf8.vader"
     std_core_decode_tail(l0, l2, l1, &t0, &t1);
-    l3 = t1;
-    l4 = t0;
+    l4 = t1;
+    l3 = t0;
 #line 74 "lib/std/core/utf8.vader"
-    if ((l4 > INT32_C(55295))) {
-        if ((l4 < INT32_C(57344))) {
+    if ((l3 > INT32_C(55295))) {
+        if ((l3 < INT32_C(57344))) {
             l5 = true;
         } else {
-            l5 = (l4 > INT32_C(1114111));
+            l5 = (l3 > INT32_C(1114111));
         }
         if (l5) {
             vader_unreachable("value out of range: no Unicode scalar value");
         } else {
-            *__o1 = l3; *__o0 = ((uint32_t) (uint32_t) l4); return;
+            *__o1 = l4; *__o0 = ((uint32_t) (uint32_t) l3); return;
         }
     } else {
-        *__o1 = l3; *__o0 = ((uint32_t) (uint32_t) l4); return;
+        *__o1 = l4; *__o0 = ((uint32_t) (uint32_t) l3); return;
     }
 }
 

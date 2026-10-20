@@ -28,13 +28,12 @@
                   width: i64 = __tup_0._1
                   i = i + width
                   c: char = {
-                      __in_range_1: u32 = code
-                      if __in_range_1 > u32(55295) {
-                          if (__in_range_1 < u32(57344)) || (__in_range_1 > u32(1114111)) {
+                      if code > u32(55295) {
+                          if (code < u32(57344)) || (code > u32(1114111)) {
                               @unreachable("value out of range: no Unicode scalar value")
                           }
                       }
-                      char(__in_range_1)
+                      char(code)
                   }
                   std.io.println<string>(std.core.char.to_string(c))
               }

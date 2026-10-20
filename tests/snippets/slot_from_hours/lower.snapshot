@@ -3,11 +3,10 @@
 ## snippet
   snippet.slot_of :: fn(x: i32) -> Slot {  // snippet$slot_of
       Slot({
-          __in_range_0: i32 = x
-          if (__in_range_0 < 0) || (__in_range_0 > 23) {
+          if (x < 0) || (x > 23) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
-          __in_range_0
+          Hour(x)
       } :Hour)
   }
   snippet.main :: fn() -> i32 {  // snippet$main

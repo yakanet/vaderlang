@@ -146,11 +146,10 @@
   }
   snippet.exactly<Month> :: fn(n: i64) -> Month {  // snippet$exactly__Int_in_1___12
       {
-          __in_range_0: i64 = n
-          if (__in_range_0 < i64(1)) || (__in_range_0 > i64(12)) {
+          if (n < i64(1)) || (n > i64(12)) {
               @unreachable("value out of range: not in `Month` (1..=12)")
           }
-          __in_range_0
+          Month(n)
       } :Month
   }
   concat_2 :: fn(p0: string, p1: string) -> string {

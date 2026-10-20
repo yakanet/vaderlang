@@ -533,8 +533,8 @@ end
 
 fn 5 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local b u8
+  local code u32
   local width i64
-  local __in_range_1 u32
   local or_res bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
@@ -552,20 +552,20 @@ fn 5 std_core$codepoint_at_byte (string,i64) -> (char,i64)
   local.get 2   ; b
   local.get 1   ; arg 1
   call 3   ; std_core$decode_tail
-  local.set 3   ; width
-  local.set 4   ; __in_range_1
-  local.get 4   ; __in_range_1
+  local.set 4   ; width
+  local.set 3   ; code
+  local.get 3   ; code
   i32.const 55295
   u32.gt
   if $L1 void
-    local.get 4   ; __in_range_1
+    local.get 3   ; code
     i32.const 57344
     u32.lt
     if $L2 void
       bool.const true
       local.set 5   ; or_res
     else
-      local.get 4   ; __in_range_1
+      local.get 3   ; code
       i32.const 1114111
       u32.gt
       local.set 5   ; or_res
@@ -574,15 +574,15 @@ fn 5 std_core$codepoint_at_byte (string,i64) -> (char,i64)
     if $L3 void
       unreachable
     else
-      local.get 4   ; __in_range_1
+      local.get 3   ; code
       u32.to_char
-      local.get 3   ; width
+      local.get 4   ; width
       return
     end $L3
   else
-    local.get 4   ; __in_range_1
+    local.get 3   ; code
     u32.to_char
-    local.get 3   ; width
+    local.get 4   ; width
     return
   end $L1
 end
@@ -1750,10 +1750,10 @@ fn 17 semver$is_all_digits (string) -> bool
   local i i64
   local $call_6 i64
   local b u8
+  local code u32
   local width i64
-  local __in_range_1 u32
   local or_res bool
-  local $call_elem_40 i64
+  local $call_elem_39 i64
   local.get 0   ; arg 0
   call 46   ; std_string$is_empty
   if $L0 void
@@ -1795,26 +1795,26 @@ fn 17 semver$is_all_digits (string) -> bool
       local.get 4   ; b
       local.get 2   ; i
       call 3   ; std_core$decode_tail
-      local.set 8   ; $call_elem_40
-      local.set 6   ; __in_range_1
-      local.get 8   ; $call_elem_40
-      local.set 5   ; width
+      local.set 8   ; $call_elem_39
+      local.set 5   ; code
+      local.get 8   ; $call_elem_39
+      local.set 6   ; width
       local.get 2   ; i
-      local.get 5   ; width
+      local.get 6   ; width
       i64.checked_add
       local.set 2   ; i
-      local.get 6   ; __in_range_1
+      local.get 5   ; code
       i32.const 55295
       u32.gt
       if $L5 void
-        local.get 6   ; __in_range_1
+        local.get 5   ; code
         i32.const 57344
         u32.lt
         if $L6 void
           bool.const true
           local.set 7   ; or_res
         else
-          local.get 6   ; __in_range_1
+          local.get 5   ; code
           i32.const 1114111
           u32.gt
           local.set 7   ; or_res
@@ -1824,7 +1824,7 @@ fn 17 semver$is_all_digits (string) -> bool
           unreachable
         end $L7
       end $L5
-      local.get 6   ; __in_range_1
+      local.get 5   ; code
       u32.to_char
       call 59   ; std_char$is_digit
       if $L8 void
@@ -1844,11 +1844,11 @@ fn 18 semver$validate_prerelease_id (string) -> string
   local $call_8 i64
   local b u8
   local c char
+  local code u32
   local width i64
   local c char
-  local __in_range_1 u32
   local or_res bool
-  local $call_elem_58 i64
+  local $call_elem_57 i64
   local.get 0   ; arg 0
   call 46   ; std_string$is_empty
   if $L0 void
@@ -1905,26 +1905,26 @@ fn 18 semver$validate_prerelease_id (string) -> string
       local.get 5   ; b
       local.get 3   ; i
       call 3   ; std_core$decode_tail
-      local.set 11   ; $call_elem_58
-      local.set 9   ; __in_range_1
-      local.get 11   ; $call_elem_58
-      local.set 7   ; width
+      local.set 11   ; $call_elem_57
+      local.set 7   ; code
+      local.get 11   ; $call_elem_57
+      local.set 8   ; width
       local.get 3   ; i
-      local.get 7   ; width
+      local.get 8   ; width
       i64.checked_add
       local.set 3   ; i
-      local.get 9   ; __in_range_1
+      local.get 7   ; code
       i32.const 55295
       u32.gt
       if $L7 void
-        local.get 9   ; __in_range_1
+        local.get 7   ; code
         i32.const 57344
         u32.lt
         if $L8 void
           bool.const true
           local.set 10   ; or_res
         else
-          local.get 9   ; __in_range_1
+          local.get 7   ; code
           i32.const 1114111
           u32.gt
           local.set 10   ; or_res
@@ -1934,20 +1934,20 @@ fn 18 semver$validate_prerelease_id (string) -> string
           unreachable
         end $L9
       end $L7
-      local.get 9   ; __in_range_1
+      local.get 7   ; code
       u32.to_char
-      local.tee 8   ; c
+      local.tee 9   ; c
       call 60   ; std_char$is_alnum
       if $L10 void
       else
-        local.get 8   ; c
+        local.get 9   ; c
         char.const 45
         i32.ne
         if $L11 void
           return.lit string.const 26   ; "invalid character in prerelease identifier"
         end $L11
       end $L10
-      local.get 8   ; c
+      local.get 9   ; c
       call 59   ; std_char$is_digit
       if $L12 void
       else
@@ -1985,11 +1985,11 @@ fn 19 semver$validate_build_id (string) -> string
   local $call_6 i64
   local b u8
   local c char
+  local code u32
   local width i64
   local c char
-  local __in_range_1 u32
   local or_res bool
-  local $call_elem_44 i64
+  local $call_elem_43 i64
   local.get 0   ; arg 0
   call 46   ; std_string$is_empty
   if $L0 void
@@ -2037,26 +2037,26 @@ fn 19 semver$validate_build_id (string) -> string
       local.get 4   ; b
       local.get 2   ; i
       call 3   ; std_core$decode_tail
-      local.set 10   ; $call_elem_44
-      local.set 8   ; __in_range_1
-      local.get 10   ; $call_elem_44
-      local.set 6   ; width
+      local.set 10   ; $call_elem_43
+      local.set 6   ; code
+      local.get 10   ; $call_elem_43
+      local.set 7   ; width
       local.get 2   ; i
-      local.get 6   ; width
+      local.get 7   ; width
       i64.checked_add
       local.set 2   ; i
-      local.get 8   ; __in_range_1
+      local.get 6   ; code
       i32.const 55295
       u32.gt
       if $L6 void
-        local.get 8   ; __in_range_1
+        local.get 6   ; code
         i32.const 57344
         u32.lt
         if $L7 void
           bool.const true
           local.set 9   ; or_res
         else
-          local.get 8   ; __in_range_1
+          local.get 6   ; code
           i32.const 1114111
           u32.gt
           local.set 9   ; or_res
@@ -2066,13 +2066,13 @@ fn 19 semver$validate_build_id (string) -> string
           unreachable
         end $L8
       end $L6
-      local.get 8   ; __in_range_1
+      local.get 6   ; code
       u32.to_char
-      local.tee 7   ; c
+      local.tee 8   ; c
       call 60   ; std_char$is_alnum
       if $L9 void
       else
-        local.get 7   ; c
+        local.get 8   ; c
         char.const 45
         i32.ne
         if $L10 void
@@ -2168,11 +2168,11 @@ fn 21 semver$is_bare_operator (string) -> bool
   local $call_6 i64
   local b u8
   local c char
+  local code u32
   local width i64
   local c char
-  local __in_range_1 u32
   local or_res bool
-  local $call_elem_58 i64
+  local $call_elem_57 i64
   local.get 0   ; arg 0
   call 46   ; std_string$is_empty
   if $L0 void
@@ -2235,26 +2235,26 @@ fn 21 semver$is_bare_operator (string) -> bool
       local.get 4   ; b
       local.get 2   ; i
       call 3   ; std_core$decode_tail
-      local.set 10   ; $call_elem_58
-      local.set 8   ; __in_range_1
-      local.get 10   ; $call_elem_58
-      local.set 6   ; width
+      local.set 10   ; $call_elem_57
+      local.set 6   ; code
+      local.get 10   ; $call_elem_57
+      local.set 7   ; width
       local.get 2   ; i
-      local.get 6   ; width
+      local.get 7   ; width
       i64.checked_add
       local.set 2   ; i
-      local.get 8   ; __in_range_1
+      local.get 6   ; code
       i32.const 55295
       u32.gt
       if $L9 void
-        local.get 8   ; __in_range_1
+        local.get 6   ; code
         i32.const 57344
         u32.lt
         if $L10 void
           bool.const true
           local.set 9   ; or_res
         else
-          local.get 8   ; __in_range_1
+          local.get 6   ; code
           i32.const 1114111
           u32.gt
           local.set 9   ; or_res
@@ -2264,25 +2264,25 @@ fn 21 semver$is_bare_operator (string) -> bool
           unreachable
         end $L11
       end $L9
-      local.get 8   ; __in_range_1
+      local.get 6   ; code
       u32.to_char
-      local.tee 7   ; c
+      local.tee 8   ; c
       char.const 60
       i32.ne
       if $L12 void
-        local.get 7   ; c
+        local.get 8   ; c
         char.const 62
         i32.ne
         if $L13 void
-          local.get 7   ; c
+          local.get 8   ; c
           char.const 61
           i32.ne
           if $L14 void
-            local.get 7   ; c
+            local.get 8   ; c
             char.const 126
             i32.ne
             if $L15 void
-              local.get 7   ; c
+              local.get 8   ; c
               char.const 94
               i32.ne
               if $L16 void

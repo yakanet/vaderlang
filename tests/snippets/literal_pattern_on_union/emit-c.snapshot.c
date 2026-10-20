@@ -970,9 +970,9 @@ static void std_io_println__string(vader_string_t l0) {
 static vader_string_t std_string_to_lower(vader_string_t l0) {
     void* l1 = NULL;
     vader_string_t l2 = 0;
-    int64_t l3, l4, l9, l15;
+    int64_t l3, l4, l10, l15;
     uint8_t l5;
-    uint32_t l6, l10, l12;
+    uint32_t l6, l9, l12;
     bool l7, l11, l13;
     uint32_t l8, l14;
     void* t0 = NULL;
@@ -1028,23 +1028,23 @@ static vader_string_t std_string_to_lower(vader_string_t l0) {
 #line 130 "lib/std/string/string.vader"
             std_core_decode_tail(l2, l5, l3, &t1, &t2);
             l15 = t2;
-            l10 = t1;
-            l9 = l15;
+            l9 = t1;
+            l10 = l15;
 #line 131 "lib/std/string/string.vader"
-            l3 = vader_chk_add(i64, l3, l9);
+            l3 = vader_chk_add(i64, l3, l10);
 #line 132 "lib/std/string/string.vader"
-            if ((l10 > INT32_C(55295))) {
-                if ((l10 < INT32_C(57344))) {
+            if ((l9 > INT32_C(55295))) {
+                if ((l9 < INT32_C(57344))) {
                     l11 = true;
                 } else {
-                    l11 = (l10 > INT32_C(1114111));
+                    l11 = (l9 > INT32_C(1114111));
                 }
                 if (l11) {
                     vader_unreachable("value out of range: no Unicode scalar value");
                 }
             }
 #line 399 "lib/std/string/string.vader"
-            l12 = std_string_to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) ((uint32_t) (uint32_t) l10)));
+            l12 = std_string_to_lower_cp((uint32_t) (int32_t) ((int32_t) (uint32_t) ((uint32_t) (uint32_t) l9)));
             if ((l12 > INT32_C(55295))) {
                 if ((l12 < INT32_C(57344))) {
                     l13 = true;

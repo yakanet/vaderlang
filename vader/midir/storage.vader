@@ -12,7 +12,9 @@
 //   of its result, its operands converted to it first (`a + b` on two `0..=200` is
 //   a `u16` sum of two `u8`), its result then held in the integer its type is.
 // - A read the typecheck narrows to a range held in another integer (`n` past
-//   `n in Hour`, `n: i64`) reads the slot as it is stored, then converts.
+//   `n in Hour`, `n: i64`) reads the slot as it is stored, then converts once, to
+//   the integer of where it goes ; a test of a narrowed local against a constant
+//   compares in the integer the local is stored in.
 //
 // `verify.vader` holds every flow point and every operation to this under
 // `--verify`.
@@ -86,6 +88,31 @@ held_in :: fn(fn_ctx: FnCtx, value: LocalId, slot: Type | null, span: Span) -> L
     return cast_local(fn_ctx, value, machine_integer_type(target), "cast", span)
 }
 
+/// `value`, a read of type `use` built as its slot stores it (`build_stored`), as a
+/// slot of type `slot` holds it : converted once, straight from how it is stored to
+/// the integer the slot holds the use in (`stored_conversion`) ; read as the use
+/// (`read_as`) where the slot holds it as it is. The read lies in `use`, so the
+/// stored value converts to that integer as the use would.
+///
+/// @param value  the read, as stored.
+/// @param use    the type the typecheck gave the read.
+/// @param slot   the type of the slot it moves into, or null when unknown.
+/// @return       the local holding the value as the slot does.
+held_use_in :: fn(
+    fn_ctx: FnCtx,
+    value: LocalId,
+    use: Type,
+    slot: Type | null,
+    span: Span,
+) -> LocalId {
+    target :: stored_conversion(use, slot) ?? return read_as(fn_ctx, value, use, span)
+    stored :: held_integer(fn_ctx.locals[i64(value)].type)
+    if stored != null && stored.name == target.name {
+        return value
+    }
+    return cast_local(fn_ctx, value, machine_integer_type(target), "cast", span)
+}
+
 /// `value`, a local of the function `fn_ctx` builds, as a use of type `use` reads
 /// it : itself, or, held in another integer than the use's (a narrowed read), its
 /// conversion into a new local of the use's type.
@@ -148,7 +175,7 @@ same_bounds :: fn(left: RangeType, other: Type | null) -> bool {
     if other is RangeType {
         return same_interval(left.bounds, other.bounds)
     }
-    return other == null || held_integer(other) == null
+    return other == null || !is_stored_as_integer(other)
 }
 
 // The machine integer of `computation_width`.
@@ -185,7 +212,7 @@ operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger 
 /// @param width   the integer it is computed in (`computation_width`), or null.
 computed_type :: fn(result: Type, width: RangeType | null) -> Type {
     known :: width ?? return result
-    if held_integer(result) == null {
+    if !is_stored_as_integer(result) {
         return result
     }
     return known

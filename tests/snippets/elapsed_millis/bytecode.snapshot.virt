@@ -42,8 +42,8 @@ fn 1 snippet$main (ref) -> i32
   local scaled i32
   local wide u32
   local signed i32
-  local $cast_81 u8
-  local $cast_108 u64
+  local $cast_79 u8
+  local $cast_106 u64
   local.get 0   ; arg 0
   array.len
   i64.const 4
@@ -62,9 +62,6 @@ fn 1 snippet$main (ref) -> i32
   end $L1
   local.get 1   ; n
   i64.to_i32
-  i32.const 255
-  i32.bitand
-  u8.to_i32
   i32.const 3600000
   u32.checked_mul
   u32.to_i64
@@ -80,9 +77,8 @@ fn 1 snippet$main (ref) -> i32
   if $L2 void
     local.get 1   ; n
     i64.to_i32
-    i32.const 255
+    i32.const 65535
     i32.bitand
-    u8.to_i32
     i32.const 1000
     u16.checked_mul
     u16.to_i64
@@ -181,9 +177,9 @@ fn 1 snippet$main (ref) -> i32
               i32.to_i32
               i32.const 255
               i32.bitand
-              local.set 11   ; $cast_81
+              local.set 11   ; $cast_79
               local.get 6   ; b
-              local.get 11   ; $cast_81
+              local.get 11   ; $cast_79
               u8.checked_add
               u8.to_i64
               local.tee 3   ; early
@@ -228,10 +224,10 @@ fn 1 snippet$main (ref) -> i32
               local.set 5   ; __off_1
               local.get 7   ; count
               u8.to_i64
-              local.set 12   ; $cast_108
+              local.set 12   ; $cast_106
               local.get 4   ; __buf_0
               local.get 5   ; __off_1
-              local.get 12   ; $cast_108
+              local.get 12   ; $cast_106
               call 6   ; std_core$write_unsigned
               local.set 5   ; __off_1
               local.get 4   ; __buf_0
