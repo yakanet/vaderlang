@@ -11,35 +11,35 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(28))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "u8 sum: ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(a +% b))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, a +% b)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(35))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "u8 difference: ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(b -% a))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, b -% a)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(32))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "u8 product: ")
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(a *% u8(2)))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, a *% u8(2))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(30))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "u8 shift: ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(a << u8(1)))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, a << u8(1))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(35))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "u8 complement: ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(~a))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, ~a)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>(if (a +% b) == u8(44) { "compared sum: cut" } else { "compared sum: wide" } :string)
@@ -49,14 +49,14 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(30))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "compound: ")
-          __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(c))
+          __off_11 = std.core.write_unsigned(__buf_10, __off_11, c)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(30))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "returned: ")
-          __off_13 = std.core.write_unsigned(__buf_12, __off_13, u64(snippet.add_u8(a, b)))
+          __off_13 = std.core.write_unsigned(__buf_12, __off_13, snippet.add_u8(a, b))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       s: i8 = i8(@array.len(argv) + i64(126))
@@ -64,14 +64,14 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(28))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "i8 sum: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(s +% i8(1)))
+          __off_15 = std.core.write_int(__buf_14, __off_15, s +% i8(1))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.io.println<string>({
           __buf_16: Buffer = std.core.new_byte_buffer(i64(33))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "i8 negation: ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(i8(0) -% (s +% i8(1))))
+          __off_17 = std.core.write_int(__buf_16, __off_17, i8(0) -% (s +% i8(1)))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       min: i8 = s +% i8(1)
@@ -79,7 +79,7 @@
           __buf_18: Buffer = std.core.new_byte_buffer(i64(33))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "i8 quotient: ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(min / (i8(@array.len(argv)) - i8(2))))
+          __off_19 = std.core.write_int(__buf_18, __off_19, min / (i8(@array.len(argv)) - i8(2)))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       h: u16 = u16(@array.len(argv) + i64(65534))
@@ -87,7 +87,7 @@
           __buf_20: Buffer = std.core.new_byte_buffer(i64(29))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "u16 sum: ")
-          __off_21 = std.core.write_unsigned(__buf_20, __off_21, u64(h +% u16(1)))
+          __off_21 = std.core.write_unsigned(__buf_20, __off_21, h +% u16(1))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       n: i32 = i32(@array.len(argv)) + 299
@@ -96,35 +96,35 @@
           __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "stored cast: ")
-          __off_23 = std.core.write_unsigned(__buf_22, __off_23, u64(stored))
+          __off_23 = std.core.write_unsigned(__buf_22, __off_23, stored)
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
       std.io.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(29))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "u8 cast: ")
-          __off_25 = std.core.write_unsigned(__buf_24, __off_25, u64(u8(n)))
+          __off_25 = std.core.write_unsigned(__buf_24, __off_25, u8(n))
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
       std.io.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(29))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "i8 cast: ")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(i8(n)))
+          __off_27 = std.core.write_int(__buf_26, __off_27, i8(n))
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       std.io.println<string>({
           __buf_28: Buffer = std.core.new_byte_buffer(i64(30))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "u16 cast: ")
-          __off_29 = std.core.write_unsigned(__buf_28, __off_29, u64(u16(n + 65536)))
+          __off_29 = std.core.write_unsigned(__buf_28, __off_29, u16(n + 65536))
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
       std.io.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(i64(30))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "i16 cast: ")
-          __off_31 = std.core.write_int(__buf_30, __off_31, i64(i16(n + 32768)))
+          __off_31 = std.core.write_int(__buf_30, __off_31, i16(n + 32768))
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
       wide: i64 = i64(n) + i64(4294967296)
@@ -132,28 +132,28 @@
           __buf_32: Buffer = std.core.new_byte_buffer(i64(32))
           __off_33: i64 = 0
           __off_33 = std.core.write_string_at(__buf_32, __off_33, "u32 of i64: ")
-          __off_33 = std.core.write_unsigned(__buf_32, __off_33, u64(u32(wide)))
+          __off_33 = std.core.write_unsigned(__buf_32, __off_33, u32(wide))
           std.core.finish_buffer(__buf_32, __off_33)
       } :string)
       std.io.println<string>({
           __buf_34: Buffer = std.core.new_byte_buffer(i64(31))
           __off_35: i64 = 0
           __off_35 = std.core.write_string_at(__buf_34, __off_35, "u8 of i64: ")
-          __off_35 = std.core.write_unsigned(__buf_34, __off_35, u64(u8(wide)))
+          __off_35 = std.core.write_unsigned(__buf_34, __off_35, u8(wide))
           std.core.finish_buffer(__buf_34, __off_35)
       } :string)
       std.io.println<string>({
           __buf_36: Buffer = std.core.new_byte_buffer(i64(30))
           __off_37: i64 = 0
           __off_37 = std.core.write_string_at(__buf_36, __off_37, "i8 of u8: ")
-          __off_37 = std.core.write_int(__buf_36, __off_37, i64(i8(u8(n + 100))))
+          __off_37 = std.core.write_int(__buf_36, __off_37, i8(u8(n + 100)))
           std.core.finish_buffer(__buf_36, __off_37)
       } :string)
       std.io.println<string>({
           __buf_38: Buffer = std.core.new_byte_buffer(i64(31))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "u16 of i8: ")
-          __off_39 = std.core.write_unsigned(__buf_38, __off_39, u64(u16(i8(n - 301))))
+          __off_39 = std.core.write_unsigned(__buf_38, __off_39, u16(i8(n - 301)))
           std.core.finish_buffer(__buf_38, __off_39)
       } :string)
       std.io.println<string>(if u8(n) == u8(44) { "compared cast: cut" } else { "compared cast: wide" } :string)

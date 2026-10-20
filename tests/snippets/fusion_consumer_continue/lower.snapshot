@@ -108,9 +108,9 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(71))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "take(2) + continue, visits: ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(fused))
+          __off_6 = std.core.write_int(__buf_5, __off_6, fused)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " | ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(lazy))
+          __off_6 = std.core.write_int(__buf_5, __off_6, lazy)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
   }
@@ -132,7 +132,7 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, v)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -145,7 +145,7 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, v)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -171,7 +171,7 @@
                       __buf_4: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_5: i64 = 0
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(v))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, v)
                       std.core.finish_buffer(__buf_4, __off_5)
                   } :string)
               }
@@ -197,9 +197,9 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(42))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(k))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, k)
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, ":")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, v)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -212,9 +212,9 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(42))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(k))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, k)
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, ":")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, v)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -227,9 +227,9 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(42))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(k))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, k)
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, ":")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, v)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -258,9 +258,9 @@
                               __buf_4: Buffer = std.core.new_byte_buffer(i64(42))
                               __off_5: i64 = 0
                               __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                              __off_5 = std.core.write_int(__buf_4, __off_5, i64(k))
+                              __off_5 = std.core.write_int(__buf_4, __off_5, k)
                               __off_5 = std.core.write_string_at(__buf_4, __off_5, ":")
-                              __off_5 = std.core.write_int(__buf_4, __off_5, i64(v))
+                              __off_5 = std.core.write_int(__buf_4, __off_5, v)
                               std.core.finish_buffer(__buf_4, __off_5)
                           } :string)
                       }
@@ -339,9 +339,9 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(84))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "take(2) + continue y from an inner loop: ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(fused))
+          __off_12 = std.core.write_int(__buf_11, __off_12, fused)
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " | ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(lazy))
+          __off_12 = std.core.write_int(__buf_11, __off_12, lazy)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
   }
@@ -392,9 +392,9 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(80))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "chars.indexed + continue, index sum: ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(fused))
+          __off_9 = std.core.write_int(__buf_8, __off_9, fused)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " | ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(lazy))
+          __off_9 = std.core.write_int(__buf_8, __off_9, lazy)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
   }
@@ -434,7 +434,7 @@
                           __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                           __off_1: i64 = 0
                           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                          __off_1 = std.core.write_int(__buf_0, __off_1, i64(x))
+                          __off_1 = std.core.write_int(__buf_0, __off_1, x)
                           std.core.finish_buffer(__buf_0, __off_1)
                       } :string)
                   }
@@ -461,7 +461,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(x))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, x)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
@@ -500,7 +500,7 @@
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
                       __off_3 = std.core.write_int(__buf_2, __off_3, i)
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, ":")
-                      __off_3 = std.core.write_int(__buf_2, __off_3, i64(v))
+                      __off_3 = std.core.write_int(__buf_2, __off_3, v)
                       std.core.finish_buffer(__buf_2, __off_3)
                   } :string)
               }
@@ -536,7 +536,7 @@
                       __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
                       __off_14 = std.core.write_int(__buf_13, __off_14, i)
                       __off_14 = std.core.write_string_at(__buf_13, __off_14, ":")
-                      __off_14 = std.core.write_int(__buf_13, __off_14, i64(v))
+                      __off_14 = std.core.write_int(__buf_13, __off_14, v)
                       std.core.finish_buffer(__buf_13, __off_14)
                   } :string)
               }
@@ -595,9 +595,9 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(69))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "flat_map + continue, sum: ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(fused))
+          __off_6 = std.core.write_int(__buf_5, __off_6, fused)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " | ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(lazy))
+          __off_6 = std.core.write_int(__buf_5, __off_6, lazy)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
   }
@@ -652,9 +652,9 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(66))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "chain + continue, sum: ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(fused))
+          __off_9 = std.core.write_int(__buf_8, __off_9, fused)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " | ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(lazy))
+          __off_9 = std.core.write_int(__buf_8, __off_9, lazy)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
   }
@@ -743,9 +743,9 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(87))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "chain + continue x from an inner loop, sum: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(fused))
+          __off_15 = std.core.write_int(__buf_14, __off_15, fused)
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " | ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(lazy))
+          __off_15 = std.core.write_int(__buf_14, __off_15, lazy)
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
   }
@@ -1054,9 +1054,9 @@
                   __buf_2: Buffer = std.core.new_byte_buffer(i64(80))
                   __off_3: i64 = 0
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, "async indexed + continue, index sum: ")
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(__self_4.s1))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, __self_4.s1)
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, " | ")
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(__self_4.s3))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, __self_4.s3)
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               __self_4.state = 1

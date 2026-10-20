@@ -38,7 +38,7 @@
                   __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
                   __off_4: i64 = 0
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, "got=")
-                  __off_4 = std.core.write_int(__buf_3, __off_4, i64(Some(m).value))
+                  __off_4 = std.core.write_int(__buf_3, __off_4, Some(m).value)
                   std.core.finish_buffer(__buf_3, __off_4)
               } :string)
           } else if m is None {
@@ -54,7 +54,7 @@
                   __buf_5: Buffer = std.core.new_byte_buffer(i64(24))
                   __off_6: i64 = 0
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, "got=")
-                  __off_6 = std.core.write_int(__buf_5, __off_6, i64(Some(n).value))
+                  __off_6 = std.core.write_int(__buf_5, __off_6, Some(n).value)
                   std.core.finish_buffer(__buf_5, __off_6)
               } :string)
           } else if n is None {

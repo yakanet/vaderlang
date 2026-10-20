@@ -8,9 +8,9 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(41))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(root.depth))
+          __off_1 = std.core.write_int(__buf_0, __off_1, root.depth)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(grandchild.depth))
+          __off_1 = std.core.write_int(__buf_0, __off_1, grandchild.depth)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       return 0

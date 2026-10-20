@@ -128,7 +128,7 @@
           __buf_37: Buffer = std.core.new_byte_buffer(i64(54))
           __off_38: i64 = 0
           __off_38 = std.core.write_string_at(__buf_37, __off_38, "operand evaluations:              ")
-          __off_38 = std.core.write_int(__buf_37, __off_38, i64(calls[0]))
+          __off_38 = std.core.write_int(__buf_37, __off_38, calls[0])
           std.core.finish_buffer(__buf_37, __off_38)
       } :string)
       return 0

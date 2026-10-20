@@ -362,7 +362,7 @@
               std.io.println<string>({
                   __buf_28: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_29: i64 = 0
-                  __off_29 = std.core.write_int(__buf_28, __off_29, i64(__self_30.s9))
+                  __off_29 = std.core.write_int(__buf_28, __off_29, __self_30.s9)
                   std.core.finish_buffer(__buf_28, __off_29)
               } :string)
               __self_30.state = 1
@@ -381,7 +381,7 @@
               std.io.println<string>({
                   __buf_25: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_26: i64 = 0
-                  __off_26 = std.core.write_int(__buf_25, __off_26, i64(__self_30.s8))
+                  __off_26 = std.core.write_int(__buf_25, __off_26, __self_30.s8)
                   std.core.finish_buffer(__buf_25, __off_26)
               } :string)
               __self_30.state = 4
@@ -400,7 +400,7 @@
               std.io.println<string>({
                   __buf_22: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_23: i64 = 0
-                  __off_23 = std.core.write_int(__buf_22, __off_23, i64(__self_30.s7))
+                  __off_23 = std.core.write_int(__buf_22, __off_23, __self_30.s7)
                   std.core.finish_buffer(__buf_22, __off_23)
               } :string)
               __self_30.state = 7
@@ -419,7 +419,7 @@
               std.io.println<string>({
                   __buf_19: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_20: i64 = 0
-                  __off_20 = std.core.write_int(__buf_19, __off_20, i64(__self_30.s6))
+                  __off_20 = std.core.write_int(__buf_19, __off_20, __self_30.s6)
                   std.core.finish_buffer(__buf_19, __off_20)
               } :string)
               __self_30.state = 10
@@ -438,7 +438,7 @@
               std.io.println<string>({
                   __buf_16: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_17: i64 = 0
-                  __off_17 = std.core.write_int(__buf_16, __off_17, i64(__self_30.s5))
+                  __off_17 = std.core.write_int(__buf_16, __off_17, __self_30.s5)
                   std.core.finish_buffer(__buf_16, __off_17)
               } :string)
               __self_30.state = 13
@@ -457,7 +457,7 @@
               std.io.println<string>({
                   __buf_13: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_14: i64 = 0
-                  __off_14 = std.core.write_int(__buf_13, __off_14, i64(__self_30.s4))
+                  __off_14 = std.core.write_int(__buf_13, __off_14, __self_30.s4)
                   std.core.finish_buffer(__buf_13, __off_14)
               } :string)
               __self_30.state = 16
@@ -476,7 +476,7 @@
               std.io.println<string>({
                   __buf_10: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_11: i64 = 0
-                  __off_11 = std.core.write_int(__buf_10, __off_11, i64(__self_30.s3))
+                  __off_11 = std.core.write_int(__buf_10, __off_11, __self_30.s3)
                   std.core.finish_buffer(__buf_10, __off_11)
               } :string)
               __self_30.state = 19
@@ -495,7 +495,7 @@
               std.io.println<string>({
                   __buf_7: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_8: i64 = 0
-                  __off_8 = std.core.write_int(__buf_7, __off_8, i64(__self_30.s2))
+                  __off_8 = std.core.write_int(__buf_7, __off_8, __self_30.s2)
                   std.core.finish_buffer(__buf_7, __off_8)
               } :string)
               __self_30.state = 22
@@ -514,7 +514,7 @@
               std.io.println<string>({
                   __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_5: i64 = 0
-                  __off_5 = std.core.write_int(__buf_4, __off_5, i64(__self_30.s1))
+                  __off_5 = std.core.write_int(__buf_4, __off_5, __self_30.s1)
                   std.core.finish_buffer(__buf_4, __off_5)
               } :string)
               __self_30.state = 25
@@ -533,7 +533,7 @@
               std.io.println<string>({
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_2: i64 = 0
-                  __off_2 = std.core.write_int(__buf_1, __off_2, i64(__self_30.s0))
+                  __off_2 = std.core.write_int(__buf_1, __off_2, __self_30.s0)
                   std.core.finish_buffer(__buf_1, __off_2)
               } :string)
               __self_30.state = 28

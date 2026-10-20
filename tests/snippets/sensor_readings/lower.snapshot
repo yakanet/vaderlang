@@ -10,7 +10,7 @@
           __for_i_2: i64 = 0
           for __for_i_2 < __for_len_1 {
               r: u8 = __for_arr_0[__for_i_2]
-              sum = sum + i32(r)
+              sum = sum + r
           } @step {
               __for_i_2 = __for_i_2 +% i64(1)
           }
@@ -18,7 +18,7 @@
       return sum
   }
   snippet.offset :: fn(level: u8, base: i32) -> i32 {  // snippet$offset
-      i32(level) - base
+      level - base
   }
   snippet.louder :: fn(a: u8, b: i32, first: bool) -> i32 {  // snippet$louder
       picked: i32 = if first { a } else { b }
@@ -44,18 +44,18 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "total ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.total(readings)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.total(readings))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, ", offset ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.offset(readings[1], 300)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.offset(readings[1], 300))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(48))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "louder ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.louder(readings[0], -3, true)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.louder(readings[0], -3, true))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.louder(readings[0], -3, false)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.louder(readings[0], -3, false))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       r: Reading = Reading { .level = readings[2], .at = stamp }
@@ -80,7 +80,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(29))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "quietest ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(std.math.min(readings[0], readings[2])))
+          __off_9 = std.core.write_int(__buf_8, __off_9, std.math.min(readings[0], readings[2]))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
@@ -107,7 +107,7 @@
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "window ")
           __off_16 = std.core.write_int(__buf_15, __off_16, since)
           __off_16 = std.core.write_string_at(__buf_15, __off_16, " ")
-          __off_16 = std.core.write_int(__buf_15, __off_16, i64(level))
+          __off_16 = std.core.write_int(__buf_15, __off_16, level)
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       seen: i64 | null = snippet.last_seen(readings)

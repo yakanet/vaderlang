@@ -32,13 +32,13 @@
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(83))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.show<Point>(xs)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.show<Point>(xs))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.through_param(snippet.ORIGIN)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.through_param(snippet.ORIGIN))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(doubled[0]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, doubled[0])
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(doubled[1]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, doubled[1])
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

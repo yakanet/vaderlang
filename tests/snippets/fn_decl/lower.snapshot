@@ -14,7 +14,7 @@
           __p_1: string = snippet.greet("Ada", "Hi")
           __buf_2: Buffer = std.core.new_byte_buffer(i64(22) +% (std.core.byte_len(__p_0) +% std.core.byte_len(__p_1)))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.add(2, 3)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.add(2, 3))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_0)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")

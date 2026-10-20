@@ -33,7 +33,7 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(38))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "variant cast:     ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.green_code()))
+          __off_4 = std.core.write_int(__buf_3, __off_4, snippet.green_code())
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       std.io.println<string>(concat_2("variant argument: ", snippet.name_of(u8(2))))
@@ -43,7 +43,7 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(38))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "distinct cast:    ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(back))
+          __off_6 = std.core.write_int(__buf_5, __off_6, back)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       f: fn(i32) -> i32 = snippet.helper.triple
@@ -52,7 +52,7 @@
           __buf_7: Buffer = std.core.new_byte_buffer(i64(38))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "fn value:         ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(r))
+          __off_8 = std.core.write_int(__buf_7, __off_8, r)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return i32(i64(3))

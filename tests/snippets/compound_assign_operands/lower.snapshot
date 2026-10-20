@@ -56,11 +56,11 @@
           __buf_1: Buffer = std.core.new_byte_buffer(i64(66))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "a = ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[0]))
+          __off_2 = std.core.write_int(__buf_1, __off_2, a[0])
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[1]))
+          __off_2 = std.core.write_int(__buf_1, __off_2, a[1])
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a[2]))
+          __off_2 = std.core.write_int(__buf_1, __off_2, a[2])
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       holder: Holder = Holder { .items = [1, 2] :i32[] }
@@ -72,9 +72,9 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(50))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "holder = ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(holder.items[0]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, holder.items[0])
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(holder.items[1]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, holder.items[1])
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       rows: Row[] = [Row { .cells = [0, 0] :i32[] }, Row { .cells = [0, 0] :i32[] }] :Row[]
@@ -87,7 +87,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(27))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "rows = ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(rows[1].cells[0]))
+          __off_9 = std.core.write_int(__buf_8, __off_9, rows[1].cells[0])
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       shelf: Shelf = Shelf { .items = [Counter { .count = 1 }, Counter { .count = 2 }] :Counter[] }
@@ -99,7 +99,7 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(28))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "shelf = ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(shelf.items[1].count))
+          __off_12 = std.core.write_int(__buf_11, __off_12, shelf.items[1].count)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       shared: Counter = Counter { .count = 0 }
@@ -111,7 +111,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(29))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "shared = ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(shared.count))
+          __off_15 = std.core.write_int(__buf_14, __off_15, shared.count)
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       words: string[] = ["a", "b"] :string[]
@@ -129,7 +129,7 @@
           __buf_18: Buffer = std.core.new_byte_buffer(i64(27))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "cell = ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.Cell.at(cell, i64(2))))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.Cell.at(cell, i64(2)))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       snippet.bump_nth<Cell>(cell, i64(0))
@@ -137,7 +137,7 @@
           __buf_20: Buffer = std.core.new_byte_buffer(i64(30))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "bounded = ")
-          __off_21 = std.core.write_int(__buf_20, __off_21, i64(snippet.Cell.at(cell, i64(0))))
+          __off_21 = std.core.write_int(__buf_20, __off_21, snippet.Cell.at(cell, i64(0)))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       k: @cell<i64> = @cell_new(i64(0))
@@ -150,9 +150,9 @@
           __buf_24: Buffer = std.core.new_byte_buffer(i64(74))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "rebound = ")
-          __off_25 = std.core.write_int(__buf_24, __off_25, i64(a[0]))
+          __off_25 = std.core.write_int(__buf_24, __off_25, a[0])
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " ")
-          __off_25 = std.core.write_int(__buf_24, __off_25, i64(a[2]))
+          __off_25 = std.core.write_int(__buf_24, __off_25, a[2])
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " k=")
           __off_25 = std.core.write_int(__buf_24, __off_25, @cell(k))
           std.core.finish_buffer(__buf_24, __off_25)
@@ -163,7 +163,7 @@
           __buf_26: Buffer = std.core.new_byte_buffer(i64(37))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "default method = ")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(a[0]))
+          __off_27 = std.core.write_int(__buf_26, __off_27, a[0])
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       a[snippet.slot(i64(2))] = a[snippet.slot(i64(2))] + 1
@@ -171,7 +171,7 @@
           __buf_28: Buffer = std.core.new_byte_buffer(i64(34))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "written out = ")
-          __off_29 = std.core.write_int(__buf_28, __off_29, i64(a[2]))
+          __off_29 = std.core.write_int(__buf_28, __off_29, a[2])
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
       return 0

@@ -80,21 +80,21 @@
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(62))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(-5))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.sign(i8(-5)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(0))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.sign(i8(0)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sign(i8(9))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.sign(i8(9)))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(62))
           __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('a')))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.plane('a'))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('\u{1f600}')))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.plane('\u{1f600}'))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.plane('\u{2a6d6}')))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.plane('\u{2a6d6}'))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       off: null | u8 = null

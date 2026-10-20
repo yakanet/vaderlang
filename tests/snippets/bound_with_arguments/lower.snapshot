@@ -25,7 +25,7 @@
           __buf_1: Buffer = std.core.new_byte_buffer(i64(54) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "primitives: ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet.twice<i32>(3)))
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.twice<i32>(3))
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_unsigned(__buf_1, __off_2, snippet.twice<u64>(five))
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -46,21 +46,21 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(34))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "default impl: ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(snippet.twice<Points>(Points { .n = 4 }).n))
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.twice<Points>(Points { .n = 4 }).n)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(31))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "self impl: ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(snippet.twice<Grams>(Grams { .g = 6 }).g))
+          __off_8 = std.core.write_int(__buf_7, __off_8, snippet.twice<Grams>(Grams { .g = 6 }).g)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(35))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "partial bound: ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(snippet.relay<Points>(Points { .n = 5 }).n))
+          __off_10 = std.core.write_int(__buf_9, __off_10, snippet.relay<Points>(Points { .n = 5 }).n)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       std.io.println<string>({
@@ -74,7 +74,7 @@
           __buf_13: Buffer = std.core.new_byte_buffer(i64(34))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "writing impl: ")
-          __off_14 = std.core.write_int(__buf_13, __off_14, i64(snippet.feed<Cfg>(Cfg { .n = 1 })))
+          __off_14 = std.core.write_int(__buf_13, __off_14, snippet.feed<Cfg>(Cfg { .n = 1 }))
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       return 0

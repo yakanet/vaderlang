@@ -36,7 +36,7 @@
       return i32(near) + i32(far)
   }
   snippet.total :: fn(a: Dose, b: Dose) -> i32 {  // snippet$total
-      i32(u16(a) + u16(b))
+      i32(a + b)
   }
   snippet.unwrap :: fn(s: Slot) -> Hour {  // snippet$unwrap
       s
@@ -64,7 +64,7 @@
       std.io.println<string>(names[h])
       n: i64 = 3
       if (i64(0) <= n) && (n <= i64(3)) {
-          std.io.println<string>(names[u8(n)])
+          std.io.println<string>(names[n])
       }
       s: Slot = Slot(Hour(3))
       b: u8 = 3
@@ -76,11 +76,11 @@
           __off_1: i64 = 0
           __off_1 = std.core.write_bool(__buf_0, __off_1, s == b)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, i64(s) == w)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, s == w)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, i64(s) == far)
+          __off_1 = std.core.write_bool(__buf_0, __off_1, s == far)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_bool(__buf_0, __off_1, far == i64(s))
+          __off_1 = std.core.write_bool(__buf_0, __off_1, far == s)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_bool(__buf_0, __off_1, s == near)
           std.core.finish_buffer(__buf_0, __off_1)
@@ -92,9 +92,9 @@
           __off_3: i64 = 0
           __off_3 = std.core.write_bool(__buf_2, __off_3, i == b)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, i32(i) == k)
+          __off_3 = std.core.write_bool(__buf_2, __off_3, i == k)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, k == i32(i))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, k == i)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       tiny: 0..=5 = 4
@@ -103,25 +103,25 @@
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
           __off_5: i64 = 0
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(digit))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, digit)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(62))
           __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.walk(Hour(21), Hour(23))))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.walk(Hour(21), Hour(23)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.later(false, false, Hour(5))))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.later(false, false, Hour(5)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.total(Dose(Wide(150)), Dose(Wide(150)))))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.total(Dose(Wide(150)), Dose(Wide(150))))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(41))
           __off_9: i64 = 0
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.unwrap(Slot(Hour(7)))))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.unwrap(Slot(Hour(7))))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.kept<Hour>(h)))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.kept<Hour>(h))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
@@ -129,7 +129,7 @@
           __off_11: i64 = 0
           __off_11 = std.core.write_int(__buf_10, __off_11, snippet.rebound(i64(5)))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.copied(Hour(1))))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.copied(Hour(1)))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       return 0

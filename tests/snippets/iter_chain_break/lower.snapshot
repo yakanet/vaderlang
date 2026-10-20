@@ -39,7 +39,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(47))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "break in 1st source=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(first))
+          __off_7 = std.core.write_int(__buf_6, __off_7, first)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " want=1")
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
@@ -78,7 +78,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(48))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "break in 2nd source=")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(second))
+          __off_15 = std.core.write_int(__buf_14, __off_15, second)
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " want=16")
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
@@ -117,7 +117,7 @@
           __buf_22: Buffer = std.core.new_byte_buffer(i64(42))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "labelled break=")
-          __off_23 = std.core.write_int(__buf_22, __off_23, i64(labelled))
+          __off_23 = std.core.write_int(__buf_22, __off_23, labelled)
           __off_23 = std.core.write_string_at(__buf_22, __off_23, " want=1")
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
@@ -154,7 +154,7 @@
           __buf_30: Buffer = std.core.new_byte_buffer(i64(37))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "continue=")
-          __off_31 = std.core.write_int(__buf_30, __off_31, i64(kept))
+          __off_31 = std.core.write_int(__buf_30, __off_31, kept)
           __off_31 = std.core.write_string_at(__buf_30, __off_31, " want=44")
           std.core.finish_buffer(__buf_30, __off_31)
       } :string)
@@ -185,7 +185,7 @@
           __buf_38: Buffer = std.core.new_byte_buffer(i64(37))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "no break=")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(whole))
+          __off_39 = std.core.write_int(__buf_38, __off_39, whole)
           __off_39 = std.core.write_string_at(__buf_38, __off_39, " want=66")
           std.core.finish_buffer(__buf_38, __off_39)
       } :string)
@@ -210,7 +210,7 @@
           __buf_43: Buffer = std.core.new_byte_buffer(i64(38))
           __off_44: i64 = 0
           __off_44 = std.core.write_string_at(__buf_43, __off_44, "map+break=")
-          __off_44 = std.core.write_int(__buf_43, __off_44, i64(mapped))
+          __off_44 = std.core.write_int(__buf_43, __off_44, mapped)
           __off_44 = std.core.write_string_at(__buf_43, __off_44, " want=30")
           std.core.finish_buffer(__buf_43, __off_44)
       } :string)
@@ -267,7 +267,7 @@
           __buf_54: Buffer = std.core.new_byte_buffer(i64(40))
           __off_55: i64 = 0
           __off_55 = std.core.write_string_at(__buf_54, __off_55, "nested break=")
-          __off_55 = std.core.write_int(__buf_54, __off_55, i64(nested))
+          __off_55 = std.core.write_int(__buf_54, __off_55, nested)
           __off_55 = std.core.write_string_at(__buf_54, __off_55, " want=6")
           std.core.finish_buffer(__buf_54, __off_55)
       } :string)

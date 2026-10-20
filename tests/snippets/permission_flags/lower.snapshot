@@ -7,19 +7,19 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(r & w))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, r & w)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
           __off_3: i64 = 0
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(r | w))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, r | w)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
           __off_5: i64 = 0
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(r ^ w))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, r ^ w)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
@@ -37,7 +37,7 @@
       std.io.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(20))
           __off_11: i64 = 0
-          __off_11 = std.core.write_unsigned(__buf_10, __off_11, u64(r + w))
+          __off_11 = std.core.write_unsigned(__buf_10, __off_11, r + w)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       pal: Palette = [u8(10), u8(20), u8(30)] :Palette

@@ -24,13 +24,13 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.count(g, A { .n = 0 }, true)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.count(g, A { .n = 0 }, true))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.count(g, B { .m = 0 }, false)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.count(g, B { .m = 0 }, false))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

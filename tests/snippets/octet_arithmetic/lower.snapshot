@@ -15,13 +15,13 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(125))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(next))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, next)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(wrapped))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, wrapped)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(as_byte))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, as_byte)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(held))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, held)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
           __off_1 = std.core.write_unsigned(__buf_0, __off_1, top)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
@@ -31,7 +31,7 @@
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(32))
           __off_3: i64 = 0
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(255))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, Octet(255))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_bool(__buf_2, __off_3, o <= u8(254))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")

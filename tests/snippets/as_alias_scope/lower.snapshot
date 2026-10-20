@@ -30,21 +30,21 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "if=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.if_form(Leaf { .v = 7 })))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.if_form(Leaf { .v = 7 }))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(26))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "match=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.match_form(Leaf { .v = 7 })))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.match_form(Leaf { .v = 7 }))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "defer=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.defer_form(Leaf { .v = 7 })))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.defer_form(Leaf { .v = 7 }))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       return 0
@@ -56,7 +56,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "lf=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(lf.v))
+              __off_1 = std.core.write_int(__buf_0, __off_1, lf.v)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
@@ -71,7 +71,7 @@
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(22))
                       __off_4: i64 = 0
                       __off_4 = std.core.write_string_at(__buf_3, __off_4, "s=")
-                      __off_4 = std.core.write_int(__buf_3, __off_4, i64(Leaf(s).v))
+                      __off_4 = std.core.write_int(__buf_3, __off_4, Leaf(s).v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string)
               }
@@ -81,7 +81,7 @@
                       __buf_1: Buffer = std.core.new_byte_buffer(i64(22))
                       __off_2: i64 = 0
                       __off_2 = std.core.write_string_at(__buf_1, __off_2, "s=")
-                      __off_2 = std.core.write_int(__buf_1, __off_2, i64(Pair(s).l))
+                      __off_2 = std.core.write_int(__buf_1, __off_2, Pair(s).l)
                       std.core.finish_buffer(__buf_1, __off_2)
                   } :string)
               }
@@ -98,7 +98,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "df=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(df.v))
+              __off_1 = std.core.write_int(__buf_0, __off_1, df.v)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }

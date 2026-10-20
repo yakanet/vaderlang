@@ -425,8 +425,10 @@ export default_if_free :: fn(t: Type) -> Type {
     }
 }
 
-// `t` when it is a free literal, the first free member of a union ; null otherwise.
-free_member :: fn(t: Type) -> Type | null {
+/// `t` when it is a free literal, the first free member of a union ; null otherwise.
+///
+/// @param t  any type.
+export free_member :: fn(t: Type) -> Type | null {
     if is_free_numeric(t) {
         return t
     }
@@ -444,7 +446,7 @@ free_member :: fn(t: Type) -> Type | null {
 /// literals lower at their default.
 ///
 /// @param t  the type the binding's value was given.
-default_free_members :: fn(t: Type) -> Type {
+export default_free_members :: fn(t: Type) -> Type {
     variants :: union_variants(t) ?? return default_if_free(t)
     if free_member(t) == null {
         return t

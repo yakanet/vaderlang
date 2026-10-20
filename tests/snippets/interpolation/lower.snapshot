@@ -11,7 +11,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "Hello, ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "! You are ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(age))
+          __off_2 = std.core.write_int(__buf_1, __off_2, age)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " year(s) old.")
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)

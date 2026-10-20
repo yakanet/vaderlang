@@ -14,7 +14,6 @@ type 11 array 4
 type 12 primitive void
 type 13 array 1
 type 14 array 7
-type 15 ref _
 string 0 "minus one"
 string 1 "zero"
 string 2 "other"

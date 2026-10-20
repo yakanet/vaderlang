@@ -8,7 +8,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "rest ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, d)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -17,7 +17,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "work ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, d)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -79,10 +79,10 @@
           __p_2: string = snippet.shared_rest(Weekday(5), Weekday(2))
           __buf_3: Buffer = std.core.new_byte_buffer(i64(28) +% (std.core.byte_len(__p_1) +% std.core.byte_len(__p_2)))
           __off_4: i64 = 0
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64({
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, {
               __coalesce_0: null | u8 = snippet.lie_in(Weekday(6))
               if __coalesce_0 is null { u8(6) } else { u8(__coalesce_0) } :6..=6
-          } :6..=6))
+          } :6..=6)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
           __off_4 = std.core.write_bool(__buf_3, __off_4, snippet.lie_in(Weekday(5)) is null)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
@@ -94,9 +94,9 @@
       std.io.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(41))
           __off_6: i64 = 0
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(snippet.effort(Walk { .km = 4 })))
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.effort(Walk { .km = 4 }))
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(snippet.effort(Swim { .laps = 12 })))
+          __off_6 = std.core.write_int(__buf_5, __off_6, snippet.effort(Swim { .laps = 12 }))
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>(concat_3(snippet.greet("Ada"), " ", snippet.greet(null)))

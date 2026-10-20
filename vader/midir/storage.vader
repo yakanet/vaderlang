@@ -1,12 +1,21 @@
 // vader/midir/storage : the integer a value is held in, at each flow point.
 //
-// A lowered value carries the type the typecheck gave it. Where it moves into a
-// slot (a local, a field, an element, a parameter, a result, a cell, a global),
-// the CFG holds it as the slot does : an integer is converted to the slot's
-// integer when the two differ (an `Hour`, held in a `u8`, into an `i64` slot), an
-// integer literal built at that integer rather than converted. A union slot holds
-// an integer in the variant of its own integer, else in the narrowest holding its
-// values. `verify.vader` holds every flow point to this rule under `--verify`.
+// A lowered value carries the type the typecheck gave it ; the CFG decides what
+// integer holds it, a distinct's being the one it is over.
+//
+// - Where a value moves into a slot (a local, a field, an element, a parameter, a
+//   result, a cell, a global), it is converted to the slot's integer when the two
+//   differ (an `Hour`, held in a `u8`, into an `i64` slot), an integer literal
+//   built at that integer rather than converted. A union slot holds an integer in
+//   the variant of its own integer, else in the narrowest holding its values.
+// - An operation is computed in an integer holding every value of its operands and
+//   of its result, its operands converted to it first (`a + b` on two `0..=200` is
+//   a `u16` sum of two `u8`), its result then held in the integer its type is.
+// - A read the typecheck narrows to a range held in another integer (`n` past
+//   `n in Hour`, `n: i64`) reads the slot as it is stored, then converts.
+//
+// `verify.vader` holds every flow point and every operation to this under
+// `--verify`.
 
 module "vader/midir"
 
@@ -25,14 +34,11 @@ import "vader/types"
 /// @param value  the value's type.
 /// @param slot   the slot's type, or null when unknown.
 stored_conversion :: fn(value: Type, slot: Type | null) -> MachineInteger | null {
-    if value !is RangeType {
-        return null
-    }
     known :: slot ?? return null
-    if known is RangeType && same_interval(value.bounds, known.bounds) {
+    if value is RangeType && known is RangeType && same_interval(value.bounds, known.bounds) {
         return null
     }
-    held :: storage_integer(value)
+    held :: held_integer(value) ?? return null
     target :: integer_member(known, held) ?? return null
     if target.name == held.name {
         return null
@@ -44,13 +50,13 @@ stored_conversion :: fn(value: Type, slot: Type | null) -> MachineInteger | null
 // slot's own, or in a union the variant taking it, `held` itself if it is one,
 // else the narrowest holding its values. Null for a slot holding no integer.
 integer_member :: fn(slot: Type, held: MachineInteger) -> MachineInteger | null {
-    direct :: integer_representation(slot)
+    direct :: held_integer(slot)
     if direct != null || slot !is UnionType {
         return direct
     }
     found: MachineInteger | null = null
     for v in slot.variants {
-        candidate :: integer_representation(v) ?? continue
+        candidate :: held_integer(v) ?? continue
         if candidate.name == held.name {
             return candidate
         }
@@ -77,10 +83,112 @@ narrower :: fn(candidate: MachineInteger, found: MachineInteger | null) -> bool 
 /// @return       the local holding the value as the slot does.
 held_in :: fn(fn_ctx: FnCtx, value: LocalId, slot: Type | null, span: Span) -> LocalId {
     target :: stored_conversion(fn_ctx.locals[i64(value)].type, slot) ?? return value
-    stored :: machine_integer_type(target)
-    dst :: fresh_tmp(fn_ctx, "cast", stored)
-    emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = stored, .span = span })
-    return dst
+    return cast_local(fn_ctx, value, machine_integer_type(target), "cast", span)
+}
+
+/// `value`, a local of the function `fn_ctx` builds, as a use of type `use` reads
+/// it : itself, or, held in another integer than the use's (a narrowed read), its
+/// conversion into a new local of the use's type.
+///
+/// @param value  the value, read at the type its slot is stored at.
+/// @param use    the type the typecheck gave the read.
+read_as :: fn(fn_ctx: FnCtx, value: LocalId, use: Type, span: Span) -> LocalId {
+    if !narrowed_read(fn_ctx.locals[i64(value)].type, use) {
+        return value
+    }
+    return cast_local(fn_ctx, value, use, "cast", span)
+}
+
+/// The type a slot of type `held` is read at for a use of type `use` : its own when
+/// the use holds its values in another integer (`narrowed_read`), else the use's.
+///
+/// @param held  the type the slot is stored at.
+/// @param use   the type the typecheck gave the read.
+read_type :: fn(held: Type, use: Type) -> Type {
+    if narrowed_read(held, use) {
+        return held
+    }
+    return use
+}
+
+// Whether a use of type `use` holds the values of a slot of type `held` in another
+// integer than the slot does : a read the typecheck narrowed to a range.
+narrowed_read :: fn(held: Type, use: Type) -> bool {
+    if held is RangeType && use is RangeType && same_interval(held.bounds, use.bounds) {
+        return false
+    }
+    stored :: held_integer(held) ?? return false
+    used :: held_integer(use) ?? return false
+    return stored.name != used.name
+}
+
+// ---- operations -----------------------------------------------------------
+
+/// The integer type an operation is computed in when the integer types it involves
+/// differ : one holding every value of `left`, `right` and the result's, each read
+/// through any distinct. `Slot == w` (`Slot` over `Hour`, `w: i64`) compares in
+/// `i64`, and `a + b` on a distinct over `Int in 0..=200`, a `0..=400`, adds in `u16`.
+///
+/// @param left    the left operand's type.
+/// @param right   the right operand's type ; null for a unary operation.
+/// @param result  the operation's type : an integer, or the `bool` of a test,
+///                which takes no part.
+/// @return        null when the integer types are one, or an operand is no integer.
+computation_width :: fn(left: Type, right: Type | null, result: Type) -> RangeType | null {
+    if left is RangeType && same_bounds(left, right) && same_bounds(left, result) {
+        return null
+    }
+    width :: computation_integer(left, right, result) ?? return null
+    return machine_integer_type(width)
+}
+
+// Whether `other` is a range of `left`'s bounds, or none (a unary operation, the
+// `bool` of a test holds no integer of its own).
+same_bounds :: fn(left: RangeType, other: Type | null) -> bool {
+    if other is RangeType {
+        return same_interval(left.bounds, other.bounds)
+    }
+    return other == null || held_integer(other) == null
+}
+
+// The machine integer of `computation_width`.
+computation_integer :: fn(left: Type, right: Type | null, result: Type) -> MachineInteger | null {
+    l :: held_integer(left) ?? return null
+    as_integer :: held_integer(result)
+    r :: operand_width(right, l)
+    if r == null {
+        return null
+    }
+    if r.name == l.name && (as_integer == null || as_integer.name == l.name) {
+        return null
+    }
+    values := interval_join(l.values, r.values)
+    if as_integer != null {
+        values = interval_join(values, as_integer.values)
+    }
+    return narrowest_machine_integer(values)
+}
+
+// The integer of the right operand ; `left`'s for a unary operation, null when it
+// is no integer.
+operand_width :: fn(right: Type | null, left: MachineInteger) -> MachineInteger | null {
+    if right == null {
+        return left
+    }
+    return held_integer(right)
+}
+
+/// The type an operation of type `result` computed in `width` gives : that integer,
+/// or `result` itself for a test or when there is no other width.
+///
+/// @param result  the operation's type.
+/// @param width   the integer it is computed in (`computation_width`), or null.
+computed_type :: fn(result: Type, width: RangeType | null) -> Type {
+    known :: width ?? return result
+    if held_integer(result) == null {
+        return result
+    }
+    return known
 }
 
 // ---- slot types -----------------------------------------------------------
@@ -90,6 +198,9 @@ held_in :: fn(fn_ctx: FnCtx, value: LocalId, slot: Type | null, span: Span) -> L
 SlotTypes :: struct {
     /// Each struct's fields, in layout order, by its layout key (`layout_key`).
     fields:          MutableMap<string, CFGStructField[]> = MutableMap<string, CFGStructField[]> {}
+    /// The fields of each struct that takes no type argument, by its symbol : the
+    /// same layout, found without building its key.
+    plain_fields:    MutableMap<i32, CFGStructField[]> = MutableMap<i32, CFGStructField[]> {}
     callees:         CalleeLookup = CalleeLookup {}
     /// Parameter types of each function, at its position in `callees`.
     function_params: Type[][] = []
@@ -100,6 +211,10 @@ SlotTypes :: struct {
 /// Note the fields of the struct `d` lays out.
 note_struct_fields :: fn(slots: SlotTypes, d: CFGStructDecl) -> void {
     slots.fields[layout_key(d.origin, d.mangled)] = d.fields
+    sym :: d.origin.symbol ?? return
+    if d.origin.type_arguments.len() == 0 {
+        slots.plain_fields[sym.id] = d.fields
+    }
 }
 
 /// The key a struct is laid out under : the intern key of its type, or its mangle
@@ -189,8 +304,12 @@ field_slot :: fn(slots: SlotTypes, t: Type, name: string) -> Type | null {
 
 // The fields of the struct a value of type `t` is, in layout order ; null for a
 // type no struct the project lays out is.
-laid_out_fields :: fn(slots: SlotTypes, t: Type) -> CFGStructField[] | null =
-    slots.fields[type_intern_key(t)]
+laid_out_fields :: fn(slots: SlotTypes, t: Type) -> CFGStructField[] | null {
+    if t is StructType && t.args.len() == 0 {
+        return slots.plain_fields[t.symbol.id]
+    }
+    return slots.fields[type_intern_key(t)]
+}
 
 /// The type an element of an array of type `t` is held as ; null for any other
 /// type.

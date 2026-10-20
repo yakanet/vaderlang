@@ -34,7 +34,7 @@
                   __off_3: i64 = 0
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, ": ")
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(Spec(s).arity))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, Spec(s).arity)
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string
           } else {

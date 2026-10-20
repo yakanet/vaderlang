@@ -136,7 +136,7 @@
                   __buf_48: Buffer = std.core.new_byte_buffer(i64(24))
                   __off_49: i64 = 0
                   __off_49 = std.core.write_string_at(__buf_48, __off_49, "    ")
-                  __off_49 = std.core.write_int(__buf_48, __off_49, i64(__self_56.s31))
+                  __off_49 = std.core.write_int(__buf_48, __off_49, __self_56.s31)
                   std.core.finish_buffer(__buf_48, __off_49)
               } :string)
               __self_56.s31 = __self_56.s31 +% 1
@@ -163,7 +163,7 @@
                   __off_45: i64 = 0
                   __off_45 = std.core.write_int(__buf_44, __off_45, @array.len(__self_56.s20))
                   __off_45 = std.core.write_string_at(__buf_44, __off_45, " ")
-                  __off_45 = std.core.write_int(__buf_44, __off_45, i64(__self_56.s20[3]))
+                  __off_45 = std.core.write_int(__buf_44, __off_45, __self_56.s20[3])
                   std.core.finish_buffer(__buf_44, __off_45)
               } :string)
               std.io.println<string>("for bounds")
@@ -185,7 +185,7 @@
               std.io.println<string>({
                   __buf_40: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_41: i64 = 0
-                  __off_41 = std.core.write_int(__buf_40, __off_41, i64(__self_56.s20[2]))
+                  __off_41 = std.core.write_int(__buf_40, __off_41, __self_56.s20[2])
                   std.core.finish_buffer(__buf_40, __off_41)
               } :string)
               std.io.println<string>("push")
@@ -207,9 +207,9 @@
               std.io.println<string>({
                   __buf_36: Buffer = std.core.new_byte_buffer(i64(41))
                   __off_37: i64 = 0
-                  __off_37 = std.core.write_int(__buf_36, __off_37, i64(__self_56.s20[1]))
+                  __off_37 = std.core.write_int(__buf_36, __off_37, __self_56.s20[1])
                   __off_37 = std.core.write_string_at(__buf_36, __off_37, " ")
-                  __off_37 = std.core.write_int(__buf_36, __off_37, i64(__self_56.s23))
+                  __off_37 = std.core.write_int(__buf_36, __off_37, __self_56.s23)
                   std.core.finish_buffer(__buf_36, __off_37)
               } :string)
               std.io.println<string>("assignment")
@@ -252,9 +252,9 @@
               std.io.println<string>({
                   __buf_31: Buffer = std.core.new_byte_buffer(i64(41))
                   __off_32: i64 = 0
-                  __off_32 = std.core.write_int(__buf_31, __off_32, i64(__self_56.s19.start))
+                  __off_32 = std.core.write_int(__buf_31, __off_32, __self_56.s19.start)
                   __off_32 = std.core.write_string_at(__buf_31, __off_32, " ")
-                  __off_32 = std.core.write_int(__buf_31, __off_32, i64(__self_56.s19.end))
+                  __off_32 = std.core.write_int(__buf_31, __off_32, __self_56.s19.end)
                   std.core.finish_buffer(__buf_31, __off_32)
               } :string)
               std.io.println<string>("compound assignment")
@@ -281,11 +281,11 @@
               std.io.println<string>({
                   __buf_27: Buffer = std.core.new_byte_buffer(i64(62))
                   __off_28: i64 = 0
-                  __off_28 = std.core.write_int(__buf_27, __off_28, i64(__self_56.s16.left))
+                  __off_28 = std.core.write_int(__buf_27, __off_28, __self_56.s16.left)
                   __off_28 = std.core.write_string_at(__buf_27, __off_28, " ")
-                  __off_28 = std.core.write_int(__buf_27, __off_28, i64(__self_56.s16.right))
+                  __off_28 = std.core.write_int(__buf_27, __off_28, __self_56.s16.right)
                   __off_28 = std.core.write_string_at(__buf_27, __off_28, " ")
-                  __off_28 = std.core.write_int(__buf_27, __off_28, i64(__self_56.s16.extra))
+                  __off_28 = std.core.write_int(__buf_27, __off_28, __self_56.s16.extra)
                   std.core.finish_buffer(__buf_27, __off_28)
               } :string)
               std.io.println<string>("range")
@@ -306,7 +306,7 @@
               std.io.println<string>({
                   __buf_22: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_23: i64 = 0
-                  __off_23 = std.core.write_int(__buf_22, __off_23, i64(snippet.add(__self_56.s11, __self_56.s12)))
+                  __off_23 = std.core.write_int(__buf_22, __off_23, snippet.add(__self_56.s11, __self_56.s12))
                   std.core.finish_buffer(__buf_22, __off_23)
               } :string)
               std.io.println<string>("struct literal")
@@ -328,7 +328,7 @@
               std.io.println<string>({
                   __buf_18: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_19: i64 = 0
-                  __off_19 = std.core.write_int(__buf_18, __off_19, i64(__self_56.s8[__self_56.s9 + __self_56.s10]))
+                  __off_19 = std.core.write_int(__buf_18, __off_19, __self_56.s8[__self_56.s9 + __self_56.s10])
                   std.core.finish_buffer(__buf_18, __off_19)
               } :string)
               std.io.println<string>("method receiver")
@@ -350,9 +350,9 @@
               std.io.println<string>({
                   __buf_14: Buffer = std.core.new_byte_buffer(i64(41))
                   __off_15: i64 = 0
-                  __off_15 = std.core.write_int(__buf_14, __off_15, i64(__self_56.s8[0]))
+                  __off_15 = std.core.write_int(__buf_14, __off_15, __self_56.s8[0])
                   __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-                  __off_15 = std.core.write_int(__buf_14, __off_15, i64(__self_56.s8[1]))
+                  __off_15 = std.core.write_int(__buf_14, __off_15, __self_56.s8[1])
                   std.core.finish_buffer(__buf_14, __off_15)
               } :string)
               std.io.println<string>("index")
@@ -373,9 +373,9 @@
               std.io.println<string>({
                   __buf_10: Buffer = std.core.new_byte_buffer(i64(41))
                   __off_11: i64 = 0
-                  __off_11 = std.core.write_int(__buf_10, __off_11, i64(__self_56.s4))
+                  __off_11 = std.core.write_int(__buf_10, __off_11, __self_56.s4)
                   __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-                  __off_11 = std.core.write_int(__buf_10, __off_11, i64(__self_56.s5))
+                  __off_11 = std.core.write_int(__buf_10, __off_11, __self_56.s5)
                   std.core.finish_buffer(__buf_10, __off_11)
               } :string)
               std.io.println<string>("array")
@@ -396,7 +396,7 @@
               std.io.println<string>({
                   __buf_6: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_7: i64 = 0
-                  __off_7 = std.core.write_int(__buf_6, __off_7, i64(__self_56.s2 + __self_56.s3))
+                  __off_7 = std.core.write_int(__buf_6, __off_7, __self_56.s2 + __self_56.s3)
                   std.core.finish_buffer(__buf_6, __off_7)
               } :string)
               std.io.println<string>("interpolation")
@@ -417,7 +417,7 @@
               std.io.println<string>({
                   __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_3: i64 = 0
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.pair(__self_56.s0, __self_56.s1)))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, snippet.pair(__self_56.s0, __self_56.s1))
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               std.io.println<string>("operator")

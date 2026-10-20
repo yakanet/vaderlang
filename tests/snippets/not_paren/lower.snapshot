@@ -11,9 +11,9 @@
       !(a && b)
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      a: i32 = if snippet.f(false, false) { 1 } else { 0 } :{integer}
-      b: i32 = if snippet.g(5) { 2 } else { 0 } :{integer}
-      c: i32 = if snippet.h(true, false) { 4 } else { 0 } :{integer}
+      a: i32 = if snippet.f(false, false) { 1 } else { 0 }
+      b: i32 = if snippet.g(5) { 2 } else { 0 }
+      c: i32 = if snippet.h(true, false) { 4 } else { 0 }
       return (a + b) + c
   }
 

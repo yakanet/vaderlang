@@ -21,7 +21,7 @@ import "vader/types"
 /// @param result_type  the result type the surrounding context expects.
 /// @return             the lowered block.
 lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> LoweredExpr {
-    scrut_type :: ctx.types.expr_type(expr.scrutinee)
+    scrut_type :: default_free_members(ctx.types.expr_type(expr.scrutinee))
     scrut_value :: lower_expr(ctx, expr.scrutinee)
 
     stmts: LoweredStmt[]: []

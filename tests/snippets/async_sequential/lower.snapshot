@@ -49,7 +49,7 @@
                   __self_5.s6 = 0
                   __self_5.s6 = std.core.write_string_at(__self_5.s5, __self_5.s6, __self_5.s4)
                   __self_5.s6 = std.core.write_string_at(__self_5.s5, __self_5.s6, ":")
-                  __self_5.s6 = std.core.write_int(__self_5.s5, __self_5.s6, i64(__self_5.s1))
+                  __self_5.s6 = std.core.write_int(__self_5.s5, __self_5.s6, __self_5.s1)
                   std.core.finish_buffer(__self_5.s5, __self_5.s6)
               } :string
           } else if __self_5.state == 2 {

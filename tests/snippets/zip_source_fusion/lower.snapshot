@@ -22,7 +22,7 @@
                   __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
+                  __off_5 = std.core.write_int(__buf_4, __off_5, x)
                   std.core.finish_buffer(__buf_4, __off_5)
               }
           } @step {
@@ -229,9 +229,9 @@
               __buf_13: Buffer = std.core.new_byte_buffer(i64(53))
               __off_14: i64 = 0
               __off_14 = std.core.write_string_at(__buf_13, __off_14, "find fused: ")
-              __off_14 = std.core.write_int(__buf_13, __off_14, i64(([i32, i32])(found)._0))
+              __off_14 = std.core.write_int(__buf_13, __off_14, ([i32, i32])(found)._0)
               __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
-              __off_14 = std.core.write_int(__buf_13, __off_14, i64(([i32, i32])(found)._1))
+              __off_14 = std.core.write_int(__buf_13, __off_14, ([i32, i32])(found)._1)
               std.core.finish_buffer(__buf_13, __off_14)
           } :string)
       }
@@ -266,7 +266,7 @@
           __buf_15: Buffer = std.core.new_byte_buffer(i64(32))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "loop fused: ")
-          __off_16 = std.core.write_int(__buf_15, __off_16, i64(total))
+          __off_16 = std.core.write_int(__buf_15, __off_16, total)
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       {
@@ -287,9 +287,9 @@
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "indexed fused: ")
                       __off_19 = std.core.write_int(__buf_18, __off_19, i)
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-                      __off_19 = std.core.write_int(__buf_18, __off_19, i64(pair._0))
+                      __off_19 = std.core.write_int(__buf_18, __off_19, pair._0)
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-                      __off_19 = std.core.write_int(__buf_18, __off_19, i64(pair._1))
+                      __off_19 = std.core.write_int(__buf_18, __off_19, pair._1)
                       std.core.finish_buffer(__buf_18, __off_19)
                   } :string)
                   i = i + i64(1)

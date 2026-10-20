@@ -2146,8 +2146,8 @@ static void* snippet___genstate_inner_counts_Iterator_next(void* l0) {
                     l2 = std_core_write_string_at(l1, l2, 12u);
 #line 116 "tests/snippets/fusion_consumer_break/_main.vader"
                     t0 = ((vader_struct_snippet___genstate_inner_counts_t*) l0)->f_s0;
-#line 119 "tests/snippets/fusion_consumer_break/_main.vader"
                     l3 = ((int64_t) (int32_t) t0);
+#line 119 "tests/snippets/fusion_consumer_break/_main.vader"
                     l2 = std_core_write_int(l1, l2, l3);
                     t1 = std_core_finish_buffer(l1, l2);
                     std_io_println__string(t1);
@@ -2252,8 +2252,8 @@ static void* snippet___genstate_outer_counts_Iterator_next(void* l0) {
                         l2 = std_core_write_string_at(l1, l2, 12u);
 #line 123 "tests/snippets/fusion_consumer_break/_main.vader"
                         t0 = ((vader_struct_snippet___genstate_outer_counts_t*) l0)->f_s0;
-#line 119 "tests/snippets/fusion_consumer_break/_main.vader"
                         l3 = ((int64_t) (int32_t) t0);
+#line 119 "tests/snippets/fusion_consumer_break/_main.vader"
                         l2 = std_core_write_int(l1, l2, l3);
                         t2 = std_core_finish_buffer(l1, l2);
                         std_io_println__string(t2);

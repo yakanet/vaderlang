@@ -95,7 +95,7 @@
                   __off_5: i64 = 0
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                   __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                  __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
+                  __off_5 = std.core.write_int(__buf_4, __off_5, x)
                   std.core.finish_buffer(__buf_4, __off_5)
               }
           } @step {
@@ -320,7 +320,7 @@
                   __buf_17: Buffer = std.core.new_byte_buffer(i64(33))
                   __off_18: i64 = 0
                   __off_18 = std.core.write_string_at(__buf_17, __off_18, "async fused: ")
-                  __off_18 = std.core.write_int(__buf_17, __off_18, i64(__self_21.s20))
+                  __off_18 = std.core.write_int(__buf_17, __off_18, __self_21.s20)
                   std.core.finish_buffer(__buf_17, __off_18)
               } :string)
               std.io.println<string>({
@@ -347,7 +347,7 @@
                   __buf_12: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_13: i64 = 0
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, "loop fused: ")
-                  __off_13 = std.core.write_int(__buf_12, __off_13, i64(__self_21.s9))
+                  __off_13 = std.core.write_int(__buf_12, __off_13, __self_21.s9)
                   std.core.finish_buffer(__buf_12, __off_13)
               } :string)
               __self_21.s17 = [1, 2, 3, 4, 5] :i32[]
@@ -642,10 +642,10 @@
                   __buf_10: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_11: i64 = 0
                   __off_11 = std.core.write_string_at(__buf_10, __off_11, "find fused: ")
-                  __off_11 = std.core.write_int(__buf_10, __off_11, i64({
+                  __off_11 = std.core.write_int(__buf_10, __off_11, {
                       __coalesce_9: i32 | null = __self_21.s2
                       if __coalesce_9 is null { -1 } else { i32(__coalesce_9) } :i32
-                  } :i32))
+                  } :i32)
                   std.core.finish_buffer(__buf_10, __off_11)
               } :string)
               __self_21.s9 = 0

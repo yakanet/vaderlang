@@ -11,7 +11,7 @@
               __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "=")
-              __off_2 = std.core.write_int(__buf_1, __off_2, i64(i32(v)))
+              __off_2 = std.core.write_int(__buf_1, __off_2, i32(v))
               std.core.finish_buffer(__buf_1, __off_2)
           } :string)
       }
@@ -155,7 +155,7 @@
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "for destructure: ")
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_17)
                       __off_19 = std.core.write_string_at(__buf_18, __off_19, "=")
-                      __off_19 = std.core.write_int(__buf_18, __off_19, i64(v))
+                      __off_19 = std.core.write_int(__buf_18, __off_19, v)
                       std.core.finish_buffer(__buf_18, __off_19)
                   } :string)
                   sum = sum + v
@@ -168,7 +168,7 @@
           __buf_21: Buffer = std.core.new_byte_buffer(i64(41))
           __off_22: i64 = 0
           __off_22 = std.core.write_string_at(__buf_21, __off_22, "for destructure: sum=")
-          __off_22 = std.core.write_int(__buf_21, __off_22, i64(sum))
+          __off_22 = std.core.write_int(__buf_21, __off_22, sum)
           std.core.finish_buffer(__buf_21, __off_22)
       } :string)
       s: MutableSet<i32> = MutableSet<i32> {

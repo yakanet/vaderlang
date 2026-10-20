@@ -6,7 +6,7 @@
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(self)))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u8(self))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " kg")
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
@@ -31,7 +31,7 @@
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(i32(i64(404))))
+          __off_2 = std.core.write_int(__buf_1, __off_2, i32(i64(404)))
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       std.io.println<string>(concat_5(snippet.show<Direction>(d), " ", snippet.show<Status>(u8(0)), " ", snippet.pair<Direction>(u8(0), u8(1))))
@@ -80,7 +80,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "<")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(value))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, value)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, ">")
           std.core.finish_buffer(__buf_0, __off_1)
       } :string

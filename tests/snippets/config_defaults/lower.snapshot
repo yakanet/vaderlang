@@ -99,7 +99,7 @@
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, "have ")
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, "=")
-                  __off_6 = std.core.write_int(__buf_5, __off_6, i64(present))
+                  __off_6 = std.core.write_int(__buf_5, __off_6, present)
                   std.core.finish_buffer(__buf_5, __off_6)
               } :string)
           } @step {
@@ -113,39 +113,39 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(53))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "width=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.resolve("width")))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.resolve("width"))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " depth=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.resolve("depth")))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.resolve("depth"))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(26))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "first=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.first_present(["depth", "height", "width"] :string[])))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.first_present(["depth", "height", "width"] :string[]))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(24))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "sum=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.sum_prefix(["width", "height", "depth", "width"] :string[])))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.sum_prefix(["width", "height", "depth", "width"] :string[]))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(61))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "req_width=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.required("width")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.required("width"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " req_depth=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.required("depth")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.required("depth"))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(28))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "missing=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.count_missing(["width", "depth", "height"] :string[])))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.count_missing(["width", "depth", "height"] :string[]))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       scaled: i32 = ({
@@ -156,7 +156,7 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(27))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "scaled=")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(scaled))
+          __off_12 = std.core.write_int(__buf_11, __off_12, scaled)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       return 0

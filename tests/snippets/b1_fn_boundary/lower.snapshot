@@ -33,7 +33,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "length=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.length(head)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.length(head))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       {
@@ -49,7 +49,7 @@
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_4: i64 = 0
                       __off_4 = std.core.write_string_at(__buf_3, __off_4, "found ")
-                      __off_4 = std.core.write_int(__buf_3, __off_4, i64(Node(h).value))
+                      __off_4 = std.core.write_int(__buf_3, __off_4, Node(h).value)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string)
               }
@@ -70,7 +70,7 @@
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "found ")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(Node(h).value))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, Node(h).value)
                       std.core.finish_buffer(__buf_6, __off_7)
                   } :string)
               }

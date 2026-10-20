@@ -37,11 +37,11 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(73))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "mirror=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(d.quot))
+          __off_3 = std.core.write_int(__buf_2, __off_3, d.quot)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(d.rem))
+          __off_3 = std.core.write_int(__buf_2, __off_3, d.rem)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " abs=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.c_abs(-5)))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.c_abs(-5))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

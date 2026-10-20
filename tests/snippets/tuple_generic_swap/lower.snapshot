@@ -10,7 +10,7 @@
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "first=")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " second=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(s._1))
+          __off_2 = std.core.write_int(__buf_1, __off_2, s._1)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       return 0

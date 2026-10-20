@@ -21,7 +21,7 @@
           __p_0: string = "i32"
           __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(self.v))
+          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -34,7 +34,7 @@
           __p_0: string = "string"
           __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(self.v))
+          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -47,7 +47,7 @@
           __p_0: string = "i64"
           __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(self.v))
+          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -94,7 +94,7 @@
           __p_0: string = "f64"
           __buf_1: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(self.v))
+          __off_2 = std.core.write_int(__buf_1, __off_2, self.v)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")

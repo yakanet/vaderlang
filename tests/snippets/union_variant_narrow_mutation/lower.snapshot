@@ -45,9 +45,9 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(53) +% std.core.byte_len(__p_2))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "elems=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(nums[2]))
+          __off_4 = std.core.write_int(__buf_3, __off_4, nums[2])
           __off_4 = std.core.write_string_at(__buf_3, __off_4, ",")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(nums[3]))
+          __off_4 = std.core.write_int(__buf_3, __off_4, nums[3])
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " last=")
           __off_4 = std.core.write_string_at(__buf_3, __off_4, __p_2)
           std.core.finish_buffer(__buf_3, __off_4)

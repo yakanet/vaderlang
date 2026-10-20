@@ -7,7 +7,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(24))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "int ")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(i32(c)))
+              __off_1 = std.core.write_int(__buf_0, __off_1, i32(c))
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       } else {
@@ -48,7 +48,7 @@
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(42))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "int-only literal: int ")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(i32(x)))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, i32(x))
                       std.core.finish_buffer(__buf_6, __off_7)
                   } :string)
               }

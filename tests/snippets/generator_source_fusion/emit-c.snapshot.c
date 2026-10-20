@@ -1294,8 +1294,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
             l3 = std_core_write_string_at(l2, l3, 3u);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s20;
-#line 89 "tests/snippets/generator_source_fusion/_main.vader"
             l4 = ((int64_t) (int32_t) t0);
+#line 89 "tests/snippets/generator_source_fusion/_main.vader"
             l3 = std_core_write_int(l2, l3, l4);
             t1 = std_core_finish_buffer(l2, l3);
             std_io_println__string(t1);
@@ -1338,8 +1338,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         l11 = std_core_write_string_at(l10, l11, 5u);
 #line 64 "tests/snippets/generator_source_fusion/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9;
-#line 83 "tests/snippets/generator_source_fusion/_main.vader"
                         l12 = ((int64_t) (int32_t) t0);
+#line 83 "tests/snippets/generator_source_fusion/_main.vader"
                         l11 = std_core_write_int(l10, l11, l12);
                         t1 = std_core_finish_buffer(l10, l11);
                         std_io_println__string(t1);

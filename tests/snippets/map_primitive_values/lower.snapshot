@@ -21,7 +21,7 @@
               __buf_1: Buffer = std.core.new_byte_buffer(i64(28) +% std.core.byte_len(__p_0))
               __off_2: i64 = 0
               __off_2 = std.core.write_string_at(__buf_1, __off_2, "u8 x=")
-              __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(u8(vx)))
+              __off_2 = std.core.write_unsigned(__buf_1, __off_2, u8(vx))
               __off_2 = std.core.write_string_at(__buf_1, __off_2, " y=")
               __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
               std.core.finish_buffer(__buf_1, __off_2)
@@ -115,7 +115,7 @@
               __buf_5: Buffer = std.core.new_byte_buffer(i64(28))
               __off_6: i64 = 0
               __off_6 = std.core.write_string_at(__buf_5, __off_6, "i16 neg=")
-              __off_6 = std.core.write_int(__buf_5, __off_6, i64(i16(vn)))
+              __off_6 = std.core.write_int(__buf_5, __off_6, i16(vn))
               std.core.finish_buffer(__buf_5, __off_6)
           } :string)
       }
@@ -136,7 +136,7 @@
               __buf_7: Buffer = std.core.new_byte_buffer(i64(28))
               __off_8: i64 = 0
               __off_8 = std.core.write_string_at(__buf_7, __off_8, "u16 big=")
-              __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(u16(vb)))
+              __off_8 = std.core.write_unsigned(__buf_7, __off_8, u16(vb))
               std.core.finish_buffer(__buf_7, __off_8)
           } :string)
       }
@@ -170,7 +170,7 @@
               __buf_11: Buffer = std.core.new_byte_buffer(i64(32))
               __off_12: i64 = 0
               __off_12 = std.core.write_string_at(__buf_11, __off_12, "miss: WRONG ")
-              __off_12 = std.core.write_unsigned(__buf_11, __off_12, u64(u8(miss)))
+              __off_12 = std.core.write_unsigned(__buf_11, __off_12, u8(miss))
               std.core.finish_buffer(__buf_11, __off_12)
           } :string)
       }

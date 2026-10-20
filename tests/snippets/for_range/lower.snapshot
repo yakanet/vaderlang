@@ -15,7 +15,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(31))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "0..<5 sum: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(sum))
+          __off_1 = std.core.write_int(__buf_0, __off_1, sum)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       total: i32 = 0
@@ -31,7 +31,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(31))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "1..=4 sum: ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(total))
+          __off_3 = std.core.write_int(__buf_2, __off_3, total)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       n: i32 = 0
@@ -47,7 +47,7 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(38))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "5..<3 iterations: ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(n))
+          __off_5 = std.core.write_int(__buf_4, __off_5, n)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       count: i32 = 0
@@ -63,7 +63,7 @@
           __buf_7: Buffer = std.core.new_byte_buffer(i64(48))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "shorthand 0..<5 iterations: ")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(count))
+          __off_8 = std.core.write_int(__buf_7, __off_8, count)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       inclusive: i32 = 0
@@ -79,7 +79,7 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(48))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "shorthand 1..=4 iterations: ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(inclusive))
+          __off_11 = std.core.write_int(__buf_10, __off_11, inclusive)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       cells: i32 = 0
@@ -102,7 +102,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(49))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "nested shorthand iterations: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(cells))
+          __off_15 = std.core.write_int(__buf_14, __off_15, cells)
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       nu: u64 = 3
@@ -153,7 +153,7 @@
           __buf_20: Buffer = std.core.new_byte_buffer(i64(28))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "u8 sum: ")
-          __off_21 = std.core.write_unsigned(__buf_20, __off_21, u64(sb))
+          __off_21 = std.core.write_unsigned(__buf_20, __off_21, sb)
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       hi: i16 = 4
@@ -172,7 +172,7 @@
           __buf_23: Buffer = std.core.new_byte_buffer(i64(39))
           __off_24: i64 = 0
           __off_24 = std.core.write_string_at(__buf_23, __off_24, "i16 inclusive sum: ")
-          __off_24 = std.core.write_int(__buf_23, __off_24, i64(sh))
+          __off_24 = std.core.write_int(__buf_23, __off_24, sh)
           std.core.finish_buffer(__buf_23, __off_24)
       } :string)
       letters: i32 = 0
@@ -188,7 +188,7 @@
           __buf_25: Buffer = std.core.new_byte_buffer(i64(42))
           __off_26: i64 = 0
           __off_26 = std.core.write_string_at(__buf_25, __off_26, "'a'..='e' iterations: ")
-          __off_26 = std.core.write_int(__buf_25, __off_26, i64(letters))
+          __off_26 = std.core.write_int(__buf_25, __off_26, letters)
           std.core.finish_buffer(__buf_25, __off_26)
       } :string)
       digits: i32 = 0
@@ -204,7 +204,7 @@
           __buf_27: Buffer = std.core.new_byte_buffer(i64(42))
           __off_28: i64 = 0
           __off_28 = std.core.write_string_at(__buf_27, __off_28, "'0'..<'5' iterations: ")
-          __off_28 = std.core.write_int(__buf_27, __off_28, i64(digits))
+          __off_28 = std.core.write_int(__buf_27, __off_28, digits)
           std.core.finish_buffer(__buf_27, __off_28)
       } :string)
       return 0

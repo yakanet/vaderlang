@@ -20,14 +20,14 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(22))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "v=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.unwrap(Box { .v = 42 })))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.unwrap(Box { .v = 42 }))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(27))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "logged=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.unwrap_logged(Box { .v = 7 })))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.unwrap_logged(Box { .v = 7 }))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

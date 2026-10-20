@@ -42,7 +42,7 @@
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32(c)))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u32(c))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -55,9 +55,9 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(53))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "first ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32('\0')))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u32('\0'))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, ", last ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u32('\u{10ffff}')))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u32('\u{10ffff}'))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       {
@@ -103,7 +103,7 @@
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
           __off_11 = std.core.write_string_at(__buf_10, __off_11, __p_9)
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " gap ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64('a' - 'A'))
+          __off_11 = std.core.write_int(__buf_10, __off_11, 'a' - 'A')
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       crossing: string[] = [] :string[]
@@ -161,7 +161,7 @@
           __buf_15: Buffer = std.core.new_byte_buffer(i64(27))
           __off_16: i64 = 0
           __off_16 = std.core.write_string_at(__buf_15, __off_16, "fused: ")
-          __off_16 = std.core.write_unsigned(__buf_15, __off_16, u64(fused))
+          __off_16 = std.core.write_unsigned(__buf_15, __off_16, fused)
           std.core.finish_buffer(__buf_15, __off_16)
       } :string)
       upper: char = '\u{e001}'

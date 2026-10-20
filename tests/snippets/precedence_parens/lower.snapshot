@@ -5,9 +5,9 @@
   snippet.main :: fn() -> i32 {  // snippet$main
       a: i32 = 1
       b: i32 = 2
-      r1: i32 = if (a < b) == true { 1 } else { 0 } :{integer}
-      r2: i32 = if std.core.i32[].contains([1, 2, 3] :i32[], a) == true { 2 } else { 0 } :{integer}
-      r3: i32 = if true { 4 } else { 0 } :{integer}
+      r1: i32 = if (a < b) == true { 1 } else { 0 }
+      r2: i32 = if std.core.i32[].contains([1, 2, 3] :i32[], a) == true { 2 } else { 0 }
+      r3: i32 = if true { 4 } else { 0 }
       return (r1 + r2) + r3
   }
 

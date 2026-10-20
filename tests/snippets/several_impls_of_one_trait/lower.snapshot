@@ -55,7 +55,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "m")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.v))
+              __off_1 = std.core.write_int(__buf_0, __off_1, self.v)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string,
       }
@@ -105,7 +105,7 @@
           __p_0: string = snippet$Grid$std_core_Index$at$1(g, "x")
           __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet$Grid$std_core_Index$at(g, 1)))
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet$Grid$std_core_Index$at(g, 1))
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           std.core.finish_buffer(__buf_1, __off_2)
@@ -131,7 +131,7 @@
           __p_5: string = l.s
           __buf_6: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_5))
           __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(t.n))
+          __off_7 = std.core.write_int(__buf_6, __off_7, t.n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
           std.core.finish_buffer(__buf_6, __off_7)
@@ -141,9 +141,9 @@
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(41))
           __off_9: i64 = 0
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$std_core_Add$add__i32(p, q).top))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet$Pile$std_core_Add$add__i32(p, q).top)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet$Pile$std_core_Add$add__i32$1(p, 1.0).top))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet$Pile$std_core_Add$add__i32$1(p, 1.0).top)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       w: Wrap<Vec2> = Wrap<Vec2> { .inner = v }
@@ -155,7 +155,7 @@
           __p_10: string = snippet$Sheet$std_core_Index$at$1(sheet, "q")
           __buf_11: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_10))
           __off_12: i64 = 0
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(snippet$Sheet$std_core_Index$at(sheet, 1)))
+          __off_12 = std.core.write_int(__buf_11, __off_12, snippet$Sheet$std_core_Index$at(sheet, 1))
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " ")
           __off_12 = std.core.write_string_at(__buf_11, __off_12, __p_10)
           std.core.finish_buffer(__buf_11, __off_12)
@@ -184,7 +184,7 @@
           __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_16)
           __off_19 = std.core.write_string_at(__buf_18, __off_19, __p_17)
           __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(i + j))
+          __off_19 = std.core.write_int(__buf_18, __off_19, i + j)
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       counter: Counter = Counter { .n = 0 }
@@ -200,7 +200,7 @@
                       __buf_22: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_23: i64 = 0
                       __off_23 = std.core.write_string_at(__buf_22, __off_23, "count ")
-                      __off_23 = std.core.write_int(__buf_22, __off_23, i64(k + 1))
+                      __off_23 = std.core.write_int(__buf_22, __off_23, k + 1)
                       std.core.finish_buffer(__buf_22, __off_23)
                   } :string)
               }

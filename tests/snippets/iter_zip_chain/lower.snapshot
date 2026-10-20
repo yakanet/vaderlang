@@ -15,7 +15,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(29))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "clone[0]=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(cloned[0]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, cloned[0])
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       keys: string[] = ["a", "b", "c", "d"] :string[]
@@ -36,7 +36,7 @@
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "=")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(v))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, v)
                       std.core.finish_buffer(__buf_6, __off_7)
                   } :string)
               } @step {
@@ -58,7 +58,7 @@
                   __buf_9: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_10: i64 = 0
                   __off_10 = std.core.write_string_at(__buf_9, __off_10, "j=")
-                  __off_10 = std.core.write_int(__buf_9, __off_10, i64(x))
+                  __off_10 = std.core.write_int(__buf_9, __off_10, x)
                   std.core.finish_buffer(__buf_9, __off_10)
               } :string)
           } @step {
@@ -73,7 +73,7 @@
                   __buf_9: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_10: i64 = 0
                   __off_10 = std.core.write_string_at(__buf_9, __off_10, "j=")
-                  __off_10 = std.core.write_int(__buf_9, __off_10, i64(x))
+                  __off_10 = std.core.write_int(__buf_9, __off_10, x)
                   std.core.finish_buffer(__buf_9, __off_10)
               } :string)
           } @step {
@@ -118,7 +118,7 @@
                       __buf_27: Buffer = std.core.new_byte_buffer(i64(22))
                       __off_28: i64 = 0
                       __off_28 = std.core.write_string_at(__buf_27, __off_28, "b=")
-                      __off_28 = std.core.write_int(__buf_27, __off_28, i64(n))
+                      __off_28 = std.core.write_int(__buf_27, __off_28, n)
                       std.core.finish_buffer(__buf_27, __off_28)
                   } :string)
               }

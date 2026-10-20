@@ -98,25 +98,25 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(83))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.turns_to_max()))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.turns_to_max())
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.whole_byte_range()))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.whole_byte_range())
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.whole_signed_range()))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.whole_signed_range())
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.wide_to_max()))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.wide_to_max())
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(83))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.up_to(u8(255))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.up_to(u8(255)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.up_to(u8(252))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.up_to(u8(252)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.up_to(u8(10))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.up_to(u8(10)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.fused_to_max()))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.fused_to_max())
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

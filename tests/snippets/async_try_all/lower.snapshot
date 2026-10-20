@@ -108,7 +108,7 @@
                   __buf_5: Buffer = std.core.new_byte_buffer(i64(23))
                   __off_6: i64 = 0
                   __off_6 = std.core.write_string_at(__buf_5, __off_6, "ok ")
-                  __off_6 = std.core.write_int(__buf_5, __off_6, i64(i32(__self_7.s9)))
+                  __off_6 = std.core.write_int(__buf_5, __off_6, i32(__self_7.s9))
                   std.core.finish_buffer(__buf_5, __off_6)
               } :string)
               __self_7.state = 6

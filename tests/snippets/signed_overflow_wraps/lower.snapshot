@@ -13,21 +13,21 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(29))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "i32 sum: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(top +% 1))
+          __off_1 = std.core.write_int(__buf_0, __off_1, top +% 1)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(33))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "i32 product: ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(top *% 2))
+          __off_3 = std.core.write_int(__buf_2, __off_3, top *% 2)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(41))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "i32 negated minimum: ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(0 -% (top +% 1)))
+          __off_5 = std.core.write_int(__buf_4, __off_5, 0 -% (top +% 1))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
@@ -54,7 +54,7 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(43))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "i32 steps to the wrap: ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(count))
+          __off_11 = std.core.write_int(__buf_10, __off_11, count)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       wide_top: i64 = @array.len(argv) + i64(9223372036854775806)

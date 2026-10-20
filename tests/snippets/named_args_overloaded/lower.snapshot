@@ -6,7 +6,7 @@
           __p_0: string = x
           __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(n))
+          __off_2 = std.core.write_int(__buf_1, __off_2, n)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, ":")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           std.core.finish_buffer(__buf_1, __off_2)

@@ -28,7 +28,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(37))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "face1 read-key:  ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.unwrap(std.collections.MutableMap<i64, i32>.at(keyed, i64(9000000000)))))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.unwrap(std.collections.MutableMap<i64, i32>.at(keyed, i64(9000000000))))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       valued: MutableMap<i32, i64> = MutableMap<i32, i64> {
@@ -61,7 +61,7 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(37))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "face2 set-key:   ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.unwrap(std.collections.MutableMap<i64, i32>.at(setkey, probe))))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.unwrap(std.collections.MutableMap<i64, i32>.at(setkey, probe)))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       face3: i64 = snippet.takes<i64>(i64(9000000000))

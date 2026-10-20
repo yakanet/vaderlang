@@ -6,7 +6,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "rest ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, d)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -15,7 +15,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "work ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, d)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -37,7 +37,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "monday ")
-              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(d))
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, d)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
@@ -45,7 +45,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(24))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "day ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(d))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, d)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }

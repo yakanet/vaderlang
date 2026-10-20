@@ -54,7 +54,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "u8 ")
-              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(k)))
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u8(k))
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
@@ -70,7 +70,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "u8 ")
-              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(u8(k)))
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u8(k))
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
@@ -114,20 +114,20 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(70))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "nested: ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, true, 0)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.nested(null, true, 0))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, false, 1)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.nested(null, false, 1))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.nested(null, false, 2)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.nested(null, false, 2))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(49))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "nested: ")
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.nested(null, false, 0)))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, snippet.nested(null, false, 0))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.nested("x", false, 0)))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, snippet.nested("x", false, 0))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
@@ -160,9 +160,9 @@
       both: string = {
           __buf_13: Buffer = std.core.new_byte_buffer(i64(41))
           __off_14: i64 = 0
-          __off_14 = std.core.write_unsigned(__buf_13, __off_14, u64(snippet.coalesced(false, true)))
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.coalesced(false, true))
           __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
-          __off_14 = std.core.write_unsigned(__buf_13, __off_14, u64(snippet.coalesced(false, false)))
+          __off_14 = std.core.write_unsigned(__buf_13, __off_14, snippet.coalesced(false, false))
           std.core.finish_buffer(__buf_13, __off_14)
       }
       std.io.println<string>({
@@ -172,7 +172,7 @@
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "coalesced: ")
           __off_17 = std.core.write_string_at(__buf_16, __off_17, __p_15)
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
-          __off_17 = std.core.write_unsigned(__buf_16, __off_17, u64(snippet.coalesced(true, true)))
+          __off_17 = std.core.write_unsigned(__buf_16, __off_17, snippet.coalesced(true, true))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       return 0

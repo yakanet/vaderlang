@@ -19,9 +19,9 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(62))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "sum comptime=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(-294967296))
+          __off_1 = std.core.write_int(__buf_0, __off_1, -294967296)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " runtime=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(a +% a))
+          __off_1 = std.core.write_int(__buf_0, __off_1, a +% a)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
@@ -37,9 +37,9 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(62))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "shl comptime=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(2))
+          __off_5 = std.core.write_int(__buf_4, __off_5, 2)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " runtime=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(s << sh))
+          __off_5 = std.core.write_int(__buf_4, __off_5, s << sh)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({

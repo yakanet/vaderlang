@@ -1036,8 +1036,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
             l2 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s9;
-#line 78 "tests/snippets/async_await_in_branches/_main.vader"
             l3 = ((int64_t) (int32_t) t0);
+#line 78 "tests/snippets/async_await_in_branches/_main.vader"
             l2 = std_core_write_int(l1, l2, l3);
             t1 = std_core_finish_buffer(l1, l2);
             std_io_println__string(t1);
@@ -1072,8 +1072,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                         l8 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s8;
-#line 77 "tests/snippets/async_await_in_branches/_main.vader"
                         l9 = ((int64_t) (int32_t) t0);
+#line 77 "tests/snippets/async_await_in_branches/_main.vader"
                         l8 = std_core_write_int(l7, l8, l9);
                         t1 = std_core_finish_buffer(l7, l8);
                         std_io_println__string(t1);
@@ -1108,8 +1108,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                     l14 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                     t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s7;
-#line 76 "tests/snippets/async_await_in_branches/_main.vader"
                                     l15 = ((int64_t) (int32_t) t0);
+#line 76 "tests/snippets/async_await_in_branches/_main.vader"
                                     l14 = std_core_write_int(l13, l14, l15);
                                     t1 = std_core_finish_buffer(l13, l14);
                                     std_io_println__string(t1);
@@ -1144,8 +1144,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                 l20 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                 t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s6;
-#line 75 "tests/snippets/async_await_in_branches/_main.vader"
                                                 l21 = ((int64_t) (int32_t) t0);
+#line 75 "tests/snippets/async_await_in_branches/_main.vader"
                                                 l20 = std_core_write_int(l19, l20, l21);
                                                 t1 = std_core_finish_buffer(l19, l20);
                                                 std_io_println__string(t1);
@@ -1180,8 +1180,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                             l26 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                             t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s5;
-#line 74 "tests/snippets/async_await_in_branches/_main.vader"
                                                             l27 = ((int64_t) (int32_t) t0);
+#line 74 "tests/snippets/async_await_in_branches/_main.vader"
                                                             l26 = std_core_write_int(l25, l26, l27);
                                                             t1 = std_core_finish_buffer(l25, l26);
                                                             std_io_println__string(t1);
@@ -1216,8 +1216,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                                         l32 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                                         t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s4;
-#line 73 "tests/snippets/async_await_in_branches/_main.vader"
                                                                         l33 = ((int64_t) (int32_t) t0);
+#line 73 "tests/snippets/async_await_in_branches/_main.vader"
                                                                         l32 = std_core_write_int(l31, l32, l33);
                                                                         t1 = std_core_finish_buffer(l31, l32);
                                                                         std_io_println__string(t1);
@@ -1252,8 +1252,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                                                     l38 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                     t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s3;
-#line 72 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                     l39 = ((int64_t) (int32_t) t0);
+#line 72 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                     l38 = std_core_write_int(l37, l38, l39);
                                                                                     t1 = std_core_finish_buffer(l37, l38);
                                                                                     std_io_println__string(t1);
@@ -1288,8 +1288,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                                                                 l44 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                 t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s2;
-#line 71 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                 l45 = ((int64_t) (int32_t) t0);
+#line 71 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                 l44 = std_core_write_int(l43, l44, l45);
                                                                                                 t1 = std_core_finish_buffer(l43, l44);
                                                                                                 std_io_println__string(t1);
@@ -1324,8 +1324,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                                                                             l50 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                             t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s1;
-#line 70 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                             l51 = ((int64_t) (int32_t) t0);
+#line 70 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                             l50 = std_core_write_int(l49, l50, l51);
                                                                                                             t1 = std_core_finish_buffer(l49, l50);
                                                                                                             std_io_println__string(t1);
@@ -1360,8 +1360,8 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                                                                                                                         l56 = INT64_C(0);
 #line 68 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_5_t*) l0)->f_s0;
-#line 69 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                                         l57 = ((int64_t) (int32_t) t0);
+#line 69 "tests/snippets/async_await_in_branches/_main.vader"
                                                                                                                         l56 = std_core_write_int(l55, l56, l57);
                                                                                                                         t1 = std_core_finish_buffer(l55, l56);
                                                                                                                         std_io_println__string(t1);

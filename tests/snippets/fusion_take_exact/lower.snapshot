@@ -48,9 +48,9 @@
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "map.take(")
           __off_7 = std.core.write_int(__buf_6, __off_7, n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "), pulls: ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(fused))
+          __off_7 = std.core.write_int(__buf_6, __off_7, fused)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " | ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(@cell(pulls)))
+          __off_7 = std.core.write_int(__buf_6, __off_7, @cell(pulls))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
   }
@@ -85,7 +85,7 @@
                                   __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                                   __off_1: i64 = 0
                                   __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                                  __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                                  __off_1 = std.core.write_int(__buf_0, __off_1, v)
                                   std.core.finish_buffer(__buf_0, __off_1)
                               } :string)
                               i = i + i64(1)
@@ -116,7 +116,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, v)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
@@ -149,7 +149,7 @@
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, "  produce ")
-                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(i))
+                              __off_1 = std.core.write_int(__buf_0, __off_1, i)
                               std.core.finish_buffer(__buf_0, __off_1)
                           } :string)
                           x: i32 = i
@@ -158,7 +158,7 @@
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(26))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, "  got ")
-                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                              __off_1 = std.core.write_int(__buf_0, __off_1, v)
                               std.core.finish_buffer(__buf_0, __off_1)
                           } :string)
                           i = i + i64(1)
@@ -186,7 +186,7 @@
                       __buf_4: Buffer = std.core.new_byte_buffer(i64(26))
                       __off_5: i64 = 0
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, "  got ")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(v))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, v)
                       std.core.finish_buffer(__buf_4, __off_5)
                   } :string)
               }
@@ -229,7 +229,7 @@
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(30))
                   __off_1: i64 = 0
                   __off_1 = std.core.write_string_at(__buf_0, __off_1, "  produce ")
-                  __off_1 = std.core.write_int(__buf_0, __off_1, i64(__self_2.s1))
+                  __off_1 = std.core.write_int(__buf_0, __off_1, __self_2.s1)
                   std.core.finish_buffer(__buf_0, __off_1)
               } :string)
               __self_2.state = 4

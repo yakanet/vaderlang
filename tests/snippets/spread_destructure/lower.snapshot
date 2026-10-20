@@ -15,7 +15,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(56))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "first=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(first))
+          __off_3 = std.core.write_int(__buf_2, __off_3, first)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " rest.len=")
           __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(rest))
           std.core.finish_buffer(__buf_2, __off_3)
@@ -30,7 +30,7 @@
                   __buf_7: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_8: i64 = 0
                   __off_8 = std.core.write_string_at(__buf_7, __off_8, "  ")
-                  __off_8 = std.core.write_int(__buf_7, __off_8, i64(x))
+                  __off_8 = std.core.write_int(__buf_7, __off_8, x)
                   std.core.finish_buffer(__buf_7, __off_8)
               } :string)
           } @step {
@@ -50,9 +50,9 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(75))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "a=")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(a))
+          __off_12 = std.core.write_int(__buf_11, __off_12, a)
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " b=")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(b))
+          __off_12 = std.core.write_int(__buf_11, __off_12, b)
           __off_12 = std.core.write_string_at(__buf_11, __off_12, " tail.len=")
           __off_12 = std.core.write_int(__buf_11, __off_12, @array.len(tail))
           std.core.finish_buffer(__buf_11, __off_12)
@@ -81,7 +81,7 @@
                   __buf_20: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_21: i64 = 0
                   __off_21 = std.core.write_string_at(__buf_20, __off_21, "  ")
-                  __off_21 = std.core.write_int(__buf_20, __off_21, i64(x))
+                  __off_21 = std.core.write_int(__buf_20, __off_21, x)
                   std.core.finish_buffer(__buf_20, __off_21)
               } :string)
           } @step {
@@ -100,7 +100,7 @@
           __buf_24: Buffer = std.core.new_byte_buffer(i64(60))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "c_first=")
-          __off_25 = std.core.write_int(__buf_24, __off_25, i64(c_first))
+          __off_25 = std.core.write_int(__buf_24, __off_25, c_first)
           __off_25 = std.core.write_string_at(__buf_24, __off_25, " c_rest.len=")
           __off_25 = std.core.write_int(__buf_24, __off_25, @array.len(c_rest))
           std.core.finish_buffer(__buf_24, __off_25)
@@ -117,7 +117,7 @@
           __buf_28: Buffer = std.core.new_byte_buffer(i64(56))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "only=")
-          __off_29 = std.core.write_int(__buf_28, __off_29, i64(only))
+          __off_29 = std.core.write_int(__buf_28, __off_29, only)
           __off_29 = std.core.write_string_at(__buf_28, __off_29, " empty.len=")
           __off_29 = std.core.write_int(__buf_28, __off_29, @array.len(empty))
           std.core.finish_buffer(__buf_28, __off_29)

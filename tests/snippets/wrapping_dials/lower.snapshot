@@ -9,11 +9,11 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(70))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "clamped ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(late))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, late)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(early))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, early)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(byte))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, byte)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       december: Month = 12
@@ -21,11 +21,11 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(67))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "next ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<Hour>(late)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.wrap_next<Hour>(late))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<Month>(december)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.wrap_next<Month>(december))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(snippet.wrap_next<u8>(byte)))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, snippet.wrap_next<u8>(byte))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       hours: Hour[] = [Hour(9), Hour(4), Hour(12)] :Hour[]
@@ -33,7 +33,7 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(53))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "lowest ")
-          __off_5 = std.core.write_unsigned(__buf_4, __off_5, u64(snippet.lowest<Hour>(hours)))
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, snippet.lowest<Hour>(hours))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " over ")
           __off_5 = std.core.write_int(__buf_4, __off_5, snippet.span_of<Hour>(late, snippet.lowest<Hour>(hours)))
           std.core.finish_buffer(__buf_4, __off_5)
@@ -45,7 +45,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(26))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "month ")
-          __off_7 = std.core.write_unsigned(__buf_6, __off_7, u64(may))
+          __off_7 = std.core.write_unsigned(__buf_6, __off_7, may)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       beyond: Month = snippet.exactly<Month>(count * i64(20))
@@ -53,41 +53,41 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(26))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "month ")
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(beyond))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, beyond)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       return 0
   }
   snippet.clamp_to<Hour> :: fn(n: i64) -> Hour {  // snippet$clamp_to__Int_in_0___23
       if (n >= i64(0)) && (n <= i64(23)) {
-          return Hour(n)
+          return n
       }
-      if n < i64(0) {
+      if n < Hour(0) {
           return Hour(0)
       }
       return Hour(23)
   }
   snippet.clamp_to<Month> :: fn(n: i64) -> Month {  // snippet$clamp_to__Int_in_1___12
       if (n >= i64(1)) && (n <= i64(12)) {
-          return Month(n)
+          return n
       }
-      if n < i64(1) {
+      if n < Month(1) {
           return Month(1)
       }
       return Month(12)
   }
   snippet.clamp_to<u8> :: fn(n: i64) -> u8 {  // snippet$clamp_to__u8
       if (n >= i64(0)) && (n <= i64(255)) {
-          return u8(n)
+          return n
       }
-      if n < i64(0) {
+      if n < u8(0) {
           return u8(0)
       }
       return u8(255)
   }
   snippet.wrap_next<Hour> :: fn(x: Hour) -> Hour {  // snippet$wrap_next__Int_in_0___23
       {
-          __in_range_0: i64 = (((i64(x) - i64(0)) + i64(1)) % ((i64(23) - i64(0)) + i64(1))) + i64(0)
+          __in_range_0: i64 = (((x - Hour(0)) + i64(1)) % ((Hour(23) - Hour(0)) + i64(1))) + Hour(0)
           if (__in_range_0 < i64(0)) || (__in_range_0 > i64(23)) {
               @unreachable("value out of range: not in `Hour` (0..=23)")
           }
@@ -96,7 +96,7 @@
   }
   snippet.wrap_next<Month> :: fn(x: Month) -> Month {  // snippet$wrap_next__Int_in_1___12
       {
-          __in_range_0: i64 = (((i64(x) - i64(1)) + i64(1)) % ((i64(12) - i64(1)) + i64(1))) + i64(1)
+          __in_range_0: i64 = (((x - Month(1)) + i64(1)) % ((Month(12) - Month(1)) + i64(1))) + Month(1)
           if (__in_range_0 < i64(1)) || (__in_range_0 > i64(12)) {
               @unreachable("value out of range: not in `Month` (1..=12)")
           }
@@ -105,7 +105,7 @@
   }
   snippet.wrap_next<u8> :: fn(x: u8) -> u8 {  // snippet$wrap_next__u8
       {
-          __in_range_0: i64 = (((i64(x) - i64(0)) + i64(1)) % ((i64(255) - i64(0)) + i64(1))) + i64(0)
+          __in_range_0: i64 = (((x - u8(0)) + i64(1)) % ((u8(255) - u8(0)) + i64(1))) + u8(0)
           if (__in_range_0 < i64(0)) || (__in_range_0 > i64(255)) {
               @unreachable("value out of range: not in `u8`")
           }
@@ -113,7 +113,7 @@
       } :u8
   }
   snippet.span_of<Hour> :: fn(a: Hour, b: Hour) -> i64 {  // snippet$span_of__Int_in_0___23
-      i64(b) - i64(a)
+      b - a
   }
   snippet.lowest<Hour> :: fn(xs: Hour[]) -> Hour {  // snippet$lowest__Int_in_0___23
       best: Hour = 23
@@ -136,11 +136,11 @@
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(67))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(x))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, x)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " of ")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(1))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Month(1))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "..=")
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(12))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, Month(12))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }

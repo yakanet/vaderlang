@@ -15,7 +15,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(35))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "only argument: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.call_twice(snippet.double_it)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.call_twice(snippet.double_it))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       total: i32 = 0
@@ -31,7 +31,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(51))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "argument in a slot, GC inside: ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(total))
+          __off_3 = std.core.write_int(__buf_2, __off_3, total)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

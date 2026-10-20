@@ -87,7 +87,7 @@
           __p_0: string = "hello"
           __buf_1: Buffer = std.core.new_byte_buffer(i64(27) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(42))
+          __off_2 = std.core.write_int(__buf_1, __off_2, 42)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -102,7 +102,7 @@
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_3)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.LIMITS[2]))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.LIMITS[2])
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
           __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_4)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
@@ -113,7 +113,7 @@
           __p_8: string = ([7 :?, "seven"] :[i32, string])._1
           __buf_9: Buffer = std.core.new_byte_buffer(i64(20) +% std.core.byte_len(__p_8))
           __off_10: i64 = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(([7 :?, "seven"] :[i32, string])._0))
+          __off_10 = std.core.write_int(__buf_9, __off_10, ([7 :?, "seven"] :[i32, string])._0)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
@@ -135,7 +135,7 @@
           __off_14 = std.core.write_string_at(__buf_13, __off_14, " ")
           __off_14 = std.core.write_int(__buf_13, __off_14, @array.len(snippet.TRICKY))
           __off_14 = std.core.write_string_at(__buf_13, __off_14, " code=")
-          __off_14 = std.core.write_int(__buf_13, __off_14, i64(snippet.SPECS[0].code))
+          __off_14 = std.core.write_int(__buf_13, __off_14, snippet.SPECS[0].code)
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       std.io.println<string>(snippet.RULES[1].name)
@@ -146,7 +146,7 @@
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested: ")
           __off_17 = std.core.write_int(__buf_16, __off_17, @array.len(snippet.RULES[1].modes))
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(i32(snippet.RULES[1].modes[1])))
+          __off_17 = std.core.write_int(__buf_16, __off_17, i32(snippet.RULES[1].modes[1]))
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
           __off_17 = std.core.write_string_at(__buf_16, __off_17, __p_15)
           std.core.finish_buffer(__buf_16, __off_17)
@@ -158,11 +158,11 @@
           __buf_18: Buffer = std.core.new_byte_buffer(i64(69))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "counts=")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.counts()[0]))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.counts()[0])
           __off_19 = std.core.write_string_at(__buf_18, __off_19, ",")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.counts()[1]))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.counts()[1])
           __off_19 = std.core.write_string_at(__buf_18, __off_19, ",")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.counts()[2]))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.counts()[2])
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       names: string[] = snippet.slots()
@@ -173,7 +173,7 @@
                   __buf_20: Buffer = std.core.new_byte_buffer(i64(33))
                   __off_21: i64 = 0
                   __off_21 = std.core.write_string_at(__buf_20, __off_21, "runtime-slot-")
-                  __off_21 = std.core.write_int(__buf_20, __off_21, i64(i))
+                  __off_21 = std.core.write_int(__buf_20, __off_21, i)
                   std.core.finish_buffer(__buf_20, __off_21)
               }
           } @step {
@@ -189,7 +189,7 @@
                   __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
                   __off_23: i64 = 0
                   __off_23 = std.core.write_string_at(__buf_22, __off_23, "runtime-slot-")
-                  __off_23 = std.core.write_int(__buf_22, __off_23, i64(i))
+                  __off_23 = std.core.write_int(__buf_22, __off_23, i)
                   std.core.finish_buffer(__buf_22, __off_23)
               } :string) {
                   lost = lost + 1
@@ -208,7 +208,7 @@
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "/")
           __off_27 = std.core.write_string_at(__buf_26, __off_27, __p_25)
           __off_27 = std.core.write_string_at(__buf_26, __off_27, " lost=")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(lost))
+          __off_27 = std.core.write_int(__buf_26, __off_27, lost)
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "/24 collected=")
           __off_27 = std.core.write_bool(__buf_26, __off_27, std.runtime.collections() > 0)
           std.core.finish_buffer(__buf_26, __off_27)
@@ -250,7 +250,7 @@
           __buf_30: Buffer = std.core.new_byte_buffer(i64(54))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "grown=")
-          __off_31 = std.core.write_int(__buf_30, __off_31, i64(grown))
+          __off_31 = std.core.write_int(__buf_30, __off_31, grown)
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "/40 len=")
           __off_31 = std.core.write_int(__buf_30, __off_31, @array.len(snippet.counts()))
           std.core.finish_buffer(__buf_30, __off_31)
@@ -262,7 +262,7 @@
               __buf_32: Buffer = std.core.new_byte_buffer(i64(29))
               __off_33: i64 = 0
               __off_33 = std.core.write_string_at(__buf_32, __off_33, "replaced-")
-              __off_33 = std.core.write_int(__buf_32, __off_33, i64(1 + 1))
+              __off_33 = std.core.write_int(__buf_32, __off_33, 1 + 1)
               std.core.finish_buffer(__buf_32, __off_33)
           } :string,
           .code = 5,
@@ -276,7 +276,7 @@
                       __buf_34: Buffer = std.core.new_byte_buffer(i64(22))
                       __off_35: i64 = 0
                       __off_35 = std.core.write_string_at(__buf_34, __off_35, "q-")
-                      __off_35 = std.core.write_int(__buf_34, __off_35, i64(i))
+                      __off_35 = std.core.write_int(__buf_34, __off_35, i)
                       std.core.finish_buffer(__buf_34, __off_35)
                   } :string,
                   .code = i32(i),
@@ -297,7 +297,7 @@
                   __buf_36: Buffer = std.core.new_byte_buffer(i64(22))
                   __off_37: i64 = 0
                   __off_37 = std.core.write_string_at(__buf_36, __off_37, "q-")
-                  __off_37 = std.core.write_int(__buf_36, __off_37, i64(i))
+                  __off_37 = std.core.write_int(__buf_36, __off_37, i)
                   std.core.finish_buffer(__buf_36, __off_37)
               } :string) {
                   queue_ok = queue_ok + 1
@@ -310,11 +310,11 @@
           __buf_38: Buffer = std.core.new_byte_buffer(i64(79))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "queue=")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(queue_ok))
+          __off_39 = std.core.write_int(__buf_38, __off_39, queue_ok)
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "/9 len=")
           __off_39 = std.core.write_int(__buf_38, __off_39, @array.len(snippet.queue()))
           __off_39 = std.core.write_string_at(__buf_38, __off_39, " code=")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(snippet.queue()[0].code))
+          __off_39 = std.core.write_int(__buf_38, __off_39, snippet.queue()[0].code)
           std.core.finish_buffer(__buf_38, __off_39)
       } :string)
       total: i32 = 0
@@ -333,7 +333,7 @@
           __buf_43: Buffer = std.core.new_byte_buffer(i64(26))
           __off_44: i64 = 0
           __off_44 = std.core.write_string_at(__buf_43, __off_44, "total=")
-          __off_44 = std.core.write_int(__buf_43, __off_44, i64(total))
+          __off_44 = std.core.write_int(__buf_43, __off_44, total)
           std.core.finish_buffer(__buf_43, __off_44)
       } :string)
       return 0

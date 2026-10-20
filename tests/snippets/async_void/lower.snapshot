@@ -40,7 +40,7 @@
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(27))
                   __off_2: i64 = 0
                   __off_2 = std.core.write_string_at(__buf_1, __off_2, "logged ")
-                  __off_2 = std.core.write_int(__buf_1, __off_2, i64(__self_3.s1))
+                  __off_2 = std.core.write_int(__buf_1, __off_2, __self_3.s1)
                   std.core.finish_buffer(__buf_1, __off_2)
               } :string)
               __self_3.state = 0

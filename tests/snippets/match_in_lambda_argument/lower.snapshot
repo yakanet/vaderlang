@@ -23,7 +23,7 @@
       std.io.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(20))
           __off_4: i64 = 0
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(total))
+          __off_4 = std.core.write_int(__buf_3, __off_4, total)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       return 0
@@ -57,7 +57,7 @@
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(size))
+          __off_5 = std.core.write_int(__buf_4, __off_5, size)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       return size

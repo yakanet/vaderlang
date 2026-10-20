@@ -674,8 +674,8 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                     l17 = std_core_write_string_at(l16, l17, 9u);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s31;
-#line 84 "tests/snippets/async_operands_run_in_order/_main.vader"
                                     l18 = ((int64_t) (int32_t) t0);
+#line 84 "tests/snippets/async_operands_run_in_order/_main.vader"
                                     l17 = std_core_write_int(l16, l17, l18);
                                     t3 = std_core_finish_buffer(l16, l17);
                                     std_io_println__string(t3);
@@ -848,8 +848,8 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                             l49 = std_core_write_string_at(l48, l49, 11u);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s23;
-#line 75 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                             l51 = ((int64_t) (int32_t) t0);
+#line 75 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                             l49 = std_core_write_int(l48, l49, l51);
                                                                             t3 = std_core_finish_buffer(l48, l49);
                                                                             std_io_println__string(t3);
@@ -1228,14 +1228,14 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                                                                                                                                                 l125 = INT64_C(0);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s4;
-#line 56 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 l126 = ((int64_t) (int32_t) t0);
+#line 56 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 l125 = std_core_write_int(l124, l125, l126);
                                                                                                                                                                 l125 = std_core_write_string_at(l124, l125, 11u);
 #line 50 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s5;
-#line 56 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 l127 = ((int64_t) (int32_t) t0);
+#line 56 "tests/snippets/async_operands_run_in_order/_main.vader"
                                                                                                                                                                 l125 = std_core_write_int(l124, l125, l127);
                                                                                                                                                                 t3 = std_core_finish_buffer(l124, l125);
                                                                                                                                                                 std_io_println__string(t3);

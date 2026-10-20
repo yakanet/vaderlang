@@ -22,11 +22,11 @@
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(62))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.pick<Cfg>(local, snippet.CFG).n))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.pick<Cfg>(local, snippet.CFG).n)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.pick<Cfg>(snippet.CFG, local).n))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.pick<Cfg>(snippet.CFG, local).n)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.pick<Cfg>(local, snippet.CFG).n))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.pick<Cfg>(local, snippet.CFG).n)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

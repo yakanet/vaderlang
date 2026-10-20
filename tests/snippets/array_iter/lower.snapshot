@@ -19,7 +19,7 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(26))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "sum = ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(sum))
+          __off_4 = std.core.write_int(__buf_3, __off_4, sum)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       empty: i32[] = [] :i32[]
@@ -39,7 +39,7 @@
           __buf_9: Buffer = std.core.new_byte_buffer(i64(28))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "count = ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(n))
+          __off_10 = std.core.write_int(__buf_9, __off_10, n)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       return 0

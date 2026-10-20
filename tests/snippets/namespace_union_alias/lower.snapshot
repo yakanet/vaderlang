@@ -16,9 +16,9 @@
                   __buf_3: Buffer = std.core.new_byte_buffer(i64(56))
                   __off_4: i64 = 0
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, "area ")
-                  __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.user.area(s)))
+                  __off_4 = std.core.write_int(__buf_3, __off_4, snippet.user.area(s))
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, " perimeter ")
-                  __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.perimeter(s)))
+                  __off_4 = std.core.write_int(__buf_3, __off_4, snippet.perimeter(s))
                   std.core.finish_buffer(__buf_3, __off_4)
               } :string)
           } @step {
@@ -31,7 +31,7 @@
               __buf_5: Buffer = std.core.new_byte_buffer(i64(28))
               __off_6: i64 = 0
               __off_6 = std.core.write_string_at(__buf_5, __off_6, "measure ")
-              __off_6 = std.core.write_int(__buf_5, __off_6, i64(i32(m)))
+              __off_6 = std.core.write_int(__buf_5, __off_6, i32(m))
               std.core.finish_buffer(__buf_5, __off_6)
           } :string)
       }

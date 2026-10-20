@@ -54,11 +54,11 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(74))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "compare   : ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(std.core.string.compare("a", "b")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("a", "b"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(std.core.string.compare("b", "a")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("b", "a"))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(std.core.string.compare("x", "x")))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std.core.string.compare("x", "x"))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
@@ -74,9 +74,9 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(53))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "erased    : ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.order("ant", "bee")))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.order("ant", "bee"))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.order("bee", "bee")))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.order("bee", "bee"))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({

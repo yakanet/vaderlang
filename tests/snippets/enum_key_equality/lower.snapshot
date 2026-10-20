@@ -48,20 +48,20 @@
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(62))
           __off_10: i64 = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64({
+          __off_10 = std.core.write_int(__buf_9, __off_10, {
               __coalesce_6: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(0))
               if __coalesce_6 is null { -1 } else { i32(__coalesce_6) } :i32
-          } :i32))
+          } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64({
+          __off_10 = std.core.write_int(__buf_9, __off_10, {
               __coalesce_7: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(1))
               if __coalesce_7 is null { -1 } else { i32(__coalesce_7) } :i32
-          } :i32))
+          } :i32)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64({
+          __off_10 = std.core.write_int(__buf_9, __off_10, {
               __coalesce_8: i32 | null = std.collections.MutableMap<Any, i32>.at(by_color, u8(2))
               if __coalesce_8 is null { -1 } else { i32(__coalesce_8) } :i32
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       by_status: MutableMap<HttpStatus, string> = MutableMap<HttpStatus, string> {

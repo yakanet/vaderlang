@@ -25,7 +25,7 @@
           __p_0: string = snippet.Reply$data[i64(r)].reason
           __buf_1: Buffer = std.core.new_byte_buffer(i64(33) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet.Reply$data[i64(r)].code))
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.Reply$data[i64(r)].code)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " retry=")
@@ -48,7 +48,7 @@
                   __buf_6: Buffer = std.core.new_byte_buffer(i64(58) +% ((std.core.byte_len(__p_3) +% std.core.byte_len(__p_4)) +% std.core.byte_len(__p_5)))
                   __off_7: i64 = 0
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, "written: ")
-                  __off_7 = std.core.write_int(__buf_6, __off_7, i64(i32(snippet.HttpStatus$value[i64(s)])))
+                  __off_7 = std.core.write_int(__buf_6, __off_7, i32(snippet.HttpStatus$value[i64(s)]))
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_3)
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
@@ -56,7 +56,7 @@
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, " code=")
-                  __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.HttpStatus$data[i64(s)].code))
+                  __off_7 = std.core.write_int(__buf_6, __off_7, snippet.HttpStatus$data[i64(s)].code)
                   std.core.finish_buffer(__buf_6, __off_7)
               } :string)
           } @step {
@@ -74,7 +74,7 @@
                   __buf_12: Buffer = std.core.new_byte_buffer(i64(34) +% std.core.byte_len(__p_11))
                   __off_13: i64 = 0
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, "consecutive: ")
-                  __off_13 = std.core.write_int(__buf_12, __off_13, i64(i32(i64(level) +% i64(1))))
+                  __off_13 = std.core.write_int(__buf_12, __off_13, i32(i64(level) +% i64(1)))
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
                   __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
                   std.core.finish_buffer(__buf_12, __off_13)
@@ -87,7 +87,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(57))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "constant: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(i32(i64(404))))
+          __off_15 = std.core.write_int(__buf_14, __off_15, i32(i64(404)))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
           __off_15 = std.core.write_bool(__buf_14, __off_15, statuses[1] == u8(1))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
@@ -116,7 +116,7 @@
           __off_22 = std.core.write_string_at(__buf_21, __off_22, " / ")
           __off_22 = std.core.write_string_at(__buf_21, __off_22, __p_20)
           __off_22 = std.core.write_string_at(__buf_21, __off_22, " ")
-          __off_22 = std.core.write_int(__buf_21, __off_22, i64(i32(i64(2))))
+          __off_22 = std.core.write_int(__buf_21, __off_22, i32(i64(2)))
           std.core.finish_buffer(__buf_21, __off_22)
       } :string)
       std.io.println<string>({

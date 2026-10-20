@@ -74,14 +74,14 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(33))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "range sum  = ")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(a))
+          __off_4 = std.core.write_int(__buf_3, __off_4, a)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       std.io.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(33))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "array sum  = ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(b))
+          __off_6 = std.core.write_int(__buf_5, __off_6, b)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       n: i64 = snippet.count_ls("hello, world!")

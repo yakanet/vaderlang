@@ -30,11 +30,11 @@
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "collect array: len ")
           __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(ys))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " [0]=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[0]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, ys[0])
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " [1]=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[1]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, ys[1])
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " [2]=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(ys[2]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, ys[2])
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       zs: i32[] = {
@@ -59,9 +59,9 @@
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "collect range: len ")
           __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(zs))
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " [0]=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(zs[0]))
+          __off_6 = std.core.write_int(__buf_5, __off_6, zs[0])
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " [3]=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(zs[3]))
+          __off_6 = std.core.write_int(__buf_5, __off_6, zs[3])
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       a: i64 = {
@@ -244,7 +244,7 @@
               __buf_28: Buffer = std.core.new_byte_buffer(i64(35))
               __off_29: i64 = 0
               __off_29 = std.core.write_string_at(__buf_28, __off_29, "find hit:      ")
-              __off_29 = std.core.write_int(__buf_28, __off_29, i64(i32(f)))
+              __off_29 = std.core.write_int(__buf_28, __off_29, i32(f))
               std.core.finish_buffer(__buf_28, __off_29)
           } :string)
       }
@@ -281,7 +281,7 @@
               __buf_32: Buffer = std.core.new_byte_buffer(i64(35))
               __off_33: i64 = 0
               __off_33 = std.core.write_string_at(__buf_32, __off_33, "find miss:     ")
-              __off_33 = std.core.write_int(__buf_32, __off_33, i64(i32(g)))
+              __off_33 = std.core.write_int(__buf_32, __off_33, i32(g))
               std.core.finish_buffer(__buf_32, __off_33)
           } :string)
       }

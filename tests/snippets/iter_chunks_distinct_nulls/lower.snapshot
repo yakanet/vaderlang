@@ -94,7 +94,7 @@
                       __buf_10: Buffer = std.core.new_byte_buffer(i64(29))
                       __off_11: i64 = 0
                       __off_11 = std.core.write_string_at(__buf_10, __off_11, "distinct ")
-                      __off_11 = std.core.write_int(__buf_10, __off_11, i64(x))
+                      __off_11 = std.core.write_int(__buf_10, __off_11, x)
                       std.core.finish_buffer(__buf_10, __off_11)
                   } :string)
               }
@@ -128,7 +128,7 @@
                       __buf_17: Buffer = std.core.new_byte_buffer(i64(29))
                       __off_18: i64 = 0
                       __off_18 = std.core.write_string_at(__buf_17, __off_18, "not null ")
-                      __off_18 = std.core.write_int(__buf_17, __off_18, i64(x + 1))
+                      __off_18 = std.core.write_int(__buf_17, __off_18, x + 1)
                       std.core.finish_buffer(__buf_17, __off_18)
                   } :string)
               }
@@ -149,7 +149,7 @@
                       __buf_24: Buffer = std.core.new_byte_buffer(i64(34))
                       __off_25: i64 = 0
                       __off_25 = std.core.write_string_at(__buf_24, __off_25, "lazy not null ")
-                      __off_25 = std.core.write_int(__buf_24, __off_25, i64(x * 10))
+                      __off_25 = std.core.write_int(__buf_24, __off_25, x * 10)
                       std.core.finish_buffer(__buf_24, __off_25)
                   } :string)
               }

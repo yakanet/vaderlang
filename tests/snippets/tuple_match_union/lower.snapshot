@@ -22,7 +22,7 @@
                       __buf_2: Buffer = std.core.new_byte_buffer(i64(25) +% std.core.byte_len(__p_1))
                       __off_3: i64 = 0
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, "n=")
-                      __off_3 = std.core.write_int(__buf_2, __off_3, i64(n))
+                      __off_3 = std.core.write_int(__buf_2, __off_3, n)
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, " s=")
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, __p_1)
                       std.core.finish_buffer(__buf_2, __off_3)
@@ -46,7 +46,7 @@
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(25) +% std.core.byte_len(__p_5))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "n=")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(n))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, n)
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, " s=")
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
                       std.core.finish_buffer(__buf_6, __off_7)

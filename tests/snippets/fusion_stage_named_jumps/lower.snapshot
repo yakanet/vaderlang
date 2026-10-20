@@ -57,7 +57,7 @@
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                              __off_1 = std.core.write_int(__buf_0, __off_1, v)
                               std.core.finish_buffer(__buf_0, __off_1)
                           } :string)
                       } @step {
@@ -83,7 +83,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, v)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
@@ -120,7 +120,7 @@
                                       __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                                       __off_1: i64 = 0
                                       __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                                      __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                                      __off_1 = std.core.write_int(__buf_0, __off_1, v)
                                       std.core.finish_buffer(__buf_0, __off_1)
                                   } :string)
                               } @step {
@@ -150,7 +150,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, v)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
@@ -178,7 +178,7 @@
                               __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                               __off_1: i64 = 0
                               __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                              __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                              __off_1 = std.core.write_int(__buf_0, __off_1, v)
                               std.core.finish_buffer(__buf_0, __off_1)
                           } :string)
                       } @step {
@@ -204,7 +204,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, v)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }
@@ -239,7 +239,7 @@
                                   __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
                                   __off_1: i64 = 0
                                   __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-                                  __off_1 = std.core.write_int(__buf_0, __off_1, i64(v))
+                                  __off_1 = std.core.write_int(__buf_0, __off_1, v)
                                   std.core.finish_buffer(__buf_0, __off_1)
                               } :string)
                           } @step {
@@ -270,7 +270,7 @@
                       __buf_7: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_8: i64 = 0
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(v))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, v)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }

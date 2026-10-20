@@ -11,13 +11,13 @@
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       }
-      return i8(i16(Hour(close)) - i16(open))
+      return close - open
   }
   snippet.label :: fn(h: Hour) -> string {  // snippet$label
       {
           __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
           __off_1: i64 = 0
-          __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(h))
+          __off_1 = std.core.write_unsigned(__buf_0, __off_1, h)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "h")
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
@@ -31,8 +31,8 @@
       afternoon: i64 = readings[2]
       snippet.clock.require_hour(afternoon)
       close: i64 = readings[3]
-      hours: i64 = snippet.span_until(Hour(open), close)
-      std.io.println<string>(concat_7(snippet.label(Hour(open)), " to ", snippet.label(Hour(lunch)), ", ", snippet.label(Hour(afternoon)), " to ", snippet.label(Hour(close))))
+      hours: i64 = snippet.span_until(open, close)
+      std.io.println<string>(concat_7(snippet.label(open), " to ", snippet.label(lunch), ", ", snippet.label(afternoon), " to ", snippet.label(close)))
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(31))
           __off_1: i64 = 0

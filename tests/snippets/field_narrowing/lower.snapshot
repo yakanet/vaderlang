@@ -15,7 +15,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "not null: count=")
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.count(b.items)))
+              __off_1 = std.core.write_int(__buf_0, __off_1, snippet.count(b.items))
               std.core.finish_buffer(__buf_0, __off_1)
           } :string)
       } else {
@@ -75,9 +75,9 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "guard == null: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.total(full)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.total(full))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.total(empty)))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.total(empty))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       {
@@ -92,7 +92,7 @@
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(33))
                       __off_4: i64 = 0
                       __off_4 = std.core.write_string_at(__buf_3, __off_4, "match: count=")
-                      __off_4 = std.core.write_int(__buf_3, __off_4, i64(snippet.count(full.items)))
+                      __off_4 = std.core.write_int(__buf_3, __off_4, snippet.count(full.items))
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string)
               }
@@ -110,7 +110,7 @@
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(33))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, "match: count=")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.count(empty.items)))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, snippet.count(empty.items))
                       std.core.finish_buffer(__buf_6, __off_7)
                   } :string)
               }
@@ -122,36 +122,36 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(56))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "guard is null: ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.convert(some)))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.convert(some))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.convert(none)))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.convert(none))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(47))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "is T: ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.span_if_block(some)))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.span_if_block(some))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.span_if_block(none)))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.span_if_block(none))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(50))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "is T as: ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, i64(snippet.span_via_alias(some)))
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_via_alias(some))
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, i64(snippet.span_via_alias(none)))
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.span_via_alias(none))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.io.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(54))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "not is null: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(snippet.span_if_present(some)))
+          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.span_if_present(some))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(snippet.span_if_present(none)))
+          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.span_if_present(none))
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       set: Outer = Outer { .inner = Inner { .flag = 42 } }
@@ -160,18 +160,18 @@
           __buf_16: Buffer = std.core.new_byte_buffer(i64(55))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested match: ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(snippet.count_match(set)))
+          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.count_match(set))
           __off_17 = std.core.write_string_at(__buf_16, __off_17, " ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(snippet.count_match(unset)))
+          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.count_match(unset))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.io.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(55))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "nested guard: ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.unwrap(set)))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.unwrap(set))
           __off_19 = std.core.write_string_at(__buf_18, __off_19, " ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.unwrap(unset)))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.unwrap(unset))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       return 0

@@ -930,8 +930,8 @@ static void* snippet___genstate_produced_Iterator_next(void* l0) {
                         l5 = std_core_write_string_at(l4, l5, 8u);
 #line 45 "tests/snippets/fusion_take_exact/_main.vader"
                         t0 = ((vader_struct_snippet___genstate_produced_t*) l0)->f_s1;
-#line 47 "tests/snippets/fusion_take_exact/_main.vader"
                         l6 = ((int64_t) (int32_t) t0);
+#line 47 "tests/snippets/fusion_take_exact/_main.vader"
                         l5 = std_core_write_int(l4, l5, l6);
                         t2 = std_core_finish_buffer(l4, l5);
                         std_io_println__string(t2);

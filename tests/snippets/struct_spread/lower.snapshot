@@ -20,22 +20,22 @@
           __buf_1: Buffer = std.core.new_byte_buffer(i64(74))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "base: a=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(base.a))
+          __off_2 = std.core.write_int(__buf_1, __off_2, base.a)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " b=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(base.b))
+          __off_2 = std.core.write_int(__buf_1, __off_2, base.b)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " c=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(base.c))
+          __off_2 = std.core.write_int(__buf_1, __off_2, base.c)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
       std.io.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(74))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "upd:  a=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(upd.a))
+          __off_4 = std.core.write_int(__buf_3, __off_4, upd.a)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " b=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(upd.b))
+          __off_4 = std.core.write_int(__buf_3, __off_4, upd.b)
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " c=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(upd.c))
+          __off_4 = std.core.write_int(__buf_3, __off_4, upd.c)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       other: P = P {
@@ -56,11 +56,11 @@
           __buf_7: Buffer = std.core.new_byte_buffer(i64(76))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "merged: a=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(merged.a))
+          __off_8 = std.core.write_int(__buf_7, __off_8, merged.a)
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " b=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(merged.b))
+          __off_8 = std.core.write_int(__buf_7, __off_8, merged.b)
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " c=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(merged.c))
+          __off_8 = std.core.write_int(__buf_7, __off_8, merged.c)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       return 0

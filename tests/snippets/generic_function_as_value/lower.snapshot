@@ -29,7 +29,7 @@
           __p_3: string = snippet.id<string>("s")
           __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
           __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.id<i32>(3)))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.id<i32>(3))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
           std.core.finish_buffer(__buf_4, __off_5)

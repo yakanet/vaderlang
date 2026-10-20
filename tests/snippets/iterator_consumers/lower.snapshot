@@ -214,7 +214,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(45))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "sum ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64({
+          __off_9 = std.core.write_int(__buf_8, __off_9, {
               __fuse_arr_6: i32[] = a
               pred: fn(i32) -> bool = snippet.odd
               s: i32 = std_core$i32$Zero$zero()
@@ -232,9 +232,9 @@
                   }
               }
               s
-          } :i32))
+          } :i32)
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(std.iter.sum<i32>(odds)))
+          __off_9 = std.core.write_int(__buf_8, __off_9, std.iter.sum<i32>(odds))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       squares_total: __genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
@@ -363,12 +363,12 @@
           __buf_26: Buffer = std.core.new_byte_buffer(i64(53))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "find struct ")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(near))
+          __off_27 = std.core.write_int(__buf_26, __off_27, near)
           __off_27 = std.core.write_string_at(__buf_26, __off_27, " ")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(({
+          __off_27 = std.core.write_int(__buf_26, __off_27, ({
               __coalesce_25: null | Point = std.iter.find<Point>(far, __lambda_snippet_4)
               if __coalesce_25 is null { Point { .x = 0, .y = 0 } } else { Point(__coalesce_25) } :Point
-          } :Point).x))
+          } :Point).x)
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       thirds: __genstate_filter<Point> = std.iter.filter<[i32, i32]>(std.core.Point[].into(pts), __lambda_snippet_5)
@@ -478,13 +478,13 @@
           __buf_38: Buffer = std.core.new_byte_buffer(i64(88))
           __off_39: i64 = 0
           __off_39 = std.core.write_string_at(__buf_38, __off_39, "pair ")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(p._0))
+          __off_39 = std.core.write_int(__buf_38, __off_39, p._0)
           __off_39 = std.core.write_string_at(__buf_38, __off_39, " ")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(p._1))
+          __off_39 = std.core.write_int(__buf_38, __off_39, p._1)
           __off_39 = std.core.write_string_at(__buf_38, __off_39, " ")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(lazy_p._0))
+          __off_39 = std.core.write_int(__buf_38, __off_39, lazy_p._0)
           __off_39 = std.core.write_string_at(__buf_38, __off_39, " ")
-          __off_39 = std.core.write_int(__buf_38, __off_39, i64(lazy_p._1))
+          __off_39 = std.core.write_int(__buf_38, __off_39, lazy_p._1)
           std.core.finish_buffer(__buf_38, __off_39)
       } :string)
       late: __genstate_map<[i32, i32]> = std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.fifties)
@@ -522,13 +522,13 @@
           __buf_42: Buffer = std.core.new_byte_buffer(i64(94))
           __off_43: i64 = 0
           __off_43 = std.core.write_string_at(__buf_42, __off_43, "pair early ")
-          __off_43 = std.core.write_int(__buf_42, __off_43, i64(q._0))
+          __off_43 = std.core.write_int(__buf_42, __off_43, q._0)
           __off_43 = std.core.write_string_at(__buf_42, __off_43, " ")
-          __off_43 = std.core.write_int(__buf_42, __off_43, i64(q._1))
+          __off_43 = std.core.write_int(__buf_42, __off_43, q._1)
           __off_43 = std.core.write_string_at(__buf_42, __off_43, " ")
-          __off_43 = std.core.write_int(__buf_42, __off_43, i64(lazy_q._0))
+          __off_43 = std.core.write_int(__buf_42, __off_43, lazy_q._0)
           __off_43 = std.core.write_string_at(__buf_42, __off_43, " ")
-          __off_43 = std.core.write_int(__buf_42, __off_43, i64(lazy_q._1))
+          __off_43 = std.core.write_int(__buf_42, __off_43, lazy_q._1)
           std.core.finish_buffer(__buf_42, __off_43)
       } :string)
       tuples: __genstate_filter<[i32, i32]> = std.iter.filter<[i32, i32]>(std.iter.map<i32, [i32, i32]>(std.core.i32[].into(a), snippet.tens), snippet.big_pair)
@@ -570,13 +570,13 @@
           __buf_46: Buffer = std.core.new_byte_buffer(i64(97))
           __off_47: i64 = 0
           __off_47 = std.core.write_string_at(__buf_46, __off_47, "pair filtered ")
-          __off_47 = std.core.write_int(__buf_46, __off_47, i64(r._0))
+          __off_47 = std.core.write_int(__buf_46, __off_47, r._0)
           __off_47 = std.core.write_string_at(__buf_46, __off_47, " ")
-          __off_47 = std.core.write_int(__buf_46, __off_47, i64(r._1))
+          __off_47 = std.core.write_int(__buf_46, __off_47, r._1)
           __off_47 = std.core.write_string_at(__buf_46, __off_47, " ")
-          __off_47 = std.core.write_int(__buf_46, __off_47, i64(lazy_r._0))
+          __off_47 = std.core.write_int(__buf_46, __off_47, lazy_r._0)
           __off_47 = std.core.write_string_at(__buf_46, __off_47, " ")
-          __off_47 = std.core.write_int(__buf_46, __off_47, i64(lazy_r._1))
+          __off_47 = std.core.write_int(__buf_46, __off_47, lazy_r._1)
           std.core.finish_buffer(__buf_46, __off_47)
       } :string)
       scaled: __genstate_map<i64> = std.iter.map<i32, i64>(std.core.i32[].into(a), snippet.square)
@@ -628,7 +628,7 @@
           __buf_54: Buffer = std.core.new_byte_buffer(i64(26))
           __off_55: i64 = 0
           __off_55 = std.core.write_string_at(__buf_54, __off_55, "twice ")
-          __off_55 = std.core.write_int(__buf_54, __off_55, i64(snippet.drained_twice(std.iter.map<i32, i32>(std.core.i32[].into(a), __lambda_snippet_10))))
+          __off_55 = std.core.write_int(__buf_54, __off_55, snippet.drained_twice(std.iter.map<i32, i32>(std.core.i32[].into(a), __lambda_snippet_10)))
           std.core.finish_buffer(__buf_54, __off_55)
       } :string)
       std.io.println<string>({
@@ -658,7 +658,7 @@
           __buf_61: Buffer = std.core.new_byte_buffer(i64(30))
           __off_62: i64 = 0
           __off_62 = std.core.write_string_at(__buf_61, __off_62, "range sum ")
-          __off_62 = std.core.write_int(__buf_61, __off_62, i64({
+          __off_62 = std.core.write_int(__buf_61, __off_62, {
               f: fn(i32) -> i32 = __lambda_snippet_12
               s: i32 = std_core$i32$Zero$zero()
               {
@@ -671,14 +671,14 @@
                   }
               }
               s
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_61, __off_62)
       } :string)
       std.io.println<string>({
           __buf_66: Buffer = std.core.new_byte_buffer(i64(29))
           __off_67: i64 = 0
           __off_67 = std.core.write_string_at(__buf_66, __off_67, "find_map ")
-          __off_67 = std.core.write_int(__buf_66, __off_67, i64({
+          __off_67 = std.core.write_int(__buf_66, __off_67, {
               __coalesce_63: i32 | null = {
                   __fuse_arr_64: i32[] = a
                   f: fn(i32) -> i32 | null = __lambda_snippet_13
@@ -703,7 +703,7 @@
                   __consumed_65
               }
               if __coalesce_63 is null { 0 } else { i32(__coalesce_63) } :i32
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_66, __off_67)
       } :string)
       return 0

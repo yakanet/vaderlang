@@ -117,17 +117,17 @@
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(62))
           __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.i_div(-7, 2)))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.i_div(-7, 2))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.i_rem(-7, 2)))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.i_rem(-7, 2))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.i_rem(7, -2)))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.i_rem(7, -2))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(26))
           __off_9: i64 = 0
-          __off_9 = std.core.write_unsigned(__buf_8, __off_9, u64(snippet.u_div(u32(4000000000), u32(3))))
+          __off_9 = std.core.write_unsigned(__buf_8, __off_9, snippet.u_div(u32(4000000000), u32(3)))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
           __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.u_lt(u32(2147483648), u32(2147483647)))
           std.core.finish_buffer(__buf_8, __off_9)
@@ -143,7 +143,7 @@
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(41))
           __off_13: i64 = 0
-          __off_13 = std.core.write_unsigned(__buf_12, __off_13, u64(snippet.u_shr(u32(4000000000), u32(4))))
+          __off_13 = std.core.write_unsigned(__buf_12, __off_13, snippet.u_shr(u32(4000000000), u32(4)))
           __off_13 = std.core.write_string_at(__buf_12, __off_13, " ")
           __off_13 = std.core.write_unsigned(__buf_12, __off_13, snippet.ul_shr(u64(18000000000000000000), u64(60)))
           std.core.finish_buffer(__buf_12, __off_13)
@@ -173,7 +173,7 @@
           __off_21 = std.core.write_string_at(__buf_20, __off_21, " ")
           __off_21 = std.core.write_string_at(__buf_20, __off_21, __p_19)
           __off_21 = std.core.write_string_at(__buf_20, __off_21, " ")
-          __off_21 = std.core.write_int(__buf_20, __off_21, i64(snippet.from_chr('z')))
+          __off_21 = std.core.write_int(__buf_20, __off_21, snippet.from_chr('z'))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       return 0

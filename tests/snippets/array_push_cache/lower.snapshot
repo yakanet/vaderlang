@@ -30,7 +30,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "v")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(i))
+          __off_1 = std.core.write_int(__buf_0, __off_1, i)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -250,11 +250,11 @@
       return {
           __buf_9: Buffer = std.core.new_byte_buffer(i64(62))
           __off_10: i64 = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(bt))
+          __off_10 = std.core.write_int(__buf_9, __off_10, bt)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "/")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(st))
+          __off_10 = std.core.write_int(__buf_9, __off_10, st)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "/")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(i32(ft)))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i32(ft))
           std.core.finish_buffer(__buf_9, __off_10)
       } :string
   }
@@ -467,7 +467,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(56))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "tight        ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.sum(snippet.tight(6))))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.sum(snippet.tight(6)))
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " n=")
           __off_1 = std.core.write_int(__buf_0, __off_1, @array.len(snippet.tight(6)))
           std.core.finish_buffer(__buf_0, __off_1)
@@ -476,7 +476,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(56))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "reserved     ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.sum(snippet.reserved(6))))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.sum(snippet.reserved(6)))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " n=")
           __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(snippet.reserved(6)))
           std.core.finish_buffer(__buf_2, __off_3)
@@ -486,7 +486,7 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(56))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "reads_itself ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.sum(snippet.reads_itself(5))))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.sum(snippet.reads_itself(5)))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " n=")
           __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(snippet.reads_itself(5)))
           std.core.finish_buffer(__buf_4, __off_5)
@@ -495,7 +495,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(56))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "with_break   ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.sum(snippet.with_break(9))))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.sum(snippet.with_break(9)))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " n=")
           __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(snippet.with_break(9)))
           std.core.finish_buffer(__buf_6, __off_7)
@@ -504,7 +504,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(56))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "break_mid    ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.sum(snippet.break_mid([1, 2, -3, 4] :i32[]))))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.sum(snippet.break_mid([1, 2, -3, 4] :i32[])))
           __off_9 = std.core.write_string_at(__buf_8, __off_9, " n=")
           __off_9 = std.core.write_int(__buf_8, __off_9, @array.len(snippet.break_mid([1, 2, -3, 4] :i32[])))
           std.core.finish_buffer(__buf_8, __off_9)
@@ -513,16 +513,16 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(54))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "early_return ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.early_return([1, 2, 3] :i32[])))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.early_return([1, 2, 3] :i32[]))
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(snippet.early_return([1, -1, 2] :i32[])))
+          __off_11 = std.core.write_int(__buf_10, __off_11, snippet.early_return([1, -1, 2] :i32[]))
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(33))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "break_outer  ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, i64(snippet.break_outer(4)))
+          __off_13 = std.core.write_int(__buf_12, __off_13, snippet.break_outer(4))
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.io.println<string>(concat_2("boxed        ", snippet.join(snippet.boxed(4))))
@@ -530,7 +530,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(56))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "into_view    ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(snippet.sum(snippet.into_view())))
+          __off_15 = std.core.write_int(__buf_14, __off_15, snippet.sum(snippet.into_view()))
           __off_15 = std.core.write_string_at(__buf_14, __off_15, " n=")
           __off_15 = std.core.write_int(__buf_14, __off_15, @array.len(snippet.into_view()))
           std.core.finish_buffer(__buf_14, __off_15)
@@ -539,7 +539,7 @@
           __buf_16: Buffer = std.core.new_byte_buffer(i64(33))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "nested       ")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(snippet.nested(4)))
+          __off_17 = std.core.write_int(__buf_16, __off_17, snippet.nested(4))
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.io.println<string>(concat_2("widths       ", snippet.widths(150)))
@@ -547,49 +547,49 @@
           __buf_18: Buffer = std.core.new_byte_buffer(i64(33))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "aliased      ")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(snippet.aliased(8)))
+          __off_19 = std.core.write_int(__buf_18, __off_19, snippet.aliased(8))
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       std.io.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(33))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "len_after    ")
-          __off_21 = std.core.write_int(__buf_20, __off_21, i64(snippet.len_after(5)))
+          __off_21 = std.core.write_int(__buf_20, __off_21, snippet.len_after(5))
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       std.io.println<string>({
           __buf_22: Buffer = std.core.new_byte_buffer(i64(33))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "captured     ")
-          __off_23 = std.core.write_int(__buf_22, __off_23, i64(snippet.captured(8)))
+          __off_23 = std.core.write_int(__buf_22, __off_23, snippet.captured(8))
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
       std.io.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(33))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "two_names    ")
-          __off_25 = std.core.write_int(__buf_24, __off_25, i64(snippet.two_names(8)))
+          __off_25 = std.core.write_int(__buf_24, __off_25, snippet.two_names(8))
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
       std.io.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(33))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "rebound      ")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(snippet.rebound(8)))
+          __off_27 = std.core.write_int(__buf_26, __off_27, snippet.rebound(8))
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       std.io.println<string>({
           __buf_28: Buffer = std.core.new_byte_buffer(i64(33))
           __off_29: i64 = 0
           __off_29 = std.core.write_string_at(__buf_28, __off_29, "one_shot     ")
-          __off_29 = std.core.write_int(__buf_28, __off_29, i64(snippet.one_shot([1, 2, 3] :i32[])))
+          __off_29 = std.core.write_int(__buf_28, __off_29, snippet.one_shot([1, 2, 3] :i32[]))
           std.core.finish_buffer(__buf_28, __off_29)
       } :string)
       std.io.println<string>({
           __buf_30: Buffer = std.core.new_byte_buffer(i64(56))
           __off_31: i64 = 0
           __off_31 = std.core.write_string_at(__buf_30, __off_31, "collected    ")
-          __off_31 = std.core.write_int(__buf_30, __off_31, i64(snippet.sum(snippet.collected(6))))
+          __off_31 = std.core.write_int(__buf_30, __off_31, snippet.sum(snippet.collected(6)))
           __off_31 = std.core.write_string_at(__buf_30, __off_31, " n=")
           __off_31 = std.core.write_int(__buf_30, __off_31, @array.len(snippet.collected(6)))
           std.core.finish_buffer(__buf_30, __off_31)
@@ -598,7 +598,7 @@
           __buf_32: Buffer = std.core.new_byte_buffer(i64(56))
           __off_33: i64 = 0
           __off_33 = std.core.write_string_at(__buf_32, __off_33, "filtered     ")
-          __off_33 = std.core.write_int(__buf_32, __off_33, i64(snippet.sum(snippet.filtered([1, 2, 3, 5] :i32[]))))
+          __off_33 = std.core.write_int(__buf_32, __off_33, snippet.sum(snippet.filtered([1, 2, 3, 5] :i32[])))
           __off_33 = std.core.write_string_at(__buf_32, __off_33, " n=")
           __off_33 = std.core.write_int(__buf_32, __off_33, @array.len(snippet.filtered([1, 2, 3, 5] :i32[])))
           std.core.finish_buffer(__buf_32, __off_33)
@@ -607,7 +607,7 @@
           __buf_34: Buffer = std.core.new_byte_buffer(i64(56))
           __off_35: i64 = 0
           __off_35 = std.core.write_string_at(__buf_34, __off_35, "taken        ")
-          __off_35 = std.core.write_int(__buf_34, __off_35, i64(snippet.sum(snippet.taken([1, 2, 3, 4, 5] :i32[]))))
+          __off_35 = std.core.write_int(__buf_34, __off_35, snippet.sum(snippet.taken([1, 2, 3, 4, 5] :i32[])))
           __off_35 = std.core.write_string_at(__buf_34, __off_35, " n=")
           __off_35 = std.core.write_int(__buf_34, __off_35, @array.len(snippet.taken([1, 2, 3, 4, 5] :i32[])))
           std.core.finish_buffer(__buf_34, __off_35)

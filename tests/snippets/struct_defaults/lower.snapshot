@@ -24,7 +24,7 @@
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, ": timeout=")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(s1.timeout))
+          __off_2 = std.core.write_int(__buf_1, __off_2, s1.timeout)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " debug=")
           __off_2 = std.core.write_bool(__buf_1, __off_2, s1.debug)
           std.core.finish_buffer(__buf_1, __off_2)
@@ -35,7 +35,7 @@
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, ": timeout=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(s2.timeout))
+          __off_5 = std.core.write_int(__buf_4, __off_5, s2.timeout)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " debug=")
           __off_5 = std.core.write_bool(__buf_4, __off_5, s2.debug)
           std.core.finish_buffer(__buf_4, __off_5)
@@ -46,7 +46,7 @@
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
           __off_8 = std.core.write_string_at(__buf_7, __off_8, ": timeout=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(s3.timeout))
+          __off_8 = std.core.write_int(__buf_7, __off_8, s3.timeout)
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " debug=")
           __off_8 = std.core.write_bool(__buf_7, __off_8, s3.debug)
           std.core.finish_buffer(__buf_7, __off_8)

@@ -29,7 +29,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(40))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "value trailing: got ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.value_trailing()))
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.value_trailing())
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       {

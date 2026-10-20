@@ -17,7 +17,7 @@
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "slice ")
           __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(xs[below..<i64(2)]))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(xs[below..<i64(2)][0]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, xs[below..<i64(2)][0])
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>(concat_3("bytes '", std.core.byte_slice("hello", below, i64(2)), "'"))
@@ -27,11 +27,11 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(67))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "copy ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(ys[0]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, ys[0])
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(ys[1]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, ys[1])
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(ys[2]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, ys[2])
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       return 0

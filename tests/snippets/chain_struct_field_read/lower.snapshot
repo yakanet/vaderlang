@@ -50,7 +50,7 @@
                   __off_10: i64 = 0
                   __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
                   __off_10 = std.core.write_string_at(__buf_9, __off_10, "=")
-                  __off_10 = std.core.write_int(__buf_9, __off_10, i64(r.value))
+                  __off_10 = std.core.write_int(__buf_9, __off_10, r.value)
                   std.core.finish_buffer(__buf_9, __off_10)
               } :string)
           } @step {
@@ -87,7 +87,7 @@
                   __off_18 = std.core.write_string_at(__buf_17, __off_18, "x2 ")
                   __off_18 = std.core.write_string_at(__buf_17, __off_18, __p_16)
                   __off_18 = std.core.write_string_at(__buf_17, __off_18, "=")
-                  __off_18 = std.core.write_int(__buf_17, __off_18, i64(r.value))
+                  __off_18 = std.core.write_int(__buf_17, __off_18, r.value)
                   std.core.finish_buffer(__buf_17, __off_18)
               } :string)
           } @step {
@@ -126,7 +126,7 @@
                   __off_26 = std.core.write_string_at(__buf_25, __off_26, "kept ")
                   __off_26 = std.core.write_string_at(__buf_25, __off_26, __p_24)
                   __off_26 = std.core.write_string_at(__buf_25, __off_26, "=")
-                  __off_26 = std.core.write_int(__buf_25, __off_26, i64(r.value))
+                  __off_26 = std.core.write_int(__buf_25, __off_26, r.value)
                   std.core.finish_buffer(__buf_25, __off_26)
               } :string)
           } @step {
@@ -148,7 +148,7 @@
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, "direct ")
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, __p_27)
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, "=")
-                  __off_29 = std.core.write_int(__buf_28, __off_29, i64(m.value))
+                  __off_29 = std.core.write_int(__buf_28, __off_29, m.value)
                   std.core.finish_buffer(__buf_28, __off_29)
               } :string)
           } @step {
@@ -166,7 +166,7 @@
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, "direct ")
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, __p_27)
                   __off_29 = std.core.write_string_at(__buf_28, __off_29, "=")
-                  __off_29 = std.core.write_int(__buf_28, __off_29, i64(m.value))
+                  __off_29 = std.core.write_int(__buf_28, __off_29, m.value)
                   std.core.finish_buffer(__buf_28, __off_29)
               } :string)
           } @step {
@@ -188,7 +188,7 @@
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, "explicit ")
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, __p_36)
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, "=")
-                  __off_38 = std.core.write_int(__buf_37, __off_38, i64(m.value))
+                  __off_38 = std.core.write_int(__buf_37, __off_38, m.value)
                   std.core.finish_buffer(__buf_37, __off_38)
               } :string)
           } @step {
@@ -206,7 +206,7 @@
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, "explicit ")
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, __p_36)
                   __off_38 = std.core.write_string_at(__buf_37, __off_38, "=")
-                  __off_38 = std.core.write_int(__buf_37, __off_38, i64(m.value))
+                  __off_38 = std.core.write_int(__buf_37, __off_38, m.value)
                   std.core.finish_buffer(__buf_37, __off_38)
               } :string)
           } @step {

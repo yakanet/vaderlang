@@ -961,8 +961,8 @@ static void* snippet___genstate_evens_with_tail_Iterator_next(void* l0) {
                     l4 = std_core_write_string_at(l3, l4, 1u);
 #line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
-#line 28 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l5 = ((int64_t) (int32_t) t0);
+#line 28 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l4 = std_core_write_int(l3, l4, l5);
                     t1 = std_core_finish_buffer(l3, l4);
                     std_io_println__string(t1);
@@ -1751,8 +1751,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
             l3 = std_core_write_string_at(l2, l3, 2u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s23;
-#line 116 "tests/snippets/coroutine_nested_jumps/_main.vader"
             l4 = ((int64_t) (int32_t) t0);
+#line 116 "tests/snippets/coroutine_nested_jumps/_main.vader"
             l3 = std_core_write_int(l2, l3, l4);
             t1 = std_core_finish_buffer(l2, l3);
             std_io_println__string(t1);
@@ -1797,8 +1797,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         l10 = std_core_write_string_at(l9, l10, 3u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s21;
-#line 114 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l11 = ((int64_t) (int32_t) t0);
+#line 114 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l10 = std_core_write_int(l9, l10, l11);
                         t1 = std_core_finish_buffer(l9, l10);
                         std_io_println__string(t1);
@@ -1857,8 +1857,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                         l17 = std_core_write_string_at(l16, l17, 4u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s19;
-#line 111 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         l18 = ((int64_t) (int32_t) t0);
+#line 111 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         l17 = std_core_write_int(l16, l17, l18);
                                                         t1 = std_core_finish_buffer(l16, l17);
                                                         std_io_println__string(t1);
@@ -1940,8 +1940,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                 l24 = std_core_write_string_at(l23, l24, 5u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
-#line 107 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 l25 = ((int64_t) (int32_t) t0);
+#line 107 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 l24 = std_core_write_int(l23, l24, l25);
                                                                                                 t1 = std_core_finish_buffer(l23, l24);
                                                                                                 std_io_println__string(t1);
@@ -2023,8 +2023,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                         l31 = std_core_write_string_at(l30, l31, 6u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
-#line 103 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         l32 = ((int64_t) (int32_t) t0);
+#line 103 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         l31 = std_core_write_int(l30, l31, l32);
                                                                                                                                         t1 = std_core_finish_buffer(l30, l31);
                                                                                                                                         std_io_println__string(t1);
@@ -2106,8 +2106,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                 l38 = std_core_write_string_at(l37, l38, 7u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
-#line 99 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 l39 = ((int64_t) (int32_t) t0);
+#line 99 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 l38 = std_core_write_int(l37, l38, l39);
                                                                                                                                                                                 t1 = std_core_finish_buffer(l37, l38);
                                                                                                                                                                                 std_io_println__string(t1);
@@ -2189,8 +2189,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                                                         l45 = std_core_write_string_at(l44, l45, 8u);
 #line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3;
-#line 95 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         l46 = ((int64_t) (int32_t) t0);
+#line 95 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         l45 = std_core_write_int(l44, l45, l46);
                                                                                                                                                                                                                         t1 = std_core_finish_buffer(l44, l45);
                                                                                                                                                                                                                         std_io_println__string(t1);

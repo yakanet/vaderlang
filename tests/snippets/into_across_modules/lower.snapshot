@@ -9,7 +9,7 @@
       std.io.println<string>({
           __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
           __off_1: i64 = 0
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.take(snippet.units.Meters.into(m))))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.take(snippet.units.Meters.into(m)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>(std.core.f64.to_string(f64(snippet.units.Celsius.add(snippet.units.warmer(Celsius(30.0)), Celsius(0.5)))))

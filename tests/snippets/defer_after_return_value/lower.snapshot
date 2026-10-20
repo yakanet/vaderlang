@@ -186,7 +186,7 @@
               std.io.println<string>({
                   __buf_7: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_8: i64 = 0
-                  __off_8 = std.core.write_int(__buf_7, __off_8, i64(__self_9.s1))
+                  __off_8 = std.core.write_int(__buf_7, __off_8, __self_9.s1)
                   std.core.finish_buffer(__buf_7, __off_8)
               } :string)
               __self_9.state = 1
@@ -205,20 +205,20 @@
               std.io.println<string>({
                   __buf_0: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_1: i64 = 0
-                  __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.returns_a_call()))
+                  __off_1 = std.core.write_int(__buf_0, __off_1, snippet.returns_a_call())
                   std.core.finish_buffer(__buf_0, __off_1)
               } :string)
               std.io.println<string>({
                   __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_3: i64 = 0
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(snippet.returns_a_local()))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, snippet.returns_a_local())
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               snippet.returns_a_void_call()
               std.io.println<string>({
                   __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_5: i64 = 0
-                  __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.returns_from_a_nested_block(true)))
+                  __off_5 = std.core.write_int(__buf_4, __off_5, snippet.returns_from_a_nested_block(true))
                   std.core.finish_buffer(__buf_4, __off_5)
               } :string)
               __self_9.state = 4

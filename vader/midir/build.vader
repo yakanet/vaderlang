@@ -897,21 +897,27 @@ build_type_const :: fn(fn_ctx: FnCtx, e: LoweredTypeConst) -> LocalId | null {
     return dst
 }
 
+// The local `e` reads, as its slot stores it ; any other ident as `build_ident`
+// builds it.
+stored_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
+    slot :: fn_ctx.local_by_sym_id[e.symbol.id] ?? return build_ident(fn_ctx, e)
+    return stored_slot(fn_ctx, slot, e)
+}
+
+// The slot `slot` the ident `e` reads, as it stores it : itself, or, where the read
+// narrows a union to a variant, the variant recovered.
+stored_slot :: fn(fn_ctx: FnCtx, slot: LocalId, e: LoweredIdent) -> LocalId {
+    slot_type :: fn_ctx.locals[i64(slot)].type
+    if slot_type is UnionType && !equals_type(slot_type, e.type) {
+        return cast_local(fn_ctx, slot, e.type, "narrow", e.span)
+    }
+    return slot
+}
+
 build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     slot_opt :: fn_ctx.local_by_sym_id[e.symbol.id]
     if slot_opt !is null {
-        // Binding-kind narrowing : the slot's declared type is wider
-        // than the expr's, so emit a Cast to recover the narrowed type
-        // before downstream uses.
-        slot_type :: fn_ctx.locals[i64(slot_opt)].type
-        if slot_type is UnionType {
-            if !equals_type(slot_type, e.type) {
-                dst :: fresh_tmp(fn_ctx, "narrow", e.type)
-                emit(fn_ctx, InstrCast { .dst = dst, .value = slot_opt, .type = e.type, .span = e.span })
-                return dst
-            }
-        }
-        return slot_opt
+        return read_as(fn_ctx, stored_slot(fn_ctx, slot_opt, e), e.type, e.span)
     }
     if e.symbol.kind == .Fn {
         dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
@@ -1075,25 +1081,53 @@ build_virtual_call :: fn(fn_ctx: FnCtx, e: LoweredVirtualCall) -> LocalId | null
 }
 
 build_field_access :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
+    stored :: stored_field(fn_ctx, e) ?? return null
+    return read_as(fn_ctx, stored, e.type, e.span)
+}
+
+// The field `e` reads, as its holder stores it (`field_read_type`).
+stored_field :: fn(fn_ctx: FnCtx, e: LoweredFieldAccess) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
-    dst :: fresh_tmp(fn_ctx, "field", e.type)
+    read :: field_read_type(fn_ctx, target, e)
+    dst :: fresh_tmp(fn_ctx, "field", read)
     emit(fn_ctx, InstrFieldGet {
-        .dst = dst, .target = target, .field = e.field, .type = e.type, .span = e.span,
+        .dst = dst, .target = target, .field = e.field, .type = read, .span = e.span,
     })
     return dst
 }
 
 build_union_field :: fn(fn_ctx: FnCtx, e: LoweredUnionField) -> LocalId | null {
+    stored :: stored_union_field(fn_ctx, e) ?? return null
+    return read_as(fn_ctx, stored, e.type, e.span)
+}
+
+// The common field `e` reads, as its holder stores it (`field_read_type`).
+stored_union_field :: fn(fn_ctx: FnCtx, e: LoweredUnionField) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
-    dst :: fresh_tmp(fn_ctx, "field", e.type)
+    read :: field_read_type(fn_ctx, target, e)
+    dst :: fresh_tmp(fn_ctx, "field", read)
     emit(fn_ctx, InstrUnionFieldGet {
         .span = e.span,
         .dst = dst,
         .target = target,
-        .type = e.type,
+        .type = read,
         .field = e.field,
     })
     return dst
+}
+
+// The type the field `place` of `holder` is read at : the field's own as its holder
+// lays it out when the read narrows it to a range held in another integer
+// (`read_type`), else the read's.
+field_read_type :: fn(
+    fn_ctx: FnCtx,
+    holder: LocalId,
+    place: LoweredFieldAccess | LoweredUnionField,
+) -> Type {
+    if held_integer(place.type) == null {
+        return place.type
+    }
+    return read_type(place_slot(fn_ctx, holder, place), place.type)
 }
 
 build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
@@ -1109,24 +1143,34 @@ build_index :: fn(fn_ctx: FnCtx, e: LoweredIndex) -> LocalId | null {
     return dst
 }
 
+// A unary operation is computed in an integer holding its operand's values and its
+// result's (`computation_width`) : `-h` on an `Hour` is an `i8`, then held as the
+// result's integer.
 build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
-    operand :: build_expr(fn_ctx, e.operand) ?? return null
-    dst :: fresh_tmp(fn_ctx, "unop", e.type)
+    width :: computation_width(e.operand.type, null, e.type)
+    operand :: build_held(fn_ctx, e.operand, width) ?? return null
+    computed :: computed_type(e.type, width)
+    dst :: fresh_tmp(fn_ctx, "unop", computed)
     emit(fn_ctx, InstrUnOp {
-        .dst = dst, .op = e.op, .operand = operand, .type = e.type, .span = e.span,
+        .dst = dst, .op = e.op, .operand = operand, .type = computed, .span = e.span,
     })
-    return dst
+    return held_in(fn_ctx, dst, e.type, e.span)
 }
 
+// A binary operation is computed in an integer holding both operands' values and
+// its result's (`computation_width`), each operand converted to it as it is built ;
+// the result is then held as its own type's integer.
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     if is_short_circuit_op(e.op) { return build_short_circuit(fn_ctx, e, null) }
-    lhs :: build_expr(fn_ctx, e.left) ?? return null
-    rhs :: build_expr(fn_ctx, e.right) ?? return null
-    dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), e.type)
+    width :: computation_width(e.left.type, e.right.type, e.type)
+    lhs :: build_held(fn_ctx, e.left, width) ?? return null
+    rhs :: build_held(fn_ctx, e.right, width) ?? return null
+    computed :: computed_type(e.type, width)
+    dst :: fresh_tmp(fn_ctx, binary_op_name(e.op), computed)
     emit(fn_ctx, InstrBinOp {
-        .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = e.type, .span = e.span,
+        .dst = dst, .op = e.op, .lhs = lhs, .rhs = rhs, .type = computed, .span = e.span,
     })
-    return dst
+    return held_in(fn_ctx, dst, e.type, e.span)
 }
 
 build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary, dest: LocalId | null) -> LocalId | null {
@@ -1453,10 +1497,28 @@ build_array_lit :: fn(fn_ctx: FnCtx, e: LoweredArrayLit) -> LocalId | null {
 }
 
 build_cast :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
-    value :: build_expr(fn_ctx, e.value) ?? return null
-    dst :: fresh_tmp(fn_ctx, "cast", e.type)
-    emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = e.type, .span = e.span })
-    return dst
+    value :: build_cast_source(fn_ctx, e) ?? return null
+    return cast_local(fn_ctx, value, e.type, "cast", e.span)
+}
+
+// The value `e` converts. Into an integer, a read the typecheck narrowed is taken as
+// its slot stores it : the value lies in the narrower range, so converting the
+// stored one gives the same integer (`i64(n)` past `n in Hour` reads `n` once, not
+// as a byte widened back).
+build_cast_source :: fn(fn_ctx: FnCtx, e: LoweredCast) -> LocalId | null {
+    if held_integer(e.type) == null {
+        return build_expr(fn_ctx, e.value)
+    }
+    source :: e.value
+    // @partial: only a read has a form stored apart from its use ; any other value
+    // builds as it is.
+    @partial match source {
+        is LoweredIdent       -> { return stored_ident(fn_ctx, source) }
+        is LoweredFieldAccess -> { return stored_field(fn_ctx, source) }
+        is LoweredUnionField  -> { return stored_union_field(fn_ctx, source) }
+        is LoweredCellGet     -> { return stored_cell(fn_ctx, source) }
+        _ -> { return build_expr(fn_ctx, source) }
+    }
 }
 
 build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
@@ -1547,8 +1609,14 @@ build_cell_new :: fn(fn_ctx: FnCtx, e: LoweredCellNew) -> LocalId | null {
 }
 
 build_cell_get :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
+    stored :: stored_cell(fn_ctx, e) ?? return null
+    return read_as(fn_ctx, stored, e.type, e.span)
+}
+
+// The value of the cell `e` reads, as the cell stores it (`read_type`).
+stored_cell :: fn(fn_ctx: FnCtx, e: LoweredCellGet) -> LocalId | null {
     target :: build_expr(fn_ctx, e.target) ?? return null
-    dst :: fresh_tmp(fn_ctx, "cell_get", e.type)
+    dst :: fresh_tmp(fn_ctx, "cell_get", read_type(e.value_type, e.type))
     emit(fn_ctx, InstrCellGet {
         .dst = dst, .cell = target, .value_type = e.value_type, .span = e.span,
     })
@@ -1616,6 +1684,13 @@ declare_local :: fn(fn_ctx: FnCtx, name: string, type: Type, symbol: Symbol | nu
     id :: LocalId(i32(fn_ctx.locals.len()))
     fn_ctx.locals.push(CFGLocal { .name = name, .type = type, .symbol = symbol })
     return id
+}
+
+// `value` converted to `type`, into a new local named after `hint`.
+cast_local :: fn(fn_ctx: FnCtx, value: LocalId, type: Type, hint: string, span: Span) -> LocalId {
+    dst :: fresh_tmp(fn_ctx, hint, type)
+    emit(fn_ctx, InstrCast { .dst = dst, .value = value, .type = type, .span = span })
+    return dst
 }
 
 fresh_tmp :: fn(fn_ctx: FnCtx, hint: string, type: Type) -> LocalId {

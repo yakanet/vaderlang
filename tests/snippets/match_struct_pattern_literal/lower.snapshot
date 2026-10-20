@@ -15,7 +15,7 @@
                   __buf_3: Buffer = std.core.new_byte_buffer(i64(34))
                   __off_4: i64 = 0
                   __off_4 = std.core.write_string_at(__buf_3, __off_4, "unit circle r=")
-                  __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(r))
+                  __off_4 = std.core.write_unsigned(__buf_3, __off_4, r)
                   std.core.finish_buffer(__buf_3, __off_4)
               } :string
           } else if __scrut_0 is Circle {
@@ -24,7 +24,7 @@
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(29))
                   __off_2: i64 = 0
                   __off_2 = std.core.write_string_at(__buf_1, __off_2, "circle r=")
-                  __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64(r))
+                  __off_2 = std.core.write_unsigned(__buf_1, __off_2, r)
                   std.core.finish_buffer(__buf_1, __off_2)
               } :string
           } else if ((__scrut_0 is Square) && (Square(__scrut_0).mark == 'x')) && ({
@@ -58,7 +58,7 @@
                           __buf_6: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_5))
                           __off_7: i64 = 0
                           __off_7 = std.core.write_string_at(__buf_6, __off_7, "x=")
-                          __off_7 = std.core.write_int(__buf_6, __off_7, i64(v))
+                          __off_7 = std.core.write_int(__buf_6, __off_7, v)
                           __off_7 = std.core.write_string_at(__buf_6, __off_7, " -> matched ten, name=")
                           __off_7 = std.core.write_string_at(__buf_6, __off_7, __p_5)
                           std.core.finish_buffer(__buf_6, __off_7)
@@ -68,7 +68,7 @@
                           __buf_3: Buffer = std.core.new_byte_buffer(i64(38))
                           __off_4: i64 = 0
                           __off_4 = std.core.write_string_at(__buf_3, __off_4, "x=")
-                          __off_4 = std.core.write_int(__buf_3, __off_4, i64(v))
+                          __off_4 = std.core.write_int(__buf_3, __off_4, v)
                           __off_4 = std.core.write_string_at(__buf_3, __off_4, " -> fell through")
                           std.core.finish_buffer(__buf_3, __off_4)
                       } :string)

@@ -19,7 +19,7 @@
           __buf_3: Buffer = std.core.new_byte_buffer(i64(24))
           __off_4: i64 = 0
           __off_4 = std.core.write_string_at(__buf_3, __off_4, "arr=")
-          __off_4 = std.core.write_int(__buf_3, __off_4, i64(arr_total))
+          __off_4 = std.core.write_int(__buf_3, __off_4, arr_total)
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       m: MutableMap<string, i32> = MutableMap<string, i32> {
@@ -53,7 +53,7 @@
           __buf_7: Buffer = std.core.new_byte_buffer(i64(24))
           __off_8: i64 = 0
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "map=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(map_total))
+          __off_8 = std.core.write_int(__buf_7, __off_8, map_total)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       s: MutableSet<i32> = MutableSet<i32> {
@@ -87,7 +87,7 @@
           __buf_9: Buffer = std.core.new_byte_buffer(i64(24))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "set=")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(set_total))
+          __off_10 = std.core.write_int(__buf_9, __off_10, set_total)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       chars: i32 = 0
@@ -122,7 +122,7 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(26))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "chars=")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(chars))
+          __off_12 = std.core.write_int(__buf_11, __off_12, chars)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       return 0

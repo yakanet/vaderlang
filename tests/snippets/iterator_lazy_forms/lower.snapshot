@@ -107,10 +107,10 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(40))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "filter state, last: ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64({
+          __off_6 = std.core.write_int(__buf_5, __off_6, {
               __coalesce_4: i32 | null = std.iter.last<i32>(lasted)
               if __coalesce_4 is null { -1 } else { i32(__coalesce_4) } :i32
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>({
@@ -160,7 +160,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(31))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "map, last: ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64({
+          __off_15 = std.core.write_int(__buf_14, __off_15, {
               __coalesce_11: i32 | null = {
                   __fuse_arr_12: i32[] = [1, 2, 3] :i32[]
                   f: fn(i32) -> i32 = snippet.inc
@@ -179,7 +179,7 @@
                   result
               }
               if __coalesce_11 is null { -1 } else { i32(__coalesce_11) } :i32
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       std.io.println<string>({
@@ -218,7 +218,7 @@
           __buf_21: Buffer = std.core.new_byte_buffer(i64(61))
           __off_22: i64 = 0
           __off_22 = std.core.write_string_at(__buf_21, __off_22, "erased generator, last: ")
-          __off_22 = std.core.write_int(__buf_21, __off_22, i64(snippet.erased_last(snippet.upto(4))))
+          __off_22 = std.core.write_int(__buf_21, __off_22, snippet.erased_last(snippet.upto(4)))
           __off_22 = std.core.write_string_at(__buf_21, __off_22, ", is_empty: ")
           __off_22 = std.core.write_bool(__buf_21, __off_22, snippet.erased_empty(snippet.upto(0)))
           std.core.finish_buffer(__buf_21, __off_22)
@@ -242,7 +242,7 @@
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, "indexed.filter: ")
                       __off_5 = std.core.write_int(__buf_4, __off_5, i)
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, x)
                       std.core.finish_buffer(__buf_4, __off_5)
                   } :string)
               }
@@ -263,9 +263,9 @@
                       __buf_10: Buffer = std.core.new_byte_buffer(i64(53))
                       __off_11: i64 = 0
                       __off_11 = std.core.write_string_at(__buf_10, __off_11, "zip.filter: ")
-                      __off_11 = std.core.write_int(__buf_10, __off_11, i64(a))
+                      __off_11 = std.core.write_int(__buf_10, __off_11, a)
                       __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-                      __off_11 = std.core.write_int(__buf_10, __off_11, i64(b))
+                      __off_11 = std.core.write_int(__buf_10, __off_11, b)
                       std.core.finish_buffer(__buf_10, __off_11)
                   } :string)
               }
@@ -284,7 +284,7 @@
                       __buf_14: Buffer = std.core.new_byte_buffer(i64(32))
                       __off_15: i64 = 0
                       __off_15 = std.core.write_string_at(__buf_14, __off_15, "window.map: ")
-                      __off_15 = std.core.write_int(__buf_14, __off_15, i64(v))
+                      __off_15 = std.core.write_int(__buf_14, __off_15, v)
                       std.core.finish_buffer(__buf_14, __off_15)
                   } :string)
               }
@@ -308,7 +308,7 @@
                       __buf_2: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_3: i64 = 0
                       __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-                      __off_3 = std.core.write_int(__buf_2, __off_3, i64(v))
+                      __off_3 = std.core.write_int(__buf_2, __off_3, v)
                       std.core.finish_buffer(__buf_2, __off_3)
                   } :string)
               }
@@ -329,7 +329,7 @@
                       __buf_6: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_7: i64 = 0
                       __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-                      __off_7 = std.core.write_int(__buf_6, __off_7, i64(v))
+                      __off_7 = std.core.write_int(__buf_6, __off_7, v)
                       std.core.finish_buffer(__buf_6, __off_7)
                   } :string)
               }

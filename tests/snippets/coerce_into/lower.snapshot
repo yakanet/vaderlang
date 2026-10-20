@@ -10,7 +10,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(25))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "user_")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.value))
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.value)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -39,7 +39,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(37))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "implicit call:   ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(snippet.take_i32(snippet$UserId$std_core_Into$into(u))))
+          __off_1 = std.core.write_int(__buf_0, __off_1, snippet.take_i32(snippet$UserId$std_core_Into$into(u)))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       n: i32 = snippet$UserId$std_core_Into$into(u)
@@ -47,14 +47,14 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(37))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "implicit let:    ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(n))
+          __off_3 = std.core.write_int(__buf_2, __off_3, n)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(37))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "implicit return: ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.get_id(u)))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.get_id(u))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       p: Pair = Pair { .tag = snippet$UserId$std_core_Into$into$1(u), .n = snippet$UserId$std_core_Into$into(u) }
@@ -65,7 +65,7 @@
           __off_8 = std.core.write_string_at(__buf_7, __off_8, "implicit field:  tag=")
           __off_8 = std.core.write_string_at(__buf_7, __off_8, __p_6)
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " n=")
-          __off_8 = std.core.write_int(__buf_7, __off_8, i64(p.n))
+          __off_8 = std.core.write_int(__buf_7, __off_8, p.n)
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       v: UserId = UserId { .value = 7 }
@@ -74,7 +74,7 @@
           __buf_9: Buffer = std.core.new_byte_buffer(i64(37))
           __off_10: i64 = 0
           __off_10 = std.core.write_string_at(__buf_9, __off_10, "explicit i32:    ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(explicit_n))
+          __off_10 = std.core.write_int(__buf_9, __off_10, explicit_n)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       explicit_s: string = snippet$UserId$std_core_Into$into$1(v)
@@ -84,7 +84,7 @@
           __buf_11: Buffer = std.core.new_byte_buffer(i64(37))
           __off_12: i64 = 0
           __off_12 = std.core.write_string_at(__buf_11, __off_12, "overload into:   ")
-          __off_12 = std.core.write_int(__buf_11, __off_12, i64(a))
+          __off_12 = std.core.write_int(__buf_11, __off_12, a)
           std.core.finish_buffer(__buf_11, __off_12)
       } :string)
       b: i32 = snippet$preferred(u)
@@ -92,7 +92,7 @@
           __buf_13: Buffer = std.core.new_byte_buffer(i64(37))
           __off_14: i64 = 0
           __off_14 = std.core.write_string_at(__buf_13, __off_14, "overload direct: ")
-          __off_14 = std.core.write_int(__buf_13, __off_14, i64(b))
+          __off_14 = std.core.write_int(__buf_13, __off_14, b)
           std.core.finish_buffer(__buf_13, __off_14)
       } :string)
       return 0

@@ -35,8 +35,8 @@
       } :i32
   }
   snippet.main :: fn() -> i32 {  // snippet$main
-      go: i32 = if snippet.can_go(u8(2)) { 100 } else { 0 } :{integer}
-      stop: i32 = if snippet.can_go(u8(0)) { 0 } else { 10 } :{integer}
+      go: i32 = if snippet.can_go(u8(2)) { 100 } else { 0 }
+      stop: i32 = if snippet.can_go(u8(0)) { 0 } else { 10 }
       return ((((go + stop) + snippet.points(6)) + snippet.points(3)) + snippet.kind(true)) + snippet.kind("x")
   }
 

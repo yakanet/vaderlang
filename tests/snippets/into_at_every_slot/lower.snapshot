@@ -8,7 +8,7 @@
           .text = {
               __buf_0: Buffer = std.core.new_byte_buffer(i64(21))
               __off_1: i64 = 0
-              __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.v))
+              __off_1 = std.core.write_int(__buf_0, __off_1, self.v)
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "C")
               std.core.finish_buffer(__buf_0, __off_1)
           } :string,
@@ -19,7 +19,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, " ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.v))
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.v)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "C ")
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
@@ -84,7 +84,7 @@
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "destructure [")
           __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "] ")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(n))
+          __off_6 = std.core.write_int(__buf_5, __off_6, n)
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       xs: Label[] = [] :Label[]

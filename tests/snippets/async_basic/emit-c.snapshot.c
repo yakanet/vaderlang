@@ -293,8 +293,8 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             l3 = INT64_C(0);
 #line 23 "tests/snippets/async_basic/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s1;
-#line 25 "tests/snippets/async_basic/_main.vader"
             l4 = ((int64_t) (int32_t) t0);
+#line 25 "tests/snippets/async_basic/_main.vader"
             l3 = std_core_write_int(l2, l3, l4);
             t1 = std_core_finish_buffer(l2, l3);
             std_io_println__string(t1);

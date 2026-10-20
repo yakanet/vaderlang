@@ -43,7 +43,7 @@
                   __buf_2: Buffer = std.core.new_byte_buffer(i64(25))
                   __off_3: i64 = 0
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, "step ")
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(i))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, i)
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               if @array.len(snippet.seen()) > i64(128) {

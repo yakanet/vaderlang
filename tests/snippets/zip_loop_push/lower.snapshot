@@ -54,9 +54,9 @@
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, "struct field: ")
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, ":")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(pt.x))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, pt.x)
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, ",")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(pt.y))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, pt.y)
                       std.core.finish_buffer(__buf_4, __off_5)
                   } :string)
               } @step {

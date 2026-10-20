@@ -16,7 +16,7 @@
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
           __off_3 = std.core.write_int(__buf_2, __off_3, @array.len(l.items))
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(l.len))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, l.len)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       return 0

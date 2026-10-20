@@ -459,8 +459,8 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             l5 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2;
             l6 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s3;
             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s1;
-#line 25 "tests/snippets/async_await_in_value_positions/_main.vader"
             l7 = ((int64_t) (int32_t) t0);
+#line 25 "tests/snippets/async_await_in_value_positions/_main.vader"
             l8 = std_core_write_int(l5, l6, l7);
             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s3 = l8;
 #line 24 "tests/snippets/async_await_in_value_positions/_main.vader"
@@ -573,8 +573,8 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         l5 = INT64_C(0);
 #line 28 "tests/snippets/async_await_in_value_positions/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s0;
-#line 29 "tests/snippets/async_await_in_value_positions/_main.vader"
                         l6 = ((int64_t) (int32_t) t0);
+#line 29 "tests/snippets/async_await_in_value_positions/_main.vader"
                         l5 = std_core_write_int(l4, l5, l6);
                         t1 = std_core_finish_buffer(l4, l5);
                         std_io_println__string(t1);

@@ -26,7 +26,7 @@
                                   __buf_5: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_4))
                                   __off_6: i64 = 0
                                   __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-                                  __off_6 = std.core.write_int(__buf_5, __off_6, i64(a))
+                                  __off_6 = std.core.write_int(__buf_5, __off_6, a)
                                   __off_6 = std.core.write_string_at(__buf_5, __off_6, __p_4)
                                   std.core.finish_buffer(__buf_5, __off_6)
                               } :string)
@@ -63,7 +63,7 @@
                                   __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
                                   __off_9: i64 = 0
                                   __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-                                  __off_9 = std.core.write_int(__buf_8, __off_9, i64(a))
+                                  __off_9 = std.core.write_int(__buf_8, __off_9, a)
                                   __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
                                   std.core.finish_buffer(__buf_8, __off_9)
                               } :string)
@@ -77,7 +77,7 @@
                           __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
                           __off_9: i64 = 0
                           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-                          __off_9 = std.core.write_int(__buf_8, __off_9, i64(a))
+                          __off_9 = std.core.write_int(__buf_8, __off_9, a)
                           __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
                           std.core.finish_buffer(__buf_8, __off_9)
                       } :string)
@@ -102,7 +102,7 @@
                           __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
                           __off_9: i64 = 0
                           __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-                          __off_9 = std.core.write_int(__buf_8, __off_9, i64(a))
+                          __off_9 = std.core.write_int(__buf_8, __off_9, a)
                           __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
                           std.core.finish_buffer(__buf_8, __off_9)
                       } :string)
@@ -116,7 +116,7 @@
                   __buf_8: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_7))
                   __off_9: i64 = 0
                   __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-                  __off_9 = std.core.write_int(__buf_8, __off_9, i64(a))
+                  __off_9 = std.core.write_int(__buf_8, __off_9, a)
                   __off_9 = std.core.write_string_at(__buf_8, __off_9, __p_7)
                   std.core.finish_buffer(__buf_8, __off_9)
               } :string)

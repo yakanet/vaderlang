@@ -43,7 +43,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(71))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "chars mixed: codepoints=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(n))
+          __off_7 = std.core.write_int(__buf_6, __off_7, n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " bytes=")
           __off_7 = std.core.write_int(__buf_6, __off_7, @array.len(std.core.bytes("héllo")))
           std.core.finish_buffer(__buf_6, __off_7)

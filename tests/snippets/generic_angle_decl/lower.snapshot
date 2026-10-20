@@ -14,7 +14,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(37))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "inferred, bare = ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(a))
+          __off_1 = std.core.write_int(__buf_0, __off_1, a)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       n: i32 = snippet.identity<i32>(42)
@@ -22,7 +22,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(37))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "inferred, ufcs = ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(n))
+          __off_3 = std.core.write_int(__buf_2, __off_3, n)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       e: i32 = snippet.identity<i32>(42)
@@ -30,7 +30,7 @@
           __buf_4: Buffer = std.core.new_byte_buffer(i64(31))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "explicit = ")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(e))
+          __off_5 = std.core.write_int(__buf_4, __off_5, e)
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       s: i32 = snippet.pick_second<i32, i32>(1, 2)
@@ -38,7 +38,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(33))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "two params = ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(s))
+          __off_7 = std.core.write_int(__buf_6, __off_7, s)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       arr: i32[] = [10, 20, 30] :i32[]
@@ -47,7 +47,7 @@
           __buf_8: Buffer = std.core.new_byte_buffer(i64(34))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "array param = ")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(v))
+          __off_9 = std.core.write_int(__buf_8, __off_9, v)
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       p: Pair<i32, i32> = Pair<i32, i32> { .first = 30, .second = 0 }
@@ -55,9 +55,9 @@
           __buf_10: Buffer = std.core.new_byte_buffer(i64(48))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "pair = ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(p.first))
+          __off_11 = std.core.write_int(__buf_10, __off_11, p.first)
           __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(p.second))
+          __off_11 = std.core.write_int(__buf_10, __off_11, p.second)
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       b: Box<i32> = snippet.make_box<i32>(7)
@@ -65,7 +65,7 @@
           __buf_12: Buffer = std.core.new_byte_buffer(i64(26))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "box = ")
-          __off_13 = std.core.write_int(__buf_12, __off_13, i64(b.value))
+          __off_13 = std.core.write_int(__buf_12, __off_13, b.value)
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       nested: Box<Box<i32>> = snippet.make_nested<i32>(99)
@@ -73,7 +73,7 @@
           __buf_14: Buffer = std.core.new_byte_buffer(i64(29))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "nested = ")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(nested.value.value))
+          __off_15 = std.core.write_int(__buf_14, __off_15, nested.value.value)
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       c: bool = snippet.demo_comparison_in_args()

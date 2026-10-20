@@ -99,7 +99,7 @@
           __buf_1: Buffer = std.core.new_byte_buffer(i64(25))
           __off_2: i64 = 0
           __off_2 = std.core.write_string_at(__buf_1, __off_2, "bump ")
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(snippet.counter().n))
+          __off_2 = std.core.write_int(__buf_1, __off_2, snippet.counter().n)
           std.core.finish_buffer(__buf_1, __off_2)
       } :string)
   }
@@ -124,7 +124,7 @@
           __p_3: string = snippet.log()[1]
           __buf_4: Buffer = std.core.new_byte_buffer(i64(42) +% std.core.byte_len(__p_3))
           __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(snippet.counter().n))
+          __off_5 = std.core.write_int(__buf_4, __off_5, snippet.counter().n)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_int(__buf_4, __off_5, @array.len(snippet.log()))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
@@ -134,9 +134,9 @@
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(41))
           __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.start().n))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.start().n)
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(snippet.DEFAULT.n))
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.DEFAULT.n)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>(snippet.greeting())

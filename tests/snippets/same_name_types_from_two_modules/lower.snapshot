@@ -6,7 +6,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(31))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "a point at ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(self.x))
+          __off_1 = std.core.write_int(__buf_0, __off_1, self.x)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
@@ -23,7 +23,7 @@
           __p_0: string = b.v.name
           __buf_1: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_0))
           __off_2: i64 = 0
-          __off_2 = std.core.write_int(__buf_1, __off_2, i64(a.v.x))
+          __off_2 = std.core.write_int(__buf_1, __off_2, a.v.x)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_string_at(__buf_1, __off_2, __p_0)
           std.core.finish_buffer(__buf_1, __off_2)
@@ -34,7 +34,7 @@
           __p_3: string = d.v.name
           __buf_4: Buffer = std.core.new_byte_buffer(i64(21) +% std.core.byte_len(__p_3))
           __off_5: i64 = 0
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(c.v.x))
+          __off_5 = std.core.write_int(__buf_4, __off_5, c.v.x)
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
           __off_5 = std.core.write_string_at(__buf_4, __off_5, __p_3)
           std.core.finish_buffer(__buf_4, __off_5)

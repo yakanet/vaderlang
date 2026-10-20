@@ -38,7 +38,8 @@ lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
 }
 
 /// Lower an `AST.Expr` to its `LoweredExpr` form, at the type the typecheck
-/// recorded for it.
+/// recorded for it ; a free literal's type defaulted (`i32`, `f64`, `char`), a
+/// union's member included, as no lowered value is left free.
 /// @param ctx   the fn-body context.
 /// @param expr  the source expression.
 /// @return      the lowered expression.
@@ -49,13 +50,13 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             return bound
         }
     }
-    type :: ctx.types.expr_type(expr)
+    type :: default_free_members(ctx.types.expr_type(expr))
     match expr {
-        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = default_if_free(type), .value = int_literal_value(expr) } }
-        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = default_if_free(type), .value = expr.value } }
+        is IntLitExpr    -> { return LoweredIntLit { .span = expr.span, .type = type, .value = int_literal_value(expr) } }
+        is FloatLitExpr  -> { return LoweredFloatLit { .span = expr.span, .type = type, .value = expr.value } }
         is BoolLitExpr   -> { return LoweredBoolLit { .span = expr.span, .type = TY_BOOL, .value = expr.value } }
         is NullLitExpr   -> { return LoweredNullLit { .span = expr.span, .type = TY_NULL } }
-        is CharLitExpr   -> { return lower_char_lit(expr, default_if_free(type)) }
+        is CharLitExpr   -> { return lower_char_lit(expr, type) }
         is StringLitExpr -> { return lower_string_lit(ctx, expr, type) }
         is IdentExpr     -> { return lower_ident(ctx, expr, type) }
         is CallExpr      -> {
@@ -100,9 +101,8 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                 lowered_target,
                 field_name,
             )
-            if via_union is LoweredUnionField {
-                held :: narrowed_field_width(ctx, expr, receiver, field_name, type) ?? return via_union
-                return as_use(expr.span, LoweredUnionField { ...via_union, .type = held }, held, type)
+            if via_union != null {
+                return via_union
             }
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
@@ -122,19 +122,21 @@ lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
                     }
                 }
             }
-            access :: LoweredFieldAccess {
+            return LoweredFieldAccess {
                 .span = expr.span, .type = type,
                 .target = lowered_target, .field = field_name,
             }
-            held :: narrowed_field_width(ctx, expr, receiver, field_name, type) ?? return access
-            return as_use(expr.span, LoweredFieldAccess { ...access, .type = held }, held, type)
         }
         is IndexExpr -> { return lower_index(ctx, expr, type) }
         is UnaryExpr -> {
             borrowed :: borrowed_range(ctx, expr)
             operand :: lower_expr(ctx, expr.operand)
-            produced :: produced_type(borrowed, type)
-            lowered :: lower_unary_op_on(lower_unary_op(expr.op), operand, produced, expr.span)
+            lowered :: LoweredUnary {
+                .span = expr.span,
+                .type = produced_type(borrowed, type),
+                .op = lower_unary_op(expr.op),
+                .operand = operand,
+            }
             return kept_in_range(ctx, lowered, borrowed, expr.span)
         }
         is BinaryExpr -> {
@@ -283,11 +285,11 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // ident to the original const symbol via aliasing.
             folded :: fold_const_symbol(ctx, symbol, type, ident.span)
             if folded != null { return folded }
-            // A narrowed use : the slot stores the declared type, a union (e.g.
-            // `Error | string`) or an integer, and the typed-AST narrows this use
-            // to a variant (e.g. `string`) or to a narrower range held in another
-            // integer — emit a `LoweredCast` so the dump and the runtime read the
-            // slot as it is stored.
+            // A narrowed use : the slot stores the declared union (e.g.
+            // `Error | string`) and the typed-AST narrows this use to a variant
+            // (e.g. `string`) : emit a `LoweredCast` so the dump and the runtime
+            // read the slot as it is stored. An integer narrowed to a range held in
+            // another integer is the CFG's to read (`midir/storage.vader`).
             stored :: stored_read_type(declared_type_of_symbol(ctx, symbol), type)
             if stored != null {
                 return LoweredCast {
@@ -601,26 +603,6 @@ read_type_or_declared :: fn(type: Type, declared: Type) -> Type {
     return type
 }
 
-// The integer the field `expr` is stored in, when the typecheck narrowed its read
-// to a range held in another integer : the read takes the field's width, as a
-// narrowed local's does (`stored_read_type`). Null otherwise.
-narrowed_field_width :: fn(
-    ctx: FnLowerCtx,
-    expr: FieldExpr,
-    receiver: Type,
-    field: string,
-    use_type: Type,
-) -> Type | null {
-    if use_type !is RangeType || ctx.types.raw_expr_type(expr) !is RangeType {
-        return null
-    }
-    declared :: struct_field_type(ctx, receiver, field)
-    if !narrows_integer_width(declared, use_type) {
-        return null
-    }
-    return declared
-}
-
 // Read a captured binding's value back out of its cell.
 //
 // `lower_cell_init` built the cell at the binding's DECLARED type, so that is the
@@ -631,43 +613,43 @@ narrowed_field_width :: fn(
 cell_value :: fn(
     ctx: FnLowerCtx, symbol: Symbol, cell_ref: LoweredExpr, span: Span, use_type: Type,
 ) -> LoweredExpr {
-    stored :: stored_read_type(declared_type_of_symbol(ctx, symbol), use_type)
+    declared :: declared_type_of_symbol(ctx, symbol)
+    stored :: stored_read_type(declared, use_type)
     read :: stored ?? use_type
+    // A cell holding an integer is read at its declared type ; the CFG converts the
+    // value to the use's (`midir/storage.vader`).
+    held :: declared_integer(declared) ?? read
     got :: LoweredCellGet {
-        .span = span, .type = read, .target = cell_ref, .value_type = read,
+        .span = span,
+        .type = read,
+        .target = cell_ref,
+        .value_type = stored ?? held,
     }
     return as_use(span, got, stored, use_type)
 }
 
+// `declared` when it is an integer type, a distinct over one included ; null
+// otherwise.
+declared_integer :: fn(declared: Type | null) -> Type | null {
+    known :: declared ?? return null
+    if held_integer(known) == null {
+        return null
+    }
+    return known
+}
+
 // The type a slot holding `declared` is read at when a use the typer gave
 // `use_type` cannot read it as that : a union at its declared type, so the read
-// sees its box ; an integer at its declared one when the use narrows it to a range
-// held in another integer. Null when the use reads it as `use_type`, which shares
-// its layout.
+// sees its box. Null when the use reads it as `use_type`, which shares its layout.
 stored_read_type :: fn(declared: Type | null, use_type: Type) -> Type | null {
-    if declared is UnionType {
-        if equals_type(declared, use_type) {
-            return null
-        }
-        return declared
-    }
-    if declared != null && narrows_integer_width(declared, use_type) {
+    if declared is UnionType && !equals_type(declared, use_type) {
         return declared
     }
     return null
 }
 
-// Whether a use of type `use_type` reads an integer slot of type `declared` held in
-// another width.
-narrows_integer_width :: fn(declared: Type, use_type: Type) -> bool {
-    stored :: integer_representation(declared) ?? return false
-    used :: integer_representation(use_type) ?? return false
-    return stored.name != used.name
-}
-
 // `value`, read at `stored`, as the use of type `use_type` sees it : a cast to the
-// variant or the integer a narrowed use names, none for a slot read as the use
-// (`stored` null).
+// variant a narrowed use names, none for a slot read as the use (`stored` null).
 as_use :: fn(span: Span, value: LoweredExpr, stored: Type | null, use_type: Type) -> LoweredExpr {
     if stored == null {
         return value

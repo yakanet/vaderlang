@@ -2875,14 +2875,14 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
             l3 = std_core_write_string_at(l2, l3, 17u);
 #line 278 "tests/snippets/fusion_consumer_continue/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1;
-#line 292 "tests/snippets/fusion_consumer_continue/_main.vader"
             l4 = ((int64_t) (int32_t) t0);
+#line 292 "tests/snippets/fusion_consumer_continue/_main.vader"
             l3 = std_core_write_int(l2, l3, l4);
             l3 = std_core_write_string_at(l2, l3, 5u);
 #line 278 "tests/snippets/fusion_consumer_continue/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3;
-#line 292 "tests/snippets/fusion_consumer_continue/_main.vader"
             l5 = ((int64_t) (int32_t) t0);
+#line 292 "tests/snippets/fusion_consumer_continue/_main.vader"
             l3 = std_core_write_int(l2, l3, l5);
             t1 = std_core_finish_buffer(l2, l3);
             std_io_println__string(t1);

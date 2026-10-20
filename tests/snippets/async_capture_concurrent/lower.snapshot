@@ -102,7 +102,7 @@
               std.io.println<string>({
                   __buf_4: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_5: i64 = 0
-                  __off_5 = std.core.write_int(__buf_4, __off_5, i64(__self_6.s5))
+                  __off_5 = std.core.write_int(__buf_4, __off_5, __self_6.s5)
                   std.core.finish_buffer(__buf_4, __off_5)
               } :string)
               __self_6.s4 = __self_6.s4 +% i64(1)

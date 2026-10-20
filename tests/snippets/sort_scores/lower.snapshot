@@ -15,7 +15,7 @@
               std.io.println<string>({
                   __buf_3: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_4: i64 = 0
-                  __off_4 = std.core.write_int(__buf_3, __off_4, i64(s))
+                  __off_4 = std.core.write_int(__buf_3, __off_4, s)
                   std.core.finish_buffer(__buf_3, __off_4)
               } :string)
           } @step {

@@ -39,7 +39,7 @@
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(20))
           __off_3: i64 = 0
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64({
+          __off_3 = std.core.write_int(__buf_2, __off_3, {
               __fuse_arr_0: Mon[] = snippet.LIST
               n: i32 = 0
               {
@@ -53,13 +53,13 @@
                   }
               }
               n
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(20))
           __off_7: i64 = 0
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64({
+          __off_7 = std.core.write_int(__buf_6, __off_7, {
               __fuse_arr_4: Mon[] = snippet.LIST
               n: i32 = 0
               {
@@ -73,7 +73,7 @@
                   }
               }
               n
-          } :i32))
+          } :i32)
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       l: Label = snippet.Mon[].into(snippet.LIST)
@@ -82,7 +82,7 @@
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(20))
           __off_9: i64 = 0
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(snippet.drain(it)))
+          __off_9 = std.core.write_int(__buf_8, __off_9, snippet.drain(it))
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>(snippet.Mon[].into(snippet.LIST).s)
@@ -111,7 +111,7 @@
                       __buf_3: Buffer = std.core.new_byte_buffer(i64(21))
                       __off_4: i64 = 0
                       __off_4 = std.core.write_string_at(__buf_3, __off_4, "L")
-                      __off_4 = std.core.write_int(__buf_3, __off_4, i64(__self_5.s4.v))
+                      __off_4 = std.core.write_int(__buf_3, __off_4, __self_5.s4.v)
                       std.core.finish_buffer(__buf_3, __off_4)
                   } :string,
               }, u8(0)] :[Label, Continuation]

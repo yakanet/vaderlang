@@ -47,13 +47,13 @@
           __buf_5: Buffer = std.core.new_byte_buffer(i64(99))
           __off_6: i64 = 0
           __off_6 = std.core.write_string_at(__buf_5, __off_6, "sum=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(total))
+          __off_6 = std.core.write_int(__buf_5, __off_6, total)
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " drain=")
           __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(drained))
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " d0=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(drained[0]))
+          __off_6 = std.core.write_int(__buf_5, __off_6, drained[0])
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " d1=")
-          __off_6 = std.core.write_int(__buf_5, __off_6, i64(drained[1]))
+          __off_6 = std.core.write_int(__buf_5, __off_6, drained[1])
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       return 0

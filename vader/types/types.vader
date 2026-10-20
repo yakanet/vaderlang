@@ -122,8 +122,12 @@ export held_values :: fn(t: Type) -> Interval | null {
 /// type that is no integer.
 ///
 /// @param t  any type.
-export held_integer :: fn(t: Type) -> MachineInteger | null =
-    integer_representation(strip_distinct(t))
+export held_integer :: fn(t: Type) -> MachineInteger | null {
+    if t is DistinctType {
+        return held_integer(t.backing)
+    }
+    return integer_representation(t)
+}
 
 /// The narrowest of `u8`, `u16`, `u32`, `u64` holding every value of `values` when
 /// none is negative, of `i8`, `i16`, `i32`, `i64` otherwise : what a range is held

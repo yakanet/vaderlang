@@ -4,7 +4,7 @@
   snippet.Reading :: struct { offset: Offset }  // snippet$Reading
   snippet.parse_hour :: fn(n: i64) -> null | u8 {  // snippet$parse_hour
       if (n >= i64(0)) && (n <= i64(23)) {
-          return Hour(n)
+          return n
       }
       return null
   }
@@ -12,7 +12,7 @@
       if (n < i64(0)) || (n > i64(23)) {
           return Hour(0)
       }
-      return Hour(n)
+      return n
   }
   snippet.half_of_day :: fn(h: Hour) -> string {  // snippet$half_of_day
       if (Hour(0) <= h) && (h < Hour(12)) {
@@ -21,7 +21,7 @@
               __buf_0: Buffer = std.core.new_byte_buffer(i64(23))
               __off_1: i64 = 0
               __off_1 = std.core.write_string_at(__buf_0, __off_1, "am ")
-              __off_1 = std.core.write_unsigned(__buf_0, __off_1, u64(first))
+              __off_1 = std.core.write_unsigned(__buf_0, __off_1, first)
               std.core.finish_buffer(__buf_0, __off_1)
           } :string
       }
@@ -30,13 +30,13 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(23))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "pm ")
-          __off_3 = std.core.write_unsigned(__buf_2, __off_3, u64(second))
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, second)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string
   }
   snippet.east_of_greenwich :: fn(r: Reading) -> u8 {  // snippet$east_of_greenwich
       if r.offset >= i8(0) {
-          return u8(r.offset)
+          return r.offset
       }
       return u8(0)
   }
@@ -50,10 +50,10 @@
       std.io.println<string>({
           __buf_1: Buffer = std.core.new_byte_buffer(i64(32))
           __off_2: i64 = 0
-          __off_2 = std.core.write_unsigned(__buf_1, __off_2, u64({
+          __off_2 = std.core.write_unsigned(__buf_1, __off_2, {
               __coalesce_0: null | u8 = snippet.parse_hour(i64(7))
               if __coalesce_0 is null { Hour(0) } else { Hour(__coalesce_0) } :Hour
-          } :Hour))
+          } :Hour)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
           __off_2 = std.core.write_bool(__buf_1, __off_2, snippet.parse_hour(i64(24)) is null)
           __off_2 = std.core.write_string_at(__buf_1, __off_2, " ")
@@ -63,9 +63,9 @@
       std.io.println<string>({
           __buf_3: Buffer = std.core.new_byte_buffer(i64(41))
           __off_4: i64 = 0
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.hour_or_midnight(i64(19))))
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, snippet.hour_or_midnight(i64(19)))
           __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
-          __off_4 = std.core.write_unsigned(__buf_3, __off_4, u64(snippet.hour_or_midnight(i64(99))))
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, snippet.hour_or_midnight(i64(99)))
           std.core.finish_buffer(__buf_3, __off_4)
       } :string)
       std.io.println<string>(concat_3(snippet.half_of_day(Hour(9)), " ", snippet.half_of_day(Hour(21))))
@@ -74,29 +74,29 @@
       std.io.println<string>({
           __buf_5: Buffer = std.core.new_byte_buffer(i64(41))
           __off_6: i64 = 0
-          __off_6 = std.core.write_unsigned(__buf_5, __off_6, u64(snippet.east_of_greenwich(east)))
+          __off_6 = std.core.write_unsigned(__buf_5, __off_6, snippet.east_of_greenwich(east))
           __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
-          __off_6 = std.core.write_unsigned(__buf_5, __off_6, u64(snippet.east_of_greenwich(west)))
+          __off_6 = std.core.write_unsigned(__buf_5, __off_6, snippet.east_of_greenwich(west))
           std.core.finish_buffer(__buf_5, __off_6)
       } :string)
       std.io.println<string>({
           __buf_7: Buffer = std.core.new_byte_buffer(i64(41))
           __off_8: i64 = 0
-          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(snippet.wrapped(Hour(23))))
+          __off_8 = std.core.write_unsigned(__buf_7, __off_8, snippet.wrapped(Hour(23)))
           __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
-          __off_8 = std.core.write_unsigned(__buf_7, __off_8, u64(snippet.wrapped(Hour(8))))
+          __off_8 = std.core.write_unsigned(__buf_7, __off_8, snippet.wrapped(Hour(8)))
           std.core.finish_buffer(__buf_7, __off_8)
       } :string)
       std.io.println<string>({
           __buf_9: Buffer = std.core.new_byte_buffer(i64(83))
           __off_10: i64 = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(-12))
+          __off_10 = std.core.write_int(__buf_9, __off_10, Offset(-12))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(14))
+          __off_10 = std.core.write_int(__buf_9, __off_10, Offset(14))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_int(__buf_9, __off_10, i64(-32768))
+          __off_10 = std.core.write_int(__buf_9, __off_10, i16(-32768))
           __off_10 = std.core.write_string_at(__buf_9, __off_10, " ")
-          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u64(4294967295))
+          __off_10 = std.core.write_unsigned(__buf_9, __off_10, u32(4294967295))
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
       return 0

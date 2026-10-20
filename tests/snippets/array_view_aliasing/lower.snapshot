@@ -10,56 +10,56 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(27))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "arr[0]=")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(arr[0]))
+          __off_1 = std.core.write_int(__buf_0, __off_1, arr[0])
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(27))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "arr[1]=")
-          __off_3 = std.core.write_int(__buf_2, __off_3, i64(arr[1]))
+          __off_3 = std.core.write_int(__buf_2, __off_3, arr[1])
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(27))
           __off_5: i64 = 0
           __off_5 = std.core.write_string_at(__buf_4, __off_5, "arr[2]=")
-          __off_5 = std.core.write_int(__buf_4, __off_5, i64(arr[2]))
+          __off_5 = std.core.write_int(__buf_4, __off_5, arr[2])
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(27))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "arr[3]=")
-          __off_7 = std.core.write_int(__buf_6, __off_7, i64(arr[3]))
+          __off_7 = std.core.write_int(__buf_6, __off_7, arr[3])
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
           __buf_8: Buffer = std.core.new_byte_buffer(i64(27))
           __off_9: i64 = 0
           __off_9 = std.core.write_string_at(__buf_8, __off_9, "arr[4]=")
-          __off_9 = std.core.write_int(__buf_8, __off_9, i64(arr[4]))
+          __off_9 = std.core.write_int(__buf_8, __off_9, arr[4])
           std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       std.io.println<string>({
           __buf_10: Buffer = std.core.new_byte_buffer(i64(28))
           __off_11: i64 = 0
           __off_11 = std.core.write_string_at(__buf_10, __off_11, "view[0]=")
-          __off_11 = std.core.write_int(__buf_10, __off_11, i64(view[0]))
+          __off_11 = std.core.write_int(__buf_10, __off_11, view[0])
           std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       std.io.println<string>({
           __buf_12: Buffer = std.core.new_byte_buffer(i64(28))
           __off_13: i64 = 0
           __off_13 = std.core.write_string_at(__buf_12, __off_13, "view[1]=")
-          __off_13 = std.core.write_int(__buf_12, __off_13, i64(view[1]))
+          __off_13 = std.core.write_int(__buf_12, __off_13, view[1])
           std.core.finish_buffer(__buf_12, __off_13)
       } :string)
       std.io.println<string>({
           __buf_14: Buffer = std.core.new_byte_buffer(i64(28))
           __off_15: i64 = 0
           __off_15 = std.core.write_string_at(__buf_14, __off_15, "view[2]=")
-          __off_15 = std.core.write_int(__buf_14, __off_15, i64(view[2]))
+          __off_15 = std.core.write_int(__buf_14, __off_15, view[2])
           std.core.finish_buffer(__buf_14, __off_15)
       } :string)
       indep: i32[] = view
@@ -70,42 +70,42 @@
           __buf_16: Buffer = std.core.new_byte_buffer(i64(29))
           __off_17: i64 = 0
           __off_17 = std.core.write_string_at(__buf_16, __off_17, "indep[0]=")
-          __off_17 = std.core.write_int(__buf_16, __off_17, i64(indep[0]))
+          __off_17 = std.core.write_int(__buf_16, __off_17, indep[0])
           std.core.finish_buffer(__buf_16, __off_17)
       } :string)
       std.io.println<string>({
           __buf_18: Buffer = std.core.new_byte_buffer(i64(29))
           __off_19: i64 = 0
           __off_19 = std.core.write_string_at(__buf_18, __off_19, "indep[1]=")
-          __off_19 = std.core.write_int(__buf_18, __off_19, i64(indep[1]))
+          __off_19 = std.core.write_int(__buf_18, __off_19, indep[1])
           std.core.finish_buffer(__buf_18, __off_19)
       } :string)
       std.io.println<string>({
           __buf_20: Buffer = std.core.new_byte_buffer(i64(29))
           __off_21: i64 = 0
           __off_21 = std.core.write_string_at(__buf_20, __off_21, "indep[2]=")
-          __off_21 = std.core.write_int(__buf_20, __off_21, i64(indep[2]))
+          __off_21 = std.core.write_int(__buf_20, __off_21, indep[2])
           std.core.finish_buffer(__buf_20, __off_21)
       } :string)
       std.io.println<string>({
           __buf_22: Buffer = std.core.new_byte_buffer(i64(29))
           __off_23: i64 = 0
           __off_23 = std.core.write_string_at(__buf_22, __off_23, "indep[3]=")
-          __off_23 = std.core.write_int(__buf_22, __off_23, i64(indep[3]))
+          __off_23 = std.core.write_int(__buf_22, __off_23, indep[3])
           std.core.finish_buffer(__buf_22, __off_23)
       } :string)
       std.io.println<string>({
           __buf_24: Buffer = std.core.new_byte_buffer(i64(27))
           __off_25: i64 = 0
           __off_25 = std.core.write_string_at(__buf_24, __off_25, "arr[1]=")
-          __off_25 = std.core.write_int(__buf_24, __off_25, i64(arr[1]))
+          __off_25 = std.core.write_int(__buf_24, __off_25, arr[1])
           std.core.finish_buffer(__buf_24, __off_25)
       } :string)
       std.io.println<string>({
           __buf_26: Buffer = std.core.new_byte_buffer(i64(28))
           __off_27: i64 = 0
           __off_27 = std.core.write_string_at(__buf_26, __off_27, "view[0]=")
-          __off_27 = std.core.write_int(__buf_26, __off_27, i64(view[0]))
+          __off_27 = std.core.write_int(__buf_26, __off_27, view[0])
           std.core.finish_buffer(__buf_26, __off_27)
       } :string)
       return 0

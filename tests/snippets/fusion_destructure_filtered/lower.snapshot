@@ -25,7 +25,7 @@
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
                       __off_5 = std.core.write_int(__buf_4, __off_5, i)
                       __off_5 = std.core.write_string_at(__buf_4, __off_5, ":")
-                      __off_5 = std.core.write_int(__buf_4, __off_5, i64(x))
+                      __off_5 = std.core.write_int(__buf_4, __off_5, x)
                       std.core.finish_buffer(__buf_4, __off_5)
                   } :string)
               }
@@ -52,7 +52,7 @@
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, " ")
                       __off_8 = std.core.write_int(__buf_7, __off_8, i)
                       __off_8 = std.core.write_string_at(__buf_7, __off_8, ":")
-                      __off_8 = std.core.write_int(__buf_7, __off_8, i64(x))
+                      __off_8 = std.core.write_int(__buf_7, __off_8, x)
                       std.core.finish_buffer(__buf_7, __off_8)
                   } :string)
               }

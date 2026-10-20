@@ -167,7 +167,7 @@
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(25))
                   __off_2: i64 = 0
                   __off_2 = std.core.write_string_at(__buf_1, __off_2, "tail ")
-                  __off_2 = std.core.write_int(__buf_1, __off_2, i64(__self_3.s1))
+                  __off_2 = std.core.write_int(__buf_1, __off_2, __self_3.s1)
                   std.core.finish_buffer(__buf_1, __off_2)
               } :string)
               __self_3.s1 = __self_3.s1 +% 1
@@ -479,7 +479,7 @@
                   __buf_24: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_25: i64 = 0
                   __off_25 = std.core.write_string_at(__buf_24, __off_25, "async first ")
-                  __off_25 = std.core.write_int(__buf_24, __off_25, i64(__self_26.s23))
+                  __off_25 = std.core.write_int(__buf_24, __off_25, __self_26.s23)
                   std.core.finish_buffer(__buf_24, __off_25)
               } :string)
               __self_26.state = 1
@@ -500,7 +500,7 @@
                   __buf_21: Buffer = std.core.new_byte_buffer(i64(32))
                   __off_22: i64 = 0
                   __off_22 = std.core.write_string_at(__buf_21, __off_22, "async total ")
-                  __off_22 = std.core.write_int(__buf_21, __off_22, i64(__self_26.s21))
+                  __off_22 = std.core.write_int(__buf_21, __off_22, __self_26.s21)
                   std.core.finish_buffer(__buf_21, __off_22)
               } :string)
               __self_26.state = 4
@@ -531,7 +531,7 @@
                   __buf_18: Buffer = std.core.new_byte_buffer(i64(30))
                   __off_19: i64 = 0
                   __off_19 = std.core.write_string_at(__buf_18, __off_19, "odd above ")
-                  __off_19 = std.core.write_int(__buf_18, __off_19, i64(__self_26.s19))
+                  __off_19 = std.core.write_int(__buf_18, __off_19, __self_26.s19)
                   std.core.finish_buffer(__buf_18, __off_19)
               } :string)
               __self_26.state = 10
@@ -566,7 +566,7 @@
                   __buf_14: Buffer = std.core.new_byte_buffer(i64(25))
                   __off_15: i64 = 0
                   __off_15 = std.core.write_string_at(__buf_14, __off_15, "stop ")
-                  __off_15 = std.core.write_int(__buf_14, __off_15, i64(__self_26.s15))
+                  __off_15 = std.core.write_int(__buf_14, __off_15, __self_26.s15)
                   std.core.finish_buffer(__buf_14, __off_15)
               } :string)
               __self_26.state = 20
@@ -601,7 +601,7 @@
                   __buf_10: Buffer = std.core.new_byte_buffer(i64(26))
                   __off_11: i64 = 0
                   __off_11 = std.core.write_string_at(__buf_10, __off_11, "until ")
-                  __off_11 = std.core.write_int(__buf_10, __off_11, i64(__self_26.s11))
+                  __off_11 = std.core.write_int(__buf_10, __off_11, __self_26.s11)
                   std.core.finish_buffer(__buf_10, __off_11)
               } :string)
               __self_26.state = 30
@@ -636,7 +636,7 @@
                   __buf_6: Buffer = std.core.new_byte_buffer(i64(30))
                   __off_7: i64 = 0
                   __off_7 = std.core.write_string_at(__buf_6, __off_7, "with tail ")
-                  __off_7 = std.core.write_int(__buf_6, __off_7, i64(__self_26.s7))
+                  __off_7 = std.core.write_int(__buf_6, __off_7, __self_26.s7)
                   std.core.finish_buffer(__buf_6, __off_7)
               } :string)
               __self_26.state = 40
@@ -671,7 +671,7 @@
                   __buf_2: Buffer = std.core.new_byte_buffer(i64(26))
                   __off_3: i64 = 0
                   __off_3 = std.core.write_string_at(__buf_2, __off_3, "evens ")
-                  __off_3 = std.core.write_int(__buf_2, __off_3, i64(__self_26.s3))
+                  __off_3 = std.core.write_int(__buf_2, __off_3, __self_26.s3)
                   std.core.finish_buffer(__buf_2, __off_3)
               } :string)
               __self_26.state = 50

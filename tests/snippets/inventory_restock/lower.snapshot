@@ -12,9 +12,9 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(61))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "on shelf: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(on_shelf))
+          __off_1 = std.core.write_int(__buf_0, __off_1, on_shelf)
           __off_1 = std.core.write_string_at(__buf_0, __off_1, ", in hand: ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, i64(stock))
+          __off_1 = std.core.write_int(__buf_0, __off_1, stock)
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       return 0

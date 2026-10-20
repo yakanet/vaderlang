@@ -109,7 +109,7 @@
                   __self_3.s2 = std.core.new_byte_buffer(i64(29))
                   __self_3.s3 = 0
                   __self_3.s3 = std.core.write_string_at(__self_3.s2, __self_3.s3, "doubled: ")
-                  __self_3.s3 = std.core.write_int(__self_3.s2, __self_3.s3, i64(__self_3.s1))
+                  __self_3.s3 = std.core.write_int(__self_3.s2, __self_3.s3, __self_3.s1)
                   std.core.finish_buffer(__self_3.s2, __self_3.s3)
               } :string
           } else if __self_3.state == 2 {
@@ -160,7 +160,7 @@
               std.io.println<string>({
                   __buf_1: Buffer = std.core.new_byte_buffer(i64(20))
                   __off_2: i64 = 0
-                  __off_2 = std.core.write_int(__buf_1, __off_2, i64(__self_4.s0))
+                  __off_2 = std.core.write_int(__buf_1, __off_2, __self_4.s0)
                   std.core.finish_buffer(__buf_1, __off_2)
               } :string)
               __self_4.state = 4
