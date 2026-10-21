@@ -7,7 +7,7 @@
 // (`x.or(d)` on either, `r.map(f)`) for default / transform / chain, the
 // cases where a full narrowing block would be noise. Control flow — early
 // return, branching, propagation — stays with `if` / `match`. They replace the
-// removed `?` operator. See `docs/ERROR_HANDLING.md`.
+// removed `?` operator. See `docs/adr/0011-errors-and-null-are-ordinary-union-values.md`.
 
 module "std/option"
 

@@ -827,7 +827,9 @@ import "std/testing"
     old_to_new: i32[]: []
     old_to_new.push(0)
     old_to_new.push(1)
-    [d0, d1] :: remap_debug(old_debug, old_to_new, 2)
+    out :: remap_debug(old_debug, old_to_new, 2)
+    assert_eq(out.len(), 2)
+    [d0, d1] :: out
     if d0 is DebugPos { assert_eq(d0.line, 1) } else { assert_eq("out[0] unexpectedly null", "") }
     if d1 is DebugPos { assert_eq(d1.line, 2) } else { assert_eq("out[1] unexpectedly null", "") }
 }
@@ -840,7 +842,9 @@ import "std/testing"
     old_to_new: i32[]: []
     old_to_new.push(0)
     old_to_new.push(0)
-    [d, _] :: remap_debug(old_debug, old_to_new, 1)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    assert_eq(out.len(), 1)
+    d :: out[0]
     if d is DebugPos { assert_eq(d.line, 10) } else { assert_eq("out[0] unexpectedly null", "") }
 }
 
@@ -854,7 +858,9 @@ import "std/testing"
     old_to_new: i32[]: []
     old_to_new.push(0)
     old_to_new.push(0)
-    [d, _] :: remap_debug(old_debug, old_to_new, 1)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    assert_eq(out.len(), 1)
+    d :: out[0]
     if d is DebugPos { assert_eq(d.line, 42) } else { assert_eq("out[0] unexpectedly null", "") }
 }
 
@@ -865,7 +871,9 @@ import "std/testing"
     old_to_new: i32[]: []
     old_to_new.push(-1)   // dropped
     old_to_new.push(0)
-    [d, _] :: remap_debug(old_debug, old_to_new, 1)
+    out :: remap_debug(old_debug, old_to_new, 1)
+    assert_eq(out.len(), 1)
+    d :: out[0]
     if d is DebugPos { assert_eq(d.line, 6) } else { assert_eq("out[0] unexpectedly null", "") }
 }
 

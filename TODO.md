@@ -258,6 +258,18 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 
 - [ ] **The settle walk's leftovers: `reset_expr_tables` is a hand-written list** (2026-10-13). Between the `.ReturnsOnly` settle walk and the `.Full` walk, `vader/typecheck/orchestrate.vader::reset_expr_tables` clears the tables filled from inside fn bodies one by one; `into_coercions` was missing from it until the lowering started reading it, and the next table added will be missed the same way. The structural fix is what `NarrowState` already does for narrowing: group the body-filled tables into one struct reset by a single assignment (about 200 reader sites move behind a prefix: `expr_types` 78, `local_types` 31, `call_sites` 16, `into_coercions` 11, `callees` 11, …). The tables left out today are harmless (keyed by `Symbol.id` and rewritten, written idempotently, or only ever set to true from a fact a `?` type under-sets).
 
+- [ ] **A cross-target `@comptime` that reaches a `@target` body dies silently** (noted 2026-09-05). Dumping for one target from a host that is not it, where the closure holds a `@comptime` value calling a `@target`-split extern:
+  ```
+  vader dump --stage=bytecode --target=linux-x86_64 <snippet>   # run on Windows
+  → no output at all, no diagnostic, exit 0
+  ```
+  A `@comptime` is folded on the machine the COMPILER runs on. The `@target` body it reaches is the one selected for the TARGET. So the host evaluates a call to `clock_gettime`, which Windows cannot resolve, and the evaluation takes the whole dump down without a word.
+  Found because `std/time` briefly carried `@comptime BUILT_AT_SECONDS :: unix_seconds_now()`. `lib/random` imports `std/time`, so `std_random` and `ufcs_primitive_literal` — two snippets that never mention the clock — produced zero bytes on Windows CI while every other snippet dumped normally. Correlation verified on the guest: the two snippets pulling `std/time` gave 0 lines, two that do not gave 7 and 925. The constant is gone; the hole is not.
+  Same family as the pinned-target-vs-host divergence that had Windows running the LINUX `temp_dir()` body.
+  Two things to fix, and the first matters more:
+  - **the silence.** An FFI resolution failure during comptime folding must be a diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is what made this take a guest reproduction to find. Sibling of M5007.
+  - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a `@target` body when host ≠ target, or select the HOST's body for the folding (which changes what gets baked, and needs deciding rather than assuming).
+
 ### Bytecode emit and dumps
 
 - [ ] **The checked arithmetic ops should take the plain names** (noted 2026-10-14). What
@@ -457,6 +469,8 @@ flat array in place of a map is worth ≤ 8 % once that lands.
   - **UpperCamelCase identifiers** — grammar colours **every** `[A-Z]…` word as `entity.name.type` unconditionally (`vader.tmLanguage.json` "Type names" rule). The LSP emits `Type` only when the name resolves to a type-kind Symbol ; an unresolved type name flips to `Variable`.
   - **Locals / params / fields** — grammar leaves them default ; the LSP emits `variable` / `parameter` tokens (+ LSP4IJ underline decoration), so they gain colour + underline after parse.
   Fix direction : make the semantic-token walker mirror the grammar's syntactic fallback instead of `Variable` — emit `Function` for a callee in `ident(` position and `Type` for an UpperCamelCase name even when the Symbol doesn't resolve (sibling-file / cross-module), so the post-parse colour matches the on-open colour. Equivalently, never downgrade to `Variable` a token the grammar already colours as function/type. Touches `ast_tokens.vader` (the `token_type_of_symbol` fallback + the call / UFCS classification), `semantic_tokens.vader`, the legend advertised at `initialize`, and possibly `vader.tmLanguage.json` if any category is better dropped on the grammar side.
+- [ ] **LSP: keywords highlighted inside a vaderdoc comment** (reported 2026-09-05). Seen on a screenshot of `lib/system/darwin/darwin.vader`. Inside a `///` block, ordinary words are coloured as code: `NEEDED`, `the`, `is` and `one` each get an identifier/keyword colour while the rest of the line stays comment-grey. The whole run is one comment token, so the highlighting is coming from somewhere that re-tokenises the comment's TEXT rather than from `classify_token`.
+  Worth checking against `bug_yield_not_highlighted_keyword`'s fix, which made `classify_token` exhaustive and single-source — this looks like a second consumer that never got the same treatment.
 - [ ] **`tests/` is a catch-all — revisit the runners AND the test contents** (added 2026-08-27, user request, after a session that made it worse; re-measured 2026-08-28 and it has GROWN). 28 files, 5 675 lines, and no way to tell what a `.test.ts` pins without opening it. `lsp.test.ts` is 1 340 lines, and NINE files now reach into the snippet corpus. ⚠️ **A `tests/README.md` was considered and REJECTED**: it would document the mess instead of fixing it, and the repo already carries enough index files. The measurements below exist so a future session does not have to re-derive them.
   - **The runners.** **Six drivers over ONE corpus**: the snippet corpus is driven by `snapshot.test.ts`, `parity-cemit`, `parity-broad`, `vader_vm`, `snippet_no_crash_snapshot` and `leaks_check` — six files, three naming schemes, and nothing says they share a corpus. Then four corpus drivers (`diagnostics-corpus`, `hook_driver`, `vader_lint`, `vader_e2e`) and **ten** feature-shaped e2e files (`lsp`, `lsp_diagnostics`, `dap`, `formatter`, `formatter_stdlib`, `cli_unknown_flag`, `vader_run_entry`, `extern_vm_handlers`, `membuf_gc`, `panic_unwind`). **The style guide documents five corpora and the directory shows 19 drivers** — the mapping is real but written nowhere, which is the actual cause of "no idea what this file tests". Two naming conventions coexist (snake_case for most, kebab-case for `parity-*` and the helpers) and they almost but not quite split test-from-helper: `diagnostics-corpus.test.ts` is kebab AND a test. `lsp.test.ts` is **1 316 lines**, a quarter of the directory. And there is no rule for **when to add a file rather than extend one** — this session put a resolver-diagnostic test inside `hook_driver` purely because it shared a setup need, which was defensible and entirely arbitrary.
   - ~~**152 tests pass without asserting anything.**~~ **STALE, checked 2026-08-28.** The `RUN_FMT_TESTS=1` gate is gone from both files — it went with `src/`, whose TS shim (~2-3 s per `fmt` call) was its only reason, and both headers say so in the past tense. Measured: `formatter.test.ts` + `formatter_stdlib.test.ts` now run **158 tests / 164 expect() calls in 1.63 s**. The count no longer lies. Kept as a record because the failure mode was real and is not detectable by reading a pass count: a gated test REGISTERS and PASSES, so it is invisible exactly where you would look.
@@ -499,6 +513,14 @@ flat array in place of a map is worth ≤ 8 % once that lands.
     - ~~**And it makes `--target` effectively mandatory.**~~ **CLOSED**: the default is `host_target()`, resolved once at the top of `load_project_with_overlay` so every command selects consistently. `vader check foo.vader` with no flag now passes on multi-target code, and `VADER_OS` is baked from the host.
     - ~~**Same blocker, one level up: `load_baked_target`.**~~ **RESOLVED 2026-08-28 without the reseed** — the blocker was never the baking, it was the DEFAULT target. `load_baked_target` needs *a* target, and an explicit `--target=` is one; it is now called whenever the flag is given, and `build_core_seed` seeds the generated module beside `std/core`. Verified on both platforms: `SEP :: if VADER_OS == Os.Windows {…}` folds to `SLASH` on darwin and `BACKSLASH` on a real Windows guest. Only the DEFAULT still waits. Still unmeasured, and only observable once the default makes the module unconditional: loading `std/target` for every build puts two enums and two consts into every binary (DCE prunes fns only), so the snapshot corpus and the seed both grow — measure before deciding whether `VADER_OS` belongs in the prelude rather than behind an `import`.
   - [ ] **No macOS runner in CI — needed before `@target` lands** (noted 2026-08-28, user request). `.github/workflows/build.yml` declares 5 jobs, 4 of which run on a push: **3 × `ubuntu-latest` + 1 × `windows-latest`, no `strategy: matrix`, and no macOS**. Darwin — the development platform — is verified nowhere. Harmless today, because the emitted C is platform-neutral and only `runtime/c/` carries the `#ifdef`s. It stops being harmless the moment the target model lands: a `@target(.Darwin)` body would be compiled by **no** CI job, and a `@target(.Darwin) @test` executed by none — which the plan's coverage invariant ("a test executed on NO target is a dead test, and that must fail") would then report as dead. GitHub provides `macos-latest`.
+- [ ] **Varargs in Vader, and what the C interface should become** (noted 2026-09-05). `@c_variadic(N)` is a STOPGAP, taken 2026-09-05 to close a real hole: the VM's trampoline casts a resolved symbol to a NON-variadic prototype, and on darwin-arm64 variadic arguments travel on the stack rather than in registers, so `ioctl` had the kernel write eight bytes to an uninitialised stack word and report success. The marker says where a callee's fixed arguments end, which is the one thing the trampoline needs and the one thing `@c_header` gives to `cc` and not to us.
+  **We want real varargs in the language.** When they land, revisit the C interface as a whole rather than bolting them onto the marker.
+  Two things to carry into that decision:
+  - Today a variadic C function is bound as ONE `@extern` PER CALL SHAPE, and the duplicate-symbol gate (T3050) steps aside when both carry `@c_header` precisely so that works. It is verbose, and it has a virtue Vader-level varargs would lose: `cc` checks each shape against the real prototype, so `printf("%d", 3.0)` fails the build. A `...` on the Vader side moves that check to nobody.
+  - `@c_variadic(N)` does not protect against its own absence. A bare `@extern("ioctl")` stays wrong on the VM, silently. Only `cc` knows a prototype is variadic, so a compiler-side check would cover the native path and not the one that is actually broken. Same shape as `@c_header` being our only ABI check with nothing requiring it.
+- [ ] **A `@c_struct` mirror field cannot be a nullable pointer** (deferred 2026-09-05). `CPointer | null` is refused as a `@c_struct` field and should not be. It is the one union with a flat C shape — a bare `void*`, which is exactly what a struct member holding an optional pointer is — but the emitted field is a 16-byte `vader_box_t`, so the width assert catches it and the gate refuses it first.
+  The workaround in `lib/system/windows` is a `u64` for every RESERVED member (`lpSecurityDescriptor`, `STARTUPINFOA`'s four pointers), which occupies the right eight bytes and stays zero, plus a `__typeof__` conversion in the shim's assignment. That is sound while every leaf carries both a width and an offset `_Static_assert` — but it means a member that genuinely holds a pointer the caller sets cannot be mirrored at all.
+  The fix is the B1 inline representation the runtime already has (`vader_b1_to_box` / `vader_box_to_b1`, `runtime/c/vader.h`): a `T | null` where T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants the same treatment. Once it lands, the reserved members go back to being what they are and the `__typeof__` cast can narrow or go.
 - [ ] **`lib/` — one multi-library root, and `toolchain/`, the public API outside the compiler** (decided 2026-08-27 with the user, then **reviewed**: six of the first pass's numbers were wrong, four breakages were unseen, and the bootstrap seed was missing from it entirely — corrected below; nothing implemented). Two asks that turned out to be one. **(i)** `--dist` copies all of `vader/` — **4.4 MB, 8× the 548 KB stdlib** — so a `build.vader` can `import "vader/hooks"`; and the driver needs a public API **in a namespace belonging to neither the compiler nor the stdlib**, since a boundary drawn inside `vader/` still makes every consumer depend on compiler internals. **(ii)** `stdlib/` is misnamed: it holds a single subdirectory (`std/`) where it should hold **several libraries** — `json` among them — with `std/` keeping only the language's own vocabulary. The second gives the first its shape: the public API is one more library under a root that holds several.
   - **Settled.** **(1) The container is `lib/`.** `packages/` refused and RESERVED for the package-manager item below: "package" is the *versioned, distributable* unit everywhere else (npm, Cargo, site-packages), and where it does organise code (Go, Python, Java) it names what Vader already calls a **module** — so it would either duplicate that word or invent a third level. Precedent: Zig ships `lib/std/`, `lib/compiler_rt/`, `lib/compiler/`; `BUNDLED_SOURCE_DIR :: "lib"` already exists in `vader/cli/driver.vader`; and the planned manifest key is already spelled `libraries`. **(2) One public namespace, `toolchain/`.** **(3) Eight libraries leave `std/` in one pass**: `json` 788, `regex` 1202, `semver` 1327, `cli` 880, `crypto` 462, `base64` 266, `random` 217, `images/ppm` 304 = **5 446 LoC, 43 %**; `std/` keeps the 12 welded modules plus `string` `iter` `path` `numbers` `option` `sort` `char` `testing` = 7 247 LoC. **(4) `std/testing` stays** — a knowing compromise, and the number that motivated it was wrong by 6×: **129 files** import it, not 20. What strengthens the choice: nothing welds it to the compiler.
   - ⚠️ **OPEN, and it changes the first move wholesale: does the namespace publish the AST, or the RESOLVED declaration?** The first pass chose "move the AST rather than project it", because a projected view **fails silently** when a new AST form appears. The review turned that argument around by reading the prototype this plan cites as validation — `tests/fixtures/hook/json_derive/build.vader:130-153` reimplements NAME RESOLUTION BY HAND against a hard-coded list of 12 primitives plus same-module struct names, and returns `""` in silence for: a type alias, a struct imported from another module, a distinct newtype, and, while the grammar had a `!`, `x: i32!` (the marker wrapped the `IdentExpr`, so the `is AST.IdentExpr` test was false: the same blindness as the `clone_return_marker` miscompile). So publishing the AST publishes the contract that *guarantees* the failure mode the decision was made to avoid. The cost comparison was also wrong: it weighed "move 1 040 LoC" against "translate 100 types", where the measured need is **6 types out of 106**. Three branches: **A — publish the AST** (sweep 153 files, **92 vaderdocs to write** since `ast.vader` has 113 exports and 21 are documented while the style guide requires one on every export, seed churn over 7 100 `vader_parser` mangles, and `ast.vader` — 65 commits, ~17.6/month in surface-work months — becomes frozen surface); **B — publish `toolchain/decl`**, the declaration after resolution, `ResolvedTy` as a small closed union whose exhaustiveness T3013 enforces so drift breaks the BUILD (sweep 85 files, ~10 vaderdocs, but the projection from the `Type` IR — `vader/types`, 831 LoC — is new code and `TypecheckedMessage` changes shape); **C — hybrid**: ship `toolchain/span` + `toolchain/decl`, keep `ast.vader` private, publish it later only if a client asks. What neither review weighed: in B the work moves rather than vanishes, and one legitimate client wants syntax — the `pascal_case_lint` fixture checks names **as written**. That is what makes C exist.
@@ -618,6 +640,21 @@ flat array in place of a map is worth ≤ 8 % once that lands.
 - [ ] **Common-field access on unions — methods** — extend to UFCS calls (`e.method()` valid when every variant has a callable `method`). Invasive: overload resolution × variant set.
 - [ ] **Common-field access on unions — nullable receivers** — `(T | null).f` follows the gate today (`null` lacks the field → T3009). Decide whether to special-case optional chaining; `??` already covers the common case.
 - [ ] **AST node id boilerplate** — re-audited 2026-05-15 ; deferred. ~11 self-host fields carrying `id: UNASSIGNED_NODE_ID`. All three resolution shapes (decorator, mixin, marker) need new compiler infrastructure that's bigger than the 128 lines it would save. Revisit if decorator infra lands for other reasons.
+- [ ] **A bare identifier in a `match` pattern BINDS, it does not compare** (noted 2026-09-05).
+  ```
+  K: i32: 7
+  match 99 {
+      K -> "matched K"      // taken, for every value
+      _ -> "fell through"
+  }
+  → matched K
+  ```
+  `K` is a binding pattern that shadows the constant, so the arm is irrefutable and every later arm is dead. It compiles clean. The only hint is `W0007 K is never used`, which does not appear at all once the constant has another user — which is exactly the case for a table of named platform codes.
+  Found writing `std/io::last_io_error`, where a `match` over `ENOENT` / `EACCES` / `EISDIR` classified all three as the first arm. The codes were right and the classification silently was not; both bodies are `if` chains now, with the reason written beside them.
+  Rust hit the same shape and answered with a lint (`bindings_with_variant_name`, deny-by-default) plus the convention that a const pattern is a PATH. Options here, roughly in order of cost:
+  - warn when a binding pattern's name resolves to a module-level constant in scope — the narrow, high-value case, and what actually bit;
+  - require a leading `.` or a qualified path for a value pattern, making a bare name unambiguously a binding (a syntax change, SPEC §"Patterns");
+  - leave it, and rely on `_` never being reached being caught by T3013 — which it is NOT here, since the first arm covers everything.
 
 #### Type-first design — remaining layers
 
@@ -690,123 +727,3 @@ Moved out of MVP (was §1.10). C backend already covers native deployment.
 - `lib/` — standard library and toolchain libraries (Vader)
 - `vader/` — the self-hosted Vader compiler (lexer, parser, typecheck, lower, midir, bytecode, c_emit, vm, lsp, fmt, cli)
 - `tests/` — snapshot tests
-
-## LSP — keywords highlighted inside a vaderdoc comment
-
-Reported 2026-09-05 with a screenshot of `lib/system/darwin/darwin.vader`. Inside
-a `///` block, ordinary words are coloured as code: `NEEDED`, `the`, `is` and
-`one` each get an identifier/keyword colour while the rest of the line stays
-comment-grey. The whole run is one comment token, so the highlighting is coming
-from somewhere that re-tokenises the comment's TEXT rather than from
-`classify_token`.
-
-Worth checking against `bug_yield_not_highlighted_keyword`'s fix, which made
-`classify_token` exhaustive and single-source — this looks like a second
-consumer that never got the same treatment.
-
-## Varargs in Vader — and what the C interface should become
-
-`@c_variadic(N)` is a STOPGAP, taken 2026-09-05 to close a real hole: the VM's
-trampoline casts a resolved symbol to a NON-variadic prototype, and on
-darwin-arm64 variadic arguments travel on the stack rather than in registers, so
-`ioctl` had the kernel write eight bytes to an uninitialised stack word and
-report success. The marker says where a callee's fixed arguments end, which is
-the one thing the trampoline needs and the one thing `@c_header` gives to `cc`
-and not to us.
-
-**We want real varargs in the language.** When they land, revisit the C
-interface as a whole rather than bolting them onto the marker.
-
-Two things to carry into that decision:
-
-- Today a variadic C function is bound as ONE `@extern` PER CALL SHAPE, and the
-  duplicate-symbol gate (T3050) steps aside when both carry `@c_header`
-  precisely so that works. It is verbose, and it has a virtue Vader-level
-  varargs would lose: `cc` checks each shape against the real prototype, so
-  `printf("%d", 3.0)` fails the build. A `...` on the Vader side moves that
-  check to nobody.
-- `@c_variadic(N)` does not protect against its own absence. A bare
-  `@extern("ioctl")` stays wrong on the VM, silently. Only `cc` knows a
-  prototype is variadic, so a compiler-side check would cover the native path
-  and not the one that is actually broken. Same shape as `@c_header` being our
-  only ABI check with nothing requiring it.
-
-## 5 — a mirror field that is a nullable pointer
-
-`CPointer | null` is refused as a `@c_struct` field and should not be. It is the
-one union with a flat C shape — a bare `void*`, which is exactly what a struct
-member holding an optional pointer is — but the emitted field is a 16-byte
-`vader_box_t`, so the width assert catches it and the gate refuses it first.
-
-Deferred 2026-09-05. The workaround in `lib/system/windows` is a `u64` for
-every RESERVED member (`lpSecurityDescriptor`, `STARTUPINFOA`'s four pointers),
-which occupies the right eight bytes and stays zero, plus a `__typeof__`
-conversion in the shim's assignment. That is sound while every leaf carries both
-a width and an offset `_Static_assert` — but it means a member that genuinely
-holds a pointer the caller sets cannot be mirrored at all.
-
-The fix is the B1 inline representation the runtime already has
-(`vader_b1_to_box` / `vader_box_to_b1`, `runtime/c/vader.h`): a `T | null` where
-T is a single ref rides as a raw `void*` at fn boundaries. A mirror field wants
-the same treatment. Once it lands, the reserved members go back to being what
-they are and the `__typeof__` cast can narrow or go.
-
-## A bare identifier in a `match` pattern BINDS — it does not compare
-
-    K: i32: 7
-    match 99 {
-        K -> "matched K"      // taken, for every value
-        _ -> "fell through"
-    }
-    → matched K
-
-`K` is a binding pattern that shadows the constant, so the arm is irrefutable and
-every later arm is dead. It compiles clean. The only hint is `W0007 K is never
-used`, which does not appear at all once the constant has another user — which is
-exactly the case for a table of named platform codes.
-
-Found writing `std/io::last_io_error`, where a `match` over `ENOENT` / `EACCES` /
-`EISDIR` classified all three as the first arm. The codes were right and the
-classification silently was not; both bodies are `if` chains now, with the reason
-written beside them.
-
-Rust hit the same shape and answered with a lint (`bindings_with_variant_name`,
-deny-by-default) plus the convention that a const pattern is a PATH. Options
-here, roughly in order of cost:
-  - warn when a binding pattern's name resolves to a module-level constant in
-    scope — the narrow, high-value case, and what actually bit;
-  - require a leading `.` or a qualified path for a value pattern, making a bare
-    name unambiguously a binding (a syntax change, SPEC §"Patterns");
-  - leave it, and rely on `_` never being reached being caught by T3013 — which
-    it is NOT here, since the first arm covers everything.
-
-## A cross-target `@comptime` that reaches a `@target` body dies silently
-
-Dumping for one target from a host that is not it, where the closure holds a
-`@comptime` value calling a `@target`-split extern:
-
-    vader dump --stage=bytecode --target=linux-x86_64 <snippet>   # run on Windows
-    → no output at all, no diagnostic, exit 0
-
-A `@comptime` is folded on the machine the COMPILER runs on. The `@target` body
-it reaches is the one selected for the TARGET. So the host evaluates a call to
-`clock_gettime`, which Windows cannot resolve, and the evaluation takes the whole
-dump down without a word.
-
-Found because `std/time` briefly carried `@comptime BUILT_AT_SECONDS ::
-unix_seconds_now()`. `lib/random` imports `std/time`, so `std_random` and
-`ufcs_primitive_literal` — two snippets that never mention the clock — produced
-zero bytes on Windows CI while every other snippet dumped normally. Correlation
-verified on the guest: the two snippets pulling `std/time` gave 0 lines, two that
-do not gave 7 and 925. The constant is gone; the hole is not.
-
-Same family as the pinned-target-vs-host divergence that had Windows running the
-LINUX `temp_dir()` body.
-
-Two things to fix, and the first matters more:
-  - **the silence.** An FFI resolution failure during comptime folding must be a
-    diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is
-    what made this take a guest reproduction to find. Sibling of M5007.
-  - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a
-    `@target` body when host ≠ target, or select the HOST's body for the folding
-    (which changes what gets baked, and needs deciding rather than assuming).
