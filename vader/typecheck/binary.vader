@@ -426,7 +426,8 @@ pick_operator_member :: fn(
 /// @param operand_expr the other operand, where a mismatch is reported.
 /// @param op_label     how a mismatch names the operator.
 /// @param e            the operator, under which the dispatch is recorded.
-/// @return             the method specialised at `recv`.
+/// @return             the method specialised at `recv`, returning `?` when the
+///                     dispatch was refused.
 /// @error              T3017 when the other operand does not fit the method's `other`.
 /// @error              as `union_trait_member`, on a union `recv`.
 check_dispatched_operator :: fn(
@@ -449,13 +450,16 @@ check_dispatched_operator :: fn(
     if specialised !is FnType {
         return null
     }
+    // A refused dispatch is already reported, and its result is unknown.
+    if member.refused {
+        return FnType { ...specialised, .return_type = TY_UNRESOLVED }
+    }
     callee :: dispatched_callee(recv, trait_key, method_name, member.trait_args)
     record_site(typed, e, .Operator, callee)
     if recv is TypeParamType {
         keep_instances_concrete(typed)
     }
-    // A refused union dispatch is already reported.
-    if specialised.params.len() > 0 && !member.refused {
+    if specialised.params.len() > 0 {
         want :: specialised.params[0]
         check_operand_fits(recv, operand, operand_expr, want, op_label, diags)
     }

@@ -134,6 +134,10 @@ dispatched_trait_args :: fn(
     if target is UnionType {
         span :: e.target.span
         member :: union_trait_member(target, trait_key, method, span, typed, diags) ?? return null
+        // A refused dispatch is already reported : its key and element are unknown.
+        if member.refused {
+            return [TY_UNRESOLVED, TY_UNRESOLVED]
+        }
         return member.trait_args
     }
     return trait_dispatch_args(target, trait_key, typed)

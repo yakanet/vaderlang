@@ -1,0 +1,13 @@
+// A struct literal names a type that is no struct. T3001, once: the literal is
+// `?`, so the binding it initialises reports nothing more.
+
+module "snippet"
+
+export Point :: struct {
+    x: i32
+}
+
+export origin :: fn() -> Point {
+    p: Point: i32 { .x = 0 }
+    return p
+}

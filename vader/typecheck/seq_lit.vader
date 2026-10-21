@@ -83,17 +83,17 @@ infer_against_tuple :: fn(
                 "expected ${display_type(tup)} (${tup.elements.len()} element(s)), got ${e.elements.len()}",
             ),
         )
-        // Best-effort : check overlapping slots against their per-slot
-        // expected types so cascading errors stay minimal.
+        // The elements are still checked, each overlapping slot against its
+        // type ; the literal itself is `?`, so the slot it fills reports nothing
+        // more.
         n :: min(tup.elements.len(), e.elements.len())
-        elem_types: Type[]: []
         for i in 0..<n {
-            elem_types.push(check_expr(e.elements[i], tup.elements[i], typed, diags))
+            check_expr(e.elements[i], tup.elements[i], typed, diags)
         }
         for i in n..<e.elements.len() {
-            elem_types.push(check_expr(e.elements[i], null, typed, diags))
+            check_expr(e.elements[i], null, typed, diags)
         }
-        return mk_tuple(default_each(elem_types))
+        return TY_UNRESOLVED
     }
     elem_types: Type[]: []
     for i in 0..<e.elements.len() {

@@ -381,7 +381,13 @@ settle_dispatched_member :: fn(
     if rejects_static_member(member.decl, e, typed, diags) {
         return TY_UNRESOLVED
     }
-    return member.ty
+    // A refused dispatch is already reported : the call still checks its arguments
+    // against the member's parameters, and its result is unknown.
+    ty :: member.ty
+    if member.refused && ty is FnType {
+        return FnType { ...ty, .return_type = TY_UNRESOLVED }
+    }
+    return ty
 }
 
 // The member `name` an operator reaches on a receiver dispatching through a trait at
@@ -425,8 +431,9 @@ TypeMember :: struct {
     trait_key: string
     /// The trait's arguments : the bound's for a type parameter, the impl's else.
     trait_args: Type[] = []
-    /// A union's dispatch through the trait was refused, and reported
-    /// (`union_trait_member`) : the use site says nothing more about it.
+    /// A dispatch by the tag of a union or a trait value was refused, and reported
+    /// (`union_trait_member`, `trait_value_member`) : the use site types `?` and
+    /// says nothing more about it.
     refused: bool = false
 }
 

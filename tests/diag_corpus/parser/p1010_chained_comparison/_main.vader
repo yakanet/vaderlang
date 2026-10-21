@@ -1,6 +1,6 @@
-// `==` does not chain: `a == b == c` has no meaning to give. P1010, and a P1006
-// on the same token: the parser stops the expression there without consuming
-// the operator, and the declaration loop reports it again.
+// `==` does not chain: `a == b == c` has no meaning to give. P1010, once: the
+// parser reads the chained operator and its operand and drops them, so nothing
+// reports the operator again.
 
 module "snippet"
 

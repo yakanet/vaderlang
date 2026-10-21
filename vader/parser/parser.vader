@@ -2954,13 +2954,19 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
 
         // `!in` — two-token compound at comparison level.
         if t.kind == .Bang && p.peek_at(1).kind == .KwIn && 20 >= min_bp {
-            if last_non_assoc_level == 20 {
+            // An operator chained onto a non-associative one of its level is
+            // reported, then read with its operand and dropped: the expression
+            // ends where it was written, and nothing reports the operator again.
+            chained :: last_non_assoc_level == 20
+            if chained {
                 p.error(.NonAssocChained, t.span, "chained `!in`")
-                break
             }
             p.advance()
             p.advance()
             right :: p.parse_expr(21)
+            if chained {
+                continue
+            }
             left = BinaryExpr {
                 .span  = Span { .start = left.span.start, .end = right.span.end },
                 .op    = .NotIn,
@@ -2975,15 +2981,19 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
         // flips then/else on `Not`, and the formatter restores the
         // spelling.
         if t.kind == .Bang && p.peek_at(1).kind == .KwIs && 20 >= min_bp {
-            if last_non_assoc_level == 20 {
+            // Chained, it is dropped as `!in` is above.
+            chained :: last_non_assoc_level == 20
+            if chained {
                 p.error(.NonAssocChained, t.span, "chained `!is`")
-                break
             }
             bang_tok :: p.advance()
             p.advance()  // KwIs
             // `!is` takes a TYPE on the right — route through `parse_type` (see
             // the `is` arm below) so `!(x is Foo<T>)` and friends parse.
             right :: p.parse_type()
+            if chained {
+                continue
+            }
             p.reject_as_binder(.IsTestBindsName, (name) -> is_binding_hint(left, name, true))
             is_expr :: BinaryExpr {
                 .span  = Span { .start = left.span.start, .end = right.span.end },
@@ -3018,9 +3028,10 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
 
         infix :: infix_for(t.kind)
         if infix.has && infix.left_bp >= min_bp {
-            if infix.non_assoc && last_non_assoc_level == infix.left_bp {
-                p.error(.NonAssocChained, t.span, "chained `${describe_token(t)}`")
-                break
+            // Chained, it is dropped as `!in` is above.
+            chained :: infix.non_assoc && last_non_assoc_level == infix.left_bp
+            if chained {
+                p.error(.NonAssocChained, t.span, "chained ${describe_token(t)}")
             }
             p.advance()
             right_bp :: if infix.non_assoc { infix.right_bp + 1 } else { infix.right_bp }
@@ -3031,6 +3042,9 @@ parse_expr :: fn(p: Parser, min_bp: i32) -> Expr {
             // (parser-1/2). `TypeExpr` aliases `Expr`, so it stores straight
             // into `.right`, and `type_from_expr` already handles every shape.
             right :: if infix.op == .Is { p.parse_type() } else { p.parse_expr(right_bp) }
+            if chained {
+                continue
+            }
             if t.kind == .RangeExcl || t.kind == .RangeIncl {
                 left = RangeExpr {
                     .span      = Span { .start = left.span.start, .end = right.span.end },

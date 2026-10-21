@@ -1,3 +1,3 @@
-[14:21] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
-[21:25] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
-[34:27] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[15:21] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[22:25] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first
+[35:27] error[T3098] a member taking `Self`, or returning it inside another type, cannot be dispatched by its receiver's tag: `add` takes another `Self`, which may be another variant ; narrow `i32 | string` first

@@ -1,6 +1,6 @@
 // A union dispatches a member through the trait its variants share, by the
 // receiver's tag alone : `compare` takes another `Self`, which the other operand
-// may fill with the other variant. T3098, at the operator.
+// may fill with the other variant. T3098, at the operator and at the method call.
 module "snippet"
 
 A :: struct {
@@ -21,7 +21,9 @@ B implements Comparable {
 
 less :: fn(x: A | B, y: A | B) -> bool = x < y
 
+order :: fn(x: A | B, y: A) -> i32 = x.compare(y)
+
 main :: fn() -> i32 {
     ordered :: less(A { .n = 1 }, A { .n = 2 })
-    return if ordered { 0 } else { 1 }
+    return if ordered { order(A { .n = 1 }, A { .n = 2 }) } else { 1 }
 }

@@ -25,11 +25,15 @@ infer_struct_lit :: fn(e: AST.StructLitExpr, typed: TypedProgram, diags: Diagnos
         check_struct_items(e.items, e.span, st_backing, typed, diags)
         return ty
     }
-    diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
-        "${display_type(ty)} is not a struct"))
-    // Still type every item so nested diagnostics surface.
+    // An unresolved name is already reported.
+    if ty !is UnresolvedType {
+        diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
+            "${display_type(ty)} is not a struct"))
+    }
+    // Still type every item so nested diagnostics surface ; the literal itself is
+    // `?`, so the slot it fills reports nothing more.
     for item in e.items { check_item_no_expected(item, typed, diags) }
-    return ty
+    return TY_UNRESOLVED
 }
 
 // T3105 on a generic struct written with some of its type arguments where nothing
