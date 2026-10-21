@@ -669,6 +669,8 @@ const C_PARITY = new Set<string>([
   "tuple_comptime",
   // A field default's lambda captures a local of its own.
   "field_default_lambda_captures",
+  // A shift's count is taken modulo the width, natively as at comptime.
+  "comptime_int_overflow",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -1624,7 +1624,7 @@ static bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {
 #line 119 "lib/std/core/dtoa.vader"
     t0 = ((int64_t) (int32_t) l1);
     l2 = (uint64_t) (int64_t) t0;
-    t0 = vader_chk_sub(u64, (INT64_C(1) << l2), INT64_C(1));
+    t0 = vader_chk_sub(u64, (INT64_C(1) << (l2 & 63)), INT64_C(1));
     l2 = (uint64_t) (int64_t) t0;
     return (l0 & l2) == INT64_C(0);
 }
@@ -1776,9 +1776,9 @@ static uint64_t std_core_shiftright128(uint64_t l0, uint64_t l1, uint64_t l2) {
 #line 68 "lib/std/core/dtoa.vader"
     t0 = vader_chk_sub(u64, INT64_C(64), l2);
     l3 = (uint64_t) (int64_t) t0;
-    t0 = (l1 << l3);
+    t0 = (l1 << (l3 & 63));
     l3 = (uint64_t) (int64_t) t0;
-    l4 = (l0 >> l2);
+    l4 = (l0 >> (l2 & 63));
     return (uint64_t) (int64_t) (l3 | l4);
 }
 

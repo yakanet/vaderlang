@@ -569,9 +569,9 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.I32BitAnd             -> push_binop(s, .BitAnd, .I32)
         is vm.I32BitOr              -> push_binop(s, .BitOr, .I32)
         is vm.I32BitXor             -> push_binop(s, .BitXor, .I32)
-        is vm.I32Shl                -> push_binop(s, .ShiftLeft, .I32)
-        is vm.I32Shr                -> push_binop(s, .ShiftRight, .I32)
-        is vm.I32ShrU               -> push_binop(s, .ShiftRight, .U32)
+        is vm.I32Shl                -> push_shift(s, .ShiftLeft, .I32)
+        is vm.I32Shr                -> push_shift(s, .ShiftRight, .I32)
+        is vm.I32ShrU               -> push_shift(s, .ShiftRight, .U32)
         is vm.I32Eq                 -> push_cmp(s, .Equal, .I32)
         is vm.I32Ne                 -> push_cmp(s, .NotEqual, .I32)
         is vm.I32Lt                 -> push_cmp(s, .Less, .I32)
@@ -588,9 +588,9 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.I64BitOr              -> push_binop(s, .BitOr, .I64)
         is vm.I64BitXor             -> push_binop(s, .BitXor, .I64)
         is vm.I64BitNot             -> push_unop(s, "~", .I64)
-        is vm.I64Shl                -> push_binop(s, .ShiftLeft, .I64)
-        is vm.I64Shr                -> push_binop(s, .ShiftRight, .I64)
-        is vm.I64ShrU               -> push_binop(s, .ShiftRight, .U64)
+        is vm.I64Shl                -> push_shift(s, .ShiftLeft, .I64)
+        is vm.I64Shr                -> push_shift(s, .ShiftRight, .I64)
+        is vm.I64ShrU               -> push_shift(s, .ShiftRight, .U64)
         is vm.I64Eq                 -> push_cmp(s, .Equal, .I64)
         is vm.I64Ne                 -> push_cmp(s, .NotEqual, .I64)
         is vm.I64Lt                 -> push_cmp(s, .Less, .I64)
@@ -739,6 +739,40 @@ push_binop :: fn(s: FnState, op: CBinaryOperator, val: ValType) -> void = push_e
     val,
     binary_expression(s, op, val),
 )
+
+/// Push a shift whose count keeps its low 5 bits, 6 at a 64-bit `val`, as the
+/// comptime fold takes it : C leaves a count past the width undefined, and folds a
+/// constant one to anything. A literal count already within the width is left as
+/// written.
+push_shift :: fn(s: FnState, op: CBinaryOperator, val: ValType) -> void {
+    mask :: shift_count_mask(val)
+    count :: pop(s)
+    if literal_within(count, mask) {
+        s.stack.push(count)
+    } else {
+        push_expr(s, val, CParenthesized {
+            .inner = binary(.BitAnd, operand_as(s, count, val), number(mask)),
+        })
+    }
+    push_binop(s, op, val)
+}
+
+// The mask of a shift's count at the width of `val`.
+shift_count_mask :: fn(val: ValType) -> i64 {
+    if val == .I64 || val == .U64 {
+        return 63
+    }
+    return 31
+}
+
+// Whether `count` is an integer literal from 0 to `mask`, which the mask keeps.
+literal_within :: fn(count: StackVal, mask: i64) -> bool {
+    if count !is StackLit {
+        return false
+    }
+    literal :: count.expression
+    return literal is CIntegerLiteral && literal.value >= 0 && literal.value <= mask
+}
 
 /// Push a comparison as a `StackExpr` of class `.Bool`. The operands carry
 /// the op's numeric class (`operand_val`), distinct from the `.Bool` result —

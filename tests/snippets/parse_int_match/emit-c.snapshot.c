@@ -1273,14 +1273,14 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
         l3 = (uint64_t) (int64_t) t0;
         t0 = ((int64_t) 52);
         l4 = (uint64_t) (int64_t) t0;
-        return (uint64_t) (int64_t) (l3 << l4);
+        return (uint64_t) (int64_t) (l3 << (l4 & 63));
     }
 #line 142 "lib/std/core/parse_float.vader"
     l5 = std_core_pf_clz64(l0);
 #line 143 "lib/std/core/parse_float.vader"
     t0 = ((int64_t) (int32_t) l5);
     l3 = (uint64_t) (int64_t) t0;
-    t0 = (l0 << l3);
+    t0 = (l0 << (l3 & 63));
     l3 = (uint64_t) (int64_t) t0;
 #line 144 "lib/std/core/parse_float.vader"
     std_core_pf_product(l1, l3, &t1, &t2);
@@ -1296,7 +1296,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
 #line 147 "lib/std/core/parse_float.vader"
     t0 = ((int64_t) (int32_t) l7);
     l8 = (uint64_t) (int64_t) t0;
-    l8 = (l3 >> l8);
+    l8 = (l3 >> (l8 & 63));
 #line 149 "lib/std/core/parse_float.vader"
     t3 = vader_chk_mul(i32, INT32_C(217706), l1);
     t4 = vader_chk_add(i32, (t3 >> INT32_C(16)), INT32_C(63));
@@ -1317,7 +1317,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
         t4 = vader_chk_add(i32, t3, INT32_C(1));
         t0 = ((int64_t) (int32_t) t4);
         l9 = (uint64_t) (int64_t) t0;
-        l8 = (l8 >> l9);
+        l8 = (l8 >> (l9 & 63));
 #line 155 "lib/std/core/parse_float.vader"
         t0 = (l8 & INT64_C(1));
         l9 = (uint64_t) (int64_t) t0;
@@ -1328,7 +1328,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
 #line 157 "lib/std/core/parse_float.vader"
         t0 = ((int64_t) 52);
         l9 = (uint64_t) (int64_t) t0;
-        t0 = (INT64_C(1) << l9);
+        t0 = (INT64_C(1) << (l9 & 63));
         l9 = (uint64_t) (int64_t) t0;
         if ((l8 < l9)) {
             l6 = INT32_C(0);
@@ -1340,7 +1340,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
         l9 = (uint64_t) (int64_t) t0;
         t0 = ((int64_t) 52);
         l10 = (uint64_t) (int64_t) t0;
-        return (uint64_t) (int64_t) ((l9 << l10) | l8);
+        return (uint64_t) (int64_t) ((l9 << (l10 & 63)) | l8);
 #line 151 "lib/std/core/parse_float.vader"
     }
 #line 162 "lib/std/core/parse_float.vader"
@@ -1351,7 +1351,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
 #line 163 "lib/std/core/parse_float.vader"
                     t0 = ((int64_t) (int32_t) l7);
                     l4 = (uint64_t) (int64_t) t0;
-                    if ((l8 << l4) == l3) {
+                    if ((l8 << (l4 & 63)) == l3) {
                         t0 = ~(INT64_C(1));
                         l3 = (uint64_t) (int64_t) t0;
                         t0 = (l8 & l3);
@@ -1372,13 +1372,13 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
 #line 167 "lib/std/core/parse_float.vader"
     t0 = ((int64_t) 52);
     l3 = (uint64_t) (int64_t) t0;
-    t0 = (INT64_C(2) << l3);
+    t0 = (INT64_C(2) << (l3 & 63));
     l3 = (uint64_t) (int64_t) t0;
     if ((l8 >= l3)) {
 #line 168 "lib/std/core/parse_float.vader"
         t0 = ((int64_t) 52);
         l3 = (uint64_t) (int64_t) t0;
-        t0 = (INT64_C(1) << l3);
+        t0 = (INT64_C(1) << (l3 & 63));
         l8 = (uint64_t) (int64_t) t0;
 #line 169 "lib/std/core/parse_float.vader"
         l5 = vader_chk_add(i32, l5, INT32_C(1));
@@ -1387,7 +1387,7 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
 #line 171 "lib/std/core/parse_float.vader"
     t0 = ((int64_t) 52);
     l3 = (uint64_t) (int64_t) t0;
-    t0 = ~((INT64_C(1) << l3));
+    t0 = ~((INT64_C(1) << (l3 & 63)));
     l3 = (uint64_t) (int64_t) t0;
     t0 = (l8 & l3);
     l8 = (uint64_t) (int64_t) t0;
@@ -1398,14 +1398,14 @@ static uint64_t std_core_eisel_lemire(uint64_t l0, int32_t l1) {
         l9 = (uint64_t) (int64_t) t0;
         t0 = ((int64_t) 52);
         l10 = (uint64_t) (int64_t) t0;
-        return (uint64_t) (int64_t) ((l9 << l10) | l8);
+        return (uint64_t) (int64_t) ((l9 << (l10 & 63)) | l8);
 #line 172 "lib/std/core/parse_float.vader"
     }
     t0 = ((int64_t) 2047);
     l3 = (uint64_t) (int64_t) t0;
     t0 = ((int64_t) 52);
     l4 = (uint64_t) (int64_t) t0;
-    return (uint64_t) (int64_t) (l3 << l4);
+    return (uint64_t) (int64_t) (l3 << (l4 & 63));
 }
 
 static double std_core_parse_f64_slow(vader_string_t l0, bool l1) {
@@ -1938,7 +1938,7 @@ static void* std_core_shl(void* l0, int32_t l1) {
         l7 = (uint64_t) (int64_t) t3;
         t3 = ((int64_t) (int32_t) l5);
         l8 = (uint64_t) (int64_t) t3;
-        t3 = (l7 << l8);
+        t3 = (l7 << (l8 & 63));
         l9 = (uint64_t) (int64_t) t3;
         t3 = ((int64_t) (uint32_t) l6);
         l10 = (uint64_t) (int64_t) t3;
@@ -2013,7 +2013,7 @@ static uint64_t std_core_sd_round_at(void* l0, int32_t l1, bool l2) {
         t0 = vader_chk_neg(i32, l1);
         t1 = ((int64_t) (int32_t) t0);
         l4 = (uint64_t) (int64_t) t1;
-        return (uint64_t) (int64_t) (l3 << l4);
+        return (uint64_t) (int64_t) (l3 << (l4 & 63));
     }
 #line 299 "lib/std/core/parse_float.vader"
     l3 = std_core_bits64(l0, l1);
@@ -2259,18 +2259,18 @@ static uint64_t std_core_bits64(void* l0, int32_t l1) {
 #line 172 "lib/std/core/bigint.vader"
         t1 = ((int64_t) (int32_t) l3);
         l8 = (uint64_t) (int64_t) t1;
-        l8 = (l4 >> l8);
+        l8 = (l4 >> (l8 & 63));
         t0 = vader_chk_sub(i32, INT32_C(32), l3);
         t1 = ((int64_t) (int32_t) t0);
         l9 = (uint64_t) (int64_t) t1;
-        t1 = (l6 << l9);
+        t1 = (l6 << (l9 & 63));
         l9 = (uint64_t) (int64_t) t1;
         t1 = (l8 | l9);
         l8 = (uint64_t) (int64_t) t1;
         t0 = vader_chk_sub(i32, INT32_C(64), l3);
         t1 = ((int64_t) (int32_t) t0);
         l9 = (uint64_t) (int64_t) t1;
-        t1 = (l7 << l9);
+        t1 = (l7 << (l9 & 63));
         l7 = (uint64_t) (int64_t) t1;
         return (uint64_t) (int64_t) (l8 | l7);
 #line 170 "lib/std/core/bigint.vader"
@@ -2315,7 +2315,7 @@ static bool std_core_any_below(void* l0, int32_t l1) {
 #line 139 "lib/std/core/bigint.vader"
         t2 = ((int64_t) (int32_t) l3);
         l6 = (uint64_t) (int64_t) t2;
-        t2 = vader_chk_sub(u64, (INT64_C(1) << l6), INT64_C(1));
+        t2 = vader_chk_sub(u64, (INT64_C(1) << (l6 & 63)), INT64_C(1));
         l6 = (uint64_t) (int64_t) t2;
 #line 140 "lib/std/core/bigint.vader"
         l4 = ((int64_t) (int32_t) l2);

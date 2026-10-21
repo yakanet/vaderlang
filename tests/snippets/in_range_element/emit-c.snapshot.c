@@ -312,7 +312,7 @@ static bool snippet_DigitSet_std_core_Contains_contains(void* l0, int32_t l1) {
     }
     if (!((l1 > INT32_C(9)))) {
 #line 50 "tests/snippets/in_range_element/_main.vader"
-        l2 = (INT32_C(1) << l1);
+        l2 = (INT32_C(1) << (l1 & 31));
 #line 51 "tests/snippets/in_range_element/_main.vader"
         t0 = ((vader_struct_snippet_DigitSet_t*) l0)->f_bits;
         return (t0 & l2) != INT32_C(0);

@@ -319,7 +319,7 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 ```
 Arithmetic   : + - * / %
 Wrapping     : +% -% *%  (integers only : the result wraps around the operand's width)
-Bitwise      : & | ^ ~ << >>
+Bitwise      : & | ^ ~ << >>  (a shift's count keeps its low 5 bits, 6 for a 64-bit type : `1 << 33` on an `i32` is 2, `u8(1) << 9` is 0)
 Comparison   : == != < <= > >=
 Identity     : === !==   (same object; references only — §Equality, *Identity*)
 Membership   : in   (sugar for `right.contains(left)`)
@@ -687,7 +687,7 @@ A constant the compiler folds follows the same rule: an overflow while evaluatin
 
 The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) wrap in every mode: integer operands only (`T3017` otherwise, and no trait overloads them), the result wrapping around the operands' width, an 8- or 16-bit one included: so `250 +% 10` is `4` on a `u8`, at run time as when a constant folds. They are the form for arithmetic meant to wrap (a hash, a PRNG, a checksum): `h *%= 16_777_619`. There is no wrapping negation: write `0 -% x`.
 
-A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates and a shift never traps (§Casts).
+A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates (§Casts) and a shift never traps (§Operators).
 
 ### Range types
 

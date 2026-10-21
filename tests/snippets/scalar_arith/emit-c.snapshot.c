@@ -123,12 +123,12 @@ static int32_t snippet_i_bxor(int32_t l0, int32_t l1) {
 
 static int32_t snippet_i_shl(int32_t l0, int32_t l1) {
 #line 16 "tests/snippets/scalar_arith/_main.vader"
-    return (l0 << l1);
+    return (l0 << (l1 & 31));
 }
 
 static int32_t snippet_i_shr(int32_t l0, int32_t l1) {
 #line 17 "tests/snippets/scalar_arith/_main.vader"
-    return (l0 >> l1);
+    return (l0 >> (l1 & 31));
 }
 
 static int32_t snippet_i_neg(int32_t l0) {
