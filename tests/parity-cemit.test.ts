@@ -680,6 +680,8 @@ const C_PARITY = new Set<string>([
   "into_bound_on_parameter_named_t",
   // A generic `Into` impl converts the instances its bounds admit.
   "into_through_generic_impl",
+  // An unsigned op casts its signed constant operands.
+  "unsigned_wide_constants",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

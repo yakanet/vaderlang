@@ -1382,7 +1382,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
         l18 = (uint64_t) (int64_t) t2;
         t2 = vader_chk_sub(u64, l8, l18);
 #line 256 "lib/std/core/dtoa.vader"
-        l4 = (t2 >= INT64_C(50));
+        l4 = ((uint64_t) (int64_t) t2 >= INT64_C(50));
 #line 257 "lib/std/core/dtoa.vader"
         l8 = l16;
 #line 258 "lib/std/core/dtoa.vader"
@@ -1408,7 +1408,7 @@ static void* std_core_d2d(uint64_t l0, uint64_t l1) {
             l18 = (uint64_t) (int64_t) t2;
             t2 = vader_chk_sub(u64, l8, l18);
 #line 268 "lib/std/core/dtoa.vader"
-            l4 = (t2 >= INT64_C(5));
+            l4 = ((uint64_t) (int64_t) t2 >= INT64_C(5));
 #line 269 "lib/std/core/dtoa.vader"
             l8 = l16;
 #line 270 "lib/std/core/dtoa.vader"
@@ -1507,7 +1507,7 @@ static int32_t std_core_log10_pow2(int32_t l0) {
     int64_t t0;
 #line 42 "lib/std/core/dtoa.vader"
     t0 = vader_chk_mul(u64, ((int64_t) (int32_t) l0), INT64_C(78913));
-    return ((int32_t) (uint64_t) (t0 >> INT64_C(18)));
+    return ((int32_t) (uint64_t) ((uint64_t) (int64_t) t0 >> INT64_C(18)));
 }
 
 static int32_t std_core_b2i(bool l0) {
@@ -1522,7 +1522,7 @@ static int32_t std_core_pow5bits(int32_t l0) {
     int64_t t0, t1;
 #line 46 "lib/std/core/dtoa.vader"
     t0 = vader_chk_mul(u64, ((int64_t) (int32_t) l0), INT64_C(1217359));
-    t1 = vader_chk_add(u64, (t0 >> INT64_C(19)), INT64_C(1));
+    t1 = vader_chk_add(u64, ((uint64_t) (int64_t) t0 >> INT64_C(19)), INT64_C(1));
     return ((int32_t) (int64_t) t1);
 }
 
@@ -1659,7 +1659,7 @@ static int32_t std_core_log10_pow5(int32_t l0) {
     int64_t t0;
 #line 44 "lib/std/core/dtoa.vader"
     t0 = vader_chk_mul(u64, ((int64_t) (int32_t) l0), INT64_C(732923));
-    return ((int32_t) (uint64_t) (t0 >> INT64_C(20)));
+    return ((int32_t) (uint64_t) ((uint64_t) (int64_t) t0 >> INT64_C(20)));
 }
 
 static bool std_core_multiple_of_power_of_2(uint64_t l0, int32_t l1) {

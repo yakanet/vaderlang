@@ -1,0 +1,437 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "BIG",
+        "visibility": "private",
+        "type": {
+          "kind": "IdentExpr",
+          "name": "u64"
+        },
+        "value": {
+          "kind": "IntLitExpr",
+          "value": "18446744073709551600n"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "HALF",
+        "visibility": "private",
+        "type": {
+          "kind": "IdentExpr",
+          "name": "u32"
+        },
+        "value": {
+          "kind": "IntLitExpr",
+          "value": "2147483648n"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "show",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "m",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "u64"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "void"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "IdentExpr",
+              "name": "println"
+            },
+            "args": [
+              {
+                "name": null,
+                "value": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "interp",
+                      "expr": {
+                        "kind": "BinaryExpr",
+                        "op": "gt",
+                        "left": {
+                          "kind": "IdentExpr",
+                          "name": "m"
+                        },
+                        "right": {
+                          "kind": "IntLitExpr",
+                          "value": "9223372036854775807n"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "value": " "
+                    },
+                    {
+                      "kind": "interp",
+                      "expr": {
+                        "kind": "BinaryExpr",
+                        "op": "div",
+                        "left": {
+                          "kind": "IdentExpr",
+                          "name": "m"
+                        },
+                        "right": {
+                          "kind": "IntLitExpr",
+                          "value": "9223372036854775808n"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "text",
+                      "value": " "
+                    },
+                    {
+                      "kind": "interp",
+                      "expr": {
+                        "kind": "BinaryExpr",
+                        "op": "shr",
+                        "left": {
+                          "kind": "IdentExpr",
+                          "name": "m"
+                        },
+                        "right": {
+                          "kind": "IntLitExpr",
+                          "value": "63n"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "spread": false
+              }
+            ]
+          }
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "gt",
+                            "left": {
+                              "kind": "IntrinsicCallExpr",
+                              "name": "max",
+                              "args": [
+                                {
+                                  "kind": "IdentExpr",
+                                  "name": "u64"
+                                }
+                              ]
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "5n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "gt",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "BIG"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "5n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "gt",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "BIG"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "9223372036854775807n"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "div",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "BIG"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "16n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "mod",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "BIG"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "7n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "shr",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "BIG"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "60n"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "div",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "HALF"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "2n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "mod",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "HALF"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "3n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "shr",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "HALF"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "31n"
+                            }
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "BinaryExpr",
+                            "op": "gt",
+                            "left": {
+                              "kind": "IdentExpr",
+                              "name": "HALF"
+                            },
+                            "right": {
+                              "kind": "IntLitExpr",
+                              "value": "5n"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "show"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "18446744073709551615n"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

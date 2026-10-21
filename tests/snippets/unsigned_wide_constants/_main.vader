@@ -1,0 +1,22 @@
+// An unsigned value past the signed range compares, divides and shifts as
+// unsigned natively too, constant or not: the C emitter receives every integer
+// constant signed (`0xFFFF_FFFF_FFFF_FFF0` is -16), so an unsigned op casts it.
+
+module "snippet"
+
+import "std/io"
+
+BIG: u64: 0xFFFF_FFFF_FFFF_FFF0
+HALF: u32: 0x8000_0000
+
+show :: fn(m: u64) -> void {
+    println("${m > 0x7FFF_FFFF_FFFF_FFFF} ${m / 0x8000_0000_0000_0000} ${m >> 63}")
+}
+
+main :: fn() -> i32 {
+    println("${@max(u64) > 5} ${BIG > 5} ${BIG > 0x7FFF_FFFF_FFFF_FFFF}")
+    println("${BIG / 16} ${BIG % 7} ${BIG >> 60}")
+    println("${HALF / 2} ${HALF % 3} ${HALF >> 31} ${HALF > 5}")
+    show(0xFFFF_FFFF_FFFF_FFFF)
+    return 0
+}

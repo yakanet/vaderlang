@@ -792,12 +792,34 @@ push_cmp :: fn(s: FnState, op: CBinaryOperator, operand_val: ValType) -> void = 
 binary_expression :: fn(s: FnState, op: CBinaryOperator, operand_val: ValType) -> CExpression {
     right :: pop(s)
     left :: pop(s)
-    infix :: binary(op, operand_as(s, left, operand_val), operand_as(s, right, operand_val))
+    infix :: binary(op, left_operand(s, op, left, right, operand_val), operand_as(s, right, operand_val))
     if op == .Equal || op == .NotEqual {
         return infix
     }
     return CParenthesized { .inner = infix }
 }
+
+// `left` as the left operand of `op` at class `class` (`operand_as`), cast to the
+// unsigned type of `class` where C would otherwise compare or shift it signed :
+// constants, checked-arithmetic temporaries and buffer loads all ride signed
+// (`stack_class_of`). A shift takes its signedness from its left operand alone ;
+// a comparison turns unsigned once either operand is.
+left_operand :: fn(
+    s: FnState, op: CBinaryOperator, left: StackVal, right: StackVal, class: ValType,
+) -> CExpression {
+    value :: operand_as(s, left, class)
+    if !signed_under_unsigned(val_of(left), class) {
+        return value
+    }
+    if op == .ShiftRight || signed_under_unsigned(val_of(right), class) {
+        return scalar_cast(value, val_of(left), class)
+    }
+    return value
+}
+
+// Whether `from` is the signed class of the unsigned class `to`.
+signed_under_unsigned :: fn(from: ValType, to: ValType) -> bool =
+    (from == .I64 && to == .U64) || (from == .I32 && to == .U32)
 
 // `value` coerced as an operand of class `class` (`coerce_operand`).
 operand_as :: fn(s: FnState, value: StackVal, class: ValType) -> CExpression =

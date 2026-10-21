@@ -1,0 +1,47 @@
+# Typecheck
+
+## tests/snippets/unsigned_wide_constants
+  ConstDecl      BIG                  :: u64
+  ConstDecl      HALF                 :: u32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         show                 :: fn(u64) -> void
+  expr 13:13    StringLitExpr  :: string
+  expr 13:16    BinaryExpr     :: bool
+  expr 13:16    IdentExpr      :: u64
+  expr 13:45    BinaryExpr     :: u64
+  expr 13:45    IdentExpr      :: u64
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 13:74    BinaryExpr     :: u64
+  expr 13:74    IdentExpr      :: u64
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    BinaryExpr     :: bool
+  expr 17:16    IntrinsicCallExpr :: u64
+  expr 17:33    BinaryExpr     :: bool
+  expr 17:33    IdentExpr      :: u64
+  expr 17:44    BinaryExpr     :: bool
+  expr 17:44    IdentExpr      :: u64
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    BinaryExpr     :: u64
+  expr 18:16    IdentExpr      :: u64
+  expr 18:28    BinaryExpr     :: u64
+  expr 18:28    IdentExpr      :: u64
+  expr 18:39    BinaryExpr     :: u64
+  expr 18:39    IdentExpr      :: u64
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 19:13    StringLitExpr  :: string
+  expr 19:16    BinaryExpr     :: u32
+  expr 19:16    IdentExpr      :: u32
+  expr 19:28    BinaryExpr     :: u32
+  expr 19:28    IdentExpr      :: u32
+  expr 19:40    BinaryExpr     :: u32
+  expr 19:40    IdentExpr      :: u32
+  expr 19:5     CallExpr       :: void
+  expr 19:5     IdentExpr      :: fn(T) -> void
+  expr 19:54    BinaryExpr     :: bool
+  expr 19:54    IdentExpr      :: u32
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(u64) -> void
