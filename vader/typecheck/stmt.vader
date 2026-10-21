@@ -420,16 +420,16 @@ check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> voi
     }
     // T3035 : reject `type`-valued slots that aren't in-fn type aliases.
     // The mutable form (`name := <type-expr>`) always fails since
-    // it implies a runtime Type value — Layer 4 milestone B.1 doesn't
-    // ship those yet. The immutable form fails only when the RHS
-    // isn't a structural type expression (e.g. a fn call returning
-    // type), since we can't pre-resolve it without VM execution.
+    // it implies a runtime Type value, which a local cannot hold. The immutable
+    // form fails only when the RHS isn't a structural type expression (e.g. a
+    // fn call returning type), since we can't pre-resolve it without VM
+    // execution.
     if declared is TypeMetaType && !is_let_type_alias {
         diags.push(
             typecheck_error(
                 .TypeValuedSlotNotYetSupported,
                 s.span,
-                "`type`-valued locals are not yet supported (Layer 4 milestone B.1) ; use the immutable form `name :: <type-expr>` for an in-fn type alias, or a top-level alias `Name :: type[T] ...`",
+                "a local can hold only a type written out, as an alias: `name :: <type-expr>`",
             ),
         )
     }
