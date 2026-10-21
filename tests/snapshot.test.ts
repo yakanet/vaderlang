@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import {
-  MAIN_FILE, dumpBytecodeViaVader, dumpComptimeViaVader,
+  C_SNAPSHOT, MAIN_FILE, dumpBytecodeViaVader, dumpCViaVader, dumpComptimeViaVader,
   dumpLexerViaVader, dumpLowerViaVader, dumpParserViaVader, dumpTypecheckViaVader,
-  errMsg, listSnippets, loadConfig, snapshotEquals,
+  errMsg, listSnippets, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { LONG_BUILD } from "./cli-bin.ts";
@@ -33,6 +33,8 @@ const PHASES = [
   // is consumed verbatim by the Vader CLI (`./build/vader run`) in the
   // `tests/vader_vm.test.ts` parity test.
   { name: "bytecode",  snap: "bytecode.snapshot.virt",  dump: dumpBytecodeViaVader,  usePath: true },
+  // The emitted C. Compiled and run against `vm.snapshot` by `parity-cemit.test.ts`.
+  { name: "emit_c",    snap: C_SNAPSHOT,           dump: dumpCViaVader,         usePath: true },
 ] as const;
 
 const scenarios = listSnippets("tests/snippets");
@@ -41,8 +43,15 @@ test("snippets: at least one discovered", () => {
   expect(scenarios.length).toBeGreaterThan(0);
 });
 
+// A config with problems reads as the defaults (`readConfig`), so this test is
+// what reports it.
+test("snippets: every _config.json is valid", () => {
+  const problems = scenarios.flatMap((s) => s.configProblems.map((p) => `${s.name}: ${p}`));
+  expect(problems).toEqual([]);
+});
+
 for (const s of scenarios) {
-  const config = loadConfig(s.dir);
+  const config = s.config;
   const activePhases = config.phases ? PHASES.filter((p) => config.phases!.includes(p.name)) : PHASES;
   for (const p of activePhases) {
     test.concurrent(`${p.name}: ${s.name}`, async () => {

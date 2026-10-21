@@ -5,16 +5,16 @@
 // has none or is listed in `VADER_SELF_EMIT`. The output goes through
 // `formatRun`, as the native run in `parity-cemit.test.ts` does.
 //
-// A snippet whose VM run is known to be wrong is listed in `KNOWN_DIVERGENT`
-// with its reason; one with a `helper.c` is skipped, its foreign symbols living
-// only in a native binary.
+// A snippet whose VM run is not checked says so in its `_config.json`, with its
+// reason (`"vm": { "skip" | "skip_on" }`); one with a `helper.c` is skipped, its
+// foreign symbols living only in a native binary.
 
 import { expect, test } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { type Scenario, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
+import { type Scenario, VM_SNAPSHOT, exclusionReason, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
@@ -46,10 +46,6 @@ async function virtForHost(name: string, mainPath: string, pinned: string): Prom
   return out;
 }
 
-/// Snippets whose `@extern` targets a symbol no Windows DLL exports, so the VM
-/// cannot resolve it even though the native build links it statically.
-const VM_PARITY_UNAVAILABLE_WIN32 = new Set(["c_struct_prefix_mirror"]);
-
 // Snippets whose `vm.snapshot` is checked against the bytecode image that
 // `vader build --emit=bytecode-text` links from source, rather than against the
 // committed `bytecode.snapshot.virt` (or, off the pinned host, `vader dump
@@ -80,15 +76,6 @@ const VADER_SELF_EMIT = new Set<string>([
   "union_computed_u64",
 ]);
 
-// Snippets that the self-host VM can't yet run end-to-end. New entries
-// should carry a one-line explanation + a link to the issue / commit
-// blocking them.
-//
-// To regenerate the list : run this test with all entries removed,
-// `bun test tests/vader_vm.test.ts`, and copy the failing names back.
-const KNOWN_DIVERGENT = new Set<string>([
-]);
-
 // Build `s` from source and run Vader's own bytecode, against `vm.snapshot`.
 // `build --emit=bytecode-text`, NOT `dump --stage=bytecode`: this oracle needs
 // the whole linked image, every function it calls included. The dump is a VIEW
@@ -100,7 +87,7 @@ function testFromSource(s: Scenario): void {
     if (built.exit !== 0) throw new Error(`bytecode-text emit failed: ${built.stderr}`);
     const { stdout, stderr, exit } = await runCli(["run", tmp]);
     const actual = formatRun(stdout, stderr, exit);
-    const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
+    const cmp = snapshotEquals(s.dir, VM_SNAPSHOT, actual);
     if (!cmp.ok) {
       throw new Error(
         `vader-vm-self mismatch: ${s.name}\n` +
@@ -118,17 +105,16 @@ const scenarios = listSnippets("tests/snippets");
 test("vader-vm: name lists resolve to real snippets", () => {
   const known = new Set(scenarios.map((s) => s.name));
   const listed = [
-    ...VM_PARITY_UNAVAILABLE_WIN32,
     ...VADER_SELF_EMIT,
-    ...KNOWN_DIVERGENT,
     ...ANNOTATED_ROUNDTRIP,
   ];
   expect(listed.filter((name) => !known.has(name))).toEqual([]);
 });
 
 for (const s of scenarios) {
-  if (KNOWN_DIVERGENT.has(s.name)) {
-    test.skip(`vader-vm: ${s.name}`, () => {});
+  const excluded = exclusionReason(s.config.vm);
+  if (excluded !== null) {
+    test.skip(`vader-vm: ${s.name} (${excluded})`, () => {});
     continue;
   }
   // Run from the image `build --emit=bytecode-text` links (see `VADER_SELF_EMIT`).
@@ -150,21 +136,12 @@ for (const s of scenarios) {
     test.skip(`vader-vm: ${s.name}`, () => {});
     continue;
   }
-  // The VM resolves an `@extern` through `dlsym` on the C library, so it can
-  // only reach what that library EXPORTS. MinGW keeps the POSIX shims in
-  // libmingwex.a, a static archive: the native build links `gettimeofday` in
-  // and runs, while the VM gets "symbol not found". That is a property of the
-  // platform's libc, not of the snippet — so the parity check does not apply.
-  if (process.platform === "win32" && VM_PARITY_UNAVAILABLE_WIN32.has(s.name)) {
-    test.skip(`vader-vm: ${s.name}`, () => {});
-    continue;
-  }
   const virtPath = `${s.dir}/bytecode.snapshot.virt`;
   if (!existsSync(virtPath)) {
     // Its stage snapshots stop before bytecode (`_config.json`). A run oracle
     // is still checked, from source; without one, the stage snapshots are the
     // whole test.
-    if (existsSync(`${s.dir}/vm.snapshot`)) {
+    if (existsSync(join(s.dir, VM_SNAPSHOT))) {
       testFromSource(s);
     }
     continue;
@@ -173,7 +150,7 @@ for (const s of scenarios) {
     const runVirt = await virtForHost(s.name, s.mainPath, virtPath);
     const { stdout, stderr, exit } = await runCli(["run", runVirt]);
     const actual = formatRun(stdout, stderr, exit);
-    const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
+    const cmp = snapshotEquals(s.dir, VM_SNAPSHOT, actual);
     if (!cmp.ok) {
       throw new Error(
         `vader-vm parity mismatch: ${s.name}\n` +
@@ -205,7 +182,7 @@ for (const name of ANNOTATED_ROUNDTRIP) {
     writeFileSync(tmp, dump.stdout);
     const { stdout, stderr, exit } = await runCli(["run", tmp]);
     const actual = formatRun(stdout, stderr, exit);
-    const cmp = snapshotEquals(s.dir, "vm.snapshot", actual);
+    const cmp = snapshotEquals(s.dir, VM_SNAPSHOT, actual);
     if (!cmp.ok) {
       throw new Error(
         `vader-vm-annotated mismatch: ${name}\n` +

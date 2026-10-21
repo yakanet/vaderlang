@@ -1,0 +1,12 @@
+{
+  "native": {
+    "skip_on": {
+      "win32": "time_t is 32 bits under mingw on Win64, and this mirror is the POSIX one"
+    }
+  },
+  "vm": {
+    "skip_on": {
+      "win32": "MinGW keeps gettimeofday in the static libmingwex.a: the native build links it, the VM's dlsym cannot reach it"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "native": {
+    "skip": "ends on a trap: the VM prints `vader vm: <message>` and exits 1, native prints `vader: trap — <message>` and aborts (134)"
+  }
+}

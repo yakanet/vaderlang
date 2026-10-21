@@ -13,11 +13,26 @@ export const CONFIG_FILE = "_config.json";
 /** The emitted-C golden. The `.c` extension is what makes an editor open it as C. */
 export const C_SNAPSHOT = "emit-c.snapshot.c";
 
+/** A snippet's recorded run, which the VM and the native build are both held to. */
+export const VM_SNAPSHOT = "vm.snapshot";
+
 /** What a stage snapshot starts with when the CLI failed to produce that stage. */
 export const CLI_FAILED_PREFIX = "# vader CLI failed";
 
-type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptime" | "lower" | "cfg" | "bytecode";
+const PHASE_NAMES = [
+  "lexer", "parser", "resolver", "typecheck", "comptime", "lower", "cfg", "bytecode", "emit_c",
+] as const;
+type PhaseName = typeof PHASE_NAMES[number];
 
+/** Where a snippet's run is NOT checked, each case with its reason: everywhere
+ *  (`skip`), or on the platforms named (`skip_on`, keyed by `process.platform`). */
+export interface RunExclusion {
+  readonly skip?: string;
+  readonly skip_on?: Readonly<Record<string, string>>;
+}
+
+/** A snippet's `_config.json`. Every key is optional ; a snippet without the file
+ *  takes every default. */
 export interface TestConfig {
   readonly phases?: readonly PhaseName[];
   /** Modules rendered by the module-filtered dumps (typecheck / comptime /
@@ -25,16 +40,118 @@ export interface TestConfig {
    *  subtree when absent — set this only for a snippet whose modules fall
    *  outside the entry module's display-path prefix. */
   readonly modules?: readonly string[];
+  /** The native run, compared with `vm.snapshot` (`parity-cemit.test.ts`). On for
+   *  every snippet whose `vm.snapshot` records a run. */
+  readonly native?: RunExclusion;
+  /** The VM run, compared with `vm.snapshot` (`vader_vm.test.ts`). */
+  readonly vm?: RunExclusion;
 }
 
-export function loadConfig(dir: string): TestConfig {
+/** The snippet at `dir`'s `_config.json`, and what is wrong with it. A config with
+ *  problems reads as the defaults, which run every check : only
+ *  `snapshot.test.ts`'s "snippet configs are valid" fails on it, so a bad file
+ *  cannot empty a listing nor turn a check off in silence. */
+function readConfig(dir: string): { config: TestConfig; problems: string[] } {
   const configPath = join(dir, CONFIG_FILE);
-  if (!existsSync(configPath)) return {};
-  try {
-    return JSON.parse(readFileSync(configPath, "utf8")) as TestConfig;
-  } catch {
-    return {};
+  if (!existsSync(configPath)) {
+    return { config: {}, problems: fileProblems({}, dir) };
   }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(configPath, "utf8"));
+  } catch (e) {
+    return { config: {}, problems: [`not JSON (${errMsg(e)})`] };
+  }
+  const problems = configProblems(raw, dir);
+  return { config: problems.length === 0 ? (raw as TestConfig) : {}, problems };
+}
+
+// Every key a `_config.json` may hold ; `satisfies` keeps it in step with `TestConfig`.
+const CONFIG_KEYS = {
+  phases: true, modules: true, native: true, vm: true,
+} satisfies Record<keyof TestConfig, true>;
+
+/** What is wrong with the parsed `_config.json` of the snippet at `dir`. */
+function configProblems(raw: unknown, dir: string): string[] {
+  if (!isRecord(raw)) return ["the config is not an object"];
+  const out: string[] = [];
+  for (const key of Object.keys(raw)) {
+    if (!(key in CONFIG_KEYS)) out.push(`unknown key \`${key}\``);
+  }
+  const phases = raw["phases"];
+  if (phases !== undefined) {
+    if (!Array.isArray(phases) || phases.some((p) => !PHASE_NAMES.includes(p as PhaseName))) {
+      out.push(`\`phases\` lists the phases among ${PHASE_NAMES.join(", ")}`);
+    }
+  }
+  const modules = raw["modules"];
+  if (modules !== undefined && (!Array.isArray(modules) || modules.some((m) => typeof m !== "string"))) {
+    out.push("`modules` is a list of module paths");
+  }
+  for (const side of ["native", "vm"]) {
+    if (raw[side] !== undefined) out.push(...exclusionProblems(side, raw[side]));
+  }
+  out.push(...fileProblems(raw, dir));
+  return out;
+}
+
+// Where the config `raw` and the snapshot files beside it disagree.
+function fileProblems(raw: Record<string, unknown>, dir: string): string[] {
+  const out: string[] = [];
+  const phases = raw["phases"];
+  if (existsSync(join(dir, C_SNAPSHOT)) && Array.isArray(phases) && !phases.includes("emit_c")) {
+    out.push(`\`phases\` leaves out \`emit_c\`, so its \`${C_SNAPSHOT}\` pins nothing: delete the file`);
+  }
+  const runs = existsSync(join(dir, VM_SNAPSHOT));
+  for (const side of ["native", "vm"]) {
+    if (raw[side] !== undefined && !runs) {
+      out.push(`\`${side}\` excludes a run, and no \`${VM_SNAPSHOT}\` records one`);
+    }
+  }
+  return out;
+}
+
+// What is wrong with the run exclusion `value` under `side`.
+function exclusionProblems(side: string, value: unknown): string[] {
+  if (!isRecord(value)) return [`\`${side}\` is an object`];
+  const out: string[] = [];
+  for (const key of Object.keys(value)) {
+    if (key !== "skip" && key !== "skip_on") out.push(`unknown key \`${side}.${key}\``);
+  }
+  const skip = value["skip"];
+  const skipOn = value["skip_on"];
+  if (skip === undefined && skipOn === undefined) out.push(`\`${side}\` excludes nothing`);
+  if (skip !== undefined && skipOn !== undefined) out.push(`\`${side}.skip\` already excludes every platform`);
+  if (skip !== undefined && !isReason(skip)) out.push(`\`${side}.skip\` is its reason, a non-empty string`);
+  if (skipOn !== undefined) {
+    if (!isRecord(skipOn) || Object.keys(skipOn).length === 0) {
+      out.push(`\`${side}.skip_on\` maps a platform to its reason`);
+    } else {
+      for (const [platform, reason] of Object.entries(skipOn)) {
+        if (!KNOWN_PLATFORMS.includes(platform)) out.push(`\`${side}.skip_on\`: unknown platform \`${platform}\``);
+        if (!isReason(reason)) out.push(`\`${side}.skip_on.${platform}\` is its reason, a non-empty string`);
+      }
+    }
+  }
+  return out;
+}
+
+// The `process.platform` values a snippet may be excluded on.
+const KNOWN_PLATFORMS = ["darwin", "linux", "win32"];
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null && !Array.isArray(v);
+}
+
+function isReason(v: unknown): boolean {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+/** Why the run `exclusion` describes is not checked on this platform, or null when
+ *  it is. */
+export function exclusionReason(exclusion: RunExclusion | undefined): string | null {
+  if (exclusion === undefined) return null;
+  return exclusion.skip ?? exclusion.skip_on?.[process.platform] ?? null;
 }
 
 export interface Scenario {
@@ -47,6 +164,10 @@ export interface Scenario {
    *  `@extern` end-to-end snippets that wire a Vader signature to a foreign
    *  symbol. */
   readonly helperCFiles: readonly string[];
+  /** Its `_config.json` ; the defaults when it has problems. */
+  readonly config: TestConfig;
+  /** What is wrong with its `_config.json` (`readConfig`). */
+  readonly configProblems: readonly string[];
 }
 
 const UPDATE = process.env["UPDATE_SNAPSHOTS"] === "1";
@@ -83,7 +204,8 @@ export function listSnippets(snippetsDir: string): Scenario[] {
       .filter((f) => f.startsWith("helper") && f.endsWith(".c"))
       .map((f) => join(dir, f))
       .sort();
-    out.push({ name, dir, mainPath, source, helperCFiles });
+    const { config, problems } = readConfig(dir);
+    out.push({ name, dir, mainPath, source, helperCFiles, config, configProblems: problems });
   }
   out.sort((a, b) => (a.name < b.name ? -1 : 1));
   return out;
@@ -174,6 +296,11 @@ export async function dumpLowerViaVader(_source: string, entryPath: string, modu
 // The canonical target every committed snapshot is generated for. Neutral on
 // purpose: not the machine any particular contributor uses.
 export const SNAPSHOT_TARGET = "linux-x86_64";
+
+/** The emitted C, pinned to `SNAPSHOT_TARGET` as every stage is. */
+export async function dumpCViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
+  return runVaderDump("c", entryPath);
+}
 
 export async function dumpBytecodeViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   // `--annotate` appends `; <mangled name>` after every index-bearing op. The

@@ -76,7 +76,7 @@ test("a real helper survives alongside build artefacts", () => {
 });
 
 test("the committed emitted-C golden is not a helper", () => {
-  // Every C-parity snippet carries one, so counting it would skip the corpus's
-  // `vader-vm` parity tests AND link a second `main` into the native run.
+  // Every snippet carries one, so counting it would skip the corpus's `vader-vm`
+  // parity tests AND link a second `main` into the native run.
   expect(helpersOf("helper_and_c_golden")).toEqual(["helper.c"]);
 });

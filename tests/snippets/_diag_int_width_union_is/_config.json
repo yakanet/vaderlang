@@ -1,0 +1,5 @@
+{
+  "native": {
+    "skip": "the committed VM output is wrong on purpose (`1 1 1`, see the header): native prints the right `1 2 3`"
+  }
+}

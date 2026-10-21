@@ -9,10 +9,10 @@
 // NEITHER — the `memmove` scaled both sides by the DESTINATION's stride. Boxes
 // landed in pointer slots and the first element read dereferenced a tag word.
 //
-// VM-only coverage cannot see it: the VM never runs this code. `array_copy_to_const`
-// and `array_push_all_const` are both on the `C_PARITY` allowlist so the emitted C
-// is compiled and RUN against `vm.snapshot`, which is what makes the two backends
-// answer the same question here.
+// VM-only coverage cannot see it: the VM never runs this code. The emitted C of
+// `array_copy_to_const` and `array_push_all_const` is compiled and RUN against
+// `vm.snapshot`, which is what makes the two backends answer the same question
+// here.
 //
 // The nested array field is what makes the const materialise BOXED; a struct of
 // scalars alone does not reproduce.
