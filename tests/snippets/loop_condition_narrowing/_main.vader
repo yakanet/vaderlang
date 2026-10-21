@@ -1,0 +1,62 @@
+// A loop condition narrows the body as an `if` condition narrows its then-block:
+// each iteration tests it before the body runs. Three walks lean on it: a nullable
+// integer counted up until a step returns `null`, a field chain followed while it
+// has a next node, and a node read in the body of a conjunction that tested it.
+// Each write in a body retires the narrowing it ends.
+
+module "snippet"
+
+import "std/io"
+
+Node :: struct {
+    value: i32
+    next: Node | null
+}
+
+step :: fn(n: i32) -> i32 | null {
+    if n >= 4 {
+        return null
+    }
+    return n + 1
+}
+
+count_up :: fn() -> i32 {
+    n: i32 | null = 0
+    total := 0
+    for n != null {
+        total += n
+        n = step(n)
+    }
+    return total
+}
+
+sum_after_head :: fn(head: Node) -> i32 {
+    node := head
+    total := 0
+    for node.next != null {
+        total += node.next.value
+        node = node.next
+    }
+    return total
+}
+
+sum_below :: fn(head: Node, limit: i32) -> i32 {
+    cursor: Node | null = head
+    total := 0
+    for cursor != null && cursor.value < limit {
+        total += cursor.value
+        cursor = cursor.next
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    chain :: Node {
+        .value = 1,
+        .next = Node { .value = 2, .next = Node { .value = 3, .next = null } },
+    }
+    println("${count_up()}")
+    println("${sum_after_head(chain)}")
+    println("${sum_below(chain, 3)}")
+    return 0
+}

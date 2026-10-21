@@ -1,0 +1,19 @@
+// A loop condition narrows the body until a write retires the narrowing. The
+// walk moves `cursor` to the next node, which may be `null`, then reads a field
+// of it: T3008, `cursor` being `Node | null` again.
+
+module "snippet"
+
+export Node :: struct {
+    value: i32
+    next: Node | null
+}
+
+export second_value :: fn(head: Node) -> i32 {
+    cursor: Node | null = head
+    for cursor != null {
+        cursor = cursor.next
+        return cursor.value
+    }
+    return 0
+}

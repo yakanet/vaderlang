@@ -1,0 +1,73 @@
+# Typecheck
+
+## tests/snippets/loop_condition_narrowing
+  FnDecl         count_up             :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Node                 :: Node
+  FnDecl         step                 :: fn(i32) -> i32 | null
+  FnDecl         sum_after_head       :: fn(Node) -> i32
+  FnDecl         sum_below            :: fn(Node, i32) -> i32
+  expr 17:5     IfExpr         :: void
+  expr 17:8     BinaryExpr     :: bool
+  expr 17:8     IdentExpr      :: i32
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    IdentExpr      :: i32
+  expr 26:9     BinaryExpr     :: bool
+  expr 26:9     IdentExpr      :: i32 | null
+  expr 27:18    IdentExpr      :: i32
+  expr 27:9     BinaryExpr     :: i32
+  expr 27:9     IdentExpr      :: i32
+  expr 28:13    CallExpr       :: i32 | null
+  expr 28:13    IdentExpr      :: fn(i32) -> i32 | null
+  expr 28:18    IdentExpr      :: i32
+  expr 28:9     IdentExpr      :: i32
+  expr 30:12    IdentExpr      :: i32
+  expr 34:13    IdentExpr      :: Node
+  expr 36:9     BinaryExpr     :: bool
+  expr 36:9     FieldExpr      :: Node | null
+  expr 36:9     IdentExpr      :: Node
+  expr 37:18    FieldExpr      :: Node
+  expr 37:18    FieldExpr      :: i32
+  expr 37:18    IdentExpr      :: Node
+  expr 37:9     BinaryExpr     :: i32
+  expr 37:9     IdentExpr      :: i32
+  expr 38:16    FieldExpr      :: Node
+  expr 38:16    IdentExpr      :: Node
+  expr 38:9     IdentExpr      :: Node
+  expr 40:12    IdentExpr      :: i32
+  expr 44:27    IdentExpr      :: Node
+  expr 46:27    BinaryExpr     :: bool
+  expr 46:27    FieldExpr      :: i32
+  expr 46:27    IdentExpr      :: Node
+  expr 46:42    IdentExpr      :: i32
+  expr 46:9     BinaryExpr     :: bool
+  expr 46:9     BinaryExpr     :: bool
+  expr 46:9     IdentExpr      :: Node | null
+  expr 47:18    FieldExpr      :: i32
+  expr 47:18    IdentExpr      :: Node
+  expr 47:9     BinaryExpr     :: i32
+  expr 47:9     IdentExpr      :: i32
+  expr 48:18    FieldExpr      :: Node | null
+  expr 48:18    IdentExpr      :: Node
+  expr 48:9     IdentExpr      :: Node
+  expr 50:12    IdentExpr      :: i32
+  expr 54:14    StructLitExpr  :: Node
+  expr 56:17    StructLitExpr  :: Node
+  expr 56:44    StructLitExpr  :: Node
+  expr 58:13    StringLitExpr  :: string
+  expr 58:16    CallExpr       :: i32
+  expr 58:16    IdentExpr      :: fn() -> i32
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 59:13    StringLitExpr  :: string
+  expr 59:16    CallExpr       :: i32
+  expr 59:16    IdentExpr      :: fn(Node) -> i32
+  expr 59:31    IdentExpr      :: Node
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:16    CallExpr       :: i32
+  expr 60:16    IdentExpr      :: fn(Node, i32) -> i32
+  expr 60:26    IdentExpr      :: Node
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

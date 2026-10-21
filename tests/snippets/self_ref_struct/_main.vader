@@ -16,10 +16,9 @@ main :: fn() -> i32 {
     mid  :: Node<i32> { .value = 20, .next = tail }
     head :: Node<i32> { .value = 10, .next = mid }
     cursor: Node<i32> | null = head
-    for {
-        node :: cursor ?? break
-        println("value = ${node.value}")
-        cursor = node.next
+    for cursor != null {
+        println("value = ${cursor.value}")
+        cursor = cursor.next
     }
     return 0
 }

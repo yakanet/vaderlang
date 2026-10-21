@@ -658,6 +658,11 @@ const C_PARITY = new Set<string>([
   // An integer type read by its values : a range index, a distinct compared at
   // the width of the integer it is over, an overload by the values it holds.
   "integers_by_their_values",
+  // A loop condition narrows its body: a nullable integer, a field chain and a
+  // conjunction, each retired by the write that ends it.
+  "loop_condition_narrowing",
+  // A lambda of each arm copies the `match x :: …` name into its env.
+  "match_binding_capture",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

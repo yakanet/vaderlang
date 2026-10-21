@@ -1,0 +1,100 @@
+// A lambda's body and a `defer` body run later than they are written, after code
+// that may rebind a name or write a field. They see only the narrowings nothing
+// can falsify in between: a binding no assignment rebinds keeps its narrowing,
+// while a rebound binding and a field chain lose theirs. A `defer` body runs at
+// the exit of its block, so what it writes or calls retires the narrowings the
+// code after that block reads. T3008 at each such read.
+
+module "snippet"
+
+import "std/io"
+
+export Node :: struct {
+    value: i32
+    next: Node | null
+}
+
+export Holder :: struct {
+    node: Node | null
+}
+
+export print_each :: fn(head: Node) -> void {
+    cursor: Node | null = head
+    for cursor != null {
+        defer println("${cursor.value}")
+        cursor = cursor.next
+    }
+}
+
+export reader_of :: fn(head: Node) -> fn() -> i32 {
+    cursor: Node | null = head
+    if cursor != null {
+        read :: () -> cursor.value
+        cursor = cursor.next
+        return read
+    }
+    return () -> 0
+}
+
+export field_reader :: fn(h: Holder) -> fn() -> i32 {
+    if h.node != null {
+        return () -> h.node.value
+    }
+    return () -> 0
+}
+
+export kept :: fn(head: Node) -> fn() -> i32 {
+    found :: head.next
+    if found != null {
+        return () -> found.value
+    }
+    return () -> 0
+}
+
+export cleared_by_defer :: fn(start: Node | null, flag: bool) -> i32 {
+    cursor := start
+    if cursor == null {
+        return 0
+    }
+    if flag {
+        defer cursor = null
+    }
+    return cursor.value
+}
+
+export field_cleared_by_defer :: fn(h: Holder, flag: bool) -> i32 {
+    if h.node == null {
+        return 0
+    }
+    if flag {
+        defer h.node = null
+    }
+    return h.node.value
+}
+
+export cleared_by_deferred_call :: fn(start: Node | null, flag: bool) -> i32 {
+    cursor := start
+    reset :: () -> {
+        cursor = null
+    }
+    if cursor == null {
+        return 0
+    }
+    if flag {
+        defer reset()
+    }
+    return cursor.value
+}
+
+export retested_in_defer :: fn(h: Holder) -> i32 {
+    seen := 0
+    if h.node != null {
+        defer {
+            if h.node != null {
+                seen = h.node.value
+            }
+        }
+        return h.node.value + seen
+    }
+    return seen
+}

@@ -377,6 +377,8 @@ The two operators are duals: a conjunction's **true** side applies each operand'
 
 These rules compose at any depth, through `!` as well: `!c` narrows what `c` narrows on the opposite side, and each operand of `&&` / `||` is itself a condition. So `if (y is A || y is B) && p { … }` sees `y` as `A | B`, and `if !(y is A || y is B) { … }` sees it as what neither matched.
 
+A loop condition narrows the body as an `if` condition narrows its then-block, since each iteration tests it before it runs: `for cursor != null { … cursor = cursor.next }` reads `cursor` as non-null until the write retires the narrowing. The code after the loop is not narrowed: a `break` may leave it with the condition still true.
+
 **A predicate narrows as its condition does.** A function of the module whose body is one condition over its parameters (`= cond`, returning `bool`, not generic) is a *guard*: a call to it in a condition narrows each argument that is a binding or a field chain as `cond` narrows the matching parameter, on both sides, and composes through `!`, `&&`, `||` and a divergent guard like any test. With `is_weekend :: fn(d: Weekday) -> bool = d >= 5`, `if is_weekend(d)` sees `d` as a `5..=6` and its `else` as a `0..=4`; `is_walk :: fn(a: Activity) -> bool = a is Walk` narrows a union, and `has_name :: fn(n: string | null) -> bool = n != null` a nullable. A guard may be written after its call, called as `d.is_weekend()`, and built on another guard. It holds in its own module: another module calls it as a plain predicate. A predicate with a block body is no guard, and what a condition proves of a parameter's field (`b.label != null`) is not carried to the argument.
 
 **A declared guard.** `@returns(cond)` on a free function returning `bool` states its contract, that it returns the value of `cond`: a call narrows its arguments as `cond` narrows the parameters, in every module, and the body is held to it, both ways, at each value it returns. Where it returns true, each parameter must lie within what `cond` proves on its true side; where it returns false, within its false side: `@returns(d in Weekend) is_weekend :: fn(d: Weekday) -> bool = d >= 4` is **T3111**, true for `d = 4`. A block body is held at each `return` and at its trailing value, with the narrowings in force there; `return true` and `return false` on their own side only, an `if` value branch by branch. The body may not write a parameter, from a lambda either (**T3113**). A generic function, a result other than `bool`, a function with no body, or a condition proving nothing of the parameters (one that only reaches its own guard included) is **T3112**; more than one condition is **P1032**; `@returns` on anything but a free function is **P1014**.
@@ -401,6 +403,7 @@ label(n)                   // `n` is an `Hour` here
 - A narrowing made **before a loop** does not hold inside it for what an earlier iteration may have changed: every field narrowing, and every local the body rebinds. The iterable of a `for x in e` is read once, before the first iteration, and still sees it.
 - A **field write** through any path (`b.s = v`, `xs[i].s = v`) retires every narrowing that goes through a field of that name, since `b` may be `a`.
 - In `a && b` (and the false side of `a || b`), a call in `b` retires what `a` narrowed, for the narrowed block as for the rest of `b`.
+- Code that runs **later than it is written**, a lambda's body or a `defer` body, runs after code that may change anything: it sees the narrowing of a binding no assignment rebinds, and no other. `defer println(c.value)` under `for c != null { … c = c.next }` is **T3008**, `c` being rebound before the deferred read runs.
 
 The usual remedy is to bind the field to a local before testing it, `s :: a.s` then `if s is Circle { reset(a); s.r }`: the local keeps the value that was tested.
 
@@ -1108,7 +1111,7 @@ A field declared at different positions (`Cat { name, age }` against `Dog { age,
 
 #### Flow-narrowing on `T | null`
 
-The typechecker narrows an identifier's type inside an `if` branch whose condition discriminates against `null`:
+The typechecker narrows an identifier's type inside an `if` branch, or a `for` body, whose condition discriminates against `null`:
 
 ```vader
 greet :: fn(a: Animal | null) -> string {

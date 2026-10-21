@@ -16,6 +16,43 @@ import "vader/diagnostics"
 import "vader/resolver"
 import "vader/types"
 
+/// What checking a body that runs later than it is written sets aside, put back
+/// by `leave_later_body`.
+LaterBody :: struct {
+    loops:  EnclosingLoop[]
+    fn_ctx: FnContext | null
+    aside:  NarrowingsAside
+}
+
+/// Enter a body that runs later than it is written (a lambda's, a `defer`'s), as
+/// a fn of its own: no enclosing loop is one its jumps can reach, `ctx` is its
+/// context, and it sees only the narrowings nothing run in between can falsify.
+///
+/// @param typed     the program's typing tables.
+/// @param ctx       the body's own context.
+/// @param deferred  whether the body is a `defer`'s (`set_narrowings_aside`).
+/// @return          what to hand `leave_later_body` once the body is checked.
+enter_later_body :: fn(typed: TypedProgram, ctx: FnContext | null, deferred: bool) -> LaterBody {
+    later :: LaterBody {
+        .loops  = typed.loop_stack,
+        .fn_ctx = typed.current_fn_ctx,
+        .aside  = set_narrowings_aside(typed, deferred),
+    }
+    typed.loop_stack = []
+    typed.current_fn_ctx = ctx
+    return later
+}
+
+/// Leave the body `enter_later_body` entered.
+///
+/// @param typed  the program's typing tables.
+/// @param later  what `enter_later_body` returned.
+leave_later_body :: fn(typed: TypedProgram, later: LaterBody) -> void {
+    typed.loop_stack = later.loops
+    typed.current_fn_ctx = later.fn_ctx
+    bring_narrowings_back(typed, later.aside)
+}
+
 /// Type-check a `LambdaExpr`. Returns `fn(params...) -> body`.
 infer_lambda :: fn(
     e: AST.LambdaExpr, expected: Type | null,
@@ -43,14 +80,9 @@ infer_lambda :: fn(
     // stack so nested `if` / `match` arms (which `check_return` reaches
     // via the recursive `check_expr` path with `ctx=null`) validate
     // against the lambda's return type instead of the enclosing fn's.
-    prev_ctx :: typed.current_fn_ctx
-    typed.current_fn_ctx = ctx
-    // A lambda is a fn of its own: no enclosing loop is one its jumps can reach.
-    prev_loops :: typed.loop_stack
-    typed.loop_stack = []
+    later :: enter_later_body(typed, ctx, false)
     body :: check_block(e.body, expected_ret, typed, diags, ctx)
-    typed.loop_stack = prev_loops
-    typed.current_fn_ctx = prev_ctx
+    leave_later_body(typed, later)
     // T3083 — the same obligation `check_fn_body` puts on a named fn. A body with
     // no trailing expression that does not diverge reaches its closing brace with
     // nothing to hand back, and the slot was promised a value. Unchecked, such a

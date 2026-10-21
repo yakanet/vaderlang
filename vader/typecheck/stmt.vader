@@ -1074,6 +1074,8 @@ check_for :: fn(
     ctx: FnContext | null,
 ) -> void {
     binding: string | null = null
+    // The body runs only once the condition holds, as an `if`'s then-block does.
+    body_narrows: PushedNarrow[]: []
     // What the loop repeats (a condition, the body) runs after the body's own
     // writes, so the narrowings they may falsify retire first ; an `in`
     // iterable runs once, before them.
@@ -1087,9 +1089,9 @@ check_for :: fn(
             // with coerce.vader). Skip T3019 in that case.
             if got is ArrayType {
                 record_site(typed, w.cond, .IterNext, BUILTIN_CALLEE)
-            } else if !is_assignable(got, TY_BOOL) {
-                /* iterable — no diag */
-
+            } else if is_assignable(got, TY_BOOL) {
+                push_cond_narrows_into(w.cond, true, typed, diags, body_narrows)
+            } else {
                 diags.push(
                     typecheck_error(
                         .ConditionMustBeBool,
@@ -1107,6 +1109,9 @@ check_for :: fn(
                     // A real user name is var-targetable ; the `_` wildcard is not.
                     if nv.name != "_" { binding = nv.name }
                 }
+                // `for [k, v] in …` : type each pattern leaf against the element
+                // (a tuple / array, or a struct that implements `Into<[...]>`),
+                // reusing the destructuring-let machinery. Not var-targetable.
                 is AST.DestructureVar -> {
                     assign_binding_types(
                         nv.pattern,
@@ -1115,13 +1120,9 @@ check_for :: fn(
                         diags,
                     )
                 }
+                // `for <range>` : no binding, no target variable (label only).
                 is AST.DiscardVar     -> {}
-            }            // `for [k, v] in …` — type each pattern leaf against the element
-            // (a tuple / array, or a struct that implements `Into<[...]>`),
-            // reusing the destructuring-let machinery. Not var-targetable.
-
-            // `for <range>` — no binding, no target variable (label only).
-
+            }
         }
     }
     // W0010 — a label on a for-in loop is redundant : it already has an iteration
@@ -1142,6 +1143,7 @@ check_for :: fn(
     typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
     inner_ctx :: bump_loop_depth(ctx)
     check_block(s.body, null, typed, diags, inner_ctx)
+    pop_narrows(body_narrows, typed)
     typed.loop_stack.remove_last()
     return
 }
@@ -1329,16 +1331,12 @@ check_defer :: fn(
     // is one its jumps can reach, and it neither suspends a coroutine (T3064) nor
     // yields for a generator (T3059).
     body_ctx :: defer_body_context(effective)
-    prev_loops :: typed.loop_stack
-    prev_ctx :: typed.current_fn_ctx
-    typed.loop_stack = []
-    typed.current_fn_ctx = body_ctx
+    later :: enter_later_body(typed, body_ctx, true)
     match b :: s.body {
         is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
         is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
     }
-    typed.loop_stack = prev_loops
-    typed.current_fn_ctx = prev_ctx
+    leave_later_body(typed, later)
     return
 }
 

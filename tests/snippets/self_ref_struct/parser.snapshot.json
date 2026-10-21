@@ -242,31 +242,22 @@
               "kind": "ForStmt",
               "label": null,
               "form": {
-                "kind": "infinite"
+                "kind": "while",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "neq",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "cursor"
+                  },
+                  "right": {
+                    "kind": "NullLitExpr"
+                  }
+                }
               },
               "body": {
                 "kind": "BlockExpr",
                 "stmts": [
-                  {
-                    "kind": "LetStmt",
-                    "mutable": false,
-                    "binding": {
-                      "kind": "SimpleBinding",
-                      "name": "node"
-                    },
-                    "type": null,
-                    "value": {
-                      "kind": "NullCoalesceExpr",
-                      "left": {
-                        "kind": "IdentExpr",
-                        "name": "cursor"
-                      },
-                      "fallback": {
-                        "kind": "BreakStmt",
-                        "label": null
-                      }
-                    }
-                  },
                   {
                     "kind": "ExprStmt",
                     "expr": {
@@ -291,7 +282,7 @@
                                   "kind": "FieldExpr",
                                   "target": {
                                     "kind": "IdentExpr",
-                                    "name": "node"
+                                    "name": "cursor"
                                   },
                                   "field": "value"
                                 }
@@ -313,7 +304,7 @@
                       "kind": "FieldExpr",
                       "target": {
                         "kind": "IdentExpr",
-                        "name": "node"
+                        "name": "cursor"
                       },
                       "field": "next"
                     }

@@ -1,0 +1,1 @@
+[16:16] error[T3008] expression is not indexable: `.value` on non-struct type Node | null

@@ -9,13 +9,13 @@
   expr 17:13    StructLitExpr  :: Node<i32>
   expr 17:46    IdentExpr      :: Node<i32>
   expr 18:32    IdentExpr      :: Node<i32>
-  expr 20:17    IdentExpr      :: Node<i32> | null
-  expr 20:17    NullCoalesceExpr :: Node<i32>
-  expr 21:17    StringLitExpr  :: string
-  expr 21:28    FieldExpr      :: i32
-  expr 21:28    IdentExpr      :: Node<i32>
-  expr 21:9     CallExpr       :: void
-  expr 21:9     IdentExpr      :: fn(T) -> void
-  expr 22:18    FieldExpr      :: Node<i32> | null
-  expr 22:18    IdentExpr      :: Node<i32>
-  expr 22:9     IdentExpr      :: Node<i32> | null
+  expr 19:9     BinaryExpr     :: bool
+  expr 19:9     IdentExpr      :: Node<i32> | null
+  expr 20:17    StringLitExpr  :: string
+  expr 20:28    FieldExpr      :: i32
+  expr 20:28    IdentExpr      :: Node<i32>
+  expr 20:9     CallExpr       :: void
+  expr 20:9     IdentExpr      :: fn(T) -> void
+  expr 21:18    FieldExpr      :: Node<i32> | null
+  expr 21:18    IdentExpr      :: Node<i32>
+  expr 21:9     IdentExpr      :: Node<i32>

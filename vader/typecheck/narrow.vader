@@ -85,6 +85,10 @@ export NarrowState :: struct {
     /// `&&` / `||` nodes whose right operand ran a call : what the left operand
     /// narrowed does not hold past it.
     calling_right_operands: MutableSet<i64> = MutableSet<i64> {}
+
+    /// The writes of the `defer` body being checked, null outside one; see
+    /// `bring_narrowings_back`.
+    deferred_writes: DeferredWrite[] | null = null
 }
 
 
@@ -293,6 +297,10 @@ narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Typ
 /// @param value_ty  the checked type of the RHS.
 /// @param typed     the program's typing tables.
 invalidate_narrow_on_assign :: fn(target: AST.Expr, value_ty: Type, typed: TypedProgram) -> void {
+    writes :: typed.narrow.deferred_writes
+    if writes != null {
+        writes.push(DeferredWrite { .target = target, .value = value_ty })
+    }
     // Fast path first : with no active narrowing there is nothing to
     // retire, and this runs on every assignment in the program — skip
     // before any symbol lookup / key interpolation allocates.
@@ -408,6 +416,78 @@ retire_narrowings_entering_loop :: fn(loop: AST.ForStmt, typed: TypedProgram) ->
     rebinds :: typed.resolved.loop_rebinds[loop.span.hash()] ?? return
     for sym_id in rebinds {
         retire_binding(typed, sym_id)
+    }
+}
+
+/// One write a `defer` body makes, replayed on the narrowings around the `defer`
+/// once the body is checked.
+export DeferredWrite :: struct {
+    target: AST.Expr
+    value:  Type
+}
+
+/// The narrowing tables a body that runs later than it is written was checked
+/// without, and the `defer` writes being gathered then, put back by
+/// `bring_narrowings_back`.
+NarrowingsAside :: struct {
+    bindings: MutableMap<i32, NarrowSlot>
+    fields:   MutableMap<string, NarrowSlot>
+    writes:   DeferredWrite[] | null
+    calls:    i32
+}
+
+/// Set aside, while a body that runs later than it is written is checked (a
+/// lambda's, a `defer`'s), the narrowings what runs in between may falsify:
+/// every field chain, and every binding an assignment rebinds. A binding nothing
+/// rebinds keeps its value, so its narrowing holds wherever the body runs.
+///
+/// @param typed     the program's typing tables.
+/// @param deferred  whether the body is a `defer`'s, whose writes and calls run
+///                  before the code that follows its block.
+/// @return          what to hand `bring_narrowings_back` once the body is checked.
+set_narrowings_aside :: fn(typed: TypedProgram, deferred: bool) -> NarrowingsAside {
+    aside :: NarrowingsAside {
+        .bindings = typed.narrow.bindings,
+        .fields   = typed.narrow.fields,
+        .writes   = typed.narrow.deferred_writes,
+        .calls    = typed.narrow.calls,
+    }
+    kept :: MutableMap<i32, NarrowSlot> {}
+    for [sym_id, slot] in aside.bindings {
+        if sym_id in typed.resolved.rebind_free {
+            kept[sym_id] = slot
+        }
+    }
+    typed.narrow.bindings = kept
+    typed.narrow.fields = MutableMap<string, NarrowSlot> {}
+    writes: DeferredWrite[] | null = null
+    if deferred {
+        writes = []
+    }
+    typed.narrow.deferred_writes = writes
+    return aside
+}
+
+/// Put back the narrowings `set_narrowings_aside` set aside. Writing a lambda ran
+/// none of its body; a `defer` body runs at the exit of its block, so its writes
+/// and calls retire here what they would retire inline.
+///
+/// @param typed  the program's typing tables.
+/// @param aside  what `set_narrowings_aside` returned.
+bring_narrowings_back :: fn(typed: TypedProgram, aside: NarrowingsAside) -> void {
+    writes :: typed.narrow.deferred_writes
+    called :: typed.narrow.calls != aside.calls
+    typed.narrow.bindings = aside.bindings
+    typed.narrow.fields = aside.fields
+    typed.narrow.deferred_writes = aside.writes
+    if writes == null {
+        return
+    }
+    for write in writes {
+        invalidate_narrow_on_assign(write.target, write.value, typed)
+    }
+    if called {
+        retire_narrowings_across_call(typed)
     }
 }
 

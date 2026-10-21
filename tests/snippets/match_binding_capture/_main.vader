@@ -2,9 +2,9 @@ module "snippet"
 
 import "std/io"
 
-// A lambda inside an arm captures the `match x :: …` binding. A captured binding
-// is heap-promoted to a `Cell`, so the header name needs a slot of its own — the
-// match's own slot has to keep holding the bare value the pattern predicates read.
+// A lambda inside an arm captures the `match x :: …` binding. Nothing can rebind
+// it, so the env holds a copy of its value, and the lambda of each arm reads it
+// narrowed to that arm's type.
 
 Point :: struct { x: i32, y: i32 }
 

@@ -4,7 +4,7 @@
   snippet.Point :: struct { x: i32, y: i32 }  // snippet$Point
   snippet.deferred :: fn(p: i32 | Point) -> fn() -> i32 {  // snippet$deferred
       return {
-          v: @cell<i32 | Point> = @cell_new(p)
+          v: i32 | Point = p
           if p is Point {
               {
                   @closure(__lambda_snippet_2, __lambda_env_snippet_3 { .cap_0 = v })
@@ -20,7 +20,7 @@
   }
   snippet.mixed :: fn(p: i32 | Point) -> i32 {  // snippet$mixed
       thunk: fn() -> i32 = {
-          v: @cell<i32 | Point> = @cell_new(p)
+          v: i32 | Point = p
           if p is Point {
               {
                   @closure(__lambda_snippet_6, __lambda_env_snippet_7 { .cap_0 = v })
@@ -64,21 +64,21 @@
       } :string)
       return 0
   }
-  __lambda_env_snippet_1 :: struct { cap_0: ? }
+  __lambda_env_snippet_1 :: struct { cap_0: i32 | Point }
   __lambda_snippet_0 :: fn(__env_0: __lambda_env_snippet_1) -> i32 {
-      return i32(@cell(__env_0.cap_0)) * 2
+      return i32(__env_0.cap_0) * 2
   }
-  __lambda_env_snippet_3 :: struct { cap_0: ? }
+  __lambda_env_snippet_3 :: struct { cap_0: i32 | Point }
   __lambda_snippet_2 :: fn(__env_1: __lambda_env_snippet_3) -> i32 {
-      return Point(@cell(__env_1.cap_0)).x + Point(@cell(__env_1.cap_0)).y
+      return Point(__env_1.cap_0).x + Point(__env_1.cap_0).y
   }
-  __lambda_env_snippet_5 :: struct { cap_0: ? }
+  __lambda_env_snippet_5 :: struct { cap_0: i32 | Point }
   __lambda_snippet_4 :: fn(__env_0: __lambda_env_snippet_5) -> i32 {
-      return i32(@cell(__env_0.cap_0))
+      return i32(__env_0.cap_0)
   }
-  __lambda_env_snippet_7 :: struct { cap_0: ? }
+  __lambda_env_snippet_7 :: struct { cap_0: i32 | Point }
   __lambda_snippet_6 :: fn(__env_1: __lambda_env_snippet_7) -> i32 {
-      return Point(@cell(__env_1.cap_0)).x
+      return Point(__env_1.cap_0).x
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
