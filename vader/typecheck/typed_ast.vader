@@ -332,7 +332,7 @@ export TypedProgram :: struct {
 
     /// `x := []` — the empty-array initialiser's expression id, keyed by the
     /// same binding span as `local_types`. Read by
-    /// `call.vader::widen_empty_array_on_push`, which must widen the LITERAL
+    /// `call.vader::widen_empty_array_local`, which must widen the LITERAL
     /// alongside the local : the literal's own `expr_types` entry is what the
     /// lowerer reads to pick the buffer's element kind, so leaving it at `?[]`
     /// allocates a BOXED buffer that the (now concrete) reads and writes access

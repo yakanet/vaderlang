@@ -674,6 +674,8 @@ const C_PARITY = new Set<string>([
   // A generic fn, a generic struct's member and a trait default each await ;
   // a member of no value is awaited without a `void` frame slot.
   "async_generic_and_members",
+  // An empty array takes the type of the slot it flows into.
+  "empty_array_passed_to_parameter",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

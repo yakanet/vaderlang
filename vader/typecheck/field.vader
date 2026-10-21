@@ -688,6 +688,7 @@ try_free_fn_ufcs_dispatch :: fn(
     // waits for the call, which binds them.
     if target_ty is ArrayType && !type_contains_type_param(first_param) {
         _ :: fits_by_widening(typed, e.target, target_ty, first_param)
+        _ :: widen_empty_array_local(typed, e.target, target_ty, first_param)
     }
     decl :: free_ufcs.winner.decl
     ft :: free_ufcs.winner.ty

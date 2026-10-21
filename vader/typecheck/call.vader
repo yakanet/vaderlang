@@ -835,16 +835,7 @@ call_result :: fn(c: AST.CallExpr, returned: Type, diverges: bool, typed: TypedP
 
 /// Empty-array back-widening : on `arr.push(elem)` where `arr` is a
 /// Local with `?[]` and `elem` has a concrete type, retroactively
-/// widens the Local's `local_types` to `elem_type[]`. The current
-/// call's `arr` IdentExpr stays at `?[]` in `expr_types` (typed
-/// before this fires) — subsequent reads of `arr` see the widened
-/// type.
-///
-/// The `[]` LITERAL is widened alongside it (via `empty_array_inits`). It is
-/// what the lowerer reads to pick the buffer's element kind, so leaving it at
-/// `?[]` allocates a BOXED buffer while the widened local makes every read and
-/// write packed — a mismatch that corrupts silently once the buffer grows past
-/// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`).
+/// widens the Local's `local_types` to `elem_type[]` (`widen_empty_array_local`).
 widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.callee !is AST.FieldExpr {
         return
@@ -856,40 +847,61 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if c.args.len() == 0 {
         return
     }
-    if field_callee.target !is AST.IdentExpr {
-        return
-    }
-    target_ident :: field_callee.target
-    symbol :: typed.resolved.idents[target_ident.span.hash()] ?? return
-    if symbol.kind != .Local {
-        return
-    }
-    binding_span :: symbol.defined_at ?? return
-    binding_key :: binding_span.hash()
-    current :: typed.local_types[binding_key]
-    if current !is ArrayType {
-        return
-    }
-    if current.element !is UnresolvedType {
+    receiver :: typed.expr_types[field_callee.target.id] ?? return
+    if !is_empty_array_type(receiver) {
         return
     }
     arg_type :: typed.expr_types[c.args[0].value.id] ?? return
-    if arg_type is UnresolvedType {
-        return
-    }
     element :: default_if_free(arg_type)
-    widened :: mk_array(element)
-    typed.local_types[binding_key] = widened
-    // This very call's receiver and `push` member were typed before the widening
-    // fired, so they still read `?[]` / `fn(?) -> void`. Nothing downstream picks
-    // the element kind from them today — the emitted C is identical either way —
-    // but leaving a type that lies is how the literal-vs-local mismatch started,
-    // and the LSP reads these same entries for hover.
-    typed.expr_types[target_ident.id] = widened
-    typed.expr_types[c.callee.id] = mk_fn([element], TY_VOID)
-    init_id :: typed.empty_array_inits[binding_key] ?? return
-    typed.expr_types[init_id] = widened
+    if widen_empty_array_local(typed, field_callee.target, receiver, mk_array(element)) {
+        // This very call's `push` member was typed before the widening fired, so
+        // it still reads `fn(?) -> void` ; the LSP reads it for hover.
+        typed.expr_types[c.callee.id] = mk_fn([element], TY_VOID)
+    }
 }
+
+/// Give a local bound to an empty array with no written type (`word :: []`) the
+/// array type `widened` it first meets: the element `push` gives it, or the slot
+/// it flows into (a parameter, a typed local, a field, a `return`). True when it
+/// did.
+///
+/// The `[]` LITERAL is widened alongside it (via `empty_array_inits`). It is
+/// what the lowerer reads to pick the buffer's element kind, so leaving it at
+/// `?[]` allocates a BOXED buffer while the widened local makes every read and
+/// write packed — a mismatch that corrupts silently once the buffer grows past
+/// its first allocation (`x := [] ; 9 × push(i)` read back `x[8] == 0`), or that
+/// a callee pushing into its `u8[]` parameter traps on.
+///
+/// @param e        a read of the local ; anything else is left alone.
+/// @param got      the type `e` was checked at.
+/// @param widened  an array type, the enclosing fn's type parameters allowed.
+widen_empty_array_local :: fn(typed: TypedProgram, e: AST.Expr, got: Type, widened: Type) -> bool {
+    if !is_empty_array_type(got) || e !is AST.IdentExpr {
+        return false
+    }
+    if widened !is ArrayType || type_contains_unresolved(widened) || type_contains_infer_var(widened) {
+        return false
+    }
+    symbol :: typed.resolved.idents[e.span.hash()] ?? return false
+    if symbol.kind != .Local {
+        return false
+    }
+    binding_span :: symbol.defined_at ?? return false
+    binding_key :: binding_span.hash()
+    if !is_empty_array_type(typed.local_types[binding_key] ?? TY_UNRESOLVED) {
+        return false
+    }
+    typed.local_types[binding_key] = widened
+    // This read was typed before the widening fired ; nothing downstream picks the
+    // element kind from it, but the LSP reads it for hover.
+    typed.expr_types[e.id] = widened
+    init_id :: typed.empty_array_inits[binding_key] ?? return true
+    typed.expr_types[init_id] = widened
+    return true
+}
+
+// Whether `t` is the type of an empty array nothing has pinned yet, `?[]`.
+is_empty_array_type :: fn(t: Type) -> bool = t is ArrayType && t.element is UnresolvedType
 
 // Whether `c` is a conversion `T(x)` rather than a call : its callee names a type in
 // value position, the metatype of a bare type name, or a struct's own name, a type
@@ -1189,9 +1201,11 @@ reject_ufcs_receiver_at_instance :: fn(
 }
 
 // Whether an argument of type `from` fits a parameter of type `to`, as it is or by
-// widening an array.
+// widening an array. An empty-array local that fits takes the parameter's type
+// (`widen_empty_array_local`).
 fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
     if is_assignable(from, to) {
+        _ :: widen_empty_array_local(typed, arg, from, to)
         return true
     }
     return fits_by_widening(typed, arg, from, to)

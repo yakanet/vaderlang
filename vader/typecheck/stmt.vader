@@ -451,8 +451,8 @@ check_let_value :: fn(
 }
 
 // `x := []` : remember which expression the `?[]` came from, so the first
-// `x.push(elem)` can widen the LITERAL as well as the local (see
-// `TypedProgram.empty_array_inits`).
+// `x.push(elem)`, or the first parameter `x` is passed to, can widen the LITERAL
+// as well as the local (see `TypedProgram.empty_array_inits`).
 record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
     if declared !is ArrayType {
         return

@@ -52,10 +52,15 @@ check_expr :: fn(
 check_keeping_quantifier :: fn(expr: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
     finish_check(expr, infer_expr(expr, null, typed, diags), null, typed, diags)
 
-// Settle `got` against `expected` and record it as `expr`'s type.
+// Settle `got` against `expected` and record it as `expr`'s type. An empty-array
+// local takes the array type of the slot it flows into.
 finish_check :: fn(
     expr: AST.Expr, got: Type, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
+    if expected is ArrayType && widen_empty_array_local(typed, expr, got, expected) {
+        record_expr(typed, expr, expected)
+        return expected
+    }
     narrowed :: free_value_in_range(expr, got, expected, typed, diags)
         ?? narrow_for_expected(got, expected)
     // Still free against a union : no member settled it alone.

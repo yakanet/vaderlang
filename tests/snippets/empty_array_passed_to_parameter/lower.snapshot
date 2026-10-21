@@ -1,0 +1,136 @@
+# Lower
+
+## snippet
+  snippet.Holder :: struct { bytes: u8[] }  // snippet$Holder
+  snippet.append_word :: fn(out: u8[], index: i32) -> void {  // snippet$append_word
+      {
+          n: i32 = 0
+          __for_hi_0: i32 = index + 2
+          for n < __for_hi_0 {
+              @array.push(out, u8(97 + (n % 26)))
+          } @step {
+              n = n +% 1
+          }
+      }
+  }
+  snippet.made :: fn() -> u8[] {  // snippet$made
+      fresh: u8[] = [] :u8[]
+      return fresh
+  }
+  snippet.main :: fn() -> i32 {  // snippet$main
+      words: u8[][] = @array.repeat([] :u8[][], i64(3))
+      {
+          index: i32 = 0
+          for index < 3 {
+              word: u8[] = [] :u8[]
+              snippet.append_word(word, index)
+              @array.push(words, word)
+          } @step {
+              index = index +% 1
+          }
+      }
+      {
+          __for_arr_0: u8[][] = words
+          __for_len_1: i64 = @array.len(__for_arr_0)
+          __for_i_2: i64 = 0
+          for __for_i_2 < __for_len_1 {
+              w: u8[] = __for_arr_0[__for_i_2]
+              std.io.println<string>(std.core.bytes_to_string(w))
+          } @step {
+              __for_i_2 = __for_i_2 +% i64(1)
+          }
+      }
+      direct: u8[] = [] :u8[]
+      snippet.append_word(direct, 12)
+      std.io.println<string>(std.core.bytes_to_string(direct))
+      shorts: u16[] = [] :u16[]
+      snippet.fill<u16>(shorts, u16(7), 20)
+      std.io.println<string>({
+          __buf_3: Buffer = std.core.new_byte_buffer(i64(41))
+          __off_4: i64 = 0
+          __off_4 = std.core.write_int(__buf_3, __off_4, @array.len(shorts))
+          __off_4 = std.core.write_string_at(__buf_3, __off_4, " ")
+          __off_4 = std.core.write_unsigned(__buf_3, __off_4, shorts[19])
+          std.core.finish_buffer(__buf_3, __off_4)
+      } :string)
+      held: u8[] = [] :u8[]
+      typed: u8[] = held
+      snippet.append_word(typed, 9)
+      field: u8[] = [] :u8[]
+      holder: Holder = Holder { .bytes = field }
+      snippet.append_word(holder.bytes, 10)
+      element: u8[] = [] :u8[]
+      outer: u8[][] = [element] :u8[][]
+      snippet.append_word(outer[0], 11)
+      returned: u8[] = snippet.made()
+      snippet.append_word(returned, 13)
+      std.io.println<string>({
+          __buf_5: Buffer = std.core.new_byte_buffer(i64(83))
+          __off_6: i64 = 0
+          __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(held))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(field))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(element))
+          __off_6 = std.core.write_string_at(__buf_5, __off_6, " ")
+          __off_6 = std.core.write_int(__buf_5, __off_6, @array.len(returned))
+          std.core.finish_buffer(__buf_5, __off_6)
+      } :string)
+      return 0
+  }
+  snippet.fill<u16> :: fn(out: u16[], x: u16, n: i32) -> void {  // snippet$fill__u16
+      {
+          _: i32 = 0
+          for _ < n {
+              @array.push(out, x)
+          } @step {
+              _ = _ +% 1
+          }
+      }
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

@@ -1,0 +1,61 @@
+// An empty array bound with no written type takes the array type of the first
+// slot it flows into, as it takes the element of its first `push`: a callee
+// pushing into its `u8[]` parameter fills a packed buffer, whether the array was
+// passed directly, by UFCS, to a generic instance, or first held by a typed
+// local, a struct field, an array literal or a `return`.
+
+module "snippet"
+
+import "std/io"
+
+Holder :: struct {
+    bytes: u8[]
+}
+
+append_word :: fn(out: u8[], index: i32) -> void {
+    for n in 0..<index + 2 {
+        out.push(u8('a' + n % 26))
+    }
+}
+
+fill :: fn<T>(out: T[], x: T, n: i32) -> void {
+    for _ in 0..<n {
+        out.push(x)
+    }
+}
+
+made :: fn() -> u8[] {
+    fresh :: []
+    return fresh
+}
+
+main :: fn() -> i32 {
+    words: u8[][]: []
+    for index in 0..<3 {
+        word :: []
+        word.append_word(index)
+        words.push(word)
+    }
+    for w in words {
+        println(w.bytes_to_string())
+    }
+    direct :: []
+    append_word(direct, 12)
+    println(direct.bytes_to_string())
+    shorts :: []
+    fill(shorts, u16(7), 20)
+    println("${shorts.len()} ${shorts[19]}")
+    held :: []
+    typed: u8[]: held
+    append_word(typed, 9)
+    field :: []
+    holder :: Holder { .bytes = field }
+    append_word(holder.bytes, 10)
+    element :: []
+    outer: u8[][]: [element]
+    append_word(outer[0], 11)
+    returned :: made()
+    append_word(returned, 13)
+    println("${held.len()} ${field.len()} ${element.len()} ${returned.len()}")
+    return 0
+}
