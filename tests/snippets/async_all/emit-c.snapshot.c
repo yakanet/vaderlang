@@ -131,7 +131,7 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_1_t, f_s0), offsetof(vader_struct___asyncstate_snippet_1_t, f_s1), offsetof(vader_struct___asyncstate_snippet_1_t, f_s2) },
         .ref_count = 3,
     },
-    [8] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
     [9] = { .slot_size = 16 },
     [10] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,

@@ -94,7 +94,7 @@ const vader_type_info_t vader_type_info_table[17] = {
         .ref_count = 1,
     },
     [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
     [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Suspended_t),
         .slot_size = 8,

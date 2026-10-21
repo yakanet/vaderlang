@@ -913,7 +913,7 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_count = 2,
     },
     [4] = { .slot_size = 4 },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
     [7] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Bag_t), .slot_size = 8,
     },

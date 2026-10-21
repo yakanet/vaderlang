@@ -114,7 +114,7 @@ const vader_type_info_t vader_type_info_table[23] = {
         .ref_count = 1,
     },
     [9] = { .slot_size = 16 },
-    [10] = { .slot_size = 16 },
+    [10] = { .slot_size = 4 },
     [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_2_t),
         .slot_size = 8,

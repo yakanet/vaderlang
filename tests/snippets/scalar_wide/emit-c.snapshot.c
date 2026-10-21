@@ -806,7 +806,7 @@ const vader_type_info_t vader_type_info_table[16] = {
     [5] = { .slot_size = 8 },
     [6] = { .slot_size = 8 },
     [7] = { .slot_size = 4 },
-    [8] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
     [9] = { .slot_size = 1 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),

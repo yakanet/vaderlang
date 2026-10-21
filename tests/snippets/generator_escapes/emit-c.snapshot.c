@@ -116,7 +116,7 @@ const vader_type_info_t vader_type_info_table[19] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet___genstate_pairs_t, f_s0), offsetof(vader_struct_snippet___genstate_pairs_t, f_s1), offsetof(vader_struct_snippet___genstate_pairs_t, f_s2), offsetof(vader_struct_snippet___genstate_pairs_t, f_s6) },
         .ref_count = 4,
     },
-    [8] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
     [9] = { .slot_size = 8 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),

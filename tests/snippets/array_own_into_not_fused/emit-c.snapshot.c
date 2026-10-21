@@ -297,7 +297,7 @@ const vader_type_info_t vader_type_info_table[47] = {
     },
     [7] = { .slot_size = 16 },
     [8] = { .slot_size = 4 },
-    [9] = { .slot_size = 16 },
+    [9] = { .slot_size = 4 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet___genstate_scaled_t),
         .slot_size = 8,

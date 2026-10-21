@@ -158,7 +158,7 @@ const vader_type_info_t vader_type_info_table[27] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Log_t, f_lines) },
         .ref_count = 1,
     },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
     [5] = { .slot_size = 16 },
     [6] = { .slot_size = 16 },

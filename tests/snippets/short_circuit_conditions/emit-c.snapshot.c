@@ -85,7 +85,7 @@ const vader_type_info_t vader_type_info_table[14] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_std_string_builder_StringBuilder_t, f_parts) },
         .ref_count = 1,
     },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 1 },
     [4] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,

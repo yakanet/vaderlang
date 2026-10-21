@@ -977,7 +977,7 @@ static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf)
 const vader_type_info_t vader_type_info_table[47] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 16 },
-    [3] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
     [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet___genstate_upto_t),

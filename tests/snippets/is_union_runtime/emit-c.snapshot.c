@@ -69,7 +69,7 @@ const vader_type_info_t vader_type_info_table[14] = {
     },
     [5] = { .slot_size = 1 },
     [6] = { .slot_size = 4 },
-    [7] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
     [8] = { .slot_size = 1 },
     [9] = { .slot_size = 8 },
     [10] = {

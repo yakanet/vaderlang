@@ -115,7 +115,7 @@ const vader_type_info_t vader_type_info_table[15] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_7_t, f_cap_0) },
         .ptr_count = 1,
     },
-    [9] = { .slot_size = 16 },
+    [9] = { .slot_size = 4 },
     [10] = { .slot_size = 1 },
     [11] = { .slot_size = 8 },
     [12] = {

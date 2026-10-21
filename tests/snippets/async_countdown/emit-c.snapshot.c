@@ -80,7 +80,7 @@ const vader_type_info_t vader_type_info_table[14] = {
         .slot_size = 8,
     },
     [6] = { .slot_size = 16 },
-    [7] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
     [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___asyncstate_snippet_0_t),
         .slot_size = 8,

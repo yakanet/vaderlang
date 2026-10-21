@@ -49,7 +49,7 @@ const vader_type_info_t vader_type_info_table[10] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [3] = { .slot_size = 4 },
-    [4] = { .slot_size = 16 },
+    [4] = { .slot_size = 4 },
     [5] = { .slot_size = 1 },
     [6] = { .slot_size = 8 },
     [7] = {

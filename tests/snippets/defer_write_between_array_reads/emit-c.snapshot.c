@@ -58,7 +58,7 @@ const vader_type_info_t vader_type_info_table[11] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___defer_env_snippet_1_t, f_cap_0) },
         .ref_count = 1,
     },
-    [6] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
     [7] = { .slot_size = 1 },
     [8] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Buffer_t),

@@ -162,7 +162,7 @@ const vader_type_info_t vader_type_info_table[23] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___lambda_env_snippet_8_t, f_cap_0) },
         .ptr_count = 1,
     },
-    [11] = { .slot_size = 16 },
+    [11] = { .slot_size = 4 },
     [12] = { .slot_size = 16 },
     [13] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

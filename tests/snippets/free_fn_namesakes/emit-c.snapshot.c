@@ -64,7 +64,7 @@ const vader_type_info_t vader_type_info_table[13] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Box__i32_t, f_render) },
         .ref_count = 1,
     },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 4 },
     [4] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

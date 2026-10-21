@@ -64,7 +64,7 @@ const vader_type_info_t vader_type_info_table[13] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Bag__f64_t, f_items) },
         .ref_count = 1,
     },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
     [6] = { .slot_size = 1 },
     [7] = { .slot_size = 1 },
     [8] = {

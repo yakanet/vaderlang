@@ -119,7 +119,7 @@ const vader_type_info_t vader_type_info_table[22] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_3_t, f_awaited) },
         .ptr_count = 1,
     },
-    [9] = { .slot_size = 16 },
+    [9] = { .slot_size = 4 },
     [10] = { .slot_size = 16 },
     [11] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

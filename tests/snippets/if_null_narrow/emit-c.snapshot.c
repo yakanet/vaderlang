@@ -84,7 +84,7 @@ const vader_type_info_t vader_type_info_table[12] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Dog_t, f_name) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 16 },
+    [4] = { .slot_size = 4 },
     [5] = { .slot_size = 4 },
     [6] = { .slot_size = 1 },
     [7] = { .slot_size = 8 },

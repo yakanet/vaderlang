@@ -172,7 +172,7 @@ const vader_type_info_t vader_type_info_table[31] = {
         .ref_count = 2,
     },
     [12] = { .slot_size = 16 },
-    [13] = { .slot_size = 16 },
+    [13] = { .slot_size = 4 },
     [14] = { .slot_size = 16 },
     [15] = { .slot_size = 16 },
     [16] = {

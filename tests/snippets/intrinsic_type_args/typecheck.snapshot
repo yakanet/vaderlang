@@ -4,16 +4,16 @@
   FnDecl         main                 :: fn() -> i32
   StructDecl     Pair                 :: Pair<K, V>
   StructDecl     Wrapper              :: Wrapper
-  expr 24:14    IntrinsicCallExpr :: type[]
-  expr 25:17    StringLitExpr  :: string
-  expr 25:34    IntrinsicCallExpr :: i64
-  expr 25:43    IdentExpr      :: type
-  expr 25:9     CallExpr       :: void
-  expr 25:9     IdentExpr      :: fn(T) -> void
-  expr 27:13    IntrinsicCallExpr :: type[]
-  expr 28:13    StringLitExpr  :: string
-  expr 28:34    CallExpr       :: i64
-  expr 28:34    FieldExpr      :: fn() -> i64
-  expr 28:34    IdentExpr      :: type[]
-  expr 28:5     CallExpr       :: void
-  expr 28:5     IdentExpr      :: fn(T) -> void
+  expr 21:14    IntrinsicCallExpr :: type[]
+  expr 22:17    StringLitExpr  :: string
+  expr 22:34    IntrinsicCallExpr :: i64
+  expr 22:43    IdentExpr      :: type
+  expr 22:9     CallExpr       :: void
+  expr 22:9     IdentExpr      :: fn(T) -> void
+  expr 24:13    IntrinsicCallExpr :: type[]
+  expr 25:13    StringLitExpr  :: string
+  expr 25:34    CallExpr       :: i64
+  expr 25:34    FieldExpr      :: fn() -> i64
+  expr 25:34    IdentExpr      :: type[]
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void

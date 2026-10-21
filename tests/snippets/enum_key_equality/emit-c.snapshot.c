@@ -196,7 +196,7 @@ const vader_type_info_t vader_type_info_table[35] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___lambda_env_snippet_1_t),
         .slot_size = 8,
     },
-    [8] = { .slot_size = 16 },
+    [8] = { .slot_size = 4 },
     [9] = { .slot_size = 8 },
     [10] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),

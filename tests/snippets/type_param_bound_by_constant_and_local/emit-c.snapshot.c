@@ -88,7 +88,7 @@ const vader_type_info_t vader_type_info_table[14] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___Tuple_Any_Any_7e2af780_t, f__0), offsetof(vader_struct___Tuple_Any_Any_7e2af780_t, f__1) },
         .ptr_count = 2,
     },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
     [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Cfg_t), .slot_size = 8,
     },

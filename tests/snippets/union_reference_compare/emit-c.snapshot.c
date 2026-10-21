@@ -81,7 +81,7 @@ const vader_type_info_t vader_type_info_table[13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Square_t),
         .slot_size = 8,
     },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
     [6] = { .slot_size = 1 },
     [7] = { .slot_size = 1 },
     [8] = { .slot_size = 8 },

@@ -324,7 +324,7 @@ const vader_type_info_t vader_type_info_table[45] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet___genstate_first_two_of_odd_t, f_s2) },
         .ref_count = 1,
     },
-    [10] = { .slot_size = 16 },
+    [10] = { .slot_size = 4 },
     [11] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),
         .slot_size = 8,

@@ -507,7 +507,7 @@ const vader_type_info_t vader_type_info_table[76] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Point_t),
         .slot_size = 8,
     },
-    [11] = { .slot_size = 16 },
+    [11] = { .slot_size = 4 },
     [12] = { .slot_size = 16 },
     [13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_std_core_Range__i32_t),

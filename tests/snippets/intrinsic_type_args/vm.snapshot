@@ -1,5 +1,5 @@
 # stdout
-pair-arg size=16
+pair-arg size=4
 pair-arg size=8
 wrapper-arg count=0
 # exit

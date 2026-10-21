@@ -350,7 +350,7 @@ const vader_type_info_t vader_type_info_table[51] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [5] = { .slot_size = 16 },
-    [6] = { .slot_size = 16 },
+    [6] = { .slot_size = 4 },
     [8] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet___genstate_pairs_until_t), .slot_size = 8,

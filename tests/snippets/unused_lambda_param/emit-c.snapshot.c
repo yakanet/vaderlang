@@ -60,7 +60,7 @@ const vader_type_info_t vader_type_info_table[9] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,
     },
-    [3] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 8 },
     [6] = {

@@ -129,7 +129,7 @@ const vader_type_info_t vader_type_info_table[25] = {
     [1] = { .slot_size = 4 },
     [2] = { .slot_size = 8 },
     [3] = { .slot_size = 1 },
-    [4] = { .slot_size = 16 },
+    [4] = { .slot_size = 4 },
     [5] = {
         .kind = VADER_TYPE_KIND_ARRAY, .size = sizeof(vader_array_t), .slot_size = 8,
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,

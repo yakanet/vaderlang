@@ -148,7 +148,7 @@ const vader_type_info_t vader_type_info_table[22] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Label_t, f_s) },
         .string_count = 1,
     },
-    [4] = { .slot_size = 16 },
+    [4] = { .slot_size = 4 },
     [5] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet___genstate_labels_t),
         .slot_size = 8,

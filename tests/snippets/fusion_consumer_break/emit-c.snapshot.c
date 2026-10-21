@@ -404,7 +404,7 @@ const vader_type_info_t vader_type_info_table[53] = {
         .kind = VADER_TYPE_KIND_STRUCT,
         .size = sizeof(vader_struct_snippet___genstate_outer_counts_t), .slot_size = 8,
     },
-    [13] = { .slot_size = 16 },
+    [13] = { .slot_size = 4 },
     [14] = { .slot_size = 16 },
     [15] = { .slot_size = 8 },
     [16] = {

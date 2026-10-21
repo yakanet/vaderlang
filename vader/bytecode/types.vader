@@ -581,10 +581,10 @@ export BcFn :: struct {
 // Helpers
 // =========================================================================
 
-/// Byte size of a `ValType` : a scalar class its native width, every
-/// reference shape collapses to the box-slot width (16 B). Shared
-/// between `size_of_bc_type` and any caller that already narrowed to
-/// a primitive class.
+/// Byte size of a `ValType` : a scalar class its native width, a string its
+/// interned atom id (`vader_string_t`), every reference shape the box-slot width
+/// (16 B). Shared between `size_of_bc_type` and any caller that already narrowed
+/// to a primitive class.
 /// @param v  the value class.
 /// @return   the byte size (`0` for `Void` / `Null` — those never
 ///           reach a struct field or signature slot).
@@ -601,7 +601,7 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .I64 -> 8
     .U64 -> 8
     .F64 -> 8
-    .String -> 16
+    .String -> 4
     .Void -> 0
     .Null -> 0
     .Pointer -> 8
@@ -747,6 +747,11 @@ import "std/testing"
 test_size_of_a_scalar_is_its_width :: fn() -> void {
     assert_eq(size_of_bc_type(BcScalar { .val = .U8 }), 1)
     assert_eq(size_of_bc_type(BcScalar { .val = .I64 }), 8)
+}
+
+@test
+test_size_of_a_string_is_its_atom_id :: fn() -> void {
+    assert_eq(size_of_bc_type(BcScalar { .val = .String }), 4)
 }
 
 @test

@@ -401,7 +401,7 @@ const vader_type_info_t vader_type_info_table[52] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_s2), offsetof(vader_struct___asyncstate_snippet_2_t, f_s6), offsetof(vader_struct___asyncstate_snippet_2_t, f_s10), offsetof(vader_struct___asyncstate_snippet_2_t, f_s14), offsetof(vader_struct___asyncstate_snippet_2_t, f_s18) },
         .ref_count = 5,
     },
-    [18] = { .slot_size = 16 },
+    [18] = { .slot_size = 4 },
     [19] = { .slot_size = 16 },
     [20] = { .slot_size = 8 },
     [21] = { .slot_size = 16 },

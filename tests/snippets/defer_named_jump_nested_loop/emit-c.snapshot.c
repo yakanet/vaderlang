@@ -116,7 +116,7 @@ const vader_type_info_t vader_type_info_table[13] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___defer_env_snippet_7_t),
         .slot_size = 8,
     },
-    [7] = { .slot_size = 16 },
+    [7] = { .slot_size = 4 },
     [8] = { .slot_size = 1 },
     [9] = { .slot_size = 8 },
     [10] = {

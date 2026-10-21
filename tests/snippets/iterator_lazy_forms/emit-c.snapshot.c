@@ -471,7 +471,7 @@ const vader_type_info_t vader_type_info_table[70] = {
         .ref_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet___genstate_relay_t, f_s0), offsetof(vader_struct_snippet___genstate_relay_t, f_s1), offsetof(vader_struct_snippet___genstate_relay_t, f_s2), offsetof(vader_struct_snippet___genstate_relay_t, f_s3), offsetof(vader_struct_snippet___genstate_relay_t, f_s9), offsetof(vader_struct_snippet___genstate_relay_t, f_s10), offsetof(vader_struct_snippet___genstate_relay_t, f_s11) },
         .ref_count = 7,
     },
-    [14] = { .slot_size = 16 },
+    [14] = { .slot_size = 4 },
     [15] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,
         .ptr_offsets = vader_fn_ptr_offsets, .ptr_count = 1,

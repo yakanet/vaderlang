@@ -160,7 +160,7 @@ const vader_type_info_t vader_type_info_table[25] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Label_t, f_text) },
         .string_count = 1,
     },
-    [3] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = { .slot_size = 16 },
     [5] = {
         .kind = VADER_TYPE_KIND_FN, .size = sizeof(vader_fn_t), .slot_size = 8,

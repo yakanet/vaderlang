@@ -130,7 +130,7 @@ const vader_type_info_t vader_type_info_table[19] = {
         .slot_size = 8,
     },
     [2] = { .slot_size = 4 },
-    [3] = { .slot_size = 16 },
+    [3] = { .slot_size = 4 },
     [4] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_string_i32_4ccf6d4f_t),
         .slot_size = 8,

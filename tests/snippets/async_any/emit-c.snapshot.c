@@ -122,7 +122,7 @@ const vader_type_info_t vader_type_info_table[35] = {
     [1] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Boom_t), .slot_size = 8,
     },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 16 },
     [4] = { .slot_size = 4 },
     [5] = {

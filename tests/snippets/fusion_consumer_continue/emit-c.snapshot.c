@@ -520,7 +520,7 @@ const vader_type_info_t vader_type_info_table[74] = {
         .ptr_offsets = (const uint16_t[]){ offsetof(vader_struct___asyncstate_snippet_2_t, f_awaited) },
         .ptr_count = 1,
     },
-    [17] = { .slot_size = 16 },
+    [17] = { .slot_size = 4 },
     [18] = { .slot_size = 8 },
     [19] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct___Tuple_i32_i64_30f9f427_t),

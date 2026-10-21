@@ -53,7 +53,7 @@ typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 static const uint16_t vader_array_ptr_offsets[] = { offsetof(vader_array_t, buf) };
 
 const vader_type_info_t vader_type_info_table[9] = {
-    [1] = { .slot_size = 16 },
+    [1] = { .slot_size = 4 },
     [2] = { .slot_size = 1 },
     [3] = { .slot_size = 4 },
     [4] = { .slot_size = 1 },

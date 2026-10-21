@@ -67,7 +67,7 @@ const vader_type_info_t vader_type_info_table[13] = {
         .ptr_offsets = vader_array_ptr_offsets, .ptr_count = 1,
     },
     [4] = { .slot_size = 8 },
-    [5] = { .slot_size = 16 },
+    [5] = { .slot_size = 4 },
     [6] = {
         .kind = VADER_TYPE_KIND_STRUCT, .size = sizeof(vader_struct_snippet_Point_t),
         .slot_size = 8,

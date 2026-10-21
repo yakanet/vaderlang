@@ -157,7 +157,7 @@ const vader_type_info_t vader_type_info_table[46] = {
         .string_offsets = (const uint16_t[]){ offsetof(vader_struct_snippet_Outage_t, f_service) },
         .string_count = 1,
     },
-    [2] = { .slot_size = 16 },
+    [2] = { .slot_size = 4 },
     [3] = { .slot_size = 8 },
     [4] = { .slot_size = 1 },
     [5] = { .slot_size = 16 },
