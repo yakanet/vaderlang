@@ -117,7 +117,6 @@ static vader_string_t snippet_name_around_write(void* l0, vader_box_t l1) {
     l2 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l1.payload.obj);
 #line 16 "tests/snippets/union_field_read_after_write/_main.vader"
     ((vader_struct_snippet_Dog_t*) l0)->f_name = 1u;
-    VADER_WRITE_BARRIER((vader_struct_snippet_Dog_t*) l0);
 #line 17 "tests/snippets/union_field_read_after_write/_main.vader"
     l3 = VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l1.payload.obj);
     t0 = concat_3(l2, 2u, l3);
@@ -146,7 +145,6 @@ static void snippet_birthday(vader_box_t l0) {
     VADER_UNION_FIELD(int32_t, vader_struct_snippet_Cat_t, f_age, l0.payload.obj) = l1;
 #line 28 "tests/snippets/union_field_read_after_write/_main.vader"
     VADER_UNION_FIELD(vader_string_t, vader_struct_snippet_Cat_t, f_name, l0.payload.obj) = 3u;
-    VADER_WRITE_BARRIER(l0.payload.obj);
 #line 26 "tests/snippets/union_field_read_after_write/_main.vader"
     return;
 }

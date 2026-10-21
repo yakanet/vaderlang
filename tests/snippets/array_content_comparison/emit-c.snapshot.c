@@ -609,8 +609,7 @@ static bool std_core_is_permutation_of__i32(void* l0, void* l1) {
 
 static vader_box_t std_core_first_unmatched__i32(void* l0, void* l1, int32_t l2) {
     int64_t l3, l4;
-    vader_box_t t0;
-    bool t1;
+    bool t0, t1;
     int32_t t2;
 #line 146 "lib/std/core/array.vader"
     l3 = INT64_C(0);
@@ -620,8 +619,8 @@ static vader_box_t std_core_first_unmatched__i32(void* l0, void* l1, int32_t l2)
         vader_array_t* _a0_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
-        t0 = vader_box_bool(2u, ((uint8_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3]);
-        t1 = t0.payload.b;
+        t0 = ((uint8_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l3];
+        t1 = t0;
         if (!(t1)) {
             vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
             VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)

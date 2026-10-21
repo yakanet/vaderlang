@@ -702,10 +702,11 @@ static vader_string_t snippet_widths(int32_t l0) {
     vader_box_t t3 = vader_box_null();
     uint8_t t4;
     int16_t t5;
-    vader_string_t t6 = 0;
+    float t6;
+    vader_string_t t7 = 0;
     vader_box_t* gc_roots[1] = { &t3 };
     void** gc_raw_roots[3] = { &l1, &l5, &l7 };
-    vader_string_t* gc_atom_roots[1] = { &t6 };
+    vader_string_t* gc_atom_roots[1] = { &t7 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
@@ -907,8 +908,8 @@ static vader_string_t snippet_widths(int32_t l0) {
         vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l11)
-        t3 = vader_box_f64(16u, (double) ((float*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l11]);
-        l9 = ((float) t3.payload.f);
+        t6 = ((float*) _a8_slotarr->buf->slots)[_a8_slotarr->offset + (size_t) l11];
+        l9 = t6;
 #line 180 "tests/snippets/array_push_cache/_main.vader"
         t2 = (l8 + l9);
         l8 = (float) (double) t2;
@@ -926,8 +927,8 @@ static vader_string_t snippet_widths(int32_t l0) {
     l2 = std_core_write_string_at(l1, l2, 3u);
     l11 = ((int64_t) (int32_t) ((int32_t) (float) l8));
     l2 = std_core_write_int(l1, l2, l11);
-    t6 = std_core_finish_buffer(l1, l2);
-    { vader_string_t __vret = t6; vader_gc_top = gc_frame.prev; return __vret; }
+    t7 = std_core_finish_buffer(l1, l2);
+    { vader_string_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t snippet_observed_length(void* l0) {

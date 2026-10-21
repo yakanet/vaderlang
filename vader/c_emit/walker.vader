@@ -2083,7 +2083,7 @@ push_struct_field :: fn(
         // of the expected type never matches a sibling tag. Vader's array is
         // erased to `ref`, so the reshape happens per-read here rather than
         // eagerly over the whole array.
-        sibs :: find_layout_siblings(types, type_index)
+        sibs :: s.ctx.layout_siblings[type_index]
         if sibs.len() == 0 {
             push_expr(s, fval, concrete)
         } else {
@@ -2198,32 +2198,16 @@ field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpressi
 
 /// `struct.set` / `struct.set_stack` — pop the field value then the
 /// receiver, write the body slot in place, then fire the generational write
-/// barrier so a later minor rescans this object's slots. A value-type
-/// mismatch is reconciled by `coerce_expr`.
+/// barrier when the store writes a reference, so a later minor rescans this
+/// object's slots. A value-type mismatch is reconciled by `coerce_expr`.
 ///
-/// The barrier is mandatory on `struct.set`: mutating an old object's field to
-/// reference a young object creates an old→young edge whose card must be marked
-/// dirty, else `scan_old_dirty_cards` skips the object and the young referent
-/// goes stale when the next minor moves it. `struct.set_stack` opts out — the
-/// lowerer's escape analysis proved the receiver is stack-allocated, so the
-/// macro's `in old?` test would always be false anyway.
-/// Whether storing into this field can create an old→young edge.
-///
-/// The card marks an object whose SLOTS a later minor must rescan, so a store
-/// that writes no reference has nothing to record — `cursor: i64` cannot make
-/// an old object point at a young one. `Pointer` is excluded by its own
-/// definition (the GC must not scan it); `String` is an interned atom and is
-/// kept conservatively, since its liveness is tracked through the object's
-/// fields rather than a raw slot.
-///
-/// @param types       the module's type table.
-/// @param type_index  the field's `BcType` index.
-/// @return            true when the field can hold a reference.
-field_may_hold_reference :: fn(types: BcType[], type_index: i32) -> bool {
-    v :: val_type_of_field(types, type_index)
-    return v == .Ref || v == .Any || v == .String
-}
-
+/// The barrier is mandatory on a `struct.set` that writes a reference:
+/// mutating an old object's field to reference a young object creates an
+/// old→young edge whose card must be marked dirty, else `scan_old_dirty_cards`
+/// skips the object and the young referent goes stale when the next minor
+/// moves it. `struct.set_stack` opts out — the lowerer's escape analysis proved
+/// the receiver is stack-allocated, so the macro's `in old?` test would always
+/// be false anyway.
 emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
     t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
@@ -2253,7 +2237,10 @@ struct_set_barrier :: fn(
 }
 
 // Store `value` into the field `place` of type `field_type`, then fire the write
-// barrier on `barrier_object` when there is one and the field can hold a reference.
+// barrier on `barrier_object` when there is one and the store writes a
+// reference. The field must be able to hold one (`.Ref` / `.Any`): a `Pointer`
+// field is never scanned, and a `string` field holds an atom
+// (`write_barrier_for`). An `.Any` value unboxed into an `i64` field writes none.
 store_field :: fn(
     s: FnState,
     place: CExpression,
@@ -2261,10 +2248,10 @@ store_field :: fn(
     field_type: i32,
     barrier_object: CExpression | null,
 ) -> void {
-    types :: s.ctx.module.types
-    assign(s, place, coerced_as(s, value, val_type_of_field(types, field_type)))
-    if barrier_object != null && field_may_hold_reference(types, field_type) {
-        write_barrier(s, barrier_object)
+    field_val :: val_type_of_field(s.ctx.module.types, field_type)
+    assign(s, place, coerced_as(s, value, field_val))
+    if barrier_object != null && is_ref_val(field_val) {
+        write_barrier_for(s, barrier_object, value)
     }
 }
 
@@ -2731,16 +2718,18 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
 
 /// `array.get` — pop index + array, push the element : a ref-carrying element in
 /// its own stack class (the `buf->element_kind` dispatch below), any other as a
-/// boxed `.Any` (the lowerer's following `ref.cast` re-tags / unboxes it). Fully
-/// open-coded over the kept `vader_array_t` layout, no `vader_array_get` call.
-/// Three read paths for the others, keyed off `typed_array_fill_for(kind)` + the
-/// kind :
+/// boxed `.Any` (the lowerer's following `ref.cast` re-tags / unboxes it) unless
+/// it can travel unboxed. Fully open-coded over the kept `vader_array_t` layout,
+/// no `vader_array_get` call. Three read paths for the others, keyed off
+/// `typed_array_fill_for(kind)` + the kind :
 ///   - Boxed → an inline box-slot read.
 ///   - `u8` → the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
 ///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
 ///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
 ///     added and the read inlines at -O3.
-///   - any other sub-word width → an inline typed read, re-boxed via `box_expr`
+///   - any other sub-word width → an inline typed read, pushed in its storage
+///     class when a later re-box would give back the element's own tag
+///     (`reboxes_to_own_tag` : `bool`, `f32`), re-boxed via `box_expr` otherwise
 ///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
 /// `emit_slot_array_local` (buffer guard + bounds check) is hoisted before the
 /// branch — borrowed-safe (its guard tests `buf != NULL` and the bounds check
@@ -2772,22 +2761,40 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
         )
         return
     }
-    element :: if fill == null {
-        box_slot(a, slot_index(a, idx))
-    } else if kind == .U8 {
-        call("vader_array_read_u8", [verbatim(a), slot_index(a, idx), verbatim("${elem_tag}u")])
-    } else {
-        box_expr(typed_slot(fill.cty, a, slot_index(a, idx)), fill.val, elem_tag)
+    if fill == null {
+        push_into_temporary(s, box_slot(a, slot_index(a, idx)), .Any)
+        return
     }
-    push_into_temporary(s, element, .Any)
+    if kind == .U8 {
+        read :: call(
+            "vader_array_read_u8",
+            [verbatim(a), slot_index(a, idx), verbatim("${elem_tag}u")],
+        )
+        push_into_temporary(s, read, .Any)
+        return
+    }
+    typed :: typed_slot(fill.cty, a, slot_index(a, idx))
+    if reboxes_to_own_tag(types, elem_tag, fill.val) {
+        push_into_temporary(s, typed, fill.val)
+    } else {
+        push_into_temporary(s, box_expr(typed, fill.val, elem_tag), .Any)
+    }
 }
+
+// Whether an element read in its storage class `val` boxes back to its own tag.
+// A later widening to a box takes `class_tag_of(val)`, the first scalar of that
+// class, so only that scalar may travel unboxed: a `u32` read as `.I32`, or a
+// distinct type over `bool`, must keep the tag the read gives it.
+reboxes_to_own_tag :: fn(types: BcType[], elem_tag: i32, val: ValType) -> bool =
+    class_tag_of(types, val) == elem_tag
 
 /// `array.set` — pop value + index + array, store the value in place. A Boxed
 /// element stores the slot inline (`box_expr` tags `string`, no-op for already-
-/// boxed refs) + fires the generational write barrier ; a typed (sub-word)
-/// element stores the native width raw (no barrier — primitives hold no refs). Flippable widths
-/// never reach here (midir routes them to `StoreSlot*`). A view of a string's bytes
-/// is never written (T3070, T3072), so `a->buf` is never NULL on this path.
+/// boxed refs) and fires the generational write barrier when the value may be a
+/// reference (`write_barrier_for`) ; a typed (sub-word) element stores the native
+/// width raw (no barrier — primitives hold no refs). Flippable widths never
+/// reach here (midir routes them to `StoreSlot*`). A view of a string's bytes is
+/// never written (T3070, T3072), so `a->buf` is never NULL on this path.
 emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)
@@ -2800,7 +2807,7 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     a :: emit_slot_array_local(s, arr, idx, op.bounds_safe)
     if fill == null && ref_carrying_element(elem, types) {
         // Erasure boundary: dispatch on the buf's actual kind inside the
-        // `static inline` helper. Barrier fires on the buf (container) for both.
+        // `static inline` helper. The barrier fires on the buf (container).
         if elem is BcRef {
             // Erased trait-object element : the value may be a boxed / raw PRIMITIVE
             // (a distinct-primitive trait impl), not a header-bearing ref, so route
@@ -2829,12 +2836,12 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
                 ),
             )
         }
-        write_barrier(s, verbatim("${a}->buf"))
+        write_barrier_for(s, verbatim("${a}->buf"), value)
         return
     }
     if fill == null {
         assign(s, box_slot(a, slot_index(a, idx)), coerced_as(s, value, .Any))
-        write_barrier(s, verbatim("${a}->buf"))
+        write_barrier_for(s, verbatim("${a}->buf"), value)
     } else {
         emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
     }

@@ -955,7 +955,6 @@ static void std_collections_write_entry__Any__string(void* l0, vader_box_t l1, v
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l3)
         vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l3] = vader_box_string(6u, l2);
-        VADER_WRITE_BARRIER(_a1_slotarr->buf);
 #line 121 "lib/std/collections/collections.vader"
         { vader_gc_top = gc_frame.prev; return; }
 #line 122 "lib/std/collections/collections.vader"
@@ -1057,7 +1056,6 @@ static void std_collections_put__Any__string(void* l0, vader_box_t l1, vader_str
                     VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l5)
                     vader_array_box_slots(_a4_slotarr->buf)[_a4_slotarr->offset + (size_t) l5] = vader_box_string(6u, l2);
-                    VADER_WRITE_BARRIER(_a4_slotarr->buf);
                     { vader_gc_top = gc_frame.prev; return; }
                 }
 #line 151 "lib/std/collections/collections.vader"

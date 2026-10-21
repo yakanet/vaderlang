@@ -1145,7 +1145,6 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
                             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                             vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4] = vader_box_string(1u, l11);
-                            VADER_WRITE_BARRIER(_a2_slotarr->buf);
 #line 284 "lib/std/path/path.vader"
 #line 287 "lib/std/path/path.vader"
                         } else {
@@ -1167,7 +1166,6 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
                         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
                         vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l4] = vader_box_string(1u, l11);
-                        VADER_WRITE_BARRIER(_a3_slotarr->buf);
 #line 292 "lib/std/path/path.vader"
 #line 295 "lib/std/path/path.vader"
                     } else {

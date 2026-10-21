@@ -609,7 +609,6 @@ static void* snippet___gen_state_snippet_1_Iterator_next(void* l0) {
                         t4 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
                         l6 = t4.payload.s;
                         ((vader_struct_snippet___gen_state_snippet_1_t*) l0)->f_s5 = l6;
-                        VADER_WRITE_BARRIER((vader_struct_snippet___gen_state_snippet_1_t*) l0);
 #line 12 "tests/snippets/fusion_generic_generator_nested/_main.vader"
                         ((vader_struct_snippet___gen_state_snippet_1_t*) l0)->f_state = INT32_C(5);
                     } else {

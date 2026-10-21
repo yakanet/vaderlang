@@ -350,13 +350,11 @@ static vader_string_t snippet_captured_local(vader_string_t l0) {
 #line 88 "tests/snippets/concat_append_fusion/_main.vader"
     l3 = concat_2(((vader_struct__Cell_string_t*) l1.payload.obj)->f_value, 9u);
     ((vader_struct__Cell_string_t*) l1.payload.obj)->f_value = l3;
-    VADER_WRITE_BARRIER((vader_struct__Cell_string_t*) l1.payload.obj);
 #line 89 "tests/snippets/concat_append_fusion/_main.vader"
     l3 = __lambda_snippet_1(l2);
 #line 90 "tests/snippets/concat_append_fusion/_main.vader"
     l4 = concat_2(((vader_struct__Cell_string_t*) l1.payload.obj)->f_value, 10u);
     ((vader_struct__Cell_string_t*) l1.payload.obj)->f_value = l4;
-    VADER_WRITE_BARRIER((vader_struct__Cell_string_t*) l1.payload.obj);
 #line 91 "tests/snippets/concat_append_fusion/_main.vader"
     t1 = concat_3(((vader_struct__Cell_string_t*) l1.payload.obj)->f_value, 11u, l3);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -431,7 +429,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             l3 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
 #line 75 "tests/snippets/concat_append_fusion/_main.vader"
             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s3 = l3;
-            VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 71 "tests/snippets/concat_append_fusion/_main.vader"
             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(1);
         } else {
@@ -444,7 +441,6 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                 }
                 l5 = l4.payload.s;
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2 = l5;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(2);
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
@@ -468,19 +464,16 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     l7 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0;
 #line 72 "tests/snippets/concat_append_fusion/_main.vader"
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l7;
-                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 71 "tests/snippets/concat_append_fusion/_main.vader"
                     t1 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1;
 #line 73 "tests/snippets/concat_append_fusion/_main.vader"
                     l8 = concat_2(t1, 13u);
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l8;
-                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 71 "tests/snippets/concat_append_fusion/_main.vader"
                     t1 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1;
 #line 74 "tests/snippets/concat_append_fusion/_main.vader"
                     l9 = concat_2(t1, 14u);
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l9;
-                    VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
 #line 71 "tests/snippets/concat_append_fusion/_main.vader"
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(4);
                 }
@@ -544,7 +537,6 @@ static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
                 }
                 l2 = l1.payload.s;
                 ((vader_struct___asyncstate_snippet_3_t*) l0)->f_s0 = l2;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_3_t*) l0);
                 ((vader_struct___asyncstate_snippet_3_t*) l0)->f_state = INT32_C(2);
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_3_t*) l0)->f_state;

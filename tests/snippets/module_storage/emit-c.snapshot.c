@@ -462,6 +462,8 @@ static int32_t snippet_main(void) {
     vader_box_t t2 = vader_box_null();
     int32_t t3;
     double t4;
+    float t5;
+    bool t6;
     vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[4] = { &l2, &l10, &l15, &t1 };
     vader_string_t* gc_atom_roots[4] = { &l0, &l4, &l5, &t0 };
@@ -559,8 +561,8 @@ static int32_t snippet_main(void) {
     vader_array_t* _a5_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a5_slotarr, INT32_C(0))
-    t2 = vader_box_f64(18u, (double) ((float*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) INT32_C(0)]);
-    l7 = ((float) t2.payload.f);
+    t5 = ((float*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) INT32_C(0)];
+    l7 = t5;
     l8 = (float) (double) 0.25;
     l3 = l7 == l8;
     l1 = std_core_write_bool(l2, l1, l3);
@@ -702,7 +704,6 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_RESOLVE_BUF(_a16_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a16_slotarr, l9)
         vader_array_box_slots(_a16_slotarr->buf)[_a16_slotarr->offset + (size_t) l9] = vader_box_string(4u, l0);
-        VADER_WRITE_BARRIER(_a16_slotarr->buf);
 #line 117 "tests/snippets/module_storage/_main.vader"
         l9 = (l9 + INT32_C(1));
     }
@@ -779,16 +780,16 @@ static int32_t snippet_main(void) {
     vader_array_t* _a21_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a21_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a21_slotarr, INT32_C(0))
-    t2 = vader_box_bool(6u, ((uint8_t*) _a21_slotarr->buf->slots)[_a21_slotarr->offset + (size_t) INT32_C(0)]);
-    l3 = t2.payload.b;
+    t6 = ((uint8_t*) _a21_slotarr->buf->slots)[_a21_slotarr->offset + (size_t) INT32_C(0)];
+    l3 = t6;
     l1 = std_core_write_bool(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, 9u);
     t1 = snippet_flags();
     vader_array_t* _a22_slotarr = ((vader_array_t*) t1);
     VADER_ARRAY_RESOLVE_BUF(_a22_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a22_slotarr, INT32_C(2))
-    t2 = vader_box_bool(6u, ((uint8_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) INT32_C(2)]);
-    l3 = t2.payload.b;
+    t6 = ((uint8_t*) _a22_slotarr->buf->slots)[_a22_slotarr->offset + (size_t) INT32_C(2)];
+    l3 = t6;
     l1 = std_core_write_bool(l2, l1, l3);
     l1 = std_core_write_string_at(l2, l1, 16u);
     t1 = snippet_flags();

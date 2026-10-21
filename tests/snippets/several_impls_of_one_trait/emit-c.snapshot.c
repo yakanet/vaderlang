@@ -1103,7 +1103,6 @@ static void snippet_Grid_std_core_IndexSet_set_at_1(void* l0, vader_string_t l1,
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(0))
     vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) INT32_C(0)] = vader_box_string(5u, l4);
-    VADER_WRITE_BARRIER(_a0_slotarr->buf);
 #line 48 "tests/snippets/several_impls_of_one_trait/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

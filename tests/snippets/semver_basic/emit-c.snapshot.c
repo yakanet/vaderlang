@@ -2556,7 +2556,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         }
 #line 516 "lib/semver/semver.vader"
         ((vader_struct_semver_PartialVersion_t*) l13)->f_prerelease = l9;
-        VADER_WRITE_BARRIER((vader_struct_semver_PartialVersion_t*) l13);
 #line 513 "lib/semver/semver.vader"
     }
 #line 518 "lib/semver/semver.vader"
@@ -2579,7 +2578,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
     }
 #line 521 "lib/semver/semver.vader"
     ((vader_struct_semver_PartialVersion_t*) l13)->f_build = l10;
-    VADER_WRITE_BARRIER((vader_struct_semver_PartialVersion_t*) l13);
 #line 523 "lib/semver/semver.vader"
     { vader_box_t __vret = vader_ref_box(l13); vader_gc_top = gc_frame.prev; return __vret; }
 }

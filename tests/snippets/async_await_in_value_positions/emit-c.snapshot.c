@@ -551,7 +551,6 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                 }
                 l2 = l1.payload.s;
                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1 = l2;
-                VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(2);
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;

@@ -213,6 +213,16 @@ statement_macro :: fn(s: FnState, name: string, arguments: CExpression[]) -> voi
 write_barrier :: fn(s: FnState, object: CExpression) -> void =
     evaluate(s, call("VADER_WRITE_BARRIER", [object]))
 
+/// `write_barrier` for a store of `value` into `object`, skipped when `value`
+/// cannot be a reference. A primitive creates no old→young edge, and neither
+/// does an atom: it never moves, and the major cycle marks atoms by walking the
+/// heap, not the cards.
+write_barrier_for :: fn(s: FnState, object: CExpression, value: StackVal) -> void {
+    if is_ref_val(val_of(value)) {
+        write_barrier(s, object)
+    }
+}
+
 /// Materialise a raw object pointer (`&vader_data_3`, `_a0_obj`) into a fresh
 /// `.Ref` temp : `tN = (void*) pointer;`.
 push_object :: fn(s: FnState, pointer: CExpression) -> void =

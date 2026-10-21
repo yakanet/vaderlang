@@ -370,14 +370,13 @@ static int32_t snippet_main(void) {
     int64_t l1, l2, l5, l6, l9, l10, l13, l15;
     bool l3, l7, l11;
     vader_string_t l12 = 0;
-    vader_box_t t0 = vader_box_null();
+    bool t0;
     vader_string_t t1 = 0;
     int32_t t2;
-    vader_box_t* gc_roots[1] = { &t0 };
     void** gc_raw_roots[4] = { &l0, &l4, &l8, &l14 };
     vader_string_t* gc_atom_roots[2] = { &l12, &t1 };
     vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
+        vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
 #line 71 "tests/snippets/short_circuit_conditions/_main.vader"
@@ -391,8 +390,8 @@ static int32_t snippet_main(void) {
         vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l2)
-        t0 = vader_box_bool(3u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2]);
-        l3 = t0.payload.b;
+        t0 = ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l2];
+        l3 = t0;
 #line 72 "tests/snippets/short_circuit_conditions/_main.vader"
         vader_array_t* _a2_arr = vader_array_new(13u, 2u, 12u, 3u);
         ((uint8_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (uint8_t) true;
@@ -404,8 +403,8 @@ static int32_t snippet_main(void) {
             vader_array_t* _a3_slotarr = ((vader_array_t*) l4);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
-            t0 = vader_box_bool(3u, ((uint8_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6]);
-            l7 = t0.payload.b;
+            t0 = ((uint8_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6];
+            l7 = t0;
 #line 73 "tests/snippets/short_circuit_conditions/_main.vader"
             vader_array_t* _a4_arr = vader_array_new(13u, 2u, 12u, 3u);
             ((uint8_t*) _a4_arr->buf->slots)[_a4_arr->offset + 1u] = (uint8_t) true;
@@ -417,8 +416,8 @@ static int32_t snippet_main(void) {
                 vader_array_t* _a5_slotarr = ((vader_array_t*) l8);
                 VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l10)
-                t0 = vader_box_bool(3u, ((uint8_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l10]);
-                l11 = t0.payload.b;
+                t0 = ((uint8_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l10];
+                l11 = t0;
 #line 74 "tests/snippets/short_circuit_conditions/_main.vader"
                 l12 = snippet_shapes(l3, l7, l11);
                 l13 = vader_host_std_core_byte_len(l12);

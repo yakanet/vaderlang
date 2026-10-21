@@ -548,7 +548,6 @@ static void std_collections_write_entry__string__i32(void* l0, vader_string_t l1
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l3)
         vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l3] = vader_box_string(3u, l1);
-        VADER_WRITE_BARRIER(_a0_slotarr->buf);
 #line 124 "lib/std/collections/collections.vader"
         l5 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_evals;
         l3 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_size;

@@ -754,10 +754,32 @@ write_list :: fn(out: StringBuilder, expressions: CExpression[]) -> void {
     }
 }
 
-indent :: fn(out: StringBuilder, depth: i32) -> void = out.append_repeated(
-    ' ',
-    depth * i32(INDENT_WIDTH),
-)
+// The spaces opening a line at `depth`, one piece per `INDENTATION_PIECE` levels.
+indent :: fn(out: StringBuilder, depth: i32) -> void {
+    if depth > INDENTATION_PIECE {
+        out.append(indentation(INDENTATION_PIECE))
+        indent(out, depth - INDENTATION_PIECE)
+    } else if depth > 0 {
+        out.append(indentation(depth))
+    }
+}
+
+// The deepest indentation spelled as one literal.
+INDENTATION_PIECE: i32: 8
+
+// The spaces of `depth` levels, for `depth` in `1..=INDENTATION_PIECE`. Each
+// literal is `depth * INDENT_WIDTH` spaces, so they change together.
+indentation :: fn(depth: i32) -> string = match depth {
+    1 -> "    "
+    2 -> "        "
+    3 -> "            "
+    4 -> "                "
+    5 -> "                    "
+    6 -> "                        "
+    7 -> "                            "
+    8 -> "                                "
+    _ -> unreachable("indentation of ${depth} levels, outside 1..=${INDENTATION_PIECE}")
+}
 
 write_line :: fn(out: StringBuilder, text: string, depth: i32) -> void {
     indent(out, depth)
@@ -1178,4 +1200,13 @@ test_unit_text_breaks_long_string_literals_one_per_line :: fn() -> void {
     literal :: "\"abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghij\""
     expected :: "int x[] =\n    ${literal}\n    ${literal};\n"
     assert_eq(global_text(CStringLiterals { .literals = [literal, literal] }), expected)
+}
+
+@test
+test_indent_is_depth_times_indent_width :: fn() -> void {
+    for depth in 0..<20 {
+        out :: StringBuilder {}
+        indent(out, depth)
+        assert_eq(out.to_string(), " ".repeat(i64(depth) * INDENT_WIDTH))
+    }
 }

@@ -538,7 +538,6 @@ static int32_t snippet_main(void) {
     VADER_ARRAY_RESOLVE_BUF(_a29_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a29_slotarr, l1)
     vader_array_box_slots(_a29_slotarr->buf)[_a29_slotarr->offset + (size_t) l1] = vader_box_string(10u, l7);
-    VADER_WRITE_BARRIER(_a29_slotarr->buf);
 #line 105 "tests/snippets/compound_assign_operands/_main.vader"
     VADER_ARRAY_CHECK_INDEX(_a29_slotarr, INT32_C(0))
     t3 = vader_array_box_slots(_a29_slotarr->buf)[_a29_slotarr->offset + (size_t) INT32_C(0)];

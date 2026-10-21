@@ -253,7 +253,6 @@ static int32_t snippet_main(void) {
     l9 = t3.payload.s;
     VADER_ARRAY_CHECK_INDEX(_a15_slotarr, INT32_C(0))
     vader_array_box_slots(_a15_slotarr->buf)[_a15_slotarr->offset + (size_t) INT32_C(0)] = vader_box_string(2u, l9);
-    VADER_WRITE_BARRIER(_a15_slotarr->buf);
 #line 33 "tests/snippets/array_index_read_write/_main.vader"
     VADER_ARRAY_CHECK_INDEX(_a15_slotarr, INT32_C(0))
     t3 = vader_array_box_slots(_a15_slotarr->buf)[_a15_slotarr->offset + (size_t) INT32_C(0)];

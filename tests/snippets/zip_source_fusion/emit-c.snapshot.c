@@ -1455,11 +1455,10 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
     bool l9;
     int32_t t0;
     int64_t t1;
-    vader_box_t t2 = vader_box_null();
+    bool t2;
     void* t3 = NULL;
-    vader_box_t* gc_roots[1] = { &t2 };
     void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t3 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 315 "lib/std/collections/collections.vader"
     for (;;) {
@@ -1514,8 +1513,8 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
-                        t2 = vader_box_bool(3u, ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8]);
-                        l9 = t2.payload.b;
+                        t2 = ((uint8_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l8];
+                        l9 = t2;
                         vader_struct___Tuple_i32_bool_cd1657f9_t* _a2_obj = (vader_struct___Tuple_i32_bool_cd1657f9_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_bool_cd1657f9_t));
                         vader_obj_header_init(_a2_obj, 21u);
                         _a2_obj->f__0 = l6;
