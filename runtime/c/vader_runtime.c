@@ -139,16 +139,24 @@ static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
  *
  * Small objects (≤ VADER_OLD_SMALL_MAX) use 16 B size classes; each class owns
  * regions (bump-carved) + a free list threaded through freed slots' `forward`
- * field. Large objects get a one-object region each, reused best-fit and
- * `madvise`-released on free. Reclamation is mark (toggle `g_mark_value`,
- * trace from roots + young survivors via a gray worklist) + sweep (rebuild the
- * free lists from unmarked slots). See `vader_major_collect`. */
+ * field. Large objects get a one-object region each, `madvise`-released on free
+ * and kept for reuse in bins by size (`vader_old_large_bin`). Reclamation is
+ * mark (toggle `g_mark_value`, trace from roots + young survivors via a gray
+ * worklist) + sweep (rebuild the free lists from unmarked slots). See
+ * `vader_major_collect`. */
 
 #define VADER_OLD_CLASS_GRAN   16u
-#define VADER_OLD_SMALL_MAX    1024u
+#define VADER_OLD_SMALL_MAX_LOG2 10u
+#define VADER_OLD_SMALL_MAX    (1u << VADER_OLD_SMALL_MAX_LOG2)               /* 1024 */
 #define VADER_OLD_NUM_CLASSES  (VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN)  /* 64 */
 #define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
 #define VADER_OLD_MADVISE_MIN  (64u * 1024u)    /* only madvise freed large regions ≥ this */
+/* Freed large regions are binned by size, VADER_OLD_LARGE_SUBBINS bins per power
+ * of two above VADER_OLD_SMALL_MAX, up to the widest `size_t`. */
+#define VADER_OLD_LARGE_SUB_LOG2 3u
+#define VADER_OLD_LARGE_SUBBINS  (1u << VADER_OLD_LARGE_SUB_LOG2)
+#define VADER_OLD_LARGE_BINS     ((64u - VADER_OLD_SMALL_MAX_LOG2) * VADER_OLD_LARGE_SUBBINS)
+#define VADER_OLD_LARGE_SCAN     32u   /* regions a large allocation inspects in its own bin */
 
 /* One carved extent of the reservation. Small regions hold many fixed-size
  * slots of one class; large regions hold exactly one object. */
@@ -158,9 +166,9 @@ typedef struct vader_old_region {
     char*  end;           /* region end (base + capacity) */
     size_t slot_size;     /* class slot size; for large = the object's aligned size */
     int    class_idx;     /* small: 0..NUM_CLASSES-1 ; large: -1 */
-    uint8_t freed;        /* large only: currently on the large free list */
+    uint8_t freed;        /* large only: currently in a large free bin */
     struct vader_old_region* next;       /* global region list (sweep + walks) */
-    struct vader_old_region* free_next;  /* large free list link */
+    struct vader_old_region* free_next;  /* large free bin link */
 } vader_old_region_t;
 
 typedef struct {
@@ -178,7 +186,37 @@ static int    g_old_alloc_failed_at_cap = 0;  /* set when a carve hit the cap wi
 
 static vader_old_class_t   g_old_classes[VADER_OLD_NUM_CLASSES];
 static vader_old_region_t* g_old_regions    = NULL;   /* all regions, carve order */
-static vader_old_region_t* g_old_large_free = NULL;   /* freed large regions, best-fit reuse */
+/* Freed large regions by size bin: every region of a bin is at least as large as
+ * every region of a lower one. Rebuilt by each sweep (`vader_old_sweep`), which
+ * also records the highest bin it filled: no bin above it holds a region. */
+static vader_old_region_t* g_old_large_bins[VADER_OLD_LARGE_BINS];
+static size_t              g_old_large_top_bin = 0;
+
+/* The bin of a large region of `size` bytes (more than VADER_OLD_SMALL_MAX): its
+ * power of two, then the VADER_OLD_LARGE_SUB_LOG2 bits below the leading one. */
+static size_t vader_old_large_bin(size_t size) {
+    int lg = 63 - __builtin_clzll((unsigned long long) size);
+    size_t sub = (size >> (lg - (int) VADER_OLD_LARGE_SUB_LOG2)) & (VADER_OLD_LARGE_SUBBINS - 1u);
+    return (size_t) (lg - (int) VADER_OLD_SMALL_MAX_LOG2) * VADER_OLD_LARGE_SUBBINS + sub;
+}
+
+/* A freed large region that can hold `aligned` bytes, as the link that points at
+ * it, or NULL. First fit among at most VADER_OLD_LARGE_SCAN regions of the
+ * request's own bin, else the head of the first non-empty higher bin, which fits
+ * by construction. The search must stay bounded: the bins hold every dead large
+ * region, and nothing but a reuse takes one out. */
+static vader_old_region_t** vader_old_large_fit(size_t aligned) {
+    size_t bin = vader_old_large_bin(aligned);
+    vader_old_region_t** pp = &g_old_large_bins[bin];
+    for (unsigned scanned = 0u; *pp != NULL && scanned < VADER_OLD_LARGE_SCAN; scanned++) {
+        if ((*pp)->slot_size >= aligned) return pp;
+        pp = &(*pp)->free_next;
+    }
+    for (size_t higher = bin + 1u; higher <= g_old_large_top_bin; higher++) {
+        if (g_old_large_bins[higher] != NULL) return &g_old_large_bins[higher];
+    }
+    return NULL;
+}
 
 /* Old-gen mark bit value for the CURRENT epoch. Toggles 1↔2 each major so a
  * previous epoch's marks read as "unmarked" without a clear pass; a FREE slot
@@ -475,17 +513,11 @@ static void* vader_old_alloc(size_t bytes) {
         g_old_live_bytes += slot_size;
         return slot;
     }
-    /* Large: best-fit over freed large regions (smallest with slot_size ≥ aligned). */
-    vader_old_region_t** best = NULL;
-    for (vader_old_region_t** pp = &g_old_large_free; *pp != NULL; pp = &(*pp)->free_next) {
-        if ((*pp)->slot_size >= aligned &&
-            (best == NULL || (*pp)->slot_size < (*best)->slot_size)) {
-            best = pp;
-        }
-    }
-    if (best != NULL) {
-        vader_old_region_t* r = *best;
-        *best = r->free_next;
+    /* Large: a freed region that fits, else a fresh one. */
+    vader_old_region_t** fit = vader_old_large_fit(aligned);
+    if (fit != NULL) {
+        vader_old_region_t* r = *fit;
+        *fit = r->free_next;
         r->free_next = NULL;
         r->freed = 0u;
         g_old_live_bytes += r->slot_size;
@@ -525,10 +557,12 @@ static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, vo
 /* Sweep: rebuild every free list from the unmarked slots. A slot survives iff
  * `mark == g_mark_value` (set during the mark phase). Dead small slots are
  * stamped FREE (mark 0) and pushed to their class free list; dead large regions
- * are madvise-released and queued for best-fit reuse. Recomputes g_old_live_bytes. */
+ * are madvise-released and queued in their size bin for reuse. Recomputes
+ * g_old_live_bytes. */
 static void vader_old_sweep(void) {
     for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) g_old_classes[i].free_head = NULL;
-    g_old_large_free = NULL;
+    memset(g_old_large_bins, 0, sizeof g_old_large_bins);
+    g_old_large_top_bin = 0;
     size_t live = 0;
     for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
         if (r->class_idx < 0) {
@@ -543,8 +577,10 @@ static void vader_old_sweep(void) {
                 h->type_index = VADER_TYPE_INDEX_FREE;
                 if (!r->freed && r->slot_size >= VADER_OLD_MADVISE_MIN) vader_old_madvise_region(r);
                 r->freed = 1u;
-                r->free_next = g_old_large_free;
-                g_old_large_free = r;
+                size_t bin = vader_old_large_bin(r->slot_size);
+                r->free_next = g_old_large_bins[bin];
+                g_old_large_bins[bin] = r;
+                if (bin > g_old_large_top_bin) g_old_large_top_bin = bin;
             }
             continue;
         }
@@ -1489,7 +1525,8 @@ void vader_gc_init(void) {
         g_old_classes[i].current   = NULL;
     }
     g_old_regions    = NULL;
-    g_old_large_free = NULL;
+    memset(g_old_large_bins, 0, sizeof g_old_large_bins);
+    g_old_large_top_bin = 0;
     g_old_live_bytes = 0;
     g_old_live_after_major = 0;
     g_mark_value     = 1u;
@@ -1532,7 +1569,8 @@ void vader_gc_shutdown(void) {
     g_old_block = g_old_bump = g_old_block_end = NULL;
     g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
     g_old_regions = NULL;
-    g_old_large_free = NULL;
+    memset(g_old_large_bins, 0, sizeof g_old_large_bins);
+    g_old_large_top_bin = 0;
     for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
         g_old_classes[i].free_head = NULL;
         g_old_classes[i].current   = NULL;
