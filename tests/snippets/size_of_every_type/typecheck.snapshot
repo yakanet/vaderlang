@@ -1,0 +1,211 @@
+# Typecheck
+
+## tests/snippets/size_of_every_type
+  EnumDecl       Color                :: Color
+  ConstDecl      Either               :: type
+  StructDecl     Every                :: Every
+  ConstDecl      Hour                 :: type
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      MaybePoint           :: type
+  ConstDecl      Meters               :: type
+  ConstDecl      Pair                 :: type
+  StructDecl     Point                :: Point
+  EnumDecl       Wide                 :: Wide
+  expr 100:20   StructLitExpr  :: Point
+  expr 101:20   SeqLitExpr     :: i32[]
+  expr 102:19   SeqLitExpr     :: Pair
+  expr 102:24   StringLitExpr  :: string
+  expr 103:17   LambdaExpr     :: fn(i32) -> i32
+  expr 103:29   BinaryExpr     :: i32
+  expr 103:29   IdentExpr      :: i32
+  expr 108:13   StringLitExpr  :: string
+  expr 108:22   FieldExpr      :: i8
+  expr 108:22   IdentExpr      :: Every
+  expr 108:36   CallExpr       :: i32
+  expr 108:36   FieldExpr      :: fn(i32) -> i32
+  expr 108:36   IdentExpr      :: Every
+  expr 108:47   FieldExpr      :: Point
+  expr 108:47   FieldExpr      :: i32
+  expr 108:47   IdentExpr      :: Every
+  expr 108:5    CallExpr       :: void
+  expr 108:5    IdentExpr      :: fn(T) -> void
+  expr 50:13    StringLitExpr  :: string
+  expr 50:19    IntrinsicCallExpr :: i64
+  expr 50:28    IdentExpr      :: type
+  expr 50:35    IntrinsicCallExpr :: i64
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 51:13    StringLitExpr  :: string
+  expr 51:20    IntrinsicCallExpr :: i64
+  expr 51:29    IdentExpr      :: type
+  expr 51:37    IntrinsicCallExpr :: i64
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 52:13    StringLitExpr  :: string
+  expr 52:20    IntrinsicCallExpr :: i64
+  expr 52:29    IdentExpr      :: type
+  expr 52:37    IntrinsicCallExpr :: i64
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void
+  expr 53:13    StringLitExpr  :: string
+  expr 53:20    IntrinsicCallExpr :: i64
+  expr 53:29    IdentExpr      :: type
+  expr 53:37    IntrinsicCallExpr :: i64
+  expr 53:5     CallExpr       :: void
+  expr 53:5     IdentExpr      :: fn(T) -> void
+  expr 54:13    StringLitExpr  :: string
+  expr 54:19    IntrinsicCallExpr :: i64
+  expr 54:28    IdentExpr      :: type
+  expr 54:35    IntrinsicCallExpr :: i64
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void
+  expr 55:13    StringLitExpr  :: string
+  expr 55:20    IntrinsicCallExpr :: i64
+  expr 55:29    IdentExpr      :: type
+  expr 55:37    IntrinsicCallExpr :: i64
+  expr 55:5     CallExpr       :: void
+  expr 55:5     IdentExpr      :: fn(T) -> void
+  expr 56:13    StringLitExpr  :: string
+  expr 56:20    IntrinsicCallExpr :: i64
+  expr 56:29    IdentExpr      :: type
+  expr 56:37    IntrinsicCallExpr :: i64
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 57:13    StringLitExpr  :: string
+  expr 57:20    IntrinsicCallExpr :: i64
+  expr 57:29    IdentExpr      :: type
+  expr 57:37    IntrinsicCallExpr :: i64
+  expr 57:5     CallExpr       :: void
+  expr 57:5     IdentExpr      :: fn(T) -> void
+  expr 58:13    StringLitExpr  :: string
+  expr 58:20    IntrinsicCallExpr :: i64
+  expr 58:29    IdentExpr      :: type
+  expr 58:37    IntrinsicCallExpr :: i64
+  expr 58:5     CallExpr       :: void
+  expr 58:5     IdentExpr      :: fn(T) -> void
+  expr 59:13    StringLitExpr  :: string
+  expr 59:20    IntrinsicCallExpr :: i64
+  expr 59:29    IdentExpr      :: type
+  expr 59:37    IntrinsicCallExpr :: i64
+  expr 59:5     CallExpr       :: void
+  expr 59:5     IdentExpr      :: fn(T) -> void
+  expr 60:13    StringLitExpr  :: string
+  expr 60:21    IntrinsicCallExpr :: i64
+  expr 60:30    IdentExpr      :: type
+  expr 60:39    IntrinsicCallExpr :: i64
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void
+  expr 61:13    StringLitExpr  :: string
+  expr 61:21    IntrinsicCallExpr :: i64
+  expr 61:30    IdentExpr      :: type
+  expr 61:39    IntrinsicCallExpr :: i64
+  expr 61:5     CallExpr       :: void
+  expr 61:5     IdentExpr      :: fn(T) -> void
+  expr 62:13    StringLitExpr  :: string
+  expr 62:23    IntrinsicCallExpr :: i64
+  expr 62:32    IdentExpr      :: type
+  expr 62:43    IntrinsicCallExpr :: i64
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:13    StringLitExpr  :: string
+  expr 63:25    IntrinsicCallExpr :: i64
+  expr 63:34    IdentExpr      :: type
+  expr 63:47    IntrinsicCallExpr :: i64
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 64:13    StringLitExpr  :: string
+  expr 64:21    IntrinsicCallExpr :: i64
+  expr 64:39    IntrinsicCallExpr :: i64
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void
+  expr 65:13    StringLitExpr  :: string
+  expr 65:21    IntrinsicCallExpr :: i64
+  expr 65:30    IdentExpr      :: type
+  expr 65:39    IntrinsicCallExpr :: i64
+  expr 65:5     CallExpr       :: void
+  expr 65:5     IdentExpr      :: fn(T) -> void
+  expr 66:13    StringLitExpr  :: string
+  expr 66:21    IntrinsicCallExpr :: i64
+  expr 66:30    IdentExpr      :: type
+  expr 66:39    IntrinsicCallExpr :: i64
+  expr 66:5     CallExpr       :: void
+  expr 66:5     IdentExpr      :: fn(T) -> void
+  expr 67:13    StringLitExpr  :: string
+  expr 67:23    IntrinsicCallExpr :: i64
+  expr 67:32    IdentExpr      :: type
+  expr 67:43    IntrinsicCallExpr :: i64
+  expr 67:5     CallExpr       :: void
+  expr 67:5     IdentExpr      :: fn(T) -> void
+  expr 68:13    StringLitExpr  :: string
+  expr 68:22    IntrinsicCallExpr :: i64
+  expr 68:31    IdentExpr      :: Color
+  expr 68:41    IntrinsicCallExpr :: i64
+  expr 68:5     CallExpr       :: void
+  expr 68:5     IdentExpr      :: fn(T) -> void
+  expr 69:13    StringLitExpr  :: string
+  expr 69:21    IntrinsicCallExpr :: i64
+  expr 69:30    IdentExpr      :: Wide
+  expr 69:39    IntrinsicCallExpr :: i64
+  expr 69:5     CallExpr       :: void
+  expr 69:5     IdentExpr      :: fn(T) -> void
+  expr 70:13    StringLitExpr  :: string
+  expr 70:22    IntrinsicCallExpr :: i64
+  expr 70:31    IdentExpr      :: Point
+  expr 70:41    IntrinsicCallExpr :: i64
+  expr 70:5     CallExpr       :: void
+  expr 70:5     IdentExpr      :: fn(T) -> void
+  expr 71:13    StringLitExpr  :: string
+  expr 71:22    IntrinsicCallExpr :: i64
+  expr 71:31    ArrayTypeExpr  :: type
+  expr 71:41    IntrinsicCallExpr :: i64
+  expr 71:5     CallExpr       :: void
+  expr 71:5     IdentExpr      :: fn(T) -> void
+  expr 72:13    StringLitExpr  :: string
+  expr 72:21    IntrinsicCallExpr :: i64
+  expr 72:30    IdentExpr      :: type
+  expr 72:39    IntrinsicCallExpr :: i64
+  expr 72:5     CallExpr       :: void
+  expr 72:5     IdentExpr      :: fn(T) -> void
+  expr 73:13    StringLitExpr  :: string
+  expr 73:23    IntrinsicCallExpr :: i64
+  expr 73:32    IdentExpr      :: type
+  expr 73:43    IntrinsicCallExpr :: i64
+  expr 73:5     CallExpr       :: void
+  expr 73:5     IdentExpr      :: fn(T) -> void
+  expr 74:13    StringLitExpr  :: string
+  expr 74:27    IntrinsicCallExpr :: i64
+  expr 74:36    IdentExpr      :: type
+  expr 74:5     CallExpr       :: void
+  expr 74:5     IdentExpr      :: fn(T) -> void
+  expr 74:51    IntrinsicCallExpr :: i64
+  expr 75:13    StringLitExpr  :: string
+  expr 75:24    IntrinsicCallExpr :: i64
+  expr 75:33    IdentExpr      :: Display
+  expr 75:45    IntrinsicCallExpr :: i64
+  expr 75:5     CallExpr       :: void
+  expr 75:5     IdentExpr      :: fn(T) -> void
+  expr 76:19    BinaryExpr     :: type
+  expr 76:26    IdentExpr      :: Point
+  expr 77:13    StringLitExpr  :: string
+  expr 77:29    IntrinsicCallExpr :: i64
+  expr 77:38    BinaryExpr     :: type
+  expr 77:38    IdentExpr      :: Point
+  expr 77:5     CallExpr       :: void
+  expr 77:5     IdentExpr      :: fn(T) -> void
+  expr 77:66    IntrinsicCallExpr :: i64
+  expr 77:75    IdentExpr      :: type
+  expr 78:14    IntrinsicCallExpr :: Field[]
+  expr 79:17    StringLitExpr  :: string
+  expr 79:20    FieldExpr      :: string
+  expr 79:20    IdentExpr      :: Field
+  expr 79:30    IntrinsicCallExpr :: i64
+  expr 79:39    FieldExpr      :: type
+  expr 79:39    IdentExpr      :: Field
+  expr 79:9     CallExpr       :: void
+  expr 79:9     IdentExpr      :: fn(T) -> void
+  expr 81:14    StructLitExpr  :: Every
+  expr 94:21    StringLitExpr  :: string
+  expr 97:20    DotVariantExpr :: Color
+  expr 98:19    DotVariantExpr :: Wide
+  expr 99:21    CallExpr       :: Meters
+  expr 99:21    IdentExpr      :: type

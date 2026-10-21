@@ -1,0 +1,110 @@
+// `@size_of` and `@align_of` of every kind of type, folded at compile time, and
+// `@size_of` read at run time through the `type` of each field `@fields` lists.
+// The VM and the native build print the same, and the C this snippet emits
+// declares each field at the width printed: a scalar at its own, a string as its
+// 4-byte atom id, a concrete reference as an 8-byte pointer, a union or a trait
+// value as a 16-byte box aligned to 8.
+
+module "snippet"
+
+import "std/io"
+
+Hour :: Int in 0..=23
+Color :: enum { Red, Green }
+Wide :: enum(u16) { A, B }
+Meters :: i64
+Point :: struct { x: i32 }
+Pair :: [i32, string]
+Either :: i32 | string
+MaybePoint :: Point | null
+
+Every :: struct {
+    f_i8:       i8
+    f_i16:      i16
+    f_i32:      i32
+    f_i64:      i64
+    f_u8:       u8
+    f_u16:      u16
+    f_u32:      u32
+    f_u64:      u64
+    f_f32:      f32
+    f_f64:      f64
+    f_bool:     bool
+    f_char:     char
+    f_string:   string
+    f_pointer:  CPointer | null
+    f_hour:     Hour
+    f_color:    Color
+    f_wide:     Wide
+    f_meters:   Meters
+    f_point:    Point
+    f_array:    i32[]
+    f_pair:     Pair
+    f_fn:       fn(i32) -> i32
+    f_either:   Either
+    f_maybe:    MaybePoint
+    f_display:  Display
+}
+
+main :: fn() -> i32 {
+    println("i8 ${@size_of(i8)}/${@align_of(i8)}")
+    println("i16 ${@size_of(i16)}/${@align_of(i16)}")
+    println("i32 ${@size_of(i32)}/${@align_of(i32)}")
+    println("i64 ${@size_of(i64)}/${@align_of(i64)}")
+    println("u8 ${@size_of(u8)}/${@align_of(u8)}")
+    println("u16 ${@size_of(u16)}/${@align_of(u16)}")
+    println("u32 ${@size_of(u32)}/${@align_of(u32)}")
+    println("u64 ${@size_of(u64)}/${@align_of(u64)}")
+    println("f32 ${@size_of(f32)}/${@align_of(f32)}")
+    println("f64 ${@size_of(f64)}/${@align_of(f64)}")
+    println("bool ${@size_of(bool)}/${@align_of(bool)}")
+    println("char ${@size_of(char)}/${@align_of(char)}")
+    println("string ${@size_of(string)}/${@align_of(string)}")
+    println("CPointer ${@size_of(CPointer)}/${@align_of(CPointer)}")
+    println("null ${@size_of(null)}/${@align_of(null)}")
+    println("void ${@size_of(void)}/${@align_of(void)}")
+    println("Hour ${@size_of(Hour)}/${@align_of(Hour)}")
+    println("Meters ${@size_of(Meters)}/${@align_of(Meters)}")
+    println("Color ${@size_of(Color)}/${@align_of(Color)}")
+    println("Wide ${@size_of(Wide)}/${@align_of(Wide)}")
+    println("Point ${@size_of(Point)}/${@align_of(Point)}")
+    println("i32[] ${@size_of(i32[])}/${@align_of(i32[])}")
+    println("Pair ${@size_of(Pair)}/${@align_of(Pair)}")
+    println("Either ${@size_of(Either)}/${@align_of(Either)}")
+    println("MaybePoint ${@size_of(MaybePoint)}/${@align_of(MaybePoint)}")
+    println("Display ${@size_of(Display)}/${@align_of(Display)}")
+    LocalMaybe :: null | Point
+    println("Point | null ${@size_of(Point | null)} LocalMaybe ${@size_of(LocalMaybe)}")
+    for f in @fields(Every) {
+        println("${f.name} ${@size_of(f.type)}")
+    }
+    every :: Every {
+        .f_i8 = 1,
+        .f_i16 = 2,
+        .f_i32 = 3,
+        .f_i64 = 4,
+        .f_u8 = 5,
+        .f_u16 = 6,
+        .f_u32 = 7,
+        .f_u64 = 8,
+        .f_f32 = 1.5,
+        .f_f64 = 2.5,
+        .f_bool = true,
+        .f_char = 'c',
+        .f_string = "s",
+        .f_pointer = null,
+        .f_hour = 9,
+        .f_color = .Green,
+        .f_wide = .B,
+        .f_meters = Meters(10),
+        .f_point = Point { .x = 11 },
+        .f_array = [12],
+        .f_pair = [13, "p"],
+        .f_fn = (n: i32) -> n + 1,
+        .f_either = 14,
+        .f_maybe = null,
+        .f_display = 15,
+    }
+    println("built ${every.f_i8} ${every.f_fn(every.f_point.x)}")
+    return 0
+}

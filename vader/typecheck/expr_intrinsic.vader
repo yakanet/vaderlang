@@ -31,9 +31,10 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
             match spec.args[i] {
                 .Value -> {
                     check_expr(e.args[i], null, typed, diags)
-                    // A value that names a type (`@size_of(i32)`) is recorded as
-                    // a `.Type` argument is, so the lowerer folds it statically.
-                    if is_type_expr(e.args[i], typed.resolved) {
+                    // A value that names a type (`@size_of(i32)`, `@size_of(null)`)
+                    // is recorded as a `.Type` argument is, so the lowerer folds it
+                    // statically.
+                    if is_type_operand(e.args[i], typed.resolved) {
                         scratch: Diagnostic[]: []
                         denoted :: type_from_expr(e.args[i], typed.resolved, scratch)
                         typed.type_expr_types[e.args[i].span.hash()] = denoted

@@ -1140,11 +1140,11 @@ check_integral :: fn(
     typed: TypedProgram,
     diags: Diagnostic[],
 ) -> Type {
-    // `T | U` (`|`) on two metatype values is the Layer 5b implicit
+    // `T | U` (`|`) on two types, `null` among them, is the Layer 5b implicit
     // union — return the metatype so callers can lift the binary
     // expr into an in-place type alias.
-    if e.op == .BitOr && is_metatype(left) && is_metatype(right) {
-        return left
+    if e.op == .BitOr && is_type_expr(e, typed.resolved) {
+        return TY_TYPE
     }
     if !is_integer(left) || !is_integer(right) {
         fb :: distinct_op_fallback(e, left, right, typed, diags, check_integral)
@@ -1431,8 +1431,6 @@ is_float :: fn(t: Type) -> bool {
 }
 
 is_numeric :: fn(t: Type) -> bool = is_integer(t) || is_float(t)
-
-is_metatype :: fn(t: Type) -> bool = t is TypeMetaType
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType                   { return true }

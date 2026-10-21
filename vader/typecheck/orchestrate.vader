@@ -1760,6 +1760,14 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     return true
 }
 
+/// Whether `sym` names a type : a declaration of one, or a const holding one
+/// (`Hour :: Int in 0..=23`, the integers `std/core` declares).
+///
+/// @param sym       the symbol a name resolved to.
+/// @param resolved  the module the name is read in.
+export names_a_type :: fn(sym: Symbol, resolved: ResolvedModule) -> bool =
+    is_type_kind(sym.kind) || resolved.alias_types[sym.id] !is null
+
 /// True when `e` is a TYPE expression — the trigger to promote a `Name :: <...>`
 /// const to a type alias / distinct newtype instead of a value binding. The one
 /// predicate behind every alias-registration site: `register_alias_const` +
@@ -1781,14 +1789,6 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
 /// type by that name (`namespace_member_types`). Those tables are filled after
 /// `register_aliases`; `settle_namespace_member_aliases` retries the consts left
 /// pending once they are.
-/// Whether `sym` names a type : a declaration of one, or a const holding one
-/// (`Hour :: Int in 0..=23`, the integers `std/core` declares).
-///
-/// @param sym       the symbol a name resolved to.
-/// @param resolved  the module the name is read in.
-export names_a_type :: fn(sym: Symbol, resolved: ResolvedModule) -> bool =
-    is_type_kind(sym.kind) || resolved.alias_types[sym.id] !is null
-
 is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     if e is AST.IdentExpr {
         if primitive_from_name(e.name) !is null {
@@ -1809,9 +1809,9 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
             return is_type_expr(e.left, resolved)
         }
         if e.op == .BitOr {
-            // Treat `T | U` chains as types.
-
-            return is_type_expr(e.left, resolved) && is_type_expr(e.right, resolved)
+            // Treat `T | U` chains as types, `null` among them : the literal
+            // spells the type there (`Point | null`), as it does in a type slot.
+            return is_type_operand(e.left, resolved) && is_type_operand(e.right, resolved)
         }
     }
     if e is AST.GenericInstExpr { return true }
@@ -1832,6 +1832,12 @@ is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
     }
     return false
 }
+
+// Whether `e` names a type as an operand of a `|` chain or a reflection
+// intrinsic's argument : a type expression, or the `null` literal, which spells
+// the type `null` there, as it does in a type slot.
+is_type_operand :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool =
+    e is AST.NullLitExpr || is_type_expr(e, resolved)
 
 /// Give every typed program the project-wide `trait_decls` (+ owner), so
 /// default-method dispatch from any body can find the trait declaration
