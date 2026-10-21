@@ -1312,7 +1312,7 @@ StructOffsets :: struct {
     /// Raw `vader_string_t` fields — the string GC marks them independently of
     /// the box-aliased Cheney walk.
     str_offsets: string[]
-    /// Nullable-ref slots that store a raw `void*`.
+    /// Fields holding a raw `void*` to a concrete object (`.Ref`).
     ref_offsets: string[]
 }
 
@@ -1343,7 +1343,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         // `vader_gc_scan_box`. Derive the bucket from `val_type_of_bc_type` (the
         // same predicate `c_type_for` uses) so the two can't drift: misfiling a
         // raw `void*` under `ptr_offsets` makes the collector read the pointer as
-        // a 24 B box, forwarding garbage / never updating the field → a stale ref
+        // a 16 B box, forwarding garbage / never updating the field → a stale ref
         // after a move (the `MutableMap` ekeys UAF). Only `string` primitives take
         // a `str_offsets` tracking slot ; other primitives carry no heap ref.
         if ftype is BcScalar {

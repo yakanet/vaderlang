@@ -339,9 +339,9 @@ coerce_operand :: fn(types: BcType[], value: CExpression, from: ValType, to: Val
     return value
 }
 
-/// `BcType` → C type. Heap shapes (struct, array, union, ref, fn)
-/// collapse to `vader_box_t` ; primitives delegate to
-/// `c_type_for_val_bare`.
+/// `BcType` → C type. A concrete heap shape (struct, array, fn) is a
+/// raw `void*`, a union or a ref a `vader_box_t` ; primitives delegate
+/// to `c_type_for_val_bare`.
 ///
 /// @param t  the bytecode type-table entry.
 /// @return   the C type spelling for slots of this type.
@@ -352,13 +352,11 @@ coerce_operand :: fn(types: BcType[], value: CExpression, from: ValType, to: Val
 // the same predicate — see `classify_struct_fields`).
 export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_bc_type(t))
 
-/// Stack-machine value class for a `BcType`. Every heap shape lands in
-/// `Ref` ; the value stack itself only ever carries `Ref` slots for
-/// these.
+/// Stack-machine value class for a `BcType`.
 ///
 /// @param t  the bytecode type-table entry.
 /// @return   the stack-machine value class : a `BcScalar`'s own, `Ref` for
-///           every heap shape.
+///           a concrete heap shape, `Any` for a union or a ref.
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcScalar -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).

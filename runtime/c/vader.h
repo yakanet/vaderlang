@@ -340,7 +340,7 @@ static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
 /* B1 (nullable-ref inline rep) helpers — used at fn signature boundaries
  * when a `T | null` union with T a single heap struct flows through. The
  * value passes as a raw `void*` (NULL = null variant, non-NULL = ref to
- * T) instead of a 24-byte `vader_box_t`. The two helpers below shift
+ * T) instead of a 16-byte `vader_box_t`. The two helpers below shift
  * between the wire form and the boxed form at the call boundary. */
 static inline vader_box_t vader_b1_to_box(void* p, uint32_t variant_tag) {
     return p == NULL ? vader_box_null() : vader_box_obj(variant_tag, p);
@@ -441,7 +441,7 @@ typedef enum {
     VADER_ARRAY_KIND_F64   = 10,
     VADER_ARRAY_KIND_CHAR  = 11,
     VADER_ARRAY_KIND_BOOL  = 12,
-    /* Raw-ref slots (T12): 8-byte `void*` per element instead of a 24-byte
+    /* Raw-ref slots (T12): 8-byte `void*` per element instead of a 16-byte
      * `vader_box_t`, for arrays whose element is ref-only (every value is a
      * header-bearing heap object — incl a union-of-refs like `Expr[]`). The
      * tag is recovered from each referent's `vader_obj_header_t.type_index` on
@@ -964,7 +964,7 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  *
  * The packed store trusts the STATIC element type of the call site. When the
  * buffer was really allocated boxed (an erased generic body, or a literal whose
- * element type was never resolved), writing 4 packed bytes into 24-byte slots
+ * element type was never resolved), writing 4 packed bytes into 16-byte slots
  * corrupts the array silently — no diagnostic, no trap, and only past the first
  * growth, which is what made two separate instances of this bug cost a
  * self-compile SIGSEGV each to find. Trapping here turns the whole family into
@@ -1226,9 +1226,8 @@ void vader_prof_dump(void);
  * heap kinds), and the byte offsets of `vader_box_t` (or other reference)
  * fields inside the object that the GC must scan and possibly forward. */
 typedef enum {
-    VADER_TYPE_KIND_NONE        = 0,   /* primitive / non-heap, or inline-variant struct
-                                          with empty / primitive payload (lives entirely
-                                          inside vader_box_t — the GC skips the slot). */
+    VADER_TYPE_KIND_NONE        = 0,   /* no heap object: a primitive, a union or a
+                                          ref. The GC skips a box carrying this tag. */
     VADER_TYPE_KIND_STRUCT      = 1,
     VADER_TYPE_KIND_ARRAY       = 2,   /* vader_array_t — single ref to its buf */
     VADER_TYPE_KIND_FN          = 3,
@@ -1250,10 +1249,10 @@ typedef struct {
      * answers at run time. Sits in padding, so it costs no space. */
     uint8_t             slot_size;
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
-    /* `T | null` fields stored as a raw `void*` (NULL = null variant, non-null
-     * = pointer to the T variant's vader_obj_header_t). Saves 16 B per field
-     * vs the equivalent vader_box_t slot. The GC scans these via
-     * `vader_gc_scan_raw` ; they may also be NULL, which the helper handles. */
+    /* Byte offsets of fields holding a raw `void*` to a concrete object (struct,
+     * array, tuple, fn): the `.Ref` class of `vader/c_emit/body.vader::
+     * val_type_of_bc_type`, scanned via `vader_gc_scan_raw`. A union, `T | null`
+     * included, is a `vader_box_t` field in `ptr_offsets`. */
     uint16_t            ref_count;
     const uint16_t*     ref_offsets;
 } vader_type_info_t;

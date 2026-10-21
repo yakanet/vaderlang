@@ -3251,7 +3251,7 @@ void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
     } else {
         /* The two arrays store their elements differently, so a memcpy would
          * write source-shaped slots at source-shaped strides into a buffer laid
-         * out for the destination's — 24-byte `vader_box_t`s into 8-byte raw-ref
+         * out for the destination's — 16-byte `vader_box_t`s into 8-byte raw-ref
          * slots, say, overrunning the buffer and leaving the reader to treat
          * boxes as pointers. It happens for real: a module const materialises
          * BOXED while a freshly allocated array of the same element type is
