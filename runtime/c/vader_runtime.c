@@ -3658,14 +3658,14 @@ typedef struct {
     size_t* arr_kind_bytes;
     size_t* arr_kind_count;
     size_t* arr_boxed_slots;
-    /* T12 measure-first (VADER_GC_PROFILE): slots of BOXED bufs whose every live
-     * slot is a ref-or-null (STRUCT/ARRAY/FN tag). Such a buf — incl a
-     * union-of-refs like Expr[]/Stmt[] — could become a raw 8-B void*[] (tag
-     * recovered from each object header via scan_raw); only a true Any[] mixing
-     * boxed primitives must stay 24-B boxed. This is the realistic array win. */
+    /* Slots of BOXED bufs whose every live slot holds a ref or null (a STRUCT,
+     * ARRAY or FN tag): a buf that could have been `VADER_ARRAY_KIND_REF`, its
+     * tags recovered from the object headers. An `Any[]` mixing boxed
+     * primitives is not counted. */
     size_t* arr_ref_slots;
-    /* Sum of ptr_count over live STRUCT objects — their boxed ref fields (24 B).
-     * Upper bound on the struct-field win (includes union fields that stay boxed). */
+    /* Sum of ptr_count over live STRUCT objects: their `vader_box_t` fields.
+     * Upper bound on what riding those fields as raw refs would reclaim, since
+     * a union holding a primitive has to stay boxed. */
     size_t* struct_ptr_slots;
     size_t* total;
 } vader_gc_prof_ctx_t;
@@ -3709,6 +3709,22 @@ static void vader_gc_prof_tally(char* scan, uint32_t type_index, void* vctx) {
     *c->total += bytes;
 }
 
+/* Name of an ARRAY_BUF element kind, in `vader_array_kind_t` order: a kind
+ * added there takes its name here. */
+static const char* vader_array_kind_name(int kind) {
+    static const char* names[] = {
+        [VADER_ARRAY_KIND_BOXED] = "BOXED", [VADER_ARRAY_KIND_U8]   = "U8",
+        [VADER_ARRAY_KIND_U16]   = "U16",   [VADER_ARRAY_KIND_U32]  = "U32",
+        [VADER_ARRAY_KIND_U64]   = "U64",   [VADER_ARRAY_KIND_I8]   = "I8",
+        [VADER_ARRAY_KIND_I16]   = "I16",   [VADER_ARRAY_KIND_I32]  = "I32",
+        [VADER_ARRAY_KIND_I64]   = "I64",   [VADER_ARRAY_KIND_F32]  = "F32",
+        [VADER_ARRAY_KIND_F64]   = "F64",   [VADER_ARRAY_KIND_CHAR] = "CHAR",
+        [VADER_ARRAY_KIND_BOOL]  = "BOOL",  [VADER_ARRAY_KIND_REF]  = "REF",
+    };
+    if (kind < 0 || kind >= (int) (sizeof names / sizeof names[0]) || names[kind] == NULL) return "?";
+    return names[kind];
+}
+
 /* Walk both arenas' from-spaces and tally objects bucketed by type_index.
  * Sort by total bytes, print top-20. Called via atexit when
  * VADER_GC_PROFILE is set, and inline from the OOM trap (abort() skips
@@ -3724,15 +3740,13 @@ void vader_gc_profile_dump(void) {
     if (tally == NULL) return;
     for (size_t i = 0; i < nbuckets; i++) tally[i].type_index = (uint32_t) i;
 
-    /* ARRAY_BUF element-kind breakdown : sizing the win of an 8 B ref array
-     * kind vs today's 24 B BOXED slots. `boxed_slots` × (24-8) is the upper
-     * bound on what de-erasing pure-ref / pure-ref-union arrays could reclaim
-     * (an over-count : BOXED also covers genuine `Any[]`, which can't shrink). */
+    /* ARRAY_BUF element-kind breakdown, and the boxed slots that could ride as
+     * raw refs. */
     size_t arr_kind_bytes[16] = { 0 };
     size_t arr_kind_count[16] = { 0 };
     size_t arr_boxed_slots = 0;
-    size_t arr_ref_slots = 0;      /* T12 : BOXED bufs that are all-refs (→ raw void*[]) */
-    size_t struct_ptr_slots = 0;   /* T12 : boxed ref fields across live structs */
+    size_t arr_ref_slots = 0;
+    size_t struct_ptr_slots = 0;
 
     /* Young: one contiguous from-space walk. Old: the non-moving slab's live
      * slots, by region. The BUFFER sentinel has no dedicated bucket — it falls
@@ -3791,39 +3805,25 @@ void vader_gc_profile_dump(void) {
     }
     free(tally);
 
-    /* ARRAY_BUF element-kind breakdown + Ref-kind ceiling. `kind_names` mirrors
-     * the `vader_array_kind_t` enum (currently 0..12) — keep it in sync and grow
-     * the array when a new kind lands (e.g. a future REF=13). */
-    static const char* kind_names[13] = {
-        "BOXED", "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64",
-        "F32", "F64", "CHAR", "BOOL",
-    };
     fprintf(stderr, "ARRAY_BUF by element_kind :\n");
     for (int k = 0; k < 16; k++) {
         if (arr_kind_count[k] == 0u) continue;
         fprintf(stderr, "  kind %-6s : %8.2f MB  (%llu bufs)\n",
-                (k < 13 ? kind_names[k] : "?"),
+                vader_array_kind_name(k),
                 (double) arr_kind_bytes[k] / (1024.0 * 1024.0),
                 (unsigned long long) arr_kind_count[k]);
     }
-    fprintf(stderr,
-        "  BOXED slots = %llu  →  max Ref-kind saving (24→8 B/slot) = %.2f MB "
-        "(upper bound — includes un-shrinkable Any[])\n",
-        (unsigned long long) arr_boxed_slots,
-        (double) (arr_boxed_slots * 16u) / (1024.0 * 1024.0));
+    fprintf(stderr, "  BOXED slots = %llu\n", (unsigned long long) arr_boxed_slots);
 
-    /* T12 measure-first — realistic reclaimable (24→8 B/slot, saving 16 B each).
-     * Array: only the all-refs bufs (a raw void*[] recovers each tag from the
-     * object header; a true Any[] mixing boxed primitives is excluded). Struct:
-     * boxed ref fields across live structs (upper bound — includes union fields
-     * that must stay boxed). Both target the live-set → GC → compile-time lever
-     * and the arr/str runtime gap vs Go. */
-    double arr_real_mb    = (double) (arr_ref_slots    * 16u) / (1024.0 * 1024.0);
-    double struct_real_mb = (double) (struct_ptr_slots * 16u) / (1024.0 * 1024.0);
-    fprintf(stderr, "T12 reclaimable (realistic, 16 B/slot) :\n");
+    /* A boxed slot holding a ref would shrink to a raw `void*`. */
+    const size_t saving = sizeof(vader_box_t) - sizeof(void*);
+
+    double arr_real_mb    = (double) (arr_ref_slots    * saving) / (1024.0 * 1024.0);
+    double struct_real_mb = (double) (struct_ptr_slots * saving) / (1024.0 * 1024.0);
+    fprintf(stderr, "reclaimable as raw refs (%zu B/slot) :\n", saving);
     fprintf(stderr, "  array all-ref slots = %llu  →  %.2f MB (Any[] excluded)\n",
             (unsigned long long) arr_ref_slots, arr_real_mb);
-    fprintf(stderr, "  struct ref-fields   = %llu  →  %.2f MB (upper bound, incl union fields)\n",
+    fprintf(stderr, "  struct box fields   = %llu  →  %.2f MB (upper bound, a union of primitives stays boxed)\n",
             (unsigned long long) struct_ptr_slots, struct_real_mb);
     fprintf(stderr, "  combined            →  %.2f MB\n", arr_real_mb + struct_real_mb);
 }
