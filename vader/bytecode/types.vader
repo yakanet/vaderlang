@@ -21,6 +21,7 @@
 module "vader/bytecode"
 
 import "std/string"
+import "vader/types"
 
 export ValType :: enum(u8) {
     // Signed integers
@@ -581,33 +582,53 @@ export BcFn :: struct {
 // Helpers
 // =========================================================================
 
-/// Byte size of a `ValType` : a scalar class its native width, a string its
-/// interned atom id (`vader_string_t`), every reference shape the box-slot width
-/// (16 B). Shared between `size_of_bc_type` and any caller that already narrowed
-/// to a primitive class.
+/// Byte size of a `ValType` : a primitive class the width `vader/types` gives its
+/// type (`primitive_size`, the one table of them), computed when the compiler is
+/// built so that a read is a literal, every checked integer op of the VM asking
+/// it ; a reference shape its slot's.
 /// @param v  the value class.
 /// @return   the byte size (`0` for `Void` / `Null` — those never
 ///           reach a struct field or signature slot).
 export size_of_val_type :: fn(v: ValType) -> i32 = match v {
-    .I8 -> 1
-    .U8 -> 1
-    .Bool -> 1
-    .I16 -> 2
-    .U16 -> 2
-    .I32 -> 4
-    .U32 -> 4
-    .F32 -> 4
-    .Char -> 4
-    .I64 -> 8
-    .U64 -> 8
-    .F64 -> 8
-    .String -> 4
-    .Void -> 0
-    .Null -> 0
-    .Pointer -> 8
-    .Ref -> 16
-    .Any -> 16
+    .I8      -> I8_BYTES
+    .I16     -> I16_BYTES
+    .I32     -> I32_BYTES
+    .I64     -> I64_BYTES
+    .U8      -> U8_BYTES
+    .U16     -> U16_BYTES
+    .U32     -> U32_BYTES
+    .U64     -> U64_BYTES
+    .F32     -> F32_BYTES
+    .F64     -> F64_BYTES
+    .Bool    -> BOOL_BYTES
+    .Char    -> CHAR_BYTES
+    .String  -> STRING_BYTES
+    .Null    -> NULL_BYTES
+    .Void    -> VOID_BYTES
+    .Pointer -> POINTER_BYTES
+    .Ref     -> i32(REF_SLOT_BYTES)
+    .Any     -> i32(BOX_SLOT_BYTES)
 }
+
+// Each primitive class's width, folded from `vader/types` when the compiler is
+// built : the widths stay written in one table, and `size_of_val_type` reads
+// literals.
+I8_BYTES: i32: @comptime { return i32(primitive_size("i8")) }
+I16_BYTES: i32: @comptime { return i32(primitive_size("i16")) }
+I32_BYTES: i32: @comptime { return i32(primitive_size("i32")) }
+I64_BYTES: i32: @comptime { return i32(primitive_size("i64")) }
+U8_BYTES: i32: @comptime { return i32(primitive_size("u8")) }
+U16_BYTES: i32: @comptime { return i32(primitive_size("u16")) }
+U32_BYTES: i32: @comptime { return i32(primitive_size("u32")) }
+U64_BYTES: i32: @comptime { return i32(primitive_size("u64")) }
+F32_BYTES: i32: @comptime { return i32(primitive_size("f32")) }
+F64_BYTES: i32: @comptime { return i32(primitive_size("f64")) }
+BOOL_BYTES: i32: @comptime { return i32(primitive_size("bool")) }
+CHAR_BYTES: i32: @comptime { return i32(primitive_size("char")) }
+STRING_BYTES: i32: @comptime { return i32(primitive_size("string")) }
+NULL_BYTES: i32: @comptime { return i32(primitive_size("null")) }
+VOID_BYTES: i32: @comptime { return i32(primitive_size("void")) }
+POINTER_BYTES: i32: @comptime { return i32(primitive_size("CPointer")) }
 
 /// Byte size of the slot that carries a `BcType` — primitives use their native
 /// widths, a concrete reference (struct, array, fn value) is a bare pointer, and
@@ -617,12 +638,9 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
 /// @param t  the bytecode type-table entry.
 /// @return   the byte size in the runtime layout.
 export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
-    is BcScalar -> size_of_val_type(t.val)
-    is BcStruct -> 8
-    is BcArray -> 8
-    is BcFn -> 8
-    is BcUnion -> 16
-    is BcRef -> 16
+    is BcScalar                    -> size_of_val_type(t.val)
+    is BcStruct | BcArray | BcFn   -> i32(REF_SLOT_BYTES)
+    is BcUnion | BcRef             -> i32(BOX_SLOT_BYTES)
 }
 
 /// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
@@ -752,6 +770,21 @@ test_size_of_a_scalar_is_its_width :: fn() -> void {
 @test
 test_size_of_a_string_is_its_atom_id :: fn() -> void {
     assert_eq(size_of_bc_type(BcScalar { .val = .String }), 4)
+}
+
+@test
+test_size_of_a_value_class_is_its_type_width :: fn() -> void {
+    assert_eq(size_of_val_type(.U16), 2)
+    assert_eq(size_of_val_type(.F32), 4)
+    assert_eq(size_of_val_type(.Bool), 1)
+    assert_eq(size_of_val_type(.Void), 0)
+}
+
+@test
+test_size_of_a_reference_class_is_its_slot :: fn() -> void {
+    assert_eq(size_of_val_type(.Pointer), 8)
+    assert_eq(size_of_val_type(.Ref), 8)
+    assert_eq(size_of_val_type(.Any), 16)
 }
 
 @test
