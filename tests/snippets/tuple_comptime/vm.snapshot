@@ -1,5 +1,7 @@
 # stdout
 dim 10x20
 origin (0.0, 0.0) = origin
+span 5000000000 over 3
+reach 5000000000 in 4
 # exit
 10

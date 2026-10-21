@@ -665,6 +665,8 @@ const C_PARITY = new Set<string>([
   "match_binding_capture",
   // A typed module constant runs the `Into` its value needs.
   "typed_constant_converts",
+  // A baked tuple's elements keep the width of their position.
+  "tuple_comptime",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

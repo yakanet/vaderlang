@@ -102,6 +102,95 @@
         ]
       },
       {
+        "kind": "ConstDecl",
+        "name": "FAR",
+        "visibility": "private",
+        "type": {
+          "kind": "IdentExpr",
+          "name": "i64"
+        },
+        "value": {
+          "kind": "IntLitExpr",
+          "value": "5000000000n"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "SPAN",
+        "visibility": "private",
+        "type": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
+        "value": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "FAR"
+            },
+            {
+              "kind": "IntLitExpr",
+              "value": "3n"
+            }
+          ]
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "Reach",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "i64"
+            },
+            {
+              "kind": "IdentExpr",
+              "name": "i32"
+            }
+          ]
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "REACH",
+        "visibility": "private",
+        "type": {
+          "kind": "IdentExpr",
+          "name": "Reach"
+        },
+        "value": {
+          "kind": "SeqLitExpr",
+          "elements": [
+            {
+              "kind": "IdentExpr",
+              "name": "FAR"
+            },
+            {
+              "kind": "IntLitExpr",
+              "value": "4n"
+            }
+          ]
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
@@ -227,6 +316,124 @@
                             },
                             "field": "2",
                             "isNumeric": true
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "span "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "SPAN"
+                            },
+                            "field": "0",
+                            "isNumeric": true
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " over "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "SPAN"
+                            },
+                            "field": "1",
+                            "isNumeric": true
+                          }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "TupleBinding",
+                "elements": [
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "far"
+                  },
+                  {
+                    "kind": "SimpleBinding",
+                    "name": "steps"
+                  }
+                ]
+              },
+              "type": null,
+              "value": {
+                "kind": "IdentExpr",
+                "name": "REACH"
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "reach "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "far"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " in "
+                        },
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "steps"
                           }
                         }
                       ]

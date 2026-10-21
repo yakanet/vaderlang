@@ -445,12 +445,13 @@ comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -
             return LoweredArrayLit { .span = span, .type = type_hint, .elements = elements }
         }
         is StructValue -> {
-            // `sv.fields.keys()` iterates in MutableMap hash-bucket
-            // order, which doesn't match the field declaration order
-            // tuples / structs rely on for dump parity. Sort the
-            // names alphabetically — for tuples (`_0`, `_1`, `_2`)
-            // that matches the positional order ; for named structs
-            // the same ordering keeps the dump stable.
+            tuple :: tuple_backing(type_hint)
+            if tuple != null {
+                return baked_tuple(v, tuple, type_hint, span)
+            }
+            // A tuple under no tuple type (a union holding one, an unknown slot).
+            // `sv.fields.keys()` iterates in MutableMap hash-bucket order, so the
+            // names are sorted : `_0`, `_1`, `_2` come out in position order.
             sorted_names :: sort(v.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))
             fields: LoweredStructLitField[]: []
             for name in sorted_names {
@@ -468,11 +469,30 @@ comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -
     }
 }
 
-// The type a baked number takes: the slot's, unless the slot is a union — then its
-// own width when that is a member, else the member a literal of its family settles
-// on there (the evaluator keeps a free literal at its default width: `200` in a
-// `u8 | string` is baked an `i32`).
+// A baked tuple of type `type`, backed by `tuple`, its elements in position order,
+// each at the type of its slot.
+baked_tuple :: fn(v: StructValue, tuple: TupleType, type: Type, span: Span) -> LoweredExpr {
+    fields: LoweredStructLitField[]: []
+    for i in 0..<tuple.elements.len() {
+        name :: "_${i}"
+        value :: v.fields[name] ?? continue
+        fields.push(LoweredStructLitField {
+            .name = name,
+            .value = comptime_value_to_lowered(value, tuple.elements[i], span),
+        })
+    }
+    return LoweredStructLit { .span = span, .type = type, .fields = fields }
+}
+
+// The type a baked number takes: its own width where no slot names one, the
+// slot's otherwise, unless the slot is a union — then its own width when that is
+// a member, else the member a literal of its family settles on there (the
+// evaluator keeps a free literal at its default width: `200` in a `u8 | string`
+// is baked an `i32`).
 scalar_type :: fn(type_name: string, family: Type, hint: Type) -> Type {
+    if hint is UnresolvedType {
+        return mk_primitive(type_name)
+    }
     if hint !is UnionType {
         return hint
     }
@@ -486,13 +506,12 @@ scalar_type :: fn(type_name: string, family: Type, hint: Type) -> Type {
     return settled
 }
 
-// Element type of an array, or `unresolved` when `t` isn't a concrete array
-// (an un-hinted comptime array literal hits this with a `?` hint — the
-// elements then resolve from their own values). Single-case `if`, not a
-// `match` with a `_ ->` degraded arm.
+// Element type of an array, a distinct one included, or `unresolved` when `t`
+// isn't one (an un-hinted comptime array literal hits this with a `?` hint — the
+// elements then resolve from their own values).
 array_element_type :: fn(t: Type) -> Type {
-    if t is ArrayType { return t.element }
-    return TY_UNRESOLVED
+    array :: array_backing(t) ?? return TY_UNRESOLVED
+    return array.element
 }
 
 is_scalar_comptime :: fn(v: ComptimeValue) -> bool {

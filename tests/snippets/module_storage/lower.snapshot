@@ -27,7 +27,7 @@
   snippet.MAX: i32: 42  // snippet$MAX
   snippet.GREETING: string: "hello"  // snippet$GREETING
   snippet.MODE: Mode: 0  // snippet$MODE
-  snippet.PAIR: [i32, string]: [7 :?, "seven"] :[i32, string]  // snippet$PAIR
+  snippet.PAIR: [i32, string]: [7, "seven"] :[i32, string]  // snippet$PAIR
   snippet.counts :: fn() -> i32[] {  // snippet$counts
       if @global(0) == 2 {
           return @global(1)
@@ -110,10 +110,10 @@
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>({
-          __p_8: string = ([7 :?, "seven"] :[i32, string])._1
+          __p_8: string = ([7, "seven"] :[i32, string])._1
           __buf_9: Buffer = std.core.new_byte_buffer(i64(20) +% std.core.byte_len(__p_8))
           __off_10: i64 = 0
-          __off_10 = std.core.write_int(__buf_9, __off_10, ([7 :?, "seven"] :[i32, string])._0)
+          __off_10 = std.core.write_int(__buf_9, __off_10, ([7, "seven"] :[i32, string])._0)
           __off_10 = std.core.write_string_at(__buf_9, __off_10, __p_8)
           std.core.finish_buffer(__buf_9, __off_10)
       } :string)
