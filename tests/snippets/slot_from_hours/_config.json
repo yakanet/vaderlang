@@ -1,5 +1,5 @@
 {
   "native": {
-    "skip": "ends on `unreachable`: native prints its reason, which the `.virt` drops by design, and aborts (134) where the VM exits 1"
+    "skip": "ends on `unreachable`: native prints its reason, which the `.virt` drops by design"
   }
 }

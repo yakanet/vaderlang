@@ -1,6 +1,6 @@
 # stdout
 7
 # stderr
-vader vm: reached unreachable: 
+vader: trap — reached unreachable: 
 # exit
-1
+134

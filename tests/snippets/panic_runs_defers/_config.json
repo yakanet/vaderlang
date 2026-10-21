@@ -1,5 +1,0 @@
-{
-  "native": {
-    "skip": "ends on a panic: the VM prints `vader vm: panic — <message>` and exits 1, native prints `vader: panic — <message>` and aborts (134)"
-  }
-}

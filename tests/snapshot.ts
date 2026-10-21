@@ -176,12 +176,30 @@ export function errMsg(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
+/** A run's output as a snapshot records it. A run stopped by a trap or a panic
+ *  reads the same on both backends: the VM's `vader vm: <message>`, a trap's with
+ *  ` at pc=N`, takes native's wording (`asNativeStop`), and the exit is 134, where
+ *  the VM exits 1 and native aborts (134, 9 on Windows). */
 export function formatRun(stdout: string, stderr: string, exit: number): string {
+  const shared = asNativeStop(stderr);
   const parts: string[] = [];
   if (stdout.length > 0) parts.push("# stdout\n" + stdout);
-  if (stderr.length > 0) parts.push("# stderr\n" + stderr);
-  parts.push(`# exit\n${exit}\n`);
+  if (shared.length > 0) parts.push("# stderr\n" + shared);
+  parts.push(`# exit\n${STOP_LINE.test(shared) ? STOPPED_EXIT : exit}\n`);
   return parts.join("");
+}
+
+// The line a run stopped by a trap or a panic ends on, as native prints it.
+const STOP_LINE = /^vader: (?:trap|panic) — /m;
+
+// The exit such a run records : SIGABRT's, on POSIX.
+const STOPPED_EXIT = 134;
+
+// `stderr` with the VM's stop line in native's wording: `vader vm: panic — m` is
+// `vader: panic — m`, any other `vader vm: m[ at pc=N]` a trap, `vader: trap — m`.
+function asNativeStop(stderr: string): string {
+  return stderr.replace(/^vader vm: (.*?)(?: at pc=\d+)?$/gm, (_line, message: string) =>
+    message.startsWith("panic — ") ? `vader: ${message}` : `vader: trap — ${message}`);
 }
 
 export function listSnippets(snippetsDir: string): Scenario[] {
@@ -333,7 +351,7 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
   return stdout;
 }
 
-// A vader panic prints "vader: panic — …" to stderr, then abort()s. The abort's
+// A vader trap or panic prints its `STOP_LINE` to stderr, then abort()s. The abort's
 // OS exit code is NOT portable — POSIX reports 134 (128 + SIGABRT), the Windows
 // CI 9 — so a snapshot can't bake a single number. Identify the abort by
 // its stderr signature (printed before abort() on every platform), or by a
@@ -342,6 +360,6 @@ async function runVaderDump(stage: string, entryPath: string, modules?: readonly
 // ICE) matches on every OS. A clean non-zero exit (a diagnostic failure) keeps
 // its real code.
 function canonicalExit(exit: number, stderr: string): number {
-  if (exit !== 0 && (exit >= 128 || stderr.includes("vader: panic"))) return 134;
+  if (exit !== 0 && (exit >= 128 || STOP_LINE.test(stderr))) return STOPPED_EXIT;
   return exit;
 }

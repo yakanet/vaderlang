@@ -1,4 +1,4 @@
 # stderr
-vader vm: i32.div by zero at pc=2
+vader: trap — i32.div by zero
 # exit
-1
+134

@@ -4,6 +4,6 @@ inner cleanup
 middle cleanup
 outer cleanup
 # stderr
-vader vm: i32.div by zero at pc=14
+vader: trap — i32.div by zero
 # exit
-1
+134

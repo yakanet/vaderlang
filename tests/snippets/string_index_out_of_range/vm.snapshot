@@ -1,4 +1,4 @@
 # stderr
-vader vm: byte index out of bounds
+vader: trap — byte index out of bounds
 # exit
-1
+134
