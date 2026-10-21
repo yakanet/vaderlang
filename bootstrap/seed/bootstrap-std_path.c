@@ -32,7 +32,7 @@ vader_string_t std_path_parent(vader_string_t l0) {
         t0 = vader_host_std_core_byte_slice(l1, INT64_C(0), l2);
         return t0;
     }
-    return 376u;
+    return 384u;
 }
 
 vader_string_t std_path_to_path(vader_string_t l0) {
@@ -49,6 +49,6 @@ vader_string_t std_path_to_posix(vader_string_t l0) {
     };
     vader_gc_top = &gc_frame;
     l1 = (void*) &vader_fn_static___lambda_std_path_0;
-    t0 = std_string_replace_chars_where(l0, l1, 376u);
+    t0 = std_string_replace_chars_where(l0, l1, 384u);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

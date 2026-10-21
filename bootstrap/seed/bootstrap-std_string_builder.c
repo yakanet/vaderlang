@@ -65,7 +65,7 @@ void std_string_builder_append(void* l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(287u, l1));
+    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(288u, l1));
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -82,26 +82,6 @@ void std_string_builder_append_char(void* l0, uint32_t l1) {
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     t0 = std_core_utf8_encode(l1);
     l3 = vader_host_std_core_bytes_to_string(t0);
-    vader_array_push((vader_array_t*) l2, vader_box_string(287u, l3));
-    { vader_gc_top = gc_frame.prev; return; }
-}
-
-void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2) {
-    vader_string_t l3 = 0;
-    int32_t l4;
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_string_t* gc_atom_roots[1] = { &l3 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
-    t0 = std_core_utf8_encode(l1);
-    l3 = vader_host_std_core_bytes_to_string(t0);
-    l4 = INT32_C(0);
-    while ((l4 < l2)) {
-        vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(287u, l3));
-        l4 = (l4 + INT32_C(1));
-    }
+    vader_array_push((vader_array_t*) l2, vader_box_string(288u, l3));
     { vader_gc_top = gc_frame.prev; return; }
 }
