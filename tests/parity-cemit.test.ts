@@ -676,6 +676,8 @@ const C_PARITY = new Set<string>([
   "async_generic_and_members",
   // An empty array takes the type of the slot it flows into.
   "empty_array_passed_to_parameter",
+  // A type parameter named `T` converts through its own bound.
+  "into_bound_on_parameter_named_t",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

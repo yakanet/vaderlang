@@ -1,0 +1,30 @@
+// A type parameter offers what its bounds offer, whatever its name: `T` bounded by
+// `Into<Label>` converts through `Label`, as `U` does, and is not taken by the
+// core impl written over another parameter named `T`
+// (`T implements<T: Display> Into<string>`).
+
+module "snippet"
+
+import "std/io"
+
+Label :: struct {
+    text: string
+}
+
+Meter :: struct {
+    value: i32
+}
+
+Meter implements Into<Label> {
+    into :: fn(self) -> Label = Label { .text = "${self.value} m" }
+}
+
+label_t :: fn<T: Into<Label>>(x: T) -> Label = x.into()
+
+label_u :: fn<U: Into<Label>>(x: U) -> Label = x.into()
+
+main :: fn() -> i32 {
+    println(label_t(Meter { .value = 4 }).text)
+    println(label_u(Meter { .value = 5 }).text)
+    return 0
+}

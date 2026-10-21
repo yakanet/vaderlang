@@ -1,0 +1,370 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Label",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "text",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "string"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "StructDecl",
+        "name": "Meter",
+        "visibility": "private",
+        "typeParams": [],
+        "fields": [
+          {
+            "name": "value",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "i32"
+            },
+            "visibility": "public",
+            "default": null
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "ImplDecl",
+        "typeParams": [],
+        "forType": {
+          "kind": "IdentExpr",
+          "name": "Meter"
+        },
+        "traitName": "Into",
+        "traitArgs": [
+          {
+            "kind": "IdentExpr",
+            "name": "Label"
+          }
+        ],
+        "members": [
+          {
+            "kind": "FnDecl",
+            "name": "into",
+            "visibility": "private",
+            "typeParams": [],
+            "params": [
+              {
+                "name": "self",
+                "type": null,
+                "defaultValue": null,
+                "variadic": false
+              }
+            ],
+            "returnType": {
+              "kind": "IdentExpr",
+              "name": "Label"
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "StructLitExpr",
+                "typeName": {
+                  "kind": "IdentExpr",
+                  "name": "Label"
+                },
+                "items": [
+                  {
+                    "kind": "field",
+                    "name": "text",
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "self"
+                            },
+                            "field": "value"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": " m"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "decorators": [],
+            "isExpressionBodied": true
+          }
+        ],
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "label_t",
+        "visibility": "private",
+        "typeParams": [
+          {
+            "name": "T",
+            "bound": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Into"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Label"
+                }
+              ]
+            },
+            "isComptimeValue": false
+          }
+        ],
+        "params": [
+          {
+            "name": "x",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "T"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "Label"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "x"
+              },
+              "field": "into"
+            },
+            "args": []
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "label_u",
+        "visibility": "private",
+        "typeParams": [
+          {
+            "name": "U",
+            "bound": {
+              "kind": "GenericInstExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "Into"
+              },
+              "typeArgs": [
+                {
+                  "kind": "IdentExpr",
+                  "name": "Label"
+                }
+              ]
+            },
+            "isComptimeValue": false
+          }
+        ],
+        "params": [
+          {
+            "name": "x",
+            "type": {
+              "kind": "IdentExpr",
+              "name": "U"
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "Label"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "CallExpr",
+            "callee": {
+              "kind": "FieldExpr",
+              "target": {
+                "kind": "IdentExpr",
+                "name": "x"
+              },
+              "field": "into"
+            },
+            "args": []
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "label_t"
+                        },
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "StructLitExpr",
+                              "typeName": {
+                                "kind": "IdentExpr",
+                                "name": "Meter"
+                              },
+                              "items": [
+                                {
+                                  "kind": "field",
+                                  "name": "value",
+                                  "value": {
+                                    "kind": "IntLitExpr",
+                                    "value": "4n"
+                                  }
+                                }
+                              ]
+                            },
+                            "spread": false
+                          }
+                        ]
+                      },
+                      "field": "text"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "FieldExpr",
+                      "target": {
+                        "kind": "CallExpr",
+                        "callee": {
+                          "kind": "IdentExpr",
+                          "name": "label_u"
+                        },
+                        "args": [
+                          {
+                            "name": null,
+                            "value": {
+                              "kind": "StructLitExpr",
+                              "typeName": {
+                                "kind": "IdentExpr",
+                                "name": "Meter"
+                              },
+                              "items": [
+                                {
+                                  "kind": "field",
+                                  "name": "value",
+                                  "value": {
+                                    "kind": "IntLitExpr",
+                                    "value": "5n"
+                                  }
+                                }
+                              ]
+                            },
+                            "spread": false
+                          }
+                        ]
+                      },
+                      "field": "text"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

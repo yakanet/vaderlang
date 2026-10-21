@@ -461,7 +461,19 @@ export default_free_members :: fn(t: Type) -> Type {
 /// Dispatch key for trait-impl side-tables (`struct_implemented_traits`,
 /// `struct_trait_args`). Defaults Free* first so a `7` literal keys the
 /// same as `i32` for impls like `i32 implements Doubler`.
-dispatch_key :: fn(t: Type) -> string = impl_base_key(default_if_free(t))
+///
+/// A type parameter keys no impl : what it offers comes from its bounds. Keyed by
+/// its name, a `T` would take the impl written over another parameter of that
+/// name (`T implements<T: Display> Into<string>`), whatever its own bounds.
+dispatch_key :: fn(t: Type) -> string {
+    if t is TypeParamType {
+        return NO_DISPATCH_KEY
+    }
+    return impl_base_key(default_if_free(t))
+}
+
+// The key of a receiver no impl is written for : no type prints as it.
+NO_DISPATCH_KEY :: "<type parameter>"
 
 /// Whether `t` is a tuple, a fn or a union : a target keyed by its shape, having no
 /// declaration of its own.

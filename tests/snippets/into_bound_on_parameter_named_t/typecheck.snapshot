@@ -1,0 +1,30 @@
+# Typecheck
+
+## tests/snippets/into_bound_on_parameter_named_t
+  StructDecl     Label                :: Label
+  FnDecl         label_t              :: fn(T) -> Label
+  FnDecl         label_u              :: fn(U) -> Label
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Meter                :: Meter
+  expr 19:33    StructLitExpr  :: Label
+  expr 19:49    StringLitExpr  :: string
+  expr 19:52    FieldExpr      :: i32
+  expr 19:52    IdentExpr      :: Meter
+  expr 22:48    CallExpr       :: Label
+  expr 22:48    FieldExpr      :: fn() -> Label
+  expr 22:48    IdentExpr      :: T
+  expr 24:48    CallExpr       :: Label
+  expr 24:48    FieldExpr      :: fn() -> Label
+  expr 24:48    IdentExpr      :: U
+  expr 27:13    CallExpr       :: Label
+  expr 27:13    FieldExpr      :: string
+  expr 27:13    IdentExpr      :: fn(T) -> Label
+  expr 27:21    StructLitExpr  :: Meter
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:13    CallExpr       :: Label
+  expr 28:13    FieldExpr      :: string
+  expr 28:13    IdentExpr      :: fn(U) -> Label
+  expr 28:21    StructLitExpr  :: Meter
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void
