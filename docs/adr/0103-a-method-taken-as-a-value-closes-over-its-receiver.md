@@ -52,5 +52,5 @@ Three questions had to be settled:
   check (T3104) follows a generic one like a call.
 - A static member is still called, never taken (T3093): it has no receiver to
   close over.
-- A union's member is not taken as a value yet: the union's common fields keep the
-  name outside a call.
+- A union's trait member is taken as a value too, dispatched on the tag. A common
+  field of its name comes first, as a struct's field does (SPEC § UFCS).

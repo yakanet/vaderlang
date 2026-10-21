@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/union_field_before_ufcs
+  StructDecl     Circle               :: Circle
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name                 :: fn(Circle | Square) -> string
+  StructDecl     Pass                 :: Pass
+  StructDecl     Pick                 :: Pick
+  FnDecl         pick                 :: fn(Pass | Pick) -> string
+  StructDecl     Square               :: Square
+  expr 11:44    StringLitExpr  :: string
+  expr 16:40    StringLitExpr  :: string
+  expr 19:25    StructLitExpr  :: Square
+  expr 19:42    StringLitExpr  :: string
+  expr 20:13    StringLitExpr  :: string
+  expr 20:27    FieldExpr      :: string
+  expr 20:27    IdentExpr      :: Circle | Square
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:24    CallExpr       :: string
+  expr 21:24    FieldExpr      :: fn() -> string
+  expr 21:24    IdentExpr      :: Circle | Square
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 22:21    StructLitExpr  :: Pass
+  expr 22:36    LambdaExpr     :: fn() -> string
+  expr 22:42    StringLitExpr  :: string
+  expr 23:13    StringLitExpr  :: string
+  expr 23:27    CallExpr       :: string
+  expr 23:27    FieldExpr      :: fn() -> string
+  expr 23:27    IdentExpr      :: Pass | Pick
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void

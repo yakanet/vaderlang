@@ -3,8 +3,8 @@
 // Rewrites a free-function call into UFCS method syntax, promoting the first
 // positional argument to the receiver. `x.f(…)` resolves to `f(x, …)`, and `f`
 // is in scope since the call compiles, unless `x`'s struct declares a field `f`
-// holding a function, which `x.f(…)` calls instead: the action holds no types
-// to see it.
+// holding a function, or every variant of `x`'s union holds one, which `x.f(…)`
+// calls instead: the action holds no types to see it.
 //
 //   dbl(n)        →  n.dbl()
 //   max(a, b)     →  a.max(b)

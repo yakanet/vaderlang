@@ -1,5 +1,6 @@
 # stdout
 trait value P(3)
 bound P(4) 5
+union L(u)
 # exit
 0

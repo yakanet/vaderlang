@@ -1,6 +1,6 @@
 // A member taken as a value on a receiver dispatching through its trait : a trait
-// value's goes through the vtable, a bounded `T`'s through the impl each instance
-// implements.
+// value's and a union's go through the vtable, a bounded `T`'s through the impl each
+// instance implements.
 
 module "snippet"
 
@@ -10,6 +10,12 @@ Point :: struct { x: i32 }
 
 Point implements Display {
     to_string :: fn(self) -> string = "P(${self.x})"
+}
+
+Label :: struct { text: string }
+
+Label implements Display {
+    to_string :: fn(self) -> string = "L(${self.text})"
 }
 
 shown :: fn(d: Display) -> fn() -> string = d.to_string
@@ -22,5 +28,8 @@ rendered :: fn<T: Display>(t: T) -> string {
 main :: fn() -> i32 {
     println("trait value ${shown(Point { .x = 3 })()}")
     println("bound ${rendered(Point { .x = 4 })} ${rendered(5)}")
+    either: Point | Label: Label { .text = "u" }
+    shown_either :: either.to_string
+    println("union ${shown_either()}")
     return 0
 }

@@ -1,0 +1,25 @@
+// A union's common field comes before a fn of its name, as a struct's does; called,
+// a common field that holds no function leaves the name to the fns (`u.name()`).
+
+module "snippet"
+
+import "std/io"
+
+Circle :: struct { name: string, r: i32 }
+Square :: struct { name: string, s: i32 }
+
+name :: fn(u: Circle | Square) -> string = "free fn"
+
+Pick :: struct { pick: fn() -> string, w: i32 }
+Pass :: struct { pick: fn() -> string, h: i32 }
+
+pick :: fn(u: Pick | Pass) -> string = "free pick"
+
+main :: fn() -> i32 {
+    u: Circle | Square: Square { .name = "sq", .s = 4 }
+    println("field read ${u.name}")
+    println("fn call ${u.name()}")
+    v: Pick | Pass: Pass { .pick = () -> "field pick", .h = 1 }
+    println("field call ${v.pick()}")
+    return 0
+}

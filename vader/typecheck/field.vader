@@ -3,7 +3,8 @@
 // `infer_field` recursively checks the target, then runs a priority-ordered
 // chain of `try_*` dispatchers and returns the first non-null result :
 //   - namespace-import field access (`mod.foo`),
-//   - a struct field of that name, before any method (SPEC § UFCS),
+//   - a struct field, or a union's common field, of that name, before any method
+//     (SPEC § UFCS),
 //   - array methods ; impl-method / free-fn / trait-method UFCS dispatch ;
 //     bounded-TypeParam trait dispatch ; an enum's built-in `Equals`,
 //   - tuple positional index ; discriminated-union common-field access ;
@@ -50,10 +51,16 @@ infer_field :: fn(
     if static_member !is null {
         return static_member
     }
-    // A field comes before a method of its name (SPEC § UFCS).
+    // A field comes before a method of its name (SPEC § UFCS), a union's common
+    // field as a struct's.
     if takes_struct_field(target_ty, e, typed) {
         note_callee(typed, e, FN_VALUE_CALLEE)
         return resolve_struct_field(target_ty, e, typed, diags)
+    }
+    union_read :: taken_union_field(target_ty, e, typed)
+    if union_read != null {
+        note_callee(typed, e, FN_VALUE_CALLEE)
+        return union_read
     }
     // Built-in array methods (`len`/`push`/…) resolve as members of the
     // `@intrinsic T[] implements ArrayOps` blanket (std/core/array.vader), through
@@ -742,9 +749,7 @@ try_dispatched_method :: fn(
         note_callee(typed, e, TraitMember { .trait_key = member.trait_key, .member = e.field })
         return settle_dispatched_member(member, e, typed, diags)
     }
-    // A union's member taken as a value has no instance to name : left to the field
-    // forms.
-    if target_ty !is UnionType || typed.callee_field_id != e.id {
+    if target_ty !is UnionType {
         return null
     }
     member :: union_trait_member(target_ty, "", e.field, e.field_span, typed, diags) ?? return null
@@ -1021,7 +1026,7 @@ takes_struct_field :: fn(target_ty: Type, e: AST.FieldExpr, typed: TypedProgram)
     if at < 0 {
         return false
     }
-    if decl.fields[at].visibility == .Private && st.symbol.module != typed.resolved.path {
+    if field_hidden_here(st, decl, at, typed) {
         return false
     }
     if typed.callee_field_id != e.id {
@@ -1030,6 +1035,49 @@ takes_struct_field :: fn(target_ty: Type, e: AST.FieldExpr, typed: TypedProgram)
     declared :: resolved_field_type(st.symbol.id, decl, e.field, typed, diag_sink()) ?? return false
     return narrow_field_if_active(e, substitute_struct_args(declared, st, typed), typed) is FnType
 }
+
+// What `e` reads from the common field of its name of the union `target_ty`, when it
+// comes before a method : every variant holds it at the same place for this module
+// to read and, when `e` is called, it holds a function. Null otherwise ; reports
+// nothing.
+taken_union_field :: fn(target_ty: Type, e: AST.FieldExpr, typed: TypedProgram) -> Type | null {
+    if target_ty !is UnionType {
+        return null
+    }
+    declared :: union_common_field_type(target_ty, e.field, typed) ?? return null
+    if !every_variant_shows(target_ty, e.field, typed) {
+        return null
+    }
+    read :: narrow_field_if_active(e, declared, typed)
+    if typed.callee_field_id == e.id && read !is FnType {
+        return null
+    }
+    return read
+}
+
+// Whether every variant of `u`, a union of structs holding a field `name`, lets this
+// module read it.
+every_variant_shows :: fn(u: UnionType, name: string, typed: TypedProgram) -> bool {
+    for v in u.variants {
+        if v !is StructType {
+            return false
+        }
+        decl :: typed.struct_decls[v.symbol.id] ?? return false
+        if field_hidden_here(v, decl, field_position(decl, name), typed) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether the field at `at` of `st`, which `decl` declares, is `@internal` to another
+// module than the one checked.
+field_hidden_here :: fn(
+    st: StructType,
+    decl: AST.StructDecl,
+    at: i32,
+    typed: TypedProgram,
+) -> bool = decl.fields[at].visibility == .Private && st.symbol.module != typed.resolved.path
 
 // Terminal struct-field lookup + the catch-all diagnostics for any
 // other unsupported shape. Returns a real Type (not Type | null)

@@ -12,33 +12,54 @@
           std.core.finish_buffer(__buf_0, __off_1)
       } :string
   }
+  snippet.Label :: struct { text: string }  // snippet$Label
+  snippet.Label.to_string :: fn(self: Label) -> string {  // snippet$Label$std_core_Display$to_string
+      concat_3("L(", self.text, ")")
+  }
   snippet.shown :: fn(d: Display) -> fn() -> string {  // snippet$shown
       @closure(__method_snippet_0, __method_env_snippet_1 { .receiver = d })
   }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>(concat_2("trait value ", snippet.shown(Point { .x = 3 })()))
       std.io.println<string>(concat_4("bound ", snippet.rendered<Point>(Point { .x = 4 }), " ", snippet.rendered<i32>(5)))
+      either: Label | Point = Label { .text = "u" }
+      shown_either: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = either }
+      std.io.println<string>(concat_2("union ", __method_snippet_2(shown_either)))
       return 0
   }
   __method_env_snippet_1 :: struct { receiver: Display }
   __method_snippet_0 :: fn(__env_0: __method_env_snippet_1) -> string {
       @vcall(std.core.Display.to_string, __env_0.receiver)
   }
-  snippet.rendered<i32> :: fn(t: i32) -> string {  // snippet$rendered__i32
-      render: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = t }
-      return __method_snippet_4(render)
+  __method_env_snippet_3 :: struct { receiver: Label | Point }
+  __method_snippet_2 :: fn(__env_0: __method_env_snippet_3) -> string {
+      @vcall(std.core.Display.to_string, __env_0.receiver)
   }
-  __method_env_snippet_5 :: struct { receiver: i32 }
-  __method_snippet_4 :: fn(__env_0: __method_env_snippet_5) -> string {
+  snippet.rendered<i32> :: fn(t: i32) -> string {  // snippet$rendered__i32
+      render: __method_env_snippet_7 = __method_env_snippet_7 { .receiver = t }
+      return __method_snippet_6(render)
+  }
+  __method_env_snippet_7 :: struct { receiver: i32 }
+  __method_snippet_6 :: fn(__env_0: __method_env_snippet_7) -> string {
       std.core.i32.to_string(__env_0.receiver)
   }
   snippet.rendered<Point> :: fn(t: Point) -> string {  // snippet$rendered__snippet_Point
-      render: __method_env_snippet_3 = __method_env_snippet_3 { .receiver = t }
-      return __method_snippet_2(render)
+      render: __method_env_snippet_5 = __method_env_snippet_5 { .receiver = t }
+      return __method_snippet_4(render)
   }
-  __method_env_snippet_3 :: struct { receiver: Point }
-  __method_snippet_2 :: fn(__env_0: __method_env_snippet_3) -> string {
+  __method_env_snippet_5 :: struct { receiver: Point }
+  __method_snippet_4 :: fn(__env_0: __method_env_snippet_5) -> string {
       snippet.Point.to_string(__env_0.receiver)
+  }
+  concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      buf: Buffer = std.core.new_byte_buffer(c2)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.intern_string(buf, c2)
   }
   concat_2 :: fn(p0: string, p1: string) -> string {
       c0: i64 = std.core.byte_len(p0)
@@ -60,6 +81,7 @@
       std.core.Buffer.write_string(buf, c2, p3)
       std.core.Buffer.intern_string(buf, c3)
   }
+  vtable std.core.Display.to_string for Label  snippet.Label.to_string  // snippet$Label$std_core_Display$to_string
   vtable std.core.Display.to_string for Point  snippet.Point.to_string  // snippet$Point$std_core_Display$to_string
 
 ## lowered in dependencies
