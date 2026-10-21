@@ -76,7 +76,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                     // They also survive verbatim (`fn_survives`) → they WILL be
                     // emitted, so seed them as roots to walk their bodies. Else a
                     // callee reached only from an unwalked survivor (the non-
-                    // dispatching `ensure_buckets`, called from the dispatching
+                    // dispatching `rehash`, called from the dispatching
                     // `put__i32__bool` alone) is pruned while the emitted call
                     // survives → an unresolved-callee panic at emit. Keeps the header invariant
                     // "DCE-survival ⟺ emit-resolvable". (Collapsed sibling

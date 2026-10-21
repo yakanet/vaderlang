@@ -251,15 +251,6 @@
     fn std.collections.contains_key<u16, i32>  // std_collections$contains_key__u16__i32
     fn std.collections.contains_key<u64, i32>  // std_collections$contains_key__u64__i32
     fn std.collections.contains_key<u8, i32>  // std_collections$contains_key__u8__i32
-    fn std.collections.ensure_index<char, i32>  // std_collections$ensure_index__char__i32
-    fn std.collections.ensure_index<i16, i32>  // std_collections$ensure_index__i16__i32
-    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
-    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
-    fn std.collections.ensure_index<i64, i32>  // std_collections$ensure_index__i64__i32
-    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
-    fn std.collections.ensure_index<u16, i32>  // std_collections$ensure_index__u16__i32
-    fn std.collections.ensure_index<u64, i32>  // std_collections$ensure_index__u64__i32
-    fn std.collections.ensure_index<u8, i32>  // std_collections$ensure_index__u8__i32
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<char, i32>  // std_collections$get__char__i32
     fn std.collections.get<i16, i32>  // std_collections$get__i16__i32

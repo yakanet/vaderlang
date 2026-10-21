@@ -256,17 +256,6 @@
     fn std.collections.contains_key<string, i64>  // std_collections$contains_key__string__i64
     fn std.collections.contains_key<string, u16>  // std_collections$contains_key__string__u16
     fn std.collections.contains_key<string, u8>  // std_collections$contains_key__string__u8
-    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
-    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
-    fn std.collections.ensure_index<string, bool>  // std_collections$ensure_index__string__bool
-    fn std.collections.ensure_index<string, char>  // std_collections$ensure_index__string__char
-    fn std.collections.ensure_index<string, f32>  // std_collections$ensure_index__string__f32
-    fn std.collections.ensure_index<string, f64>  // std_collections$ensure_index__string__f64
-    fn std.collections.ensure_index<string, i16>  // std_collections$ensure_index__string__i16
-    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
-    fn std.collections.ensure_index<string, i64>  // std_collections$ensure_index__string__i64
-    fn std.collections.ensure_index<string, u16>  // std_collections$ensure_index__string__u16
-    fn std.collections.ensure_index<string, u8>  // std_collections$ensure_index__string__u8
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
     fn std.collections.get<i32, i32>  // std_collections$get__i32__i32

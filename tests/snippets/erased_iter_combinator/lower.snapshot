@@ -101,9 +101,6 @@
     fn std.collections.contains_key<i32, bool>  // std_collections$contains_key__i32__bool
     fn std.collections.contains_key<i32, i32>  // std_collections$contains_key__i32__i32
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
-    fn std.collections.ensure_index<i32, bool>  // std_collections$ensure_index__i32__bool
-    fn std.collections.ensure_index<i32, i32>  // std_collections$ensure_index__i32__i32
-    fn std.collections.ensure_index<string, i32>  // std_collections$ensure_index__string__i32
     fn std.collections.first_slot  // std_collections$first_slot
     fn std.collections.get<i32, bool>  // std_collections$get__i32__bool
     fn std.collections.get<i32, i32>  // std_collections$get__i32__i32

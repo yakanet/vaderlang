@@ -42,14 +42,14 @@ export main 3
 
 fn 0 snippet$say (string,i32) -> i32
   local.get 0   ; arg 0
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   local.get 1   ; arg 1
   return
 end
 
 fn 1 snippet$pool (string) -> ref
   local.get 0   ; arg 0
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   i32.const 1
   i32.const 2
   i32.const 3
@@ -60,7 +60,7 @@ end
 fn 2 snippet$window (string) -> ref
   local lo i64
   local.get 0   ; arg 0
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   i64.const 1
   local.tee 1   ; lo
   i64.const 3
@@ -96,7 +96,7 @@ fn 3 snippet$main () -> i32
     local.set 0   ; if_res
   end $L0
   local.get 0   ; if_res
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   string.const 0   ; "x"
   i32.const 7
   call 0   ; snippet$say
@@ -114,7 +114,7 @@ fn 3 snippet$main () -> i32
     local.set 0   ; if_res
   end $L1
   local.get 0   ; if_res
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   array.new 3 0   ; i32[]
   local.set 2   ; $arr_21
   array.new 14 0   ; bool[]
@@ -131,7 +131,7 @@ fn 3 snippet$main () -> i32
   struct.new 13   ; std_collections$MutableSet__i32
   local.tee 2   ; $arr_21
   i32.const 2
-  call 20   ; std_collections$add__i32
+  call 18   ; std_collections$add__i32
   drop
   string.const 0   ; "x"
   i32.const 2
@@ -139,7 +139,7 @@ fn 3 snippet$main () -> i32
   local.set 1   ; __in_x_0
   local.get 2   ; $arr_21
   local.get 1   ; __in_x_0
-  call 12   ; std_collections$MutableSet$std_core_Contains$contains__i32
+  call 11   ; std_collections$MutableSet$std_core_Contains$contains__i32
   if $L2 void
     string.const 6   ; "set: yes"
     local.set 0   ; if_res
@@ -148,7 +148,7 @@ fn 3 snippet$main () -> i32
     local.set 0   ; if_res
   end $L2
   local.get 0   ; if_res
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   string.const 8   ; "target"
   call 1   ; snippet$pool
   local.set 3   ; $arr_22
@@ -200,7 +200,7 @@ fn 3 snippet$main () -> i32
   local.get 3   ; $arr_22
   local.get 5   ; $field_46
   call 6   ; std_core$finish_buffer
-  call 23   ; std_io$println__string
+  call 21   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -408,29 +408,21 @@ fn 9 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 10 std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool (ref,i32,bool) -> void
+fn 10 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call 18   ; std_collections$put__i32__bool
+  call 17   ; std_collections$contains_key__i32__bool
   return
 end
 
-fn 11 std_collections$MutableMap$std_core_Contains$contains__i32__bool (ref,i32) -> bool
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  call 19   ; std_collections$contains_key__i32__bool
-  return
-end
-
-fn 12 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
+fn 11 std_collections$MutableSet$std_core_Contains$contains__i32 (ref,i32) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 11   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
+  call 10   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
   return
 end
 
-fn 13 std_collections$first_slot (u64,i64) -> i64
+fn 12 std_collections$first_slot (u64,i64) -> i64
   local.get 0   ; arg 0
   u64.to_i64
   local.get 1   ; arg 1
@@ -438,7 +430,7 @@ fn 13 std_collections$first_slot (u64,i64) -> i64
   return
 end
 
-fn 14 std_collections$next_slot (i64,u64,i64) -> i64
+fn 13 std_collections$next_slot (i64,u64,i64) -> i64
   local $mul_4 i64
   local $cast_5 i64
   local.get 0   ; arg 0
@@ -458,49 +450,7 @@ fn 14 std_collections$next_slot (i64,u64,i64) -> i64
   return
 end
 
-fn 15 std_collections$ensure_index__i32__bool (ref) -> void
-  local idx ref
-  local __for_discard_0 i64
-  local.field 0 12 2   ; arg 0 std_collections$MutableMap__i32__bool.index
-  array.len
-  i64.const 0
-  i64.eq
-  if $L0 void
-    array.new 3 0   ; i32[]
-    i64.const 16
-    array.repeat
-    local.set 1   ; idx
-    i64.const 0
-    local.set 2   ; __for_discard_0
-    loop $L1 void
-      local.get 2   ; __for_discard_0
-      i64.const 16
-      i64.lt
-      if $L2 void
-        local.get 1   ; idx
-        i32.const 0
-        array.push 2 1   ; i32 idx
-        local.get 2   ; __for_discard_0
-        i64.const 1
-        i64.add
-        local.set 2   ; __for_discard_0
-        br $L1
-      end $L2
-    end $L1
-    local.get 0   ; arg 0
-    local.get 1   ; idx
-    struct.set 12 2   ; std_collections$MutableMap__i32__bool.index
-    i64.const 15
-    local.set 2   ; __for_discard_0
-    local.get 0   ; arg 0
-    local.get 2   ; __for_discard_0
-    struct.set 12 3   ; std_collections$MutableMap__i32__bool.mask
-    return
-  end $L0
-  return
-end
-
-fn 16 std_collections$rehash__i32__bool (ref,i64) -> void
+fn 14 std_collections$rehash__i32__bool (ref,i64) -> void
   local $arr_2 ref
   local if_res i64
   local e i64
@@ -561,7 +511,7 @@ fn 16 std_collections$rehash__i32__bool (ref,i64) -> void
       call 5   ; std_core$i32$Hash$hash
       local.tee 6   ; perturb
       local.get 3   ; if_res
-      call 13   ; std_collections$first_slot
+      call 12   ; std_collections$first_slot
       local.set 7   ; s
       loop $L5 void
         local.get 2   ; $arr_2
@@ -577,7 +527,7 @@ fn 16 std_collections$rehash__i32__bool (ref,i64) -> void
           local.get 7   ; s
           local.get 6   ; perturb
           local.get 3   ; if_res
-          call 14   ; std_collections$next_slot
+          call 13   ; std_collections$next_slot
           local.set 7   ; s
           br $L5
         end $L6
@@ -610,7 +560,7 @@ fn 16 std_collections$rehash__i32__bool (ref,i64) -> void
   return
 end
 
-fn 17 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
+fn 15 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
   local $field_3 i64
   local $len_5 i64
   local $field_7 ref
@@ -653,16 +603,14 @@ fn 17 std_collections$write_entry__i32__bool (ref,i32,bool) -> void
   return
 end
 
-fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
+fn 16 std_collections$put__i32__bool (ref,i32,bool) -> bool
   local $field_3 i64
   local $field_4 i64
   local $mul_checked_24 i64
   local perturb u64
-  local $field_57 i64
-  local $field_67 ref
-  local $cast_71 i32
-  local.get 0   ; arg 0
-  call 15   ; std_collections$ensure_index__i32__bool
+  local $field_58 i64
+  local $field_68 ref
+  local $cast_72 i32
   local.field 0 12 4   ; arg 0 std_collections$MutableMap__i32__bool.size
   ref.cast 8   ; i64
   local.set 3   ; $field_3
@@ -715,7 +663,7 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
     end $L1
     local.get 0   ; arg 0
     local.get 3   ; $field_3
-    call 16   ; std_collections$rehash__i32__bool
+    call 14   ; std_collections$rehash__i32__bool
   end $L0
   local.get 1   ; arg 1
   call 5   ; std_core$i32$Hash$hash
@@ -725,7 +673,7 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.set 3   ; $field_3
   local.get 6   ; perturb
   local.get 3   ; $field_3
-  call 13   ; std_collections$first_slot
+  call 12   ; std_collections$first_slot
   local.set 3   ; $field_3
   i64.const -1
   local.set 4   ; $field_4
@@ -767,7 +715,7 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
           local.get 5   ; $mul_checked_24
           local.get 2   ; arg 2
           array.set 14   ; bool[]
-          return
+          return.lit bool.const false
         end $L7
       end $L5
       local.get 6   ; perturb
@@ -776,11 +724,11 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
       local.set 6   ; perturb
       local.field 0 12 3   ; arg 0 std_collections$MutableMap__i32__bool.mask
       ref.cast 8   ; i64
-      local.set 7   ; $field_57
+      local.set 7   ; $field_58
       local.get 3   ; $field_3
       local.get 6   ; perturb
-      local.get 7   ; $field_57
-      call 14   ; std_collections$next_slot
+      local.get 7   ; $field_58
+      call 13   ; std_collections$next_slot
       local.set 3   ; $field_3
       br $L3
     end $L4
@@ -811,18 +759,18 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 17   ; std_collections$write_entry__i32__bool
+  call 15   ; std_collections$write_entry__i32__bool
   local.field 0 12 2   ; arg 0 std_collections$MutableMap__i32__bool.index
-  local.set 8   ; $field_67
+  local.set 8   ; $field_68
   local.field 0 12 4   ; arg 0 std_collections$MutableMap__i32__bool.size
   ref.cast 8   ; i64
   i64.const 1
   i64.checked_add
   i64.to_i32
-  local.set 9   ; $cast_71
-  local.get 8   ; $field_67
+  local.set 9   ; $cast_72
+  local.get 8   ; $field_68
   local.get 5   ; $mul_checked_24
-  local.get 9   ; $cast_71
+  local.get 9   ; $cast_72
   store_slot_i32
   local.field 0 12 4   ; arg 0 std_collections$MutableMap__i32__bool.size
   ref.cast 8   ; i64
@@ -832,10 +780,10 @@ fn 18 std_collections$put__i32__bool (ref,i32,bool) -> void
   local.get 0   ; arg 0
   local.get 3   ; $field_3
   struct.set 12 4   ; std_collections$MutableMap__i32__bool.size
-  return
+  return.lit bool.const true
 end
 
-fn 19 std_collections$contains_key__i32__bool (ref,i32) -> bool
+fn 17 std_collections$contains_key__i32__bool (ref,i32) -> bool
   local perturb u64
   local $field_9 i64
   local ei i64
@@ -855,7 +803,7 @@ fn 19 std_collections$contains_key__i32__bool (ref,i32) -> bool
   local.set 3   ; $field_9
   local.get 2   ; perturb
   local.get 3   ; $field_9
-  call 13   ; std_collections$first_slot
+  call 12   ; std_collections$first_slot
   local.set 3   ; $field_9
   loop $L1 void
     local.field 0 12 2   ; arg 0 std_collections$MutableMap__i32__bool.index
@@ -896,7 +844,7 @@ fn 19 std_collections$contains_key__i32__bool (ref,i32) -> bool
       local.get 3   ; $field_9
       local.get 2   ; perturb
       local.get 5   ; $field_32
-      call 14   ; std_collections$next_slot
+      call 13   ; std_collections$next_slot
       local.set 3   ; $field_9
       br $L1
     end $L2
@@ -904,22 +852,15 @@ fn 19 std_collections$contains_key__i32__bool (ref,i32) -> bool
   return.lit bool.const false
 end
 
-fn 20 std_collections$add__i32 (ref,i32) -> bool
+fn 18 std_collections$add__i32 (ref,i32) -> bool
   local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
   local.get 1   ; arg 1
-  call 11   ; std_collections$MutableMap$std_core_Contains$contains__i32__bool
-  if $L0 void
-  else
-    local.field 0 13 0   ; arg 0 std_collections$MutableSet__i32.inner
-    local.get 1   ; arg 1
-    bool.const true
-    call 10   ; std_collections$MutableMap$std_core_IndexSet$set_at__i32__bool
-    return.lit bool.const true
-  end $L0
-  return.lit bool.const false
+  bool.const true
+  call 16   ; std_collections$put__i32__bool
+  return
 end
 
-fn 21 std_io$write (u8,string) -> void
+fn 19 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -955,7 +896,7 @@ fn 21 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 22   ; std_io$write_bytes
+      call 20   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -975,7 +916,7 @@ fn 21 std_io$write (u8,string) -> void
   return
 end
 
-fn 22 std_io$write_bytes (u8,ref,i64) -> i32
+fn 20 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -995,7 +936,7 @@ fn 22 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 23 std_io$println__string (string) -> void
+fn 21 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 11   ; "\n"
@@ -1003,6 +944,6 @@ fn 23 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 21   ; std_io$write
+  call 19   ; std_io$write
   return
 end
