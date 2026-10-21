@@ -7,6 +7,9 @@ open. The transitive read-only rule it was weighed against is deferred until
 parameters are inferred. Amended by 0035: a trait value counts through its own
 bit, T3096 judges the value's own type, and `rooted_in_storageless_const` is gone.
 
+**Superseded in part by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: its rights half, a type carrying no rights any more.
+
 ## Context
 
 A module const is frozen at every level its type spells out: the unannotated

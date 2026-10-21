@@ -5,6 +5,9 @@
 Accepted (2026-10-07). Closes the three leaks that 0039 left open, and the ones
 found while closing them. The UFCS order remains, as a false refusal.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 0039 left three ways to write into `.rodata`. Each one passed `check`, and each

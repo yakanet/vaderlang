@@ -8,6 +8,9 @@ Amends 0022: inside the body, mutating through a `T` also takes a marked bound.
 0037 closes the struct type-parameter item left open below, and 0041 the index
 item.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 0032 binds `T` with the argument's rights, and 0022 reads `x: T!` at the call as

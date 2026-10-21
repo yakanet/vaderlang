@@ -8,6 +8,9 @@ resolved by 0033 : a nominal argument keeps its bits and is invariant through a
 mutable struct. The `.rodata` writes the permissive rule left open through a module
 const are closed by 0034.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 The `!` marker is a per-level property of a **type** (SPEC §"Read-only by default").

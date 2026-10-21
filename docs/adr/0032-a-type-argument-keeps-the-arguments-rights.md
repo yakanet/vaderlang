@@ -6,6 +6,9 @@ Accepted (2026-10-06). Resolves the `unify_type_param` item that 0017 left open;
 amends 0022, whose generic paragraph assumed the erasure. The nominal-argument item
 left open below is resolved by 0033.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 `unify_type_param` bound a type parameter to its argument with the read-only bit

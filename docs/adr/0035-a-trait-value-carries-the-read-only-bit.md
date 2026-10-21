@@ -7,6 +7,9 @@ the storageless-const guard that 0022 suspected was redundant. 0036 closes the t
 holes left open below (a bounded `T!` and `await`), and one this change missed: a
 read-only value filling the trait variant of a union (`Bump! | null`).
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 `TraitType` had no read-only bit. A `!` written on a trait type counted only on a

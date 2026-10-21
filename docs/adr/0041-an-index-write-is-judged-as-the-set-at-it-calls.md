@@ -4,6 +4,9 @@
 
 Accepted (2026-10-07). Closes the index item that 0036 left open.
 
+**Superseded in part by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: its rights half, a type carrying no rights any more.
+
 ## Context
 
 `m[k] = v` on a receiver with an `IndexSet` impl lowers to `m.set_at(k, v)`, and

@@ -6,6 +6,9 @@ Accepted (2026-10-07). Closes the order item 0040 left open. Superseded in part 
 0070: the receiver binds the callee's inference variables like any argument, and
 `seed_ufcs_bindings` and `check_receiver_alone` are gone.
 
+**Superseded in part by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: its rights half, a type carrying no rights any more.
+
 ## Context
 
 0039 binds a type parameter to the rights all its arguments hold, and 0040 judges

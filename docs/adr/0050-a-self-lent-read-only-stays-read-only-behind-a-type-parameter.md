@@ -4,6 +4,9 @@
 
 Accepted (2026-10-08). Closes the hole 0049 left open.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 A type parameter carried no rights of its own. `with_immutable(T, _)` changed

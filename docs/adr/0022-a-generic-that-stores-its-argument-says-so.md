@@ -8,6 +8,9 @@ maximal rights, it keeps the argument's. The first "Left open" item is resolved 
 0032 and 0033. Amended by 0036 : inside the body, mutating through a `T` also takes
 a bound marked `!`.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 A struct module const was rebuilt at every read — one allocation per reference,

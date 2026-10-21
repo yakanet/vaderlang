@@ -521,7 +521,7 @@
   },
   "selfcompile_c": {
     "vader-native": {
-      "minMs": 2968.2,
+      "minMs": 2840.3,
       "checksum": ""
     }
   }

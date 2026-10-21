@@ -4,6 +4,9 @@
 
 Accepted (2026-10-07).
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 A call infers its type parameters from its arguments, and `T` binds an argument

@@ -4,6 +4,9 @@
 
 Accepted (2026-10-09). Extends ADR 0051.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 An unannotated local is owned: `out :: [s]` then `out.push(x)` needs no `!`. An

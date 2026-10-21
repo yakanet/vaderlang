@@ -5,6 +5,9 @@
 Accepted (2026-10-07). Closes two of the items 0041 left open. Its two open
 items are closed by 0047.
 
+**Superseded in part by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: its rights half, a type carrying no rights any more.
+
 ## Context
 
 0041 judged every index write as the `set_at` it calls, and left the index

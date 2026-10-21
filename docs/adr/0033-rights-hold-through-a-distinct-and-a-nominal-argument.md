@@ -6,6 +6,9 @@ Accepted (2026-10-07). Resolves the nominal-argument item that 0017 and 0032 lef
 open, and the first item of 0022's "Left open" with 0032. 0038 resolves the index
 read item left open below.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 After 0032 the read-only bit still leaked at three nominal boundaries.

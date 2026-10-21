@@ -4,6 +4,9 @@
 
 Accepted (2026-10-08). Closes M3, which 0035 left open. Amends 0042.
 
+**Superseded by [0053](0053-mutable-by-default-only-constants-are-frozen.md)
+(2026-10-09)**: a type carries no rights any more.
+
 ## Context
 
 An array passed where an `Iterator<T>!` is expected converts through
