@@ -32,13 +32,13 @@
   expr 34:74    FieldExpr      :: fn() -> string
   expr 34:74    IdentExpr      :: type
   expr 34:81    IdentExpr      :: Path
-  expr 38:54    MatchExpr      :: string
+  expr 38:45    MatchExpr      :: string
   expr 38:60    IdentExpr      :: i64 | string
   expr 39:12    StringLitExpr  :: string
   expr 40:12    StringLitExpr  :: string
   expr 40:5     StringLitExpr  :: string
   expr 41:12    StringLitExpr  :: string
-  expr 45:60    MatchExpr      :: string
+  expr 45:51    MatchExpr      :: string
   expr 45:66    IdentExpr      :: f64 | string
   expr 46:12    StringLitExpr  :: string
   expr 47:12    StringLitExpr  :: string
@@ -56,12 +56,12 @@
   expr 61:46    IdentExpr      :: Boxed<i64>
   expr 62:31    StringLitExpr  :: string
   expr 63:31    StringLitExpr  :: string
-  expr 67:43    MatchExpr      :: string
+  expr 67:34    MatchExpr      :: string
   expr 67:49    IdentExpr      :: Path
   expr 68:17    StringLitExpr  :: string
   expr 68:5     StringLitExpr  :: string
   expr 69:17    StringLitExpr  :: string
-  expr 73:60    MatchExpr      :: string
+  expr 73:51    MatchExpr      :: string
   expr 73:66    IdentExpr      :: null | Point | string
   expr 74:17    StringLitExpr  :: string
   expr 75:17    StringLitExpr  :: string

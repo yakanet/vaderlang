@@ -7,8 +7,8 @@
 // `run_actions`, which returns one `ActionResult` per applicable action.
 //
 // Edit production is server-side : an action returns the replacement *text* for
-// its node's span (rendered through `vader/fmt::format_expr`), and the handler
-// wraps it in a `WorkspaceEdit`. Declining is signalled by an empty string.
+// its node's span (`render_rewrite`), and the handler wraps it in a
+// `WorkspaceEdit`. Declining is signalled by an empty string.
 //
 // Lossy policy : an action whose rewrite would lose information (match arms with
 // guards / destructuring, etc.) must DECLINE in `is_applicable` rather than emit
@@ -18,6 +18,8 @@ module "vader/lsp/actions"
 
 import "std/string"
 import "vader/diagnostics"
+import "vader/fmt"
+import "vader/lsp/protocol"
 AST :: import "toolchain/ast"
 Parse :: import "vader/parser"
 import "toolchain/span"
@@ -137,10 +139,31 @@ export run_source_actions :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResu
     return out
 }
 
-/// `format_expr` renders from column 0 ; re-indent every line after the first by
-/// `indent` spaces so a rewritten node sits correctly at its source column.
-/// Shared by the rewrite actions.
-export reindent :: fn(text: string, indent: i32) -> string {
+/// The text a rewrite action puts in place of the node it rebuilt : `rewritten`
+/// rendered with the comments inside it, every line after the first indented as
+/// the source line the node starts on. Shared by the rewrite actions.
+///
+/// @param source     the document.
+/// @param rewritten  the node built in place of another, with its span, around
+///                   sub-expressions that keep theirs.
+export render_rewrite :: fn(source: string, rewritten: AST.Expr) -> string = reindent(
+    format_expr_keeping_comments(source, rewritten),
+    line_indent(source, rewritten.span.start.offset),
+)
+
+// The width of the indentation of the line holding byte `offset`.
+line_indent :: fn(source: string, offset: i64) -> i32 {
+    start :: line_start_offset(source, offset)
+    end := start
+    for end < source.byte_len() && (source.byte_at(end) == ' ' || source.byte_at(end) == '\t') {
+        end += 1
+    }
+    return i32(end - start)
+}
+
+// A rendering from column 0, every line after the first indented by `indent`
+// spaces : the indentation of the line it lands on.
+reindent :: fn(text: string, indent: i32) -> string {
     if indent <= 0 { return text }
     pad :: " ".repeat(i64(indent))
     out := ""

@@ -55,9 +55,10 @@ export Printer :: struct {
     // force their single-line form and never explode — used by `flat_width`
     // to MEASURE a construct before deciding its real layout.
     flat: bool = false
-    // Keep the line breaks the source writes around a binary operator and after
-    // a fn's `=`. Off for a standalone rendering (`format_expr`), whose output
-    // measures a width or lands at an indentation the source never had.
+    // Keep the line breaks the source writes around a binary operator, after a
+    // fn's `=` and before an `else`. Off for a standalone rendering
+    // (`format_expr`), whose output measures a width or lands at an indentation
+    // the source never had.
     keep_line_breaks: bool = true
     // Width that follows on the same line once the NEXT delimited construct
     // closes — the ` ?? return …` after a call. That construct counts it in its
@@ -1167,8 +1168,8 @@ is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
 /// the expression's spans index into — leaf emitters slice verbatim literal
 /// spellings (radix, underscores) from it, so reused sub-expressions keep their
 /// exact text ; freshly synthesised nodes are emitted structurally. Comments are
-/// skipped. Used by the LSP code-action layer to render a rewritten expression,
-/// and internally to measure a union RHS width.
+/// skipped : used to measure a width, where `format_expr_keeping_comments`
+/// renders a rewritten expression for the LSP's actions.
 ///
 /// @param source  the document the expression's spans index into.
 /// @param e       the expression to render.
@@ -1178,6 +1179,22 @@ export format_expr :: fn(source: string, e: p.Expr) -> string {
     sub.keep_line_breaks = false
     sub.emit_expr(e)
     return sub.finish()
+}
+
+/// `format_expr`, keeping the comments inside `e`'s span : each lands where the
+/// printer reaches the node it leads, as in a whole-file format, and one no node
+/// leads follows the expression. For the LSP's rewrite actions, which rebuild a
+/// node around sub-expressions that keep their spans.
+///
+/// @param source  the document the expression's spans index into.
+/// @param e       the expression to render.
+/// @return        the formatted text, its comments included.
+export format_expr_keeping_comments :: fn(source: string, e: p.Expr) -> string {
+    sub :: new_printer(source, comments_within(scan_comments(source), e.span))
+    sub.keep_line_breaks = false
+    sub.emit_expr(e)
+    sub.flush_remaining_comments()
+    return attach_trailing_comments(sub.finish())
 }
 
 emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: i64) -> void {
@@ -2005,7 +2022,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
             // Preserve source : if the `else if` branch started on a new
             // line, keep the break ; else inline. The discriminant is the
             // then_block's end line vs the else-branch's first line.
-            if else_branch.branch.span.start.line > x.then_block.span.end.line {
+            if self.breaks_before_else(x.then_block, else_branch.branch.span) {
                 self.newline()
                 self.indent()
             } else {
@@ -2015,7 +2032,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
             self.emit_if(else_branch.branch)
         }
         is p.IfElseBlock -> {
-            if else_branch.block.span.start.line > x.then_block.span.end.line {
+            if self.breaks_before_else(x.then_block, else_branch.block.span) {
                 self.newline()
                 self.indent()
             } else {
@@ -2026,6 +2043,11 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
         }
     }
 }
+
+// Whether an `else` keeps the line the source starts it on, below the `}` of
+// `then_block` : a standalone rendering joins them.
+breaks_before_else :: fn(self: Printer, then_block: p.BlockExpr, branch: Span) -> bool =
+    self.keeps_line_breaks() && branch.start.line > then_block.span.end.line
 
 emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }

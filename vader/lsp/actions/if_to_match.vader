@@ -40,8 +40,7 @@ itm_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     if node is AST.IfExpr {
         ch :: analyze_if(node) ?? return ""
         if !chain_ok(ch) { return "" }
-        rendered :: format_expr(ctx.source, build_match(node, ch))
-        return reindent(rendered, node.span.start.column - 1)
+        return render_rewrite(ctx.source, build_match(node, ch))
     }
     return ""
 }

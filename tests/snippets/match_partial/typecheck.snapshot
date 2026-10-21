@@ -7,16 +7,16 @@
   FnDecl         label                :: fn(Color) -> string
   FnDecl         main                 :: fn() -> i32
   FnDecl         weekend_or_not       :: fn(Day) -> string
-  expr 23:45    MatchExpr      :: string
+  expr 23:36    MatchExpr      :: string
   expr 23:51    IdentExpr      :: Day
   expr 24:18    StringLitExpr  :: string
   expr 25:18    StringLitExpr  :: string
   expr 26:18    StringLitExpr  :: string
-  expr 29:51    MatchExpr      :: string
+  expr 29:42    MatchExpr      :: string
   expr 29:57    IdentExpr      :: Day
   expr 30:28    StringLitExpr  :: string
   expr 31:28    StringLitExpr  :: string
-  expr 35:48    MatchExpr      :: string
+  expr 35:35    MatchExpr      :: string
   expr 35:54    IdentExpr      :: Color
   expr 36:15    StringLitExpr  :: string
   expr 37:15    StringLitExpr  :: string

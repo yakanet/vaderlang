@@ -41,7 +41,7 @@ ufcs_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
 ufcs_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     if node is AST.CallExpr {
         if !ufcs_ok(node) { return "" }
-        return reindent(format_expr(ctx.source, to_method_call(node)), node.span.start.column - 1)
+        return render_rewrite(ctx.source, to_method_call(node))
     }
     return ""
 }

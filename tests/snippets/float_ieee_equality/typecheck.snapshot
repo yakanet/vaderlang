@@ -8,7 +8,7 @@
   expr 10:45    BinaryExpr     :: bool
   expr 10:45    IdentExpr      :: T
   expr 10:50    IdentExpr      :: T
-  expr 17:50    MatchExpr      :: string
+  expr 17:41    MatchExpr      :: string
   expr 17:56    IdentExpr      :: f64 | string
   expr 18:12    StringLitExpr  :: string
   expr 19:12    StringLitExpr  :: string

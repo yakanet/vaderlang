@@ -48,8 +48,7 @@ mti_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
 mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     if node is AST.MatchExpr {
         if !is_convertible(node) { return "" }
-        rendered :: format_expr(ctx.source, build_if(node))
-        return reindent(rendered, node.span.start.column - 1)
+        return render_rewrite(ctx.source, build_if(node))
     }
     return ""
 }
@@ -310,4 +309,57 @@ test_match_to_if_declines_header_binding :: fn() -> void {
     }
     ctx :: ActionCtx { .source = src }
     assert(!mti_applicable(m, ctx), "header binding -> decline")
+}
+
+@test
+test_match_to_if_keeps_comments_and_indent :: fn() -> void {
+    src :: """
+f :: fn(cell: i32 | null) -> i32 {
+    return match cell {
+        is null -> {
+            // nothing to read
+            0
+        }
+        _ -> {
+            // the value itself
+            1
+        }
+    }
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    out :: mti_apply(m, ActionCtx { .source = src })
+    assert("// nothing to read" in out, "keeps the first arm's comment")
+    assert("// the value itself" in out, "keeps the second arm's comment")
+    assert("\n        // nothing to read\n" in out, "indents from the line, not the match column")
+    assert("\n    } else {\n" in out, "closes the branch at the line's indent")
+}
+
+@test
+test_match_to_if_replaces_the_partial_prefix :: fn() -> void {
+    src :: """
+f :: fn(cell: i32 | null) -> i32 {
+    @partial match cell {
+        is null -> {
+            return 0
+        }
+        _ -> {
+            return 1
+        }
+    }
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    spliced :: src.byte_slice(0, m.span.start.offset) + mti_apply(m, ActionCtx { .source = src })
+    assert(!("@partial" in spliced), "the `if` keeps no `@partial`")
 }

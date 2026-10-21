@@ -10,6 +10,7 @@
 module "vader/fmt"
 
 import "std/string"
+import "toolchain/span"
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form
@@ -301,6 +302,17 @@ export take_before :: fn(self: CommentMap, before: i64) -> Comment[] {
         self.cursor = self.cursor + 1
     }
     return out
+}
+
+// The comments of `all` that lie inside `span`, none of them taken.
+comments_within :: fn(all: CommentMap, span: Span) -> CommentMap {
+    inside: Comment[]: []
+    for c in all.comments {
+        if c.offset >= span.start.offset && c.end_offset <= span.end.offset {
+            inside.push(c)
+        }
+    }
+    return CommentMap { .comments = inside, .cursor = 0 }
 }
 
 // Drain every remaining comment (used at end-of-file to flush trailing
