@@ -1931,25 +1931,16 @@ try_namespace_field :: fn(e: AST.FieldExpr, typed: TypedProgram, diags: Diagnost
     if result != null {
         return result
     }
-    // Exported miss : if the base binding names a PRIVATE member, fire R2008 and
-    // return TY_UNRESOLVED (suppresses the cascade). Otherwise fall through with
-    // null to the ordinary "no such field" handling. The base is a namespace
-    // ImportBinding here (namespace_call_mod_id succeeded), so re-resolve its sym.
-    if e.target is AST.IdentExpr {
-        binding :: typed.resolved.idents[e.target.span.hash()]
-        if binding != null {
-            if namespace_private_member_reported(
-                binding.id,
-                e.field,
-                e.field_span,
-                typed.resolved,
-                diags,
-            ) {
-                return TY_UNRESOLVED
-            }
-        }
-    }
-    return null
+    // Exported miss : a PRIVATE member is R2008, a genuinely absent one R2006, the
+    // answer the unqualified form gives. Either way the access is `?`, so nothing
+    // reports on it again. The base is a namespace ImportBinding here
+    // (namespace_call_mod_id succeeded), so re-resolve its sym.
+    binding :: typed.resolved.idents[e.target.span.hash()] ?? return TY_UNRESOLVED
+    report_namespace_miss(binding.id, e.field, e.field_span, .UnresolvedIdent, typed.resolved, diags)
+    // The alias still gets a type, as a field access types its target : the LSP
+    // completes `L.` from it.
+    record_expr(typed, e.target, TY_UNRESOLVED)
+    return TY_UNRESOLVED
 }
 
 // Resolve a `mod.field` FieldExpr's base to the imported module id, or null

@@ -148,6 +148,7 @@ export TypecheckCode :: enum(CodeInfo) {
     GuardParameterWritten           { .id = "T3113", .message = "a function declaring `@returns` or `@ensures` cannot write its parameters" },
     PostconditionDoesNotHold        { .id = "T3114", .message = "a function returns where its `@ensures` does not hold" },
     BitwiseOperationOnRange         { .id = "T3115", .message = "a bitwise operation needs an integer of a fixed width" },
+    ModuleAliasIsNoValue            { .id = "T3116", .message = "a namespace alias names a module, not a value" },
 }
 
 // Parser-pass codes. New codes are appended ; once shipped, a code never

@@ -43,9 +43,8 @@ ensure_closure_analysis :: fn(project: LowerProjectCtx, typed: TypedProgram) -> 
 }
 
 // Per-module walker. Walks every top-level AST.FnDecl + AST.ImplDecl member
-// body, plus ConstDecl values — a const can be initialised by a block that
-// declares locals and returns a capturing lambda, which hosts a closure just
-// like a fn body.
+// body, plus the values written outside any fn, ConstDecl values and struct field
+// defaults (`analyze_value`).
 analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: TypedProgram) -> void {
     analysis :: project.closures
     symbol_index :: ensure_local_symbol_index(project, typed.resolved)
@@ -62,10 +61,16 @@ analyze_module :: fn(project: LowerProjectCtx, loaded: LoadedModule, typed: Type
                         analyze_fn_body(member, body, typed, symbol_index, analysis)
                     }
                 }
-                is AST.ConstDecl -> { analyze_const_body(decl, typed, symbol_index, analysis) }
+                is AST.ConstDecl -> { analyze_value(decl.value, typed, symbol_index, analysis) }
+                is AST.StructDecl -> {
+                    for field in decl.fields {
+                        value :: field.default ?? continue
+                        analyze_value(value, typed, symbol_index, analysis)
+                    }
+                }
                 // A `TraitDecl` default body IS a body — `materialize.vader`
                 // has already cloned it into `impl_.members`, walked above.
-                is AST.ImportDecl | AST.StructDecl | AST.EnumDecl | AST.TraitDecl
+                is AST.ImportDecl | AST.EnumDecl | AST.TraitDecl
                  | AST.TypeAliasDecl | AST.AssertDecl -> {}
             }
         }
@@ -90,15 +95,16 @@ analyze_fn_body :: fn(
     walk_body(body, scope, null, null, ctx)
 }
 
-// Walk a top-level const's value for capturing lambdas. A const initialised by
-// a block that declares locals and returns a lambda — `make_adder :: { base ::
-// 10 (n) -> base + n }` — hosts a closure just like a fn body ; without this its
-// `lambda_captures` entry is missing, the env never carries the capture, and
-// the lambda miscompiles (VM `convert on empty stack` / native `unreachable`).
-// Walked with an EMPTY owned scope (a const has no params) at top level
-// (out_captures = null) — nested lambdas record their own captures.
-analyze_const_body :: fn(
-    const_decl: AST.ConstDecl, typed: TypedProgram,
+// Walk a value written outside any fn, a const's or a struct field's default, for
+// capturing lambdas. A const initialised by a block that declares locals and
+// returns a lambda — `make_adder :: { base :: 10 (n) -> base + n }` — hosts a
+// closure just like a fn body, and so does a field default that is a lambda
+// declaring locals of its own ; without this its `lambda_captures` entry is
+// missing, the env never carries the capture, and the lambda miscompiles.
+// Walked with an EMPTY owned scope (no params) at top level (out_captures =
+// null) — nested lambdas record their own captures.
+analyze_value :: fn(
+    value: AST.Expr, typed: TypedProgram,
     symbol_index: MutableMap<u64, Symbol>, analysis: ClosureAnalysis,
 ) -> void {
     ctx :: WalkCtx {
@@ -107,7 +113,7 @@ analyze_const_body :: fn(
         .analysis = analysis,
         .empty_captures = [],
     }
-    walk_expr(const_decl.value, empty_scope(), null, null, ctx)
+    walk_expr(value, empty_scope(), null, null, ctx)
 }
 
 WalkCtx :: struct {

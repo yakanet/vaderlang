@@ -97,7 +97,7 @@ type_generic_call :: fn(
         }
         bindings[v.origin.id] = zonk(solved, solutions)
     }
-    report_unsolved(c, unsolved, callee_ty, n, diags)
+    report_unsolved(c, unsolved, callee_ty, arg_types, diags)
     reject_ufcs_receiver_at_instance(c, bindings, unsolved, typed, diags)
     instance :: substitute_fn_map(callee_ty, bindings)
     for i in 0..<n {
@@ -340,11 +340,15 @@ names_any :: fn(t: Type, params: Symbol[]) -> bool {
 // T3069 for every parameter of the callee this call left unsolved. Unreported, an
 // unsolved parameter flows on erased and fails far downstream : a vtable miss at
 // run time, or the lowering's unresolved-callee panic. Silent on an arity mismatch,
-// which T3003 / T3005 already name.
+// which T3003 / T3005 already name, and on an argument already reported (`?`),
+// which may be the one that would have bound it.
 report_unsolved :: fn(
-    c: AST.CallExpr, unsolved: Symbol[], callee_ty: FnType, n: i64, diags: Diagnostic[],
+    c: AST.CallExpr, unsolved: Symbol[], callee_ty: FnType, arg_types: Type[], diags: Diagnostic[],
 ) -> void {
-    if unsolved.len() == 0 || n != callee_ty.params.len() {
+    if unsolved.len() == 0 || arg_types.len() != callee_ty.params.len() {
+        return
+    }
+    if arg_types.any_match((t) -> type_contains_unresolved(t)) {
         return
     }
     for sym in unsolved {

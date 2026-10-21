@@ -667,6 +667,8 @@ const C_PARITY = new Set<string>([
   "typed_constant_converts",
   // A baked tuple's elements keep the width of their position.
   "tuple_comptime",
+  // A field default's lambda captures a local of its own.
+  "field_default_lambda_captures",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

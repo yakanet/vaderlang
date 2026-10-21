@@ -1,0 +1,14 @@
+// A namespace alias names a module: it is reached through (`L.greet()`), and is
+// no value of its own to bind or to pass. T3116 at each use as a value.
+
+module "snippet"
+
+L :: import "snippet/lib"
+
+keep :: fn<T>(x: T) -> T = x
+
+main :: fn() -> i32 {
+    held :: L
+    kept :: keep(L)
+    return 0
+}

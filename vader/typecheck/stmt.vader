@@ -807,18 +807,20 @@ array_write_slot :: fn(
 ///
 /// @return  whether one reported, the write then going no further.
 reject_field_write :: fn(field: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> bool {
+    // `M.NAME = v` would rebind a declaration of the module `M` names: T3041. The
+    // alias is no value to check (T3116), and types as `?`.
+    if namespace_base_mod_id(field.target, typed) != null {
+        record_expr(typed, field.target, TY_UNRESOLVED)
+        diags.push(typecheck_error(.CannotReassignConst, field.span,
+            "`${field.field}` is declared in an imported module"))
+        return true
+    }
     _ :: check_expr(field.target, null, typed, diags)
     // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
     base :: bare_name_symbol(field.target, typed)
     if base != null && names_a_type(base, typed.resolved) {
         diags.push(typecheck_error(.InvalidAssignTarget, field.span,
             "`${field.field}` is reached through the type `${base.name}`, not a value"))
-        return true
-    }
-    // `M.NAME = v` would rebind a declaration of the module `M` names: T3041.
-    if namespace_base_mod_id(field.target, typed) != null {
-        diags.push(typecheck_error(.CannotReassignConst, field.span,
-            "`${field.field}` is declared in an imported module"))
         return true
     }
     if report_variant_data_write(field, typed, diags) {

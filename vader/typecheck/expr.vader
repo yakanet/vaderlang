@@ -295,6 +295,12 @@ infer_expr :: fn(
                     diags.push(warning(.UseOfDeprecated, expr.span, detail))
                 }
             }
+            // A namespace alias is reached through (`L.name`), never a value itself.
+            if namespace_base_mod_id(expr, typed) != null {
+                diags.push(typecheck_error(.ModuleAliasIsNoValue, expr.span,
+                    "`${expr.name}` ; reach one of its members, `${expr.name}.name`"))
+                return TY_UNRESOLVED
+            }
             return infer_ident(expr, typed)
         }
         is AST.BlockExpr -> { return check_block(expr, expected, typed, diags, null) }

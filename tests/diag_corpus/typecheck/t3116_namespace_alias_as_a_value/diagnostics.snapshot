@@ -1,0 +1,2 @@
+[11:13] error[T3116] a namespace alias names a module, not a value: `L` ; reach one of its members, `L.name`
+[12:18] error[T3116] a namespace alias names a module, not a value: `L` ; reach one of its members, `L.name`

@@ -117,9 +117,7 @@ namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule, diags: D
         // answer the unqualified form gives. The miss must be reported : an
         // unresolved type in `is Alias.Nope` interns as `ref _`, which matches
         // every erased value under the VM.
-        if !namespace_private_member_reported(target_sym.id, e.field, e.field_span, resolved, diags) {
-            diags.push(resolver_error(.UnresolvedTypeName, e.field_span, "`${e.field}`"))
-        }
+        report_namespace_miss(target_sym.id, e.field, e.field_span, .UnresolvedTypeName, resolved, diags)
         return TY_UNRESOLVED
     }
     return ty
@@ -141,19 +139,21 @@ not_a_namespace :: fn(target: Symbol) -> string {
     return " ; `${target.name}` names a ${target.kind.label}"
 }
 
-/// Fire R2008 when `field` names a PRIVATE member of the namespace binding
-/// `binding_id` points at — so `P.private` is rejected (matching the
-/// destructured-import check in `wire.vader`) instead of silently degrading to
-/// unresolved. Returns true when it fired. Shared by the value path
-/// (`field.vader::try_namespace_field`) and the type path above.
-namespace_private_member_reported :: fn(
-    binding_id: i32, field: string, span: Span,
+/// Report `field`, which the module the namespace binding `binding_id` points at
+/// does not export : R2008 when it names a PRIVATE member there (matching the
+/// destructured-import check in `wire.vader`), `absent` when it names nothing,
+/// the answer the unqualified form gives. Shared by the value path
+/// (`field.vader::try_namespace_field`, R2006) and the type path above (R2007).
+report_namespace_miss :: fn(
+    binding_id: i32, field: string, span: Span, absent: ResolverCode,
     resolved: ResolvedModule, diags: Diagnostic[],
-) -> bool {
-    priv :: resolved.namespace_private_members[binding_id] ?? return false
-    if priv[field] is null { return false }
-    diags.push(resolver_error(.SymbolNotExported, span, "`${field}`"))
-    return true
+) -> void {
+    private :: resolved.namespace_private_members[binding_id]
+    if private != null && private[field] != null {
+        diags.push(resolver_error(.SymbolNotExported, span, "`${field}`"))
+        return
+    }
+    diags.push(resolver_error(absent, span, "`${field}`"))
 }
 
 lower_ident :: fn(e: AST.IdentExpr, resolved: ResolvedModule) -> Type {

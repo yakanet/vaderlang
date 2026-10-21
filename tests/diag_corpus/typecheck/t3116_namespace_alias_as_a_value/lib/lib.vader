@@ -1,0 +1,3 @@
+module "snippet/lib"
+
+export greet :: fn() -> string = "hi"

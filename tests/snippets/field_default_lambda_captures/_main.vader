@@ -1,0 +1,23 @@
+// A struct field's default may be a lambda with locals of its own that an inner
+// lambda captures: `make` builds `scale` and hands it to `apply`, so the closure
+// of the default carries `k` in its env as any closure would.
+
+module "snippet"
+
+import "std/io"
+
+Recipe :: struct {
+    make: fn() -> i32 = fn() {
+        k :: 4
+        scale :: (n: i32) -> n * k
+        return apply(scale, 3)
+    }
+}
+
+apply :: fn(f: fn(i32) -> i32, n: i32) -> i32 = f(n)
+
+main :: fn() -> i32 {
+    recipe :: Recipe {}
+    println("${recipe.make()}")
+    return 0
+}

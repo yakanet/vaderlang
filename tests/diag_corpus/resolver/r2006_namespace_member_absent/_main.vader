@@ -1,0 +1,13 @@
+// A namespace alias reaches only what its module exports: `L.missing()` names
+// nothing there. R2006, the answer the unqualified `missing()` would give, and
+// the call it fills reports nothing more.
+
+module "snippet"
+
+import "std/io"
+L :: import "snippet/lib"
+
+main :: fn() -> i32 {
+    println(L.missing())
+    return 0
+}
