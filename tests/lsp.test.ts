@@ -998,6 +998,32 @@ test("lsp: enum completion in a match-arm body", async () => {
   expect(labels.has("Green")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
+// Enum completion in a comparison operand (`c == .<here>`) — expected type is the
+// other operand's, even where the statement expects another enum.
+const COMPARISON_ENUM_SOURCE = `module "lsp_test"
+
+Color :: enum { Red, Green, Blue }
+Shade :: enum { Light, Dark }
+
+shade_of :: fn(c: Color) -> Shade {
+    if c != . {
+        return .Light
+    }
+    return .Dark
+}
+`;
+
+test("lsp: enum completion in a comparison operand", async () => {
+  // Line 6 = `    if c != . {` ; the `.` is at char 12, cursor at 13.
+  const results = await driveLsp(COMPARISON_ENUM_SOURCE, [
+    { method: "textDocument/completion", position: { line: 6, character: 13 } },
+  ]);
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Red")).toBe(true);
+  expect(labels.has("Blue")).toBe(true);
+  expect(labels.has("Light")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
 interface PositionT { line: number; character: number }
 interface RangeT { start: PositionT; end: PositionT }
 interface TextEditT { newText: string; range: RangeT }

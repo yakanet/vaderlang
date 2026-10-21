@@ -361,10 +361,11 @@ dot_after_brace_or_comma :: fn(source: string, dot_off: i64) -> bool {
     return b == '{' || b == ','
 }
 
-// Leading-dot completion (`S { .`, `f(.`, `= .`, `match e { .`): the dot has no
-// receiver, so what follows comes from context — a struct-literal field key
+// Leading-dot completion (`S { .`, `f(.`, `= .`, `match e { .`, `c == .`): the dot
+// has no receiver, so what follows comes from context — a struct-literal field key
 // (after `{` / `,`) or an enum literal (elsewhere). The enum side covers a fn
-// parameter's default value, a fn-call argument slot, and a match-arm pattern.
+// parameter's default value, a fn-call argument slot, a match-arm pattern and an
+// equality's other operand.
 leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32, struct_key: bool) -> JsonValue {
     // `S { .field }` — the enclosing struct literal's field names.
     if struct_key {
@@ -410,10 +411,18 @@ struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
     return null
 }
 
-// The enum expected at a leading-dot position, or null. Tries a parameter
-// default value, then a fn-call argument slot ; lifts the placeholder a bare
-// enum name resolves to (see lift_enum_placeholder) into the real EnumType.
+// The enum expected at a leading-dot position, or null. Tries the other operand
+// of an equality first, the one context that names the dot itself ; then a
+// parameter default value, a fn-call argument slot, a match scrutinee, a
+// struct-literal field value, a match result and a statement's expected type.
+// Lifts the placeholder a bare enum name resolves to (see lift_enum_placeholder)
+// into the real EnumType.
 expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> EnumType | null {
+    co :: comparison_operand_type_at(decls, line, col, typed)
+    if co != null {
+        en :: as_enum_type(co, typed)
+        if en != null { return en }
+    }
     pd :: param_default_type_at(decls, line, col, typed)
     if pd != null {
         en :: as_enum_type(pd, typed)
@@ -443,6 +452,24 @@ expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
     if se != null {
         en :: as_enum_type(se, typed)
         if en != null { return en }
+    }
+    return null
+}
+
+// The right operand of an equality, when it is the dot at the cursor (`c == .|`):
+// the expected type is the left operand's, as the typecheck gives it. Only the dot
+// itself counts — in `c == f(.|)` the call's slot decides — and only on the right,
+// where the typecheck reads `.Variant` against the other side.
+comparison_operand_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    // Index loop, as `struct_lit_field_items` (GATE B1).
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.BinaryExpr && (e.op == .Eq || e.op == .Neq) {
+            if e.right is AST.DotVariantExpr && span_contains(e.right.span, line, col) {
+                return typed.expr_types[e.left.id]
+            }
+        }
     }
     return null
 }
