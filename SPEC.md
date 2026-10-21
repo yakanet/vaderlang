@@ -3623,10 +3623,7 @@ semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
 ### `std/math`
 
 ```vader
-// Comparison + helpers — overloaded on `i32`, `i64`, and `f64`. A generic
-// `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP: the
-// body needs to default-init a slot of type `T` before threading it through
-// `compare`, which is gated on `Default<T>` / a `zero<T>()` intrinsic.
+// Comparison + helpers, overloaded on `i32`, `i64` and `f64`.
 min   :: fn(a: i32, b: i32) -> i32
 min   :: fn(a: i64, b: i64) -> i64
 min   :: fn(a: f64, b: f64) -> f64
