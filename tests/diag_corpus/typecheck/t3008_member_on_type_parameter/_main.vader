@@ -1,0 +1,16 @@
+// A type parameter has only the members its bounds declare: an unbounded `T`
+// has none, and `T: Display & Equals` has no `bump`. T3008 says which.
+
+module "snippet"
+
+Bump :: trait {
+    bump :: fn(self) -> i32
+}
+
+free_t :: fn<T>(x: T) -> i32 = x.bump()
+
+bounded :: fn<T: Display & Equals>(x: T) -> i32 = x.bump()
+
+main :: fn() -> i32 {
+    return 0
+}

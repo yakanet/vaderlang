@@ -1121,6 +1121,12 @@ resolve_struct_field :: fn(
             )
             return TY_UNRESOLVED
         }
+        if target_ty is TypeParamType {
+            diags.push(
+                typecheck_error(.NotIndexable, e.field_span, type_param_member_detail(target_ty, e.field, typed)),
+            )
+            return TY_UNRESOLVED
+        }
         diags.push(
             typecheck_error(
                 .NotIndexable,
@@ -1966,6 +1972,16 @@ export namespace_base_mod_id :: fn(base: AST.Expr, typed: TypedProgram) -> strin
     }
     targets :: typed.import_targets ?? return null
     return targets.namespace_targets[sym.id]
+}
+
+// T3008's detail for a member `field` of a type parameter : it has only what its
+// bounds declare, its own or those its struct puts on it (`type_param_bound_traits`).
+type_param_member_detail :: fn(tp: TypeParamType, field: string, typed: TypedProgram) -> string {
+    name :: display_type(tp)
+    if typed.type_param_bound_traits[tp.symbol.id] == null {
+        return "`${name}` has no bound, so no `${field}` ; bound it by a trait that declares one"
+    }
+    return "no bound of `${name}` declares `${field}`"
 }
 
 /// Method names declared by a type parameter's bound trait(s) — a single trait

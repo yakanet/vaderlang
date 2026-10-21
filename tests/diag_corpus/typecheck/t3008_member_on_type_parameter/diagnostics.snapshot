@@ -1,0 +1,5 @@
+[10:1] warning[W0007] declaration is never used in its module: `free_t` is never used
+[10:34] error[T3008] expression is not indexable: `T` has no bound, so no `bump` ; bound it by a trait that declares one
+[12:1] warning[W0007] declaration is never used in its module: `bounded` is never used
+[12:53] error[T3008] expression is not indexable: no bound of `T` declares `bump`
+[6:1] warning[W0007] declaration is never used in its module: `Bump` is never used
