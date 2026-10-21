@@ -2,4 +2,4 @@
 
 ## tests/snippets/hours_tally
 
-- `const LIMIT = 256_i32`, folded
+- `const LIMIT = 256_i64`, folded

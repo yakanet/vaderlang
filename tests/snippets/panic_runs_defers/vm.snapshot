@@ -4,6 +4,6 @@ charging 500
 refund 500
 release hold
 # stderr
-vader vm: vader: panic — card declined
+vader vm: panic — card declined
 # exit
 1

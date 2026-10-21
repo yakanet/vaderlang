@@ -135,7 +135,7 @@ export type_val :: fn(value: Type) -> ComptimeValue {
 /// @param value  the value to render.
 /// @return       the printable form.
 export display_value :: fn(value: ComptimeValue) -> string = match value {
-    is IntValue    -> "${value.value}_${value.type_name}"
+    is IntValue    -> "${int_digits(value)}_${value.type_name}"
     is FloatValue  -> "${value.value}_${value.type_name}"
     is BoolValue   -> "${value.value}"
     is CharValue   -> "'\\u${pad_start(to_hex(u64(value.value)), 4, '0')}'"
@@ -145,6 +145,15 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
     is ArrayValue  -> render_array(value)
     is StructValue -> render_struct(value)
     is TypeValue   -> display_type(value.value)
+}
+
+// The digits of `value`, read unsigned on an unsigned type: the upper half of a
+// `u64` shows as negative in the `i64` it is held in.
+int_digits :: fn(value: IntValue) -> string {
+    if is_unsigned_int_name(value.type_name) {
+        return "${u64(value.value)}"
+    }
+    return "${value.value}"
 }
 
 // Arrays longer than this are truncated in the dump: a comptime snapshot
@@ -206,6 +215,11 @@ import "std/testing"
 @test test_display_int :: fn() -> void {
     assert_eq(display_value(int_val(42)), "42_i32")
     assert_eq(display_value(int_val_typed(255, "u8")), "255_u8")
+}
+
+@test
+test_display_int_past_i64_unsigned :: fn() -> void {
+    assert_eq(display_value(int_val_typed(-1, "u64")), "18446744073709551615_u64")
 }
 
 @test test_display_bool_null_void :: fn() -> void {

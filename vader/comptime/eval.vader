@@ -46,7 +46,7 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
     }
     context.depth = context.depth + 1
     result :: @partial match expr {
-        is AST.IntLitExpr        -> evaluate_int_lit(expr)
+        is AST.IntLitExpr        -> evaluate_int_lit(expr, context)
         is AST.FloatLitExpr      -> evaluate_float_lit(expr)
         is AST.BoolLitExpr       -> evaluate_bool_lit(expr)
         is AST.CharLitExpr       -> evaluate_char_lit(expr)

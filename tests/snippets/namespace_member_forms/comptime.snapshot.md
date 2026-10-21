@@ -5,7 +5,7 @@
 ## tests/snippets/namespace_member_forms/helper
 
 - `const GREETING = "hi"`, folded
-- `const MAX_RETRIES = 3_i32`, folded
+- `const MAX_RETRIES = 3_i64`, folded
 - `const Meters = i32`, folded
 
 # Diagnostics

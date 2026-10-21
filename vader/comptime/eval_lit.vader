@@ -11,12 +11,16 @@ import "std/string_builder"
 AST :: import "toolchain/ast"
 import "vader/diagnostics"
 
-/// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`). Its
-/// `type_name` defaults to `i32`, as the typechecker defaults a free int.
+/// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`), at the
+/// width the typechecker gave it: `3` in `X: i64: 3` is an `i64`.
 /// @param literal  the literal node.
+/// @param context  the evaluation context, holding the typechecker's types.
 /// @return         the wrapped int value.
-export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult =
-    ok(int_val(AST.int_literal_value(literal)))
+export evaluate_int_lit :: fn(literal: AST.IntLitExpr, context: ComptimeContext) -> EvalResult =
+    normalize_int_result(
+        ok(int_val(AST.int_literal_value(literal))),
+        resolved_int_name(context, literal.id),
+    )
 
 /// Evaluate a `FloatLitExpr` — always a free `f64` value (no suffix form).
 /// @param literal  the literal node.
@@ -70,7 +74,7 @@ export evaluate_string_lit :: fn(
 // string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
 // `"c=${'A'}"` to `"c=A"`, matching the runtime `Display` of the same code.
 interp_value :: fn(v: ComptimeValue) -> string = match v {
-    is IntValue    -> "${v.value}"
+    is IntValue    -> int_digits(v)
     is FloatValue  -> "${v.value}"
     is BoolValue   -> "${v.value}"
     is StringValue -> v.value

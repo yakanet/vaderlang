@@ -15,7 +15,7 @@
 import { test, expect } from "bun:test";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 import { EXE_SUFFIX, LONG_BUILD, runCli } from "./cli-bin.ts";
 import { C_SNAPSHOT, SNAPSHOT_TARGET, formatRun, listSnippets, snapshotEquals } from "./snapshot.ts";
@@ -735,7 +735,11 @@ for (const s of scenarios) {
       throw new Error(`c-emit-run: cc failed for ${s.name}\n${buildErr}`);
     }
 
-    const runProc = Bun.spawn([binFile], { cwd: process.cwd(), stdout: "pipe", stderr: "pipe" });
+    // The run writes its temp files in a directory of its own: the VM run of the
+    // same snippet goes at the same time and writes under the same names.
+    const runTmp = mkdtempSync(join(tmpdir(), `vader-cemit-${s.name}-`));
+    const runEnv = { ...process.env, TMPDIR: runTmp, TMP: runTmp, TEMP: runTmp };
+    const runProc = Bun.spawn([binFile], { cwd: process.cwd(), env: runEnv, stdout: "pipe", stderr: "pipe" });
     const killTimer = setTimeout(() => runProc.kill("SIGKILL"), 60_000);
     let stdout: string, stderr: string, runExit: number;
     try {
@@ -744,6 +748,7 @@ for (const s of scenarios) {
       runExit = await runProc.exited;
     } finally {
       clearTimeout(killTimer);
+      rmSync(runTmp, { recursive: true, force: true });
     }
 
     // A `C_PARITY` entry is listed to be run: a `vm.snapshot` that records no run

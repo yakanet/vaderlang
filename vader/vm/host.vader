@@ -296,7 +296,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     .AbortPanic -> {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
-        return Trap { .message = "vader: panic — ${string(message)}" }
+        return Trap { .message = "panic — ${string(message)}" }
     }
     // Non-intrinsics. Kept as an arm rather than a wildcard so a new
     // `IntrinsicId` variant still trips T3013 here.
