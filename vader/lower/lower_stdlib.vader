@@ -118,16 +118,7 @@ surface_stdlib_impl_externs :: fn(
         // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) →
         // materialise the real fn so a devirtualised concrete call resolves
         // directly instead of dropping / surfacing as an unbound host import.
-        body_lowered :: lower_body_of(
-            member, typed, project_ctx, entry, new_substitution(), params, return_type,
-        )
-        out.push(LoweredFnDecl {
-            .mangled     = mangled,
-            .params      = params,
-            .return_type = return_type,
-            .body        = body_lowered,
-            .origin      = entry,
-        })
+        out.push(lowered_fn_of(member, typed, project_ctx, entry, new_substitution(), params, return_type))
     }
     return out
 }
@@ -191,14 +182,7 @@ surface_array_impl_members :: fn(
             params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
             return_type :: return_type_of(member, types)
             entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
-            body :: lower_body_of(member, typed, project_ctx, entry, subst, params, return_type)
-            out.push(LoweredFnDecl {
-                .mangled     = mangled,
-                .params      = params,
-                .return_type = return_type,
-                .body        = body,
-                .origin      = entry,
-            })
+            out.push(lowered_fn_of(member, typed, project_ctx, entry, subst, params, return_type))
         }
     }
     return out

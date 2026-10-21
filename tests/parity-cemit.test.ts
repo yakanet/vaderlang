@@ -671,6 +671,9 @@ const C_PARITY = new Set<string>([
   "field_default_lambda_captures",
   // A shift's count is taken modulo the width, natively as at comptime.
   "comptime_int_overflow",
+  // A generic fn, a generic struct's member and a trait default each await ;
+  // a member of no value is awaited without a `void` frame slot.
+  "async_generic_and_members",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

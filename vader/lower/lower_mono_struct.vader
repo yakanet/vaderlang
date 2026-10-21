@@ -518,14 +518,8 @@ materialize_impl_for_instance :: fn(
             .vtable_slot    = member_vtable_slot(impl_trait, member),
         }
         synth_start :: project_ctx.synth_decls.len()
-        body :: lower_body_of(member, impl_typed, project_ctx, entry, subst, params, return_type)
-        push_to_module(project, impl_typed.resolved.path, LoweredFnDecl {
-            .mangled     = mangled,
-            .params      = params,
-            .return_type = return_type,
-            .body        = body,
-            .origin      = entry,
-        })
+        decl :: lowered_fn_of(member, impl_typed, project_ctx, entry, subst, params, return_type)
+        push_to_module(project, impl_typed.resolved.path, decl)
         // Drain lambdas/defers lifted from this member's body into the same
         // module, right after the member (post-module materialisation site).
         drain_synth_since(project, impl_typed.resolved.path, project_ctx, synth_start)

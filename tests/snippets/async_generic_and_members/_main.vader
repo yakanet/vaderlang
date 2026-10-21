@@ -1,0 +1,66 @@
+// An `async` body is a coroutine wherever it is written: a generic fn, an impl
+// member of a generic struct, and a trait's default member each await before
+// they return. `chain` awaits a generic fn of no value, `Box<string>` runs its
+// member and the trait default that awaits it. `ring` returns no value and is
+// awaited through a method call and through a trait value: its frame holds no
+// `void` slot either way.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+
+Job :: trait {
+    run :: fn(self) -> Async<i32>
+    twice :: fn(self) -> Async<i32> {
+        first :: await self.run()
+        return first * 2
+    }
+}
+
+Bell :: trait {
+    ring :: fn(self) -> Async<void>
+}
+
+Box :: struct<T> {
+    value: T
+    n: i32
+}
+
+Box<T> implements<T> Job {
+    run :: fn(self) -> Async<i32> {
+        await sleep(1)
+        return self.n
+    }
+}
+
+Box<T> implements<T> Bell {
+    ring :: fn(self) -> Async<void> {
+        await sleep(1)
+        println("ring ${self.n}")
+    }
+}
+
+tell :: fn<T>(x: T) -> Async<void> {
+    await sleep(1)
+    println("told ${@type_name(T)}")
+}
+
+chain :: fn<T>(x: T) -> Async<T> {
+    await tell(x)
+    return x
+}
+
+ring_twice :: fn(box: Box<string>, bell: Bell) -> Async<i32> {
+    await box.ring()
+    await bell.ring()
+    return 2
+}
+
+main :: fn() -> i32 {
+    box :: Box<string> { .value = "s", .n = 5 }
+    println("${block_on(box.run())} ${block_on(box.twice())}")
+    println("${block_on(chain(9))}")
+    println("${block_on(ring_twice(box, box))}")
+    return 0
+}

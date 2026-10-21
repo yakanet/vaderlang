@@ -174,9 +174,8 @@ fn_instance_key :: fn(inst: GenericFnInstance) -> string {
 }
 
 // Lower a `generator` fn / impl member to its state-machine body, reached through
-// `lower_body_of`. Lowers the body in
-// generator mode (yields → `LoweredYield` markers) then synthesizes `<State>` +
-// `Iterator::next` (`lower_generator_fn`).
+// `lowered_fn_of`. Lowers the body in generator mode (yields → `LoweredYield`
+// markers) then synthesizes `<State>` + `Iterator::next` (`lower_generator_fn`).
 lower_generator_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, gen_body: BlockExpr,
@@ -192,8 +191,8 @@ lower_generator_body :: fn(
 // analogue of `lower_generator_body`. Lowers the body in async mode (`await`s →
 // `LoweredAwait` markers via the ANF sink) then synthesizes `__asyncstate` +
 // `Async::resume` (`lower_async_fn`). `result_type` is the fn's declared return
-// `T` (NOT the erased `Async<T>` the caller sees — that wraps this at the
-// `LoweredFnDecl` boundary in `lower_decl`).
+// `T` (NOT the erased `Async<T>` the caller sees, which `lowered_fn_of` gives the
+// declaration).
 lower_async_body :: fn(
     project_ctx: LowerProjectCtx, entry: MonoEntry, typed: TypedProgram,
     subst: Substitution, fn_decl: FnDecl, async_body: BlockExpr,
@@ -274,7 +273,7 @@ build_fn_instance_decl :: fn(
         .type_arguments = inst.type_args,
         .module         = owner_typed,
     }
-    body :: lower_body_of(fn_decl, owner_typed, project_ctx, entry, subst, params, return_type)
+    decl :: lowered_fn_of(fn_decl, owner_typed, project_ctx, entry, subst, params, return_type)
     return PendingFnInstance {
         .module_id    = owner_module_id,
         .key          = key,
@@ -283,13 +282,7 @@ build_fn_instance_decl :: fn(
         // (GATE A) OR a bare type-param array return (S5 force-concrete). Both
         // skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
         .dispatches   = force_concrete,
-        .decl         = LoweredFnDecl {
-            .mangled     = inst.mangled,
-            .params      = params,
-            .return_type = return_type,
-            .body        = body,
-            .origin      = entry,
-        },
+        .decl         = decl,
         .synth_start  = synth_start,
         .synth_end    = project_ctx.synth_decls.len(),
     }

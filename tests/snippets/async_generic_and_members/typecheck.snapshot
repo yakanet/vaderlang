@@ -1,0 +1,80 @@
+# Typecheck
+
+## tests/snippets/async_generic_and_members
+  TraitDecl      Bell                 :: Bell
+  StructDecl     Box                  :: Box<T>
+  FnDecl         chain                :: fn(T) -> Async<T>
+  TraitDecl      Job                  :: Job
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         ring_twice           :: fn(Box<string>, Bell) -> Async<i32>
+  FnDecl         tell                 :: fn(T) -> Async<void>
+  expr 30742:10 IdentExpr      :: i32
+  expr 30742:4  AwaitExpr      :: i32
+  expr 30742:5  CallExpr       :: Async<i32>
+  expr 30742:6  FieldExpr      :: fn() -> Async<i32>
+  expr 30742:7  IdentExpr      :: Box<T>
+  expr 30742:9  BinaryExpr     :: i32
+  expr 32:15    CallExpr       :: Async<null>
+  expr 32:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 32:9     AwaitExpr      :: null
+  expr 33:16    FieldExpr      :: i32
+  expr 33:16    IdentExpr      :: Box<T>
+  expr 39:15    CallExpr       :: Async<null>
+  expr 39:15    IdentExpr      :: fn(i64) -> Async<null>
+  expr 39:9     AwaitExpr      :: null
+  expr 40:17    StringLitExpr  :: string
+  expr 40:25    FieldExpr      :: i32
+  expr 40:25    IdentExpr      :: Box<T>
+  expr 40:9     CallExpr       :: void
+  expr 40:9     IdentExpr      :: fn(T) -> void
+  expr 45:11    CallExpr       :: Async<null>
+  expr 45:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 45:5     AwaitExpr      :: null
+  expr 46:13    StringLitExpr  :: string
+  expr 46:21    IntrinsicCallExpr :: string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 50:11    CallExpr       :: Async<null>
+  expr 50:11    IdentExpr      :: fn(T) -> Async<void>
+  expr 50:16    IdentExpr      :: T
+  expr 50:5     AwaitExpr      :: null
+  expr 51:12    IdentExpr      :: T
+  expr 55:11    CallExpr       :: Async<null>
+  expr 55:11    FieldExpr      :: fn() -> Async<void>
+  expr 55:11    IdentExpr      :: Box<string>
+  expr 55:5     AwaitExpr      :: null
+  expr 56:11    CallExpr       :: Async<null>
+  expr 56:11    FieldExpr      :: fn() -> Async<void>
+  expr 56:11    IdentExpr      :: Bell
+  expr 56:5     AwaitExpr      :: null
+  expr 61:12    StructLitExpr  :: Box<string>
+  expr 61:35    StringLitExpr  :: string
+  expr 62:13    StringLitExpr  :: string
+  expr 62:16    CallExpr       :: i32
+  expr 62:16    IdentExpr      :: fn(Async<T>) -> T
+  expr 62:25    CallExpr       :: Async<i32>
+  expr 62:25    FieldExpr      :: fn() -> Async<i32>
+  expr 62:25    IdentExpr      :: Box<string>
+  expr 62:39    CallExpr       :: i32
+  expr 62:39    IdentExpr      :: fn(Async<T>) -> T
+  expr 62:48    CallExpr       :: Async<i32>
+  expr 62:48    FieldExpr      :: fn() -> Async<i32>
+  expr 62:48    IdentExpr      :: Box<string>
+  expr 62:5     CallExpr       :: void
+  expr 62:5     IdentExpr      :: fn(T) -> void
+  expr 63:13    StringLitExpr  :: string
+  expr 63:16    CallExpr       :: i32
+  expr 63:16    IdentExpr      :: fn(Async<T>) -> T
+  expr 63:25    CallExpr       :: Async<i32>
+  expr 63:25    IdentExpr      :: fn(T) -> Async<T>
+  expr 63:5     CallExpr       :: void
+  expr 63:5     IdentExpr      :: fn(T) -> void
+  expr 64:13    StringLitExpr  :: string
+  expr 64:16    CallExpr       :: i32
+  expr 64:16    IdentExpr      :: fn(Async<T>) -> T
+  expr 64:25    CallExpr       :: Async<i32>
+  expr 64:25    IdentExpr      :: fn(Box<string>, Bell) -> Async<i32>
+  expr 64:36    IdentExpr      :: Box<string>
+  expr 64:41    IdentExpr      :: Box<string>
+  expr 64:5     CallExpr       :: void
+  expr 64:5     IdentExpr      :: fn(T) -> void

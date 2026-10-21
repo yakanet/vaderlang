@@ -111,18 +111,8 @@ materialize_member_instance :: fn(
         .subst = subst,
         .type_arguments = inst.type_args,
     }
-    body :: lower_body_of(inst.member, owner, project_ctx, entry, subst, params, return_type)
+    decl :: lowered_fn_of(inst.member, owner, project_ctx, entry, subst, params, return_type)
     module_id :: owner.resolved.path
-    push_to_module(
-        project,
-        module_id,
-        LoweredFnDecl {
-            .mangled = inst.mangled,
-            .params = params,
-            .return_type = return_type,
-            .body = body,
-            .origin = entry,
-        },
-    )
+    push_to_module(project, module_id, decl)
     drain_synth_since(project, module_id, project_ctx, synth_start)
 }

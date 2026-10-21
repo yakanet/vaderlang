@@ -68,14 +68,7 @@ lower_impl_member_list :: fn(
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
         entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
-        body :: lower_body_of(member, typed, project_ctx, entry, subst, params, return_type)
-        out.push(LoweredFnDecl {
-            .mangled     = mangled,
-            .params      = params,
-            .return_type = return_type,
-            .body        = body,
-            .origin      = entry,
-        })
+        out.push(lowered_fn_of(member, typed, project_ctx, entry, subst, params, return_type))
     }
     return out
 }
@@ -207,68 +200,72 @@ lower_fn_decl :: fn(
             return_type,
         )
     }
-    // `async` fns desugar to a coroutine state machine (async analogue of the
-    // generator branch). The declared return `T` becomes the erased `Async<T>`
-    // at the `LoweredFnDecl` boundary — the body constructs + returns a boxed
-    // `__asyncstate` frame, and callers type the call as `Async<T>`.
-    gen_body :: fn_decl.body
-    if fn_is_async(typed, fn_decl) && gen_body != null {
-        // `async main` is the program entry : the entry point can't return an
-        // `Async<i32>` frame as an exit code. Keep its return `i32` and inline
-        // the run-driver into its body (build frame → resume → return the
-        // completed code). `main` keeps its name, so the name-based entry
-        // selection + both backends stay unchanged ; `async_main_driver` picks the
-        // driver. Any other `async fn` erases to `Async<T>`.
-        is_main :: is_main_decl(fn_decl)
-        async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC)
-        // The raw value type the body produces : `T` from a `-> Async<T>` return
-        // (target form) or the whole `-> T` (transitional `async`). The frame /
-        // resume machinery works on this raw `T` (its void→null normalization is
-        // internal to `lower_async_fn`).
-        inner_t :: async_inner_type(return_type)
-        // `async main` keeps the raw inner return (its inlined driver hands back
-        // the exit code) ; every other async fn erases to `Async<T>`.
-        async_ret :: if is_main || async_sym == null {
-            inner_t
-        } else {
-            erased_async_type(async_sym, return_type)
-        }
-        return LoweredFnDecl {
-            .mangled     = entry.mangled,
-            .params      = params,
-            .return_type = async_ret,
-            .body        = lower_async_body(project_ctx, entry, typed, subst, fn_decl, gen_body, params, inner_t, is_main),
-            .origin      = entry,
-        }
-    }
     if decorators_have(fn_decl.decorators, "singleton") {
         return lower_singleton(project_ctx, entry, typed, subst, fn_decl, return_type)
     }
-    body :: lower_body_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
-    return LoweredFnDecl {
+    return lowered_fn_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
+}
+
+/// A fn or an impl member, lowered: its state machine when it is a generator or
+/// awaits, its plain body otherwise, with the type that body hands back ; no body
+/// for one that has none (`@extern`, `@intrinsic`). Every site that materialises
+/// one goes through here, so the body and its return type are decided together.
+/// A body that both yields and awaits is a generator, as the typecheck reads it ;
+/// lowered as a plain body, a generator would drop every `yield` and return no
+/// value.
+///
+/// @param fn_decl      the fn or member.
+/// @param typed        its module.
+/// @param entry        its instance : its name, and whether it is `main`.
+/// @param subst        the instance's substitution.
+/// @param params       its lowered parameters.
+/// @param return_type  its declared return, substituted at the instance.
+/// @return             the lowered declaration.
+lowered_fn_of :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    entry: MonoEntry, subst: Substitution, params: LoweredParam[], return_type: Type,
+) -> LoweredFnDecl {
+    bodyless :: LoweredFnDecl {
         .mangled     = entry.mangled,
         .params      = params,
         .return_type = return_type,
-        .body        = body,
+        .body        = null,
         .origin      = entry,
+    }
+    body :: fn_decl.body ?? return bodyless
+    if fn_is_generator(typed, fn_decl) {
+        return LoweredFnDecl {
+            ...bodyless,
+            .body = lower_generator_body(
+                project_ctx, entry, typed, subst, fn_decl, body, params, return_type,
+            ),
+        }
+    }
+    if fn_is_async(typed, fn_decl) {
+        inner :: async_inner_type(return_type)
+        return LoweredFnDecl {
+            ...bodyless,
+            .return_type = async_return_type(project_ctx, entry, return_type, inner),
+            .body        = lower_async_body(
+                project_ctx, entry, typed, subst, fn_decl, body, params, inner, entry.is_main,
+            ),
+        }
+    }
+    return LoweredFnDecl {
+        ...bodyless,
+        .body = lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type),
     }
 }
 
-// The body of a fn or an impl member: its state machine when it is a generator,
-// its plain lowering otherwise ; null when it has none (`@extern`, `@intrinsic`).
-// Every site that materialises one goes through here: lowered as a plain body, a
-// generator drops every `yield` and returns no value.
-lower_body_of :: fn(
-    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
-    entry: MonoEntry, subst: Substitution, params: LoweredParam[], return_type: Type,
-) -> LoweredBlock | null {
-    body :: fn_decl.body ?? return null
-    if fn_is_generator(typed, fn_decl) {
-        return lower_generator_body(
-            project_ctx, entry, typed, subst, fn_decl, body, params, return_type,
-        )
+// What an `async` body hands back: the erased `Async<T>` its frame is, or for
+// `async main` the raw `inner`, the exit code the driver inlined into its body
+// returns (the program entry cannot return a frame).
+async_return_type :: fn(project_ctx: LowerProjectCtx, entry: MonoEntry, declared: Type, inner: Type) -> Type {
+    if entry.is_main {
+        return inner
     }
-    return lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type)
+    async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC) ?? return inner
+    return erased_async_type(async_sym, declared)
 }
 
 // Build the fn-body context and invoke the block lowerer. Returns

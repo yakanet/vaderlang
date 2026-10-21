@@ -1,8 +1,9 @@
 // vader/lower/lower_generator — the `generator` state-machine desugar (Phase 3).
 //
-// Called from `lower_fn_decl` for a non-generic `generator` fn. Takes the
-// generator body lowered in generator mode (so every `yield e` is a transient
-// `LoweredYield` marker) and produces, per generator `g`:
+// Called from `lower_decl.vader::lowered_fn_of` for every `generator` fn,
+// generic instance and impl member. Takes the generator body lowered in
+// generator mode (so every `yield e` is a transient `LoweredYield` marker) and
+// produces, per generator `g`:
 //
 //   1. a synthesized `g$State` struct — every param + every spilled local
 //      (v1: spill-all) + a `state: i32` resume discriminant;
