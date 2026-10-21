@@ -23,10 +23,8 @@ module "std/core"
 // through its `to_string` impl (below) — including `f32`/`f64`, which format
 // via the Ryu `format_f32`/`format_f64` shortest-float formatters.
 
-// Pure-Vader Display for the scalar primitives (Target ABI S1 for the
-// integers/bool/char/string, S4 for f32/f64). Real-body impls shadow the
-// former `@intrinsic` stubs (`lower_impl_member.vader` returns the first
-// non-intrinsic match). std/core cannot import std/string_builder / std/string
+// Pure-Vader Display for the scalar primitives (the integers, bool, char,
+// string, f32 and f64). std/core cannot import std/string_builder / std/string
 // (import cycle — that's why std/numbers lives outside core), so every formatter
 // here sizes its result first, fills one `Buffer` and interns it once ; f32/f64
 // delegate to the Ryu formatters in dtoa.vader / f2s.vader, which render the
@@ -224,7 +222,7 @@ f64 implements Display -> format_f64(self)
 // Distinct from the numeric `u64(x)` / `f64(b)` casts (which convert the VALUE).
 // `@intrinsic` → the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
 // runtime symbol). Foundation for the pure-Vader shortest-double formatter
-// and the S2-deferred `LoadF64` byte codec.
+// and the VM's `LoadF64` byte codec.
 
 @intrinsic f64 implements FloatBits     // → F64ToBits
 @intrinsic u64 implements BitsFloat     // → BitsToF64
@@ -405,7 +403,7 @@ f64 implements One -> 1.0
 //
 // `Add` is wired here in std/core (auto-imported) so `.add()` and the `Add`
 // bound work without `import "std/string"`. Its body interpolates the two
-// operands — which desugars to the Buffer-backed StringBuilder chain (S6b),
+// operands — which desugars to the Buffer-backed StringBuilder chain,
 // so no dedicated `StringConcat` op is needed. The `+` operator never reaches
 // this body : it is special-cased in the typechecker (`typecheck/binary.vader`
 // — `string + string -> string`) and lowered to the same StringBuilder chain

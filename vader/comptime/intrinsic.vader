@@ -1,10 +1,9 @@
 // vader/comptime/intrinsic — comptime evaluator for `@<name>(args)` calls.
 //
-// Minimal Phase 5 scope : `@size_of`, `@align_of`, `@type_name`,
-// `@type_kind`. Every other intrinsic falls back to `C4001` ; richer
-// coverage (`@field`, `@fields`, `@file`, `@env`, …) lands when the
-// downstream consumer (lowerer / bytecode emit) is ported and the
-// missing infrastructure can be validated end-to-end.
+// Folds `@size_of`, `@align_of`, `@type_name`, `@type_kind`, `@field_count`,
+// `@variant_count`, `@field_index`, `@min` and `@max`. Every other intrinsic
+// falls back to `C4001` flagged `vm_required`, which hands a stageable decl to
+// the comptime VM (see `evaluate_module_decls`).
 
 module "vader/comptime"
 

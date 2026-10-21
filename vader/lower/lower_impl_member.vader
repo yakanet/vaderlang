@@ -41,12 +41,11 @@ is_identity_member :: fn(m: FnDecl) -> bool {
 }
 
 /// Build a call to a resolved impl member, OR inline its body when trivial.
-/// Today (P1) only the identity `fn(self) = self` is inlined — the call collapses
+/// Only the identity `fn(self) = self` is inlined — the call collapses
 /// to the receiver (`args[0]`), eliminating the call (e.g. every `string`-part
 /// `${…}` interpolation's no-op `to_string`). All other members emit the direct
-/// `LoweredCall` exactly as before. The single hook every "resolve impl member +
-/// build call" site should route through (P2 will extend it to general
-/// expression bodies via value-substitution).
+/// `LoweredCall`. The single hook every "resolve impl member + build call" site
+/// should route through.
 build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
     // Identity uses `self` exactly once, so returning the (already-lowered)
     // receiver evaluates it once — no temp / double-eval concern.
@@ -196,10 +195,11 @@ build_ufcs_member :: fn(
     // symbol-id lookup ever runs.
     //
     // The module prefix is the IMPL's owning module (`entry.module`), NOT the
-    // caller's (`ctx`). For an intrinsic like `string implements Display`
+    // caller's (`ctx`). For an impl like `string implements Display`
     // reached from `println` in std/io, the mangle must read `std_core$…`,
-    // matching where the impl is declared / its surfaced decl is registered
-    // (GATE B). Same-module user impls are unaffected (entry.module == ctx's).
+    // matching where the impl is declared / its surfaced decl is registered,
+    // or the callee is unresolved at emit. Same-module user impls are unaffected
+    // (entry.module == ctx's).
     //
     // Then what tells its members from another impl of the trait on that base
     // (`ImplEntry.overload_suffix`), as every materialiser names them.

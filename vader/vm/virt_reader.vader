@@ -3,18 +3,12 @@
 // Holds the per-op line parsers + structured control-flow → linear op-stream
 // wiring (`ParserState`, `wire_control_flow`, `parse_op_line`, every
 // `parse_<op>` helper) used by the canonical `.virt` reader in
-// `virt_reader_bc.vader` (which produces a `BytecodeModule`). The
-// module-level metadata parsers + the VM-`Module` projection that once lived
-// here were retired when `exec` moved onto `BytecodeModule` directly.
+// `virt_reader_bc.vader` (which produces a `BytecodeModule`).
 //
 // The format is the one produced by `vader dump --stage=bytecode`.
 //
-// Sprint coverage so far: i32 const / arith / cmp, locals, structured
-// `block`/`loop`/`if`/`else`/`end`, `br`/`br_if`, `return`, string-pool
-// literals + host imports (`string.const`, `call.import`), and Sprint 4
-// adds multi-function modules with direct `call N`. Every branching
-// op's target pc is resolved in a single pass via a label-keyed scope
-// stack that resets at each fn boundary.
+// Every branching op's target pc is resolved in a single pass via a
+// label-keyed scope stack that resets at each fn boundary.
 
 module "vader/vm"
 
@@ -390,8 +384,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     // `reason` is not serialised to `.virt` — the round-trip VM traps with a
     // generic message ; the in-memory run and the native build keep the reason.
     if head == "unreachable"    { return bc.Unreachable { .reason = "" } }
-    // Memory opcodes (Target ABI). `buffer.new` carries no operand
-    // (decision D2) ; the rest are all-stack, no operands. Landed alongside
+    // Memory opcodes (Target ABI). `buffer.new` carries no operand ; the
+    // rest are all-stack, no operands. Landed alongside
     // write_op's arms so a known op never silently drops here (which would
     // shift every following pc).
     if head == "buffer.new"     { return bc.BufferNew {} }
@@ -949,7 +943,7 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     // immediate ; the rest are operand-free. Each must survive write_op →
     // parse_op_line → write_op unchanged — proving parse ≠ null and that the
     // op (and its immediate) is preserved, so a synthetic op stream keeps its
-    // pc indices. Includes the S5 width-typed array slot family.
+    // pc indices. Includes the width-typed array slot family.
     assert_eq(roundtrip_op_text(bc.BufferNew {}),  "buffer.new")
     assert_eq(roundtrip_op_text(bc.LoadU8 {}),     "load_u8")
     assert_eq(roundtrip_op_text(bc.LoadI32 {}),    "load_i32")

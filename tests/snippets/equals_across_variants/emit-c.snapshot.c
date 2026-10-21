@@ -435,7 +435,7 @@ static bool snippet_Label_std_core_Equals_equals_guard(void* l0, vader_box_t l1)
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 257 "lib/std/core/primitives.vader"
+#line 255 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 
@@ -447,7 +447,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 100 "lib/std/core/primitives.vader"
+#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -455,9 +455,9 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 132 "lib/std/core/primitives.vader"
+#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 133 "lib/std/core/primitives.vader"
+#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -465,12 +465,12 @@ static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2)
 
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
-#line 184 "lib/std/core/primitives.vader"
+#line 182 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 185 "lib/std/core/primitives.vader"
+#line 183 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 6u);
         return t0;
-#line 184 "lib/std/core/primitives.vader"
+#line 182 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 5u);
     return t0;
@@ -564,42 +564,42 @@ static bool std_core____Contains_contains__f64___string(void* l0, vader_box_t l1
 }
 
 static uint64_t std_core_i8_Hash_hash(int8_t l0) {
-#line 255 "lib/std/core/primitives.vader"
+#line 253 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int8_t) l0);
 }
 
 static uint64_t std_core_i16_Hash_hash(int16_t l0) {
-#line 256 "lib/std/core/primitives.vader"
+#line 254 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int16_t) l0);
 }
 
 static uint64_t std_core_i64_Hash_hash(int64_t l0) {
-#line 258 "lib/std/core/primitives.vader"
+#line 256 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) l0;
 }
 
 static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
-#line 259 "lib/std/core/primitives.vader"
+#line 257 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
 }
 
 static uint64_t std_core_u16_Hash_hash(uint16_t l0) {
-#line 260 "lib/std/core/primitives.vader"
+#line 258 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint16_t) l0);
 }
 
 static uint64_t std_core_u32_Hash_hash(uint32_t l0) {
-#line 261 "lib/std/core/primitives.vader"
+#line 259 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 
 static uint64_t std_core_u64_Hash_hash(uint64_t l0) {
-#line 262 "lib/std/core/primitives.vader"
+#line 260 "lib/std/core/primitives.vader"
     return l0;
 }
 
 static uint64_t std_core_char_Hash_hash(uint32_t l0) {
-#line 263 "lib/std/core/primitives.vader"
+#line 261 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 

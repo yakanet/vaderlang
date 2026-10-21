@@ -5,7 +5,7 @@ import "std/io"
 // Two lambda arguments where the SECOND one is what binds `T`. The deferred
 // lambda pass used to run once, in source order, so the first lambda was
 // checked while `T` was still unbound: its `[]` typed erased, and the call was
-// keyed on a dangling `T` (GATE B1 panic). The pass runs to a fixpoint now, and
+// keyed on a dangling `T` (an unresolved callee at emit). The pass runs to a fixpoint now, and
 // unification refuses the two bindings that say nothing — `T := ?` and the
 // self-referential `T := T` — so the round that follows can still learn the
 // real one.

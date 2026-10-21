@@ -1,4 +1,4 @@
-// vader/lower/lower_generator — the `generator` state-machine desugar (Phase 3).
+// vader/lower/lower_generator — the `generator` state-machine desugar.
 //
 // Called from `lower_decl.vader::lowered_fn_of` for every `generator` fn,
 // generic instance and impl member. Takes the generator body lowered in
@@ -101,7 +101,8 @@ push_generator_decls :: fn(
 ///
 /// Handles straight-line yields, single + nested loops, if / match / break /
 /// continue, and struct element types. v1 spills every param + local (no
-/// liveness pass) ; generic generators are out of scope (§11.1).
+/// liveness pass) ; a generic generator lowers once per instance, each with a
+/// state struct of its own.
 ///
 /// @param fn_ctx        the generator's fn-lowering context.
 /// @param fn_decl       the generator FnDecl (for its span).

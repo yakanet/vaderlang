@@ -242,10 +242,9 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
     return all
 }
 
-// Typecheck dump : per-module decl + expression types. MVP output covers
-// top-level decl types only — expression / local types arrive with Phase 3
-// (body checking). The dump format is stable so snapshots can byte-diff
-// stdout.
+// Typecheck dump : per-module decl + expression types (the top-level decl
+// types, then one `expr` line per typed expression). The dump format is stable
+// so snapshots can byte-diff stdout.
 run_typecheck_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
 ) -> i32 {

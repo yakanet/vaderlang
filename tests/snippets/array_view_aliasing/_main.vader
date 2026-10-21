@@ -1,4 +1,4 @@
-// A7 — `arr[r]` is a zero-copy view onto the parent's backing buffer.
+// `arr[r]` is a zero-copy view onto the parent's backing buffer.
 // Writes through the view alias the parent (Go-style). The user opts
 // out by calling `.clone()` to get an owning copy. `push` detaches
 // to avoid clobbering tail slots aliased by sibling views.

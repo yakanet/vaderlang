@@ -40,8 +40,7 @@ export AllTargets :: struct {}
 /// `Target | Union` made the word mean two things in one line.
 ///
 /// Two views, and the split is load-bearing rather than ergonomic: the cut
-/// happens at LOAD time, so one `LoadedProject` cannot serve both. See the
-/// target plan §8.5.
+/// happens at LOAD time, so one `LoadedProject` cannot serve both.
 export Selection :: Target | AllTargets
 
 /// A compilation target — the pair a build is parameterised by.

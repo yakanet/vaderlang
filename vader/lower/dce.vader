@@ -64,7 +64,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                 // by MANGLE made its survival depend on a call site naming that
                 // exact suffix, which is precisely what the dedupe guarantees won't
                 // happen: DCE pruned a decl the emitter was about to resolve, and
-                // the build died on `unresolved callee` (GATE B1).
+                // the build died on `unresolved callee`.
                 if sym is Symbol {
                     by_sym_id[sym.id] = d
                 } else {
@@ -78,7 +78,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                     // callee reached only from an unwalked survivor (the non-
                     // dispatching `ensure_buckets`, called from the dispatching
                     // `put__i32__bool` alone) is pruned while the emitted call
-                    // survives → GATE-B1 panic. Keeps the header invariant
+                    // survives → an unresolved-callee panic at emit. Keeps the header invariant
                     // "DCE-survival ⟺ emit-resolvable". (Collapsed sibling
                     // suffixes resolve via emit's symbol-id fallback.)
                     if reachable_mangle[d.mangled] == null {

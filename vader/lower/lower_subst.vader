@@ -268,10 +268,8 @@ kept_suffix :: fn(kept: Type | null) -> string {
 // kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
 // (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
 // transitive arg list (`[Any, Any]`) is correctly EXCLUDED → stays fully erased
-// (symbol-id indexed). Subsumes Inc 1's narrow "all type args are raw-flippable
-// primitives" gate : an all-primitive arg list satisfies this too, and a mixed
-// subst over all-primitive args equals the concrete subst, so Inc 1's instances
-// are byte-unchanged.
+// (symbol-id indexed). An all-primitive arg list satisfies this too, and a mixed
+// subst over all-primitive args equals the concrete subst.
 has_any_kept_arg :: fn(impls: ImplRegistry, type_args: Type[]) -> bool {
     for a in type_args {
         if impls.kept_argument(a) != null { return true }

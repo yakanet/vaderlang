@@ -456,7 +456,7 @@ verify_locals :: fn(
     }
 }
 
-// I7002 — the four `GATE B1` panics, as one check. Reachable blocks only:
+// I7002 — the emitter's four unresolved-callee panics, as one check. Reachable blocks only:
 // `emit_cfg_function_body` walks from the entry (`emit.vader:644`), so a
 // reference in a dead block never resolves and never breaks the emit. The
 // file header explains why the call chain and the fn-as-value chain differ.

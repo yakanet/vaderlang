@@ -1,8 +1,7 @@
 // Shared presence check + spawn wrapper for the Vader CLI native binary.
 // The harness does NOT build the compiler — it asserts a prebuilt `build/vader`
 // exists and is up to date vs the .vader sources, failing loudly otherwise.
-// This severs the test suite from the TS compiler in src/ (the §2.8 path): the
-// binary is provided by `bun run build:cli` (while src/ exists) or from the
+// The binary is provided by `bun run build:cli`, which builds it from the
 // committed C seed (see bootstrap/README.md).
 
 import { beforeAll } from "bun:test";
@@ -48,10 +47,8 @@ export const LONG_BUILD = 120_000;
 // CEILING, not a target: raising it costs nothing until something hangs.
 export const HEAVY_BUILD = 600_000;
 
-// Newest mtime across the .vader sources the compiler is built from. src/ (the
-// TS compiler) is intentionally excluded — the binary is produced from these
-// .vader sources, not TS, so a TS edit must not flag the binary stale. Post-§2.8
-// src/ is gone entirely.
+// Newest mtime across the .vader sources the compiler is built from: `vader/`
+// and `lib/`.
 //
 // Called once per test FILE, not once per worker: bun gives each `*.test.ts` its
 // own realm, so the `--preload` module is re-evaluated per file and neither a

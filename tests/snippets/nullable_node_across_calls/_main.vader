@@ -1,8 +1,7 @@
-// Exercises B1 (nullable-ref inline rep) at the fn-signature boundary.
-// `Node | null` flows through `find` as the param and through `cons` as
-// the return type ; both routes pass through `void*` at the C ABI
-// instead of `vader_box_t`. The roundtrip below also tests that null and
-// non-null variants survive intact across the conversion.
+// A `Node | null` crosses calls both ways: `find` takes one and returns one,
+// `cons` returns one, and `length` recurses on one. At the C ABI each is a
+// `vader_box_t`. The lookups below check that the null and the non-null
+// variants both come back intact.
 
 module "snippet"
 

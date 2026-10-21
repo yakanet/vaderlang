@@ -3,7 +3,7 @@
 // block-body lambda. A block-body lambda that ends in `return` types its block as
 // `never` ; before the fix, `pick_final_return` propagated that `never`, so `U`
 // (needing `U | Error ≡ i32 | Error`) never bound → the mangle lost `U` → a
-// materialisation gap (GATE B1). The fix recovers the lambda's real return type
+// callee unresolved at emit. The fix recovers the lambda's real return type
 // from its `return` values (`FnContext.inferred_return`).
 module "snippet"
 

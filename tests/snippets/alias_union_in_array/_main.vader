@@ -1,13 +1,13 @@
-// Cross-module type-alias unions in array slots (§3.8). Before this fix
-// `V[]` in a fn-param or local-let position only expanded the alias
-// correctly *within the defining module* — consumer modules saw `?[]`
-// because the implicit-type-alias `Pet :: Cat | Dog` was declared in the
-// same typecheck phase as the consumer's fn signatures, so the alias
-// hadn't been registered yet when the param type was lowered.
+// Cross-module type-alias unions in array slots. `V[]` in a fn-param or
+// local-let position must expand the alias outside the defining module
+// too: a consumer module sees `?[]` if the implicit-type-alias
+// `Pet :: Cat | Dog` is declared in the same typecheck phase as the
+// consumer's fn signatures, since the alias is then not registered yet
+// when the param type is lowered.
 //
-// A dedicated `type-aliases` phase between `enums` and `rest` resolves
-// the dependency : every `T :: …` is registered project-wide before any
-// fn signature gets lowered.
+// The typecheck registers the aliases first (`register_aliases`): every
+// `T :: …` is registered project-wide before any fn signature gets
+// lowered.
 
 module "snippet"
 

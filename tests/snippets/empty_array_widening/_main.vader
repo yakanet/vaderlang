@@ -5,7 +5,7 @@ import "std/io"
 // `x := []` has no element type of its own — the first `x.push(v)` widens the
 // binding retroactively. The `[]` LITERAL has to be widened with it: the
 // lowerer reads the literal's type to pick the buffer's element kind, so a
-// literal left at `?[]` allocates a BOXED (24-byte slot) buffer while the now
+// literal left at `?[]` allocates a BOXED (16-byte slot) buffer while the now
 // concrete local reads and writes it as PACKED elements. Under four pushes the
 // two layouts happen to agree; from the first buffer growth on they don't, and
 // the array silently reads back garbage.

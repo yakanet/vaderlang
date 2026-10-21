@@ -504,7 +504,7 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// `@size_of` and cannot reach `vader/bytecode` without inverting an import
 /// edge; the colocated tests below pin one case per class against the emitted C.
 ///
-/// A concrete reference is EIGHT bytes, not sixteen: since T12 a struct, array,
+/// A concrete reference is EIGHT bytes, not sixteen: a struct, array,
 /// tuple or fn value rides as a bare `void*` and recovers its tag from the
 /// object header. Only an ERASED slot — a trait object, a union, `any` — still
 /// carries a `vader_box_t`, whose tag it needs because no single object header
@@ -535,7 +535,7 @@ export slot_byte_align :: fn(t: Type) -> i64 {
     return size
 }
 
-/// A concrete heap reference — `void*` since T12.
+/// A concrete heap reference: a `void*`.
 export REF_SLOT_BYTES: i64: 8
 
 /// An erased slot — `vader_box_t`, a tag plus a word of payload.
@@ -1371,8 +1371,8 @@ test_primitive_meta_partition :: fn() -> void {
 
 @test
 test_slot_size_of_a_string_is_an_atom_id :: fn() -> void {
-    // `typedef vader_atom_t vader_string_t` — a u32. The `{ptr, len}` fat
-    // pointer this used to report went out of the runtime with T12.
+    // `typedef vader_atom_t vader_string_t` — a u32, not a `{ptr, len}` fat
+    // pointer.
     assert_eq(slot_byte_size(TY_STRING), 4)
 }
 
@@ -1389,7 +1389,7 @@ test_slot_size_of_an_i32_enum_is_four :: fn() -> void {
 
 @test
 test_slot_size_of_a_concrete_ref_is_a_word :: fn() -> void {
-    // Since T12 a struct field emits `void*`, not a `vader_box_t`.
+    // A concrete-reference field emits `void*`, not a `vader_box_t`.
     assert_eq(slot_byte_size(mk_array(TY_I32)), REF_SLOT_BYTES)
 }
 

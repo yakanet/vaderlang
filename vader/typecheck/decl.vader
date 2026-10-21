@@ -8,7 +8,7 @@
 //
 // Handled here :
 //   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`.
-//   - Layer 4-sugar const-as-type-alias detection : an un-annotated const
+//   - Const-as-type-alias detection : an un-annotated const
 //     whose value is in type position registers an alias / distinct type
 //     (`is_type_expr` → `alias_for`) ; an annotated const gets
 //     its annotated type ; an un-annotated value const stays un-typed at

@@ -186,8 +186,8 @@ render_array :: fn(array: ArrayValue) -> string {
 
 // Field names sorted before rendering so the snapshot output is
 // deterministic. `MutableMap` iteration order tracks insertion + bucket
-// state ; relying on it would silently drift snapshots once Phase 4
-// starts populating maps from different code paths.
+// state ; relying on it would silently drift snapshots whenever a map is
+// populated from a different code path.
 render_struct :: fn(struct_value: StructValue) -> string {
     sb :: StringBuilder {}
     sb.append(struct_value.type_name)

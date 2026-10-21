@@ -1247,8 +1247,8 @@ repin_free_ufcs_receiver_at_instance :: fn(
 /// @param typed   the module the call sits in.
 /// @return        the `FnDecl`, or null when the callee is no named fn.
 export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
-    // A namespace-qualified name — `M.f`, the form §7 of the style guide
-    // mandates for an aliased import. It is a `FieldExpr`, not an ident, and
+    // A namespace-qualified name — `M.f`, the qualified form an aliased import
+    // requires (T3078). It is a `FieldExpr`, not an ident, and
     // treating it as unresolvable had two costs: a valid callback argument was
     // refused T3080, and a call whose CALLEE wore that shape skipped the check
     // entirely and reached `midir/build`'s panic.

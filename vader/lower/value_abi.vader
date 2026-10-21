@@ -97,7 +97,7 @@ value_abi_sized :: fn(
         return -1
     }
     // An empty struct is a tag, not a payload: nothing crosses, so there is
-    // nothing here for the chantier to make cheaper.
+    // nothing here for the value ABI to make cheaper.
     key :: shape_mangle(t, typed) ?? return -1
     decl :: structs[key] ?? return -1
     if decl.fields.len() == 0 {

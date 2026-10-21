@@ -198,7 +198,7 @@ materialize_struct_instance :: fn(
     // shape closure walks them — only the push is skipped.
     already :: project_ctx.materialized_struct_mangles.contains(mangled)
     project_ctx.materialized_struct_mangles.add(mangled)
-    // Layout subst (mixed flavor, P2) : the entry's `subst` keeps the concrete
+    // Layout subst (mixed flavor) : the entry's `subst` keeps the concrete
     // args (for mangling + downstream consumers that need the source-level
     // type-args), but the FIELDS get a MIXED subst — primitive type-args land
     // RAW (`Entry.key : string` / `i32`, devirt + unboxed), reference type-args
@@ -493,7 +493,7 @@ materialize_impl_for_instance :: fn(
         // instantiation context (`owner_typed`). A generic-impl member referenced
         // from another module (e.g. `Range<T>`'s `Iterator::next`, reached from any
         // module iterating a range) is resolved by the for-in / default-method
-        // lowering under the impl's owning module (GATE B1, see `lower_for_in.vader`) ;
+        // lowering under the impl's owning module (see `build_ufcs_member`) ;
         // materialising it under the caller's module produced a mangle the call
         // sites never reference (`std_collections$…next` vs `std_iter$…next`),
         // dropping the call to the panic fallback. Co-locating with the impl keeps

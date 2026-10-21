@@ -68,7 +68,7 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
 // passes (generic fn instances, harvested non-generic stdlib fns, impl
 // members) lower fn bodies AFTER the per-module walk, so any lambda lifted
 // inside such a body would otherwise be orphaned — never reserved into the
-// fn table, surfacing as a make-closure GATE-B1 panic at emit (the
+// fn table, surfacing as an unresolved make-closure callee at emit (the
 // `__lambda_*` was in `synth_decls` but no module ever drained it).
 // Callers pass an explicit `end` so a separated build/push site (generic
 // instances) drains only the window the survivor produced, skipping the

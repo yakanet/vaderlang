@@ -34,7 +34,7 @@ cmd_dap :: fn(args: string[]) -> i32 {
 // Compile a launch-target `.vader` to a `DapProgram`.
 //   want_debug = true  : the DAP path is the debug path — the per-op `debug`
 //                        table backs breakpoints, stepping, and the stack view.
-//   optimize   = false : the "-O0 of the debugger" (plan §3 Decision B). Skips
+//   optimize   = false : the "-O0 of the debugger". Skips
 //                        slot coalescing + the single-expr inliner, so slots map
 //                        1:1 to source locals (accurate Variables view) and
 //                        lines stay monotone (clean stepping). A one-off

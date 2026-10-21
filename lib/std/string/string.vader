@@ -61,12 +61,6 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
     return s.matches_at(s.byte_len() - suffix.byte_len(), suffix)
 }
 
-// `bytes` (string→read-only `u8[]` view) moved to `std/core` (the prelude) in
-// Target ABI S3 — it sits below `std/string_builder`, which now needs it, and
-// `std/string` imports `std/string_builder`, so keeping `bytes` here would make
-// the buffer-backed builder's dependency a cycle. It is ambient now ; callers
-// drop it from their `import "std/string" { … }` lists.
-
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
 /// bytes. The cursor moves in bytes over the string itself.
@@ -139,8 +133,7 @@ string implements Into<Iterator<char>> {
 /// (std/core) is what the `in` operator dispatches through ; without this
 /// impl `in` on string falls back to "language feature unsupported" at the
 /// lower stage. The method delegates to the module-private `byte_contains`
-/// (a byte-wise scan) — pure Vader, resolved on the self-host VM since the
-/// for-in/impl-member materialisation gap (GATE B1) was fixed.
+/// (a byte-wise scan).
 string implements Contains<string> {
     contains :: fn(self, sub: string) -> bool { return byte_contains(self, sub) }
 }
@@ -506,7 +499,7 @@ export pad_end :: fn(s: string, width: i64, fill: char) -> string {
 
 // Char classification (`is_white_char`/`is_digit`/`is_alpha`/`is_alnum`) moved
 // to `std/char` — `fn(char) -> bool` predicates belong with char classification,
-// not the codepoint-string API. Callers `import "std/char"`. See the reorg plan.
+// not the codepoint-string API. Callers `import "std/char"`.
 
 /// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
 /// Trims at most one occurrence.

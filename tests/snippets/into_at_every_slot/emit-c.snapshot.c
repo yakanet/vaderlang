@@ -677,7 +677,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 100 "lib/std/core/primitives.vader"
+#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -685,9 +685,9 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 132 "lib/std/core/primitives.vader"
+#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 133 "lib/std/core/primitives.vader"
+#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -699,46 +699,46 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 138 "lib/std/core/primitives.vader"
+#line 136 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 139 "lib/std/core/primitives.vader"
+#line 137 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 140 "lib/std/core/primitives.vader"
+#line 138 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 138 "lib/std/core/primitives.vader"
+#line 136 "lib/std/core/primitives.vader"
     }
-#line 142 "lib/std/core/primitives.vader"
+#line 140 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 143 "lib/std/core/primitives.vader"
+#line 141 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 144 "lib/std/core/primitives.vader"
+#line 142 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 145 "lib/std/core/primitives.vader"
+#line 143 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 146 "lib/std/core/primitives.vader"
+#line 144 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 147 "lib/std/core/primitives.vader"
+#line 145 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 148 "lib/std/core/primitives.vader"
-        l5 = vader_div_i64(l5, INT64_C(10));
 #line 146 "lib/std/core/primitives.vader"
+        l5 = vader_div_i64(l5, INT64_C(10));
+#line 144 "lib/std/core/primitives.vader"
     }
-#line 150 "lib/std/core/primitives.vader"
+#line 148 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 151 "lib/std/core/primitives.vader"
+#line 149 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 152 "lib/std/core/primitives.vader"
+#line 150 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 153 "lib/std/core/primitives.vader"
+#line 151 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 154 "lib/std/core/primitives.vader"
+#line 152 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -746,19 +746,19 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 155 "lib/std/core/primitives.vader"
+#line 153 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 152 "lib/std/core/primitives.vader"
+#line 150 "lib/std/core/primitives.vader"
     }
-#line 157 "lib/std/core/primitives.vader"
+#line 155 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 158 "lib/std/core/primitives.vader"
+#line 156 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 157 "lib/std/core/primitives.vader"
+#line 155 "lib/std/core/primitives.vader"
     }
-#line 158 "lib/std/core/primitives.vader"
+#line 156 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
@@ -1288,22 +1288,22 @@ static vader_string_t std_string_trim(vader_string_t l0) {
     uint8_t t0;
     bool t1;
     vader_string_t t2;
-#line 324 "lib/std/string/string.vader"
+#line 317 "lib/std/string/string.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 325 "lib/std/string/string.vader"
+#line 318 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 326 "lib/std/string/string.vader"
+#line 319 "lib/std/string/string.vader"
     while ((l2 < l1)) {
         t0 = vader_host_std_core_byte_at(l0, l2);
         t1 = std_string_is_white_byte(t0);
         if (!(t1)) {
             break;
         }
-#line 327 "lib/std/string/string.vader"
+#line 320 "lib/std/string/string.vader"
         l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 326 "lib/std/string/string.vader"
+#line 319 "lib/std/string/string.vader"
     }
-#line 330 "lib/std/string/string.vader"
+#line 323 "lib/std/string/string.vader"
     while ((l1 > l2)) {
         l3 = vader_chk_sub(i64, l1, INT64_C(1));
         t0 = vader_host_std_core_byte_at(l0, l3);
@@ -1311,18 +1311,18 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         if (!(t1)) {
             break;
         }
-#line 331 "lib/std/string/string.vader"
+#line 324 "lib/std/string/string.vader"
         l1 = vader_chk_sub(i64, l1, INT64_C(1));
-#line 330 "lib/std/string/string.vader"
+#line 323 "lib/std/string/string.vader"
     }
-#line 333 "lib/std/string/string.vader"
+#line 326 "lib/std/string/string.vader"
     t2 = vader_host_std_core_byte_slice(l0, l2, l1);
     return t2;
 }
 
 static bool std_string_is_white_byte(uint8_t l0) {
     bool l1;
-#line 180 "lib/std/string/string.vader"
+#line 173 "lib/std/string/string.vader"
     if (l0 == INT32_C(32)) {
         l1 = true;
     } else {

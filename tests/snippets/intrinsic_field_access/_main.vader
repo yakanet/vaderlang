@@ -2,7 +2,7 @@
 /// Two paths : (1) bare string literal at the call site, (2) deferred
 /// resolution via `f.name` inside a `@comptime for f in @fields(T)`
 /// derive body. Combined with `@fields(T)` + `@comptime for` this closes
-/// the Layer 6 reflection loop — derive macros (`to_string`, `eq`,
+/// the reflection loop — derive macros (`to_string`, `eq`,
 /// `json_encode`, …) materialise as N copies of the body with each
 /// field substituted in.
 module "snippet"

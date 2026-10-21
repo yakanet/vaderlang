@@ -192,7 +192,7 @@ ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl,
     // Thread the instance's type-args into the subst so a field DEFAULT that
     // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
     // bound to the concrete instance arg — MIXED (primitive → concrete so the
-    // array lands RAW, ref → `Any`), matching the P2 field layout
+    // array lands RAW, ref → `Any`), matching the instance's mixed field layout
     // (`build_mixed_subst`). Without this the default lowers in the owner's
     // ERASED view (`K = Any` → boxed array) while the construction + later usage
     // are monomorphised (`K = i32` → raw): a box-vs-raw representation mismatch

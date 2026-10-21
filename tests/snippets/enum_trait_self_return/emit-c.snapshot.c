@@ -239,7 +239,7 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 }
 
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
-#line 216 "lib/std/core/primitives.vader"
+#line 214 "lib/std/core/primitives.vader"
     return l0;
 }
 

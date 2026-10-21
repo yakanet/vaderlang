@@ -92,8 +92,7 @@ export should_colorize :: fn() -> bool {
 //
 // The helpers are receiver-less module functions. Callers reach them through
 // the module — idiomatically aliased as `TTY` — so the call site reads
-// `TTY.red("error")`. (A struct-singleton receiver would force every call onto
-// UFCS, which doesn't materialise a cross-module, UFCS-only callee — GATE B1.)
+// `TTY.red("error")`.
 
 // SGR escape `\e[<code>m` for `code` (e.g. "31"), or "" when `enabled` is false.
 // Pure given `enabled` — the gating decision is supplied by the caller, which

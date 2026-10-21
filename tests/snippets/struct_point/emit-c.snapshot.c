@@ -38,17 +38,17 @@ static int32_t snippet_main(void) {
     void* gc_stack_objs[1] = { (void*) &_a0_storage };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 1u, gc_stack_objs };
     vader_gc_top = &gc_frame;
-#line 14 "tests/snippets/struct_point/_main.vader"
+#line 13 "tests/snippets/struct_point/_main.vader"
     vader_struct_snippet_Point_t* _a1_obj = &_a0_storage;
     vader_obj_header_init(_a1_obj, 2u);
     _a1_obj->f_x = INT32_C(3);
     _a1_obj->f_y = INT32_C(4);
     l0 = (void*) _a1_obj;
-#line 15 "tests/snippets/struct_point/_main.vader"
+#line 14 "tests/snippets/struct_point/_main.vader"
     t0 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l1 = vader_chk_add(i32, t0, INT32_C(10));
     ((vader_struct_snippet_Point_t*) l0)->f_x = l1;
-#line 16 "tests/snippets/struct_point/_main.vader"
+#line 15 "tests/snippets/struct_point/_main.vader"
     l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
     t0 = vader_chk_add(i32, l1, l2);

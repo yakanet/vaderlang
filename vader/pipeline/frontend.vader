@@ -85,8 +85,8 @@ export prepare_evaluated_project_with :: fn(
         && !any_error_diag(resolver_diags)
         && !any_error_diag(typecheck_diags)
     if front_end_ok && !any_error_diag(comptime_diags) {
-        // Bake any loop-bearing `@comptime` decls the tree-walk deferred (S2
-        // two-pass — see vader/comptime_vm). No-op when none deferred.
+        // Bake any loop-bearing `@comptime` decls the tree-walk deferred
+        // (two-pass, see vader/comptime_vm). No-op when none deferred.
         resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     }
     Prof.prof_end(.Comptime)

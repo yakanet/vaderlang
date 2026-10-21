@@ -61,7 +61,7 @@ export IncludePath :: struct {
 /// match wins (GCC `-I`).
 ///
 /// `plain` is assembled by the loader from the include-path layers (manifest dir,
-/// `vader.json includePaths`, binary-adjacent defaults — and, P4b, the
+/// `vader.json includePaths`, binary-adjacent defaults, and the
 /// `--include-paths` flag). Module names are RELATIVE to a plain root :
 /// `module "std/io"` lives at `<plain>/std/io`.
 ///

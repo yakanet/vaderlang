@@ -1,5 +1,5 @@
-; tests/fixtures/membuf_gc.virt — S2b GC proof (G1) for the Target ABI byte buffer.
-; Hand-authored op stream (no .vader source lowers to the memory opcodes yet).
+; tests/fixtures/membuf_gc.virt: a byte buffer survives a moving collection.
+; Hand-authored op stream (no .vader source lowers to the multi-byte memory opcodes).
 ; main: buffer.new a buffer, store_i32 42, call garbage() 64x to force minor
 ; collections that MOVE the rooted buffer, then load_i32 -> must still read 42.
 ; garbage()'s buffer is rooted only for its call -> dead/collectible on return.

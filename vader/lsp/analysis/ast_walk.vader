@@ -465,8 +465,6 @@ export find_enclosing_call :: fn(
     decls: AST.Decl[], line: i32, col: i32,
 ) -> AST.CallExpr | null {
     chain :: enclosing_exprs(decls, line, col)
-    // Index loop (not `for x in arr`) sidesteps the for-in iterator
-    // materialisation gap (GATE B1) over the erased `AST.Expr[]` element type.
     for i in 0..<chain.len() {
         e :: chain[i]
         if e is AST.CallExpr { return e }

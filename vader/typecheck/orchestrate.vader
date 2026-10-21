@@ -51,7 +51,7 @@ export check_project_with_bodies :: fn(
     // deferring to typecheck.
     core_seed :: build_core_seed(project)
     mod_index :: module_index_by_name(project)
-    // Phase A0 : materialise single-abstract-method sugar (`Type implements Trait ->
+    // First, materialise single-abstract-method sugar (`Type implements Trait ->
     // expr`) project-wide so the resolver walks bodies with `self` / `other` / …
     // properly bound. It reports into `project.diags`.
     materialize_all_sams_pre_resolve(project, mod_index, core_seed)
@@ -1964,7 +1964,7 @@ register_external :: fn(
 /// resolution env is wired from those types (`populate_external_types` /
 /// `populate_imported_fn_overloads`). A `.ReturnsOnly` walk : it touches only
 /// `needs_return_inference` fns and builds NO `expr_types`. The full per-module
-/// `expr_types` + stdlib-fn materialisation (GATE B1) are produced later, by the
+/// `expr_types` + stdlib-fn materialisation are produced later, by the
 /// import-loop's real `.Full` walk in `check_project_with_bodies`.
 settle_external_expr_bodied_returns :: fn(
     project: LoadedProject,
@@ -2154,7 +2154,7 @@ push_module_exported_fns :: fn(
     // Same for wildcard-exposed CONSTS : without their type in `external_types`,
     // a wildcard `println(CLI_VERSION)` const or `EnumName.Variant` types the const as `?`, so the generic
     // `println<T>` instance can't be pinned and its materialisation drops
-    // (GATE B1), and a wildcard enum-variant access mis-resolves. A struct's
+    // (unresolved at emit), and a wildcard enum-variant access mis-resolves. A struct's
     // name in value position needs it too (`Info(v)` converts). Traits flow
     // through `cross_publish`.
     for sym in from.resolved.symbols {

@@ -20,7 +20,7 @@
 // `dtoa_tables.vader` / `parse_float_tables.vader`. That is load-bearing, not an
 // oversight, but it is not free : the whole VM ships in every seed. Dropping
 // it would mean freezing those tables as literals — a deliberate reversal of
-// the dtoa chantier, not a cleanup.
+// the dtoa work, not a cleanup.
 //
 // The pipeline-driver helpers below are duplicated from `vader/cli/main.vader`
 // (deliberate trade-off : no shared `driver` module, see docs/BOOTSTRAP.md).
@@ -260,7 +260,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     comptime_diags: Diagnostic[]: []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
-    // deferred (S2 two-pass — see vader/comptime_vm). No-op when none deferred.
+    // deferred (two-pass, see vader/comptime_vm). No-op when none deferred.
     resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     return EvaluatedPipeline {
         .loaded          = loaded,

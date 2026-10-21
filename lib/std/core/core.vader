@@ -252,7 +252,7 @@ export Async :: trait<T> {
 
 /// One field of a struct type as exposed by the `@fields(T)` reflection
 /// intrinsic. `name` is the source-level identifier ; `type` carries the
-/// field's declared type as a runtime `type` value (Layer 4).
+/// field's declared type as a runtime `type` value.
 export Field :: struct {
     name: string
     type: type

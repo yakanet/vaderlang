@@ -1,7 +1,7 @@
 // `a + b` on arrays — concatenation, mirroring `string + string`.
 //
 // Not colocated in `stdlib/std/core/array.vader` where the impl lives: calling it
-// from inside `std/core` itself trips GATE B1 at impl-member materialisation
+// from inside `std/core` itself leaves the impl member unresolved at emit
 // (`unresolved callee 'std_core$[]$Add$add__i32'`). Every other module resolves
 // it, which is what this snippet covers.
 

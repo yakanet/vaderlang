@@ -1,8 +1,8 @@
-// tests/snippets/scalar_call — T3a direct-call coverage.
+// tests/snippets/scalar_call — direct-call coverage.
 //
 // Exercises the C body walker's `call` arm: main calls two helper
 // functions (scalar args + return), the first result threaded as the
-// second's argument. No imports or allocations (T3b+), so the compile/run
+// second's argument. No imports or allocations, so the compile/run
 // oracle observes the result via main's exit code: add(3,4)=7,
 // square(7)=49.
 

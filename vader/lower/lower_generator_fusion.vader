@@ -252,7 +252,7 @@ subst_from_concrete :: fn(fn_decl: AST.FnDecl, owner_typed: TypedProgram, args: 
     return build_concrete_subst(fn_decl.type_params, concrete, owner_typed)
 }
 
-// ---- chained generator combinators (Increment 3) --------------------------
+// ---- chained generator combinators ----------------------------------------
 //
 // A generator whose FIRST param is the source iterator — `map`/`filter`
 // (`generator fn<T, U>(self: Iterator<T>, f) -> Iterator<U> { for x in self { … } }`)

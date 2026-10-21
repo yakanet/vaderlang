@@ -1,4 +1,4 @@
-// vader/midir/emit — CFG → bytecode emitter (Phase 2 of the Mid-IR refactor).
+// vader/midir/emit — CFG → bytecode emitter.
 //
 // Reuses the LoweredAST → bytecode
 // emitter's project context (`EmitterCtx`) for everything *outside*
@@ -10,7 +10,7 @@
 // consumer, `vader run`, the C backend, the bootstrap, and the comptime
 // VM route their bytecode through `emit_bytecode_from_cfg`. `emit_instr`
 // covers the full `Instruction` set ; unresolved callees / materialisation
-// gaps panic loudly (GATE B1) rather than degrade silently.
+// gaps panic loudly at emit rather than degrade silently.
 
 module "vader/midir"
 
@@ -1154,7 +1154,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             type_index :: intern_type(ins.type, ctx.project)
             push_emit(ctx, FnRef { .function_index = fn_idx_opt, .type_id = type_index }, ins.span)
         } else {
-            panic("midir/emit: unresolved fn-ref '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) — fn-as-value materialisation gap (GATE B1)")
+            panic("midir/emit: unresolved fn-ref '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) : a fn value never materialised")
         }
         // Same materialisation-gap class as the InstrCall fallback above —
         // a fn used as a value (FnRef) whose target was never materialised.
@@ -1281,9 +1281,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(target_type, ctx.project)
         emit_first_get(ctx, pos, ins.target, ins.span)
         emit_get(ctx, ins.index, ins.span)
-        // S5 access flip (Solution A) : a concrete-primitive element reads through
-        // the typed slot op (no box round-trip, no runtime element-kind switch).
-        // A1 force-concretes the array constructors, so a concrete `i32[]` value is
+        // A concrete-primitive element reads through the typed slot op (no box
+        // round-trip, no runtime element-kind switch).
+        // The array constructors are force-concrete, so a concrete `i32[]` value is
         // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
         // elements stay on the legacy runtime-dispatched `ArrayGet`.
         load_op :: slot_load_op_for(array_element_val_type(target_type), ins.bounds_safe)
@@ -1305,9 +1305,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_get(ctx, ins.index, ins.span)
         emit_get(ctx, ins.value, ins.span)
         emit_retag_into(ctx, ins.value, boxed_element(target_type), ins.span)
-        // S5 access flip (Solution A) — symmetric with the get above : a
-        // concrete-primitive element stores through the typed slot op (no box,
-        // no element-kind switch, no write barrier — primitives hold no refs).
+        // Symmetric with the get above: a concrete-primitive element stores
+        // through the typed slot op (no box, no element-kind switch, no write
+        // barrier — primitives hold no refs).
         store_op :: slot_store_op_for(array_element_val_type(target_type), ins.bounds_safe)
         if store_op is null {
             push_emit(ctx, ArraySet { .type_id = type_index, .bounds_safe = ins.bounds_safe }, ins.span)
@@ -1470,9 +1470,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         if fn_idx_opt is i32 {
             push_emit(ctx, MakeClosure { .function_index = fn_idx_opt, .env_type_id = closure_type_id }, ins.span)
         } else {
-            panic("midir/emit: unresolved closure fn '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) — make-closure materialisation gap (GATE B1)")
+            panic("midir/emit: unresolved closure fn '${ins.fn_symbol.name}' (id=${ins.fn_symbol.id}) : a closure body never materialised")
         }
-        // Materialisation gap (GATE B1) — a closure over a fn that was never
+        // Materialisation gap: a closure over a fn that was never
         // materialised. Fail loud, consistent with the InstrCall/FnRef paths.
 
         emit_result(ctx, pos, ins.dst, ins.span)
@@ -1612,7 +1612,7 @@ DirectCallTarget :: struct {
 // resolves as a vtable target does (`resolve_fn_index`, mangle first). An
 // intrinsic impl-member call carries the member's mangle (synthetic id 0) and
 // was surfaced as a bodyless extern → import. An unresolved callee is a
-// materialisation gap (GATE B1) and fails loud : emitting anything else would
+// materialisation gap and fails loud : emitting anything else would
 // silently drop the call and return whatever the stack holds.
 resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     p :: ctx.project
@@ -1636,7 +1636,7 @@ resolve_direct_call :: fn(ctx: FnEmitCfg, ins: InstrCall) -> DirectCallTarget {
     if import_index is i32 {
         return import_call_target(p, import_index)
     }
-    panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
+    panic("midir/emit: unresolved callee '${ins.callee.name}' (id=${ins.callee.id}) in '${ctx.fn_.mangled}' : a callee never materialised")
 }
 
 // A call to import `index` : `CallImport`, or the dedicated op of an `@intrinsic`
@@ -1763,8 +1763,8 @@ pushed_element_type :: fn(target: Type, value: Type) -> Type {
 }
 
 // Element value class of an array type, or `Any` for a non-array (which keeps
-// the S5 access flip off it — `typed_slot_*_op_for(Any)` is null → legacy op).
-// Keying the flip on the array's own element type (not a possibly-narrowed
+// it off the typed slot ops: `slot_*_op_for(Any)` is null → legacy op).
+// Keying the typed slot op on the array's own element type (not a possibly-narrowed
 // read-site result type) is what makes it sound : the runtime kind tracks the
 // array's element type, set at construction.
 array_element_val_type :: fn(t: Type) -> ValType {

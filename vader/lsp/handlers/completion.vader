@@ -386,8 +386,6 @@ leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, 
 // `member_completion` (decl.fields + struct_field_types for the detail).
 struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32) -> JsonValue[] | null {
     chain :: enclosing_exprs(decls, line, col)
-    // Index loop (not `for x in arr`) sidesteps the materialisation gap (GATE B1)
-    // over the erased `AST.Expr[]` element type — same as find_enclosing_call.
     for i in 0..<chain.len() {
         e :: chain[i]
         if e is AST.StructLitExpr {
@@ -462,7 +460,6 @@ expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgr
 // where the typecheck reads `.Variant` against the other side.
 comparison_operand_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
     chain :: enclosing_exprs(decls, line, col)
-    // Index loop, as `struct_lit_field_items` (GATE B1).
     for i in 0..<chain.len() {
         e :: chain[i]
         if e is AST.BinaryExpr && (e.op == .Eq || e.op == .Neq) {

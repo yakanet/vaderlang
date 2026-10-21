@@ -1,14 +1,13 @@
 // vader/pipeline/emit — the native link.
 //
 // Bytecode → C → binary, monolithic: one C unit plus the external runtime, one
-// `cc`. The split path (`--split`) stays in the CLI, which owns that flag;
-// the monolithic build is the canonical one anyway (byte-identical, fully
-// inlined).
+// `cc`. The split path, the CLI's default (`--no-split` opts out), stays in the
+// CLI, which owns that flag.
 //
 // Here rather than in the CLI because a build driver has to be able to produce
 // output, and re-implementing the link in every project is how flags drift —
-// release opts, the runtime include path, `ldflags`. See the plan's §15
-// (decision 13: the driver returns a binary).
+// release opts, the runtime include path, `ldflags`. A driver hands back a
+// linked binary, not C.
 //
 // The CLI keeps its own `emit_c_source` / `prepared_module` pair: those carry
 // its diagnostic renderer and its `.virt` input path, neither of which a driver

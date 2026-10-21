@@ -113,7 +113,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // the mono / vtable path, or `member_instances`), so this only collapses
     // free generic fns.
     //
-    // A trait-dispatching free generic fn (GATE A : `dispatches`, built
+    // A trait-dispatching free generic fn (`dispatches`, built
     // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`
     // are distinct bodies dispatching `key.hash()` / `key.equals()` on the
     // concrete key, and their call sites target the per-key mangle.
@@ -126,7 +126,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
     emitted_fns :: MutableMap<i32, bool> {}
     for p in sorted_pending {
-        // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
+        // Erasure-dedup gate : dispatching instances always emit ;
         // non-dispatching ones collapse to the first per symbol id.
         if !p.dispatches {
             if emitted_fns[p.fn_symbol_id] != null { continue }
@@ -146,8 +146,8 @@ PendingFnInstance :: struct {
     module_id:    string
     key:          string
     fn_symbol_id: i32
-    /// True when the source generic fn trait-dispatches on a type param
-    /// (GATE A → concretised per instance via `build_concrete_subst`).
+    /// True when the instance is kept concrete: the `Mono` or `Mixed` flavor of
+    /// `fn_instance_flavor` (e.g. a fn that trait-dispatches on a type param).
     /// Such instances skip the `fn_symbol_id` erasure-dedupe: each per-key
     /// body (`get__string` vs `get__i32`) is a distinct concrete fn whose
     /// call sites target the per-key mangle.
@@ -225,13 +225,13 @@ build_fn_instance_decl :: fn(
     // with the call site so the registered instance mangle reconciles with this body:
     //   Mono   — a body needing its instance's real types (`fn_needs_concrete_instances`)
     //            OR a bare type-param array return (the result's element kind
-    //            must be concrete, S5 Solution A). Full-concrete subst.
+    //            must be concrete). Full-concrete subst.
     //   Mixed  — ≥1 arg `kept_type_argument` keeps: keep those concrete
     //            (devirt + primops/atom-eq inline), erase
     //            the rest to `Any` via `build_mixed_subst`. Mangle-indexed.
     //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
-    // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
-    // narrow all-primitive case (an all-primitive mixed subst equals the concrete one).
+    // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed covers the
+    // all-primitive case too (an all-primitive mixed subst equals the concrete one).
     flavor :: fn_instance_flavor(project_ctx.impls, fn_decl, owner_typed, inst.type_args)
     tps :: fn_decl.type_params
     subst :: match flavor {
@@ -252,7 +252,7 @@ build_fn_instance_decl :: fn(
     }
     return_type :: substitute(return_type_of(fn_decl, types), subst)
     entry_decl: Decl: fn_decl
-    // A trait-dispatching (GATE A, per-instance-concrete) free generic fn
+    // A per-instance-concrete (`force_concrete`, e.g. trait-dispatching) free generic fn
     // carries a NULL origin symbol so the bytecode body-emit indexes it by
     // MANGLE, not by the shared source-fn symbol id. Every per-key instance
     // (`get__string`, `get__i32`, …) reuses the one `get` symbol ; keeping a
@@ -278,9 +278,9 @@ build_fn_instance_decl :: fn(
         .module_id    = owner_module_id,
         .key          = key,
         .fn_symbol_id = inst.fn_symbol.id,
-        // `dispatches` now gates "kept concrete per instance" — trait-dispatch
-        // (GATE A) OR a bare type-param array return (S5 force-concrete). Both
-        // skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
+        // `dispatches` gates "kept concrete per instance": the `Mono` flavor (a
+        // trait dispatch, a bare type-param array return, …) OR the `Mixed` one.
+        // Both skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
         .dispatches   = force_concrete,
         .decl         = decl,
         .synth_start  = synth_start,
@@ -290,8 +290,8 @@ build_fn_instance_decl :: fn(
 
 // True when `fn_decl` returns a bare `T[]` whose element is one of its own
 // type-params — the array-constructor shape (`collect`/`map`/`clone`/`chain`/
-// `filter`/`flat_map`/`keys`/`values`/`sort`). Such a fn is force-concreted by
-// GATE A (S5 Solution A) so a `T = i32` instance builds an I32-kind array
+// `filter`/`flat_map`/`keys`/`values`/`sort`). Such a fn is built concrete per
+// instance (the `Mono` flavor) so a `T = i32` instance builds an I32-kind array
 // instead of the erased BOXED kind. Deliberately narrow: a non-bare element
 // (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
 // sound — its reads route through the legacy runtime-dispatched op.
@@ -318,7 +318,7 @@ returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
 //            receiver or argument), a `Display` dispatched on a distinct
 //            or a range (shared, it would reach its representation's), or a bare
 //            type-param array return (the result array's element kind must be
-//            concrete, S5 Solution A).
+//            concrete).
 //   Mixed  — `build_mixed_subst` + `mixed_any_suffix`. ≥1 arg `kept_type_argument`
 //            keeps: keep those concrete (devirt + primops/atom-eq inline), erase the
 //            rest to `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.

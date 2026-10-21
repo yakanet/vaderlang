@@ -176,7 +176,7 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
         // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
         // its monomorphic instance + point the callee at the mangle, exactly
         // as the direct-ident path does — otherwise the bare member symbol is
-        // unresolved at emit (GATE-B1). The member's generic signature lives in
+        // unresolved at emit. The member's generic signature lives in
         // its OWN module's `decl_types` (the namespace member-type table holds
         // only type-kind members, not fns), reached cross-module via
         // `lookup_fn_type_anywhere`.

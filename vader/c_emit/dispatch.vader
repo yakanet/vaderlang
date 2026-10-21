@@ -108,8 +108,7 @@ emit_vtable_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// vader_vt_<key>(vader_box_t recv, …)` switching on `recv.tag` and
 /// forwarding to the matching impl. Each arm unboxes args to the impl's
 /// concrete signature ; when the dispatcher returns `any` but the impl
-/// returns a primitive, the result is re-boxed. B1 nullable-ref returns are
-/// deferred to T12 (the non-erased subset never produces them).
+/// returns a primitive or a raw concrete ref, the result is re-boxed.
 emit_vtable_dispatchers :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     rows :: ctx.module.vtables
     types :: ctx.module.types

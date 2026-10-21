@@ -1,4 +1,4 @@
-// vader/lower/lower_async — the `async` state-machine desugar (Phase 1).
+// vader/lower/lower_async — the `async` state-machine desugar.
 //
 // Called from `lower_decl.vader::lowered_fn_of` for every `async` fn, generic
 // instance and impl member. Takes the body lowered in async mode (so every

@@ -203,13 +203,13 @@ export CharConst :: struct { value: char }
 /// Invoke a host-side import (e.g. `println`) — `index` keys into `module.imports`.
 export CallImport :: struct { index: i32 }
 /// Invoke a Vader-side function — `function_index` keys into `module.functions`.
-/// Sprint 4 (a) addition : the executor pops `parameter_count` values
+/// The executor pops `parameter_count` values
 /// from the caller's stack, builds a new `Frame`, and pushes it.
 export Call :: struct { function_index: i32 }
 
 /// Push a function reference (`FnVal`) for `function_index`. Used when
 /// a fn is stored in a struct field, passed as an argument, or bound to
-/// a local. Sprint 4 (b4) addition ; the resulting `FnVal.env` is
+/// a local. The resulting `FnVal.env` is
 /// always `null` — closures with captured state come from `MakeClosure`.
 export FnRef :: struct { function_index: i32, type_id: i32 }
 
@@ -258,8 +258,7 @@ export CheckedNeg :: struct { kind: ValType }
 /// carrying each capture's value or cell) and push a `FnVal { function_index, env }`.
 /// The lifted fn's signature has an extra leading `env` parameter ;
 /// `CallIndirect` prepends `env` as `slot 0` when invoking. `type_id`
-/// is informational (mirrors `fn.ref`'s static-type hint). Sprint 4 (b5)
-/// addition.
+/// is informational (mirrors `fn.ref`'s static-type hint).
 export MakeClosure :: struct { function_index: i32, env_type_id: i32 }
 
 /// Invoke a function through a `FnVal` on top of the value stack.
@@ -268,8 +267,7 @@ export MakeClosure :: struct { function_index: i32, env_type_id: i32 }
 /// **user-visible** args to pop from the caller stack ; if the popped
 /// `FnVal` carries a non-`null` `env`, the executor prepends it as
 /// `slot 0` before binding the user args (matching how the lifted
-/// closure body expects them). Sprint 4 (b4) addition ; (b5) added the
-/// env-prepend path.
+/// closure body expects them).
 export CallIndirect :: struct { type_id: i32 }
 
 /// Trait-method virtual dispatch — pops the receiver from the top of
@@ -277,24 +275,23 @@ export CallIndirect :: struct { type_id: i32 }
 /// keyed by `vtable_key` (format `"<TraitName>.<MethodName>"`), then
 /// invokes the resolved fn with `[receiver, ...args]`. `parameter_count`
 /// includes the receiver — so the executor pops `parameter_count - 1`
-/// user args plus the receiver itself. Sprint 6 addition.
+/// user args plus the receiver itself.
 export VirtualCall :: struct { parameter_count: i32, vtable_key: string }
 
 /// Allocate a struct of type `type_id`. Pops `field_count` values (in
 /// field-declaration order) from the value stack and wraps them in a
 /// `StructVal`. The bytecode pipeline emits two variants — `struct.new`
 /// and `struct.new_stack` — that share this VM op : the heap/stack
-/// distinction is a codegen concern, not a runtime one. Sprint 4 (b1)
-/// addition.
+/// distinction is a codegen concern, not a runtime one.
 export StructNew :: struct { type_id: i32, stack: bool }
 /// Pop a `StructVal`, push `struct.fields[field_index]`. `type_id` is
 /// kept for diagnostics (the executor traps if the popped value's
-/// tag doesn't match). Sprint 4 (b1) addition.
+/// tag doesn't match).
 export StructGet :: struct { type_id: i32, field_index: i32 }
 /// Pop the new field value, then the struct ; mutate `struct.fields[
 /// field_index]` to the new value. Statement-form — no value pushed
 /// back. Mirrors `StructNew` in collapsing the heap/stack variants
-/// (`struct.set` / `struct.set_stack`) into one VM op. Sprint 4 (b1).
+/// (`struct.set` / `struct.set_stack`) into one VM op.
 export StructSet :: struct { type_id: i32, field_index: i32, stack: bool }
 /// Fused `local.get N ; struct.get T F`. Reads `slots[slot]`, expects
 /// a `StructVal`, pushes its `fields[field_index]`.
@@ -311,7 +308,7 @@ export UnionFieldSet :: struct { type_id: i32, field_index: i32 }
 /// `length` initial elements from the value stack (in caller-push
 /// order — first pushed becomes `elements[0]`) and uses them as the
 /// initial contents ; if `length == 0`, creates a fresh empty array
-/// ready for `array.push`. Sprint 4 (b2) addition.
+/// ready for `array.push`.
 export ArrayNew :: struct { type_id: i32, length: i32 = 0 }
 /// Pop a value, then an array ; append the value to `array.elements`.
 /// Statement-form, no value pushed back.
@@ -329,7 +326,6 @@ export ArrayGet :: struct { type_id: i32, bounds_safe: bool = false }
 export ArraySet :: struct { type_id: i32, bounds_safe: bool = false }
 /// Pop an array, push its element count (approximated as an i32 ;
 /// our `Value` doesn't carry width tags).
-/// Sprint 4 (b2) addition.
 export ArrayLen :: struct {}
 
 /// Zero-copy slice : pops `arr` / `lo` / `hi` from the stack ; pushes a
@@ -389,8 +385,7 @@ export GlobalSet :: struct { index: i32 }
 /// every `array.get` / `struct.get` to narrow the static type from
 /// `ref` to a concrete element type. Our VM's Values already carry
 /// their concrete tag, so the cast is purely informational ; the op's
-/// type_id operand is intentionally dropped at parse time. Sprint 4
-/// (b2) addition.
+/// type_id operand is intentionally dropped at parse time.
 export RefCast :: struct { type_id: i32 }
 
 /// Name the type of the concrete primitive on the stack as it enters a union or
@@ -469,8 +464,8 @@ export TypeConst :: struct { type_id: i32 }
 
 /// Pop a closure (fn ref + env) and append it to the current frame's
 /// defer-stack. Drained later by `DeferPopExec` on normal exits or by
-/// the panic-unwind walker around `exec` when an op traps. A8 single-
-/// track defer model.
+/// the panic-unwind walker around `exec` when an op traps: one defer
+/// stack serves both paths.
 export DeferPush :: struct {}
 
 /// Pop and execute the last `count` entries on the current frame's
@@ -482,7 +477,6 @@ export DeferPopExec :: struct { count: i32 }
 
 /// Pop a `TypeVal` ; push an `i64` carrying the byte size of the type
 /// at `module.types[type_id]`. Backs the runtime path of `@size_of(t)`.
-/// Layer 4 §1.19 B.2.
 export SizeOfType :: struct {}
 /// Pop two i32 (left, right) ; push left + right.
 export I32Add :: struct {}
@@ -695,9 +689,11 @@ export ReturnLit :: struct { value: ConstOp }
 // memory as `(GC-object-handle, integer-offset)`, never an absolute machine
 // address ; the real address is materialised transiently inside the opcode
 // (the C backend re-derives `(char*)obj + off` at the point of use, never
-// hoisted across a safepoint — invariant G1). Appended after `ReturnLit` and
-// never reshaped (the union tags are positional). Inert until S3 — nothing in
-// the lowerer emits them yet. See docs/TARGET_ABI.md §5 for the frozen contract.
+// hoisted across a safepoint: a collection can move the object). Appended after
+// `ReturnLit` and never reshaped (the union tags are positional). The lowerer
+// emits the `Buffer` ops mapped in `bytecode/intrinsics.vader`; the multi-byte
+// loads and stores have no trigger (see below). See docs/TARGET_ABI.md §5 for
+// the frozen contract.
 
 /// GC-allocate a zero-filled byte region of `size` bytes (popped) and push the
 /// handle. The CONSTRUCTOR of the Target ABI memory family — `Load*` / `Store*` /
@@ -807,7 +803,7 @@ export BufferWriteString :: struct {}
 export F64ToBits :: struct {}
 /// Inverse of `F64ToBits` : bit-reinterpret a `u64` bit pattern as an `f64`.
 /// Pops a `u64`, pushes the `f64`. NOT `f64(x)` (which widens the integer
-/// VALUE). Together they unblock the S2-deferred `LoadF64` byte codec.
+/// VALUE). The VM's `LoadF64` arm (`vm/exec.vader`) decodes its bytes with them.
 export BitsToF64 :: struct {}
 /// `f32` → raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
 /// Pops an `f32`, pushes the `u32`. NOT `u32(x)` (value truncation). Powers the

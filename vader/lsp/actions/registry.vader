@@ -77,8 +77,6 @@ all_actions :: fn() -> CodeAction[] = [
 export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
     out: ActionResult[]: []
     acts :: all_actions()
-    // Index loops (not `for x in arr`) sidestep a for-in iterator
-    // materialisation gap (GATE B1) over the erased `AST.Expr[]` element type.
     for ai in 0..<acts.len() {
         a :: acts[ai]
         for ni in 0..<nodes.len() {

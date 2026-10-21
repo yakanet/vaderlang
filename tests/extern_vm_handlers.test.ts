@@ -6,7 +6,7 @@
 // link-resolved and exempt"). That exemption is right for USER FFI — the C
 // linker resolves it. But an `@extern` the COMPILER ITSELF uses is invisible to
 // `vader/vm/host.vader`, so it traps as "unbound host import" the moment the
-// compiler runs on its own bytecode (B0-in-VM, the self-host path). The C linker
+// compiler runs on its own bytecode (the self-host path). The C linker
 // binds it natively, so only the VM run shows the gap: the profiler brackets, for
 // one, are emitted unconditionally.
 //

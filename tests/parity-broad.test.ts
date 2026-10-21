@@ -7,14 +7,9 @@
 //   1. Vader CLI `dump --stage=typed-ast <file>` exits 0 (no SIGABRT /
 //      OOM / runtime trap).
 //   2. stderr does not contain any `error[` diagnostic (warnings are
-//      tolerated). The folder-module promotion (§2.6) loads every
+//      tolerated). The folder-module promotion loads every
 //      sibling `.vader`, so unresolved-name errors here would point at
 //      real bugs.
-// Phase 10 design called for a TS-vs-Vader byte-diff here too. Disabled
-// for now : a scratch comparison post-Phase-7 surfaced ~38 divergences
-// (Vader emits typed-expression entries that TS doesn't — looks like a
-// dump-filter or per-file-scope mismatch between the implementations).
-// Real bug, separate chantier ; smoke coverage above stays useful.
 //
 // Gated by `RUN_BROAD_PARITY=1` — heavy (Vader self-host is slow on
 // large modules).
@@ -99,7 +94,5 @@ for (const dir of modules) {
         errorLines.slice(0, 10).join("\n"),
       );
     }
-    // The byte-diff vs. TS planned for this rig is intentionally
-    // skipped — see the file header for the open drift.
   }, { timeout: LONG_BUILD });
 }

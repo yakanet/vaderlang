@@ -57,7 +57,7 @@ ensureCliBuilt();
 
 const CORPUS = join(import.meta.dir, "fixtures", "target");
 
-/** A target triple a snapshot may be named after. Mirrors the plan's §2 table. */
+/** A target triple a snapshot may be named after. */
 const KNOWN_TARGETS = new Set([
   "darwin-arm64",
   "darwin-x86_64",

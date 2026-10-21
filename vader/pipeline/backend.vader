@@ -4,7 +4,7 @@
 // `prepare_cfg_bytecode` carries that through prune → CFG → bytecode. Both were
 // private to `vader/cli/main.vader`, which was their only caller; a build driver
 // needs the same chain to produce output, and duplicating it is the one thing
-// guaranteed to drift (see the plan's §15).
+// guaranteed to drift.
 //
 // Lifted verbatim, along with the small helpers the chain reaches for
 // (`entry_main_name`, `gather_pipeline_diags`, `in_scope_diag_files`,

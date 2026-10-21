@@ -2208,7 +2208,7 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
     if p.check(.KwReturn)   { return p.parse_return() }
     if p.check(.KwYield)    { return p.parse_yield() }
     if p.check(.KwFor)      { return p.parse_for(null, false) }
-    // `@comptime for x in <arr> { body }` — Layer 6 unroll. Only
+    // `@comptime for x in <arr> { body }`: unrolled at compile time. Only
     // `@comptime` on `for` is recognised as a decorator-on-stmt here.
     if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" && p.check_at(.KwFor, 2) {
         p.advance()  // @

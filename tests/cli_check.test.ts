@@ -4,7 +4,7 @@
 // A body whose `@target` does not match is never resolved or typed, so on any
 // one machine the code for every OTHER platform is unchecked — the same blind
 // spot the `#ifdef` walls in `runtime/c/` had, and the source of the two Windows
-// bugs that started the target chantier. `check` closes it without a toolchain:
+// bugs that started the work on targets. `check` closes it without a toolchain:
 // these tests type-check Windows code from whatever machine runs them.
 
 import { test, expect } from "bun:test";

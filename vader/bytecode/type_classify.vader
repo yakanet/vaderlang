@@ -185,15 +185,15 @@ argument_key :: fn(t: Type) -> string {
 }
 
 /// Stack-class of a `Type`. Primitive types map by name. The two reference
-/// shapes now carry an HONEST distinction (T12):
+/// shapes carry an HONEST distinction:
 ///   - `.Ref` — a CONCRETE heap object of a statically-known shape (struct,
-///     array, fn, tuple). Carried as a raw `void*` under T12 (tag recoverable
+///     array, fn, tuple). Carried as a raw `void*` (tag recoverable
 ///     from the object header).
 ///   - `.Any` — an ERASED / dynamic value (trait object, union, generic
 ///     type-param, meta, self, `any`, unresolved). Carried as a tagged
 ///     `vader_box_t` — it may hold a boxed primitive or a variable variant.
-/// c_emit still collapses both to `vader_box_t` until the T12 c_emit flip
-/// (B1b), so this reclassification is byte-identical on the native target.
+/// c_emit mirrors the split (`val_type_of_bc_type`): `.Ref` is a C `void*`,
+/// `.Any` a `vader_box_t`.
 ///
 /// @param t  the type to classify.
 /// @return   the `ValType` the operand stack carries for this slot.

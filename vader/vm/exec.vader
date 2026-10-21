@@ -666,7 +666,7 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     return null
 }
 
-// ---- memory opcodes (Target ABI) — VM byte-heap helpers (decision D8) ----
+// ---- memory opcodes (Target ABI) — VM byte-heap helpers -----------------
 //
 // The VM backs a REAL byte-addressed heap : `ObjVal.bytes` is the raw inline
 // payload (byte offsets), `ObjVal.slots` the boxed reference fields (slot
@@ -674,11 +674,10 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
 // across an op, since every access hits `obj.bytes` / `obj.slots` fresh.
 
 /// Body of the `buffer.new` arm. Pops `size` (i64) and pushes a zero-filled
-/// `ObjVal` of that byte length. `type_id` is the inline immediate (D2).
+/// `ObjVal` of that byte length. `buffer.new` carries no operand: the object
+/// is always a `Buffer`.
 /// `handle_cell[0]` is the monotonic synthetic-handle source (diagnostics).
 ///
-/// @param type_id      the object's type-table ordinal (Buffer = the
-///                     `VADER_TYPE_INDEX_BUFFER` sentinel, D3).
 /// @param frame        current top frame, mutated in place (size popped, obj
 ///                     pushed in its place — net stack effect 0).
 /// @param handle_cell  1-cell carrier for the monotonic handle counter.

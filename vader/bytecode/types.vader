@@ -287,7 +287,7 @@ export ArrayKind :: enum(u8) {
     I8, I16, I32, I64,
     F32, F64,
     Char, Bool,
-    // T12/P3: raw 8-byte `void*` slots for arrays whose element is a concrete
+    // Raw 8-byte `void*` slots for arrays whose element is a concrete
     // heap ref (struct/array/fn) — the tag is recovered from each referent's
     // object header on read (`vader_ref_box`), the GC traces the slots via
     // `vader_gc_scan_raw`. Index 13, matching `vader_array_kind_t` in vader.h.
@@ -643,7 +643,7 @@ export size_of_bc_type :: fn(t: BcType) -> i32 = match t {
     is BcUnion | BcRef             -> i32(BOX_SLOT_BYTES)
 }
 
-/// True when `t` can be stored as a raw `void*` array slot (T12/P3): a
+/// True when `t` can be stored as a raw `void*` array slot: a
 /// header-bearing heap object, or `null` (a `NULL` slot). Drives `array_kind_of`'s
 /// `Ref` decision. A non-null scalar (no object header) and an
 /// erased `BcRef` (may box a distinct-primitive impl) are NOT ref-only — any
@@ -667,7 +667,7 @@ export is_ref_only_element :: fn(t: BcType, types: BcType[]) -> bool = match t {
 
 /// Map an array's element `BcType` to the storage class its slots use.
 ///
-/// T12/P3: a concrete heap ref (struct/array/fn) — and a union of only such refs
+/// A concrete heap ref (struct/array/fn) — and a union of only such refs
 /// or `null` (`Expr[]`, `T | null`) — stores as a raw `void*` slot (`.Ref`, 8 B),
 /// the tag recovered from each referent's header on read. A `BcRef` (erased trait,
 /// may box a scalar) and a mixed / scalar-bearing union stay `Boxed` (24 B).

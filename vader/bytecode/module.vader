@@ -1,6 +1,5 @@
 // vader/bytecode/module — in-memory bytecode module shape, the lingua
-// franca shared by the bytecode emitter (T2), the VM, and the C / WASM
-// emitters (T1 / T4).
+// franca shared by the bytecode emitter, the VM, and the C emitter.
 //
 // This is the single in-memory module
 // shape : the self-host VM consumes it directly (the former runtime-only
@@ -51,8 +50,9 @@ export BcFunction :: struct {
 
 /// Static signature of a fn-shaped slot. The VM only consults `params`
 /// / `results` (which carry the stack-erased `ValType`s) ; the C-emit
-/// reads `param_types` / `result_types` to apply B1 (nullable-ref inline
-/// rep) and the path-γ erasure boundary at the call site. Both pairs of
+/// reads `param_types` to shape an `@extern` shim's parameters (array,
+/// mirrored `@c_struct`, nullable pointer) and `result_types` to box a
+/// scalar result a trampoline or vtable dispatcher hands back. Both pairs of
 /// arrays are parallel — `param_types[i]` is the `BcType` index of
 /// `params[i]`, and `result_types[i]` of `results[i]`.
 export BcSignature :: struct {
@@ -149,7 +149,7 @@ export bc_result_arity :: fn(sig: BcSignature) -> i64 =
 
 /// One declared local — name + stack-erased `ValType`. The C-emit
 /// re-derives the underlying `BcType` from the fn's signature when it
-/// needs the richer info (e.g. for B1 / boundary reshaping).
+/// needs the richer info.
 export BcLocal :: struct {
     name: string
     val: ValType

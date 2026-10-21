@@ -147,13 +147,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
         if s is Trap { return s }
         return HostOk { .value = I64Val(i64(string(s).hash())) }
     }
-    // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
-    // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
+    // `StringBuilder implements Display` is pure Vader ; the resolver
+    // materialises its body (a `Buffer` filled by `write_string`, then interned),
     // so the VM runs a real fn — there is no host shim to dispatch here.
     // ---- std/core Display + Equals intrinsics ----------------------------
-    // `string implements Hash` is now pure Vader (FNV-1a-64 over `bytes()`,
-    // `std/core/primitives.vader`) — the host arm + the old 31-bit `fnv1a31_low`
-    // were retired (S6) so a single hash function is live across VM + native.
     // `@intrinsic string implements Equals` — structural string compare.
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).

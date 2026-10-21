@@ -3,8 +3,7 @@
 // The pipeline driver (`emit_c`) + the section emitters : type decls,
 // forward decls, fn-sig typedefs, fn-value trampolines, the type-info
 // table, import shims, vtable dispatchers, fn bodies, and the `main`
-// shim. The per-op body walker lives in `walker.vader`. The one frontier
-// still open is B1 (nullable-ref inline rep) — see the T12 notes below.
+// shim. The per-op body walker lives in `walker.vader`.
 //
 // Strategy :
 //   - one C function per BcFunction with a C signature derived from
@@ -15,9 +14,10 @@
 //   - structured control (`block`/`loop`/`if`) is walked into labelled
 //     scopes and `goto`s, named from the opener's pc ; `c_ast/loops.vader`
 //     then rewrites them as `while` / `for (;;)` with `continue` / `break` ;
-//   - primitives flow as their native C type ; struct/array refs as
-//     `vader_box_t` ; the emitter inserts box/unbox sequences at every
-//     value boundary (γ representation) ;
+//   - primitives flow as their native C type ; a struct, array, tuple or
+//     fn value as a raw `void*` ; a union or an erased value as a
+//     `vader_box_t` ; the emitter inserts box/unbox sequences where a
+//     value crosses from one representation to another ;
 //   - imports for `std/io` map to the runtime's `vader_*` functions ;
 //     tag-aware ones receive the BcType indices resolved per module.
 //
@@ -825,8 +825,7 @@ emit_nested_array :: fn(
 
 // One struct field initialiser. Primitive fields inline their literal, string
 // fields inline their atom id (a `vader_string_t` slot), and struct / array
-// fields are stored as a `vader_box_t` ref slot — a pointer to the field value's
-// own static, tagged with the declared field type index.
+// fields are stored as a raw `void*` to the field value's own static.
 struct_field_init :: fn(
     ctx: EmitCtx,
     items: CTopLevel[],
@@ -836,7 +835,7 @@ struct_field_init :: fn(
     atom_of: MutableMap<string,
     i32>,
 ) -> CExpression {
-    // T12: an erased field (union / open ref) is a tagged `vader_box_t` slot,
+    // An erased field (union / open ref) is a tagged `vader_box_t` slot,
     // boxed with the value's own type ; a concrete-ref field (struct/array/fn) is
     // a raw `void*`.
     field_val :: val_type_of_bc_type(ctx.module.types[field_tid])
@@ -1062,11 +1061,8 @@ emit_forward_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// C signature of `module.functions[index]` : its storage, return type,
 /// sanitised name and parameters `l<i>`.
 ///
-/// B1 (nullable-ref inline rep) slots pass as raw `void*` at the C-ABI
-/// boundary AND rename the param to `lN_b1` (the body prologue then
-/// re-declares a `vader_box_t lN` from it) ; both halves land together in
-/// T12. Until then every slot uses its plain `c_type_for_val_bare`
-/// spelling and the `lN` name.
+/// Every slot uses its plain `c_type_for_val_bare` spelling and the `lN`
+/// name ; a `T | null` slot is a `vader_box_t`.
 ///
 /// @param ctx    the emit context, for the storage.
 /// @param index  index into `module.functions`.
@@ -1327,7 +1323,7 @@ empty_struct_offsets :: fn() -> StructOffsets {
 /// by the type-info emit's single-pass-per-struct flow.
 ///
 /// All three buckets are live: the bucket a field lands in decides which GC
-/// reader scans it, so it MUST match the field's emitted C type — see the T12
+/// reader scans it, so it MUST match the field's emitted C type — see the
 /// note in the body, and `val_type_of_bc_type`, the shared predicate that keeps
 /// the two from drifting.
 classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> StructOffsets {
@@ -1337,7 +1333,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
         f :: s.fields[i]
         ftype :: ctx.module.types[f.type_index]
         offset :: "offsetof(${cname}, ${field_c_name(f.name)})"
-        // T12: the offset bucket MUST match the field's C type so the GC scans it
+        // The offset bucket MUST match the field's C type so the GC scans it
         // with the right reader — a raw `void*` (`.Ref`) via `ref_offsets` →
         // `vader_gc_scan_raw`, a `vader_box_t` (`.Any`) via `ptr_offsets` →
         // `vader_gc_scan_box`. Derive the bucket from `val_type_of_bc_type` (the
@@ -1477,7 +1473,7 @@ main_body :: fn(ctx: EmitCtx, entry_mangled: string) -> CStatement[] {
             ],
         )
         // The entry's `argv: [string]` param is a concrete array → a raw `void*`
-        // (`.Ref`) under T12 ; pass the array pointer directly. (`.Any` would box.)
+        // (`.Ref`) ; pass the array pointer directly. (`.Any` would box.)
         if function.signature.params[0] == .Ref {
             body.push(declaration("void*", "__args", cast("void*", argv)))
         } else {

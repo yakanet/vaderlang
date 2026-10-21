@@ -1,8 +1,8 @@
 // vader/dap/main — the `vader dap` server : a Debug Adapter Protocol adapter
 // that drives the bytecode VM.
 //
-// v1 (proof of life) : F5 in VSCode runs the target `.vader`, its output shows
-// in the Debug Console, the session ends cleanly. No breakpoints yet (Phase 2).
+// F5 in VSCode runs the target `.vader`, its output shows in the Debug Console,
+// breakpoints pause it (stack, variables, stepping), the session ends cleanly.
 //
 // The server is cocompiled into the main `vader` binary (not a slim separate
 // one like `vader-lsp`) because it must drive `vader/vm`. It reuses the LSP
@@ -97,7 +97,8 @@ export run_dap_server :: fn(compile: fn(string) -> DapProgram) -> i32 {
             running = false
         } else {
             // Unknown / not-yet-supported command : ack so the client isn't
-            // left waiting. Phase 4 adds stepping.
+            // left waiting. Stepping requests arrive while paused, in
+            // `run_pause_loop`.
             respond(seq_cell, request_seq, command, true, empty_body())
         }
     }

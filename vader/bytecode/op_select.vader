@@ -30,9 +30,9 @@ import "vader/lower"
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
 /// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any` / `null`) lower
-/// to `RefEq` / `RefNe` — a full object-pointer identity compare (post-T12 a
-/// concrete `.Ref` is a raw `void*`, so the old i32 compare mixed a raw
-/// pointer with a 32-bit-truncated box payload). (String `+` never reaches
+/// to `RefEq` / `RefNe` — a full object-pointer identity compare (a concrete
+/// `.Ref` is a raw `void*`, so an i32 compare would mix a raw pointer with a
+/// 32-bit-truncated box payload). (String `+` never reaches
 /// here — the lowerer rewrites it to a StringBuilder chain,
 /// `lower/lower_binary.vader`.)
 ///
@@ -190,7 +190,7 @@ cmp_ne :: fn(lhs: ValType) -> Op {
 }
 
 // A reference-shaped operand class — compared by object identity via `RefEq` /
-// `RefNe`, never the numeric i32 path. `.Ref` is a raw pointer post-T12 ; `.Any`
+// `RefNe`, never the numeric i32 path. `.Ref` is a raw pointer ; `.Any`
 // / `.Null` are boxes whose pointer lives in `.payload.obj`.
 is_ref_class :: fn(v: ValType) = v == .Ref || v == .Any || v == .Null
 
@@ -239,7 +239,7 @@ bitnot_op :: fn(operand: ValType) -> Op {
     return I32BitNot {}
 }
 
-// ---- array slot access (Target ABI S5) -----------------------------------
+// ---- array slot access ---------------------------------------------------
 
 /// Native storage class of an array element — the single dimension the slot
 /// load / store ops dispatch on. `Boxed` is a GC-traced `vader_box_t` slot ;
@@ -252,8 +252,8 @@ SlotWidth :: enum(u8) { U8, I32, I64, F64, Boxed }
 /// `slot_store_op_for` and `slot_load_op_for` read it. The width is the native
 /// byte width — NOT the arithmetic width-aliasing of `arith_op` (storage cares
 /// about the byte width, compute doesn't) — so the slot-index × stride
-/// addressing stays consistent with the reused two-object array layout (D5/D3
-/// Option α).
+/// addressing stays consistent with the two-object array layout (a header plus
+/// a separate element buffer, `vader.h`).
 ///
 /// Returns `null` for element widths without a dedicated opcode yet: `i16`/`u16`
 /// (need a 2-byte slot op) and `f32` (needs a 4-byte float slot op — a 4-byte
@@ -288,8 +288,8 @@ slot_width_for :: fn(elem: ValType) -> SlotWidth | null = match elem {
     .Any    -> .Boxed
 }
 
-/// Pick the typed store op for an array element of stack class `elem` (Target ABI
-/// S5, Array-over-Buffer) — the native-width store, no write barrier needed since
+/// Pick the typed store op for an array element of stack class `elem`
+/// (Array-over-Buffer) — the native-width store, no write barrier needed since
 /// no reference is written. `null` means "no typed store for this element": the
 /// caller falls back to the legacy runtime-dispatched `ArraySet`.
 ///

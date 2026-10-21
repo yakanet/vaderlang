@@ -432,7 +432,7 @@ typedef enum {
     VADER_ARRAY_KIND_F64   = 10,
     VADER_ARRAY_KIND_CHAR  = 11,
     VADER_ARRAY_KIND_BOOL  = 12,
-    /* Raw-ref slots (T12): 8-byte `void*` per element instead of a 16-byte
+    /* Raw-ref slots: 8-byte `void*` per element instead of a 16-byte
      * `vader_box_t`, for arrays whose element is ref-only (every value is a
      * header-bearing heap object — incl a union-of-refs like `Expr[]`). The
      * tag is recovered from each referent's `vader_obj_header_t.type_index` on
@@ -455,7 +455,7 @@ static inline size_t vader_array_element_size(uint8_t kind) {
         case VADER_ARRAY_KIND_U64:   /* fallthrough */
         case VADER_ARRAY_KIND_I64:   /* fallthrough */
         case VADER_ARRAY_KIND_F64:   return 8;
-        case VADER_ARRAY_KIND_REF:   return sizeof(void*);  /* T12 raw-ref slot */
+        case VADER_ARRAY_KIND_REF:   return sizeof(void*);
         default: return sizeof(vader_box_t);   /* unreachable, defensive */
     }
 }
@@ -611,10 +611,11 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
  * (VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) reads the owner atom's bytes with
  * its RUNTIME borrowed tag ; a real `u8[]` reads its slots and boxes with the
  * static `elem_tag`. `slot` is the caller-resolved absolute index (`a->offset +
- * i`) ; the G1 forward-resolve + D7 bounds check run at the c-emit site (via
- * `emit_slot_array_local`) before this call. The named inline (no linkage
- * symbol, inlines at -O3) replaces the open-coded borrowed branch at every u8
- * read site — the §5 C-emit convention. */
+ * i`) ; the c-emit site resolves the buffer anew (a collection may have moved
+ * it) and checks the bounds (`emit_slot_array_local`) before this call. The
+ * named inline (no linkage symbol, inlines at -O3) replaces the open-coded
+ * borrowed branch at every u8 read site, as docs/TARGET_ABI.md asks of a
+ * memory op. */
 static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uint32_t elem_tag) {
     vader_box_t out;
     out._pad = 0;
@@ -628,12 +629,12 @@ static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uin
     return out;
 }
 
-/* Ref-array element access (T12/P3). A concrete-ref array is a REF buf when built
+/* Ref-array element access. A concrete-ref array is a REF buf when built
  * concretely but a BOXED buf when built in erased generic code (and an erased
  * `Any[]` access can meet a REF buf), so the reader must dispatch on the buf's
  * actual `element_kind`, not the static element type. `slot` is the caller-
- * resolved absolute index (`a->offset + i`) ; the G1 forward-resolve + D7 bounds
- * check run at the c-emit site before the call. Named inlines (no linkage symbol,
+ * resolved absolute index (`a->offset + i`) ; the c-emit site resolves the
+ * buffer anew and checks the bounds before the call. Named inlines (no linkage symbol,
  * inline at -O3) so the emitted C is a clean call, not an open-coded ternary. The
  * store's generational write barrier fires at the call site (the macro is defined
  * below). `_load_obj` yields the raw object pointer (a concrete `.Ref`) ;
@@ -819,7 +820,7 @@ static inline vader_buffer_t* vader_buffer_new(size_t byte_count) {
 
 /* Byte-region load / store. `memcpy` (not a cast) for unaligned offsets. The
  * caller (c-emit) re-derives `b` from its rooted box on every op, so a GC move
- * between ops is picked up here (G1) — these helpers never allocate, so no move
+ * between ops is picked up here — these helpers never allocate, so no move
  * happens within one. */
 static inline uint8_t vader_buffer_load_u8(vader_buffer_t* b, size_t off) { return b->bytes[off]; }
 static inline void    vader_buffer_store_u8(vader_buffer_t* b, size_t off, uint8_t v) { b->bytes[off] = v; }
@@ -838,7 +839,7 @@ static inline void vader_buffer_memory_copy(vader_buffer_t* dst, size_t dst_off,
 /* Intern the buffer's leading `len` bytes as a `vader_string_t` (the
  * `buffer_to_string` opcode). Verbatim bytes — same intern as
  * `vader_string_as_string` over a `u8[]`, neither validates UTF-8. The caller
- * re-derives `b` from its rooted box (G1) ; `vader_string_new` interns via host
+ * re-derives `b` from its rooted box ; `vader_string_new` interns via host
  * `malloc`, so no GC move happens within the call. */
 static inline vader_string_t vader_buffer_intern_string(vader_buffer_t* b, size_t len) {
     return vader_string_new((const char*) b->bytes, len);
@@ -849,7 +850,7 @@ static inline vader_string_t vader_buffer_intern_string(vader_buffer_t* b, size_
  * contiguous bytes — the lean replacement for `vader_string_concat_all`, used
  * by `StringBuilder.to_string` to assemble its parts. No write barrier (the
  * region holds no references). `s` is an interned atom, so reading its bytes
- * never allocates ; `dst` is re-derived from its rooted box at the op (G1). */
+ * never allocates ; `dst` is re-derived from its rooted box at the op. */
 static inline void vader_buffer_write_string(vader_buffer_t* dst, size_t off, vader_string_t s) {
     memcpy(dst->bytes + off, vader_atom_data(s), vader_atom_len(s));
 }
@@ -916,11 +917,11 @@ static inline void vader_array_resolve_buf(vader_array_t* a) {
     }
 }
 
-/* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
- * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via
- * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`), so
- * they are no longer part of the per-target ABI. `push` / `slice` / `new` stay
- * (the GC-coupled construction primitives). */
+/* No element get / set here: the C emitter open-codes every `arr[i]` /
+ * `arr[i] = v` over the kept layout (typed slots inline, boxed via
+ * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`).
+ * `push` / `slice` / `new` stay out of line (the GC-coupled construction
+ * primitives). */
 void           vader_array_push(vader_array_t* a, vader_box_t v);
 
 /* Typed append fast paths — one per primitive element width (all `ArrayKind`s
@@ -1255,16 +1256,15 @@ extern const size_t             vader_type_info_count;
 typedef struct vader_gc_frame {
     struct vader_gc_frame* prev;
     uint32_t               nrefs;
-    /* Count of raw-ref roots (T12) — `void*` locals carrying a concrete ref
-     * unboxed. Reuses the former `_pad` slot, so existing positional frame
-     * initializers `{ prev, nrefs, 0u, ptrs }` still read `nraw = 0` and (via C
-     * partial-init) `raw = NULL`. */
+    /* Count of raw-ref roots: `void*` locals carrying a concrete ref unboxed.
+     * Third, so a positional frame initializer `{ prev, nrefs, 0u, ptrs }`
+     * reads `nraw = 0` and (via C partial-init) `raw = NULL`. */
     uint32_t               nraw;
     vader_box_t**          ptrs;
     /* Raw-ref roots : `raw[i]` is a `void**` addressing a `void*` local that
      * holds a concrete ref. Scanned via `vader_gc_scan_raw` (forwards the
-     * referent, handles NULL, fires the write barrier). NULL until T12 codegen
-     * populates it. */
+     * referent, handles NULL, fires the write barrier). NULL in a frame with no
+     * raw-ref local. */
     void***                raw;
     /* Count of stack-object roots — GC structs the escape analysis proved
      * non-escaping and stack-allocated (a `StructNew.stack` in the emit). */

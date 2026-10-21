@@ -638,8 +638,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
         view :: call("vader_string_bytes_view", [a0, unsigned(i64(u8arr)), unsigned(i64(u8))])
         return [CReturn { .value = cast("void*", view) }]
     }
-    // `bytes_to_string` (Target ABI S1) — backing runtime symbol still named
-    // `vader_string_as_string`.
+    // `bytes_to_string` is backed by the runtime symbol `vader_string_as_string`.
     .BytesToString -> { return [returning("vader_string_as_string", [cast("vader_array_t*", a0)])] }
     // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
     .StringHash -> { return [returning("vader_string_hash", [a0])] }

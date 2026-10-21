@@ -54,7 +54,7 @@ async function virtForHost(name: string, mainPath: string, pinned: string): Prom
 // spread of programs on it: trait dispatch, narrowing, closures, generics, std
 // collections, comptime constants.
 const VADER_SELF_EMIT = new Set<string>([
-  "alias_union_in_array", "array_iter", "array_view_aliasing", "b1_fn_boundary",
+  "alias_union_in_array", "array_iter", "array_view_aliasing",
   "chained_divergent_narrow", "char_literal_escapes", "closure_in_generic_fn",
   "coerce_into", "comptime_const", "comptime_type_value", "const_array_basic",
   "const_fn_wrap", "const_imported_from_std", "custom_iter",
@@ -69,7 +69,8 @@ const VADER_SELF_EMIT = new Set<string>([
   "loop", "map_set_basics", "match_arm_narrows_scrutinee",
   "match_literal_patterns", "match_partial", "match_struct_pattern_in_union",
   "match_wildcard_narrow", "multiline_string", "namespace_member_forms",
-  "narrow_imported_map", "op_overload", "parse_int_match", "self_ref_struct",
+  "narrow_imported_map", "nullable_node_across_calls", "op_overload",
+  "parse_int_match", "self_ref_struct",
   "struct_default_cross_module", "struct_defaults", "struct_spread",
   "trait_box_range_iter", "trait_dispatch_bounded", "trait_virtual_dispatch",
   "transitive_mono", "ufcs_union_receiver", "union_common_field",

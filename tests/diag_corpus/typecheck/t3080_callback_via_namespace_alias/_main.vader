@@ -7,7 +7,7 @@
 //
 // The mirror-image defect went with it: a named fn reached the same way —
 // `M.double_it` as the argument — was refused T3080 although it is exactly the
-// form §7 of the style guide mandates for an aliased import.
+// qualified form an aliased import requires (T3078).
 module "snippet"
 
 F :: import "snippet/ffi"

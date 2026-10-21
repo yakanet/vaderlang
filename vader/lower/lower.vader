@@ -170,8 +170,8 @@ lower_project_impl :: fn(
     // builds into `generic_collected` ; `materialize_nongeneric_imported_fns`
     // resumes from `nongeneric_imported_cursor` ; `surface_*` dedupes via
     // `materialized_impl_keys`). A pre-fixpoint single generic pass would
-    // strand any instance a later stdlib-harvest round registers (the
-    // `len__...` GATE-B1 unresolved-callee bug). The generic instances are
+    // strand any instance a later stdlib-harvest round registers (a `len__...`
+    // callee left unresolved at emit). The generic instances are
     // FLUSHED (sorted + erasure-deduped + pushed) once after convergence so
     // emission order is a single deterministic sort.
     // All four queues are append-only (the three arrays) / add-only (the mangle
@@ -360,7 +360,7 @@ is_eager_module :: fn(module_id: string, loaded: LoadedProject, eager_modules: s
 // constants, as reached : the call-site harvest (`materialize_nongeneric_imported_*`)
 // would otherwise lower one again when a declaration refers to it, re-lifting a
 // function's lambdas under fresh ids (the make-closure then misses the surviving
-// decl : a GATE B1 panic at emit) or duplicating a constant.
+// decl : an unresolved-callee panic at emit) or duplicating a constant.
 seed_eager_module :: fn(project_ctx: LowerProjectCtx, module_loaded: LoadedModule) -> void {
     for d in module_decls(module_loaded) {
         if d is FnDecl {

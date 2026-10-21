@@ -66,7 +66,7 @@ exec_array_slice :: fn(frame: Frame, instr: bc.ArraySlice) -> Trap | null {
     hi_clamped := clamp_nonneg(i32(hi_unwrap))
     if hi_clamped < lo_clamped { hi_clamped = lo_clamped }
     if hi_clamped > len { hi_clamped = len }
-    // A7 unified view : share `elements`, adjust bounds. Writes
+    // A view : share `elements`, adjust bounds. Writes
     // through the view will alias the parent (see ArraySet).
     push_val(frame, frame.sp - 3, ArrayVal {
             .type_id  = instr.type_id,

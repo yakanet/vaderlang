@@ -2,8 +2,8 @@
 // to a `Type`.
 //
 // Since `TypeExpr` aliases
-// `Expr` after Layer 1.D, the parser produces both type-shaped and value-
-// shaped nodes from the same grammar — dispatch happens on `expr.kind`.
+// `Expr`, the parser produces both type-shaped and value-
+// shaped nodes from the same grammar: dispatch is a `match` on the node's variant.
 // Resolves named types via the resolver's idents map, builds Primitive /
 // Struct / Trait / TypeParam / Union / Fn / Array / Tuple. Unresolvable
 // shapes surface T3002 ("expected an expression of a known type").
@@ -246,9 +246,8 @@ lower_generic_inst :: fn(
 }
 
 /// Resolve a type-position ident to its Symbol via the resolver's span-keyed
-/// `idents` table (authoritative — the by-name / core fallbacks were removed
-/// once `idents` covered every type-position ref, see the symbol-id-tracking
-/// chantier). Returns `null` when the span isn't bound.
+/// `idents` table (authoritative: `idents` covers every type-position ref, so
+/// there is no by-name / core fallback). Returns `null` when the span isn't bound.
 lookup_type_name :: fn(id: AST.IdentExpr, resolved: ResolvedModule) -> Symbol | null {
     bound :: resolved.idents[id.span.hash()]
     if !(bound is null) { return redirect_import(bound, resolved) }

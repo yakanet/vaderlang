@@ -1,4 +1,4 @@
-// vader/comptime_vm/resolve — VM-backed comptime fallback (S2 two-pass).
+// vader/comptime_vm/resolve — VM-backed comptime fallback (two-pass).
 //
 // Runs from `bootstrap`, BETWEEN `evaluate_project` and `lower_project`, where
 // the `EvaluatedProject` is complete (mono + instances built). For every

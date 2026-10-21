@@ -130,7 +130,8 @@ export c_string_lit :: fn(s: string) -> string {
 
 /// Primitive `ValType` → bare C type spelling. `null` lands in
 /// `vader_box_t` because the runtime null is the box variant whose
-/// tag identifies it ; `ref` / `any` also collapse to `vader_box_t`.
+/// tag identifies it ; `any` is a `vader_box_t` too, while `ref` and
+/// `pointer` are a raw `void*`.
 ///
 /// @param v  the stack-machine value class.
 /// @return   the C type spelling used at locals, signature slots,
@@ -151,7 +152,7 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .String -> "vader_string_t"
     .Null -> "vader_box_t"
     .Void -> "void"
-    // T12: a concrete heap ref rides the stack as a raw 8-byte pointer; the tag
+    // A concrete heap ref rides the stack as a raw 8-byte pointer; the tag
     // is recovered from the object header at the erasure boundary (`vader_ref_box`).
     .Pointer -> "void*"
     .Ref -> "void*"
@@ -161,7 +162,8 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
 /// C expression unboxing `value` (a `vader_box_t`) to `target`'s storage —
 /// the per-class payload accessor (`.payload.i` for every integer / char,
 /// `.payload.f` for floats, `.payload.b` / `.payload.s` for bool / string).
-/// `null` / `ref` / `any` pass through (already a box).
+/// `null` / `any` pass through (already a box) ; `ref` takes the box's
+/// `.payload.obj`, a raw `void*`.
 ///
 /// @param value   the `vader_box_t` to unbox.
 /// @param target  the destination stack value class.
@@ -185,7 +187,7 @@ unbox_expr :: fn(value: CExpression, target: ValType) -> CExpression = match tar
     // Rides in the INTEGER payload, never `obj` : the GC must not follow a
     // foreign address, and going through `payload.i` makes that structural.
     .Pointer -> CParenthesized { .inner = cast("void*", cast("intptr_t", payload(value, "i"))) }
-    // T12: narrowing a box to a concrete ref extracts its object pointer.
+    // Narrowing a box to a concrete ref extracts its object pointer.
     .Ref   -> payload(value, "obj")
     .Any   -> value
 }
@@ -200,8 +202,9 @@ payload_cast :: fn(type: string, box: CExpression, field: string) -> CExpression
 /// C expression boxing `value` (a `val`-typed value) into a `vader_box_t`
 /// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to
 /// the matching `vader_box_<class>` runtime constructor (unsigned widths
-/// re-cast through the signed payload slot). `null` / `ref` / `any` pass
-/// through (already boxed) ; `void` boxes to the empty box.
+/// re-cast through the signed payload slot). `null` / `any` pass through
+/// (already boxed) ; a raw `ref` boxes via `vader_ref_box`, its tag read from
+/// the object header ; `void` boxes to the empty box.
 ///
 /// @param value       the value to box.
 /// @param val         its stack value class.
@@ -294,7 +297,7 @@ export class_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: 
 /// @return       an expression of `to`'s storage type.
 coerce_expr :: fn(types: BcType[], value: CExpression, from: ValType, to: ValType) -> CExpression {
     if from == to { return value }
-    // T12 erasure boundary — `.Ref` is a raw `void*`, `.Any`/`.Null` are boxes.
+    // Erasure boundary: `.Ref` is a raw `void*`, `.Any`/`.Null` are boxes.
     // Narrow a boxed dynamic value (or `null`) into a raw concrete ref.
     if to == .Ref {
         if from == .Any || from == .Null { return payload(value, "obj") }
@@ -360,7 +363,7 @@ export c_type_for :: fn(t: BcType) -> string = c_type_for_val_bare(val_type_of_b
 export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcScalar -> t.val
     // Concrete heap → `.Ref` (void*) ; erased trait/union → `.Any` (box).
-    // Mirrors `type_classify.vader::val_type_of_type` (T12).
+    // Mirrors `type_classify.vader::val_type_of_type`.
     is BcStruct -> .Ref
     is BcArray -> .Ref
     is BcFn -> .Ref
@@ -368,8 +371,8 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcRef -> .Any
 }
 
-/// True for the boxed value classes (`ref` / `any`) — both collapse to
-/// `vader_box_t` storage and are GC roots.
+/// True for the heap-reference value classes (`ref` / `any`): both are GC
+/// roots, a `ref` held as a raw `void*` and an `any` as a `vader_box_t`.
 export is_ref_val :: fn(v: ValType) -> bool = v == .Ref || v == .Any
 
 /// Stack value class of the field / slot whose `BcType` lives at

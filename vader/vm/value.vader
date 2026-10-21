@@ -610,14 +610,9 @@ export BoolVal :: bool
 /// use the underlying numeric.
 export CharVal :: char
 
-/// Tagged runtime value carried on the VM's value stack. Sprint 3
-/// widened the stack from raw `i32[]` to this union so strings flow
-/// through `string.const` / `call.import` alongside numerics ; Sprint
-/// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
-/// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b4) added
-/// `FnVal` for `fn.ref` / `call.indirect` ; Sprint 5a adds `NullVal` /
-/// `BoolVal` / `CharVal` for the corresponding const + comparison op
-/// families.
+/// Tagged runtime value carried on the VM's value stack: one variant per
+/// value class the ops push (numerics, strings, `StructVal`, `ArrayVal`,
+/// `FnVal`, `NullVal`, `BoolVal`, `CharVal`, …).
 export Value :: I32Val
        | I64Val
        | F64Val
@@ -633,9 +628,8 @@ export Value :: I32Val
        | ObjVal
 
 /// Heap-allocated struct payload. `type_id` indexes into `Module.types`
-/// (used for diagnostics + future `type_check` op) ; `fields[i]` carries
-/// the i-th declared field. `Value[]` resolves intra-module so the
-/// alias-expansion bug (TODO §3.8, cross-module-only) doesn't bite here.
+/// (used for diagnostics + the `type_check` op) ; `fields[i]` carries
+/// the i-th declared field.
 export StructVal :: struct {
     type_id: i32
     fields: Value[]
@@ -646,7 +640,7 @@ export StructVal :: struct {
 /// `Module.types` (an `ArrayType`) ; `elements` is the shared backing
 /// buffer (multiple views may point at the same array). `offset` and
 /// `length` carve out the logical slice — owning arrays have
-/// `offset == 0` and `length == elements.len()`. A7 unified view model :
+/// `offset == 0` and `length == elements.len()`. View model :
 /// `array.slice` returns a view (shared `elements`, adjusted bounds) ;
 /// `array.set` writes through to the parent (Go-style aliasing) ;
 /// `array.push` detaches into a fresh `elements` when the array is a
@@ -684,9 +678,9 @@ export own_bytes :: fn(a: ArrayVal) -> void {
 /// Function-reference payload — the runtime value pushed by `fn.ref`
 /// and `make_closure`, consumed by `call.indirect`. `function_index`
 /// keys into `Module.functions` (same index space as the direct `Call`
-/// op). `env` is `null` for plain fn-refs (Sprint 4 (b4)) and a captured
+/// op). `env` is `null` for plain fn-refs and a captured
 /// value (typically a `StructVal` holding each capture's value or cell)
-/// for closures (Sprint 4 (b5)). At `CallIndirect` time, a non-`null`
+/// for closures. At `CallIndirect` time, a non-`null`
 /// `env` is bound to the callee's `slot 0` before the user args fill
 /// `slot 1 ..`.
 export FnVal :: struct {
@@ -707,19 +701,18 @@ export NullVal :: struct {}
 export ErrorVal :: struct { message: string }
 
 /// Runtime reification of a `type` value — pushed by `type.const N`,
-/// `type_id` keys `Module.types`. Layer 4 §1.19 B.1.
+/// `type_id` keys `Module.types`.
 export TypeVal :: struct { type_id: i32 }
 
-/// Heap object payload for the Target ABI memory opcodes (decision D8 — the
-/// VM backs a REAL byte-addressed heap). Splits the two disjoint regions an
+/// Heap object payload for the Target ABI memory opcodes (the VM backs a
+/// REAL byte-addressed heap). Splits the two disjoint regions an
 /// object holds : `bytes` is the raw inline primitive payload, addressed by
 /// BYTE OFFSET (`load_i32` / `store_u8` / …) ; `slots` is the boxed reference
 /// payload, addressed by SLOT INDEX (`load_slot` / `store_slot` — the fields a
-/// tracing GC follows). A `Buffer` (the first consumer, D6) is all `bytes`,
+/// tracing GC follows). A `Buffer` (the first consumer) is all `bytes`,
 /// no `slots` ; a primitive struct is all `bytes` ; an array of references is
 /// all `slots`. `handle` is a synthetic monotonic id for diagnostics only —
 /// object identity is the `ObjVal` reference itself, NEVER a machine address.
-/// Inert until S3 (nothing emits these ops yet).
 export ObjVal :: struct {
     handle:  i32
     type_id: i32
@@ -731,15 +724,9 @@ export ObjVal :: struct {
 //
 // Every variant carries its own `Display` impl so the dispatcher below
 // (`display_value`) can route narrowed receivers via `.to_string()`
-// rather than hand-rolling each rendering. `Value` itself does NOT
-// implement `Display` — Vader's UFCS-on-union-receivers limitation
-// (TODO §3.8) makes `value.to_string()` fail to resolve, regardless of
-// whether the impl is on the union or on each variant. The free-fn
-// `display_value(v: Value)` is the workaround : `match`-narrows to a
-// concrete variant, then calls the per-variant `to_string`. When §3.8
-// lands, `display_value` collapses into `Value implements Display via match`
-// and these per-variant impls become reachable as `value.to_string()`
-// directly.
+// rather than hand-rolling each rendering. `Value` itself has no
+// `Display` impl : the free-fn `display_value(v: Value)` `match`-narrows
+// to a concrete variant, then calls the per-variant `to_string`.
 
 I32Val implements Display {
     to_string :: fn(self) -> string = "${i32(self)}"
@@ -817,9 +804,8 @@ ArrayVal implements Display {
     }
 }
 
-/// Free-fn dispatcher for `Value.to_string()` — works around the UFCS-on-
-/// union-receivers bug (TODO §3.8). Narrows `v` to a concrete variant
-/// via `match`, then calls the variant's `Display` impl directly.
+/// Free-fn dispatcher for `Value.to_string()`. Narrows `v` to a concrete
+/// variant via `match`, then calls the variant's `Display` impl directly.
 ///
 /// @param v  the tagged value to render.
 /// @return   the human-readable representation, computed by the variant's

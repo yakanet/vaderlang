@@ -224,7 +224,8 @@ NewProject :: struct {
 }
 
 /// A refusal, with the sentence the user reads. Separate from a diagnostic:
-/// nothing here is wrong with a `.vader` file, so no code is allocated (§12).
+/// diagnostic codes are for problems in a `.vader` file, and nothing here is
+/// one, so no code is allocated.
 ScaffoldError :: struct {
     msg: string
 }

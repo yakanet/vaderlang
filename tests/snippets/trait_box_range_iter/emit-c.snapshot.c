@@ -224,7 +224,7 @@ static int32_t snippet_twice__i32(vader_box_t l0) {
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
     int32_t t0;
-#line 306 "lib/std/core/primitives.vader"
+#line 304 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
@@ -306,7 +306,7 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
 
 static int64_t std_core_i64_Step_step(int64_t l0) {
     int64_t t0;
-#line 307 "lib/std/core/primitives.vader"
+#line 305 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l0, INT64_C(1));
     return t0;
 }
