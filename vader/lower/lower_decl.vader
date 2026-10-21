@@ -349,11 +349,11 @@ lower_struct_decl :: fn(
     }
 }
 
-// ConstDecl → `LoweredConstDecl`. Lowers the value via the expression
-// lowerer, preferring the `@comptime`-baked value when the evaluator
-// folded the const (`lower_const_value` / `lookup_comptime_value`) so
-// downstream phases see the materialised literal. Type-alias / metatype
-// consts have no runtime slot and are skipped.
+// ConstDecl → `LoweredConstDecl`. Lowers the value into the const's type, through
+// the `Into` the typecheck accepted on it, preferring the `@comptime`-baked value
+// when the evaluator folded the const (`lower_const_value` /
+// `lookup_comptime_value`) so downstream phases see the materialised literal.
+// Type-alias / metatype consts have no runtime slot and are skipped.
 lower_const_decl :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
@@ -384,7 +384,9 @@ lower_const_value :: fn(
     fn_ctx: FnLowerCtx, type_val: Type,
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
-    if baked == null { return lower_expr(fn_ctx, const_decl.value) }
+    if baked == null {
+        return lower_for_slot(fn_ctx, const_decl.value, type_val, const_decl.span)
+    }
     return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
 }
 

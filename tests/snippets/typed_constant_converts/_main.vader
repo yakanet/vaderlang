@@ -1,0 +1,34 @@
+// A module constant with a written type takes its value through the `Into` a
+// typed local would: `ROOM` is written as a `Celsius` and holds the `Label` its
+// conversion makes, and `NOTE`, a file's text baked at build time, the `Label`
+// made from that text.
+
+module "snippet"
+
+import "std/io"
+
+Label :: struct {
+    text: string
+}
+
+Celsius :: struct {
+    degrees: i32
+}
+
+Celsius implements Into<Label> {
+    into :: fn(self) -> Label = Label { .text = "${self.degrees} C" }
+}
+
+string implements Into<Label> {
+    into :: fn(self) -> Label = Label { .text = "<${self}>" }
+}
+
+ROOM: Label: Celsius { .degrees = 21 }
+
+NOTE: Label: @file("note.txt")
+
+main :: fn() -> i32 {
+    println(ROOM.text)
+    println(NOTE.text)
+    return 0
+}

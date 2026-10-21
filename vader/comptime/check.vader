@@ -230,7 +230,9 @@ bake_one_file_expr :: fn(
         .bytes = content.byte_len(),
         .name = constant_name(constant),
     })
-    if constant != null {
+    // A constant that takes the text through an `Into` holds what the conversion
+    // makes, at run time, not the text.
+    if constant != null && program.typed.into_coercions[constant.value.id] == null {
         symbol :: symbol_declared_at(program.typed.resolved, constant.name_span) ?? return
         project.file_baked_consts[symbol.id] = string_val(content)
     }

@@ -663,6 +663,8 @@ const C_PARITY = new Set<string>([
   "loop_condition_narrowing",
   // A lambda of each arm copies the `match x :: …` name into its env.
   "match_binding_capture",
+  // A typed module constant runs the `Into` its value needs.
+  "typed_constant_converts",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/typed_constant_converts
+  StructDecl     Celsius              :: Celsius
+  StructDecl     Label                :: Label
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      NOTE                 :: Label
+  ConstDecl      ROOM                 :: Label
+  expr 19:33    StructLitExpr  :: Label
+  expr 19:49    StringLitExpr  :: string
+  expr 19:52    FieldExpr      :: i32
+  expr 19:52    IdentExpr      :: Celsius
+  expr 23:33    StructLitExpr  :: Label
+  expr 23:49    StringLitExpr  :: string
+  expr 23:53    IdentExpr      :: string
+  expr 26:14    StructLitExpr  :: Celsius
+  expr 28:14    IntrinsicCallExpr :: string
+  expr 28:20    StringLitExpr  :: string
+  expr 31:13    FieldExpr      :: string
+  expr 31:13    IdentExpr      :: Label
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 32:13    FieldExpr      :: string
+  expr 32:13    IdentExpr      :: Label
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void

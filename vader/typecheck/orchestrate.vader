@@ -2938,7 +2938,13 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
         return
     }
     got :: check_expr(cd.value, annot, typed, diags)
-    typed.decl_types[sym.id] = annot ?? default_if_free(got)
+    if annot == null {
+        typed.decl_types[sym.id] = default_if_free(got)
+        return
+    }
+    // Held to its written type as a typed local is, through an `Into` the
+    // lowering then runs.
+    emit_mismatch_if(got, annot, cd.span, cd.value, .TypeMismatch, typed, diags)
 }
 
 // @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.

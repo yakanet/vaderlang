@@ -1,0 +1,10 @@
+// A module constant with a written type is held to it, as a typed local is: an
+// integer is no `Label`. T3001.
+
+module "snippet"
+
+export Label :: struct {
+    text: string
+}
+
+export DEFAULT: Label: 5

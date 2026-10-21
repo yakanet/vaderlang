@@ -44,6 +44,11 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
         return vm_required(expr.span,
             "a cyclic or non-terminating comptime expression (exceeded ${COMPTIME_MAX_EVAL_DEPTH} nested levels)")
     }
+    // A value converted through an `Into` holds what the conversion makes, which
+    // only running it gives.
+    if context.typed.into_coercions[expr.id] != null {
+        return vm_required(expr.span, "a value converted through an `Into`")
+    }
     context.depth = context.depth + 1
     result :: @partial match expr {
         is AST.IntLitExpr        -> evaluate_int_lit(expr, context)

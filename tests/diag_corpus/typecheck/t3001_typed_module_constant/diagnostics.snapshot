@@ -1,0 +1,1 @@
+[10:8] error[T3001] type mismatch: expected Label, got {integer}
