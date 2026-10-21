@@ -1,6 +1,7 @@
 // A generic body may test one of its own type parameters (`x is U`) : its instances
 // stay concrete, so the test reads what each instance binds `U` to. So does every
-// generic fn that hands that body its own type parameters, in method form too.
+// generic fn that hands that body its own type parameters, inferred or written as
+// type arguments, in method form too.
 // Type arguments key an instance in declaration order, whatever order the
 // parameters appear in.
 module "snippet"
@@ -16,6 +17,8 @@ Square :: struct {
 }
 
 is_a :: fn<U, T>(x: T) -> bool = x is U
+
+relay_written :: fn<U, T>(x: T) -> bool = is_a<U, T>(x)
 
 kind :: fn<U, T>(x: T) -> string = match x {
     is U -> "yes"
@@ -37,6 +40,9 @@ relay_method_twice :: fn<T>(samples: T[], x: Circle | Square) -> bool = relay_me
 main :: fn() -> i32 {
     sq: Circle | Square: Square { .s = 2 }
     println("${is_a<Circle, Circle | Square>(sq)} ${is_a<Square, Circle | Square>(sq)}")
+    written_circle :: relay_written<Circle, Circle | Square>(sq)
+    written_square :: relay_written<Square, Circle | Square>(sq)
+    println("${written_circle} ${written_square}")
     println("${kind<Circle, Circle | Square>(sq)} ${kind<Square, Circle | Square>(sq)}")
     println("${same_kind(sq, Circle { .r = 0 })} ${same_kind(sq, Square { .s = 0 })}")
     println("${relay(sq, Circle { .r = 0 })} ${relay(sq, Square { .s = 0 })}")

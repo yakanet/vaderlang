@@ -41,10 +41,14 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 6u
 
 static int32_t snippet_main(void);
+static bool snippet_relay_method__snippet_Circle(void* l0, vader_box_t l1);
+static bool snippet_relay_method__snippet_Square(void* l0, vader_box_t l1);
 static bool snippet_relay_method_twice__snippet_Circle(void* l0, vader_box_t l1);
 static bool snippet_relay_method_twice__snippet_Square(void* l0, vader_box_t l1);
 static bool snippet_is_a__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0);
 static bool snippet_is_a__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0);
+static bool snippet_relay_written__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0);
+static bool snippet_relay_written__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0);
 static vader_string_t snippet_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0);
 static vader_string_t snippet_kind__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0);
 static bool snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1);
@@ -55,8 +59,6 @@ static bool snippet_relay_twice__snippet_Circle__snippet_Circle___snippet_Square
 static bool snippet_relay_twice__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1);
 static bool snippet_holds_kind__snippet_Circle(void* l0, vader_box_t l1);
 static bool snippet_holds_kind__snippet_Square(void* l0, vader_box_t l1);
-static bool snippet_relay_method__snippet_Circle(void* l0, vader_box_t l1);
-static bool snippet_relay_method__snippet_Square(void* l0, vader_box_t l1);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_core_finish_buffer(void* l0, int64_t l1);
@@ -123,28 +125,28 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 static int32_t snippet_main(void) {
     vader_box_t l0 = vader_box_null();
     void* l1 = NULL;
-    void* l6 = NULL;
     void* l7 = NULL;
+    void* l8 = NULL;
     int64_t l2;
-    bool l3;
-    vader_string_t l4 = 0;
+    bool l3, l4;
     vader_string_t l5 = 0;
+    vader_string_t l6 = 0;
     void* t0 = NULL;
     vader_string_t t1 = 0;
     vader_box_t* gc_roots[1] = { &l0 };
-    void** gc_raw_roots[4] = { &l1, &l6, &l7, &t0 };
-    vader_string_t* gc_atom_roots[3] = { &l4, &l5, &t1 };
+    void** gc_raw_roots[4] = { &l1, &l7, &l8, &t0 };
+    vader_string_t* gc_atom_roots[3] = { &l5, &l6, &t1 };
     vader_gc_frame_t gc_frame = {
         vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 38 "tests/snippets/generic_is_type_param/_main.vader"
+#line 41 "tests/snippets/generic_is_type_param/_main.vader"
     vader_struct_snippet_Square_t* _a0_obj = (vader_struct_snippet_Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Square_t));
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_s = INT32_C(2);
     t0 = (void*) _a0_obj;
     l0 = vader_ref_box(t0);
-#line 39 "tests/snippets/generic_is_type_param/_main.vader"
+#line 42 "tests/snippets/generic_is_type_param/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
     l3 = snippet_is_a__snippet_Circle__snippet_Circle___snippet_Square(l0);
@@ -154,66 +156,78 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 40 "tests/snippets/generic_is_type_param/_main.vader"
-    l4 = snippet_kind__snippet_Circle__snippet_Circle___snippet_Square(l0);
-    l5 = snippet_kind__snippet_Square__snippet_Circle___snippet_Square(l0);
-    t1 = concat_3(l4, 1u, l5);
+#line 43 "tests/snippets/generic_is_type_param/_main.vader"
+    l3 = snippet_relay_written__snippet_Circle__snippet_Circle___snippet_Square(l0);
+#line 44 "tests/snippets/generic_is_type_param/_main.vader"
+    l4 = snippet_relay_written__snippet_Square__snippet_Circle___snippet_Square(l0);
+#line 45 "tests/snippets/generic_is_type_param/_main.vader"
+    l1 = (void*) vader_buffer_new((size_t) INT64_C(11));
+    l2 = INT64_C(0);
+    l2 = std_core_write_bool(l1, l2, l3);
+    l2 = std_core_write_string_at(l1, l2, 1u);
+    l2 = std_core_write_bool(l1, l2, l4);
+    t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 41 "tests/snippets/generic_is_type_param/_main.vader"
+#line 46 "tests/snippets/generic_is_type_param/_main.vader"
+    l5 = snippet_kind__snippet_Circle__snippet_Circle___snippet_Square(l0);
+    l6 = snippet_kind__snippet_Square__snippet_Circle___snippet_Square(l0);
+    t1 = concat_3(l5, 1u, l6);
+    std_io_println__string(t1);
+#line 47 "tests/snippets/generic_is_type_param/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
     vader_struct_snippet_Circle_t* _a1_obj = (vader_struct_snippet_Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Circle_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_r = INT32_C(0);
-    l6 = (void*) _a1_obj;
-    l3 = snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a1_obj;
+    l3 = snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 1u);
     vader_struct_snippet_Square_t* _a2_obj = (vader_struct_snippet_Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Square_t));
     vader_obj_header_init(_a2_obj, 5u);
     _a2_obj->f_s = INT32_C(0);
-    l6 = (void*) _a2_obj;
-    l3 = snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a2_obj;
+    l3 = snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 42 "tests/snippets/generic_is_type_param/_main.vader"
+#line 48 "tests/snippets/generic_is_type_param/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
     vader_struct_snippet_Circle_t* _a3_obj = (vader_struct_snippet_Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Circle_t));
     vader_obj_header_init(_a3_obj, 3u);
     _a3_obj->f_r = INT32_C(0);
-    l6 = (void*) _a3_obj;
-    l3 = snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a3_obj;
+    l3 = snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 1u);
     vader_struct_snippet_Square_t* _a4_obj = (vader_struct_snippet_Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Square_t));
     vader_obj_header_init(_a4_obj, 5u);
     _a4_obj->f_s = INT32_C(0);
-    l6 = (void*) _a4_obj;
-    l3 = snippet_relay__snippet_Square__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a4_obj;
+    l3 = snippet_relay__snippet_Square__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 43 "tests/snippets/generic_is_type_param/_main.vader"
+#line 49 "tests/snippets/generic_is_type_param/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
     vader_struct_snippet_Circle_t* _a5_obj = (vader_struct_snippet_Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Circle_t));
     vader_obj_header_init(_a5_obj, 3u);
     _a5_obj->f_r = INT32_C(0);
-    l6 = (void*) _a5_obj;
-    l3 = snippet_relay_twice__snippet_Circle__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a5_obj;
+    l3 = snippet_relay_twice__snippet_Circle__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     l2 = std_core_write_string_at(l1, l2, 1u);
     vader_struct_snippet_Square_t* _a6_obj = (vader_struct_snippet_Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Square_t));
     vader_obj_header_init(_a6_obj, 5u);
     _a6_obj->f_s = INT32_C(0);
-    l6 = (void*) _a6_obj;
-    l3 = snippet_relay_twice__snippet_Square__snippet_Circle___snippet_Square(l0, l6);
+    l7 = (void*) _a6_obj;
+    l3 = snippet_relay_twice__snippet_Square__snippet_Circle___snippet_Square(l0, l7);
     l2 = std_core_write_bool(l1, l2, l3);
     t1 = std_core_finish_buffer(l1, l2);
     std_io_println__string(t1);
-#line 44 "tests/snippets/generic_is_type_param/_main.vader"
+#line 50 "tests/snippets/generic_is_type_param/_main.vader"
     vader_struct_snippet_Circle_t* _a7_obj = (vader_struct_snippet_Circle_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Circle_t));
     vader_obj_header_init(_a7_obj, 3u);
     _a7_obj->f_r = INT32_C(0);
@@ -221,130 +235,144 @@ static int32_t snippet_main(void) {
     vader_array_t* _a8_arr = vader_array_new(2u, 1u, 13u, 3u);
     ((void**) _a8_arr->buf->slots)[_a8_arr->offset + 0u] = t0;
     l1 = (void*) _a8_arr;
-#line 45 "tests/snippets/generic_is_type_param/_main.vader"
+#line 51 "tests/snippets/generic_is_type_param/_main.vader"
     vader_struct_snippet_Square_t* _a9_obj = (vader_struct_snippet_Square_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Square_t));
     vader_obj_header_init(_a9_obj, 5u);
     _a9_obj->f_s = INT32_C(0);
     t0 = (void*) _a9_obj;
     vader_array_t* _a10_arr = vader_array_new(7u, 1u, 13u, 5u);
     ((void**) _a10_arr->buf->slots)[_a10_arr->offset + 0u] = t0;
-    l6 = (void*) _a10_arr;
-#line 46 "tests/snippets/generic_is_type_param/_main.vader"
-    l7 = (void*) vader_buffer_new((size_t) INT64_C(11));
+    l7 = (void*) _a10_arr;
+#line 52 "tests/snippets/generic_is_type_param/_main.vader"
+    l8 = (void*) vader_buffer_new((size_t) INT64_C(11));
     l2 = INT64_C(0);
     l3 = snippet_relay_method_twice__snippet_Circle(l1, l0);
-    l2 = std_core_write_bool(l7, l2, l3);
-    l2 = std_core_write_string_at(l7, l2, 1u);
-    l3 = snippet_relay_method_twice__snippet_Square(l6, l0);
-    l2 = std_core_write_bool(l7, l2, l3);
-    t1 = std_core_finish_buffer(l7, l2);
+    l2 = std_core_write_bool(l8, l2, l3);
+    l2 = std_core_write_string_at(l8, l2, 1u);
+    l3 = snippet_relay_method_twice__snippet_Square(l7, l0);
+    l2 = std_core_write_bool(l8, l2, l3);
+    t1 = std_core_finish_buffer(l8, l2);
     std_io_println__string(t1);
-#line 47 "tests/snippets/generic_is_type_param/_main.vader"
+#line 53 "tests/snippets/generic_is_type_param/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-}
-
-static bool snippet_relay_method_twice__snippet_Circle(void* l0, vader_box_t l1) {
-    bool t0;
-#line 35 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_relay_method__snippet_Circle(l0, l1);
-    return t0;
-}
-
-static bool snippet_relay_method_twice__snippet_Square(void* l0, vader_box_t l1) {
-    bool t0;
-#line 35 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_relay_method__snippet_Square(l0, l1);
-    return t0;
-}
-
-static bool snippet_is_a__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0) {
-#line 18 "tests/snippets/generic_is_type_param/_main.vader"
-    return l0.tag == 3u;
-}
-
-static bool snippet_is_a__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0) {
-#line 18 "tests/snippets/generic_is_type_param/_main.vader"
-    return l0.tag == 5u;
-}
-
-static vader_string_t snippet_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0) {
-#line 21 "tests/snippets/generic_is_type_param/_main.vader"
-    if (l0.tag == 3u) {
-        return 2u;
-    }
-#line 22 "tests/snippets/generic_is_type_param/_main.vader"
-    return 3u;
-}
-
-static vader_string_t snippet_kind__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0) {
-#line 21 "tests/snippets/generic_is_type_param/_main.vader"
-    if (l0.tag == 5u) {
-        return 2u;
-    }
-#line 22 "tests/snippets/generic_is_type_param/_main.vader"
-    return 3u;
-}
-
-static bool snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-#line 25 "tests/snippets/generic_is_type_param/_main.vader"
-    return l0.tag == 3u;
-}
-
-static bool snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-#line 25 "tests/snippets/generic_is_type_param/_main.vader"
-    return l0.tag == 5u;
-}
-
-static bool snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-    bool t0;
-#line 27 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(l0, l1);
-    return t0;
-}
-
-static bool snippet_relay__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-    bool t0;
-#line 27 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(l0, l1);
-    return t0;
-}
-
-static bool snippet_relay_twice__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-    bool t0;
-#line 29 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(l0, l1);
-    return t0;
-}
-
-static bool snippet_relay_twice__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
-    bool t0;
-#line 29 "tests/snippets/generic_is_type_param/_main.vader"
-    t0 = snippet_relay__snippet_Square__snippet_Circle___snippet_Square(l0, l1);
-    return t0;
-}
-
-static bool snippet_holds_kind__snippet_Circle(void* l0, vader_box_t l1) {
-#line 31 "tests/snippets/generic_is_type_param/_main.vader"
-    return l1.tag == 3u;
-}
-
-static bool snippet_holds_kind__snippet_Square(void* l0, vader_box_t l1) {
-#line 31 "tests/snippets/generic_is_type_param/_main.vader"
-    return l1.tag == 5u;
 }
 
 static bool snippet_relay_method__snippet_Circle(void* l0, vader_box_t l1) {
     bool t0;
-#line 33 "tests/snippets/generic_is_type_param/_main.vader"
+#line 36 "tests/snippets/generic_is_type_param/_main.vader"
     t0 = snippet_holds_kind__snippet_Circle(l0, l1);
     return t0;
 }
 
 static bool snippet_relay_method__snippet_Square(void* l0, vader_box_t l1) {
     bool t0;
-#line 33 "tests/snippets/generic_is_type_param/_main.vader"
+#line 36 "tests/snippets/generic_is_type_param/_main.vader"
     t0 = snippet_holds_kind__snippet_Square(l0, l1);
     return t0;
+}
+
+static bool snippet_relay_method_twice__snippet_Circle(void* l0, vader_box_t l1) {
+    bool t0;
+#line 38 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_relay_method__snippet_Circle(l0, l1);
+    return t0;
+}
+
+static bool snippet_relay_method_twice__snippet_Square(void* l0, vader_box_t l1) {
+    bool t0;
+#line 38 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_relay_method__snippet_Square(l0, l1);
+    return t0;
+}
+
+static bool snippet_is_a__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0) {
+#line 19 "tests/snippets/generic_is_type_param/_main.vader"
+    return l0.tag == 3u;
+}
+
+static bool snippet_is_a__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0) {
+#line 19 "tests/snippets/generic_is_type_param/_main.vader"
+    return l0.tag == 5u;
+}
+
+static bool snippet_relay_written__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0) {
+    bool t0;
+#line 21 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_is_a__snippet_Circle__snippet_Circle___snippet_Square(l0);
+    return t0;
+}
+
+static bool snippet_relay_written__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0) {
+    bool t0;
+#line 21 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_is_a__snippet_Square__snippet_Circle___snippet_Square(l0);
+    return t0;
+}
+
+static vader_string_t snippet_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0) {
+#line 24 "tests/snippets/generic_is_type_param/_main.vader"
+    if (l0.tag == 3u) {
+        return 2u;
+    }
+#line 25 "tests/snippets/generic_is_type_param/_main.vader"
+    return 3u;
+}
+
+static vader_string_t snippet_kind__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0) {
+#line 24 "tests/snippets/generic_is_type_param/_main.vader"
+    if (l0.tag == 5u) {
+        return 2u;
+    }
+#line 25 "tests/snippets/generic_is_type_param/_main.vader"
+    return 3u;
+}
+
+static bool snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+#line 28 "tests/snippets/generic_is_type_param/_main.vader"
+    return l0.tag == 3u;
+}
+
+static bool snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+#line 28 "tests/snippets/generic_is_type_param/_main.vader"
+    return l0.tag == 5u;
+}
+
+static bool snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+    bool t0;
+#line 30 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_same_kind__snippet_Circle__snippet_Circle___snippet_Square(l0, l1);
+    return t0;
+}
+
+static bool snippet_relay__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+    bool t0;
+#line 30 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_same_kind__snippet_Square__snippet_Circle___snippet_Square(l0, l1);
+    return t0;
+}
+
+static bool snippet_relay_twice__snippet_Circle__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+    bool t0;
+#line 32 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_relay__snippet_Circle__snippet_Circle___snippet_Square(l0, l1);
+    return t0;
+}
+
+static bool snippet_relay_twice__snippet_Square__snippet_Circle___snippet_Square(vader_box_t l0, void* l1) {
+    bool t0;
+#line 32 "tests/snippets/generic_is_type_param/_main.vader"
+    t0 = snippet_relay__snippet_Square__snippet_Circle___snippet_Square(l0, l1);
+    return t0;
+}
+
+static bool snippet_holds_kind__snippet_Circle(void* l0, vader_box_t l1) {
+#line 34 "tests/snippets/generic_is_type_param/_main.vader"
+    return l1.tag == 3u;
+}
+
+static bool snippet_holds_kind__snippet_Square(void* l0, vader_box_t l1) {
+#line 34 "tests/snippets/generic_is_type_param/_main.vader"
+    return l1.tag == 5u;
 }
 
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {

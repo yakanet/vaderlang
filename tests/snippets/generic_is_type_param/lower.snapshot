@@ -13,42 +13,58 @@
           __off_1 = std.core.write_bool(__buf_0, __off_1, snippet.is_a<Square, Circle | Square>(sq))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
-      std.io.println<string>(concat_3(snippet.kind<Circle, Circle | Square>(sq), " ", snippet.kind<Square, Circle | Square>(sq)))
+      written_circle: bool = snippet.relay_written<Circle, Circle | Square>(sq)
+      written_square: bool = snippet.relay_written<Square, Circle | Square>(sq)
       std.io.println<string>({
           __buf_2: Buffer = std.core.new_byte_buffer(i64(11))
           __off_3: i64 = 0
-          __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.same_kind<Circle, Circle | Square>(sq, Circle { .r = 0 }))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, written_circle)
           __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
-          __off_3 = std.core.write_bool(__buf_2, __off_3, snippet.same_kind<Square, Circle | Square>(sq, Square { .s = 0 }))
+          __off_3 = std.core.write_bool(__buf_2, __off_3, written_square)
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
+      std.io.println<string>(concat_3(snippet.kind<Circle, Circle | Square>(sq), " ", snippet.kind<Square, Circle | Square>(sq)))
       std.io.println<string>({
           __buf_4: Buffer = std.core.new_byte_buffer(i64(11))
           __off_5: i64 = 0
-          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.relay<Circle, Circle | Square>(sq, Circle { .r = 0 }))
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.same_kind<Circle, Circle | Square>(sq, Circle { .r = 0 }))
           __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
-          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.relay<Square, Circle | Square>(sq, Square { .s = 0 }))
+          __off_5 = std.core.write_bool(__buf_4, __off_5, snippet.same_kind<Square, Circle | Square>(sq, Square { .s = 0 }))
           std.core.finish_buffer(__buf_4, __off_5)
       } :string)
       std.io.println<string>({
           __buf_6: Buffer = std.core.new_byte_buffer(i64(11))
           __off_7: i64 = 0
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.relay_twice<Circle, Circle | Square>(sq, Circle { .r = 0 }))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.relay<Circle, Circle | Square>(sq, Circle { .r = 0 }))
           __off_7 = std.core.write_string_at(__buf_6, __off_7, " ")
-          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.relay_twice<Square, Circle | Square>(sq, Square { .s = 0 }))
+          __off_7 = std.core.write_bool(__buf_6, __off_7, snippet.relay<Square, Circle | Square>(sq, Square { .s = 0 }))
           std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      std.io.println<string>({
+          __buf_8: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_9: i64 = 0
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.relay_twice<Circle, Circle | Square>(sq, Circle { .r = 0 }))
+          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
+          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.relay_twice<Square, Circle | Square>(sq, Square { .s = 0 }))
+          std.core.finish_buffer(__buf_8, __off_9)
       } :string)
       circles: Circle[] = [Circle { .r = 0 }] :Circle[]
       squares: Square[] = [Square { .s = 0 }] :Square[]
       std.io.println<string>({
-          __buf_8: Buffer = std.core.new_byte_buffer(i64(11))
-          __off_9: i64 = 0
-          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.relay_method_twice<Circle>(circles, sq))
-          __off_9 = std.core.write_string_at(__buf_8, __off_9, " ")
-          __off_9 = std.core.write_bool(__buf_8, __off_9, snippet.relay_method_twice<Square>(squares, sq))
-          std.core.finish_buffer(__buf_8, __off_9)
+          __buf_10: Buffer = std.core.new_byte_buffer(i64(11))
+          __off_11: i64 = 0
+          __off_11 = std.core.write_bool(__buf_10, __off_11, snippet.relay_method_twice<Circle>(circles, sq))
+          __off_11 = std.core.write_string_at(__buf_10, __off_11, " ")
+          __off_11 = std.core.write_bool(__buf_10, __off_11, snippet.relay_method_twice<Square>(squares, sq))
+          std.core.finish_buffer(__buf_10, __off_11)
       } :string)
       return 0
+  }
+  snippet.relay_method<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Circle
+      snippet.holds_kind<Circle>(samples, x)
+  }
+  snippet.relay_method<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Square
+      snippet.holds_kind<Square>(samples, x)
   }
   snippet.relay_method_twice<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method_twice__snippet_Circle
       snippet.relay_method<Circle>(samples, x)
@@ -61,6 +77,12 @@
   }
   snippet.is_a<Square, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$is_a__snippet_Square__snippet_Circle___snippet_Square
       x is Square
+  }
+  snippet.relay_written<Circle, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$relay_written__snippet_Circle__snippet_Circle___snippet_Square
+      snippet.is_a<Circle, Circle | Square>(x)
+  }
+  snippet.relay_written<Square, Circle | Square> :: fn(x: Circle | Square) -> bool {  // snippet$relay_written__snippet_Square__snippet_Circle___snippet_Square
+      snippet.is_a<Square, Circle | Square>(x)
   }
   snippet.kind<Circle, Circle | Square> :: fn(x: Circle | Square) -> string {  // snippet$kind__snippet_Circle__snippet_Circle___snippet_Square
       {
@@ -95,12 +117,6 @@
   }
   snippet.holds_kind<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$holds_kind__snippet_Square
       x is Square
-  }
-  snippet.relay_method<Circle> :: fn(samples: Circle[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Circle
-      snippet.holds_kind<Circle>(samples, x)
-  }
-  snippet.relay_method<Square> :: fn(samples: Square[], x: Circle | Square) -> bool {  // snippet$relay_method__snippet_Square
-      snippet.holds_kind<Square>(samples, x)
   }
   concat_3 :: fn(p0: string, p1: string, p2: string) -> string {
       c0: i64 = std.core.byte_len(p0)
