@@ -10,6 +10,10 @@ been living in comments.
 alternatives are those the code names, not necessarily every one weighed at the
 time.
 
+**Superseded in part by
+[0104](0104-a-young-survivor-is-promoted-at-its-first-collection.md) (2026-10-21)**:
+a young survivor is promoted at its first minor, not its second.
+
 ## Context
 
 Vader compiles to C and ships its own runtime, so the collector is ours to choose.

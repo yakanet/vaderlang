@@ -3,9 +3,9 @@
  * Memory model: generational GC — a copying (Cheney) young generation and a
  * NON-MOVING mark-sweep old generation. Young is a pair of semi-spaces;
  * `vader_gc_alloc` bumps the young from-space; on overflow, `vader_minor_collect`
- * copies young survivors to young to-space (or promotes them, once `age` reaches
- * the tenure threshold, into the old slab — a single lazily-committed reservation
- * carved into size-class regions, see "slab old-gen" below). A
+ * promotes the young survivors whose `age` reaches the tenure threshold into the
+ * old slab (a single lazily-committed reservation carved into size-class
+ * regions, see "slab old-gen" below) and copies the others to young to-space. A
  * `vader_major_collect` drains young, then marks the live old set (roots + young
  * survivors + a conservative C-stack scan) and sweeps the dead in place — old
  * objects never move. `vader_old_maybe_major` fires a major once dead old
@@ -1799,9 +1799,9 @@ void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(young_full || g_gc_stress)) {
         vader_minor_collect();
         if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
-            /* Minor didn't free enough — young is overcommitted by long-
-             * lived young objects (tenuring will fix it on the next cycle).
-             * Force a major to age survivors into old and retry. */
+            /* Minor didn't free enough: young still holds survivors that did
+             * not promote, because the old slab was full or they have not
+             * reached tenure. Force a major to open promotion room and retry. */
             vader_major_collect();
             /* The major sweeps dead old objects, opening promotion room. Retry a
              * minor (now that old has room) to drain the survivors that couldn't
@@ -1899,9 +1899,9 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
 
 /* Forward-process `obj` (typed by `type_index`) following `g_cycle`:
  *
- *   minor or major-drain : young objects move to young.to (or promote into the
- *     slab old gen via `vader_old_alloc` once age ≥ tenure); old objects are
- *     stable (non-moving) — returned unchanged.
+ *   minor or major-drain : young objects promote into the slab old gen via
+ *     `vader_old_alloc` once their age reaches tenure, and move to young.to
+ *     otherwise; old objects are stable (non-moving) and returned unchanged.
  *   major : the mark phase. An old object is MARKED (mark = g_mark_value) and
  *     enqueued on the gray worklist (so its children get scanned); it does not
  *     move, so the slot value is returned unchanged.
@@ -2356,7 +2356,8 @@ void vader_major_collect(void) {
     if (!g_gc_initialized) return;
 
     /* 1. Drain young (a minor). Survivors that earned tenure promote into the
-     * slab via vader_old_alloc; the rest stay in young.from. */
+     * slab via vader_old_alloc; the rest, and any the slab cannot take, stay in
+     * young.from. */
     g_cycle = VADER_CYCLE_MAJOR_DRAIN;
     vader_minor_collect();
 

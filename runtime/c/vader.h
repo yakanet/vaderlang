@@ -353,8 +353,8 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  *   - `type_index` identifies the layout (size + pointer offsets) via the
  *     per-module type info table emitted alongside.
  *   - `age` counts the number of minor cycles the object has survived in
- *     the young generation. Once it reaches VADER_TENURE_AGE the next minor
- *     promotes the object to the old generation.
+ *     the young generation. The minor whose survival brings it to
+ *     VADER_TENURE_AGE promotes the object to the old generation.
  *   - `mark` is the old-gen mark bit. The old generation is a non-moving
  *     mark-sweep heap (see vader_runtime.c "slab old gen"): a live old object
  *     carries `mark == g_mark_value` (a per-major toggle ∈ {1,2}); a free slot
@@ -1032,12 +1032,13 @@ void           vader_array_clear(vader_array_t* a);
  * cycles, and a larger old collected rarely by major cycles. Young is a Cheney
  * semi-space pair (copying); old is a single non-moving mark-sweep slab (a
  * lazily-committed reservation carved into size-class regions). Allocation
- * always lands in young from-space; on minor, surviving objects are forwarded to
- * young to-space (or promoted into the old slab once they've reached
- * `VADER_TENURE_AGE`). A major runs a minor first to drain young, then marks the
- * live old set (from roots + young survivors, plus a conservative C-stack scan)
- * and sweeps the dead in place. Roots are enumerated via the shadow stack
- * emitted by the C codegen (see `vader_gc_frame_t` below).
+ * always lands in young from-space; on minor, a survivor whose age reaches
+ * `VADER_TENURE_AGE` is promoted into the old slab, and the others, with any the
+ * old slab cannot take, are forwarded to young to-space. A major runs a minor
+ * first to drain young, then marks the live old set (from roots + young
+ * survivors, plus a conservative C-stack scan) and sweeps the dead in place.
+ * Roots are enumerated via the shadow stack emitted by the C codegen (see
+ * `vader_gc_frame_t` below).
  *
  * Cross-generation references from old to young are tracked by a card
  * table: every write of a pointer field into an old object marks the card
@@ -1082,7 +1083,7 @@ void           vader_array_clear(vader_array_t* a);
 #define VADER_GC_OLD_CAP_MIN     (256u * 1024u * 1024u) /* floor on the RAM-derived old reservation cap */
 #endif
 #ifndef VADER_TENURE_AGE
-#define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
+#define VADER_TENURE_AGE     1u                      /* minors survived at promotion (docs/adr/0104) */
 #endif
 #ifndef VADER_CARD_BYTES
 #define VADER_CARD_BYTES     512u                    /* one card per 512 bytes of old */
@@ -1124,8 +1125,8 @@ void vader_gc_shutdown(void);
 void vader_gc_collect(void);
 
 /* Minor: collect the young generation only, using the shadow stack and any
- * marked cards in old as roots. Promotes survivors that have aged past
- * `VADER_TENURE_AGE` into old. */
+ * marked cards in old as roots. Promotes into old the survivors whose age
+ * reaches `VADER_TENURE_AGE`. */
 void vader_minor_collect(void);
 
 /* Major: drain young (via a minor) then mark-sweep old. Triggered when

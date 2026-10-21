@@ -2483,11 +2483,11 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
 
 ### GC backends
 
-- **Native (C)**: hand-written **generational Cheney copying GC** (stop-the-world), in C, linked into the binary. Two generations:
-  - **Young** (Eden + Survivor): two 4 MB semi-spaces collected by minor cycles. Every allocation lands here.
-  - **Old**: two 16 MB semi-spaces collected by major cycles. Objects that survive `VADER_TENURE_AGE` (=2) minors are promoted in.
+- **Native (C)**: hand-written **generational GC** (stop-the-world), in C, linked into the binary. Two generations (`docs/adr/0007`):
+  - **Young** (Eden + Survivor): a pair of Cheney semi-spaces collected by minor cycles. Every allocation lands here.
+  - **Old**: a non-moving mark-sweep slab collected by major cycles. A minor promotes its survivors into it (`VADER_TENURE_AGE`, `docs/adr/0104`).
 
-  Both generations use the same Cheney semi-space algorithm. A **card table** (one byte per 512 bytes of old) tracks cross-generation pointers: the C emitter inserts a `VADER_WRITE_BARRIER` after every store of a pointer field into a heap object, marking the card if the target lives in old. Minor cycles use the shadow stack plus marked cards as roots — clean cards are skipped wholesale. Major cycles run a preliminary minor to drain young, then Cheney-collect old and reset the card table. Roots are enumerated **precisely** via the shadow stack: every emitted C function pushes a `vader_gc_frame_t` chained through `prev` containing the addresses of its ref-typed locals, popped on return. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
+  A **card table** (one byte per 512 bytes of old) tracks cross-generation pointers: the C emitter inserts a `VADER_WRITE_BARRIER` after every store of a pointer field into a heap object, marking the card if the target lives in old. Minor cycles use the shadow stack plus marked cards as roots: clean cards are skipped wholesale. Major cycles run a preliminary minor to drain young, then mark the live old set and sweep the dead in place. Roots are enumerated **precisely** via the shadow stack: every emitted C function pushes a `vader_gc_frame_t` chained through `prev` containing the addresses of its ref-typed locals, popped on return. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
 - **WASM**: uses the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
 
 ### Storage semantics
