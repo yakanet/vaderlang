@@ -2848,13 +2848,12 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
 }
 
 /// `array.push` — pop value + array, append the value. Here `op.type_id` is the
-/// ELEMENT type directly (not the array type). The flippable primitive widths
-/// (int32/int64/double storage) open-code through a `static inline` typed append
-/// helper — no box, no runtime kind dispatch, no write barrier. Sub-word / boxed
-/// / ref elements keep the generic boxed `vader_array_push`. The typed helpers
-/// delegate their grow / view / borrowed slow path back to `vader_array_push`,
-/// so GC-rooting is unchanged. A boxed push tags the value with its own type,
-/// never `op.type_id` : that is the union for an `(i32 | string)[]`.
+/// ELEMENT type directly (not the array type). A primitive element appends
+/// through its typed `vader_array_push_*` helper, a ref, boxed or string element
+/// through `vader_array_push`: all are `static inline` fast paths whose grow /
+/// view case goes to `vader_array_push_slow`, so GC-rooting is unchanged. A boxed
+/// push tags the value with its own type, never `op.type_id` : that is the union
+/// for an `(i32 | string)[]`.
 emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)

@@ -920,9 +920,11 @@ static inline void vader_array_resolve_buf(vader_array_t* a) {
 /* No element get / set here: the C emitter open-codes every `arr[i]` /
  * `arr[i] = v` over the kept layout (typed slots inline, boxed via
  * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`).
- * `push` / `slice` / `new` stay out of line (the GC-coupled construction
- * primitives). */
-void           vader_array_push(vader_array_t* a, vader_box_t v);
+ * `slice` / `new` stay out of line (the GC-coupled construction primitives),
+ * and so does the growing half of `push`: `vader_array_push_slow` handles any
+ * append, `vader_array_push` (below the write barrier) is its in-place fast
+ * path. */
+void           vader_array_push_slow(vader_array_t* a, vader_box_t v);
 
 /* Typed append fast paths — one per primitive element width (all `ArrayKind`s
  * except `Boxed` / `Ref`, matching the store path's full-primitive typed
@@ -936,8 +938,8 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * function would NOT grow — `length < capacity` (⟹ `length < buf->capacity`,
  * since `capacity == buf->capacity` is an allocation invariant) AND not a view
  * AND not borrowed — and writes the same slot `offset + length`. Every other
- * case (grow, view, borrowed) delegates back to `vader_array_push`, inheriting
- * its GC-rooted grow path unchanged. The fallback box is stamped with the buf's
+ * case (grow, view) delegates to `vader_array_push_slow`, inheriting its
+ * GC-rooted grow path unchanged. The fallback box is stamped with the buf's
  * own `element_tag` (a primitive tag, so the grow path's `scan_box` treats the
  * value as the primitive it is, never a ref) — past the borrow trap at the top of
  * `VADER_ARRAY_PUSH_BODY`, `a->buf` is non-NULL: a borrowed `const u8[]` view is
@@ -951,7 +953,7 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * never leaks past them. Sub-word / narrower-than-i32 kinds take the value as the
  * `i32`-class it was coerced to and narrow it in the `(ctype)` store cast. */
 /* Debug-only representation check, guarding the PACKED store only — the
- * fallback below boxes through `vader_array_push`, which honours whatever kind
+ * fallback below boxes through `vader_array_push_slow`, which honours whatever kind
  * the buffer actually has and is correct either way.
  *
  * The packed store trusts the STATIC element type of the call site. When the
@@ -984,7 +986,7 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
             a->buf->length = a->offset + a->length;                                \
         }                                                                          \
     } else {                                                                       \
-        vader_array_push(a, box_fn(a->buf->element_tag, v));                        \
+        vader_array_push_slow(a, box_fn(a->buf->element_tag, v));                   \
     }
 static inline void vader_array_push_i32 (vader_array_t* a, vader_i32_t  v) { VADER_ARRAY_PUSH_BODY(int32_t,  vader_box_i32)  }
 static inline void vader_array_push_i64 (vader_array_t* a, vader_i64_t  v) { VADER_ARRAY_PUSH_BODY(int64_t,  vader_box_i64)  }
@@ -1165,6 +1167,35 @@ extern uintptr_t  vader_old_end;
         vader_card_table[(__vb - vader_old_base) / VADER_CARD_BYTES] = 1u;     \
     }                                                                          \
 } while (0)
+
+/* In-place append for a ref, boxed or string element, the `push` the C emitter
+ * issues where no typed `vader_array_push_*` applies. Same precondition as
+ * `VADER_ARRAY_PUSH_BODY` (room left, not a view: since `offset + length` never
+ * passes `buf->length`, that is offset 0 and a length flush with the buffer's);
+ * the buffer's own `element_kind` decides the store, since an erased generic
+ * body can hand a ref call site a BOXED buffer. Everything else (grow, view,
+ * borrowed, a packed buffer) goes to `vader_array_push_slow`. A NULL buf is the
+ * borrowed view, the one shape without one, so it is tested before any read
+ * through `buf`. */
+static inline void vader_array_push(vader_array_t* a, vader_box_t v) {
+    vader_array_buf_t* buf = a->buf;
+    if (VADER_UNLIKELY(buf == NULL)) {
+        vader_array_push_slow(a, v);
+        return;
+    }
+    size_t n = a->length;
+    uint8_t kind = buf->element_kind;
+    bool in_place = a->offset == 0 && n == buf->length && n < a->capacity
+        && (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF);
+    if (VADER_UNLIKELY(!in_place)) {
+        vader_array_push_slow(a, v);
+        return;
+    }
+    vader_array_ref_store_box(buf, n, v);
+    a->length = n + 1;
+    buf->length = n + 1;
+    VADER_WRITE_BARRIER(buf);
+}
 
 /* Stats — exposed for tests / `runtime_gc_stats()` in stdlib. */
 typedef struct {

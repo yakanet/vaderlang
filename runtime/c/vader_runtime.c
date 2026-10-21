@@ -2989,7 +2989,7 @@ VADER_PURE VADER_NOINLINE vader_array_buf_t* vader_array_buf_forward(vader_array
     return buf;
 }
 
-void vader_array_push(vader_array_t* a, vader_box_t v) {
+void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
     if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
         /* Defensive : T3042 rejects mutation of a `const u8[]` view. */
         vader_trap("cannot push to a borrowed `const u8[]` byte view");
@@ -3209,7 +3209,7 @@ static vader_box_t vader_array_src_slot(vader_array_t* src, const uint8_t* src_d
 }
 
 /* `dst.push_all(src)` — append every element of `src` to `dst`, growing `dst`
- * once if needed. Mirrors `vader_array_push`'s grow + rooting (the buf alloc may
+ * once if needed. Mirrors `vader_array_push_slow`'s grow + rooting (the buf alloc may
  * collect twice, forwarding both arrays and `dst`'s old buf). Handles
  * `push_all(x, x)` : after a grow `src` reads the fresh buf whose head holds the
  * copied originals, and the append range never overlaps the source range. */
