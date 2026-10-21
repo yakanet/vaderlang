@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/into_through_generic_impl
+  StructDecl     Holder               :: Holder<T>
+  StructDecl     Label                :: Label
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Mon                  :: Mon
+  StructDecl     Plain                :: Plain<T>
+  FnDecl         show                 :: fn(Label) -> void
+  StructDecl     Wrapper              :: Wrapper<T>
+  expr 31:33    StructLitExpr  :: Label
+  expr 31:46    StringLitExpr  :: string
+  expr 31:51    FieldExpr      :: T
+  expr 31:51    IdentExpr      :: Wrapper<T>
+  expr 35:33    StructLitExpr  :: Label
+  expr 35:46    StringLitExpr  :: string
+  expr 35:53    FieldExpr      :: Mon
+  expr 35:53    FieldExpr      :: i32
+  expr 35:53    IdentExpr      :: Wrapper<Mon>
+  expr 39:37    StructLitExpr  :: Holder<T>
+  expr 39:57    FieldExpr      :: T
+  expr 39:57    IdentExpr      :: Plain<T>
+  expr 43:13    FieldExpr      :: string
+  expr 43:13    IdentExpr      :: Label
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 47:10    StructLitExpr  :: Wrapper<i32>
+  expr 47:5     CallExpr       :: void
+  expr 47:5     IdentExpr      :: fn(Label) -> void
+  expr 48:10    StructLitExpr  :: Wrapper<string>
+  expr 48:33    StringLitExpr  :: string
+  expr 48:5     CallExpr       :: void
+  expr 48:5     IdentExpr      :: fn(Label) -> void
+  expr 49:10    StructLitExpr  :: Wrapper<Mon>
+  expr 49:30    StructLitExpr  :: Mon
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(Label) -> void
+  expr 50:10    CallExpr       :: Label
+  expr 50:10    IdentExpr      :: Label
+  expr 50:16    StructLitExpr  :: Wrapper<i64>
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(Label) -> void
+  expr 51:21    StructLitExpr  :: Plain<i32>
+  expr 52:13    StringLitExpr  :: string
+  expr 52:16    FieldExpr      :: i32
+  expr 52:16    IdentExpr      :: Holder<i32>
+  expr 52:5     CallExpr       :: void
+  expr 52:5     IdentExpr      :: fn(T) -> void

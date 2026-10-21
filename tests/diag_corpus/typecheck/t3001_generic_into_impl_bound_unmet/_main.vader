@@ -1,0 +1,31 @@
+// A generic `Into` impl converts only the instances its own bounds admit, and only
+// into the instance of its target they give: `Wrapper<NoShow>` is a `Tag` but not
+// a `Label`, `Plain<i32>` is not a `Holder<string>`.
+
+module "snippet"
+
+Label :: struct { s: string }
+Tag :: struct { t: i32 }
+Holder :: struct<T> { item: T }
+Wrapper :: struct<T> { v: T }
+Plain :: struct<T> { v: T }
+NoShow :: struct { n: i32 }
+
+Wrapper<T> implements<T: Display> Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "w:${self.v}" }
+}
+
+Wrapper<T> implements<T> Into<Tag> {
+    into :: fn(self) -> Tag = Tag { .t = 1 }
+}
+
+Plain<T> implements<T> Into<Holder<T>> {
+    into :: fn(self) -> Holder<T> = Holder<T> { .item = self.v }
+}
+
+main :: fn() -> i32 {
+    t: Tag: Wrapper<NoShow> { .v = NoShow { .n = 1 } }
+    l: Label: Wrapper<NoShow> { .v = NoShow { .n = 1 } }
+    h: Holder<string>: Plain<i32> { .v = 7 }
+    return t.t
+}

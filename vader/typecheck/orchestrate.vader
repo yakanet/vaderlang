@@ -900,7 +900,7 @@ record_impl_membership :: fn(
         owner.impl_tables.has_structural_target = true
     }
     record_struct_trait(owner.impl_tables, for_ty, trait_key)
-    record_impl_bounds(owner, for_ty, trait_key)
+    record_impl_bounds(owner, decl, for_ty, trait_key)
 }
 
 // The lookup tables an impl's members feed : the element / key types of its
@@ -953,7 +953,7 @@ record_impl_members :: fn(
         // `Into<string>`) don't collide. The pair is the impl's own, as a body of
         // the impl sees its receiver. A generic impl's pair names a type parameter
         // no conversion carries : it is found by the base of its target instead
-        // (`into_method_toward`).
+        // (`into_impl_method`).
         if is_into && m.name == METHOD_INTO {
             add_impl_method(tables, into_impl_key(for_ty, written[0]), entry)
             if type_contains_type_param(for_ty) {
@@ -1058,7 +1058,9 @@ record_struct_trait :: fn(tables: ImplTables, for_ty: Type, trait_key: string) -
 // it implements its trait for (`ImplTables.impl_bounds`). `owner` is the
 // impl's own module, which holds its type parameters' bounds and the scope they
 // name traits in. An impl for a type without arguments puts no bound.
-record_impl_bounds :: fn(owner: TypedProgram, for_ty: Type, trait_key: string) -> void {
+record_impl_bounds :: fn(
+    owner: TypedProgram, decl: AST.ImplDecl, for_ty: Type, trait_key: string,
+) -> void {
     args :: type_arguments(for_ty)
     if args.is_empty() || is_instance_receiver(for_ty) {
         return
@@ -1077,7 +1079,11 @@ record_impl_bounds :: fn(owner: TypedProgram, for_ty: Type, trait_key: string) -
             })
         }
     }
-    entry :: BoundedImpl { .trait_key = trait_key, .bounds = bounds }
+    entry :: BoundedImpl {
+        .trait_key = trait_key,
+        .impl_key  = decl.span.hash(),
+        .bounds    = bounds,
+    }
     base :: impl_base_key(for_ty)
     held :: owner.impl_tables.impl_bounds[base] ?? []
     held.push(entry)

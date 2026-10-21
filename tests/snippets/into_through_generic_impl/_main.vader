@@ -1,0 +1,54 @@
+// A generic `Into` impl converts every instance of its receiver its bounds admit,
+// implicitly or by a cast, into the instance of its target that receiver gives:
+// `Wrapper<i32>` and `Wrapper<string>` become a `Label`, `Plain<i32>` a
+// `Holder<i32>`. An impl written for one instance wins for it: `Wrapper<Mon>`.
+
+module "snippet"
+
+import "std/io"
+
+Label :: struct {
+    s: string
+}
+
+Holder :: struct<T> {
+    item: T
+}
+
+Wrapper :: struct<T> {
+    v: T
+}
+
+Plain :: struct<T> {
+    v: T
+}
+
+Mon :: struct {
+    n: i32
+}
+
+Wrapper<T> implements<T: Display> Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "w:${self.v}" }
+}
+
+Wrapper<Mon> implements Into<Label> {
+    into :: fn(self) -> Label = Label { .s = "mon:${self.v.n}" }
+}
+
+Plain<T> implements<T> Into<Holder<T>> {
+    into :: fn(self) -> Holder<T> = Holder<T> { .item = self.v }
+}
+
+show :: fn(l: Label) -> void {
+    println(l.s)
+}
+
+main :: fn() -> i32 {
+    show(Wrapper<i32> { .v = 1 })
+    show(Wrapper<string> { .v = "x" })
+    show(Wrapper<Mon> { .v = Mon { .n = 3 } })
+    show(Label(Wrapper<i64> { .v = 9 }))
+    h: Holder<i32>: Plain<i32> { .v = 7 }
+    println("${h.item}")
+    return 0
+}

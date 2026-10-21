@@ -650,8 +650,12 @@ into_impl_key :: fn(source: Type, target: Type) -> string =
 // of the type it converts into (`"[]::into::<Iterator>"`).
 into_toward_suffix :: fn(target: Type) -> string = "::${METHOD_INTO}::${impl_base_key(target)}"
 
-/// The `into` member registered for converting `source` into `target` — the
-/// impl a coercion between the two goes through. Null when none converts them.
+/// The `into` member registered for converting `source` into `target` : the impl
+/// of that exact pair, else the generic impl of `source`'s base toward `target`'s
+/// base (`Wrapper<T> implements<T> Into<Label>` for a `Wrapper<i32>`,
+/// `T[] implements<T> Into<Iterator<T>>` for an `i32[]`). Null when neither. A
+/// generic impl's member names its parameters, and its bounds are not asked :
+/// `into_converting` holds it to both.
 ///
 /// @param typed   the module the coercion is written in ; its table carries the
 ///                impls of every module it sees.
@@ -663,28 +667,42 @@ into_impl_method :: fn(
     target: Type,
 ) -> ImplMethod | null {
     // One impl per (source, target) pair : a second is R2030.
-    found :: typed.impl_tables.impl_methods[into_impl_key(source, target)] ?? return null
-    return found[0]
-}
-
-/// The `into` an implicit conversion of `source` toward `target` goes through : the
-/// impl of that exact pair, else the generic impl of `source`'s base toward
-/// `target`'s base (`T[] implements<T> Into<Iterator<T>>`). Null when neither.
-///
-/// @param typed   the module the conversion is written in.
-/// @param source  the converted value's type.
-/// @param target  the slot's type.
-into_method_toward :: fn(
-    typed: TypedProgram, source: Type, target: Type,
-) -> ImplMethod | null {
-    exact :: into_impl_method(typed, source, target)
+    exact :: typed.impl_tables.impl_methods[into_impl_key(source, target)]
     if exact != null {
-        return exact
+        return exact[0]
+    }
+    // Only a type with arguments has a generic impl of its base.
+    if !has_type_arguments(source) {
+        return null
     }
     // One generic impl per target base : two would overlap (R2030).
     key :: "${dispatch_key(source)}${into_toward_suffix(target)}"
     found :: typed.impl_tables.impl_methods[key] ?? return null
     return found[0]
+}
+
+// Whether `t` is a struct instance or an array : a type a generic impl covers by
+// its arguments.
+has_type_arguments :: fn(t: Type) -> bool = t is ArrayType || (t is StructType && t.args.len() > 0)
+
+/// The `into` that converts `source` into `target` (`into_impl_method`), when what
+/// it returns at `source`'s arguments fits `target` and its impl's bounds hold for
+/// them : a generic impl toward the target's base may convert into another
+/// instance of it, or only the instances its bounds admit.
+///
+/// @param typed   the module the coercion is written in.
+/// @param source  the converted value's type.
+/// @param target  the type it converts into.
+into_converting :: fn(typed: TypedProgram, source: Type, target: Type) -> ImplMethod | null {
+    method :: into_impl_method(typed, source, target) ?? return null
+    signature :: impl_member_type(method, source, typed)
+    if signature !is FnType || !is_assignable(signature.return_type, target) {
+        return null
+    }
+    if unmet_bound_of(source, method.impl_key, typed) != null {
+        return null
+    }
+    return method
 }
 
 /// True iff an impl on `t` itself or on its base registers `trait_key` in
@@ -843,6 +861,18 @@ blocking_bound :: fn(t: Type, trait_key: string, typed: TypedProgram) -> UnmetBo
         }
     }
     return first
+}
+
+// The first bound the impl keyed `impl_key` puts on `t`'s base that `t`'s arguments
+// leave unmet ; null when they meet them all, or when that impl puts none.
+unmet_bound_of :: fn(t: Type, impl_key: u64, typed: TypedProgram) -> UnmetBound | null {
+    impls :: typed.impl_tables.impl_bounds[dispatch_key(t)] ?? return null
+    for impl_ in impls {
+        if impl_.impl_key == impl_key {
+            return first_unmet_bound(type_arguments(t), impl_.bounds, typed)
+        }
+    }
+    return null
 }
 
 // The first of `bounds`, by position, that `args` leave unmet.

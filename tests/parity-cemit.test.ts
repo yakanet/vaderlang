@@ -678,6 +678,8 @@ const C_PARITY = new Set<string>([
   "empty_array_passed_to_parameter",
   // A type parameter named `T` converts through its own bound.
   "into_bound_on_parameter_named_t",
+  // A generic `Into` impl converts the instances its bounds admit.
+  "into_through_generic_impl",
 ]);
 
 /// Snippets whose C cannot COMPILE on Windows, so the run cannot judge parity.

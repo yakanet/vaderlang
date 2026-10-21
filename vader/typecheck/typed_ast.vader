@@ -92,7 +92,9 @@ export ArgBound :: struct {
 export BoundedImpl :: struct {
     /// The trait's `trait_key`.
     trait_key: string
-    bounds: ArgBound[]
+    /// The impl, keyed as `ImplMethod.impl_key` keys it (its span's hash).
+    impl_key:  u64
+    bounds:    ArgBound[]
 }
 
 /// One fn a call to its name may resolve to — an overload declared here, or one
@@ -213,7 +215,7 @@ export ImplTables :: struct {
     /// `type::method_name → ImplMethod[]`, every impl member of that name, under two
     /// keys per member: the impl's own type (`impl_type_key`, arguments included)
     /// and its side (`impl_side_key`); plus `into_impl_key` for an `Into` impl, and
-    /// the base of its target for a generic one (`into_method_toward`). Several
+    /// the base of its target for a generic one (`into_impl_method`). Several
     /// impls of one trait on one receiver (`Add<f64>`, `Add<Vec2>`) each have an
     /// entry : a use site chooses among them (`impl_candidates`). Written by
     /// `record_impl_members`.

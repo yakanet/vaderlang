@@ -91,9 +91,7 @@ cast_allowed :: fn(src: Type, target: Type, typed: TypedProgram) -> bool {
     // narrowed to the target, a subtype widen (`Animal(cat)`).
     if is_assignable(src, target) || is_assignable(target, src) { return true }
     // Explicit `Into<Target>` conversion — last resort.
-    into_impl :: into_impl_method(typed, src, target)
-    if into_impl !is null && into_impl.ty is FnType { return true }
-    return false
+    return into_converting(typed, src, target) != null
 }
 
 /// The data `src` carries when it is an enum whose header declares `target` as
