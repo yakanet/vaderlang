@@ -306,8 +306,8 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // TypeParam-bound and erased Any receivers, a value of the operator's
         // trait and a union of its implementors route through virtual
         // dispatch — the boxed value's tag picks the right impl at runtime.
-        // Same shape as the FieldExpr path in `try_lower_virtual_call`, just
-        // driven from a BinaryOp.
+        // Same shape as a method-form call's (`method_target`), just driven from a
+        // BinaryOp.
         if target is RecordedVirtual || left_ty is TypeParamType || left_ty is AnyType {
             observe_virtual(ctx, binary, .Operator, info.trait_key, info.method_name)
             return lower_op_overload_via_vcall(ctx, binary, type, info)

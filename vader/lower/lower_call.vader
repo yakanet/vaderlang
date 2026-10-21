@@ -14,12 +14,9 @@ import "vader/comptime"
 import "vader/resolver"
 import "toolchain/span"
 
-// Call lowering : routes through UFCS rewrites (`try_lower_ufcs_call`) and
+// Call lowering : routes through the method form (`try_lower_method_call`) and
 // generic-fn instance lookups before lowering the callee the typecheck recorded
 // (`lower_callee`) + every arg. Special cases :
-// - `arr.push(x)` / `arr.len()` route to the dedicated
-//   `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is
-//   an array.
 // - `<namespace>.foo(args)` where `<namespace>` is an `ImportBinding`
 //   ident collapses to a direct `foo(args)` call ; the surrounding
 //   namespace prefix is purely a source-level concept.
@@ -47,23 +44,29 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     mark_produced_structs(type, ctx)
     // A call to a fn iterating its `Iterator` parameter once, handed a fusible
     // chain, becomes the chain's loop before the call itself is formed.
-    // The consumer, the namespace and the cast forms observe their own choice for
-    // the callee verifier (`verify_callees.vader`) ; the others are read off the
-    // call they produce.
+    // The consumer, the namespace, the cast and the method forms observe their own
+    // choice for the callee verifier (`verify_callees.vader`) ; the others are read
+    // off the call they produce. A form that declines has lowered nothing : a lambda
+    // or an `await` lowered there would stay behind.
     consumer_form :: try_inline_consumer(ctx, call, type)
     if consumer_form != null { return consumer_form }
-    array_form :: try_lower_array_op(ctx, call, type)
-    if array_form != null { return observed(ctx, call, .Call, array_form) }
     static_form :: try_lower_static_member_call(ctx, call, type)
     if static_form != null { return observed(ctx, call, .Call, static_form) }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
     if namespace_form != null { return namespace_form }
     cast_form :: try_lower_cast_call(ctx, call, type)
     if cast_form != null { return cast_form }
-    vcall_form :: try_lower_virtual_call(ctx, call, type)
-    if vcall_form != null { return observed(ctx, call, .Call, vcall_form) }
-    ufcs_form :: try_lower_ufcs_call(ctx, call, type)
-    if ufcs_form != null { return observed(ctx, call, .Call, ufcs_form) }
+    method_form :: try_lower_method_call(ctx, call, type)
+    if method_form != null { return method_form }
+    return lower_plain_call(ctx, call, type)
+}
+
+/// `call` through the generic fn instance or the fn the typecheck recorded, else
+/// through the value its callee evaluates to.
+///
+/// @param call  the call.
+/// @param type  its result type.
+lower_plain_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
     if generic_form != null { return observed(ctx, call, .Call, generic_form) }
     callee :: lower_callee(ctx, call)
@@ -146,70 +149,6 @@ owner_at_call :: fn(callee: Callee | null, written: Type) -> Type {
     }
     bindings :: callee.bindings ?? return written
     return substitute_map(written, bindings)
-}
-
-/// `recv.method(args)` dispatched at run time lowers to a `LoweredVirtualCall` —
-/// the bytecode emit dispatches in O(1) via the per-(trait, method) vtable :
-/// on a receiver whose lowered type is a `TraitType`, and wherever the typecheck
-/// recorded a member of a union or a bound this instance leaves erased.
-try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    callee_field :: as_field_expr(call.callee) ?? return null
-    if callee_field is FieldExpr {
-        receiver :: lower_expr(ctx, callee_field.target)
-        receiver_ty :: receiver.type
-        if receiver_ty is TraitType {
-            // A `.method()` the typer resolved as a FREE-FN UFCS — a combinator
-            // like `it.map(f)` on an erased `Iterator<T>` receiver, where the
-            // trait has NO such method — must NOT emit a virtual call (it would
-            // dispatch a non-existent `Iterator.map` → runtime miss). Decline so
-            // `try_lower_ufcs_call` picks up the free fn. The typer records
-            // `ufcs_receiver_types[id]` iff it resolved free-fn UFCS ; a genuine
-            // trait method leaves it null → the vcall below still fires.
-            if !(ctx.typed.ufcs_receiver_types[callee_field.id] is null) { return null }
-            trait_key :: trait_key_of(receiver_ty.symbol)
-            return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
-        }
-        // TypeParam-bounded receiver erased to Any, or a union of the trait's
-        // implementors : the typecheck recorded the trait the member belongs to ;
-        // route through the runtime vtable so the boxed value's tag picks the impl.
-        trait_key :: recorded_dispatch(ctx, call, .Call, receiver_ty)
-        if trait_key != null {
-            return dispatched_method_call(ctx, call, callee_field, receiver, trait_key, type)
-        }
-        // Concrete primitive or enum receiver with a bounded-trait method : a
-        // generic instance concretised on a primitive K (e.g. `key.equals(other)`
-        // in `MutableMap<i32,_>`), or any enum, whose `Equals` is built in.
-        // `Equals` is `@intrinsic` on primitives and an enum's `==` is an integer
-        // comparison, so devirtualise straight to the comparison primop instead of
-        // a `virtual.call` / thunk — the native build has no host binding for an
-        // int `equals`. Other trait methods (Hash / Comparable have materialised
-        // bodies) fall through to the UFCS direct-call path.
-        if kept_type_argument(receiver_ty) != null {
-            if runs_builtin_equals(recorded_callee(ctx, call, .Call)) && call.args.len() > 0 {
-                mark :: ctx.pending_awaits.len()
-                other :: lower_expr(ctx, call.args[0].value)
-                return equals_primop(bind_one_before_hoisted(ctx, receiver, mark), other, call.span)
-            }
-        }
-    }
-    return null
-}
-
-// `call`, whose callee is `field` on `receiver`, as a virtual call through
-// `trait_key`.
-dispatched_method_call :: fn(
-    ctx: FnLowerCtx,
-    call: CallExpr,
-    field: FieldExpr,
-    receiver: LoweredExpr,
-    trait_key: string,
-    type: Type,
-) -> LoweredVirtualCall {
-    param_types :: param_types_of(ctx.types.expr_type(call.callee))
-    mark :: ctx.pending_awaits.len()
-    args :: lower_call_args(ctx, call.args, param_types, 0)
-    kept :: bind_one_before_hoisted(ctx, receiver, mark)
-    return virtual_call(ctx, trait_key, field.field, kept, args, type, call.span, param_types)
 }
 
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
@@ -373,49 +312,15 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
 }
 
 
-// The parameters of the array member `callee` names, the receiver's first : what
-// the arguments of the operation it lowers to go in as.
-array_op_params :: fn(ctx: FnLowerCtx, callee: FieldExpr) -> Type[] {
+// The types the operation `op` on the array member `callee` reads its operands
+// at, the receiver's first : the copying operations' only.
+array_operand_types :: fn(ctx: FnLowerCtx, op: ArrayOp, callee: FieldExpr) -> Type[] {
+    if op != .PushAll && op != .CopyTo {
+        return []
+    }
     params: Type[]: [ctx.types.expr_type(callee.target)]
-    params.push_all(param_types_of(ctx.types.expr_type(callee)))
+    params.push_all(member_params(ctx, callee))
     return params
-}
-
-// Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
-// null when the receiver isn't an array or the field isn't a recognised
-// array intrinsic — caller falls back to the generic call path.
-try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    callee :: call.callee
-    // Only a `recv.field(args)` can be an array op.
-    if callee !is FieldExpr {
-        return null
-    }
-    // A free fn typecheck chose is the call, on an array too : in a generic body it
-    // chose against the type parameter, and an array instance holds to it.
-    if recorded_fn_symbol(ctx, call) != null {
-        return null
-    }
-    // An array receiver, or an array-backed distinct newtype (`array_backing`),
-    // carries the array intrinsics : the lowered target is the value itself, which
-    // is the backing array at runtime.
-    array :: array_backing(ctx.types.expr_type(callee.target)) ?? return null
-    op :: array_op_of(callee.field, call.args.len()) ?? return null
-    if op == .Push {
-        target :: lower_expr(ctx, callee.target)
-        mark :: ctx.pending_awaits.len()
-        value :: lower_for_slot(ctx, call.args[0].value, array.element, call.span)
-        operands :: [bind_one_before_hoisted(ctx, target, mark), value]
-        return array_op(op, operands, type, call.span, [])
-    }
-    written: Expr[]: [callee.target]
-    for a in call.args {
-        written.push(a.value)
-    }
-    operands :: lower_in_order(ctx, written)
-    if op == .PushAll || op == .CopyTo {
-        return array_op(op, operands, type, call.span, array_op_params(ctx, callee))
-    }
-    return array_op(op, operands, type, call.span, [])
 }
 
 /// An array member an operation serves instead of a call.
@@ -447,8 +352,9 @@ array_op_of :: fn(name: string, arity: i64) -> ArrayOp | null {
 ///
 /// @param operands     the array, then the member's arguments, lowered.
 /// @param type         the member's result type.
-/// @param param_types  the type each operand goes in as, the array's first ; read
-///                     by the operations that copy elements in.
+/// @param param_types  the type each operand goes in as, the array's first ; empty
+///                     but for the operations that copy elements in
+///                     (`array_operand_types`).
 /// @return             the dedicated node, or the `array.*` intrinsic the bytecode
 ///                     op pops its operands for in reverse ; a parameterless op,
 ///                     the runtime reading the element's kind off the array.
@@ -468,8 +374,8 @@ array_op :: fn(
     }
     .PushAll    -> array_intrinsic(INTRINSIC_ARRAY_PUSH_ALL, operands, type, span, param_types)
     .CopyTo     -> array_intrinsic(INTRINSIC_ARRAY_COPY, operands, type, span, param_types)
-    .RemoveLast -> array_intrinsic(INTRINSIC_ARRAY_REMOVE_LAST, operands, type, span, [])
-    .Clear      -> array_intrinsic(INTRINSIC_ARRAY_CLEAR, operands, type, span, [])
+    .RemoveLast -> array_intrinsic(INTRINSIC_ARRAY_REMOVE_LAST, operands, type, span, param_types)
+    .Clear      -> array_intrinsic(INTRINSIC_ARRAY_CLEAR, operands, type, span, param_types)
 }
 
 array_intrinsic :: fn(

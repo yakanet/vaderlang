@@ -1,0 +1,64 @@
+# Typecheck
+
+## tests/snippets/async_await_in_receiver
+  FnDecl         doubled              :: fn(Point) -> i32
+  FnDecl         fetch                :: fn(string) -> Async<Point>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         plus                 :: fn(Point, i32) -> Point
+  StructDecl     Point                :: Point
+  StructDecl     Ready                :: Ready<T>
+  expr 10:50    FieldExpr      :: T
+  expr 10:50    IdentExpr      :: Ready<T>
+  expr 16:13    StringLitExpr  :: string
+  expr 16:28    IdentExpr      :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:12    StructLitExpr  :: Ready<Point>
+  expr 17:32    StructLitExpr  :: Point
+  expr 20:34    BinaryExpr     :: i32
+  expr 20:34    FieldExpr      :: i32
+  expr 20:34    IdentExpr      :: Point
+  expr 21:41    StructLitExpr  :: Point
+  expr 21:54    BinaryExpr     :: i32
+  expr 21:54    FieldExpr      :: i32
+  expr 21:54    IdentExpr      :: Point
+  expr 21:60    IdentExpr      :: i32
+  expr 24:13    StringLitExpr  :: string
+  expr 24:17    AwaitExpr      :: Point
+  expr 24:17    CallExpr       :: i32
+  expr 24:17    FieldExpr      :: fn() -> i32
+  expr 24:23    CallExpr       :: Async<Point>
+  expr 24:23    IdentExpr      :: fn(string) -> Async<Point>
+  expr 24:29    StringLitExpr  :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:17    AwaitExpr      :: Point
+  expr 25:17    CallExpr       :: Point
+  expr 25:17    CallExpr       :: Point
+  expr 25:17    CallExpr       :: i32
+  expr 25:17    FieldExpr      :: fn() -> i32
+  expr 25:17    FieldExpr      :: fn(i32) -> Point
+  expr 25:17    FieldExpr      :: fn(i32) -> Point
+  expr 25:23    CallExpr       :: Async<Point>
+  expr 25:23    IdentExpr      :: fn(string) -> Async<Point>
+  expr 25:29    StringLitExpr  :: string
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    CallExpr       :: i32
+  expr 26:16    IdentExpr      :: fn(Point) -> i32
+  expr 26:24    AwaitExpr      :: Point
+  expr 26:30    CallExpr       :: Async<Point>
+  expr 26:30    IdentExpr      :: fn(string) -> Async<Point>
+  expr 26:36    StringLitExpr  :: string
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:17    AwaitExpr      :: Point
+  expr 27:17    FieldExpr      :: i32
+  expr 27:23    CallExpr       :: Async<Point>
+  expr 27:23    IdentExpr      :: fn(string) -> Async<Point>
+  expr 27:29    StringLitExpr  :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

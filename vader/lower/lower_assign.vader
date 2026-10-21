@@ -284,7 +284,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // through `Index` at run time (a trait value, a union of its implementors, a
     // bounded `T` this instance erases) : a virtual `Index.at(c, i)` call, so the
     // receiver's tag picks the impl, mirroring the `c.at(i)` method form
-    // (`try_lower_virtual_call`). `s[i]` on a `string`, a user struct or a distinct
+    // (`method_target`). `s[i]` on a `string`, a user struct or a distinct
     // with its own `Index<I, T>` impl : a direct call to the member the key picked.
     callee :: recorded_target(ctx, expr, .IndexRead, target_type)
     target_value :: lower_expr(ctx, expr.target)

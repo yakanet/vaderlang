@@ -1,0 +1,29 @@
+// An `await` in the receiver of a method-form call runs once, as in an argument or
+// under a field read.
+
+module "snippet"
+
+import "std/io"
+
+Ready :: struct<T> { v: T }
+Ready<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended { return self.v }
+}
+
+Point :: struct { x: i32 }
+
+fetch :: fn(tag: string) -> Async<Point> {
+    println("fetched for ${tag}")
+    return Ready<Point> { .v = Point { .x = 4 } }
+}
+
+doubled :: fn(p: Point) -> i32 = p.x * 2
+plus :: fn(p: Point, k: i32) -> Point = Point { .x = p.x + k }
+
+main :: fn() -> i32 {
+    println("${(await fetch("method")).doubled()}")
+    println("${(await fetch("chain")).plus(1).plus(2).doubled()}")
+    println("${doubled(await fetch("argument"))}")
+    println("${(await fetch("field")).x}")
+    return 0
+}

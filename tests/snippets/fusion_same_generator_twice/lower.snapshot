@@ -535,7 +535,7 @@
           total
       }
       lazy: i32 = 0
-      it: __genstate_filter<char> = std.iter.filter<char>(std.iter.filter<char>(std.string.chars(s), __lambda_snippet_3), __lambda_snippet_4)
+      it: __genstate_filter<char> = std.iter.filter<char>(std.iter.filter<char>(std.string.chars(s), __lambda_snippet_2), __lambda_snippet_3)
       {
           __iter_2: Iterator<char> = it
           for {
@@ -625,7 +625,7 @@
               {
                   {
                       i: i32 = 0
-                      i$i225: for i < 3 {
+                      i$i224: for i < 3 {
                           {
                               j: i32 = 0
                               for j < 3 {
@@ -655,7 +655,7 @@
                                       break i
                                   }
                                   if j == 2 {
-                                      break i$i225
+                                      break i$i224
                                   }
                               } @step {
                                   j = j +% 1
@@ -795,9 +795,6 @@
       c != ' '
   }
   __lambda_snippet_3 :: fn(c: char) -> bool {
-      c != ' '
-  }
-  __lambda_snippet_4 :: fn(c: char) -> bool {
       c != 'o'
   }
   snippet$__genstate_grid :: struct { s0: i32, s1: i32, state: i32 }

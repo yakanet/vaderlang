@@ -46,8 +46,7 @@ try_lower_method_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: FnType) -> Low
         .target = LoweredIdent { .span = e.span, .type = env_type, .symbol = env_param },
         .field = RECEIVER_FIELD,
     }
-    receiver_type :: impl_lookup_type(ctx, e.target, receiver)
-    made :: method_call(ctx, e, callee, held, receiver_type, args, type)
+    made :: method_call(ctx, e, callee, held, args, type.return_type)
     call :: observed(ctx, e, .MethodValue, made)
     ctx.project.synth_decls.push(
         LoweredStructDecl {
@@ -86,55 +85,30 @@ try_lower_method_value :: fn(ctx: FnLowerCtx, e: FieldExpr, type: FnType) -> Low
 fresh_method_symbol :: fn(ctx: FnLowerCtx, is_env: bool) -> Symbol =
     fresh_lifted_symbol_with_prefix(ctx, is_env, "__method_", "__method_env_")
 
-// The call the closure of `e` makes : `callee` on the receiver it holds, `held`, of
-// type `receiver_type`, with its own parameters, `args`.
+// The call the closure of `e`, recorded as `callee`, makes on the receiver it holds,
+// `held`, with its own parameters, `args` : the one a call `e(args)` would make
+// (`method_target`), the receiver of a free fn prepared for its first parameter at
+// each call.
 method_call :: fn(
     ctx: FnLowerCtx,
     e: FieldExpr,
     callee: Callee,
     held: LoweredExpr,
-    receiver_type: Type,
     args: LoweredExpr[],
-    type: FnType,
+    ret: Type,
 ) -> LoweredExpr {
-    ret :: type.return_type
+    target :: method_target(ctx, callee, e, held, args.len())
+    if target == null {
+        return LoweredUnreachable {
+            .span = e.span,
+            .type = ret,
+            .reason = "no member `${e.field}` for `${display_type(held.type)}`",
+        }
+    }
     operands: LoweredExpr[]: [held]
     operands.push_all(args)
-    free :: recorded_fn_symbol(ctx, e, .MethodValue)
-    if free != null {
-        params :: ufcs_param_types(ctx, free)
-        if params.len() > 0 {
-            operands[0] = prepare_into(ctx, e.target, held, params[0], e.span)
-        }
-        symbol :: ufcs_callee_symbol(ctx, e, .MethodValue, free)
-        return mk_lowered_call(symbol, operands, ret, e.span)
+    if target is FreeFnTarget && target.params.len() > 0 {
+        operands[0] = prepare_into(ctx, e.target, held, target.params[0], e.span)
     }
-    if runs_builtin_equals(callee) && kept_type_argument(receiver_type) != null {
-        return equals_primop(held, args[0], e.span)
-    }
-    op :: array_member_op(e.field, receiver_type, args.len())
-    if op != null {
-        return array_op(op, operands, ret, e.span, array_op_params(ctx, e))
-    }
-    target :: callee_target(ctx, callee, receiver_type)
-    if target is RecordedVirtual {
-        return virtual_call(ctx, target.trait_key, e.field, held, args, ret, e.span, type.params)
-    }
-    if target is UfcsMember {
-        return build_member_call_or_inline(target, operands, ret, e.span)
-    }
-    return LoweredUnreachable {
-        .span = e.span,
-        .type = ret,
-        .reason = "no member `${e.field}` for `${display_type(receiver_type)}`",
-    }
-}
-
-// The operation serving the member `name` on a receiver of type `receiver`, taken
-// with `arity` parameters ; null when the receiver is no array, or a call runs it.
-array_member_op :: fn(name: string, receiver: Type, arity: i64) -> ArrayOp | null {
-    if array_backing(receiver) == null {
-        return null
-    }
-    return array_op_of(name, arity)
+    return build_method_call(ctx, e, .MethodValue, target, e, operands, ret)
 }

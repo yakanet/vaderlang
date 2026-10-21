@@ -1434,13 +1434,13 @@ fn 14 snippet$chars_filter_filter () -> void
   local.get 0   ; s
   call 59   ; std_string$chars
   local.set 2   ; __fuse_iter_0
-  fn.ref 24 25   ; __lambda_snippet_3 fn
+  fn.ref 24 25   ; __lambda_snippet_2 fn
   local.set 5   ; $fn_ref_27
   local.get 2   ; __fuse_iter_0
   local.get 5   ; $fn_ref_27
   call 49   ; std_iter$filter__char
   local.set 2   ; __fuse_iter_0
-  fn.ref 25 25   ; __lambda_snippet_4 fn
+  fn.ref 25 25   ; __lambda_snippet_3 fn
   local.set 5   ; $fn_ref_27
   local.get 2   ; __fuse_iter_0
   local.get 5   ; $fn_ref_27
@@ -2137,14 +2137,14 @@ fn 23 __lambda_snippet_1 (char) -> bool
   return
 end
 
-fn 24 __lambda_snippet_3 (char) -> bool
+fn 24 __lambda_snippet_2 (char) -> bool
   local.get 0   ; arg 0
   char.const 32
   i32.ne
   return
 end
 
-fn 25 __lambda_snippet_4 (char) -> bool
+fn 25 __lambda_snippet_3 (char) -> bool
   local.get 0   ; arg 0
   char.const 111
   i32.ne

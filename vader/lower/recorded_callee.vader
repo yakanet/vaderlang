@@ -131,20 +131,14 @@ settled_direct_member :: fn(
     return member_named(ctx, serving, target, callee.decl.name, own_args)
 }
 
-/// The trait the site `role` plays at `node` dispatches through at run time, as
-/// `recorded_target` would find it, without building the impl member it would
-/// otherwise call.
+/// The trait a site recorded as `callee` dispatches through at run time on
+/// `receiver`, as `callee_target` would find it, without building the impl member
+/// it would otherwise call : a trait value's member, or a bound's the instance
+/// leaves erased.
 ///
-/// @param node      the site.
-/// @param role      the part the site plays at `node`.
+/// @param callee    the site's record ; null for a site with none.
 /// @param receiver  the receiver's type at this instance.
-recorded_dispatch :: fn(
-    ctx: FnLowerCtx,
-    node: Expr,
-    role: CallRole,
-    receiver: Type,
-) -> string | null {
-    callee :: recorded_callee(ctx, node, role) ?? return null
+dispatch_trait :: fn(callee: Callee | null, receiver: Type) -> string | null {
     if callee is TraitMember {
         return callee.trait_key
     }

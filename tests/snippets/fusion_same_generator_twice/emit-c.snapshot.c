@@ -342,8 +342,8 @@ static void* snippet___genstate_scale_Iterator_next(void* l0);
 static void* snippet___genstate_upto_Iterator_next(void* l0);
 static bool __lambda_snippet_0(uint32_t l0);
 static bool __lambda_snippet_1(uint32_t l0);
+static bool __lambda_snippet_2(uint32_t l0);
 static bool __lambda_snippet_3(uint32_t l0);
-static bool __lambda_snippet_4(uint32_t l0);
 static void* snippet___genstate_grid_Iterator_next(void* l0);
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1);
 static vader_string_t concat_4(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3);
@@ -424,6 +424,15 @@ static vader_fn_t vader_fn_static_snippet_small = {
     { 27u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_snippet_small, NULL,
 };
 
+static vader_box_t vader_fn_tramp___lambda_snippet_2(void* env, vader_box_t a0) {
+    (void) env;
+    return vader_box_bool(2u, __lambda_snippet_2(((uint32_t) a0.payload.i)));
+}
+
+static vader_fn_t vader_fn_static___lambda_snippet_2 = {
+    { 25u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_2, NULL,
+};
+
 static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env, vader_box_t a0) {
     (void) env;
     return vader_box_bool(2u, __lambda_snippet_3(((uint32_t) a0.payload.i)));
@@ -431,15 +440,6 @@ static vader_box_t vader_fn_tramp___lambda_snippet_3(void* env, vader_box_t a0) 
 
 static vader_fn_t vader_fn_static___lambda_snippet_3 = {
     { 25u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_3, NULL,
-};
-
-static vader_box_t vader_fn_tramp___lambda_snippet_4(void* env, vader_box_t a0) {
-    (void) env;
-    return vader_box_bool(2u, __lambda_snippet_4(((uint32_t) a0.payload.i)));
-}
-
-static vader_fn_t vader_fn_static___lambda_snippet_4 = {
-    { 25u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp___lambda_snippet_4, NULL,
 };
 
 static const uint16_t vader_fn_ptr_offsets[] = { offsetof(vader_fn_t, env) };
@@ -1621,10 +1621,10 @@ static void snippet_chars_filter_filter(void) {
     l4 = INT32_C(0);
 #line 162 "tests/snippets/fusion_same_generator_twice/_main.vader"
     l2 = std_string_chars(l0);
-    l5 = (void*) &vader_fn_static___lambda_snippet_3;
+    l5 = (void*) &vader_fn_static___lambda_snippet_2;
     t3 = std_iter_filter__char(vader_ref_box(l2), l5);
     l2 = t3.payload.obj;
-    l5 = (void*) &vader_fn_static___lambda_snippet_4;
+    l5 = (void*) &vader_fn_static___lambda_snippet_3;
     l6 = std_iter_filter__char(vader_ref_box(l2), l5);
 #line 163 "tests/snippets/fusion_same_generator_twice/_main.vader"
     for (;;) {
@@ -2088,12 +2088,12 @@ static bool __lambda_snippet_1(uint32_t l0) {
     return l0 != 111u;
 }
 
-static bool __lambda_snippet_3(uint32_t l0) {
+static bool __lambda_snippet_2(uint32_t l0) {
 #line 162 "tests/snippets/fusion_same_generator_twice/_main.vader"
     return l0 != 32u;
 }
 
-static bool __lambda_snippet_4(uint32_t l0) {
+static bool __lambda_snippet_3(uint32_t l0) {
 #line 162 "tests/snippets/fusion_same_generator_twice/_main.vader"
     return l0 != 111u;
 }
