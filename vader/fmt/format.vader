@@ -113,6 +113,58 @@ test_fmt_lays_a_fitting_union_on_one_line :: fn() -> void {
     fmt_keeps("T ::\n    | A\n    | B", "T :: A | B")
 }
 
+@test
+test_fmt_keeps_an_assert_message :: fn() -> void {
+    fmt_leaves("module \"t\"\n@assert(1 + 1 == 2, \"sum holds\")\n")
+    fmt_leaves("module \"t\"\n@assert(true, r\"costs $5\")\n")
+}
+
+@test
+test_fmt_keeps_a_shebang :: fn() -> void {
+    fmt_leaves("#!/usr/bin/env vader\nmodule \"t\"\n")
+}
+
+@test
+test_fmt_keeps_the_blank_line_after_a_shebang :: fn() -> void {
+    fmt_leaves("#!/usr/bin/env vader\n\n// Header.\n\nmodule \"t\"\n")
+}
+
+@test
+test_fmt_keeps_a_shebang_after_a_byte_order_mark :: fn() -> void {
+    shebang :: "#!/usr/bin/env vader\nmodule \"t\"\n"
+    assert_eq(formatted("\u{FEFF}${shebang}"), shebang)
+}
+
+@test
+test_fmt_keeps_a_file_holding_only_a_shebang :: fn() -> void {
+    fmt_leaves("#!/usr/bin/env vader\n")
+}
+
+@test
+test_fmt_opens_a_file_of_comments_on_its_first_line :: fn() -> void {
+    fmt_leaves("// One.\n// Two.\n")
+}
+
+@test
+test_fmt_reads_no_comment_in_a_shebang :: fn() -> void {
+    fmt_leaves("#!/usr/bin/env -S vader run //x\nmodule \"t\"\n")
+}
+
+// Formatting `source` must give it back unchanged.
+fmt_leaves :: fn(source: string) -> void {
+    assert_eq(formatted(source), source)
+}
+
+// `source` formatted ; "" when it does not parse.
+formatted :: fn(source: string) -> string {
+    r :: format_source(source, "t.vader")
+    if r is Formatted {
+        return r.output
+    }
+    assert(false, "must parse: ${source}")
+    return ""
+}
+
 fmt_keeps :: fn(decl: string, needle: string) -> void {
     r :: format_source("module \"t\"\n${decl}\n", "t.vader")
     match r {

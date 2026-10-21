@@ -15,7 +15,7 @@ import "std/string"
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form
 /// doc-comment.
 export CommentKind :: enum(u8) {
-    Line,     // `// …`
+    Line,     // `// …`, or the `#!` line opening the file
     DocLine,  // `/// …` — VaderDoc form. Tagged at scan time so a future
               //   `vader doc` extractor can pick them out without
               //   re-walking the source. The formatter still treats them
@@ -56,17 +56,47 @@ export CommentMap :: struct {
 // The delimiter of a triple-quoted string literal.
 TRIPLE_QUOTE :: "\"\"\""
 
+// The `#!` line `source` opens with, past a UTF-8 BOM as the lexer reads it ;
+// null without one. The lexer skips that line as it skips a comment, and the
+// printer writes it back as one.
+shebang :: fn(source: string) -> Comment | null {
+    start: i64 = 0
+    if source.matches_at(0, "\u{FEFF}") {
+        start = 3
+    }
+    if !source.matches_at(start, "#!") {
+        return null
+    }
+    end: i64 = start + 2
+    for end < source.byte_len() && source.byte_at(end) != '\n' && source.byte_at(end) != '\r' {
+        end += 1
+    }
+    return Comment {
+        .offset     = start,
+        .end_offset = end,
+        .line       = 1,
+        .end_line   = 1,
+        .kind       = .Line,
+        .text       = source.byte_slice(start, end),
+    }
+}
+
 /// Walk the source and collect every comment span. Mirrors the lexer's
 /// classification : single-line `//` consumes to end-of-line ; block `/* */`
 /// supports nesting (depth counter), like the lexer's `consume_block_comment`.
 /// String literals are skipped so a `"contains // pseudo-comment"` literal
-/// doesn't fool the scanner.
+/// doesn't fool the scanner. A shebang line counts as a line comment.
 /// @param source source code
 export scan_comments :: fn(source: string) -> CommentMap {
     out: Comment[]: []
     n :: source.byte_len()
     i: i64 = 0
     line: i32 = 1
+    opening :: shebang(source)
+    if opening != null {
+        i = opening.end_offset
+        out.push(opening)
+    }
     for i < n {
         b :: source.byte_at(i)
 

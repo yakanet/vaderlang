@@ -583,29 +583,29 @@ parse_assert_decl :: fn(p: Parser) -> AssertDecl | null {
         return null
     }
     message: string | null = null
+    message_span: Span | null = null
     if dec.args.len() == 2 {
         message = p.static_assert_message(dec.args[1]) ?? return null
+        message_span = dec.args[1].span
     }
     return AssertDecl {
-        .span       = dec.span,
-        .condition  = dec.args[0],
-        .message    = message,
-        .decorators = [],
+        .span         = dec.span,
+        .condition    = dec.args[0],
+        .message      = message,
+        .message_span = message_span,
+        .decorators   = [],
     }
 }
 
 // The optional message of an `@assert` : a string literal without
 // interpolation, whose decoded text is its single `StringLitText` part.
 static_assert_message :: fn(p: Parser, arg: Expr) -> string | null {
-    if arg is StringLitExpr && arg.parts.len() == 1 {
-        text :: arg.parts[0]
-        if text is StringLitText {
-            return text.value
-        }
+    text :: string_literal_text(arg)
+    if text == null {
+        p.error(.DecoratorArgumentForm, arg.span,
+            "`@assert` message must be a static string literal (no interpolation)")
     }
-    p.error(.DecoratorArgumentForm, arg.span,
-        "`@assert` message must be a static string literal (no interpolation)")
-    return null
+    return text
 }
 
 // An `@assert` after another decorator would decorate the declaration below,

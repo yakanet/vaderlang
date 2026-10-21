@@ -491,11 +491,13 @@ export ConstDecl :: struct {
 /// `condition` is evaluated by the comptime VM and the build fails with C4015 when
 /// it is `false`. Nothing is emitted at runtime.
 export AssertDecl :: struct {
-    span:       Span
-    id:         i64 = UNASSIGNED_NODE_ID
-    condition:  Expr
-    message:    string | null
-    decorators: Decorator[]
+    span:         Span
+    id:           i64 = UNASSIGNED_NODE_ID
+    condition:    Expr
+    message:      string | null
+    /// Where the message literal is written, so it prints in its own spelling.
+    message_span: Span | null
+    decorators:   Decorator[]
 }
 
 // ============================================================================

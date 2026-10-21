@@ -25,7 +25,7 @@ export Printer :: struct {
     source:   string
     comments: CommentMap
     // Set to true after the first character has been written ; used by
-    // `flush_leading_comments` to skip an initial empty line.
+    // `flush_remaining_comments` to skip an initial empty line.
     has_written: bool
     // Active column-alignment target for `::`. The decl-group loop in
     // `emit_program` sets this to the max-name-width of the current
@@ -199,7 +199,9 @@ flush_leading_comments :: fn(self: Printer, before: i64, node_line: i32) -> void
 flush_remaining_comments :: fn(self: Printer) -> void {
     cs :: self.comments.drain_remaining()
     for c in cs {
-        self.newline()
+        if self.has_written {
+            self.newline()
+        }
         if c.after_code {
             self.write(TRAILING_MARK)
         } else {
@@ -1205,6 +1207,9 @@ emit_assert_decl :: fn(self: Printer, d: p.AssertDecl) -> void {
     self.emit_decorators(d.decorators, d.span.start.line)
     self.write("@assert(")
     self.emit_expr(d.condition)
+    if d.message_span != null {
+        self.write(", ${self.source_slice(d.message_span)}")
+    }
     self.write(")")
 }
 
