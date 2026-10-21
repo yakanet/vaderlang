@@ -2091,6 +2091,8 @@ unaffected. A **lambda** carries the same obligation whenever a type is promised
 — by an annotation, or by the slot it is handed to — and is exempt when nothing
 promises one, since its return type is then inferred from the body.
 
+In a fn with no return type, the last expression is evaluated for its effect and its value discarded, as an expression statement is: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. The same holds for a lambda handed to a slot that returns nothing. A `return v` with a value in such a fn is an error (`T3020`).
+
 **No-return functions** drop the `-> void` annotation. Internally the compiler still has a unit/void type, but it is not user-facing — `void` is **not** a name available in source code. Function-pointer types that produce no value drop the arrow likewise: `callback: fn()` instead of `callback: fn() -> void`.
 
 ### `main` entry point

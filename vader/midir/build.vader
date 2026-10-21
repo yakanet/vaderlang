@@ -509,12 +509,12 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
     trailing :: build_block_value(fn_ctx, body, d.return_type)
 
     // Implicit return : if the current block still lacks a terminator,
-    // emit one with the trailing expression (or null for void).
+    // emit one with the trailing expression.
     if fn_ctx.current !is null {
         cur :: fn_ctx.blocks[i64(fn_ctx.current)]
         if cur.terminator is null {
             cur.terminator = TermReturn {
-                .values = if trailing == null { [] } else { [trailing] },
+                .values = implicit_return_values(trailing, d.return_type),
                 .span = body.span,
             }
         }
@@ -564,6 +564,15 @@ build_block_body :: fn(fn_ctx: FnCtx, b: LoweredBlock) -> LocalId | null =
 
 // A block's statements, then its trailing value as a slot of type `slot` holds it ;
 // null when it has none or control left mid-body.
+// A fn that returns nothing hands back no value, even when its body ends on one:
+// that last expression was built for its effect.
+implicit_return_values :: fn(trailing: LocalId | null, return_type: Type) -> LocalId[] {
+    if trailing == null || is_void(return_type) {
+        return []
+    }
+    return [trailing]
+}
+
 build_block_value :: fn(fn_ctx: FnCtx, b: LoweredBlock, slot: Type) -> LocalId | null {
     for s in b.stmts {
         if fn_ctx.current is null { return null }

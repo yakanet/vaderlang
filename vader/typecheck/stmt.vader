@@ -172,8 +172,10 @@ check_fn_body :: fn(
     // return. Transitional `async fn -> T` has inner == T (no-op) ; generators
     // keep the raw return (they yield, never return the stream).
     effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
+    // A body that returns nothing checks its last expression against no expected
+    // type: the value is discarded.
     expected: Type | null = effective_return
-    if inferred_return {
+    if inferred_return || is_void(effective_return) {
         expected = null
     }
     ctx :: FnContext {
@@ -217,36 +219,37 @@ check_fn_body :: fn(
             defaulted :: default_free_members(got)
             patch_fn_return_type(fn_decl, defaulted, typed)
         }
-    } else {
+    } else if is_void(effective_return) {
+        // A body returning nothing discards its trailing value, and has nothing
+        // to hand back at its closing brace.
+    } else if body.trailing !is null {
         // Implicit-return : a trailing expression substitutes for an
         // explicit `return`. Surface T3020 against the trailing's span.
-        if body.trailing !is null {
-            emit_return_mismatch_if(
-                got,
-                effective_return,
-                body.trailing.span,
-                body.trailing,
-                typed,
-                diags,
+        emit_return_mismatch_if(
+            got,
+            effective_return,
+            body.trailing.span,
+            body.trailing,
+            typed,
+            diags,
+        )
+    } else if got !is NeverType {
+        // T3083: no trailing expression, and the body does not diverge, so
+        // control reaches the closing brace with nothing to hand back. The
+        // sibling case (a value of the WRONG type) is T3020 just above;
+        // without this arm the two halves disagreed, since `if c { return 7 }`
+        // was already an error while a body with no `return` at all was not.
+        //
+        // `got` is `never` exactly when `check_block` saw the last statement
+        // diverge: a `return` / `break` / `continue`, a `@no_return` call, or
+        // a loop nothing can leave.
+        if effective_return !is UnresolvedType {
+            diags.push(
+                typecheck_error(
+                    .BodyFallsOffEnd, fn_decl.name_span,
+                    "`${fn_decl.name}` promises ${display_type(effective_return)}",
+                ),
             )
-        } else if got !is NeverType {
-            // T3083 — no trailing expression, and the body does not diverge, so
-            // control reaches the closing brace with nothing to hand back. The
-            // sibling case (a value of the WRONG type) is T3020 just above;
-            // without this arm the two halves disagreed, since `if c { return 7 }`
-            // was already an error while a body with no `return` at all was not.
-            //
-            // `got` is `never` exactly when `check_block` saw the last statement
-            // diverge — a `return` / `break` / `continue`, a `@no_return` call, or
-            // a loop nothing can leave.
-            if !is_void(effective_return) && effective_return !is UnresolvedType {
-                diags.push(
-                    typecheck_error(
-                        .BodyFallsOffEnd, fn_decl.name_span,
-                        "`${fn_decl.name}` promises ${display_type(effective_return)}",
-                    ),
-                )
-            }
         }
     }
     typed.current_fn_ctx = prev
