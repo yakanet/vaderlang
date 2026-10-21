@@ -1358,8 +1358,7 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> Stru
 }
 
 /// One struct's row of the type-info table, its offset lists written in place.
-/// Every struct gets a heap-backed `VADER_TYPE_KIND_STRUCT` row — no
-/// inline-variant (`VADER_TYPE_KIND_INLINE_REF`) or packed-payload shape.
+/// Every struct gets a heap-backed `VADER_TYPE_KIND_STRUCT` row.
 struct_info_row :: fn(
     ctx: EmitCtx,
     s: BcStruct,

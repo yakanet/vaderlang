@@ -64,8 +64,8 @@ metadata table (`vader_type_info_table`). **The GC cannot trace itself in Vader*
 allocates through.
 
 ### 3. Value representation
-`vader_box_t` (tagged union) + `vader_box_*` constructors, the nullable-ref
-inline opt (`vader_b1_to_box` / `vader_box_to_b1`), and vtable dispatch
+`vader_box_t` (tagged union) + `vader_box_*` constructors, the
+raw-ref conversions (`vader_ref_box` / `vader_box_to_ref`), and vtable dispatch
 (`vader_vtable_t`, `vader_virtual_dispatch`). This is the calling convention /
 ABI for values — primitive.
 
@@ -170,7 +170,7 @@ runtime-function form first sketched here.
 **C-emit realization (convention).** The C backend emits each memory opcode as a
 **`static inline vader_*` helper in `vader.h`** — `vader_object_new`,
 `vader_load_i32`/`…`, `vader_store_slot`, `vader_memory_copy`, … — matching the
-existing inline accessors (`vader_box_i32`, `vader_array_len`,
+existing inline accessors (`vader_box_i32`,
 `vader_obj_header_init`). `static inline` emits **no linkage symbol** (it inlines
 into every TU at `-O3` — the POC's fast same-TU path, not the slow cross-TU one),
 so this does **not** grow the runtime ABI surface ; it is the opcode's named

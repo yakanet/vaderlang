@@ -337,17 +337,9 @@ static inline bool vader_box_eq(vader_box_t a, vader_box_t b) {
     return a.tag == b.tag && a.payload.obj == b.payload.obj;
 }
 
-/* B1 (nullable-ref inline rep) helpers — used at fn signature boundaries
- * when a `T | null` union with T a single heap struct flows through. The
- * value passes as a raw `void*` (NULL = null variant, non-NULL = ref to
- * T) instead of a 16-byte `vader_box_t`. The two helpers below shift
- * between the wire form and the boxed form at the call boundary. */
-static inline vader_box_t vader_b1_to_box(void* p, uint32_t variant_tag) {
-    return p == NULL ? vader_box_null() : vader_box_obj(variant_tag, p);
-}
-static inline void* vader_box_to_b1(vader_box_t b) {
-    /* Null-variant tags (or any non-ref payload) collapse to NULL ;
-     * non-null variants forward their object pointer. */
+/* Box → raw `void*`: NULL for the null variant, the object pointer otherwise.
+ * The write side of a `VADER_ARRAY_KIND_REF` slot. */
+static inline void* vader_box_to_ref(vader_box_t b) {
     return (b.tag == VADER_BOX_TAG_NULL) ? NULL : b.payload.obj;
 }
 
@@ -412,10 +404,9 @@ static inline void vader_obj_header_init(void* obj, uint32_t type_index) {
     h->forward    = NULL;
 }
 
-/* T12 raw-ref array read : materialise a `vader_box_t` from a raw `void*` slot,
- * recovering the tag from the referent's object header (NULL → null variant).
- * The write side is the existing `vader_box_to_b1` (box → `void*`/NULL). Together
- * they bridge a `VADER_ARRAY_KIND_REF` slot to the still-boxed expression stack. */
+/* Raw `void*` → box, for a `VADER_ARRAY_KIND_REF` slot read onto the
+ * still-boxed expression stack: the tag comes from the referent's object
+ * header (NULL → null variant). `vader_box_to_ref` is the write side. */
 static inline vader_box_t vader_ref_box(void* p) {
     return p == NULL ? vader_box_null()
                      : vader_box_obj(((vader_obj_header_t*) p)->type_index, p);
@@ -1034,12 +1025,6 @@ vader_box_t    vader_array_remove_last(vader_array_t* a);
 /* `arr.clear()` — length 0, keep buf + capacity. */
 void           vader_array_clear(vader_array_t* a);
 
-/* `len` is hot enough — and trivial enough — to live in the header so
- * every translation unit can fold the indirection. Callers usually
- * follow `len()` with an iteration whose bounds the compiler can then
- * keep in registers. */
-static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
-
 /* Generational GC: copying young, mark-sweep old.
  *
  * Two generations: a small young (Eden + Survivor) collected often by minor
@@ -1231,11 +1216,6 @@ typedef enum {
     VADER_TYPE_KIND_STRUCT      = 1,
     VADER_TYPE_KIND_ARRAY       = 2,   /* vader_array_t — single ref to its buf */
     VADER_TYPE_KIND_FN          = 3,
-    VADER_TYPE_KIND_INLINE_REF  = 4,   /* inline-variant wrapper struct with one ref
-                                          field. `vader_box_t.payload.obj` IS the
-                                          referent (not a pointer to a wrapper); the
-                                          GC traces it via `scan_raw` using the
-                                          referent's own type tag from its header. */
 } vader_type_kind_t;
 
 typedef struct {

@@ -1967,10 +1967,6 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
     return dst;
 }
 
-/* Forward decl — `scan_box` reaches into `scan_raw` for the inline-ref
- * wrapper case (payload.obj is the referent, not a wrapper-typed pointer). */
-static void vader_gc_scan_raw(void** slot);
-
 /* VADER_GC_CHECK_BOX diagnostic. `boxp->tag` is out of the valid type-index
  * range — it can only be stray bytes (typically a heap pointer's low 32 bits).
  * Dump where the box lives and, crucially, whether `payload.obj` still points
@@ -2037,20 +2033,6 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
     }
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
-    /* Inline-ref wrapper : `payload.obj` is the referent itself (not a
-     * pointer to a wrapper struct allocated under `boxp->tag`). Trace it
-     * by reading the obj's own type tag from its header — scan_raw does
-     * exactly that. The outer tag stays unchanged (`boxp->tag` is still
-     * the wrapper's logical type, not the referent's). */
-    if (info->kind == VADER_TYPE_KIND_INLINE_REF) {
-        vader_gc_scan_raw(&boxp->payload.obj);
-        if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
-            && boxp->payload.obj != NULL
-            && !vader_in_old(boxp->payload.obj)) {
-            VADER_WRITE_BARRIER(boxp);
-        }
-        return;
-    }
     boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
     if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
         && boxp->payload.obj != NULL
@@ -2795,7 +2777,7 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
         case VADER_ARRAY_KIND_F64:  ((double*)   base)[i] = (double)   v.payload.f; return;
         case VADER_ARRAY_KIND_CHAR: ((uint32_t*) base)[i] = (uint32_t) v.payload.i; return;
         case VADER_ARRAY_KIND_BOOL: ((uint8_t*)  base)[i] = v.payload.b ? 1 : 0; return;
-        case VADER_ARRAY_KIND_REF:  ((void**)    base)[i] = vader_box_to_b1(v); return;  /* T12 raw ref */
+        case VADER_ARRAY_KIND_REF:  ((void**)    base)[i] = vader_box_to_ref(v); return;
         default: vader_trap("vader_array_store_slot: unknown element kind");
     }
 }
@@ -3677,7 +3659,7 @@ typedef struct {
     size_t* arr_kind_count;
     size_t* arr_boxed_slots;
     /* T12 measure-first (VADER_GC_PROFILE): slots of BOXED bufs whose every live
-     * slot is a ref-or-null (STRUCT/ARRAY/FN/INLINE_REF tag). Such a buf — incl a
+     * slot is a ref-or-null (STRUCT/ARRAY/FN tag). Such a buf — incl a
      * union-of-refs like Expr[]/Stmt[] — could become a raw 8-B void*[] (tag
      * recovered from each object header via scan_raw); only a true Any[] mixing
      * boxed primitives must stay 24-B boxed. This is the realistic array win. */
@@ -3709,7 +3691,7 @@ static void vader_gc_prof_tally(char* scan, uint32_t type_index, void* vctx) {
                 vader_type_kind_t k = (t < vader_type_info_count)
                     ? vader_type_info_table[t].kind : VADER_TYPE_KIND_NONE;
                 if (k != VADER_TYPE_KIND_STRUCT && k != VADER_TYPE_KIND_ARRAY &&
-                    k != VADER_TYPE_KIND_FN && k != VADER_TYPE_KIND_INLINE_REF) {
+                    k != VADER_TYPE_KIND_FN) {
                     all_refs = 0; break;
                 }
             }
@@ -3798,7 +3780,6 @@ void vader_gc_profile_dump(void) {
                 case VADER_TYPE_KIND_STRUCT:     kind_name = "STRUCT"; break;
                 case VADER_TYPE_KIND_ARRAY:      kind_name = "ARRAY"; break;
                 case VADER_TYPE_KIND_FN:         kind_name = "FN"; break;
-                case VADER_TYPE_KIND_INLINE_REF: kind_name = "INLINE_REF"; break;
             }
             obj_size = info->size;
         }
