@@ -360,9 +360,9 @@ static size_t g_card_count = 0;
  * object spans — see `vader_gc_scan_old_dirty_cards`. */
 static uint8_t* g_card_shadow = NULL;
 
-/* Cards spanning the carved old prefix [g_old_block, g_old_bump) — the live part
- * of the table. The minor scan and the major's card re-arm both bound their
- * table sweeps to this (uncommitted reservation tail holds no objects). */
+/* Cards spanning the carved old prefix [g_old_block, g_old_bump): the live part
+ * of the table. The minor scan bounds its table sweep to this (the uncommitted
+ * reservation tail holds no objects). */
 static inline size_t vader_old_used_cards(void) {
     return ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
 }
@@ -2400,15 +2400,10 @@ void vader_major_collect(void) {
     g_old_live_after_major = g_old_live_bytes;   /* reclamation-trigger baseline */
     vader_gc_old_histogram();
 
-    /* 5. Re-arm cards over the USED old span only. The mark pass may have observed
-     * old→young edges (a marked old object referencing a young survivor) without
-     * our separately recording each card; clearing would risk losing such a root,
-     * so conservatively dirty every in-use card. Only the carved prefix
-     * [g_old_block, g_old_bump) holds objects (the minor walks slots, never the
-     * uncommitted reservation tail), so memset just that prefix — touching the
-     * whole-reservation table would needlessly commit pages for cards that are
-     * never read. */
-    memset(vader_card_table, 1, vader_old_used_cards());
+    /* The card table stays as it is. Step 1's minor left a card dirty exactly
+     * where an old object points young; the mark moves nothing, and its scans
+     * re-dirty those cards anyway (`vader_gc_scan_box`/`_raw`). Dirtying more
+     * would make the next minor rescan every live old object. */
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;

@@ -5,6 +5,12 @@
 Accepted (2026-10-21). Supersedes in part
 [0007](0007-generational-gc-copying-young-non-moving-old.md): the tenure age.
 
+**Amended by
+[0105](0105-a-major-leaves-the-card-table-as-its-minor-left-it.md)
+(2026-10-21)**: the `+3 %` on `vader test vader` below, and the third consequence,
+no longer hold. A major no longer re-arms the card table, and `vader test vader`
+runs fewer instructions than at age 2 (242.0 G against 250.6 G).
+
 ## Context
 
 Under 0007 a young survivor was promoted at its second minor (`VADER_TENURE_AGE`
