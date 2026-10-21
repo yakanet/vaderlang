@@ -712,7 +712,7 @@ check_pattern_literal :: fn(
 ) -> void {
     alone :: check_expr(literal, null, typed, diags)
     if rest is NeverType {
-        _ :: repin_operand(literal, alone, scrut, typed, diags)
+        repin_operand(literal, alone, scrut, typed, diags)
         return
     }
     got :: repin_operand(literal, alone, rest, typed, diags)
@@ -735,7 +735,7 @@ check_pattern_literal :: fn(
         .left = compared,
         .right = literal,
     }
-    _ :: check_equality(comparison, rest, got, typed, diags)
+    check_equality(comparison, rest, got, typed, diags)
 }
 
 // A range pattern matches when `lower <= scrutinee <=(<) upper` holds, so each
@@ -801,7 +801,7 @@ report_range_scrutinee :: fn(
         return
     }
     whole :: repin_operand(pat.lower, lower, whole_target, typed, diags)
-    _ :: repin_operand(pat.upper, upper, whole_target, typed, diags)
+    repin_operand(pat.upper, upper, whole_target, typed, diags)
     diags.push(
         warning(
             .UnreachableMatchArm,

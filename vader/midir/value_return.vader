@@ -324,7 +324,7 @@ drop_records_touching :: fn(built: MutableMap<i32, LocalId[]>, local: LocalId) -
         }
     }
     for k in doomed {
-        _ :: built.remove(k)
+        built.remove(k)
     }
 }
 

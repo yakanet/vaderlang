@@ -100,8 +100,8 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         is LoweredLet -> {
             // A symbol bound more than once (the fusion reuses a combinator's param
             // symbol across sites) is ambiguous — escape it so it never devirtualizes.
-            if ctx.bound.contains(s.symbol.id) { _ :: ctx.escaped.add(s.symbol.id) }
-            _ :: ctx.bound.add(s.symbol.id)
+            if ctx.bound.contains(s.symbol.id) { ctx.escaped.add(s.symbol.id) }
+            ctx.bound.add(s.symbol.id)
             // `let L = <bare fn ref>` : record the named alias L -> S and DON'T scan
             // the value (the RHS fn ident is the alias binding, not an escaping use).
             value :: s.value
@@ -149,7 +149,7 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
 analyze_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
     match e {
         // A bare ident in value position = an escaping use of that local.
-        is LoweredIdent -> { _ :: ctx.escaped.add(e.symbol.id) }
+        is LoweredIdent -> { ctx.escaped.add(e.symbol.id) }
         is LoweredCall -> {
             // Callee position: a bare-ident callee is the devirtualizable use, NOT
             // an escape — skip it. A composite callee is a value → recurse.

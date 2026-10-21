@@ -391,7 +391,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
 @test test_flush_writes_and_reports_the_module :: fn() -> void {
     root :: join_path(temp_dir(), "vader_gen_probe_flush")
     ctx :: new_build_context(["driver", root])
-    _ :: sweep_generated(generated_root_of(ctx))
+    sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     fresh :: ctx.flush_generated()
     assert(fresh.len() == 1, "one module should have been written — ${flush_diagnosis(ctx, fresh)}")
@@ -399,7 +399,7 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     files :: ctx.generated_files_of()
     assert_eq(files.len(), 1)
     assert(exists(files[0]), "the module landed on disk")
-    _ :: sweep_generated(generated_root_of(ctx))
+    sweep_generated(generated_root_of(ctx))
 }
 
 @test test_flush_is_idempotent :: fn() -> void {
@@ -407,14 +407,14 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     // round loop stops.
     root :: join_path(temp_dir(), "vader_gen_probe_idem")
     ctx :: new_build_context(["driver", root])
-    _ :: sweep_generated(generated_root_of(ctx))
+    sweep_generated(generated_root_of(ctx))
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     first :: ctx.flush_generated()
     assert(first.len() == 1, "the first flush should write — ${flush_diagnosis(ctx, first)}")
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
     again :: ctx.flush_generated()
     assert_eq(again.len(), 0)
-    _ :: sweep_generated(generated_root_of(ctx))
+    sweep_generated(generated_root_of(ctx))
 }
 
 @test test_flush_of_nothing_changes_nothing :: fn() -> void {
@@ -426,10 +426,10 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     // The safety argument for a recursive delete: a hand-written file in the
     // way is left alone.
     root :: join_path(temp_dir(), "vader_gen_probe_sweep")
-    _ :: create_dir(root)
-    _ :: sweep_generated(root)
+    create_dir(root)
+    sweep_generated(root)
     mine :: join_path(root, "handwritten.vader")
-    _ :: write_file_string(mine, "module \"mine\"\n")
+    write_file_string(mine, "module \"mine\"\n")
     ctx :: new_build_context(["driver", temp_dir()])
     ctx.generated_root = "vader_gen_probe_sweep"
     ctx.emit_module("gen/probe", "probe :: fn() -> i32 = 7\n")
@@ -438,21 +438,21 @@ flush_diagnosis :: fn(ctx: BuildContext, fresh: string[]) -> string {
     assert(removed == 1,
         "the sweep should remove the one generated file — removed=${removed} ${flush_diagnosis(ctx, flushed)}")
     assert(exists(mine), "a file without the banner is not ours to delete")
-    _ :: remove_file(mine)
+    remove_file(mine)
 }
 
 @test test_flush_reports_a_path_it_cannot_write :: fn() -> void {
     // `create_dir` cannot make a directory under a FILE. The build has to say so
     // rather than settle having generated nothing.
     blocker :: join_path(temp_dir(), "vader_gen_probe_blocker")
-    _ :: write_file_string(blocker, "not a directory\n")
+    write_file_string(blocker, "not a directory\n")
     ctx :: new_build_context(["driver", temp_dir()])
     ctx.generated_root = "vader_gen_probe_blocker/inside"
     ctx.emit_module("gen/probe", "x :: 1")
     assert_eq(ctx.flush_generated().len(), 0)
     assert_eq(ctx.reports_of().len(), 1)
     assert_eq(ctx.reports_of()[0].code.id, "H6008")
-    _ :: remove_file(blocker)
+    remove_file(blocker)
 }
 
 @test test_sweep_of_a_missing_root_is_not_an_error :: fn() -> void {

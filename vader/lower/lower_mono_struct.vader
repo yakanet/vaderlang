@@ -377,7 +377,7 @@ ensure_receiver_struct :: fn(
     mangled :: mangle_struct_instance(
         owner_typed.resolved.display_path, inst.symbol.name, inst.args)
     if project_ctx.materialized_struct_mangles.contains(mangled) { return }
-    _ :: materialize_struct_instance(inst, owner_typed, project_ctx, project)
+    materialize_struct_instance(inst, owner_typed, project_ctx, project)
 }
 
 materialize_impl_members_for :: fn(

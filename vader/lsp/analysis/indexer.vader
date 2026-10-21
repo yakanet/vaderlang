@@ -205,7 +205,7 @@ lj_stmt :: fn(s: Stmt, stack: LjFrame[], out: LoopJump[]) -> void {
         is ForStmt               -> {
             stack.push(LjFrame { .span = s.span, .binding = lj_for_binding(s), .label = s.label })
             lj_block(s.body, stack, out)
-            _ :: stack.remove_last() // discard the popped frame — arm stays void
+            stack.remove_last()
         }
         is BreakStmt             -> { lj_record(s.span, s.label, stack, out) }
         is ContinueStmt          -> { lj_record(s.span, s.label, stack, out) }

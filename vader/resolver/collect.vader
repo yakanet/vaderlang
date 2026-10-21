@@ -249,7 +249,7 @@ collect_import :: fn(
         // Don't dispatch on the (string | null) result here — its sole
         // role is to fire the loader-side diagnostics ; the actual
         // binding still lands in `imports` for the wire pass.
-        _ :: diagnose_import_path(d.path, d.span, module_name, index, paths, diags)
+        diagnose_import_path(d.path, d.span, module_name, index, paths, diags)
     }
     b :: d.binding
     match b {

@@ -581,7 +581,7 @@ test_ctx :: fn(t: PathTable, facts: ParamEffects[][]) -> EvalCtx = EvalCtx {
 // What the function does with each of its parameters, from empty sets.
 evaluated :: fn(s: Skeleton, ctx: EvalCtx) -> ParamEffects[] {
     out :: s.params.filled(() -> ParamEffects {})
-    _ :: s.evaluate(ctx, out)
+    s.evaluate(ctx, out)
     return out
 }
 
@@ -624,7 +624,7 @@ test_evaluate_reads_the_callee_fact :: fn() -> void {
     shrinks.insert(Access { .path = ROOT, .effect = .Shrunk })
     s :: new_skeleton(1)
     first: i64: 0
-    _ :: s.add_site([CalleeNode { .node = 0 }], [first], UNSET, empty_span())
+    s.add_site([CalleeNode { .node = 0 }], [first], UNSET, empty_span())
     assert_eq(rendered(t, evaluated(s, test_ctx(t, [[shrinks]])), 0), "shrunk ")
 }
 
@@ -633,7 +633,7 @@ test_evaluate_lends_anything_to_an_unknown_callee :: fn() -> void {
     t :: PathTable {}
     s :: new_skeleton(2)
     second: i64: 1
-    _ :: s.add_site([AnyCallee {}], [null, second], UNSET, empty_span())
+    s.add_site([AnyCallee {}], [null, second], UNSET, empty_span())
     out :: evaluated(s, test_ctx(t, []))
     assert_eq(out[0].accesses.len(), 0)
     assert_eq(rendered(t, out, 1), "stored …, unknown …")

@@ -6073,15 +6073,15 @@ static void json_write_object(void* l0, void* l1, int32_t l2, int32_t l3) {
     l4 = true;
 #line 577 "lib/json/json.vader"
     l5 = ((vader_struct_json_JsonObject_t*) l1)->f_entries;
-#line 313 "lib/std/collections/collections.vader"
+#line 311 "lib/std/collections/collections.vader"
     l6 = ((vader_struct_std_collections_MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t*) l5)->f_ekeys;
-#line 314 "lib/std/collections/collections.vader"
+#line 312 "lib/std/collections/collections.vader"
     l7 = ((vader_struct_std_collections_MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t*) l5)->f_evals;
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
     l8 = INT64_C(0);
     l9 = ((vader_struct_std_collections_MutableMap__string__json_JsonArray___json_JsonBool___json_JsonNull___json_JsonNumber___json_JsonObject___json_JsonString_t*) l5)->f_size;
     while ((l8 < l9)) {
-#line 316 "lib/std/collections/collections.vader"
+#line 314 "lib/std/collections/collections.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l6);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l8)
@@ -6116,7 +6116,7 @@ static void json_write_object(void* l0, void* l1, int32_t l2, int32_t l3) {
         json_write_value(l0, l13, l2, l15);
 #line 587 "lib/json/json.vader"
         l4 = false;
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
         l8 = (l8 + INT64_C(1));
     }
 #line 589 "lib/json/json.vader"
@@ -7077,9 +7077,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(voi
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__Any(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__Any(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

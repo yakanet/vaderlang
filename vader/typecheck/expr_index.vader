@@ -45,7 +45,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
         return TY_UNRESOLVED
     }
     if picked != null {
-        _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
+        reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
         return picked.return_type
     }
     route :: index_route(target, index_trait, typed)
@@ -72,7 +72,7 @@ infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) ->
         record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
         return TY_UNRESOLVED
     }
-    _ :: reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
+    reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
     reject_index_key(e.index, index, key_ty, diags)
     return result_ty
 }

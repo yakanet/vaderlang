@@ -103,7 +103,7 @@ widen_range_states :: fn(old: RangeState, new: RangeState, thresholds: i64[]) ->
         }
     }
     for key in grown {
-        _ :: new.differences.remove(key)
+        new.differences.remove(key)
     }
 }
 
@@ -166,7 +166,7 @@ same_range_state :: fn(a: RangeState, b: RangeState) -> bool {
 /// @param s      the state, changed in place.
 /// @param local  the local written.
 forget_local :: fn(s: RangeState, local: LocalId) -> void {
-    _ :: s.intervals.remove(local)
+    s.intervals.remove(local)
     if !range_state_mentions(s, local) {
         return
     }
@@ -177,7 +177,7 @@ forget_local :: fn(s: RangeState, local: LocalId) -> void {
         }
     }
     for key in doomed {
-        _ :: s.differences.remove(key)
+        s.differences.remove(key)
     }
     stale: LocalId[]: []
     for [n, array] in s.lengths {
@@ -186,7 +186,7 @@ forget_local :: fn(s: RangeState, local: LocalId) -> void {
         }
     }
     for n in stale {
-        _ :: s.lengths.remove(n)
+        s.lengths.remove(n)
     }
 }
 

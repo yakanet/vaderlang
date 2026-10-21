@@ -102,7 +102,7 @@ index_functions :: fn(
                     is AST.StructDecl -> { index.register_defaults(d, typed) }
                     is AST.EnumDecl   -> {
                         data :: declared_enum_data(d, typed) ?? continue
-                        _ :: index.variant_data.add(data.symbol.id)
+                        index.variant_data.add(data.symbol.id)
                     }
                     is AST.AssertDecl | AST.ImportDecl | AST.TraitDecl | AST.TypeAliasDecl -> {}
                 }

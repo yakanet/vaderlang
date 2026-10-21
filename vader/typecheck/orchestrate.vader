@@ -138,7 +138,7 @@ check_project_modules :: fn(
             unsettled[id] = register_aliases(other_typed, decls)
         }
     }
-    _ :: settle_project_aliases(per_module, unsettled)
+    settle_project_aliases(per_module, unsettled)
     // Make every module's enums resolvable cross-module before any fn
     // signature is lowered — so a `d: parser.Visibility` param resolves to
     // the `EnumType` (→ `repr` ordinal at bytecode emit) instead of the

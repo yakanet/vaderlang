@@ -420,7 +420,7 @@ static int32_t snippet_main(void* l0) {
 #line 61 "lib/std/collections/collections.vader"
     vader_array_t* _a3_arr = vader_array_new(28u, 0u, 7u, 7u);
     l4 = (void*) _a3_arr;
-#line 333 "lib/std/collections/collections.vader"
+#line 331 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__string___u8__bool_t* _a4_obj = (vader_struct_std_collections_MutableMap__string___u8__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string___u8__bool_t));
     vader_obj_header_init(_a4_obj, 27u);
     _a4_obj->f_ekeys = l1;
@@ -1169,14 +1169,14 @@ static bool std_collections_add__string___u8(void* l0, vader_box_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 342 "lib/std/collections/collections.vader"
+#line 340 "lib/std/collections/collections.vader"
     t0 = std_collections_put__string___u8__bool(((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner, l1, true);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_collections_len__string___u8(void* l0) {
     int64_t t0;
-#line 353 "lib/std/collections/collections.vader"
+#line 351 "lib/std/collections/collections.vader"
     t0 = ((vader_struct_std_collections_MutableMap__string___u8__bool_t*) ((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner)->f_size;
     return t0;
 }

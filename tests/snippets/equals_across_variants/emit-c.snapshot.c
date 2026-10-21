@@ -738,9 +738,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__Any__string(voi
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__Any__string(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__Any__string(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

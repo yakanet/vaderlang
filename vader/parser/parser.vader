@@ -804,7 +804,7 @@ parse_named_import_decl :: fn(p: Parser, decorators: Decorator[], name_tok: Toke
         // The scoped `name :: import "..." { a, b }` form was removed.
         p.error(.ExpectedDeclaration, lbrace.span,
             "the scoped `name :: import \"...\" { a, b }` form was removed ; use `name :: import \"...\"` for a namespace or `import \"...\" { a, b }` to destructure")
-        _ :: p.parse_import_name_list_rest()  // skip the block for clean recovery
+        p.parse_import_name_list_rest() // skip the block for clean recovery
     }
     return ImportDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),

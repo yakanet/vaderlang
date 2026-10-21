@@ -1205,7 +1205,7 @@ reject_ufcs_receiver_at_instance :: fn(
 // (`widen_empty_array_local`).
 fits_argument :: fn(typed: TypedProgram, arg: AST.Expr, from: Type, to: Type) -> bool {
     if is_assignable(from, to) {
-        _ :: widen_empty_array_local(typed, arg, from, to)
+        widen_empty_array_local(typed, arg, from, to)
         return true
     }
     return fits_by_widening(typed, arg, from, to)

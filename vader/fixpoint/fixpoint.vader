@@ -332,7 +332,7 @@ test_solve_reachability_marks_every_caller_of_a_mark :: fn() -> void {
 test_solve_steps_a_lone_node_once :: fn() -> void {
     g :: Graph { .successors = [[], []] }
     steps :: [0, 0]
-    _ :: solve_bottom_up(g, fn(node: i32) {
+    solve_bottom_up(g, fn(node: i32) {
         steps[node] += 1
         return false
     }, 8)

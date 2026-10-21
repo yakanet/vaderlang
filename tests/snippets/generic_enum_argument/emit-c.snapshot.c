@@ -3419,9 +3419,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpSta
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

@@ -170,10 +170,10 @@ node_callees :: fn(index: CalleeIndex, node: CallNode, taken: TakenFunctions) ->
 note_taken :: fn(index: CalleeIndex, ins: Instruction, taken: TakenFunctions) -> void {
     match ins {
         is InstrFnRef | InstrMakeClosure -> {
-            _ :: taken.as_values.add(taken_node(index, ins.fn_symbol))
+            taken.as_values.add(taken_node(index, ins.fn_symbol))
         }
         is InstrFnAddr -> {
-            _ :: taken.as_addresses.add(taken_node(index, ins.fn_symbol))
+            taken.as_addresses.add(taken_node(index, ins.fn_symbol))
         }
         is InstrConst | InstrBinOp | InstrUnOp | InstrCall | InstrCallIndirect -> {}
         is InstrVirtualCall | InstrFieldGet | InstrFieldSet | InstrArrayGet -> {}

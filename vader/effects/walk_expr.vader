@@ -29,7 +29,7 @@ value :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
 
 // Walk `e` for what it does ; its value is not used.
 discard :: fn(ctx: WalkCtx, e: AST.Expr) -> void {
-    _ :: ctx.value(e)
+    ctx.value(e)
 }
 
 // What an implicit `into` at `e` returns of `held`, or `held` when none runs there.
@@ -133,7 +133,7 @@ field_value :: fn(ctx: WalkCtx, e: AST.FieldExpr) -> i64 | null {
     // counts where the value is taken, which is where the target is lent.
     taken :: ctx.site_callee(.MethodValue, e.id)
     if taken != null {
-        _ :: ctx.call(taken, [ctx.value(e.target)], e.span, [e.target])
+        ctx.call(taken, [ctx.value(e.target)], e.span, [e.target])
         return null
     }
     member :: ctx.namespace_member(e) ?? return ctx.step_slot(ctx.value(e.target), field_step(e))
@@ -382,7 +382,7 @@ string_value :: fn(ctx: WalkCtx, e: AST.StringLitExpr) -> i64 | null {
     for part in e.parts {
         if part is AST.StringLitInterp {
             renders :: ctx.site_callee(.Display, part.expr.id)
-            _ :: ctx.call(renders, [ctx.value(part.expr)], part.span, [part.expr])
+            ctx.call(renders, [ctx.value(part.expr)], part.span, [part.expr])
         }
     }
     return null

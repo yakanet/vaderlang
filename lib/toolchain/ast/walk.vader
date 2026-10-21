@@ -356,7 +356,7 @@ ident :: fn(name: string) -> IdentExpr = IdentExpr {
 // `skip_lambdas` answers `Skip` on a lambda.
 idents_reached :: fn(n: Node, skip_lambdas: bool) -> string[] {
     out: string[]: []
-    _ :: inspect(n, (m) -> record_ident(m, out, skip_lambdas, ""))
+    inspect(n, (m) -> record_ident(m, out, skip_lambdas, ""))
     return out
 }
 

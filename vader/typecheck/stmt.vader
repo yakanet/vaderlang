@@ -627,7 +627,7 @@ check_destructuring_assign :: fn(
     if rest_slot != null {
         for t in s.targets {
             if t is AST.PlaceTarget {
-                _ :: place_slot(t.place, typed, diags)
+                place_slot(t.place, typed, diags)
             }
         }
         value_ty :: check_expr(s.value, rest_slot, typed, diags)
@@ -672,7 +672,7 @@ check_destructuring_assign :: fn(
     lit :: s.value
     if lit is AST.SeqLitExpr {
         if lit.elements.len() != s.targets.len() {
-            _ :: check_expr(s.value, null, typed, diags)
+            check_expr(s.value, null, typed, diags)
             diags.push(typecheck_error(
                 .CannotDestructure, s.value.span,
                 "a literal of ${lit.elements.len()} elements into ${s.targets.len()} targets"))
@@ -818,7 +818,7 @@ reject_field_write :: fn(field: AST.FieldExpr, typed: TypedProgram, diags: Diagn
             "`${field.field}` is declared in an imported module"))
         return true
     }
-    _ :: check_expr(field.target, null, typed, diags)
+    check_expr(field.target, null, typed, diags)
     // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
     base :: bare_name_symbol(field.target, typed)
     if base != null && names_a_type(base, typed.resolved) {
@@ -1177,7 +1177,7 @@ in_for_element :: fn(
     } else {
         record_for_sites(typed, w.iter, iter_ty)
     }
-    _ :: reject_unmet_impl_bounds(
+    reject_unmet_impl_bounds(
         iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
         typed, diags,
     )
@@ -1382,7 +1382,7 @@ push_statement_narrows :: fn(
         return
     }
     if stmt is AST.ExprStmt && stmt.expr is AST.IfExpr {
-        _ :: push_past_divergent_if(stmt.expr, typed, stack)
+        push_past_divergent_if(stmt.expr, typed, stack)
     }
 }
 

@@ -94,7 +94,7 @@ remember_body_shape :: fn(typed: TypedProgram, fn_decl: AST.FnDecl) -> BodyShape
 scan_body :: fn(fn_decl: AST.FnDecl) -> BodyShape {
     body :: fn_decl.body ?? return BodyShape {}
     probe :: BodyProbe { .kind = .Shape }
-    _ :: AST.inspect(body, (n) -> probe_step(n, probe))
+    AST.inspect(body, (n) -> probe_step(n, probe))
     return BodyShape { .awaits = probe.awaits, .yields = probe.yields }
 }
 

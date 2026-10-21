@@ -237,15 +237,15 @@ static int32_t snippet_main(void) {
     std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l1, 3u, INT32_C(2));
 #line 27 "tests/snippets/for_in_into_iter/_main.vader"
     l0 = INT32_C(0);
-#line 313 "lib/std/collections/collections.vader"
+#line 311 "lib/std/collections/collections.vader"
     l5 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l1)->f_ekeys;
-#line 314 "lib/std/collections/collections.vader"
+#line 312 "lib/std/collections/collections.vader"
     l6 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l1)->f_evals;
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
     l2 = INT64_C(0);
     l3 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l1)->f_size;
     while ((l2 < l3)) {
-#line 316 "lib/std/collections/collections.vader"
+#line 314 "lib/std/collections/collections.vader"
         vader_array_t* _a6_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l2)
@@ -259,7 +259,7 @@ static int32_t snippet_main(void) {
         l4 = t2;
 #line 29 "tests/snippets/for_in_into_iter/_main.vader"
         l0 = vader_chk_add(i32, l0, l4);
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
         l2 = (l2 + INT64_C(1));
     }
 #line 31 "tests/snippets/for_in_into_iter/_main.vader"
@@ -279,7 +279,7 @@ static int32_t snippet_main(void) {
 #line 61 "lib/std/collections/collections.vader"
     vader_array_t* _a10_arr = vader_array_new(14u, 0u, 7u, 1u);
     l6 = (void*) _a10_arr;
-#line 333 "lib/std/collections/collections.vader"
+#line 331 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__i32__bool_t* _a11_obj = (vader_struct_std_collections_MutableMap__i32__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__bool_t));
     vader_obj_header_init(_a11_obj, 11u);
     _a11_obj->f_ekeys = l1;
@@ -300,20 +300,20 @@ static int32_t snippet_main(void) {
     std_collections_add__i32(l1, INT32_C(11));
 #line 37 "tests/snippets/for_in_into_iter/_main.vader"
     l0 = INT32_C(0);
-#line 376 "lib/std/collections/collections.vader"
+#line 374 "lib/std/collections/collections.vader"
     l5 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) l1)->f_inner)->f_ekeys;
-#line 377 "lib/std/collections/collections.vader"
+#line 375 "lib/std/collections/collections.vader"
     l2 = INT64_C(0);
     l3 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) l1)->f_inner)->f_size;
     while ((l2 < l3)) {
-#line 378 "lib/std/collections/collections.vader"
+#line 376 "lib/std/collections/collections.vader"
         vader_array_t* _a13_slotarr = ((vader_array_t*) l5);
         VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a13_slotarr, l2)
         l4 = ((int32_t*) _a13_slotarr->buf->slots)[_a13_slotarr->offset + (size_t) l2];
 #line 39 "tests/snippets/for_in_into_iter/_main.vader"
         l0 = vader_chk_add(i32, l0, l4);
-#line 377 "lib/std/collections/collections.vader"
+#line 375 "lib/std/collections/collections.vader"
         l2 = (l2 + INT64_C(1));
     }
 #line 41 "tests/snippets/for_in_into_iter/_main.vader"
@@ -752,9 +752,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__i32(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__i32(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -1327,7 +1326,7 @@ static bool std_collections_add__i32(void* l0, int32_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 342 "lib/std/collections/collections.vader"
+#line 340 "lib/std/collections/collections.vader"
     t0 = std_collections_put__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1, true);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

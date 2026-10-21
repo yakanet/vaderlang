@@ -710,7 +710,7 @@ FnEmitCfg :: struct {
 // backend reads each value's atom there). Side-effect only.
 intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
     if v is BcValStr {
-        _ :: intern_string(v.value, ctx)
+        intern_string(v.value, ctx)
     } else if v is BcValStruct {
         for f in v.fields { intern_data_value_strings(f, ctx) }
     } else if v is BcValArray {
@@ -741,7 +741,7 @@ pin_baked_struct_types :: fn(data_pool: BcDataEntry[], ctx: EmitterCtx) -> void 
 
 collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
     if v is BcValStruct {
-        _ :: out.add(v.symbol_id)
+        out.add(v.symbol_id)
         for f in v.fields {
             collect_baked_symbols(f, out)
         }

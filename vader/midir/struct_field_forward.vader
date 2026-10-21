@@ -121,7 +121,7 @@ join_of_predecessors :: fn(
             }
         }
         for k in doomed {
-            _ :: fresh.remove(k)
+            fresh.remove(k)
         }
     }
     return fresh

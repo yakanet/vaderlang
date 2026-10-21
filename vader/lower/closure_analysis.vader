@@ -136,7 +136,7 @@ collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: Mutabl
         symbol :: lookup_symbol_by_span(symbol_index, ast_param.span)
         match symbol {
             is null -> {}
-            is Symbol -> { _ :: scope.add(symbol.id) }
+            is Symbol -> { scope.add(symbol.id) }
         }
     }
     return scope
@@ -256,7 +256,7 @@ walk_for :: fn(
                     binding :: lookup_symbol_by_span(ctx.symbol_index, loop_var.span)
                     match binding {
                         is null -> {}
-                        is Symbol -> { _ :: scope.add(binding.id) }
+                        is Symbol -> { scope.add(binding.id) }
                     }
                 }
                 // `for [k, v] in …` : each leaf is a loop-scoped local a body
@@ -350,9 +350,9 @@ walk_expr :: fn(
                     walk_expr(arm.guard, scope, out_captures, out_seen, ctx)
                 }
                 walk_expr(arm.body, scope, out_captures, out_seen, ctx)
-                for id in added { _ :: scope.remove(id) }
+                for id in added { scope.remove(id) }
             }
-            for id in match_added { _ :: scope.remove(id) }
+            for id in match_added { scope.remove(id) }
         }
         is AST.BlockExpr -> {
             walk_body(expr, scope, out_captures, out_seen, ctx)
@@ -462,7 +462,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
             symbol :: lookup_symbol_by_span(symbol_index, binding.name_span)
             match symbol {
                 is null -> {}
-                is Symbol -> { _ :: scope.add(symbol.id) }
+                is Symbol -> { scope.add(symbol.id) }
             }
         }
         is AST.TupleBinding -> {
@@ -475,7 +475,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
             symbol :: lookup_symbol_by_span(symbol_index, binding.span)
             match symbol {
                 is null -> {}
-                is Symbol -> { _ :: scope.add(symbol.id) }
+                is Symbol -> { scope.add(symbol.id) }
             }
         }
     }
@@ -523,7 +523,7 @@ walk_pattern_for_bindings :: fn(
 // its own slot. A symbol `rebind_free` does not list keeps its cell.
 note_cell_capture :: fn(ctx: WalkCtx, capture: Capture) -> void {
     if !(capture.symbol.id in ctx.typed.resolved.rebind_free) {
-        _ :: ctx.analysis.cell_symbols.add(capture.symbol.id)
+        ctx.analysis.cell_symbols.add(capture.symbol.id)
     }
 }
 

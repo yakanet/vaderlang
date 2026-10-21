@@ -50,7 +50,7 @@ settle_const :: fn(cd: AST.ConstDecl, typed: TypedProgram, deferred: bool = fals
     walk.states[key] = .Typing
     walk.typing.push(ConstTyping { .decl = cd, .deferred = deferred })
     check_const_value(cd, typed, walk.diags)
-    _ :: walk.typing.remove_last()
+    walk.typing.remove_last()
     walk.states[key] = .Typed
 }
 
@@ -190,13 +190,13 @@ consts_in_dependency_order :: fn(root: AST.ConstDecl, typed: TypedProgram) -> AS
         return out
     }
     seen :: MutableSet<u64> {}
-    _ :: seen.add(root.span.hash())
+    seen.add(root.span.hash())
     stack: DependencyFrame[]: [frame_of(root, typed)]
     for stack.len() > 0 {
         top :: stack[stack.len() - 1]
         if top.next == top.reads.len() {
             out.push(top.decl)
-            _ :: stack.remove_last()
+            stack.remove_last()
             continue
         }
         read :: top.reads[top.next]

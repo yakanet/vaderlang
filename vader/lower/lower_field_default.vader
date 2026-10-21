@@ -41,7 +41,7 @@ lower_field_default :: fn(
         return mk_lowered_call(thunk.symbol, [], thunk.type, field.span)
     }
     value :: lower_for_slot(default_ctx, default, field_type, field.span)
-    _ :: expanding.remove(key)
+    expanding.remove(key)
     return value
 }
 
@@ -90,7 +90,7 @@ default_thunk :: fn(
     value :: lower_for_slot(thunk_ctx, default, field_type, field.span)
     project.entry_decls.push_all(synth[synth_start..<synth.len()])
     for _ in synth_start..<synth.len() {
-        _ :: synth.remove_last()
+        synth.remove_last()
     }
     thunk :: DefaultThunk { .symbol = symbol, .type = value.type }
     project.default_thunks[name] = thunk

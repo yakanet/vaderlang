@@ -520,7 +520,7 @@ reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = 
 // value.
 read_fresh :: fn(frozen: FrozenSites, use: FrozenRoot) -> void {
     constant :: use.constant ?? return
-    _ :: frozen.mark_fresh(constant)
+    frozen.mark_fresh(constant)
 }
 
 // What a use of a frozen value comes to: a fault, an unknown call, a copy, or

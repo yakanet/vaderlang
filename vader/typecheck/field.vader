@@ -233,7 +233,7 @@ settle_impl_member :: fn(
     if !chosen.generic {
         return chosen.ty
     }
-    _ :: reject_unmet_impl_bounds(
+    reject_unmet_impl_bounds(
         default_if_free(target_ty), chosen.trait_key, .TraitNotSatisfied, e.field_span,
         typed, diags,
     )
@@ -511,7 +511,9 @@ static_owner :: fn(target: AST.Expr, target_ty: Type, typed: TypedProgram) -> Ty
     // which is the target's type.
     if target is AST.GenericInstExpr {
         callee_ty :: typed.expr_types[target.callee.id] ?? return null
-        _ :: static_owner(target.callee, callee_ty, typed) ?? return null
+        if static_owner(target.callee, callee_ty, typed) == null {
+            return null
+        }
         return target_ty
     }
     if target is AST.FieldExpr {
@@ -687,8 +689,8 @@ try_free_fn_ufcs_dispatch :: fn(
     // (`receiver_fits_first_param`). A parameter naming the callee's type parameters
     // waits for the call, which binds them.
     if target_ty is ArrayType && !type_contains_type_param(first_param) {
-        _ :: fits_by_widening(typed, e.target, target_ty, first_param)
-        _ :: widen_empty_array_local(typed, e.target, target_ty, first_param)
+        fits_by_widening(typed, e.target, target_ty, first_param)
+        widen_empty_array_local(typed, e.target, target_ty, first_param)
     }
     decl :: free_ufcs.winner.decl
     ft :: free_ufcs.winner.ty

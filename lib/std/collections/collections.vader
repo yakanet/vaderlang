@@ -269,9 +269,7 @@ MutableMap<K, V> implements<K: Hash & Equals, V> Index<K, V | null> {
 }
 
 MutableMap<K, V> implements<K: Hash & Equals, V> IndexSet<K, V> {
-    set_at :: fn(self, key: K, v: V) {
-        _ :: self.put(key, v)
-    }
+    set_at :: fn(self, key: K, v: V) { self.put(key, v) }
 }
 
 MutableMap<K, V> implements<K: Hash & Equals, V> Contains<K> {

@@ -74,7 +74,7 @@ export prune_unused_data :: fn(ctx: EmitterCtx, data_pool: BcDataEntry[]) -> BcD
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is DataConst {
-                _ :: used.add(op.pool_index)
+                used.add(op.pool_index)
             }
         }
     }
@@ -115,9 +115,9 @@ export prune_unused_globals :: fn(ctx: EmitterCtx) -> void {
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is GlobalGet {
-                _ :: used.add(op.index)
+                used.add(op.index)
             } else if op is GlobalSet {
-                _ :: used.add(op.index)
+                used.add(op.index)
             }
         }
     }

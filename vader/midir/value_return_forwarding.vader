@@ -146,7 +146,7 @@ plan_forwarding :: fn(
         }
         // Reached only as a value: no direct call would benefit, so the original
         // shape stands and the candidate is simply dropped.
-        _ :: chosen.remove(mangled)
+        chosen.remove(mangled)
     }
 }
 
@@ -158,7 +158,7 @@ note_call :: fn(
         return
     }
     callers.add(caller)
-    _ :: called.add(callee_mangle(callee, chosen, by_symbol))
+    called.add(callee_mangle(callee, chosen, by_symbol))
 }
 
 // The key `chosen` holds this callee under. Mirrors `callee_shape`'s order.
@@ -193,7 +193,7 @@ note_symbol :: fn(
     as_value.add(sym.name)
     mangled :: by_symbol[sym.id]
     if mangled != null {
-        _ :: as_value.add(mangled)
+        as_value.add(mangled)
     }
 }
 
@@ -212,11 +212,10 @@ mark_forwarding :: fn(
     chosen[copy_mangle] = shape
     // The copy carries the original's body, so it calls whatever that called.
     if mangled in callers {
-        _ :: callers.add(copy_mangle)
+        callers.add(copy_mangle)
     }
-    // The wrapper's own body is a call to rewrite. Assigned rather than bare:
-    // this is the tail expression, and a bare call would become the return value.
-    _ :: callers.add(mangled)
+    // The wrapper's own body is a call to rewrite.
+    callers.add(mangled)
 }
 
 // The callee a forwarded call names: the original symbol under the copy's name.

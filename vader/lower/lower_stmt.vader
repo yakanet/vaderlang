@@ -589,7 +589,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
         // went in. A leftover per-iter entry would keep `comptime_bindings`
         // non-empty for the whole rest of the body, defeating the `is_empty()`
         // short-circuit that `lower_ident` relies on for every ident it lowers.
-        _ :: ctx.comptime_bindings.remove(binding_symbol.id)
+        ctx.comptime_bindings.remove(binding_symbol.id)
     } else {
         ctx.comptime_bindings[binding_symbol.id] = prior
     }

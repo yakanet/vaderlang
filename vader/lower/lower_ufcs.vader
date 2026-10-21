@@ -41,7 +41,7 @@ try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowe
     if target == null {
         ctx.bound_operands[field.target.id] = receiver
         plain :: lower_plain_call(ctx, call, type)
-        _ :: ctx.bound_operands.remove(field.target.id)
+        ctx.bound_operands.remove(field.target.id)
         return plain
     }
     operands :: call_operands(ctx, call, field, receiver, target)

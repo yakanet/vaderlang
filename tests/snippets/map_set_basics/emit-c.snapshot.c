@@ -552,15 +552,15 @@ static int32_t snippet_main(void) {
     std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(l0, 34u, INT32_C(3));
 #line 73 "tests/snippets/map_set_basics/_main.vader"
     l8 = INT32_C(0);
-#line 313 "lib/std/collections/collections.vader"
+#line 311 "lib/std/collections/collections.vader"
     l1 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_ekeys;
-#line 314 "lib/std/collections/collections.vader"
+#line 312 "lib/std/collections/collections.vader"
     l2 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_evals;
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
     l3 = INT64_C(0);
     l4 = ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_size;
     while ((l3 < l4)) {
-#line 316 "lib/std/collections/collections.vader"
+#line 314 "lib/std/collections/collections.vader"
         vader_array_t* _a19_slotarr = ((vader_array_t*) l1);
         VADER_ARRAY_RESOLVE_BUF(_a19_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a19_slotarr, l3)
@@ -586,7 +586,7 @@ static int32_t snippet_main(void) {
         std_io_println__string(t0);
 #line 76 "tests/snippets/map_set_basics/_main.vader"
         l8 = vader_chk_add(i32, l8, l12);
-#line 315 "lib/std/collections/collections.vader"
+#line 313 "lib/std/collections/collections.vader"
         l3 = (l3 + INT64_C(1));
     }
 #line 78 "tests/snippets/map_set_basics/_main.vader"
@@ -606,7 +606,7 @@ static int32_t snippet_main(void) {
 #line 61 "lib/std/collections/collections.vader"
     vader_array_t* _a23_arr = vader_array_new(15u, 0u, 7u, 3u);
     l2 = (void*) _a23_arr;
-#line 333 "lib/std/collections/collections.vader"
+#line 331 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__i32__bool_t* _a24_obj = (vader_struct_std_collections_MutableMap__i32__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__bool_t));
     vader_obj_header_init(_a24_obj, 11u);
     _a24_obj->f_ekeys = l0;
@@ -838,7 +838,7 @@ static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
 
 static bool std_collections_MutableMap_std_core_Contains_contains__i32__bool(void* l0, int32_t l1) {
     bool t0;
-#line 278 "lib/std/collections/collections.vader"
+#line 276 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__i32__bool(l0, l1);
     return t0;
 }
@@ -854,15 +854,14 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__i32(void* 
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__i32__i32(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__i32__i32(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
 static bool std_collections_MutableMap_std_core_Contains_contains__i32__i32(void* l0, int32_t l1) {
     bool t0;
-#line 278 "lib/std/collections/collections.vader"
+#line 276 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__i32__i32(l0, l1);
     return t0;
 }
@@ -881,22 +880,21 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__i32(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__i32(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
 static bool std_collections_MutableMap_std_core_Contains_contains__string__i32(void* l0, vader_string_t l1) {
     bool t0;
-#line 278 "lib/std/collections/collections.vader"
+#line 276 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__string__i32(l0, l1);
     return t0;
 }
 
 static bool std_collections_MutableSet_std_core_Contains_contains__i32(void* l0, int32_t l1) {
     bool t0;
-#line 366 "lib/std/collections/collections.vader"
+#line 364 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_std_core_Contains_contains__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1);
     return t0;
 }
@@ -2035,14 +2033,14 @@ static bool std_collections_add__i32(void* l0, int32_t l1) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 342 "lib/std/collections/collections.vader"
+#line 340 "lib/std/collections/collections.vader"
     t0 = std_collections_put__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1, true);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_collections_len__i32(void* l0) {
     int64_t t0;
-#line 353 "lib/std/collections/collections.vader"
+#line 351 "lib/std/collections/collections.vader"
     t0 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner)->f_size;
     return t0;
 }

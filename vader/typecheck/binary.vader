@@ -367,7 +367,7 @@ check_operator_rhs :: fn(
     if method !is FnType {
         return null
     }
-    _ :: reject_unmet_impl_bounds(
+    reject_unmet_impl_bounds(
         recv, chosen.trait_key, .OperatorTraitNotImplemented, operand_expr.span, typed, diags,
     )
     if method.params.len() > 0 {
@@ -652,7 +652,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
         chosen :: pick_operator_member(candidates, right, left, e, typed, diags)
         // The impl may bound its argument : `T[] implements<T: Equals> Contains<T>`
         // holds for no element type outside the bound.
-        _ :: reject_unmet_impl_bounds(
+        reject_unmet_impl_bounds(
             right, core_trait_key(TRAIT_CONTAINS), .OperatorTraitNotImplemented, e.span,
             typed, diags,
         )

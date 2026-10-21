@@ -3748,9 +3748,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__bool(vo
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__bool(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__bool(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3768,9 +3767,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__char(vo
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__char(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__char(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3788,9 +3786,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__f32(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__f32(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__f32(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3808,9 +3805,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__f64(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__f64(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__f64(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3828,9 +3824,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i16(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__i16(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__i16(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3848,9 +3843,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i64(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__i64(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__i64(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3868,9 +3862,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__u16(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__u16(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__u16(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3888,9 +3881,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__u8(void
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__u8(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__u8(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

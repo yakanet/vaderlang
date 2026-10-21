@@ -232,7 +232,7 @@ export preresolve_imports :: fn(
     for sf in sources {
         for d in sf.program.decls {
             if d is AST.ImportDecl {
-                _ :: resolve_lazy(d.path, paths, index, diags)
+                resolve_lazy(d.path, paths, index, diags)
             }
         }
     }

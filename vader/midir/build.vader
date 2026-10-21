@@ -647,9 +647,8 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             emit(fn_ctx, InstrDeferPopExec { .count = s.count, .span = s.span })
         }
         is LoweredExprStmt -> {
-            // Side-effect only ; discard the resulting local (keeps the arm void
-            // so the match stays a statement, not a value).
-            _ :: build_expr(fn_ctx, s.expr)
+            // Side-effect only: the resulting local is discarded.
+            build_expr(fn_ctx, s.expr)
         }
         is LoweredReturn -> {
             values: LocalId[]: []
@@ -1370,7 +1369,7 @@ build_if_arm :: fn(fn_ctx: FnCtx, block: LoweredBlock, result: LocalId | null) -
     if result !is null {
         build_block_into(fn_ctx, block, result)
     } else {
-        _ :: build_block_body(fn_ctx, block)
+        build_block_body(fn_ctx, block)
     }
 }
 

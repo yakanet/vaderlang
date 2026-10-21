@@ -48,7 +48,7 @@ publish_default_resolutions :: fn(
 
 copy_maybe_resolutions :: fn(e: AST.Expr | null, from: TypedProgram, into: TypedProgram) -> void {
     present :: e ?? return
-    _ :: AST.inspect(present, (n) -> copy_node_resolutions(n, from, into))
+    AST.inspect(present, (n) -> copy_node_resolutions(n, from, into))
 }
 
 // `inspect` reaches every node, so every identifier is copied ; what the visitor

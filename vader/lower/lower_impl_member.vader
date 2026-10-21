@@ -313,7 +313,7 @@ surface_array_variants :: fn(
     }
     for v in receiver.variants {
         if v is ArrayType {
-            _ :: resolve_impl_member(ctx, v, trait_key, method)
+            resolve_impl_member(ctx, v, trait_key, method)
         }
     }
 }

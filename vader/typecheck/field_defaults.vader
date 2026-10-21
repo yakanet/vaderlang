@@ -44,7 +44,7 @@ settle_literal_defaults :: fn(
         return
     }
     fill :: DefaultFill {}
-    _ :: fill_omitted_defaults(decl, provided, fill, typed)
+    fill_omitted_defaults(decl, provided, fill, typed)
     for cd in fill.consts {
         settle_decl_read(cd, span, typed)
     }
@@ -60,7 +60,7 @@ reject_default_cycle :: fn(
     detail :: cycle_detail(fill, closing)
     diags.push(typecheck_error(.FieldDefaultsFillEachOther, closing.span, detail))
     for d in fill.filling {
-        _ :: fill.filled.add(d.key)
+        fill.filled.add(d.key)
     }
     fill.filling.clear()
 }
@@ -116,8 +116,8 @@ fill_omitted_defaults :: fn(
                 return closing
             }
         }
-        _ :: fill.filling.remove_last()
-        _ :: fill.filled.add(key)
+        fill.filling.remove_last()
+        fill.filled.add(key)
     }
     return null
 }

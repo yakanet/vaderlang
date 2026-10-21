@@ -120,7 +120,7 @@ push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> NarrowSlo
 /// outlive its scope and poison the authoritative re-walk.
 pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: NarrowSlot | null) -> void {
     if prev == null {
-        _ :: typed.narrow.bindings.remove(sym_id)
+        typed.narrow.bindings.remove(sym_id)
     } else {
         typed.narrow.bindings[sym_id] = prev
     }
@@ -499,7 +499,7 @@ bring_narrowings_back :: fn(typed: TypedProgram, aside: NarrowingsAside) -> void
 /// @param calls_before  `typed.narrow.calls` before its right operand was checked.
 note_right_operand_calls :: fn(typed: TypedProgram, id: i64, calls_before: i32) -> void {
     if typed.narrow.calls != calls_before {
-        _ :: typed.narrow.calling_right_operands.add(id)
+        typed.narrow.calling_right_operands.add(id)
     }
 }
 

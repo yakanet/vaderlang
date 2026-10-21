@@ -95,7 +95,7 @@ raw_mode_end :: fn() -> void {
     if !state.active {
         return
     }
-    _ :: sys_tcsetattr(0, TCSAFLUSH, state.termios)
+    sys_tcsetattr(0, TCSAFLUSH, state.termios)
     state.active = false
 }
 
@@ -133,7 +133,7 @@ raw_mode_end :: fn() -> void {
     }
     h :: get_std_handle(STD_INPUT_HANDLE)
     if i64(h) != INVALID_HANDLE {
-        _ :: set_console_mode(h, state.console_mode)
+        set_console_mode(h, state.console_mode)
     }
     state.active = false
 }

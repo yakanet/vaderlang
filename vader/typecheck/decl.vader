@@ -108,7 +108,7 @@ declare_decl :: fn(
                 }
             }
             if is_guard_candidate(decl, typed) {
-                _ :: typed.guards.candidates.add(decl.id)
+                typed.guards.candidates.add(decl.id)
             }
         }
         is AST.StructDecl -> {

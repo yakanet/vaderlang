@@ -369,9 +369,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_alpha_S
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__snippet_alpha_Status__i64(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__snippet_alpha_Status__i64(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -386,9 +385,8 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_beta_St
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__snippet_beta_Status__i64(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__snippet_beta_Status__i64(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 

@@ -125,7 +125,7 @@ export resolve_module_programs :: fn(
     }
     for program in programs {
         scope :: file_scopes[program.file] ?? panic("resolver: no scope for `${program.file}`")
-        _ :: state.enter_file(scope)
+        state.enter_file(scope)
         for d in program.decls {
             state.walk_decl(d)
         }
@@ -240,9 +240,9 @@ walk_decl :: fn(self: ResolveState, d: AST.Decl) -> void {
             self.scope.push()
             // An alias's bounds are checked, not recorded : nothing enforces them.
             for tp in d.type_params {
-                _ :: self.bind_type_param(tp)
+                self.bind_type_param(tp)
                 if tp.bound !is null {
-                    _ :: self.checked_bound(tp, tp.bound)
+                    self.checked_bound(tp, tp.bound)
                 }
             }
             self.walk_opt_expr(d.aliased)
@@ -380,7 +380,7 @@ walk_body :: fn(self: ResolveState, body: AST.BlockExpr) -> void {
     }
     outer :: self.enter_file(written_in)
     self.walk_block(body)
-    _ :: self.enter_file(outer)
+    self.enter_file(outer)
 }
 
 walk_struct_decl :: fn(self: ResolveState, d: AST.StructDecl) -> void {
@@ -703,14 +703,12 @@ MutableDecl :: struct {
 note_rebind :: fn(self: ResolveState, target: AST.Expr) -> void {
     if target is AST.IdentExpr {
         sym :: self.idents[target.span.hash()] ?? return
-        _ :: self.reassigned.add(sym.id)
+        self.reassigned.add(sym.id)
         if self.loop_depth > 0 {
             self.rebind_log.push(sym.id)
         }
-        // `add` reports whether the id was new; as the `if`'s last expression a
-        // bare call would make this `void` body return `bool | void`.
         if self.declared_outside_lambda(target.name) {
-            _ :: self.closure_rebound.add(sym.id)
+            self.closure_rebound.add(sym.id)
         }
     }
 }
@@ -739,7 +737,7 @@ rebind_free_locals :: fn(self: ResolveState) -> MutableSet<i32> {
     out :: MutableSet<i32> {}
     for id in self.declared_locals {
         if !(id in self.reassigned) {
-            _ :: out.add(id)
+            out.add(id)
         }
     }
     return out

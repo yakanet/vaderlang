@@ -265,11 +265,11 @@ read_once :: fn(
     if decl.id in table.reading {
         return null
     }
-    _ :: table.reading.add(decl.id)
+    table.reading.add(decl.id)
     position :: set_walk_aside(owner)
     contract :: read_contract(decl, cond, owner)
     resume_walk(owner, position)
-    _ :: table.reading.remove(decl.id)
+    table.reading.remove(decl.id)
     if contract != null {
         table.contracts[decl.id] = contract
     }
@@ -278,7 +278,7 @@ read_once :: fn(
 
 // The contract `cond` states for `decl`, read in the module declaring it.
 read_contract :: fn(decl: AST.FnDecl, cond: AST.Expr, owner: TypedProgram) -> GuardContract | null {
-    _ :: check_expr(cond, TY_BOOL, owner, diag_sink())
+    check_expr(cond, TY_BOOL, owner, diag_sink())
     params :: param_slots(decl, owner) ?? return null
     return GuardContract {
         .decl = decl,
@@ -336,7 +336,7 @@ admitted :: fn(
         diags.push(typecheck_error(.MisshapenGuard, fd.name_span, problem))
         return null
     }
-    _ :: check_expr(cond, TY_BOOL, typed, diags)
+    check_expr(cond, TY_BOOL, typed, diags)
     contract :: read() ?? return null
     if contract.facts.len() == 0 {
         diags.push(typecheck_error(.MisshapenGuard, cond.span,

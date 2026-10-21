@@ -203,7 +203,7 @@ static int32_t snippet_main(void) {
 #line 61 "lib/std/collections/collections.vader"
     vader_array_t* _a2_arr = vader_array_new(14u, 0u, 7u, 1u);
     l2 = (void*) _a2_arr;
-#line 333 "lib/std/collections/collections.vader"
+#line 331 "lib/std/collections/collections.vader"
     vader_struct_std_collections_MutableMap__string__bool_t* _a3_obj = (vader_struct_std_collections_MutableMap__string__bool_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__string__bool_t));
     vader_obj_header_init(_a3_obj, 13u);
     _a3_obj->f_ekeys = l0;
@@ -474,22 +474,21 @@ static void std_collections_MutableMap_std_core_IndexSet_set_at__string__i32(voi
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 273 "lib/std/collections/collections.vader"
-    std_collections_put__string__i32(l0, l1, l2);
 #line 272 "lib/std/collections/collections.vader"
+    std_collections_put__string__i32(l0, l1, l2);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
 static bool std_collections_MutableSet_std_core_Contains_contains__string(void* l0, vader_string_t l1) {
     bool t0;
-#line 366 "lib/std/collections/collections.vader"
+#line 364 "lib/std/collections/collections.vader"
     t0 = std_collections_MutableMap_std_core_Contains_contains__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1);
     return t0;
 }
 
 static bool std_collections_MutableMap_std_core_Contains_contains__string__bool(void* l0, vader_string_t l1) {
     bool t0;
-#line 278 "lib/std/collections/collections.vader"
+#line 276 "lib/std/collections/collections.vader"
     t0 = std_collections_contains_key__string__bool(l0, l1);
     return t0;
 }
@@ -1208,7 +1207,7 @@ static bool std_collections_add__string(void* l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 342 "lib/std/collections/collections.vader"
+#line 340 "lib/std/collections/collections.vader"
     t0 = std_collections_put__string__bool(((vader_struct_std_collections_MutableSet__string_t*) l0)->f_inner, l1, true);
     { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }

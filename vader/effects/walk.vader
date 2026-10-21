@@ -138,7 +138,7 @@ result_effect_of :: fn(decl: AST.FnDecl) -> Effect {
 defer_stmt :: fn(ctx: WalkCtx, s: AST.DeferStmt) -> void {
     match body :: s.body {
         is AST.DeferStmtBody  -> { ctx.stmt(body.stmt) }
-        is AST.DeferBlockBody -> { _ :: ctx.block_value(body.block) }
+        is AST.DeferBlockBody -> { ctx.block_value(body.block) }
     }
 }
 
@@ -155,7 +155,7 @@ for_stmt :: fn(ctx: WalkCtx, s: AST.ForStmt) -> void {
             }
         }
     }
-    _ :: ctx.block_value(s.body)
+    ctx.block_value(s.body)
 }
 
 // What each step of a `for` over `iter` hands its variable: an element of an array,
@@ -200,7 +200,7 @@ note_place :: fn(ctx: WalkCtx, place: AST.Expr) -> void {
     @partial match place {
         is AST.FieldExpr -> { ctx.note_place(place.target) }
         is AST.IndexExpr -> { ctx.note_place(place.target) }
-        is AST.IdentExpr -> { _ :: ctx.place_bases.add(place.id) }
+        is AST.IdentExpr -> { ctx.place_bases.add(place.id) }
         _                -> {}
     }
 }
@@ -247,7 +247,7 @@ assign_element :: fn(ctx: WalkCtx, place: AST.IndexExpr, value: i64 | null) -> v
     index :: ctx.value(place.index)
     writer :: ctx.site_callee(.IndexWrite, place.id)
     if writer != null && writer !is Builtin && writer !is ErroneousCallee {
-        _ :: ctx.call(writer, [target, index, value], place.span, [null, place.index, null])
+        ctx.call(writer, [target, index, value], place.span, [null, place.index, null])
         return
     }
     ctx.mark(target, ctx.index.paths.path_to(ELEMENT), .Assigned, place.span)

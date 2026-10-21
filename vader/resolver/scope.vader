@@ -44,7 +44,7 @@ export push :: fn(self: Scope) -> void {
 /// Drop the innermost scope. No-op on an empty stack — the body walker
 /// over-pops on malformed AST rather than crashing.
 export pop :: fn(self: Scope) -> void {
-    _ :: self.frames.remove_last()
+    self.frames.remove_last()
 }
 
 /// Bind `name` in the innermost frame. Silently shadows any outer

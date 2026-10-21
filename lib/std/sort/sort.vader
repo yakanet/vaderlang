@@ -115,7 +115,7 @@ import "std/string"
 
 @test test_sort_preserves_input :: fn() -> void {
     src :: [3, 1, 2]
-    _ :: sort(src, (a: i32, b: i32) -> a < b)
+    sort(src, (a: i32, b: i32) -> a < b)
     // Input array should be unchanged (sort returns a new array).
     assert_eq(src[0], 3)
     assert_eq(src[1], 1)

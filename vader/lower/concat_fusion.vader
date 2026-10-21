@@ -67,7 +67,7 @@ fuse_concat_tail :: fn(ctx: FnLowerCtx, stmts: LoweredStmt[]) -> void {
         .target = prev.target,
         .value = lower_concat_chain(ctx, merged, prev.span),
     }
-    _ :: stmts.remove_last()
+    stmts.remove_last()
 }
 
 // Destructure `s = concat_N(s, …)`, or `null` for anything else. The target must

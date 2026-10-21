@@ -292,7 +292,7 @@ pc_close_cache :: fn(s: FnState, opener_pc: i32) -> void {
         return
     }
     pc_emit_writeback(s, top.opener_pc)
-    _ :: s.push_caches.remove_last()
+    s.push_caches.remove_last()
 }
 
 /// The active plan for `slot`, or `null` when this push is not lifted.

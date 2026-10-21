@@ -79,7 +79,7 @@ set_interval :: fn(ctx: RangeContext, s: RangeState, local: LocalId, iv: Interva
     whole :: type_of(ctx, local) ?? return
     met :: interval_meet(iv, whole)
     if met == null || same_interval(met, whole) {
-        _ :: s.intervals.remove(local)
+        s.intervals.remove(local)
         return
     }
     s.intervals[local] = met
