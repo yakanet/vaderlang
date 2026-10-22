@@ -349,9 +349,7 @@ ensure_local_symbol_index :: fn(
         match defined :: symbol.defined_at {
             is null -> {}
             is Span -> {
-                key :: defined.hash()
-                existing :: index[key]
-                if existing is null { index[key] = symbol }
+                index.get_or_put(defined.hash(), symbol)
             }
         }
     }

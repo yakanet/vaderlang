@@ -118,14 +118,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     impls_by_vtable_key :: MutableMap<string, Symbol[]> {}
     for e in lp.vtable_entries {
         key :: "${e.trait_name}|${e.method_name}"
-        bucket :: impls_by_vtable_key[key]
-        if bucket == null {
-            impls_by_vtable_key[key] = [e.fn_symbol]
-        } else {
-            grown :: bucket
-            grown.push(e.fn_symbol)
-            impls_by_vtable_key[key] = grown
-        }
+        impls_by_vtable_key.get_or_put_with(key, () -> []).push(e.fn_symbol)
     }
 
     pending_virtual: string[]: []

@@ -249,7 +249,7 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<i64, RecordedFns> {
                 if decl.materialized {
                     continue
                 }
-                at :: out[id] ?? new_recorded(out, id)
+                at :: out.get_or_put_with(id, () -> RecordedFns {})
                 match role {
                     .Call | .MethodValue -> { at.called.push(decl) }
                     .Reference           -> { at.referenced.push(decl) }
@@ -259,12 +259,6 @@ recorded_fns :: fn(typed: TypedProgram) -> MutableMap<i64, RecordedFns> {
         }
     }
     return out
-}
-
-new_recorded :: fn(out: MutableMap<i64, RecordedFns>, id: i64) -> RecordedFns {
-    fresh :: RecordedFns {}
-    out[id] = fresh
-    return fresh
 }
 
 // The sites of the fns recorded at `e` : a call refers to its fn at the callee's

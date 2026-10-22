@@ -131,13 +131,11 @@ param_key :: fn(decl: i64, param: i32) -> u64 = u64(decl) * 0x1_0000_0000 + u64(
 
 // The node of `key`, added on first sight.
 node_of :: fn(graph: InstantiationGraph, key: u64) -> i32 {
-    known :: graph.nodes[key]
-    if known != null {
-        return known
+    fresh :: i32(graph.successors.len())
+    node :: graph.nodes.get_or_put(key, fresh)
+    if node == fresh {
+        graph.successors.push([])
     }
-    node :: i32(graph.successors.len())
-    graph.nodes[key] = node
-    graph.successors.push([])
     return node
 }
 

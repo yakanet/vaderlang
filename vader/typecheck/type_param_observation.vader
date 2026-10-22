@@ -103,16 +103,14 @@ forwarding_graph :: fn(modules: MutableMap<string, TypedProgram>) -> ForwardingG
     return forwarding
 }
 
-// The node of declaration `id`.
-node_of :: fn(forwarding: ForwardingGraph, id: i64) -> i32 =
-    forwarding.nodes[id] ?? add_node(forwarding, id)
-
-// Add declaration `id` as a node, unmarked and with no edge.
-add_node :: fn(forwarding: ForwardingGraph, id: i64) -> i32 {
-    node :: i32(forwarding.successors.len())
-    forwarding.nodes[id] = node
-    forwarding.observing.push(false)
-    forwarding.successors.push([])
+// The node of declaration `id`, added unmarked and with no edge on first sight.
+node_of :: fn(forwarding: ForwardingGraph, id: i64) -> i32 {
+    fresh :: i32(forwarding.successors.len())
+    node :: forwarding.nodes.get_or_put(id, fresh)
+    if node == fresh {
+        forwarding.observing.push(false)
+        forwarding.successors.push([])
+    }
     return node
 }
 

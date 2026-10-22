@@ -123,14 +123,13 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.Bc
         here :: caller.debug[pc]
         if op is bc.Call && leaf[op.function_index] {
             callee :: functions[op.function_index]
-            base := bases[op.function_index] ?? -1
-            if base < 0 {
-                base = params + i32(locals.len())
+            before :: bases.len()
+            base :: bases.get_or_put(op.function_index, params + i32(locals.len()))
+            if bases.len() > before {
                 for p in callee.signature.params {
                     locals.push(bc.BcLocal { .name = "inlined", .val = p })
                 }
                 locals.push_all(callee.locals)
-                bases[op.function_index] = base
             }
             // The arguments sit on the stack, the last on top.
             k :: callee.signature.params.len()

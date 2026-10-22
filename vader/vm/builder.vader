@@ -98,11 +98,11 @@ export new_module_builder :: fn() -> ModuleBuilder {
 /// @param value  the string to intern.
 /// @return       the index into `self.strings` where `value` lives.
 export intern_string :: fn(self: ModuleBuilder, value: string) -> i32 {
-    cached :: self.string_index[value]
-    if !(cached is null) { return cached }
-    index :: i32(self.strings.len())
-    self.strings.push(value)
-    self.string_index[value] = index
+    fresh :: i32(self.strings.len())
+    index :: self.string_index.get_or_put(value, fresh)
+    if index == fresh {
+        self.strings.push(value)
+    }
     return index
 }
 

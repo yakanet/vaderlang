@@ -271,13 +271,14 @@ note_member_origin :: fn(
     trait_key: string,
 ) -> void {
     verifier :: ctx.project.callee_verifier ?? return
-    if verifier.members[mangled] == null {
-        verifier.members[mangled] = ObservedFn {
+    verifier.members.get_or_put_with(
+        mangled,
+        () -> ObservedFn {
             .decl = decl,
             .trait_key = trait_key,
             .name = mangled,
-        }
-    }
+        },
+    )
 }
 
 // ---- comparison -----------------------------------------------------------
@@ -518,7 +519,7 @@ render_callee_report :: fn(project: LowerProjectCtx) -> string {
     for m in verifier.mismatches {
         recorded :: recorded_kind(m.recorded)
         key :: "${role_label(m.role)}: recorded ${recorded}, lowered ${observed_kind(m.observed)}"
-        pairs :: groups[key] ?? new_group(groups, key)
+        pairs :: groups.get_or_put_with(key, () -> MutableMap<string, MismatchPair> {})
         pair :: "${recorded_label(m.recorded)} / ${observed_label(m.observed)}"
         seen :: pairs[pair]
         if seen == null {
@@ -542,15 +543,6 @@ render_callee_report :: fn(project: LowerProjectCtx) -> string {
 MismatchPair :: struct {
     count: i32
     first: Span
-}
-
-new_group :: fn(
-    groups: MutableMap<string, MutableMap<string, MismatchPair>>,
-    key: string,
-) -> MutableMap<string, MismatchPair> {
-    fresh :: MutableMap<string, MismatchPair> {}
-    groups[key] = fresh
-    return fresh
 }
 
 recorded_kind :: fn(recorded: Callee | null) -> string {

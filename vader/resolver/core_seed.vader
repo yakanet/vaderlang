@@ -92,8 +92,8 @@ export seed_wildcard_exports :: fn(
         target :: name_index[path] ?? continue
         ex :: excludes[path]
         for [_, sym] in target.collected.symbols {
-            if wildcard_exposes(sym, ex) && root[sym.name] == null {
-                root[sym.name] = sym
+            if wildcard_exposes(sym, ex) {
+                root.get_or_put(sym.name, sym)
             }
         }
     }
@@ -150,18 +150,13 @@ export wildcard_ambiguities :: fn(
             // the core symbol — the wildcard exports are dropped. Skip it so R2031
             // doesn't fire on a reference that unambiguously resolves to the core.
             if base[sym.name] != null { continue }
-            lst :: providers[sym.name]
-            if lst is null {
-                providers[sym.name] = [path]
-            } else {
-                seen := false
-                for p in lst {
-                    if p == path { seen = true }
-                }
-                if !seen {
-                    lst.push(path)
-                    providers[sym.name] = lst
-                }
+            lst :: providers.get_or_put_with(sym.name, () -> [])
+            seen := false
+            for p in lst {
+                if p == path { seen = true }
+            }
+            if !seen {
+                lst.push(path)
             }
         }
     }

@@ -75,16 +75,15 @@ check_block :: fn(
     // expression-bodied fns synthesise a BlockExpr around the trailing
     // with overlapping spans, and the trailing's true kind (BinaryExpr
     // / CallExpr / …) is what callers want to see in the dump.
-    // Now keyed by AST id, so the block's id and the trailing expr's
-    // id are distinct ; the null-guard remains a defence in depth.
-    if typed.dump_types && typed.expr_kinds[block.id] is null {
-        typed.expr_kinds[block.id] = "BlockExpr"
+    // The block and its trailing expression have distinct AST ids ; storing
+    // only when absent remains a defence in depth.
+    if typed.dump_types {
+        typed.expr_kinds.get_or_put(block.id, "BlockExpr")
     }
-    if typed.expr_types[block.id] is null {
-        typed.expr_types[block.id] = result
-        if typed.dump_types {
-            typed.node_spans[block.id] = block.span
-        }
+    before :: typed.expr_types.len()
+    typed.expr_types.get_or_put(block.id, result)
+    if typed.dump_types && typed.expr_types.len() > before {
+        typed.node_spans[block.id] = block.span
     }
     return result
 }

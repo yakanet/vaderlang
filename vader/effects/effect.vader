@@ -87,13 +87,11 @@ first_paths :: fn() -> PathNode[] = [
 
 // The id of the step `name`.
 step_id :: fn(t: PathTable, name: string) -> i32 {
-    known :: t.step_ids[name]
-    if known != null {
-        return known
+    fresh :: i32(t.step_names.len())
+    id :: t.step_ids.get_or_put(name, fresh)
+    if id == fresh {
+        t.step_names.push(name)
     }
-    id :: i32(t.step_names.len())
-    t.step_names.push(name)
-    t.step_ids[name] = id
     return id
 }
 
@@ -106,14 +104,11 @@ child :: fn(t: PathTable, p: i32, step: i32) -> i32 {
     if node.length == MAX_STEPS {
         return t.cut(p)
     }
-    key :: pair_key(p, step)
-    known :: t.children[key]
-    if known != null {
-        return known
+    fresh :: i32(t.nodes.len())
+    id :: t.children.get_or_put(pair_key(p, step), fresh)
+    if id == fresh {
+        t.nodes.push(PathNode { .parent = p, .step = step, .length = node.length + 1 })
     }
-    id :: i32(t.nodes.len())
-    t.nodes.push(PathNode { .parent = p, .step = step, .length = node.length + 1 })
-    t.children[key] = id
     return id
 }
 

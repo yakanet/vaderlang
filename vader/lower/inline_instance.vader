@@ -83,25 +83,26 @@ new_inline_instance :: fn(
 // holds only the module's top-level symbols; the index `lookup_local_symbol`
 // reads covers every binding. Gathered once per callee.
 declared_bindings :: fn(
-    project: LowerProjectCtx, callee_id: i32, decl: AST.FnDecl, owner: TypedProgram,
-) -> Symbol[] {
-    cached :: project.instance_bindings[callee_id]
-    if cached != null {
-        return cached
-    }
-    found: Symbol[]: []
-    for [_, symbol] in ensure_local_symbol_index(project, owner.resolved) {
-        if !is_local_binding(symbol.kind) {
-            continue
+    project: LowerProjectCtx,
+    callee_id: i32,
+    decl: AST.FnDecl,
+    owner: TypedProgram,
+) -> Symbol[] = project.instance_bindings.get_or_put_with(
+    callee_id,
+    fn() {
+        found: Symbol[]: []
+        for [_, symbol] in ensure_local_symbol_index(project, owner.resolved) {
+            if !is_local_binding(symbol.kind) {
+                continue
+            }
+            at :: symbol.defined_at ?? continue
+            if starts_within(decl.span, at) {
+                found.push(symbol)
+            }
         }
-        at :: symbol.defined_at ?? continue
-        if starts_within(decl.span, at) {
-            found.push(symbol)
-        }
-    }
-    project.instance_bindings[callee_id] = found
-    return found
-}
+        return found
+    },
+)
 
 is_local_binding :: fn(kind: SymbolKind) -> bool =
     kind == .Param || kind == .Local || kind == .Binding

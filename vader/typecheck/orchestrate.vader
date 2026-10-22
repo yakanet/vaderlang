@@ -454,20 +454,14 @@ populate_from :: fn(
     // `(field_name → Type)` table from `p`'s public exports so
     // `field.vader` can resolve `name.foo` accesses.
     for [_, mod_id] in targets.namespace_targets {
-        if entry_typed.namespace_exports[mod_id] is null {
-            entry_typed.namespace_exports[mod_id] = build_namespace_exports(
-                mod_id,
-                project,
-                per_module,
-            )
-        }
-        if entry_typed.namespace_export_decls[mod_id] is null {
-            entry_typed.namespace_export_decls[mod_id] = build_namespace_export_decls(
-                mod_id,
-                project,
-                per_module,
-            )
-        }
+        entry_typed.namespace_exports.get_or_put_with(
+            mod_id,
+            () -> build_namespace_exports(mod_id, project, per_module),
+        )
+        entry_typed.namespace_export_decls.get_or_put_with(
+            mod_id,
+            () -> build_namespace_export_decls(mod_id, project, per_module),
+        )
         publish_namespace_defaults(mod_id, entry_typed, per_module)
     }
 }
@@ -510,7 +504,7 @@ check_impl_coherence :: fn(
     per_module: MutableMap<string, TypedProgram>,
     diags: Diagnostic[],
 ) -> void {
-    seen :: MutableMap<string, Span> {}
+    seen :: MutableSet<string> {}
     by_base :: MutableMap<string, ImplShape[]> {}
     // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
     // deps) first, then the entry module LAST. A user impl that duplicates a
@@ -530,7 +524,7 @@ check_module_impl_coherence :: fn(
     id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    seen: MutableMap<string, Span>,
+    seen: MutableSet<string>,
     by_base: MutableMap<string, ImplShape[]>,
     diags: Diagnostic[],
 ) -> void {
@@ -554,13 +548,11 @@ check_module_impl_coherence :: fn(
                 continue
             }
             key :: coherence_key(for_ty, trait_key, args) ?? continue
-            if seen[key] != null {
+            if !seen.add(key) {
                 // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
                 // the R2018 orphan rule), so it's built with `resolver_error`.
                 detail :: conflict_detail(decl, for_ty)
                 diags.push(resolver_error(.ConflictingImpl, decl.span, detail))
-            } else {
-                seen[key] = decl.span
             }
         }
     }
@@ -599,11 +591,7 @@ reject_overlapping_impl :: fn(
     }
     bucket :: "${impl_base_key(for_ty)}#${trait_key}"
     shape :: ImplShape { .for_ty = for_ty, .args = args, .span = decl.span }
-    seen :: by_base[bucket]
-    if seen == null {
-        by_base[bucket] = [shape]
-        return false
-    }
+    seen :: by_base.get_or_put_with(bucket, () -> [])
     for other in seen {
         if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
             diags.push(resolver_error(.ConflictingImpl, decl.span,
@@ -690,12 +678,7 @@ check_module_fn_redefinitions :: fn(
         if decl !is AST.FnDecl {
             continue
         }
-        group :: by_name[decl.name]
-        if group == null {
-            by_name[decl.name] = [decl]
-        } else {
-            group.push(decl)
-        }
+        by_name.get_or_put_with(decl.name, () -> []).push(decl)
     }
     // The module's EXPLICITLY-imported free fns — a module fn with the SAME name
     // AND signature as one of them would otherwise silently shadow it
@@ -966,11 +949,7 @@ record_impl_members :: fn(
 // Adds `entry` to the members `key` offers, once : a plain type's own key is its
 // side key.
 add_impl_method :: fn(tables: ImplTables, key: string, entry: ImplMethod) -> void {
-    members :: tables.impl_methods[key]
-    if members == null {
-        tables.impl_methods[key] = [entry]
-        return
-    }
+    members :: tables.impl_methods.get_or_put_with(key, () -> [])
     for i in 0..<members.len() {
         if members[i].impl_key == entry.impl_key {
             members[i] = entry
@@ -1026,18 +1005,13 @@ has_iterator_impl :: fn(tables: ImplTables, key: string) -> bool {
 add_trait_unique :: fn<K: Hash & Equals>(
     m: MutableMap<K, string[]>, key: K, trait_key: string,
 ) -> void {
-    bucket :: m[key]
-    if bucket == null {
-        m[key] = [trait_key]
-        return
-    }
+    bucket :: m.get_or_put_with(key, () -> [])
     for n in bucket {
         if n == trait_key {
             return
         }
     }
     bucket.push(trait_key)
-    m[key] = bucket
 }
 
 record_struct_trait :: fn(tables: ImplTables, for_ty: Type, trait_key: string) -> void {
@@ -1084,10 +1058,7 @@ record_impl_bounds :: fn(
         .impl_key  = decl.span.hash(),
         .bounds    = bounds,
     }
-    base :: impl_base_key(for_ty)
-    held :: owner.impl_tables.impl_bounds[base] ?? []
-    held.push(entry)
-    owner.impl_tables.impl_bounds[base] = held
+    owner.impl_tables.impl_bounds.get_or_put_with(impl_base_key(for_ty), () -> []).push(entry)
 }
 
 // ---- cross-module table merges --------------------------------------------
@@ -1291,16 +1262,11 @@ record_struct_trait_args :: fn(
     // Mutable because that is what `struct_trait_args` stores.
     args: Type[],
 ) -> void {
-    key :: impl_side_key(for_ty)
-    if tables.struct_trait_args[key] == null {
-        tables.struct_trait_args[key] = MutableMap<string, Type[][]> {}
-    }
-    per_struct :: tables.struct_trait_args[key] ?? return
-    lists :: per_struct[trait_key]
-    if lists == null {
-        per_struct[trait_key] = [args]
-        return
-    }
+    per_struct :: tables.struct_trait_args.get_or_put_with(
+        impl_side_key(for_ty),
+        () -> MutableMap<string, Type[][]> {},
+    )
+    lists :: per_struct.get_or_put_with(trait_key, () -> [])
     // Two impls with equal arguments are R2030 : the list keeps one.
     for recorded in lists {
         if type_list_equals(recorded, args) {
@@ -2062,17 +2028,16 @@ populate_imported_fn_overloads :: fn(
 // such a body has no file of its own, and the names it may use are the ones its
 // impl's file can see. Maps hold references, so the alias costs one entry.
 file_overload_table :: fn(
-    typed: TypedProgram, file: string,
-) -> MutableMap<string, FnCandidate[]> {
-    existing :: typed.imported_fn_overloads[file]
-    if existing !is null {
-        return existing
-    }
-    table :: MutableMap<string, FnCandidate[]> {}
-    typed.imported_fn_overloads[file] = table
-    typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
-    return table
-}
+    typed: TypedProgram,
+    file: string,
+) -> MutableMap<string, FnCandidate[]> = typed.imported_fn_overloads.get_or_put_with(
+    file,
+    fn() {
+        table :: MutableMap<string, FnCandidate[]> {}
+        typed.imported_fn_overloads["${CLONE_FILE_PREFIX}${file}"] = table
+        return table
+    },
+)
 
 // `import "p" { foo as bar }` — dispatch `bar` via UFCS on its declared first
 // param, in the file that bound it. `symbol_targets` is module-wide, so the
@@ -2172,20 +2137,14 @@ push_module_exported_fns :: fn(
 push_overload :: fn(
     table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate,
 ) -> void {
-    bucket :: table[name]
-    if bucket is null {
-        table[name] = [ft]
-    } else {
-        for i in 0..<bucket.len() {
-            if type_list_equals(bucket[i].ty.params, ft.ty.params) {
-                bucket[i] = ft
-                table[name] = bucket
-                return
-            }
+    bucket :: table.get_or_put_with(name, () -> [])
+    for i in 0..<bucket.len() {
+        if type_list_equals(bucket[i].ty.params, ft.ty.params) {
+            bucket[i] = ft
+            return
         }
-        bucket.push(ft)
-        table[name] = bucket
     }
+    bucket.push(ft)
 }
 
 // The resolver-side `imports_to` table, so `type_from_expr` can dereference an
@@ -2366,7 +2325,10 @@ share_namespace_member_types :: fn(
     member_cache :: MutableMap<string, MutableMap<string, Type>> {}
     members :: MutableMap<i32, MutableMap<string, Type>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
-        members[sym_id] = build_namespace_type_members(mod_id, project, per_module, member_cache)
+        members[sym_id] = member_cache.get_or_put_with(
+            mod_id,
+            () -> build_namespace_type_members(mod_id, project, per_module),
+        )
     }
     for [_, typed] in per_module {
         typed.resolved.namespace_member_types = members
@@ -2384,7 +2346,10 @@ share_namespace_private_members :: fn(
     private_cache :: MutableMap<string, MutableMap<string, bool>> {}
     privates :: MutableMap<i32, MutableMap<string, bool>> {}
     for [sym_id, mod_id] in targets.namespace_targets {
-        privates[sym_id] = build_namespace_private_names(mod_id, project, private_cache)
+        privates[sym_id] = private_cache.get_or_put_with(
+            mod_id,
+            () -> build_namespace_private_names(mod_id, project),
+        )
     }
     for [_, typed] in per_module {
         typed.resolved.namespace_private_members = privates
@@ -2398,12 +2363,7 @@ share_namespace_private_members :: fn(
 build_namespace_private_names :: fn(
     mod_id: string,
     project: LoadedProject,
-    cache: MutableMap<string, MutableMap<string, bool>>,
 ) -> MutableMap<string, bool> {
-    hit :: cache[mod_id]
-    if hit !is null {
-        return hit
-    }
     out :: MutableMap<string, bool> {}
     loaded :: project.modules[mod_id] ?? return out
     for [name, sym] in loaded.collected.symbols {
@@ -2420,7 +2380,6 @@ build_namespace_private_names :: fn(
             }
         }
     }
-    cache[mod_id] = out
     return out
 }
 
@@ -2428,12 +2387,7 @@ build_namespace_type_members :: fn(
     mod_id: string,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
-    cache: MutableMap<string, MutableMap<string, Type>>,
 ) -> MutableMap<string, Type> {
-    hit :: cache[mod_id]
-    if hit !is null {
-        return hit
-    }
     out :: MutableMap<string, Type> {}
     loaded :: project.modules[mod_id] ?? return out
     target_typed :: per_module[mod_id]
@@ -2458,7 +2412,6 @@ build_namespace_type_members :: fn(
             out[name] = type_from_symbol(sym, [])
         }
     }
-    cache[mod_id] = out
     return out
 }
 

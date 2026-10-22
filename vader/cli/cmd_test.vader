@@ -221,13 +221,7 @@ pick_module_representatives :: fn(files: Path[]) -> Path[] {
         // and the grouping below keys on it, so preserve that.
         parent_dir :: f.parent().as_string()
         d :: if parent_dir == "" { "." } else { parent_dir }
-        existing :: by_dir[d]
-        if existing is Path[] {
-            existing.push(f)
-        } else {
-            bucket: Path[]: [f]
-            by_dir[d] = bucket
-        }
+        by_dir.get_or_put_with(d, () -> []).push(f)
     }
     out: Path[]: []
     for [d, group] in by_dir {

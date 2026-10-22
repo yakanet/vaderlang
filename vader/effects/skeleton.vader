@@ -262,9 +262,7 @@ evaluate_roots :: fn(s: Skeleton, ctx: EvalCtx) -> RootEffects {
             if !s.is_seed(r.param) {
                 mixed.add(copy)
             } else {
-                taken :: took[copy] ?? []
-                taken.push(r.carried(f, ctx.paths))
-                took[copy] = taken
+                took.get_or_put_with(copy, () -> []).push(r.carried(f, ctx.paths))
             }
         }
     }

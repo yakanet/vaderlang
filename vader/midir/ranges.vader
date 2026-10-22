@@ -107,8 +107,7 @@ add_fact :: fn(s: RangeState, key: u64, c: i64) -> void {
     if fact_left(key) == fact_right(key) {
         return
     }
-    known :: s.differences[key]
-    if known == null || c < known {
+    if c < s.differences.get_or_put(key, c) {
         s.differences[key] = c
     }
 }
@@ -222,9 +221,7 @@ learn_access :: fn(ctx: RangeContext, s: RangeState, array: LocalId, index: Loca
         in_bounds :: interval_meet(current, interval_from_ends(0, null)) ?? return
         set_interval(ctx, s, index, in_bounds)
     }
-    if s.lengths[index] == null {
-        s.lengths[index] = array
-    }
+    s.lengths.get_or_put(index, array)
 }
 
 transfer_constant :: fn(ctx: RangeContext, s: RangeState, ins: InstrConst) -> void {

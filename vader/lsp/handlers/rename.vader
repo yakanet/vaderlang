@@ -101,13 +101,7 @@ workspace_edit_json :: fn(edits: RefSite[], new_name: string, state: ServerState
     for e in edits {
         key :: path_to_uri(e.span.start.file)
         te :: text_edit_json(e.span, new_name, state, li_cache)
-        cur :: by_uri[key]
-        if cur == null {
-            first: JsonValue[]: [te]
-            by_uri[key] = first
-        } else {
-            cur.push(te)
-        }
+        by_uri.get_or_put_with(key, () -> []).push(te)
     }
     changes :: MutableMap<string, JsonValue> {}
     for [key, arr] in by_uri {

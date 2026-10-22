@@ -47,8 +47,7 @@ unify_type_param :: fn(
             if type_contains_unresolved(arg_type) {
                 return
             }
-            existing :: out[param_type.symbol.id]
-            if existing is null { out[param_type.symbol.id] = arg_type  return }
+            existing :: out.get_or_put(param_type.symbol.id, arg_type)
             if is_free_numeric(existing) && !is_free_numeric(arg_type) {
                 out[param_type.symbol.id] = arg_type
             }
@@ -402,17 +401,15 @@ bind_infer_var :: fn(
     if type_contains_unresolved(actual) || mentions_infer_var(actual, v.id) {
         return
     }
-    existing :: solutions[v.id]
-    if existing == null {
-        solutions[v.id] = actual
+    // A miss stores `actual` and leaves at the first test, `existing` being `actual`.
+    existing :: solutions.get_or_put(v.id, actual)
+    if !is_free_numeric(existing) || is_free_numeric(actual) {
         return
     }
     if held != null && v.id in held {
         return
     }
-    if is_free_numeric(existing) && !is_free_numeric(actual) {
-        solutions[v.id] = actual
-    }
+    solutions[v.id] = actual
 }
 
 /// Whether `t` mentions the inference variable `id`.

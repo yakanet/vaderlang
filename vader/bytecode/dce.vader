@@ -223,14 +223,12 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         if keep_all || reachable[i32(ci)] is bool {
             mangle :: ctx.functions[ci].name
             if mangle != "" {
-                prev_opt :: canonical_old_by_mangle[mangle]
-                if prev_opt is i32 {
+                prev :: canonical_old_by_mangle.get_or_put(mangle, i32(ci))
+                if prev != i32(ci) {
                     has_dup_mangle = true
-                    if ctx.functions[ci].body.len() > 0 && ctx.functions[prev_opt].body.len() == 0 {
+                    if ctx.functions[ci].body.len() > 0 && ctx.functions[prev].body.len() == 0 {
                         canonical_old_by_mangle[mangle] = i32(ci)
                     }
-                } else {
-                    canonical_old_by_mangle[mangle] = i32(ci)
                 }
             }
         }
@@ -336,11 +334,12 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         if i64(old_fn) !in 0..<remap.len() { continue }
         new_fn :: remap[old_fn]
         if new_fn < 0 { continue }
-        existing :: new_pins_by_fn[new_fn]
-        if existing is i32[] {
-            for p in pins { existing.push(p) }
-        } else {
-            new_pins_by_fn[new_fn] = pins
+        before :: new_pins_by_fn.len()
+        existing :: new_pins_by_fn.get_or_put(new_fn, pins)
+        if new_pins_by_fn.len() == before {
+            for p in pins {
+                existing.push(p)
+            }
         }
     }
     ctx.pinned_types_by_fn = new_pins_by_fn

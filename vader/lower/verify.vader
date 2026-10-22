@@ -83,10 +83,10 @@ verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]
                 continue
             }
             symbol :: d.origin.symbol ?? continue
-            first :: symbols[symbol.id]
-            if first == null {
-                symbols[symbol.id] = d.mangled
-            } else {
+            // `mangles` lets each mangle through once, so a symbol filed before
+            // holds another one.
+            first :: symbols.get_or_put(symbol.id, d.mangled)
+            if first != d.mangled {
                 diags.push(internal_error(.FunctionDefinedTwice, body.span,
                     "`${d.mangled}` and `${first}` come from one symbol"))
             }

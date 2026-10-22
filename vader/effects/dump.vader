@@ -27,9 +27,7 @@ export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
         if !module_in_scope(path, scope) {
             continue
         }
-        nodes :: by_module[path] ?? []
-        nodes.push(i32(node))
-        by_module[path] = nodes
+        by_module.get_or_put_with(path, () -> []).push(i32(node))
     }
     sb :: StringBuilder {}
     sb.append("# effects\n")

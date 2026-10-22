@@ -75,7 +75,7 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
     }
     for e in p.vtable_entries {
         key :: vtable_key(e.trait_name, e.method_name)
-        targets :: index.virtual_targets[key] ?? new_target_list(index, key)
+        targets :: index.virtual_targets.get_or_put_with(key, () -> [])
         targets.push(callee_node(index, e.fn_symbol))
     }
     successors: i32[][]: []
@@ -97,12 +97,6 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
 TakenFunctions :: struct {
     as_values: MutableSet<i32>
     as_addresses: MutableSet<i32>
-}
-
-new_target_list :: fn(index: CalleeIndex, key: string) -> i32[] {
-    fresh: i32[]: []
-    index.virtual_targets[key] = fresh
-    return fresh
 }
 
 /// The node a direct call to `callee` runs.

@@ -45,10 +45,7 @@ new_dump_names :: fn(project: LoweredProject) -> DumpNames {
     claimed :: MutableMap<string, string> {}
     shared :: MutableSet<string> {}
     for n in named {
-        first :: claimed[n.qualified]
-        if first == null {
-            claimed[n.qualified] = n.mangled
-        } else if first != n.mangled {
+        if claimed.get_or_put(n.qualified, n.mangled) != n.mangled {
             shared.add(n.qualified)
         }
     }

@@ -686,11 +686,15 @@ gb_collect_expr :: fn(gb: GenBuild, e: LoweredExpr) -> void {
 // access (it can't just reuse this type — any other access legitimately uses
 // its use-site type, which differs for erased generic combinators).
 gb_add_field :: fn(gb: GenBuild, sym: Symbol, ty: Type) -> void {
-    if gb.field_map[sym.id] != null { return }
-    name :: "s${gb.fields.len()}"
-    gb.field_map[sym.id] = name
-    field_ty :: if gb_is_cell(gb, sym.id) { TY_UNRESOLVED } else { ty }
-    gb.fields.push(LoweredStructField { .name = name, .type = field_ty })
+    gb.field_map.get_or_put_with(
+        sym.id,
+        fn() {
+            name :: "s${gb.fields.len()}"
+            field_ty :: if gb_is_cell(gb, sym.id) { TY_UNRESOLVED } else { ty }
+            gb.fields.push(LoweredStructField { .name = name, .type = field_ty })
+            return name
+        },
+    )
 }
 
 // ---- routing (spilled local/param refs → self.<field>) --------------------

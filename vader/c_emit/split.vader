@@ -331,13 +331,7 @@ partition_functions :: fn(fns: BcFunction[]) -> i32[][] {
     // to straddle a module.
     of_module :: MutableMap<string, i32[]> {}
     for idx in sorted_fn_indices(fns) {
-        m :: module_stem_of(fns[idx].name)
-        cur :: of_module[m]
-        if cur == null {
-            of_module[m] = [idx]
-        } else {
-            cur.push(idx)
-        }
+        of_module.get_or_put_with(module_stem_of(fns[idx].name), () -> []).push(idx)
     }
     buckets: i32[][]: [[]]
     for m in sorted_module_stems(of_module) {

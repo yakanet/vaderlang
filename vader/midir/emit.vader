@@ -139,17 +139,14 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     if sym is Symbol {
         struct_type :: mk_struct(sym, s.origin.type_arguments)
         key :: layout_key(s.origin, s.mangled)
-        cached :: ctx.type_key[key]
-        idx := i32(ctx.types.len())
-        if cached is i32 {
-            if ctx.types[cached] is BcStruct { return }
-            idx = cached
-        } else {
-            ctx.type_key[key] = idx
-            struct_h :: type_intern_hash(struct_type)
-            if ctx.type_hash[struct_h] is null {
-                ctx.type_hash[struct_h] = idx
+        fresh :: i32(ctx.types.len())
+        idx :: ctx.type_key.get_or_put(key, fresh)
+        if idx != fresh {
+            if ctx.types[idx] is BcStruct {
+                return
             }
+        } else {
+            ctx.type_hash.get_or_put(type_intern_hash(struct_type), idx)
             record_slot_type(ctx, idx, struct_type)
             ctx.types.push(BcRef { .trait_name = s.mangled })
         }
@@ -589,18 +586,17 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         // slot — and requiring a struct drops those rows into a runtime
         // "vtable miss in std/core.Display.to_string".
         receiver_idx :: receiver_slot
-        existing :: rows_by_key[key]
-        if existing is i64 {
+        new_idx :: out.len()
+        existing :: rows_by_key.get_or_put(key, new_idx)
+        if existing != new_idx {
             if has_receiver(out[existing], receiver_idx) {
                 continue
             }
             out[existing].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
-            new_idx :: out.len()
             entries_arr: BcVtableEntry[]: []
             entries_arr.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
             out.push(VtableRow { .key = key, .entries = entries_arr })
-            rows_by_key[key] = new_idx
         }
     }
     return out

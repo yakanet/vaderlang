@@ -214,9 +214,7 @@ compute_atom_ids :: fn(strings: string[], universe: string[]) -> i32[] {
     // (the empty atom) and `atom_universe_covers` is what a caller checks.
     index :: MutableMap<string, i32> {}
     for i in 0..<universe.len() {
-        if index[universe[i]] == null {
-            index[universe[i]] = i32(i) + 1
-        }
+        index.get_or_put(universe[i], i32(i) + 1)
     }
     ids: i32[]: []
     for i in 0..<strings.len() {

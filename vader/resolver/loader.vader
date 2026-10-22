@@ -616,37 +616,41 @@ collect_files :: fn(
 
 merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
     for [name, sym] in src.symbols {
-        existing :: dst.symbols[name]
-        match existing {
-            is null -> { dst.symbols[name] = sym }
-            is Symbol -> {
-                // Fn-vs-fn is legitimate : it goes to `fn_overloads` below —
-                // the primary slot keeps its first-wins binding
-                // (`add_fn_symbol`'s policy), the overloads land in the bucket.
-                // Import bindings never meet here : they stay in each file's
-                // `FileImports`.
-                //
-                // Every other kind duplicated across files breaks the
-                // one-module-owns-one-declaration invariant: R2026 (module
-                // redesign, decision #28).
-                if existing.kind != .Fn || sym.kind != .Fn {
-                    span :: match s :: sym.defined_at {
-                        is Span -> s
-                        is null -> zero_span("")
-                    }
-                    diags.push(resolver_error(.DuplicateNonFnDeclInModule, span,
-                        "`${name}` already declared in a sibling file of this module"))
-                }
+        before :: dst.symbols.len()
+        existing :: dst.symbols.get_or_put(name, sym)
+        if dst.symbols.len() > before {
+            continue
+        }
+        // Fn-vs-fn is legitimate : it goes to `fn_overloads` below;
+        // the primary slot keeps its first-wins binding
+        // (`add_fn_symbol`'s policy), the overloads land in the bucket.
+        // Import bindings never meet here : they stay in each file's
+        // `FileImports`.
+        //
+        // Every other kind duplicated across files breaks the
+        // one-module-owns-one-declaration invariant: R2026 (module
+        // redesign, decision #28).
+        if existing.kind != .Fn || sym.kind != .Fn {
+            span :: match s :: sym.defined_at {
+                is Span -> s
+                is null -> zero_span("")
             }
+            diags.push(
+                resolver_error(
+                    .DuplicateNonFnDeclInModule,
+                    span,
+                    "`${name}` already declared in a sibling file of this module",
+                ),
+            )
         }
     }
     for [name, bucket] in src.fn_overloads {
-        existing :: dst.fn_overloads[name]
-        match existing {
-            is null -> { dst.fn_overloads[name] = bucket }
-            _ -> {
-                for s in bucket { existing.push(s) }
-                dst.fn_overloads[name] = existing
+        // A name new to `dst` takes the source bucket itself.
+        before :: dst.fn_overloads.len()
+        existing :: dst.fn_overloads.get_or_put(name, bucket)
+        if dst.fn_overloads.len() == before {
+            for s in bucket {
+                existing.push(s)
             }
         }
     }

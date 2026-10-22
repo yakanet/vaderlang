@@ -144,9 +144,7 @@ unify_type_args :: fn(ctx: FnLowerCtx, patterns: Type[], actuals: Type[], type_p
 // first binding of a parameter winning.
 unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type>, ctx: FnLowerCtx) -> void {
     if pattern is TypeParamType {
-        if bindings[pattern.symbol.id] == null {
-            bindings[pattern.symbol.id] = concrete
-        }
+        bindings.get_or_put(pattern.symbol.id, concrete)
         return
     }
     if pattern is StructType {

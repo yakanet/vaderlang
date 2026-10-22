@@ -164,14 +164,8 @@ collect_impl :: fn(self: ImplRegistry, impl_: ImplDecl, resolved: ResolvedModule
     }
 }
 
-push_entry :: fn(table: MutableMap<string, ImplEntry[]>, key: string, entry: ImplEntry) -> void {
-    found :: table[key]
-    if found == null {
-        table[key] = [entry]
-    } else {
-        found.push(entry)
-    }
-}
+push_entry :: fn(table: MutableMap<string, ImplEntry[]>, key: string, entry: ImplEntry) -> void =
+    table.get_or_put_with(key, () -> []).push(entry)
 
 // Every type `receiver`'s arguments are built from.
 record_specialized_args :: fn(self: ImplRegistry, receiver: Type) -> void {

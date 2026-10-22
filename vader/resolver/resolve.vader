@@ -276,9 +276,7 @@ export file_root_scope :: fn(
     for [name, sym] in imports.bindings { root[name] = sym }
     for [name, sym] in collected.symbols { root[name] = sym }
     for [name, sym] in core_seed {
-        if root[name] == null {
-            root[name] = sym
-        }
+        root.get_or_put(name, sym)
     }
     seed_wildcard_exports(root, name_index, imports.paths, imports.excludes)
     return root

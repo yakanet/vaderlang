@@ -44,13 +44,8 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
 }
 
 // Fetch (and memoise) the LineIndex for `path` within one request.
-line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex {
-    hit :: cache[path]
-    if hit is LineIndex { return hit }
-    built :: state.line_index_for_path(path)
-    cache[path] = built
-    return built
-}
+line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex =
+    cache.get_or_put_with(path, () -> state.line_index_for_path(path))
 
 // `params.context.includeDeclaration`, defaulting to true (the LSP default
 // when the client omits it).

@@ -190,14 +190,7 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, module_name:
     }
 
     sym :: factory.make(.Fn, d.name, module_path, module_name, visibility, d.name_span)
-    bucket :: self.fn_overloads[d.name]
-    match bucket {
-        is null -> { self.fn_overloads[d.name] = [sym] }
-        _ -> {
-            bucket.push(sym)
-            self.fn_overloads[d.name] = bucket
-        }
-    }
+    self.fn_overloads.get_or_put_with(d.name, () -> []).push(sym)
 
     // For two fn decls with the same name, the FIRST wins as primary. The
     // overload set already saw both.

@@ -531,10 +531,10 @@ is_comptime_helper :: fn(d: AST.Decl) -> bool = d is AST.FnDecl && d.comptime_sy
 
 // Append `refs` to the edge set for `name` (overloads share a name → merge).
 register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[]) -> void {
-    cur :: m[name]
-    if cur == null {
-        m[name] = refs
-    } else {
+    // A name met first takes `refs` itself.
+    before :: m.len()
+    cur :: m.get_or_put(name, refs)
+    if m.len() == before {
         for r in refs {
             cur.push(r)
         }

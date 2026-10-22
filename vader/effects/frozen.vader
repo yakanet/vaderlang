@@ -502,9 +502,7 @@ note_kept_by_constant :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> 
     if !frozen.hands_on_written(c, is_kept) {
         return
     }
-    kept :: frozen.kept_by_constants[constant] ?? []
-    kept.push(use)
-    frozen.kept_by_constants[constant] = kept
+    frozen.kept_by_constants.get_or_put_with(constant, () -> []).push(use)
 }
 
 // Whether the uses a root decided `kind` holds read a fresh value: copied, or

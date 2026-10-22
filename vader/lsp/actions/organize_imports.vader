@@ -144,14 +144,15 @@ render_import_block :: fn(run: AST.ImportDecl[]) -> string {
         im :: run[i]
         match dst :: im.binding {
             is AST.DestructureImport    -> {
-                existing :: modifiers[im.path]
-                if existing == null {
-                    // Copy : later same-path imports push into this array, which
-                    // must not alias (and mutate) the AST node's own names.
-                    modifiers[im.path] = dst.names.clone()
+                // A fresh bucket : later same-path imports push into it, which
+                // must not alias (and mutate) the AST node's own names.
+                before :: modifiers.len()
+                bucket :: modifiers.get_or_put_with(im.path, () -> [])
+                if modifiers.len() > before {
                     modifier_paths.push(im.path)
-                } else {
-                    for ni in 0..<dst.names.len() { existing.push(dst.names[ni]) }
+                }
+                for ni in 0..<dst.names.len() {
+                    bucket.push(dst.names[ni])
                 }
             }
             is AST.NamedNamespaceImport -> {

@@ -115,11 +115,11 @@ note_slot_types :: fn(
 }
 
 intern_string_pool :: fn(ctx: ProjectCtx, s: string) -> i32 {
-    existing :: ctx.string_index[s]
-    if existing is i32 { return existing }
-    idx :: i32(ctx.strings.len())
-    ctx.strings.push(s)
-    ctx.string_index[s] = idx
+    fresh :: i32(ctx.strings.len())
+    idx :: ctx.string_index.get_or_put(s, fresh)
+    if idx == fresh {
+        ctx.strings.push(s)
+    }
     return idx
 }
 
