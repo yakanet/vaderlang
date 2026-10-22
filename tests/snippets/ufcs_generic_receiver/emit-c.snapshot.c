@@ -166,52 +166,37 @@ static vader_string_t snippet_describe__i32(int32_t l0) {
 }
 
 static vader_string_t snippet_describe__string(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 10 "tests/snippets/ufcs_generic_receiver/_main.vader"
     t0 = concat_2(4u, l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_show__i32(int32_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 14 "tests/snippets/ufcs_generic_receiver/_main.vader"
     t0 = snippet_describe__i32(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_show__string(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 14 "tests/snippets/ufcs_generic_receiver/_main.vader"
     t0 = snippet_describe__string(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void snippet_clear__i32__(vader_box_t l0) {
-    vader_box_t* gc_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/ufcs_generic_receiver/_main.vader"
     std_io_println__string(5u);
 #line 16 "tests/snippets/ufcs_generic_receiver/_main.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void snippet_wipe__i32__(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/ufcs_generic_receiver/_main.vader"
     snippet_clear__i32__(vader_ref_box(l0));
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

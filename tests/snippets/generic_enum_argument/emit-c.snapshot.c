@@ -1516,13 +1516,10 @@ static vader_string_t std_core_i32_Display_to_string(int32_t l0) {
 }
 
 static vader_string_t std_core_i64_Display_to_string(int64_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 207 "lib/std/core/primitives.vader"
     t0 = std_core_format_signed(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_u8_Display_to_string(uint8_t l0) {
@@ -1556,13 +1553,10 @@ static vader_string_t std_core_u32_Display_to_string(uint32_t l0) {
 }
 
 static vader_string_t std_core_u64_Display_to_string(uint64_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 211 "lib/std/core/primitives.vader"
     t0 = std_core_format_unsigned(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_bool_Display_to_string(bool l0) {
@@ -1599,23 +1593,17 @@ static vader_string_t std_core_null_Display_to_string(vader_box_t l0) {
 }
 
 static vader_string_t std_core_f32_Display_to_string(float l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 217 "lib/std/core/primitives.vader"
     t0 = std_core_format_f32(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_f64_Display_to_string(double l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 218 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
@@ -3412,15 +3400,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpSta
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static int64_t std_collections_first_slot(uint64_t l0, int64_t l1) {

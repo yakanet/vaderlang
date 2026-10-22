@@ -128,13 +128,10 @@ static void* __const_snippet_PRIMES(void) {
 }
 
 static void* snippet_start(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 21 "tests/snippets/const_copied_where_kept/_main.vader"
     t0 = __const_snippet_START();
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t snippet_first_prime(void) {
@@ -151,13 +148,10 @@ static int32_t snippet_first_prime(void) {
 }
 
 static void* snippet_primes(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 25 "tests/snippets/const_copied_where_kept/_main.vader"
     t0 = __const_snippet_PRIMES();
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* snippet_starts(void) {
@@ -179,14 +173,11 @@ static void* snippet_starts(void) {
 }
 
 static void* snippet_alias(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 19 "tests/snippets/const_copied_where_kept/_main.vader"
     t0 = __const_snippet_START();
 #line 29 "tests/snippets/const_copied_where_kept/_main.vader"
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void snippet_bump(void* l0) {

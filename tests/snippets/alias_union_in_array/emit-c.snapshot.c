@@ -95,14 +95,10 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 }
 
 static void snippet_push_pet(void* l0, vader_box_t l1) {
-    vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 18 "tests/snippets/alias_union_in_array/_main.vader"
     vader_array_push_ref((vader_array_t*) l0, l1.payload.obj);
 #line 17 "tests/snippets/alias_union_in_array/_main.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t snippet_describe(vader_box_t l0) {

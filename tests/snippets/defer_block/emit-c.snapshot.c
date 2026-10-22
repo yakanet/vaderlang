@@ -148,12 +148,10 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 }
 
 static int32_t snippet_compute(void) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 15 "tests/snippets/defer_block/_main.vader"
     std_io_println__string(1u);
 #line 16 "tests/snippets/defer_block/_main.vader"
-    { vader_gc_top = gc_frame.prev; return INT32_C(7); }
+    return INT32_C(7);
 }
 
 static void snippet_void_trailing(void) {
@@ -255,39 +253,27 @@ static int32_t snippet_main(void) {
 }
 
 static void __defer_snippet_0(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 20 "tests/snippets/defer_block/_main.vader"
     std_io_println__string(6u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void __defer_snippet_2(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 25 "tests/snippets/defer_block/_main.vader"
     std_io_println__string(7u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void __defer_snippet_4(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 30 "tests/snippets/defer_block/_main.vader"
     std_io_println__string(8u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void __defer_snippet_6(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 33 "tests/snippets/defer_block/_main.vader"
     std_io_println__string(9u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

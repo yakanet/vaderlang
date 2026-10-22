@@ -907,12 +907,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_Color__
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_Color__i32(void* l0, uint8_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__snippet_Color__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static bool std_collections_MutableMap_std_core_Contains_contains__snippet_Color__i32(void* l0, uint8_t l1) {
@@ -930,15 +927,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__snippet_HttpSta
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__snippet_HttpStatus__string(void* l0, uint8_t l1, vader_string_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l2 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__snippet_HttpStatus__string(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static bool std_collections_MutableMap_std_core_Contains_contains__snippet_HttpStatus__string(void* l0, uint8_t l1) {

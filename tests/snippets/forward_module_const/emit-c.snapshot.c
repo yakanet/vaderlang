@@ -206,13 +206,10 @@ static vader_string_t snippet_joined(void) {
 }
 
 static vader_string_t snippet_limit_text(void) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 53 "tests/snippets/forward_module_const/_main.vader"
     t0 = std_core_i32_Display_to_string(INT32_C(42));
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t snippet_main(void) {

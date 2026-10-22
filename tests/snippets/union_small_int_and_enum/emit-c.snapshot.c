@@ -338,17 +338,10 @@ static vader_box_t snippet_pick(int32_t l0) {
 }
 
 static vader_string_t snippet_Plain_Shower_shown(void* l0, vader_box_t l1) {
-    vader_string_t t0 = 0;
-    vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 50 "tests/snippets/union_small_int_and_enum/_main.vader"
     t0 = snippet_show_byte(l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t snippet_main(void* l0) {
@@ -1146,13 +1139,9 @@ static bool std_collections_put__string___u8__bool(void* l0, vader_box_t l1, boo
 
 static bool std_collections_add__string___u8(void* l0, vader_box_t l1) {
     bool t0;
-    vader_box_t* gc_roots[1] = { &l1 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 337 "lib/std/collections/collections.vader"
     t0 = std_collections_put__string___u8__bool(((vader_struct_std_collections_MutableSet__string___u8_t*) l0)->f_inner, l1, true);
-    { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int64_t std_collections_len__string___u8(void* l0) {

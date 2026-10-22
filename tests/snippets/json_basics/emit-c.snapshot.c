@@ -3913,13 +3913,10 @@ static uint64_t std_core_limb(void* l0, int64_t l1) {
 }
 
 static void* std_core_BigInt_Mul_mul(void* l0, uint32_t l1) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 58 "lib/std/core/bigint.vader"
     t0 = std_core_mul_add_small(l0, l1, (uint32_t) 0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
@@ -4056,13 +4053,10 @@ static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {
 }
 
 static vader_string_t std_core_f64_Display_to_string(double l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 218 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_format_f64(double l0) {
@@ -6938,16 +6932,10 @@ static bool std_char_is_white_char(uint32_t l0) {
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void std_string_builder_append_char(void* l0, uint32_t l1) {
@@ -7069,16 +7057,9 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__string__Any(void* l0, vader_string_t l1, vader_box_t l2) {
-    vader_box_t* gc_roots[1] = { &l2 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__string__Any(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static int64_t std_collections_first_slot(uint64_t l0, int64_t l1) {

@@ -1349,16 +1349,10 @@ static bool std_string_matches_at(vader_string_t l0, int64_t l1, vader_string_t 
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_string(void* l0) {

@@ -118,20 +118,21 @@ FnState :: struct {
     /// after the closing `}`. Distinct from `continue_targets` so a loop
     /// targeted only by a continue doesn't emit an unused `end_` label.
     break_targets: i32[]
-    /// True when the fn is provably no-alloc (false in `EmitCtx.may_alloc`) —
-    /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
-    /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
-    /// `function_definition` ; default `true` (the scalar / stack subset).
+    /// True when the body provably reaches no GC safepoint and pushes no frame :
+    /// the fn is false in `EmitCtx.may_alloc`, which is the
+    /// safepoint-reachability closure (`compute_may_alloc`), and builds no GC
+    /// struct on the C stack. Its one reader is `invalidate_header_cache`, which
+    /// keeps a cached header alive across the entry of a nested scope only when
+    /// no header can move inside it.
     ///
-    /// SECOND CONSUMER — `invalidate_header_cache` reads this bit for a
-    /// stronger property than frame emission : "this body reaches no GC
-    /// safepoint at all", which is what lets a cached header survive entering
-    /// a nested scope. That holds because `may_alloc` IS the safepoint-
-    /// reachability closure (`compute_may_alloc`), not by coincidence. If the
-    /// frame decision ever stops tracking safepoint-freedom exactly — a
-    /// no-alloc fn given a frame for debugging, say — split the two before
-    /// changing this, or the header cache silently goes unsound.
-    no_frame: bool
+    /// Not the negation of `needs_frame` : a tail forwarder reaches a safepoint
+    /// and pushes no frame, so both are false.
+    safepoint_free: bool
+    /// True when the fn pushes a GC shadow-stack frame at its entry : `return`
+    /// restores `vader_gc_top`, the ref params and slots are rooted, and the
+    /// ref slots get their `= NULL` / `= vader_box_null()` / `= 0` root-init.
+    /// Decided by `new_fn_state`, before the walk.
+    needs_frame: bool
     /// Loops whose array state is currently lifted into C locals, innermost
     /// last. Pushed by the `Loop` opener that planned one, popped by its `end`.
     /// See `push_cache_emit.vader`.
@@ -163,23 +164,30 @@ FnState :: struct {
     open_nodes: COpenNode[]
 }
 
-/// Fresh state for walking `function` into a statement tree.
-new_fn_state :: fn(ctx: EmitCtx, function: BcFunction) -> FnState = FnState {
-    .ctx = ctx,
-    .function = function,
-    .root = CBlock { .body = [] },
-    .stack = [],
-    .temporaries = [],
-    .aux_counter = 0,
-    .scopes = [],
-    .continue_targets = [],
-    .break_targets = [],
-    .no_frame = true,
-    .push_caches = [],
-    .bound_arrays = [],
-    .drop_call_result = false,
-    .stack_storages = [],
-    .open_nodes = [],
+/// Fresh state for walking `function` into a statement tree. Its frame is
+/// decided here, before the walk : the `return` emitter reads `needs_frame`
+/// during it, and a frame raised afterwards would leave a prologue push that no
+/// return undoes, with `vader_gc_top` pointing at a dead frame (ADR 0003).
+new_fn_state :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> FnState {
+    framed :: needs_frame(ctx, fn_index, function)
+    return FnState {
+        .ctx = ctx,
+        .function = function,
+        .root = CBlock { .body = [] },
+        .stack = [],
+        .temporaries = [],
+        .aux_counter = 0,
+        .scopes = [],
+        .continue_targets = [],
+        .break_targets = [],
+        .safepoint_free = !ctx.may_alloc[fn_index] && !framed,
+        .needs_frame = framed,
+        .push_caches = [],
+        .bound_arrays = [],
+        .drop_call_result = false,
+        .stack_storages = [],
+        .open_nodes = [],
+    }
 }
 
 // ---- tree statements ------------------------------------------------------
@@ -247,7 +255,7 @@ append_statement :: fn(s: FnState, statement: CStatement) -> void {
 ///
 /// @param node  the return ; its `pops_frame` is set here.
 return_statement :: fn(s: FnState, node: CReturn) -> void {
-    append_statement(s, CReturn { ...node, .pops_frame = !s.no_frame })
+    append_statement(s, CReturn { ...node, .pops_frame = s.needs_frame })
 }
 
 // A node the walk has opened and not closed yet (`open_if`, `open_scope`).

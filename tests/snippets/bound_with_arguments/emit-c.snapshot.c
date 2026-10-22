@@ -1143,33 +1143,24 @@ static int32_t snippet_twice__i32(int32_t l0) {
 }
 
 static void* snippet_twice__snippet_Grams(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Grams_std_core_Add_add(l0, l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* snippet_twice__snippet_Money(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Money_std_core_Add_add(l0, l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* snippet_twice__snippet_Points(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 40 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_Points_std_core_Add_add(l0, l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static uint64_t snippet_twice__u64(uint64_t l0) {
@@ -1180,13 +1171,10 @@ static uint64_t snippet_twice__u64(uint64_t l0) {
 }
 
 static vader_box_t snippet_relay__snippet_Points(vader_box_t l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 42 "tests/snippets/bound_with_arguments/_main.vader"
     t0 = snippet_twice__Any(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int64_t snippet_both__snippet_Money__(void* l0) {
@@ -1361,23 +1349,17 @@ static int64_t std_core_write_unsigned(void* l0, int64_t l1, uint64_t l2) {
 }
 
 static vader_string_t std_core_f64_Display_to_string(double l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 218 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_string_Add_add(vader_string_t l0, vader_string_t l1) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 415 "lib/std/core/primitives.vader"
     t0 = concat_2(l0, l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_format_f64(double l0) {

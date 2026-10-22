@@ -165,30 +165,21 @@ static int32_t snippet_main(void) {
 }
 
 static void __defer_snippet_0(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 14 "tests/snippets/defer_on_panic/_main.vader"
     std_io_println__string(2u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void __defer_snippet_2(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 15 "tests/snippets/defer_on_panic/_main.vader"
     std_io_println__string(3u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void __defer_snippet_4(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 16 "tests/snippets/defer_on_panic/_main.vader"
     std_io_println__string(4u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

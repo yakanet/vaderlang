@@ -372,16 +372,10 @@ static vader_string_t snippet_Box_Conv_conv__f64(void* l0, double l1) {
 }
 
 static vader_string_t snippet_through_bound__snippet_Box(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 38 "tests/snippets/generic_trait_methods/_main.vader"
     t0 = snippet_Box_Conv_conv__f64(l0, 1.5);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

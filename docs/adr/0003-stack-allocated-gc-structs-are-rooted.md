@@ -4,6 +4,13 @@
 
 Accepted (2026-08-30), implemented in `8e0de8499`.
 
+**Amended by [0106](0106-a-tail-forwarder-pushes-no-frame.md) (2026-10-22)**: the
+frame formula below is no longer one bit. `needs_frame = fn_builds_stack_object ||
+(may_alloc && !is_tail_forwarder)` decides the frame, and the old `no_frame` value
+survives as `FnState.safepoint_free`, read only by the header cache. A function
+that builds a GC struct on the C stack still always raises a frame, decided before
+the walk.
+
 ## Context
 
 The escape analysis builds some GC structs on the C stack. For a `no_frame` fn —

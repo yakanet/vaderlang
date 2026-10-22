@@ -179,23 +179,17 @@ static int32_t snippet_main(void) {
 }
 
 static vader_box_t __lambda_snippet_0(int32_t l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 21 "tests/snippets/and_then_infer/_main.vader"
     t0 = snippet_halve(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_box_t __lambda_snippet_1(int32_t l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 24 "tests/snippets/and_then_infer/_main.vader"
     t0 = snippet_halve(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

@@ -2357,13 +2357,10 @@ static uint64_t std_core_limb(void* l0, int64_t l1) {
 }
 
 static void* std_core_BigInt_Mul_mul(void* l0, uint32_t l1) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 58 "lib/std/core/bigint.vader"
     t0 = std_core_mul_add_small(l0, l1, (uint32_t) 0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* std_core_BigInt_Div_div(void* l0, uint32_t l1) {

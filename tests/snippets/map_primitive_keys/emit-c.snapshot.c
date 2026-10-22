@@ -875,12 +875,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__char__i32(void*
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__char__i32(void* l0, uint32_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__char__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t std_collections_MutableMap_std_core_Index_at__i16__i32(void* l0, int16_t l1) {
@@ -891,12 +888,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__i16__i32(void* 
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__i16__i32(void* l0, int16_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__i16__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t std_collections_MutableMap_std_core_Index_at__i64__i32(void* l0, int64_t l1) {
@@ -907,12 +901,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__i64__i32(void* 
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__i64__i32(void* l0, int64_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__i64__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t std_collections_MutableMap_std_core_Index_at__u16__i32(void* l0, uint16_t l1) {
@@ -923,12 +914,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__u16__i32(void* 
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__u16__i32(void* l0, uint16_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__u16__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t std_collections_MutableMap_std_core_Index_at__u64__i32(void* l0, uint64_t l1) {
@@ -939,12 +927,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__u64__i32(void* 
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__u64__i32(void* l0, uint64_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__u64__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t std_collections_MutableMap_std_core_Index_at__u8__i32(void* l0, uint8_t l1) {
@@ -955,12 +940,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__u8__i32(void* l
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__u8__i32(void* l0, uint8_t l1, int32_t l2) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__u8__i32(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static int64_t std_collections_first_slot(uint64_t l0, int64_t l1) {

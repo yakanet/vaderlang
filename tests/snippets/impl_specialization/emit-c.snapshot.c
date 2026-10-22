@@ -591,42 +591,24 @@ static void* snippet_pair__snippet_Other(void* l0) {
 }
 
 static vader_string_t snippet_bounded__snippet_MonType__(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 67 "tests/snippets/impl_specialization/_main.vader"
     t0 = snippet____Poke_poke__snippet_MonType(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_bounded__snippet_Other__(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 67 "tests/snippets/impl_specialization/_main.vader"
     t0 = snippet____Poke_poke__snippet_Other_1(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_bounded__snippet_Wrapper_snippet_MonType_(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 67 "tests/snippets/impl_specialization/_main.vader"
     t0 = snippet_Wrapper_Poke_poke__snippet_MonType_1(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_bounded__snippet_Wrapper_snippet_Other_(void* l0) {

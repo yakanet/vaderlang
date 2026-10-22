@@ -176,12 +176,10 @@ static void snippet_reserve(void) {
 }
 
 static int32_t snippet_main(void) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 23 "tests/snippets/panic_runs_defers/_main.vader"
     snippet_reserve();
 #line 24 "tests/snippets/panic_runs_defers/_main.vader"
-    { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+    return INT32_C(0);
 }
 
 static void __defer_snippet_0(void* l0) {
@@ -208,12 +206,9 @@ static void __defer_snippet_0(void* l0) {
 }
 
 static void __defer_snippet_2(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 17 "tests/snippets/panic_runs_defers/_main.vader"
     std_io_println__string(5u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

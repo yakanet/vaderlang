@@ -446,13 +446,10 @@ static void* snippet_log_singleton(void) {
 }
 
 static void* snippet_start_singleton(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 25 "tests/snippets/singleton_instance/_main.vader"
     t0 = __const_snippet_DEFAULT();
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_greeting_singleton(void) {
@@ -461,21 +458,17 @@ static vader_string_t snippet_greeting_singleton(void) {
 }
 
 static bool snippet_probed_singleton(void) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 33 "tests/snippets/singleton_instance/_main.vader"
     std_io_println__string(5u);
 #line 34 "tests/snippets/singleton_instance/_main.vader"
-    { vader_gc_top = gc_frame.prev; return true; }
+    return true;
 }
 
 static void snippet_announce_singleton(void) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 40 "tests/snippets/singleton_instance/_main.vader"
     std_io_println__string(6u);
 #line 39 "tests/snippets/singleton_instance/_main.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

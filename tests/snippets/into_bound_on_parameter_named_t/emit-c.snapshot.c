@@ -146,23 +146,17 @@ static int32_t snippet_main(void) {
 }
 
 static void* snippet_label_t__snippet_Meter(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 22 "tests/snippets/into_bound_on_parameter_named_t/_main.vader"
     t0 = snippet_Meter_std_core_Into_into(l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* snippet_label_u__snippet_Meter(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 24 "tests/snippets/into_bound_on_parameter_named_t/_main.vader"
     t0 = snippet_Meter_std_core_Into_into(l0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

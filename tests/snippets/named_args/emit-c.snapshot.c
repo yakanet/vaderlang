@@ -71,13 +71,10 @@ static bool vader_host_std_core_is_ascii(vader_string_t a0) {
 }
 
 static vader_string_t snippet_greet(vader_string_t l0, vader_string_t l1) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[3] = { &l0, &l1, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 3u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 11 "tests/snippets/named_args/_main.vader"
     t0 = concat_3(l1, 1u, l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t snippet_combine(int32_t l0, int32_t l1, int32_t l2) {

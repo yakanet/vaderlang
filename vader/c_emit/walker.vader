@@ -36,9 +36,10 @@ emit_functions :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 // ---- may-alloc analysis ---------------------------------------------------
 
 /// Callgraph analysis : which fns may trigger a GC allocation
-/// (transitively). Drives the `no_frame` decision — a fn that may not
-/// skips the shadow-stack prologue (`inc(x) = x + 1`, accessors,
-/// predicates, stack-only struct builders). Direct allocators are the
+/// (transitively). A fn that may not reaches no GC safepoint
+/// (`FnState.safepoint_free`) and skips the shadow-stack prologue
+/// (`inc(x) = x + 1`, accessors, predicates) ; one that may still skips it
+/// when it is a tail forwarder (`needs_frame`). Direct allocators are the
 /// heap `struct.new`, array ops, string concat, the builder family,
 /// `make_closure`, the conservative indirect callers (`call.indirect` /
 /// `virtual.call`), and a `call.import` unless its host never collects ;
@@ -110,21 +111,19 @@ invalidate_header_cache :: fn(s: FnState, op: vm.Op) -> void {
     // C scope inside it. A probe loop then binds once per iteration instead of
     // once per array test.
     //
-    // Sound only in a `no_frame` fn : such a fn is false in `ctx.may_alloc`, and
-    // `compute_may_alloc` is the safepoint-reachability closure, so a `no_frame`
-    // body provably reaches NO GC safepoint and no header can move inside the
-    // scope. That is a second reading of the bit — `FnState.no_frame` documents
-    // itself in terms of frame emission — so the two contracts are cross-linked
-    // there ; keep them in sync.
+    // Sound only in a `safepoint_free` fn : its body provably reaches NO GC
+    // safepoint, so no header can move inside the scope. Whether the fn has a
+    // frame says nothing about that (`FnState.needs_frame`).
     //
     // Deliberately the cheap slice of a dominance design, not its ceiling : a
-    // framed fn could keep entries too if each carried its declaring scope depth
-    // and a safepoint epoch. That bookkeeping isn't here, so framed fns clear.
+    // fn that reaches a safepoint could keep entries too if each carried its
+    // declaring scope depth and a safepoint epoch. That bookkeeping isn't here,
+    // so such fns clear.
     //
     // LEAVING a scope must NOT keep the cache : the code that follows is no
     // longer dominated (the binding may sit in a branch that didn't run) and its
     // C local has gone out of scope. Hence the scope-OPENING subset only.
-    if s.no_frame && is_scope_opening(op) {
+    if s.safepoint_free && is_scope_opening(op) {
         return
     }
     s.bound_arrays.clear()
@@ -203,23 +202,13 @@ op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
 /// with a deduped `#line` directive (debug builds only) before each op whose
 /// source position differs from the previous one, then assembles a `CFunction`
-/// : the prologue (local + temp declarations, then the GC frame, skipped for
-/// `no_frame` fns) above the body.
+/// : the prologue (local + temp declarations, then the GC frame, for a fn
+/// that `needs_frame`) above the body.
 function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> CFunction {
-    // `may_alloc` alone is not enough: a fn that builds a GC struct on the C
-    // stack needs the frame even when it cannot collect, because the storage is
-    // hoisted into the prologue and rooted through `gc_stack_objs[]`. Decided
-    // HERE and not after the walk — `FnState.no_frame` is read DURING the walk
-    // (the `return` emitter pops the frame only when there is one), so raising a
-    // frame afterwards yields a prologue whose pushes no return ever undoes, and
-    // `vader_gc_top` is left pointing at a dead frame. Measured: the build driver
-    // died on a signal.
-    no_frame :: !ctx.may_alloc[fn_index] && !fn_builds_stack_object(function)
     // Temps are discovered during the walk (materialisation), and their
     // declarations belong in the prologue *above* the body : walk first, then
     // assemble the prologue.
-    s :: new_fn_state(ctx, function)
-    s.no_frame = no_frame
+    s :: new_fn_state(ctx, fn_index, function)
     s.scopes = precompute_scopes(function)
     bt :: precompute_branch_targets(function, s.scopes)
     s.continue_targets = bt.continue_targets
@@ -264,7 +253,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     }
     // Fall-through restore (void / implicit-end fns) ; explicit returns pop
     // the frame themselves, so a body ending on one needs none.
-    if !s.no_frame && !ends_with_return(s.root) {
+    if s.needs_frame && !ends_with_return(s.root) {
         s.root.body.push(FRAME_RESTORE)
     }
     // Coalesce operand temps with disjoint live ranges into shared slots — the
@@ -276,15 +265,15 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     // them. See `c_ast/loops.vader`.
     structure_loops(s.root)
     // GC roots : ref-typed params, then locals + temps (collected by the
-    // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
-    // skip the whole shadow-stack apparatus.
+    // decl emitters). Order is irrelevant to the GC scan. A fn without a frame
+    // skips the whole shadow-stack apparatus.
     // Three root lists: box roots (`vader_box_t*`, for `.Any` slots), raw roots
     // (`void**`, for `.Ref` concrete-ref slots, scanned via scan_raw) and atom
     // roots (`vader_string_t*`, for `string` slots).
     root_addrs: CExpression[]: []
     raw_root_addrs: CExpression[]: []
     atom_root_addrs: CExpression[]: []
-    if !no_frame {
+    if s.needs_frame {
         params :: function.signature.params
         for i in 0..<params.len() {
             if params[i] == .Ref {
@@ -299,16 +288,16 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         }
     }
     prologue: CStatement[]: []
-    emit_local_decls(function, prologue, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
+    emit_local_decls(function, prologue, root_addrs, raw_root_addrs, atom_root_addrs, s.needs_frame)
     emit_temporary_declarations(
         slot_types,
         prologue,
         root_addrs,
         raw_root_addrs,
         atom_root_addrs,
-        no_frame,
+        s.needs_frame,
     )
-    if !no_frame {
+    if s.needs_frame {
         if root_addrs.len() > 0 {
             prologue.push(array_declaration("vader_box_t*", "gc_roots", root_addrs))
         }
@@ -381,7 +370,7 @@ emit_local_decls :: fn(
     root_addrs: CExpression[],
     raw_root_addrs: CExpression[],
     atom_root_addrs: CExpression[],
-    no_frame: bool,
+    framed: bool,
 ) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
@@ -394,7 +383,7 @@ emit_local_decls :: fn(
         vals.push(locals[i].val)
         names.push("l${param_count + i}")
     }
-    emit_slot_decls(prologue, vals, names, root_addrs, raw_root_addrs, atom_root_addrs, no_frame)
+    emit_slot_decls(prologue, vals, names, root_addrs, raw_root_addrs, atom_root_addrs, framed)
 }
 
 /// Declare the temp slots `tN`, bucketed like the locals ; `slot_types[N]` is
@@ -405,7 +394,7 @@ emit_temporary_declarations :: fn(
     root_addrs: CExpression[],
     raw_root_addrs: CExpression[],
     atom_root_addrs: CExpression[],
-    no_frame: bool,
+    framed: bool,
 ) -> void {
     names: string[]: []
     for i in 0..<slot_types.len() {
@@ -418,7 +407,7 @@ emit_temporary_declarations :: fn(
         root_addrs,
         raw_root_addrs,
         atom_root_addrs,
-        no_frame,
+        framed,
     )
 }
 
@@ -434,7 +423,7 @@ emit_slot_decls :: fn(
     root_addrs: CExpression[],
     raw_root_addrs: CExpression[],
     atom_root_addrs: CExpression[],
-    no_frame: bool,
+    framed: bool,
 ) -> void {
     emitted: ValType[]: []
     for i in 0..<vals.len() {
@@ -447,15 +436,15 @@ emit_slot_decls :: fn(
         // chains into the raw root list (scanned via scan_raw). An `.Any` slot is
         // a `vader_box_t` — init `vader_box_null()`, `&name` chains into the box
         // root list. Both give the GC a valid root before the first write.
-        // No-frame fns (and primitives) get a bare decl (write-before-read).
+        // A fn without a frame (and a primitive) gets a bare decl (write-before-read).
         is_raw_ref :: val == .Ref || val == .Pointer
-        rooted :: is_ref_val(val) && !no_frame
+        rooted :: is_ref_val(val) && framed
         // A `string` slot holds an ATOM ID, not a pointer, so it belongs to
         // neither root list above — `ptrs` and `raw` are pointer arrays. It gets
         // its own list; without it an atom's only root is the conservative stack
         // scan, which finds the id only when `cc` spills it instead of keeping
         // it in a register.
-        if val == .String && !no_frame {
+        if val == .String && framed {
             for j in 0..<vals.len() {
                 if vals[j] == val {
                     prologue.push(declaration("vader_string_t", names[j], verbatim("0")))
@@ -1992,16 +1981,9 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
             // so it is function-scoped — its address goes into `gc_stack_objs[]`
             // and must not dangle past a nested block — and zero-init it so a
             // scan before the header/fields are written sees type 0 (a no-op).
-            // ALWAYS hoisted and rooted, `no_frame` included. The inline
-            // unrooted form used to be emitted for `no_frame` fns on the
-            // grounds that they have no safepoint, so nothing could move under
-            // them. Measured false on 2026-08-30: with it, emitting the seed
-            // produced SEVEN identical units and one holding 18 NUL bytes where
-            // an 18-character expression belonged — a string freed under a live
-            // handle — and the eight per-target emissions of a single run
-            // disagreed. Forcing a frame everywhere made all eight byte-identical
-            // and the corruption vanish. `function_definition` now raises a frame
-            // for any fn that has stack storage, so this list is never orphaned.
+            // ALWAYS hoisted and rooted, even in a fn that reaches no safepoint
+            // (ADR 0003) : the frame decision raises a frame for any fn that has
+            // stack storage, so this list is never orphaned.
             s.stack_storages.push(StackStorage { .cname = cname, .storage = storage })
             declare(s, "${cname}*", o, address_of(verbatim(storage)))
             o
@@ -2348,8 +2330,8 @@ emit_retag_op :: fn(s: FnState, op: vm.Retag) -> void {
 
 // ---- arrays ---------------------------------------------------------------
 //
-// Arrays are heap `vader_array_t` (so an array-bearing fn is may-alloc →
-// framed). `vader_array_new` records the element's storage kind + tag, and the
+// Arrays are heap `vader_array_t` (so an array-bearing fn is may-alloc).
+// `vader_array_new` records the element's storage kind + tag, and the
 // kind picks the slot : a numeric / bool / char width stores raw, a concrete-ref
 // element or a union of refs only a raw `void*` (a `Ref` buf), anything else
 // (`string` included) a `vader_box_t` (a `Boxed` buf). A box stored by

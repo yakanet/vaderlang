@@ -110,13 +110,10 @@ static int32_t snippet_apply(int32_t l0, void* l1) {
 
 static int32_t snippet_forwards(void* l0) {
     int32_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 12 "tests/snippets/ufcs_callee_is_a_fn_value/_main.vader"
 #line 13 "tests/snippets/ufcs_callee_is_a_fn_value/_main.vader"
     t0 = snippet_apply(INT32_C(20), l0);
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_labelled(int32_t l0, vader_string_t l1) {

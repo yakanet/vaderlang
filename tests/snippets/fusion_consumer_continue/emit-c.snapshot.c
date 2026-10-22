@@ -3406,14 +3406,10 @@ static uint32_t std_core_next_scalar(uint32_t l0) {
 }
 
 static vader_box_t std_core____Into_into__i32(void* l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 329 "lib/std/core/core.vader"
     t0 = std_core_array_iter__i32(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint32_t* __o0, int64_t* __o1) {
@@ -3705,12 +3701,9 @@ static vader_box_t std_async_sleep(int64_t l0) {
 
 static int32_t std_async_run_async_main(vader_box_t l0) {
     int32_t t0;
-    vader_box_t* gc_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 68 "lib/std/async/async.vader"
     t0 = std_async_block_on__i32(l0);
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {

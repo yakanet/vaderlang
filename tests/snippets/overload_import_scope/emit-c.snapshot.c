@@ -148,13 +148,10 @@ static int32_t snippet_main(void) {
 }
 
 static vader_string_t snippet_tag__string(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 18 "tests/snippets/overload_import_scope/_main.vader"
     t0 = concat_2(1u, l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -284,13 +281,10 @@ static void snippet_bbb_f(vader_string_t l0) {
 }
 
 static vader_string_t snippet_other_tag(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 3 "tests/snippets/overload_import_scope/other/other.vader"
     t0 = concat_2(7u, l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void snippet_aaa_f(vader_string_t l0) {

@@ -102,8 +102,10 @@ export EmitCtx :: struct {
     /// `-1` when absent. Used by the `main(argv: [string])` shim.
     string_array_tag: i32
     /// Per function of `module.functions`, whether it may trigger a GC
-    /// allocation (transitively). A fn that may not is `no_frame` — it
-    /// skips the shadow-stack prologue. Computed by `compute_may_alloc`.
+    /// allocation (transitively), so whether a call to it is a safepoint. A
+    /// fn that may not skips the shadow-stack prologue ; one that may skips
+    /// it only as a tail forwarder (`needs_frame`). Computed by
+    /// `compute_may_alloc`.
     may_alloc: bool[]
     /// Per import of `module.imports`, whether calling it can trigger a
     /// collection. Computed by `imports_may_collect`.

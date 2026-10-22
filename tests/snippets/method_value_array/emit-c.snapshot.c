@@ -534,12 +534,9 @@ static int64_t __method_snippet_0(void* l0) {
 }
 
 static void __method_snippet_2(void* l0, int32_t l1) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 27 "tests/snippets/method_value_array/_main.vader"
     vader_array_push_i32((vader_array_t*) ((vader_struct___method_env_snippet_3_t*) l0)->f_receiver, l1);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static int32_t __method_snippet_4(void* l0) {
@@ -557,12 +554,9 @@ static int32_t __method_snippet_4(void* l0) {
 
 static int32_t __method_snippet_6(void* l0) {
     int32_t t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 32 "tests/snippets/method_value_array/_main.vader"
     t0 = std_iter_sum__i32(vader_ref_box(((vader_struct___method_env_snippet_7_t*) l0)->f_receiver));
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
@@ -844,14 +838,10 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
 }
 
 static vader_box_t std_core____Into_into__i32(void* l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 329 "lib/std/core/core.vader"
     t0 = std_core_array_iter__i32(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t std_core_i32_Zero_zero(void) {

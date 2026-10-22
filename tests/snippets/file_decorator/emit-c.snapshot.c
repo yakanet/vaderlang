@@ -63,12 +63,10 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 }
 
 static int32_t snippet_main(void) {
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 9 "tests/snippets/file_decorator/_main.vader"
     std_io_println__string(1u);
 #line 10 "tests/snippets/file_decorator/_main.vader"
-    { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+    return INT32_C(0);
 }
 
 static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {

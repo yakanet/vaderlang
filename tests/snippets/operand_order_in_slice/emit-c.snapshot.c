@@ -777,12 +777,9 @@ static bool std_collections_contains_key__i32__bool(void* l0, int32_t l1) {
 
 static bool std_collections_add__i32(void* l0, int32_t l1) {
     bool t0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 337 "lib/std/collections/collections.vader"
     t0 = std_collections_put__i32__bool(((vader_struct_std_collections_MutableSet__i32_t*) l0)->f_inner, l1, true);
-    { bool __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void std_io_write(uint8_t l0, vader_string_t l1) {

@@ -1255,16 +1255,10 @@ static void snippet_Sheet_std_core_IndexSet_set_at(void* l0, int32_t l1, int32_t
 }
 
 static vader_string_t snippet_Sheet_std_core_Index_at_1(void* l0, vader_string_t l1) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[2] = { &l1, &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 151 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = concat_2(9u, l1);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void snippet_Counter_std_core_Iterator_next_v(void* l0, int32_t* __o0, uint8_t* __o1) {
@@ -1549,13 +1543,10 @@ static int32_t snippet_main(void) {
 }
 
 static void* snippet_Wrap_Scale_scaled__snippet_Vec2(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 123 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = snippet_Vec2_std_core_Mul_mul(((vader_struct_snippet_Wrap__snippet_Vec2_t*) l0)->f_inner, 2.0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_Wrap_Show_show__snippet_Vec2(void* l0) {
@@ -1576,49 +1567,31 @@ static void* snippet_Pile_std_core_Add_add__i32_1(void* l0, double l1) {
 }
 
 static void* snippet_built__snippet_Vec2(void) {
-    void* t0 = NULL;
-    void** gc_raw_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 134 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = snippet_Vec2_Make_make_1(16u);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* snippet_twice__snippet_Vec2(void* l0) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 26 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = snippet_Vec2_std_core_Mul_mul(l0, 2.0);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_say_int__snippet_Vec2(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 90 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = snippet_Vec2_Describe_describe(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_say_str__snippet_Vec2(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 92 "tests/snippets/several_impls_of_one_trait/_main.vader"
     t0 = snippet_Vec2_Describe_describe_1(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2) {
@@ -1886,13 +1859,10 @@ static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
 }
 
 static vader_string_t std_core_f64_Display_to_string(double l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 218 "lib/std/core/primitives.vader"
     t0 = std_core_format_f64(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_format_f64(double l0) {

@@ -1306,11 +1306,13 @@ typedef struct {
 extern const vader_type_info_t  vader_type_info_table[];
 extern const size_t             vader_type_info_count;
 
-/* Shadow stack frame — emitted at the entry of every C function that can reach a
- * safepoint. A fn the emitter proves cannot allocate pushes NONE (`no_frame`,
- * `vader/c_emit/walker.vader`), which is one reason the major collection still
- * scans the C stack conservatively. The frames that exist chain through `prev` to
- * form the precise root list the GC walks at collection time.
+/* Shadow stack frame: emitted at the entry of a C function whose own slots must
+ * survive a safepoint (`needs_frame`, `vader/c_emit/frame.vader`). A fn the
+ * emitter proves cannot allocate pushes none, and neither does a tail forwarder
+ * (ADR 0106). That is one reason
+ * the major collection still scans the C stack conservatively. The frames that
+ * exist chain through `prev` to form the precise root list the GC walks at
+ * collection time.
  *
  * Indirect layout: each frame holds a `ptrs` array pointing to the calling
  * C function's ref-typed locals/tmps. This avoids restructuring the body's

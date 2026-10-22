@@ -2134,13 +2134,10 @@ static vader_string_t __lambda_snippet_8(vader_string_t l0) {
 }
 
 static vader_string_t __lambda_snippet_9(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 128 "tests/snippets/iterator_consumers/_main.vader"
     t0 = concat_2(l0, l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t __lambda_snippet_10(int32_t l0) {
@@ -2455,36 +2452,24 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
 }
 
 static vader_box_t std_core____Into_into__i32(void* l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 329 "lib/std/core/core.vader"
     t0 = std_core_array_iter__i32(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_box_t std_core____Into_into__snippet_Point(void* l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 329 "lib/std/core/core.vader"
     t0 = std_core_array_iter__snippet_Point(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_box_t std_core____Into_into__string(void* l0) {
-    vader_box_t t0 = vader_box_null();
-    vader_box_t* gc_roots[1] = { &t0 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    vader_box_t t0;
 #line 329 "lib/std/core/core.vader"
     t0 = std_core_array_iter__string(l0);
-    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {

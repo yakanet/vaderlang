@@ -206,13 +206,10 @@ static vader_string_t snippet_identity(vader_string_t l0) {
 }
 
 static vader_string_t snippet_backed_int(int64_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 44 "tests/snippets/distinct_unwrap_method_chain/_main.vader"
     t0 = std_core_i64_Display_to_string(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_backed_bool(bool l0) {
@@ -545,13 +542,10 @@ static bool std_core_is_utf8_continuation(uint8_t l0) {
 }
 
 static vader_string_t std_core_i64_Display_to_string(int64_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 1u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 207 "lib/std/core/primitives.vader"
     t0 = std_core_format_signed(l0);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t std_core_bool_Display_to_string(bool l0) {
@@ -873,16 +867,10 @@ static bool std_string_is_white_byte(uint8_t l0) {
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static void std_string_builder_append_char(void* l0, uint32_t l1) {

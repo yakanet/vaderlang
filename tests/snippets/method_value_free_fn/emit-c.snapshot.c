@@ -446,62 +446,38 @@ static int32_t snippet_main(void) {
 }
 
 static void* __method_snippet_0(void* l0, int32_t l1) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 22 "tests/snippets/method_value_free_fn/_main.vader"
     t0 = snippet_scale(((vader_struct___method_env_snippet_1_t*) l0)->f_receiver, l1);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t __method_snippet_2(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 27 "tests/snippets/method_value_free_fn/_main.vader"
     t0 = snippet_label(((vader_struct___method_env_snippet_3_t*) l0)->f_receiver);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t __method_snippet_4(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 30 "tests/snippets/method_value_free_fn/_main.vader"
     t0 = snippet_label(((vader_struct___method_env_snippet_5_t*) l0)->f_receiver);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t __method_snippet_6(void* l0) {
-    vader_string_t t0 = 0;
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &t0 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 32 "tests/snippets/method_value_free_fn/_main.vader"
     t0 = snippet_label(((vader_struct___method_env_snippet_7_t*) l0)->f_receiver);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static void* __method_snippet_8(void* l0, int32_t l1) {
-    void* t0 = NULL;
-    void** gc_raw_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
+    void* t0;
 #line 34 "tests/snippets/method_value_free_fn/_main.vader"
     t0 = snippet_scale(((vader_struct___method_env_snippet_9_t*) l0)->f_receiver, l1);
-    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t __method_snippet_10(void* l0, vader_string_t l1) {

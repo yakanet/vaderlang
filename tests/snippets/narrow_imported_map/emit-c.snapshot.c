@@ -411,13 +411,9 @@ static vader_box_t std_collections_MutableMap_std_core_Index_at__i32__Any(void* 
 }
 
 static void std_collections_MutableMap_std_core_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2) {
-    vader_box_t* gc_roots[1] = { &l2 };
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 269 "lib/std/collections/collections.vader"
     std_collections_put__i32__Any(l0, l1, l2);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static int64_t std_collections_first_slot(uint64_t l0, int64_t l1) {

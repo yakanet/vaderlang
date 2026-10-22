@@ -3109,12 +3109,9 @@ static vader_string_t semver_Version_std_core_Display_to_string(void* l0) {
 
 static int32_t semver_Version_std_core_Comparable_compare(void* l0, void* l1) {
     int32_t t0;
-    void** gc_raw_roots[2] = { &l0, &l1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 840 "lib/semver/semver.vader"
     t0 = semver_compare_versions(l0, l1);
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static bool semver_VersionRange_std_core_Contains_contains(void* l0, void* l1) {
@@ -4102,16 +4099,10 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_string_t* gc_atom_roots[1] = { &l1 };
-    vader_gc_frame_t gc_frame = {
-        vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
-    };
-    vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 int main(int argc, char** argv) {

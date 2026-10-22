@@ -93,13 +93,10 @@ static vader_string_t snippet_all_literals(void) {
 }
 
 static vader_string_t snippet_mixed(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 18 "tests/snippets/concat_literal_fold/_main.vader"
     t0 = concat_3(2u, l0, 3u);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static vader_string_t snippet_with_empties(vader_string_t l0) {
@@ -118,13 +115,10 @@ static vader_string_t snippet_all_empty(void) {
 }
 
 static vader_string_t snippet_interpolated(vader_string_t l0) {
-    vader_string_t t0 = 0;
-    vader_string_t* gc_atom_roots[2] = { &l0, &t0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
-    vader_gc_top = &gc_frame;
+    vader_string_t t0;
 #line 30 "tests/snippets/concat_literal_fold/_main.vader"
     t0 = concat_3(5u, l0, 6u);
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int32_t snippet_main(void) {

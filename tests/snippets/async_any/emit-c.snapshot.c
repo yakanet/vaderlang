@@ -400,12 +400,9 @@ static void snippet___asyncstate_snippet_0_Async_cancel(void* l0) {
 }
 
 static void __defer_snippet_1(void* l0) {
-    void** gc_raw_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 21 "tests/snippets/async_any/_main.vader"
     std_io_println__string(2u);
-    { vader_gc_top = gc_frame.prev; return; }
+    return;
 }
 
 static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
@@ -951,12 +948,9 @@ static vader_box_t std_async_sleep(int64_t l0) {
 
 static int32_t std_async_run_async_main(vader_box_t l0) {
     int32_t t0;
-    vader_box_t* gc_roots[1] = { &l0 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL };
-    vader_gc_top = &gc_frame;
 #line 68 "lib/std/async/async.vader"
     t0 = std_async_block_on__i32(l0);
-    { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    return t0;
 }
 
 static int64_t std_async_earlier(int64_t l0, int64_t l1) {
