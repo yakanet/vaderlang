@@ -171,9 +171,8 @@ run_parser_stage :: fn(file: Path) -> i32 {
 
 // Resolver dump : per-module symbol summary. Output covers every user
 // module the loader pulled in, plus a `# Diagnostics` block at the end
-// that aggregates loader-time R2xxx (R2020/R2022/R2023 from discover,
-// R2001/R2024/R2025/R2028 from import-path resolution, R2002/R2004/
-// R2011 from collect) and per-module body-walker R2xxx (R2006/R2019).
+// that aggregates `LoadedProject.diags` and the per-module body-walker R2xxx
+// (R2006/R2019).
 // The explicit `--module` list, else the entry's own module as the default
 // scope. The two-arg form lets a caller that already holds the entry's display
 // path (the typecheck stage, which has no `LoadedProject`) reuse the default.

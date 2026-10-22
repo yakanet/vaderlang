@@ -11,10 +11,10 @@
 // Positive snippets under tests/snippets/ already carry their diagnostics in
 // the snapshot.test.ts stage snapshots, so they are not duplicated here.
 //
-// Fixture dir names (e.g. `t3001_type_mismatch`) are historical labels from the
-// TS reference codes. Where the native compiler emits a renumbered code
-// (e.g. C4006→C4001, P1013→P1006, R2007→R2006) the committed snapshot records
-// the actual native code, making the divergence visible rather than hidden.
+// A fixture is named after the code its rule calls for (`t3001_type_mismatch`).
+// When the compiler reports another one (`c4006_file_not_found` reports C4001),
+// the committed snapshot records the code actually emitted, which keeps the gap
+// visible.
 // Refresh with UPDATE_SNAPSHOTS=1.
 
 import { test, expect } from "bun:test";

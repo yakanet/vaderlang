@@ -44,7 +44,7 @@ zero_span :: fn(path: string) = Span {
 /// of modules keyed by id, and the shared symbol factory used to
 /// mint every Symbol across modules (so ids stay globally unique).
 ///
-/// `diags` collects loader-time diagnostics : R2020/R2022/R2023 from
+/// `diags` collects loader-time diagnostics : R2020/R2022 from
 /// discover, R2001/R2024/R2025/R2028 from import-path resolution,
 /// R2002/R2004/R2011 from collect, R2005 from cycle detection. CLI
 /// consumers merge these into their `# Diagnostics` block.
