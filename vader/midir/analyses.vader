@@ -162,21 +162,20 @@ export natural_loop_bodies :: fn(
     out :: MutableMap<BlockId, MutableSet<BlockId>> {}
     for h in 0..<fn_.blocks.len() {
         h_id :: BlockId(h)
-        back_edge_sources: BlockId[]: []
+        // The walk starts from the sources of the back edges into `h`.
+        stack: BlockId[]: []
         for p in preds[h] {
             if dominates(idom, h_id, p) {
-                back_edge_sources.push(p)
+                stack.push(p)
             }
         }
-        if back_edge_sources.len() == 0 {
+        if stack.len() == 0 {
             continue
         }
         body :: MutableSet<BlockId> {}
         body.add(h_id)
-        stack: BlockId[] = back_edge_sources.clone()
-        for stack.len() > 0 {
-            cur :: stack[stack.len() - 1]
-            stack = stack[0..<stack.len() - 1]
+        for {
+            cur :: stack.remove_last() ?? break
             if !body.add(cur) {
                 continue
             }

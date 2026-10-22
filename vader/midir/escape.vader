@@ -126,16 +126,15 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // with any non-stack source stays out — one heap origin requires
     // the barrier.
     stack_origin :: MutableSet<LocalId> {}
-    worklist: LocalId[] = []
+    worklist: LocalId[]: []
     for dst in struct_news {
         if res.escaping.contains(dst) { continue }
         if carried.contains(dst) { continue }
         stack_origin.add(dst)
         worklist.push(dst)
     }
-    for worklist.len() > 0 {
-        src :: worklist[worklist.len() - 1]
-        worklist = worklist[0..<worklist.len() - 1]
+    for {
+        src :: worklist.remove_last() ?? break
         consumers :: res.alias_from[src]
         if consumers !is null {
             for dst in consumers {
@@ -244,11 +243,10 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
         }
     }
     // Backward-propagate via alias_of.
-    work: LocalId[] = []
+    work: LocalId[]: []
     for l in carried { work.push(l) }
-    for work.len() > 0 {
-        cur :: work[work.len() - 1]
-        work = work[0..<work.len() - 1]
+    for {
+        cur :: work.remove_last() ?? break
         producers :: alias_of[cur]
         if producers !is null {
             for p in producers {
@@ -339,11 +337,10 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         }
     }
     // Backward propagation : if dst escapes and aliases src, src escapes too.
-    work: LocalId[] = []
+    work: LocalId[]: []
     for l in escaping { work.push(l) }
-    for work.len() > 0 {
-        cur :: work[work.len() - 1]
-        work = work[0..<work.len() - 1]
+    for {
+        cur :: work.remove_last() ?? break
         sources :: alias_of[cur]
         if sources !is null {
             for s in sources {
