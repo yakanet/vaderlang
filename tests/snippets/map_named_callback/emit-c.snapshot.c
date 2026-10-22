@@ -159,14 +159,14 @@ static int32_t snippet_main(void) {
     vader_obj_header_init(_a1_obj, 1u);
     _a1_obj->f_name = 3u;
     l1 = (void*) _a1_obj;
-    vader_array_t* _a2_arr = vader_array_new(10u, 2u, 13u, 1u);
+    vader_array_t* _a2_arr = vader_array_new(11u, 2u, 13u, 1u);
     ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = l1;
     ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = l0;
     l0 = (void*) _a2_arr;
 #line 17 "tests/snippets/map_named_callback/_main.vader"
     l2 = l0;
 #line 87 "lib/std/iter/iter.vader"
-    vader_array_t* _a3_arr = vader_array_new(11u, 0u, 13u, 2u);
+    vader_array_t* _a3_arr = vader_array_new(10u, 0u, 13u, 2u);
     l3 = (void*) _a3_arr;
 #line 17 "tests/snippets/map_named_callback/_main.vader"
     l4 = ((vader_array_t*) l2)->length;
@@ -229,7 +229,7 @@ static int32_t snippet_main(void) {
 #line 19 "tests/snippets/map_named_callback/_main.vader"
     l2 = l0;
 #line 87 "lib/std/iter/iter.vader"
-    vader_array_t* _a9_arr = vader_array_new(11u, 0u, 13u, 2u);
+    vader_array_t* _a9_arr = vader_array_new(10u, 0u, 13u, 2u);
     l3 = (void*) _a9_arr;
 #line 19 "tests/snippets/map_named_callback/_main.vader"
     l4 = ((vader_array_t*) l2)->length;
@@ -279,7 +279,7 @@ static int32_t snippet_main(void) {
     t2 = std_core_finish_buffer(l2, l4);
     std_io_println__string(t2);
 #line 87 "lib/std/iter/iter.vader"
-    vader_array_t* _a14_arr = vader_array_new(10u, 0u, 13u, 1u);
+    vader_array_t* _a14_arr = vader_array_new(11u, 0u, 13u, 1u);
     l1 = (void*) _a14_arr;
 #line 21 "tests/snippets/map_named_callback/_main.vader"
     l4 = ((vader_array_t*) l0)->length;

@@ -235,6 +235,10 @@
     fn std.collections.MutableMap<string, i64>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__i64
     fn std.collections.MutableMap<string, i64>.into  // std_collections$MutableMap$std_core_Into$into__string__i64
     fn std.collections.MutableMap<string, i64>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__i64
+    fn std.collections.MutableMap<string, string[]>.at  // std_collections$MutableMap$std_core_Index$at__string__string__
+    fn std.collections.MutableMap<string, string[]>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__string__
+    fn std.collections.MutableMap<string, string[]>.into  // std_collections$MutableMap$std_core_Into$into__string__string__
+    fn std.collections.MutableMap<string, string[]>.set_at  // std_collections$MutableMap$std_core_IndexSet$set_at__string__string__
     fn std.collections.MutableMap<string, u16>.at  // std_collections$MutableMap$std_core_Index$at__string__u16
     fn std.collections.MutableMap<string, u16>.contains  // std_collections$MutableMap$std_core_Contains$contains__string__u16
     fn std.collections.MutableMap<string, u16>.into  // std_collections$MutableMap$std_core_Into$into__string__u16
@@ -254,6 +258,7 @@
     fn std.collections.contains_key<string, i16>  // std_collections$contains_key__string__i16
     fn std.collections.contains_key<string, i32>  // std_collections$contains_key__string__i32
     fn std.collections.contains_key<string, i64>  // std_collections$contains_key__string__i64
+    fn std.collections.contains_key<string, string[]>  // std_collections$contains_key__string__string__
     fn std.collections.contains_key<string, u16>  // std_collections$contains_key__string__u16
     fn std.collections.contains_key<string, u8>  // std_collections$contains_key__string__u8
     fn std.collections.first_slot  // std_collections$first_slot
@@ -266,8 +271,21 @@
     fn std.collections.get<string, i16>  // std_collections$get__string__i16
     fn std.collections.get<string, i32>  // std_collections$get__string__i32
     fn std.collections.get<string, i64>  // std_collections$get__string__i64
+    fn std.collections.get<string, string[]>  // std_collections$get__string__string__
     fn std.collections.get<string, u16>  // std_collections$get__string__u16
     fn std.collections.get<string, u8>  // std_collections$get__string__u8
+    fn std.collections.grow_index<i32, bool>  // std_collections$grow_index__i32__bool
+    fn std.collections.grow_index<i32, i32>  // std_collections$grow_index__i32__i32
+    fn std.collections.grow_index<string, bool>  // std_collections$grow_index__string__bool
+    fn std.collections.grow_index<string, char>  // std_collections$grow_index__string__char
+    fn std.collections.grow_index<string, f32>  // std_collections$grow_index__string__f32
+    fn std.collections.grow_index<string, f64>  // std_collections$grow_index__string__f64
+    fn std.collections.grow_index<string, i16>  // std_collections$grow_index__string__i16
+    fn std.collections.grow_index<string, i32>  // std_collections$grow_index__string__i32
+    fn std.collections.grow_index<string, i64>  // std_collections$grow_index__string__i64
+    fn std.collections.grow_index<string, string[]>  // std_collections$grow_index__string__string__
+    fn std.collections.grow_index<string, u16>  // std_collections$grow_index__string__u16
+    fn std.collections.grow_index<string, u8>  // std_collections$grow_index__string__u8
     fn std.collections.next_slot  // std_collections$next_slot
     fn std.collections.put<i32, bool>  // std_collections$put__i32__bool
     fn std.collections.put<i32, i32>  // std_collections$put__i32__i32
@@ -278,6 +296,7 @@
     fn std.collections.put<string, i16>  // std_collections$put__string__i16
     fn std.collections.put<string, i32>  // std_collections$put__string__i32
     fn std.collections.put<string, i64>  // std_collections$put__string__i64
+    fn std.collections.put<string, string[]>  // std_collections$put__string__string__
     fn std.collections.put<string, u16>  // std_collections$put__string__u16
     fn std.collections.put<string, u8>  // std_collections$put__string__u8
     fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
@@ -289,12 +308,14 @@
     fn std.collections.rehash<string, i16>  // std_collections$rehash__string__i16
     fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
     fn std.collections.rehash<string, i64>  // std_collections$rehash__string__i64
+    fn std.collections.rehash<string, string[]>  // std_collections$rehash__string__string__
     fn std.collections.rehash<string, u16>  // std_collections$rehash__string__u16
     fn std.collections.rehash<string, u8>  // std_collections$rehash__string__u8
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_10$Iterator$next
     fn std_collections$__gen_state_std_collections_11$Iterator$next
+    fn std_collections$__gen_state_std_collections_12$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next
     fn std_collections$__gen_state_std_collections_3$Iterator$next
     fn std_collections$__gen_state_std_collections_4$Iterator$next
@@ -304,6 +325,7 @@
     fn std_collections$__gen_state_std_collections_8$Iterator$next
     fn std_collections$__gen_state_std_collections_9$Iterator$next
     struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
+    struct std.collections.MutableMap<Any, Any[]>  // std_collections$MutableMap__Any__Any_arr
     struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool
     struct std.collections.MutableMap<i32, i32>  // std_collections$MutableMap__i32__i32
@@ -314,6 +336,7 @@
     struct std.collections.MutableMap<string, i16>  // std_collections$MutableMap__string__i16
     struct std.collections.MutableMap<string, i32>  // std_collections$MutableMap__string__i32
     struct std.collections.MutableMap<string, i64>  // std_collections$MutableMap__string__i64
+    struct std.collections.MutableMap<string, string[]>  // std_collections$MutableMap__string__string__
     struct std.collections.MutableMap<string, u16>  // std_collections$MutableMap__string__u16
     struct std.collections.MutableMap<string, u8>  // std_collections$MutableMap__string__u8
     struct std.collections.MutableSet<Any>  // std_collections$MutableSet__Any
@@ -322,6 +345,7 @@
     struct std_collections$__gen_state_std_collections_1
     struct std_collections$__gen_state_std_collections_10
     struct std_collections$__gen_state_std_collections_11
+    struct std_collections$__gen_state_std_collections_12
     struct std_collections$__gen_state_std_collections_2
     struct std_collections$__gen_state_std_collections_3
     struct std_collections$__gen_state_std_collections_4

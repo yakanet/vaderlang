@@ -106,41 +106,59 @@ rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> voi
     self.tombs = 0
 }
 
+// Rehash at the smallest power-of-two slot count, at least
+// `MINIMAL_INDEX_COUNT`, that keeps the live entries under 0.75. Sizing to the
+// LIVE count lets a tombstone-heavy map compact instead of only ever doubling.
+grow_index :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
+    new_count := MINIMAL_INDEX_COUNT
+    for self.size * 4 > new_count * 3 {
+        new_count = new_count * 2
+    }
+    self.rehash(new_count)
+}
+
 /// Insert or overwrite `key → value`. Probes the index from `hash & mask` ; an
 /// existing key has its value replaced in place, otherwise a fresh entry is
-/// appended (reusing the first tombstone seen, if any).
+/// appended (reusing the first tombstone seen, if any). Only an insertion can
+/// grow the index.
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
 /// @return       `true` when `key` was absent and an entry was added, `false`
 ///               when its value was replaced.
 put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool {
-    // Rehash when used slots (entries + tombstones) pass 0.75. Size the new
-    // table to the LIVE entry count so a tombstone-heavy map compacts (clears
-    // tombstones) instead of only ever doubling. A map with no index yet has a
-    // `mask` of 0, so its first insert takes this branch and allocates it.
-    if (self.size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
-        new_count := MINIMAL_INDEX_COUNT
-        for (self.size + 1) * 4 > new_count * 3 { new_count = new_count * 2 }
-        self.rehash(new_count)
-    }
-    perturb := key.hash()
-    s := first_slot(perturb, self.mask)
     first_tomb: i64 = -1
-    for self.index[s] != EMPTY_SLOT {
-        if self.index[s] == TOMB_SLOT {
-            if first_tomb < 0 { first_tomb = s }
-        } else {
-            ei :: i64(self.index[s]) - 1
-            if self.ekeys[ei].equals(key) { self.evals[ei] = value  return false }
+    empty: i64 = -1
+    if self.index.len() > 0 {
+        perturb := key.hash()
+        s := first_slot(perturb, self.mask)
+        for {
+            slot :: self.index[s]
+            if slot == EMPTY_SLOT {
+                empty = s
+                break
+            }
+            if slot == TOMB_SLOT {
+                if first_tomb < 0 {
+                    first_tomb = s
+                }
+            } else {
+                ei :: i64(slot) - 1
+                if self.ekeys[ei].equals(key) {
+                    self.evals[ei] = value
+                    return false
+                }
+            }
+            perturb = perturb >> 5
+            s = next_slot(s, perturb, self.mask)
         }
-        perturb = perturb >> 5
-        s = next_slot(s, perturb, self.mask)
     }
-    target :: if first_tomb >= 0 { first_tomb } else { s }
-    if first_tomb >= 0 { self.tombs = self.tombs - 1 }   // reused a tombstone slot
     // The fresh entry lands at logical position `size`: a spare dense slot freed
-    // by a prior `remove` when one is left, else appended.
+    // by a prior `remove` when one is left, else appended. It takes the first
+    // tombstone its probe passed, else the empty slot the probe ended on, unless
+    // used slots (entries + tombstones) would pass 0.75: the rehash then indexes
+    // it with the others. A map with no index yet has a `mask` of 0, so its first
+    // insert grows it.
     size :: self.size
     if size < self.ekeys.len() {
         self.ekeys[size] = key
@@ -149,9 +167,122 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
         self.ekeys.push(key)
         self.evals.push(value)
     }
-    self.index[target] = i32(size + 1)
     self.size = size + 1
+    if (size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
+        self.grow_index()
+    } else if first_tomb >= 0 {
+        self.tombs = self.tombs - 1
+        self.index[first_tomb] = i32(size + 1)
+    } else {
+        self.index[empty] = i32(size + 1)
+    }
     return true
+}
+
+/// The value stored for `key`, after storing `value` there when `key` was
+/// absent. One probe either way. The caller evaluates `value` even when `key`
+/// is present: for a default that allocates, take `get_or_put_with`.
+/// @param self   the map receiver.
+/// @param key    key to look up.
+/// @param value  stored when `key` is absent.
+/// @return       the value now stored for `key`.
+/// @example
+///   index_of :: MutableMap<string, i64> {}
+///   at :: index_of.get_or_put("x", index_of.len())
+export get_or_put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> V {
+    first_tomb: i64 = -1
+    empty: i64 = -1
+    if self.index.len() > 0 {
+        perturb := key.hash()
+        s := first_slot(perturb, self.mask)
+        for {
+            slot :: self.index[s]
+            if slot == EMPTY_SLOT {
+                empty = s
+                break
+            }
+            if slot == TOMB_SLOT {
+                if first_tomb < 0 {
+                    first_tomb = s
+                }
+            } else {
+                ei :: i64(slot) - 1
+                if self.ekeys[ei].equals(key) {
+                    return self.evals[ei]
+                }
+            }
+            perturb = perturb >> 5
+            s = next_slot(s, perturb, self.mask)
+        }
+    }
+    // The insertion of `put`, inlined: a call would add a GC frame to every
+    // fresh entry.
+    size :: self.size
+    if size < self.ekeys.len() {
+        self.ekeys[size] = key
+        self.evals[size] = value
+    } else {
+        self.ekeys.push(key)
+        self.evals.push(value)
+    }
+    self.size = size + 1
+    if (size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
+        self.grow_index()
+    } else if first_tomb >= 0 {
+        self.tombs = self.tombs - 1
+        self.index[first_tomb] = i32(size + 1)
+    } else {
+        self.index[empty] = i32(size + 1)
+    }
+    return value
+}
+
+/// The value stored for `key`, after storing what `make` returns there when
+/// `key` was absent. `make` runs only on a miss, so a default that allocates
+/// costs nothing when `key` is present. A hit takes one probe; a miss takes a
+/// second one after `make`, which may itself change the map.
+/// @param self  the map receiver.
+/// @param key   key to look up.
+/// @param make  builds the value to store when `key` is absent.
+/// @return      the value now stored for `key`.
+/// @example
+///   by_module :: MutableMap<string, string[]> {}
+///   by_module.get_or_put_with("std/io", () -> []).push("println")
+export get_or_put_with :: fn<K: Hash & Equals, V>(
+    self: MutableMap<K, V>,
+    key: K,
+    make: fn() -> V,
+) -> V {
+    ei :: self.entry_of(key)
+    if ei >= 0 {
+        return self.evals[ei]
+    }
+    value :: make()
+    self.put(key, value)
+    return value
+}
+
+// The dense position of `key`'s entry, or -1 when the map holds no such key.
+entry_of :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> i64 {
+    if self.index.len() == 0 {
+        return -1
+    }
+    perturb := key.hash()
+    s := first_slot(perturb, self.mask)
+    for {
+        slot :: self.index[s]
+        if slot == EMPTY_SLOT {
+            return -1
+        }
+        if slot != TOMB_SLOT {
+            ei :: i64(slot) - 1
+            if self.ekeys[ei].equals(key) {
+                return ei
+            }
+        }
+        perturb = perturb >> 5
+        s = next_slot(s, perturb, self.mask)
+    }
 }
 
 /// Logically empty the map while KEEPING its backing arrays (`ekeys` / `evals` /
@@ -175,15 +306,20 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
     if self.index.len() == 0 { return null }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
-    for self.index[s] != EMPTY_SLOT {
-        if self.index[s] != TOMB_SLOT {
-            ei :: i64(self.index[s]) - 1
-            if self.ekeys[ei].equals(key) { return self.evals[ei] }
+    for {
+        slot :: self.index[s]
+        if slot == EMPTY_SLOT {
+            return null
+        }
+        if slot != TOMB_SLOT {
+            ei :: i64(slot) - 1
+            if self.ekeys[ei].equals(key) {
+                return self.evals[ei]
+            }
         }
         perturb = perturb >> 5
         s = next_slot(s, perturb, self.mask)
     }
-    return null
 }
 
 /// True iff `key` has an entry in the map. Distinguishes "key absent" from
@@ -194,15 +330,20 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
     if self.index.len() == 0 { return false }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
-    for self.index[s] != EMPTY_SLOT {
-        if self.index[s] != TOMB_SLOT {
-            ei :: i64(self.index[s]) - 1
-            if self.ekeys[ei].equals(key) { return true }
+    for {
+        slot :: self.index[s]
+        if slot == EMPTY_SLOT {
+            return false
+        }
+        if slot != TOMB_SLOT {
+            ei :: i64(slot) - 1
+            if self.ekeys[ei].equals(key) {
+                return true
+            }
         }
         perturb = perturb >> 5
         s = next_slot(s, perturb, self.mask)
     }
-    return false
 }
 
 // Find the index slot whose stored value equals `want` (a 1-based entry pos),
@@ -228,9 +369,13 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
     if self.index.len() == 0 { return false }
     perturb := key.hash()
     s := first_slot(perturb, self.mask)
-    for self.index[s] != EMPTY_SLOT {
-        if self.index[s] != TOMB_SLOT {
-            ei :: i64(self.index[s]) - 1
+    for {
+        slot :: self.index[s]
+        if slot == EMPTY_SLOT {
+            return false
+        }
+        if slot != TOMB_SLOT {
+            ei :: i64(slot) - 1
             if self.ekeys[ei].equals(key) {
                 last :: self.size - 1
                 if ei != last {
@@ -248,7 +393,6 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
         perturb = perturb >> 5
         s = next_slot(s, perturb, self.mask)
     }
-    return false
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
@@ -480,4 +624,65 @@ import "std/testing"
             is null -> assert(false, "key should be present")
         }
     }
+}
+
+@test
+test_map_get_or_put_keeps_the_stored_value :: fn() -> void {
+    m :: MutableMap<string, i64> {}
+    assert_eq(m.get_or_put("a", 1), 1)
+    assert_eq(m.get_or_put("a", 2), 1)
+    assert_eq(m.len(), 1)
+}
+
+@test
+test_map_get_or_put_reuses_a_tombstone :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<8 {
+        m[i] = i
+    }
+    m.remove(3)
+    assert_eq(m.get_or_put(3, 30), 30)
+    assert_eq(m.len(), 8)
+    assert_eq(m.tombs, 0)
+}
+
+@test
+test_map_get_or_put_with_builds_only_on_a_miss :: fn() -> void {
+    m :: MutableMap<string, string[]> {}
+    built: i32 = 0
+    m.get_or_put_with("a", fn() {
+        built += 1
+        []
+    }).push("x")
+    m.get_or_put_with("a", fn() {
+        built += 1
+        []
+    }).push("y")
+    assert_eq(built, 1)
+    assert_eq((m.get("a") ?? []).len(), 2)
+}
+
+@test
+test_map_get_or_put_with_survives_a_make_that_inserts :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    got :: m.get_or_put_with(0, fn() {
+        for i in 1..<40 {
+            m[i] = i
+        }
+        100
+    })
+    assert_eq(got, 100)
+    assert_eq(m.len(), 40)
+    assert_eq(m.get(0) ?? -1, 100)
+}
+
+@test
+test_map_put_of_a_present_key_does_not_grow :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<12 {
+        m[i] = i
+    }
+    before :: m.index.len()
+    m[0] = 7
+    assert_eq(m.index.len(), before)
 }
