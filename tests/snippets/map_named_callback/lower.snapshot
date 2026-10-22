@@ -129,9 +129,6 @@
     fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
     fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
     fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
-    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
-    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
-    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$__gen_state_std_collections_0$Iterator$next
     fn std_collections$__gen_state_std_collections_1$Iterator$next
     fn std_collections$__gen_state_std_collections_2$Iterator$next

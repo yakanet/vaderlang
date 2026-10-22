@@ -78,10 +78,9 @@ reject_growing_recursion :: fn(
     reported :: MutableSet<u64> {}
     for call in growing {
         [from, to] :: call.edge
-        if component[from] != component[to] || call.span.hash() in reported {
+        if component[from] != component[to] || !reported.add(call.span.hash()) {
             continue
         }
-        reported.add(call.span.hash())
         diags.push(
             typecheck_error(
                 .GenericRecursionGrows,

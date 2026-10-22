@@ -428,15 +428,15 @@ verify_locals :: fn(
     unwritten :: MutableSet<LocalId> {}
     report :: (id: LocalId, sp: Span, site: string) -> {
         if i32(id) < 0 || i32(id) >= local_count {
-            if ranged.contains(id) { return }
-            ranged.add(id)
+            if !ranged.add(id) {
+                return
+            }
             diags.push(internal_error(.LocalIdOutOfRange, sp,
                 "${where}: ${site} names local ${id}, but the fn has ${local_count} locals"))
             return
         }
         if written.contains(id) { return }
-        if unwritten.contains(id) { return }
-        unwritten.add(id)
+        if !unwritten.add(id)   { return }
         diags.push(internal_error(.LocalReadNeverWritten, sp,
             "${where}: local ${id} `${fn_.locals[i32(id)].name}` is read by ${site} but never written"))
     }

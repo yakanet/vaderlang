@@ -173,10 +173,11 @@ surface_array_impl_members :: fn(
             if reached.member_span != member.span { continue }
             // Dedupe against re-entrant drain-loop passes.
             dedupe_key :: "arr_member::${mangled}"
-            if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+            if !project_ctx.materialized_impl_keys.add(dedupe_key) {
+                continue
+            }
             element :: reached.element
             self_type :: mk_array(element)
-            project_ctx.materialized_impl_keys.add(dedupe_key)
             subst :: build_impl_subst(impl_entry, [element])
             types :: make_entry_types(typed, subst)
             params :: build_impl_member_params(member, self_type, types, typed, project_ctx)

@@ -262,10 +262,9 @@ read_once :: fn(
     owner: TypedProgram,
     table: ContractTable,
 ) -> GuardContract | null {
-    if decl.id in table.reading {
+    if !table.reading.add(decl.id) {
         return null
     }
-    table.reading.add(decl.id)
     position :: set_walk_aside(owner)
     contract :: read_contract(decl, cond, owner)
     resume_walk(owner, position)

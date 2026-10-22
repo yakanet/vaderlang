@@ -511,10 +511,9 @@ TypelessOp :: Unreachable | I32Const | LocalGet | LocalSet | LocalTee | StringCo
 /// (struct / union / array / fn) extend the visit through their
 /// inner type indices.
 visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void {
-    if idx < 0 { return }
-    if idx in reachable { return }
+    if idx < 0                     { return }
     if i64(idx) >= ctx.types.len() { return }
-    reachable.add(idx)
+    if !reachable.add(idx)         { return }
     t :: ctx.types[idx]
     if t is BcStruct {
         for f in t.fields { visit_type(f.type_index, ctx, reachable) }

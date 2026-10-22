@@ -252,9 +252,9 @@ compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap
         producers :: alias_of[cur]
         if producers !is null {
             for p in producers {
-                if carried.contains(p) { continue }
-                carried.add(p)
-                work.push(p)
+                if carried.add(p) {
+                    work.push(p)
+                }
             }
         }
     }
@@ -347,9 +347,9 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         sources :: alias_of[cur]
         if sources !is null {
             for s in sources {
-                if escaping.contains(s) { continue }
-                escaping.add(s)
-                work.push(s)
+                if escaping.add(s) {
+                    work.push(s)
+                }
             }
         }
     }

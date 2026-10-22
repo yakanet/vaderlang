@@ -100,8 +100,9 @@ analyze_stmt :: fn(s: LoweredStmt, ctx: AnalyzeCtx) -> void {
         is LoweredLet -> {
             // A symbol bound more than once (the fusion reuses a combinator's param
             // symbol across sites) is ambiguous — escape it so it never devirtualizes.
-            if ctx.bound.contains(s.symbol.id) { ctx.escaped.add(s.symbol.id) }
-            ctx.bound.add(s.symbol.id)
+            if !ctx.bound.add(s.symbol.id) {
+                ctx.escaped.add(s.symbol.id)
+            }
             // `let L = <bare fn ref>` : record the named alias L -> S and DON'T scan
             // the value (the RHS fn ident is the alias binding, not an escaping use).
             value :: s.value

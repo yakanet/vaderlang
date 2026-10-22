@@ -177,10 +177,9 @@ export natural_loop_bodies :: fn(
         for stack.len() > 0 {
             cur :: stack[stack.len() - 1]
             stack = stack[0..<stack.len() - 1]
-            if body.contains(cur) {
+            if !body.add(cur) {
                 continue
             }
-            body.add(cur)
             for p in preds[i32(cur)] {
                 if p != h_id { stack.push(p) }
             }
@@ -290,8 +289,7 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
     seen :: MutableSet<i32> {}
     x := a
-    for x != -1 && !seen.contains(i32(x)) {
-        seen.add(i32(x))
+    for x != -1 && seen.add(i32(x)) {
         next :: BlockId(idom[i32(x)])
         if next == x { break }
         x = next

@@ -388,10 +388,9 @@ unit_names_of :: fn(fns: BcFunction[], buckets: i32[][]) -> string[] {
     }
     seen :: MutableSet<string> {}
     for n in out {
-        if n in seen {
+        if !seen.add(n) {
             todo("split: two units named `${n}` would write the same file")
         }
-        seen.add(n)
     }
     return out
 }

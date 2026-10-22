@@ -196,8 +196,7 @@ materialize_struct_instance :: fn(
     // Idempotent: the receiver closure asks for shapes the instance worklist
     // may already have emitted. Fields are still rebuilt and returned — the
     // shape closure walks them — only the push is skipped.
-    already :: project_ctx.materialized_struct_mangles.contains(mangled)
-    project_ctx.materialized_struct_mangles.add(mangled)
+    fresh :: project_ctx.materialized_struct_mangles.add(mangled)
     // Layout subst (mixed flavor) : the entry's `subst` keeps the concrete
     // args (for mangling + downstream consumers that need the source-level
     // type-args), but the FIELDS get a MIXED subst — primitive type-args land
@@ -230,7 +229,7 @@ materialize_struct_instance :: fn(
         .type_arguments = inst.args,
         .module         = owner_typed,
     }
-    if !already {
+    if fresh {
         push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
             .mangled = mangled,
             .fields  = fields,
@@ -276,8 +275,9 @@ close_over_field_shapes :: fn(
         shape :: worklist[i]
         i += 1
         mangled :: shape_mangle(shape, typed) ?? continue
-        if materialized.contains(mangled) { continue }
-        materialized.add(mangled)
+        if !materialized.add(mangled) {
+            continue
+        }
         count += 1
         new_fields :: materialize_shape(shape.symbol, shape.args, typed, project_ctx, project)
         for f in new_fields { for_each_type(f.type, collect) }
@@ -485,8 +485,9 @@ materialize_impl_for_instance :: fn(
         // instance wins ; the call sites land on the survivor via the
         // trait virtual-dispatch in bytecode emit.
         dedupe_key :: "${impl_key_prefix}::${member.name}${suffix}"
-        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
-        project_ctx.materialized_impl_keys.add(dedupe_key)
+        if !project_ctx.materialized_impl_keys.add(dedupe_key) {
+            continue
+        }
         params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
         return_type :: return_type_of(member, types)
         // Mangle + emit under the IMPL's owning module (`impl_typed`), NOT the

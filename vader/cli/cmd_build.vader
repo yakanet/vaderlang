@@ -656,8 +656,7 @@ union_of_string_pools :: fn(mods: CfgBytecode[]) -> string[] {
     out: string[]: []
     for m in mods {
         for s in m.module.strings {
-            if s != "" && !seen.contains(s) {
-                seen.add(s)
+            if s != "" && seen.add(s) {
                 out.push(s)
             }
         }

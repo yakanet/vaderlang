@@ -88,10 +88,9 @@ trait_names :: fn(named: NamedDecl[]) -> MutableMap<string, string> {
     traits :: MutableMap<string, string> {}
     for n in named {
         module :: n.origin.module ?? continue
-        if module.resolved.path in seen {
+        if !seen.add(module.resolved.path) {
             continue
         }
-        seen.add(module.resolved.path)
         for symbol in module.resolved.symbols {
             if symbol.kind == .Trait {
                 traits[trait_key_of(symbol)] = "${dotted(symbol.module_name)}.${symbol.name}"

@@ -64,8 +64,9 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
     // separate distinct one. Distinct ends at the lowering boundary.
     mono_args :: strip_distinct_each(recv.args)
     recv_key :: "#${recv.symbol.id}${mixed_any_suffix(ctx.project.impls, mono_args)}"
-    if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
-    ctx.project.seen_generic_impl_recv.add(recv_key)
+    if !ctx.project.seen_generic_impl_recv.add(recv_key) {
+        return
+    }
     ctx.project.pending_generic_impl_recv.push(GenericInstance {
         .symbol = recv.symbol, .args = mono_args, .display_key = recv_key,
     })

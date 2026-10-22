@@ -466,10 +466,9 @@ bfs_reachable :: fn(
     for cursor < work.len() {
         n :: work[cursor]
         cursor += 1
-        if n in reachable {
+        if !reachable.add(n) {
             continue
         }
-        reachable.add(n)
         nrefs :: refs_by_name[n]
         if nrefs != null {
             for r in nrefs {

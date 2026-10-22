@@ -56,7 +56,7 @@ impl 26 std_core$Into
 vtable std_core$Hash.hash 1 1
 vtable std_core$Hash.hash 4 3
 vtable std_core$Hash.hash 5 9
-vtable std_core$Hash.hash 6 47
+vtable std_core$Hash.hash 6 46
 vtable std_core$Hash.hash 16 15
 vtable std_core$Hash.hash 17 16
 vtable std_core$Hash.hash 9 17
@@ -193,7 +193,7 @@ fn 4 snippet$main () -> i32
   string.const 2   ; " "
   local.get 5   ; if_res
   call 5   ; concat_3
-  call 46   ; std_io$println__string
+  call 45   ; std_io$println__string
   i32.const 1
   struct.new 1   ; snippet$Point
   array.new 11 1   ; union[]
@@ -218,7 +218,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; $arr_1
   local.get 6   ; __off_3
   call 10   ; std_core$finish_buffer
-  call 46   ; std_io$println__string
+  call 45   ; std_io$println__string
   f64.const 1.5 4609434218613702656
   retag 15   ; f64
   string.const 3   ; "a"
@@ -245,7 +245,7 @@ fn 4 snippet$main () -> i32
   local.get 1   ; $arr_1
   local.get 6   ; __off_3
   call 10   ; std_core$finish_buffer
-  call 46   ; std_io$println__string
+  call 45   ; std_io$println__string
   i32.const 1
   struct.new 1   ; snippet$Point
   local.set 3   ; __coalesce_0
@@ -284,7 +284,7 @@ fn 4 snippet$main () -> i32
   local.get 0   ; $arr_0
   local.get 6   ; __off_3
   call 10   ; std_core$finish_buffer
-  call 46   ; std_io$println__string
+  call 45   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -839,7 +839,7 @@ end
 fn 36 std_collections$MutableMap$std_core_Index$at__Any__string (ref,any) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 43   ; std_collections$get__Any__string
+  call 42   ; std_collections$get__Any__string
   return
 end
 
@@ -847,7 +847,7 @@ fn 37 std_collections$MutableMap$std_core_IndexSet$set_at__Any__string (ref,any,
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 42   ; std_collections$put__Any__string
+  call 41   ; std_collections$put__Any__string
   drop
   return
 end
@@ -990,58 +990,15 @@ fn 40 std_collections$rehash__Any__string (ref,i64) -> void
   return
 end
 
-fn 41 std_collections$write_entry__Any__string (ref,any,string) -> void
-  local $field_3 i64
-  local $len_5 i64
-  local $field_7 ref
-  local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
-  ref.cast 9   ; i64
-  local.set 3   ; $field_3
-  local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
-  array.len
-  local.set 4   ; $len_5
-  local.get 3   ; $field_3
-  local.get 4   ; $len_5
-  i64.lt
-  if $L0 void
-    local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
-    local.set 5   ; $field_7
-    local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
-    ref.cast 9   ; i64
-    local.set 3   ; $field_3
-    local.get 5   ; $field_7
-    local.get 3   ; $field_3
-    local.get 1   ; arg 1
-    array.set 27   ; ref[]
-    local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
-    local.set 5   ; $field_7
-    local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
-    ref.cast 9   ; i64
-    local.set 3   ; $field_3
-    local.get 5   ; $field_7
-    local.get 3   ; $field_3
-    local.get 2   ; arg 2
-    array.set 28   ; string[]
-    return
-  end $L0
-  local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
-  local.get 1   ; arg 1
-  array.push 7   ; ref
-  local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
-  local.get 2   ; arg 2
-  array.push 6   ; string
-  return
-end
-
-fn 42 std_collections$put__Any__string (ref,any,string) -> bool
+fn 41 std_collections$put__Any__string (ref,any,string) -> bool
   local $field_3 i64
   local $field_4 i64
   local $mul_checked_24 i64
   local perturb u64
   local $idx_52 any
   local $field_58 i64
-  local $field_68 ref
-  local $cast_72 i32
+  local $field_77 ref
+  local $cast_80 i32
   local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
   ref.cast 9   ; i64
   local.set 3   ; $field_3
@@ -1189,24 +1146,44 @@ fn 42 std_collections$put__Any__string (ref,any,string) -> bool
     local.get 3   ; $field_3
     struct.set 24 5   ; std_collections$MutableMap__Any__string.tombs
   end $L9
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call 41   ; std_collections$write_entry__Any__string
-  local.field 0 24 2   ; arg 0 std_collections$MutableMap__Any__string.index
-  local.set 9   ; $field_68
   local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
   ref.cast 9   ; i64
+  local.set 3   ; $field_3
+  local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+  array.len
+  local.set 4   ; $field_4
+  local.get 3   ; $field_3
+  local.get 4   ; $field_4
+  i64.lt
+  if $L10 void
+    local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+    local.get 3   ; $field_3
+    local.get 1   ; arg 1
+    array.set 27   ; ref[]
+    local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+    local.get 3   ; $field_3
+    local.get 2   ; arg 2
+    array.set 28   ; string[]
+  else
+    local.field 0 24 0   ; arg 0 std_collections$MutableMap__Any__string.ekeys
+    local.get 1   ; arg 1
+    array.push 7   ; ref
+    local.field 0 24 1   ; arg 0 std_collections$MutableMap__Any__string.evals
+    local.get 2   ; arg 2
+    array.push 6   ; string
+  end $L10
+  local.field 0 24 2   ; arg 0 std_collections$MutableMap__Any__string.index
+  local.set 9   ; $field_77
+  local.get 3   ; $field_3
   i64.const 1
   i64.checked_add
   i64.to_i32
-  local.set 10   ; $cast_72
-  local.get 9   ; $field_68
+  local.set 10   ; $cast_80
+  local.get 9   ; $field_77
   local.get 5   ; $mul_checked_24
-  local.get 10   ; $cast_72
+  local.get 10   ; $cast_80
   store_slot_i32
-  local.field 0 24 4   ; arg 0 std_collections$MutableMap__Any__string.size
-  ref.cast 9   ; i64
+  local.get 3   ; $field_3
   i64.const 1
   i64.checked_add
   local.set 3   ; $field_3
@@ -1216,7 +1193,7 @@ fn 42 std_collections$put__Any__string (ref,any,string) -> bool
   return.lit bool.const true
 end
 
-fn 43 std_collections$get__Any__string (ref,any) -> any
+fn 42 std_collections$get__Any__string (ref,any) -> any
   local perturb u64
   local $field_9 i64
   local ei i64
@@ -1293,7 +1270,7 @@ fn 43 std_collections$get__Any__string (ref,any) -> any
   return.lit null.const
 end
 
-fn 44 std_io$write (u8,string) -> void
+fn 43 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -1329,7 +1306,7 @@ fn 44 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 45   ; std_io$write_bytes
+      call 44   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -1349,7 +1326,7 @@ fn 44 std_io$write (u8,string) -> void
   return
 end
 
-fn 45 std_io$write_bytes (u8,ref,i64) -> i32
+fn 44 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -1369,7 +1346,7 @@ fn 45 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 46 std_io$println__string (string) -> void
+fn 45 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 6   ; "\n"
@@ -1377,11 +1354,11 @@ fn 46 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 44   ; std_io$write
+  call 43   ; std_io$write
   return
 end
 
-fn 47 std_core$string$Hash$hash_vt (string) -> u64
+fn 46 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0   ; arg 0
   call.import 2   ; std_core$string$Hash$hash
   return

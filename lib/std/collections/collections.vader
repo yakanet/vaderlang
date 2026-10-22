@@ -106,18 +106,6 @@ rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> voi
     self.tombs = 0
 }
 
-// Write the (key, value) entry at logical position `self.size` — reusing a
-// spare dense slot freed by a prior `remove`, or appending.
-write_entry :: fn<K, V>(self: MutableMap<K, V>, key: K, value: V) -> void {
-    if self.size < self.ekeys.len() {
-        self.ekeys[self.size] = key
-        self.evals[self.size] = value
-    } else {
-        self.ekeys.push(key)
-        self.evals.push(value)
-    }
-}
-
 /// Insert or overwrite `key → value`. Probes the index from `hash & mask` ; an
 /// existing key has its value replaced in place, otherwise a fresh entry is
 /// appended (reusing the first tombstone seen, if any).
@@ -151,9 +139,18 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
     }
     target :: if first_tomb >= 0 { first_tomb } else { s }
     if first_tomb >= 0 { self.tombs = self.tombs - 1 }   // reused a tombstone slot
-    self.write_entry(key, value)
-    self.index[target] = i32(self.size + 1)
-    self.size = self.size + 1
+    // The fresh entry lands at logical position `size`: a spare dense slot freed
+    // by a prior `remove` when one is left, else appended.
+    size :: self.size
+    if size < self.ekeys.len() {
+        self.ekeys[size] = key
+        self.evals[size] = value
+    } else {
+        self.ekeys.push(key)
+        self.evals.push(value)
+    }
+    self.index[target] = i32(size + 1)
+    self.size = size + 1
     return true
 }
 
@@ -161,8 +158,8 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
 /// `index`) allocated, so a subsequent refill reuses them instead of allocating
 /// a fresh map. For hot reuse loops — e.g. a dataflow fixpoint's scratch set
 /// that would otherwise mint a new map every round. The dense entries past
-/// `size` are stale but unreachable (`size = 0`), and `write_entry` overwrites
-/// them from slot 0 on the next insert. O(index slots).
+/// `size` are stale but unreachable (`size = 0`), and `put` overwrites them
+/// from slot 0 on the next insert. O(index slots).
 /// @param self  the map receiver.
 export clear :: fn<K, V>(self: MutableMap<K, V>) -> void {
     self.size = 0

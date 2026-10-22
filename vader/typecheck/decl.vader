@@ -640,10 +640,9 @@ validate_mirror_fields :: fn(
     if t !is StructType {
         return
     }
-    if t.symbol.id in seen {
+    if !seen.add(t.symbol.id) {
         return
     }
-    seen.add(t.symbol.id)
     sd :: typed.struct_decls[t.symbol.id] ?? return
     fmap :: typed.struct_field_types[t.symbol.id] ?? return
     for f in sd.fields {

@@ -137,11 +137,11 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   i32.const 1
   i32.const 7
   call 8   ; snippet$pair__snippet_HttpStatus__snippet_Color
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   i32.const 0
   local.set 3   ; s
   i64.const 26
@@ -174,7 +174,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   array.new 17 0   ; u8[]
   local.set 0   ; __buf_0
   array.new 24 0   ; string[]
@@ -260,7 +260,7 @@ fn 0 snippet$main () -> i32
   call 11   ; std_core$write_string_at
   local.set 1   ; __off_1
   local.get 0   ; __buf_0
-  call 70   ; std_collections$len__snippet_HttpStatus__string
+  call 69   ; std_collections$len__snippet_HttpStatus__string
   local.set 2   ; $call_6
   local.get 5   ; $arr_38
   local.get 1   ; __off_1
@@ -270,7 +270,7 @@ fn 0 snippet$main () -> i32
   local.get 5   ; $arr_38
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   i32.const 7
   i32.const 9
   array.new 17 2   ; u8[]
@@ -315,7 +315,7 @@ fn 0 snippet$main () -> i32
   local.get 6   ; $arr_39
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   i32.const 9
   struct.new 4   ; snippet$Box__snippet_Color
   local.set 0   ; __buf_0
@@ -360,7 +360,7 @@ fn 0 snippet$main () -> i32
   local.get 0   ; __buf_0
   local.get 1   ; __off_1
   call 10   ; std_core$finish_buffer
-  call 73   ; std_io$println__string
+  call 72   ; std_io$println__string
   return.lit i32.const 0
 end
 
@@ -3574,7 +3574,7 @@ end
 fn 62 std_collections$MutableMap$std_core_Index$at__snippet_HttpStatus__string (ref,u8) -> any
   local.get 0   ; arg 0
   local.get 1   ; arg 1
-  call 69   ; std_collections$get__snippet_HttpStatus__string
+  call 68   ; std_collections$get__snippet_HttpStatus__string
   return
 end
 
@@ -3582,7 +3582,7 @@ fn 63 std_collections$MutableMap$std_core_IndexSet$set_at__snippet_HttpStatus__s
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   local.get 2   ; arg 2
-  call 68   ; std_collections$put__snippet_HttpStatus__string
+  call 67   ; std_collections$put__snippet_HttpStatus__string
   drop
   return
 end
@@ -3725,57 +3725,14 @@ fn 66 std_collections$rehash__snippet_HttpStatus__string (ref,i64) -> void
   return
 end
 
-fn 67 std_collections$write_entry__snippet_HttpStatus__string (ref,u8,string) -> void
-  local $field_3 i64
-  local $len_5 i64
-  local $field_7 ref
-  local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
-  ref.cast 6   ; i64
-  local.set 3   ; $field_3
-  local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
-  array.len
-  local.set 4   ; $len_5
-  local.get 3   ; $field_3
-  local.get 4   ; $len_5
-  i64.lt
-  if $L0 void
-    local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
-    local.set 5   ; $field_7
-    local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
-    ref.cast 6   ; i64
-    local.set 3   ; $field_3
-    local.get 5   ; $field_7
-    local.get 3   ; $field_3
-    local.get 1   ; arg 1
-    array.set 17   ; u8[]
-    local.field 0 22 1   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.evals
-    local.set 5   ; $field_7
-    local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
-    ref.cast 6   ; i64
-    local.set 3   ; $field_3
-    local.get 5   ; $field_7
-    local.get 3   ; $field_3
-    local.get 2   ; arg 2
-    array.set 24   ; string[]
-    return
-  end $L0
-  local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
-  local.get 1   ; arg 1
-  array.push 2   ; u8
-  local.field 0 22 1   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.evals
-  local.get 2   ; arg 2
-  array.push 3   ; string
-  return
-end
-
-fn 68 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
+fn 67 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
   local $field_3 i64
   local $field_4 i64
   local $mul_checked_24 i64
   local perturb u64
   local $field_58 i64
-  local $field_68 ref
-  local $cast_72 i32
+  local $field_77 ref
+  local $cast_80 i32
   local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 6   ; i64
   local.set 3   ; $field_3
@@ -3921,24 +3878,44 @@ fn 68 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
     local.get 3   ; $field_3
     struct.set 22 5   ; std_collections$MutableMap__snippet_HttpStatus__string.tombs
   end $L9
-  local.get 0   ; arg 0
-  local.get 1   ; arg 1
-  local.get 2   ; arg 2
-  call 67   ; std_collections$write_entry__snippet_HttpStatus__string
-  local.field 0 22 2   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.index
-  local.set 8   ; $field_68
   local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 6   ; i64
+  local.set 3   ; $field_3
+  local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
+  array.len
+  local.set 4   ; $field_4
+  local.get 3   ; $field_3
+  local.get 4   ; $field_4
+  i64.lt
+  if $L10 void
+    local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
+    local.get 3   ; $field_3
+    local.get 1   ; arg 1
+    array.set 17   ; u8[]
+    local.field 0 22 1   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.evals
+    local.get 3   ; $field_3
+    local.get 2   ; arg 2
+    array.set 24   ; string[]
+  else
+    local.field 0 22 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
+    local.get 1   ; arg 1
+    array.push 2   ; u8
+    local.field 0 22 1   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.evals
+    local.get 2   ; arg 2
+    array.push 3   ; string
+  end $L10
+  local.field 0 22 2   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.index
+  local.set 8   ; $field_77
+  local.get 3   ; $field_3
   i64.const 1
   i64.checked_add
   i64.to_i32
-  local.set 9   ; $cast_72
-  local.get 8   ; $field_68
+  local.set 9   ; $cast_80
+  local.get 8   ; $field_77
   local.get 5   ; $mul_checked_24
-  local.get 9   ; $cast_72
+  local.get 9   ; $cast_80
   store_slot_i32
-  local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
-  ref.cast 6   ; i64
+  local.get 3   ; $field_3
   i64.const 1
   i64.checked_add
   local.set 3   ; $field_3
@@ -3948,7 +3925,7 @@ fn 68 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
   return.lit bool.const true
 end
 
-fn 69 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
+fn 68 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
   local perturb u64
   local $field_9 i64
   local ei i64
@@ -4022,13 +3999,13 @@ fn 69 std_collections$get__snippet_HttpStatus__string (ref,u8) -> any
   return.lit null.const
 end
 
-fn 70 std_collections$len__snippet_HttpStatus__string (ref) -> i64
+fn 69 std_collections$len__snippet_HttpStatus__string (ref) -> i64
   local.field 0 22 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 6   ; i64
   return
 end
 
-fn 71 std_io$write (u8,string) -> void
+fn 70 std_io$write (u8,string) -> void
   local buf ref
   local sent i64
   local $len_6 i64
@@ -4064,7 +4041,7 @@ fn 71 std_io$write (u8,string) -> void
       local.get 0   ; arg 0
       local.get 6   ; chunk
       local.get 7   ; $len_11
-      call 72   ; std_io$write_bytes
+      call 71   ; std_io$write_bytes
       local.tee 8   ; n
       i32.const 0
       i32.le
@@ -4084,7 +4061,7 @@ fn 71 std_io$write (u8,string) -> void
   return
 end
 
-fn 72 std_io$write_bytes (u8,ref,i64) -> i32
+fn 71 std_io$write_bytes (u8,ref,i64) -> i32
   local.get 0   ; arg 0
   i32.const 0
   i32.eq
@@ -4104,7 +4081,7 @@ fn 72 std_io$write_bytes (u8,ref,i64) -> i32
   return
 end
 
-fn 73 std_io$println__string (string) -> void
+fn 72 std_io$println__string (string) -> void
   local $call_3 string
   local.get 0   ; arg 0
   string.const 19   ; "\n"
@@ -4112,6 +4089,6 @@ fn 73 std_io$println__string (string) -> void
   local.set 1   ; $call_3
   i32.const 0
   local.get 1   ; $call_3
-  call 71   ; std_io$write
+  call 70   ; std_io$write
   return
 end

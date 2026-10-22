@@ -99,9 +99,6 @@
     fn std.collections.rehash<i32, bool>  // std_collections$rehash__i32__bool
     fn std.collections.rehash<i32, i32>  // std_collections$rehash__i32__i32
     fn std.collections.rehash<string, i32>  // std_collections$rehash__string__i32
-    fn std.collections.write_entry<i32, bool>  // std_collections$write_entry__i32__bool
-    fn std.collections.write_entry<i32, i32>  // std_collections$write_entry__i32__i32
-    fn std.collections.write_entry<string, i32>  // std_collections$write_entry__string__i32
     fn std_collections$MutableMap$std_core_Contains$contains__snippet_alpha_Status__i64
     fn std_collections$MutableMap$std_core_Contains$contains__snippet_beta_Status__i64
     fn std_collections$MutableMap$std_core_Index$at__snippet_alpha_Status__i64
@@ -124,8 +121,6 @@
     fn std_collections$put__snippet_beta_Status__i64
     fn std_collections$rehash__snippet_alpha_Status__i64
     fn std_collections$rehash__snippet_beta_Status__i64
-    fn std_collections$write_entry__snippet_alpha_Status__i64
-    fn std_collections$write_entry__snippet_beta_Status__i64
     struct std.collections.MutableMap<Any, Any>  // std_collections$MutableMap__Any__Any
     struct std.collections.MutableMap<Any, bool>  // std_collections$MutableMap__Any__bool
     struct std.collections.MutableMap<i32, bool>  // std_collections$MutableMap__i32__bool

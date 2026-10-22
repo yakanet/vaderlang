@@ -104,9 +104,9 @@ any_leaves_of :: fn(t: Type) -> Type {
         for v in t.variants {
             erased :: any_leaves_of(v)
             key :: canonical_key(erased)
-            if seen.contains(key) { continue }
-            seen.add(key)
-            new_vars.push(erased)
+            if seen.add(key) {
+                new_vars.push(erased)
+            }
         }
         if new_vars.len() == 1 { return new_vars[0] }
         return mk_union(new_vars)

@@ -177,11 +177,9 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
 undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> AST.Decl[] {
     fresh: SourceFile[]: []
     for f in files {
-        if f.path in delivered {
-            continue
+        if delivered.add(f.path) {
+            fresh.push(f)
         }
-        delivered.add(f.path)
-        fresh.push(f)
     }
     return concat_file_decls(fresh)
 }
