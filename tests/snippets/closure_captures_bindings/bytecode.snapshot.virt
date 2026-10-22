@@ -40,24 +40,24 @@ type 37 struct std_iter$__gen_state_std_iter_0 { s0:27,s1:23,s2:27,s3:16,s4:2,st
 type 38 struct __Tuple_Tuple_i32_i64_u8_1ef34e19 { _0:39,_1:17 }
 type 39 struct __Tuple_i32_i64_30f9f427 { _0:2,_1:23 }
 type 40 array 23
-type 41 struct std_collections$MutableMap__i32__bool { ekeys:24,evals:64,index:24,mask:23,size:23,tombs:23 }
+type 41 struct std_collections$MutableMap__i32__bool { ekeys:24,evals:64,index:24,mask:23,grow_at:23,size:23,tombs:23 }
 type 42 struct std_collections$__gen_state_std_collections_0 { s0:41,s1:24,s2:64,s3:23,s4:23,state:2 }
 type 43 struct __Tuple_Tuple_i32_bool_u8_82cf06c7 { _0:44,_1:17 }
 type 44 struct __Tuple_i32_bool_cd1657f9 { _0:2,_1:29 }
-type 45 struct std_collections$MutableMap__i32__i32 { ekeys:24,evals:24,index:24,mask:23,size:23,tombs:23 }
+type 45 struct std_collections$MutableMap__i32__i32 { ekeys:24,evals:24,index:24,mask:23,grow_at:23,size:23,tombs:23 }
 type 46 struct std_collections$__gen_state_std_collections_1 { s0:45,s1:24,s2:24,s3:23,s4:23,state:2 }
 type 47 struct __Tuple_Tuple_i32_i32_u8_5cdd0c36 { _0:48,_1:17 }
 type 48 struct __Tuple_i32_i32_3103e027 { _0:2,_1:2 }
-type 49 struct std_collections$MutableMap__string__string__ { ekeys:50,evals:65,index:24,mask:23,size:23,tombs:23 }
+type 49 struct std_collections$MutableMap__string__string__ { ekeys:50,evals:65,index:24,mask:23,grow_at:23,size:23,tombs:23 }
 type 50 array 3
 type 51 struct std_collections$__gen_state_std_collections_2 { s0:49,s1:50,s2:65,s3:23,s4:23,state:2 }
 type 52 struct __Tuple_Tuple_string_Array_string_u8_94c0c8a0 { _0:53,_1:17 }
 type 53 struct __Tuple_string_Array_string__55ab4b78 { _0:3,_1:50 }
-type 54 struct std_collections$MutableMap__string__i32 { ekeys:50,evals:24,index:24,mask:23,size:23,tombs:23 }
+type 54 struct std_collections$MutableMap__string__i32 { ekeys:50,evals:24,index:24,mask:23,grow_at:23,size:23,tombs:23 }
 type 55 struct std_collections$__gen_state_std_collections_3 { s0:54,s1:50,s2:24,s3:23,s4:23,state:2 }
 type 56 struct __Tuple_Tuple_string_i32_u8_c0f70799 { _0:57,_1:17 }
 type 57 struct __Tuple_string_i32_4ccf6d4f { _0:3,_1:2 }
-type 58 struct std_collections$MutableMap__string__i64 { ekeys:50,evals:40,index:24,mask:23,size:23,tombs:23 }
+type 58 struct std_collections$MutableMap__string__i64 { ekeys:50,evals:40,index:24,mask:23,grow_at:23,size:23,tombs:23 }
 type 59 struct std_collections$__gen_state_std_collections_4 { s0:58,s1:50,s2:40,s3:23,s4:23,state:2 }
 type 60 struct __Tuple_Tuple_string_i64_u8_bbfc49cc { _0:61,_1:17 }
 type 61 struct __Tuple_string_i64_4cbe694f { _0:3,_1:23 }
@@ -2161,7 +2161,7 @@ fn 43 std_collections$__gen_state_std_collections_0$Iterator$next (ref) -> ref
             i64.const 0
             struct.set 42 3   ; std_collections$__gen_state_std_collections_0.s3
             local.field 0 42 0   ; arg 0 std_collections$__gen_state_std_collections_0.s0
-            struct.get 41 4   ; std_collections$MutableMap__i32__bool.size
+            struct.get 41 5   ; std_collections$MutableMap__i32__bool.size
             ref.cast 23   ; i64
             local.set 10   ; $field_42
             local.get 0   ; arg 0
@@ -2324,7 +2324,7 @@ fn 44 std_collections$__gen_state_std_collections_1$Iterator$next (ref) -> ref
             i64.const 0
             struct.set 46 3   ; std_collections$__gen_state_std_collections_1.s3
             local.field 0 46 0   ; arg 0 std_collections$__gen_state_std_collections_1.s0
-            struct.get 45 4   ; std_collections$MutableMap__i32__i32.size
+            struct.get 45 5   ; std_collections$MutableMap__i32__i32.size
             ref.cast 23   ; i64
             local.set 10   ; $field_42
             local.get 0   ; arg 0
@@ -2488,7 +2488,7 @@ fn 45 std_collections$__gen_state_std_collections_2$Iterator$next (ref) -> ref
             i64.const 0
             struct.set 51 3   ; std_collections$__gen_state_std_collections_2.s3
             local.field 0 51 0   ; arg 0 std_collections$__gen_state_std_collections_2.s0
-            struct.get 49 4   ; std_collections$MutableMap__string__string__.size
+            struct.get 49 5   ; std_collections$MutableMap__string__string__.size
             ref.cast 23   ; i64
             local.set 10   ; $field_42
             local.get 0   ; arg 0
@@ -2652,7 +2652,7 @@ fn 46 std_collections$__gen_state_std_collections_3$Iterator$next (ref) -> ref
             i64.const 0
             struct.set 55 3   ; std_collections$__gen_state_std_collections_3.s3
             local.field 0 55 0   ; arg 0 std_collections$__gen_state_std_collections_3.s0
-            struct.get 54 4   ; std_collections$MutableMap__string__i32.size
+            struct.get 54 5   ; std_collections$MutableMap__string__i32.size
             ref.cast 23   ; i64
             local.set 10   ; $field_42
             local.get 0   ; arg 0
@@ -2816,7 +2816,7 @@ fn 47 std_collections$__gen_state_std_collections_4$Iterator$next (ref) -> ref
             i64.const 0
             struct.set 59 3   ; std_collections$__gen_state_std_collections_4.s3
             local.field 0 59 0   ; arg 0 std_collections$__gen_state_std_collections_4.s0
-            struct.get 58 4   ; std_collections$MutableMap__string__i64.size
+            struct.get 58 5   ; std_collections$MutableMap__string__i64.size
             ref.cast 23   ; i64
             local.set 10   ; $field_42
             local.get 0   ; arg 0
@@ -2961,7 +2961,7 @@ fn 48 std_collections$__gen_state_std_collections_5$Iterator$next (ref) -> ref
             struct.set 63 2   ; std_collections$__gen_state_std_collections_5.s2
             local.field 0 63 0   ; arg 0 std_collections$__gen_state_std_collections_5.s0
             struct.get 62 0   ; std_collections$MutableSet__i32.inner
-            struct.get 41 4   ; std_collections$MutableMap__i32__bool.size
+            struct.get 41 5   ; std_collections$MutableMap__i32__bool.size
             ref.cast 23   ; i64
             local.set 6   ; $field_39
             local.get 0   ; arg 0

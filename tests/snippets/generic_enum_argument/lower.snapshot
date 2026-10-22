@@ -30,6 +30,7 @@
           .evals = [] :string[],
           .index = [] :i32[],
           .mask = i64(0),
+          .grow_at = i64(0),
           .size = i64(0),
           .tombs = i64(0),
       }

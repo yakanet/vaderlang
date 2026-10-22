@@ -23,16 +23,16 @@ type 20 scalar f64
 type 21 scalar char
 type 22 array 5
 type 23 scalar void
-type 24 struct std_collections$MutableMap__snippet_Color__i32 { ekeys:22,evals:35,index:35,mask:12,size:12,tombs:12 }
+type 24 struct std_collections$MutableMap__snippet_Color__i32 { ekeys:22,evals:35,index:35,mask:12,grow_at:12,size:12,tombs:12 }
 type 25 union 4,0
-type 26 struct std_collections$MutableMap__snippet_HttpStatus__string { ekeys:22,evals:31,index:35,mask:12,size:12,tombs:12 }
+type 26 struct std_collections$MutableMap__snippet_HttpStatus__string { ekeys:22,evals:31,index:35,mask:12,grow_at:12,size:12,tombs:12 }
 type 27 union 0,8
-type 28 struct std_collections$MutableMap__i32__bool { ekeys:35,evals:36,index:35,mask:12,size:12,tombs:12 }
-type 29 struct std_collections$MutableMap__i32__i32 { ekeys:35,evals:35,index:35,mask:12,size:12,tombs:12 }
-type 30 struct std_collections$MutableMap__string__string__ { ekeys:31,evals:37,index:35,mask:12,size:12,tombs:12 }
+type 28 struct std_collections$MutableMap__i32__bool { ekeys:35,evals:36,index:35,mask:12,grow_at:12,size:12,tombs:12 }
+type 29 struct std_collections$MutableMap__i32__i32 { ekeys:35,evals:35,index:35,mask:12,grow_at:12,size:12,tombs:12 }
+type 30 struct std_collections$MutableMap__string__string__ { ekeys:31,evals:37,index:35,mask:12,grow_at:12,size:12,tombs:12 }
 type 31 array 8
-type 32 struct std_collections$MutableMap__string__i32 { ekeys:31,evals:35,index:35,mask:12,size:12,tombs:12 }
-type 33 struct std_collections$MutableMap__string__i64 { ekeys:31,evals:38,index:35,mask:12,size:12,tombs:12 }
+type 32 struct std_collections$MutableMap__string__i32 { ekeys:31,evals:35,index:35,mask:12,grow_at:12,size:12,tombs:12 }
+type 33 struct std_collections$MutableMap__string__i64 { ekeys:31,evals:38,index:35,mask:12,grow_at:12,size:12,tombs:12 }
 type 34 struct std_collections$MutableSet__i32 { inner:28 }
 type 35 array 4
 type 36 array 2
@@ -134,8 +134,8 @@ fn 2 snippet$main () -> i32
   local $arr_55 ref
   local __coalesce_6 any
   local if_res i32
-  local $cast_77 i64
-  local $arr_104 ref
+  local $cast_78 i64
+  local $arr_105 ref
   local __p_13 string
   local __p_14 string
   local each u8
@@ -271,6 +271,7 @@ fn 2 snippet$main () -> i32
   i64.const 0
   i64.const 0
   i64.const 0
+  i64.const 0
   struct.new 24   ; std_collections$MutableMap__snippet_Color__i32
   local.tee 1   ; __buf_0
   i32.const 0
@@ -300,10 +301,10 @@ fn 2 snippet$main () -> i32
   end $L0
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 11   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -326,10 +327,10 @@ fn 2 snippet$main () -> i32
   end $L1
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 11   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -352,10 +353,10 @@ fn 2 snippet$main () -> i32
   end $L2
   local.get 7   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 4   ; $arr_54
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 11   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
@@ -367,10 +368,11 @@ fn 2 snippet$main () -> i32
   array.new 31 0   ; string[]
   local.set 5   ; $arr_55
   array.new 35 0   ; i32[]
-  local.set 9   ; $arr_104
+  local.set 9   ; $arr_105
   local.get 4   ; $arr_54
   local.get 5   ; $arr_55
-  local.get 9   ; $arr_104
+  local.get 9   ; $arr_105
+  i64.const 0
   i64.const 0
   i64.const 0
   i64.const 0
@@ -418,9 +420,9 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 11   ; __p_14
   call.import 0   ; std_core$byte_len
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   i64.add
   local.set 2   ; __off_1
   i64.const 22
@@ -452,10 +454,10 @@ fn 2 snippet$main () -> i32
   local.set 2   ; __off_1
   local.get 4   ; $arr_54
   call 56   ; std_collections$len__snippet_HttpStatus__string
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 5   ; $arr_55
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 11   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 5   ; $arr_55
@@ -503,10 +505,11 @@ fn 2 snippet$main () -> i32
   array.new 35 0   ; i32[]
   local.set 5   ; $arr_55
   array.new 35 0   ; i32[]
-  local.set 9   ; $arr_104
+  local.set 9   ; $arr_105
   local.get 4   ; $arr_54
   local.get 5   ; $arr_55
-  local.get 9   ; $arr_104
+  local.get 9   ; $arr_105
+  i64.const 0
   i64.const 0
   i64.const 0
   i64.const 0
@@ -534,7 +537,7 @@ fn 2 snippet$main () -> i32
         local.set 5   ; $arr_55
         i64.const 5
         buffer.new
-        local.set 9   ; $arr_104
+        local.set 9   ; $arr_105
         i64.const 0
         local.set 2   ; __off_1
         i32.const 2
@@ -542,12 +545,12 @@ fn 2 snippet$main () -> i32
         local.get 5   ; $arr_55
         call.indirect 6   ; fn
         local.set 3   ; $eq_8
-        local.get 9   ; $arr_104
+        local.get 9   ; $arr_105
         local.get 2   ; __off_1
         local.get 3   ; $eq_8
         call 12   ; std_core$write_bool
         local.set 2   ; __off_1
-        local.get 9   ; $arr_104
+        local.get 9   ; $arr_105
         local.get 2   ; __off_1
         call 9   ; std_core$finish_buffer
         call 59   ; std_io$println__string
@@ -583,10 +586,10 @@ fn 2 snippet$main () -> i32
   end $L8
   local.get 13   ; if_res
   i32.to_i64
-  local.set 8   ; $cast_77
+  local.set 8   ; $cast_78
   local.get 5   ; $arr_55
   local.get 2   ; __off_1
-  local.get 8   ; $cast_77
+  local.get 8   ; $cast_78
   call 11   ; std_core$write_int
   local.set 2   ; __off_1
   local.get 5   ; $arr_55
@@ -630,10 +633,10 @@ fn 2 snippet$main () -> i32
     end $L11
     local.get 7   ; if_res
     i32.to_i64
-    local.set 8   ; $cast_77
+    local.set 8   ; $cast_78
     local.get 5   ; $arr_55
     local.get 2   ; __off_1
-    local.get 8   ; $cast_77
+    local.get 8   ; $cast_78
     call 11   ; std_core$write_int
     local.set 2   ; __off_1
     local.get 5   ; $arr_55
@@ -1305,7 +1308,7 @@ fn 41 std_collections$rehash__snippet_Color__i32 (ref,i64) -> void
   local.set 3   ; if_res
   i64.const 0
   local.set 4   ; e
-  local.field 0 24 4   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
+  local.field 0 24 5   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
   ref.cast 12   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
@@ -1362,9 +1365,18 @@ fn 41 std_collections$rehash__snippet_Color__i32 (ref,i64) -> void
   local.get 0   ; arg 0
   local.get 3   ; if_res
   struct.set 24 3   ; std_collections$MutableMap__snippet_Color__i32.mask
+  local.get 1   ; arg 1
+  i64.const 4
+  i64.div
+  i64.const 3
+  i64.checked_mul
+  local.set 3   ; if_res
+  local.get 0   ; arg 0
+  local.get 3   ; if_res
+  struct.set 24 4   ; std_collections$MutableMap__snippet_Color__i32.grow_at
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 24 5   ; std_collections$MutableMap__snippet_Color__i32.tombs
+  struct.set 24 6   ; std_collections$MutableMap__snippet_Color__i32.tombs
   return
 end
 
@@ -1415,7 +1427,7 @@ fn 42 std_collections$rehash__snippet_HttpStatus__string (ref,i64) -> void
   local.set 3   ; if_res
   i64.const 0
   local.set 4   ; e
-  local.field 0 26 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 12   ; i64
   local.set 5   ; __for_hi_1
   loop $L3 void
@@ -1472,9 +1484,18 @@ fn 42 std_collections$rehash__snippet_HttpStatus__string (ref,i64) -> void
   local.get 0   ; arg 0
   local.get 3   ; if_res
   struct.set 26 3   ; std_collections$MutableMap__snippet_HttpStatus__string.mask
+  local.get 1   ; arg 1
+  i64.const 4
+  i64.div
+  i64.const 3
+  i64.checked_mul
+  local.set 3   ; if_res
+  local.get 0   ; arg 0
+  local.get 3   ; if_res
+  struct.set 26 4   ; std_collections$MutableMap__snippet_HttpStatus__string.grow_at
   local.get 0   ; arg 0
   i64.const 0
-  struct.set 26 5   ; std_collections$MutableMap__snippet_HttpStatus__string.tombs
+  struct.set 26 6   ; std_collections$MutableMap__snippet_HttpStatus__string.tombs
   return
 end
 
@@ -1485,7 +1506,7 @@ fn 43 std_collections$grow_index__snippet_Color__i32 (ref) -> void
   i64.const 16
   local.set 1   ; new_count
   loop $L0 void
-    local.field 0 24 4   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
+    local.field 0 24 5   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
     ref.cast 12   ; i64
     i64.const 4
     i64.checked_mul
@@ -1518,7 +1539,7 @@ fn 44 std_collections$grow_index__snippet_HttpStatus__string (ref) -> void
   i64.const 16
   local.set 1   ; new_count
   loop $L0 void
-    local.field 0 26 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
+    local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
     ref.cast 12   ; i64
     i64.const 4
     i64.checked_mul
@@ -1552,7 +1573,7 @@ fn 45 std_collections$put__snippet_Color__i32 (ref,u8,i32) -> bool
   local slot i32
   local ei i64
   local $field_36 i64
-  local $field_66 ref
+  local $field_58 ref
   i64.const -1
   local.set 3   ; first_tomb
   i64.const -1
@@ -1629,7 +1650,7 @@ fn 45 std_collections$put__snippet_Color__i32 (ref,u8,i32) -> bool
     local.get 6   ; $field_13
     local.set 4   ; empty
   end $L0
-  local.field 0 24 4   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
+  local.field 0 24 5   ; arg 0 std_collections$MutableMap__snippet_Color__i32.size
   ref.cast 12   ; i64
   local.set 6   ; $field_13
   local.field 0 24 0   ; arg 0 std_collections$MutableMap__snippet_Color__i32.ekeys
@@ -1661,28 +1682,20 @@ fn 45 std_collections$put__snippet_Color__i32 (ref,u8,i32) -> bool
   local.set 8   ; ei
   local.get 0   ; arg 0
   local.get 8   ; ei
-  struct.set 24 4   ; std_collections$MutableMap__snippet_Color__i32.size
-  local.field 0 24 5   ; arg 0 std_collections$MutableMap__snippet_Color__i32.tombs
+  struct.set 24 5   ; std_collections$MutableMap__snippet_Color__i32.size
+  local.field 0 24 6   ; arg 0 std_collections$MutableMap__snippet_Color__i32.tombs
   ref.cast 12   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
-  i64.const 1
-  i64.checked_add
-  i64.const 4
-  i64.checked_mul
   local.set 8   ; ei
-  local.field 0 24 3   ; arg 0 std_collections$MutableMap__snippet_Color__i32.mask
+  local.field 0 24 4   ; arg 0 std_collections$MutableMap__snippet_Color__i32.grow_at
   ref.cast 12   ; i64
-  i64.const 1
-  i64.checked_add
-  i64.const 3
-  i64.checked_mul
   local.set 9   ; $field_36
   local.get 8   ; ei
   local.get 9   ; $field_36
-  i64.gt
+  i64.ge
   if $L7 void
     local.get 0   ; arg 0
     call 43   ; std_collections$grow_index__snippet_Color__i32
@@ -1692,34 +1705,34 @@ fn 45 std_collections$put__snippet_Color__i32 (ref,u8,i32) -> bool
   i64.const 0
   i64.ge
   if $L8 void
-    local.field 0 24 5   ; arg 0 std_collections$MutableMap__snippet_Color__i32.tombs
+    local.field 0 24 6   ; arg 0 std_collections$MutableMap__snippet_Color__i32.tombs
     ref.cast 12   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
     local.get 0   ; arg 0
     local.get 8   ; ei
-    struct.set 24 5   ; std_collections$MutableMap__snippet_Color__i32.tombs
+    struct.set 24 6   ; std_collections$MutableMap__snippet_Color__i32.tombs
     local.field 0 24 2   ; arg 0 std_collections$MutableMap__snippet_Color__i32.index
-    local.set 10   ; $field_66
+    local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
     i64.checked_add
     i64.to_i32
     local.set 7   ; slot
-    local.get 10   ; $field_66
+    local.get 10   ; $field_58
     local.get 3   ; first_tomb
     local.get 7   ; slot
     store_slot_i32
   else
     local.field 0 24 2   ; arg 0 std_collections$MutableMap__snippet_Color__i32.index
-    local.set 10   ; $field_66
+    local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
     i64.checked_add
     i64.to_i32
     local.set 7   ; slot
-    local.get 10   ; $field_66
+    local.get 10   ; $field_58
     local.get 4   ; empty
     local.get 7   ; slot
     store_slot_i32
@@ -1735,7 +1748,7 @@ fn 46 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
   local slot i32
   local ei i64
   local $field_36 i64
-  local $field_66 ref
+  local $field_58 ref
   i64.const -1
   local.set 3   ; first_tomb
   i64.const -1
@@ -1812,7 +1825,7 @@ fn 46 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
     local.get 6   ; $field_13
     local.set 4   ; empty
   end $L0
-  local.field 0 26 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 12   ; i64
   local.set 6   ; $field_13
   local.field 0 26 0   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.ekeys
@@ -1844,28 +1857,20 @@ fn 46 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
   local.set 8   ; ei
   local.get 0   ; arg 0
   local.get 8   ; ei
-  struct.set 26 4   ; std_collections$MutableMap__snippet_HttpStatus__string.size
-  local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.tombs
+  struct.set 26 5   ; std_collections$MutableMap__snippet_HttpStatus__string.size
+  local.field 0 26 6   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.tombs
   ref.cast 12   ; i64
   local.set 8   ; ei
   local.get 6   ; $field_13
   local.get 8   ; ei
   i64.checked_add
-  i64.const 1
-  i64.checked_add
-  i64.const 4
-  i64.checked_mul
   local.set 8   ; ei
-  local.field 0 26 3   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.mask
+  local.field 0 26 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.grow_at
   ref.cast 12   ; i64
-  i64.const 1
-  i64.checked_add
-  i64.const 3
-  i64.checked_mul
   local.set 9   ; $field_36
   local.get 8   ; ei
   local.get 9   ; $field_36
-  i64.gt
+  i64.ge
   if $L7 void
     local.get 0   ; arg 0
     call 44   ; std_collections$grow_index__snippet_HttpStatus__string
@@ -1875,34 +1880,34 @@ fn 46 std_collections$put__snippet_HttpStatus__string (ref,u8,string) -> bool
   i64.const 0
   i64.ge
   if $L8 void
-    local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.tombs
+    local.field 0 26 6   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.tombs
     ref.cast 12   ; i64
     i64.const 1
     i64.checked_sub
     local.set 8   ; ei
     local.get 0   ; arg 0
     local.get 8   ; ei
-    struct.set 26 5   ; std_collections$MutableMap__snippet_HttpStatus__string.tombs
+    struct.set 26 6   ; std_collections$MutableMap__snippet_HttpStatus__string.tombs
     local.field 0 26 2   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.index
-    local.set 10   ; $field_66
+    local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
     i64.checked_add
     i64.to_i32
     local.set 7   ; slot
-    local.get 10   ; $field_66
+    local.get 10   ; $field_58
     local.get 3   ; first_tomb
     local.get 7   ; slot
     store_slot_i32
   else
     local.field 0 26 2   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.index
-    local.set 10   ; $field_66
+    local.set 10   ; $field_58
     local.get 6   ; $field_13
     i64.const 1
     i64.checked_add
     i64.to_i32
     local.set 7   ; slot
-    local.get 10   ; $field_66
+    local.get 10   ; $field_58
     local.get 4   ; empty
     local.get 7   ; slot
     store_slot_i32
@@ -2535,7 +2540,7 @@ fn 55 std_collections$contains_key__string__string__ (ref,string) -> bool
 end
 
 fn 56 std_collections$len__snippet_HttpStatus__string (ref) -> i64
-  local.field 0 26 4   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
+  local.field 0 26 5   ; arg 0 std_collections$MutableMap__snippet_HttpStatus__string.size
   ref.cast 12   ; i64
   return
 end

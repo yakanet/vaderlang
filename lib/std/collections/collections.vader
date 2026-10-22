@@ -60,9 +60,15 @@ export MutableMap :: struct<K: Hash & Equals, V> {
     @internal
     index: i32[] = []
     /// `index.len() - 1`, the bitmask for the power-of-two slot count; 0 while
-    /// `index` is empty, which sends the first `put` through the rehash.
+    /// `index` is empty.
     @internal
     mask:  i64 = 0
+    /// Used index slots (entries + tombstones) at which the next insertion must
+    /// grow the index: three quarters of `index.len()`, the 0.75 load factor. Set
+    /// by `rehash` with `index`; 0 while `index` is empty, which sends the first
+    /// insertion through the rehash.
+    @internal
+    grow_at: i64 = 0
     /// Live entry count.
     @internal
     size:  i64 = 0
@@ -103,6 +109,10 @@ rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: i64) -> voi
     }
     self.index = fresh
     self.mask = new_mask
+    // `new_count` is a power of two of at least `MINIMAL_INDEX_COUNT`, so the
+    // division is exact: an insertion over `n` used slots passes 0.75, that is
+    // `(n + 1) * 4 > new_count * 3`, exactly when `n >= grow_at`.
+    self.grow_at = new_count / 4 * 3
     self.tombs = 0
 }
 
@@ -157,8 +167,8 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
     // by a prior `remove` when one is left, else appended. It takes the first
     // tombstone its probe passed, else the empty slot the probe ended on, unless
     // used slots (entries + tombstones) would pass 0.75: the rehash then indexes
-    // it with the others. A map with no index yet has a `mask` of 0, so its first
-    // insert grows it.
+    // it with the others. A map with no index yet has a `grow_at` of 0, so its
+    // first insert grows it.
     size :: self.size
     if size < self.ekeys.len() {
         self.ekeys[size] = key
@@ -168,7 +178,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> bool
         self.evals.push(value)
     }
     self.size = size + 1
-    if (size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
+    if size + self.tombs >= self.grow_at {
         self.grow_index()
     } else if first_tomb >= 0 {
         self.tombs = self.tombs - 1
@@ -226,7 +236,7 @@ export get_or_put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, val
         self.evals.push(value)
     }
     self.size = size + 1
-    if (size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
+    if size + self.tombs >= self.grow_at {
         self.grow_index()
     } else if first_tomb >= 0 {
         self.tombs = self.tombs - 1
@@ -685,4 +695,39 @@ test_map_put_of_a_present_key_does_not_grow :: fn() -> void {
     before :: m.index.len()
     m[0] = 7
     assert_eq(m.index.len(), before)
+}
+
+@test
+test_map_grows_on_the_insertion_past_three_quarters :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<12 {
+        m[i] = i
+    }
+    assert_eq(m.index.len(), 16)
+    m[12] = 12
+    assert_eq(m.index.len(), 32)
+}
+
+@test
+test_map_tombstones_count_toward_growth :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<12 {
+        m[i] = i
+    }
+    m.remove(0)
+    m.remove(1)
+    m[100] = 100
+    assert_eq(m.tombs, 0)
+    assert_eq(m.index.len(), 16)
+}
+
+@test
+test_map_get_or_put_grows_on_the_insertion_past_three_quarters :: fn() -> void {
+    m :: MutableMap<i32, i32> {}
+    for i in 0..<12 {
+        m.get_or_put(i, i)
+    }
+    assert_eq(m.index.len(), 16)
+    m.get_or_put(12, 12)
+    assert_eq(m.index.len(), 32)
 }

@@ -78,6 +78,7 @@ const EXPECTED: [string, string[]][] = [
     [
       "assigned m.ekeys[]",
       "assigned m.evals[]",
+      "assigned m.grow_at",
       "assigned m.index",
       "assigned m.index[]",
       "assigned m.mask",
