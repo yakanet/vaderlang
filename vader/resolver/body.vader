@@ -44,7 +44,7 @@ export ConstLocal :: enum {
 }
 
 /// Resolution output. `idents` keys every resolved `AST.IdentExpr`
-/// by its span via `Span.hash()` (the file's FNV hash folded with the start
+/// by its span via `Span.hash()` (the file's string hash folded with the start
 /// line/column, unique per node). Consumers look up a span to get
 /// the bound symbol's kind ; `Variable` is the fallback for un-resolvable
 /// idents (the resolver is intentionally lenient — diagnostics are

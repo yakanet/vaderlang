@@ -78,7 +78,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         // on primitives (`i32 implements Equals`) inline their dedicated op so
         // the cc-emitted C (and the VM without its host-dispatch fallback)
         // lands on a real op rather than an unbound host import ; genuine host
-        // shims (`string` FNV `Hash`) forward via `call.import`.
+        // shims (`string`'s `Hash`) forward via `call.import`.
         body :: build_intrinsic_wrapper_body(imp, import_index)
         debug: (DebugPos | null)[]: []
         for _d in 0..<body.len() { debug.push(null) }

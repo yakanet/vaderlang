@@ -722,7 +722,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 
 ### Strings
 
-- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare, and the hash is the FNV-1a-64 of the bytes, cached on the atom; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`).
+- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare, and the hash is a 64-bit hash of the bytes, cached on the atom; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`).
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below, which an ASCII string skips: see `is_ascii`). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` (`std/string`) returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
@@ -1746,11 +1746,9 @@ i32   implements Equals -> self == other
 Tutu  implements Toto<i32, i64> -> i64(self + other)
 
 // Block form — multi-statement body.
-string implements Hash {
-    h: u64 = 14695981039346656037
-    for i in 0..<self.byte_len() {
-        h = (h ^ u64(self.byte_at(i))) *% 1099511628211
-    }
+Point implements Hash {
+    h: u64 = u64(self.x)
+    h = h *% 31 +% u64(self.y)
     return h
 }
 
@@ -3336,7 +3334,7 @@ Contains :: trait<T> {
 // `5 in 0..<10` works out of the box. User types opt in by implementing the trait.
 ```
 
-Trait-method dispatch on a bounded type param (`f :: fn<T: Hash>(x: T) { x.hash() }`) goes through the bound (§4 *Method dispatch on trait values*). Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
+Trait-method dispatch on a bounded type param (`f :: fn<T: Hash>(x: T) { x.hash() }`) goes through the bound (§4 *Method dispatch on trait values*). Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is content-based over the UTF-8 bytes (`@intrinsic string implements Hash`, host-provided method): two equal strings hash equal on every backend, and the value is not otherwise specified.
 
 ### `std/io`
 

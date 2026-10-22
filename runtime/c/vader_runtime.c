@@ -881,21 +881,79 @@ void vader_atom_shutdown(void) {
 
 /* ---- intern internals ---- */
 
-/* FNV1a 64-bit over the bytes — the atom table's ONE hash. Computed once at
- * insert: cached on the entry (returned O(1) by `vader_string_hash` for
- * `string`'s `Hash` trait), its low bits index the open-addressing bucket
- * table (an odd multiplier keeps the low bits a bijection, so no clustering
- * under the power-of-two mask) and its high 32 bits tag the bucket, so the
+/* The pieces the atom hash is built from: unaligned reads in the host's byte
+ * order, and the 64 x 64 -> 128-bit multiply. `__uint128_t` needs a 64-bit GCC
+ * or clang; a target without it takes a 32-bit decomposition in `vader_wy_mum`,
+ * which must give the same product bit for bit. */
+static inline uint64_t vader_wy_read8(const uint8_t* p) { uint64_t v; memcpy(&v, p, 8); return v; }
+static inline uint64_t vader_wy_read4(const uint8_t* p) { uint32_t v; memcpy(&v, p, 4); return v; }
+static inline uint64_t vader_wy_read3(const uint8_t* p, size_t k) {
+    return (((uint64_t) p[0]) << 16) | (((uint64_t) p[k >> 1]) << 8) | p[k - 1];
+}
+static inline void vader_wy_mum(uint64_t* a, uint64_t* b) {
+    __uint128_t r = (__uint128_t) *a * *b;
+    *a = (uint64_t) r;
+    *b = (uint64_t) (r >> 64);
+}
+static inline uint64_t vader_wy_mix(uint64_t a, uint64_t b) {
+    vader_wy_mum(&a, &b);
+    return a ^ b;
+}
+
+/* The atom table's ONE hash, with the structure of wyhash (final version 4,
+ * public domain): eight bytes at a time, each block folded through a 128-bit
+ * multiply. Computed once at insert: cached on the entry (returned O(1) by
+ * `vader_string_hash` for `string`'s `Hash` trait), its low bits index the
+ * open-addressing bucket table and its high 32 bits tag the bucket, so the
  * probe passes over other atoms without reading their entries. Both halves
- * must stay well mixed. Byte-identical to the retired pure-Vader
- * `string_hash_fnv1a64`. */
+ * must stay well mixed. The VM reads the same cached value, so the native and
+ * VM backends agree on every string's `hash()`. Every target must also compute
+ * the same value from the same bytes: a value the compiler computes reaches the
+ * program through `@comptime` data, and `content.hash()` names generated files
+ * (`lib/toolchain/build/generate.vader`). */
 static uint64_t vader_atom_hash64(const char* data, size_t len) {
-    uint64_t h = 14695981039346656037ull;
-    for (size_t i = 0; i < len; ++i) {
-        h ^= (vader_u8_t) data[i];
-        h *= 1099511628211ull;
+    static const uint64_t s0 = 0x2d358dccaa6c78a5ull, s1 = 0x8bb84b93962eacc9ull,
+                          s2 = 0x4b33a62ed433d4a3ull, s3 = 0x4d5a2da51de1aa47ull;
+    const uint8_t* p = (const uint8_t*) data;
+    uint64_t seed = 0xca813bf4c7abf0a9ull;    /* vader_wy_mix(s0, s1) */
+    uint64_t a, b;
+    if (len <= 16) {
+        if (len >= 4) {
+            a = (vader_wy_read4(p) << 32) | vader_wy_read4(p + ((len >> 3) << 2));
+            b = (vader_wy_read4(p + len - 4) << 32) | vader_wy_read4(p + len - 4 - ((len >> 3) << 2));
+        } else if (len > 0) {
+            a = vader_wy_read3(p, len);
+            b = 0;
+        } else {
+            a = b = 0;
+        }
+    } else {
+        size_t i = len;
+        if (i > 48) {
+            uint64_t see1 = seed, see2 = seed;
+            do {
+                seed = vader_wy_mix(vader_wy_read8(p) ^ s1, vader_wy_read8(p + 8) ^ seed);
+                see1 = vader_wy_mix(vader_wy_read8(p + 16) ^ s2, vader_wy_read8(p + 24) ^ see1);
+                see2 = vader_wy_mix(vader_wy_read8(p + 32) ^ s3, vader_wy_read8(p + 40) ^ see2);
+                p += 48;
+                i -= 48;
+            } while (i > 48);
+            seed ^= see1 ^ see2;
+        }
+        while (i > 16) {
+            seed = vader_wy_mix(vader_wy_read8(p) ^ s1, vader_wy_read8(p + 8) ^ seed);
+            i -= 16;
+            p += 16;
+        }
+        /* The last 16 bytes, overlapping the blocks above when `len` is not a
+         * multiple of 16: the read stays inside the string, whose length passed 16. */
+        a = vader_wy_read8(p + i - 16);
+        b = vader_wy_read8(p + i - 8);
     }
-    return h;
+    a ^= s1;
+    b ^= seed;
+    vader_wy_mum(&a, &b);
+    return vader_wy_mix(a ^ s0 ^ len, b ^ s1);
 }
 
 /* `VADER_ATOM_FLAG_ASCII` when every byte of `data[0..len]` is below 0x80, else 0.

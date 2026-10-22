@@ -640,7 +640,7 @@ shim_body :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     }
     // `bytes_to_string` is backed by the runtime symbol `vader_string_as_string`.
     .BytesToString -> { return [returning("vader_string_as_string", [cast("vader_array_t*", a0)])] }
-    // `string implements Hash` reads the FNV-1a-64 cached on the atom (O(1)).
+    // `string implements Hash` reads the hash cached on the atom (O(1)).
     .StringHash -> { return [returning("vader_string_hash", [a0])] }
 
     // std/runtime — GC introspection.

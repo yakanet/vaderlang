@@ -106,7 +106,7 @@ typedef struct {
                                     slice = parent.data + parent_offset.
                                     An owner is NUL-terminated at data[len],
                                     a slice is not. */
-    uint64_t    hash;            /* FNV-1a-64 of the bytes, cached at insert */
+    uint64_t    hash;            /* hash of the bytes, cached at insert */
 } vader_atom_entry_t;             /* 32 B */
 
 typedef struct {
@@ -165,7 +165,7 @@ that content. Zero bytes allocated per token.
 
 ```
 vader_atom_intern(data, len) :
-    h = fnv1a(data, len)
+    h = hash64(data, len)
     for atom in bucket_probe(h) :
         if entry(atom).len == len and memcmp(entry(atom).data, data, len) == 0 :
             return atom        /* dedupe : returns canonical atom */
@@ -175,7 +175,7 @@ vader_atom_intern(data, len) :
 
 vader_atom_slice(parent_atom, offset, len) :
     candidate = entry(parent_atom).data + offset
-    h = fnv1a(candidate, len)
+    h = hash64(candidate, len)
     for atom in bucket_probe(h) :
         if entry(atom).len == len and memcmp(entry(atom).data, candidate, len) == 0 :
             return atom        /* dedupe : retours canonical, even if it's
@@ -598,9 +598,9 @@ GC stress tests (`VADER_GC_STRESS=1`) catch missing marks.
   test `json_basics` failed with reordered object keys. Restored
   FNV1a-64 over the atom's data bytes (1 atom-table lookup + the
   standard loop). The atom id alone makes for a fine *equality* hash
-  but a poor *bucket-distribution* hash. Vader port note : keep the
-  byte-level FNV1a — it matches the VM-side hash, so `MutableMap` is
-  bucket-stable across runtimes.
+  but a poor *bucket-distribution* hash. The invariant that remains: the hash
+  is content-based, and the VM reads the same cached value as native code, so
+  `MutableMap` is bucket-stable across runtimes.
 
 - **Box payload upper bytes.** `vader_box_string(tag, v)` used to
   write 16 B (the legacy `{ptr,len}`) into `payload.s`. With atoms

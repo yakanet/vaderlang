@@ -323,7 +323,7 @@ export TypedProgram :: struct {
 
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
-    /// via `Span.hash()` — the file's FNV hash folded with the start
+    /// via `Span.hash()` — the file's string hash folded with the start
     /// line/column (`diagnostics/diagnostic.vader`).
     local_types: MutableMap<u64, Type>
 

@@ -247,7 +247,7 @@ f64 implements Display -> format_f64(self)
 
 // ---- Hash -----------------------------------------------------------------
 //
-// Integer Hash impls cast through u64 ; `string` reads the FNV-1a-64 cached on
+// Integer Hash impls cast through u64 ; `string` reads the hash cached on
 // its interned atom (see the `@intrinsic` impl below).
 
 i8    implements Hash -> u64(self)
@@ -260,7 +260,7 @@ u32   implements Hash -> u64(self)
 u64   implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
-// `string` reads the FNV-1a-64 cached on its interned atom (computed once at
+// `string` reads the hash cached on its interned atom (computed once at
 // intern) — O(1), no per-call byte walk, no `bytes()` view allocation. Backed by
 // `vader_string_hash` (vader.h); the host shims map the mangle. Content-based, so
 // map iteration order stays GC-stable.

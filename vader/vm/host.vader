@@ -139,7 +139,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
         return HostOk { .value = bytes_to_value(string(s), u8_array_type_id) }
     }
     .StringHash -> {
-        // String `Hash` reads the FNV-1a-64 cached on the interned atom. Calling
+        // String `Hash` reads the hash cached on the interned atom. Calling
         // `.hash()` on the Vader string here lowers to the native
         // `vader_string_hash` intrinsic in the VM's own build, so the VM and
         // native produce identical hashes for the same atom. u64 rides in I64Val.
