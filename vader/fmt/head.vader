@@ -4,7 +4,9 @@
 // rendered here from the parsed declaration, with the printer in `flat` mode : a
 // head the source wraps across lines (a long parameter list, a union continued
 // on `|` lines) reads on one line, and a string, a char or a comment inside it is
-// never taken for its end. Decorators, `export` and the body are left out.
+// never taken for its end. `format_decl_head` leaves out the decorators, `export`
+// and the body ; `format_decl_display` adds the decorators, `export` and the
+// members' heads a hover shows.
 
 module "vader/fmt"
 
@@ -31,11 +33,7 @@ export format_decl_head :: fn(source: string, d: p.Decl) -> string {
     h :: head_printer(source)
     match d {
         is p.FnDecl -> {
-            h.write(d.name)
-            h.write(" :: fn")
-            h.emit_type_params(d.type_params)
-            h.emit_fn_params(d.params, false)
-            h.emit_type_expr_with_prefix(" -> ", d.return_type)
+            emit_fn_head(h, d, true)
         }
         is p.StructDecl -> {
             h.write(d.name)
@@ -103,6 +101,127 @@ export format_variant_head :: fn(source: string, v: p.EnumVariant) -> string {
         h.write(h.source_slice(value_span))
     }
     return cut_head(h.finish(), HEAD_VALUE_MAX)
+}
+
+// ---- display --------------------------------------------------------------
+
+/// Most members a display lists under a struct, an enum or a trait before it
+/// ends the list with a count of the rest.
+DISPLAY_MEMBERS_MAX: i64: 16
+
+/// Render a declaration as a hover shows it : its decorators one per line,
+/// `export` when it is public, then its head. A fn whose head would pass `width`
+/// columns takes one parameter per line, and a struct, an enum or a trait lists
+/// the heads of its members, the first `DISPLAY_MEMBERS_MAX` of them.
+///
+/// @param source  the document the declaration's spans index into.
+/// @param d       the declaration ; an import, an impl or an `assert` has no head
+///                and renders as "".
+/// @param width   the column past which a fn breaks its parameter list.
+/// @return        the rendering, lines joined by `\n`, no trailing newline.
+/// @example
+///   source :: "module \"m\"\n@test\nexport ok :: fn() -> void {}\n"
+///   decls :: parse_source(source, "m.vader").program.decls
+///   println(format_decl_display(source, decls[0], 60))
+export format_decl_display :: fn(source: string, d: p.Decl, width: i64) -> string {
+    head :: format_decl_head(source, d)
+    if head == "" {
+        return ""
+    }
+    lines: string[]: []
+    for deco in p.decl_decorators(d) {
+        lines.push(decorator_text(source, deco))
+    }
+    prefix :: export_prefix(d)
+    lines.push(prefix + display_head(source, d, head, width - prefix.text_width()))
+    members :: member_heads(source, d)
+    if members.len() > 0 {
+        lines[lines.len() - 1] = lines[lines.len() - 1] + " {"
+        for i in 0..<members.len() {
+            if i == DISPLAY_MEMBERS_MAX {
+                lines.push("    // … ${members.len() - i} more")
+                break
+            }
+            lines.push("    " + members[i])
+        }
+        lines.push("}")
+    }
+    return lines.join("\n")
+}
+
+/// Render a struct field as a hover shows it : `@internal` when the field is
+/// restricted to its module, then its head.
+///
+/// @param source  the document the field's spans index into.
+/// @param f       the field.
+export format_field_display :: fn(source: string, f: p.StructField) -> string {
+    head :: format_field_head(source, f)
+    if f.visibility == .Private {
+        return "@internal " + head
+    }
+    return head
+}
+
+// `export ` for a public declaration, "" otherwise.
+export_prefix :: fn(d: p.Decl) -> string {
+    if p.decl_is_public(d) {
+        return "export "
+    }
+    return ""
+}
+
+// `@name(args)` on one line.
+decorator_text :: fn(source: string, deco: p.Decorator) -> string {
+    h :: head_printer(source)
+    h.emit_decorator(deco)
+    return h.finish()
+}
+
+// `head`, unless `d` is a fn whose head passes `width` columns : then its
+// parameters go one per line, each closed by a comma, the layout `vader fmt`
+// gives a parameter list too long for its line.
+display_head :: fn(source: string, d: p.Decl, head: string, width: i64) -> string {
+    if d is p.FnDecl && head.text_width() > width && d.params.len() > 0 {
+        h :: head_printer(source)
+        emit_fn_head(h, d, false)
+        return h.finish()
+    }
+    return head
+}
+
+// `name :: fn<T>(a: A, b: B) -> R`, the parameters on one line when `inline`,
+// one per line otherwise.
+emit_fn_head :: fn(h: Printer, d: p.FnDecl, inline: bool) -> void {
+    h.write(d.name)
+    h.write(" :: fn")
+    h.emit_type_params(d.type_params)
+    h.emit_comma_list(d.params, "(", ")", false, inline, emit_fn_param)
+    h.emit_type_expr_with_prefix(" -> ", d.return_type)
+}
+
+// The heads of what `d` declares inside its braces : a struct's fields, an
+// enum's variants, a trait's methods. Empty for every other declaration.
+member_heads :: fn(source: string, d: p.Decl) -> string[] {
+    out: string[]: []
+    match d {
+        is p.StructDecl -> {
+            for f in d.fields {
+                out.push(format_field_display(source, f))
+            }
+        }
+        is p.EnumDecl -> {
+            for v in d.variants {
+                out.push(format_variant_head(source, v) + ",")
+            }
+        }
+        is p.TraitDecl -> {
+            for m in d.members {
+                out.push(format_decl_head(source, m))
+            }
+        }
+        is p.FnDecl | p.TypeAliasDecl | p.ConstDecl | p.ImportDecl | p.ImplDecl | p.AssertDecl -> {}
+    }
+    return out
 }
 
 // A comment-free printer that keeps every construct on one line.
@@ -214,4 +333,51 @@ test_head_long_value_is_cut :: fn() -> void {
     head :: head_of(table.to_string())
     assert(head.ends_with(" …"), "a long table value is cut")
     assert(head.byte_len() <= HEAD_VALUE_MAX + 4, "the cut keeps the limit")
+}
+
+// The display of the only declaration in `decl`.
+display_of :: fn(decl: string, width: i64) -> string {
+    source :: "module \"t\"\n${decl}\n"
+    decls :: parse_source(source, "t.vader").program.decls
+    return format_decl_display(source, decls[decls.len() - 1], width)
+}
+
+@test
+test_display_decorators_and_export :: fn() -> void {
+    assert_eq(display_of("@test\nexport ok :: fn() -> void {}", 60), "@test\nexport ok :: fn() -> void")
+}
+
+@test
+test_display_long_fn_breaks_its_parameters :: fn() -> void {
+    decl :: "area :: fn(shape: Shape, scale: i32 = 1) -> i32 = scale"
+    assert_eq(display_of(decl, 80), "area :: fn(shape: Shape, scale: i32 = 1) -> i32")
+    assert_eq(display_of(decl, 20), "area :: fn(\n    shape: Shape,\n    scale: i32 = 1,\n) -> i32")
+}
+
+@test
+test_display_struct_lists_its_fields :: fn() -> void {
+    decl :: "export Point :: struct {\n    x: i32\n    @internal\n    y: i32 = 0\n}"
+    assert_eq(display_of(decl, 60), "export Point :: struct {\n    x: i32\n    @internal y: i32 = 0\n}")
+}
+
+@test
+test_display_enum_lists_its_variants :: fn() -> void {
+    assert_eq(display_of("Kind :: enum(u8) {\n    A,\n    B = 4,\n}", 60), "Kind :: enum(u8) {\n    A,\n    B = 4,\n}")
+}
+
+@test
+test_display_long_member_list_is_counted :: fn() -> void {
+    variants :: StringBuilder {}
+    for i in 0..<20 {
+        variants.append("    V${i},\n")
+    }
+    display :: display_of("Big :: enum {\n${variants.to_string()}}", 60)
+    assert(display.contains("    V15,\n    // … 4 more\n}"), "the list stops after the cap")
+    assert(!display.contains("V16"), "nothing past the cap is shown")
+}
+
+@test
+test_display_trait_lists_its_methods :: fn() -> void {
+    decl :: "Shape :: trait {\n    area :: fn(self) -> f64\n    describe :: fn(self) -> string = \"x\"\n}"
+    assert_eq(display_of(decl, 60), "Shape :: trait {\n    area :: fn(self) -> f64\n    describe :: fn(self) -> string\n}")
 }

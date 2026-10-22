@@ -23,6 +23,10 @@ import "vader/lsp/protocol"
 export ExternalHit :: struct {
     uri:    string
     target: DeclEntry
+    /// The `module "…"` of the file at `uri` ; "" when it has none.
+    module: string
+    /// The text `target` was indexed from, which its spans index into.
+    source: string
 }
 
 /// Resolve `name`, which the document `idx` does not declare, the way the
@@ -181,8 +185,14 @@ export first_in_files :: fn(
             continue
         }
         uri :: path_to_uri(file)
-        found :: query(build_index(uri, src, state.position_encoding)) ?? continue
-        return ExternalHit { .uri = uri, .target = found }
+        index :: build_index(uri, src, state.position_encoding)
+        found :: query(index) ?? continue
+        return ExternalHit {
+            .uri    = uri,
+            .target = found,
+            .module = index.module,
+            .source = index.source,
+        }
     }
     return null
 }

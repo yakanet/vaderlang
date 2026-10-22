@@ -50,23 +50,9 @@ declare_module :: fn(
 }
 
 register_deprecated :: fn(decl: AST.Decl, resolved: ResolvedModule) -> void {
-    msg :: deprecated_message(decorated_decl_decorators(decl)) ?? return
+    msg :: deprecated_message(AST.decl_decorators(decl)) ?? return
     sym :: decl_symbol(resolved, decl) ?? return
     resolved.deprecated_messages[sym.id] = msg
-}
-
-decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
-    // Only the named decl kinds carry decorators we read here; Impl / Assert /
-    // Import contribute none → empty list.
-    return match d {
-        is AST.FnDecl -> { d.decorators }
-        is AST.StructDecl -> { d.decorators }
-        is AST.EnumDecl -> { d.decorators }
-        is AST.TraitDecl -> { d.decorators }
-        is AST.TypeAliasDecl -> { d.decorators }
-        is AST.ConstDecl -> { d.decorators }
-        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { [] }
-    }
 }
 
 deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
@@ -549,8 +535,7 @@ validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagno
 }
 
 // Whether a parameter may carry the decorator `name`.
-is_parameter_decorator :: fn(name: string) -> bool =
-    name == "c_pointer" || name == "c_out" || name == "c_type"
+is_parameter_decorator :: fn(name: string) -> bool = decorator_on(name, .Parameter)
 
 // What is wrong with the arguments of the C decorator `d`, or null : `@c_type`
 // takes one plain string, the others none.

@@ -1314,7 +1314,7 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
         field_decos :: p.parse_decorators()
         field_visibility: Visibility = .Public
         for d in field_decos {
-            if d.name == "internal" {
+            if decorator_on(d.name, .Field) {
                 field_visibility = .Private
             } else {
                 p.error(.UnknownDecoratorPlacement, d.span,
@@ -3178,7 +3178,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .At {
         at_tok :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        if name_tok.text == "partial" || name_tok.text == "unreachable" {
+        if decorator_on(name_tok.text, .Match) {
             if !p.check(.KwMatch) {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,
                     "`@${name_tok.text}` must precede a `match` expression")

@@ -31,13 +31,9 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
     file_path :: uri_to_path(uri)
     if file_path == "" { return JsonNull {} }
 
-    cached :: typed_project_for(state, file_path)
-    entry :: cached.project.modules[cached.project.entry] ?? return JsonNull {}
-    sf :: source_file_for_path(entry.module.files, file_path) ?? return JsonNull {}
-
-    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
-    found :: find_expr_at(sf.program.decls, line, column, cached.result.typed) ?? return JsonNull {}
-    ty :: cached.result.typed.expr_types[found.id] ?? return JsonNull {}
+    cursor :: typed_cursor(state, file_path, position_line(params), position_character(params)) ?? return JsonNull {}
+    found :: expr_under(cursor) ?? return JsonNull {}
+    ty :: cursor.typed.expr_types[found.id] ?? return JsonNull {}
 
     sym :: type_symbol(ty) ?? return JsonNull {}
     da :: sym.defined_at ?? return JsonNull {}

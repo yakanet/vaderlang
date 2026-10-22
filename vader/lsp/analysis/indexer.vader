@@ -86,11 +86,22 @@ export DeclEntry :: struct {
     /// `import "p"` exposes only p's exports, so goto-def must not land on p's
     /// private decls. Always false for locals / params (never module-visible).
     exported:   bool
+    /// The declaration itself, which the hover renders ; null for a binding
+    /// (a parameter, a local), whose `signature` says all there is.
+    node:       DeclNode | null = null
+    /// True for a fn with type parameters of its own or of the trait or impl
+    /// it belongs to : a call binds them, and the hover shows to what.
+    generic:    bool = false
 }
+
+/// What a `DeclEntry` declares : a declaration, or a member of one.
+export DeclNode :: Decl | StructField | EnumVariant
 
 /// Per-document index, rebuilt on every didOpen / didChange.
 export DocIndex :: struct {
     uri:     string
+    /// The `module "…"` the document opens with ; "" when it has none.
+    module:  string
     source:  string
     tokens:  Token[]
     decls:   DeclEntry[]
@@ -153,6 +164,7 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
     }
     return DocIndex {
         .uri            = uri,
+        .module         = module_name_of(parsed.program),
         .source         = source,
         .tokens         = parsed.tokens,
         .decls          = entries,
@@ -162,6 +174,12 @@ export build_index :: fn(uri: string, source: string, encoding: PositionEncoding
         .loop_jumps     = collect_loop_jumps(parsed.program.decls),
         .line_index     = new_line_index(source, encoding),
     }
+}
+
+// The module a program declares, "" without a header.
+module_name_of :: fn(program: Program) -> string {
+    header :: program.module ?? return ""
+    return header.name
 }
 
 // ---- loop-jump index (goto-definition on `break` / `continue`) ------------
@@ -325,6 +343,59 @@ export span_at :: fn(idx: DocIndex, line: i32, character: i32) -> Span | null {
     return token_span_at(idx.tokens, offset)
 }
 
+/// The name of the decorator or intrinsic under (line, character) (the `test`
+/// of `@test`, the `size_of` of `@size_of(T)`), or `""` when the cursor is not
+/// on one. The cursor may sit on the `@` or on the name; the name may be a
+/// keyword (`@export`), so any token glued to an `@` counts.
+///
+/// @param idx        the document's index.
+/// @param line       0-based line.
+/// @param character  0-based character, in the negotiated encoding.
+export decorator_name_at :: fn(idx: DocIndex, line: i32, character: i32) -> string {
+    offset :: li_offset(idx.line_index, line, character)
+    tokens :: idx.tokens
+    for i in 0..<tokens.len() {
+        t :: tokens[i]
+        if offset < t.span.start.offset || offset >= t.span.end.offset {
+            continue
+        }
+        if t.kind == .At {
+            return glued_name(tokens, i, i + 1)
+        }
+        if i > 0 && tokens[i - 1].kind == .At {
+            return glued_name(tokens, i - 1, i)
+        }
+        return ""
+    }
+    return ""
+}
+
+// The text of `tokens[name]` when it starts where the `@` at `tokens[at]` ends,
+// "" otherwise: `@ test` is no decorator.
+glued_name :: fn(tokens: Token[], at: i64, name: i64) -> string {
+    if name >= tokens.len() {
+        return ""
+    }
+    t :: tokens[name]
+    if t.span.start.offset != tokens[at].span.end.offset || t.text.byte_len() == 0 {
+        return ""
+    }
+    return t.text
+}
+
+/// The entry whose name starts at byte `offset`, or null.
+///
+/// @param idx     the document's index.
+/// @param offset  a byte offset into the indexed document.
+export entry_at_offset :: fn(idx: DocIndex, offset: i64) -> DeclEntry | null {
+    for d in idx.decls {
+        if d.name_span.start.offset == offset {
+            return d
+        }
+    }
+    return null
+}
+
 /// Look up a top-level decl by name (ignores scope). Used by the
 /// cross-file resolver to find the target decl inside the imported
 /// module's freshly-built index.
@@ -375,6 +446,10 @@ impl_owner_name :: fn(t: TypeExpr) -> string {
 /// missing one made a call to `vm_required(…)` resolve to a struct field of that
 /// name declared earlier in the file.
 export is_member_kind :: fn(k: DeclKind) -> bool = k == .Field || k == .EnumVariant
+
+/// Whether `k` is a binding local to a fn body (a parameter, a local, a `for`
+/// variable) rather than a declaration.
+export is_binding_kind :: fn(k: DeclKind) -> bool = k == .Param || k == .Local || k == .ForIn
 
 /// Find the member `name` DECLARED BY `owner` — the precise lookup.
 ///
@@ -450,12 +525,12 @@ collect_decl :: fn(
             // are not outline symbols. Still walk the body so goto-def works on
             // locals inside the block.
             if !d.comptime_synthetic {
-                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+                entries.push(top_entry(d.name, .Fn, d.name_span, d.span, d, d.visibility == .Public, source, cmap, "", d.type_params.len() > 0))
             }
             ix_walk_fn_body(d, source, entries)
         }
         is StructDecl -> {
-            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Struct, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
             // Fields too, for the same reason trait members are indexed just
             // below: `img.pixels` is a reference to one, and without an entry
             // goto-def has nothing to land on. Recorded at top level (no
@@ -465,28 +540,28 @@ collect_decl :: fn(
             // the jump lands on the field's line and the highlight covers the
             // whole declaration rather than just the name.
             for f in d.fields {
-                entries.push(top_entry(f.name, .Field, f.span, f.span, format_field_head(source, f), [], false, source, cmap, d.name))
+                entries.push(top_entry(f.name, .Field, f.span, f.span, f, false, source, cmap, d.name))
             }
         }
         is EnumDecl -> {
-            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Enum, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
             for v in d.variants {
-                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, format_variant_head(source, v), [], false, source, cmap, d.name))
+                entries.push(top_entry(v.name, .EnumVariant, v.span, v.span, v, false, source, cmap, d.name))
             }
         }
         is TraitDecl -> {
-            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Trait, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
             // Trait members are fn decls — index their names too so
             // goto-def on a method-name reference can land somewhere.
             for m in d.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, format_decl_head(source, m), m.decorators, false, source, cmap, d.name))
+                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, d.name, d.type_params.len() + m.type_params.len() > 0))
             }
         }
         is TypeAliasDecl -> {
-            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
         }
         is ConstDecl -> {
-            entries.push(top_entry(d.name, .Const, d.name_span, d.span, format_decl_head(source, d), d.decorators, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, .Const, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
         }
         is ImplDecl -> {
             // Impl members are fn decls on the target type. They
@@ -506,7 +581,7 @@ collect_decl :: fn(
                     // yields a name — a generic instantiation has no single one,
                     // and an empty owner degrades to the name-based lookup
                     // rather than pointing somewhere wrong.
-                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, format_decl_head(source, m), m.decorators, false, source, cmap, impl_owner_name(d.for_type)))
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m, false, source, cmap, impl_owner_name(d.for_type), d.type_params.len() + m.type_params.len() > 0))
                 }
                 ix_walk_fn_body(m, source, entries)
             }
@@ -517,12 +592,12 @@ collect_decl :: fn(
 }
 
 top_entry :: fn(
-    name: string, kind: DeclKind, name_span: Span, full_span: Span, signature: string,
-    decorators: Decorator[], exported: bool,
-    source: string, cmap: CommentMap,
+    name: string, kind: DeclKind, name_span: Span, full_span: Span, node: DeclNode,
+    exported: bool, source: string, cmap: CommentMap,
     // The declaring type, for a member. Empty for everything else — see
     // `DeclEntry.owner`.
     owner: string = "",
+    generic: bool = false,
 ) -> DeclEntry {
     // `///` doc-comments sit above the decorators in the source. The
     // decl's `span.start` covers neither :
@@ -535,19 +610,34 @@ top_entry :: fn(
     // we take the min of that and every decorator's `span.start` so
     // both gaps close before `leading_doc` scans for `///` runs.
     line_start :: line_start_offset(source, full_span.start.offset)
-    doc_boundary :: doc_boundary_offset(line_start, decorators)
+    doc_boundary :: doc_boundary_offset(line_start, node_decorators(node))
     doc :: leading_doc(cmap, doc_boundary, source)
     return DeclEntry {
         .name       = name,
         .kind       = kind,
         .name_span  = name_span,
         .full_span  = full_span,
-        .signature  = signature,
+        .signature  = node_head(source, node),
         .doc        = doc,
         .scope_span = null,
         .owner      = owner,
         .exported   = exported,
+        .node       = node,
+        .generic    = generic,
     }
+}
+
+// The one-line head of `node`, as `vader/fmt` renders it.
+node_head :: fn(source: string, node: DeclNode) -> string = match node {
+    is StructField -> format_field_head(source, node)
+    is EnumVariant -> format_variant_head(source, node)
+    is Decl        -> format_decl_head(source, node)
+}
+
+// The decorators above `node` ; a member carries none.
+node_decorators :: fn(node: DeclNode) -> Decorator[] = match node {
+    is StructField | EnumVariant -> []
+    is Decl                      -> decl_decorators(node)
 }
 
 // Smallest start-offset among the decl itself and every decorator

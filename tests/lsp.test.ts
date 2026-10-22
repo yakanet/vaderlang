@@ -111,6 +111,7 @@ async function driveLsp(
   // scenarios (e.g. member completion on an imported struct type).
   const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
   const file = join(dir, fileName);
+  mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, source);
   for (const [rel, content] of Object.entries(extraFiles)) {
     const p = join(dir, rel);
@@ -289,7 +290,7 @@ test("lsp: goto-def + hover end-to-end", async () => {
   // 1: hover double → markdown with signature + doc
   const hov_double = results[1]!.result as Hover;
   expect(hov_double.contents.kind).toBe("markdown");
-  expect(hov_double.contents.value).toContain("```vader\ndouble :: fn(x: i32) -> i32\n```");
+  expect(hov_double.contents.value).toContain("```\ndouble :: fn(x: i32) -> i32\n```");
   expect(hov_double.contents.value).toContain("Doubles its argument.");
 
   // 2: goto-def Point → line 8 (the `Point :: struct {` line), char 0..5
@@ -300,7 +301,7 @@ test("lsp: goto-def + hover end-to-end", async () => {
   // 3: hover Point → markdown with struct signature + doc
   const hov_point = results[3]!.result as Hover;
   expect(hov_point.contents.kind).toBe("markdown");
-  expect(hov_point.contents.value).toContain("```vader\nPoint :: struct\n```");
+  expect(hov_point.contents.value).toContain("```\nPoint :: struct {\n    x: i32\n    y: i32\n}\n```");
   expect(hov_point.contents.value).toContain("A 2D point.");
 
   // 4 + 5: unknown / whitespace → null
@@ -350,10 +351,62 @@ test("lsp: hover joins a signature wrapped across lines", async () => {
   ];
   const results = await driveLsp(WRAPPED_SOURCE, queries);
   expect(results).toHaveLength(queries.length);
-  expect((results[0]!.result as Hover).contents.value).toContain("```vader\nShape :: Circle | Square\n```");
+  expect((results[0]!.result as Hover).contents.value).toContain("```\nShape :: Circle | Square\n```");
   expect((results[1]!.result as Hover).contents.value).toContain(
-    "```vader\narea :: fn(shape: Shape, scale: i32 = 1) -> i32\n```",
+    "```\narea :: fn(shape: Shape, scale: i32 = 1) -> i32\n```",
   );
+}, { timeout: MEDIUM_BUILD });
+
+// A hover reads like an IDE's quick documentation: the declaration with its
+// decorators, `export` and members, a long parameter list one per line, the
+// vaderdoc tags as sections, the declaring module. `@name` documents the
+// decorator or the intrinsic.
+const QUICK_DOC_SOURCE = `module "lsptest"
+
+/// A 2D point.
+export Point :: struct {
+    x: i32
+    @internal
+    y: i32 = 0
+}
+
+/// Area of \`p\`.
+///
+/// @param p      the point.
+/// @param scale  how much to grow it.
+/// @return       the product.
+@allow_unused
+area :: fn(p: Point, scale: i32, offset: i32, label: string) -> i32 = p.x * scale
+
+main :: fn() -> i32 {
+    n :: @size_of(i32)
+    return 0
+}
+`;
+
+test("lsp: hover renders a declaration as quick documentation", async () => {
+  const results = await driveLsp(QUICK_DOC_SOURCE, [
+    // 0: the struct, its fields listed
+    { method: "textDocument/hover", position: { line: 3, character: 8 } },
+    // 1: a fn whose head is too long for one line, with tagged vaderdoc
+    { method: "textDocument/hover", position: { line: 15, character: 1 } },
+    // 2: a decorator
+    { method: "textDocument/hover", position: { line: 14, character: 2 } },
+    // 3: an intrinsic
+    { method: "textDocument/hover", position: { line: 18, character: 11 } },
+  ]);
+  const value = (i: number) => (results[i]!.result as Hover).contents.value;
+  expect(value(0)).toBe(
+    "```\nexport Point :: struct {\n    x: i32\n    @internal y: i32 = 0\n}\n```"
+      + "\n\n---\n\nA 2D point.\n\n*lsptest*",
+  );
+  expect(value(1)).toStartWith(
+    "```\n@allow_unused\narea :: fn(\n    p: Point,\n    scale: i32,\n    offset: i32,\n    label: string,\n) -> i32\n```",
+  );
+  expect(value(1)).toContain("**Params**\n- `p` — the point.\n- `scale` — how much to grow it.\n\n**Returns** the product.");
+  expect(value(2)).toStartWith("decorator\n\n```\n@allow_unused\n```");
+  expect(value(2)).toContain("W0007");
+  expect(value(3)).toStartWith("intrinsic\n\n```\n@size_of(T: type) -> i64\n```");
 }, { timeout: MEDIUM_BUILD });
 
 // A method-syntax call of a generic fn binds its type parameters with the receiver
@@ -383,7 +436,7 @@ test("lsp: hover on a generic method-syntax call shows the call's binding", asyn
     { method: "textDocument/hover", position: { line: 12, character: 17 } },
   ]);
   expect(results).toHaveLength(1);
-  expect((results[0]!.result as Hover).contents.value).toContain("```vader\nfn(Cfg) -> Cfg\n```");
+  expect((results[0]!.result as Hover).contents.value).toContain("```\npick :: fn<T>(a: T, b: T) -> T\n```\n\ncalled here as `fn(Cfg) -> Cfg`");
 }, { timeout: MEDIUM_BUILD });
 
 // Regression (audit LC1): the server maps an incoming `character` as a CODEPOINT
@@ -1296,7 +1349,7 @@ test("lsp: hover on fn param shows its type", async () => {
   ]);
   const hov = results[0]!.result as Hover;
   expect(hov.contents.kind).toBe("markdown");
-  expect(hov.contents.value).toContain("```vader\nx: i32\n```");
+  expect(hov.contents.value).toContain("```\nx: i32\n```");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to local let-binding", async () => {
@@ -1315,7 +1368,7 @@ test("lsp: hover on local shows its binding form", async () => {
     { method: "textDocument/hover", position: { line: 4, character: 11 } },
   ]);
   const hov = results[0]!.result as Hover;
-  expect(hov.contents.value).toContain("```vader\ny :: x * 2\n```");
+  expect(hov.contents.value).toContain("```\ny :: x * 2\n```");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to for-in binding", async () => {
@@ -1397,7 +1450,8 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
   expect(hov.contents.kind).toBe("markdown");
   // Signature comes from the source decl, not the importing file.
   expect(hov.contents.value).toContain("println");
-  expect(hov.contents.value).toContain("```vader");
+  expect(hov.contents.value).toStartWith("```\nexport println :: fn<T: Display>(msg: T) -> void\n```");
+  expect(hov.contents.value).toEndWith("*std/io*");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
@@ -2010,7 +2064,7 @@ test("lsp: a match header's binding is declared, renamed and hovered at its name
   expect(edits).toHaveLength(2);
   for (const e of edits) expect(textAt(HEADER_BINDING_SOURCE, e.range)).toBe("x");
   // A use reads the binding at the type its arm narrowed it to.
-  expect((results[2]!.result as { contents: { value: string } }).contents.value).toBe("```vader\nA\n```");
+  expect((results[2]!.result as { contents: { value: string } }).contents.value).toBe("```\nx: A\n```");
 }, { timeout: MEDIUM_BUILD });
 
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
@@ -2266,8 +2320,8 @@ test("lsp: a match header's binding hovers as its scrutinee", async () => {
     { method: "textDocument/hover", position: { line: 6, character: 10 } },
     { method: "textDocument/hover", position: { line: 7, character: 27 } },
   ]);
-  expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32 | null\n```");
-  expect((results[1]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
+  expect((results[0]!.result as Hover).contents.value).toContain("```\nv: i32 | null\n```");
+  expect((results[1]!.result as Hover).contents.value).toContain("```\nv: i32\n```");
 });
 
 const NARROWED_LOCAL_SOURCE = `module "lsptest"
@@ -2292,7 +2346,7 @@ test("lsp: a name an if narrows hovers as the narrowed type", async () => {
     { method: "textDocument/hover", position: { line: 9, character: 19 } },
     { method: "textDocument/definition", position: { line: 9, character: 19 } },
   ]);
-  expect((results[0]!.result as Hover).contents.value).toContain("```vader\ni32\n```");
+  expect((results[0]!.result as Hover).contents.value).toContain("```\nn: i32\n```");
   const def = results[1]!.result as Location;
   expect(def.range.start).toEqual({ line: 7, character: 4 });
 });
@@ -2398,7 +2452,7 @@ test("lsp: hover documents every op of the text bytecode", async () => {
   const undocumented = ordered.filter((_, i) => results[i]!.result === null);
   expect(undocumented).toEqual([]);
   const hover = results[ordered.indexOf("local.get")]!.result as Hover;
-  expect(hover.contents.value).toContain("```virt\nlocal.get <slot>\n```");
+  expect(hover.contents.value).toContain("```\nlocal.get <slot>\n```");
   expect(hover.contents.value).toContain("Push the value of local `<slot>`.");
   expect(results[ordered.length]!.result).toBeNull();
 });

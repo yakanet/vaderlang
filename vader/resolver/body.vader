@@ -506,30 +506,9 @@ check_target_selectors :: fn(self: ResolveState, d: AST.Decorator) -> void {
 // Whether `name` is a decorator stating a contract over a fn's parameters.
 is_contract_decorator :: fn(name: string) -> bool = name == "returns" || name == "ensures"
 
-/// Whitelist of known decorators.
-/// Update when SPEC §12 grows a new decorator.
-is_known_decorator :: fn(name: string) -> bool {
-    return name == "comptime"
-        || name == "extern"
-        || name == "export"
-        || name == "test"
-        || name == "intrinsic"
-        || name == "deprecated"
-        || name == "assert"
-        || name == "no_return"
-        || name == "allow_unused"
-        || name == "target"
-        || name == "c_header"
-        || name == "c_pointer"
-        || name == "c_out"
-        || name == "c_type"
-        || name == "c_struct"
-        || name == "c_variadic"
-        || name == "displayable"
-        || name == "singleton"
-        || name == "returns"
-        || name == "ensures"
-}
+// Whether `name` is a decorator this walk may meet : one a declaration or a
+// parameter carries (`vader/parser/decorators.vader`).
+is_known_decorator :: fn(name: string) -> bool = decorator_on(name, .Declaration) || decorator_on(name, .Parameter)
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {
     if e !is null {

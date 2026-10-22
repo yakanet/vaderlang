@@ -497,17 +497,7 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
 // by the parser. For "what line does this decl visually start on" we want
 // the first decorator's line if any, else the decl's own span start.
 decl_first_line :: fn(d: p.Decl) -> i32 {
-    decos :: match d {
-        is p.ImportDecl    -> d.decorators
-        is p.FnDecl        -> d.decorators
-        is p.StructDecl    -> d.decorators
-        is p.EnumDecl      -> d.decorators
-        is p.TraitDecl     -> d.decorators
-        is p.ImplDecl      -> d.decorators
-        is p.TypeAliasDecl -> d.decorators
-        is p.ConstDecl     -> d.decorators
-        is p.AssertDecl    -> d.decorators
-    }
+    decos :: p.decl_decorators(d)
     if decos.len() > 0 { return decos[0].span.start.line }
     return d.span.start.line
 }

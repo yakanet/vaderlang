@@ -177,12 +177,13 @@ chosen_member :: fn(
     uri :: path_to_uri(at.file)
     index :: state.index_for(uri) ?? build_index(uri, src, state.position_encoding)
     // By position, not by name : the overloads share it.
-    for d in index.decls {
-        if d.name_span.start.offset == at.offset {
-            return ExternalHit { .uri = uri, .target = d }
-        }
+    target :: index.entry_at_offset(at.offset) ?? return null
+    return ExternalHit {
+        .uri    = uri,
+        .target = target,
+        .module = index.module,
+        .source = index.source,
     }
-    return null
 }
 
 // `name` as a member of one of the traits an intrinsic `T[] implements …` block

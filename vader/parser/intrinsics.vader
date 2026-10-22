@@ -28,12 +28,16 @@ export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
 }
 
 export IntrinsicSpec :: struct {
-    name:   string
-    args:   IntrinsicArgKind[]
+    name:      string
+    args:      IntrinsicArgKind[]
     // Result kind is informative — the typechecker / lower passes have
     // their own per-name dispatch and don't consult this. Stored here for
     // completeness.
-    result: string
+    result:    string
+    /// How a call is written, typed as SPEC §14 writes it : `@size_of(T: type) -> i64`.
+    signature: string
+    /// What the intrinsic returns, in Markdown, as the LSP hover shows it.
+    doc:       string
 }
 
 /// The kind of argument `i` of `spec`. One past those it declares is a value, as
@@ -53,35 +57,125 @@ export arg_kind :: fn(spec: IntrinsicSpec, i: i64) -> IntrinsicArgKind {
 INTRINSICS: IntrinsicSpec[]: [
     // `@size_of(t)`: the lowerer folds a written type to a literal and routes a
     // run-time `type` value through the `size_of.type` intrinsic.
-    IntrinsicSpec { .name = "size_of",       .args = [.TypeValue],     .result = "i64"  },
-    IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "i64"  },
-    IntrinsicSpec { .name = "type_name",     .args = [.Type],          .result = "string" },
-    IntrinsicSpec { .name = "type_kind",     .args = [.Type],          .result = "string" },
-    IntrinsicSpec { .name = "field_count",   .args = [.Type],          .result = "i64"  },
-    IntrinsicSpec { .name = "variant_count", .args = [.Type],          .result = "i64"  },
-    IntrinsicSpec { .name = "field_index",   .args = [.Type, .Value],  .result = "i64"  },
-    IntrinsicSpec { .name = "satisfies",     .args = [.Type, .Type],   .result = "bool"   },
+    IntrinsicSpec {
+        .name      = "size_of",
+        .args      = [.TypeValue],
+        .result    = "i64",
+        .signature = "@size_of(T: type) -> i64",
+        .doc       = "Width in bytes of the slot that carries a `T` (a field, a local, a parameter), not of the object a reference points at. The only intrinsic that also takes a run-time `type` value.",
+    },
+    IntrinsicSpec {
+        .name      = "align_of",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@align_of(T: type) -> i64",
+        .doc       = "Alignment in bytes of the slot that carries a `T`.",
+    },
+    IntrinsicSpec {
+        .name      = "type_name",
+        .args      = [.Type],
+        .result    = "string",
+        .signature = "@type_name(T: type) -> string",
+        .doc       = "Printable name of `T`, rendered as diagnostics render it: `\"MutableMap<i32, string>\"`.",
+    },
+    IntrinsicSpec {
+        .name      = "type_kind",
+        .args      = [.Type],
+        .result    = "string",
+        .signature = "@type_kind(T: type) -> string",
+        .doc       = "The shape of `T`: `\"primitive\"`, `\"struct\"`, `\"enum\"`, `\"union\"`, `\"array\"`, `\"tuple\"`, `\"fn\"`, `\"trait\"`, `\"type\"`, `\"any\"` or `\"unknown\"`.",
+    },
+    IntrinsicSpec {
+        .name      = "field_count",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@field_count(T: type) -> i64",
+        .doc       = "Number of fields of a struct, or of elements of a tuple; 0 for any other shape.",
+    },
+    IntrinsicSpec {
+        .name      = "variant_count",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@variant_count(T: type) -> i64",
+        .doc       = "Number of variants of a union or an enum, a union of unions flattened first; 0 for any other shape.",
+    },
+    IntrinsicSpec {
+        .name      = "field_index",
+        .args      = [.Type, .Value],
+        .result    = "i64",
+        .signature = "@field_index(T: type, name: string) -> i64",
+        .doc       = "0-based position of the field `name` in the struct `T`. `name` must be a static string literal.",
+    },
+    IntrinsicSpec {
+        .name      = "satisfies",
+        .args      = [.Type, .Type],
+        .result    = "bool",
+        .signature = "@satisfies(T: type, Trait: type) -> bool",
+        .doc       = "True when `T` implements `Trait`, by an impl in scope or built in (an enum's `Equals`).",
+    },
     // `@min(T)` / `@max(T)` — the least and the greatest value of an integer type,
     // a value of `T` itself.
-    IntrinsicSpec { .name = "min",           .args = [.Type],          .result = "self"   },
-    IntrinsicSpec { .name = "max",           .args = [.Type],          .result = "self"   },
+    IntrinsicSpec {
+        .name      = "min",
+        .args      = [.Type],
+        .result    = "self",
+        .signature = "@min(T: type) -> T",
+        .doc       = "The least value of an integer type, a range or a type parameter bounded by `Int`; of an enum without data, its variant of the least value; of `char`, U+0000.",
+    },
+    IntrinsicSpec {
+        .name      = "max",
+        .args      = [.Type],
+        .result    = "self",
+        .signature = "@max(T: type) -> T",
+        .doc       = "The greatest value of an integer type, a range or a type parameter bounded by `Int`; of an enum without data, its variant of the greatest value; of `char`, U+10FFFF.",
+    },
     // `@file("path")` reads the file at compile time and bakes its UTF-8
     // contents as a string literal. The path resolves against the file that
     // writes the call.
-    IntrinsicSpec { .name = "file",          .args = [.Value],         .result = "string" },
+    IntrinsicSpec {
+        .name      = "file",
+        .args      = [.Value],
+        .result    = "string",
+        .signature = "@file(path: string) -> string",
+        .doc       = "UTF-8 contents of the file at `path`, read at compile time and baked as a string literal. The path resolves against the file that writes the call.",
+    },
     // Reifies the static type of a value as a `type` runtime value.
-    IntrinsicSpec { .name = "type_of",       .args = [.Unevaluated],   .result = "type"   },
+    IntrinsicSpec {
+        .name      = "type_of",
+        .args      = [.Unevaluated],
+        .result    = "type",
+        .signature = "@type_of(x) -> type",
+        .doc       = "The static type of `x`, as a `type` value. `x` never runs.",
+    },
     // `@fields(T)` — struct's fields as a `Field[]` literal materialised
     // at lower time. T must be a static struct-typed expression.
-    IntrinsicSpec { .name = "fields",        .args = [.Type],          .result = "field_array" },
+    IntrinsicSpec {
+        .name      = "fields",
+        .args      = [.Type],
+        .result    = "field_array",
+        .signature = "@fields(T: type) -> Field[]",
+        .doc       = "The fields of the struct `T`, each a `Field` with a `name` and a `type`. Unrolled per field by `@comptime for f in @fields(T)`.",
+    },
     // `@type_args(T)` — generic type-args of a struct / trait instance
     // as a `type[]`. Non-generic types yield `[]`.
-    IntrinsicSpec { .name = "type_args",     .args = [.Type],          .result = "type_array"  },
+    IntrinsicSpec {
+        .name      = "type_args",
+        .args      = [.Type],
+        .result    = "type_array",
+        .signature = "@type_args(T: type) -> type[]",
+        .doc       = "The type arguments of a generic struct or trait instance; `[]` for a non-generic type.",
+    },
     // `@field(x, "name")` — dynamic-by-string field access. The second
     // arg is a static string literal (or a `f.name` access that folds to
     // one inside `@comptime for f in @fields(T)`). The result type is
     // the field's declared type, resolved per-call.
-    IntrinsicSpec { .name = "field",         .args = [.Value, .Value], .result = "i64"       },
+    IntrinsicSpec {
+        .name      = "field",
+        .args      = [.Value, .Value],
+        .result    = "i64",
+        .signature = "@field(x, name: string) -> <field type>",
+        .doc       = "The field `name` of `x`. `name` is a static string literal, or `f.name` inside `@comptime for f in @fields(T)`, where it folds to a direct field access.",
+    },
 ]
 
 // Returns the spec for `name`, or `null` if `@name(...)` is not a
