@@ -17,15 +17,13 @@
 
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD, LONG_BUILD } from "./cli-bin.ts";
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { COMPILER_ENTRY, exampleEntry, exampleNames } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
-const ROOT = join(import.meta.dir, "..");
-const EXAMPLES = join(ROOT, "examples");
-const COMPILER_ENTRY = join(ROOT, "vader", "cli", "main.vader");
 
 // The self-host case compiles ~105k lines of Vader, an order of magnitude past
 // anything else in the suite, and under `--parallel` it exceeds the per-test
@@ -38,18 +36,13 @@ const buildVerify = (entry: string, timeout: number, out: string) =>
   runCli(
     ["build", "--emit=bytecode-text", `--out=${out}`, "--verify", entry], undefined, timeout);
 
-const exampleEntries = (): string[] =>
-  readdirSync(EXAMPLES, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => join(EXAMPLES, d.name, `${d.name}.vader`));
-
 // A finding on any of these is a false positive by construction: they are the
 // programs the repo ships as correct. An `I7xxx` here means a check is wrong,
 // not that the example is.
 test("verify finds nothing in the examples", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
   try {
-    for (const entry of exampleEntries()) {
+    for (const entry of exampleNames().map(exampleEntry)) {
       // LONG_BUILD, matching this test's own declared budget rather than the
       // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/bytecode`,
       // so it type-checks 40 modules where the other seven load 12. That is
@@ -75,7 +68,7 @@ test("verify changes nothing about the emitted bytecode", async () => {
   // Compare the EMITTED FILES, not the two runs' stdout: `--out` names a file
   // (`--out=-` writes one called `-`), so both runs print the same one-line
   // "wrote …" whatever the bytecode holds.
-  const entry = join(EXAMPLES, "mandelbrot", "mandelbrot.vader");
+  const entry = exampleEntry("mandelbrot");
   const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
   try {
     const plain = join(dir, "plain.virt");

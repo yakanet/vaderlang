@@ -13,6 +13,7 @@ import { ensureCliBuilt, runCli, LONG_BUILD, MEDIUM_BUILD } from "./cli-bin.ts";
 import { join, relative } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { COMPILER_ENTRY } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
@@ -57,8 +58,7 @@ const EXPLAINED: [RegExp, string][] = [
 // The whole compiler is built: a long build.
 test("every disagreement on the compiler itself is an explained one", async () => {
   const out = join(mkdtempSync(join(tmpdir(), "callee-verify-")), "self.c");
-  const main = join(ROOT, "vader", "cli", "main.vader");
-  const r = await runCli(["build", "--emit=c", `--out=${out}`, main], VERIFY, LONG_BUILD);
+  const r = await runCli(["build", "--emit=c", `--out=${out}`, COMPILER_ENTRY], VERIFY, LONG_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stderr).toContain("[VADER_VERIFY_CALLEES]");
   const unexplained = disagreements(r.stderr)

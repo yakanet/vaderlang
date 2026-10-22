@@ -11,6 +11,7 @@
 import { test, expect } from "bun:test";
 import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
 import { join } from "node:path";
+import { COMPILER_ENTRY } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
@@ -18,7 +19,6 @@ const SUMMARIES = join(import.meta.dir, "fixtures", "effect", "summaries", "summ
 const FROZEN = join(import.meta.dir, "fixtures", "effect", "frozen", "frozen.vader");
 const VARIANCE = join(import.meta.dir, "fixtures", "effect", "variance", "variance.vader");
 const IMPORTED = join(import.meta.dir, "fixtures", "effect", "imported", "app", "main.vader");
-const COMPILER = join(import.meta.dir, "..", "vader", "cli", "main.vader");
 
 /** Each function of the `summaries` module with its accesses, in source order. */
 function functionsOf(dump: string): [string, string[]][] {
@@ -252,7 +252,7 @@ test("each widened array argument gets the verdict of its callee", async () => {
 // summary meets each of them.
 test("every intrinsic of the tree has an entry in the effect table", async () => {
   const r = await runCli(
-    ["dump", "--stage=effects", "--module=vader/effects", COMPILER],
+    ["dump", "--stage=effects", "--module=vader/effects", COMPILER_ENTRY],
     undefined,
     MEDIUM_BUILD,
   );

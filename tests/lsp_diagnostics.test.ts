@@ -1,6 +1,7 @@
-// LSP diagnostics end-to-end — verifies the server pushes the opt-in
-// project-wide `unused-export` lint (W0012) as `textDocument/publishDiagnostics`
-// on didOpen, scoped to the open document by the per-file filter. Kept separate
+// LSP diagnostics end-to-end: verifies the server pushes the dead-code lints,
+// W0007 (a private declaration) and the opt-in project-wide `unused-export`
+// (W0012), as `textDocument/publishDiagnostics` on didOpen, scoped to the open
+// document by the per-file filter, and faded. Kept separate
 // from lsp.test.ts (which drives request/response queries) because these assert
 // on server-INITIATED notifications, which that harness discards.
 
@@ -119,4 +120,19 @@ test("LSP emits no W0012 when every export is reached", async () => {
   ].join("\n");
   const diags = await diagnosticsFor(source);
   expect(diags.some(d => d.code === "W0012")).toBe(false);
+}, MEDIUM_BUILD);
+
+test("LSP surfaces W0007 (dead code) on an unused private fn, faded", async () => {
+  const source = [
+    `module "snippet"`,
+    `helper :: fn() -> i32 = 3`,
+    `main :: fn() -> i32 = 0`,
+    ``,
+  ].join("\n");
+  const diags = await diagnosticsFor(source);
+  const w0007 = diags.filter(d => d.code === "W0007");
+  expect(w0007.length).toBe(1);
+  expect(w0007[0]!.message).toContain("helper");
+  expect(w0007[0]!.severity).toBe(2);        // Warning
+  expect(w0007[0]!.tags).toEqual([1]);       // Unnecessary → rendered faded
 }, MEDIUM_BUILD);

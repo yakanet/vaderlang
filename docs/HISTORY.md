@@ -1358,6 +1358,8 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ### 3.7 Tooling
 
+- [x] **The examples were verified, never run**, **closed 2026-10-22**: `tests/examples_run.test.ts` runs every example from the repo root and pins its output in `tests/fixtures/examples/<name>.run.snapshot`.
+- [x] **`vader check --target=<os>-<arch>` over the compiler was not a test**, **closed 2026-10-22**: `tests/cli_check.test.ts` checks `vader/cli/main.vader` for `windows-x86_64`, `linux-x86_64` and `darwin-arm64`, clean and silent; `Arch` selects no code, so one target per OS reaches every `@target` body.
 - [x] **`vader test` said it runs native: it runs the VM**, **closed 2026-10-22**: the vaderdoc of `vader/cli/cmd_test.vader` no longer claims a native run.
 - [x] **`--help` listed `bytecode-text` as not implemented**, **closed 2026-10-22**: `vader/cli/spec.vader` describes the `.virt` module `cmd_build.vader` writes. The other half of the entry, `dump --stage=bytecode` not filtered to the entry module, stays open in `TODO.md`.
 - [x] **SPEC drift**, **closed 2026-10-22** (opened 2026-10-02): SPEC.md was audited section by section against the compiler. The `modules` manifest field, `B5xxx`, the missing `H6xxx` / `I7xxx`, the CLI table, `tryInto`, "no runtime dispatch", the per-instance tag and `where T: Add` are corrected; the divergences that are compiler defects rather than stale prose are listed for a decision.

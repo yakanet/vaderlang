@@ -8,8 +8,9 @@
 // these tests type-check Windows code from whatever machine runs them.
 
 import { test, expect } from "bun:test";
-import { ensureCliBuilt, runCli, MEDIUM_BUILD } from "./cli-bin.ts";
+import { ensureCliBuilt, runCli, LONG_BUILD, MEDIUM_BUILD } from "./cli-bin.ts";
 import { join } from "node:path";
+import { COMPILER_ENTRY } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
@@ -65,3 +66,14 @@ test("VADER_OS is baked with no target given, from the host", async () => {
   expect(r.exit).toBe(0);
   expect(r.stderr.trim()).toBe("");
 });
+
+// The compiler's own `@target` bodies, checked from whatever machine runs the
+// suite: a Windows body broken on a Mac would otherwise surface only in the
+// Windows CI job. `Arch` selects no code, so one target per OS reaches them all.
+for (const target of ["windows-x86_64", "linux-x86_64", "darwin-arm64"]) {
+  test.concurrent(`the compiler checks clean for ${target}`, async () => {
+    const r = await runCli(["check", `--target=${target}`, COMPILER_ENTRY], undefined, LONG_BUILD);
+    expect(r.stderr).toBe("");
+    expect(r.exit).toBe(0);
+  }, LONG_BUILD);
+}

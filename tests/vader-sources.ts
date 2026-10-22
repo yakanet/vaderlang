@@ -8,6 +8,22 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
+const ROOT = join(import.meta.dir, "..");
+
+/** The compiler's own entry, the program every whole-compiler suite runs on. */
+export const COMPILER_ENTRY = join(ROOT, "vader", "cli", "main.vader");
+
+/** The examples the repo ships, by name, sorted. */
+export function exampleNames(): string[] {
+  return readdirSync(join(ROOT, "examples"), { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name)
+    .sort();
+}
+
+/** The entry of example `name`: `examples/<name>/<name>.vader`. */
+export const exampleEntry = (name: string): string => join(ROOT, "examples", name, `${name}.vader`);
+
 // Anchor on `^@test\s` rather than a substring search : `std/testing` itself
 // only mentions `@test` in its module-level doc-comment, which would otherwise
 // look like a test-bearing module to the walker. Decorators are always at
