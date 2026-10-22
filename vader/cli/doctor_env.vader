@@ -59,6 +59,10 @@ ENV_TOGGLES: EnvToggle[]: [
         .effect = "every minor rescans the whole old generation",
     },
     EnvToggle {
+        .name = "VADER_GC_POISON", .status = .Warn,
+        .effect = "every minor fills the young space it abandons with 0xA5",
+    },
+    EnvToggle {
         .name = "VADER_ASYNC_VIRTUAL_CLOCK", .status = .Warn,
         .effect = "async runs on a virtual clock — timers do not wait",
     },

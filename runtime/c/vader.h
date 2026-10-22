@@ -361,10 +361,12 @@ static inline void* vader_box_to_ref(vader_box_t b) {
  *     carries `mark == 0`. Young objects don't use it. (The atom string-GC
  *     keeps its own mark bit on the atom table, unrelated to this one.)
  *   - `forward` is NULL for live objects in young from-space and non-NULL when
- *     the object has been copied to young to-space during a minor (the GC walks
- *     forwards transparently when scanning roots). For a FREE old slot it is
- *     repurposed as the size-class free-list link (old objects never forward —
- *     the old gen is non-moving). */
+ *     a minor has copied the object, to young to-space or into the old slab
+ *     (the GC walks forwards transparently when scanning roots). A forward does
+ *     not outlive the collection that wrote it, except the one
+ *     `vader_gc_force_tenure` leaves until the next minor (docs/adr/0107). For a
+ *     FREE old slot it is repurposed as the size-class free-list link (old
+ *     objects never forward: the old gen is non-moving). */
 typedef struct {
     uint32_t type_index;
     uint8_t  age;
@@ -864,10 +866,8 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
  * check, so the first hop always advances. The sibling `vader_array_resolve`
  * walks the array HEADER's chain, a different object, and keeps its own loop.
  *
- * The chain can exceed one link : a single `vader_gc_alloc` may run a minor THEN
- * a major (whose first step is an internal minor, `MAJOR_DRAIN`), forwarding the
- * same buf twice at one allocation site. So this must stay a loop, and no caller
- * may weaken its guard into a one-step resolve.
+ * Outside a collection the only forward alive is the one `vader_gc_force_tenure`
+ * leaves (see the `forward` field).
  *
  * Out-of-line : the body is reached on a vanishingly small fraction of the
  * resolving sites. `VADER_PURE` lets the compiler treat the call as clobbering
@@ -909,8 +909,8 @@ VADER_PURE VADER_NOINLINE struct vader_array_buf* vader_array_buf_forward(struct
 #define VADER_ARRAY_CHECK_PROVEN(a, i) \
     VADER_ARRAY_CHECK_INDEX_OR_TRAP(a, i, "array index out of bounds where the compiler proved it in bounds")
 
-/* The resolving form, for the runtime's own sites that read `a->buf->slots`
- * after a collection they may have triggered themselves. */
+/* The resolving form, for the runtime's own sites that read `a->buf->slots`,
+ * called before they can collect. */
 static inline void vader_array_resolve_buf(vader_array_t* a) {
     if (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = vader_array_buf_forward(a->buf);

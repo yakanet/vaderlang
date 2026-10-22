@@ -332,6 +332,12 @@ static void vader_gc_check_object_alignment(const void* obj, uint32_t type_index
  * on an old→young edge), not the GC scan itself. Off by default. */
 static int g_gc_scan_all_old = 0;
 
+/* Young poison mode, set via `VADER_GC_POISON=1`: at the end of every minor, the
+ * young bytes it abandons are filled with VADER_GC_POISON_BYTE, so a read of an
+ * abandoned object fails at once (docs/adr/0107). Off by default. */
+static int g_gc_poison = 0;
+#define VADER_GC_POISON_BYTE 0xA5
+
 /* Current cycle. Drives both `vader_gc_forward` (which arena to copy into)
  * and the collection counter (sub-cycles don't bump it independently). */
 typedef enum {
@@ -1412,6 +1418,19 @@ static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
     return x < lo ? lo : (x > hi ? hi : x);
 }
 
+/* Lay both young halves out over `block`: from-space first, allocation resuming
+ * at `from_cur`, then an empty to-space. */
+static void vader_young_carve(char* block, size_t half, char* from_cur) {
+    g_young.block      = block;
+    g_young.half_bytes = half;
+    g_young.from.base  = block;
+    g_young.from.cur   = from_cur;
+    g_young.from.end   = block + half;
+    g_young.to.base    = block + half;
+    g_young.to.cur     = g_young.to.base;
+    g_young.to.end     = g_young.to.base + half;
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
@@ -1434,6 +1453,7 @@ void vader_gc_init(void) {
     g_gc_stress_major = vader_gc_env_bool("VADER_GC_STRESS_MAJOR");
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
     g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
+    g_gc_poison       = vader_gc_env_bool("VADER_GC_POISON");
     g_gc_no_cstack_scan = vader_gc_env_bool("VADER_GC_NO_CSTACK_SCAN");
 
     /* VADER_GC_PROFILE : at exit, walk both arenas and dump the live set
@@ -1499,15 +1519,9 @@ void vader_gc_init(void) {
 
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
-    g_young.block = (char*) malloc(young_bytes * 2u);
-    if (g_young.block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
-    g_young.half_bytes = young_bytes;
-    g_young.from.base = g_young.block;
-    g_young.from.cur  = g_young.block;
-    g_young.from.end  = g_young.block + young_bytes;
-    g_young.to.base   = g_young.block + young_bytes;
-    g_young.to.cur    = g_young.to.base;
-    g_young.to.end    = g_young.to.base + young_bytes;
+    char* young_block = (char*) malloc(young_bytes * 2u);
+    if (young_block == NULL) vader_trap("vader_gc_init: young arena malloc failed");
+    vader_young_carve(young_block, young_bytes, young_block);
 
     /* Old: a single non-moving reservation at the cap, lazily committed. Objects
      * are bump-carved into class regions and never move, so there is no to-space
@@ -1592,13 +1606,12 @@ static void* vader_gc_alloc_young_unchecked(size_t aligned) {
     return p;
 }
 
-/* Grow the young generation to `new_half` per semi-space, via the same flip-
- * with-resize trick as old: point `g_young.to` at a fresh, larger block and
- * run a minor, which relocates every live young object into it (forwarding
- * fixes the pointers) and swaps. Then free the old block and re-slice the
- * spare to-space onto the new block's second half. Young carries no card table
- * or write-barrier bounds, so this is simpler than `vader_old_grow_to`. NULL
- * malloc is the real RAM ceiling. */
+/* Grow the young generation to `new_half` per semi-space: point `g_young.to` at
+ * a fresh, larger block and run a minor, which copies into it every live young
+ * object that does not promote (forwarding fixes the pointers). Then free the
+ * old block and carve both halves out of the new one. Young carries no card
+ * table or write-barrier bounds, so this is simpler than `vader_old_grow_to`.
+ * NULL malloc is the real RAM ceiling. */
 static void vader_young_grow_to(size_t new_half) {
     char* new_block = (char*) malloc(new_half * 2u);
     if (new_block == NULL) {
@@ -1610,22 +1623,17 @@ static void vader_young_grow_to(size_t new_half) {
         vader_trap("vader_young_grow: out of memory (RAM ceiling)");
     }
     char* old_block = g_young.block;
-    /* Relocate live young into the new block's first half: the minor copies
-     * g_young.from → g_young.to (which we point here) and swaps. */
     g_young.to.base = new_block;
     g_young.to.cur  = new_block;
     g_young.to.end  = new_block + new_half;
     vader_minor_collect();
-    /* Post-swap g_young.from is the new block's first half (survivors); the
-     * spare g_young.to still points at the old block — re-slice it onto the
-     * new block's second half and free the old block. */
+    /* With survivors, the minor swapped and g_young.from is the new block's
+     * first half; without, that half is empty and g_young.from still names the
+     * old block, freed below. */
+    char* survivors_end = new_block;
+    if (g_young.from.base == new_block) survivors_end = g_young.from.cur;
     free(old_block);
-    char* base       = g_young.from.base;            /* == new_block */
-    g_young.block      = base;
-    g_young.half_bytes = new_half;
-    g_young.to.base    = base + new_half;
-    g_young.to.cur     = g_young.to.base;
-    g_young.to.end     = g_young.to.base + new_half;
+    vader_young_carve(new_block, new_half, survivors_end);
 }
 
 /* Pick a new young semi-space size large enough that, after a relocating
@@ -2296,10 +2304,22 @@ void vader_minor_collect(void) {
         if (young_scan == y0 && !drained_gray) break;
     }
 
-    vader_arena_t tmp = g_young.from;
-    g_young.from   = g_young.to;
-    g_young.to     = tmp;
-    g_young.to.cur = g_young.to.base;
+    /* The halves swap only when to-space received survivors; otherwise
+     * from-space is reused from its base, and the next allocation lands on what
+     * the minor abandoned. So a forwarding header does not outlive the minor
+     * that wrote it: a pointer read after a collection must come from a root the
+     * collection rewrote, never from a forward (docs/adr/0107). */
+    vader_arena_t abandoned = g_young.from;
+    if (g_young.to.cur != g_young.to.base) {
+        g_young.from   = g_young.to;
+        g_young.to     = abandoned;
+        g_young.to.cur = g_young.to.base;
+    } else {
+        g_young.from.cur = g_young.from.base;
+    }
+    if (VADER_UNLIKELY(g_gc_poison)) {
+        memset(abandoned.base, VADER_GC_POISON_BYTE, (size_t)(abandoned.cur - abandoned.base));
+    }
 
     /* A preliminary minor inside a major counts as part of that major. */
     if (saved == VADER_CYCLE_NONE) g_total_collections++;
@@ -2890,15 +2910,10 @@ vader_array_t* vader_array_slice(vader_array_t* a, int64_t lo_bound, int64_t hi_
     return view;
 }
 
-/* If `a` was relocated by a collection that fired during a recent allocation,
- * its old header carries a forwarding pointer to the new copy. Caller-side
- * code reloads `a` from a shadow-stack slot, but runtime helpers receive `a`
- * as a raw C pointer — after a GC mid-call the parameter is stale. Resolving
- * the forward keeps the helper sound.
- *
- * A single `vader_gc_alloc` call may run a minor THEN a major (the major
- * runs its own internal minor as `MAJOR_DRAIN`), so an object can be
- * forwarded twice in one allocation site. Loop until the chain terminates. */
+/* Follow any forwarding pointer on an array header a helper was handed, on
+ * entry, before the helper can collect. It cannot recover a pointer held across
+ * a collection (docs/adr/0107): a helper that collects roots its arrays in a box
+ * and reloads them from it after the allocation. */
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
     while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
     return a;
@@ -3000,15 +3015,12 @@ void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
      * overwrite them). The owning array meets none of these. */
     bool is_view = a->offset != 0 || a->offset + a->length < a->buf->length;
     if (a->length >= a->capacity || is_view) {
-        /* The grow path may run TWO GC cycles inside `vader_array_buf_alloc`
-         * (minor → major when the minor doesn't free enough). Each cycle
-         * forwards `a` and swaps young from/to halves ; by the second swap
-         * the *original* `a` address has been recycled and its forward
-         * pointer overwritten by a fresh allocation, so `vader_array_resolve`
-         * can't walk the chain anymore. Box `a` here and root the box so
-         * the GC's scan_box re-updates `a_box.payload.obj` through every
-         * cycle, then reload `a` from the box afterwards. Same trick for
-         * `v` whose payload may also need forwarding. */
+        /* `vader_array_buf_alloc` may collect, once or more (minor, then a
+         * major when the minor doesn't free enough), and a forward does not
+         * outlive its collection (docs/adr/0107). Box `a` here and root the box
+         * so the GC's scan_box re-updates `a_box.payload.obj` through every
+         * cycle, then reload `a` from the box afterwards. Same trick for `v`
+         * whose payload may also need forwarding. */
         uint32_t tag       = a->header.type_index;
         uint8_t  kind      = a->buf->element_kind;
         size_t   elem_size = vader_array_element_size(kind);

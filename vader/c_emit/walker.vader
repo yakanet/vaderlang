@@ -97,7 +97,9 @@ invalidate_header_cache :: fn(s: FnState, op: vm.Op) -> void {
         drop_bound_for_local(s, op.slot)
         return
     }
-    if is_cache_safe(op) {
+    // An op on the list that can collect still ends the region: `op_may_collect`
+    // has the last word, so the list cannot keep a header across a collection.
+    if is_cache_safe(op) && !op_may_collect(op, s.ctx.import_may_collect) {
         return
     }
     // The op ends the straight-line region and clears the cache, except in one case.
@@ -149,7 +151,7 @@ is_cache_safe :: fn(op: vm.Op) -> bool {
     if op is vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.LoadU8                                                                  { return true }
     if op is vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.StoreU8                                                              { return true }
     if op is vm.I32Const | vm.I64Const | vm.F64Const | vm.BoolConst | vm.CharConst                                             { return true }
-    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef | vm.FnAddr                 { return true }
+    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef                             { return true }
     if op is vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Neg                                             { return true }
     if op is vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg                                             { return true }
     if op is vm.CheckedArith | vm.CheckedNeg                                                                                   { return true }

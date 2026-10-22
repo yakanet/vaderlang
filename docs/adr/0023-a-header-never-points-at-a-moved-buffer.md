@@ -4,6 +4,13 @@
 
 Accepted (2026-09-28).
 
+**Amended by
+[0107](0107-the-young-halves-swap-only-when-to-space-receives-survivors.md)
+(2026-10-22)**: the runtime sites that keep the resolving form no longer read a
+forward left by a collection they triggered. A minor recycles the space it
+evacuates, so a site that collects reads `buf` through a header reloaded from a
+root.
+
 ## Context
 
 An array is two GC objects: the header (`vader_array_t`: length, offset, `buf`)

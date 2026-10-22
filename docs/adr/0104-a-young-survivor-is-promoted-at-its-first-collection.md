@@ -11,6 +11,11 @@ Accepted (2026-10-21). Supersedes in part
 no longer hold. A major no longer re-arms the card table, and `vader test vader`
 runs fewer instructions than at age 2 (242.0 G against 250.6 G).
 
+**Amended by
+[0107](0107-the-young-halves-swap-only-when-to-space-receives-survivors.md)
+(2026-10-22)**: the last consequence below no longer holds. The two young halves
+swap only when to-space received survivors, so at age 1 allocation reuses one half.
+
 ## Context
 
 Under 0007 a young survivor was promoted at its second minor (`VADER_TENURE_AGE`

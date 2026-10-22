@@ -1,0 +1,27 @@
+// An array read on each side of a function address handed to C.
+//
+// The first `fn.addr` a program runs collects (the first callback escape), so it
+// moves every young object, `xs` included. The native backend binds an array's
+// header to a C local and reuses it for later reads of the same array until
+// something can collect; `xs[1]` is read after the address is taken, before the
+// call, so it must not reuse the header bound for `xs[0]`.
+//
+// A stale header can go unnoticed in a plain run, reading bytes that still look
+// right. `VADER_GC_POISON=1` fills what a minor abandons, and turns that read
+// into a crash.
+
+module "snippet"
+
+import "std/io"
+
+twice :: fn(x: i32) -> i32 = x * 2
+
+@extern apply :: fn(f: fn(i32) -> i32, x: i32) -> i32
+
+main :: fn() -> i32 {
+    xs: i32[]: [10, 20, 30]
+    first :: xs[0]
+    second :: apply(twice, xs[1])
+    println("first: ${first}, through the callback: ${second}")
+    return 0
+}
