@@ -477,6 +477,78 @@
       "checksum": "split_join fields=20000 passes=24 pieces=43752 length=261480"
     }
   },
+  "plb2_nqueen": {
+    "vader-native": {
+      "minMs": 2557.7314590000005,
+      "checksum": "plb2_nqueen n=15 solutions=2279184"
+    },
+    "bun-ts": {
+      "minMs": 2224.275958000002,
+      "checksum": "plb2_nqueen n=15 solutions=2279184"
+    },
+    "go": {
+      "minMs": 2266.0609579999946,
+      "checksum": "plb2_nqueen n=15 solutions=2279184"
+    },
+    "java": {
+      "minMs": 2355.315999999999,
+      "checksum": "plb2_nqueen n=15 solutions=2279184"
+    }
+  },
+  "plb2_matmul": {
+    "vader-native": {
+      "minMs": 2144.0661670000045,
+      "checksum": "plb2_matmul n=1500 center=-143.5001666666568"
+    },
+    "bun-ts": {
+      "minMs": 1996.995041000002,
+      "checksum": "plb2_matmul n=1500 center=-143.5001666666568"
+    },
+    "go": {
+      "minMs": 935.8895840000041,
+      "checksum": "plb2_matmul n=1500 center=-143.5001666666568"
+    },
+    "java": {
+      "minMs": 668.5211659999914,
+      "checksum": "plb2_matmul n=1500 center=-143.5001666666568"
+    }
+  },
+  "plb2_sudoku": {
+    "vader-native": {
+      "minMs": 2222.534209000005,
+      "checksum": "plb2_sudoku puzzles=4000 solutions=4000 checksum=714628303"
+    },
+    "bun-ts": {
+      "minMs": 2420.0101670000004,
+      "checksum": "plb2_sudoku puzzles=4000 solutions=4000 checksum=714628303"
+    },
+    "go": {
+      "minMs": 1710.5935829999944,
+      "checksum": "plb2_sudoku puzzles=4000 solutions=4000 checksum=714628303"
+    },
+    "java": {
+      "minMs": 1866.6815840000054,
+      "checksum": "plb2_sudoku puzzles=4000 solutions=4000 checksum=714628303"
+    }
+  },
+  "plb2_bedcov": {
+    "vader-native": {
+      "minMs": 1459.3218750000233,
+      "checksum": "plb2_bedcov n=1000000 coverage=8195494005"
+    },
+    "bun-ts": {
+      "minMs": 1646.5482910000137,
+      "checksum": "plb2_bedcov n=1000000 coverage=8195494005"
+    },
+    "go": {
+      "minMs": 654.4877500000002,
+      "checksum": "plb2_bedcov n=1000000 coverage=8195494005"
+    },
+    "java": {
+      "minMs": 1668.1957910000056,
+      "checksum": "plb2_bedcov n=1000000 coverage=8195494005"
+    }
+  },
   "vm_fib": {
     "vader-vm": {
       "minMs": 179.56662499997765,

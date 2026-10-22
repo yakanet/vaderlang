@@ -1,0 +1,55 @@
+/// plb2 `nqueen` (https://github.com/attractivechaos/plb2): count the solutions
+/// of the 15-queens problem by iterative backtracking over bitmasks, the
+/// occupied columns and both diagonals each held as one word per row.
+///
+/// Ported from plb2's Go version, `int` words included, so the two compare the
+/// same work; the Go, Java and JavaScript siblings are plb2's own programs.
+
+module "main"
+
+import "std/io"
+
+N: i64: 15
+NQ_MAX: i64: 32
+
+nq_solve :: fn(n: i64) -> i64 {
+    a: i64[]: [0] * NQ_MAX
+    l: i64[]: [0] * NQ_MAX
+    c: i64[]: [0] * NQ_MAX
+    r: i64[]: [0] * NQ_MAX
+    for i in 0..<n {
+        a[i] = -1
+    }
+    m: i64 = 0
+    k: i64 = 0
+    y0 :: (1 << n) - 1
+    for k >= 0 {
+        y :: (l[k] | c[k] | r[k]) & y0
+        if (y ^ y0) >> (a[k] + 1) != 0 {
+            i := a[k] + 1
+            for i < n && y & (1 << i) != 0 {
+                i += 1
+            }
+            if k < n - 1 {
+                z :: 1 << i
+                a[k] = i
+                k += 1
+                l[k] = (l[k - 1] | z) << 1
+                c[k] = c[k - 1] | z
+                r[k] = (r[k - 1] | z) >> 1
+            } else {
+                m += 1
+                k -= 1
+            }
+        } else {
+            a[k] = -1
+            k -= 1
+        }
+    }
+    return m
+}
+
+main :: fn() -> i32 {
+    println("plb2_nqueen n=${N} solutions=${nq_solve(N)}")
+    return 0
+}

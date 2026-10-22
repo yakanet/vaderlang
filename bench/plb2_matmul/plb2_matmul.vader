@@ -1,0 +1,63 @@
+/// plb2 `matmul` (https://github.com/attractivechaos/plb2): multiply two
+/// 1500×1500 `f64` matrices with the i-k-j loop order, so the inner loop
+/// streams one row of each operand.
+///
+/// Ported from plb2's Go version: a matrix is one flat array indexed by
+/// `row * n + column`, as Go's is, and the arrays are bound to locals before the
+/// loops the way Go slices its rows. The Go, Java and JavaScript siblings are
+/// plb2's own programs.
+
+module "main"
+
+import "std/io"
+
+N: i64: 1500
+
+/// A square matrix stored row-major in one flat array.
+SqMatrix :: struct {
+    values: f64[]
+    dim: i64
+}
+
+new_matrix :: fn(dim: i64) = SqMatrix { .values = [0.0] * (dim * dim), .dim = dim }
+
+matgen :: fn(n: i64) -> SqMatrix {
+    a :: new_matrix(n)
+    values :: a.values
+    tmp :: 1.0 / f64(n) / f64(n)
+    index: i64 = 0
+    for i in 0..<n {
+        for j in 0..<n {
+            values[index] = tmp * f64(i - j) * f64(i + j)
+            index += 1
+        }
+    }
+    return a
+}
+
+matmul :: fn(n: i64, a: SqMatrix, b: SqMatrix) -> SqMatrix {
+    c :: new_matrix(n)
+    a_values :: a.values
+    b_values :: b.values
+    c_values :: c.values
+    for i in 0..<n {
+        row :: i * n
+        for k in 0..<n {
+            a_value :: a_values[row + k]
+            b_row :: k * n
+            for j in 0..<n {
+                c_values[row + j] += a_value * b_values[b_row + j]
+            }
+        }
+    }
+    return c
+}
+
+main :: fn() -> i32 {
+    a :: matgen(N)
+    b :: matgen(N)
+    c :: matmul(N, a, b)
+    center :: c.values[(N >> 1) * N + (N >> 1)]
+    println("plb2_matmul n=${N} center=${center}")
+    return 0
+}

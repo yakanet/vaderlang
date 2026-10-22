@@ -67,6 +67,10 @@ bench/async_await/async_await
 bench/parse_float/parse_float
 bench/sort_by/sort_by
 bench/split_join/split_join
+bench/plb2_nqueen/plb2_nqueen
+bench/plb2_matmul/plb2_matmul
+bench/plb2_sudoku/plb2_sudoku
+bench/plb2_bedcov/plb2_bedcov
 *.dSYM/
 
 ## POCs

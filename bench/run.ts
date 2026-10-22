@@ -7,6 +7,7 @@
 // Usage :
 //   bun bench/run.ts                  # measure + compare to baseline
 //   bun bench/run.ts --update         # write current measurements as baseline
+//                                     # (with --workload, only those rows)
 //   bun bench/run.ts --runs=5         # override default 10 timed runs
 //   bun bench/run.ts --workload=mandelbrot   # narrow to a single workload
 
@@ -45,6 +46,9 @@ interface Workload {
   /** Substring expected in every implementation's stdout — guards against
    *  silent algorithmic divergence. */
   readonly outputMatch: string;
+  /** Caps the timed runs of a workload whose single run takes seconds, where
+   *  the minimum settles within a handful of samples. */
+  readonly maxRuns?: number;
 }
 
 const WORKLOADS: readonly Workload[] = [
@@ -75,6 +79,12 @@ const WORKLOADS: readonly Workload[] = [
   { name: "parse_float",    description: "655 k correctly-rounded decimal → f64 parses",         outputMatch: "parse_float" },
   { name: "sort_by",        description: "24 stable comparator sorts of 20 k i64",               outputMatch: "sort_by" },
   { name: "split_join",     description: "24 × split a 20 k-field line, filter, rejoin",         outputMatch: "split_join" },
+  // plb2 (github.com/attractivechaos/plb2) at its published sizes, so the rows
+  // compare with its own tables: one to three seconds a run.
+  { name: "plb2_nqueen", description: "plb2: count the 15-queens solutions by bitmask backtracking",  outputMatch: "plb2_nqueen", maxRuns: 5 },
+  { name: "plb2_matmul", description: "plb2: 1500×1500 f64 matrix multiply, i-k-j loop order",       outputMatch: "plb2_matmul", maxRuns: 5 },
+  { name: "plb2_sudoku", description: "plb2: 20 hard sudokus solved 200 times by exact cover",         outputMatch: "plb2_sudoku", maxRuns: 5 },
+  { name: "plb2_bedcov", description: "plb2: cover of 1 M intervals against an implicit interval tree", outputMatch: "plb2_bedcov", maxRuns: 5 },
   // VM-only : programs sized for the bytecode interpreter, which runs them one to
   // two orders of magnitude slower than native code. Only `vader-vm` has a source
   // for them (`bench/vm/<name>/`), so the other columns stay empty.
@@ -115,6 +125,14 @@ interface Impl {
   build?: (workload: string) => Promise<void>;
   /** Command + args to invoke for a single timed run. */
   run: (workload: string) => { cmd: string; args: readonly string[] };
+}
+
+/** The Bun source of a workload: its TypeScript port, or the upstream
+ *  JavaScript a workload taken from another suite keeps as it was written. */
+function bunSource(workload: string): string {
+  const ts = `bench/${workload}/${workload}.ts`;
+  if (existsSync(join(REPO, ts))) return ts;
+  return `bench/${workload}/${workload}.js`;
 }
 
 /** True when `impl` has a source file for `workload` under the repo. */
@@ -175,8 +193,8 @@ const IMPLS: readonly Impl[] = [
   },
   {
     name: "bun-ts",
-    source: (w) => `bench/${w}/${w}.ts`,
-    run: (w) => ({ cmd: "bun", args: [`bench/${w}/${w}.ts`] }),
+    source: bunSource,
+    run: (w) => ({ cmd: "bun", args: [bunSource(w)] }),
   },
   {
     name: "go",
@@ -221,11 +239,12 @@ function median(xs: readonly number[]): number {
 function measure(impl: Impl, workload: Workload, runs: number): SampleResult {
   // Build steps already ran upfront in parallel — see `buildAll` below.
   // One warmup invocation so JIT-ish runtimes (Bun) and OS caches are warm,
-  // then `runs` measured samples.
+  // then `runs` measured samples, capped by the workload's `maxRuns`.
   timedRun(impl, workload.name);
   const samples: number[] = [];
   let lastStdout = "";
-  for (let i = 0; i < runs; i++) {
+  const timedRuns = Math.min(runs, workload.maxRuns ?? runs);
+  for (let i = 0; i < timedRuns; i++) {
     const { ms, stdout } = timedRun(impl, workload.name);
     samples.push(ms);
     lastStdout = stdout;
@@ -270,11 +289,18 @@ function loadBaseline(): Baseline | null {
   return JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as Baseline;
 }
 
-function writeBaseline(results: readonly SampleResult[]): void {
-  const out: Baseline = {};
+/** Writes the measured rows in `WORKLOADS` order. A run narrowed by
+ *  `--workload` keeps every row it did not measure from `previous`. */
+function writeBaseline(results: readonly SampleResult[], previous: Baseline | null): void {
+  const fresh: Baseline = {};
   for (const r of results) {
-    out[r.workload] ??= {};
-    out[r.workload]![r.impl] = { minMs: r.minMs, checksum: r.checksum };
+    fresh[r.workload] ??= {};
+    fresh[r.workload]![r.impl] = { minMs: r.minMs, checksum: r.checksum };
+  }
+  const out: Baseline = {};
+  for (const { name } of WORKLOADS) {
+    const row = fresh[name] ?? previous?.[name];
+    if (row !== undefined) out[name] = row;
   }
   writeFileSync(BASELINE_PATH, JSON.stringify(out, null, 2) + "\n");
 }
@@ -333,13 +359,13 @@ async function main(): Promise<void> {
   console.log(formatTable(results));
   console.log("");
 
+  const baseline = loadBaseline();
   if (args.update) {
-    writeBaseline(results);
+    writeBaseline(results, baseline);
     console.log(`wrote baseline to ${BASELINE_PATH}`);
     return;
   }
 
-  const baseline = loadBaseline();
   if (baseline === null) {
     console.log(`no baseline at ${BASELINE_PATH} (run with --update to create one)`);
     return;
