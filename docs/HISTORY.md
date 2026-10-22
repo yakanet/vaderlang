@@ -1350,8 +1350,20 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ## Archived from TODO.md, 2026-10-22
 
+### Priority: next up
+
+- [x] **`@internal` leaked through a union's common field and a literal-name `@field`**, **closed 2026-10-18, archived 2026-10-22** (part of an open entry): both get T3054 as `v.f` does (`55991ef36`); a non-literal `@field` name and `@fields(S)` stay open.
+
 ### 3.7 Tooling
 
 - [x] **`vader test` said it runs native: it runs the VM**, **closed 2026-10-22**: the vaderdoc of `vader/cli/cmd_test.vader` no longer claims a native run.
 - [x] **`--help` listed `bytecode-text` as not implemented**, **closed 2026-10-22**: `vader/cli/spec.vader` describes the `.virt` module `cmd_build.vader` writes. The other half of the entry, `dump --stage=bytecode` not filtered to the entry module, stays open in `TODO.md`.
 - [x] **SPEC drift**, **closed 2026-10-22** (opened 2026-10-02): SPEC.md was audited section by section against the compiler. The `modules` manifest field, `B5xxx`, the missing `H6xxx` / `I7xxx`, the CLI table, `tryInto`, "no runtime dispatch", the per-instance tag and `where T: Add` are corrected; the divergences that are compiler defects rather than stale prose are listed for a decision.
+
+### 3.5 Performance
+
+- [x] **Bench baselines lagged the wins landed since 2026-10-04**, **closed 2026-10-22** (opened 2026-10-10): `bench/baseline.json` was recaptured after the GC, push and collections work (`bd8976a5d`) and again after the atom hash change (`00a429536`); `split_join` 13.6 ms, `wordfreq` 11.9, `vm_arr` 122.
+
+### 3.8 Language ergonomics
+
+- [x] **Range and literal pattern bounds were typed alone**, **closed 2026-10-11, archived 2026-10-22** (opened 2026-07-24): each bound is repinned to what the arms above leave of the scrutinee (`0ba97c012`), so a free literal takes the scrutinee's width, T3066 reports one out of range and T3001 one of another type. The inverted-range warning stays open.
