@@ -15,10 +15,9 @@ import "vader/resolver/symbol"
 import "vader/types"
 AST :: import "toolchain/ast"
 
-/// Type-check an `@name(...)` call. Each arg is dispatched per the
-/// intrinsic's `args` spec : `.Value` args go through `check_expr`
-/// (and land in `expr_types`), `.Type` args bypass it (no expr_types
-/// entry for the inner ident).
+/// Type-check an `@name(...)` call, argument by argument as the intrinsic's spec
+/// says. A `.Type` argument bypasses `check_expr`: no `expr_types` entry is made
+/// for its inner ident.
 infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     spec :: intrinsic_spec(e.name)
     if spec is null {
@@ -27,36 +26,22 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
         return TY_UNRESOLVED
     }
     for i in 0..<e.args.len() {
-        if i < spec.args.len() {
-            match spec.args[i] {
-                .Value -> {
-                    got :: check_expr(e.args[i], null, typed, diags)
-                    // A value that names a type (`@size_of(i32)`, `@size_of(null)`)
-                    // is recorded as a `.Type` argument is, so the lowerer folds it
-                    // statically.
-                    if is_type_operand(e.args[i], typed.resolved) {
-                        scratch: Diagnostic[]: []
-                        denoted :: type_from_expr(e.args[i], typed.resolved, scratch)
-                        typed.type_expr_types[e.args[i].span.hash()] = denoted
-                    } else if e.name == "size_of" {
-                        check_size_of_operand(e.args[i], got, diags)
-                    }
-                }
-                .Type -> {
-                    // Record the resolved Type in `type_expr_types` so
-                    // downstream consumers (the lowerer's intrinsic
-                    // fold, the comptime instance harvester) can recover
-                    // generic instances like `Pair<string, i64>` via
-                    // a span-keyed (`Span.hash()`) lookup. Without this write, the
-                    // `harvest_instances` pass never observes the
-                    // instance and the @fields / @type_args fold falls
-                    // through to LoweredUnreachable.
-                    resolved :: type_from_expr(e.args[i], typed.resolved, diags)
-                    typed.type_expr_types[e.args[i].span.hash()] = resolved
-                }
+        match kind :: spec.arg_kind(i) {
+            .Value | .TypeValue | .Unevaluated -> {
+                check_intrinsic_value(e.args[i], kind, typed, diags)
             }
-        } else {
-            check_expr(e.args[i], null, typed, diags)
+            .Type -> {
+                // Record the resolved Type in `type_expr_types` so
+                // downstream consumers (the lowerer's intrinsic
+                // fold, the comptime instance harvester) can recover
+                // generic instances like `Pair<string, i64>` via
+                // a span-keyed (`Span.hash()`) lookup. Without this write, the
+                // `harvest_instances` pass never observes the
+                // instance and the @fields / @type_args fold falls
+                // through to LoweredUnreachable.
+                resolved :: type_from_expr(e.args[i], typed.resolved, diags)
+                typed.type_expr_types[e.args[i].span.hash()] = resolved
+            }
         }
     }
     if e.name == "field" {
@@ -68,10 +53,24 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
     return type_for_result(spec.result, typed)
 }
 
-// `@size_of` reads the width of a type, so a value it is handed must be a `type`
-// one (a `type` parameter, `@type_of(x)`, a `Field.type`): an `i64` has no width
-// to read, and both backends stop on it at run time.
-check_size_of_operand :: fn(arg: AST.Expr, got: Type, diags: Diagnostic[]) -> void {
+// Type-check a value argument. One that names a type (`@size_of(i32)`,
+// `@size_of(null)`) is recorded as a `.Type` argument is, so the lowerer folds it
+// statically; any other must be a `type` when `kind` is `.TypeValue`.
+check_intrinsic_value :: fn(
+    arg: AST.Expr, kind: IntrinsicArgKind, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    got :: check_expr(arg, null, typed, diags)
+    if is_type_operand(arg, typed.resolved) {
+        scratch: Diagnostic[]: []
+        typed.type_expr_types[arg.span.hash()] = type_from_expr(arg, typed.resolved, scratch)
+    } else if kind == .TypeValue {
+        check_type_value(arg, got, diags)
+    }
+}
+
+// A `.TypeValue` argument must be a `type`: `@size_of(h)` on an `i64` has no width
+// to read, and both backends would stop on it at run time.
+check_type_value :: fn(arg: AST.Expr, got: Type, diags: Diagnostic[]) -> void {
     if got is TypeMetaType | UnresolvedType {
         return
     }

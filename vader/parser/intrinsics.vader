@@ -8,9 +8,23 @@ module "vader/parser"
 
 import "toolchain/ast"
 
+/// What an intrinsic does with one of its arguments.
 export IntrinsicArgKind :: enum(u8) {
+    /// A type expression, parsed as one and never run.
     Type,
+    /// A value, run as any argument is.
     Value,
+    /// A value that must be a `type`, run: a `type` parameter, `@type_of(x)`, a
+    /// `Field.type`.
+    TypeValue,
+    /// A value whose static type is read and which never runs.
+    Unevaluated,
+}
+
+/// Whether an argument of `kind` runs, so that what it lends or writes counts.
+export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
+    .Value | .TypeValue -> true
+    .Type | .Unevaluated -> false
 }
 
 export IntrinsicSpec :: struct {
@@ -22,15 +36,24 @@ export IntrinsicSpec :: struct {
     result: string
 }
 
+/// The kind of argument `i` of `spec`. One past those it declares is a value, as
+/// the parser, the typecheck and the effect walk all read it.
+///
+/// @param i  the argument's position.
+export arg_kind :: fn(spec: IntrinsicSpec, i: i64) -> IntrinsicArgKind {
+    if i < spec.args.len() {
+        return spec.args[i]
+    }
+    return .Value
+}
+
 // Full set of recognised intrinsics. Add new entries here. A module constant, so
 // it bakes once into `.rodata`. `intrinsic_spec` hands an entry out, and an entry
 // carries an array a write could reach: that read builds a fresh table.
 INTRINSICS: IntrinsicSpec[]: [
-    // `@size_of(t)` — arg is a `TypeMeta`-typed *value* (a bare type name
-    // is a `TypeMeta` value in value position). The lowerer folds the
-    // static case to a literal and routes the runtime case through the
-    // `size_of.type` intrinsic.
-    IntrinsicSpec { .name = "size_of",       .args = [.Value],         .result = "i64"  },
+    // `@size_of(t)`: the lowerer folds a written type to a literal and routes a
+    // run-time `type` value through the `size_of.type` intrinsic.
+    IntrinsicSpec { .name = "size_of",       .args = [.TypeValue],     .result = "i64"  },
     IntrinsicSpec { .name = "align_of",      .args = [.Type],          .result = "i64"  },
     IntrinsicSpec { .name = "type_name",     .args = [.Type],          .result = "string" },
     IntrinsicSpec { .name = "type_kind",     .args = [.Type],          .result = "string" },
@@ -47,8 +70,7 @@ INTRINSICS: IntrinsicSpec[]: [
     // writes the call.
     IntrinsicSpec { .name = "file",          .args = [.Value],         .result = "string" },
     // Reifies the static type of a value as a `type` runtime value.
-    // The argument is NOT evaluated (Zig-style).
-    IntrinsicSpec { .name = "type_of",       .args = [.Value],         .result = "type"   },
+    IntrinsicSpec { .name = "type_of",       .args = [.Unevaluated],   .result = "type"   },
     // `@fields(T)` — struct's fields as a `Field[]` literal materialised
     // at lower time. T must be a static struct-typed expression.
     IntrinsicSpec { .name = "fields",        .args = [.Type],          .result = "field_array" },

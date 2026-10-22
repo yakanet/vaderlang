@@ -3218,11 +3218,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
                         // `[]`, `|` etc. parse with type semantics ;
                         // value-shape args go through the regular expr
                         // parser.
-                        is_type := false
-                        if idx < spec.args.len() && spec.args[idx] == .Type {
-                            is_type = true
-                        }
-                        if is_type {
+                        if spec.arg_kind(idx) == .Type {
                             args.push(p.parse_type())
                         } else {
                             args.push(p.parse_expr(0))
