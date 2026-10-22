@@ -7,6 +7,10 @@
 // UX so the editor shows what inference resolved to without forcing the
 // user to hand-annotate.
 //
+// A fn or lambda written without a return type gets the one it has, `-> i32`,
+// in front of its `=`, `{` or `->`; when it returns nothing and its body ends on
+// a value, that value is marked as discarded.
+//
 // LSP §3.17 InlayHint shape :
 //   { position: { line, character }, label: "i32", kind: 1 /* Type */,
 //     paddingLeft: false, paddingRight: false }
@@ -18,6 +22,7 @@ module "vader/lsp/handlers"
 
 import "std/collections"
 import "json"
+import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/typecheck"
@@ -55,9 +60,10 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
 }
 
 // What the walkers need at every level : the typed side-tables the hints read
-// from, the file text — `emit_operator_hint` locates the real binding operator in
-// it rather than assuming a canonical spacing — and the line index that turns a
-// byte offset into a `character` in the negotiated encoding.
+// from, the file text, which `emit_operator_hint` and the return-type hints scan
+// for the real binding operator or separator rather than assuming a canonical
+// spacing, and the line index that turns a byte offset into a `character` in the
+// negotiated encoding.
 HintCtx :: struct {
     typed:   TypedProgram
     content: string
@@ -69,6 +75,7 @@ HintCtx :: struct {
 collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]) -> void {
     match d {
         is AST.FnDecl -> {
+            emit_fn_return_hints(d, ctx, out)
             match b :: d.body {
                 is null          -> {}
                 is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
@@ -76,6 +83,12 @@ collect_from_decl :: fn(d: AST.Decl, ctx: HintCtx, out: JsonValue[]) -> void {
         }
         is AST.ImplDecl -> {
             for m in d.members {
+                // A trait default copied into the impl carries the trait's body
+                // under synthetic spans that point nowhere in this file.
+                if m.materialized {
+                    continue
+                }
+                emit_fn_return_hints(m, ctx, out)
                 match b :: m.body {
                     is null          -> {}
                     is AST.BlockExpr -> { collect_from_block(b, ctx, out) }
@@ -108,7 +121,7 @@ collect_from_stmt :: fn(s: AST.Stmt, ctx: HintCtx, out: JsonValue[]) -> void {
                 is null -> { emit_let_hint(s, ctx, out) }
                 _       -> {}
             }
-            collect_from_expr(s.value, ctx, out)
+            collect_from_let_value(s, ctx, out)
         }
         is AST.ExprStmt              -> { collect_from_expr(s.expr, ctx, out) }
         is AST.ReturnStmt            -> {
@@ -184,7 +197,10 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
                 collect_from_expr(arm.body, ctx, out)
             }
         }
-        is AST.LambdaExpr -> { collect_from_block(e.body, ctx, out) }
+        is AST.LambdaExpr -> {
+            emit_lambda_return_hints(e, true, ctx, out)
+            collect_from_block(e.body, ctx, out)
+        }
         is AST.StructLitExpr -> {
             for item in e.items {
                 match item {
@@ -223,7 +239,7 @@ collect_from_expr :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
 check_into_hint :: fn(e: AST.Expr, ctx: HintCtx, out: JsonValue[]) -> void {
     if ctx.typed.into_coercions[e.id] is null { return }
     line :: e.span.end.line - 1
-    out.push(build_hint(line, li_character(ctx.li, line, e.span.end.offset), ".into()"))
+    out.push(build_hint(line, li_character(ctx.li, line, e.span.end.offset), ".into()", .None))
 }
 
 // ---- hint emission -------------------------------------------------------
@@ -305,7 +321,7 @@ emit_operator_hint :: fn(
     ctx: HintCtx, name_span: Span, value_span: Span, label: string, out: JsonValue[],
 ) -> void {
     anchor :: operator_hint_anchor(ctx.li, ctx.content, name_span, value_span)
-    out.push(build_hint(anchor.line, anchor.character, label))
+    out.push(build_hint(anchor.line, anchor.character, label, .None))
 }
 
 /// Emit the inferred-type hint for a `let` binding.
@@ -339,7 +355,164 @@ emit_const_hint :: fn(cd: AST.ConstDecl, ctx: HintCtx, out: JsonValue[]) -> void
     emit_operator_hint(ctx, cd.name_span, cd.value.span, display_type(ty), out)
 }
 
-build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
+// ---- return hints --------------------------------------------------------
+
+/// Emit the hints of a fn written without a return type. Its return type, when
+/// it hands one back (`fn(x: i32) = x + 1`, or an impl member taking its trait's),
+/// goes in front of the `=` of an expression body or on the `{` of a block body.
+emit_fn_return_hints :: fn(d: AST.FnDecl, ctx: HintCtx, out: JsonValue[]) -> void {
+    if d.return_type != null || d.comptime_synthetic {
+        return
+    }
+    body :: d.body ?? return
+    declared :: declared_type_at(ctx.typed, d.name_span) ?? return
+    if declared !is FnType {
+        return
+    }
+    anchor :: fn_return_anchor(ctx, body.span.start, d.is_expression_bodied)
+    emit_return_hints(declared.return_type, body, anchor, ctx, out)
+}
+
+// A lambda bound without an annotation shows its whole type, return included, in
+// the let hint: its own return hint would repeat it. Its discarded value, if any,
+// is still marked.
+collect_from_let_value :: fn(s: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
+    value :: s.value
+    if s.ty == null && value is AST.LambdaExpr {
+        emit_lambda_return_hints(value, false, ctx, out)
+        collect_from_block(value.body, ctx, out)
+        return
+    }
+    collect_from_expr(value, ctx, out)
+}
+
+/// Emit the hints of a lambda written without a return type. Its return type
+/// goes in front of the `->` of the arrow form, or on the `{` of the `fn(...)`
+/// form, which has none.
+///
+/// @param e            the lambda.
+/// @param show_return  false when a hint nearby already shows the return type.
+/// @param ctx          the walk context.
+/// @param out          the hints so far.
+emit_lambda_return_hints :: fn(
+    e: AST.LambdaExpr,
+    show_return: bool,
+    ctx: HintCtx,
+    out: JsonValue[],
+) -> void {
+    if e.return_type != null {
+        return
+    }
+    lambda_type :: ctx.typed.expr_types[e.id] ?? return
+    if lambda_type !is FnType {
+        return
+    }
+    returned :: lambda_type.return_type
+    if is_void(returned) {
+        emit_discarded_hint(e.body, ctx, out)
+    } else if show_return && carries_value(returned) {
+        start :: e.body.span.start
+        anchor :: anchor_before_token(ctx.li, ctx.content, start, "->") ?? anchor_at(ctx.li, start)
+        emit_return_type_hint(returned, anchor, out)
+    }
+}
+
+/// A body that returns nothing gets its discarded last value marked; any other
+/// gets its return type at `anchor`.
+emit_return_hints :: fn(
+    returned: Type, body: AST.BlockExpr, anchor: HintAnchor, ctx: HintCtx, out: JsonValue[],
+) -> void {
+    if is_void(returned) {
+        emit_discarded_hint(body, ctx, out)
+    } else if carries_value(returned) {
+        emit_return_type_hint(returned, anchor, out)
+    }
+}
+
+emit_return_type_hint :: fn(returned: Type, anchor: HintAnchor, out: JsonValue[]) -> void {
+    out.push(build_hint(anchor.line, anchor.character, "-> ${display_type(returned)}", .Right))
+}
+
+/// Mark the last expression of a body that returns nothing when it has a value:
+/// the value is evaluated, then dropped.
+emit_discarded_hint :: fn(body: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]) -> void {
+    trailing :: body.trailing ?? return
+    value :: ctx.typed.expr_types[trailing.id] ?? return
+    if !carries_value(value) {
+        return
+    }
+    anchor :: anchor_at(ctx.li, trailing.span.end)
+    out.push(build_hint(anchor.line, anchor.character, "(discarded ${display_type(value)})", .Left))
+}
+
+// Whether a hint can name `t` as a value: not void, not `never`, resolved, and
+// not a free literal the let hints also leave out.
+carries_value :: fn(t: Type) -> bool =
+    !is_void(t) && t !is NeverType && t !is UnresolvedType && t !is FreeIntType
+    && t !is FreeFloatType
+
+/// Where a fn's return-type hint goes: before the `=` of an expression body,
+/// on the `{` of a block body.
+fn_return_anchor :: fn(
+    ctx: HintCtx,
+    body_start: Position,
+    is_expression_bodied: bool,
+) -> HintAnchor {
+    on_body :: anchor_at(ctx.li, body_start)
+    if is_expression_bodied {
+        return anchor_before_token(ctx.li, ctx.content, body_start, "=") ?? on_body
+    }
+    return on_body
+}
+
+/// The anchor in front of `token` when only whitespace separates it from
+/// `start`. Lines are tracked while stepping back; the character comes from
+/// `li_character`, which knows the negotiated encoding.
+///
+/// @param li       the document index, in the negotiated position encoding.
+/// @param content  the full file text.
+/// @param start    where the body begins.
+/// @param token    the separator before the body, `=` or `->`.
+/// @return         the 0-based anchor, or null when something else precedes the body.
+anchor_before_token :: fn(
+    li: LineIndex,
+    content: string,
+    start: Position,
+    token: string,
+) -> HintAnchor | null {
+    off := start.offset
+    line: i32 = start.line - 1
+    for off > 0 && off <= content.byte_len() && is_layout_byte(content.byte_at(off - 1)) {
+        off -= 1
+        if content.byte_at(off) == '\n' {
+            line -= 1
+        }
+    }
+    width :: token.byte_len()
+    if off < width || !content.matches_at(off - width, token) {
+        return null
+    }
+    return HintAnchor { .line = line, .character = li_character(li, line, off - width) }
+}
+
+// The 0-based anchor of a 1-based span position.
+anchor_at :: fn(li: LineIndex, pos: Position) -> HintAnchor {
+    line :: pos.line - 1
+    return HintAnchor { .line = line, .character = li_character(li, line, pos.offset) }
+}
+
+is_layout_byte :: fn(b: u8) -> bool = b == ' ' || b == '\t' || b == '\n' || b == '\r'
+
+/// Which side of a hint gets the editor's spacing: a type nested in an operator
+/// hugs both neighbours, a return type stands before its separator, a discard
+/// note after its value.
+HintPadding :: enum {
+    None
+    Left
+    Right
+}
+
+build_hint :: fn(line: i32, character: i32, label: string, padding: HintPadding) -> JsonValue {
     position :: MutableMap<string, JsonValue> {}
     position["line"]      = JsonNumber { .value = f64(line) }
     position["character"] = JsonNumber { .value = f64(character) }
@@ -349,11 +522,8 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["label"]        = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).
     hint["kind"]         = JsonNumber { .value = 1.0 }
-    // Both hint flavours hug their anchor with no padding : the type hint
-    // nests between the operator chars (`:<type>:` / `:<type>=`), and the
-    // `.into()` coercion hint abuts the value's right edge (`value.into()`).
-    hint["paddingLeft"]  = JsonBool { .value = false }
-    hint["paddingRight"] = JsonBool { .value = false }
+    hint["paddingLeft"]  = JsonBool { .value = padding == .Left }
+    hint["paddingRight"] = JsonBool { .value = padding == .Right }
     return JsonObject { .entries = hint }
 }
 
@@ -445,3 +615,29 @@ test_anchor_never_emits_a_negative_character :: fn() -> void {
     assert_eq(a.character, 0)
 }
 
+
+// `anchor_before_token` steps back from the body over layout only, so the anchor
+// lands ON the separator, even when it closes the previous line.
+token_anchor_of :: fn(content: string, body: Position, token: string) -> HintAnchor | null =
+    anchor_before_token(new_line_index(content, .Utf16), content, body, token)
+
+@test
+test_return_anchor_finds_the_equals_on_the_previous_line :: fn() -> void {
+    // `f :: fn(x: i32) =` then `    x * 2` : the body starts at offset 22.
+    content :: "f :: fn(x: i32) =\n    x * 2"
+    a :: token_anchor_of(content, test_pos(22, 2, 5), "=") ?? return fail("no anchor")
+    assert_eq(a.line, 0)
+    assert_eq(a.character, 16)
+}
+
+@test
+test_return_anchor_finds_a_lambda_arrow :: fn() -> void {
+    a :: token_anchor_of("(x: i32) -> x + 1", test_pos(12, 1, 13), "->") ?? return fail("no anchor")
+    assert_eq(a.line, 0)
+    assert_eq(a.character, 9)
+}
+
+@test
+test_return_anchor_without_the_token_is_none :: fn() -> void {
+    assert(token_anchor_of("x -> y", test_pos(5, 1, 6), "=") == null, "`=` is not before `y`")
+}

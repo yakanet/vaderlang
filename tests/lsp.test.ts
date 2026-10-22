@@ -524,6 +524,97 @@ test("lsp: an inlay hint anchors on the operator, whatever the spacing", async (
   expect(hint!.position).toEqual({ line: 3, character: 11 });
 }, { timeout: MEDIUM_BUILD });
 
+// A fn or lambda written without a return type shows the one it has, in front
+// of its `=`, `{` or `->`; a body that returns nothing and ends on a value gets
+// that value marked as discarded. A body ending on a statement gets nothing, and
+// a lambda bound without an annotation gets no return hint: the let hint already
+// shows its whole type.
+const RETURN_HINT_SOURCE = `module "demo"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Square :: struct {
+    s: i32
+}
+
+Square implements Shape {
+    area :: fn(self) { self.s * self.s }
+}
+
+Tally :: struct {
+    n: i32 = 0
+}
+
+bump :: fn(t: Tally, x: i32) -> bool {
+    t.n += x
+    return true
+}
+
+twice :: fn(x: i32) = x * 2
+
+apply :: fn(f: fn(i32) -> i32, x: i32) -> i32 = f(x)
+
+each :: fn(f: fn(i32)) {
+    f(2)
+}
+
+remember :: fn(t: Tally) {
+    t.bump(1)
+}
+
+quiet :: fn(t: Tally) {
+    t.n += 1
+}
+
+main :: fn() -> i32 {
+    next :: (x: i32) -> x + 1
+    t :: Tally {}
+    t.remember()
+    t.quiet()
+    each((x: i32) -> t.bump(x))
+    return apply((x: i32) -> x * 3, next(twice(Square { .s = 3 }.area())))
+}
+`;
+
+test("lsp: inlay hints show implicit return types and discarded values", async () => {
+  const src = RETURN_HINT_SOURCE;
+  const results = await driveLsp(src, [
+    {
+      method: "textDocument/inlayHint",
+      range: { start: { line: 0, character: 0 }, end: { line: src.split("\n").length, character: 0 } },
+    },
+  ]);
+  const hints = results[0]!.result as {
+    label: string;
+    position: PositionT;
+    paddingLeft: boolean;
+    paddingRight: boolean;
+  }[];
+  const returns = hints.filter((h) => h.label.startsWith("-> "));
+  const discards = hints.filter((h) => h.label.startsWith("(discarded "));
+
+  // `area` on its `{`, `twice` before its `=`, the lambda argument before its `->`.
+  expect(returns.map((h) => [h.label, key(h.position)]).sort()).toEqual(
+    [
+      ["-> i32", key(positionOf(src, "{ self.s * self.s }"))],
+      ["-> i32", key(positionOf(src, "= x * 2"))],
+      ["-> i32", key(positionOf(src, "-> x * 3"))],
+    ].sort(),
+  );
+  expect(returns.every((h) => h.paddingRight && !h.paddingLeft)).toBe(true);
+  // After the value, in a named fn and in a lambda handed to a slot that returns
+  // nothing; `each` ends on a call that returns nothing itself.
+  expect(discards.map((h) => [h.label, key(h.position)]).sort()).toEqual(
+    [
+      ["(discarded bool)", key(positionOf(src, "t.bump(1)", "t.bump(1)".length))],
+      ["(discarded bool)", key(positionOf(src, "t.bump(x))", "t.bump(x)".length))],
+    ].sort(),
+  );
+  expect(discards.every((h) => h.paddingLeft && !h.paddingRight)).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: completion shows a local's inferred type as detail", async () => {
   // Line 13 = `    return n` — inside main's body, so `n` and `b` are visible.
   const results = await driveLsp(LOCAL_TYPE_SOURCE, [
