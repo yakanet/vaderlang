@@ -1,6 +1,6 @@
 // vader/bytecode/type_classify — typecheck `Type` → bytecode shapes.
 //
-// Shared by `vader/bytecode/emit` (per-decl interning) and any
+// Shared by the bytecode emitter (`vader/midir/emit`, per-decl interning) and any
 // future pass that needs to project a `Type` into the bytecode IR
 // (e.g. the data-pool encoder, the WASM emit, the LSP type-info
 // renderer).
@@ -10,6 +10,8 @@
 
 module "vader/bytecode"
 
+import "std/iter"
+import "std/string"
 import "vader/diagnostics"
 import "vader/integer"
 import "vader/resolver/symbol"
@@ -151,16 +153,10 @@ symbol_key :: fn(sym: Symbol) -> string {
     return "${sym.module_name}.${sym.name}"
 }
 
-// Join each type's intern key with `sep`. Recurses through `type_intern_key`
-// so a struct nested in an arg / variant carries its declaration's key.
-type_key_join :: fn(args: Type[], sep: string) -> string {
-    out := ""
-    for i in 0..<args.len() {
-        prefix :: if i > 0 { sep } else { "" }
-        out = "${out}${prefix}${type_intern_key(args[i])}"
-    }
-    return out
-}
+// A struct nested in an argument or a variant keys by its declaration, through
+// `type_intern_key`.
+type_key_join :: fn(args: Type[], sep: string) -> string =
+    args.map(type_intern_key).collect().join(sep)
 
 // A struct's or trait's type arguments as its instance keys them : an enum by its
 // declaration, since an instance over an enum is its own (`kept_type_argument`)

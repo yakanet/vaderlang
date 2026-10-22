@@ -276,11 +276,7 @@ purity_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
 // `return callee()` — a bare call to `callee`.
 purity_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
-    .value = LoweredCall {
-        .span = empty_span(), .type = TY_VOID,
-        .callee = LoweredIdent { .span = empty_span(), .type = TY_VOID, .symbol = callee },
-        .args = [],
-    },
+    .value = mk_lowered_call(callee, [], TY_VOID, empty_span()),
 }
 
 // Register a callee both ways `indexed_decl` looks it up.

@@ -26,7 +26,6 @@ import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
 import "vader/vm"
-Prof :: import "vader/profile"
 TTY :: import "std/tty"
 
 /// `vader test [path]` — discover `@test` fns under `path` (default `.`),

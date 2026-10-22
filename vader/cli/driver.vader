@@ -192,7 +192,7 @@ export compiler_source_root :: fn(root: string) -> string {
 /// VM, and reading that as a `std/crypto` problem is a mistake I made. The VM
 /// only ever runs the comptime table construction here.
 ///
-/// What it deliberately does NOT catch: editing `vader/` or `stdlib/` sources
+/// What it deliberately does NOT catch: editing `vader/` or `lib/` sources
 /// WITHOUT rebuilding the compiler. The driver is compiled from those sources, so
 /// a cached driver would then be stale. Hashing both trees is affordable too
 /// (284 files, 4.6 MB) but the case is a compiler-developer one, and this repo's
@@ -399,10 +399,10 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 
     // process — without that override the parent would unblock while the runaway
     // driver kept spinning a core.
     // `args[2]` is the toolchain root — the folder holding THIS executable, and
-    // therefore its `stdlib/` and `runtime/c/`. The driver cannot work it out
+    // therefore its `lib/` and `runtime/c/`. The driver cannot work it out
     // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
     // probe looks inside the project. Without this a driven build only resolves
-    // `std/*` when the project happens to have a `stdlib/` beside it, which is
+    // `std/*` when the project happens to have a `lib/` beside it, which is
     // what the fixtures' symlinks were quietly providing.
     toolchain :: current_executable_location().dir_of()
     outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([exe, root, toolchain])))

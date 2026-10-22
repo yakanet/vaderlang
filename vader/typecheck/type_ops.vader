@@ -47,12 +47,6 @@ literal_fits :: fn(value: u64, negative: bool, values: Interval) -> bool {
     return interval_within(interval_up_to(I64_MAX, value), values)
 }
 
-// True when `target` is one of `names`. A small shared membership helper.
-contains_name :: fn(names: string[], target: string) -> bool {
-    for n in names { if n == target { return true } }
-    return false
-}
-
 // ---- equality -------------------------------------------------------------
 
 /// Structural equality. Recursive on unions / fns / arrays / tuples ; for

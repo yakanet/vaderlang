@@ -407,7 +407,6 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction = match ins {
         .dst = remap_local(m, ins.dst),
         .fn_symbol = ins.fn_symbol,
         .env = remap_local(m, ins.env),
-        .env_type = ins.env_type,
         .type = ins.type,
     }
     is InstrIntrinsic     -> InstrIntrinsic {

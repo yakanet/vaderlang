@@ -296,14 +296,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
         return observed(ctx, expr, .IndexRead, read)
     }
     if callee is UfcsMember {
-        at :: LoweredCall {
-            .span = expr.span,
-            .type = type,
-            .callee = LoweredIdent {
-                .span = expr.span, .type = type, .symbol = callee.symbol,
-            },
-            .args = [target, index],
-        }
+        at :: mk_lowered_call(callee.symbol, [target, index], type, expr.span)
         return observed(ctx, expr, .IndexRead, at)
     }
     element :: LoweredIndex {
@@ -451,13 +444,7 @@ try_lower_index_set_assign :: fn(
             args.push(value)
             return LoweredExprStmt {
                 .span = span,
-                .expr = LoweredCall {
-                    .span = span, .type = TY_VOID,
-                    .callee = LoweredIdent {
-                        .span = span, .type = TY_VOID, .symbol = callee.symbol,
-                    },
-                    .args = args,
-                },
+                .expr = mk_lowered_call(callee.symbol, args, TY_VOID, span),
             }
         }
         _ -> { return null }

@@ -155,7 +155,6 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
 
 - [ ] **What the `!` left behind** (noted 2026-10-16, after the marker left the grammar).
   - **An implicit call keeps the narrowings of field chains** (a question for the user). `retire_narrowings_across_call` (`vader/typecheck/narrow.vader`) does not count an operator's impl or an interpolation's `Display`, on the premise that such a call took its receiver read-only. Since ADR 0067 an operator impl may write its receiver's fields, so a narrowed `x.f` may no longer hold after `x + y`. Either retire field chains on implicit calls too, or read the callee's effect summary.
-  - **The runtime still roots writable global arrays.** `vader_atom_roots_register`, `g_atom_root_arrays` and `vader_atom_mark_global_arrays` (`runtime/c/vader_runtime.c`) serve only the `main` the committed seed emitted. In the commit after the next reseed, once `git grep vader_atom_roots_register bootstrap/seed` is empty: delete them, their call in the mark pass and the declaration in `vader.h`, and count five atom root channels.
   - **`const` keeps a dedicated diagnostic, `!` does not.** P1027 explains a removed `const`; a written `!` gets a plain parse error. Either both get a "removed" diagnostic or neither does (P1027 and `KwConst` go). A decision for the user.
   - **The value ABI report counts parameters the callee writes through** (`vader/lower/value_abi.vader`). Reading the effect summary would hold them back, as the marker used to.
   - **Six type walkers now do the same walk.** `substitute`, `substitute_map`, `substitute_array_element`, `substitute_self`, `erase_params_in` and `strip_distinct` rebuild every composite even when nothing changes, and a union re-runs `union_of`. One `map_type` that hands back `t` when no child changed would remove most of these allocations; it sits on the typecheck's hot path, so measure before choosing (a fn value adds a GC root frame).
@@ -250,8 +249,6 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
   Two things to fix, and the first matters more:
   - **the silence.** An FFI resolution failure during comptime folding must be a diagnostic. Exit 0 with an empty dump is the worst possible answer, and it is what made this take a guest reproduction to find. Sibling of M5007.
   - **the semantics.** Either refuse a `@comptime` whose evaluation reaches a `@target` body when host ≠ target, or select the HOST's body for the folding (which changes what gets baked, and needs deciding rather than assuming).
-
-- [ ] **`contains_name` re-implements `in` on `string[]`** (noted 2026-10-21). `vader/typecheck/type_ops.vader`, three callers (`struct_lit.vader` twice, `field_defaults.vader`): each becomes `name in provided`. `type_key_join` (`vader/bytecode/type_classify.vader`) builds by hand what `join` does.
 
 ### Bytecode emit and dumps
 

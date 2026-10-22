@@ -247,11 +247,12 @@ async_main_driver :: fn(
         // Seed `run_async_main`'s materialisation (a synthesised call isn't
         // auto-harvested) and route through it : `return run_async_main(frame)`.
         register_nongeneric_imported_fn(fn_ctx, run_sym)
-        call :: LoweredCall {
-            .span = span, .type = result_type,
-            .callee = LoweredIdent { .span = span, .type = result_type, .symbol = run_sym },
-            .args = [LoweredCast { .span = span, .type = async_ty, .value = construct }],
+        frame :: LoweredCast {
+            .span = span,
+            .type = async_ty,
+            .value = construct,
         }
+        call :: mk_lowered_call(run_sym, [frame], result_type, span)
         return LoweredBlock {
             .span = span, .type = TY_VOID,
             .stmts = [LoweredReturn { .span = span, .value = call }],

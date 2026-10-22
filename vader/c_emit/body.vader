@@ -36,7 +36,7 @@ export sanitise :: fn(raw: string) -> string {
     buf: u8[]: []
     for i in 0..<n {
         b :: raw.byte_at(i)
-        buf.push(if is_ident_byte(b) { b } else { u8('_') })
+        buf.push(if is_ident_byte(b) { b } else { '_' })
     }
     out :: buf.bytes_to_string()
     if is_c_reserved(out) {

@@ -86,7 +86,7 @@ fill_omitted_defaults :: fn(
     decl: AST.StructDecl, provided: string[], fill: DefaultFill, typed: TypedProgram,
 ) -> FillingDefault | null {
     for f in decl.fields {
-        if contains_name(provided, f.name) {
+        if f.name in provided {
             continue
         }
         default :: f.default ?? continue

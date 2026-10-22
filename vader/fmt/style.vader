@@ -1,8 +1,8 @@
 // vader/fmt/style — formatting constants.
 //
 // No config flags in v1 : every value here is the single canonical choice.
-// Style mirrors the existing stdlib (sampled from `stdlib/std/core.vader`,
-// `stdlib/std/collections.vader`) — 4-space indent, K&R braces, uniform
+// Style mirrors the existing stdlib (sampled from `lib/std/core/core.vader`,
+// `lib/std/collections/collections.vader`): 4-space indent, K&R braces, uniform
 // operator spacing, normalized trailing commas in multi-line lists.
 
 module "vader/fmt"

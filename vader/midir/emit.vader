@@ -30,9 +30,8 @@ import "vader/resolver/symbol"
 import "toolchain/span"
 
 // ============================================================================
-// CFG-input reserve helpers (mirror bytecode/emit reserve_fn / etc. for CFG
-// inputs). Local to midir/emit ; bytecode/emit can't import them without
-// creating a cycle.
+// Reserve helpers : one function-table slot per CFG function, indexed by
+// symbol id and by mangle, for the body-emit pass to fill in.
 // ============================================================================
 
 reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
@@ -50,8 +49,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     // Always index by mangle too — impl members & other synth fns set
     // `origin.symbol = null`, so without the mangle index the body-emit
     // pass can't find the reserved slot and the fn ships with an empty
-    // body. Same fallback the legacy `vader/bytecode/emit.vader::reserve_fn`
-    // already maintains.
+    // body.
     ctx.function_index_by_mangle[cfg_fn.mangled] = function_index
 }
 
@@ -386,7 +384,6 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Pass 2 — emit fn bodies from the CFG.
     for [_, m] in cfg.modules {
         for cfg_fn in m.functions {
-            if cfg_fn.is_extern { continue }
             // Resolve the reserved fn-table slot. Prefer the symbol-id
             // map ; fall back to mangle for synth fns (impl members,
             // lifted lambdas) whose `origin.symbol` is null.

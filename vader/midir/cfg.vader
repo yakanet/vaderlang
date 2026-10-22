@@ -51,16 +51,6 @@ export CFGFunction :: struct {
     blocks:      BasicBlock[]
     entry:       BlockId               // canonically 0
     origin:      MonoEntry              // mirrored from LoweredFnDecl.origin
-    /// Source-level name used when registering an @export entry or when
-    /// this fn carries @extern (with a body). Falls back to `mangled`
-    /// when the origin decl is synthetic (no source-level FnDecl).
-    extern_name: string
-    /// True only for the unusual case of an @extern-decorated fn that
-    /// still has a body. Bodyless extern stubs live in
-    /// `CFGModule.externs`.
-    is_extern:   bool
-    /// True when @export-decorated. Drives the bytecode export table.
-    is_exported: bool
     /// When non-empty, the values this fn hands back INSTEAD of the single
     /// object `return_type` names — set by `scalarise_value_returns`.
     ///
@@ -79,7 +69,6 @@ export CFGExternDecl :: struct {
     return_type: Type
     origin:      MonoEntry
     extern_name: string
-    is_exported: bool
     /// True when the originating decl carried @extern (user-supplied
     /// foreign symbol — c-emit emits a real `extern …(…)` declaration
     /// that the linker resolves). False for @intrinsic-style bodyless
@@ -536,9 +525,6 @@ export InstrMakeClosure :: struct {
     dst:       LocalId
     fn_symbol: Symbol
     env:       LocalId
-    /// Concrete type of the captured-env struct, interned by the
-    /// bytecode emit as the trailing operand of `make_closure`.
-    env_type:  Type
     type:      Type
 }
 

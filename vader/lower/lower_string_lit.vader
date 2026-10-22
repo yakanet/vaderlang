@@ -156,14 +156,6 @@ merge_into_literal_tail :: fn(out: LoweredExpr[], lit: LoweredStringLit) -> bool
 unreachable_buffer :: fn(why: string) -> LoweredExpr =
     unreachable("lower_string_lit: ${why} (std/core must be force-loaded)")
 
-// Build a `<fn>(args)` call typed `ret`.
-mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
-    LoweredCall {
-        .span = span, .type = ret,
-        .callee = LoweredIdent { .span = span, .type = ret, .symbol = sym },
-        .args = args,
-    }
-
 // A `LoweredIdent` referencing a synthetic local (buffer / offset / param).
 synth_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
     LoweredIdent { .span = span, .type = ty, .symbol = sym }

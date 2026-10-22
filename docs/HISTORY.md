@@ -1352,6 +1352,8 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 ### Priority: next up
 
+- [x] **The runtime still rooted writable global arrays**, **closed 2026-10-22** (opened 2026-10-16): `vader_atom_roots_register` and its mark channel served only the `main` an older seed emitted; the seed no longer calls it, so it is gone and the atom mark walks five channels.
+- [x] **`contains_name` re-implemented `in` on `string[]`**, **closed 2026-10-22** (opened 2026-10-21): its three callers read `name in provided`, and `type_key_join` joins the intern keys with `join`.
 - [x] **`@internal` leaked through a union's common field and a literal-name `@field`**, **closed 2026-10-18, archived 2026-10-22** (part of an open entry): both get T3054 as `v.f` does (`55991ef36`); a non-literal `@field` name and `@fields(S)` stay open.
 
 ### 3.7 Tooling

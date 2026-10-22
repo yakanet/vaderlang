@@ -53,7 +53,7 @@ export BuildContext :: struct {
     /// `load_from_vader_config`.
     include_paths:  string[]
     /// Folder holding the `vader` executable that started this build, and
-    /// therefore its `stdlib/` and `runtime/c/`. Passed as `args[2]`.
+    /// therefore its `lib/` and `runtime/c/`. Passed as `args[2]`.
     ///
     /// `@internal`: a driver has no use for it, and it is not the driver's to
     /// choose. It exists because a driver runs as `<project>/build/driver/driver`,
@@ -153,7 +153,7 @@ export BuildTarget :: enum(u8) {
 }
 
 // Module search roots for the front end: what the driver configured, then the
-// compiler's own `stdlib/`.
+// compiler's own `lib/`.
 //
 // The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
 // because `load_from_vader_config` REPLACES that list — a driver calling it would
@@ -177,7 +177,7 @@ runtime_root_of :: fn(ctx: BuildContext) -> string =
 // A sidecar of the compiler that started this build, VERIFIED to be there, or ""
 // to fall back to the probe the CLI uses.
 //
-// The check is the whole point. A bundle has `stdlib/` and `runtime/c/` beside
+// The check is the whole point. A bundle has `lib/` and `runtime/c/` beside
 // its binary; a CHECKOUT has the binary in `build/` with neither beside it, and
 // handing the link step a `<repo>/build/runtime/c` that does not exist made `cc`
 // fail where the old relative fallback had worked. Same marker-probe shape as

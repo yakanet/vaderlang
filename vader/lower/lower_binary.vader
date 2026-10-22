@@ -325,23 +325,11 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         // `0` as right (compare returns i32).
         if info.shape == .DirectCall {
             // Arithmetic + Equals : returns the binary's static type.
-            return LoweredCall {
-                .span = binary.span, .type = type,
-                .callee = LoweredIdent {
-                    .span = binary.span, .type = type, .symbol = target.symbol,
-                },
-                .args = call_args,
-            }
+            return mk_lowered_call(target.symbol, call_args, type, binary.span)
         }
         if info.shape == .NotCall {
             // `a != b` → `not(equals(a, b))`.
-            equals_call :: LoweredCall {
-                .span = binary.span, .type = TY_BOOL,
-                .callee = LoweredIdent {
-                    .span = binary.span, .type = TY_BOOL, .symbol = target.symbol,
-                },
-                .args = call_args,
-            }
+            equals_call :: mk_lowered_call(target.symbol, call_args, TY_BOOL, binary.span)
             return LoweredUnary {
                 .span = binary.span, .type = TY_BOOL,
                 .op = .Not, .operand = equals_call,
@@ -349,13 +337,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
         }
         // OpShape.CompareCmp : `a < b` → `(compare(a, b)) < 0`, same
         // for <= / > / >=. The outer BinaryOp matches `binary.op`.
-        compare_call :: LoweredCall {
-            .span = binary.span, .type = TY_I32,
-            .callee = LoweredIdent {
-                .span = binary.span, .type = TY_I32, .symbol = target.symbol,
-            },
-            .args = call_args,
-        }
+        compare_call :: mk_lowered_call(target.symbol, call_args, TY_I32, binary.span)
         return LoweredBinary {
             .span = binary.span, .type = TY_BOOL,
             .op    = lower_binary_op(binary.op),

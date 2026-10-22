@@ -1206,17 +1206,15 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 
 /* ---- atom GC mark + sweep ----
  *
- * Integrates with the major collection cycle. `vader_atom_mark_roots` walks SIX
- * channels — the count matters, because the last three each exist to close a
- * use-after-free that was observed, not anticipated :
+ * Integrates with the major collection cycle. `vader_atom_mark_roots` walks FIVE
+ * channels, and none is redundant : an atom only one of them reaches is freed
+ * while still live if that channel goes :
  *   - frame `ptrs[]` boxes (conservative : the lower 4 bytes of every box
  *     payload are treated as a candidate atom id)
  *   - frame `stack_objs[]`, off-arena so the heap walk cannot reach them
  *   - frame `atoms[]` — the only PRECISE atom root ; a `vader_string_t` is an
  *     id, not a pointer, so nothing else can see a bare string local
  *   - defer stack
- *   - `vader_atom_mark_global_arrays` : writable global arrays a seed-emitted
- *     `main` registers
  *   - `vader_atom_mark_cstack_conservative` : what the precise rooting misses
  * Unmarked non-PERM atoms have their data buffer freed and the slot
  * tombstoned ; the bucket index is rebuilt in one pass. */
@@ -1267,36 +1265,6 @@ static void vader_atom_mark_cstack_conservative(void) {
     }
 }
 
-/* Writable global arrays, registered once by `main`. Only a `main` the committed
- * bootstrap seed emitted still calls this: the current compiler emits no writable
- * array, and roots its global slots through `vader_global_frame`.
- *
- * A SCAN suffices, unlike object roots: an atom id is stable, atoms never move, so
- * there is nothing to write back. Only string arrays register — a mutable
- * primitive array holds no atom. */
-static vader_array_t* const* g_atom_root_arrays = NULL;
-static size_t               g_atom_root_len     = 0;
-
-void vader_atom_roots_register(vader_array_t* const* arrays, size_t count) {
-    g_atom_root_arrays = arrays;
-    g_atom_root_len    = count;
-}
-
-static void vader_atom_mark_global_arrays(void) {
-    for (size_t i = 0; i < g_atom_root_len; i++) {
-        vader_array_t* a = g_atom_root_arrays[i];
-        if (a == NULL || a->buf == NULL) continue;
-        /* Only a boxed buffer can hold an atom id — a primitive one registers for
-         * OBJECT rooting (its buffer can be reallocated by a push) but has nothing
-         * to mark here. */
-        if (a->buf->element_kind != VADER_ARRAY_KIND_BOXED) continue;
-        vader_box_t* slots = vader_array_box_slots(a->buf);
-        for (size_t k = 0; k < a->length; k++) {
-            vader_atom_mark_box(&slots[a->offset + k]);
-        }
-    }
-}
-
 /* Forward decl — the stack-object root walk below needs it, and its definition
  * sits after this function so the heap walk reads top-down. */
 static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx);
@@ -1337,7 +1305,6 @@ static void vader_atom_mark_roots(void) {
     for (size_t i = 0; i < g_defer_len; i++) {
         vader_atom_mark_box(&g_defer_stack[i]);
     }
-    vader_atom_mark_global_arrays();
     vader_atom_mark_cstack_conservative();
 }
 

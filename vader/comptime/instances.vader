@@ -24,17 +24,14 @@ export GenericInstance :: struct {
     display_key: string
 }
 
-/// Append-only registry. `by_key` dedups by `display_key` ; `order`
-/// preserves insertion order so callers can iterate deterministically
-/// before the final sort.
+/// Append-only registry, deduplicated by `display_key`. `sorted_instances` is
+/// the deterministic view.
 InstanceRegistry :: struct {
     by_key: MutableMap<string, GenericInstance> = MutableMap<string, GenericInstance> {}
-    order:  GenericInstance[] = []
 }
 
 /// Register `(symbol, args)` if not already present. Returns the
-/// canonical instance (existing or newly-added). Insertion order
-/// preserved in `order`.
+/// canonical instance (existing or newly-added).
 /// @param registry  the registry.
 /// @param symbol    the generic decl's resolver symbol.
 /// @param raw_args  the concrete type arguments ; distinct newtypes are
@@ -58,7 +55,6 @@ add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> Gener
         .display_key = key,
     }
     registry.by_key[key] = instance
-    registry.order.push(instance)
     return instance
 }
 
@@ -123,9 +119,11 @@ is_concrete_enough :: fn(t: Type) -> bool {
 /// `display_key`.
 /// @param registry  the registry.
 /// @return          the sorted instance list.
-sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
-    return sort(registry.order, (a: GenericInstance, b: GenericInstance) -> compare_ascending(a.display_key, b.display_key))
-}
+sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] =
+    sort(registry.by_key.values(), display_key_before)
+
+display_key_before :: fn(a: GenericInstance, b: GenericInstance) -> bool =
+    compare_ascending(a.display_key, b.display_key)
 
 // ---- tests ----------------------------------------------------------------
 
@@ -138,7 +136,7 @@ import "vader/parser"
     args: Type[]: [TY_I32]
     registry.add(sym, args)
     registry.add(sym, args)
-    assert_eq(registry.order.len(), 1)
+    assert_eq(registry.by_key.len(), 1)
 }
 
 @test test_observe_struct_instance :: fn() -> void {
@@ -147,9 +145,10 @@ import "vader/parser"
     args: Type[]: [TY_I32]
     list_type :: mk_struct(sym, args)
     registry.observe(list_type)
-    assert_eq(registry.order.len(), 1)
-    assert_eq(registry.order[0].symbol.name, "List")
-    assert_eq(display_type(registry.order[0].args[0]), "i32")
+    instances :: registry.sorted_instances()
+    assert_eq(instances.len(), 1)
+    assert_eq(instances[0].symbol.name, "List")
+    assert_eq(display_type(instances[0].args[0]), "i32")
 }
 
 dummy_struct_symbol :: fn(name: string) -> Symbol {

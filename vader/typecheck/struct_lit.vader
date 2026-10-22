@@ -143,7 +143,7 @@ check_field :: fn(
     // Duplicate-field check runs against the list ; the offending field
     // still gets type-checked against the field type so nested diags
     // surface for the second occurrence too.
-    if contains_name(provided, f.name) {
+    if f.name in provided {
         diags.push(typecheck_error(.FieldAlreadyProvided, f.name_span,
             "field `${f.name}` already provided in this struct literal"))
     }
@@ -171,7 +171,7 @@ check_missing_fields :: fn(
 ) -> void {
     missing: string[]: []
     for sf in decl.fields {
-        if sf.default == null && !contains_name(provided, sf.name) {
+        if sf.default == null && sf.name !in provided {
             missing.push("`${sf.name}`")
         }
     }

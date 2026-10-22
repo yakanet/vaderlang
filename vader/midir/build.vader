@@ -311,7 +311,6 @@ FnMetadata :: struct {
     is_extern:   bool
     /// See `BcImport.c_variadic_fixed`.
     c_variadic_fixed: i32
-    is_exported: bool
     /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
     /// or `""`. The linker does not need it — it resolves against what is on the
     /// command line — but the VM does: it opens the library to find the symbol,
@@ -328,11 +327,10 @@ import "toolchain/ast"
 import "toolchain/span"
 
 /// Extract source-level metadata bytecode-emit needs to route a fn to
-/// imports / exports.
+/// imports.
 fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false
-    is_exported := false
     c_header := ""
     c_library := ""
     c_variadic_fixed: i32 = -1
@@ -342,7 +340,6 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
         // A body is the Vader function an `@extern` taking an enum with variant
         // data lowers to (`lower_extern_values.vader`), not the import.
         is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
-        is_exported = decorators_have(fn_decl.decorators, "export")
         c_header = c_header_of(fn_decl.decorators)
         c_library = extern_library_name(fn_decl)
         c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
@@ -350,7 +347,6 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
-        .is_exported = is_exported,
         .c_header    = c_header,
         .c_library   = c_library,
         .c_variadic_fixed = c_variadic_fixed,
@@ -461,7 +457,6 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .return_type = d.return_type,
         .origin      = d.origin,
         .extern_name = meta.extern_name,
-        .is_exported = meta.is_exported,
         .is_extern   = meta.is_extern,
         .c_header    = meta.c_header,
         .c_library   = meta.c_library,
@@ -520,7 +515,6 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
         }
     }
 
-    meta :: fn_metadata(d)
     frozen: BasicBlock[]: []
     for b in fn_ctx.blocks { frozen.push(freeze_block(b)) }
     return CFGFunction {
@@ -531,9 +525,6 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
         .blocks      = frozen,
         .entry       = entry,
         .origin      = d.origin,
-        .extern_name = meta.extern_name,
-        .is_extern   = meta.is_extern,
-        .is_exported = meta.is_exported,
     }
 }
 
@@ -1685,8 +1676,11 @@ build_make_closure :: fn(fn_ctx: FnCtx, e: LoweredMakeClosure) -> LocalId | null
     env :: build_expr(fn_ctx, e.env) ?? return null
     dst :: fresh_tmp(fn_ctx, "closure", e.type)
     emit(fn_ctx, InstrMakeClosure {
-        .dst = dst, .fn_symbol = e.fn_symbol, .env = env,
-        .env_type = e.env.type, .type = e.type, .span = e.span,
+        .dst = dst,
+        .fn_symbol = e.fn_symbol,
+        .env = env,
+        .type = e.type,
+        .span = e.span,
     })
     return dst
 }

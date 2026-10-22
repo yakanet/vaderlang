@@ -83,7 +83,7 @@ choose_functions :: fn(
     chosen :: MutableMap<string, ReturnShape> {}
     for [_, m] in p.modules {
         for f in m.functions {
-            if f.origin.is_main || f.is_extern {
+            if f.origin.is_main {
                 continue
             }
             tuple :: value_abi_tuple_elements(f.return_type)

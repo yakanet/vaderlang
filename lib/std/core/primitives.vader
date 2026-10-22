@@ -10,7 +10,7 @@ module "std/core"
 
 //
 // `@intrinsic` impls route the call directly to the matching bytecode op
-// via `OP_INTRINSIC_BY_MANGLED` (see `src/bytecode/emit.ts`) — no fn-call
+// via `intrinsic_op_for_mangled` (`vader/bytecode/intrinsics.vader`): no fn-call
 // indirection, identical performance to the operator form. `s1 + s2` and
 // `(s1).add(s2)` share a single runtime path.
 

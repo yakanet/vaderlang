@@ -93,7 +93,7 @@ export filename :: fn(self: Path) -> string {
 ///
 /// RETAINED against its own redundancy: `filename()` / `name()` / `extension()`
 /// cover every use, and this should have gone with them — but removing it makes
-/// `vader test stdlib/std/path` panic in `to_posix`, a function it never touched
+/// `vader test lib/std/path` panic in `to_posix`, a function it never touched
 /// (`no field replace_chars_where on Path`). Bisected: ADDING the three views is
 /// fine, REMOVING this is what breaks, so it is a materialisation bug the removal
 /// merely exposes. `tests/vader_e2e.test.ts` runs that isolated mode per stdlib

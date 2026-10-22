@@ -1925,10 +1925,10 @@ parse_tuple_index :: fn(s: string) -> i32 {
     n: i32 = 0
     for i in 0..<len {
         c :: s.byte_at(i)
-        if c < u8('0') || c > u8('9') {
+        if c < '0' || c > '9' {
             return -1
         }
-        n = n * 10 + i32(c - u8('0'))
+        n = n * 10 + i32(c - '0')
     }
     return n
 }

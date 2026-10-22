@@ -258,10 +258,9 @@ void vader_atom_shutdown(void);
 void vader_atom_profile_dump(void);
 
 /* GC hook — invoked by the major collection cycle. Marks atoms reachable from
- * the six channels `vader_atom_mark_roots` walks — frame boxes, frame stack
- * objects, the frame's PRECISE `atoms[]` list, the defer stack, the registered
- * global string arrays, and a conservative C-stack pass — then sweeps unmarked
- * non-PERM
+ * the five channels `vader_atom_mark_roots` walks (frame boxes, frame stack
+ * objects, the frame's PRECISE `atoms[]` list, the defer stack and a
+ * conservative C-stack pass), then sweeps unmarked non-PERM
  * atoms : frees their owner buffer and tombstones the slot for reuse
  * by the next `vader_atom_intern`. */
 void vader_atom_gc_collect(void);
@@ -495,11 +494,6 @@ typedef struct {
     size_t                   offset;
     struct vader_array_buf*  buf;
 } vader_array_t;
-
-/* Register writable global string arrays as atom roots. Only a `main` the
- * committed bootstrap seed emitted still calls this ; the current compiler roots
- * its global slots through `vader_global_frame`. */
-void vader_atom_roots_register(vader_array_t* const* arrays, size_t count);
 
 /* Borrowed `const u8[]` byte-view accessors — the single home of the
  * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view `capacity`
