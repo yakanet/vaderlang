@@ -1,6 +1,6 @@
 # Vader Language Specification
 
-> **Status**: Draft, pre-1.0 (the compiler is self-hosted, see §19)
+> **Status**: Draft, pre-1.0
 > **Author**: Mathieu BROUTIN
 
 This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. The compiler that implements it is written in Vader and compiles itself (§19).
@@ -29,11 +29,10 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 
 - **Simplicity over exotic features** — no feature for the feature's sake.
 - **Reading > writing** — syntax must read top to bottom. Generics use the
-  familiar `<T>` form (Java/C# style); in expression position `<` is a
-  comparison unless its matching `>` is followed by `(`, `{`, a member `.name`,
-  or the end of the value.
+  familiar `<T>` form (Java/C# style), told apart from comparison `<` by one
+  local rule (§4 *Generics*).
 - **Compile-time errors > runtime errors** — string interpolation is type-checked at compile time.
-- **Rich diagnostics** — every phase emits structured diagnostics (severity, code, message, detail, span), continues after errors when possible, and produces messages that read well both in the terminal and through an LSP.
+- **Rich diagnostics** — every phase emits structured diagnostics (§18 *Diagnostics*), continues after errors when possible, and produces messages that read well both in the terminal and through an LSP.
 - **Evolvability** — the pipeline must be easy to extend, every intermediate IR dumpable.
 
 ---
@@ -57,7 +56,7 @@ Source (.vader)
   ├──→ Stack-based VM   → vader run / @comptime
   ├──→ IR text emitter  → .virt file (debug / inspection / replay)
   ├──→ C emitter        → cc → native binary (Linux/macOS/Windows)
-  └──→ WASM emitter     → .wasm (planned, not yet implemented)
+  └──→ WASM emitter     → .wasm (planned, §17)
 ```
 
 ### Canonical IR
@@ -70,7 +69,7 @@ The canonical IR is a **stack-based bytecode**. This IR is the pivot of the ecos
 
 ### Comptime
 
-The comptime pass evaluates `@comptime` values, reads `@file` and checks `@assert`. A value its tree-walk evaluator cannot compute is staged to bytecode, run on the VM, and the result injected before lowering continues (§14).
+The comptime pass evaluates `@comptime` values, reads `@file` and checks `@assert`; a value its tree-walk cannot compute runs on the VM (§14 *Implementation note*).
 
 ### Monomorphization
 
@@ -107,7 +106,7 @@ Between the (DCE'd) Lowered AST and the bytecode emitter, a Mid-IR layer lowers 
 The CFG is the substrate for analyses that need def-use chains rather than tree walks:
 
 - **Escape analysis** — stack-allocates structs whose lifetime stays within the function (no SSA).
-- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter; +95 stack-promotions on the self-host.
+- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter.
 - **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
 
 The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that places each block once by dominator tree (`docs/adr/0027`), and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design: `docs/MID_IR_DESIGN.md`.
@@ -118,10 +117,7 @@ Between the lowerer and the CFG, a DCE pass drops the functions that are not tra
 
 ### Exposed execution modes
 
-- `vader run <file>`: the whole front end, then the VM; no binary.
-- `vader build <file>`: the full pipeline, emitting a native binary through the C backend.
-
-The other actions are listed in §18.
+The actions (`run` on the VM, `build` through the C backend, and the others) are listed in §18.
 
 ### Compile-time sandbox
 
@@ -225,11 +221,11 @@ true false null
 self
 ```
 
-`const` is reserved: it was a type qualifier, and writing it is `P1027`. `module` is a contextual keyword, a keyword only at the head of a file's module declaration.
+`const` is reserved (`P1027`). `module` is a contextual keyword, a keyword only at the head of a file's module declaration.
 
-The identifier `void` is **reserved**: binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. The name describes the type of expressions that yield no value: a function that returns nothing may write `-> void` or omit the arrow.
+The identifier `void` is **reserved**: binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. It names the type of expressions that yield no value (§6 *Declaration*).
 
-`Self` (capitalised) is **not** a lexical keyword — it is a reserved *type name* resolved by the typechecker, usable only inside `trait` / `implements` bodies where it denotes the implementing type. Using it elsewhere raises `T3023`. (Only lowercase `self`, the receiver parameter, is a keyword.)
+`Self` (capitalised) is **not** a lexical keyword — it is a reserved *type name* resolved by the typechecker, usable only inside `trait` / `implements` bodies where it denotes the implementing type. Using it elsewhere is `T3023` (reserved: not reported yet). (Only lowercase `self`, the receiver parameter, is a keyword.)
 
 ### Literals
 
@@ -247,7 +243,7 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 - Standard: `3.14`, `0.5`, `00.5` (leading zeros allowed), `1.0e-10`, `1.5E+3`
 - A trailing point with no fractional digits is forbidden: `5.` is an error — write `5.0`.
 - A bare `.5` is forbidden — write `0.5`.
-- Default type: `f64`. Like integers, a float literal is *free* until context pins a width ; there is **no typed-suffix form** (`3.14f32` is an error — annotate the slot for `f32`).
+- Default type: `f64`. Like integers, a float literal is *free* until context pins a width; there is **no typed-suffix form** (`3.14f32` is an error — annotate the slot for `f32`).
 - Same underscore rules as integers.
 
 #### Boolean / null
@@ -265,7 +261,7 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 
 - Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits, a Unicode scalar value: a surrogate `D800..DFFF` or a value past `10FFFF` is L0009, in a char or a string literal).
 - Exactly **one** logical codepoint per literal. `''` and `'ab'` are lexical errors.
-- A char **literal** is *free*: in an integer context it coerces to that integer type, a range included, carrying its codepoint, bounds-checked at compile time (`b == '/'` with `b: u8` works, and so does `d: 48..=57: '5'` ; `b == '💩'` is rejected — U+1F4A9 is not in `u8`). With no integer context it defaults to `char`. Arithmetic on char literals computes on their code points and gives an integer: `'a' - 'A'` is `32`, and `char('\u{D7FF}' + 1)` is checked as any `char(x)`. This replaces the old `b'X'` byte literal — write `'X'`, not `b'X'`. (There is no `b'…'` form anymore.) A char **variable** keeps the concrete `char` type and never auto-coerces: convert it explicitly with `u8(c)` (which truncates codepoints above `0xFF`).
+- A char **literal** is *free*: in an integer context it coerces to that integer type, a range included, carrying its codepoint, bounds-checked at compile time (`b == '/'` with `b: u8` works, and so does `d: 48..=57: '5'`; `b == '💩'` is rejected — U+1F4A9 is not in `u8`). With no integer context it defaults to `char`. Arithmetic on char literals computes on their code points and gives an integer: `'a' - 'A'` is `32`, and `char('\u{D7FF}' + 1)` is checked as any `char(x)`. This replaces the old `b'X'` byte literal — write `'X'`, not `b'X'`. (There is no `b'…'` form anymore.) A char **variable** keeps the concrete `char` type and never auto-coerces: convert it explicitly with `u8(c)` (which truncates codepoints above `0xFF`).
 
 #### String literals
 
@@ -303,14 +299,14 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 
 ```
 Arithmetic   : + - * / %
-Wrapping     : +% -% *%  (integers only : the result wraps around the operand's width)
-Bitwise      : & | ^ ~ << >>  (a shift's count keeps its low 5 bits, 6 for a 64-bit type : `1 << 33` on an `i32` is 2, `u8(1) << 9` is 0)
+Wrapping     : +% -% *%  (integers only: the result wraps around the operand's width)
+Bitwise      : & | ^ ~ << >>  (a shift's count keeps its low 5 bits, 6 for a 64-bit type: `1 << 33` on an `i32` is 2, `u8(1) << 9` is 0)
 Comparison   : == != < <= > >=
 Identity     : === !==   (same object; references only — §Equality, *Identity*)
 Membership   : in   (sugar for `right.contains(left)`)
               !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
-Type test    : is Type   (in `match` arms and in `if`/`else` conditions ; narrows the scrutinee)
-              !is Type   (negated form, parsed as `bang` + `kw_is` ; desugars to `!(x is Type)`)
+Type test    : is Type   (in `match` arms and in `if`/`else` conditions; narrows the scrutinee)
+              !is Type   (negated form, parsed as `bang` + `kw_is`; desugars to `!(x is Type)`)
 Logical      : && || !
 Assignment   : =  (also compound : += -= *= /= %= +%= -%= *%=, each `lhs op= rhs` meaning `lhs = lhs op rhs`, `lhs` evaluated once)
 Declaration  : x :: value           (immutable, type inferred)
@@ -726,7 +722,7 @@ wrap_next :: fn<T: Int>(x: T) -> T =
 
 ### Strings
 
-- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare and hashing is the identity; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`). The `(ptr, len)` fat value this used to be went out with atom interning.
+- Internals: an **interned atom id** — `vader_string_t` is a `u32`, 4 bytes, copied on assignment. `==` is an integer compare, and the hash is the FNV-1a-64 of the bytes, cached on the atom; the bytes live once in a global atom table (`docs/ATOM_INTERNING.md`).
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (an allocation-free walk, decoding malformed bytes as described below, which an ASCII string skips: see `is_ascii`). For the **byte** length, `s.byte_len()` (O(1), no view). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `byte_len()` for byte arithmetic.
 - `chars()` (`std/string`) returns an iterator of `char` (`StringChars implements Iterator<char>`), for a codepoint iterator held as a value. The codepoint loop itself is `for c in s` (below), which walks the string in place.
@@ -827,7 +823,7 @@ Beyond `push(v)`, mutable arrays expose:
 | `arr.remove_last()` | Remove and return the last element as `T \| null` (`null` when empty). |
 | `arr.clear()` | Drop every element (length 0; keeps capacity). |
 
-None of them may modify a view of a string's bytes, which nothing modifies (T3072, §5); a view may be the `src` they read. `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
+None of them may write into a view of a string's bytes (T3072, §5); a view may be the `src` they read. `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
 
 ### Tuples
 
@@ -905,7 +901,7 @@ arr :: [10, 20, 30, 40, 50]
 [_, _, ...short] :: arr                // wildcards combine with rest
 ```
 
-Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source, and P1038 when `...rest` isn't the last element.
+Tuple sources keep the exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source, and P1038 when `...rest` isn't the last element.
 
 #### Destructuring via `Into<[...]>`
 
@@ -915,7 +911,7 @@ A `[...]` pattern applied to a value that is **neither a tuple nor an array** st
 [n, s] :: p                            // p: a struct that `implements Into<[i32, string]>`
 ```
 
-Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the parser desugars `[n, s] := p` to bind each leaf from the `into` body's field reads, giving `n: i32`, `s: string`. (`MutableMap` no longer uses this path — it yields plain `[K, V]` tuples directly, like `zip` / `indexed`, so `for [k, v] in m` is an ordinary tuple destructure.)
+Any type that ships an `Into<[...]>` impl of matching arity destructures through a `[...]` pattern: the lowering binds each leaf of `[n, s] := p` from the `into` body's field reads, giving `n: i32`, `s: string`.
 
 When the impl's `into` body is a tuple literal of plain field reads (`[self.a, self.b]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
 
@@ -1151,10 +1147,10 @@ v :: cache[k] ?? {
 binary operator (level 13, below `||`), so `(a ?? b) + c` needs the parentheses —
 bare `a ?? b + c` parses as `a ?? (b + c)`. It lowers to a temp-bound guard —
 `{ _t :: left ; if _t is null { fallback } else { _t } }` — so the same flow
-narrowing described above produces the non-null result. The `std/option`
-`or_else` combinator remains for the higher-order case (a fallback passed as a
-first-class function). Scope note: `??` requires `T | null` today; a `T | Error`
-form (with error-value access in the fallback) is a future extension.
+narrowing described above produces the non-null result. For a fallback passed as
+a first-class function, `std/option` has `or_else`, with an overload for
+`T | Error` whose function receives the error. `??` itself requires a `T | null`
+left operand (`T3068` on a `T | Error`).
 
 ### Enums
 
@@ -1406,7 +1402,7 @@ At module level only the immutable forms declare (`PI :: 3.14`, `MAX: u64: 1_000
 - **Mutable local never reassigned (`W0015`)**: a `:=` / `name: T =` local that no assignment ever rebinds earns a warning — the mutable form advertises a rebinding that does not happen. The fix is the immutable form on the same row of the table above (`n := 0` → `n :: 0`, `n: i32 = 0` → `n: i32: 0`). What counts as a rebinding is a **bare name as the whole assignment target**, compound assignments included: `x.f = 1` and `x[0] = 1` mutate what the name designates, which the immutable form already permits, so they do not justify a `:=`. A destructuring declaration carries one `:=` for every name it binds, so rebinding any one of them justifies it.
 
 - **A write into a copy nothing reads (`W0019`)**: a name bound to a module constant, or to the data of a variant, holds a copy of it (§5, *Frozen values*). Written, and never read nor kept anywhere in the body, the copy takes the write and nothing sees it: `for c in TABLE { c.n = 0 }` changes no element of `TABLE`. A write below the name (`c.n = 0`, `c.n += 1`) is no read of it. A name that may hold another value than copies of frozen ones (a parameter, a branch that may be a fresh value, a rebinding to one) is not warned about: the write may land there. The warning sits on the write.
-- **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand already resolves against: a typed return, a parameter, an annotated local or field, a match arm's BODY, an element of an array literal in a typed slot, and the other operand of an `==` / `!=`. A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` selects the `Fruit` overload where `pick(.Red)` fits both and is `T3032`, so the bare form would break the call. The qualified form remains legal everywhere; the warning only says it earns nothing here.
+- **Needless enum type prefix (`W0016`)**: writing `Enum.Variant` where the slot already pins that enum earns a warning — the name before the dot repeats what the context says, and the bare `.Variant` reads the same. The slots that pin are the ones the shorthand resolves against (§Enums). A nullable slot (`Color | null`) pins just as well. A match PATTERN never triggers it — the qualified form does not parse there, the bare `.Variant` being the only spelling a pattern accepts. It stays silent wherever the prefix is load-bearing: an unannotated local (`c :: Color.Red` has nothing to infer from); a slot whose union carries two enums sharing the variant name, where the bare form resolves to the first that carries it; and **any argument of an overloaded call**, where the prefix is what selects the candidate — given `pick(c: Color)` and `pick(f: Fruit)`, `pick(Fruit.Red)` selects the `Fruit` overload where `pick(.Red)` fits both and is `T3032`, so the bare form would break the call. The qualified form remains legal everywhere; the warning only says it earns nothing here.
 
 ### Type inference
 
@@ -1497,7 +1493,7 @@ A bound names traits, or `Int` (§Range types, *Generic over integers*), joined 
 **Implementation**: monomorphization, with reference type arguments sharing one erased body (see *Instance flavor*).
 
 **Bound enforcement and trait-method dispatch on type parameters.** The typechecker:
-- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method through the bound; each instance then reaches the concrete type's impl member, through the vtable in an erased instance. An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable`, `a == b` with `T: Equals`, `x in c` with `C: Contains<E>` — see *Operator overloading*).
+- Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` through the bound (*Method dispatch on trait values*). An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable`, `a == b` with `T: Equals`, `x in c` with `C: Contains<E>` — see *Operator overloading*).
 - At every call site of a generic fn, checks each type argument the call binds against every trait of its parameter's bound (`<T: Trait>`, each of `<T: A & B>`), arguments included: `C: Contains<i32>` is not met by a `string[]`, whose impl is `Contains<string>`. A type lacking a matching impl yields T3006 ("trait not satisfied"). The check is the same wherever the callee is declared (in the module, imported, behind a namespace alias) and however it is called — directly, or through UFCS, where the receiver alone may bind the parameter (`m.println()`). A type argument that is itself a type parameter meets a bound its own bound names.
 
 **Type parameters are opaque in their body.** A generic body must hold for every instance, so it knows nothing of `T` beyond its bound: only a `T` fits a slot typed `T`, and a `T` fits only a slot that names it (`T`, or a union such as `T | null`). Each of these is rejected (T3001; T3020 on a `return`; T3017 on an operator's operand), because a `T = string` instance would receive an integer or hand one out:
@@ -1525,9 +1521,9 @@ The same holds for `pick(x, 0)` where `pick` takes two `T`, for `f(2.5)` through
 
 Matching an argument against a signature that nothing has instantiated yet is a different question, where a type parameter is still free: choosing an overload, choosing the UFCS function for a receiver (`Iterator<i32>` fits `self: Iterator<T>`), and checking the fields of a generic struct literal written without type arguments (`Box { .value = [4, 5] }`). A free literal still needs a type to land on, and such a literal binds none: `Box { .value = 0 }` is T3001 — write `Box<i32> { .value = 0 }`.
 
-- **No inherent "associated functions"**: a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. A factory outside a trait is a free function (`new_seeded(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
+**No inherent "associated functions"**: a static function belongs to a trait (*Static members* under §Traits), never to a type on its own. A factory outside a trait is a free function (`new_seeded(42)` in `random`); a struct is built by its literal (`MutableMap<K, V> {}`).
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, and `string` an `Add` (concatenation), so `<T: Add>` succeeds for every numeric primitive and for `string`. `Equals` is carried by every primitive (`i8`…`u64`, `f32`/`f64`, `bool`, `char`, `string`); `Hash` by the integers, `char` and `string`, which key a `MutableMap` / `MutableSet` without a per-type opt-in.
+The primitive impls are listed in §15 `std/core`: `<T: Add>` holds for every numeric primitive and `string`, `Equals` for every primitive, and `Hash` for the integers, `char` and `string`, which key a `MutableMap` / `MutableSet` without a per-type opt-in.
 
 ### Traits
 
@@ -1555,7 +1551,7 @@ print_it :: fn<T: Display>(x: T) {
 - A union satisfies a trait iff all its members satisfy it.
 - **A union calls the members of a trait all its variants implement** — `u.area()` on `u: Sq | Circle`, `k in u`, `u + 5`, `u[k]` and `u[k] = v` — through that trait, by the value's tag, as a value of the trait does. The variants must agree on the trait's arguments, each argument being one type for all of them or each variant itself (`Out = Self`, which the union reads as itself: `a + 5` on `a: i32 | Money` is an `i32 | Money`). A member two traits offer every variant is `T3032`. A dispatch by the tag alone refuses a variant implementing the trait more than once (`T3097`); a variant boxed as its representation — an enum, or a distinct implementing the trait itself, or an array of either (`T3086`); a member taking another `Self` (`compare`, `Add<Self>`), which the other operand may fill with another variant — `Equals` excepted, its slot checks the other operand's type — and a member returning `Self` inside another type (`Self[]`) unless every variant is a struct (`T3098`). Narrow first. A generic member and an `@intrinsic` array member (`push`) are not dispatched.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
-- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`).
+- **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`, a written `-> Self` included. Outside trait/impl context, `Self` is undefined (`T3023`, reserved: not reported yet).
 
 #### Static members
 
@@ -1735,7 +1731,7 @@ report :: fn(e: Error) -> string {
 
 The call goes through a vtable filled by every impl of the trait the program materialises, primitive and enum impls included; each instance of a generic impl (`Foo<T> implements Trait { ... }`) has a row of its own. Trait args on the receiver are substituted into the method's signature, so `it: Iterator<i32>; it.next()` returns `[i32, Continuation]`, not the unsubstituted `[T, Continuation]`.
 
-Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves through the bound at typecheck. An instance whose `T` is a primitive or an enum calls the impl member directly; the erased instance shared by reference type arguments dispatches through the value's vtable (*Instance flavor*).
+Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves through the bound at typecheck. A generic function making such a call is monomorphised (*Instance flavor*), so each instance calls its type's impl member directly; in an impl member whose instances share one erased body, the call dispatches through the value's vtable.
 
 #### Single-method trait sugar (SAM)
 
@@ -2051,9 +2047,8 @@ add_one :: fn(x: i32) -> i32 = x + 1
 **Every path must produce the declared value (`T3083`).** A body that reaches its
 closing brace with no trailing expression, and without diverging, is an error when
 the fn declares a return type — `f :: fn() -> i32 { n :: 1 }` does not compile.
-This is the other half of `T3020`, which already covered a body whose trailing
-expression has the wrong type (so `fn(c: bool) -> i32 { if c { return 7 } }` was
-an error before). A body **diverges**, and is accepted, when its last statement is
+A body whose trailing expression has the wrong type is `T3020`:
+`fn(c: bool) -> i32 { if c { return 7 } }` ends on an `if` with no value. A body **diverges**, and is accepted, when its last statement is
 a `return` / `break` / `continue`, a call to a `@no_return` fn (`panic`, `todo`),
 or a loop no `break` can leave — `fn() -> i32 { for { … } }` is fine, since control
 never reaches the brace. Functions with no return type promise nothing and are
@@ -2061,9 +2056,9 @@ unaffected. A **lambda** carries the same obligation whenever a type is promised
 — by an annotation, or by the slot it is handed to — and is exempt when nothing
 promises one, since its return type is then inferred from the body.
 
-In a fn that returns nothing (no arrow, or `-> void`), the last expression is evaluated for its effect and its value discarded, as an expression statement is: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. The same holds for a lambda handed to a slot that returns nothing. A `return v` with a value in such a fn is an error (`T3020`).
+In a fn that returns nothing, the last expression is evaluated for its effect and its value discarded, as an expression statement is: `remember :: fn(seen: MutableSet<string>, s: string) { seen.add(s) }` compiles although `add` returns a `bool`. The same holds for a lambda handed to a slot that returns nothing. A `return v` with a value in such a fn is an error (`T3020`).
 
-**A function that returns nothing** either omits the arrow or writes `-> void`: the two declare the same type. `void` names that type and is reserved (`R2019`): nothing can be bound under it. A function type that produces no value is written either way: `callback: fn()` is `callback: fn() -> void`.
+**A function that returns nothing** either omits the arrow or writes `-> void`: the two declare the same type. (`void` is reserved, §3.) A function type that produces no value is written either way: `callback: fn()` is `callback: fn() -> void`.
 
 ### `main` entry point
 
@@ -2136,7 +2131,7 @@ inc :: fn(x: i32) -> i32 { x + 1 }
 items.map(inc)
 ```
 
-The `name :: fn(...) -> R { ... }` form is a regular function declaration (top-level **or** local to a fn body), not a value-position lambda. Parameter annotations are required (`T3024`). A brace body without an arrow returns nothing; an expression body `fn(...) = expr` without an arrow takes the type of `expr`, unless it is recursive, which must write it (`T3034`).
+The `name :: fn(...) -> R { ... }` form is a regular function declaration (top-level **or** local to a fn body), not a value-position lambda. Parameters and return types follow §4 *Type inference*; a recursive expression body must write its return type (`T3034`).
 
 Closures capture their environment **by reference** (consistent with Vader's reference-semantics model for non-primitive values): an assignment to a captured variable, inside the closure or around it, is visible on both sides (a counter built via `n := 0; inc :: fn() { n = n + 1 }; get :: fn() -> i32 { n }` works as expected). The lowering implements this with single-slot cells on the GC heap for the captured variables some assignment rebinds — the binding becomes a pointer to its cell, shared by every closure that mentions it. A captured variable nothing rebinds holds the same value for its whole life, so the closure copies it instead; no program can tell the two apart. Lifting itself is transparent: the closure value is a `(code, env)` fat pointer where `code` points to a synthesised top-level fn taking the env as its first parameter, and `env` is a heap-allocated struct holding each capture's value or cell.
 
@@ -2210,7 +2205,7 @@ UFCS resolution obeys the **same import rule as a bare call**: `x.foo()` resolve
 
 "Same rule" includes the **scope**: imports are file-scoped (§11), so `x.foo()` resolves against the imports of **the file it is written in**, never a sibling file's. A `import "p" { foo as _ }` therefore drops `foo` from both call forms in that file, while a sibling that imports `p` bare keeps both.
 
-"Same rule" also includes the **import form**. A namespace alias (`P :: import "p"`, §11) binds one name and qualifies the rest — it puts nothing in unqualified scope — so `x.foo()` fails there exactly as `foo(x)` does, and the fix is `P.foo(x)`. That case reports **T3078**, which names the alias and spells the qualified call, rather than the shape-based `T3008` / `T3009` — when the aliased export actually fits the receiver; otherwise the shape-based code still stands. This keeps the type-checker's UFCS visibility aligned with the lowerer's: both dispatch against the same imported modules, so a method that type-checks always lowers to a real call. (Historically the typer carried hardcoded per-primitive method tables that bypassed this, letting `s.split()` type-check without `import "std/string"` and then mis-compile; those tables were removed so primitive/array methods resolve uniformly through trait impls + free-fn UFCS.)
+"Same rule" also includes the **import form**. A namespace alias (`P :: import "p"`, §11) binds one name and qualifies the rest — it puts nothing in unqualified scope — so `x.foo()` fails there exactly as `foo(x)` does, and the fix is `P.foo(x)`. That case reports **T3078**, which names the alias and spells the qualified call, rather than the shape-based `T3008` / `T3009` — when the aliased export actually fits the receiver; otherwise the shape-based code still stands. This keeps the type-checker's UFCS visibility aligned with the lowerer's: both dispatch against the same imported modules, so a method that type-checks always lowers to a real call.
 
 #### Function overloading
 
@@ -2446,7 +2441,7 @@ All non-primitive values (struct, array, string buffer contents, future stdlib t
   - **Old**: a non-moving mark-sweep slab collected by major cycles. A minor promotes its survivors into it (`VADER_TENURE_AGE`, `docs/adr/0104`).
 
   A **card table** (one byte per 512 bytes of old) tracks cross-generation pointers: the C emitter inserts a `VADER_WRITE_BARRIER` after every store of a pointer field into a heap object, marking the card if the target lives in old. Minor cycles use the shadow stack plus marked cards as roots: clean cards are skipped wholesale. Major cycles run a preliminary minor to drain young, then mark the live old set and sweep the dead in place. Roots are enumerated **precisely** via the shadow stack: an emitted C function whose ref-typed locals must survive a safepoint pushes a `vader_gc_frame_t` chained through `prev` containing their addresses, popped on return. A function that cannot reach a safepoint pushes none, and neither does one that only hands its operands to a single call or push (ADR 0106). A major also scans the C stack conservatively for old objects, which never move. Per-type pointer maps emitted by the compiler tell the scanner where the heap pointers live inside each object.
-- **WASM** (planned, no emitter yet): would use the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
+- **WASM** (planned, §17): would use the `(ref struct)`, `(ref array)`, `anyref` types of the WASM GC proposal (the host runtime — wasmtime / V8 — performs GC).
 
 ### Storage semantics
 
@@ -2673,7 +2668,7 @@ Two top-level decls with the same name in the same module raise a compile error:
 
 #### Visibility leak
 
-An `export`ed decl whose signature mentions a module-private type, alias, const, enum, or trait is a compile error. A public surface must be reachable through public types only — either `export` the referenced decl or refactor the signature.
+See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 
 ### Configuration: `vader.json`
 
@@ -2703,9 +2698,8 @@ An import is resolved against an ordered list of roots. The first root whose fol
 
 `std/` lives under the toolchain's **library root**, `lib/`: a module root that hosts every namespace the toolchain ships, not the stdlib's own directory. It is found independently of `vader.json`:
 
-- **`$VADER_HOME`** — `<$VADER_HOME>/lib/`, probed with the same marker. Optional, and it outranks the other two: an explicit setting beats an implicit guess, which is the only reason the variable exists — pointing a binary at a toolchain that is not the one beside it. A value that does **not** hold the marker is *ignored*, not fatal, so a stale setting left over from a moved install degrades to the ordinary probe rather than bricking every invocation; `vader doctor` reports it as set-and-unusable. `$VADER_HOME` also supplies the C runtime (`runtime/c/`) and, for a driven build, the compiler's own sources (`vader/` in a checkout, `src/vader/` in a bundle).
+- **`$VADER_HOME`** — `<$VADER_HOME>/lib/`, probed with the same marker. Optional, and it outranks the sidecar: an explicit setting beats an implicit guess, which is the only reason the variable exists — pointing a binary at a toolchain that is not the one beside it. A value that does **not** hold the marker is *ignored*, not fatal, so a stale setting left over from a moved install degrades to the ordinary probe rather than bricking every invocation; `vader doctor` reports it as set-and-unusable. `$VADER_HOME` also supplies the C runtime (`runtime/c/`) and, for a driven build, the compiler's own sources (`vader/` in a checkout, `src/vader/` in a bundle).
 - **Sidecar of the binary** — `<dir-of-binary>/lib/`, probed with the marker `std/io/io.vader`. This is what a `dist/` bundle uses.
-- **Relative fallback** — the bare `lib/`, i.e. `<cwd>/lib`, which is what a source checkout uses.
 
 **No external packages in MVP.** Post-MVP topic.
 
@@ -2747,8 +2741,7 @@ A source file may contain only:
 
 ### Generated modules
 
-A module's files normally all live in **one** folder: include paths are searched in order and the
-first folder declaring the module wins, so a second folder declaring the same module is ignored.
+A module's files normally all live in **one** folder (*Include paths*: the first root wins).
 The **one exception** is `build/generated/` under the project root — where a driven build
 (`build.vader` — below) puts generated modules. It does not shadow a module an earlier root
 provided; its files are **appended** to it. That is what lets a driver's `ctx.emit_module("app", …)`
@@ -2820,7 +2813,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_type("size_t")` | a parameter of an `@extern` fn, or the fn itself for its result | The C type the callee declares for an integer, where it is not the Vader type's own spelling. One plain string. Must be an integer type as wide as the Vader one. `T3079` on a parameter, `T3050` on a declaration otherwise. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
-| `@c_variadic(N)` | an `@extern` fn | The callee is variadic and its first `N` parameters are fixed. The interpreter needs it to call the symbol through a variadic prototype, since on some ABIs (darwin-arm64) variadic arguments travel on the stack. See §13 |
+| `@c_variadic(N)` | an `@extern` fn | The callee is variadic with `N` fixed parameters. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit (see below) |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
@@ -2835,7 +2828,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@displayable` | enum decl | Generates the enum's `Display`: each variant renders as its own name (`"${Direction.East}"` is `"East"`). The impl is an ordinary one, so an explicit `implements Display` beside it is `R2030`. Rejected anywhere else (`P1014`). |
 | `@singleton` | top-level fn with no parameter | Runs the body **once per program** and hands every call the instance it built: `@singleton log :: fn() -> string[] = []`, then `log().push("x")` from anywhere, and every later `log()` sees it. The instance is ordinary heap state, not a frozen value: writes through it stay, and one built from a module constant is a copy of it. This is how a module keeps state: a module holds constants and functions, no variable. A singleton takes no parameter, has no type parameter, and neither `await`s nor `yield`s (`T3103`): an argument would ask for one instance per value, and a body that suspends would let another call see it half built. A call that comes back into the singleton while its body runs traps. It cannot run at comptime (`C4018`): only the program's run builds the instance. Anywhere but a free function it is `P1014`. |
 | `@returns(cond)` | top-level fn returning `bool` | Declares that the predicate returns the value of `cond`, over its parameters: a call narrows its arguments as `cond` would, in every module, and the body is checked against it at each value it returns (`T3111` to `T3113`). See *A declared guard* under §Operator precedence. |
-| `@ensures(cond)` | top-level fn | Declares that `cond`, over its parameters, holds once the fn has returned: a call written as a statement or a `let` value narrows its arguments for the rest of the block, in every module, and the body is checked against it at each return and at its end (`T3112` to `T3114`). See *A declared postcondition* under §Operator precedence. |
+| `@ensures(cond)` | top-level fn | Declares that `cond`, over its parameters, holds once the fn has returned: a call written as a statement or as a declaration's initializer narrows its arguments for the rest of the block, in every module, and the body is checked against it at each return and at its end (`T3112` to `T3114`). See *A declared postcondition* under §Operator precedence. |
 | `@allow_unused` | any top-level decl | Exempts the declaration from the `W0007` dead-code lint (an unused private fn / const / type / enum / trait / alias). Use for intentional dead code : an API not yet wired, a helper kept for symmetry, or a test fixture's deliberate decoy. The declaration is treated as a reachability root — never flagged, and anything it references stays live. |
 
 `@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `collect`, the methods of `string implements Equals / Hash / Comparable`). The decorator is **load-bearing**, not merely informational: a bodyless free fn *must* carry `@intrinsic` or `@extern` (`T3062`), so host-ness is always *declared* rather than implied by the missing body — a bodyless `Name :: fn(...)` is unambiguously a host, and a named function-*type* is spelled inline at its use sites (not as a bodyless declaration). The compiler then verifies, at bytecode emit, that every non-`@extern` host import is actually wired: its mangled name must be recognised by the intrinsic manifest (`intrinsic_id_for` — itself exhaustively dispatched by the VM and C backends, so `T3013` forces both to handle it) or map to a dedicated bytecode op; an unwired host fails the build rather than reaching runtime as an unbound `call.import`. This closes the chain bodyless ⟹ `@intrinsic` ⟹ recognised ⟹ served.
@@ -2855,8 +2848,6 @@ string implements Hash
 ```
 
 A handful of `@intrinsic` impl methods are also **op-level** intrinsics: the bytecode emitter recognises calls to specific mangled names (`std_core$i32$Add$add`) and emits a dedicated op (`i32.add`) instead of a regular call, so `a + b` and `a.add(b)` share a single path.
-
-The v1 `@load` is **replaced by `import`**.
 
 ---
 
@@ -2934,17 +2925,14 @@ sys_clock_gettime :: fn(clock_id: i32, @c_out ts: i64[]) -> i32
 ```
 
 The two are exclusive **per symbol**: with `@c_header`, no prototype is emitted,
-and `cc` checks every argument against the real declaration. That is what caught
-a `uint32_t*` passed where Win32 wants `LPDWORD`.
+and `cc` checks every argument against the real declaration.
 
 **It is the only check that the declaration matches the real function.** A bare
 `@extern` synthesises its prototype FROM the Vader signature, so the two agree by
 construction and nothing compares them to the header: declaring `isatty` as
 `fn(fd: i64) -> i64` compiles, links against the real `int isatty(int)`, and
 misreads the ABI at run time. Reach for `@c_header` by default, not only to
-settle a conflict: it is the ONLY check that the declaration matches the real
-function, since a bare `@extern` synthesises its prototype FROM the Vader
-signature and nothing ever compares the two.
+settle a conflict.
 
 A quoted header resolves against the entry file's directory, wherever `--out`
 writes the generated C: the build hands that directory to `cc` as `-iquote`. So
@@ -3064,16 +3052,9 @@ ScreenBufferInfo :: struct {
 }
 ```
 
-> A field decorator `@c_size(N, .System)` used to state the C width per system.
-> It was removed: it carried an OS axis and no ARCHITECTURE axis, while a C
-> struct's layout differs between arches of one system — `st_mode` sits at
-> offset 24 on linux-x86_64 and 16 on linux-arm64 — so no single annotated
-> mirror could be correct for both. An arch axis would not have saved it either:
-> the arches also disagree on field ORDER, which no per-field annotation can
-> express. `struct stat` is not mirrorable at all — see
-> `docs/adr/0013-what-the-ffi-boundary-cannot-express.md` for what to reach for
-> instead. `P1034` retired with it, and `T3080` was
-> reused for the callback shape rule below.
+`struct stat` is not mirrorable at all: see
+`docs/adr/0013-what-the-ffi-boundary-cannot-express.md` for what to reach for
+instead.
 
 ### The opaque buffer — when there is no mirror to write
 
@@ -3133,7 +3114,7 @@ Plus, on top of the scalars:
 
 Anything else (a plain struct, a trait, a type-param) is `T3050`. Future
 iterations may add:
-- opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix B)
+- opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix A)
 - struct passing BY VALUE
 
 ### Callbacks
@@ -3174,7 +3155,6 @@ distinct types over any of those, and `void` as a return. `string` and arrays ar
 A function type is rejected as a RETURN: a C function handing back code Vader
 would call has no representation here.
 
-
 ### Native target — code generation
 
 For each user `@extern` the compiler emits one forward declaration at the top of the generated `.c`, then a per-call shim that the bytecode's `call.import` jumps to:
@@ -3213,7 +3193,7 @@ vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" pro
 
 The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
 
-The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype.
+The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
 
 The C emitter resolves `@extern` against the system linker; the same `@extern` decl compiles for both backends, only the binding mechanism differs.
 
@@ -3291,26 +3271,26 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-In the self-hosted compiler the comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime_vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`. A `@comptime` decl may read the clock, the environment or the filesystem; a host that answers for the machine running the compiler is refused (`C4016`, §2 *Compile-time sandbox*). Generic instances are observed during evaluation and fed to the monomorphizer.
+The comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime_vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
 
 ### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` to drive comptime branching on type shape, layout, or external content.
 
 The "Signature" column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`); the other reflection intrinsics require the arg to fold to a static type at the call site.
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> i64` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`u64`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@size_of(T)` | `(T: type) -> i64` | Width in bytes of the SLOT that carries a `T` — a field, a local, a parameter — not the size of the object a reference points at. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`u64`/`f64` → 8, `string` → 4 — an interned atom id, `null` → 0). An enum rides its `repr`, so `enum(u8)` → 1, `enum(i32)` → 4, and an unwritten width is the narrowest its values fit (`enum { A, B }` → 1). A concrete reference — struct, array, tuple, fn value — is a bare pointer, 8. Only an ERASED slot (trait object, union, `any`) carries a `vader_box_t`, 16, because no single object header answers for every variant it may hold. Comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value. |
 | `@align_of(T)` | `(T: type) -> i64` | Alignment in bytes of that slot. | Each scalar aligns to its own width; a `vader_box_t` is 16 wide but its widest member is a word, so it aligns to 8. |
-| `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
+| `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | The same rendering diagnostics use (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
 | `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
 | `@min(T)`, `@max(T)` | `(T: type) -> T` | The least, the greatest value of the integer type `T`, a range, a primitive, or a type parameter bounded by `Int`; of an enum without variant data, its variant of the least, the greatest value; of `char`, U+0000 and U+10FFFF. | A literal of `T`, per instance for a type parameter. **T3110** for any other type (§Range types, *Bounds*). |
 | `@field_count(T)` | `(T: type) -> i64` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
-| `@variant_count(T)` | `(T: type) -> i64` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
+| `@variant_count(T)` | `(T: type) -> i64` | Number of variants on a Union or Enum. | Returns 0 for any other shape. A union of unions is flattened before counting. |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> i64` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
-| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope, or has it built in (an enum's `Equals`). | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `<T: Trait>` bounds. |
-| `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The path may name any file the compiler can read (§2 *Compile-time sandbox*). A missing file is `C4006`. |
+| `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope, or has it built in (an enum's `Equals`). | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. `@satisfies(i32, Add)` is `true`. |
+| `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The path may name any file the compiler can read (§2 *Compile-time sandbox*). A missing file is `C4006` (reserved: not reported yet). |
 | `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated at runtime** — only its static type is read at the call site. Useful as input to `@size_of` or to a `type` parameter (`@size_of(@type_of(point))`). |
 | `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string` and `type: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
 | `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
@@ -3356,7 +3336,7 @@ Contains :: trait<T> {
 // `5 in 0..<10` works out of the box. User types opt in by implementing the trait.
 ```
 
-Trait-method dispatch on a bounded type param (`f :: fn<T: Hash>(x: T) { x.hash() }`) resolves at typecheck and is monomorphised statically — each call site lands on the concrete impl member after substitution. Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
+Trait-method dispatch on a bounded type param (`f :: fn<T: Hash>(x: T) { x.hash() }`) goes through the bound (§4 *Method dispatch on trait values*). Primitive `Hash` impls dispatch through the same machinery (`(42).hash()`, `"foo".hash()`). String hashing is FNV-1a over the UTF-8 bytes (`@intrinsic string implements Hash` — host-provided method).
 
 ### `std/io`
 
@@ -3390,8 +3370,7 @@ IOError :: struct { msg: string, kind: IOErrorKind = .Other, code: i32 = 0 }   /
 `print` / `println` / `eprint` / `eprintln` are generic over `Display`:
 `println(42)` and `println(my_struct)` both monomorphise against the
 argument's type and call `msg.to_string()` (the `Display` impl member)
-before writing the bytes. No per-type wrapper, no virtual dispatch; the
-coercion is in the function source, not a separate lowerer pass.
+before writing the bytes.
 
 I/O is **synchronous blocking** only in MVP.
 
@@ -3601,7 +3580,7 @@ e  :: 2.718281828459045
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported). `next()` hands back a PAIR: the element, and whether the iteration goes on. The pair crosses the call in registers, and it keeps iterators over nullable elements unambiguous — `Continuation` says whether there is an element, so a yielded `null` is just an element:
+The iterator trait lives in `std/core` (auto-imported). `next()` hands back a PAIR: the element, and whether the iteration goes on. It keeps iterators over nullable elements unambiguous — `Continuation` says whether there is an element, so a yielded `null` is just an element:
 
 ```vader
 Continuation :: enum(u8) { Continue, Stop }
@@ -3655,13 +3634,6 @@ for x in arr.filter(p) { ... }              // a lazy chain also drives for-in d
 `arr.map(f)` returns a lazy `Iterator<U>`, never an array; call `.collect()` when you want the `T[]`. (`array_iter` is the generator the `into` coercion materialises at a *non-fused* `Iterator<T>` boundary — e.g. passing `arr` to a `fn(it: Iterator<T>)` parameter; you rarely name it directly.)
 
 ### Generators (`yield`)
-
-> **Shipped.** The `yield` statement parses, formats, type-checks
-> (`T3056`, `T3058`–`T3061`), and lowers to a resumable state machine. The entire
-> `std/iter` combinator family (`map` / `filter` / `take` / `skip` / `indexed` /
-> `flat_map` / `chain` / `zip` / …) is authored as generators on top of it. A fused
-> chain inlines the generator body directly (no allocation, no boxed iterator); an
-> escaping generator falls back to the state-machine struct.
 
 A **generator function** is a function that `yield`s — there is **no decorator**.
 Generator-ness is **inferred** from the presence of a `yield` in the body (mirror
@@ -3818,32 +3790,32 @@ does not say which is present.
 
 Under `std/`:
 
-- `std/abort` — `panic` / `todo` / `unreachable` (the diverging-fn primitives; import it, it is not in the prelude).
-- `std/async` — the cooperative scheduler and its combinators (§16).
-- `std/env` — `get_env`.
-- `std/option` — `or`, `or_else`, `map`, `and_then`, `unwrap`, `expect` over `T | null` and `T | Error`.
-- `std/path` — POSIX path manipulation (`Path.join`, `Path.parent`, `Path.normalize`).
-- `std/process` — process spawning, blocking or async.
-- `std/sort` — stable mergesort.
-- `std/target` — `Os`, `Arch`, `current_os`, `current_arch` (§17).
-- `std/testing` — `assert` / `assert_eq` consumed by `@test` functions.
-- `std/time` — clock / formatting.
-- `std/tty` — terminal detection, ANSI colours, raw mode.
+- `std/abort`: `panic` / `todo` / `unreachable` (the diverging-fn primitives; import it, it is not in the prelude).
+- `std/async`: the cooperative scheduler and its combinators (§16).
+- `std/env`: `get_env`.
+- `std/option`: `or`, `or_else`, `map`, `and_then`, `unwrap`, `expect` over `T | null` and `T | Error`.
+- `std/path`: POSIX path manipulation (`Path.join`, `Path.parent`, `Path.normalize`).
+- `std/process`: process spawning, blocking or async.
+- `std/sort`: stable mergesort.
+- `std/target`: `Os`, `Arch`, `current_os`, `current_arch` (§17).
+- `std/testing`: `assert` / `assert_eq` consumed by `@test` functions.
+- `std/time`: clock / formatting.
+- `std/tty`: terminal detection, ANSI colours, raw mode.
 
 Namespaces of their own — `import "json"`, not `import "std/json"`:
 
-- `base64` — encode / decode.
-- `cli` — declarative flag parsing (`FlagSpec`, `parse`), help rendering, key decoding and interactive prompts.
-- `crypto` — basic hashing primitives.
-- `images/ppm` — PPM (P6) encode / decode.
-- `json` — runtime parser + emitter.
-- `random` — PRNG.
-- `regex` — minimal regex engine.
-- `semver` — `Version` / `VersionRange` parsing and comparison.
-- `system/posix`, `system/darwin`, `system/windows` — the platform calls `std` is built on.
-- `toolchain/build`, `toolchain/ast`, `toolchain/span` — the build-driver contract (§11).
+- `base64`: encode / decode.
+- `cli`: declarative flag parsing (`FlagSpec`, `parse`), help rendering, key decoding and interactive prompts.
+- `crypto`: basic hashing primitives.
+- `images/ppm`: PPM (P6) encode / decode.
+- `json`: runtime parser + emitter.
+- `random`: PRNG.
+- `regex`: minimal regex engine.
+- `semver`: `Version` / `VersionRange` parsing and comparison.
+- `system/posix`, `system/darwin`, `system/windows`: the platform calls `std` is built on.
+- `toolchain/build`, `toolchain/ast`, `toolchain/span`: the build-driver contract (§11).
 
-Listed here because they're in-tree but not part of the frozen v1.0 surface in §15.
+Listed apart because they are not part of the MVP scope above.
 
 ---
 
@@ -3853,7 +3825,7 @@ A program runs on one thread. I/O in `std/io` blocks; concurrency is cooperative
 
 ### async/await
 
-Single-threaded cooperative async, lowered to a coroutine state machine at compile time (Model A self-drive, sharing the generator block-split engine). Portable across the four targets.
+An async function is lowered to a coroutine state machine at compile time.
 
 - A function is an **async coroutine** when it uses `await`; it declares its return type as `Async<T>`. `await e` unwraps an `Async<T>` to `T`, and a call to a coroutine is typed as `Async<T>`.
 - The coroutine's body returns the inner `T` (the frame wraps it), mirroring how a generator's `-> Iterator<E>` body yields `E`. A coroutine that completes with no value returns `Async<void>`.
@@ -3862,7 +3834,7 @@ Single-threaded cooperative async, lowered to a coroutine state machine at compi
 - **Evaluation order.** Operands evaluate left to right, as in synchronous code, even when a later one awaits: in `f(a(), await b())`, `a()` runs before `b()`. An assignment evaluates its target's operands (receiver, index) before its value. A compound assignment `place op= e` then evaluates `e`, and reads `place` only at the write, so nothing suspends between the read and the write.
 - `defer` is allowed inside an async coroutine: pending defers live in the frame and run LIFO when the coroutine completes **or when it is cancelled** (see below), including defers registered before an `await` — the thunk, and any local it captures, survive the suspension. `defer` inside a generator is still rejected (T3060), pending the teardown hook for abandoned generators.
 - Errors are values: `await` on a fallible `fn -> Async<T | E>` yields `T | E`, narrowed at `if`/`match`.
-- **Entry & scheduler.** `main` may `await` while keeping its `i32` return type; it is then driven to completion. When the program imports `std/async`, the driver parks on a timer min-heap whenever every task is suspended, and a park with nothing armed is a deadlock (panic); without `std/async`, a `main` whose awaits suspend traps. `sleep(ms)` suspends the current coroutine until the scheduler clock reaches its deadline; the wait is real time unless `VADER_ASYNC_VIRTUAL_CLOCK` is set, in which case the clock jumps.
+- **Entry & scheduler.** `main` may `await` while keeping its `i32` return type; it is then driven to completion. When the program imports `std/async`, the driver parks on a timer min-heap whenever every task is suspended, and a park with nothing armed is a deadlock (panic); without `std/async`, a `main` whose awaits suspend traps. `sleep(ms)` suspends the current coroutine until the scheduler clock reaches its deadline; natively the wait is real time unless `VADER_ASYNC_VIRTUAL_CLOCK` is set, in which case the clock jumps, as it always does under `vader run`.
 - **Wake times.** A hand-written awaitable's `resume` returns `Suspended { .wake_at = t }` when it cannot progress before the scheduler clock reaches `t` (ms, as `sched_now` reads it); `Suspended {}` (`wake_at = 0`) means unknown. A coroutine reports the `wake_at` of the child it is parked on, and the combinators (`join_all`, `race`, `join_any`) resume a child only once its `wake_at` has passed — so a parked child costs nothing while the others wake. An awaitable that reports a `wake_at` later than it can actually progress is not resumed in time.
 - **Concurrency combinators** (`std/async`): `join_all(xs)` joins every awaitable (results in input order); `try_join_all(xs)` is the fallible join, surfacing the first error by input order; `race(xs)` completes with the first to settle (value or error); `join_any(xs)` completes with the first success — a settled error is not a win — or the last error if all fail; `timeout(ms, x)` bounds `x`, yielding a `TimeoutError` value if the deadline elapses first.
 - **Cancellation.** `race` / `join_any` / `timeout` cancel their losing awaitables so no orphaned work is left behind: a cancelled coroutine runs its pending defers (LIFO) and recursively tears down the child it is parked on, without finishing its body. Cancellation is cooperative (only a suspended coroutine can be cancelled) and internal — there is no user-facing `cancel` in v1. Open structured concurrency (`scope` / `spawn`) remains deferred.
@@ -3942,8 +3914,8 @@ machine that wrote it, not a surprise on whichever platform compiles it next.
 R2041 is the exception, and necessarily so — "nothing covers this" is a question
 only a target can answer.
 
-Only the declaration's signature is kept: `graft_body` takes the params, the
-return type and the type params from it, because the declaration is what carries
+Only the declaration's signature is kept: the selected body takes its parameters,
+return type and type parameters from the declaration, because the declaration is what carries
 the contract. R2040 exists because that makes a divergent body *silently* wrong.
 It compares arity and parameter names, not types — a body written against
 different types fails to type-check against the declaration's anyway, with a
@@ -4160,10 +4132,6 @@ The **Vader 1.0 edition** is the set of features the Vader compiler needs to com
 - v1.x: backwards-compatible changes (new features, optimizations)
 - v2.0: breaking changes (new edition, re-bootstrap required)
 
-### Goal — self-host as soon as possible
-
-Once the original TypeScript compiler could compile a syntactic subset (fns, ifs, loops, structs, arrays, strings, imports, traits), the port proceeded piece by piece. The intent: **validate the language design early** by using it to write itself.
-
 ### Porting order
 
 1. **Lexer** ✅ (`vader/lexer/`) — straightforward, table-driven.
@@ -4173,12 +4141,12 @@ Once the original TypeScript compiler could compile a syntactic subset (fns, ifs
 5. **LSP** ✅ (`vader/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
 6. **VM** ✅ (`vader/vm/`) — runs the bytecode for the whole snippet corpus.
 7. **Type-checker** ✅ (`vader/typecheck/`).
-8. **Comptime / monomorphizer** ✅ (`vader/comptime/`).
+8. **Comptime** ✅ (`vader/comptime/`).
 9. **Lowerer** ✅ (`vader/lower/`).
 10. **Mid-IR (CFG / DCE / escape / scheduler)** ✅ (`vader/midir/`).
 11. **Bytecode-emit** ✅ (`vader/bytecode/`).
 12. **C-emit** ✅ (`vader/c_emit/`).
-13. **WASM-emit** ⏳ (post-MVP).
+13. **WASM-emit** ⏳.
 
 Legend: ✅ ported, ⏳ not yet (post-MVP).
 
@@ -4327,7 +4295,7 @@ main :: fn() -> i32 {
 }
 ```
 
-### `@extern`: calling JS from WASM *(planned: the WASM backend is not yet implemented)*
+### `@extern`: calling JS from WASM *(planned, §17)*
 
 Same shape as the C path (§13) — the 2-arg form gives the WASM `(module, field)` pair. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack; the user-side glue (JS) reads the linear memory accordingly.
 
@@ -4368,27 +4336,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 
 ## Appendices
 
-### A. MVP TypeScript implementation roadmap
-
-1. **Lexer**: tokens, newline-significant handling, strings with interpolation parsed as composed tokens
-2. **Parser**: full AST covering expressions / statements / declarations
-3. **Resolver**: modules, imports, scoping
-4. **Type-checker**: bidirectional inference, narrowing, traits, match exhaustiveness
-5. **Comptime engine + monomorphizer**: bytecode VM, `@comptime` execution, generic instantiation
-6. **Lowerer**: pattern match → if/else chains, traits → static dispatch chain (`is StructA -> StructA_method(...)`)
-7. **Mid-IR (CFG)**: LoweredAST → CFG converter; substrate for escape analysis, loop-carried-dependency check, dead-store elimination
-8. **Bytecode emitter**: from CFG (not directly from lowered AST)
-9. **VM**: bytecode interpretation (mode `vader run` + comptime)
-10. **IR text emitter**: serialize the bytecode into a human-readable `.virt` file with source-position annotations
-11. **IR text reader**: parse `.virt` back into in-memory bytecode for `vader run program.virt`
-12. **C emitter**: from bytecode
-13. **WASM emitter**: from bytecode
-14. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
-15. **C runtime**: Cheney semi-space copying GC (stop-the-world, shadow-stack roots), string helpers, basic syscalls
-16. **CLI**: `run`, `build` (with `--emit=bytecode|native|wasm`), `fmt`, `test`, `dump`, REPL
-17. **Snapshot tests**: for each sample, snapshot the output of every stage
-
-### B. Deferred decisions / topics to revisit
+### A. Deferred decisions / topics to revisit
 
 - `unsafe` for low-level FFI (native need)
 - Explicit allocator API (arena, etc.) for perf-critical zones
@@ -4399,20 +4347,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - External packages
 - Pure WASM compilation without WASI
 
-Already landed (cross-reference for B's reader):
-- Programmable build API (`build.vader` — §11 *Programmable build API*, `toolchain/build`)
-- `json` (in MVP — §15 `json`)
-- LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
-- Resolver self-host (`vader/resolver/` — 9 modules)
-- Reflection intrinsics `@type_of`, `@fields`, `@type_args`, `@field`, `@comptime for` loop unrolling
-- FFI VM host registry (`@extern` user imports now run on the VM via a host-side handler table)
-- Lazy iterator combinators (`map` / `filter` / `take` / `skip` / `indexed` / `flat_map` / `chain` / `zip` — all generators in `std/iter`)
-- Mid-IR CFG layer + escape analysis + loop-carried-dependency check
-- Single-binary distribution (`bun build --compile` + per-OS tarballs)
-- Reference benchmark suite (`bench/`)
-- Self-host VM (`vader/vm/`, partial — runs `.virt` text bytecode subset)
-
-### C. Glossary
+### B. Glossary
 
 - **UFCS**: Uniform Function Call Syntax. `a.f(b)` ≡ `f(a, b)`.
 - **Comptime**: Compile-Time Execution. Vader code executed during compilation.

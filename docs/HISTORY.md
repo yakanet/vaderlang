@@ -1347,3 +1347,11 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 - [x] **`C_PARITY` was an allowlist that kept working snippets from the native run**, **closed 2026-10-21** (opened 2026-10-20): the native run now checks every snippet whose `vm.snapshot` records a run, but those its `_config.json` excludes with a reason (`"native": { "skip" | "skip_on" }`); the `emit-c.snapshot.c` golden is a stage snapshot like the others (the `emit_c` phase, on by default, left out by a `phases` that does not list it), and the VM test's exclusions moved to the same file (`"vm"`). Of the 222 snippets the list kept out, 211 ran right; the 11 others are the 10 that end on a trap and a `_diag_` snippet whose VM output is wrong on purpose.
 - [x] **LSP: rename and find-references missed member and UFCS call sites**, **closed 2026-10-13**: `bb1357c0d` indexes every call form (`x.f()`, UFCS, `NS.f`) from the typecheck's `call_sites`, keyed by declaration (ADR 0056), so renaming a free fn rewrites its method-form calls and renaming one overload leaves the others alone.
 - [x] **No default-init for a generic type parameter**, **closed 2026-10-05**: static trait members (`T.zero()`) and the `Zero` trait, `aa8041ff8`. A generic `sum<T: Add & Zero>` over an iterator starts from `T.zero()`.
+
+## Archived from TODO.md, 2026-10-22
+
+### 3.7 Tooling
+
+- [x] **`vader test` said it runs native: it runs the VM**, **closed 2026-10-22**: the vaderdoc of `vader/cli/cmd_test.vader` no longer claims a native run.
+- [x] **`--help` listed `bytecode-text` as not implemented**, **closed 2026-10-22**: `vader/cli/spec.vader` describes the `.virt` module `cmd_build.vader` writes. The other half of the entry, `dump --stage=bytecode` not filtered to the entry module, stays open in `TODO.md`.
+- [x] **SPEC drift**, **closed 2026-10-22** (opened 2026-10-02): SPEC.md was audited section by section against the compiler. The `modules` manifest field, `B5xxx`, the missing `H6xxx` / `I7xxx`, the CLI table, `tryInto`, "no runtime dispatch", the per-instance tag and `where T: Add` are corrected; the divergences that are compiler defects rather than stale prose are listed for a decision.
