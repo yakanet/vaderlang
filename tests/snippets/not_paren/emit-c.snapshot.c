@@ -22,7 +22,6 @@ const vader_type_info_t vader_type_info_table[3] = {
 const size_t vader_type_info_count = 3;
 
 static bool snippet_f(bool l0, bool l1) {
-#line 5 "tests/snippets/not_paren/_main.vader"
     if (l0) {
         return !(true);
     }
@@ -30,7 +29,6 @@ static bool snippet_f(bool l0, bool l1) {
 }
 
 static bool snippet_g(int32_t l0) {
-#line 6 "tests/snippets/not_paren/_main.vader"
     if (l0 == INT32_C(0)) {
         return !(true);
     }
@@ -38,7 +36,6 @@ static bool snippet_g(int32_t l0) {
 }
 
 static bool snippet_h(bool l0, bool l1) {
-#line 7 "tests/snippets/not_paren/_main.vader"
     if (l0) {
         return !(l1);
     }
@@ -49,32 +46,26 @@ static int32_t snippet_main(void) {
     int32_t l0, l1, l2;
     bool t0;
     int32_t t1, t2;
-#line 11 "tests/snippets/not_paren/_main.vader"
     t0 = snippet_f(false, false);
     if (t0) {
         l0 = INT32_C(1);
     } else {
         l0 = INT32_C(0);
     }
-#line 12 "tests/snippets/not_paren/_main.vader"
     t0 = snippet_g(INT32_C(5));
     if (t0) {
         l1 = INT32_C(2);
     } else {
         l1 = INT32_C(0);
     }
-#line 13 "tests/snippets/not_paren/_main.vader"
     t0 = snippet_h(true, false);
     if (t0) {
         l2 = INT32_C(4);
-#line 14 "tests/snippets/not_paren/_main.vader"
         t1 = vader_chk_add(i32, l0, l1);
         t2 = vader_chk_add(i32, t1, l2);
         return t2;
-#line 13 "tests/snippets/not_paren/_main.vader"
     }
     l2 = INT32_C(0);
-#line 14 "tests/snippets/not_paren/_main.vader"
     t1 = vader_chk_add(i32, l0, l1);
     t2 = vader_chk_add(i32, t1, l2);
     return t2;

@@ -35,7 +35,6 @@ static void* snippet_make(int32_t l0, int32_t l1) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 14 "tests/snippets/struct_heap/_main.vader"
     vader_struct_snippet_Point_t* _a0_obj = (vader_struct_snippet_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Point_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_x = l0;
@@ -51,9 +50,7 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/struct_heap/_main.vader"
     l0 = snippet_make(INT32_C(3), INT32_C(4));
-#line 18 "tests/snippets/struct_heap/_main.vader"
     l1 = ((vader_struct_snippet_Point_t*) l0)->f_x;
     l2 = ((vader_struct_snippet_Point_t*) l0)->f_y;
     t0 = vader_chk_add(i32, l1, l2);

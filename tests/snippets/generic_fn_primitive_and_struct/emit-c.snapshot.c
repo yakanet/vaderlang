@@ -56,15 +56,12 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[3] = { &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 16 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     t0 = (void*) _a0_arr;
-#line 17 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     l0 = snippet_second__i32(t0);
-#line 18 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     vader_struct_snippet_Point_t* _a1_obj = (vader_struct_snippet_Point_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Point_t));
     vader_obj_header_init(_a1_obj, 5u);
     _a1_obj->f_x = INT32_C(1);
@@ -77,9 +74,7 @@ static int32_t snippet_main(void) {
     ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 1u] = l2;
     ((void**) _a3_arr->buf->slots)[_a3_arr->offset + 0u] = l1;
     t0 = (void*) _a3_arr;
-#line 19 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     t1 = snippet_second__snippet_Point(t0);
-#line 20 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     l3 = ((vader_struct_snippet_Point_t*) t1.payload.obj)->f_x;
     t2 = vader_chk_add(i32, l0, l3);
     { int32_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
@@ -87,7 +82,6 @@ static int32_t snippet_main(void) {
 
 static int32_t snippet_second__i32(void* l0) {
     int32_t t0;
-#line 11 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))
@@ -97,7 +91,6 @@ static int32_t snippet_second__i32(void* l0) {
 
 static vader_box_t snippet_second__snippet_Point(void* l0) {
     vader_box_t t0;
-#line 11 "tests/snippets/generic_fn_primitive_and_struct/_main.vader"
     vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, INT32_C(1))

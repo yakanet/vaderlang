@@ -17,7 +17,6 @@ const size_t vader_type_info_count = 2;
 
 static int32_t snippet_main(void) {
     int32_t t0;
-#line 13 "tests/snippets/divide_by_zero_runtime/_main.vader"
     t0 = vader_div_i32(INT32_C(100), INT32_C(0));
     return t0;
 }

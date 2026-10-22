@@ -210,7 +210,7 @@ emit_one :: fn(
     if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
         return 1
     }
-    c :: c_source_of(cfg, release)
+    c :: c_source_of(cfg)
     if target == .C {
         ctx.c_sources.push(c)
         return 0

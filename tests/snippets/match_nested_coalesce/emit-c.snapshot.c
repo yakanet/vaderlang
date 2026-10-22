@@ -21,14 +21,12 @@ static int32_t snippet_classify(int32_t l0) {
     int32_t l1;
     bool l2;
     int32_t t0;
-#line 10 "tests/snippets/match_nested_coalesce/_main.vader"
     if ((l0 >= INT32_C(0))) {
         l2 = (l0 < INT32_C(10));
     } else {
         l2 = false;
     }
     if (l2) {
-#line 11 "tests/snippets/match_nested_coalesce/_main.vader"
         if (l0 == INT32_C(0)) {
             l2 = true;
         } else {
@@ -51,16 +49,11 @@ static int32_t snippet_classify(int32_t l0) {
         }
         if (l2) {
             l1 = INT32_C(1);
-#line 12 "tests/snippets/match_nested_coalesce/_main.vader"
         } else {
             l1 = INT32_C(2);
-#line 11 "tests/snippets/match_nested_coalesce/_main.vader"
         }
-#line 9 "tests/snippets/match_nested_coalesce/_main.vader"
         return l1;
-#line 10 "tests/snippets/match_nested_coalesce/_main.vader"
     }
-#line 14 "tests/snippets/match_nested_coalesce/_main.vader"
     if ((l0 >= INT32_C(10))) {
         l2 = (l0 <= INT32_C(19));
     } else {
@@ -68,7 +61,6 @@ static int32_t snippet_classify(int32_t l0) {
     }
     if (l2) {
         if ((l0 < INT32_C(15))) {
-#line 15 "tests/snippets/match_nested_coalesce/_main.vader"
             if (l0 == INT32_C(10)) {
                 l2 = true;
             } else {
@@ -79,15 +71,11 @@ static int32_t snippet_classify(int32_t l0) {
             } else {
                 l1 = INT32_C(4);
             }
-#line 14 "tests/snippets/match_nested_coalesce/_main.vader"
-#line 17 "tests/snippets/match_nested_coalesce/_main.vader"
         } else if (l0 == INT32_C(19)) {
             l1 = INT32_C(6);
         } else {
             l1 = INT32_C(5);
         }
-#line 14 "tests/snippets/match_nested_coalesce/_main.vader"
-#line 19 "tests/snippets/match_nested_coalesce/_main.vader"
     } else {
         if ((l0 >= INT32_C(20))) {
             l2 = (l0 <= INT32_C(29));
@@ -97,23 +85,17 @@ static int32_t snippet_classify(int32_t l0) {
         if (l2) {
             t0 = vader_chk_sub(u8, (l0 & INT32_C(255)), INT32_C(20));
             l1 = t0;
-#line 20 "tests/snippets/match_nested_coalesce/_main.vader"
         } else {
             l1 = INT32_C(-1);
-#line 19 "tests/snippets/match_nested_coalesce/_main.vader"
         }
-#line 14 "tests/snippets/match_nested_coalesce/_main.vader"
     }
-#line 9 "tests/snippets/match_nested_coalesce/_main.vader"
     return l1;
 }
 
 static int32_t snippet_sign(int32_t l0) {
     int32_t l1, l2;
     bool l3;
-#line 26 "tests/snippets/match_nested_coalesce/_main.vader"
     l1 = l0;
-#line 27 "tests/snippets/match_nested_coalesce/_main.vader"
     if (true) {
         l3 = (l0 > INT32_C(0));
     } else {
@@ -121,11 +103,8 @@ static int32_t snippet_sign(int32_t l0) {
     }
     if (l3) {
         l2 = INT32_C(1);
-#line 26 "tests/snippets/match_nested_coalesce/_main.vader"
         return l2;
-#line 27 "tests/snippets/match_nested_coalesce/_main.vader"
     }
-#line 28 "tests/snippets/match_nested_coalesce/_main.vader"
     if (true) {
         l3 = (l0 < INT32_C(0));
     } else {
@@ -133,57 +112,44 @@ static int32_t snippet_sign(int32_t l0) {
     }
     if (l3) {
         l2 = INT32_C(-1);
-#line 29 "tests/snippets/match_nested_coalesce/_main.vader"
     } else {
         l2 = INT32_C(0);
-#line 28 "tests/snippets/match_nested_coalesce/_main.vader"
     }
-#line 26 "tests/snippets/match_nested_coalesce/_main.vader"
     return l2;
 }
 
 static int32_t snippet_main(void) {
     int32_t l0, l1, l2;
     int32_t t0;
-#line 33 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(4));
     l0 = vader_chk_mul(i32, t0, INT32_C(2));
-#line 34 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(7));
     l1 = vader_chk_mul(i32, t0, INT32_C(3));
     l0 = vader_chk_add(i32, l0, l1);
-#line 35 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(11));
     l1 = vader_chk_mul(i32, t0, INT32_C(5));
     l0 = vader_chk_add(i32, l0, l1);
-#line 36 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(12));
     l1 = vader_chk_mul(i32, t0, INT32_C(7));
     l0 = vader_chk_add(i32, l0, l1);
-#line 37 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(17));
     l1 = vader_chk_mul(i32, t0, INT32_C(11));
     l0 = vader_chk_add(i32, l0, l1);
-#line 38 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(19));
     l1 = vader_chk_mul(i32, t0, INT32_C(13));
     l0 = vader_chk_add(i32, l0, l1);
-#line 39 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(25));
     l1 = vader_chk_mul(i32, t0, INT32_C(17));
     l0 = vader_chk_add(i32, l0, l1);
-#line 40 "tests/snippets/match_nested_coalesce/_main.vader"
     t0 = snippet_classify(INT32_C(99));
     l1 = vader_chk_mul(i32, t0, INT32_C(19));
     l0 = vader_chk_add(i32, l0, l1);
-#line 41 "tests/snippets/match_nested_coalesce/_main.vader"
     l1 = snippet_sign(INT32_C(8));
     l2 = snippet_sign(INT32_C(-8));
     l1 = vader_chk_add(i32, l1, l2);
     l2 = snippet_sign(INT32_C(0));
     l1 = vader_chk_add(i32, l1, l2);
     l0 = vader_chk_add(i32, l0, l1);
-#line 42 "tests/snippets/match_nested_coalesce/_main.vader"
     return l0;
 }
 

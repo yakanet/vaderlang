@@ -18,16 +18,13 @@ const size_t vader_type_info_count = 2;
 
 static int32_t snippet_add(int32_t l0, int32_t l1) {
     int32_t t0;
-#line 4 "tests/snippets/arith/_main.vader"
     t0 = vader_chk_add(i32, l0, l1);
     return t0;
 }
 
 static int32_t snippet_main(void) {
     int32_t t0;
-#line 8 "tests/snippets/arith/_main.vader"
     t0 = snippet_add(INT32_C(2), INT32_C(3));
-#line 9 "tests/snippets/arith/_main.vader"
     return t0;
 }
 

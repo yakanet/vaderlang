@@ -701,7 +701,6 @@ static vader_box_t vader_vt_std_core_Async__resume(vader_box_t recv);
 
 static vader_box_t snippet_even(int32_t l0) {
     int32_t t0;
-#line 12 "tests/snippets/coroutine_nested_jumps/_main.vader"
     t0 = vader_mod_i32(l0, INT32_C(2));
     if (t0 == INT32_C(0)) {
         return vader_box_i32(1u, l0);
@@ -710,7 +709,6 @@ static vader_box_t snippet_even(int32_t l0) {
 }
 
 static vader_box_t snippet_below(int32_t l0, int32_t l1) {
-#line 14 "tests/snippets/coroutine_nested_jumps/_main.vader"
     if ((l0 < l1)) {
         return vader_box_i32(1u, l0);
     }
@@ -724,7 +722,6 @@ static vader_box_t snippet_evens(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     vader_struct_snippet___genstate_evens_t* _a0_obj = (vader_struct_snippet___genstate_evens_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_evens_t));
     vader_obj_header_init(_a0_obj, 6u);
@@ -744,7 +741,6 @@ static vader_box_t snippet_evens_with_tail(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     vader_struct_snippet___genstate_evens_with_tail_t* _a0_obj = (vader_struct_snippet___genstate_evens_with_tail_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_evens_with_tail_t));
     vader_obj_header_init(_a0_obj, 9u);
@@ -763,7 +759,6 @@ static vader_box_t snippet_until_three(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     vader_struct_snippet___genstate_until_three_t* _a0_obj = (vader_struct_snippet___genstate_until_three_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_until_three_t));
     vader_obj_header_init(_a0_obj, 10u);
@@ -783,7 +778,6 @@ static vader_box_t snippet_stop_at_three(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     vader_struct_snippet___genstate_stop_at_three_t* _a0_obj = (vader_struct_snippet___genstate_stop_at_three_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_stop_at_three_t));
     vader_obj_header_init(_a0_obj, 11u);
@@ -801,7 +795,6 @@ static vader_box_t snippet_first_odd_above(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
     vader_struct_snippet___genstate_first_odd_above_t* _a0_obj = (vader_struct_snippet___genstate_first_odd_above_t*) vader_gc_alloc(sizeof(vader_struct_snippet___genstate_first_odd_above_t));
     vader_obj_header_init(_a0_obj, 12u);
     _a0_obj->f_s0 = l0;
@@ -821,7 +814,6 @@ static vader_box_t snippet_total_of_evens(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l1 = vader_box_obj(0u, NULL);
     vader_struct___asyncstate_snippet_0_t* _a0_obj = (vader_struct___asyncstate_snippet_0_t*) vader_gc_alloc(sizeof(vader_struct___asyncstate_snippet_0_t));
     vader_obj_header_init(_a0_obj, 13u);
@@ -843,7 +835,6 @@ static vader_box_t snippet_first_above(void* l0, int32_t l1) {
     void** gc_raw_roots[3] = { &l0, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l2 = vader_box_obj(0u, NULL).payload.obj;
     l3 = vader_box_obj(0u, NULL);
     l4 = vader_box_obj(0u, NULL);
@@ -883,7 +874,6 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[11] = { &l0, &l2, &l3, &l5, &l6, &l8, &l9, &l11, &l12, &l14, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 7u, 11u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
     l0 = vader_box_obj(0u, NULL).payload.obj;
     l1 = vader_box_obj(0u, NULL);
     l2 = vader_box_obj(0u, NULL).payload.obj;
@@ -943,7 +933,6 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -958,25 +947,17 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
                 l2 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s0;
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(5);
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(1);
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = l3;
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
@@ -993,28 +974,18 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
                     t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
                         t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
-#line 19 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l4 = snippet_even(t0);
                         ((vader_struct_snippet___genstate_evens_t*) l0)->f_s3 = l4;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_evens_t*) l0);
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 19 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct_snippet___genstate_evens_t*) l0)->f_s3.tag == 0u) {
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1;
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             l6 = (t0 + INT32_C(1));
                             ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = l6;
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
                             continue;
-#line 19 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 19 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l5 = ((int32_t) ((vader_struct_snippet___genstate_evens_t*) l0)->f_s3.payload.i);
                         ((vader_struct_snippet___genstate_evens_t*) l0)->f_s2 = l5;
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(4);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_evens_t*) l0)->f_state;
@@ -1026,9 +997,7 @@ static void* snippet___genstate_evens_Iterator_next(void* l0) {
                             t1 = (void*) _a1_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 18 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_evens_t*) l0)->f_s1 = INT32_C(0);
-#line 17 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_evens_t*) l0)->f_state = INT32_C(2);
                     }
                 }
@@ -1054,7 +1023,6 @@ static void* snippet___genstate_evens_with_tail_Iterator_next(void* l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1069,64 +1037,42 @@ static void* snippet___genstate_evens_with_tail_Iterator_next(void* l0) {
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
                 l2 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s0;
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(4);
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(1);
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
-#line 28 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (void*) vader_buffer_new((size_t) INT64_C(25));
                     l4 = INT64_C(0);
                     l4 = std_core_write_string_at(l3, l4, 1u);
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
                     l5 = ((int64_t) (int32_t) t0);
-#line 28 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l4 = std_core_write_int(l3, l4, l5);
                     t1 = std_core_finish_buffer(l3, l4);
                     std_io_println__string(t1);
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l6 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1 = l6;
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state;
                     if (t0 == INT32_C(4)) {
                         ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(3);
                         t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
-#line 27 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l7 = snippet_even(t0);
                         ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s2 = l7;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_evens_with_tail_t*) l0);
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 27 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s2.tag == 0u) {
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             t0 = ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1;
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             l8 = (t0 + INT32_C(1));
                             ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1 = l8;
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(2);
                             continue;
-#line 27 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 27 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         t0 = ((int32_t) ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s2.payload.i);
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                         vader_obj_header_init(_a0_obj, 7u);
                         _a0_obj->f__0 = t0;
@@ -1143,9 +1089,7 @@ static void* snippet___genstate_evens_with_tail_Iterator_next(void* l0) {
                         t2 = (void*) _a1_obj;
                         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                     }
-#line 26 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_s1 = INT32_C(0);
-#line 25 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_evens_with_tail_t*) l0)->f_state = INT32_C(2);
                 }
             }
@@ -1164,7 +1108,6 @@ static void* snippet___genstate_until_three_Iterator_next(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1189,25 +1132,17 @@ static void* snippet___genstate_until_three_Iterator_next(void* l0) {
             if (t0 == INT32_C(3)) {
                 l1 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s1;
                 l2 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s0;
-#line 34 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(6);
-#line 34 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(2);
-#line 34 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
                     t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s1;
-#line 34 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s1 = l3;
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(3);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state;
@@ -1224,23 +1159,15 @@ static void* snippet___genstate_until_three_Iterator_next(void* l0) {
                     t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state;
                     if (t0 == INT32_C(6)) {
                         t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s1;
-#line 35 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l4 = snippet_below(t0, INT32_C(3));
                         ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s3 = l4;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_until_three_t*) l0);
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 35 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct_snippet___genstate_until_three_t*) l0)->f_s3.tag == 0u) {
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(2);
                             continue;
-#line 35 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 35 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l5 = ((int32_t) ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s3.payload.i);
                         ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s2 = l5;
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(5);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state;
@@ -1252,9 +1179,7 @@ static void* snippet___genstate_until_three_Iterator_next(void* l0) {
                             t1 = (void*) _a2_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 34 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_until_three_t*) l0)->f_s1 = INT32_C(0);
-#line 33 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_until_three_t*) l0)->f_state = INT32_C(3);
                     }
                 }
@@ -1274,7 +1199,6 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1299,25 +1223,17 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
             if (t0 == INT32_C(3)) {
                 l1 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s1;
                 l2 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s0;
-#line 43 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(6);
-#line 43 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(2);
-#line 43 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
                     t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s1;
-#line 43 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s1 = l3;
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(3);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state;
@@ -1334,14 +1250,10 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
                     t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state;
                     if (t0 == INT32_C(6)) {
                         t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s1;
-#line 44 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l4 = snippet_below(t0, INT32_C(3));
                         ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s3 = l4;
                         VADER_WRITE_BARRIER((vader_struct_snippet___genstate_stop_at_three_t*) l0);
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 44 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s3.tag == 0u) {
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(-1);
                             vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                             vader_obj_header_init(_a2_obj, 7u);
@@ -1349,13 +1261,9 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
                             _a2_obj->f__1 = (uint8_t) 1;
                             t1 = (void*) _a2_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 44 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 44 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l5 = ((int32_t) ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s3.payload.i);
                         ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s2 = l5;
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(5);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state;
@@ -1367,9 +1275,7 @@ static void* snippet___genstate_stop_at_three_Iterator_next(void* l0) {
                             t1 = (void*) _a3_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 43 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_s1 = INT32_C(0);
-#line 42 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_stop_at_three_t*) l0)->f_state = INT32_C(3);
                     }
                 }
@@ -1387,7 +1293,6 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
     loop_0: for (;;) {
         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1402,25 +1307,17 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
                 l2 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s0;
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(5);
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(1);
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (t0 + INT32_C(1));
                     ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1 = l3;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state;
@@ -1437,70 +1334,44 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
-#line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if ((t0 > INT32_C(0))) {
-#line 54 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = INT32_C(-1);
-#line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = INT32_C(0);
                             for (;;) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 l5 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
                                 l6 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s0;
-#line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 if ((l5 < l6)) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
-#line 56 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     if (t0 == INT32_C(2)) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         l7 = (t0 + INT32_C(1));
                                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1 = l7;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(2);
                                         goto loop_0;
-#line 56 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     }
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     l8 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
                                     l9 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1;
-#line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     if ((l8 > l9)) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
-#line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         t2 = vader_mod_i32(t0, INT32_C(2));
                                         if (t2 == INT32_C(1)) {
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                             l10 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
-#line 60 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                             ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3 = l10;
-#line 61 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                             break;
-#line 59 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                         }
                                     }
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4;
-#line 55 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     l11 = (t0 + INT32_C(1));
                                     ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s4 = l11;
                                     continue;
                                 }
                                 break;
                             }
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             l4 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s3;
-#line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 66 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         } else {
                             l4 = INT32_C(-1);
-#line 53 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s2 = l4;
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(4);
                     } else {
                         t0 = ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state;
@@ -1512,9 +1383,7 @@ static void* snippet___genstate_first_odd_above_Iterator_next(void* l0) {
                             t1 = (void*) _a1_obj;
                             { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 52 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_s1 = INT32_C(0);
-#line 51 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct_snippet___genstate_first_odd_above_t*) l0)->f_state = INT32_C(2);
                     }
                 }
@@ -1531,12 +1400,10 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
     vader_box_t l10;
     int32_t t0;
     void* t1 = NULL;
-    vader_box_t t2 = vader_box_null();
-    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t2 };
+    vader_box_t* gc_roots[3] = { &l4, &l9, &l11 };
     void** gc_raw_roots[2] = { &l0, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1557,44 +1424,30 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
             if (t0 == INT32_C(3)) {
                 l1 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
                 l2 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s0;
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(6);
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(2);
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
                     l3 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1;
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
-#line 76 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l4 = snippet_even(t0);
                     if (l4.tag == 0u) {
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l6 = (t0 + INT32_C(1));
                         ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2 = l6;
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(3);
                         continue;
-#line 76 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     }
                     l5 = ((int32_t) l4.payload.i);
                     l7 = vader_chk_add(i32, l3, l5);
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = l7;
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2;
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l8 = (t0 + INT32_C(1));
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2 = l8;
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(3);
                 } else {
                     t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
@@ -1610,19 +1463,14 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                         if (t0 == INT32_C(6)) {
-#line 75 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            t2 = std_async_sleep(INT64_C(0));
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                            l11 = t2;
+                            l11 = std_async_sleep(INT64_C(0));
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_awaited = l11;
                             VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_0_t*) l0);
                             ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(5);
                         } else {
                             t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
                             if (t0 == INT32_C(7)) {
-#line 74 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s2 = INT32_C(0);
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(3);
                             } else {
                                 t0 = ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state;
@@ -1633,9 +1481,7 @@ static vader_box_t snippet___asyncstate_snippet_0_Async_resume(void* l0) {
                                     t1 = (void*) _a0_obj;
                                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
                                 }
-#line 73 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_s1 = INT32_C(0);
-#line 72 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                 ((vader_struct___asyncstate_snippet_0_t*) l0)->f_state = INT32_C(7);
                             }
                         }
@@ -1658,12 +1504,10 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
     int32_t t0;
     int64_t t1;
     void* t2 = NULL;
-    vader_box_t t3 = vader_box_null();
-    vader_box_t* gc_roots[4] = { &l4, &l9, &l11, &t3 };
+    vader_box_t* gc_roots[3] = { &l4, &l9, &l11 };
     void** gc_raw_roots[4] = { &l0, &l12, &l15, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 4u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1673,8 +1517,6 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
         if (t0 == INT32_C(1)) {
             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(-1);
-#line 87 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
             { vader_box_t __vret = vader_box_i32(1u, INT32_C(-1)); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
@@ -1685,25 +1527,17 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
             if (t0 == INT32_C(3)) {
                 l1 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
                 l2 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s3;
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 if ((l1 < l2)) {
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(9);
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 } else {
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(2);
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                 }
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
                     t1 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4 = l3;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(3);
                 } else {
                     t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
@@ -1716,35 +1550,23 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                     if (t0 == INT32_C(6)) {
                         l5 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5;
                         l6 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s1;
-#line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if ((l5 > l6)) {
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5;
                             l4 = vader_box_i32(1u, t0);
-#line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         } else {
                             l4 = vader_box_obj(0u, NULL);
                         }
                         ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s8 = l4;
                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         if (((vader_struct___asyncstate_snippet_1_t*) l0)->f_s8.tag == 0u) {
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             t1 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             l8 = (t1 + INT64_C(1));
                             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4 = l8;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                             ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(3);
                             continue;
-#line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         }
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 84 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l7 = ((int32_t) ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s8.payload.i);
                         ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s7 = l7;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(5);
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
@@ -1760,10 +1582,7 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                         } else {
                             t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
                             if (t0 == INT32_C(8)) {
-#line 83 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                t3 = std_async_sleep(INT64_C(0));
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                l11 = t3;
+                                l11 = std_async_sleep(INT64_C(0));
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_awaited = l11;
                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
                                 ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(7);
@@ -1772,13 +1591,11 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                 if (t0 == INT32_C(9)) {
                                     l12 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2;
                                     l13 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4;
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     vader_array_t* _a0_slotarr = ((vader_array_t*) l12);
                                     VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                                     VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l13)
                                     l14 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l13];
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s5 = l14;
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(8);
                                 } else {
                                     t0 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state;
@@ -1790,15 +1607,11 @@ static vader_box_t snippet___asyncstate_snippet_1_Async_resume(void* l0) {
                                         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                                     }
                                     l15 = ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s0;
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2 = l15;
                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_1_t*) l0);
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 82 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     l16 = ((vader_array_t*) ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s2)->length;
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s3 = l16;
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_s4 = INT64_C(0);
-#line 81 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                     ((vader_struct___asyncstate_snippet_1_t*) l0)->f_state = INT32_C(3);
                                 }
                             }
@@ -1852,7 +1665,6 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
         vader_gc_top, 5u, 24u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
     for (;;) {
         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -1862,27 +1674,20 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
         if (t0 == INT32_C(1)) {
             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(-1);
-#line 117 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
             { vader_box_t __vret = vader_box_i32(1u, INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
         }
         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
         if (t0 == INT32_C(2)) {
             l1 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s22;
-#line 115 "tests/snippets/coroutine_nested_jumps/_main.vader"
             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s23 = l1;
-#line 116 "tests/snippets/coroutine_nested_jumps/_main.vader"
             l2 = (void*) vader_buffer_new((size_t) INT64_C(32));
             l3 = INT64_C(0);
             l3 = std_core_write_string_at(l2, l3, 2u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s23;
             l4 = ((int64_t) (int32_t) t0);
-#line 116 "tests/snippets/coroutine_nested_jumps/_main.vader"
             l3 = std_core_write_int(l2, l3, l4);
             t1 = std_core_finish_buffer(l2, l3);
             std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(1);
         } else {
             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -1898,16 +1703,13 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
             } else {
                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                 if (t0 == INT32_C(4)) {
-#line 115 "tests/snippets/coroutine_nested_jumps/_main.vader"
                     vader_array_t* _a0_arr = vader_array_new(5u, 4u, 7u, 1u);
                     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 3u] = (int32_t) INT32_C(9);
                     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(2);
                     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(5);
                     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
                     t2 = (void*) _a0_arr;
-                    t3 = snippet_first_above(t2, INT32_C(4));
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                    l7 = t3;
+                    l7 = snippet_first_above(t2, INT32_C(4));
                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited = l7;
                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(3);
@@ -1915,20 +1717,15 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
                         l8 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s20;
-#line 113 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s21 = l8;
-#line 114 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l9 = (void*) vader_buffer_new((size_t) INT64_C(32));
                         l10 = INT64_C(0);
                         l10 = std_core_write_string_at(l9, l10, 3u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s21;
                         l11 = ((int64_t) (int32_t) t0);
-#line 114 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         l10 = std_core_write_int(l9, l10, l11);
                         t1 = std_core_finish_buffer(l9, l10);
                         std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(4);
                     } else {
                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -1944,10 +1741,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                         } else {
                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                             if (t0 == INT32_C(7)) {
-#line 113 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                t3 = snippet_total_of_evens(INT32_C(6));
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
-                                l14 = t3;
+                                l14 = snippet_total_of_evens(INT32_C(6));
                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_awaited = l14;
                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(6);
@@ -1974,65 +1768,48 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                 } else {
                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                     if (t0 == INT32_C(13)) {
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         l15 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18)->f__0;
                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s19 = l15;
-#line 111 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         l16 = (void*) vader_buffer_new((size_t) INT64_C(30));
                                                         l17 = INT64_C(0);
                                                         l17 = std_core_write_string_at(l16, l17, 4u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s19;
                                                         l18 = ((int64_t) (int32_t) t0);
-#line 111 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         l17 = std_core_write_int(l16, l17, l18);
                                                         t1 = std_core_finish_buffer(l16, l17);
                                                         std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(10);
                                                     } else {
                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                         if (t0 == INT32_C(14)) {
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(12);
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                             } else {
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(13);
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                             }
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                         } else {
                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                             if (t0 == INT32_C(15)) {
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                 t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17);
                                                                 l19 = t3.payload.obj;
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s18 = l19;
                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(14);
                                                             } else {
                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                 if (t0 == INT32_C(16)) {
                                                                     t3 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16;
                                                                     l20 = t3.payload.obj;
-#line 110 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s17 = vader_ref_box(l20);
                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(9);
                                                                 } else {
                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                     if (t0 == INT32_C(17)) {
-#line 109 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                         t3 = snippet_first_odd_above(INT32_C(5));
                                                                         l21 = t3.payload.obj;
                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s16 = vader_ref_box(l21);
                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(16);
                                                                     } else {
                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -2057,65 +1834,48 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                         } else {
                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                             if (t0 == INT32_C(23)) {
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 l22 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14)->f__0;
                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15 = l22;
-#line 107 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 l23 = (void*) vader_buffer_new((size_t) INT64_C(25));
                                                                                                 l24 = INT64_C(0);
                                                                                                 l24 = std_core_write_string_at(l23, l24, 5u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s15;
                                                                                                 l25 = ((int64_t) (int32_t) t0);
-#line 107 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 l24 = std_core_write_int(l23, l24, l25);
                                                                                                 t1 = std_core_finish_buffer(l23, l24);
                                                                                                 std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(20);
                                                                                             } else {
                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                 if (t0 == INT32_C(24)) {
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                     if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(22);
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                     } else {
                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(23);
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                     }
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                 } else {
                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                     if (t0 == INT32_C(25)) {
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                         t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13);
                                                                                                         l26 = t3.payload.obj;
                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s14 = l26;
                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(24);
                                                                                                     } else {
                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                         if (t0 == INT32_C(26)) {
                                                                                                             t3 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12;
                                                                                                             l27 = t3.payload.obj;
-#line 106 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s13 = vader_ref_box(l27);
                                                                                                             VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(19);
                                                                                                         } else {
                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                             if (t0 == INT32_C(27)) {
-#line 105 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                 t3 = snippet_stop_at_three(INT32_C(6));
                                                                                                                 l28 = t3.payload.obj;
                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s12 = vader_ref_box(l28);
                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(26);
                                                                                                             } else {
                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -2140,65 +1900,48 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                 } else {
                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                     if (t0 == INT32_C(33)) {
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         l29 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10)->f__0;
                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11 = l29;
-#line 103 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         l30 = (void*) vader_buffer_new((size_t) INT64_C(26));
                                                                                                                                         l31 = INT64_C(0);
                                                                                                                                         l31 = std_core_write_string_at(l30, l31, 6u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s11;
                                                                                                                                         l32 = ((int64_t) (int32_t) t0);
-#line 103 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         l31 = std_core_write_int(l30, l31, l32);
                                                                                                                                         t1 = std_core_finish_buffer(l30, l31);
                                                                                                                                         std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(30);
                                                                                                                                     } else {
                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                         if (t0 == INT32_C(34)) {
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(32);
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                             } else {
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(33);
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                             }
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                         } else {
                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                             if (t0 == INT32_C(35)) {
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                 t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9);
                                                                                                                                                 l33 = t3.payload.obj;
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s10 = l33;
                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(34);
                                                                                                                                             } else {
                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                 if (t0 == INT32_C(36)) {
                                                                                                                                                     t3 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8;
                                                                                                                                                     l34 = t3.payload.obj;
-#line 102 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s9 = vader_ref_box(l34);
                                                                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(29);
                                                                                                                                                 } else {
                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                     if (t0 == INT32_C(37)) {
-#line 101 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                         t3 = snippet_until_three(INT32_C(6));
                                                                                                                                                         l35 = t3.payload.obj;
                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s8 = vader_ref_box(l35);
                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(36);
                                                                                                                                                     } else {
                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -2223,65 +1966,48 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                         } else {
                                                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                             if (t0 == INT32_C(43)) {
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 l36 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6)->f__0;
                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7 = l36;
-#line 99 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 l37 = (void*) vader_buffer_new((size_t) INT64_C(30));
                                                                                                                                                                                 l38 = INT64_C(0);
                                                                                                                                                                                 l38 = std_core_write_string_at(l37, l38, 7u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s7;
                                                                                                                                                                                 l39 = ((int64_t) (int32_t) t0);
-#line 99 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 l38 = std_core_write_int(l37, l38, l39);
                                                                                                                                                                                 t1 = std_core_finish_buffer(l37, l38);
                                                                                                                                                                                 std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(40);
                                                                                                                                                                             } else {
                                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                 if (t0 == INT32_C(44)) {
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                     if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(42);
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                     } else {
                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(43);
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                     }
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                 } else {
                                                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                     if (t0 == INT32_C(45)) {
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                         t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5);
                                                                                                                                                                                         l40 = t3.payload.obj;
                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s6 = l40;
                                                                                                                                                                                         VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(44);
                                                                                                                                                                                     } else {
                                                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                         if (t0 == INT32_C(46)) {
                                                                                                                                                                                             t3 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4;
                                                                                                                                                                                             l41 = t3.payload.obj;
-#line 98 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s5 = vader_ref_box(l41);
                                                                                                                                                                                             VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                             ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(39);
                                                                                                                                                                                         } else {
                                                                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                             if (t0 == INT32_C(47)) {
-#line 97 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                 t3 = snippet_evens_with_tail(INT32_C(4));
                                                                                                                                                                                                 l42 = t3.payload.obj;
                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s4 = vader_ref_box(l42);
                                                                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(46);
                                                                                                                                                                                             } else {
                                                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -2306,55 +2032,40 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                                                     if (t0 == INT32_C(53)) {
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         l43 = ((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2)->f__0;
                                                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3 = l43;
-#line 95 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         l44 = (void*) vader_buffer_new((size_t) INT64_C(26));
                                                                                                                                                                                                                         l45 = INT64_C(0);
                                                                                                                                                                                                                         l45 = std_core_write_string_at(l44, l45, 8u);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s3;
                                                                                                                                                                                                                         l46 = ((int64_t) (int32_t) t0);
-#line 95 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         l45 = std_core_write_int(l44, l45, l46);
                                                                                                                                                                                                                         t1 = std_core_finish_buffer(l44, l45);
                                                                                                                                                                                                                         std_io_println__string(t1);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(50);
                                                                                                                                                                                                                     } else {
                                                                                                                                                                                                                         t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                                                         if (t0 == INT32_C(54)) {
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                             if (((vader_struct___Tuple_i32_u8_99ae0d29_t*) ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2)->f__1 == INT32_C(1)) {
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(52);
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(53);
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                             }
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                         } else {
                                                                                                                                                                                                                             t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                                                             if (t0 == INT32_C(55)) {
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                 t3 = vader_vt_std_core_Iterator__next(((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1);
                                                                                                                                                                                                                                 l47 = t3.payload.obj;
                                                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s2 = l47;
                                                                                                                                                                                                                                 VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                 ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(54);
                                                                                                                                                                                                                             } else {
                                                                                                                                                                                                                                 t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
                                                                                                                                                                                                                                 if (t0 == INT32_C(56)) {
                                                                                                                                                                                                                                     t3 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s0;
                                                                                                                                                                                                                                     l48 = t3.payload.obj;
-#line 94 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s1 = vader_ref_box(l48);
                                                                                                                                                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(49);
                                                                                                                                                                                                                                 } else {
                                                                                                                                                                                                                                     t0 = ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state;
@@ -2365,12 +2076,10 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                                                                                                                                                                                                                                         t2 = (void*) _a1_obj;
                                                                                                                                                                                                                                         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
                                                                                                                                                                                                                                     }
-#line 93 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                     t3 = snippet_evens(INT32_C(6));
                                                                                                                                                                                                                                     l49 = t3.payload.obj;
                                                                                                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_s0 = vader_ref_box(l49);
                                                                                                                                                                                                                                     VADER_WRITE_BARRIER((vader_struct___asyncstate_snippet_2_t*) l0);
-#line 92 "tests/snippets/coroutine_nested_jumps/_main.vader"
                                                                                                                                                                                                                                     ((vader_struct___asyncstate_snippet_2_t*) l0)->f_state = INT32_C(56);
                                                                                                                                                                                                                                 }
                                                                                                                                                                                                                             }
@@ -2454,7 +2163,6 @@ static vader_string_t concat_2(vader_string_t l0, vader_string_t l1) {
 
 static int32_t std_core_i32_Step_step(int32_t l0) {
     int32_t t0;
-#line 304 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i32, l0, INT32_C(1));
     return t0;
 }
@@ -2469,7 +2177,6 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 294 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
         t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_done;
@@ -2480,14 +2187,11 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
             l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
             l1 = (l2 > l3);
         }
-#line 295 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
         l1 = (l2 >= l3);
-#line 294 "lib/std/core/core.vader"
     }
-#line 298 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
         vader_struct___Tuple_i32_u8_99ae0d29_t* _a0_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
@@ -2497,9 +2201,7 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
         t2 = (void*) _a0_obj;
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 299 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
-#line 300 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i32_t*) l0)->f_inclusive;
     if (t0) {
         l3 = ((vader_struct_std_core_Range__i32_t*) l0)->f_end;
@@ -2508,9 +2210,7 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
         l1 = false;
     }
     if (l1) {
-#line 301 "lib/std/core/core.vader"
         ((vader_struct_std_core_Range__i32_t*) l0)->f_done = true;
-#line 305 "lib/std/core/core.vader"
         l4 = (uint8_t) 0;
         vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
         vader_obj_header_init(_a1_obj, 7u);
@@ -2518,13 +2218,10 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
         _a1_obj->f__1 = l4;
         t2 = (void*) _a1_obj;
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 300 "lib/std/core/core.vader"
     }
-#line 303 "lib/std/core/core.vader"
     t1 = ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor;
     l3 = std_core_i32_Step_step(t1);
     ((vader_struct_std_core_Range__i32_t*) l0)->f_cursor = l3;
-#line 305 "lib/std/core/core.vader"
     l4 = (uint8_t) 0;
     vader_struct___Tuple_i32_u8_99ae0d29_t* _a2_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
     vader_obj_header_init(_a2_obj, 7u);
@@ -2536,7 +2233,6 @@ static void* std_core_Range_Iterator_next__i32(void* l0) {
 
 static int64_t std_core_i64_Step_step(int64_t l0) {
     int64_t t0;
-#line 305 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l0, INT64_C(1));
     return t0;
 }
@@ -2551,7 +2247,6 @@ static void* std_core_Range_Iterator_next__i64(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 294 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_inclusive;
     if (t0) {
         t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_done;
@@ -2562,14 +2257,11 @@ static void* std_core_Range_Iterator_next__i64(void* l0) {
             l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
             l1 = (l2 > l3);
         }
-#line 295 "lib/std/core/core.vader"
     } else {
         l2 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
         l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
         l1 = (l2 >= l3);
-#line 294 "lib/std/core/core.vader"
     }
-#line 298 "lib/std/core/core.vader"
     if (l1) {
         t1 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
         vader_struct___Tuple_i64_u8_87057322_t* _a0_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
@@ -2579,9 +2271,7 @@ static void* std_core_Range_Iterator_next__i64(void* l0) {
         t2 = (void*) _a0_obj;
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 299 "lib/std/core/core.vader"
     l2 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
-#line 300 "lib/std/core/core.vader"
     t0 = ((vader_struct_std_core_Range__i64_t*) l0)->f_inclusive;
     if (t0) {
         l3 = ((vader_struct_std_core_Range__i64_t*) l0)->f_end;
@@ -2590,9 +2280,7 @@ static void* std_core_Range_Iterator_next__i64(void* l0) {
         l1 = false;
     }
     if (l1) {
-#line 301 "lib/std/core/core.vader"
         ((vader_struct_std_core_Range__i64_t*) l0)->f_done = true;
-#line 305 "lib/std/core/core.vader"
         l4 = (uint8_t) 0;
         vader_struct___Tuple_i64_u8_87057322_t* _a1_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
         vader_obj_header_init(_a1_obj, 29u);
@@ -2600,13 +2288,10 @@ static void* std_core_Range_Iterator_next__i64(void* l0) {
         _a1_obj->f__1 = l4;
         t2 = (void*) _a1_obj;
         { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 300 "lib/std/core/core.vader"
     }
-#line 303 "lib/std/core/core.vader"
     t1 = ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor;
     l3 = std_core_i64_Step_step(t1);
     ((vader_struct_std_core_Range__i64_t*) l0)->f_cursor = l3;
-#line 305 "lib/std/core/core.vader"
     l4 = (uint8_t) 0;
     vader_struct___Tuple_i64_u8_87057322_t* _a2_obj = (vader_struct___Tuple_i64_u8_87057322_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i64_u8_87057322_t));
     vader_obj_header_init(_a2_obj, 29u);
@@ -2624,7 +2309,6 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2632,9 +2316,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -2646,46 +2328,29 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 136 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 137 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 138 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 136 "lib/std/core/primitives.vader"
     }
-#line 140 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 141 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 142 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 143 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 144 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 145 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 146 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
-#line 144 "lib/std/core/primitives.vader"
     }
-#line 148 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 149 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 150 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 151 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 152 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -2693,19 +2358,13 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 153 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 150 "lib/std/core/primitives.vader"
     }
-#line 155 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 156 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 155 "lib/std/core/primitives.vader"
     }
-#line 156 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
@@ -2715,7 +2374,6 @@ static vader_box_t std_async_sleep(int64_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 55 "lib/std/async/async.vader"
     vader_struct_std_async_Sleep_t* _a0_obj = (vader_struct_std_async_Sleep_t*) vader_gc_alloc(sizeof(vader_struct_std_async_Sleep_t));
     vader_obj_header_init(_a0_obj, 34u);
     _a0_obj->f_ms = l0;
@@ -2727,7 +2385,6 @@ static vader_box_t std_async_sleep(int64_t l0) {
 
 static int32_t std_async_run_async_main(vader_box_t l0) {
     int32_t t0;
-#line 68 "lib/std/async/async.vader"
     t0 = std_async_block_on__i32(l0);
     return t0;
 }
@@ -2740,33 +2397,25 @@ static vader_box_t std_async_Sleep_std_core_Async_resume(void* l0) {
     void** gc_raw_roots[2] = { &l0, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 39 "lib/std/async/async.vader"
     t0 = ((vader_struct_std_async_Sleep_t*) l0)->f_armed;
     if (!(t0)) {
-#line 40 "lib/std/async/async.vader"
         ((vader_struct_std_async_Sleep_t*) l0)->f_armed = true;
-#line 41 "lib/std/async/async.vader"
         l1 = vader_host_std_runtime_sched_now();
         l2 = ((vader_struct_std_async_Sleep_t*) l0)->f_ms;
         l1 = vader_chk_add(i64, l1, l2);
         ((vader_struct_std_async_Sleep_t*) l0)->f_deadline = l1;
-#line 42 "lib/std/async/async.vader"
         t1 = ((vader_struct_std_async_Sleep_t*) l0)->f_deadline;
         vader_host_std_runtime_sched_arm(t1);
-#line 39 "lib/std/async/async.vader"
     }
-#line 44 "lib/std/async/async.vader"
     l1 = vader_host_std_runtime_sched_now();
     l2 = ((vader_struct_std_async_Sleep_t*) l0)->f_deadline;
     if (!((l1 >= l2))) {
-#line 45 "lib/std/async/async.vader"
         t1 = ((vader_struct_std_async_Sleep_t*) l0)->f_deadline;
         vader_struct_std_core_Suspended_t* _a0_obj = (vader_struct_std_core_Suspended_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Suspended_t));
         vader_obj_header_init(_a0_obj, 15u);
         _a0_obj->f_wake_at = t1;
         t2 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 44 "lib/std/async/async.vader"
     }
     { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
 }
@@ -2777,26 +2426,18 @@ static int32_t std_async_block_on__i32(vader_box_t l0) {
     vader_box_t* gc_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots, NULL, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 80 "lib/std/async/async.vader"
     for (;;) {
-#line 81 "lib/std/async/async.vader"
         l1 = vader_vt_std_core_Async__resume(l0);
-#line 82 "lib/std/async/async.vader"
         if (l1.tag == 15u) {
-#line 83 "lib/std/async/async.vader"
             t0 = vader_host_std_runtime_sched_park();
             if (!(t0 == INT32_C(1))) {
                 continue;
             }
-#line 84 "lib/std/async/async.vader"
             vader_host_std_abort_panic(9u);
             vader_unreachable("a no-return call returned");
-#line 82 "lib/std/async/async.vader"
         }
-#line 80 "lib/std/async/async.vader"
         break;
     }
-#line 87 "lib/std/async/async.vader"
     t0 = ((int32_t) l1.payload.i);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2812,39 +2453,25 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
-#line 207 "lib/std/io/io.vader"
     l3 = INT64_C(0);
-#line 208 "lib/std/io/io.vader"
     for (;;) {
-#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
-#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 214 "lib/std/io/io.vader"
             }
-#line 217 "lib/std/io/io.vader"
             l9 = ((int64_t) (int32_t) l8);
             l3 = vader_chk_add(i64, l3, l9);
-#line 208 "lib/std/io/io.vader"
             continue;
-#line 209 "lib/std/io/io.vader"
         }
-#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -2853,14 +2480,10 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 178 "lib/std/io/io.vader"
     }
-#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2870,7 +2493,6 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 10u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -2892,7 +2514,6 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
     void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 459 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -2907,25 +2528,17 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s4;
-#line 464 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(4);
-#line 464 "lib/std/collections/collections.vader"
-#line 459 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(1);
-#line 464 "lib/std/collections/collections.vader"
                 }
-#line 459 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3;
-#line 464 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3 = l3;
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
@@ -2933,15 +2546,12 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         l6 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l5];
-#line 459 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
@@ -2952,7 +2562,6 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
                         t3 = (void*) _a2_obj;
-#line 459 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_bool_u8_82cf06c7_t));
                         vader_obj_header_init(_a3_obj, 38u);
                         _a3_obj->f__0 = t3;
@@ -2962,13 +2571,9 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 464 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s3 = INT64_C(0);
-#line 459 "lib/std/collections/collections.vader"
-#line 464 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s0)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s4 = l10;
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state;
@@ -2981,16 +2586,12 @@ static void* std_collections___gen_state_std_collections_0_Iterator_next(void* l
                             t3 = (void*) _a4_obj;
                             { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 462 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s0)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s1 = l11;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_0_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
-#line 463 "lib/std/collections/collections.vader"
                         l12 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s0)->f_evals;
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_s2 = l12;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_0_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_0_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -3015,7 +2616,6 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
     void** gc_raw_roots[7] = { &l0, &l4, &l7, &l11, &l12, &l13, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 7u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 459 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -3030,25 +2630,17 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s4;
-#line 464 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(4);
-#line 464 "lib/std/collections/collections.vader"
-#line 459 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(1);
-#line 464 "lib/std/collections/collections.vader"
                 }
-#line 459 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3;
-#line 464 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3 = l3;
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
@@ -3056,15 +2648,12 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         l6 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l5];
-#line 459 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
@@ -3074,7 +2663,6 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
                         t2 = (void*) _a2_obj;
-#line 459 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t* _a3_obj = (vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_i32_i32_u8_5cdd0c36_t));
                         vader_obj_header_init(_a3_obj, 42u);
                         _a3_obj->f__0 = t2;
@@ -3084,13 +2672,9 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 464 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s3 = INT64_C(0);
-#line 459 "lib/std/collections/collections.vader"
-#line 464 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s0)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s4 = l10;
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state;
@@ -3103,16 +2687,12 @@ static void* std_collections___gen_state_std_collections_1_Iterator_next(void* l
                             t2 = (void*) _a4_obj;
                             { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 462 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s0)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s1 = l11;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_1_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
-#line 463 "lib/std/collections/collections.vader"
                         l12 = ((vader_struct_std_collections_MutableMap__i32__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s0)->f_evals;
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_s2 = l12;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_1_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_1_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -3143,7 +2723,6 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
         vader_gc_top, 1u, 8u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 459 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -3158,25 +2737,17 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s4;
-#line 464 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(4);
-#line 464 "lib/std/collections/collections.vader"
-#line 459 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(1);
-#line 464 "lib/std/collections/collections.vader"
                 }
-#line 459 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
-#line 464 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3 = l3;
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
@@ -3184,16 +2755,13 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         t2 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
                         l6 = t2.payload.s;
-#line 459 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
@@ -3203,7 +2771,6 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
                         t3 = (void*) _a2_obj;
-#line 459 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_string_Array_string_u8_94c0c8a0_t* _a3_obj = (vader_struct___Tuple_Tuple_string_Array_string_u8_94c0c8a0_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_Array_string_u8_94c0c8a0_t));
                         vader_obj_header_init(_a3_obj, 47u);
                         _a3_obj->f__0 = t3;
@@ -3213,13 +2780,9 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 464 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s3 = INT64_C(0);
-#line 459 "lib/std/collections/collections.vader"
-#line 464 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__string__string___t*) ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s0)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s4 = l10;
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state;
@@ -3232,16 +2795,12 @@ static void* std_collections___gen_state_std_collections_2_Iterator_next(void* l
                             t3 = (void*) _a4_obj;
                             { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 462 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__string__string___t*) ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s0)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s1 = l11;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_2_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
-#line 463 "lib/std/collections/collections.vader"
                         l12 = ((vader_struct_std_collections_MutableMap__string__string___t*) ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s0)->f_evals;
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_s2 = l12;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_2_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_2_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -3272,7 +2831,6 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
         vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 459 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -3287,25 +2845,17 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s4;
-#line 464 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(4);
-#line 464 "lib/std/collections/collections.vader"
-#line 459 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(1);
-#line 464 "lib/std/collections/collections.vader"
                 }
-#line 459 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3;
-#line 464 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3 = l3;
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
@@ -3313,16 +2863,13 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         t2 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
                         l6 = t2.payload.s;
-#line 459 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
@@ -3332,7 +2879,6 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
                         t3 = (void*) _a2_obj;
-#line 459 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t* _a3_obj = (vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i32_u8_c0f70799_t));
                         vader_obj_header_init(_a3_obj, 51u);
                         _a3_obj->f__0 = t3;
@@ -3342,13 +2888,9 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 464 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s3 = INT64_C(0);
-#line 459 "lib/std/collections/collections.vader"
-#line 464 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__string__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s0)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s4 = l10;
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state;
@@ -3361,16 +2903,12 @@ static void* std_collections___gen_state_std_collections_3_Iterator_next(void* l
                             t3 = (void*) _a4_obj;
                             { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 462 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__string__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s0)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s1 = l11;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_3_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
-#line 463 "lib/std/collections/collections.vader"
                         l12 = ((vader_struct_std_collections_MutableMap__string__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s0)->f_evals;
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_s2 = l12;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_3_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_3_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -3400,7 +2938,6 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
         vader_gc_top, 1u, 7u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 459 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -3415,25 +2952,17 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s4;
-#line 464 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(4);
-#line 464 "lib/std/collections/collections.vader"
-#line 459 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(1);
-#line 464 "lib/std/collections/collections.vader"
                 }
-#line 459 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3;
-#line 464 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3 = l3;
-#line 459 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state;
@@ -3441,16 +2970,13 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         t2 = vader_array_box_slots(_a0_slotarr->buf)[_a0_slotarr->offset + (size_t) l5];
                         l6 = t2.payload.s;
-#line 459 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s2;
                         l8 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3;
-#line 465 "lib/std/collections/collections.vader"
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l7);
                         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l8)
@@ -3460,7 +2986,6 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
                         _a2_obj->f__0 = l6;
                         _a2_obj->f__1 = l9;
                         t3 = (void*) _a2_obj;
-#line 459 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_Tuple_string_i64_u8_bbfc49cc_t* _a3_obj = (vader_struct___Tuple_Tuple_string_i64_u8_bbfc49cc_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_Tuple_string_i64_u8_bbfc49cc_t));
                         vader_obj_header_init(_a3_obj, 55u);
                         _a3_obj->f__0 = t3;
@@ -3470,13 +2995,9 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 464 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s3 = INT64_C(0);
-#line 459 "lib/std/collections/collections.vader"
-#line 464 "lib/std/collections/collections.vader"
                         l10 = ((vader_struct_std_collections_MutableMap__string__i64_t*) ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s0)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s4 = l10;
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state;
@@ -3489,16 +3010,12 @@ static void* std_collections___gen_state_std_collections_4_Iterator_next(void* l
                             t3 = (void*) _a4_obj;
                             { void* __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 462 "lib/std/collections/collections.vader"
                         l11 = ((vader_struct_std_collections_MutableMap__string__i64_t*) ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s0)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s1 = l11;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_4_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
-#line 463 "lib/std/collections/collections.vader"
                         l12 = ((vader_struct_std_collections_MutableMap__string__i64_t*) ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s0)->f_evals;
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_s2 = l12;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_4_t*) l0);
-#line 459 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_4_t*) l0)->f_state = INT32_C(5);
                     }
                 }
@@ -3519,7 +3036,6 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
     void** gc_raw_roots[4] = { &l0, &l4, &l7, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 523 "lib/std/collections/collections.vader"
     for (;;) {
         t0 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state;
         if (t0 == INT32_C(0)) {
@@ -3534,25 +3050,17 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
             if (t0 == INT32_C(2)) {
                 l1 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s2;
                 l2 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s3;
-#line 526 "lib/std/collections/collections.vader"
                 if ((l1 < l2)) {
-#line 523 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(4);
-#line 526 "lib/std/collections/collections.vader"
-#line 523 "lib/std/collections/collections.vader"
                 } else {
                     ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(1);
-#line 526 "lib/std/collections/collections.vader"
                 }
-#line 523 "lib/std/collections/collections.vader"
             } else {
                 t0 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state;
                 if (t0 == INT32_C(3)) {
                     t1 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s2;
-#line 526 "lib/std/collections/collections.vader"
                     l3 = (t1 + INT64_C(1));
                     ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s2 = l3;
-#line 523 "lib/std/collections/collections.vader"
                     ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(2);
                 } else {
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state;
@@ -3560,12 +3068,10 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(3);
                         l4 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s1;
                         l5 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s2;
-#line 527 "lib/std/collections/collections.vader"
                         vader_array_t* _a0_slotarr = ((vader_array_t*) l4);
                         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
                         t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l5];
-#line 523 "lib/std/collections/collections.vader"
                         vader_struct___Tuple_i32_u8_99ae0d29_t* _a1_obj = (vader_struct___Tuple_i32_u8_99ae0d29_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_i32_u8_99ae0d29_t));
                         vader_obj_header_init(_a1_obj, 7u);
                         _a1_obj->f__0 = t0;
@@ -3575,13 +3081,9 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
                     }
                     t0 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state;
                     if (t0 == INT32_C(5)) {
-#line 526 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s2 = INT64_C(0);
-#line 523 "lib/std/collections/collections.vader"
-#line 526 "lib/std/collections/collections.vader"
                         l6 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s0)->f_inner)->f_size;
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s3 = l6;
-#line 523 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(2);
                     } else {
                         t0 = ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state;
@@ -3593,11 +3095,9 @@ static void* std_collections___gen_state_std_collections_5_Iterator_next(void* l
                             t2 = (void*) _a2_obj;
                             { void* __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
                         }
-#line 525 "lib/std/collections/collections.vader"
                         l7 = ((vader_struct_std_collections_MutableMap__i32__bool_t*) ((vader_struct_std_collections_MutableSet__i32_t*) ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s0)->f_inner)->f_ekeys;
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_s1 = l7;
                         VADER_WRITE_BARRIER((vader_struct_std_collections___gen_state_std_collections_5_t*) l0);
-#line 523 "lib/std/collections/collections.vader"
                         ((vader_struct_std_collections___gen_state_std_collections_5_t*) l0)->f_state = INT32_C(5);
                     }
                 }

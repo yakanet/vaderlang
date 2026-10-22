@@ -44,7 +44,6 @@ const size_t vader_type_info_count = 6;
 
 static int32_t snippet_count_fields(void* l0) {
     int64_t t0;
-#line 10 "tests/snippets/field_from_core_not_libs/_main.vader"
     t0 = ((vader_array_t*) l0)->length;
     return ((int32_t) (int64_t) t0);
 }
@@ -55,7 +54,6 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 12 "tests/snippets/field_from_core_not_libs/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(1u, 0u, 13u, 2u);
     t0 = (void*) _a0_arr;
     t1 = snippet_count_fields(t0);

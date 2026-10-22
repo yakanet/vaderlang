@@ -31,10 +31,7 @@ import "vader/diagnostics"
 import "vader/effects"
 import "std/collections"
 import "toolchain/ast"
-import "vader/c_emit" {
-    EmitOptions as CEmitOptions,
-    default_emit_options as default_c_emit_options,
-}
+import "vader/c_emit"
 Prof :: import "vader/profile"
 
 // ----------------------------------------------------------- dump
@@ -49,6 +46,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
     }
     stage :: parsed.string_flag("stage", "")
     annotate :: parsed.bool_flag("annotate")
+    line_directives :: parsed.bool_flag("line-directives")
     file :: parsed.action_file()
     // `--module=a,b` scopes the module-filtered text dumps (resolver / typecheck
     // / comptime / lower / cfg) to those modules + their submodules ; empty =
@@ -110,7 +108,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return run_ranges_stage(file, module_filter, include_path_flags, target)
     }
     if stage == "c" {
-        return run_c_stage(file, include_path_flags, target)
+        return run_c_stage(file, line_directives, include_path_flags, target)
     }
     if stage == "dced-ast" {
         return run_dced_stage(file, module_filter, include_path_flags, target)
@@ -390,10 +388,14 @@ run_bytecode_stage :: fn(
     return 0
 }
 
-run_c_stage :: fn(file: Path, include_path_flags: string[], target: Target | null) -> i32 {
-    // `dump --stage=c` is a non-release C view : populate `debug` so the
-    // emitted C carries `#line` (matches a debug `build --target=c`).
-    b :: prepare_cfg_bytecode_with(file, true, include_path_flags, target, false, proves_bounds(false))
+run_c_stage :: fn(
+    file: Path, line_directives: bool, include_path_flags: string[], target: Target | null,
+) -> i32 {
+    // `dump --stage=c` is a non-release C view. The C carries a `#line` wherever
+    // the bytecode records a position, so `want_debug` is the switch.
+    b :: prepare_cfg_bytecode_with(
+        file, line_directives, include_path_flags, target, false, proves_bounds(false),
+    )
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
@@ -406,7 +408,7 @@ run_c_stage :: fn(file: Path, include_path_flags: string[], target: Target | nul
     // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) so the output isn't double-newlined.
-    print(emit_c(b.module, native_c_options(false, b.entry)))
+    print(emit_c(b.module, native_c_options(b.entry)))
     // Diagnostics go to STDERR here, unlike every other dump stage: this stage's
     // stdout is C source that gets fed straight to a compiler, so a `# Diagnostics`
     // block appended to it is read as a preprocessor directive and the build dies.

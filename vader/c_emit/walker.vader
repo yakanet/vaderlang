@@ -200,8 +200,8 @@ op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
-/// with a deduped `#line` directive (debug builds only) before each op whose
-/// source position differs from the previous one, then assembles a `CFunction`
+/// with a deduped `#line` directive before each op whose source position
+/// differs from the previous one, then assembles a `CFunction`
 /// : the prologue (local + temp declarations, then the GC frame, for a fn
 /// that `needs_frame`) above the body.
 function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> CFunction {
@@ -225,14 +225,14 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
             s.drop_call_result = false
             continue
         }
-        if !ctx.release {
-            dbg :: function.debug[i]
-            if dbg != null {
-                if dbg.line != last_line || dbg.file != last_file {
-                    directive(s, "#line ${dbg.line} ${c_string_lit(dbg.file)}")
-                    last_line = dbg.line
-                    last_file = dbg.file
-                }
+        // Positions are recorded only when `#line` is wanted (`want_debug`), so a
+        // null entry is the whole switch.
+        dbg :: function.debug[i]
+        if dbg != null {
+            if dbg.line != last_line || dbg.file != last_file {
+                directive(s, "#line ${dbg.line} ${c_string_lit(dbg.file)}")
+                last_line = dbg.line
+                last_file = dbg.file
             }
         }
         // Look ahead : a value-returning direct call consumed by the next op's

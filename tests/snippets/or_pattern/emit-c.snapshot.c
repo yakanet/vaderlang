@@ -32,11 +32,9 @@ const size_t vader_type_info_count = 7;
 
 static bool snippet_can_go(uint8_t l0) {
     bool l1;
-#line 7 "tests/snippets/or_pattern/_main.vader"
     if (l0 == INT32_C(2)) {
         return true;
     }
-#line 8 "tests/snippets/or_pattern/_main.vader"
     if (l0 == INT32_C(0)) {
         l1 = true;
     } else {
@@ -48,9 +46,7 @@ static bool snippet_can_go(uint8_t l0) {
         l1 = l0 == INT32_C(3);
     }
     if (!(l1)) {
-#line 6 "tests/snippets/or_pattern/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 8 "tests/snippets/or_pattern/_main.vader"
     }
     return false;
 }
@@ -58,7 +54,6 @@ static bool snippet_can_go(uint8_t l0) {
 static int32_t snippet_points(int32_t l0) {
     int32_t l1;
     bool l2;
-#line 13 "tests/snippets/or_pattern/_main.vader"
     if (l0 == INT32_C(1)) {
         l2 = true;
     } else {
@@ -66,11 +61,8 @@ static int32_t snippet_points(int32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(10);
-#line 12 "tests/snippets/or_pattern/_main.vader"
         return l1;
-#line 13 "tests/snippets/or_pattern/_main.vader"
     }
-#line 14 "tests/snippets/or_pattern/_main.vader"
     if (l0 == INT32_C(2)) {
         l2 = true;
     } else {
@@ -83,25 +75,18 @@ static int32_t snippet_points(int32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(5);
-#line 15 "tests/snippets/or_pattern/_main.vader"
     } else {
         l1 = INT32_C(0);
-#line 14 "tests/snippets/or_pattern/_main.vader"
     }
-#line 12 "tests/snippets/or_pattern/_main.vader"
     return l1;
 }
 
 static int32_t snippet_kind(vader_box_t l0) {
-#line 22 "tests/snippets/or_pattern/_main.vader"
     if ((l0.tag == 2u || l0.tag == 3u)) {
         return INT32_C(1);
     }
-#line 23 "tests/snippets/or_pattern/_main.vader"
     if (!(l0.tag == 5u)) {
-#line 21 "tests/snippets/or_pattern/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 23 "tests/snippets/or_pattern/_main.vader"
     }
     return INT32_C(2);
 }
@@ -110,21 +95,18 @@ static int32_t snippet_main(void) {
     int32_t l0, l1;
     bool t0;
     int32_t t1;
-#line 27 "tests/snippets/or_pattern/_main.vader"
     t0 = snippet_can_go((uint8_t) 2);
     if (t0) {
         l0 = INT32_C(100);
     } else {
         l0 = INT32_C(0);
     }
-#line 28 "tests/snippets/or_pattern/_main.vader"
     t0 = snippet_can_go((uint8_t) 0);
     if (t0) {
         l1 = INT32_C(0);
     } else {
         l1 = INT32_C(10);
     }
-#line 29 "tests/snippets/or_pattern/_main.vader"
     l0 = vader_chk_add(i32, l0, l1);
     l1 = snippet_points(INT32_C(6));
     l0 = vader_chk_add(i32, l0, l1);

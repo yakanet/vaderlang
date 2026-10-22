@@ -261,6 +261,11 @@ DUMP_FLAGS: FlagSpec[]: [
         .kind = .Bool,
         .help = "bytecode only: resolve table indices inline as comments — a disassembly view, NOT re-parsable",
     },
+    FlagSpec {
+        .name = "line-directives",
+        .kind = .Bool,
+        .help = "c only: keep the `#line` directives that map the C back to the Vader source",
+    },
 ]
 
 // `fmt`'s two flags. They lived in `vader/fmt/cli.vader`'s own hand-rolled

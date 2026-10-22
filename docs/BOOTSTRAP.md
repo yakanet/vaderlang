@@ -473,10 +473,9 @@ VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
 # Emit the seed source (build-only entrypoint) straight to its tracked path.
 # `cmd_build --emit=c` must be wired — see the Blocking prerequisite.
-# --release keeps `#line` out of the seed (c-emit gates them on !release) — the
-# seed is a bootstrap artifact and a populated debug table would otherwise bloat
-# it with tens of thousands of `#line` lines. For --emit=c, --release only
-# drops `#line`.
+# --release keeps `#line` out of the seed (c-emit writes them only in a debug
+# build): the seed is a bootstrap artifact and a populated debug table would
+# otherwise bloat it with tens of thousands of `#line` lines.
 "$VADER" build vader/bootstrap/bootstrap.vader --release --emit=c \
     --seed-targets="$SEED_TARGETS" --out=bootstrap/seed/bootstrap
 

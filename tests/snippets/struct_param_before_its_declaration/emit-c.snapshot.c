@@ -30,7 +30,6 @@ const size_t vader_type_info_count = 3;
 
 static int32_t snippet_handle(void* l0) {
     int32_t t0;
-#line 9 "tests/snippets/struct_param_before_its_declaration/_main.vader"
     t0 = ((vader_struct_snippet_Box_t*) l0)->f_v;
     return t0;
 }
@@ -41,7 +40,6 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 14 "tests/snippets/struct_param_before_its_declaration/_main.vader"
     vader_struct_snippet_Box_t* _a0_obj = (vader_struct_snippet_Box_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Box_t));
     vader_obj_header_init(_a0_obj, 1u);
     _a0_obj->f_v = INT32_C(7);

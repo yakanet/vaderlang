@@ -363,7 +363,7 @@ export prepare_cfg_bytecode_from :: fn(
     back_end_diags: Diagnostic[]: []
     if verify { verify_lowered(pruned, "prune_unreachable_fns", back_end_diags) }
     // `want_debug` populates the per-op `debug` table only when the emitted C
-    // will keep `#line` (non-release c-emit / `dump --stage=c`) ; the VM /
+    // will keep `#line` (non-release c-emit / `dump --stage=c --line-directives`) ; the VM /
     // bytecode-dump callers pass false to skip the per-op DebugPos alloc.
     opts :: EmitOptions {
         .optimize = true,

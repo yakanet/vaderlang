@@ -317,6 +317,8 @@ export const SNAPSHOT_TARGET = "linux-x86_64";
 
 /** The emitted C, pinned to `SNAPSHOT_TARGET` as every stage is. */
 export async function dumpCViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
+  // No `--line-directives`: most `#line` name a stdlib line, so every edit there
+  // would move them in hundreds of snapshots without the C changing.
   return runVaderDump("c", entryPath);
 }
 

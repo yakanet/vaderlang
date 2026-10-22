@@ -28,7 +28,7 @@ import "vader/vm"
 import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
-import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+import "vader/c_emit" { EmitOptions as CEmitOptions }
 Prof :: import "vader/profile"
 import "std/sort"
 
@@ -210,7 +210,7 @@ emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], tar
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
     // which has its own `main`) flags several fns `is_main`.
     Prof.prof_begin(.CEmit)
-    c :: emit_c(b.module, native_c_options(release, b.entry))
+    c :: emit_c(b.module, native_c_options(b.entry))
     Prof.prof_end(.CEmit)
     // End of the compile pipeline — emit the per-pass profile (no-op unless
     // $VADER_PROFILE is set ; idempotent if the atexit fallback also fires).
@@ -284,7 +284,7 @@ build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: s
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
 emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null =
     if file.extension() == "virt" {
-        emit_c_source_from_virt(file, release)
+        emit_c_source_from_virt(file)
     } else {
         emit_c_source(file, release, include_path_flags, target, verify)
     }
@@ -292,7 +292,7 @@ emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], 
 // Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
 // the C-emit. The entry fn is the module's `is_main` function (recovered from
 // the dump's `export main N` directive).
-emit_c_source_from_virt :: fn(file: Path, release: bool) -> string | null {
+emit_c_source_from_virt :: fn(file: Path) -> string | null {
     src :: read_file_string(file.as_string())
     if src is IOError {
         eprintln("vader build: cannot read ${file}")
@@ -303,10 +303,7 @@ emit_c_source_from_virt :: fn(file: Path, release: bool) -> string | null {
         eprintln(module.display_virt_parse_error("vader build", file.as_string()))
         return null
     }
-    return emit_c(module, CEmitOptions {
-        .release = release,
-        .entry_mangled = virt_entry_mangled(module),
-    })
+    return emit_c(module, native_c_options(virt_entry_mangled(module)))
 }
 
 // Mangled name of the entry fn (the `is_main` function), or `""` when none.
@@ -441,7 +438,7 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
     // The `#include` name is the header's basename (split TUs sit next to it) —
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
-    return emit_c_split(b.module, native_c_options(release, b.entry), header_name)
+    return emit_c_split(b.module, native_c_options(b.entry), header_name)
 }
 
 /// Emit the split C for SEVERAL targets against one shared atom universe.
@@ -509,7 +506,7 @@ emit_c_for_targets :: fn(
             emit_c_split(
                 rebase_types(mods[i].module, type_keys[i], type_universe),
                 CEmitOptions {
-                    ...native_c_options(release, mods[i].entry),
+                    ...native_c_options(mods[i].entry),
                     .atom_universe = universe,
                 },
                 header_name,

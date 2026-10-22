@@ -16,7 +16,6 @@ const vader_type_info_t vader_type_info_table[2] = { [1] = { .slot_size = 4 } };
 const size_t vader_type_info_count = 2;
 
 static int32_t snippet_main(void) {
-#line 8 "tests/snippets/return_42/_main.vader"
     return INT32_C(42);
 }
 

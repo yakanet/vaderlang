@@ -32,9 +32,7 @@ static int32_t snippet_sum_ids(void* l0) {
     void* l2;
     int64_t l3, l4;
     int64_t t0;
-#line 18 "tests/snippets/_diag_distinct_collections/_main.vader"
     l1 = INT32_C(0);
-#line 19 "tests/snippets/_diag_distinct_collections/_main.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = INT64_C(0);
@@ -47,18 +45,14 @@ static int32_t snippet_sum_ids(void* l0) {
         l1 = vader_chk_add(i32, l1, l5);
         l4 = (l4 + INT64_C(1));
     }
-#line 20 "tests/snippets/_diag_distinct_collections/_main.vader"
     return l1;
 }
 
 static int32_t snippet_unwrap_or(vader_box_t l0, int32_t l1) {
     int64_t t0;
-#line 24 "tests/snippets/_diag_distinct_collections/_main.vader"
     if (!(l0.tag == 0u)) {
-#line 25 "tests/snippets/_diag_distinct_collections/_main.vader"
         t0 = ((int64_t) l0.payload.i);
         return ((int32_t) (int64_t) t0);
-#line 24 "tests/snippets/_diag_distinct_collections/_main.vader"
     }
     return l1;
 }
@@ -70,14 +64,11 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 29 "tests/snippets/_diag_distinct_collections/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(1u, 2u, 8u, 2u);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int64_t) INT64_C(20);
     ((int64_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int64_t) INT64_C(10);
     l0 = (void*) _a0_arr;
-#line 30 "tests/snippets/_diag_distinct_collections/_main.vader"
     l1 = snippet_unwrap_or(vader_box_i64(2u, INT64_C(12)), INT32_C(-1));
-#line 31 "tests/snippets/_diag_distinct_collections/_main.vader"
     t0 = snippet_sum_ids(l0);
     t1 = vader_chk_add(i32, t0, l1);
     { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }

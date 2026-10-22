@@ -361,67 +361,45 @@ static int32_t snippet_main(void) {
         vader_gc_top, 4u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 12 "tests/snippets/semver_basic/_main.vader"
     l0 = semver_parse(1u);
     l1 = l0;
-#line 13 "tests/snippets/semver_basic/_main.vader"
     if (l0.tag == 3u) {
-#line 14 "tests/snippets/semver_basic/_main.vader"
         t0 = l1.payload.obj;
         t1 = semver_Version_std_core_Display_to_string(t0);
         std_io_println__string(t1);
-#line 15 "tests/snippets/semver_basic/_main.vader"
         l2 = snippet_parse_one(2u);
-#line 16 "tests/snippets/semver_basic/_main.vader"
         t0 = l1.payload.obj;
         t2 = semver_Version_std_core_Comparable_compare(t0, l2);
         if ((t2 > INT32_C(0))) {
             std_io_println__string(3u);
         }
-#line 17 "tests/snippets/semver_basic/_main.vader"
         l3 = semver_parse_range(4u);
         l4 = l3;
-#line 18 "tests/snippets/semver_basic/_main.vader"
         if (l3.tag == 15u) {
-#line 19 "tests/snippets/semver_basic/_main.vader"
             l2 = snippet_parse_one(5u);
-#line 20 "tests/snippets/semver_basic/_main.vader"
             t0 = l4.payload.obj;
             t3 = semver_VersionRange_std_core_Contains_contains(t0, l2);
             if (t3) {
                 std_io_println__string(6u);
             }
-#line 33 "tests/snippets/semver_basic/_main.vader"
             { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 18 "tests/snippets/semver_basic/_main.vader"
         }
-#line 22 "tests/snippets/semver_basic/_main.vader"
         if (!(l3.tag == 13u)) {
-#line 17 "tests/snippets/semver_basic/_main.vader"
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 22 "tests/snippets/semver_basic/_main.vader"
         }
-#line 23 "tests/snippets/semver_basic/_main.vader"
         t0 = l4.payload.obj;
         l5 = std_string_ParseError_std_core_Error_message(t0);
         t1 = concat_2(7u, l5);
         std_io_eprintln__string(t1);
-#line 24 "tests/snippets/semver_basic/_main.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
-#line 13 "tests/snippets/semver_basic/_main.vader"
     }
-#line 28 "tests/snippets/semver_basic/_main.vader"
     if (!(l0.tag == 13u)) {
-#line 12 "tests/snippets/semver_basic/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 28 "tests/snippets/semver_basic/_main.vader"
     }
-#line 29 "tests/snippets/semver_basic/_main.vader"
     t0 = l1.payload.obj;
     l5 = std_string_ParseError_std_core_Error_message(t0);
     t1 = concat_2(8u, l5);
     std_io_eprintln__string(t1);
-#line 30 "tests/snippets/semver_basic/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
 }
 
@@ -435,21 +413,15 @@ static void* snippet_parse_one(vader_string_t l0) {
         vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 37 "tests/snippets/semver_basic/_main.vader"
     l1 = semver_parse(l0);
     l2 = l1;
-#line 38 "tests/snippets/semver_basic/_main.vader"
     if (l1.tag == 3u) {
         t0 = l2.payload.obj;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 39 "tests/snippets/semver_basic/_main.vader"
     if (!(l1.tag == 13u)) {
-#line 37 "tests/snippets/semver_basic/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 39 "tests/snippets/semver_basic/_main.vader"
     }
-#line 40 "tests/snippets/semver_basic/_main.vader"
     vader_struct_semver_Version_t* _a0_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_major = INT32_C(0);
@@ -489,49 +461,33 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     int64_t t0;
     bool t1;
     int32_t t2;
-#line 85 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(194))) {
         l3 = true;
     } else {
         l3 = (l1 > INT32_C(244));
     }
     if (l3) {
-#line 86 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 85 "lib/std/core/utf8.vader"
     }
-#line 88 "lib/std/core/utf8.vader"
     l4 = vader_host_std_core_byte_len(l0);
-#line 89 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(1));
     if ((t0 >= l4)) {
-#line 90 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 89 "lib/std/core/utf8.vader"
     }
-#line 92 "lib/std/core/utf8.vader"
     l5 = vader_chk_add(i64, l2, INT64_C(1));
     l6 = vader_host_std_core_byte_at(l0, l5);
-#line 93 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l6);
     if (!(t1)) {
-#line 94 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 93 "lib/std/core/utf8.vader"
     }
-#line 96 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(224))) {
-#line 97 "lib/std/core/utf8.vader"
         t2 = ((((int32_t) (uint8_t) l1) & INT32_C(31)) << INT32_C(6));
         l7 = (uint32_t) (int32_t) t2;
         t2 = (((int32_t) (uint8_t) l6) & INT32_C(63));
         l8 = (uint32_t) (int32_t) t2;
         *__o1 = INT64_C(2); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
-#line 96 "lib/std/core/utf8.vader"
     }
-#line 102 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(240))) {
-#line 103 "lib/std/core/utf8.vader"
         if (l1 == INT32_C(224)) {
             l3 = (l6 < INT32_C(160));
         } else {
@@ -548,12 +504,8 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
             l3 = l9;
         }
         if (l3) {
-#line 104 "lib/std/core/utf8.vader"
             *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 103 "lib/std/core/utf8.vader"
         }
-#line 102 "lib/std/core/utf8.vader"
-#line 106 "lib/std/core/utf8.vader"
     } else {
         if (l1 == INT32_C(240)) {
             l3 = (l6 < INT32_C(144));
@@ -571,32 +523,20 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
             l3 = l9;
         }
         if (l3) {
-#line 107 "lib/std/core/utf8.vader"
             *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 106 "lib/std/core/utf8.vader"
         }
-#line 102 "lib/std/core/utf8.vader"
     }
-#line 109 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(2));
     if ((t0 >= l4)) {
-#line 110 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
-#line 109 "lib/std/core/utf8.vader"
     }
-#line 112 "lib/std/core/utf8.vader"
     l5 = vader_chk_add(i64, l2, INT64_C(2));
     l10 = vader_host_std_core_byte_at(l0, l5);
-#line 113 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l10);
     if (!(t1)) {
-#line 114 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
-#line 113 "lib/std/core/utf8.vader"
     }
-#line 116 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(240))) {
-#line 117 "lib/std/core/utf8.vader"
         t2 = ((((int32_t) (uint8_t) l1) & INT32_C(15)) << INT32_C(12));
         l7 = (uint32_t) (int32_t) t2;
         t2 = ((((int32_t) (uint8_t) l6) & INT32_C(63)) << INT32_C(6));
@@ -606,26 +546,17 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         t2 = (((int32_t) (uint8_t) l10) & INT32_C(63));
         l8 = (uint32_t) (int32_t) t2;
         *__o1 = INT64_C(3); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
-#line 116 "lib/std/core/utf8.vader"
     }
-#line 119 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(3));
     if ((t0 >= l4)) {
-#line 120 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
-#line 119 "lib/std/core/utf8.vader"
     }
-#line 122 "lib/std/core/utf8.vader"
     l4 = vader_chk_add(i64, l2, INT64_C(3));
     l11 = vader_host_std_core_byte_at(l0, l4);
-#line 123 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l11);
     if (!(t1)) {
-#line 124 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
-#line 123 "lib/std/core/utf8.vader"
     }
-#line 126 "lib/std/core/utf8.vader"
     t2 = ((((int32_t) (uint8_t) l1) & INT32_C(7)) << INT32_C(18));
     l7 = (uint32_t) (int32_t) t2;
     t2 = ((((int32_t) (uint8_t) l6) & INT32_C(63)) << INT32_C(12));
@@ -636,16 +567,12 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     l8 = (uint32_t) (int32_t) t2;
     t2 = (l7 | l8);
     l7 = (uint32_t) (int32_t) t2;
-#line 127 "lib/std/core/utf8.vader"
     t2 = (((int32_t) (uint8_t) l11) & INT32_C(63));
     l8 = (uint32_t) (int32_t) t2;
-#line 126 "lib/std/core/utf8.vader"
-#line 128 "lib/std/core/utf8.vader"
     *__o1 = INT64_C(4); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
 }
 
 static bool std_core_is_utf8_continuation(uint8_t l0) {
-#line 23 "lib/std/core/utf8.vader"
     return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
@@ -656,19 +583,13 @@ static void std_core_codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* 
     bool l5;
     uint32_t t0;
     int64_t t1;
-#line 69 "lib/std/core/utf8.vader"
     l2 = vader_host_std_core_byte_at(l0, l1);
-#line 70 "lib/std/core/utf8.vader"
     if ((l2 < INT32_C(128))) {
-#line 71 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = ((uint32_t) (uint8_t) l2); return;
-#line 70 "lib/std/core/utf8.vader"
     }
-#line 73 "lib/std/core/utf8.vader"
     std_core_decode_tail(l0, l2, l1, &t0, &t1);
     l4 = t1;
     l3 = t0;
-#line 74 "lib/std/core/utf8.vader"
     if ((l3 > INT32_C(55295))) {
         if ((l3 < INT32_C(57344))) {
             l5 = true;
@@ -693,7 +614,6 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -701,9 +621,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -715,46 +633,29 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 136 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 137 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 138 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 136 "lib/std/core/primitives.vader"
     }
-#line 140 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 141 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 142 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 143 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 144 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 145 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 146 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
-#line 144 "lib/std/core/primitives.vader"
     }
-#line 148 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 149 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 150 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 151 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 152 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -762,19 +663,13 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 153 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 150 "lib/std/core/primitives.vader"
     }
-#line 155 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 156 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 155 "lib/std/core/primitives.vader"
     }
-#line 156 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
@@ -800,7 +695,6 @@ static vader_box_t semver_parse(vader_string_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -809,89 +703,62 @@ static vader_box_t semver_parse(vader_string_t l0) {
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 99 "lib/semver/semver.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 103 "lib/semver/semver.vader"
     l2 = l1;
-#line 104 "lib/semver/semver.vader"
     l3 = INT64_C(0);
     while ((l3 < l1)) {
-#line 105 "lib/semver/semver.vader"
         t2 = vader_host_std_core_byte_at(l0, l3);
         if (t2 == INT32_C(43)) {
             l2 = l3;
         }
-#line 104 "lib/semver/semver.vader"
         l3 = (l3 + INT64_C(1));
     }
-#line 112 "lib/semver/semver.vader"
     l3 = l2;
-#line 113 "lib/semver/semver.vader"
     l4 = INT32_C(0);
-#line 114 "lib/semver/semver.vader"
     l5 = INT64_C(0);
     l6 = l2;
     while ((l5 < l6)) {
-#line 115 "lib/semver/semver.vader"
         l7 = vader_host_std_core_byte_at(l0, l5);
-#line 116 "lib/semver/semver.vader"
         if (l7 == INT32_C(46)) {
             l4 = vader_chk_add(i32, l4, INT32_C(1));
-#line 117 "lib/semver/semver.vader"
         } else if (l7 == INT32_C(45)) {
             if ((l4 >= INT32_C(2))) {
-#line 118 "lib/semver/semver.vader"
                 l3 = l5;
-#line 119 "lib/semver/semver.vader"
                 break;
-#line 117 "lib/semver/semver.vader"
             }
         }
-#line 116 "lib/semver/semver.vader"
-#line 114 "lib/semver/semver.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 123 "lib/semver/semver.vader"
     if ((l3 < l2)) {
         l5 = l3;
     } else {
         l5 = l2;
     }
-#line 124 "lib/semver/semver.vader"
     l8 = vader_host_std_core_byte_slice(l0, INT64_C(0), l5);
-#line 125 "lib/semver/semver.vader"
     if ((l3 < l2)) {
         l5 = vader_chk_add(i64, l3, INT64_C(1));
         l9 = vader_host_std_core_byte_slice(l0, l5, l2);
     } else {
         l9 = 0u;
     }
-#line 126 "lib/semver/semver.vader"
     if ((l2 < l1)) {
         l5 = vader_chk_add(i64, l2, INT64_C(1));
         l10 = vader_host_std_core_byte_slice(l0, l5, l1);
     } else {
         l10 = 0u;
     }
-#line 130 "lib/semver/semver.vader"
     vader_array_t* _a1_arr = vader_array_new(28u, 3u, 7u, 1u);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 2u] = (int32_t) INT32_C(0);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 1u] = (int32_t) INT32_C(0);
     ((int32_t*) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = (int32_t) INT32_C(0);
     l11 = (void*) _a1_arr;
-#line 131 "lib/semver/semver.vader"
     l5 = INT64_C(0);
-#line 132 "lib/semver/semver.vader"
     l6 = INT64_C(0);
-#line 133 "lib/semver/semver.vader"
     l12 = vader_host_std_core_byte_len(l8);
-#line 134 "lib/semver/semver.vader"
     l13 = INT64_C(0);
     while ((l13 < l12)) {
-#line 135 "lib/semver/semver.vader"
         t2 = vader_host_std_core_byte_at(l8, l13);
         if (t2 == INT32_C(46)) {
-#line 136 "lib/semver/semver.vader"
             if ((l5 >= INT64_C(3))) {
                 vader_struct_std_string_ParseError_t* _a2_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
                 vader_obj_header_init(_a2_obj, 13u);
@@ -899,28 +766,19 @@ static vader_box_t semver_parse(vader_string_t l0) {
                 t1 = (void*) _a2_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
-#line 137 "lib/semver/semver.vader"
             t3 = vader_host_std_core_byte_slice(l8, l6, l13);
-#line 138 "lib/semver/semver.vader"
             l14 = semver_parse_numeric_id(t3);
-#line 140 "lib/semver/semver.vader"
             if (l14.tag == 1u) {
                 l4 = ((int32_t) l14.payload.i);
                 vader_array_t* _a3_slotarr = ((vader_array_t*) l11);
                 VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l5)
                 ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l5] = (int32_t) l4;
-#line 143 "lib/semver/semver.vader"
                 l5 = vader_chk_add(i64, l5, INT64_C(1));
-#line 144 "lib/semver/semver.vader"
                 l6 = vader_chk_add(i64, l13, INT64_C(1));
-#line 140 "lib/semver/semver.vader"
-#line 141 "lib/semver/semver.vader"
             } else {
                 if (!(l14.tag == 13u)) {
-#line 139 "lib/semver/semver.vader"
                     vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 141 "lib/semver/semver.vader"
                 }
                 t1 = l14.payload.obj;
                 l15 = std_string_ParseError_std_core_Error_message(t1);
@@ -930,14 +788,10 @@ static vader_box_t semver_parse(vader_string_t l0) {
                 _a4_obj->f_msg = t3;
                 t1 = (void*) _a4_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 140 "lib/semver/semver.vader"
             }
-#line 135 "lib/semver/semver.vader"
         }
-#line 134 "lib/semver/semver.vader"
         l13 = (l13 + INT64_C(1));
     }
-#line 147 "lib/semver/semver.vader"
     if (l5 != INT64_C(2)) {
         vader_struct_std_string_ParseError_t* _a5_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a5_obj, 13u);
@@ -945,49 +799,37 @@ static vader_box_t semver_parse(vader_string_t l0) {
         t1 = (void*) _a5_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 148 "lib/semver/semver.vader"
     t3 = vader_host_std_core_byte_slice(l8, l6, l12);
-#line 149 "lib/semver/semver.vader"
     l14 = semver_parse_numeric_id(t3);
-#line 151 "lib/semver/semver.vader"
     if (l14.tag == 1u) {
         l4 = ((int32_t) l14.payload.i);
         vader_array_t* _a6_slotarr = ((vader_array_t*) l11);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a6_slotarr, INT32_C(2))
         ((int32_t*) _a6_slotarr->buf->slots)[_a6_slotarr->offset + (size_t) INT32_C(2)] = (int32_t) l4;
-#line 158 "lib/semver/semver.vader"
         if ((l3 < l2)) {
             t0 = std_string_is_empty(l9);
             if (t0) {
-#line 159 "lib/semver/semver.vader"
                 vader_struct_std_string_ParseError_t* _a7_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
                 vader_obj_header_init(_a7_obj, 13u);
                 _a7_obj->f_msg = 13u;
                 t1 = (void*) _a7_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 158 "lib/semver/semver.vader"
             }
         }
-#line 161 "lib/semver/semver.vader"
         if ((l2 < l1)) {
             t0 = std_string_is_empty(l10);
             if (t0) {
-#line 162 "lib/semver/semver.vader"
                 vader_struct_std_string_ParseError_t* _a8_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
                 vader_obj_header_init(_a8_obj, 13u);
                 _a8_obj->f_msg = 14u;
                 t1 = (void*) _a8_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 161 "lib/semver/semver.vader"
             }
         }
-#line 164 "lib/semver/semver.vader"
         t0 = std_string_is_empty(l9);
         if (!(t0)) {
-#line 165 "lib/semver/semver.vader"
             l15 = semver_validate_prerelease(l9);
-#line 166 "lib/semver/semver.vader"
             t0 = std_string_is_empty(l15);
             if (!(t0)) {
                 vader_struct_std_string_ParseError_t* _a9_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -996,14 +838,10 @@ static vader_box_t semver_parse(vader_string_t l0) {
                 t1 = (void*) _a9_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
-#line 164 "lib/semver/semver.vader"
         }
-#line 168 "lib/semver/semver.vader"
         t0 = std_string_is_empty(l10);
         if (!(t0)) {
-#line 169 "lib/semver/semver.vader"
             l15 = semver_validate_build(l10);
-#line 170 "lib/semver/semver.vader"
             t0 = std_string_is_empty(l15);
             if (!(t0)) {
                 vader_struct_std_string_ParseError_t* _a10_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -1012,20 +850,15 @@ static vader_box_t semver_parse(vader_string_t l0) {
                 t1 = (void*) _a10_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
             }
-#line 168 "lib/semver/semver.vader"
         }
-#line 174 "lib/semver/semver.vader"
         vader_array_t* _a11_slotarr = ((vader_array_t*) l11);
         VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a11_slotarr, INT32_C(0))
         l4 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) INT32_C(0)];
-#line 175 "lib/semver/semver.vader"
         VADER_ARRAY_CHECK_INDEX(_a11_slotarr, INT32_C(1))
         l16 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) INT32_C(1)];
-#line 176 "lib/semver/semver.vader"
         VADER_ARRAY_CHECK_INDEX(_a11_slotarr, INT32_C(2))
         l17 = ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) INT32_C(2)];
-#line 173 "lib/semver/semver.vader"
         vader_struct_semver_Version_t* _a12_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
         vader_obj_header_init(_a12_obj, 3u);
         _a12_obj->f_major = l4;
@@ -1035,13 +868,9 @@ static vader_box_t semver_parse(vader_string_t l0) {
         _a12_obj->f_build = l10;
         t1 = (void*) _a12_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 151 "lib/semver/semver.vader"
     }
-#line 152 "lib/semver/semver.vader"
     if (!(l14.tag == 13u)) {
-#line 150 "lib/semver/semver.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 152 "lib/semver/semver.vader"
     }
     t1 = l14.payload.obj;
     l8 = std_string_ParseError_std_core_Error_message(t1);
@@ -1073,20 +902,14 @@ static vader_box_t semver_parse_range(vader_string_t l0) {
         vader_gc_top, 2u, 4u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 197 "lib/semver/semver.vader"
     l1 = std_string_trim(l0);
-#line 198 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l1);
     if (t0) {
-#line 200 "lib/semver/semver.vader"
         t1 = semver_wildcard_range();
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 198 "lib/semver/semver.vader"
     }
-#line 202 "lib/semver/semver.vader"
     vader_array_t* _a0_arr = vader_array_new(26u, 0u, 13u, 19u);
     l2 = (void*) _a0_arr;
-#line 203 "lib/semver/semver.vader"
     l3 = semver_split_or(l1);
     l4 = ((vader_array_t*) l3)->length;
     l5 = INT64_C(0);
@@ -1097,23 +920,16 @@ static vader_box_t semver_parse_range(vader_string_t l0) {
             VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
             t2 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l5];
             t3 = t2.payload.s;
-#line 204 "lib/semver/semver.vader"
             t4 = std_string_trim(t3);
             l6 = semver_parse_clause(t4);
-#line 206 "lib/semver/semver.vader"
             if (l6.tag == 19u) {
                 l7 = l6.payload.obj;
                 vader_array_push_ref((vader_array_t*) l2, l7);
-#line 203 "lib/semver/semver.vader"
                 l5 = (l5 + INT64_C(1));
                 continue;
-#line 206 "lib/semver/semver.vader"
             }
-#line 207 "lib/semver/semver.vader"
             if (!(l6.tag == 13u)) {
-#line 205 "lib/semver/semver.vader"
                 vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 207 "lib/semver/semver.vader"
             }
             t1 = l6.payload.obj;
             t3 = std_string_ParseError_std_core_Error_message(t1);
@@ -1122,22 +938,17 @@ static vader_box_t semver_parse_range(vader_string_t l0) {
             _a2_obj->f_msg = t3;
             t1 = (void*) _a2_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 203 "lib/semver/semver.vader"
         }
         break;
     }
-#line 210 "lib/semver/semver.vader"
     t5 = ((vader_array_t*) l2)->length;
     if (!(t5 == INT64_C(0))) {
-#line 213 "lib/semver/semver.vader"
         vader_struct_semver_VersionRange_t* _a3_obj = (vader_struct_semver_VersionRange_t*) vader_gc_alloc(sizeof(vader_struct_semver_VersionRange_t));
         vader_obj_header_init(_a3_obj, 15u);
         _a3_obj->f_clauses = l2;
         t1 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 210 "lib/semver/semver.vader"
     }
-#line 211 "lib/semver/semver.vader"
     vader_struct_std_string_ParseError_t* _a4_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
     vader_obj_header_init(_a4_obj, 13u);
     _a4_obj->f_msg = 15u;
@@ -1159,7 +970,6 @@ static vader_box_t semver_parse_numeric_id(vader_string_t l0) {
         vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 240 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -1168,7 +978,6 @@ static vader_box_t semver_parse_numeric_id(vader_string_t l0) {
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 241 "lib/semver/semver.vader"
     t0 = semver_is_all_digits(l0);
     if (!(t0)) {
         vader_struct_std_string_ParseError_t* _a1_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -1177,33 +986,25 @@ static vader_box_t semver_parse_numeric_id(vader_string_t l0) {
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 242 "lib/semver/semver.vader"
     t2 = vader_host_std_core_byte_len(l0);
     if ((t2 > INT64_C(1))) {
         t3 = vader_host_std_core_byte_at(l0, INT64_C(0));
         if (t3 == INT32_C(48)) {
-#line 243 "lib/semver/semver.vader"
             vader_struct_std_string_ParseError_t* _a2_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
             vader_obj_header_init(_a2_obj, 13u);
             _a2_obj->f_msg = 18u;
             t1 = (void*) _a2_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 242 "lib/semver/semver.vader"
         }
     }
-#line 245 "lib/semver/semver.vader"
     l1 = std_string_parse_int(l0);
     l2 = l1;
-#line 246 "lib/semver/semver.vader"
     if (l1.tag == 1u) {
         t4 = ((int32_t) l2.payload.i);
         { vader_box_t __vret = vader_box_i32(1u, t4); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 247 "lib/semver/semver.vader"
     if (!(l1.tag == 13u)) {
-#line 245 "lib/semver/semver.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 247 "lib/semver/semver.vader"
     }
     vader_struct_std_string_ParseError_t* _a3_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
     vader_obj_header_init(_a3_obj, 13u);
@@ -1218,33 +1019,22 @@ static vader_string_t semver_validate_prerelease(vader_string_t l0) {
     uint8_t t0;
     vader_string_t t1, t3;
     bool t2;
-#line 267 "lib/semver/semver.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 268 "lib/semver/semver.vader"
     l2 = INT64_C(0);
-#line 269 "lib/semver/semver.vader"
     l3 = INT64_C(0);
     while ((l3 < l1)) {
-#line 270 "lib/semver/semver.vader"
         t0 = vader_host_std_core_byte_at(l0, l3);
         if (t0 == INT32_C(46)) {
-#line 271 "lib/semver/semver.vader"
             t1 = vader_host_std_core_byte_slice(l0, l2, l3);
-#line 272 "lib/semver/semver.vader"
             l4 = semver_validate_prerelease_id(t1);
-#line 273 "lib/semver/semver.vader"
             t2 = std_string_is_empty(l4);
             if (!(t2)) {
                 return l4;
             }
-#line 274 "lib/semver/semver.vader"
             l2 = vader_chk_add(i64, l3, INT64_C(1));
-#line 270 "lib/semver/semver.vader"
         }
-#line 269 "lib/semver/semver.vader"
         l3 = (l3 + INT64_C(1));
     }
-#line 277 "lib/semver/semver.vader"
     t1 = vader_host_std_core_byte_slice(l0, l2, l1);
     t3 = semver_validate_prerelease_id(t1);
     return t3;
@@ -1256,33 +1046,22 @@ static vader_string_t semver_validate_build(vader_string_t l0) {
     uint8_t t0;
     vader_string_t t1, t3;
     bool t2;
-#line 291 "lib/semver/semver.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 292 "lib/semver/semver.vader"
     l2 = INT64_C(0);
-#line 293 "lib/semver/semver.vader"
     l3 = INT64_C(0);
     while ((l3 < l1)) {
-#line 294 "lib/semver/semver.vader"
         t0 = vader_host_std_core_byte_at(l0, l3);
         if (t0 == INT32_C(46)) {
-#line 295 "lib/semver/semver.vader"
             t1 = vader_host_std_core_byte_slice(l0, l2, l3);
-#line 296 "lib/semver/semver.vader"
             l4 = semver_validate_build_id(t1);
-#line 297 "lib/semver/semver.vader"
             t2 = std_string_is_empty(l4);
             if (!(t2)) {
                 return l4;
             }
-#line 298 "lib/semver/semver.vader"
             l2 = vader_chk_add(i64, l3, INT64_C(1));
-#line 294 "lib/semver/semver.vader"
         }
-#line 293 "lib/semver/semver.vader"
         l3 = (l3 + INT64_C(1));
     }
-#line 301 "lib/semver/semver.vader"
     t1 = vader_host_std_core_byte_slice(l0, l2, l1);
     t3 = semver_validate_build_id(t1);
     return t3;
@@ -1294,7 +1073,6 @@ static void* semver_wildcard_range(void) {
     void** gc_raw_roots[2] = { &l0, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 762 "lib/semver/semver.vader"
     vader_struct_semver_Version_t* _a0_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_major = INT32_C(0);
@@ -1303,7 +1081,6 @@ static void* semver_wildcard_range(void) {
     _a0_obj->f_prerelease = 0u;
     _a0_obj->f_build = 0u;
     l0 = (void*) _a0_obj;
-#line 760 "lib/semver/semver.vader"
     vader_struct_semver_RangeTerm_t* _a1_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
     vader_obj_header_init(_a1_obj, 22u);
     _a1_obj->f_op = (uint8_t) 4;
@@ -1312,7 +1089,6 @@ static void* semver_wildcard_range(void) {
     vader_array_t* _a2_arr = vader_array_new(21u, 1u, 13u, 22u);
     ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = t0;
     t0 = (void*) _a2_arr;
-#line 759 "lib/semver/semver.vader"
     vader_struct_semver_RangeClause_t* _a3_obj = (vader_struct_semver_RangeClause_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeClause_t));
     vader_obj_header_init(_a3_obj, 19u);
     _a3_obj->f_terms = t0;
@@ -1320,7 +1096,6 @@ static void* semver_wildcard_range(void) {
     vader_array_t* _a4_arr = vader_array_new(26u, 1u, 13u, 19u);
     ((void**) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = t0;
     t0 = (void*) _a4_arr;
-#line 758 "lib/semver/semver.vader"
     vader_struct_semver_VersionRange_t* _a5_obj = (vader_struct_semver_VersionRange_t*) vader_gc_alloc(sizeof(vader_struct_semver_VersionRange_t));
     vader_obj_header_init(_a5_obj, 15u);
     _a5_obj->f_clauses = t0;
@@ -1339,46 +1114,31 @@ static void* semver_split_or(vader_string_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 398 "lib/semver/semver.vader"
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 2u);
     l1 = (void*) _a0_arr;
-#line 399 "lib/semver/semver.vader"
     l2 = vader_host_std_core_byte_len(l0);
-#line 400 "lib/semver/semver.vader"
     if ((l2 < INT64_C(2))) {
-#line 401 "lib/semver/semver.vader"
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l0));
-#line 402 "lib/semver/semver.vader"
         { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 400 "lib/semver/semver.vader"
     }
-#line 404 "lib/semver/semver.vader"
     l3 = INT64_C(0);
-#line 405 "lib/semver/semver.vader"
     l4 = INT64_C(0);
     l5 = vader_chk_sub(i64, l2, INT64_C(1));
     while ((l4 < l5)) {
-#line 406 "lib/semver/semver.vader"
         t0 = vader_host_std_core_byte_at(l0, l4);
         if (t0 == INT32_C(124)) {
             l6 = vader_chk_add(i64, l4, INT64_C(1));
             t0 = vader_host_std_core_byte_at(l0, l6);
             if (t0 == INT32_C(124)) {
-#line 407 "lib/semver/semver.vader"
                 l7 = vader_host_std_core_byte_slice(l0, l3, l4);
                 vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l7));
-#line 408 "lib/semver/semver.vader"
                 l3 = vader_chk_add(i64, l4, INT64_C(2));
-#line 406 "lib/semver/semver.vader"
             }
         }
-#line 405 "lib/semver/semver.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 411 "lib/semver/semver.vader"
     l7 = vader_host_std_core_byte_slice(l0, l3, l2);
     vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l7));
-#line 412 "lib/semver/semver.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1411,30 +1171,21 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
         vader_gc_top, 7u, 11u, gc_roots, gc_raw_roots, 0u, NULL, 6u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 706 "lib/semver/semver.vader"
     l1 = semver_split_ws(l0);
-#line 707 "lib/semver/semver.vader"
     t0 = ((vader_array_t*) l1)->length;
     if (t0 == INT64_C(0)) {
-#line 708 "lib/semver/semver.vader"
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
         _a0_obj->f_msg = 20u;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 707 "lib/semver/semver.vader"
     }
-#line 710 "lib/semver/semver.vader"
     vader_array_t* _a1_arr = vader_array_new(21u, 0u, 13u, 22u);
     l2 = (void*) _a1_arr;
-#line 711 "lib/semver/semver.vader"
     l3 = ((vader_array_t*) l1)->length;
-#line 712 "lib/semver/semver.vader"
     l4 = INT64_C(0);
-#line 713 "lib/semver/semver.vader"
     for (;;) {
         if ((l4 < l3)) {
-#line 718 "lib/semver/semver.vader"
             vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
@@ -1451,7 +1202,6 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                     t2 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l5];
                     t3 = t2.payload.s;
                     if (t3 != 21u) {
-#line 719 "lib/semver/semver.vader"
                         vader_array_t* _a4_slotarr = ((vader_array_t*) l1);
                         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l4)
@@ -1464,7 +1214,6 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                         t3 = concat_2(l6, l8);
                         l9 = semver_parse_token(t3);
                         l10 = l9;
-#line 720 "lib/semver/semver.vader"
                         if (l9.tag == 21u) {
                             l11 = l10.payload.obj;
                             l12 = ((vader_array_t*) l11)->length;
@@ -1477,17 +1226,11 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                                 vader_array_push_ref((vader_array_t*) l2, l14);
                                 l13 = (l13 + INT64_C(1));
                             }
-#line 723 "lib/semver/semver.vader"
                             l4 = vader_chk_add(i64, l4, INT64_C(2));
-#line 724 "lib/semver/semver.vader"
                             continue;
-#line 720 "lib/semver/semver.vader"
                         }
-#line 721 "lib/semver/semver.vader"
                         if (!(l9.tag == 13u)) {
-#line 719 "lib/semver/semver.vader"
                             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 721 "lib/semver/semver.vader"
                         }
                         t1 = l10.payload.obj;
                         t3 = std_string_ParseError_std_core_Error_message(t1);
@@ -1496,11 +1239,9 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                         _a6_obj->f_msg = t3;
                         t1 = (void*) _a6_obj;
                         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 718 "lib/semver/semver.vader"
                     }
                 }
             }
-#line 728 "lib/semver/semver.vader"
             t0 = vader_chk_add(i64, l4, INT64_C(2));
             if ((t0 < l3)) {
                 l15 = vader_chk_add(i64, l4, INT64_C(1));
@@ -1510,14 +1251,12 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                 t2 = vader_array_box_slots(_a7_slotarr->buf)[_a7_slotarr->offset + (size_t) l15];
                 t3 = t2.payload.s;
                 if (t3 == 21u) {
-#line 729 "lib/semver/semver.vader"
                     vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
                     VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
                     VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l4)
                     t2 = vader_array_box_slots(_a8_slotarr->buf)[_a8_slotarr->offset + (size_t) l4];
                     t3 = t2.payload.s;
                     l16 = semver_parse_partial(t3);
-#line 730 "lib/semver/semver.vader"
                     l17 = vader_chk_add(i64, l4, INT64_C(2));
                     vader_array_t* _a9_slotarr = ((vader_array_t*) l1);
                     VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
@@ -1525,11 +1264,8 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                     t2 = vader_array_box_slots(_a9_slotarr->buf)[_a9_slotarr->offset + (size_t) l17];
                     t3 = t2.payload.s;
                     l18 = semver_parse_partial(t3);
-#line 732 "lib/semver/semver.vader"
                     if (l16.tag == 24u) {
-#line 734 "lib/semver/semver.vader"
                         if (l18.tag == 24u) {
-#line 735 "lib/semver/semver.vader"
                             l19 = l16.payload.obj;
                             l20 = l18.payload.obj;
                             l21 = semver_expand_hyphen(l19, l20);
@@ -1543,17 +1279,11 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                                 vader_array_push_ref((vader_array_t*) l2, l24);
                                 l23 = (l23 + INT64_C(1));
                             }
-#line 736 "lib/semver/semver.vader"
                             l4 = vader_chk_add(i64, l4, INT64_C(3));
-#line 737 "lib/semver/semver.vader"
                             continue;
-#line 734 "lib/semver/semver.vader"
                         }
-#line 739 "lib/semver/semver.vader"
                         if (!(l18.tag == 13u)) {
-#line 733 "lib/semver/semver.vader"
                             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 739 "lib/semver/semver.vader"
                         }
                         t1 = l18.payload.obj;
                         l25 = std_string_ParseError_std_core_Error_message(t1);
@@ -1563,13 +1293,9 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                         _a11_obj->f_msg = t3;
                         t1 = (void*) _a11_obj;
                         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 732 "lib/semver/semver.vader"
                     }
-#line 742 "lib/semver/semver.vader"
                     if (!(l16.tag == 13u)) {
-#line 731 "lib/semver/semver.vader"
                         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 742 "lib/semver/semver.vader"
                     }
                     t1 = l16.payload.obj;
                     l26 = std_string_ParseError_std_core_Error_message(t1);
@@ -1579,10 +1305,8 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                     _a12_obj->f_msg = t3;
                     t1 = (void*) _a12_obj;
                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 728 "lib/semver/semver.vader"
                 }
             }
-#line 745 "lib/semver/semver.vader"
             vader_array_t* _a13_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a13_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a13_slotarr, l4)
@@ -1590,7 +1314,6 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
             t3 = t2.payload.s;
             l27 = semver_parse_token(t3);
             l28 = l27;
-#line 746 "lib/semver/semver.vader"
             if (l27.tag == 21u) {
                 l29 = l28.payload.obj;
                 l30 = ((vader_array_t*) l29)->length;
@@ -1603,17 +1326,11 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
                     vader_array_push_ref((vader_array_t*) l2, l32);
                     l31 = (l31 + INT64_C(1));
                 }
-#line 749 "lib/semver/semver.vader"
                 l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 713 "lib/semver/semver.vader"
                 continue;
-#line 746 "lib/semver/semver.vader"
             }
-#line 747 "lib/semver/semver.vader"
             if (!(l27.tag == 13u)) {
-#line 745 "lib/semver/semver.vader"
                 vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 747 "lib/semver/semver.vader"
             }
             t1 = l28.payload.obj;
             t3 = std_string_ParseError_std_core_Error_message(t1);
@@ -1622,22 +1339,17 @@ static vader_box_t semver_parse_clause(vader_string_t l0) {
             _a15_obj->f_msg = t3;
             t1 = (void*) _a15_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 713 "lib/semver/semver.vader"
         }
         break;
     }
-#line 751 "lib/semver/semver.vader"
     t0 = ((vader_array_t*) l2)->length;
     if (!(t0 == INT64_C(0))) {
-#line 754 "lib/semver/semver.vader"
         vader_struct_semver_RangeClause_t* _a16_obj = (vader_struct_semver_RangeClause_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeClause_t));
         vader_obj_header_init(_a16_obj, 19u);
         _a16_obj->f_terms = l2;
         t1 = (void*) _a16_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 751 "lib/semver/semver.vader"
     }
-#line 752 "lib/semver/semver.vader"
     vader_struct_std_string_ParseError_t* _a17_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
     vader_obj_header_init(_a17_obj, 13u);
     _a17_obj->f_msg = 24u;
@@ -1654,42 +1366,29 @@ static bool semver_is_all_digits(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-#line 219 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         return false;
     }
-#line 111 "lib/std/string/string.vader"
     l1 = l0;
-#line 112 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 118 "lib/std/string/string.vader"
     for (;;) {
         l3 = vader_host_std_core_byte_len(l1);
         if ((l2 < l3)) {
-#line 119 "lib/std/string/string.vader"
             l4 = vader_host_std_core_byte_at(l1, l2);
-#line 120 "lib/std/string/string.vader"
             if ((l4 < INT32_C(128))) {
-#line 121 "lib/std/string/string.vader"
                 l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 122 "lib/std/string/string.vader"
-#line 221 "lib/semver/semver.vader"
                 t0 = std_char_is_digit(((uint32_t) (uint8_t) l4));
                 if (!(t0)) {
                     return false;
                 }
                 continue;
-#line 120 "lib/std/string/string.vader"
             }
-#line 124 "lib/std/string/string.vader"
             std_core_decode_tail(l1, l4, l2, &t1, &t2);
             l8 = t2;
             l5 = t1;
             l6 = l8;
-#line 125 "lib/std/string/string.vader"
             l2 = vader_chk_add(i64, l2, l6);
-#line 126 "lib/std/string/string.vader"
             if ((l5 > INT32_C(55295))) {
                 if ((l5 < INT32_C(57344))) {
                     l7 = true;
@@ -1700,17 +1399,14 @@ static bool semver_is_all_digits(vader_string_t l0) {
                     vader_unreachable("value out of range: no Unicode scalar value");
                 }
             }
-#line 221 "lib/semver/semver.vader"
             t0 = std_char_is_digit(((uint32_t) (uint32_t) l5));
             if (!(t0)) {
                 return false;
             }
             continue;
-#line 118 "lib/std/string/string.vader"
         }
         break;
     }
-#line 223 "lib/semver/semver.vader"
     return true;
 }
 
@@ -1725,52 +1421,37 @@ static vader_string_t semver_validate_prerelease_id(vader_string_t l0) {
     uint32_t t1;
     int64_t t2;
     uint8_t t3;
-#line 254 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         return 25u;
     }
-#line 255 "lib/semver/semver.vader"
     l1 = true;
-#line 111 "lib/std/string/string.vader"
     l2 = l0;
-#line 112 "lib/std/string/string.vader"
     l3 = INT64_C(0);
-#line 118 "lib/std/string/string.vader"
     for (;;) {
         l4 = vader_host_std_core_byte_len(l2);
         if ((l3 < l4)) {
-#line 119 "lib/std/string/string.vader"
             l5 = vader_host_std_core_byte_at(l2, l3);
-#line 120 "lib/std/string/string.vader"
             if ((l5 < INT32_C(128))) {
-#line 121 "lib/std/string/string.vader"
                 l3 = vader_chk_add(i64, l3, INT64_C(1));
-#line 122 "lib/std/string/string.vader"
                 l6 = ((uint32_t) (uint8_t) l5);
-#line 257 "lib/semver/semver.vader"
                 t0 = std_char_is_alnum(l6);
                 if (!(t0)) {
                     if (l6 != 45u) {
                         return 26u;
                     }
                 }
-#line 258 "lib/semver/semver.vader"
                 t0 = std_char_is_digit(l6);
                 if (!(t0)) {
                     l1 = false;
                 }
-#line 120 "lib/std/string/string.vader"
                 continue;
             }
-#line 124 "lib/std/string/string.vader"
             std_core_decode_tail(l2, l5, l3, &t1, &t2);
             l11 = t2;
             l7 = t1;
             l8 = l11;
-#line 125 "lib/std/string/string.vader"
             l3 = vader_chk_add(i64, l3, l8);
-#line 126 "lib/std/string/string.vader"
             if ((l7 > INT32_C(55295))) {
                 if ((l7 < INT32_C(57344))) {
                     l10 = true;
@@ -1782,43 +1463,31 @@ static vader_string_t semver_validate_prerelease_id(vader_string_t l0) {
                 }
             }
             l9 = ((uint32_t) (uint32_t) l7);
-#line 257 "lib/semver/semver.vader"
             t0 = std_char_is_alnum(l9);
             if (!(t0)) {
                 if (l9 != 45u) {
                     return 26u;
                 }
             }
-#line 258 "lib/semver/semver.vader"
             t0 = std_char_is_digit(l9);
             if (!(t0)) {
                 l1 = false;
             }
-#line 123 "lib/std/string/string.vader"
             continue;
-#line 118 "lib/std/string/string.vader"
         }
         break;
     }
-#line 260 "lib/semver/semver.vader"
     if (l1) {
         t2 = vader_host_std_core_byte_len(l0);
         if ((t2 > INT64_C(1))) {
             t3 = vader_host_std_core_byte_at(l0, INT64_C(0));
             if (t3 == INT32_C(48)) {
-#line 261 "lib/semver/semver.vader"
                 return 27u;
-#line 260 "lib/semver/semver.vader"
             }
-#line 263 "lib/semver/semver.vader"
             return 0u;
-#line 260 "lib/semver/semver.vader"
         }
-#line 263 "lib/semver/semver.vader"
         return 0u;
-#line 260 "lib/semver/semver.vader"
     }
-#line 263 "lib/semver/semver.vader"
     return 0u;
 }
 
@@ -1832,45 +1501,32 @@ static vader_string_t semver_validate_build_id(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-#line 283 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         return 28u;
     }
-#line 111 "lib/std/string/string.vader"
     l1 = l0;
-#line 112 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 118 "lib/std/string/string.vader"
     for (;;) {
         l3 = vader_host_std_core_byte_len(l1);
         if ((l2 < l3)) {
-#line 119 "lib/std/string/string.vader"
             l4 = vader_host_std_core_byte_at(l1, l2);
-#line 120 "lib/std/string/string.vader"
             if ((l4 < INT32_C(128))) {
-#line 121 "lib/std/string/string.vader"
                 l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 122 "lib/std/string/string.vader"
                 l5 = ((uint32_t) (uint8_t) l4);
-#line 285 "lib/semver/semver.vader"
                 t0 = std_char_is_alnum(l5);
                 if (!(t0)) {
                     if (l5 != 45u) {
                         return 29u;
                     }
                 }
-#line 120 "lib/std/string/string.vader"
                 continue;
             }
-#line 124 "lib/std/string/string.vader"
             std_core_decode_tail(l1, l4, l2, &t1, &t2);
             l10 = t2;
             l6 = t1;
             l7 = l10;
-#line 125 "lib/std/string/string.vader"
             l2 = vader_chk_add(i64, l2, l7);
-#line 126 "lib/std/string/string.vader"
             if ((l6 > INT32_C(55295))) {
                 if ((l6 < INT32_C(57344))) {
                     l9 = true;
@@ -1882,20 +1538,16 @@ static vader_string_t semver_validate_build_id(vader_string_t l0) {
                 }
             }
             l8 = ((uint32_t) (uint32_t) l6);
-#line 285 "lib/semver/semver.vader"
             t0 = std_char_is_alnum(l8);
             if (!(t0)) {
                 if (l8 != 45u) {
                     return 29u;
                 }
             }
-#line 123 "lib/std/string/string.vader"
             continue;
-#line 118 "lib/std/string/string.vader"
         }
         break;
     }
-#line 287 "lib/semver/semver.vader"
     return 0u;
 }
 
@@ -1912,54 +1564,32 @@ static void* semver_split_ws(vader_string_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 419 "lib/semver/semver.vader"
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 2u);
     l1 = (void*) _a0_arr;
-#line 420 "lib/semver/semver.vader"
     l2 = vader_host_std_core_byte_len(l0);
-#line 421 "lib/semver/semver.vader"
     l3 = INT64_C(0);
-#line 422 "lib/semver/semver.vader"
     l4 = false;
-#line 423 "lib/semver/semver.vader"
     l5 = INT64_C(0);
     while ((l5 < l2)) {
-#line 424 "lib/semver/semver.vader"
         t0 = vader_host_std_core_byte_at(l0, l5);
-#line 425 "lib/semver/semver.vader"
         t1 = std_char_is_white_char(((uint32_t) (int32_t) ((int32_t) (uint8_t) t0)));
         if (t1) {
-#line 426 "lib/semver/semver.vader"
             if (l4) {
-#line 427 "lib/semver/semver.vader"
                 l6 = vader_host_std_core_byte_slice(l0, l3, l5);
                 vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
-#line 428 "lib/semver/semver.vader"
                 l4 = false;
-#line 426 "lib/semver/semver.vader"
             }
-#line 425 "lib/semver/semver.vader"
-#line 431 "lib/semver/semver.vader"
         } else if (!(l4)) {
-#line 432 "lib/semver/semver.vader"
             l3 = l5;
-#line 433 "lib/semver/semver.vader"
             l4 = true;
-#line 431 "lib/semver/semver.vader"
         }
-#line 425 "lib/semver/semver.vader"
-#line 423 "lib/semver/semver.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 437 "lib/semver/semver.vader"
     if (l4) {
         l6 = vader_host_std_core_byte_slice(l0, l3, l2);
         vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
-#line 438 "lib/semver/semver.vader"
         { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 437 "lib/semver/semver.vader"
     }
-#line 438 "lib/semver/semver.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -1973,28 +1603,19 @@ static bool semver_is_bare_operator(vader_string_t l0) {
     bool t0;
     uint32_t t1;
     int64_t t2;
-#line 229 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         return false;
     }
-#line 111 "lib/std/string/string.vader"
     l1 = l0;
-#line 112 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 118 "lib/std/string/string.vader"
     for (;;) {
         l3 = vader_host_std_core_byte_len(l1);
         if ((l2 < l3)) {
-#line 119 "lib/std/string/string.vader"
             l4 = vader_host_std_core_byte_at(l1, l2);
-#line 120 "lib/std/string/string.vader"
             if ((l4 < INT32_C(128))) {
-#line 121 "lib/std/string/string.vader"
                 l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 122 "lib/std/string/string.vader"
                 l5 = ((uint32_t) (uint8_t) l4);
-#line 231 "lib/semver/semver.vader"
                 if (l5 != 60u) {
                     if (l5 != 62u) {
                         if (l5 != 61u) {
@@ -2006,17 +1627,13 @@ static bool semver_is_bare_operator(vader_string_t l0) {
                         }
                     }
                 }
-#line 120 "lib/std/string/string.vader"
                 continue;
             }
-#line 124 "lib/std/string/string.vader"
             std_core_decode_tail(l1, l4, l2, &t1, &t2);
             l10 = t2;
             l6 = t1;
             l7 = l10;
-#line 125 "lib/std/string/string.vader"
             l2 = vader_chk_add(i64, l2, l7);
-#line 126 "lib/std/string/string.vader"
             if ((l6 > INT32_C(55295))) {
                 if ((l6 < INT32_C(57344))) {
                     l9 = true;
@@ -2028,7 +1645,6 @@ static bool semver_is_bare_operator(vader_string_t l0) {
                 }
             }
             l8 = ((uint32_t) (uint32_t) l6);
-#line 231 "lib/semver/semver.vader"
             if (l8 != 60u) {
                 if (l8 != 62u) {
                     if (l8 != 61u) {
@@ -2040,13 +1656,10 @@ static bool semver_is_bare_operator(vader_string_t l0) {
                     }
                 }
             }
-#line 123 "lib/std/string/string.vader"
             continue;
-#line 118 "lib/std/string/string.vader"
         }
         break;
     }
-#line 233 "lib/semver/semver.vader"
     return true;
 }
 
@@ -2071,18 +1684,14 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
         vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 655 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
-#line 656 "lib/semver/semver.vader"
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
         _a0_obj->f_msg = 30u;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 655 "lib/semver/semver.vader"
     }
-#line 658 "lib/semver/semver.vader"
     t0 = semver_is_x_token(l0);
     if (t0) {
         vader_struct_semver_PartialVersion_t* _a1_obj = (vader_struct_semver_PartialVersion_t*) vader_gc_alloc(sizeof(vader_struct_semver_PartialVersion_t));
@@ -2096,60 +1705,43 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
         t2 = semver_expand_xrange(t1);
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 660 "lib/semver/semver.vader"
     t0 = std_string_starts_with(l0, 31u);
     if (t0) {
-#line 661 "lib/semver/semver.vader"
         l1 = std_string_trim_prefix(l0, 31u);
         t3 = semver_parse_comparator_token((uint8_t) 4, l1);
         { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-#line 660 "lib/semver/semver.vader"
     }
-#line 663 "lib/semver/semver.vader"
     t0 = std_string_starts_with(l0, 32u);
     if (t0) {
-#line 664 "lib/semver/semver.vader"
         l1 = std_string_trim_prefix(l0, 32u);
         t3 = semver_parse_comparator_token((uint8_t) 2, l1);
         { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-#line 663 "lib/semver/semver.vader"
     }
-#line 666 "lib/semver/semver.vader"
     l2 = vader_host_std_core_byte_at(l0, INT64_C(0));
-#line 667 "lib/semver/semver.vader"
     l3 = vader_host_std_core_byte_len(l0);
     l1 = vader_host_std_core_byte_slice(l0, INT64_C(1), l3);
-#line 668 "lib/semver/semver.vader"
     if (l2 == INT32_C(62)) {
         t3 = semver_parse_comparator_token((uint8_t) 3, l1);
         { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 669 "lib/semver/semver.vader"
     if (l2 == INT32_C(60)) {
         t3 = semver_parse_comparator_token((uint8_t) 1, l1);
         { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 670 "lib/semver/semver.vader"
     if (l2 == INT32_C(61)) {
         t3 = semver_parse_comparator_token((uint8_t) 0, l1);
         { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 671 "lib/semver/semver.vader"
     if (l2 == INT32_C(94)) {
-#line 672 "lib/semver/semver.vader"
         l4 = semver_parse_partial(l1);
         l5 = l4;
-#line 673 "lib/semver/semver.vader"
         if (l4.tag == 24u) {
             t1 = l5.payload.obj;
             t3 = semver_expand_caret(t1);
             { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 674 "lib/semver/semver.vader"
         if (!(l4.tag == 13u)) {
-#line 672 "lib/semver/semver.vader"
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 674 "lib/semver/semver.vader"
         }
         t1 = l5.payload.obj;
         l6 = std_string_ParseError_std_core_Error_message(t1);
@@ -2159,24 +1751,17 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
         _a2_obj->f_msg = t4;
         t1 = (void*) _a2_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 671 "lib/semver/semver.vader"
     }
-#line 677 "lib/semver/semver.vader"
     if (l2 == INT32_C(126)) {
-#line 678 "lib/semver/semver.vader"
         l4 = semver_parse_partial(l1);
         l5 = l4;
-#line 679 "lib/semver/semver.vader"
         if (l4.tag == 24u) {
             t1 = l5.payload.obj;
             t3 = semver_expand_tilde(t1);
             { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 680 "lib/semver/semver.vader"
         if (!(l4.tag == 13u)) {
-#line 678 "lib/semver/semver.vader"
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 680 "lib/semver/semver.vader"
         }
         t1 = l5.payload.obj;
         l1 = std_string_ParseError_std_core_Error_message(t1);
@@ -2186,14 +1771,10 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
         _a3_obj->f_msg = t4;
         t1 = (void*) _a3_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 677 "lib/semver/semver.vader"
     }
-#line 685 "lib/semver/semver.vader"
     l4 = semver_parse_partial(l0);
     l5 = l4;
-#line 686 "lib/semver/semver.vader"
     if (l4.tag == 24u) {
-#line 687 "lib/semver/semver.vader"
         t1 = l5.payload.obj;
         t5 = ((vader_struct_semver_PartialVersion_t*) t1)->f_major;
         if ((t5 >= INT32_C(0))) {
@@ -2203,19 +1784,16 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
                 t1 = l5.payload.obj;
                 t5 = ((vader_struct_semver_PartialVersion_t*) t1)->f_patch;
                 if ((t5 >= INT32_C(0))) {
-#line 691 "lib/semver/semver.vader"
                     t1 = l5.payload.obj;
                     l7 = ((vader_struct_semver_PartialVersion_t*) t1)->f_major;
                     t1 = l5.payload.obj;
                     l8 = ((vader_struct_semver_PartialVersion_t*) t1)->f_minor;
                     t1 = l5.payload.obj;
                     l9 = ((vader_struct_semver_PartialVersion_t*) t1)->f_patch;
-#line 692 "lib/semver/semver.vader"
                     t1 = l5.payload.obj;
                     l1 = ((vader_struct_semver_PartialVersion_t*) t1)->f_prerelease;
                     t1 = l5.payload.obj;
                     l6 = ((vader_struct_semver_PartialVersion_t*) t1)->f_build;
-#line 690 "lib/semver/semver.vader"
                     vader_struct_semver_Version_t* _a4_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
                     vader_obj_header_init(_a4_obj, 3u);
                     _a4_obj->f_major = l7;
@@ -2224,7 +1802,6 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
                     _a4_obj->f_prerelease = l1;
                     _a4_obj->f_build = l6;
                     l10 = (void*) _a4_obj;
-#line 688 "lib/semver/semver.vader"
                     vader_struct_semver_RangeTerm_t* _a5_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
                     vader_obj_header_init(_a5_obj, 22u);
                     _a5_obj->f_op = (uint8_t) 0;
@@ -2234,31 +1811,21 @@ static vader_box_t semver_parse_token(vader_string_t l0) {
                     ((void**) _a6_arr->buf->slots)[_a6_arr->offset + 0u] = t1;
                     t1 = (void*) _a6_arr;
                     { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 687 "lib/semver/semver.vader"
                 }
-#line 696 "lib/semver/semver.vader"
                 t1 = l5.payload.obj;
                 t2 = semver_expand_xrange(t1);
                 { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 687 "lib/semver/semver.vader"
             }
-#line 696 "lib/semver/semver.vader"
             t1 = l5.payload.obj;
             t2 = semver_expand_xrange(t1);
             { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 687 "lib/semver/semver.vader"
         }
-#line 696 "lib/semver/semver.vader"
         t1 = l5.payload.obj;
         t2 = semver_expand_xrange(t1);
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 686 "lib/semver/semver.vader"
     }
-#line 698 "lib/semver/semver.vader"
     if (!(l4.tag == 13u)) {
-#line 685 "lib/semver/semver.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 698 "lib/semver/semver.vader"
     }
     t1 = l5.payload.obj;
     l1 = std_string_ParseError_std_core_Error_message(t1);
@@ -2294,7 +1861,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         vader_gc_top, 3u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 5u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 458 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l0);
     if (t0) {
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -2303,7 +1869,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 459 "lib/semver/semver.vader"
     t0 = semver_is_x_token(l0);
     if (t0) {
         vader_struct_semver_PartialVersion_t* _a1_obj = (vader_struct_semver_PartialVersion_t*) vader_gc_alloc(sizeof(vader_struct_semver_PartialVersion_t));
@@ -2316,73 +1881,51 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t1 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 461 "lib/semver/semver.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 463 "lib/semver/semver.vader"
     l2 = l1;
-#line 464 "lib/semver/semver.vader"
     l3 = INT64_C(0);
     while ((l3 < l1)) {
-#line 465 "lib/semver/semver.vader"
         t2 = vader_host_std_core_byte_at(l0, l3);
         if (t2 == INT32_C(43)) {
             l2 = l3;
         }
-#line 464 "lib/semver/semver.vader"
         l3 = (l3 + INT64_C(1));
     }
-#line 467 "lib/semver/semver.vader"
     l3 = l2;
-#line 468 "lib/semver/semver.vader"
     l4 = INT32_C(0);
-#line 469 "lib/semver/semver.vader"
     l5 = INT64_C(0);
     l6 = l2;
     while ((l5 < l6)) {
-#line 470 "lib/semver/semver.vader"
         l7 = vader_host_std_core_byte_at(l0, l5);
-#line 471 "lib/semver/semver.vader"
         if (l7 == INT32_C(46)) {
             l4 = vader_chk_add(i32, l4, INT32_C(1));
-#line 472 "lib/semver/semver.vader"
         } else if (l7 == INT32_C(45)) {
             if ((l4 >= INT32_C(2))) {
-#line 473 "lib/semver/semver.vader"
                 l3 = l5;
-#line 474 "lib/semver/semver.vader"
                 break;
-#line 472 "lib/semver/semver.vader"
             }
         }
-#line 471 "lib/semver/semver.vader"
-#line 469 "lib/semver/semver.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 477 "lib/semver/semver.vader"
     if ((l3 < l2)) {
         l5 = l3;
     } else {
         l5 = l2;
     }
-#line 478 "lib/semver/semver.vader"
     l8 = vader_host_std_core_byte_slice(l0, INT64_C(0), l5);
-#line 479 "lib/semver/semver.vader"
     if ((l3 < l2)) {
         l3 = vader_chk_add(i64, l3, INT64_C(1));
         l9 = vader_host_std_core_byte_slice(l0, l3, l2);
     } else {
         l9 = 0u;
     }
-#line 480 "lib/semver/semver.vader"
     if ((l2 < l1)) {
         l2 = vader_chk_add(i64, l2, INT64_C(1));
         l10 = vader_host_std_core_byte_slice(l0, l2, l1);
     } else {
         l10 = 0u;
     }
-#line 482 "lib/semver/semver.vader"
     l11 = std_string_split(l8, 37u);
-#line 483 "lib/semver/semver.vader"
     t3 = ((vader_array_t*) l11)->length;
     if (t3 == INT64_C(0)) {
         l12 = true;
@@ -2391,15 +1934,12 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         l12 = (t3 > INT64_C(3));
     }
     if (l12) {
-#line 484 "lib/semver/semver.vader"
         vader_struct_std_string_ParseError_t* _a2_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a2_obj, 13u);
         _a2_obj->f_msg = 38u;
         t1 = (void*) _a2_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 483 "lib/semver/semver.vader"
     }
-#line 487 "lib/semver/semver.vader"
     vader_struct_semver_PartialVersion_t* _a3_obj = (vader_struct_semver_PartialVersion_t*) vader_gc_alloc(sizeof(vader_struct_semver_PartialVersion_t));
     vader_obj_header_init(_a3_obj, 24u);
     _a3_obj->f_major = INT32_C(-1);
@@ -2408,10 +1948,8 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
     _a3_obj->f_prerelease = 0u;
     _a3_obj->f_build = 0u;
     l13 = (void*) _a3_obj;
-#line 488 "lib/semver/semver.vader"
     t3 = ((vader_array_t*) l11)->length;
     if ((t3 >= INT64_C(1))) {
-#line 489 "lib/semver/semver.vader"
         vader_array_t* _a4_slotarr = ((vader_array_t*) l11);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, INT32_C(0))
@@ -2419,7 +1957,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t5 = t4.payload.s;
         t0 = semver_is_x_token(t5);
         if (!(t0)) {
-#line 490 "lib/semver/semver.vader"
             vader_array_t* _a5_slotarr = ((vader_array_t*) l11);
             VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a5_slotarr, INT32_C(0))
@@ -2427,16 +1964,12 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
             t5 = t4.payload.s;
             l14 = semver_parse_numeric_id(t5);
             l15 = l14;
-#line 491 "lib/semver/semver.vader"
             if (l14.tag == 1u) {
                 l4 = ((int32_t) l15.payload.i);
                 ((vader_struct_semver_PartialVersion_t*) l13)->f_major = l4;
-#line 492 "lib/semver/semver.vader"
             } else {
                 if (!(l14.tag == 13u)) {
-#line 490 "lib/semver/semver.vader"
                     vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 492 "lib/semver/semver.vader"
                 }
                 t1 = l15.payload.obj;
                 l8 = std_string_ParseError_std_core_Error_message(t1);
@@ -2446,16 +1979,11 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
                 _a6_obj->f_msg = t5;
                 t1 = (void*) _a6_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 491 "lib/semver/semver.vader"
             }
-#line 489 "lib/semver/semver.vader"
         }
-#line 488 "lib/semver/semver.vader"
     }
-#line 496 "lib/semver/semver.vader"
     t3 = ((vader_array_t*) l11)->length;
     if ((t3 >= INT64_C(2))) {
-#line 497 "lib/semver/semver.vader"
         vader_array_t* _a7_slotarr = ((vader_array_t*) l11);
         VADER_ARRAY_RESOLVE_BUF(_a7_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a7_slotarr, INT32_C(1))
@@ -2463,7 +1991,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t5 = t4.payload.s;
         t0 = semver_is_x_token(t5);
         if (!(t0)) {
-#line 498 "lib/semver/semver.vader"
             vader_array_t* _a8_slotarr = ((vader_array_t*) l11);
             VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a8_slotarr, INT32_C(1))
@@ -2471,16 +1998,12 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
             t5 = t4.payload.s;
             l14 = semver_parse_numeric_id(t5);
             l15 = l14;
-#line 499 "lib/semver/semver.vader"
             if (l14.tag == 1u) {
                 l4 = ((int32_t) l15.payload.i);
                 ((vader_struct_semver_PartialVersion_t*) l13)->f_minor = l4;
-#line 500 "lib/semver/semver.vader"
             } else {
                 if (!(l14.tag == 13u)) {
-#line 498 "lib/semver/semver.vader"
                     vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 500 "lib/semver/semver.vader"
                 }
                 t1 = l15.payload.obj;
                 l8 = std_string_ParseError_std_core_Error_message(t1);
@@ -2490,16 +2013,11 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
                 _a9_obj->f_msg = t5;
                 t1 = (void*) _a9_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 499 "lib/semver/semver.vader"
             }
-#line 497 "lib/semver/semver.vader"
         }
-#line 496 "lib/semver/semver.vader"
     }
-#line 504 "lib/semver/semver.vader"
     t3 = ((vader_array_t*) l11)->length;
     if ((t3 >= INT64_C(3))) {
-#line 505 "lib/semver/semver.vader"
         vader_array_t* _a10_slotarr = ((vader_array_t*) l11);
         VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a10_slotarr, INT32_C(2))
@@ -2507,7 +2025,6 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t5 = t4.payload.s;
         t0 = semver_is_x_token(t5);
         if (!(t0)) {
-#line 506 "lib/semver/semver.vader"
             vader_array_t* _a11_slotarr = ((vader_array_t*) l11);
             VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a11_slotarr, INT32_C(2))
@@ -2515,16 +2032,12 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
             t5 = t4.payload.s;
             l14 = semver_parse_numeric_id(t5);
             l15 = l14;
-#line 507 "lib/semver/semver.vader"
             if (l14.tag == 1u) {
                 l4 = ((int32_t) l15.payload.i);
                 ((vader_struct_semver_PartialVersion_t*) l13)->f_patch = l4;
-#line 508 "lib/semver/semver.vader"
             } else {
                 if (!(l14.tag == 13u)) {
-#line 506 "lib/semver/semver.vader"
                     vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 508 "lib/semver/semver.vader"
                 }
                 t1 = l15.payload.obj;
                 l8 = std_string_ParseError_std_core_Error_message(t1);
@@ -2534,18 +2047,12 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
                 _a12_obj->f_msg = t5;
                 t1 = (void*) _a12_obj;
                 { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 507 "lib/semver/semver.vader"
             }
-#line 505 "lib/semver/semver.vader"
         }
-#line 504 "lib/semver/semver.vader"
     }
-#line 513 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l9);
     if (!(t0)) {
-#line 514 "lib/semver/semver.vader"
         l8 = semver_validate_prerelease(l9);
-#line 515 "lib/semver/semver.vader"
         t0 = std_string_is_empty(l8);
         if (!(t0)) {
             vader_struct_std_string_ParseError_t* _a13_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -2554,20 +2061,13 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
             t1 = (void*) _a13_obj;
             { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 516 "lib/semver/semver.vader"
         ((vader_struct_semver_PartialVersion_t*) l13)->f_prerelease = l9;
-#line 513 "lib/semver/semver.vader"
     }
-#line 518 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l10);
     if (t0) {
-#line 523 "lib/semver/semver.vader"
         { vader_box_t __vret = vader_ref_box(l13); vader_gc_top = gc_frame.prev; return __vret; }
-#line 518 "lib/semver/semver.vader"
     }
-#line 519 "lib/semver/semver.vader"
     l8 = semver_validate_build(l10);
-#line 520 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l8);
     if (!(t0)) {
         vader_struct_std_string_ParseError_t* _a14_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -2576,9 +2076,7 @@ static vader_box_t semver_parse_partial(vader_string_t l0) {
         t1 = (void*) _a14_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 521 "lib/semver/semver.vader"
     ((vader_struct_semver_PartialVersion_t*) l13)->f_build = l10;
-#line 523 "lib/semver/semver.vader"
     { vader_box_t __vret = vader_ref_box(l13); vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -2599,12 +2097,9 @@ static void* semver_expand_hyphen(void* l0, void* l1) {
         vader_gc_top, 1u, 6u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 616 "lib/semver/semver.vader"
     l2 = semver_partial_to_lower(l0);
-#line 617 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l1)->f_major;
     if ((t0 < INT32_C(0))) {
-#line 618 "lib/semver/semver.vader"
         vader_struct_semver_RangeTerm_t* _a0_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a0_obj, 22u);
         _a0_obj->f_op = (uint8_t) 4;
@@ -2614,35 +2109,26 @@ static void* semver_expand_hyphen(void* l0, void* l1) {
         ((void**) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = t1;
         t1 = (void*) _a1_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 617 "lib/semver/semver.vader"
     }
-#line 620 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l1)->f_minor;
     if ((t0 < INT32_C(0))) {
-#line 621 "lib/semver/semver.vader"
         t0 = ((vader_struct_semver_PartialVersion_t*) l1)->f_major;
         l3 = semver_bump_major(t0);
         t1 = semver_bounded(l2, l3);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 620 "lib/semver/semver.vader"
     }
-#line 623 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l1)->f_patch;
     if (!((t0 < INT32_C(0)))) {
-#line 628 "lib/semver/semver.vader"
         vader_struct_semver_RangeTerm_t* _a2_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a2_obj, 22u);
         _a2_obj->f_op = (uint8_t) 4;
         _a2_obj->f_version = l2;
         l6 = (void*) _a2_obj;
-#line 632 "lib/semver/semver.vader"
         l4 = ((vader_struct_semver_PartialVersion_t*) l1)->f_major;
         l5 = ((vader_struct_semver_PartialVersion_t*) l1)->f_minor;
         l7 = ((vader_struct_semver_PartialVersion_t*) l1)->f_patch;
-#line 633 "lib/semver/semver.vader"
         l8 = ((vader_struct_semver_PartialVersion_t*) l1)->f_prerelease;
         l9 = ((vader_struct_semver_PartialVersion_t*) l1)->f_build;
-#line 631 "lib/semver/semver.vader"
         vader_struct_semver_Version_t* _a3_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
         vader_obj_header_init(_a3_obj, 3u);
         _a3_obj->f_major = l4;
@@ -2651,21 +2137,17 @@ static void* semver_expand_hyphen(void* l0, void* l1) {
         _a3_obj->f_prerelease = l8;
         _a3_obj->f_build = l9;
         l10 = (void*) _a3_obj;
-#line 629 "lib/semver/semver.vader"
         vader_struct_semver_RangeTerm_t* _a4_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a4_obj, 22u);
         _a4_obj->f_op = (uint8_t) 2;
         _a4_obj->f_version = l10;
         l10 = (void*) _a4_obj;
-#line 627 "lib/semver/semver.vader"
         vader_array_t* _a5_arr = vader_array_new(21u, 2u, 13u, 22u);
         ((void**) _a5_arr->buf->slots)[_a5_arr->offset + 1u] = l10;
         ((void**) _a5_arr->buf->slots)[_a5_arr->offset + 0u] = l6;
         t1 = (void*) _a5_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 623 "lib/semver/semver.vader"
     }
-#line 624 "lib/semver/semver.vader"
     l4 = ((vader_struct_semver_PartialVersion_t*) l1)->f_major;
     l5 = ((vader_struct_semver_PartialVersion_t*) l1)->f_minor;
     l3 = semver_bump_minor(l4, l5);
@@ -2675,7 +2157,6 @@ static void* semver_expand_hyphen(void* l0, void* l1) {
 
 static bool semver_is_x_token(vader_string_t l0) {
     bool l1;
-#line 452 "lib/semver/semver.vader"
     if (l0 == 42u) {
         l1 = true;
     } else {
@@ -2697,12 +2178,9 @@ static void* semver_expand_xrange(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 602 "lib/semver/semver.vader"
     l1 = semver_partial_to_lower(l0);
-#line 603 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     if ((t0 < INT32_C(0))) {
-#line 606 "lib/semver/semver.vader"
         vader_struct_semver_RangeTerm_t* _a0_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a0_obj, 22u);
         _a0_obj->f_op = (uint8_t) 4;
@@ -2712,22 +2190,17 @@ static void* semver_expand_xrange(void* l0) {
         ((void**) _a1_arr->buf->slots)[_a1_arr->offset + 0u] = t1;
         t1 = (void*) _a1_arr;
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 603 "lib/semver/semver.vader"
     }
-#line 608 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     if ((t0 < INT32_C(0))) {
         t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
         l2 = semver_bump_major(t0);
-#line 609 "lib/semver/semver.vader"
         t1 = semver_bounded(l1, l2);
         { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 608 "lib/semver/semver.vader"
     }
     l3 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     l4 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     l2 = semver_bump_minor(l3, l4);
-#line 609 "lib/semver/semver.vader"
     t1 = semver_bounded(l1, l2);
     { void* __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -2746,21 +2219,16 @@ static vader_box_t semver_parse_comparator_token(uint8_t l0, vader_string_t l1) 
         vader_gc_top, 2u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 643 "lib/semver/semver.vader"
     t0 = std_string_is_empty(l1);
     if (t0) {
-#line 644 "lib/semver/semver.vader"
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
         _a0_obj->f_msg = 45u;
         t1 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
-#line 643 "lib/semver/semver.vader"
     }
-#line 646 "lib/semver/semver.vader"
     l2 = semver_parse(l1);
     l3 = l2;
-#line 647 "lib/semver/semver.vader"
     if (l2.tag == 3u) {
         l4 = l3.payload.obj;
         vader_struct_semver_RangeTerm_t* _a1_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
@@ -2773,11 +2241,8 @@ static vader_box_t semver_parse_comparator_token(uint8_t l0, vader_string_t l1) 
         t1 = (void*) _a2_arr;
         { vader_box_t __vret = vader_ref_box(t1); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 648 "lib/semver/semver.vader"
     if (!(l2.tag == 13u)) {
-#line 646 "lib/semver/semver.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 648 "lib/semver/semver.vader"
     }
     t1 = l3.payload.obj;
     l5 = std_string_ParseError_std_core_Error_message(t1);
@@ -2797,7 +2262,6 @@ static vader_box_t semver_expand_caret(void* l0) {
     void** gc_raw_roots[3] = { &l0, &l1, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 577 "lib/semver/semver.vader"
     l1 = semver_partial_to_lower(l0);
     l2 = semver_caret_upper(l0);
     t0 = semver_bounded(l1, l2);
@@ -2814,26 +2278,21 @@ static vader_box_t semver_expand_tilde(void* l0) {
     void** gc_raw_roots[3] = { &l0, &t1, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 595 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     if ((t0 >= INT32_C(0))) {
         l1 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     } else {
         l1 = INT32_C(0);
     }
-#line 596 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     if ((t0 >= INT32_C(0))) {
         l3 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
         l2 = semver_bump_minor(l1, l3);
-#line 597 "lib/semver/semver.vader"
         t1 = semver_partial_to_lower(l0);
         t2 = semver_bounded(t1, l2);
         { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
-#line 596 "lib/semver/semver.vader"
     }
     l2 = semver_bump_major(l1);
-#line 597 "lib/semver/semver.vader"
     t1 = semver_partial_to_lower(l0);
     t2 = semver_bounded(t1, l2);
     { vader_box_t __vret = vader_ref_box(t2); vader_gc_top = gc_frame.prev; return __vret; }
@@ -2851,32 +2310,26 @@ static void* semver_partial_to_lower(void* l0) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 531 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     if ((t0 >= INT32_C(0))) {
         l1 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     } else {
         l1 = INT32_C(0);
     }
-#line 532 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     if ((t0 >= INT32_C(0))) {
         l2 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     } else {
         l2 = INT32_C(0);
     }
-#line 533 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_patch;
     if ((t0 >= INT32_C(0))) {
         l3 = ((vader_struct_semver_PartialVersion_t*) l0)->f_patch;
     } else {
         l3 = INT32_C(0);
     }
-#line 534 "lib/semver/semver.vader"
     l4 = ((vader_struct_semver_PartialVersion_t*) l0)->f_prerelease;
-#line 535 "lib/semver/semver.vader"
     l5 = ((vader_struct_semver_PartialVersion_t*) l0)->f_build;
-#line 530 "lib/semver/semver.vader"
     vader_struct_semver_Version_t* _a0_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_major = l1;
@@ -2896,30 +2349,24 @@ static void* semver_bounded(void* l0, vader_box_t l1) {
     void** gc_raw_roots[4] = { &l0, &l2, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 4u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 564 "lib/semver/semver.vader"
     if (!(l1.tag == 0u)) {
-#line 568 "lib/semver/semver.vader"
         vader_struct_semver_RangeTerm_t* _a0_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a0_obj, 22u);
         _a0_obj->f_op = (uint8_t) 4;
         _a0_obj->f_version = l0;
         l2 = (void*) _a0_obj;
-#line 569 "lib/semver/semver.vader"
         l3 = l1.payload.obj;
         vader_struct_semver_RangeTerm_t* _a1_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
         vader_obj_header_init(_a1_obj, 22u);
         _a1_obj->f_op = (uint8_t) 1;
         _a1_obj->f_version = l3;
         l3 = (void*) _a1_obj;
-#line 567 "lib/semver/semver.vader"
         vader_array_t* _a2_arr = vader_array_new(21u, 2u, 13u, 22u);
         ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = l3;
         ((void**) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = l2;
         t0 = (void*) _a2_arr;
         { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 564 "lib/semver/semver.vader"
     }
-#line 565 "lib/semver/semver.vader"
     vader_struct_semver_RangeTerm_t* _a3_obj = (vader_struct_semver_RangeTerm_t*) vader_gc_alloc(sizeof(vader_struct_semver_RangeTerm_t));
     vader_obj_header_init(_a3_obj, 22u);
     _a3_obj->f_op = (uint8_t) 4;
@@ -2937,7 +2384,6 @@ static vader_box_t semver_bump_major(int32_t l0) {
     void** gc_raw_roots[1] = { &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 557 "lib/semver/semver.vader"
     if (l0 == INT32_C(2147483647)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
@@ -2952,7 +2398,6 @@ static vader_box_t semver_bump_minor(int32_t l0, int32_t l1) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 558 "lib/semver/semver.vader"
     if (l1 == INT32_C(2147483647)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
@@ -2969,38 +2414,31 @@ static vader_box_t semver_caret_upper(void* l0) {
     void** gc_raw_roots[1] = { &l0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 584 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     if ((t0 >= INT32_C(0))) {
         l1 = ((vader_struct_semver_PartialVersion_t*) l0)->f_major;
     } else {
         l1 = INT32_C(0);
     }
-#line 585 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     if ((t0 >= INT32_C(0))) {
         l2 = ((vader_struct_semver_PartialVersion_t*) l0)->f_minor;
     } else {
         l2 = INT32_C(0);
     }
-#line 586 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_PartialVersion_t*) l0)->f_patch;
     if ((t0 >= INT32_C(0))) {
         l3 = ((vader_struct_semver_PartialVersion_t*) l0)->f_patch;
     } else {
         l3 = INT32_C(0);
     }
-#line 587 "lib/semver/semver.vader"
     if (l1 != INT32_C(0)) {
         t1 = semver_bump_major(l1);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 588 "lib/semver/semver.vader"
     if (!(l2 != INT32_C(0))) {
-#line 589 "lib/semver/semver.vader"
         t1 = semver_bump_patch(l3);
         { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 588 "lib/semver/semver.vader"
     }
     t1 = semver_bump_minor(INT32_C(0), l2);
     { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
@@ -3011,7 +2449,6 @@ static void* semver_zero_pre(int32_t l0, int32_t l1, int32_t l2) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 542 "lib/semver/semver.vader"
     vader_struct_semver_Version_t* _a0_obj = (vader_struct_semver_Version_t*) vader_gc_alloc(sizeof(vader_struct_semver_Version_t));
     vader_obj_header_init(_a0_obj, 3u);
     _a0_obj->f_major = l0;
@@ -3029,7 +2466,6 @@ static vader_box_t semver_bump_patch(int32_t l0) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 559 "lib/semver/semver.vader"
     if (l0 == INT32_C(2147483647)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
@@ -3053,15 +2489,12 @@ static vader_string_t semver_Version_std_core_Display_to_string(void* l0) {
         vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 36 "lib/std/string_builder/string_builder.vader"
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 2u);
     t0 = (void*) _a0_arr;
-#line 809 "lib/semver/semver.vader"
     vader_struct_std_string_builder_StringBuilder_t* _a1_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
     vader_obj_header_init(_a1_obj, 27u);
     _a1_obj->f_parts = t0;
     l1 = (void*) _a1_obj;
-#line 810 "lib/semver/semver.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(62));
     l3 = INT64_C(0);
     t1 = ((vader_struct_semver_Version_t*) l0)->f_major;
@@ -3077,39 +2510,28 @@ static vader_string_t semver_Version_std_core_Display_to_string(void* l0) {
     l3 = std_core_write_int(l2, l3, l4);
     l5 = std_core_finish_buffer(l2, l3);
     std_string_builder_append(l1, l5);
-#line 811 "lib/semver/semver.vader"
     t2 = ((vader_struct_semver_Version_t*) l0)->f_prerelease;
     t3 = std_string_is_empty(t2);
     if (!(t3)) {
-#line 812 "lib/semver/semver.vader"
         std_string_builder_append(l1, 21u);
-#line 813 "lib/semver/semver.vader"
         l5 = ((vader_struct_semver_Version_t*) l0)->f_prerelease;
         std_string_builder_append(l1, l5);
-#line 811 "lib/semver/semver.vader"
     }
-#line 815 "lib/semver/semver.vader"
     t2 = ((vader_struct_semver_Version_t*) l0)->f_build;
     t3 = std_string_is_empty(t2);
     if (t3) {
-#line 819 "lib/semver/semver.vader"
         t2 = std_string_builder_StringBuilder_std_core_Display_to_string(l1);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 815 "lib/semver/semver.vader"
     }
-#line 816 "lib/semver/semver.vader"
     std_string_builder_append(l1, 48u);
-#line 817 "lib/semver/semver.vader"
     l5 = ((vader_struct_semver_Version_t*) l0)->f_build;
     std_string_builder_append(l1, l5);
-#line 819 "lib/semver/semver.vader"
     t2 = std_string_builder_StringBuilder_std_core_Display_to_string(l1);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int32_t semver_Version_std_core_Comparable_compare(void* l0, void* l1) {
     int32_t t0;
-#line 840 "lib/semver/semver.vader"
     t0 = semver_compare_versions(l0, l1);
     return t0;
 }
@@ -3122,7 +2544,6 @@ static bool semver_VersionRange_std_core_Contains_contains(void* l0, void* l1) {
     void** gc_raw_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 849 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_VersionRange_t*) l0)->f_clauses;
     l3 = ((vader_array_t*) l2)->length;
     l4 = INT64_C(0);
@@ -3131,15 +2552,12 @@ static bool semver_VersionRange_std_core_Contains_contains(void* l0, void* l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l4);
-#line 850 "lib/semver/semver.vader"
         t1 = semver_clause_contains(t0, l1);
         if (t1) {
             { vader_gc_top = gc_frame.prev; return true; }
         }
-#line 849 "lib/semver/semver.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 852 "lib/semver/semver.vader"
     { vader_gc_top = gc_frame.prev; return false; }
 }
 
@@ -3156,66 +2574,53 @@ static int32_t semver_compare_versions(void* l0, void* l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 362 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_major;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_major;
     if ((l2 < l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
     }
-#line 363 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_major;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_major;
     if ((l2 > l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-#line 364 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_minor;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_minor;
     if ((l2 < l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
     }
-#line 365 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_minor;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_minor;
     if ((l2 > l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-#line 366 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_patch;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_patch;
     if ((l2 < l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
     }
-#line 367 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_Version_t*) l0)->f_patch;
     l3 = ((vader_struct_semver_Version_t*) l1)->f_patch;
     if ((l2 > l3)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-#line 368 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_Version_t*) l0)->f_prerelease;
     l4 = std_string_is_empty(t0);
-#line 369 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_Version_t*) l1)->f_prerelease;
     l5 = std_string_is_empty(t0);
-#line 370 "lib/semver/semver.vader"
     if (l4) {
         if (l5) {
             { vader_gc_top = gc_frame.prev; return INT32_C(0); }
         }
     }
-#line 371 "lib/semver/semver.vader"
     if (l4) {
         { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     }
-#line 372 "lib/semver/semver.vader"
     if (!(l5)) {
-#line 373 "lib/semver/semver.vader"
         l6 = ((vader_struct_semver_Version_t*) l0)->f_prerelease;
         l7 = ((vader_struct_semver_Version_t*) l1)->f_prerelease;
         t1 = semver_compare_prerelease(l6, l7);
         { int32_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 372 "lib/semver/semver.vader"
     }
     { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
 }
@@ -3235,13 +2640,10 @@ static bool semver_clause_contains(void* l0, void* l1) {
         vader_gc_top, 0u, 5u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 785 "lib/semver/semver.vader"
     t0 = ((vader_struct_semver_Version_t*) l1)->f_prerelease;
     t1 = std_string_is_empty(t0);
     if (!(t1)) {
-#line 786 "lib/semver/semver.vader"
         l2 = false;
-#line 787 "lib/semver/semver.vader"
         l3 = ((vader_struct_semver_RangeClause_t*) l0)->f_terms;
         l4 = ((vader_array_t*) l3)->length;
         l5 = INT64_C(0);
@@ -3250,9 +2652,7 @@ static bool semver_clause_contains(void* l0, void* l1) {
             VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l5)
             t2 = vader_array_ref_load_obj(_a0_slotarr->buf, _a0_slotarr->offset + (size_t) l5);
-#line 788 "lib/semver/semver.vader"
             l6 = ((vader_struct_semver_RangeTerm_t*) t2)->f_version;
-#line 789 "lib/semver/semver.vader"
             l7 = ((vader_struct_semver_Version_t*) l6)->f_major;
             l8 = ((vader_struct_semver_Version_t*) l1)->f_major;
             if (l7 == l8) {
@@ -3265,25 +2665,18 @@ static bool semver_clause_contains(void* l0, void* l1) {
                         t0 = ((vader_struct_semver_Version_t*) l6)->f_prerelease;
                         t1 = std_string_is_empty(t0);
                         if (!(t1)) {
-#line 790 "lib/semver/semver.vader"
                             l2 = true;
-#line 791 "lib/semver/semver.vader"
                             break;
-#line 789 "lib/semver/semver.vader"
                         }
                     }
                 }
             }
-#line 787 "lib/semver/semver.vader"
             l5 = (l5 + INT64_C(1));
         }
-#line 794 "lib/semver/semver.vader"
         if (!(l2)) {
             { vader_gc_top = gc_frame.prev; return false; }
         }
-#line 785 "lib/semver/semver.vader"
     }
-#line 796 "lib/semver/semver.vader"
     l3 = ((vader_struct_semver_RangeClause_t*) l0)->f_terms;
     l4 = ((vader_array_t*) l3)->length;
     l5 = INT64_C(0);
@@ -3292,15 +2685,12 @@ static bool semver_clause_contains(void* l0, void* l1) {
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l5)
         t2 = vader_array_ref_load_obj(_a1_slotarr->buf, _a1_slotarr->offset + (size_t) l5);
-#line 797 "lib/semver/semver.vader"
         t1 = semver_term_satisfies(t2, l1);
         if (!(t1)) {
             { vader_gc_top = gc_frame.prev; return false; }
         }
-#line 796 "lib/semver/semver.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 799 "lib/semver/semver.vader"
     { vader_gc_top = gc_frame.prev; return true; }
 }
 
@@ -3319,24 +2709,17 @@ static int32_t semver_compare_prerelease(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 379 "lib/semver/semver.vader"
     l2 = std_string_split(l0, 37u);
-#line 380 "lib/semver/semver.vader"
     l3 = std_string_split(l1, 37u);
-#line 381 "lib/semver/semver.vader"
     l4 = ((vader_array_t*) l2)->length;
-#line 382 "lib/semver/semver.vader"
     l5 = ((vader_array_t*) l3)->length;
-#line 383 "lib/semver/semver.vader"
     if ((l4 < l5)) {
         l6 = l4;
     } else {
         l6 = l5;
     }
-#line 384 "lib/semver/semver.vader"
     l7 = INT64_C(0);
     while ((l7 < l6)) {
-#line 385 "lib/semver/semver.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l2);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l7)
@@ -3348,22 +2731,16 @@ static int32_t semver_compare_prerelease(vader_string_t l0, vader_string_t l1) {
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l7];
         l9 = t0.payload.s;
         l10 = semver_compare_id(l8, l9);
-#line 386 "lib/semver/semver.vader"
         if (l10 != INT32_C(0)) {
             { int32_t __vret = l10; vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 384 "lib/semver/semver.vader"
         l7 = (l7 + INT64_C(1));
     }
-#line 388 "lib/semver/semver.vader"
     if ((l4 < l5)) {
         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
     }
-#line 389 "lib/semver/semver.vader"
     if (!((l4 > l5))) {
-#line 390 "lib/semver/semver.vader"
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 389 "lib/semver/semver.vader"
     }
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
 }
@@ -3375,32 +2752,23 @@ static bool semver_term_satisfies(void* l0, void* l1) {
     void** gc_raw_roots[3] = { &l0, &l1, &l2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 3u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 770 "lib/semver/semver.vader"
     l2 = ((vader_struct_semver_RangeTerm_t*) l0)->f_version;
     l3 = semver_compare_versions(l1, l2);
-#line 771 "lib/semver/semver.vader"
     l4 = ((vader_struct_semver_RangeTerm_t*) l0)->f_op;
-#line 772 "lib/semver/semver.vader"
     if (l4 == INT32_C(0)) {
         { bool __vret = l3 == INT32_C(0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 773 "lib/semver/semver.vader"
     if (l4 == INT32_C(1)) {
         { bool __vret = (l3 < INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 774 "lib/semver/semver.vader"
     if (l4 == INT32_C(2)) {
         { bool __vret = (l3 <= INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 775 "lib/semver/semver.vader"
     if (l4 == INT32_C(3)) {
         { bool __vret = (l3 > INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 776 "lib/semver/semver.vader"
     if (!(l4 == INT32_C(4))) {
-#line 771 "lib/semver/semver.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 776 "lib/semver/semver.vader"
     }
     { bool __vret = (l3 >= INT32_C(0)); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -3417,90 +2785,58 @@ static int32_t semver_compare_id(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 4u, 0u, gc_roots, NULL, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 326 "lib/semver/semver.vader"
     l2 = semver_is_all_digits(l0);
-#line 327 "lib/semver/semver.vader"
     l3 = semver_is_all_digits(l1);
-#line 328 "lib/semver/semver.vader"
     if (l2) {
         if (!(l3)) {
             { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
         }
     }
-#line 329 "lib/semver/semver.vader"
     if (l3) {
         if (!(l2)) {
             { vader_gc_top = gc_frame.prev; return INT32_C(1); }
         }
     }
-#line 330 "lib/semver/semver.vader"
     if (l2) {
         if (l3) {
-#line 331 "lib/semver/semver.vader"
             l4 = std_string_parse_int(l0);
             l5 = l4;
-#line 332 "lib/semver/semver.vader"
             if (l4.tag == 1u) {
-#line 333 "lib/semver/semver.vader"
                 l6 = std_string_parse_int(l1);
                 l7 = l6;
-#line 334 "lib/semver/semver.vader"
                 if (l6.tag == 1u) {
-#line 335 "lib/semver/semver.vader"
                     l8 = ((int32_t) l5.payload.i);
                     l9 = ((int32_t) l7.payload.i);
                     if ((l8 < l9)) {
                         { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
                     }
-#line 336 "lib/semver/semver.vader"
                     l8 = ((int32_t) l5.payload.i);
                     l9 = ((int32_t) l7.payload.i);
                     if (!((l8 > l9))) {
-#line 337 "lib/semver/semver.vader"
                         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
-#line 336 "lib/semver/semver.vader"
                     }
                     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
-#line 334 "lib/semver/semver.vader"
                 }
-#line 342 "lib/semver/semver.vader"
                 if (!(l6.tag == 13u)) {
-#line 333 "lib/semver/semver.vader"
                     vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 342 "lib/semver/semver.vader"
                 }
-#line 332 "lib/semver/semver.vader"
-#line 345 "lib/semver/semver.vader"
             } else if (!(l4.tag == 13u)) {
-#line 331 "lib/semver/semver.vader"
                 vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 345 "lib/semver/semver.vader"
             }
-#line 332 "lib/semver/semver.vader"
-#line 348 "lib/semver/semver.vader"
             l10 = vader_host_std_core_byte_len(l0);
-#line 349 "lib/semver/semver.vader"
             l11 = vader_host_std_core_byte_len(l1);
-#line 350 "lib/semver/semver.vader"
             if ((l10 < l11)) {
                 { vader_gc_top = gc_frame.prev; return INT32_C(-1); }
             }
-#line 351 "lib/semver/semver.vader"
             if (!((l10 > l11))) {
-#line 352 "lib/semver/semver.vader"
                 t0 = semver_compare_lex(l0, l1);
                 { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 351 "lib/semver/semver.vader"
             }
             { vader_gc_top = gc_frame.prev; return INT32_C(1); }
-#line 330 "lib/semver/semver.vader"
         }
-#line 354 "lib/semver/semver.vader"
         t0 = semver_compare_lex(l0, l1);
         { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 330 "lib/semver/semver.vader"
     }
-#line 354 "lib/semver/semver.vader"
     t0 = semver_compare_lex(l0, l1);
     { int32_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -3508,50 +2844,36 @@ static int32_t semver_compare_id(vader_string_t l0, vader_string_t l1) {
 static int32_t semver_compare_lex(vader_string_t l0, vader_string_t l1) {
     int64_t l2, l3, l4, l5;
     uint8_t l6, l7;
-#line 307 "lib/semver/semver.vader"
     l2 = vader_host_std_core_byte_len(l0);
-#line 308 "lib/semver/semver.vader"
     l3 = vader_host_std_core_byte_len(l1);
-#line 309 "lib/semver/semver.vader"
     if ((l2 < l3)) {
         l4 = l2;
     } else {
         l4 = l3;
     }
-#line 310 "lib/semver/semver.vader"
     l5 = INT64_C(0);
     while ((l5 < l4)) {
-#line 311 "lib/semver/semver.vader"
         l6 = vader_host_std_core_byte_at(l0, l5);
-#line 312 "lib/semver/semver.vader"
         l7 = vader_host_std_core_byte_at(l1, l5);
-#line 313 "lib/semver/semver.vader"
         if ((l6 < l7)) {
             return INT32_C(-1);
         }
-#line 314 "lib/semver/semver.vader"
         if ((l6 > l7)) {
             return INT32_C(1);
         }
-#line 310 "lib/semver/semver.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 316 "lib/semver/semver.vader"
     if ((l2 < l3)) {
         return INT32_C(-1);
     }
-#line 317 "lib/semver/semver.vader"
     if (!((l2 > l3))) {
-#line 318 "lib/semver/semver.vader"
         return INT32_C(0);
-#line 317 "lib/semver/semver.vader"
     }
     return INT32_C(1);
 }
 
 static bool std_string_is_empty(vader_string_t l0) {
     int64_t t0;
-#line 13 "lib/std/string/string.vader"
     t0 = vader_host_std_core_byte_len(l0);
     return t0 == INT64_C(0);
 }
@@ -3561,22 +2883,16 @@ static vader_string_t std_string_trim(vader_string_t l0) {
     uint8_t t0;
     bool t1;
     vader_string_t t2;
-#line 317 "lib/std/string/string.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 318 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 319 "lib/std/string/string.vader"
     while ((l2 < l1)) {
         t0 = vader_host_std_core_byte_at(l0, l2);
         t1 = std_string_is_white_byte(t0);
         if (!(t1)) {
             break;
         }
-#line 320 "lib/std/string/string.vader"
         l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 319 "lib/std/string/string.vader"
     }
-#line 323 "lib/std/string/string.vader"
     while ((l1 > l2)) {
         l3 = vader_chk_sub(i64, l1, INT64_C(1));
         t0 = vader_host_std_core_byte_at(l0, l3);
@@ -3584,11 +2900,8 @@ static vader_string_t std_string_trim(vader_string_t l0) {
         if (!(t1)) {
             break;
         }
-#line 324 "lib/std/string/string.vader"
         l1 = vader_chk_sub(i64, l1, INT64_C(1));
-#line 323 "lib/std/string/string.vader"
     }
-#line 326 "lib/std/string/string.vader"
     t2 = vader_host_std_core_byte_slice(l0, l2, l1);
     return t2;
 }
@@ -3607,9 +2920,7 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 418 "lib/std/string/string.vader"
     l1 = vader_host_std_core_byte_len(l0);
-#line 419 "lib/std/string/string.vader"
     if (l1 == INT64_C(0)) {
         vader_struct_std_string_ParseError_t* _a0_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a0_obj, 13u);
@@ -3617,20 +2928,13 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
         t0 = (void*) _a0_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 420 "lib/std/string/string.vader"
     l2 = INT64_C(0);
-#line 421 "lib/std/string/string.vader"
     l3 = false;
-#line 422 "lib/std/string/string.vader"
     t1 = vader_host_std_core_byte_at(l0, INT64_C(0));
     if (t1 == INT32_C(45)) {
-#line 423 "lib/std/string/string.vader"
         l3 = true;
-#line 424 "lib/std/string/string.vader"
         l2 = INT64_C(1);
-#line 422 "lib/std/string/string.vader"
     }
-#line 426 "lib/std/string/string.vader"
     if ((l2 >= l1)) {
         vader_struct_std_string_ParseError_t* _a1_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
         vader_obj_header_init(_a1_obj, 13u);
@@ -3638,35 +2942,26 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
         t0 = (void*) _a1_obj;
         { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 428 "lib/std/string/string.vader"
     l4 = INT64_C(0);
-#line 429 "lib/std/string/string.vader"
     while ((l2 < l1)) {
-#line 430 "lib/std/string/string.vader"
         l5 = vader_host_std_core_byte_at(l0, l2);
-#line 431 "lib/std/string/string.vader"
         if ((l5 < INT32_C(48))) {
             l6 = true;
         } else {
             l6 = (l5 > INT32_C(57));
         }
         if (l6) {
-#line 432 "lib/std/string/string.vader"
             vader_struct_std_string_ParseError_t* _a2_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
             vader_obj_header_init(_a2_obj, 13u);
             _a2_obj->f_msg = 51u;
             t0 = (void*) _a2_obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 431 "lib/std/string/string.vader"
         }
-#line 434 "lib/std/string/string.vader"
         l7 = vader_chk_mul(i64, l4, INT64_C(10));
         t2 = vader_chk_sub(u8, l5, INT32_C(48));
         l8 = ((int64_t) (uint32_t) t2);
         l4 = vader_chk_add(i64, l7, l8);
-#line 435 "lib/std/string/string.vader"
         if (l3) {
-#line 436 "lib/std/string/string.vader"
             l9 = INT64_C(2147483648);
             if ((l4 > l9)) {
                 vader_struct_std_string_ParseError_t* _a3_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
@@ -3675,8 +2970,6 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
                 t0 = (void*) _a3_obj;
                 { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
             }
-#line 435 "lib/std/string/string.vader"
-#line 438 "lib/std/string/string.vader"
         } else if ((l4 > INT64_C(2147483647))) {
             vader_struct_std_string_ParseError_t* _a4_obj = (vader_struct_std_string_ParseError_t*) vader_gc_alloc(sizeof(vader_struct_std_string_ParseError_t));
             vader_obj_header_init(_a4_obj, 13u);
@@ -3684,16 +2977,10 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
             t0 = (void*) _a4_obj;
             { vader_box_t __vret = vader_ref_box(t0); vader_gc_top = gc_frame.prev; return __vret; }
         }
-#line 435 "lib/std/string/string.vader"
-#line 440 "lib/std/string/string.vader"
         l2 = vader_chk_add(i64, l2, INT64_C(1));
-#line 429 "lib/std/string/string.vader"
     }
-#line 442 "lib/std/string/string.vader"
     if (!(l3)) {
-#line 443 "lib/std/string/string.vader"
         { vader_box_t __vret = vader_box_i32(1u, ((int32_t) (int64_t) l4)); vader_gc_top = gc_frame.prev; return __vret; }
-#line 442 "lib/std/string/string.vader"
     }
     t3 = vader_chk_neg(i64, l4);
     { vader_box_t __vret = vader_box_i32(1u, ((int32_t) (int64_t) t3)); vader_gc_top = gc_frame.prev; return __vret; }
@@ -3701,7 +2988,6 @@ static vader_box_t std_string_parse_int(vader_string_t l0) {
 
 static bool std_string_is_white_byte(uint8_t l0) {
     bool l1;
-#line 173 "lib/std/string/string.vader"
     if (l0 == INT32_C(32)) {
         l1 = true;
     } else {
@@ -3720,7 +3006,6 @@ static bool std_string_is_white_byte(uint8_t l0) {
 
 static bool std_string_starts_with(vader_string_t l0, vader_string_t l1) {
     bool t0;
-#line 54 "lib/std/string/string.vader"
     t0 = std_string_matches_at(l0, INT64_C(0), l1);
     return t0;
 }
@@ -3729,14 +3014,10 @@ static vader_string_t std_string_trim_prefix(vader_string_t l0, vader_string_t l
     int64_t l2, l3;
     bool t0;
     vader_string_t t1;
-#line 516 "lib/std/string/string.vader"
     t0 = std_string_starts_with(l0, l1);
     if (!(t0)) {
-#line 519 "lib/std/string/string.vader"
         return l0;
-#line 516 "lib/std/string/string.vader"
     }
-#line 517 "lib/std/string/string.vader"
     l2 = vader_host_std_core_byte_len(l1);
     l3 = vader_host_std_core_byte_len(l0);
     t1 = vader_host_std_core_byte_slice(l0, l2, l3);
@@ -3758,46 +3039,29 @@ static void* std_string_split(vader_string_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 230 "lib/std/string/string.vader"
     vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 2u);
     l2 = (void*) _a0_arr;
-#line 231 "lib/std/string/string.vader"
     l3 = vader_host_std_core_byte_len(l0);
-#line 232 "lib/std/string/string.vader"
     l4 = vader_host_std_core_byte_len(l1);
-#line 233 "lib/std/string/string.vader"
     if (l4 == INT64_C(0)) {
-#line 234 "lib/std/string/string.vader"
         l5 = INT64_C(0);
-#line 235 "lib/std/string/string.vader"
         while ((l5 < l3)) {
-#line 236 "lib/std/string/string.vader"
             std_core_codepoint_at_byte(l0, l5, &t0, &t1);
             l12 = t1;
             l6 = l12;
             l7 = vader_chk_add(i64, l5, l6);
-#line 237 "lib/std/string/string.vader"
             l8 = vader_host_std_core_byte_slice(l0, l5, l7);
             vader_array_push_scalar((vader_array_t*) l2, vader_box_string(2u, l8));
-#line 238 "lib/std/string/string.vader"
             l5 = l7;
-#line 235 "lib/std/string/string.vader"
         }
-#line 240 "lib/std/string/string.vader"
         { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 233 "lib/std/string/string.vader"
     }
-#line 242 "lib/std/string/string.vader"
     l9 = vader_host_std_core_byte_at(l1, INT64_C(0));
-#line 243 "lib/std/string/string.vader"
     l5 = INT64_C(0);
-#line 244 "lib/std/string/string.vader"
     l6 = INT64_C(0);
-#line 245 "lib/std/string/string.vader"
     for (;;) {
         t1 = vader_chk_add(i64, l6, l4);
         if ((t1 <= l3)) {
-#line 247 "lib/std/string/string.vader"
             t2 = vader_host_std_core_byte_at(l0, l6);
             if (t2 == l9) {
                 if (l4 == INT64_C(1)) {
@@ -3810,28 +3074,19 @@ static void* std_string_split(vader_string_t l0, vader_string_t l1) {
                 l10 = false;
             }
             if (l10) {
-#line 248 "lib/std/string/string.vader"
                 l8 = vader_host_std_core_byte_slice(l0, l5, l6);
                 vader_array_push_scalar((vader_array_t*) l2, vader_box_string(2u, l8));
-#line 249 "lib/std/string/string.vader"
                 l6 = vader_chk_add(i64, l6, l4);
-#line 250 "lib/std/string/string.vader"
                 l5 = l6;
-#line 247 "lib/std/string/string.vader"
                 continue;
             }
-#line 252 "lib/std/string/string.vader"
             l6 = vader_chk_add(i64, l6, INT64_C(1));
-#line 251 "lib/std/string/string.vader"
             continue;
-#line 245 "lib/std/string/string.vader"
         }
         break;
     }
-#line 255 "lib/std/string/string.vader"
     l8 = vader_host_std_core_byte_slice(l0, l5, l3);
     vader_array_push_scalar((vader_array_t*) l2, vader_box_string(2u, l8));
-#line 256 "lib/std/string/string.vader"
     { void* __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -3839,44 +3094,31 @@ static bool std_string_matches_at(vader_string_t l0, int64_t l1, vader_string_t 
     int64_t l3, l4, l5;
     uint8_t l6, l7;
     int64_t t0;
-#line 41 "lib/std/string/string.vader"
     l3 = vader_host_std_core_byte_len(l2);
-#line 42 "lib/std/string/string.vader"
     l4 = vader_host_std_core_byte_len(l0);
     if ((l1 > l4)) {
-#line 43 "lib/std/string/string.vader"
         return false;
-#line 42 "lib/std/string/string.vader"
     }
     t0 = vader_host_std_core_byte_len(l0);
     l4 = vader_chk_sub(i64, t0, l1);
     if ((l3 > l4)) {
-#line 43 "lib/std/string/string.vader"
         return false;
-#line 42 "lib/std/string/string.vader"
     }
-#line 45 "lib/std/string/string.vader"
     l4 = INT64_C(0);
     while ((l4 < l3)) {
-#line 46 "lib/std/string/string.vader"
         l5 = vader_chk_add(i64, l1, l4);
         l6 = vader_host_std_core_byte_at(l0, l5);
         l7 = vader_host_std_core_byte_at(l2, l4);
         if (l6 != l7) {
-#line 47 "lib/std/string/string.vader"
             return false;
-#line 46 "lib/std/string/string.vader"
         }
-#line 45 "lib/std/string/string.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 50 "lib/std/string/string.vader"
     return true;
 }
 
 static vader_string_t std_string_ParseError_std_core_Error_message(void* l0) {
     vader_string_t t0;
-#line 404 "lib/std/string/string.vader"
     t0 = ((vader_struct_std_string_ParseError_t*) l0)->f_msg;
     return t0;
 }
@@ -3892,39 +3134,25 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
-#line 207 "lib/std/io/io.vader"
     l3 = INT64_C(0);
-#line 208 "lib/std/io/io.vader"
     for (;;) {
-#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
-#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 214 "lib/std/io/io.vader"
             }
-#line 217 "lib/std/io/io.vader"
             l9 = ((int64_t) (int32_t) l8);
             l3 = vader_chk_add(i64, l3, l9);
-#line 208 "lib/std/io/io.vader"
             continue;
-#line 209 "lib/std/io/io.vader"
         }
-#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -3933,14 +3161,10 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 178 "lib/std/io/io.vader"
     }
-#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -3950,7 +3174,6 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 53u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -3961,14 +3184,12 @@ static void std_io_eprintln__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 242 "lib/std/io/io.vader"
     l1 = concat_2(l0, 53u);
     std_io_write((uint8_t) 1, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
 static bool std_char_is_digit(uint32_t l0) {
-#line 16 "lib/std/char/char.vader"
     if ((48u <= l0)) {
         return (l0 <= 57u);
     }
@@ -3977,7 +3198,6 @@ static bool std_char_is_digit(uint32_t l0) {
 
 static bool std_char_is_alnum(uint32_t l0) {
     bool t0;
-#line 24 "lib/std/char/char.vader"
     t0 = std_char_is_alpha(l0);
     if (t0) {
         return true;
@@ -3988,7 +3208,6 @@ static bool std_char_is_alnum(uint32_t l0) {
 
 static bool std_char_is_white_char(uint32_t l0) {
     bool l1;
-#line 12 "lib/std/char/char.vader"
     if (l0 == 32u) {
         l1 = true;
     } else {
@@ -4007,7 +3226,6 @@ static bool std_char_is_white_char(uint32_t l0) {
 
 static bool std_char_is_alpha(uint32_t l0) {
     bool l1;
-#line 20 "lib/std/char/char.vader"
     if ((97u <= l0)) {
         l1 = (l0 <= 122u);
     } else {
@@ -4038,13 +3256,10 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 82 "lib/std/string_builder/string_builder.vader"
     l1 = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts)->length;
-#line 83 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
-#line 84 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(1)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -4053,9 +3268,7 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         t1 = t0.payload.s;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 85 "lib/std/string_builder/string_builder.vader"
     l1 = INT64_C(0);
-#line 86 "lib/std/string_builder/string_builder.vader"
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l3 = ((vader_array_t*) l2)->length;
     l4 = INT64_C(0);
@@ -4065,17 +3278,12 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-#line 87 "lib/std/string_builder/string_builder.vader"
         l5 = vader_host_std_core_byte_len(t1);
         l1 = vader_chk_add(i64, l1, l5);
-#line 86 "lib/std/string_builder/string_builder.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 89 "lib/std/string_builder/string_builder.vader"
     l2 = (void*) vader_buffer_new((size_t) l1);
-#line 90 "lib/std/string_builder/string_builder.vader"
     l3 = INT64_C(0);
-#line 91 "lib/std/string_builder/string_builder.vader"
     l6 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l4 = ((vader_array_t*) l6)->length;
     l5 = INT64_C(0);
@@ -4085,23 +3293,17 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
         t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
         l7 = t0.payload.s;
-#line 92 "lib/std/string_builder/string_builder.vader"
         vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
-#line 93 "lib/std/string_builder/string_builder.vader"
         l8 = vader_host_std_core_byte_len(l7);
         l3 = vader_chk_add(i64, l3, l8);
-#line 91 "lib/std/string_builder/string_builder.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 95 "lib/std/string_builder/string_builder.vader"
     t1 = vader_buffer_intern_string((vader_buffer_t*) l2, (size_t) l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-#line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
-#line 42 "lib/std/string_builder/string_builder.vader"
     return;
 }
 

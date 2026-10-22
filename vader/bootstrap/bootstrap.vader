@@ -43,7 +43,7 @@ import "vader/lower"
 import "vader/midir"
 import "vader/pipeline/check"
 import "vader/bytecode"
-import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as _ }
+import "vader/c_emit" { EmitOptions as CEmitOptions }
 
 /// Build-only entrypoint : compile `<input.vader>` to a multi-unit C program.
 ///
@@ -122,10 +122,9 @@ emit_c_program :: fn(file: string, header_name: string) -> CProgram | null {
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
     // which has its own `main`) flags several fns `is_main`.
-    // Debug build (`.release = false`) — the seed is cc'd with `-O2` separately.
-    return emit_c_split(
-        b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }, header_name,
-    )
+    // No `#line`: `cfg_bytecode_from` records no positions. The seed is cc'd
+    // with `-O2` separately.
+    return emit_c_split(b.module, CEmitOptions { .entry_mangled = b.entry }, header_name)
 }
 
 // Render the merged pipeline diagnostics to stderr and report whether the

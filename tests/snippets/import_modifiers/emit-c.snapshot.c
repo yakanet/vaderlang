@@ -20,7 +20,6 @@ const size_t vader_type_info_count = 2;
 static int32_t snippet_main(void) {
     int32_t l0, l1;
     int32_t t0;
-#line 8 "tests/snippets/import_modifiers/_main.vader"
     l0 = snippet_toolkit_draw();
     l1 = snippet_toolkit_compute_bounding_box();
     t0 = vader_chk_add(i32, l0, l1);
@@ -28,12 +27,10 @@ static int32_t snippet_main(void) {
 }
 
 static int32_t snippet_toolkit_draw(void) {
-#line 3 "tests/snippets/import_modifiers/toolkit/toolkit.vader"
     return INT32_C(10);
 }
 
 static int32_t snippet_toolkit_compute_bounding_box(void) {
-#line 5 "tests/snippets/import_modifiers/toolkit/toolkit.vader"
     return INT32_C(30);
 }
 

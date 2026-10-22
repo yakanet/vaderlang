@@ -21,11 +21,11 @@ export EmitOptions :: struct {
     /// by name ; empty for normal builds.
     keep_mangles: string[]
     /// Populate the per-op `debug: (DebugPos | null)[]` table with source
-    /// positions. Only the non-release c-emit reads it (for `#line`), so this
-    /// is `!release` on the C-build / `dump --stage=c` path and `false`
-    /// everywhere else — the VM never reads `debug`, so populating it on the
-    /// run / comptime / self-compile-release path would allocate one `DebugPos`
-    /// box per op for nothing.
+    /// positions. The C emitter writes a `#line` wherever one is set, so this
+    /// is `!release` on the C-build path, `--line-directives` on
+    /// `dump --stage=c`, and `false` everywhere else — the VM never reads
+    /// `debug`, so populating it on the run / comptime / self-compile-release
+    /// path would allocate one `DebugPos` box per op for nothing.
     want_debug: bool
     /// Run the IR verifiers (`vader/lower/verify`, `vader/midir/verify`)
     /// between passes. Several extra IR walks per pass, so `--verify` only.
@@ -36,8 +36,8 @@ export EmitOptions :: struct {
 }
 
 /// Default options : peephole ON, no extra roots, debug table OFF (the VM /
-/// comptime / bytecode-dump callers never read it). The C-build path opts in
-/// via `want_debug = !release`.
+/// comptime / bytecode-dump callers never read it). A debug C build opts in
+/// (`want_debug = !release`), and so does `dump --stage=c --line-directives`.
 /// @return  a fresh `EmitOptions` with `optimize = true`, `want_debug = false`.
 export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = false }
 

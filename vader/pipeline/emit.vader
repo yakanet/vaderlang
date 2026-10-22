@@ -24,7 +24,7 @@ import "std/target"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/bytecode"
-import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+import "vader/c_emit" { EmitOptions as CEmitOptions }
 
 /// Directory holding the C runtime, for native linking.
 ///
@@ -362,13 +362,12 @@ export strip_input_suffix :: fn(file: Path) -> Path =
 /// The seam a single-stream driver needs: it holds the `CfgBytecode` from its
 /// own walk and must not re-run the pipeline to get the C.
 ///
-/// @param cfg      bytecode plus the entry mangle it was built with.
-/// @param release  optimise, and drop `#line`.
-/// @return         the C source. Callers gate on `any_error_diag` first — this
-///                 does not check, and emitting from a rejected program yields
-///                 something that links but is wrong.
-export c_source_of :: fn(cfg: CfgBytecode, release: bool) -> string =
-    emit_c(cfg.module, native_c_options(release, cfg.entry))
+/// @param cfg  bytecode plus the entry mangle it was built with.
+/// @return     the C source. Callers gate on `any_error_diag` first — this
+///             does not check, and emitting from a rejected program yields
+///             something that links but is wrong.
+export c_source_of :: fn(cfg: CfgBytecode) -> string =
+    emit_c(cfg.module, native_c_options(cfg.entry))
 
 /// Whether a native build marks the accesses the range analysis proves in
 /// bounds: a `--release` build drops their check, and `$VADER_VERIFY_BOUNDS`
@@ -380,10 +379,8 @@ export proves_bounds :: fn(release: bool) -> bool = release || bounds_verificati
 
 /// The C emitter's options for a native build of `entry`.
 ///
-/// @param release  optimise, and drop `#line`.
-/// @param entry    the entry function's mangle.
-export native_c_options :: fn(release: bool, entry: string) -> CEmitOptions = CEmitOptions {
-    .release = release,
+/// @param entry  the entry function's mangle.
+export native_c_options :: fn(entry: string) -> CEmitOptions = CEmitOptions {
     .entry_mangled = entry,
     .verify_bounds = bounds_verification_enabled(),
 }

@@ -36,15 +36,12 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[3] = { &l1, &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 20 "tests/snippets/array_repeat_ops/_main.vader"
     l0 = INT32_C(0);
-#line 23 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(2u, 1u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(0);
     t0 = (void*) _a0_arr;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(3));
     l1 = (void*) _a1_arr;
-#line 24 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(3)) {
         vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
@@ -61,13 +58,11 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 26 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a4_arr = vader_array_new(2u, 1u, 7u, 1u);
     ((int32_t*) _a4_arr->buf->slots)[_a4_arr->offset + 0u] = (int32_t) INT32_C(1);
     t0 = (void*) _a4_arr;
     vader_array_t* _a5_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(4));
     l1 = (void*) _a5_arr;
-#line 27 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(4)) {
         vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
@@ -84,14 +79,12 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 30 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a8_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a8_arr->buf->slots)[_a8_arr->offset + 1u] = (int32_t) INT32_C(9);
     ((int32_t*) _a8_arr->buf->slots)[_a8_arr->offset + 0u] = (int32_t) INT32_C(7);
     t0 = (void*) _a8_arr;
     vader_array_t* _a9_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(2));
     l1 = (void*) _a9_arr;
-#line 31 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(4)) {
         vader_array_t* _a10_slotarr = ((vader_array_t*) l1);
@@ -120,17 +113,14 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 34 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a14_arr = vader_array_new(2u, 0u, 7u, 1u);
     t0 = (void*) _a14_arr;
     vader_array_t* _a15_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(8));
     l1 = (void*) _a15_arr;
-#line 35 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(0)) {
         l0 = vader_chk_add(i32, l0, INT32_C(1));
     }
-#line 36 "tests/snippets/array_repeat_ops/_main.vader"
     l2 = INT32_C(0);
     vader_array_t* _pc116_hdr = (vader_array_t*) l1;
     size_t _pc116_len = _pc116_hdr->length;
@@ -161,7 +151,6 @@ static int32_t snippet_main(void) {
         }
         break;
     }
-#line 37 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(5)) {
         vader_array_t* _a16_slotarr = ((vader_array_t*) l1);
@@ -178,20 +167,16 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 40 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a18_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a18_arr->buf->slots)[_a18_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a18_arr->buf->slots)[_a18_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a18_arr->buf->slots)[_a18_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a18_arr;
-#line 41 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a19_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a19_arr->buf->slots)[_a19_arr->offset + 1u] = (int32_t) INT32_C(5);
     ((int32_t*) _a19_arr->buf->slots)[_a19_arr->offset + 0u] = (int32_t) INT32_C(4);
     l3 = (void*) _a19_arr;
-#line 42 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l3);
-#line 43 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(5)) {
         vader_array_t* _a20_slotarr = ((vader_array_t*) l1);
@@ -214,14 +199,11 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 46 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a23_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a23_arr->buf->slots)[_a23_arr->offset + 1u] = (int32_t) INT32_C(9);
     ((int32_t*) _a23_arr->buf->slots)[_a23_arr->offset + 0u] = (int32_t) INT32_C(8);
     l1 = (void*) _a23_arr;
-#line 47 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l1);
-#line 48 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(4)) {
         vader_array_t* _a24_slotarr = ((vader_array_t*) l1);
@@ -250,21 +232,17 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 51 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a28_arr = vader_array_new(2u, 1u, 7u, 1u);
     ((int32_t*) _a28_arr->buf->slots)[_a28_arr->offset + 0u] = (int32_t) INT32_C(0);
     t0 = (void*) _a28_arr;
     vader_array_t* _a29_arr = vader_array_repeat((vader_array_t*) t0, (int64_t) INT64_C(5));
     l1 = (void*) _a29_arr;
-#line 52 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a30_arr = vader_array_new(2u, 3u, 7u, 1u);
     ((int32_t*) _a30_arr->buf->slots)[_a30_arr->offset + 2u] = (int32_t) INT32_C(33);
     ((int32_t*) _a30_arr->buf->slots)[_a30_arr->offset + 1u] = (int32_t) INT32_C(22);
     ((int32_t*) _a30_arr->buf->slots)[_a30_arr->offset + 0u] = (int32_t) INT32_C(11);
     t0 = (void*) _a30_arr;
-#line 53 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_copy((vader_array_t*) t0, (int64_t) INT64_C(0), (vader_array_t*) l1, (int64_t) INT64_C(1), (int64_t) INT64_C(3));
-#line 54 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a31_slotarr = ((vader_array_t*) l1);
     VADER_ARRAY_RESOLVE_BUF(_a31_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a31_slotarr, INT32_C(0))
@@ -296,16 +274,13 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 57 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a36_arr = vader_array_new(2u, 4u, 7u, 1u);
     ((int32_t*) _a36_arr->buf->slots)[_a36_arr->offset + 3u] = (int32_t) INT32_C(4);
     ((int32_t*) _a36_arr->buf->slots)[_a36_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a36_arr->buf->slots)[_a36_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a36_arr->buf->slots)[_a36_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a36_arr;
-#line 58 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_copy((vader_array_t*) l1, (int64_t) INT64_C(0), (vader_array_t*) l1, (int64_t) INT64_C(1), (int64_t) INT64_C(3));
-#line 59 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a37_slotarr = ((vader_array_t*) l1);
     VADER_ARRAY_RESOLVE_BUF(_a37_slotarr)
     VADER_ARRAY_CHECK_INDEX(_a37_slotarr, INT32_C(0))
@@ -331,14 +306,11 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 62 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a41_arr = vader_array_new(2u, 2u, 7u, 1u);
     ((int32_t*) _a41_arr->buf->slots)[_a41_arr->offset + 1u] = (int32_t) INT32_C(200);
     ((int32_t*) _a41_arr->buf->slots)[_a41_arr->offset + 0u] = (int32_t) INT32_C(100);
     l1 = (void*) _a41_arr;
-#line 63 "tests/snippets/array_repeat_ops/_main.vader"
     l4 = vader_array_remove_last((vader_array_t*) l1);
-#line 64 "tests/snippets/array_repeat_ops/_main.vader"
     if (!(l4.tag == 0u)) {
         t2 = ((int32_t) l4.payload.i);
         if (t2 == INT32_C(200)) {
@@ -354,27 +326,20 @@ static int32_t snippet_main(void) {
             }
         }
     }
-#line 67 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a43_arr = vader_array_new(2u, 0u, 7u, 1u);
     t0 = (void*) _a43_arr;
-#line 68 "tests/snippets/array_repeat_ops/_main.vader"
     t3 = vader_array_remove_last((vader_array_t*) t0);
-#line 69 "tests/snippets/array_repeat_ops/_main.vader"
     if (t3.tag == 0u) {
         l0 = vader_chk_add(i32, l0, INT32_C(1));
     }
-#line 72 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_t* _a44_arr = vader_array_new(2u, 4u, 7u, 1u);
     ((int32_t*) _a44_arr->buf->slots)[_a44_arr->offset + 3u] = (int32_t) INT32_C(4);
     ((int32_t*) _a44_arr->buf->slots)[_a44_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a44_arr->buf->slots)[_a44_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a44_arr->buf->slots)[_a44_arr->offset + 0u] = (int32_t) INT32_C(1);
     l1 = (void*) _a44_arr;
-#line 73 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_clear((vader_array_t*) l1);
-#line 74 "tests/snippets/array_repeat_ops/_main.vader"
     vader_array_push_i32((vader_array_t*) l1, INT32_C(42));
-#line 75 "tests/snippets/array_repeat_ops/_main.vader"
     t1 = ((vader_array_t*) l1)->length;
     if (t1 == INT64_C(1)) {
         vader_array_t* _a45_slotarr = ((vader_array_t*) l1);
@@ -383,15 +348,10 @@ static int32_t snippet_main(void) {
         t2 = ((int32_t*) _a45_slotarr->buf->slots)[_a45_slotarr->offset + (size_t) INT32_C(0)];
         if (t2 == INT32_C(42)) {
             l0 = vader_chk_add(i32, l0, INT32_C(1));
-#line 77 "tests/snippets/array_repeat_ops/_main.vader"
             { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 75 "tests/snippets/array_repeat_ops/_main.vader"
         }
-#line 77 "tests/snippets/array_repeat_ops/_main.vader"
         { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 75 "tests/snippets/array_repeat_ops/_main.vader"
     }
-#line 77 "tests/snippets/array_repeat_ops/_main.vader"
     { int32_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 

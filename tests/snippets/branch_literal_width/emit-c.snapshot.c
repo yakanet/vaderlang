@@ -135,50 +135,32 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 static uint8_t snippet_nested(vader_box_t l0, bool l1, int32_t l2) {
     uint8_t l3, l4;
     int32_t t0;
-#line 19 "tests/snippets/branch_literal_width/_main.vader"
     if (l0.tag == 2u) {
         l3 = (uint8_t) 7;
-#line 31 "tests/snippets/branch_literal_width/_main.vader"
         l4 = (uint8_t) 5;
         t0 = vader_chk_add(u8, l3, l4);
         return (uint8_t) (int32_t) t0;
-#line 19 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 20 "tests/snippets/branch_literal_width/_main.vader"
     if (!(l0.tag == 0u)) {
-#line 18 "tests/snippets/branch_literal_width/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 20 "tests/snippets/branch_literal_width/_main.vader"
     }
     if (l1) {
-#line 21 "tests/snippets/branch_literal_width/_main.vader"
         l3 = (uint8_t) 250;
-#line 20 "tests/snippets/branch_literal_width/_main.vader"
-#line 22 "tests/snippets/branch_literal_width/_main.vader"
     } else if ((l2 > INT32_C(0))) {
-#line 24 "tests/snippets/branch_literal_width/_main.vader"
         if (l2 == INT32_C(1)) {
             l3 = (uint8_t) 200;
-#line 25 "tests/snippets/branch_literal_width/_main.vader"
         } else {
             l3 = (uint8_t) 100;
-#line 24 "tests/snippets/branch_literal_width/_main.vader"
         }
-#line 22 "tests/snippets/branch_literal_width/_main.vader"
-#line 28 "tests/snippets/branch_literal_width/_main.vader"
     } else {
         l3 = (uint8_t) 50;
-#line 22 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 20 "tests/snippets/branch_literal_width/_main.vader"
-#line 31 "tests/snippets/branch_literal_width/_main.vader"
     l4 = (uint8_t) 5;
     t0 = vader_chk_add(u8, l3, l4);
     return (uint8_t) (int32_t) t0;
 }
 
 static int64_t snippet_wide_if(bool l0) {
-#line 35 "tests/snippets/branch_literal_width/_main.vader"
     if (l0) {
         return INT64_C(1);
     }
@@ -191,7 +173,6 @@ static uint64_t snippet_arithmetic(vader_box_t l0) {
     void* t1;
     bool t2;
     uint64_t t3;
-#line 49 "tests/snippets/branch_literal_width/_main.vader"
     if (l0.tag == 8u) {
         t0 = (INT64_C(1) << INT64_C(40));
         l1 = (uint64_t) (int64_t) t0;
@@ -203,19 +184,13 @@ static uint64_t snippet_arithmetic(vader_box_t l0) {
             l2 = (uint64_t) 2;
         }
         t0 = vader_chk_add(u64, l1, l2);
-#line 52 "tests/snippets/branch_literal_width/_main.vader"
         return (uint64_t) (int64_t) t0;
-#line 49 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 50 "tests/snippets/branch_literal_width/_main.vader"
     if (!(l0.tag == 9u)) {
-#line 48 "tests/snippets/branch_literal_width/_main.vader"
         vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 50 "tests/snippets/branch_literal_width/_main.vader"
     }
     t1 = l0.payload.obj;
     t3 = ((vader_struct_snippet_Wide_t*) t1)->f_n;
-#line 52 "tests/snippets/branch_literal_width/_main.vader"
     return t3;
 }
 
@@ -235,7 +210,6 @@ static vader_string_t snippet_optional(bool l0, bool l1) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 56 "tests/snippets/branch_literal_width/_main.vader"
     if (l0) {
         l2 = vader_box_i32(5u, INT32_C(1));
     } else if (l1) {
@@ -243,9 +217,7 @@ static vader_string_t snippet_optional(bool l0, bool l1) {
     } else {
         l2 = vader_box_obj(0u, NULL);
     }
-#line 57 "tests/snippets/branch_literal_width/_main.vader"
     if (l2.tag == 5u) {
-#line 58 "tests/snippets/branch_literal_width/_main.vader"
         l3 = (void*) vader_buffer_new((size_t) INT64_C(23));
         l4 = INT64_C(0);
         l4 = std_core_write_string_at(l3, l4, 1u);
@@ -255,16 +227,11 @@ static vader_string_t snippet_optional(bool l0, bool l1) {
         l4 = std_core_write_unsigned(l3, l4, l5);
         t2 = std_core_finish_buffer(l3, l4);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 57 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 60 "tests/snippets/branch_literal_width/_main.vader"
     t3 = l2;
     if (!(t3.payload.obj == vader_box_obj(0u, NULL).payload.obj)) {
-#line 63 "tests/snippets/branch_literal_width/_main.vader"
         { vader_gc_top = gc_frame.prev; return 3u; }
-#line 60 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 61 "tests/snippets/branch_literal_width/_main.vader"
     { vader_gc_top = gc_frame.prev; return 2u; }
 }
 
@@ -283,19 +250,14 @@ static vader_string_t snippet_beside_optional(bool l0, vader_box_t l1) {
         vader_gc_top, 2u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 67 "tests/snippets/branch_literal_width/_main.vader"
     if (l0) {
         l2 = l1;
     } else {
         l2 = vader_box_i32(5u, INT32_C(200));
     }
-#line 68 "tests/snippets/branch_literal_width/_main.vader"
     if (!(l2.tag == 5u)) {
-#line 71 "tests/snippets/branch_literal_width/_main.vader"
         { vader_gc_top = gc_frame.prev; return 3u; }
-#line 68 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 69 "tests/snippets/branch_literal_width/_main.vader"
     l3 = (void*) vader_buffer_new((size_t) INT64_C(23));
     l4 = INT64_C(0);
     l4 = std_core_write_string_at(l3, l4, 1u);
@@ -310,12 +272,9 @@ static vader_string_t snippet_beside_optional(bool l0, vader_box_t l1) {
 static uint8_t snippet_coalesced(bool l0, bool l1) {
     uint8_t l2;
     vader_box_t l3;
-#line 75 "tests/snippets/branch_literal_width/_main.vader"
     if (l0) {
         l2 = (uint8_t) 1;
-#line 76 "tests/snippets/branch_literal_width/_main.vader"
         return l2;
-#line 75 "tests/snippets/branch_literal_width/_main.vader"
     }
     if (l1) {
         l3 = vader_box_i32(5u, INT32_C(200));
@@ -327,7 +286,6 @@ static uint8_t snippet_coalesced(bool l0, bool l1) {
     } else {
         l2 = ((uint8_t) l3.payload.i);
     }
-#line 76 "tests/snippets/branch_literal_width/_main.vader"
     return l2;
 }
 
@@ -351,11 +309,9 @@ static int32_t snippet_main(void) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 80 "tests/snippets/branch_literal_width/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(13u, 1u, 1u, 5u);
     ((uint8_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (uint8_t) INT32_C(65);
     l0 = (void*) _a0_arr;
-#line 81 "tests/snippets/branch_literal_width/_main.vader"
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 > INT64_C(0))) {
         t0 = ((vader_array_t*) l0)->length;
@@ -368,17 +324,14 @@ static int32_t snippet_main(void) {
     } else {
         l1 = (uint8_t) 40;
     }
-#line 82 "tests/snippets/branch_literal_width/_main.vader"
     if (l1 != INT32_C(40)) {
         l3 = 4u;
     } else {
         l3 = 5u;
     }
     std_io_println__string(l3);
-#line 83 "tests/snippets/branch_literal_width/_main.vader"
     vader_array_t* _a2_arr = vader_array_new(13u, 0u, 1u, 5u);
     l0 = (void*) _a2_arr;
-#line 84 "tests/snippets/branch_literal_width/_main.vader"
     t0 = ((vader_array_t*) l0)->length;
     if ((t0 > INT64_C(0))) {
         vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
@@ -389,19 +342,15 @@ static int32_t snippet_main(void) {
     } else {
         l1 = (uint8_t) 40;
     }
-#line 85 "tests/snippets/branch_literal_width/_main.vader"
     if (l1 == INT32_C(40)) {
         l3 = 6u;
     } else {
         l3 = 7u;
     }
     std_io_println__string(l3);
-#line 86 "tests/snippets/branch_literal_width/_main.vader"
     l2 = ((vader_array_t*) l0)->length;
-#line 88 "tests/snippets/branch_literal_width/_main.vader"
     if (l2 == INT64_C(0)) {
         l1 = (uint8_t) 40;
-#line 89 "tests/snippets/branch_literal_width/_main.vader"
     } else {
         l4 = vader_chk_sub(i64, l2, INT64_C(1));
         vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
@@ -409,26 +358,19 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l4)
         t1 = vader_array_read_u8(_a4_slotarr, _a4_slotarr->offset + (size_t) l4, 5u);
         l1 = ((uint8_t) t1.payload.i);
-#line 88 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 91 "tests/snippets/branch_literal_width/_main.vader"
     if (l1 == INT32_C(40)) {
         l3 = 8u;
     } else {
         l3 = 9u;
     }
     std_io_println__string(l3);
-#line 92 "tests/snippets/branch_literal_width/_main.vader"
     l4 = INT64_C(5000000000);
-#line 94 "tests/snippets/branch_literal_width/_main.vader"
     if (l2 == INT64_C(0)) {
         l2 = INT64_C(1);
-#line 95 "tests/snippets/branch_literal_width/_main.vader"
     } else {
         l2 = l4;
-#line 94 "tests/snippets/branch_literal_width/_main.vader"
     }
-#line 97 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(39));
     l5 = INT64_C(0);
     l5 = std_core_write_string_at(l0, l5, 10u);
@@ -436,7 +378,6 @@ static int32_t snippet_main(void) {
     l5 = std_core_write_int(l0, l5, l2);
     t2 = std_core_finish_buffer(l0, l5);
     std_io_println__string(t2);
-#line 98 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(70));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 11u);
@@ -456,7 +397,6 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_unsigned(l0, l2, l6);
     t2 = std_core_finish_buffer(l0, l2);
     std_io_println__string(t2);
-#line 99 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(49));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 11u);
@@ -471,7 +411,6 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_unsigned(l0, l2, l6);
     t2 = std_core_finish_buffer(l0, l2);
     std_io_println__string(t2);
-#line 100 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(36));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 14u);
@@ -479,7 +418,6 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_int(l0, l2, l4);
     t2 = std_core_finish_buffer(l0, l2);
     std_io_println__string(t2);
-#line 101 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l2 = INT64_C(0);
     vader_struct_snippet_Probe_t* _a5_obj = (vader_struct_snippet_Probe_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Probe_t));
@@ -496,7 +434,6 @@ static int32_t snippet_main(void) {
     l6 = snippet_arithmetic(vader_ref_box(t4));
     l2 = std_core_write_unsigned(l0, l2, l6);
     l3 = std_core_finish_buffer(l0, l2);
-#line 102 "tests/snippets/branch_literal_width/_main.vader"
     l2 = vader_host_std_core_byte_len(l3);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(33) + l2));
     l2 = INT64_C(0);
@@ -511,18 +448,15 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_unsigned(l0, l2, l6);
     t2 = std_core_finish_buffer(l0, l2);
     std_io_println__string(t2);
-#line 103 "tests/snippets/branch_literal_width/_main.vader"
     l3 = snippet_optional(true, false);
     l7 = snippet_optional(false, true);
     l8 = snippet_optional(false, false);
     t2 = concat_6(16u, l3, 12u, l7, 12u, l8);
     std_io_println__string(t2);
-#line 104 "tests/snippets/branch_literal_width/_main.vader"
     l3 = snippet_beside_optional(false, vader_box_obj(0u, NULL));
     l7 = snippet_beside_optional(true, vader_box_i32(5u, INT32_C(7)));
     t2 = concat_4(17u, l3, 12u, l7);
     std_io_println__string(t2);
-#line 105 "tests/snippets/branch_literal_width/_main.vader"
     l0 = (void*) vader_buffer_new((size_t) INT64_C(41));
     l2 = INT64_C(0);
     t3 = snippet_coalesced(false, true);
@@ -535,7 +469,6 @@ static int32_t snippet_main(void) {
     l6 = (uint64_t) (int64_t) t0;
     l2 = std_core_write_unsigned(l0, l2, l6);
     l3 = std_core_finish_buffer(l0, l2);
-#line 106 "tests/snippets/branch_literal_width/_main.vader"
     l2 = vader_host_std_core_byte_len(l3);
     l0 = (void*) vader_buffer_new((size_t) (INT64_C(32) + l2));
     l2 = INT64_C(0);
@@ -548,7 +481,6 @@ static int32_t snippet_main(void) {
     l2 = std_core_write_unsigned(l0, l2, l6);
     t2 = std_core_finish_buffer(l0, l2);
     std_io_println__string(t2);
-#line 107 "tests/snippets/branch_literal_width/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -638,7 +570,6 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -646,9 +577,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -660,46 +589,29 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 136 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 137 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 138 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 136 "lib/std/core/primitives.vader"
     }
-#line 140 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 141 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 142 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 143 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 144 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 145 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 146 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
-#line 144 "lib/std/core/primitives.vader"
     }
-#line 148 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 149 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 150 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 151 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 152 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -707,19 +619,13 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 153 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 150 "lib/std/core/primitives.vader"
     }
-#line 155 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 156 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 155 "lib/std/core/primitives.vader"
     }
-#line 156 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
@@ -731,45 +637,28 @@ static int64_t std_core_write_unsigned(void* l0, int64_t l1, uint64_t l2) {
     int64_t t0;
     uint64_t t1;
     int32_t t2;
-#line 161 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 162 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 163 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 161 "lib/std/core/primitives.vader"
     }
-#line 165 "lib/std/core/primitives.vader"
     l3 = INT64_C(0);
-#line 166 "lib/std/core/primitives.vader"
     l4 = l2;
-#line 167 "lib/std/core/primitives.vader"
     while (l4 != INT64_C(0)) {
-#line 168 "lib/std/core/primitives.vader"
         l3 = vader_chk_add(i64, l3, INT64_C(1));
-#line 169 "lib/std/core/primitives.vader"
         l4 = vader_div_u64(l4, INT64_C(10));
-#line 167 "lib/std/core/primitives.vader"
     }
-#line 171 "lib/std/core/primitives.vader"
     l5 = vader_chk_add(i64, l1, l3);
-#line 172 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 173 "lib/std/core/primitives.vader"
         l5 = vader_chk_sub(i64, l5, INT64_C(1));
-#line 174 "lib/std/core/primitives.vader"
         t1 = vader_mod_u64(l2, INT64_C(10));
         t2 = (((int32_t) (uint64_t) t1) & INT32_C(255));
         l6 = (uint8_t) (int32_t) t2;
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l5, (uint8_t) l7);
-#line 175 "lib/std/core/primitives.vader"
         l2 = vader_div_u64(l2, INT64_C(10));
-#line 172 "lib/std/core/primitives.vader"
     }
-#line 177 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
 }
@@ -785,39 +674,25 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
-#line 207 "lib/std/io/io.vader"
     l3 = INT64_C(0);
-#line 208 "lib/std/io/io.vader"
     for (;;) {
-#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
-#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 214 "lib/std/io/io.vader"
             }
-#line 217 "lib/std/io/io.vader"
             l9 = ((int64_t) (int32_t) l8);
             l3 = vader_chk_add(i64, l3, l9);
-#line 208 "lib/std/io/io.vader"
             continue;
-#line 209 "lib/std/io/io.vader"
         }
-#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -826,14 +701,10 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 178 "lib/std/io/io.vader"
     }
-#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -843,7 +714,6 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 19u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }

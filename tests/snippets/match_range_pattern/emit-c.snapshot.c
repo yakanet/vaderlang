@@ -23,7 +23,6 @@ const size_t vader_type_info_count = 3;
 static int32_t snippet_classify(uint32_t l0) {
     int32_t l1;
     bool l2;
-#line 6 "tests/snippets/match_range_pattern/_main.vader"
     if ((l0 >= 48u)) {
         l2 = (l0 <= 57u);
     } else {
@@ -31,11 +30,8 @@ static int32_t snippet_classify(uint32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(1);
-#line 5 "tests/snippets/match_range_pattern/_main.vader"
         return l1;
-#line 6 "tests/snippets/match_range_pattern/_main.vader"
     }
-#line 7 "tests/snippets/match_range_pattern/_main.vader"
     if ((l0 >= 97u)) {
         l2 = (l0 <= 122u);
     } else {
@@ -43,7 +39,6 @@ static int32_t snippet_classify(uint32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(2);
-#line 8 "tests/snippets/match_range_pattern/_main.vader"
     } else {
         if ((l0 >= 65u)) {
             l2 = (l0 <= 90u);
@@ -52,21 +47,16 @@ static int32_t snippet_classify(uint32_t l0) {
         }
         if (l2) {
             l1 = INT32_C(3);
-#line 9 "tests/snippets/match_range_pattern/_main.vader"
         } else {
             l1 = INT32_C(0);
-#line 8 "tests/snippets/match_range_pattern/_main.vader"
         }
-#line 7 "tests/snippets/match_range_pattern/_main.vader"
     }
-#line 5 "tests/snippets/match_range_pattern/_main.vader"
     return l1;
 }
 
 static int32_t snippet_bucket(int32_t l0) {
     int32_t l1;
     bool l2;
-#line 18 "tests/snippets/match_range_pattern/_main.vader"
     if ((l0 >= INT32_C(0))) {
         l2 = (l0 < INT32_C(10));
     } else {
@@ -74,11 +64,8 @@ static int32_t snippet_bucket(int32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(1);
-#line 17 "tests/snippets/match_range_pattern/_main.vader"
         return l1;
-#line 18 "tests/snippets/match_range_pattern/_main.vader"
     }
-#line 19 "tests/snippets/match_range_pattern/_main.vader"
     if ((l0 >= INT32_C(10))) {
         l2 = (l0 <= INT32_C(99));
     } else {
@@ -86,19 +73,15 @@ static int32_t snippet_bucket(int32_t l0) {
     }
     if (l2) {
         l1 = INT32_C(2);
-#line 20 "tests/snippets/match_range_pattern/_main.vader"
     } else {
         l1 = INT32_C(3);
-#line 19 "tests/snippets/match_range_pattern/_main.vader"
     }
-#line 17 "tests/snippets/match_range_pattern/_main.vader"
     return l1;
 }
 
 static int32_t snippet_main(void) {
     int32_t l0, l1, l2;
     int32_t t0;
-#line 25 "tests/snippets/match_range_pattern/_main.vader"
     l0 = snippet_classify(53u);
     t0 = snippet_classify(113u);
     l1 = vader_chk_mul(i32, t0, INT32_C(10));
@@ -109,7 +92,6 @@ static int32_t snippet_main(void) {
     t0 = snippet_classify(43u);
     l1 = vader_chk_mul(i32, t0, INT32_C(1000));
     l0 = vader_chk_add(i32, l0, l1);
-#line 28 "tests/snippets/match_range_pattern/_main.vader"
     l1 = snippet_bucket(INT32_C(9));
     t0 = snippet_bucket(INT32_C(10));
     l2 = vader_chk_mul(i32, t0, INT32_C(10));
@@ -120,7 +102,6 @@ static int32_t snippet_main(void) {
     t0 = snippet_bucket(INT32_C(100));
     l2 = vader_chk_mul(i32, t0, INT32_C(1000));
     l1 = vader_chk_add(i32, l1, l2);
-#line 30 "tests/snippets/match_range_pattern/_main.vader"
     t0 = vader_chk_add(i32, l0, l1);
     return t0;
 }

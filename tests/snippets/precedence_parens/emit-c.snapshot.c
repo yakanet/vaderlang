@@ -33,15 +33,12 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 15 "tests/snippets/precedence_parens/_main.vader"
     l0 = INT32_C(1);
-#line 18 "tests/snippets/precedence_parens/_main.vader"
     if ((l0 < INT32_C(2)) == true) {
         l1 = INT32_C(1);
     } else {
         l1 = INT32_C(0);
     }
-#line 20 "tests/snippets/precedence_parens/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(3u, 3u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
@@ -53,17 +50,13 @@ static int32_t snippet_main(void) {
     } else {
         l0 = INT32_C(0);
     }
-#line 22 "tests/snippets/precedence_parens/_main.vader"
     if (true) {
         l2 = INT32_C(4);
-#line 23 "tests/snippets/precedence_parens/_main.vader"
         t2 = vader_chk_add(i32, l1, l0);
         t3 = vader_chk_add(i32, t2, l2);
         { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
-#line 22 "tests/snippets/precedence_parens/_main.vader"
     }
     l2 = INT32_C(0);
-#line 23 "tests/snippets/precedence_parens/_main.vader"
     t2 = vader_chk_add(i32, l1, l0);
     t3 = vader_chk_add(i32, t2, l2);
     { int32_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
@@ -73,7 +66,6 @@ static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
     void* l2;
     int64_t l3, l4;
     int32_t t0;
-#line 340 "lib/std/core/core.vader"
     l2 = l0;
     l3 = ((vader_array_t*) l2)->length;
     l4 = INT64_C(0);
@@ -82,14 +74,11 @@ static bool std_core____Contains_contains__i32(void* l0, int32_t l1) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-#line 341 "lib/std/core/core.vader"
         if (t0 == l1) {
             return true;
         }
-#line 340 "lib/std/core/core.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 343 "lib/std/core/core.vader"
     return false;
 }
 

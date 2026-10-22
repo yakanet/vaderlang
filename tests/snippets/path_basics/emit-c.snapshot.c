@@ -222,11 +222,9 @@ static void snippet_show_path(vader_string_t l0, vader_string_t l1) {
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 7 "tests/snippets/path_basics/_main.vader"
     l2 = std_path_as_string(l1);
     t0 = concat_3(l0, 1u, l2);
     std_io_println__string(t0);
-#line 6 "tests/snippets/path_basics/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -244,32 +242,23 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 11 "tests/snippets/path_basics/_main.vader"
     l0 = std_path_to_path(2u);
-#line 12 "tests/snippets/path_basics/_main.vader"
     snippet_show_path(3u, l0);
-#line 13 "tests/snippets/path_basics/_main.vader"
     l1 = std_path_filename(l0);
     t0 = concat_2(4u, l1);
     std_io_println__string(t0);
-#line 14 "tests/snippets/path_basics/_main.vader"
     l1 = std_path_name(l0);
     t0 = concat_2(5u, l1);
     std_io_println__string(t0);
-#line 15 "tests/snippets/path_basics/_main.vader"
     l1 = std_path_extension(l0);
     t0 = concat_2(6u, l1);
     std_io_println__string(t0);
-#line 16 "tests/snippets/path_basics/_main.vader"
     l1 = std_path_parent(l0);
     snippet_show_path(7u, l1);
-#line 17 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_parent(l0);
     l1 = std_path_parent(t0);
     snippet_show_path(8u, l1);
-#line 19 "tests/snippets/path_basics/_main.vader"
     l1 = std_path_to_path(9u);
-#line 20 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 10u);
@@ -277,18 +266,14 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 21 "tests/snippets/path_basics/_main.vader"
     l5 = std_path_parent(l1);
     snippet_show_path(11u, l5);
-#line 22 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_filename(l1);
     l5 = std_path_to_path(t0);
     snippet_show_path(12u, l5);
-#line 23 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_parent(l1);
     l1 = std_path_parent(t0);
     snippet_show_path(13u, l1);
-#line 25 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(20));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 14u);
@@ -298,7 +283,6 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 26 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(16));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 15u);
@@ -307,23 +291,18 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 28 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(17u);
     l0 = std_path_join(t0, 18u);
     snippet_show_path(16u, l0);
-#line 29 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(20u);
     l0 = std_path_join(t0, 18u);
     snippet_show_path(19u, l0);
-#line 30 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(17u);
     l0 = std_path_join(t0, 22u);
     snippet_show_path(21u, l0);
-#line 31 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_empty_path();
     l0 = std_path_join(t0, 24u);
     snippet_show_path(23u, l0);
-#line 33 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(28));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 25u);
@@ -333,7 +312,6 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 34 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(27));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 28u);
@@ -343,7 +321,6 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 35 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 30u);
@@ -353,7 +330,6 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 36 "tests/snippets/path_basics/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(25));
     l3 = INT64_C(0);
     l3 = std_core_write_string_at(l2, l3, 32u);
@@ -363,27 +339,21 @@ static int32_t snippet_main(void) {
     l3 = std_core_write_bool(l2, l3, l4);
     t0 = std_core_finish_buffer(l2, l3);
     std_io_println__string(t0);
-#line 38 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(35u);
     l0 = std_path_normalize(t0);
     snippet_show_path(34u, l0);
-#line 39 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(37u);
     l0 = std_path_normalize(t0);
     snippet_show_path(36u, l0);
-#line 40 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(39u);
     l0 = std_path_normalize(t0);
     snippet_show_path(38u, l0);
-#line 41 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(41u);
     l0 = std_path_normalize(t0);
     snippet_show_path(40u, l0);
-#line 42 "tests/snippets/path_basics/_main.vader"
     t0 = std_path_to_path(43u);
     l0 = std_path_normalize(t0);
     snippet_show_path(42u, l0);
-#line 43 "tests/snippets/path_basics/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -438,7 +408,6 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -446,9 +415,7 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
 static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2) {
     int64_t l3;
     int64_t t0;
-#line 130 "lib/std/core/primitives.vader"
     vader_buffer_write_string((vader_buffer_t*) l0, (size_t) l1, l2);
-#line 131 "lib/std/core/primitives.vader"
     l3 = vader_host_std_core_byte_len(l2);
     t0 = vader_chk_add(i64, l1, l3);
     return t0;
@@ -456,12 +423,9 @@ static int64_t std_core_write_string_at(void* l0, int64_t l1, vader_string_t l2)
 
 static int64_t std_core_write_bool(void* l0, int64_t l1, bool l2) {
     int64_t t0;
-#line 182 "lib/std/core/primitives.vader"
     if (!(l2)) {
-#line 183 "lib/std/core/primitives.vader"
         t0 = std_core_write_string_at(l0, l1, 45u);
         return t0;
-#line 182 "lib/std/core/primitives.vader"
     }
     t0 = std_core_write_string_at(l0, l1, 44u);
     return t0;
@@ -474,19 +438,13 @@ static void std_core_codepoint_at_byte(vader_string_t l0, int64_t l1, uint32_t* 
     bool l5;
     uint32_t t0;
     int64_t t1;
-#line 69 "lib/std/core/utf8.vader"
     l2 = vader_host_std_core_byte_at(l0, l1);
-#line 70 "lib/std/core/utf8.vader"
     if ((l2 < INT32_C(128))) {
-#line 71 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = ((uint32_t) (uint8_t) l2); return;
-#line 70 "lib/std/core/utf8.vader"
     }
-#line 73 "lib/std/core/utf8.vader"
     std_core_decode_tail(l0, l2, l1, &t0, &t1);
     l4 = t1;
     l3 = t0;
-#line 74 "lib/std/core/utf8.vader"
     if ((l3 > INT32_C(55295))) {
         if ((l3 < INT32_C(57344))) {
             l5 = true;
@@ -511,49 +469,33 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     int64_t t0;
     bool t1;
     int32_t t2;
-#line 85 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(194))) {
         l3 = true;
     } else {
         l3 = (l1 > INT32_C(244));
     }
     if (l3) {
-#line 86 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 85 "lib/std/core/utf8.vader"
     }
-#line 88 "lib/std/core/utf8.vader"
     l4 = vader_host_std_core_byte_len(l0);
-#line 89 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(1));
     if ((t0 >= l4)) {
-#line 90 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 89 "lib/std/core/utf8.vader"
     }
-#line 92 "lib/std/core/utf8.vader"
     l5 = vader_chk_add(i64, l2, INT64_C(1));
     l6 = vader_host_std_core_byte_at(l0, l5);
-#line 93 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l6);
     if (!(t1)) {
-#line 94 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 93 "lib/std/core/utf8.vader"
     }
-#line 96 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(224))) {
-#line 97 "lib/std/core/utf8.vader"
         t2 = ((((int32_t) (uint8_t) l1) & INT32_C(31)) << INT32_C(6));
         l7 = (uint32_t) (int32_t) t2;
         t2 = (((int32_t) (uint8_t) l6) & INT32_C(63));
         l8 = (uint32_t) (int32_t) t2;
         *__o1 = INT64_C(2); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
-#line 96 "lib/std/core/utf8.vader"
     }
-#line 102 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(240))) {
-#line 103 "lib/std/core/utf8.vader"
         if (l1 == INT32_C(224)) {
             l3 = (l6 < INT32_C(160));
         } else {
@@ -570,12 +512,8 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
             l3 = l9;
         }
         if (l3) {
-#line 104 "lib/std/core/utf8.vader"
             *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 103 "lib/std/core/utf8.vader"
         }
-#line 102 "lib/std/core/utf8.vader"
-#line 106 "lib/std/core/utf8.vader"
     } else {
         if (l1 == INT32_C(240)) {
             l3 = (l6 < INT32_C(144));
@@ -593,32 +531,20 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
             l3 = l9;
         }
         if (l3) {
-#line 107 "lib/std/core/utf8.vader"
             *__o1 = INT64_C(1); *__o0 = (uint32_t) 65533; return;
-#line 106 "lib/std/core/utf8.vader"
         }
-#line 102 "lib/std/core/utf8.vader"
     }
-#line 109 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(2));
     if ((t0 >= l4)) {
-#line 110 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
-#line 109 "lib/std/core/utf8.vader"
     }
-#line 112 "lib/std/core/utf8.vader"
     l5 = vader_chk_add(i64, l2, INT64_C(2));
     l10 = vader_host_std_core_byte_at(l0, l5);
-#line 113 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l10);
     if (!(t1)) {
-#line 114 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(2); *__o0 = (uint32_t) 65533; return;
-#line 113 "lib/std/core/utf8.vader"
     }
-#line 116 "lib/std/core/utf8.vader"
     if ((l1 < INT32_C(240))) {
-#line 117 "lib/std/core/utf8.vader"
         t2 = ((((int32_t) (uint8_t) l1) & INT32_C(15)) << INT32_C(12));
         l7 = (uint32_t) (int32_t) t2;
         t2 = ((((int32_t) (uint8_t) l6) & INT32_C(63)) << INT32_C(6));
@@ -628,26 +554,17 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
         t2 = (((int32_t) (uint8_t) l10) & INT32_C(63));
         l8 = (uint32_t) (int32_t) t2;
         *__o1 = INT64_C(3); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
-#line 116 "lib/std/core/utf8.vader"
     }
-#line 119 "lib/std/core/utf8.vader"
     t0 = vader_chk_add(i64, l2, INT64_C(3));
     if ((t0 >= l4)) {
-#line 120 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
-#line 119 "lib/std/core/utf8.vader"
     }
-#line 122 "lib/std/core/utf8.vader"
     l4 = vader_chk_add(i64, l2, INT64_C(3));
     l11 = vader_host_std_core_byte_at(l0, l4);
-#line 123 "lib/std/core/utf8.vader"
     t1 = std_core_is_utf8_continuation(l11);
     if (!(t1)) {
-#line 124 "lib/std/core/utf8.vader"
         *__o1 = INT64_C(3); *__o0 = (uint32_t) 65533; return;
-#line 123 "lib/std/core/utf8.vader"
     }
-#line 126 "lib/std/core/utf8.vader"
     t2 = ((((int32_t) (uint8_t) l1) & INT32_C(7)) << INT32_C(18));
     l7 = (uint32_t) (int32_t) t2;
     t2 = ((((int32_t) (uint8_t) l6) & INT32_C(63)) << INT32_C(12));
@@ -658,16 +575,12 @@ static void std_core_decode_tail(vader_string_t l0, uint8_t l1, int64_t l2, uint
     l8 = (uint32_t) (int32_t) t2;
     t2 = (l7 | l8);
     l7 = (uint32_t) (int32_t) t2;
-#line 127 "lib/std/core/utf8.vader"
     t2 = (((int32_t) (uint8_t) l11) & INT32_C(63));
     l8 = (uint32_t) (int32_t) t2;
-#line 126 "lib/std/core/utf8.vader"
-#line 128 "lib/std/core/utf8.vader"
     *__o1 = INT64_C(4); *__o0 = (uint32_t) (int32_t) (l7 | l8); return;
 }
 
 static bool std_core_is_utf8_continuation(uint8_t l0) {
-#line 23 "lib/std/core/utf8.vader"
     return (l0 & INT32_C(192)) == INT32_C(128);
 }
 
@@ -677,16 +590,12 @@ static uint32_t std_core_string_Index_at(vader_string_t l0, int64_t l1) {
     uint32_t t1;
     int64_t t2;
     uint8_t t3;
-#line 218 "lib/std/core/utf8.vader"
     t0 = vader_host_std_core_is_ascii(l0);
     if (!(t0)) {
-#line 221 "lib/std/core/utf8.vader"
         l2 = std_core_codepoint_offset(l0, INT64_C(0), l1);
         std_core_codepoint_at_byte(l0, l2, &t1, &t2);
         return t1;
-#line 218 "lib/std/core/utf8.vader"
     }
-#line 219 "lib/std/core/utf8.vader"
     t3 = vader_host_std_core_byte_at(l0, l1);
     return ((uint32_t) (uint8_t) t3);
 }
@@ -696,37 +605,24 @@ static int64_t std_core_codepoint_offset(vader_string_t l0, int64_t l1, int64_t 
     uint8_t l6;
     uint32_t t0;
     int64_t t1;
-#line 186 "lib/std/core/utf8.vader"
     l3 = vader_host_std_core_byte_len(l0);
-#line 187 "lib/std/core/utf8.vader"
     l4 = l1;
-#line 188 "lib/std/core/utf8.vader"
     l5 = INT64_C(0);
-#line 189 "lib/std/core/utf8.vader"
     while ((l4 < l3)) {
         if (!((l5 < l2))) {
             break;
         }
-#line 190 "lib/std/core/utf8.vader"
         l6 = vader_host_std_core_byte_at(l0, l4);
-#line 191 "lib/std/core/utf8.vader"
         if ((l6 < INT32_C(128))) {
-#line 192 "lib/std/core/utf8.vader"
             l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 191 "lib/std/core/utf8.vader"
-#line 194 "lib/std/core/utf8.vader"
         } else {
             std_core_decode_tail(l0, l6, l4, &t0, &t1);
             l8 = t1;
             l7 = l8;
             l4 = vader_chk_add(i64, l4, l7);
-#line 191 "lib/std/core/utf8.vader"
         }
-#line 196 "lib/std/core/utf8.vader"
         l5 = vader_chk_add(i64, l5, INT64_C(1));
-#line 189 "lib/std/core/utf8.vader"
     }
-#line 198 "lib/std/core/utf8.vader"
     return l4;
 }
 
@@ -741,39 +637,25 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
-#line 207 "lib/std/io/io.vader"
     l3 = INT64_C(0);
-#line 208 "lib/std/io/io.vader"
     for (;;) {
-#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
-#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 214 "lib/std/io/io.vader"
             }
-#line 217 "lib/std/io/io.vader"
             l9 = ((int64_t) (int32_t) l8);
             l3 = vader_chk_add(i64, l3, l9);
-#line 208 "lib/std/io/io.vader"
             continue;
-#line 209 "lib/std/io/io.vader"
         }
-#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -782,14 +664,10 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 178 "lib/std/io/io.vader"
     }
-#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -799,19 +677,16 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 46u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
 }
 
 static vader_string_t std_path_as_string(vader_string_t l0) {
-#line 54 "lib/std/path/path.vader"
     return l0;
 }
 
 static vader_string_t std_path_to_path(vader_string_t l0) {
-#line 46 "lib/std/path/path.vader"
     return l0;
 }
 
@@ -819,20 +694,14 @@ static vader_string_t std_path_filename(vader_string_t l0) {
     vader_string_t l1;
     int64_t l2, l3;
     vader_string_t t0;
-#line 84 "lib/std/path/path.vader"
     l1 = l0;
-#line 85 "lib/std/path/path.vader"
     l2 = std_string_last_index_of(l1, 47u, INT64_C(0));
-#line 86 "lib/std/path/path.vader"
     if (!((l2 < INT64_C(0)))) {
-#line 89 "lib/std/path/path.vader"
         l2 = vader_chk_add(i64, l2, INT64_C(1));
         l3 = vader_host_std_core_byte_len(l1);
         t0 = vader_host_std_core_byte_slice(l1, l2, l3);
         return t0;
-#line 86 "lib/std/path/path.vader"
     }
-#line 87 "lib/std/path/path.vader"
     return l1;
 }
 
@@ -840,18 +709,12 @@ static vader_string_t std_path_name(vader_string_t l0) {
     vader_string_t l1;
     int64_t l2;
     vader_string_t t0;
-#line 138 "lib/std/path/path.vader"
     l1 = std_path_filename(l0);
-#line 139 "lib/std/path/path.vader"
     l2 = std_path_extension_dot(l1);
-#line 140 "lib/std/path/path.vader"
     if (!((l2 < INT64_C(0)))) {
-#line 143 "lib/std/path/path.vader"
         t0 = vader_host_std_core_byte_slice(l1, INT64_C(0), l2);
         return t0;
-#line 140 "lib/std/path/path.vader"
     }
-#line 141 "lib/std/path/path.vader"
     return l1;
 }
 
@@ -859,20 +722,14 @@ static vader_string_t std_path_extension(vader_string_t l0) {
     vader_string_t l1;
     int64_t l2, l3;
     vader_string_t t0;
-#line 160 "lib/std/path/path.vader"
     l1 = std_path_filename(l0);
-#line 161 "lib/std/path/path.vader"
     l2 = std_path_extension_dot(l1);
-#line 162 "lib/std/path/path.vader"
     if (!((l2 < INT64_C(0)))) {
-#line 165 "lib/std/path/path.vader"
         l2 = vader_chk_add(i64, l2, INT64_C(1));
         l3 = vader_host_std_core_byte_len(l1);
         t0 = vader_host_std_core_byte_slice(l1, l2, l3);
         return t0;
-#line 162 "lib/std/path/path.vader"
     }
-#line 163 "lib/std/path/path.vader"
     return 0u;
 }
 
@@ -880,38 +737,27 @@ static vader_string_t std_path_parent(vader_string_t l0) {
     vader_string_t l1;
     int64_t l2;
     vader_string_t t0;
-#line 67 "lib/std/path/path.vader"
     l1 = l0;
-#line 68 "lib/std/path/path.vader"
     l2 = std_string_last_index_of(l1, 47u, INT64_C(0));
-#line 69 "lib/std/path/path.vader"
     if ((l2 < INT64_C(0))) {
-#line 70 "lib/std/path/path.vader"
         return 0u;
-#line 69 "lib/std/path/path.vader"
     }
-#line 72 "lib/std/path/path.vader"
     if (!(l2 == INT64_C(0))) {
-#line 76 "lib/std/path/path.vader"
         t0 = vader_host_std_core_byte_slice(l1, INT64_C(0), l2);
         return t0;
-#line 72 "lib/std/path/path.vader"
     }
-#line 74 "lib/std/path/path.vader"
     return 47u;
 }
 
 static bool std_path_is_absolute(vader_string_t l0) {
     vader_string_t t0;
     bool t1;
-#line 58 "lib/std/path/path.vader"
     t0 = std_path_as_string(l0);
     t1 = std_string_starts_with(t0, 47u);
     return t1;
 }
 
 static vader_string_t std_path_empty_path(void) {
-#line 49 "lib/std/path/path.vader"
     return 0u;
 }
 
@@ -923,38 +769,24 @@ static vader_string_t std_path_join(vader_string_t l0, vader_string_t l1) {
     vader_string_t* gc_atom_roots[4] = { &l0, &l1, &l2, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 4u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 177 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l1);
     if (t0) {
-#line 178 "lib/std/path/path.vader"
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 177 "lib/std/path/path.vader"
     }
-#line 180 "lib/std/path/path.vader"
     t1 = std_core_string_Index_at(l1, INT64_C(0));
     if (t1 == 47u) {
-#line 181 "lib/std/path/path.vader"
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 180 "lib/std/path/path.vader"
     }
-#line 183 "lib/std/path/path.vader"
     l2 = l0;
-#line 184 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l2);
     if (t0) {
-#line 185 "lib/std/path/path.vader"
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 184 "lib/std/path/path.vader"
     }
-#line 187 "lib/std/path/path.vader"
     t0 = std_string_ends_with(l2, 47u);
     if (!(t0)) {
-#line 190 "lib/std/path/path.vader"
         t2 = concat_3(l2, 47u, l1);
         { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
-#line 187 "lib/std/path/path.vader"
     }
-#line 188 "lib/std/path/path.vader"
     t2 = concat_2(l2, l1);
     { vader_string_t __vret = t2; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -964,39 +796,25 @@ static bool std_path_starts_with(vader_string_t l0, vader_string_t l1) {
     int64_t l4, l5;
     bool t0;
     uint32_t t1;
-#line 207 "lib/std/path/path.vader"
     l2 = l0;
-#line 208 "lib/std/path/path.vader"
     l3 = l1;
-#line 209 "lib/std/path/path.vader"
     t0 = std_string_starts_with(l2, l3);
     if (!(t0)) {
-#line 210 "lib/std/path/path.vader"
         return false;
-#line 209 "lib/std/path/path.vader"
     }
-#line 212 "lib/std/path/path.vader"
     l4 = vader_host_std_core_byte_len(l2);
-#line 213 "lib/std/path/path.vader"
     l5 = vader_host_std_core_byte_len(l3);
-#line 214 "lib/std/path/path.vader"
     if (l4 == l5) {
-#line 215 "lib/std/path/path.vader"
         return true;
-#line 214 "lib/std/path/path.vader"
     }
-#line 219 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l3);
     if (!(t0)) {
         l4 = vader_chk_sub(i64, l5, INT64_C(1));
         t1 = std_core_string_Index_at(l3, l4);
         if (t1 == 47u) {
-#line 220 "lib/std/path/path.vader"
             return true;
-#line 219 "lib/std/path/path.vader"
         }
     }
-#line 222 "lib/std/path/path.vader"
     t1 = std_core_string_Index_at(l2, l5);
     return t1 == 47u;
 }
@@ -1006,40 +824,25 @@ static bool std_path_ends_with(vader_string_t l0, vader_string_t l1) {
     int64_t l4, l5;
     bool t0;
     uint32_t t1;
-#line 230 "lib/std/path/path.vader"
     l2 = l0;
-#line 231 "lib/std/path/path.vader"
     l3 = l1;
-#line 232 "lib/std/path/path.vader"
     t0 = std_string_ends_with(l2, l3);
     if (!(t0)) {
-#line 233 "lib/std/path/path.vader"
         return false;
-#line 232 "lib/std/path/path.vader"
     }
-#line 235 "lib/std/path/path.vader"
     l4 = vader_host_std_core_byte_len(l2);
-#line 236 "lib/std/path/path.vader"
     l5 = vader_host_std_core_byte_len(l3);
-#line 237 "lib/std/path/path.vader"
     if (l4 == l5) {
-#line 238 "lib/std/path/path.vader"
         return true;
-#line 237 "lib/std/path/path.vader"
     }
-#line 240 "lib/std/path/path.vader"
     l4 = vader_chk_sub(i64, l4, l5);
-#line 241 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l3);
     if (!(t0)) {
         t1 = std_core_string_Index_at(l3, INT64_C(0));
         if (t1 == 47u) {
-#line 242 "lib/std/path/path.vader"
             return true;
-#line 241 "lib/std/path/path.vader"
         }
     }
-#line 244 "lib/std/path/path.vader"
     l4 = vader_chk_sub(i64, l4, INT64_C(1));
     t1 = std_core_string_Index_at(l2, l4);
     return t1 == 47u;
@@ -1063,52 +866,36 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 4u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 262 "lib/std/path/path.vader"
     l1 = l0;
-#line 263 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l1);
     if (t0) {
-#line 264 "lib/std/path/path.vader"
         { vader_string_t __vret = l0; vader_gc_top = gc_frame.prev; return __vret; }
-#line 263 "lib/std/path/path.vader"
     }
-#line 266 "lib/std/path/path.vader"
     l2 = std_path_is_absolute(l0);
-#line 267 "lib/std/path/path.vader"
     vader_array_t* _a0_arr = vader_array_new(12u, 0u, 0u, 1u);
     l3 = (void*) _a0_arr;
-#line 268 "lib/std/path/path.vader"
     l4 = INT64_C(0);
-#line 269 "lib/std/path/path.vader"
     l5 = vader_host_std_core_byte_len(l1);
-#line 270 "lib/std/path/path.vader"
     if (l2) {
         l6 = INT64_C(1);
     } else {
         l6 = INT64_C(0);
     }
-#line 271 "lib/std/path/path.vader"
     l7 = l6;
-#line 272 "lib/std/path/path.vader"
     while ((l6 <= l5)) {
-#line 273 "lib/std/path/path.vader"
         l8 = l6 == l5;
-#line 274 "lib/std/path/path.vader"
         if (!(l8)) {
             l9 = std_string_matches_at(l1, l6, 47u);
         } else {
             l9 = false;
         }
-#line 275 "lib/std/path/path.vader"
         if (l9) {
             l10 = true;
         } else {
             l10 = l8;
         }
         if (l10) {
-#line 276 "lib/std/path/path.vader"
             l11 = vader_host_std_core_byte_slice(l1, l7, l6);
-#line 277 "lib/std/path/path.vader"
             t0 = std_string_is_empty(l11);
             if (t0) {
                 l12 = true;
@@ -1116,9 +903,7 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
                 l12 = l11 == 48u;
             }
             if (!(l12)) {
-#line 279 "lib/std/path/path.vader"
                 if (l11 == 39u) {
-#line 280 "lib/std/path/path.vader"
                     if ((l4 > INT64_C(0))) {
                         l14 = vader_chk_sub(i64, l4, INT64_C(1));
                         vader_array_t* _a1_slotarr = ((vader_array_t*) l3);
@@ -1130,116 +915,72 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
                     } else {
                         l13 = false;
                     }
-#line 281 "lib/std/path/path.vader"
                     if (l13) {
-#line 282 "lib/std/path/path.vader"
                         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 281 "lib/std/path/path.vader"
-#line 283 "lib/std/path/path.vader"
                     } else if (!(l2)) {
-#line 284 "lib/std/path/path.vader"
                         l15 = ((vader_array_t*) l3)->length;
                         if ((l4 < l15)) {
-#line 285 "lib/std/path/path.vader"
                             vader_array_t* _a2_slotarr = ((vader_array_t*) l3);
                             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
                             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l4)
                             vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l4] = vader_box_string(1u, l11);
-#line 284 "lib/std/path/path.vader"
-#line 287 "lib/std/path/path.vader"
                         } else {
                             vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l11));
-#line 284 "lib/std/path/path.vader"
                         }
-#line 289 "lib/std/path/path.vader"
                         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 283 "lib/std/path/path.vader"
                     }
-#line 281 "lib/std/path/path.vader"
-#line 279 "lib/std/path/path.vader"
-#line 292 "lib/std/path/path.vader"
                 } else {
                     l16 = ((vader_array_t*) l3)->length;
                     if ((l4 < l16)) {
-#line 293 "lib/std/path/path.vader"
                         vader_array_t* _a3_slotarr = ((vader_array_t*) l3);
                         VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
                         VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l4)
                         vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l4] = vader_box_string(1u, l11);
-#line 292 "lib/std/path/path.vader"
-#line 295 "lib/std/path/path.vader"
                     } else {
                         vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l11));
-#line 292 "lib/std/path/path.vader"
                     }
-#line 297 "lib/std/path/path.vader"
                     l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 279 "lib/std/path/path.vader"
                 }
-#line 277 "lib/std/path/path.vader"
             }
-#line 299 "lib/std/path/path.vader"
             l7 = vader_chk_add(i64, l6, INT64_C(1));
-#line 275 "lib/std/path/path.vader"
         }
-#line 301 "lib/std/path/path.vader"
         l6 = vader_chk_add(i64, l6, INT64_C(1));
-#line 272 "lib/std/path/path.vader"
     }
-#line 36 "lib/std/string_builder/string_builder.vader"
     vader_array_t* _a4_arr = vader_array_new(12u, 0u, 0u, 1u);
     t3 = (void*) _a4_arr;
-#line 303 "lib/std/path/path.vader"
     vader_struct_std_string_builder_StringBuilder_t* _a5_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
     vader_obj_header_init(_a5_obj, 11u);
     _a5_obj->f_parts = t3;
     l17 = (void*) _a5_obj;
-#line 304 "lib/std/path/path.vader"
     if (l2) {
-#line 305 "lib/std/path/path.vader"
         std_string_builder_append(l17, 47u);
-#line 304 "lib/std/path/path.vader"
     }
-#line 307 "lib/std/path/path.vader"
     l5 = INT64_C(0);
     while ((l5 < l4)) {
-#line 308 "lib/std/path/path.vader"
         if ((l5 > INT64_C(0))) {
-#line 309 "lib/std/path/path.vader"
             std_string_builder_append(l17, 47u);
-#line 308 "lib/std/path/path.vader"
         }
-#line 311 "lib/std/path/path.vader"
         vader_array_t* _a6_slotarr = ((vader_array_t*) l3);
         VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l5)
         t1 = vader_array_box_slots(_a6_slotarr->buf)[_a6_slotarr->offset + (size_t) l5];
         l1 = t1.payload.s;
         std_string_builder_append(l17, l1);
-#line 307 "lib/std/path/path.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 313 "lib/std/path/path.vader"
     l1 = std_string_builder_StringBuilder_std_core_Display_to_string(l17);
-#line 314 "lib/std/path/path.vader"
     t0 = std_string_is_empty(l1);
     if (t0) {
         if (!(l2)) {
-#line 315 "lib/std/path/path.vader"
             { vader_gc_top = gc_frame.prev; return 48u; }
-#line 314 "lib/std/path/path.vader"
         }
-#line 317 "lib/std/path/path.vader"
         { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
-#line 314 "lib/std/path/path.vader"
     }
-#line 317 "lib/std/path/path.vader"
     { vader_string_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
 static int64_t std_path_extension_dot(vader_string_t l0) {
     int64_t t0;
-#line 121 "lib/std/path/path.vader"
     t0 = std_string_last_index_of(l0, 46u, INT64_C(1));
     return t0;
 }
@@ -1249,43 +990,32 @@ static int64_t std_string_last_index_of(vader_string_t l0, uint32_t l1, int64_t 
     uint32_t l6;
     uint32_t t0;
     int64_t t1;
-#line 188 "lib/std/string/string.vader"
     l3 = vader_host_std_core_byte_len(l0);
-#line 189 "lib/std/string/string.vader"
     l4 = INT64_C(-1);
-#line 190 "lib/std/string/string.vader"
     l5 = INT64_C(0);
-#line 191 "lib/std/string/string.vader"
     while ((l5 < l3)) {
-#line 192 "lib/std/string/string.vader"
         std_core_codepoint_at_byte(l0, l5, &t0, &t1);
         l8 = t1;
         l6 = t0;
         l7 = l8;
-#line 193 "lib/std/string/string.vader"
         if ((l5 >= l2)) {
             if (l6 == l1) {
                 l4 = l5;
             }
         }
-#line 194 "lib/std/string/string.vader"
         l5 = vader_chk_add(i64, l5, l7);
-#line 191 "lib/std/string/string.vader"
     }
-#line 196 "lib/std/string/string.vader"
     return l4;
 }
 
 static bool std_string_starts_with(vader_string_t l0, vader_string_t l1) {
     bool t0;
-#line 54 "lib/std/string/string.vader"
     t0 = std_string_matches_at(l0, INT64_C(0), l1);
     return t0;
 }
 
 static bool std_string_is_empty(vader_string_t l0) {
     int64_t t0;
-#line 13 "lib/std/string/string.vader"
     t0 = vader_host_std_core_byte_len(l0);
     return t0 == INT64_C(0);
 }
@@ -1293,19 +1023,15 @@ static bool std_string_is_empty(vader_string_t l0) {
 static bool std_string_ends_with(vader_string_t l0, vader_string_t l1) {
     int64_t l2, l3;
     bool t0;
-#line 58 "lib/std/string/string.vader"
     l2 = vader_host_std_core_byte_len(l1);
     l3 = vader_host_std_core_byte_len(l0);
     if (!((l2 > l3))) {
-#line 61 "lib/std/string/string.vader"
         l2 = vader_host_std_core_byte_len(l0);
         l3 = vader_host_std_core_byte_len(l1);
         l2 = vader_chk_sub(i64, l2, l3);
         t0 = std_string_matches_at(l0, l2, l1);
         return t0;
-#line 58 "lib/std/string/string.vader"
     }
-#line 59 "lib/std/string/string.vader"
     return false;
 }
 
@@ -1313,45 +1039,31 @@ static bool std_string_matches_at(vader_string_t l0, int64_t l1, vader_string_t 
     int64_t l3, l4, l5;
     uint8_t l6, l7;
     int64_t t0;
-#line 41 "lib/std/string/string.vader"
     l3 = vader_host_std_core_byte_len(l2);
-#line 42 "lib/std/string/string.vader"
     l4 = vader_host_std_core_byte_len(l0);
     if ((l1 > l4)) {
-#line 43 "lib/std/string/string.vader"
         return false;
-#line 42 "lib/std/string/string.vader"
     }
     t0 = vader_host_std_core_byte_len(l0);
     l4 = vader_chk_sub(i64, t0, l1);
     if ((l3 > l4)) {
-#line 43 "lib/std/string/string.vader"
         return false;
-#line 42 "lib/std/string/string.vader"
     }
-#line 45 "lib/std/string/string.vader"
     l4 = INT64_C(0);
     while ((l4 < l3)) {
-#line 46 "lib/std/string/string.vader"
         l5 = vader_chk_add(i64, l1, l4);
         l6 = vader_host_std_core_byte_at(l0, l5);
         l7 = vader_host_std_core_byte_at(l2, l4);
         if (l6 != l7) {
-#line 47 "lib/std/string/string.vader"
             return false;
-#line 46 "lib/std/string/string.vader"
         }
-#line 45 "lib/std/string/string.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 50 "lib/std/string/string.vader"
     return true;
 }
 
 static void std_string_builder_append(void* l0, vader_string_t l1) {
-#line 43 "lib/std/string_builder/string_builder.vader"
     vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
-#line 42 "lib/std/string_builder/string_builder.vader"
     return;
 }
 
@@ -1369,13 +1081,10 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL, 2u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 82 "lib/std/string_builder/string_builder.vader"
     l1 = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts)->length;
-#line 83 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(0)) {
         { vader_gc_top = gc_frame.prev; return 0u; }
     }
-#line 84 "lib/std/string_builder/string_builder.vader"
     if (l1 == INT64_C(1)) {
         vader_array_t* _a0_slotarr = ((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
@@ -1384,9 +1093,7 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         t1 = t0.payload.s;
         { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
     }
-#line 85 "lib/std/string_builder/string_builder.vader"
     l1 = INT64_C(0);
-#line 86 "lib/std/string_builder/string_builder.vader"
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l3 = ((vader_array_t*) l2)->length;
     l4 = INT64_C(0);
@@ -1396,17 +1103,12 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l4)
         t0 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l4];
         t1 = t0.payload.s;
-#line 87 "lib/std/string_builder/string_builder.vader"
         l5 = vader_host_std_core_byte_len(t1);
         l1 = vader_chk_add(i64, l1, l5);
-#line 86 "lib/std/string_builder/string_builder.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 89 "lib/std/string_builder/string_builder.vader"
     l2 = (void*) vader_buffer_new((size_t) l1);
-#line 90 "lib/std/string_builder/string_builder.vader"
     l3 = INT64_C(0);
-#line 91 "lib/std/string_builder/string_builder.vader"
     l6 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     l4 = ((vader_array_t*) l6)->length;
     l5 = INT64_C(0);
@@ -1416,15 +1118,11 @@ static vader_string_t std_string_builder_StringBuilder_std_core_Display_to_strin
         VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l5)
         t0 = vader_array_box_slots(_a2_slotarr->buf)[_a2_slotarr->offset + (size_t) l5];
         l7 = t0.payload.s;
-#line 92 "lib/std/string_builder/string_builder.vader"
         vader_buffer_write_string((vader_buffer_t*) l2, (size_t) l3, l7);
-#line 93 "lib/std/string_builder/string_builder.vader"
         l8 = vader_host_std_core_byte_len(l7);
         l3 = vader_chk_add(i64, l3, l8);
-#line 91 "lib/std/string_builder/string_builder.vader"
         l5 = (l5 + INT64_C(1));
     }
-#line 95 "lib/std/string_builder/string_builder.vader"
     t1 = vader_buffer_intern_string((vader_buffer_t*) l2, (size_t) l1);
     { vader_string_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
 }

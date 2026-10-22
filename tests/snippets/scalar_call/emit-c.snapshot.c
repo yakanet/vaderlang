@@ -19,23 +19,19 @@ const size_t vader_type_info_count = 2;
 
 static int32_t snippet_add(int32_t l0, int32_t l1) {
     int32_t t0;
-#line 11 "tests/snippets/scalar_call/_main.vader"
     t0 = vader_chk_add(i32, l0, l1);
     return t0;
 }
 
 static int32_t snippet_square(int32_t l0) {
     int32_t t0;
-#line 13 "tests/snippets/scalar_call/_main.vader"
     t0 = vader_chk_mul(i32, l0, l0);
     return t0;
 }
 
 static int32_t snippet_main(void) {
     int32_t t0, t1;
-#line 16 "tests/snippets/scalar_call/_main.vader"
     t0 = snippet_add(INT32_C(3), INT32_C(4));
-#line 17 "tests/snippets/scalar_call/_main.vader"
     t1 = snippet_square(t0);
     return t1;
 }

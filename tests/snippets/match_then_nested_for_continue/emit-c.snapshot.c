@@ -54,34 +54,24 @@ static int32_t snippet_run(vader_box_t l0, bool l1, bool l2) {
     void** gc_raw_roots[2] = { &l3, &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 23 "tests/snippets/match_then_nested_for_continue/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(6u, 3u, 7u, 5u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(3);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(2);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(1);
     l3 = (void*) _a0_arr;
-#line 24 "tests/snippets/match_then_nested_for_continue/_main.vader"
     l4 = INT32_C(0);
-#line 26 "tests/snippets/match_then_nested_for_continue/_main.vader"
     if (l0.tag == 2u) {
         t0 = l0.payload.obj;
         l4 = ((vader_struct_snippet_Pair_t*) t0)->f_a;
-#line 27 "tests/snippets/match_then_nested_for_continue/_main.vader"
     } else {
         if (!(l0.tag == 3u)) {
-#line 25 "tests/snippets/match_then_nested_for_continue/_main.vader"
             vader_unreachable("non-exhaustive match (T3013 should have caught this)");
-#line 27 "tests/snippets/match_then_nested_for_continue/_main.vader"
         }
         t0 = l0.payload.obj;
         l4 = ((vader_struct_snippet_Wrap_t*) t0)->f_b;
-#line 26 "tests/snippets/match_then_nested_for_continue/_main.vader"
     }
-#line 30 "tests/snippets/match_then_nested_for_continue/_main.vader"
     if (l1) {
-#line 31 "tests/snippets/match_then_nested_for_continue/_main.vader"
         if (l2) {
-#line 32 "tests/snippets/match_then_nested_for_continue/_main.vader"
             l5 = ((vader_array_t*) l3)->length;
             l6 = INT64_C(0);
             while ((l6 < l5)) {
@@ -89,25 +79,16 @@ static int32_t snippet_run(vader_box_t l0, bool l1, bool l2) {
                 VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
                 t1 = ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6];
-#line 33 "tests/snippets/match_then_nested_for_continue/_main.vader"
                 if (t1 == INT32_C(2)) {
-#line 32 "tests/snippets/match_then_nested_for_continue/_main.vader"
                     l6 = (l6 + INT64_C(1));
-#line 33 "tests/snippets/match_then_nested_for_continue/_main.vader"
                     continue;
                 }
-#line 34 "tests/snippets/match_then_nested_for_continue/_main.vader"
                 l4 = vader_chk_add(i32, l4, INT32_C(1));
-#line 32 "tests/snippets/match_then_nested_for_continue/_main.vader"
                 l6 = (l6 + INT64_C(1));
             }
-#line 31 "tests/snippets/match_then_nested_for_continue/_main.vader"
         }
-#line 38 "tests/snippets/match_then_nested_for_continue/_main.vader"
         { int32_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
-#line 30 "tests/snippets/match_then_nested_for_continue/_main.vader"
     }
-#line 38 "tests/snippets/match_then_nested_for_continue/_main.vader"
     { int32_t __vret = l4; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
@@ -117,7 +98,6 @@ static int32_t snippet_main(void) {
     void** gc_raw_roots[1] = { &t0 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 42 "tests/snippets/match_then_nested_for_continue/_main.vader"
     vader_struct_snippet_Pair_t* _a0_obj = (vader_struct_snippet_Pair_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Pair_t));
     vader_obj_header_init(_a0_obj, 2u);
     _a0_obj->f_a = INT32_C(5);

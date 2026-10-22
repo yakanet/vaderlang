@@ -22,16 +22,13 @@ const size_t vader_type_info_count = 3;
 
 static int32_t snippet_main(void) {
     uint64_t t0;
-#line 11 "tests/snippets/trait_dispatch_param/_main.vader"
     t0 = snippet_hash_twice__i32(INT32_C(7));
-#line 12 "tests/snippets/trait_dispatch_param/_main.vader"
     return ((int32_t) (uint64_t) t0);
 }
 
 static uint64_t snippet_hash_twice__i32(int32_t l0) {
     uint64_t l1, l2;
     int64_t t0;
-#line 7 "tests/snippets/trait_dispatch_param/_main.vader"
     l1 = std_core_i32_Hash_hash(l0);
     l2 = std_core_i32_Hash_hash(l0);
     t0 = vader_chk_add(u64, l1, l2);
@@ -39,7 +36,6 @@ static uint64_t snippet_hash_twice__i32(int32_t l0) {
 }
 
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
-#line 255 "lib/std/core/primitives.vader"
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
 }
 

@@ -20,13 +20,9 @@ const size_t vader_type_info_count = 2;
 static int32_t snippet_main(void) {
     int32_t l0, l1, l2;
     int32_t t0, t1;
-#line 15 "tests/snippets/numeric_add_trait/_main.vader"
     l0 = snippet_double__i32(INT32_C(7));
-#line 16 "tests/snippets/numeric_add_trait/_main.vader"
     l1 = snippet_triple__i32(INT32_C(8));
-#line 17 "tests/snippets/numeric_add_trait/_main.vader"
     l2 = snippet_double__i32(INT32_C(2));
-#line 18 "tests/snippets/numeric_add_trait/_main.vader"
     t0 = vader_chk_add(i32, l0, l1);
     t1 = vader_chk_add(i32, t0, l2);
     return t1;
@@ -34,14 +30,12 @@ static int32_t snippet_main(void) {
 
 static int32_t snippet_double__i32(int32_t l0) {
     int32_t t0;
-#line 10 "tests/snippets/numeric_add_trait/_main.vader"
     t0 = vader_chk_add(i32, l0, l0);
     return t0;
 }
 
 static int32_t snippet_triple__i32(int32_t l0) {
     int32_t t0, t1;
-#line 12 "tests/snippets/numeric_add_trait/_main.vader"
     t0 = vader_chk_add(i32, l0, l0);
     t1 = vader_chk_add(i32, t0, l0);
     return t1;

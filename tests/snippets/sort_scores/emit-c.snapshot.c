@@ -90,7 +90,6 @@ static int64_t vader_host_system_posix_sys_write(int32_t a0, void* a1, int64_t a
 }
 
 static bool snippet_ascending(int32_t l0, int32_t l1) {
-#line 18 "tests/snippets/sort_scores/_main.vader"
     return (l0 < l1);
 }
 
@@ -106,7 +105,6 @@ static int32_t snippet_main(void) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 22 "tests/snippets/sort_scores/_main.vader"
     vader_array_t* _a0_arr = vader_array_new(9u, 20u, 7u, 1u);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 19u] = (int32_t) INT32_C(90);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 18u] = (int32_t) INT32_C(14);
@@ -129,11 +127,8 @@ static int32_t snippet_main(void) {
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(12);
     ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(50);
     l0 = (void*) _a0_arr;
-#line 23 "tests/snippets/sort_scores/_main.vader"
     l1 = (void*) &vader_fn_static_snippet_ascending;
-#line 21 "tests/snippets/sort_scores/_main.vader"
     l0 = std_sort_sort__i32(l0, l1);
-#line 25 "tests/snippets/sort_scores/_main.vader"
     l2 = ((vader_array_t*) l0)->length;
     l3 = INT64_C(0);
     while ((l3 < l2)) {
@@ -149,7 +144,6 @@ static int32_t snippet_main(void) {
         std_io_println__string(t0);
         l3 = (l3 + INT64_C(1));
     }
-#line 26 "tests/snippets/sort_scores/_main.vader"
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }
 
@@ -181,7 +175,6 @@ static vader_string_t std_core_finish_buffer(void* l0, int64_t l1) {
         vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 98 "lib/std/core/primitives.vader"
     t0 = vader_buffer_intern_string((vader_buffer_t*) l0, (size_t) l1);
     { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -192,46 +185,29 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
     uint8_t l6, l7;
     int64_t t0, t1;
     int32_t t2;
-#line 136 "lib/std/core/primitives.vader"
     if (l2 == INT64_C(0)) {
-#line 137 "lib/std/core/primitives.vader"
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(48));
-#line 138 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, INT64_C(1));
         return t0;
-#line 136 "lib/std/core/primitives.vader"
     }
-#line 140 "lib/std/core/primitives.vader"
     l3 = (l2 < INT64_C(0));
-#line 141 "lib/std/core/primitives.vader"
     if ((l2 > INT64_C(0))) {
         l2 = vader_chk_neg(i64, l2);
     }
-#line 142 "lib/std/core/primitives.vader"
     l4 = INT64_C(0);
-#line 143 "lib/std/core/primitives.vader"
     l5 = l2;
-#line 144 "lib/std/core/primitives.vader"
     while (l5 != INT64_C(0)) {
-#line 145 "lib/std/core/primitives.vader"
         l4 = vader_chk_add(i64, l4, INT64_C(1));
-#line 146 "lib/std/core/primitives.vader"
         l5 = vader_div_i64(l5, INT64_C(10));
-#line 144 "lib/std/core/primitives.vader"
     }
-#line 148 "lib/std/core/primitives.vader"
     if (l3) {
         l5 = vader_chk_add(i64, l4, INT64_C(1));
     } else {
         l5 = l4;
     }
-#line 149 "lib/std/core/primitives.vader"
     l4 = vader_chk_add(i64, l1, l5);
-#line 150 "lib/std/core/primitives.vader"
     while (l2 != INT64_C(0)) {
-#line 151 "lib/std/core/primitives.vader"
         l4 = vader_chk_sub(i64, l4, INT64_C(1));
-#line 152 "lib/std/core/primitives.vader"
         t0 = vader_mod_i64(l2, INT64_C(10));
         t1 = vader_chk_neg(i64, t0);
         t2 = (((int32_t) (int64_t) t1) & INT32_C(255));
@@ -239,19 +215,13 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2) {
         t2 = vader_chk_add(u8, INT32_C(48), l6);
         l7 = (uint8_t) (int32_t) t2;
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l4, (uint8_t) l7);
-#line 153 "lib/std/core/primitives.vader"
         l2 = vader_div_i64(l2, INT64_C(10));
-#line 150 "lib/std/core/primitives.vader"
     }
-#line 155 "lib/std/core/primitives.vader"
     if (l3) {
         vader_buffer_store_u8((vader_buffer_t*) l0, (size_t) l1, (uint8_t) INT32_C(45));
-#line 156 "lib/std/core/primitives.vader"
         t0 = vader_chk_add(i64, l1, l5);
         return t0;
-#line 155 "lib/std/core/primitives.vader"
     }
-#line 156 "lib/std/core/primitives.vader"
     t0 = vader_chk_add(i64, l1, l5);
     return t0;
 }
@@ -267,39 +237,25 @@ static void std_io_write(uint8_t l0, vader_string_t l1) {
         vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-#line 206 "lib/std/io/io.vader"
     l2 = vader_host_std_core_bytes(l1);
-#line 207 "lib/std/io/io.vader"
     l3 = INT64_C(0);
-#line 208 "lib/std/io/io.vader"
     for (;;) {
-#line 209 "lib/std/io/io.vader"
         l4 = ((vader_array_t*) l2)->length;
         if (!((l3 >= l4))) {
-#line 212 "lib/std/io/io.vader"
             l5 = ((vader_array_t*) l2)->length;
             vader_array_t* _a0_arr = vader_array_slice((vader_array_t*) l2, (int64_t) l3, (int64_t) l5);
             l6 = (void*) _a0_arr;
-#line 213 "lib/std/io/io.vader"
             l7 = ((vader_array_t*) l6)->length;
             l8 = std_io_write_bytes(l0, l6, l7);
-#line 214 "lib/std/io/io.vader"
             if ((l8 <= INT32_C(0))) {
-#line 215 "lib/std/io/io.vader"
                 { vader_gc_top = gc_frame.prev; return; }
-#line 214 "lib/std/io/io.vader"
             }
-#line 217 "lib/std/io/io.vader"
             l9 = ((int64_t) (int32_t) l8);
             l3 = vader_chk_add(i64, l3, l9);
-#line 208 "lib/std/io/io.vader"
             continue;
-#line 209 "lib/std/io/io.vader"
         }
-#line 208 "lib/std/io/io.vader"
         break;
     }
-#line 210 "lib/std/io/io.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -308,14 +264,10 @@ static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2) {
     void** gc_raw_roots[1] = { &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 1u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 178 "lib/std/io/io.vader"
     if (l0 == INT32_C(0)) {
-#line 181 "lib/std/io/io.vader"
         t0 = vader_host_system_posix_sys_write(INT32_C(1), l1, l2);
         { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
-#line 178 "lib/std/io/io.vader"
     }
-#line 181 "lib/std/io/io.vader"
     t0 = vader_host_system_posix_sys_write(INT32_C(2), l1, l2);
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -325,7 +277,6 @@ static void std_io_println__string(vader_string_t l0) {
     vader_string_t* gc_atom_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL, NULL, 0u, NULL, 2u, gc_atom_roots };
     vader_gc_top = &gc_frame;
-#line 236 "lib/std/io/io.vader"
     l1 = concat_2(l0, 1u);
     std_io_write((uint8_t) 0, l1);
     { vader_gc_top = gc_frame.prev; return; }
@@ -338,19 +289,12 @@ static void* std_sort_sort__i32(void* l0, void* l1) {
     void** gc_raw_roots[4] = { &l0, &l1, &l3, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 4u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 23 "lib/std/sort/sort.vader"
     l2 = ((vader_array_t*) l0)->length;
-#line 24 "lib/std/sort/sort.vader"
     l3 = std_iter_clone__i32(l0);
-#line 25 "lib/std/sort/sort.vader"
     if (!((l2 < INT64_C(2)))) {
-#line 29 "lib/std/sort/sort.vader"
         l4 = std_iter_clone__i32(l0);
-#line 30 "lib/std/sort/sort.vader"
         std_sort_merge_sort_range__i32(l3, l4, INT64_C(0), l2, l1);
-#line 31 "lib/std/sort/sort.vader"
         { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
-#line 25 "lib/std/sort/sort.vader"
     }
     { void* __vret = l3; vader_gc_top = gc_frame.prev; return __vret; }
 }
@@ -364,31 +308,20 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
     void** gc_raw_roots[3] = { &l0, &l1, &l4 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 3u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 40 "lib/std/sort/sort.vader"
     l5 = vader_chk_sub(i64, l3, l2);
-#line 41 "lib/std/sort/sort.vader"
     if ((l5 < INT64_C(2))) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-#line 42 "lib/std/sort/sort.vader"
     if ((l5 <= INT64_C(16))) {
-#line 43 "lib/std/sort/sort.vader"
         std_sort_insertion_sort_range__i32(l0, l2, l3, l4);
-#line 44 "lib/std/sort/sort.vader"
         { vader_gc_top = gc_frame.prev; return; }
-#line 42 "lib/std/sort/sort.vader"
     }
-#line 46 "lib/std/sort/sort.vader"
     l5 = vader_div_i64(l5, INT64_C(2));
     l5 = vader_chk_add(i64, l2, l5);
-#line 47 "lib/std/sort/sort.vader"
     std_sort_merge_sort_range__i32(l0, l1, l2, l5, l4);
-#line 48 "lib/std/sort/sort.vader"
     std_sort_merge_sort_range__i32(l0, l1, l5, l3, l4);
-#line 51 "lib/std/sort/sort.vader"
     l6 = l2;
     while ((l6 < l3)) {
-#line 52 "lib/std/sort/sort.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l6)
@@ -397,19 +330,13 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
         VADER_ARRAY_RESOLVE_BUF(_a1_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a1_slotarr, l6)
         ((int32_t*) _a1_slotarr->buf->slots)[_a1_slotarr->offset + (size_t) l6] = (int32_t) l7;
-#line 51 "lib/std/sort/sort.vader"
         l6 = (l6 + INT64_C(1));
     }
-#line 54 "lib/std/sort/sort.vader"
     l6 = l2;
-#line 55 "lib/std/sort/sort.vader"
     l8 = l5;
-#line 56 "lib/std/sort/sort.vader"
     l9 = l2;
     while ((l9 < l3)) {
-#line 57 "lib/std/sort/sort.vader"
         if ((l6 >= l5)) {
-#line 58 "lib/std/sort/sort.vader"
             vader_array_t* _a2_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a2_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a2_slotarr, l8)
@@ -418,12 +345,8 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l9)
             ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l9] = (int32_t) l7;
-#line 59 "lib/std/sort/sort.vader"
             l8 = vader_chk_add(i64, l8, INT64_C(1));
-#line 57 "lib/std/sort/sort.vader"
-#line 60 "lib/std/sort/sort.vader"
         } else if ((l8 >= l3)) {
-#line 61 "lib/std/sort/sort.vader"
             vader_array_t* _a4_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
@@ -432,10 +355,7 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
             VADER_ARRAY_RESOLVE_BUF(_a5_slotarr)
             VADER_ARRAY_CHECK_INDEX(_a5_slotarr, l9)
             ((int32_t*) _a5_slotarr->buf->slots)[_a5_slotarr->offset + (size_t) l9] = (int32_t) l10;
-#line 62 "lib/std/sort/sort.vader"
             l6 = vader_chk_add(i64, l6, INT64_C(1));
-#line 60 "lib/std/sort/sort.vader"
-#line 63 "lib/std/sort/sort.vader"
         } else {
             vader_array_t* _a6_slotarr = ((vader_array_t*) l1);
             VADER_ARRAY_RESOLVE_BUF(_a6_slotarr)
@@ -447,7 +367,6 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
             t0 = ((vader_fn_erased_sig_2_t) _a7_fnobj->code)(_a7_fnobj->env, vader_box_i32(1u, l11), vader_box_i32(1u, l12));
             t1 = t0.payload.b;
             if (t1) {
-#line 67 "lib/std/sort/sort.vader"
                 vader_array_t* _a8_slotarr = ((vader_array_t*) l1);
                 VADER_ARRAY_RESOLVE_BUF(_a8_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a8_slotarr, l8)
@@ -456,10 +375,7 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
                 VADER_ARRAY_RESOLVE_BUF(_a9_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a9_slotarr, l9)
                 ((int32_t*) _a9_slotarr->buf->slots)[_a9_slotarr->offset + (size_t) l9] = (int32_t) l13;
-#line 68 "lib/std/sort/sort.vader"
                 l8 = vader_chk_add(i64, l8, INT64_C(1));
-#line 63 "lib/std/sort/sort.vader"
-#line 70 "lib/std/sort/sort.vader"
             } else {
                 vader_array_t* _a10_slotarr = ((vader_array_t*) l1);
                 VADER_ARRAY_RESOLVE_BUF(_a10_slotarr)
@@ -469,17 +385,11 @@ static void std_sort_merge_sort_range__i32(void* l0, void* l1, int64_t l2, int64
                 VADER_ARRAY_RESOLVE_BUF(_a11_slotarr)
                 VADER_ARRAY_CHECK_INDEX(_a11_slotarr, l9)
                 ((int32_t*) _a11_slotarr->buf->slots)[_a11_slotarr->offset + (size_t) l9] = (int32_t) l14;
-#line 71 "lib/std/sort/sort.vader"
                 l6 = vader_chk_add(i64, l6, INT64_C(1));
-#line 63 "lib/std/sort/sort.vader"
             }
-#line 60 "lib/std/sort/sort.vader"
         }
-#line 57 "lib/std/sort/sort.vader"
-#line 56 "lib/std/sort/sort.vader"
         l9 = (l9 + INT64_C(1));
     }
-#line 39 "lib/std/sort/sort.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -492,17 +402,13 @@ static void std_sort_insertion_sort_range__i32(void* l0, int64_t l1, int64_t l2,
     void** gc_raw_roots[2] = { &l0, &l3 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 77 "lib/std/sort/sort.vader"
     l4 = vader_chk_add(i64, l1, INT64_C(1));
     while ((l4 < l2)) {
-#line 78 "lib/std/sort/sort.vader"
         vader_array_t* _a0_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l4)
         l5 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l4];
-#line 79 "lib/std/sort/sort.vader"
         l6 = l4;
-#line 80 "lib/std/sort/sort.vader"
         while ((l6 > l1)) {
             l7 = vader_chk_sub(i64, l6, INT64_C(1));
             vader_array_t* _a1_slotarr = ((vader_array_t*) l0);
@@ -515,7 +421,6 @@ static void std_sort_insertion_sort_range__i32(void* l0, int64_t l1, int64_t l2,
             if (!(t1)) {
                 break;
             }
-#line 81 "lib/std/sort/sort.vader"
             l9 = vader_chk_sub(i64, l6, INT64_C(1));
             vader_array_t* _a3_slotarr = ((vader_array_t*) l0);
             VADER_ARRAY_RESOLVE_BUF(_a3_slotarr)
@@ -523,19 +428,14 @@ static void std_sort_insertion_sort_range__i32(void* l0, int64_t l1, int64_t l2,
             l10 = ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l9];
             VADER_ARRAY_CHECK_INDEX(_a3_slotarr, l6)
             ((int32_t*) _a3_slotarr->buf->slots)[_a3_slotarr->offset + (size_t) l6] = (int32_t) l10;
-#line 82 "lib/std/sort/sort.vader"
             l6 = vader_chk_sub(i64, l6, INT64_C(1));
-#line 80 "lib/std/sort/sort.vader"
         }
-#line 84 "lib/std/sort/sort.vader"
         vader_array_t* _a4_slotarr = ((vader_array_t*) l0);
         VADER_ARRAY_RESOLVE_BUF(_a4_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a4_slotarr, l6)
         ((int32_t*) _a4_slotarr->buf->slots)[_a4_slotarr->offset + (size_t) l6] = (int32_t) l5;
-#line 77 "lib/std/sort/sort.vader"
         l4 = (l4 + INT64_C(1));
     }
-#line 76 "lib/std/sort/sort.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
 
@@ -545,15 +445,12 @@ static void* std_iter_clone__i32(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-#line 156 "lib/std/iter/iter.vader"
     vader_array_t* _a0_arr = vader_array_new(9u, 0u, 7u, 1u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
     l1 = (void*) _a1_arr;
-#line 157 "lib/std/iter/iter.vader"
     vader_array_push_all((vader_array_t*) l1, (vader_array_t*) l0);
-#line 158 "lib/std/iter/iter.vader"
     { void* __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
