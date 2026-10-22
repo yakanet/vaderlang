@@ -357,9 +357,9 @@ test("lsp: hover joins a signature wrapped across lines", async () => {
   );
 }, { timeout: MEDIUM_BUILD });
 
-// A hover reads like an IDE's quick documentation: the declaration with its
-// decorators, `export` and members, a long parameter list one per line, the
-// vaderdoc tags as sections, the declaring module. `@name` documents the
+// A hover reads like an IDE's quick documentation: the module, the declaration
+// with its decorators, `export` and members, a long parameter list one per line,
+// the vaderdoc tags as sections, the declaring file. `@name` documents the
 // decorator or the intrinsic.
 const QUICK_DOC_SOURCE = `module "lsptest"
 
@@ -397,11 +397,11 @@ test("lsp: hover renders a declaration as quick documentation", async () => {
   ]);
   const value = (i: number) => (results[i]!.result as Hover).contents.value;
   expect(value(0)).toBe(
-    "```\nexport Point :: struct {\n    x: i32\n    @internal y: i32 = 0\n}\n```"
-      + "\n\n---\n\nA 2D point.\n\n*lsptest*",
+    "lsptest\n\n```\nexport Point :: struct {\n    x: i32\n    @internal y: i32 = 0\n}\n```"
+      + "\n\n---\n\nA 2D point.\n\n*lsp-test.vader*",
   );
   expect(value(1)).toStartWith(
-    "```\n@allow_unused\narea :: fn(\n    p: Point,\n    scale: i32,\n    offset: i32,\n    label: string,\n) -> i32\n```",
+    "lsptest\n\n```\n@allow_unused\narea :: fn(\n    p: Point,\n    scale: i32,\n    offset: i32,\n    label: string,\n) -> i32\n```",
   );
   expect(value(1)).toContain("**Params**\n- `p` — the point.\n- `scale` — how much to grow it.\n\n**Returns** the product.");
   expect(value(2)).toStartWith("decorator\n\n```\n@allow_unused\n```");
@@ -1450,8 +1450,8 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
   expect(hov.contents.kind).toBe("markdown");
   // Signature comes from the source decl, not the importing file.
   expect(hov.contents.value).toContain("println");
-  expect(hov.contents.value).toStartWith("```\nexport println :: fn<T: Display>(msg: T) -> void\n```");
-  expect(hov.contents.value).toEndWith("*std/io*");
+  expect(hov.contents.value).toStartWith("std/io\n\n```\nexport println :: fn<T: Display>(msg: T) -> void\n```");
+  expect(hov.contents.value).toEndWith("*io.vader*");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {

@@ -4,7 +4,7 @@
 // (both 0-based). A hover on a declaration reads like an IDE's quick
 // documentation :
 //
-//     IntrinsicSpec                         the owning type, for a member
+//     vader/parser › IntrinsicSpec          the module, and the owning type
 //     ```
 //     @intrinsic                            decorators, `export`, the head :
 //     export arg_kind :: fn(                a long parameter list one per line,
@@ -14,7 +14,7 @@
 //     ```
 //     ---
 //     The vaderdoc, its tags as sections.
-//     *vader/parser*                        the declaring module
+//     *intrinsics.vader*                    the declaring file
 //
 // A value without a declaration of its own (a local, a sub-expression) shows its
 // inferred type, and `@name` the decorator's or the intrinsic's documentation.
@@ -32,6 +32,7 @@ module "vader/lsp/handlers"
 
 import "json"
 import "std/collections"
+import "std/path"
 import "std/string"
 import "vader/fmt"
 import "vader/lsp/analysis"
@@ -109,14 +110,15 @@ resolve_hit_at :: fn(state: ServerState, uri: string, idx: DocIndex, line: i32, 
 
 // ---- payload encoding ----------------------------------------------------
 
-// The hover of a declaration : the type owning it, its display in a code
-// fence, then its vaderdoc and the module that declares it. `instance` is the
+// The hover of a declaration : its module and owner, its display in a code
+// fence, then its vaderdoc and the file that declares it. `instance` is the
 // type a generic fn takes at the hovered call, "" elsewhere.
 decl_hover :: fn(hit: ExternalHit, instance: string) -> JsonValue {
     d :: hit.target
     parts: string[]: []
-    if d.owner.byte_len() > 0 {
-        parts.push(d.owner)
+    header :: container_line(hit.module, d.owner)
+    if header.byte_len() > 0 {
+        parts.push(header)
     }
     parts.push(code_fence(decl_display(hit.source, d)))
     if instance.byte_len() > 0 {
@@ -126,9 +128,7 @@ decl_hover :: fn(hit: ExternalHit, instance: string) -> JsonValue {
         parts.push("---")
         parts.push(format_vaderdoc(d.doc))
     }
-    if hit.module.byte_len() > 0 {
-        parts.push("*${hit.module}*")
-    }
+    parts.push("*${uri_to_path(hit.uri).to_path().filename()}*")
     return markdown_hover(parts.join("\n\n"))
 }
 
@@ -165,6 +165,17 @@ is_declaration_site :: fn(uri: string, idx: DocIndex, hit: ExternalHit, line: i3
     }
     at :: idx.span_at(line, character) ?? return false
     return at.start.offset == hit.target.name_span.start.offset
+}
+
+// `module › Owner`, either half left out when empty.
+container_line :: fn(module: string, owner: string) -> string {
+    if owner.byte_len() == 0 {
+        return module
+    }
+    if module.byte_len() == 0 {
+        return owner
+    }
+    return module + " › " + owner
 }
 
 // `code` in an unlabelled fence (see the file header for why no language).
