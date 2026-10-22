@@ -511,7 +511,7 @@ static vader_box_t snippet___asyncstate_snippet_3_Async_resume(void* l0) {
                             _a5_closure->env = t2;
                             t2 = (void*) _a5_closure;
                             l10 = t2;
-                            vader_array_push((vader_array_t*) l9, vader_ref_box(l10));
+                            vader_array_push_ref((vader_array_t*) l9, l10);
 #line 20 "tests/snippets/async_any/_main.vader"
                             ((vader_struct___asyncstate_snippet_3_t*) l0)->f_state = INT32_C(6);
                         }

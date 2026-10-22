@@ -615,7 +615,7 @@ static vader_box_t std_io_read_dir(vader_string_t l0) {
                 continue;
             }
 #line 773 "lib/std/io/io.vader"
-            vader_array_push((vader_array_t*) l3, vader_box_string(2u, l4));
+            vader_array_push_scalar((vader_array_t*) l3, vader_box_string(2u, l4));
 #line 772 "lib/std/io/io.vader"
             continue;
 #line 770 "lib/std/io/io.vader"

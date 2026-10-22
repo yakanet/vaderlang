@@ -103,7 +103,7 @@ static int32_t snippet_main(void) {
 #line 22 "tests/snippets/generic_return_binds_typaram/_main.vader"
     l1 = snippet_empty_of__string();
 #line 23 "tests/snippets/generic_return_binds_typaram/_main.vader"
-    vader_array_push((vader_array_t*) l1, vader_box_string(4u, 1u));
+    vader_array_push_scalar((vader_array_t*) l1, vader_box_string(4u, 1u));
 #line 25 "tests/snippets/generic_return_binds_typaram/_main.vader"
     l2 = (void*) vader_buffer_new((size_t) INT64_C(69));
     l3 = INT64_C(0);

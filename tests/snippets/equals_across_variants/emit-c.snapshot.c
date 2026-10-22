@@ -997,7 +997,7 @@ static bool std_collections_put__Any__string(void* l0, vader_box_t l1, vader_str
     } else {
         vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__string_t*) l0)->f_ekeys, l1);
 #line 150 "lib/std/collections/collections.vader"
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__string_t*) l0)->f_evals, vader_box_string(6u, l2));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__string_t*) l0)->f_evals, vader_box_string(6u, l2));
 #line 145 "lib/std/collections/collections.vader"
     }
 #line 152 "lib/std/collections/collections.vader"

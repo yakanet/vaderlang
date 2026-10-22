@@ -213,12 +213,15 @@ statement_macro :: fn(s: FnState, name: string, arguments: CExpression[]) -> voi
 write_barrier :: fn(s: FnState, object: CExpression) -> void =
     evaluate(s, call("VADER_WRITE_BARRIER", [object]))
 
+/// Whether storing `value` can create an old→young edge, so needs the write
+/// barrier. A primitive cannot, and neither can an atom: it never moves, and the
+/// major cycle marks atoms by walking the heap, not the cards.
+may_hold_reference :: fn(value: StackVal) -> bool = is_ref_val(val_of(value))
+
 /// `write_barrier` for a store of `value` into `object`, skipped when `value`
-/// cannot be a reference. A primitive creates no old→young edge, and neither
-/// does an atom: it never moves, and the major cycle marks atoms by walking the
-/// heap, not the cards.
+/// cannot be a reference.
 write_barrier_for :: fn(s: FnState, object: CExpression, value: StackVal) -> void {
-    if is_ref_val(val_of(value)) {
+    if may_hold_reference(value) {
         write_barrier(s, object)
     }
 }

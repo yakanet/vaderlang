@@ -107,7 +107,7 @@ static int64_t snippet_fill(vader_box_t l0) {
     if (!(l0.tag == 2u)) {
 #line 17 "tests/snippets/union_variant_narrow_mutation/_main.vader"
         t0 = l0.payload.obj;
-        vader_array_push((vader_array_t*) t0, vader_box_string(5u, 1u));
+        vader_array_push_scalar((vader_array_t*) t0, vader_box_string(5u, 1u));
 #line 18 "tests/snippets/union_variant_narrow_mutation/_main.vader"
         t0 = l0.payload.obj;
         t1 = ((vader_array_t*) t0)->length;

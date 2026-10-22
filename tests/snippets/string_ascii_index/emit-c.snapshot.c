@@ -304,7 +304,7 @@ static int32_t snippet_main(void) {
             l8 = ((int64_t) (int32_t) l2);
             l6 = std_core_write_int(l5, l6, l8);
             l0 = std_core_finish_buffer(l5, l6);
-            vader_array_push((vader_array_t*) l3, vader_box_string(1u, l0));
+            vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l0));
 #line 31 "tests/snippets/string_ascii_index/_main.vader"
             l9 = (void*) vader_buffer_new((size_t) INT64_C(46));
             l10 = INT64_C(0);
@@ -315,7 +315,7 @@ static int32_t snippet_main(void) {
             l12 = ((int64_t) (int32_t) l2);
             l10 = std_core_write_int(l9, l10, l12);
             l1 = std_core_finish_buffer(l9, l10);
-            vader_array_push((vader_array_t*) l3, vader_box_string(1u, l1));
+            vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l1));
 #line 29 "tests/snippets/string_ascii_index/_main.vader"
             l4 = (l4 + INT32_C(1));
         }
@@ -1260,7 +1260,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

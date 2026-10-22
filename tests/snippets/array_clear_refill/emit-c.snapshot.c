@@ -187,7 +187,7 @@ static int32_t snippet_main(void) {
         l4 = ((int64_t) (int32_t) l1);
         l3 = std_core_write_int(l2, l3, l4);
         l5 = std_core_finish_buffer(l2, l3);
-        vader_array_push((vader_array_t*) l0, vader_box_string(2u, l5));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l5));
 #line 31 "tests/snippets/array_clear_refill/_main.vader"
         t0 = snippet_seen();
         t1 = ((vader_array_t*) t0)->length;
@@ -211,10 +211,10 @@ static int32_t snippet_main(void) {
     std_io_println__string(t2);
 #line 37 "tests/snippets/array_clear_refill/_main.vader"
     t0 = snippet_seen();
-    vader_array_push((vader_array_t*) t0, vader_box_string(2u, 4u));
+    vader_array_push_scalar((vader_array_t*) t0, vader_box_string(2u, 4u));
 #line 38 "tests/snippets/array_clear_refill/_main.vader"
     t0 = snippet_seen();
-    vader_array_push((vader_array_t*) t0, vader_box_string(2u, 5u));
+    vader_array_push_scalar((vader_array_t*) t0, vader_box_string(2u, 5u));
 #line 39 "tests/snippets/array_clear_refill/_main.vader"
     t0 = snippet_seen();
     l6 = vader_array_remove_last((vader_array_t*) t0);

@@ -161,7 +161,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_CHECK_INDEX(_a6_slotarr, l6)
         l7 = vader_array_ref_load_obj(_a6_slotarr->buf, _a6_slotarr->offset + (size_t) l6);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l4, vader_ref_box(l7));
+        vader_array_push_ref((vader_array_t*) l4, l7);
 #line 24 "tests/snippets/chain_struct_field_read/_main.vader"
         l6 = (l6 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -179,7 +179,7 @@ static int32_t snippet_main(void) {
         VADER_ARRAY_CHECK_INDEX(_a7_slotarr, l6)
         l7 = vader_array_ref_load_obj(_a7_slotarr->buf, _a7_slotarr->offset + (size_t) l6);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l4, vader_ref_box(l7));
+        vader_array_push_ref((vader_array_t*) l4, l7);
 #line 24 "tests/snippets/chain_struct_field_read/_main.vader"
         l6 = (l6 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -243,7 +243,7 @@ static int32_t snippet_main(void) {
 #line 393 "lib/std/iter/iter.vader"
         l7 = __lambda_snippet_0(t0);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l4, vader_ref_box(l7));
+        vader_array_push_ref((vader_array_t*) l4, l7);
 #line 31 "tests/snippets/chain_struct_field_read/_main.vader"
         l6 = (l6 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -294,7 +294,7 @@ static int32_t snippet_main(void) {
         if (t3) {
             l7 = l4;
 #line 89 "lib/std/iter/iter.vader"
-            vader_array_push((vader_array_t*) l3, vader_ref_box(l7));
+            vader_array_push_ref((vader_array_t*) l3, l7);
 #line 387 "lib/std/iter/iter.vader"
         }
 #line 37 "tests/snippets/chain_struct_field_read/_main.vader"

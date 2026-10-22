@@ -380,7 +380,7 @@ static void* __lambda_snippet_3(void) {
         _a3_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
         _a3_closure->env = t0;
         l2 = (void*) _a3_closure;
-        vader_array_push((vader_array_t*) l0, vader_ref_box(l2));
+        vader_array_push_ref((vader_array_t*) l0, l2);
 #line 33 "tests/snippets/default_value_from_another_module/util/util.vader"
         l1 = (l1 + INT32_C(1));
     }

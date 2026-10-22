@@ -851,7 +851,7 @@ static int32_t snippet_main(void) {
     _a24_obj->f_name = 19u;
     _a24_obj->f_code = INT32_C(0);
     l10 = (void*) _a24_obj;
-    vader_array_push((vader_array_t*) l2, vader_ref_box(l10));
+    vader_array_push_ref((vader_array_t*) l2, l10);
 #line 149 "tests/snippets/module_storage/_main.vader"
     l10 = (void*) vader_buffer_new((size_t) INT64_C(29));
     l1 = INT64_C(0);
@@ -889,7 +889,7 @@ static int32_t snippet_main(void) {
         _a27_obj->f_name = l0;
         _a27_obj->f_code = l11;
         l15 = (void*) _a27_obj;
-        vader_array_push((vader_array_t*) l2, vader_ref_box(l15));
+        vader_array_push_ref((vader_array_t*) l2, l15);
 #line 151 "tests/snippets/module_storage/_main.vader"
         l9 = (l9 + INT32_C(1));
     }

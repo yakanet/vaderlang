@@ -420,7 +420,7 @@ static int32_t snippet_main(void) {
         t1 = __method_snippet_8(l0, l6);
         l2 = snippet_label(t1);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l3, vader_box_string(2u, l2));
+        vader_array_push_scalar((vader_array_t*) l3, vader_box_string(2u, l2));
 #line 34 "tests/snippets/method_value_free_fn/_main.vader"
         l5 = (l5 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -721,7 +721,7 @@ static vader_string_t std_core____Display_to_string__string(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }

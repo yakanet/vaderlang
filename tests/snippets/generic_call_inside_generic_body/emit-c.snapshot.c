@@ -177,9 +177,9 @@ static int32_t snippet_grow__string(vader_string_t l0) {
 #line 24 "tests/snippets/generic_call_inside_generic_body/_main.vader"
     l1 = snippet_empty__string();
 #line 25 "tests/snippets/generic_call_inside_generic_body/_main.vader"
-    vader_array_push((vader_array_t*) l1, vader_box_string(5u, l0));
+    vader_array_push_scalar((vader_array_t*) l1, vader_box_string(5u, l0));
 #line 26 "tests/snippets/generic_call_inside_generic_body/_main.vader"
-    vader_array_push((vader_array_t*) l1, vader_box_string(5u, l0));
+    vader_array_push_scalar((vader_array_t*) l1, vader_box_string(5u, l0));
 #line 27 "tests/snippets/generic_call_inside_generic_body/_main.vader"
     t0 = ((vader_array_t*) l1)->length;
     { int32_t __vret = ((int32_t) (int64_t) t0); vader_gc_top = gc_frame.prev; return __vret; }

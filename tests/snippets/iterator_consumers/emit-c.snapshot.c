@@ -1194,7 +1194,7 @@ static int32_t snippet_main(void) {
 #line 393 "lib/std/iter/iter.vader"
         l6 = __lambda_snippet_0(t1);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l3, vader_ref_box(l6));
+        vader_array_push_ref((vader_array_t*) l3, l6);
 #line 107 "tests/snippets/iterator_consumers/_main.vader"
         l5 = (l5 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -1520,7 +1520,7 @@ static int32_t snippet_main(void) {
         if (t4) {
             l16 = l15;
 #line 89 "lib/std/iter/iter.vader"
-            vader_array_push((vader_array_t*) l8, vader_ref_box(l16));
+            vader_array_push_ref((vader_array_t*) l8, l16);
 #line 387 "lib/std/iter/iter.vader"
         }
 #line 123 "tests/snippets/iterator_consumers/_main.vader"
@@ -2927,7 +2927,7 @@ static void* std_iter_collect__snippet_Point(vader_box_t l0) {
         if (!((((vader_obj_header_t*) l3)->type_index == 28u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l3)->f__1 : ((vader_struct___Tuple_Struct_snippet_Point_u8_3d579548_t*) l3)->f__1) == INT32_C(1))) {
             l4 = (((vader_obj_header_t*) l3)->type_index == 28u ? ((vader_struct___Tuple_Any_u8_d7d23c9c_t*) l3)->f__0.payload.obj : ((vader_struct___Tuple_Struct_snippet_Point_u8_3d579548_t*) l3)->f__0);
 #line 89 "lib/std/iter/iter.vader"
-            vader_array_push((vader_array_t*) l1, vader_ref_box(l4));
+            vader_array_push_ref((vader_array_t*) l1, l4);
 #line 88 "lib/std/iter/iter.vader"
             continue;
         }

@@ -165,7 +165,7 @@ static int32_t snippet_main(void) {
 #line 36 "tests/snippets/empty_array_passed_to_parameter/_main.vader"
         snippet_append_word(l2, l1);
 #line 37 "tests/snippets/empty_array_passed_to_parameter/_main.vader"
-        vader_array_push((vader_array_t*) l0, vader_ref_box(l2));
+        vader_array_push_ref((vader_array_t*) l0, l2);
 #line 34 "tests/snippets/empty_array_passed_to_parameter/_main.vader"
         l1 = (l1 + INT32_C(1));
     }

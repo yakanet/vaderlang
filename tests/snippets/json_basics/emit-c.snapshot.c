@@ -5712,7 +5712,7 @@ static vader_box_t json_parse_array(void* l0, int32_t l1) {
             }
 #line 398 "lib/json/json.vader"
             l5 = l2;
-            vader_array_push((vader_array_t*) l3, l5);
+            vader_array_push_ref((vader_array_t*) l3, l5.payload.obj);
 #line 399 "lib/json/json.vader"
             json_skip_ws(l0);
 #line 400 "lib/json/json.vader"
@@ -6945,7 +6945,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -6964,7 +6964,7 @@ static void std_string_builder_append_char(void* l0, uint32_t l1) {
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     t0 = std_core_utf8_encode(l1);
     l3 = vader_host_std_core_bytes_to_string(t0);
-    vader_array_push((vader_array_t*) l2, vader_box_string(1u, l3));
+    vader_array_push_scalar((vader_array_t*) l2, vader_box_string(1u, l3));
 #line 49 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -6986,7 +6986,7 @@ static void std_string_builder_append_repeated(void* l0, uint32_t l1, int32_t l2
     l4 = INT32_C(0);
     while ((l4 < l2)) {
 #line 67 "lib/std/string_builder/string_builder.vader"
-        vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l3));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l3));
 #line 66 "lib/std/string_builder/string_builder.vader"
         l4 = (l4 + INT32_C(1));
     }
@@ -7340,7 +7340,7 @@ static bool std_collections_put__string__Any(void* l0, vader_string_t l1, vader_
 #line 145 "lib/std/collections/collections.vader"
 #line 149 "lib/std/collections/collections.vader"
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_ekeys, vader_box_string(1u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_ekeys, vader_box_string(1u, l1));
 #line 150 "lib/std/collections/collections.vader"
         vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_evals, l2);
 #line 145 "lib/std/collections/collections.vader"

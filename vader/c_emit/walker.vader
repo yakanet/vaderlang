@@ -2850,10 +2850,10 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
 /// `array.push` — pop value + array, append the value. Here `op.type_id` is the
 /// ELEMENT type directly (not the array type). A primitive element appends
 /// through its typed `vader_array_push_*` helper, a ref, boxed or string element
-/// through `vader_array_push`: all are `static inline` fast paths whose grow /
-/// view case goes to `vader_array_push_slow`, so GC-rooting is unchanged. A boxed
-/// push tags the value with its own type, never `op.type_id` : that is the union
-/// for an `(i32 | string)[]`.
+/// through the raw-ref or boxed one `emit_boxed_push` picks: all are `static
+/// inline` fast paths whose grow / view case goes to `vader_array_push_slow`, so
+/// GC-rooting is unchanged. A boxed push tags the value with its own type, never
+/// `op.type_id` : that is the union for an `(i32 | string)[]`.
 emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)
@@ -2877,21 +2877,33 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
     // typed for all primitives (i32/i64/f64 via `StoreSlot*`, the rest via
     // `emit_array_set`). The helper name and the coerce target come from the two
     // kind tables (`push_helper_for` / `typed_array_fill_for`) so the width they
-    // agree on has one source. Only `.Ref` / `.Boxed` box.
+    // agree on has one source. `.Ref` / `.Boxed` go through `emit_boxed_push`.
     helper :: push_helper_for(kind)
     fill :: typed_array_fill_for(kind)
     if helper == null || fill == null {
-        evaluate(
-            s,
-            call(
-                "vader_array_push",
-                [array_pointer(obj), coerced_as(s, value, .Any)],
-            ),
-        )
+        emit_boxed_push(s, types[op.type_id], array_pointer(obj), value)
         return
     }
     evaluate(s, call(helper, [array_pointer(obj), coerced_as(s, value, fill.val)]))
 }
+
+// The append to a `.Ref` / `.Boxed` element. A concrete-ref or ref-only-union
+// element holds genuine refs (or null), so the value goes in as its raw object
+// pointer, as `emit_array_set` stores it: no box to build, no header to read for
+// a tag the REF buffer drops. An erased `BcRef` element may hold a boxed
+// primitive, and the other elements are boxed, so their value goes in as a box.
+emit_boxed_push :: fn(s: FnState, element: BcType, array: CExpression, value: StackVal) -> void {
+    if ref_carrying_element(element, s.ctx.module.types) && element !is BcRef {
+        evaluate(s, call("vader_array_push_ref", [array, object_pointer_of(value)]))
+        return
+    }
+    evaluate(s, call(boxed_push_helper(value), [array, coerced_as(s, value, .Any)]))
+}
+
+// The boxed append for `value`: without the write barrier when the value cannot
+// be a reference.
+boxed_push_helper :: fn(value: StackVal) -> string =
+    if may_hold_reference(value) { "vader_array_push" } else { "vader_array_push_scalar" }
 
 /// `array.len`: pop array, push its `i64` length, read off the array header (no
 /// buf deref: the length lives on the header, which is the live gc_root).

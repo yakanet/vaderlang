@@ -326,7 +326,7 @@ static void snippet_bump(void) {
     l4 = ((int64_t) (int32_t) t0);
     l3 = std_core_write_int(l2, l3, l4);
     l5 = std_core_finish_buffer(l2, l3);
-    vader_array_push((vader_array_t*) l0, vader_box_string(3u, l5));
+    vader_array_push_scalar((vader_array_t*) l0, vader_box_string(3u, l5));
 #line 43 "tests/snippets/singleton_instance/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

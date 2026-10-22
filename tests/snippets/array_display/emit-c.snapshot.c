@@ -1499,7 +1499,7 @@ static vader_string_t std_core____Display_to_string__i32(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -1585,7 +1585,7 @@ static vader_string_t std_core____Display_to_string__string(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -1672,7 +1672,7 @@ static vader_string_t std_core____Display_to_string__bool(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -1758,7 +1758,7 @@ static vader_string_t std_core____Display_to_string__snippet_Point(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -1844,7 +1844,7 @@ static vader_string_t std_core____Display_to_string__i32__(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -1931,7 +1931,7 @@ static vader_string_t std_core____Display_to_string__null(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }
@@ -2017,7 +2017,7 @@ static vader_string_t std_core____Display_to_string__f64(void* l0) {
         l7 = vader_host_std_core_byte_len(l6);
         l2 = vader_chk_add(i64, l2, l7);
 #line 376 "lib/std/core/core.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(2u, l6));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(2u, l6));
 #line 373 "lib/std/core/core.vader"
         l5 = (l5 + INT64_C(1));
     }

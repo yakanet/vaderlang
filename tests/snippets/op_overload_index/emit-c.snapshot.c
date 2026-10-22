@@ -176,7 +176,7 @@ static void snippet_Cell_std_core_IndexSet_set_at(void* l0, vader_string_t l1, i
         l6 = (l6 + INT64_C(1));
     }
 #line 32 "tests/snippets/op_overload_index/_main.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_keys, vader_box_string(2u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_keys, vader_box_string(2u, l1));
 #line 33 "tests/snippets/op_overload_index/_main.vader"
     vader_array_push_i32((vader_array_t*) ((vader_struct_snippet_Cell_t*) l0)->f_vals, l2);
 #line 23 "tests/snippets/op_overload_index/_main.vader"

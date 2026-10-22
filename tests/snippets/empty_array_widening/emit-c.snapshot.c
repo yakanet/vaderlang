@@ -211,7 +211,7 @@ static int32_t snippet_main(void) {
         l4 = ((int64_t) (int32_t) l1);
         l3 = std_core_write_int(l2, l3, l4);
         l5 = std_core_finish_buffer(l2, l3);
-        vader_array_push((vader_array_t*) l0, vader_box_string(3u, l5));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(3u, l5));
 #line 33 "tests/snippets/empty_array_widening/_main.vader"
         l1 = (l1 + INT32_C(1));
     }

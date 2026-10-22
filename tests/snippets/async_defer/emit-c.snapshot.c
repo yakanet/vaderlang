@@ -374,7 +374,7 @@ static vader_box_t snippet___asyncstate_snippet_4_Async_resume(void* l0) {
                     _a6_closure->env = t2;
                     t2 = (void*) _a6_closure;
                     l9 = t2;
-                    vader_array_push((vader_array_t*) l8, vader_ref_box(l9));
+                    vader_array_push_ref((vader_array_t*) l8, l9);
 #line 11 "tests/snippets/async_defer/_main.vader"
                     l10 = ((vader_struct___asyncstate_snippet_4_t*) l0)->f_s0;
 #line 15 "tests/snippets/async_defer/_main.vader"
@@ -425,7 +425,7 @@ static vader_box_t snippet___asyncstate_snippet_4_Async_resume(void* l0) {
                             _a9_closure->env = t2;
                             t2 = (void*) _a9_closure;
                             l15 = t2;
-                            vader_array_push((vader_array_t*) l14, vader_ref_box(l15));
+                            vader_array_push_ref((vader_array_t*) l14, l15);
 #line 11 "tests/snippets/async_defer/_main.vader"
                             ((vader_struct___asyncstate_snippet_4_t*) l0)->f_state = INT32_C(6);
                         }

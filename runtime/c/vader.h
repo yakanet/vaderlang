@@ -922,9 +922,10 @@ static inline void vader_array_resolve_buf(vader_array_t* a) {
  * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`).
  * `slice` / `new` stay out of line (the GC-coupled construction primitives),
  * and so does the growing half of `push`: `vader_array_push_slow` handles any
- * append, `vader_array_push` (below the write barrier) is its in-place fast
- * path. */
+ * append, and the inline `push` helpers (the typed ones below, the boxed and raw
+ * ref ones below the write barrier) are its in-place fast paths. */
 void           vader_array_push_slow(vader_array_t* a, vader_box_t v);
+VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
 
 /* Typed append fast paths — one per primitive element width (all `ArrayKind`s
  * except `Boxed` / `Ref`, matching the store path's full-primitive typed
@@ -1168,30 +1169,61 @@ extern uintptr_t  vader_old_end;
     }                                                                          \
 } while (0)
 
-/* In-place append for a ref, boxed or string element, the `push` the C emitter
- * issues where no typed `vader_array_push_*` applies. Same precondition as
- * `VADER_ARRAY_PUSH_BODY` (room left, not a view: since `offset + length` never
- * passes `buf->length`, that is offset 0 and a length flush with the buffer's);
- * the buffer's own `element_kind` decides the store, since an erased generic
- * body can hand a ref call site a BOXED buffer. Everything else (grow, view,
- * borrowed, a packed buffer) goes to `vader_array_push_slow`. A NULL buf is the
- * borrowed view, the one shape without one, so it is tested before any read
- * through `buf`. */
-static inline void vader_array_push(vader_array_t* a, vader_box_t v) {
+/* Whether the next element of `a` goes in place in `buf`, its buffer, through a
+ * ref or box store: room left, not a view (offset 0 and a length flush with the
+ * buffer's, as in `VADER_ARRAY_PUSH_BODY`), and a BOXED or REF buffer. An erased
+ * generic body can hand a ref call site a BOXED buffer, so the buffer's own kind
+ * decides the store. */
+static inline bool vader_array_ref_push_in_place(const vader_array_t* a, const vader_array_buf_t* buf) {
+    uint8_t kind = buf->element_kind;
+    return a->offset == 0 && a->length == buf->length && a->length < a->capacity
+        && (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF);
+}
+
+/* In-place append of a box: the `push` the C emitter issues for a boxed or
+ * string element, or for a value it holds as a box. Anything not in place (grow,
+ * view, a packed buffer) goes to `vader_array_push_slow`, and so does the NULL
+ * buffer of a borrowed byte view, tested before any read through `buf`.
+ * `may_hold_ref` is a constant at each caller below: false drops the write
+ * barrier for a value that holds no heap pointer. */
+static inline void vader_array_push_box(vader_array_t* a, vader_box_t v, bool may_hold_ref) {
     vader_array_buf_t* buf = a->buf;
-    if (VADER_UNLIKELY(buf == NULL)) {
+    if (VADER_UNLIKELY(buf == NULL || !vader_array_ref_push_in_place(a, buf))) {
         vader_array_push_slow(a, v);
         return;
     }
     size_t n = a->length;
-    uint8_t kind = buf->element_kind;
-    bool in_place = a->offset == 0 && n == buf->length && n < a->capacity
-        && (kind == VADER_ARRAY_KIND_BOXED || kind == VADER_ARRAY_KIND_REF);
-    if (VADER_UNLIKELY(!in_place)) {
-        vader_array_push_slow(a, v);
+    vader_array_ref_store_box(buf, n, v);
+    a->length = n + 1;
+    buf->length = n + 1;
+    if (may_hold_ref) {
+        VADER_WRITE_BARRIER(buf);
+    }
+}
+
+/* The append of a box that may hold a reference. */
+static inline void vader_array_push(vader_array_t* a, vader_box_t v) {
+    vader_array_push_box(a, v, true);
+}
+
+/* The append of a box that holds no heap pointer: no write barrier. */
+static inline void vader_array_push_scalar(vader_array_t* a, vader_box_t v) {
+    vader_array_push_box(a, v, false);
+}
+
+/* In-place append of a raw object pointer (NULL for `null`), for an element
+ * whose every value is a genuine ref: a struct, an array, a fn, or a union of
+ * those and null. Such an array always has a buffer, since only a borrowed byte
+ * view lacks one. Anything not in place goes out of line to
+ * `vader_array_push_ref_slow`. */
+static inline void vader_array_push_ref(vader_array_t* a, void* obj) {
+    vader_array_buf_t* buf = a->buf;
+    if (VADER_UNLIKELY(!vader_array_ref_push_in_place(a, buf))) {
+        vader_array_push_ref_slow(a, obj);
         return;
     }
-    vader_array_ref_store_box(buf, n, v);
+    size_t n = a->length;
+    vader_array_ref_store(buf, n, obj);
     a->length = n + 1;
     buf->length = n + 1;
     VADER_WRITE_BARRIER(buf);

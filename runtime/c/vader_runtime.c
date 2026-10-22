@@ -3044,6 +3044,13 @@ void vader_array_push_slow(vader_array_t* a, vader_box_t v) {
     VADER_WRITE_BARRIER(a->buf);
 }
 
+/* The out-of-line half of `vader_array_push_ref`: the pointer goes in as the box
+ * its header gives, through the general append. Never inlined: it is the cold
+ * branch of every inline call site. */
+VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj) {
+    vader_array_push(a, vader_ref_box(obj));
+}
+
 /* Allocate an owning array with an explicit `length` AND `capacity`. The single
  * source of truth for array construction — `vader_array_new` is the
  * `cap = max(length, 4)` case, `vader_array_repeat` passes `length 0, capacity n`

@@ -388,7 +388,7 @@ static int32_t snippet_main(void) {
         }
 #line 58 "tests/snippets/codepoint_table/_main.vader"
         l4 = snippet_walk_codes(l10);
-        vader_array_push((vader_array_t*) l0, vader_box_string(2u, l4));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l4));
 #line 57 "tests/snippets/codepoint_table/_main.vader"
         l11 = (uint32_t) 1;
         t2 = (l10 + l11);
@@ -418,7 +418,7 @@ static int32_t snippet_main(void) {
         if (!(l15 == INT32_C(1))) {
 #line 65 "tests/snippets/codepoint_table/_main.vader"
             l4 = snippet_walk_codes(l14);
-            vader_array_push((vader_array_t*) l0, vader_box_string(2u, l4));
+            vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l4));
 #line 64 "tests/snippets/codepoint_table/_main.vader"
             continue;
         }
@@ -475,7 +475,7 @@ static int32_t snippet_main(void) {
         }
 #line 78 "tests/snippets/codepoint_table/_main.vader"
         l4 = snippet_walk_codes(l11);
-        vader_array_push((vader_array_t*) l0, vader_box_string(2u, l4));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l4));
 #line 77 "tests/snippets/codepoint_table/_main.vader"
         l14 = (uint32_t) 1;
         t2 = (l11 + l14);
@@ -490,7 +490,7 @@ static int32_t snippet_main(void) {
         }
 #line 81 "tests/snippets/codepoint_table/_main.vader"
         l4 = snippet_walk_codes(l11);
-        vader_array_push((vader_array_t*) l0, vader_box_string(2u, l4));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l4));
 #line 80 "tests/snippets/codepoint_table/_main.vader"
         l14 = (uint32_t) 1;
         t2 = (l11 + l14);
@@ -508,7 +508,7 @@ static int32_t snippet_main(void) {
     while ((l10 <= 101u)) {
 #line 87 "tests/snippets/codepoint_table/_main.vader"
         l4 = std_core_char_Display_to_string(l10);
-        vader_array_push((vader_array_t*) l0, vader_box_string(2u, l4));
+        vader_array_push_scalar((vader_array_t*) l0, vader_box_string(2u, l4));
 #line 86 "tests/snippets/codepoint_table/_main.vader"
         l11 = (uint32_t) 1;
         t2 = (l10 + l11);
@@ -1080,7 +1080,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

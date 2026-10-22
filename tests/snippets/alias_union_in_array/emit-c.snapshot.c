@@ -100,7 +100,7 @@ static void snippet_push_pet(void* l0, vader_box_t l1) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
 #line 18 "tests/snippets/alias_union_in_array/_main.vader"
-    vader_array_push((vader_array_t*) l0, l1);
+    vader_array_push_ref((vader_array_t*) l0, l1.payload.obj);
 #line 17 "tests/snippets/alias_union_in_array/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

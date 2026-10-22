@@ -1321,7 +1321,7 @@ static void snippet_Log_std_core_IndexSet_set_at(void* l0, vader_string_t l1, in
     l7 = ((int64_t) (int32_t) l2);
     l5 = std_core_write_int(l6, l5, l7);
     l4 = std_core_finish_buffer(l6, l5);
-    vader_array_push((vader_array_t*) l3, vader_box_string(7u, l4));
+    vader_array_push_scalar((vader_array_t*) l3, vader_box_string(7u, l4));
 #line 57 "tests/snippets/union_trait_dispatch/_main.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -5025,7 +5025,7 @@ static bool std_collections_put__string__i32(void* l0, vader_string_t l1, int32_
 #line 145 "lib/std/collections/collections.vader"
 #line 149 "lib/std/collections/collections.vader"
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_ekeys, vader_box_string(7u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_ekeys, vader_box_string(7u, l1));
 #line 150 "lib/std/collections/collections.vader"
         vader_array_push_i32((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_evals, l2);
 #line 145 "lib/std/collections/collections.vader"

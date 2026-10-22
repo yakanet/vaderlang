@@ -101,14 +101,14 @@ static int32_t snippet_main(void) {
     vader_array_t* _a0_arr = vader_array_new(10u, 0u, 13u, 4u);
     l0 = (void*) _a0_arr;
 #line 12 "tests/snippets/array_of_union/_main.vader"
-    vader_array_push((vader_array_t*) l0, vader_box_obj(0u, NULL));
+    vader_array_push_ref((vader_array_t*) l0, vader_box_obj(0u, NULL).payload.obj);
 #line 13 "tests/snippets/array_of_union/_main.vader"
     vader_struct_snippet_Node__i32_t* _a1_obj = (vader_struct_snippet_Node__i32_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Node__i32_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_value = INT32_C(42);
     _a1_obj->f_next = vader_box_obj(0u, NULL);
     l1 = (void*) _a1_obj;
-    vader_array_push((vader_array_t*) l0, vader_ref_box(l1));
+    vader_array_push_ref((vader_array_t*) l0, l1);
 #line 14 "tests/snippets/array_of_union/_main.vader"
     l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
     l2 = INT64_C(0);

@@ -503,7 +503,7 @@ static int32_t snippet_main(void) {
     _a17_obj->f_v = INT32_C(14);
     t0 = (void*) _a17_obj;
     l2 = snippet_Celsius_std_core_Into_into(t0);
-    vader_array_push((vader_array_t*) l0, vader_ref_box(l2));
+    vader_array_push_ref((vader_array_t*) l0, l2);
 #line 70 "tests/snippets/into_at_every_slot/_main.vader"
     vader_array_t* _a18_slotarr = ((vader_array_t*) l0);
     VADER_ARRAY_RESOLVE_BUF(_a18_slotarr)
@@ -1040,7 +1040,7 @@ static bool std_collections_put__string__Any(void* l0, vader_string_t l1, vader_
 #line 145 "lib/std/collections/collections.vader"
 #line 149 "lib/std/collections/collections.vader"
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_ekeys, vader_box_string(3u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_ekeys, vader_box_string(3u, l1));
 #line 150 "lib/std/collections/collections.vader"
         vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__Any_t*) l0)->f_evals, l2);
 #line 145 "lib/std/collections/collections.vader"

@@ -1090,7 +1090,7 @@ static void std_string_builder_append_char(void* l0, uint32_t l1) {
     l2 = ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts;
     t0 = std_core_utf8_encode(l1);
     l3 = vader_host_std_core_bytes_to_string(t0);
-    vader_array_push((vader_array_t*) l2, vader_box_string(2u, l3));
+    vader_array_push_scalar((vader_array_t*) l2, vader_box_string(2u, l3));
 #line 49 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }
@@ -1103,7 +1103,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(2u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

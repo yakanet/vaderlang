@@ -276,7 +276,7 @@ static void* snippet_build__i32__(int64_t l0, void* l1) {
         vader_fn_t* _a2_fnobj = (vader_fn_t*) l1;
         t1 = ((vader_fn_erased_sig_0_t) _a2_fnobj->code)(_a2_fnobj->env);
         l4 = t1.payload.obj;
-        vader_array_push((vader_array_t*) l2, vader_ref_box(l4));
+        vader_array_push_ref((vader_array_t*) l2, l4);
 #line 14 "tests/snippets/generic_lambda_factory/_main.vader"
         l3 = (l3 + INT64_C(1));
     }

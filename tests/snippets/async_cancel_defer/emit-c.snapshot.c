@@ -381,7 +381,7 @@ static vader_box_t snippet___asyncstate_snippet_2_Async_resume(void* l0) {
                             _a5_closure->env = t2;
                             t2 = (void*) _a5_closure;
                             l11 = t2;
-                            vader_array_push((vader_array_t*) l10, vader_ref_box(l11));
+                            vader_array_push_ref((vader_array_t*) l10, l11);
 #line 21 "tests/snippets/async_cancel_defer/_main.vader"
                             vader_struct_snippet_Never_t* _a6_obj = (vader_struct_snippet_Never_t*) vader_gc_alloc(sizeof(vader_struct_snippet_Never_t));
                             vader_obj_header_init(_a6_obj, 1u);
@@ -558,7 +558,7 @@ static vader_box_t snippet___asyncstate_snippet_5_Async_resume(void* l0) {
                             _a5_closure->env = t2;
                             t2 = (void*) _a5_closure;
                             l11 = t2;
-                            vader_array_push((vader_array_t*) l10, vader_ref_box(l11));
+                            vader_array_push_ref((vader_array_t*) l10, l11);
 #line 27 "tests/snippets/async_cancel_defer/_main.vader"
                             ((vader_struct___asyncstate_snippet_5_t*) l0)->f_state = INT32_C(6);
                         }

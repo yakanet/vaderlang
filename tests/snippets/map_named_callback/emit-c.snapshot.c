@@ -186,7 +186,7 @@ static int32_t snippet_main(void) {
 #line 393 "lib/std/iter/iter.vader"
         l6 = snippet_keys(t0);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l3, vader_ref_box(l6));
+        vader_array_push_ref((vader_array_t*) l3, l6);
 #line 17 "tests/snippets/map_named_callback/_main.vader"
         l5 = (l5 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -249,7 +249,7 @@ static int32_t snippet_main(void) {
 #line 393 "lib/std/iter/iter.vader"
         l6 = __lambda_snippet_0(t0);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l3, vader_ref_box(l6));
+        vader_array_push_ref((vader_array_t*) l3, l6);
 #line 19 "tests/snippets/map_named_callback/_main.vader"
         l5 = (l5 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"
@@ -299,7 +299,7 @@ static int32_t snippet_main(void) {
 #line 393 "lib/std/iter/iter.vader"
         l2 = snippet_same(t0);
 #line 89 "lib/std/iter/iter.vader"
-        vader_array_push((vader_array_t*) l1, vader_ref_box(l2));
+        vader_array_push_ref((vader_array_t*) l1, l2);
 #line 21 "tests/snippets/map_named_callback/_main.vader"
         l5 = (l5 + INT64_C(1));
 #line 88 "lib/std/iter/iter.vader"

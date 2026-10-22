@@ -237,7 +237,7 @@ static int32_t snippet_main(void) {
         _a5_closure->code = (void*) &vader_fn_lift___lambda_snippet_0;
         _a5_closure->env = t2;
         l4 = (void*) _a5_closure;
-        vader_array_push((vader_array_t*) l1, vader_ref_box(l4));
+        vader_array_push_ref((vader_array_t*) l1, l4);
 #line 23 "tests/snippets/capture_loop_var/_main.vader"
         l3 = (l3 + INT64_C(1));
     }
@@ -300,7 +300,7 @@ static int32_t snippet_main(void) {
         _a13_closure->code = (void*) &vader_fn_lift___lambda_snippet_4;
         _a13_closure->env = t2;
         l1 = (void*) _a13_closure;
-        vader_array_push((vader_array_t*) l0, vader_ref_box(l1));
+        vader_array_push_ref((vader_array_t*) l0, l1);
 #line 36 "tests/snippets/capture_loop_var/_main.vader"
         l5 = (l5 + INT32_C(1));
     }

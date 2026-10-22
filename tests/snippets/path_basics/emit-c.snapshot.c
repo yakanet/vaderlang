@@ -1148,7 +1148,7 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
 #line 284 "lib/std/path/path.vader"
 #line 287 "lib/std/path/path.vader"
                         } else {
-                            vader_array_push((vader_array_t*) l3, vader_box_string(1u, l11));
+                            vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l11));
 #line 284 "lib/std/path/path.vader"
                         }
 #line 289 "lib/std/path/path.vader"
@@ -1169,7 +1169,7 @@ static vader_string_t std_path_normalize(vader_string_t l0) {
 #line 292 "lib/std/path/path.vader"
 #line 295 "lib/std/path/path.vader"
                     } else {
-                        vader_array_push((vader_array_t*) l3, vader_box_string(1u, l11));
+                        vader_array_push_scalar((vader_array_t*) l3, vader_box_string(1u, l11));
 #line 292 "lib/std/path/path.vader"
                     }
 #line 297 "lib/std/path/path.vader"
@@ -1356,7 +1356,7 @@ static void std_string_builder_append(void* l0, vader_string_t l1) {
     };
     vader_gc_top = &gc_frame;
 #line 43 "lib/std/string_builder/string_builder.vader"
-    vader_array_push((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
+    vader_array_push_scalar((vader_array_t*) ((vader_struct_std_string_builder_StringBuilder_t*) l0)->f_parts, vader_box_string(1u, l1));
 #line 42 "lib/std/string_builder/string_builder.vader"
     { vader_gc_top = gc_frame.prev; return; }
 }

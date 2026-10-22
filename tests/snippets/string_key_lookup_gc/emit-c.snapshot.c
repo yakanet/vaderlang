@@ -272,7 +272,7 @@ static int32_t snippet_main(void) {
             l5 = ((int64_t) (int32_t) t1);
             l4 = std_core_write_int(l7, l4, l5);
             l6 = std_core_finish_buffer(l7, l4);
-            vader_array_push((vader_array_t*) l2, vader_box_string(2u, l6));
+            vader_array_push_scalar((vader_array_t*) l2, vader_box_string(2u, l6));
 #line 22 "tests/snippets/string_key_lookup_gc/_main.vader"
             l9 = (l9 + INT32_C(1));
         }
@@ -861,7 +861,7 @@ static bool std_collections_put__string__bool(void* l0, vader_string_t l1, bool 
 #line 145 "lib/std/collections/collections.vader"
 #line 149 "lib/std/collections/collections.vader"
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_ekeys, vader_box_string(2u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_ekeys, vader_box_string(2u, l1));
 #line 150 "lib/std/collections/collections.vader"
         vader_array_push_bool((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__bool_t*) l0)->f_evals, l2);
 #line 145 "lib/std/collections/collections.vader"
@@ -1012,7 +1012,7 @@ static bool std_collections_put__string__i32(void* l0, vader_string_t l1, int32_
 #line 145 "lib/std/collections/collections.vader"
 #line 149 "lib/std/collections/collections.vader"
     } else {
-        vader_array_push((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_ekeys, vader_box_string(2u, l1));
+        vader_array_push_scalar((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_ekeys, vader_box_string(2u, l1));
 #line 150 "lib/std/collections/collections.vader"
         vader_array_push_i32((vader_array_t*) ((vader_struct_std_collections_MutableMap__string__i32_t*) l0)->f_evals, l2);
 #line 145 "lib/std/collections/collections.vader"

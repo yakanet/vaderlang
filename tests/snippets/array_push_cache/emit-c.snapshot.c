@@ -349,7 +349,7 @@ static void* snippet_allocates(int32_t l0) {
     while ((l3 < l0)) {
 #line 42 "tests/snippets/array_push_cache/_main.vader"
         l4 = snippet_mk(l3);
-        vader_array_push((vader_array_t*) l1, vader_box_string(3u, l4));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(3u, l4));
 #line 41 "tests/snippets/array_push_cache/_main.vader"
         l3 = (l3 + INT32_C(1));
     }
@@ -553,7 +553,7 @@ static void* snippet_boxed(int32_t l0) {
     l3 = INT32_C(0);
     while ((l3 < l0)) {
 #line 118 "tests/snippets/array_push_cache/_main.vader"
-        vader_array_push((vader_array_t*) l1, vader_box_string(3u, 2u));
+        vader_array_push_scalar((vader_array_t*) l1, vader_box_string(3u, 2u));
 #line 117 "tests/snippets/array_push_cache/_main.vader"
         l3 = (l3 + INT32_C(1));
     }
