@@ -80,9 +80,13 @@ nothing :: fn(ctx: WalkCtx, e: AST.Expr) -> i64 | null {
 }
 
 // `@field(x, name)` reads a field of `x`: the one `name` spells out, or any of them
-// when a `@comptime for` only names it once unrolled. Any other intrinsic returns
-// a value that holds nothing lent.
+// when a `@comptime for` only names it once unrolled. `@type_of(x)` never evaluates
+// `x`, so nothing in it is lent or written. Any other intrinsic returns a value that
+// holds nothing lent.
 intrinsic_value :: fn(ctx: WalkCtx, e: AST.IntrinsicCallExpr) -> i64 | null {
+    if e.name == "type_of" {
+        return null
+    }
     if e.name != "field" || e.args.len() != 2 {
         return ctx.sequence_walked(e.args)
     }

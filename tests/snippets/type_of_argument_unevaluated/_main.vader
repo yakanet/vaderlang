@@ -1,0 +1,25 @@
+// `@type_of(x)` reads the static type of `x` and never runs it: the call inside
+// prints nothing and writes nothing, so it does not count as lending the module
+// constant to a function that modifies it (no T3072).
+
+module "snippet"
+
+import "std/io"
+
+Box :: struct {
+    n: i32
+}
+
+BOX :: Box { .n = 1 }
+
+bump :: fn(b: Box) -> Box {
+    println("bump ran")
+    b.n = b.n + 1
+    return b
+}
+
+main :: fn() -> i32 {
+    width :: @size_of(@type_of(bump(BOX)))
+    println("width ${width}, n ${BOX.n}")
+    return 0
+}

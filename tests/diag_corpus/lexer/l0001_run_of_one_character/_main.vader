@@ -1,0 +1,9 @@
+// Text pasted from the web indents with non-breaking spaces (U+00A0). A run of
+// the same unexpected character is one L0001, which names it: one per line here.
+module "snippet"
+
+export total :: fn() -> i32 {
+    a :: 1
+    b :: 2
+    return a + b
+}

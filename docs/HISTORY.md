@@ -1354,10 +1354,16 @@ The original TS-compiler bootstrap path was superseded by the C seed.
 
 - [x] **The runtime still rooted writable global arrays**, **closed 2026-10-22** (opened 2026-10-16): `vader_atom_roots_register` and its mark channel served only the `main` an older seed emitted; the seed no longer calls it, so it is gone and the atom mark walks five channels.
 - [x] **`contains_name` re-implemented `in` on `string[]`**, **closed 2026-10-22** (opened 2026-10-21): its three callers read `name in provided`, and `type_key_join` joins the intern keys with `join`.
+- [x] **An `@assert` on `@satisfies` was never checked**, **closed 2026-10-22** (opened 2026-10-17): the comptime tree-walk evaluates `@satisfies` with the predicate the bound checks use (`struct_implements_trait`), from the impl tables every typed module already carries, so a false one fails the build with C4015; `satisfies_under_assert` (was `_diag_satisfies_under_assert`) reads `holds` five times.
+- [x] **`@size_of` took any value**, **closed 2026-10-22** (opened 2026-10-19): a value that is not a `type` (`@size_of(h)` with `h: i64`) is T3001 instead of a run-time stop on the VM and a C compile error natively.
+- [x] **`@type_of`'s argument counted as a write**, **closed 2026-10-22** (opened 2026-10-16): the effect walk no longer visits the argument `@type_of` never evaluates, so `@size_of(@type_of(bump(BOX)))` is no false T3072 (snippet `type_of_argument_unevaluated`).
+- [x] **L0001 was one error per character and did not name it**, **closed 2026-10-22** (opened 2026-10-15): a run of the same unexpected character is one L0001, its detail the codepoint (`U+00A0`).
 - [x] **`@internal` leaked through a union's common field and a literal-name `@field`**, **closed 2026-10-18, archived 2026-10-22** (part of an open entry): both get T3054 as `v.f` does (`55991ef36`); a non-literal `@field` name and `@fields(S)` stay open.
+- [x] **`should_colorize` read `NO_COLOR` on every coloured fragment**, **closed 2026-10-22** (opened 2026-10-16): it is read once, through a `@singleton`, as the terminal probes are.
 
 ### 3.7 Tooling
 
+- [x] **`vader fmt` measured widths in bytes**, **closed 2026-10-22** (opened 2026-10-15): every width and alignment of `vader/fmt/printer.vader` goes through `text_width`, one column per codepoint, so a line holding `"été"` lines up with its neighbours.
 - [x] **The examples were verified, never run**, **closed 2026-10-22**: `tests/examples_run.test.ts` runs every example from the repo root and pins its output in `tests/fixtures/examples/<name>.run.snapshot`.
 - [x] **`vader check --target=<os>-<arch>` over the compiler was not a test**, **closed 2026-10-22**: `tests/cli_check.test.ts` checks `vader/cli/main.vader` for `windows-x86_64`, `linux-x86_64` and `darwin-arm64`, clean and silent; `Arch` selects no code, so one target per OS reaches every `@target` body.
 - [x] **`vader test` said it runs native: it runs the VM**, **closed 2026-10-22**: the vaderdoc of `vader/cli/cmd_test.vader` no longer claims a native run.

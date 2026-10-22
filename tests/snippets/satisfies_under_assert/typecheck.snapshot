@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/satisfies_under_assert
+  FnDecl         main                 :: fn() -> i32
+  expr 13:9     IntrinsicCallExpr :: bool
+  expr 14:9     IntrinsicCallExpr :: bool
+  expr 15:9     IntrinsicCallExpr :: bool
+  expr 16:9     IntrinsicCallExpr :: bool
+  expr 17:9     IntrinsicCallExpr :: bool
+  expr 20:13    StringLitExpr  :: string
+  expr 20:32    IntrinsicCallExpr :: bool
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void

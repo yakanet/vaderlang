@@ -1,7 +1,7 @@
 // vader/comptime/intrinsic — comptime evaluator for `@<name>(args)` calls.
 //
 // Folds `@size_of`, `@align_of`, `@type_name`, `@type_kind`, `@field_count`,
-// `@variant_count`, `@field_index`, `@min` and `@max`. Every other intrinsic
+// `@variant_count`, `@field_index`, `@satisfies`, `@min` and `@max`. Every other intrinsic
 // falls back to `C4001` flagged `vm_required`, which hands a stageable decl to
 // the comptime VM (see `evaluate_module_decls`).
 
@@ -28,6 +28,7 @@ evaluate_intrinsic_call :: fn(
     if expr.name == "field_count"   { return intrinsic_field_count(expr, context) }
     if expr.name == "variant_count" { return intrinsic_variant_count(expr, context) }
     if expr.name == "field_index"   { return intrinsic_field_index(expr, context) }
+    if expr.name == "satisfies"     { return intrinsic_satisfies(expr, context) }
     if expr.name == "min" || expr.name == "max" { return intrinsic_integer_bound(expr, context) }
     return vm_required(expr.span, "@${expr.name}")
 }
@@ -48,6 +49,23 @@ intrinsic_integer_bound :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeCont
         return ok(CharValue { .value = u32(bound) })
     }
     return ok(int_val_typed(bound, representation_name(arg_type)))
+}
+
+// `@satisfies(T, Trait)`: whether `T` implements `Trait`, by
+// `struct_implements_trait` (an impl built in, or a written one whose bounds admit
+// `T`). `false` when the second argument is not a trait.
+intrinsic_satisfies :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != 2 {
+        return arg_count_error(expr, "satisfies", 2)
+    }
+    target :: resolve_type_arg(expr.args[0], context)
+        ?? return arg_error(expr, "satisfies: first argument is not a type")
+    wanted :: resolve_type_arg(expr.args[1], context)
+    if wanted !is TraitType {
+        return ok(VAL_FALSE)
+    }
+    implemented :: struct_implements_trait(target, trait_key_of(wanted.symbol), context.typed)
+    return ok(bool_value(implemented))
 }
 
 // `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.

@@ -1,13 +1,10 @@
-// `@assert` over `@satisfies`. The committed comptime output is WRONG.
-//
-// Each assertion below holds, so `comptime.snapshot.md` should read `holds` for
-// all five. It reads `not evaluated`: `@satisfies` folds at lowering, and the
-// comptime pass checks the `@assert`s before that, so it finds no constant to
-// judge and skips the assertion. A false `@satisfies` under `@assert` therefore
-// passes the build in silence.
+// `@assert` over `@satisfies`. The comptime pass evaluates `@satisfies` with the
+// predicate the bound checks use, so each assertion below is judged before
+// lowering and `comptime.snapshot.md` reads `holds` for all five. A false one
+// fails the build (C4015, `tests/diag_corpus/comptime/c4015_assert_satisfies_false`).
 //
 // The same intrinsic in `main` folds at lowering and prints `true`, which the
-// `vm.snapshot` pins correctly.
+// `vm.snapshot` pins.
 
 module "snippet"
 

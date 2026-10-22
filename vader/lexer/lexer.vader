@@ -998,13 +998,27 @@ lex_one :: fn(l: Lexer) -> void {
         return
     }
     // A malformed run is the file's L0012, not an unexpected character.
-    width :: l.src.codepoint_at_byte(l.pos).1
-    malformed :: is_malformed_utf8(c, width, l.src.byte_at(l.pos))
-    l.advance(1)
-    if !malformed {
-        l.push_error(.UnexpectedCharacter, l.error_span(start), "")
+    if l.malformed_here() {
+        l.advance(1)
+        return
     }
+    // One L0001 for a run of the same character: text pasted from the web indents
+    // with non-breaking spaces, four to a line, and each would be an error of its own.
+    for !l.at_end() && l.peek() == c && !l.malformed_here() {
+        l.advance(1)
+    }
+    l.push_error(.UnexpectedCharacter, l.error_span(start), codepoint_label(c))
 }
+
+// Whether the codepoint at `pos` is a malformed UTF-8 run, which `peek` reads as
+// U+FFFD like a U+FFFD the source really holds.
+malformed_here :: fn(l: Lexer) -> bool {
+    [c, width] :: l.src.codepoint_at_byte(l.pos)
+    return is_malformed_utf8(c, width, l.src.byte_at(l.pos))
+}
+
+// `c` as Unicode charts name it: `U+` and four hex digits at least.
+codepoint_label :: fn(c: char) -> string = "U+${u64(u32(c)).to_hex().to_upper().pad_start(4, '0')}"
 
 // ---- public entry ---------------------------------------------------------
 

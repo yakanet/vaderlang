@@ -96,7 +96,7 @@ export finish :: fn(self: Printer) -> string {
 
 write :: fn(self: Printer, s: string) -> void {
     self.buf.append(s)
-    n :: s.byte_len()
+    n :: s.text_width()
     if n > 0 { self.has_written = true }
     // Emitted strings never carry a real newline (string literals escape `\n`,
     // comments are written line-by-line), so a plain add tracks the column.
@@ -113,6 +113,11 @@ indent :: fn(self: Printer) -> void {
     for 0..<self.depth { self.buf.append(INDENT) }
     self.column = self.column + i64(self.depth) * INDENT.byte_len()
 }
+
+// Columns `s` takes on a line: one per codepoint, as `pad_start` and `pad_end`
+// count them, not one per byte. Every width and alignment in the printer goes
+// through it, so a line holding `"été"` lines up with its neighbours.
+text_width :: fn(s: string) -> i64 = s.len()
 
 // Newline followed by current-depth indent. The most common emit shape across
 // blocks / decl lists / match arms.
@@ -133,7 +138,7 @@ source_slice :: fn(self: Printer, span: Span) -> string =
 // matches / exceeds the target (uniform-length group).
 write_name_padded :: fn(self: Printer, name: string) -> void {
     self.write(name)
-    self.write_padding(name.byte_len(), self.align_name_width)
+    self.write_padding(name.text_width(), self.align_name_width)
 }
 
 // Spaces from column `used` up to `target` ; none once `used` reaches it.
@@ -272,13 +277,13 @@ attach_trailing_comments :: fn(text: string) -> string {
         end := i
         width: i64 = 0
         for end < codes.len() && notes[end] != "" && indent_width(codes[end]) == ind {
-            w :: codes[end].right_trim().byte_len()
+            w :: codes[end].right_trim().text_width()
             if w > width { width = w }
             end += 1
         }
         for k in i..<end {
             code :: codes[k].right_trim()
-            codes[k] = code + " ".repeat(width - code.byte_len() + 1) + notes[k]
+            codes[k] = code + " ".repeat(width - code.text_width() + 1) + notes[k]
         }
         i = end
     }
@@ -471,10 +476,10 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
             continue
         }
         end := i + 1
-        width: i64 = decl_alignable_name(decls[i]).byte_len()
+        width: i64 = decl_alignable_name(decls[i]).text_width()
         for end < decls.len() {
             if !decls_in_same_group(decls[end - 1], decls[end]) { break }
-            w :: decl_alignable_name(decls[end]).byte_len()
+            w :: decl_alignable_name(decls[end]).text_width()
             if w > width { width = w }
             end = end + 1
         }
@@ -600,7 +605,7 @@ flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_import_name_block(names, false)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 emit_import_name :: fn(self: Printer, n: p.ImportName) -> void {
@@ -671,7 +676,7 @@ flat_params_width :: fn(source: string, params: p.FnParam[]) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_fn_params(params, false)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
@@ -821,7 +826,7 @@ enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVar
         columns :: EnumVariantColumns {}
         if end > i + 1 {
             for k in i..<end {
-                name_width :: variants[k].name.byte_len()
+                name_width :: variants[k].name.text_width()
                 block_width :: variant_block_width(source, variants[k])
                 if name_width > columns.name {
                     columns.name = name_width
@@ -857,7 +862,7 @@ variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 // `Name { … } = value`, padded to `columns`. The value is copied from the
@@ -951,7 +956,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> i64[] {
         // Group : consecutive sig-only members, adjacent lines, same
         // visibility, same decorator set.
         end := i + 1
-        width: i64 = m.name.byte_len()
+        width: i64 = m.name.text_width()
         for end < members.len() {
             prev :: members[end - 1]
             cur :: members[end]
@@ -960,7 +965,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> i64[] {
             if cur.span.start.line != prev.span.end.line + 1 { break }
             if prev.visibility != cur.visibility { break }
             if !decorators_equal(prev.decorators, cur.decorators) { break }
-            w :: cur.name.byte_len()
+            w :: cur.name.text_width()
             if w > width { width = w }
             end = end + 1
         }
@@ -1096,7 +1101,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
             self.write_name_padded(d.name)
             self.write(" :: ")
             target :: self.align_name_width
-            n :: d.name.byte_len()
+            n :: d.name.text_width()
             name_width = if target > n { target } else { n }
         }
         _ -> {
@@ -1118,7 +1123,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     if d.ty is null && is_bitor_chain(d.value) {
         prefix_width :: i64(self.depth) * 4 + name_width + 4 // " :: "
         rendered :: format_expr(self.source, d.value)
-        if prefix_width + rendered.byte_len() > i64(MAX_LINE) {
+        if prefix_width + rendered.text_width() > i64(MAX_LINE) {
             self.emit_union_multiline(d.value, name_width)
             return
         }
@@ -2012,7 +2017,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     self.emit_condition(x.cond)
     // Lookup-table chain : pad the condition so the `{` column lines up.
     if self.align_if_width > 0 {
-        self.write_padding(format_expr(self.source, x.cond).byte_len(), self.align_if_width)
+        self.write_padding(format_expr(self.source, x.cond).text_width(), self.align_if_width)
     }
     self.write(" ")
     self.emit_block_expr(x.then_block)
@@ -2087,7 +2092,7 @@ match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
     sub.keep_line_breaks = false
     sub.emit_pattern(arm.pattern)
     sub.emit_expr_with_prefix(" if ", arm.guard)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 // The `->` alignment column for a match : the widest arm head. `0` (no
@@ -2153,7 +2158,7 @@ block_mode_for :: fn(stmts: p.Stmt[], i: i64) -> BlockLayout {
 if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
     if s is p.ExprStmt {
         if s.expr is p.IfExpr {
-            return format_expr(source, s.expr.cond).byte_len()
+            return format_expr(source, s.expr.cond).text_width()
         }
     }
     return 0
@@ -2419,7 +2424,7 @@ flat_width :: fn(source: string, e: p.Expr) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_expr(e)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 // Same, for a statement — the inline-block fit decision in `emit_block_expr`.
@@ -2427,7 +2432,7 @@ flat_stmt_width :: fn(source: string, st: p.Stmt) -> i64 {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.flat = true
     sub.emit_stmt(st)
-    return sub.finish().byte_len()
+    return sub.finish().text_width()
 }
 
 emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {

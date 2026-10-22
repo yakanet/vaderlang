@@ -150,6 +150,12 @@ test_fmt_reads_no_comment_in_a_shebang :: fn() -> void {
     fmt_leaves("#!/usr/bin/env -S vader run //x\nmodule \"t\"\n")
 }
 
+@test
+test_fmt_aligns_trailing_comments_by_codepoint :: fn() -> void {
+    // `é` is two bytes and one column.
+    fmt_leaves("module \"t\"\n\na :: \"été\"  // one\nb :: \"abcd\" // two\n")
+}
+
 // Formatting `source` must give it back unchanged.
 fmt_leaves :: fn(source: string) -> void {
     assert_eq(formatted(source), source)

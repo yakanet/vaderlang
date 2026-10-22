@@ -1,0 +1,7 @@
+// T3043 on `==` between two values of a distinct over an array: the operand is
+// written as `Row`, so `Row` is the type named, not the `i32[]` behind it.
+module "snippet"
+
+Row :: i32[]
+
+export same_row :: fn(a: Row, b: Row) -> bool = a == b

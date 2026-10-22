@@ -1,0 +1,10 @@
+// C4015: an `@assert` over a false `@satisfies` fails the build. `string` has no
+// impl of `Nope`; the assertion that `string` implements `Hash` holds.
+module "snippet"
+
+Nope :: trait {
+    nope :: fn(self) -> i32
+}
+
+@assert(@satisfies(string, Hash), "string implements Hash")
+@assert(@satisfies(string, Nope), "string implements Nope")

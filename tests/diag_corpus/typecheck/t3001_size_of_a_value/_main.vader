@@ -1,0 +1,13 @@
+// `@size_of` reads the width of a type, so the value it is handed must be a
+// `type` one. An `i64` and a range value are refused; a `type` parameter and
+// `@type_of(x)` are not.
+
+module "snippet"
+
+Hour :: Int in 0..=23
+
+export widths :: fn(t: type) -> i64 {
+    h: i64: 5
+    x: Hour: 7
+    return @size_of(h) + @size_of(x) + @size_of(t) + @size_of(@type_of(h))
+}

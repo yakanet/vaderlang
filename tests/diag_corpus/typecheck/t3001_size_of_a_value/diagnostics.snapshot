@@ -1,0 +1,2 @@
+[12:21] error[T3001] type mismatch: expected `type`, got `i64`
+[12:35] error[T3001] type mismatch: expected `type`, got `Hour`

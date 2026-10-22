@@ -6,3 +6,11 @@ main :: fn() -> i32 {
     name :: "vader"
     return if name === "vader" { 0 } else { 1 }
 }
+
+// A fn value has no `==` either, so the hint does not offer it; a trait value may
+// hold an object, so it is narrowed first.
+f :: fn() -> i32 = 1
+
+export same_fn :: fn() -> bool = f === f
+
+export same_shown :: fn(a: Display, b: Display) -> bool = a === b

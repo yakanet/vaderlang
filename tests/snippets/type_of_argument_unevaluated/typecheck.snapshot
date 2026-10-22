@@ -1,0 +1,28 @@
+# Typecheck
+
+## tests/snippets/type_of_argument_unevaluated
+  ConstDecl      BOX                  :: Box
+  StructDecl     Box                  :: Box
+  FnDecl         bump                 :: fn(Box) -> Box
+  FnDecl         main                 :: fn() -> i32
+  expr 13:8     StructLitExpr  :: Box
+  expr 16:13    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:11    BinaryExpr     :: i32
+  expr 17:11    FieldExpr      :: i32
+  expr 17:11    IdentExpr      :: Box
+  expr 17:5     FieldExpr      :: i32
+  expr 17:5     IdentExpr      :: Box
+  expr 18:12    IdentExpr      :: Box
+  expr 22:14    IntrinsicCallExpr :: i64
+  expr 22:23    IntrinsicCallExpr :: type
+  expr 22:32    CallExpr       :: Box
+  expr 22:32    IdentExpr      :: fn(Box) -> Box
+  expr 22:37    IdentExpr      :: Box
+  expr 23:13    StringLitExpr  :: string
+  expr 23:22    IdentExpr      :: i64
+  expr 23:34    FieldExpr      :: i32
+  expr 23:34    IdentExpr      :: Box
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void

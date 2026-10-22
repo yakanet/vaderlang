@@ -88,7 +88,7 @@ infer_binary :: fn(
         .Logical  -> { check_logical(e, left, right, diags) }
         .Integral -> { check_integral(e, left, right, typed, diags) }
         .Equality -> { check_equality(e, left, right, typed, diags) }
-        .Identity -> { check_identity(e, left, right, diags) }
+        .Identity -> { check_identity(e, left, right, typed, diags) }
         .Is       -> { TY_BOOL }
         .In       -> { check_in(e, left, right, typed, diags) }
     }
@@ -894,16 +894,18 @@ null_equality_callee :: fn(other: Type) -> Callee {
 
 /// `a === b` / `a !== b` : the same object, never an equal value — SPEC §Identity.
 /// T3017 on an operand with no identity, or on two that never hold one object.
-check_identity :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnostic[]) -> Type {
+check_identity :: fn(
+    e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
     // An unknown operand comes from an earlier error, or never yields.
     unresolved :: left is UnresolvedType || right is UnresolvedType
     if unresolved || left is NeverType || right is NeverType {
         return TY_BOOL
     }
     if !has_identity(left) {
-        push_no_identity(e.op, e.left.span, left, diags)
+        push_no_identity(e.op, e.left.span, left, typed, diags)
     } else if !has_identity(right) {
-        push_no_identity(e.op, e.right.span, right, diags)
+        push_no_identity(e.op, e.right.span, right, typed, diags)
     } else if !types_overlap(subtract_type(left, TY_NULL), subtract_type(right, TY_NULL)) {
         diags.push(
             typecheck_error(
@@ -916,16 +918,48 @@ check_identity :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnost
     return TY_BOOL
 }
 
-push_no_identity :: fn(op: AST.BinaryOp, span: Span, t: Type, diags: Diagnostic[]) -> void {
+push_no_identity :: fn(
+    op: AST.BinaryOp, span: Span, t: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
     equality :: if op == .Same { "==" } else { "!=" }
-    diags.push(
-        typecheck_error(
-            .OperatorNotDefined,
-            span,
-            "`${display_type(t)}` has no identity ; compare with `${equality}`, "
-                + "or narrow to an object first",
-        ),
-    )
+    detail :: "`${display_type(t)}` has no identity${no_identity_hint(t, equality, typed)}"
+    diags.push(typecheck_error(.OperatorNotDefined, span, detail))
+}
+
+// What to write instead of `===` on `t`: `==` where it applies, a narrowing where
+// `t` may hold an object, and that neither does otherwise.
+no_identity_hint :: fn(t: Type, equality: string, typed: TypedProgram) -> string {
+    compares :: part_without_equality(t, typed) == null
+    narrows :: may_hold_object(t)
+    if compares && narrows {
+        return " ; compare with `${equality}`, or narrow to an object first"
+    }
+    if compares {
+        return " ; compare with `${equality}`"
+    }
+    if narrows {
+        return " ; narrow to an object first"
+    }
+    return ", and no `Equals` to compare with `${equality}`"
+}
+
+// Whether a value of `t` may be an object, which an `is` test narrows to: a trait
+// value, `any`, a type parameter or `Self` may hold one, a union through a variant.
+may_hold_object :: fn(t: Type) -> bool = match t {
+    is StructType | ArrayType | TraitType | AnyType | TypeParamType | InferVar | SelfType -> true
+    is UnionType -> some_may_hold_object(t.variants)
+    is DistinctType -> may_hold_object(t.backing)
+    is PrimitiveType | EnumType | RangeType | TupleType | FnType | UnresolvedType | NeverType
+        | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> false
+}
+
+some_may_hold_object :: fn(types: Type[]) -> bool {
+    for t in types {
+        if may_hold_object(t) {
+            return true
+        }
+    }
+    return false
 }
 
 // Whether every non-null value of `t` is an object, with an identity `===` can
@@ -960,14 +994,23 @@ part_without_equality :: fn(t: Type, typed: TypedProgram) -> Type | null = match
     is TraitType | FnType -> t
     is StructType | ArrayType | TypeParamType | InferVar ->
         if satisfies_bound(t, core_trait_key(TRAIT_EQUALS), typed) { null } else { t }
-    is DistinctType ->
-        if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {
-            null
-        } else {
-            part_without_equality(t.backing, typed)
-        }
+    is DistinctType -> distinct_part_without_equality(t, typed)
     is PrimitiveType | EnumType | RangeType | AnyType | UnresolvedType | NeverType | SelfType
         | TypeMetaType | FreeIntType | FreeFloatType | FreeCharType -> null
+}
+
+// A distinct with no `Equals` of its own compares as its backing. When the whole
+// backing has no `==`, the distinct is what the operand was written as, so it is
+// the one named: `Row`, not the `i32[]` behind it.
+distinct_part_without_equality :: fn(t: DistinctType, typed: TypedProgram) -> Type | null {
+    if struct_implements_trait(t, core_trait_key(TRAIT_EQUALS), typed) {
+        return null
+    }
+    part :: part_without_equality(t.backing, typed) ?? return null
+    if equals_type(part, t.backing) {
+        return t
+    }
+    return part
 }
 
 // Whether `left` and `right` share a variant (`counterpart`), each read as its

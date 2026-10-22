@@ -30,7 +30,7 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
         if i < spec.args.len() {
             match spec.args[i] {
                 .Value -> {
-                    check_expr(e.args[i], null, typed, diags)
+                    got :: check_expr(e.args[i], null, typed, diags)
                     // A value that names a type (`@size_of(i32)`, `@size_of(null)`)
                     // is recorded as a `.Type` argument is, so the lowerer folds it
                     // statically.
@@ -38,6 +38,8 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
                         scratch: Diagnostic[]: []
                         denoted :: type_from_expr(e.args[i], typed.resolved, scratch)
                         typed.type_expr_types[e.args[i].span.hash()] = denoted
+                    } else if e.name == "size_of" {
+                        check_size_of_operand(e.args[i], got, diags)
                     }
                 }
                 .Type -> {
@@ -64,6 +66,16 @@ infer_intrinsic :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: Diag
         return integer_bound_type(e, typed, diags)
     }
     return type_for_result(spec.result, typed)
+}
+
+// `@size_of` reads the width of a type, so a value it is handed must be a `type`
+// one (a `type` parameter, `@type_of(x)`, a `Field.type`): an `i64` has no width
+// to read, and both backends stop on it at run time.
+check_size_of_operand :: fn(arg: AST.Expr, got: Type, diags: Diagnostic[]) -> void {
+    if got is TypeMetaType | UnresolvedType {
+        return
+    }
+    diags.push(typecheck_error(.TypeMismatch, arg.span, expected_got(TY_TYPE, got)))
 }
 
 // `@field(x, "name")` with a literal name on a struct or a union of structs reads

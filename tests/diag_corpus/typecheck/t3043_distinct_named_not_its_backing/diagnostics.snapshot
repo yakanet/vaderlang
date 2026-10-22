@@ -1,0 +1,1 @@
+[7:49] error[T3043] operand type does not implement the trait this operator requires: `Row` does not implement `Equals`

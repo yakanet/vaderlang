@@ -82,11 +82,13 @@ probe_tty :: fn(stream: Stream) -> bool {
 /// True when ANSI color should be emitted: either standard stream is a terminal
 /// and `NO_COLOR` is unset or empty. Per the NO_COLOR convention, a non-empty
 /// `NO_COLOR` value disables color regardless of its content.
-export should_colorize :: fn() -> bool {
-    if !(is_tty(.Stdout) || is_tty(.Stderr)) { return false }
-    no_color :: get_env("NO_COLOR") ?? return true
-    return no_color == ""
-}
+export should_colorize :: fn() -> bool =
+    (is_tty(.Stdout) || is_tty(.Stderr)) && !no_color_set()
+
+// Read once, as the terminal probes are, since `should_colorize` runs for every
+// coloured fragment: a `NO_COLOR` the program sets after its first one is not seen.
+@singleton
+no_color_set :: fn() -> bool = (get_env("NO_COLOR") ?? "") != ""
 
 // ---- coloring -------------------------------------------------------------
 //
