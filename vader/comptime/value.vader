@@ -81,14 +81,14 @@ export TypeValue :: struct { value: Type }
 /// Pre-built constants for the common cases. Construction sites can
 /// reuse these rather than allocating fresh `NullValue {}` each time.
 export VAL_NULL  :: NullValue {}
-export VAL_VOID  :: VoidValue {}
-export VAL_TRUE  :: BoolValue { .value = true }
-export VAL_FALSE :: BoolValue { .value = false }
+VAL_VOID  :: VoidValue {}
+VAL_TRUE  :: BoolValue { .value = true }
+VAL_FALSE :: BoolValue { .value = false }
 
 /// Build an `IntValue` with the canonical default type name `i32`.
 /// @param value      the integer value (any signed 64-bit width).
 /// @return           the wrapped comptime value.
-export int_val :: fn(value: i64) -> ComptimeValue {
+int_val :: fn(value: i64) -> ComptimeValue {
     return IntValue { .value = value, .type_name = "i32" }
 }
 
@@ -104,7 +104,7 @@ export int_val_typed :: fn(value: i64, type_name: string) -> ComptimeValue {
 /// Build a `FloatValue` with the canonical default type name `f64`.
 /// @param value      the float value (any IEEE-754 width).
 /// @return           the wrapped comptime value.
-export float_val :: fn(value: f64) -> ComptimeValue {
+float_val :: fn(value: f64) -> ComptimeValue {
     return FloatValue { .value = value, .type_name = "f64" }
 }
 

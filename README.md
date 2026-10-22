@@ -60,7 +60,7 @@ vader run shapes.vader
 - **Static typing that gets out of the way.** Bidirectional inference means you rarely write a type. `::` binds a constant, `:=` a mutable local — the distinction is the whole ceremony.
 - **Explicit nullability, no exceptions.** There is no implicit `null`: a value is nullable only as an explicit `T | null` union. Errors are values too, returned in a union with the success type. Both are checked — and narrowed — at compile time.
 - **No OOP, no boilerplate.** No classes, no inheritance. UFCS (`a.f(b)` ≡ `f(a, b)`) gives you method-call ergonomics over plain functions and structs.
-- **Metaprogramming without macros.** `@comptime` runs real Vader at compile time — no text substitution, no runtime reflection. The same machinery drives generic monomorphization.
+- **Metaprogramming without macros.** `@comptime` runs real Vader at compile time — no text substitution, no runtime reflection.
 - **Compiles to fast native code.** A C backend (`vader build`) produces native binaries backed by a precise generational GC; a bytecode VM (`vader run`) executes without a build step. WASM is on the roadmap.
 - **Self-hosted, reproducibly.** The compiler is written in Vader and compiles itself to a *byte-for-byte* fixed point. A committed C seed lets any machine with a C compiler rebuild the whole toolchain from source.
 
@@ -164,7 +164,7 @@ Anything the action doesn't recognise is an error rather than a silently ignored
 | `vader new [name]`                             | ✓       | Scaffold a project: a `vader.json` (whose presence makes the directory a module search root), `src/main.vader` declaring `module "src"`, and a `.gitignore` for `build/`. With a name it creates that directory. `--build` picks what describes the build — `manifest` (default) writes a `vader.json`, `driver` writes a `build.vader` the project drives itself with, `none` writes neither; the three are exclusive. On a terminal, a bare `vader new` asks what to make, what to call it, which build shape and whether to `git init`; through a pipe it takes the documented defaults, so scripts and CI are unaffected. A flag in either spelling skips its question, so `--git=false` declines without being asked.                                |
 | `vader run <file> [args…]`                     | ✓       | Interpret a `.vader` source or a `.virt` text bytecode dump through the bytecode VM. Everything after `<file>` becomes the program's own argv. Stdout/stderr go to the host.                                                                                                                                                                  |
 | `vader check [file] [--target=…]` | partial | Type-check and report, emitting nothing. Needs no toolchain, so `--target=windows-x86_64` runs from any machine — which is what makes a body only another platform compiles verifiable at all. |
-| `vader build [file] [--emit=…] [--target=…] [--out=path]` | partial | `--emit=executable` (default) writes a native binary **and** the generated C (`<out>.c`). `--emit=c` writes only the C. `--emit=bytecode` / `--emit=bytecode-text` write the binary `.vir` / textual `.virt` module *(not yet implemented)*. `--target=<os>-<arch>` names the platform, defaulting to this machine. `--manifest` is reserved for multi-module projects. |
+| `vader build [file] [--emit=…] [--target=…] [--out=path]` | partial | `--emit=executable` (default) writes a native binary **and** the generated C (`<out>.c`). `--emit=c` writes only the C. `--emit=bytecode-text` writes the textual `.virt` module; `--emit=bytecode`, the binary `.vir`, is *(not yet implemented)*. `--target=<os>-<arch>` names the platform, defaulting to this machine. `--manifest` is reserved for multi-module projects. |
 | `vader fmt [path]`                             | partial | Opinionated formatter, no config. Written in Vader (`vader/fmt/`), dispatched through the VM. Flags: `--check` (read-only, exits 1 on drift), `--stdout` (single-file). Default rewrites in place. Idempotent and parse-equivalent; not yet a byte-for-byte no-op on the stdlib. |
 | `vader test [path]`                            | ✓       | Discover and run `@test` functions under `[path]` (default cwd). Each runs as a separate VM entry; failures report message + source span. Name override: `@test("readable name") my_test :: fn() -> void { … }`. Exits non-zero on any failure.                            |
 | `vader dump --stage=<stage> <file>`            | ✓       | Run the frontend up to `<stage>` and print the result (JSON or text).                                                                                                                                                                                                     |
@@ -176,7 +176,7 @@ Anything the action doesn't recognise is an error rather than a silently ignored
 Accepted by every action, after the action name. All three are **reserved** — parsed but not yet wired into any pass.
 
 - `--diagnostics=text|json` — render diagnostics for terminals (default) or as a stable JSON schema for tooling.
-- `--allow-env` — let `@comptime` code read process environment variables (gated to preserve build reproducibility).
+- `--allow-env` — reserved; no effect yet (`@comptime` code may read the environment).
 - `--no-bytecode-opt` — disable bytecode peephole optimisations.
 
 ### Short aliases
@@ -201,7 +201,7 @@ Accepted by every action, after the action name. All three are **reserved** — 
 | `dced-ast`      | lowered tree after stdlib reachability prune                                         | See which stdlib decls survive the prune.                                 |
 | `cfg`           | midir CFG per fn (post DCE + escape annotation)                                     | Inspect basic blocks, terminators, three-address instructions, escape sets, stack slots. |
 | `ranges`        | per fn, a verdict on each array access and checked operation                         | See which bounds and overflow checks the range analysis proves.           |
-| `bytecode`      | `.vir` text of the compiled module                                                   | Inspect the final stack-machine ops + type/string/import tables.          |
+| `bytecode`      | `.virt` text of the compiled module                                                  | Inspect the final stack-machine ops + type/string/import tables.          |
 
 ```sh
 vader dump --stage=typed-ast examples/hello/hello.vader   # any stage above
@@ -214,8 +214,8 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 |-------------------|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | `--emit=executable` | A native executable **plus** the intermediate C source (`<out>.c`)  | Default. Invokes `cc` (auto-detected). Runtime lives at `runtime/c/`. The `.c` is kept so it can be inspected/profiled. |
 | `--emit=c`      | Just the generated C source                                         | Drive the C compiler yourself, or stash the C as a snapshot.                                                         |
-| `--emit=bytecode`     | Textual `.vir` bytecode                                             | Round-trippable: `vader run program.vir` re-executes without re-parsing.                                             |
-| `--target=wasm32-browser` | *(not yet implemented)*                                     | Direct WebAssembly emission with the WASM GC proposal. A `.wasm` module is `--emit=executable` for a wasm platform, not an artefact kind of its own. Deferred to post-MVP. |
+| `--emit=bytecode-text` | Textual `.virt` bytecode                                          | Round-trippable: `vader run program.virt` re-executes without re-parsing.                                            |
+| `--target=browser-wasm32` | *(not yet implemented)*                                     | Direct WebAssembly emission with the WASM GC proposal. A `.wasm` module is `--emit=executable` for a wasm platform, not an artefact kind of its own. Deferred to post-MVP. |
 
 ```sh
 vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c

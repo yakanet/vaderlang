@@ -32,7 +32,7 @@ TTY :: import "std/tty"
 /// `vader test [path]` — discover `@test` fns under `path` (default `.`),
 /// compile each module keeping the tests as roots, and run every test in
 /// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
-/// return is a pass. Runs NATIVE, so the memory-ABI opcodes are testable.
+/// return is a pass.
 ///
 /// @param args  positional args ; `args[0]` is the target path (file or dir).
 /// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`

@@ -1,8 +1,8 @@
 // vader/comptime_vm/resolve — VM-backed comptime fallback (two-pass).
 //
-// Runs from `bootstrap`, BETWEEN `evaluate_project` and `lower_project`, where
-// the `EvaluatedProject` is complete (mono + instances built). For every
-// `@comptime` decl the tree-walk deferred (`evaluated.vm_required`), this pass:
+// Runs BETWEEN `evaluate_project` and `lower_project`, where the
+// `EvaluatedProject` is complete (mono + instances built). For every `@comptime`
+// decl the tree-walk deferred (`evaluated.vm_required`), this pass:
 //
 //   1. stages the whole project to bytecode (pass-1 lower → cfg → emit). The
 //      deferred const is still un-baked, so `lower` inlines its RHS call
@@ -14,10 +14,6 @@
 //
 // The normal `lower_project` (pass-2, run afterwards by `lower_to_entry`) then
 // sees the baked value and inlines the literal table at every use site.
-//
-// `vader/comptime_vm` sits ABOVE the import cycle `comptime → vm → bytecode →
-// lower → comptime` (it imports comptime + vm + lower + midir + bytecode) and
-// is imported only by `bootstrap`, so no cycle forms.
 
 module "vader/comptime_vm"
 

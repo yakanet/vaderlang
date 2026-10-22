@@ -21,7 +21,7 @@ import "vader/types"
 /// which takes the type of the slot it fills.
 ///
 /// @param t  any type.
-export is_free_numeric :: fn(t: Type) -> bool {
+is_free_numeric :: fn(t: Type) -> bool {
     // @partial: only the three Free* literal variants are free numerics; every
     // other type (concrete or composite) is not.
     @partial match t {

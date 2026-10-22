@@ -12,34 +12,27 @@ AST :: import "toolchain/ast"
 import "vader/diagnostics"
 import "vader/typecheck"
 
-/// Tree-walk dispatcher. Returns whatever the per-variant helper
-/// reports ; unrecognised variants surface as C4001.
-/// @param expr     the expression to evaluate.
-/// @param context  the comptime evaluator context.
-/// @return         the evaluation result.
-// @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
-// variant is intentionally routed to `vm_required`.
 /// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating
 /// comptime expression (e.g. a const whose value resolves back to itself) would
-/// otherwise recurse until the C stack overflows — silently corrupting memory
-/// (it surfaced as a bogus lexer "unterminated string" far from the real fault).
+/// otherwise recurse until the C stack overflows, silently corrupting memory.
 /// Well above any legitimate comptime expression, well below the native stack
 /// capacity (which overflows a few thousand evaluator frames in), so the bound
 /// trips on cycles before the C stack does.
 COMPTIME_MAX_EVAL_DEPTH: i64: 2000
 
-export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
+/// Tree-walk dispatcher. Returns whatever the per-variant helper
+/// reports ; unrecognised variants surface as C4001.
+/// @param expr     the expression to evaluate.
+/// @param context  the comptime evaluator context.
+/// @return         the evaluation result.
+evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
     // Depth guard — `context` is shared across operand recursion
     // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
     // live nesting level. Check the ceiling BEFORE incrementing, so the
     // rejecting path never touches `depth` ; the accepted path restores it by
     // hand before its single return. This is deliberately not a `defer` : a
     // `defer` here would capture `context` and lift to a fresh closure + env
-    // struct on every call — an allocation on the evaluator's hottest path. (It
-    // was also long a silent no-op : capturing `defer`s dropped their body, so
-    // `depth` never decremented and accumulated into a per-module evaluation
-    // counter — std/core reached ~1465. That codegen gap is fixed now, but
-    // manual restore stays for the allocation reason.)
+    // struct on every call, an allocation on the evaluator's hottest path.
     if context.depth >= COMPTIME_MAX_EVAL_DEPTH {
         return vm_required(expr.span,
             "a cyclic or non-terminating comptime expression (exceeded ${COMPTIME_MAX_EVAL_DEPTH} nested levels)")
@@ -50,6 +43,8 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
         return vm_required(expr.span, "a value converted through an `Into`")
     }
     context.depth = context.depth + 1
+    // @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
+    // variant is intentionally routed to `vm_required`.
     result :: @partial match expr {
         is AST.IntLitExpr        -> evaluate_int_lit(expr, context)
         is AST.FloatLitExpr      -> evaluate_float_lit(expr)

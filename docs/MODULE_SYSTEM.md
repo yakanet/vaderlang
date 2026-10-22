@@ -1,5 +1,9 @@
 # Module system redesign
 
+> **Superseded.** A dated design record: resolution has since become lazy and
+> include-path based, and some codes it lists are retired. SPEC §11 describes the
+> module system as it is.
+
 > Status : Phases 1-9 implemented (2026-05-22 → 2026-05-23). Phase 10
 > (TS-vs-Vader byte-diff broad-parity) deferred — see §5 Phase 10 and
 > §8 follow-ups. SPEC §11 rewritten in commit `dfef864f`.

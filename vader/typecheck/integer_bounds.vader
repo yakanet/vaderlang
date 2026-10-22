@@ -75,7 +75,7 @@ integer_bound_type :: fn(e: AST.IntrinsicCallExpr, typed: TypedProgram, diags: D
 /// value of its variant, where an enum with variant data stores a rank.
 ///
 /// @param t  any type.
-export is_valued_enum :: fn(t: Type) -> bool = t is EnumType && t.data == null
+is_valued_enum :: fn(t: Type) -> bool = t is EnumType && t.data == null
 
 /// The values of the enum `e`, in runs of consecutive values, the least first :
 /// `enum { A = 1, B = 2, C = 5 }` is `1..=2` and `5..=5` ; none for an enum of no

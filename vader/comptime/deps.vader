@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 /// callers evaluate only what's left.
 /// @field order        decls in topological order (deps before users).
 /// @field cycle_diags  one diagnostic per detected cycle.
-export ComptimeOrder :: struct {
+ComptimeOrder :: struct {
     order:       AST.ConstDecl[]
     cycle_diags: Diagnostic[]
 }
@@ -33,7 +33,7 @@ export ComptimeOrder :: struct {
 /// @param typed          owning typed program — used to resolve idents.
 /// @return               `ComptimeOrder` with sorted entries + any
 ///                       cycle diagnostics.
-export sort_comptime_decls :: fn(
+sort_comptime_decls :: fn(
     program_decls: AST.Decl[], typed: TypedProgram,
 ) -> ComptimeOrder {
     nodes :: collect_nodes(program_decls)

@@ -18,7 +18,7 @@ import "vader/types"
 /// @param context  the evaluator context.
 /// @return         a `StructValue` for a tuple, an `ArrayValue` for an array, or
 ///                 the first element's failure.
-export evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalResult {
+evaluate_seq_lit :: fn(expr: AST.SeqLitExpr, context: ComptimeContext) -> EvalResult {
     elements: ComptimeValue[]: []
     for el in expr.elements {
         r :: evaluate_expr(el, context)

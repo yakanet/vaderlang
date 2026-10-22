@@ -16,7 +16,7 @@ import "toolchain/span"
 ///                  `@comptime` decls in the current module ; built up
 ///                  as `evaluate_module_decls` walks the topo-sorted
 ///                  order.
-export ComptimeContext :: struct {
+ComptimeContext :: struct {
     typed:    TypedProgram
     bindings: MutableMap<i32, ComptimeValue>
     /// Current evaluator nesting depth. Bounds the tree-walk recursion so a
@@ -33,7 +33,7 @@ export ComptimeContext :: struct {
 ///                                  shape / type mismatch / sandbox).
 ///   - `value=null, diag=null`    : intentional skip — caller drops
 ///                                  the decl from `comptime_decls`.
-export EvalResult :: struct {
+EvalResult :: struct {
     value: ComptimeValue | null
     diag:  Diagnostic | null
     /// True when the tree-walk gave up on a shape the embedded VM can handle
@@ -44,19 +44,19 @@ export EvalResult :: struct {
 }
 
 /// Build an `EvalResult` carrying a value.
-export ok :: fn(value: ComptimeValue) -> EvalResult {
+ok :: fn(value: ComptimeValue) -> EvalResult {
     return EvalResult { .value = value, .diag = null }
 }
 
 /// Build an `EvalResult` carrying a diagnostic.
-export fail :: fn(diag: Diagnostic) -> EvalResult {
+fail :: fn(diag: Diagnostic) -> EvalResult {
     return EvalResult { .value = null, .diag = diag }
 }
 
 /// Build a `C4001 cannot-evaluate` diagnostic at `span` with `kind_label`
 /// describing the unsupported expression. Standardised helper so every
 /// "needs the VM" call site uses the same wording.
-export vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
+vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
     return EvalResult {
         .value       = null,
         .diag        = comptime_error(.CannotEvaluate, span, kind_label),

@@ -18,7 +18,7 @@ AST :: import "toolchain/ast"
 /// @param expr     the intrinsic call node.
 /// @param context  the evaluator context — used for `type_from_expr`.
 /// @return         the evaluated value or a `C4xxx` diagnostic.
-export evaluate_intrinsic_call :: fn(
+evaluate_intrinsic_call :: fn(
     expr: AST.IntrinsicCallExpr, context: ComptimeContext,
 ) -> EvalResult {
     if expr.name == "size_of"   { return intrinsic_size_of(expr, context) }

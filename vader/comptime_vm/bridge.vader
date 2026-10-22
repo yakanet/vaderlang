@@ -1,9 +1,8 @@
 // vader/comptime_vm/bridge — convert a VM `Value` back into a `ComptimeValue`.
 //
-// `vader/comptime_vm` sits ABOVE the import cycle `comptime → vm → bytecode →
-// lower → comptime` : it imports both `vader/comptime` (the comptime IR) and
-// `vader/vm` (the embedded VM), and is itself imported only by `bootstrap`. The
-// VM-backed comptime fallback stages a comptime decl to bytecode, runs it via
+// `vader/comptime` cannot import `vader/vm`: `vm → bytecode → lower → comptime`
+// would close a cycle, so `vader/comptime_vm` imports both (the comptime IR and
+// the embedded VM). The VM-backed comptime fallback stages a comptime decl to bytecode, runs it via
 // `exec_fn_value`, and this module bridges the resulting runtime `Value` into a
 // `ComptimeValue` for injection into `EvaluatedProgram.comptime_decls`.
 //

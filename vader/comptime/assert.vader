@@ -19,7 +19,7 @@ AST :: import "toolchain/ast"
 /// @param program   the module's evaluated program: the baked consts a condition
 ///                  may reference, and where each verdict goes.
 /// @param diags     diagnostics emitted by the walker.
-export evaluate_assert_decls :: fn(
+evaluate_assert_decls :: fn(
     decls: AST.Decl[], program: EvaluatedProgram, diags: Diagnostic[],
 ) -> void {
     context :: ComptimeContext {

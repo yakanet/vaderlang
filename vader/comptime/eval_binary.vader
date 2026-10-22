@@ -20,7 +20,7 @@ import "vader/types"
 /// @param expr     the binary expression node.
 /// @param context  the evaluator context.
 /// @return         the combined value or a diagnostic.
-export evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> EvalResult {
+evaluate_binary_expr :: fn(expr: AST.BinaryExpr, context: ComptimeContext) -> EvalResult {
     left_result :: evaluate_expr(expr.left, context)
     left :: left_result.value ?? return left_result
     right_result :: evaluate_expr(expr.right, context)
@@ -133,7 +133,7 @@ combine_binary :: fn(
 /// @param expr     the unary expression node.
 /// @param context  the evaluator context.
 /// @return         the result value or a diagnostic.
-export evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) -> EvalResult {
+evaluate_unary_expr :: fn(expr: AST.UnaryExpr, context: ComptimeContext) -> EvalResult {
     inner :: evaluate_expr(expr.operand, context)
     operand :: inner.value ?? return inner
     rname :: resolved_int_name(context, expr.id)

@@ -43,8 +43,8 @@ INTRINSICS: IntrinsicSpec[]: [
     IntrinsicSpec { .name = "min",           .args = [.Type],          .result = "self"   },
     IntrinsicSpec { .name = "max",           .args = [.Type],          .result = "self"   },
     // `@file("path")` reads the file at compile time and bakes its UTF-8
-    // contents as a string literal. The sandbox confines the path to the
-    // project root.
+    // contents as a string literal. The path resolves against the file that
+    // writes the call.
     IntrinsicSpec { .name = "file",          .args = [.Value],         .result = "string" },
     // Reifies the static type of a value as a `type` runtime value.
     // The argument is NOT evaluated (Zig-style).

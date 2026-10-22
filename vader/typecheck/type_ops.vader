@@ -214,7 +214,7 @@ joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
 /// compared by their layout. A union is rebuilt canonical, so `Hour | u8` is `u8`.
 ///
 /// @param t  a type the typecheck recorded.
-export erase_ranges :: fn(t: Type) -> Type {
+erase_ranges :: fn(t: Type) -> Type {
     if t is PrimitiveType || !contains_range(t) {
         return t
     }

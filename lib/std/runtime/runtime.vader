@@ -1,14 +1,14 @@
-// std/runtime — runtime introspection and controls (currently GC-only).
+// std/runtime — runtime introspection and controls (GC and scheduler).
 //
 // Lives in std/ rather than a hypothetical internal/ namespace because Vader
 // has no compiler-private visibility tier today and Go-style "runtime"
 // naming already signals the intent. Mostly intended for test harnesses
 // and stress tests ; user programs should rarely need to call these.
 
-/// Force a Cheney semi-space collection cycle now. Returns once the cycle
-/// completes ; live objects have been moved to the new from-space.
 module "std/runtime"
 
+/// Force a full collection now: a minor, then a major over the old
+/// generation. Returns once it completes.
 @intrinsic
 export collect :: fn() -> void
 
@@ -19,10 +19,10 @@ export collect :: fn() -> void
 @intrinsic
 export collections :: fn() -> i32
 
-/// Bytes currently allocated in the from-space arena. Post-collection
-/// this is the live-object footprint ; mid-mutation it counts every
-/// surviving allocation plus uncollected garbage.
-/// @return  live bytes in the from-space arena.
+/// Old-generation live bytes plus the young generation's allocation. Right
+/// after `collect()` this is the live-object footprint ; mid-mutation it also
+/// counts uncollected garbage.
+/// @return  the bytes in use, old and young.
 @intrinsic
 export bytes_used :: fn() -> i32
 
@@ -35,15 +35,15 @@ export bytes_copied :: fn() -> i32
 
 // ---- cooperative async scheduler (std/async backend) ----------------------
 
-/// The scheduler's virtual clock, in milliseconds from 0. Advanced by
-/// `sched_park` as timers fire. Backs `std/async`'s `sleep`.
-/// @return  the current virtual time in ms.
+/// The scheduler clock, in milliseconds from 0. Advanced by `sched_park` as
+/// timers fire. Backs `std/async`'s `sleep`.
+/// @return  the current scheduler time in ms.
 @intrinsic
 export sched_now :: fn() -> i64
 
-/// Register a wake at `deadline` (absolute virtual ms) on the timer heap — the
+/// Register a wake at `deadline` (absolute scheduler ms) on the timer heap — the
 /// scheduler will resume the parked program no earlier than then.
-/// @param deadline  absolute virtual time (ms) at which to wake.
+/// @param deadline  absolute scheduler time (ms) at which to wake.
 @intrinsic
 export sched_arm :: fn(deadline: i64) -> void
 

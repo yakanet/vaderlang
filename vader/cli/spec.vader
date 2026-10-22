@@ -67,25 +67,15 @@ export COMMON_FLAGS: FlagSpec[]: [
     },
 ]
 
-// `--emit`'s four values: WHAT to produce. It used to be spelled `--target`, and
-// the rename is the point — a target is a PLATFORM everywhere else (Rust, Zig,
-// Go, Odin), and "produce C for Windows" needs both answers at once, which one
-// flag cannot carry. `--emit` is Rust's name for this axis (`--emit=llvm-ir,asm`).
-//
-// `wasm` is gone from the list on purpose, and is not a loss: a `.wasm` module is
-// `--emit=executable --target=wasm32-browser`, the executable OF that platform.
-// The separation files it where it belongs instead of leaving it among artefact
-// kinds it never resembled.
-//
-// `bytecode` / `bytecode-text` replace `ir` / `ir-text` to match the vocabulary
-// the pipeline already uses everywhere else (`dump --stage=bytecode`, the
-// `bytecode.snapshot.virt` files, SPEC's "Bytecode emitter"). The file
-// extensions do not change: `.vir` and `.virt`.
+// `--emit`'s four values: WHAT to produce. The platform is the other axis
+// (`--target`), so "produce C for Windows" takes both flags. A `.wasm` module is
+// not an emit kind: it is `--emit=executable --target=browser-wasm32`, the
+// executable OF that platform.
 EMIT_VALUES: ValueSpec[]: [
     ValueSpec { .name = "executable", .help = "Native binary, via the C emitter" },
     ValueSpec { .name = "c", .help = "The generated C source only" },
-    ValueSpec { .name = "bytecode", .help = "Binary bytecode module (not yet implemented)" },
-    ValueSpec { .name = "bytecode-text", .help = "Textual bytecode dump (not yet implemented)" },
+    ValueSpec { .name = "bytecode", .help = "Binary bytecode module (`.vir`, not yet implemented)" },
+    ValueSpec { .name = "bytecode-text", .help = "Textual bytecode module (`.virt`), the whole linked image" },
 ]
 
 // `check` takes the platform axis and the search roots, and nothing else: it

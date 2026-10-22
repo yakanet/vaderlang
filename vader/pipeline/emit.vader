@@ -26,10 +26,7 @@ import "vader/resolver"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 
-// Runtime root for `--target=native` linking — resolved next to the executable
-// (dist bundle) then the cwd, via the shared `resolve_sidecar` probe (marker
-// `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
-/// Directory holding the C runtime, for `--target=native` linking.
+/// Directory holding the C runtime, for native linking.
 ///
 /// Beside the executable first (the `dist/` bundle layout), then the invocation
 /// directory — the same sidecar probe the stdlib resolution uses.

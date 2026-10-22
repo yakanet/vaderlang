@@ -1,6 +1,6 @@
 // vader/cli/build — the `vader build` command.
 //
-// `--target=c` / `--target=native`, the monolithic and split paths, and the
+// `--emit=c` / `--emit=executable`, the monolithic and split paths, and the
 // `cc` invocation for each. The shared pieces — front end, lower, bytecode,
 // the C emit and the link — live in `vader/pipeline`; what stays here is the
 // flag handling, the `.virt` input path, and the diagnostic rendering, none of
@@ -160,8 +160,6 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
     // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
     // above covers the textual form; this one waits on a binary writer.
-    // A wasm module is not an emit kind: it is `--emit=executable
-    // --target=wasm32-browser`, and it waits on the wasm backend, not on this.
     eprintln("vader build --emit=${emit}: not yet implemented")
     return 2
 }
@@ -321,7 +319,7 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
     return ""
 }
 
-// `--target=native` : emit the C next to the binary, then invoke the C
+// `--emit=executable` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
 build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32, verify: bool = false) -> i32 {

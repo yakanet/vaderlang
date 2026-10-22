@@ -685,7 +685,7 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
 /// Run `argv[0]` with `argv[1..]` as an awaitable — launches immediately, then
 /// completes once the child exits, WITHOUT blocking the scheduler. Fan several
 /// out and `await join_all([...])` to run them concurrently (the OS parallelises the
-/// child processes). `--target=wasm` has no subprocess support (unbound).
+/// child processes). The WASM targets have no subprocess support (unbound).
 ///
 /// @param argv   the command line ; `argv[0]` is the program. Empty is an error.
 /// @return       an awaitable completing with the `ProcessResult`.

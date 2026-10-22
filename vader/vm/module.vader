@@ -6,9 +6,9 @@
 // materialised, the entry index, per-function tables. Each field's doc says what
 // it caches and why.
 //
-// Same `vader/vm` module as the sibling `op.vader` (opcodes), `value.vader`
-// (runtime values), and `virt_reader_bc.vader` (the `.virt` → `BytecodeModule`
-// reader + the `reduce_*` projections `prepare` reuses).
+// Same `vader/vm` module as the sibling `value.vader` (runtime values) and
+// `virt_reader_bc.vader` (the `.virt` → `BytecodeModule` reader + the
+// `reduce_*` projections `prepare` reuses).
 
 module "vader/vm"
 

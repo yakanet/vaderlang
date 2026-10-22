@@ -27,7 +27,7 @@ export GenericInstance :: struct {
 /// Append-only registry. `by_key` dedups by `display_key` ; `order`
 /// preserves insertion order so callers can iterate deterministically
 /// before the final sort.
-export InstanceRegistry :: struct {
+InstanceRegistry :: struct {
     by_key: MutableMap<string, GenericInstance> = MutableMap<string, GenericInstance> {}
     order:  GenericInstance[] = []
 }
@@ -40,7 +40,7 @@ export InstanceRegistry :: struct {
 /// @param raw_args  the concrete type arguments ; distinct newtypes are
 ///                  stripped to their backing before keying (see the body).
 /// @return          the registered instance.
-export add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> GenericInstance {
+add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> GenericInstance {
     // Distinct→backing before this instance is keyed or stored: a distinct has
     // no runtime identity, so `MutableMap<BlockId>` must register as the same
     // raw instance as `MutableMap<i32>`, never a separate erased one. This is
@@ -69,7 +69,7 @@ export add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -
 /// name (`T`).
 /// @param registry  the registry.
 /// @param t         the type to scan.
-export observe :: fn(registry: InstanceRegistry, t: Type) -> void {
+observe :: fn(registry: InstanceRegistry, t: Type) -> void {
     walk_type(registry, t)
 }
 
@@ -123,7 +123,7 @@ is_concrete_enough :: fn(t: Type) -> bool {
 /// `display_key`.
 /// @param registry  the registry.
 /// @return          the sorted instance list.
-export sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
+sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
     return sort(registry.order, (a: GenericInstance, b: GenericInstance) -> compare_ascending(a.display_key, b.display_key))
 }
 

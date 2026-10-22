@@ -299,7 +299,7 @@ check_runtime_headers :: fn() -> Check {
     }
     return check_fail(
         "runtime-c",
-        "not found — `--target=native` cannot compile the runtime",
+        "not found: a native build cannot compile the runtime",
         "looked for `${RUNTIME_HEADER}` under ${root}",
     )
 }

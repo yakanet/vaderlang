@@ -26,7 +26,7 @@ import "toolchain/span"
 /// enough : callee resolves to a top-level `FnDecl`, args reduce to
 /// concrete `ComptimeValue`s, and the body is a single trailing
 /// expression or `return <expr>`.
-export evaluate_call_expr :: fn(
+evaluate_call_expr :: fn(
     expr: AST.CallExpr, context: ComptimeContext,
 ) -> EvalResult {
     if !(expr.callee is AST.IdentExpr) {

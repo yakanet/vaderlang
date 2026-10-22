@@ -2,16 +2,14 @@
 // projection + type-matching helpers shared across the executor and the
 // host-import dispatcher.
 //
-// `Value` and its `*Val` variants are defined here (split out of the former
-// `op.vader` mega-file). Each `read_*` unwraps the matching variant or surfaces
-// a `Trap` with a labelled mismatch message ; `type_matches` and its friends
-// answer the runtime `is T` / `ref Trait` patterns by walking the executing
-// module's `BcType[]` type table and its impl / vtable tables (threaded as a
-// `VmState`, defined in the sibling `module.vader`, same `vader/vm` module).
+// Each `read_*` unwraps the matching variant or surfaces a `Trap` with a
+// labelled mismatch message ; `type_matches` and its friends answer the runtime
+// `is T` / `ref Trait` patterns by walking the executing module's `BcType[]`
+// type table and its impl / vtable tables (threaded as a `VmState`, defined in
+// the sibling `module.vader`).
 //
-// `VmResult` / `Ok` / `Trap` also live here (rather than in exec.vader)
-// so the per-Value helpers can return `… | Trap` without forming an
-// import cycle with the executor.
+// `VmResult` / `Ok` / `Trap` live here, next to the per-Value helpers that
+// return `… | Trap`.
 
 module "vader/vm"
 
@@ -577,10 +575,7 @@ export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) ->
 
 // ---- Value union + variants ----------------------------------------------
 //
-// The tagged runtime values carried on the VM's value stack. Split out of the
-// former `op.vader` mega-file (now op / value / module) ; same `vader/vm`
-// module, so the `read_*` / `type_matches` helpers above reference these
-// variants directly.
+// The tagged runtime values carried on the VM's value stack.
 
 // The scalar variants precede `Value` : a compiler without the fixed point in
 // `register_aliases` — the committed bootstrap seed included — registers a union

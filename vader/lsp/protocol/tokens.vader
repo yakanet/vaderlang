@@ -5,8 +5,7 @@
 // `initialize`. Shared by the lexer-based scanner (`handlers/semantic_tokens`),
 // the AST-driven walker (`handlers/ast_tokens`), and the `initialize` capability
 // builder (`lifecycle`). Living in `protocol` keeps the legend next to the
-// types it indexes and breaks what would otherwise be a circular import
-// between the two producers.
+// types it indexes.
 
 module "vader/lsp/protocol"
 
