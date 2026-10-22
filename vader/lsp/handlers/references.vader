@@ -1,9 +1,10 @@
 // vader/lsp/handlers/references — `textDocument/references` handler.
 //
-// Find-usages across the whole project. Builds the project-wide reference index
-// (`analysis/reference_index`), locates the target under the cursor, then returns
-// every recorded site of that target as a `Location[]`, the sites that run it
-// without naming it included. Honours `context.includeDeclaration`.
+// Find-usages across the workspace. Builds the reference index of the document's
+// project (`analysis/reference_index`), locates the target under the cursor, then
+// returns every site of that target as a `Location[]`, the sites that run it
+// without naming it included, in the modules that import the document's too
+// (`analysis/workspace::reference_sites`). Honours `context.includeDeclaration`.
 
 module "vader/lsp/handlers"
 
@@ -33,8 +34,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     // Memoise one LineIndex per referenced file — a symbol can have many sites in
     // the same file, and `line_index_for_path` reads from disk for non-open ones.
     li_cache :: MutableMap<string, LineIndex> {}
-    for s in index.sites {
-        if s.key != target.key { continue }
+    for s in reference_sites(state, uri, cached, index, target) {
         if s.is_decl && !include_decl { continue }
         path :: s.span.start.file
         li :: line_index_cached(state, li_cache, path)

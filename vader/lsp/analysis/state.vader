@@ -38,6 +38,16 @@ export ProjectCache :: struct {
     module_name_index: MutableMap<string, LoadedModule>
 }
 
+/// The sites of the last find-usages that reached past the document's project
+/// (`workspace::reference_sites`), for the request that follows it on the same
+/// target, such as a rename after a find-usages. Dropped on every edit.
+export UsagesCache :: struct {
+    entry_path: string
+    /// The target, as the document's project keys it.
+    key:        i64
+    sites:      RefSite[]
+}
+
 /// The navigation view of a project: loaded with NO target selection, so every
 /// `@target` body is present.
 ///
@@ -73,6 +83,8 @@ export ServerState :: struct {
     /// Filled LAZILY, on the first request that needs it, so an editing session
     /// that never navigates never pays for it.
     union_cache:                UnionCache | null
+    /// The last find-usages past the document's project ; null after any edit.
+    usages:                     UsagesCache | null
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
@@ -125,6 +137,7 @@ export new_state :: fn(library_root: string) -> ServerState {
         .cache                   = null,
         .cache_prev              = null,
         .union_cache             = null,
+        .usages                  = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
         .include_flags           = if library_root.byte_len() > 0 { [library_root] } else { [] },
@@ -259,6 +272,17 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     return entry
 }
 
+/// Load and typecheck `file_path` together with the modules `extra_seeds` names,
+/// for a request that must see the modules importing the file's own module :
+/// find-usages. The project is not kept : the seed set belongs to one request,
+/// and such a project holds most of the workspace ; `usages` keeps its answer.
+///
+/// @param self         the server state (carries the overlay).
+/// @param file_path    the entry file's filesystem path.
+/// @param extra_seeds  the modules to load beside what the entry imports.
+export check_with_modules :: fn(self: ServerState, file_path: string, extra_seeds: string[]) -> FileCheck =
+    check_file(file_path, doc_overlay(self), self.include_flags, false, null, extra_seeds)
+
 /// The navigation view for `file_path`, loaded once and cached.
 ///
 /// Loaded with `AllTargets`, so a body this machine does not build is present:
@@ -335,6 +359,7 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     self.indices[uri] = build_index(uri, text, self.position_encoding)
     self.cache = null
     self.cache_prev = null
+    self.usages = null
     publish_diagnostics_for_uri(self, uri)
 }
 
@@ -358,6 +383,8 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
                     return
                 }
                 self.indices[uri] = build_index(uri, text, self.position_encoding)
+                // The sites of a find-usages moved with the text.
+                self.usages = null
                 // Debounced (see vader/lsp/main.vader). Keep the now-stale typed
                 // cache so requests during the edit burst don't each re-typecheck ;
                 // just mark diagnostics dirty. The single rebuild + publish fires
@@ -384,6 +411,7 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     }
     self.cache = null
     self.cache_prev = null
+    self.usages = null
     self.dirty.remove(uri)
     self.indices.remove(uri)
     clear_diagnostics_for_uri(self, uri)

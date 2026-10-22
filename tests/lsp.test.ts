@@ -1657,6 +1657,29 @@ test("lsp: a project module outranks a shipped namespace of the same name", asyn
   expect(target).not.toContain("/lib/json/");
 }, MEDIUM_BUILD);
 
+// Find-usages and rename on an export reach the modules that import its module:
+// the open file's project holds only what the file imports, so they are loaded
+// beside it. A folder whose file mentions the name but declares another module
+// (a fixture's `module "main"`) is no module an import reaches, and is left out.
+test("lsp: find-usages and rename reach the modules importing the declaration's", async () => {
+  const shapes = 'module "shapes"\n\nexport area :: fn(side: i32) -> i32 = side * side\n';
+  const app = 'module "app"\n\nimport "shapes"\n\nmain :: fn() -> i32 = area(2) + area(3)\n';
+  const results = await driveLsp(shapes, [
+    { method: "textDocument/references", position: { line: 2, character: 8 } },
+    { method: "textDocument/rename", position: { line: 2, character: 8 } },
+  ], {
+    "vader.json": '{ "name": "usages" }\n',
+    "app/app.vader": app,
+    "fixtures/case/_main.vader": 'module "main"\n\narea :: fn() -> i32 = 0\n',
+  }, "shapes/shapes.vader");
+  const refs = results[0]!.result as Location[];
+  const where = refs.map((l) => `${l.uri.split("/").slice(-2).join("/")}:${l.range.start.line}:${l.range.start.character}`);
+  expect(where.sort()).toEqual(["app/app.vader:4:22", "app/app.vader:4:32", "shapes/shapes.vader:2:7"]);
+  const changes = (results[1]!.result as WorkspaceEditT).changes;
+  const files = Object.keys(changes).map((u) => u.split("/").slice(-2).join("/")).sort();
+  expect(files).toEqual(["app/app.vader", "shapes/shapes.vader"]);
+}, MEDIUM_BUILD);
+
 test("lsp: goto-def into a sibling file reads its unsaved text", async () => {
   // The sibling is open with lines its saved copy lacks : the jump must land on
   // the declaration where the editor shows it, not where the disk has it.

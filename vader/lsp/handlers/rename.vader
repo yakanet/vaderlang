@@ -1,10 +1,11 @@
 // vader/lsp/handlers/rename — `textDocument/prepareRename` + `textDocument/rename`.
 //
-// Rename a target across the whole project. Reuses the reference index
-// (`analysis/reference_index`) : the cursor resolves to a target, and every site
-// that names it (declaration, import bindings, uses across files) is rewritten in
-// one `WorkspaceEdit`. A name a trait fixes (an impl member) is not
-// renamed : the trait and its other impls would keep the old one.
+// Rename a target across the workspace. Reuses find-usages
+// (`analysis/workspace::reference_sites`) : the cursor resolves to a target, and
+// every site that names it (declaration, import bindings, uses across files, in
+// the modules importing the document's too) is rewritten in one `WorkspaceEdit`.
+// A name a trait fixes (an impl member) is not renamed : the trait and its other
+// impls would keep the old one.
 //
 // Safety : a `TextEdit` replaces a range with `newName` regardless of what the
 // range currently holds, so to never corrupt source we rewrite ONLY sites whose
@@ -19,7 +20,6 @@ module "vader/lsp/handlers"
 import "json"
 import "std/collections"
 import "vader/diagnostics"
-import "vader/resolver"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 import "toolchain/span"
@@ -53,11 +53,11 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     index :: build_reference_index(cached.project, cached.result)
     site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
 
-    sources :: build_source_map(cached.project)
-    old_name :: span_text(sources, site.span)
+    sources :: MutableMap<string, string> {}
+    old_name :: span_text(state, sources, site.span)
     if old_name == "" { return JsonNull {} }
 
-    edits :: sites_to_rename(index, site.key, old_name, sources)
+    edits :: sites_to_rename(state, reference_sites(state, uri, cached, index, site), old_name, sources)
     li_cache :: MutableMap<string, LineIndex> {}
     return workspace_edit_json(edits, new_name, state, li_cache)
 }
@@ -74,20 +74,20 @@ renameable_at :: fn(
     return site
 }
 
-// Every named site of `key` whose current source text equals `old_name` : the
+// The named sites of `sites` whose current source text equals `old_name` : the
 // spans safe to overwrite with the new name. Filtering by text protects against
 // rewriting a range that doesn't actually hold the old identifier (aliased
 // imports, re-export shims) ; an implicit site holds no name at all.
 sites_to_rename :: fn(
-    index: ReferenceIndex,
-    key: i64,
+    state: ServerState,
+    sites: RefSite[],
     old_name: string,
     sources: MutableMap<string, string>,
 ) -> RefSite[] {
     out: RefSite[]: []
-    for s in index.sites {
-        if s.key != key || s.implicit { continue }
-        if span_text(sources, s.span) != old_name { continue }
+    for s in sites {
+        if s.implicit { continue }
+        if span_text(state, sources, s.span) != old_name { continue }
         out.push(s)
     }
     return out
@@ -122,19 +122,12 @@ text_edit_json :: fn(sp: Span, new_name: string, state: ServerState, li_cache: M
 
 // ---- source access -------------------------------------------------------
 
-// filesystem path → current source text, across every file of every module.
-build_source_map :: fn(project: LoadedProject) -> MutableMap<string, string> {
-    sources :: MutableMap<string, string> {}
-    for [_, m] in project.modules {
-        for f in m.module.files { sources[f.path] = f.content }
-    }
-    return sources
-}
-
 // The source slice a span covers, or "" when the file is unknown or the span is
-// degenerate. Module paths + identifiers are ASCII, so a byte slice is exact.
-span_text :: fn(sources: MutableMap<string, string>, sp: Span) -> string {
-    content :: sources[sp.start.file] ?? return ""
+// degenerate. Each file is read once per request, through the overlay : the
+// modules importing the document's are no part of its project. Module paths +
+// identifiers are ASCII, so a byte slice is exact.
+span_text :: fn(state: ServerState, sources: MutableMap<string, string>, sp: Span) -> string {
+    content :: sources.get_or_put_with(sp.start.file, () -> state.source_for_path(sp.start.file))
     if sp.end.offset > content.byte_len() {
         return ""
     }
@@ -180,11 +173,11 @@ test_span_text_slices_identifier :: fn() -> void {
         .start = Position { .file = "t.vader", .offset = 4, .line = 1, .column = 5 },
         .end   = Position { .file = "t.vader", .offset = 7, .line = 1, .column = 8 },
     }
-    assert_eq(span_text(sources, sp), "foo")
+    assert_eq(span_text(new_state(""), sources, sp), "foo")
 }
 
 @test
-test_sites_to_rename_filters_by_symbol_and_text :: fn() -> void {
+test_sites_to_rename_filters_by_text :: fn() -> void {
     // Source: `foo + foo + bar`, two `foo` (offsets 0, 6) and one `bar` (12).
     sources :: test_sources("t.vader", "foo + foo + bar")
     foo_a :: mk_site("t.vader", 0, 3, 1)
@@ -192,8 +185,7 @@ test_sites_to_rename_filters_by_symbol_and_text :: fn() -> void {
     bar   :: mk_site("t.vader", 12, 3, 2)
     // A site claiming symbol 1 but covering `bar` text — must be filtered out.
     decoy :: mk_site("t.vader", 12, 3, 1)
-    index :: ReferenceIndex { .sites = [foo_a, foo_b, bar, decoy] }
-    picked :: sites_to_rename(index, 1, "foo", sources)
+    picked :: sites_to_rename(new_state(""), [foo_a, foo_b, bar, decoy], "foo", sources)
     assert_eq(picked.len(), 2)
 }
 

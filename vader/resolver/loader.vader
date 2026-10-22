@@ -108,12 +108,18 @@ export load_project :: fn(
 /// bucketed by the stale on-disk header. Threading the overlay into discovery
 /// (both the dir enumeration and the header read) is a follow-up.
 ///
-/// @param entry_path  the entry file's path.
-/// @param overlay     filesystem path → current source text ; consulted
-///                    before the disk in `parse_module_files`.
+/// @param entry_path   the entry file's path.
+/// @param overlay      filesystem path → current source text ; consulted
+///                     before the disk in `parse_module_files`.
+/// @param extra_seeds  modules to load beside what the entry imports, named as
+///                     an import names them ; one no root holds is skipped. The
+///                     LSP's find-usages loads the modules that import the
+///                     entry's this way. A load that names none loads what it
+///                     always did, in the same order.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
     include_path_flags: string[], selection: Selection | null = null,
+    extra_seeds: string[] = [],
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
@@ -214,6 +220,12 @@ export load_project_with_overlay :: fn(
                 }
                 _ -> {}
             }
+            extra_queue: DiscoveredModule[]: []
+            for seed in extra_seeds {
+                found :: resolve_lazy(seed, bases, index, loader_diags) ?? continue
+                extra_queue.push(found)
+            }
+            drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
             // The baked target constants (`VADER_OS` / `VADER_ARCH`), appended
             // after the natural BFS for the same order-preserving reason as
             // `std/string_builder` above. The module is VIRTUAL — generated per

@@ -53,11 +53,17 @@ export RefSite :: struct {
 /// target under the cursor, then collect its sites), both bounded by project
 /// size, which is fine for an on-demand request.
 export ReferenceIndex :: struct {
-    sites: RefSite[]
+    sites:    RefSite[]
     /// The targets whose name a rename may not change : an impl member, whose
     /// name its trait fixes, and what the library declares (`i32`, `println`),
     /// which is not the project's.
-    fixed: MutableSet<i64> = MutableSet<i64> {}
+    fixed:    MutableSet<i64> = MutableSet<i64> {}
+    /// The targets no other module can name : a private declaration, a local, a
+    /// parameter. Every file that may use one is in this project.
+    confined: MutableSet<i64> = MutableSet<i64> {}
+    /// The module each exported declaration belongs to, by target : another
+    /// module names it only through an import of that module.
+    exports:  MutableMap<i64, string> = MutableMap<i64, string> {}
 }
 
 /// The named reference site whose span contains the 1-based cursor in `file`,
@@ -131,8 +137,14 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         for [_, sym] in typed.resolved.declarations {
             if !is_comptime_helper(typed, sym) {
                 add_symbol_site(index, typed, sym, sym, true)
+                key :: target_key(typed, sym)
                 if mod.module.origin == .Toolchain {
-                    index.fixed.add(target_key(typed, sym))
+                    index.fixed.add(key)
+                }
+                if sym.visibility == .Private {
+                    index.confined.add(key)
+                } else {
+                    index.exports[key] = sym.module_name
                 }
             }
         }
@@ -172,12 +184,24 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 }
                 sym :: typed.resolved.idents[sp.hash()] ?? continue
                 key :: target_key(typed, resolve_import_redirect(sym, table))
+                if is_local_kind(sym.kind) {
+                    index.confined.add(key)
+                }
                 add_named(index, RefSite { .span = sp, .key = key })
             }
         }
     }
-    return ReferenceIndex { .sites = index.sites, .fixed = index.fixed }
+    return ReferenceIndex {
+        .sites    = index.sites,
+        .fixed    = index.fixed,
+        .confined = index.confined,
+        .exports  = index.exports,
+    }
 }
+
+// Whether a symbol of kind `k` lives in one body : a local, a parameter, a
+// pattern binding, a type parameter.
+is_local_kind :: fn(k: SymbolKind) -> bool = k == .Local || k == .Param || k == .Binding || k == .TypeParam
 
 // The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: compiler-internal,
 // declared at the `@comptime` token, which names nothing a user would rename.
@@ -189,9 +213,11 @@ is_comptime_helper :: fn(typed: TypedProgram, sym: Symbol) -> bool {
 // The sites gathered so far, the spans already holding a named site, and the
 // targets whose name a trait fixes.
 IndexBuilder :: struct {
-    sites: RefSite[] = []
-    named: MutableSet<u64> = MutableSet<u64> {}
-    fixed: MutableSet<i64> = MutableSet<i64> {}
+    sites:    RefSite[] = []
+    named:    MutableSet<u64> = MutableSet<u64> {}
+    fixed:    MutableSet<i64> = MutableSet<i64> {}
+    confined: MutableSet<i64> = MutableSet<i64> {}
+    exports:  MutableMap<i64, string> = MutableMap<i64, string> {}
 }
 
 // Add `site` unless its span already holds a named site.
