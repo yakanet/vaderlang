@@ -175,8 +175,8 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
     ctx.type_key[layout_key(s.origin, s.mangled)] = new_index
 }
 
-/// The C type named by `@c_struct("struct timespec")` on the origin struct
-/// declaration, or `""`.
+/// The C type the origin struct declaration mirrors through `@c_struct`, or
+/// `""`.
 ///
 /// Read from the AST decl rather than a symbol table: `MonoEntry` already
 /// carries the declaration a lowered struct came from, which is the same route
@@ -189,18 +189,7 @@ c_struct_of :: fn(origin: MonoEntry) -> string {
     if d !is StructDecl {
         return ""
     }
-    for dec in d.decorators {
-        if dec.name == "c_struct" && dec.args.len() == 1 {
-            a :: dec.args[0]
-            if a is StringLitExpr && a.parts.len() == 1 {
-                pt :: a.parts[0]
-                if pt is StringLitText {
-                    return pt.value
-                }
-            }
-        }
-    }
-    return ""
+    return c_struct_spelling(d.decorators, d.name)
 }
 
 /// Copy `sig`, filling `param_by_address` and `param_c_out` from the origin

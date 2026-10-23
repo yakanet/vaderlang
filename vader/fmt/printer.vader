@@ -671,8 +671,9 @@ flat_params_width :: fn(source: string, params: p.FnParam[]) -> i64 {
 
 emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
     // A parameter decorator is always inline (`@c_pointer d: Div`). Dropping it
-    // is not cosmetic: the typechecker REQUIRES `@c_pointer` where a `@c_struct`
-    // crosses, so a formatted file stops compiling.
+    // is not cosmetic: without `@c_pointer` a `@c_struct` crosses by value
+    // instead of by address, so a formatted file would call C with another
+    // signature, or stop compiling where `@c_out` needs the address.
     for deco in fp.decorators {
         self.emit_decorator(deco)
         self.write(" ")

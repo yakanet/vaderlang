@@ -1,0 +1,15 @@
+// T3079: `@c_out` on a `@c_struct` passed by value.
+//
+// Without `@c_pointer` C receives a copy of the struct, and what it writes into
+// the copy never reaches Vader.
+module "snippet"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@extern fill_div :: fn(@c_out d: Div) -> void
+
+main :: fn() -> i32 { return 0 }

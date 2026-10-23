@@ -1,0 +1,129 @@
+# Typecheck
+
+## tests/snippets/c_struct_by_value
+  StructDecl     Box2                 :: Box2
+  FnDecl         box2_area            :: fn(Box2) -> f32
+  FnDecl         box2_grow            :: fn(Box2, f32) -> Box2
+  FnDecl         c_div                :: fn(i32, i32) -> Div
+  StructDecl     Div                  :: Div
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Rgba                 :: Rgba
+  FnDecl         rgba_invert          :: fn(Rgba) -> Rgba
+  FnDecl         rgba_sum             :: fn(Rgba) -> i32
+  StructDecl     Texture              :: Texture
+  FnDecl         texture_checksum     :: fn(Texture) -> i32
+  FnDecl         texture_load         :: fn(u32) -> Texture
+  StructDecl     Vec2                 :: Vec2
+  FnDecl         vec2_scale           :: fn(Vec2, f32) -> Vec2
+  expr 100:18   FieldExpr      :: u8
+  expr 100:18   IdentExpr      :: Rgba
+  expr 100:32   FieldExpr      :: u8
+  expr 100:32   IdentExpr      :: Rgba
+  expr 100:46   FieldExpr      :: u8
+  expr 100:46   IdentExpr      :: Rgba
+  expr 100:60   FieldExpr      :: u8
+  expr 100:60   IdentExpr      :: Rgba
+  expr 100:79   CallExpr       :: i32
+  expr 100:79   IdentExpr      :: fn(Rgba) -> i32
+  expr 100:88   IdentExpr      :: Rgba
+  expr 100:9    StringLitExpr  :: string
+  expr 102:10   CallExpr       :: Vec2
+  expr 102:10   IdentExpr      :: fn(Vec2, f32) -> Vec2
+  expr 102:21   StructLitExpr  :: Vec2
+  expr 103:13   StringLitExpr  :: string
+  expr 103:22   FieldExpr      :: f32
+  expr 103:22   IdentExpr      :: Vec2
+  expr 103:29   FieldExpr      :: f32
+  expr 103:29   IdentExpr      :: Vec2
+  expr 103:5    CallExpr       :: void
+  expr 103:5    IdentExpr      :: fn(T) -> void
+  expr 104:16   CallExpr       :: Texture
+  expr 104:16   IdentExpr      :: fn(u32) -> Texture
+  expr 105:5    CallExpr       :: void
+  expr 105:5    IdentExpr      :: fn(T) -> void
+  expr 106:107  FieldExpr      :: i32
+  expr 106:107  IdentExpr      :: Texture
+  expr 106:24   FieldExpr      :: u32
+  expr 106:24   IdentExpr      :: Texture
+  expr 106:38   FieldExpr      :: i32
+  expr 106:38   IdentExpr      :: Texture
+  expr 106:55   FieldExpr      :: i32
+  expr 106:55   IdentExpr      :: Texture
+  expr 106:81   FieldExpr      :: i32
+  expr 106:81   IdentExpr      :: Texture
+  expr 106:9    StringLitExpr  :: string
+  expr 108:13   StringLitExpr  :: string
+  expr 108:34   CallExpr       :: i32
+  expr 108:34   IdentExpr      :: fn(Texture) -> i32
+  expr 108:5    CallExpr       :: void
+  expr 108:5    IdentExpr      :: fn(T) -> void
+  expr 108:51   IdentExpr      :: Texture
+  expr 109:12   StructLitExpr  :: Box2
+  expr 110:19   StructLitExpr  :: Vec2
+  expr 111:19   StructLitExpr  :: Vec2
+  expr 113:14   CallExpr       :: Box2
+  expr 113:14   IdentExpr      :: fn(Box2, f32) -> Box2
+  expr 113:24   IdentExpr      :: Box2
+  expr 114:5    CallExpr       :: void
+  expr 114:5    IdentExpr      :: fn(T) -> void
+  expr 115:25   FieldExpr      :: Vec2
+  expr 115:25   FieldExpr      :: f32
+  expr 115:25   IdentExpr      :: Box2
+  expr 115:43   FieldExpr      :: Vec2
+  expr 115:43   FieldExpr      :: f32
+  expr 115:43   IdentExpr      :: Box2
+  expr 115:69   FieldExpr      :: Vec2
+  expr 115:69   FieldExpr      :: f32
+  expr 115:69   IdentExpr      :: Box2
+  expr 115:87   FieldExpr      :: Vec2
+  expr 115:87   FieldExpr      :: f32
+  expr 115:87   IdentExpr      :: Box2
+  expr 115:9    StringLitExpr  :: string
+  expr 117:19   SeqLitExpr     :: Box2[]
+  expr 118:14   RangeExpr      :: Range<i32>
+  expr 119:14   CallExpr       :: Box2
+  expr 119:14   IdentExpr      :: fn(Box2, f32) -> Box2
+  expr 119:24   IdentExpr      :: Box2
+  expr 119:29   CallExpr       :: f32
+  expr 119:29   IdentExpr      :: type
+  expr 119:33   BinaryExpr     :: i32
+  expr 119:33   BinaryExpr     :: i32
+  expr 119:33   IdentExpr      :: i32
+  expr 120:12   BinaryExpr     :: bool
+  expr 120:12   BinaryExpr     :: i32
+  expr 120:12   IdentExpr      :: i32
+  expr 120:9    IfExpr         :: void
+  expr 121:13   CallExpr       :: void
+  expr 121:13   FieldExpr      :: fn(Box2) -> void
+  expr 121:13   IdentExpr      :: Box2[]
+  expr 121:23   IdentExpr      :: Box2
+  expr 125:14   IdentExpr      :: Box2[]
+  expr 126:18   CallExpr       :: f64
+  expr 126:18   IdentExpr      :: type
+  expr 126:22   CallExpr       :: f32
+  expr 126:22   IdentExpr      :: fn(Box2) -> f32
+  expr 126:32   IdentExpr      :: Box2
+  expr 126:9    BinaryExpr     :: f64
+  expr 126:9    IdentExpr      :: f64
+  expr 128:13   StringLitExpr  :: string
+  expr 128:21   CallExpr       :: i64
+  expr 128:21   FieldExpr      :: fn() -> i64
+  expr 128:21   IdentExpr      :: Box2[]
+  expr 128:5    CallExpr       :: void
+  expr 128:5    IdentExpr      :: fn(T) -> void
+  expr 128:53   IdentExpr      :: f64
+  expr 90:10    CallExpr       :: Div
+  expr 90:10    IdentExpr      :: fn(i32, i32) -> Div
+  expr 91:13    StringLitExpr  :: string
+  expr 91:26    FieldExpr      :: i32
+  expr 91:26    IdentExpr      :: Div
+  expr 91:40    FieldExpr      :: i32
+  expr 91:40    IdentExpr      :: Div
+  expr 91:5     CallExpr       :: void
+  expr 91:5     IdentExpr      :: fn(T) -> void
+  expr 92:14    StructLitExpr  :: Rgba
+  expr 98:17    CallExpr       :: Rgba
+  expr 98:17    IdentExpr      :: fn(Rgba) -> Rgba
+  expr 98:29    IdentExpr      :: Rgba
+  expr 99:5     CallExpr       :: void
+  expr 99:5     IdentExpr      :: fn(T) -> void

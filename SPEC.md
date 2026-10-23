@@ -2810,7 +2810,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_out` | a parameter of an `@extern` fn | C writes through the parameter — an array, or a `@c_struct` crossing with `@c_pointer`. No argument. `T3079` anywhere else, or on a type C cannot write into. See §13 |
 | `@c_type("size_t")` | a parameter of an `@extern` fn, or the fn itself for its result | The C type the callee declares for an integer, where it is not the Vader type's own spelling. One plain string. Must be an integer type as wide as the Vader one. `T3079` on a parameter, `T3050` on a declaration otherwise. See §13 |
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
-| `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross as an address. See §13 |
+| `@c_struct` or `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross an `@extern` call: as an address with `@c_pointer`, by value otherwise. Bare, the C type has the struct's name. More than one argument is `P1032`, one that is not a plain string `P1033`. See §13 |
 | `@c_variadic(N)` | an `@extern` fn | The callee is variadic with `N` fixed parameters. See §13 |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit (see below) |
@@ -2965,27 +2965,50 @@ casts.
 
 ### `@c_struct` — mirroring a C struct
 
-A Vader struct may mirror a C one, and then cross as an ADDRESS:
+A Vader struct may mirror a C one, and then cross an `@extern` call: as an
+ADDRESS when the parameter carries `@c_pointer`, BY VALUE otherwise, as a
+parameter or as the result.
 
 ```vader
 @c_struct("div_t")
 Div :: struct { quot: i32, rem: i32 }
 
 @extern fill_div :: fn(@c_pointer @c_out d: Div, quot: i32, rem: i32) -> void
+
+@c_header("<stdlib.h>")
+@extern("div") c_div :: fn(numerator: i32, denominator: i32) -> Div
 ```
 
-The parameter must carry `@c_pointer`; a `@c_struct` type without it is
-`T3050` ("crosses as an address — mark the parameter `@c_pointer`"). The shim
-declares a REAL C struct and marshals **field by field, by name**, so `cc`
-computes every offset from the actual header and checks every field's type —
-nothing here assumes a layout. `@c_out` picks the direction: without it C reads
-what Vader holds, with it the shim copies back what C wrote.
+The argument names the C type. Without one, the C type has the struct's own
+name, read as a `typedef` name: `@c_struct Color :: struct { … }` mirrors
+`Color`. The argument is for a C type whose name differs, such as a struct tag
+(`"struct pollfd"`) or a name Vader would not give a type (`"div_t"`).
+
+The shim declares a REAL C struct and marshals **field by field, by name**, so
+`cc` computes every offset from the actual header and checks every field's type:
+nothing here assumes a layout. With `@c_pointer`, C gets the address of that
+struct, and `@c_out` picks the direction: without it C reads what Vader holds,
+with it the shim copies back what C wrote. Without `@c_pointer`, C gets a copy,
+and `cc` passes it as the platform's ABI wants, in registers or on the stack.
+`@c_out` on such a parameter is `T3079`: C would write into its copy alone. A
+result is the reverse copy, into a fresh Vader struct, and a nested mirror into
+fresh Vader structs of its own.
+
+**A mirror crossing by value is native only.** Where a struct travels depends on
+the ABI, which the interpreter's trampolines do not model: `vader run` traps at
+the call, naming `vader build`.
 
 The emitted C also carries `_Static_assert` lines: each mirrored field's width
 against the C field of that name, each field's signedness, each field's OFFSET
 against `__builtin_offsetof`, and two bounds on the struct — the interpreter's
 computed block fits inside `sizeof(C)`, and `sizeof(C)` fits the 4 KiB block the
 interpreter reserves. A drifting header then fails the build.
+
+A mirror crossing **by value** must name every member: a copy carries only what
+the mirror names, so a result would drop the rest and an argument would hand C
+zeros. Its computed size must therefore EQUAL `sizeof(C)`, which with every offset
+pinned leaves no room for a skipped member, except one small enough to hide in
+the tail padding.
 
 The offset assert is what makes a mirror **a contiguous LEADING prefix** rather
 than any subset. The shim itself would not need it — it copies by NAME and `cc`
@@ -3106,14 +3129,13 @@ Plus, on top of the scalars:
 | a **nullable string** (`string \| null`) | RESULT only | how a callee says "absent" rather than "empty"; the atom is borrowed, as above |
 | **`i64(p)` / `u64(p)` on a `CPointer`** | reading only | a foreign sentinel that is not NULL — `INVALID_HANDLE_VALUE`, `MAP_FAILED`, both `-1` — is invisible to `CPointer \| null`, which narrows on zero alone. Reading the pointer as a 64-bit integer, which holds an address on every target, is the only way to test one. Narrower targets (`u8(p)`, `i32(p)`) are `T3010`: they would drop address bits, as is `f64(p)`. The reverse — `CPointer(42)`, fabricating a pointer — stays `T3010`, and nothing needs it: a sentinel is RETURNED and compared, never passed |
 | an **array of scalars** | ARGUMENT only | crosses as ONE bare pointer; a length, when the callee wants one, is a parameter of its own. C cannot fabricate a Vader array, so an array RETURN is rejected. `@c_out` decides `void*` vs `const void*`, and what C writes reads back |
-| a **`@c_struct`** | ARGUMENT only, with `@c_pointer` | see above; both backends, with the offset caveat noted there |
+| a **`@c_struct`** | both | see above. By address with `@c_pointer` (an argument only, both backends, with the offset caveat noted there), by value otherwise (argument or result, a whole mirror, native backend only) |
 | an **enum with a written width** | ARGUMENT only | crosses as the integer its variant stores, at that width (`enum(i32)` → `int32_t`), and one with variant data as its written value (§ Variant data). An inferred width moves when a variant is added, so it is `T3050`. A RESULT would let C hand back an integer no variant holds, so it is rejected too. A `@c_struct` field of enum type needs a written width as well, and cannot be an enum with variant data |
 | a **function type** | ARGUMENT only | a callback — see below; native backend only |
 
 Anything else (a plain struct, a trait, a type-param) is `T3050`. Future
-iterations may add:
-- opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix A)
-- struct passing BY VALUE
+iterations may add opaque pointer types alongside a future `unsafe` block
+facility (deferred, see Appendix A).
 
 ### Callbacks
 
@@ -3191,7 +3213,7 @@ vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" pro
 
 The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
 
-The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing — a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
+The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing: a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result, a `@c_struct` passed or returned by value. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
 
 The C emitter resolves `@extern` against the system linker; the same `@extern` decl compiles for both backends, only the binding mechanism differs.
 

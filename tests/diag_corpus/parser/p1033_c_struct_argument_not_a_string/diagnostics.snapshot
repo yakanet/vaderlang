@@ -1,0 +1,3 @@
+[5:1] warning[W0007] declaration is never used in its module: `SUFFIX` is never used
+[7:11] error[P1033] decorator argument has the wrong form: `@c_struct` names the C type with a plain string literal (no interpolation)
+[8:1] warning[W0007] declaration is never used in its module: `Div` is never used

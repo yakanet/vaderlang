@@ -93,11 +93,18 @@ export c_field_width :: fn(f: BcField, types: BcType[]) -> i64 | null {
 ///
 /// @param f      the field.
 /// @param types  the module type table.
-export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null {
-    if f.type_index < 0 || i64(f.type_index) >= types.len() {
+export nested_mirror :: fn(f: BcField, types: BcType[]) -> BcStruct | null = mirror_at(types, f.type_index)
+
+/// The `@c_struct` mirror at `type_index`, or `null` when the slot holds anything
+/// else or lies outside the table.
+///
+/// @param types       the module type table.
+/// @param type_index  the slot; `-1` is absent.
+export mirror_at :: fn(types: BcType[], type_index: i32) -> BcStruct | null {
+    if type_index < 0 || i64(type_index) >= types.len() {
         return null
     }
-    t :: types[f.type_index]
+    t :: types[type_index]
     if t is BcStruct {
         if t.c_name != "" {
             return t

@@ -47,8 +47,9 @@ const SNIPPETS = [
   // committed snippet pins the shape better than an invented source does.
   "capture_loop_var",
   // A PARAMETER decorator: `@c_pointer` was silently dropped by the formatter,
-  // and the typechecker REQUIRES it where a `@c_struct` crosses — so formatting
-  // this file used to stop it compiling. The AST round-trip is what catches it.
+  // and without it a `@c_struct` crosses by value, where its `@c_out` is refused,
+  // so formatting this file used to stop it compiling. The AST round-trip is
+  // what catches it.
   "c_struct_layout",
 ];
 

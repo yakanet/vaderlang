@@ -1,0 +1,130 @@
+// Structs crossing the FFI by value, in both directions.
+//
+// `helper.h` declares four C shapes the ABIs pass differently: `Rgba`, four
+// bytes in one integer register; `Vec2`, two floats in vector registers;
+// `Box2`, two `Vec2` held inline, which comes back as three Vader objects;
+// `Texture`, twenty bytes, past what any of our ABIs passes in registers. `div`
+// is the libc's own by-value result.
+//
+// The helper's mirrors are bare `@c_struct`: each C type has the struct's
+// name. `Div` spells its C type, `div_t`, which is no name for a Vader struct.
+//
+// The loop builds enough `Box2` results to run the collector several times and
+// keeps some of them to the end, so the collector moves objects the shim built.
+// Whether the shim roots a member while it allocates the next one shows only
+// when a collection lands in between: run the binary with `VADER_GC_STRESS=1`,
+// which collects at every allocation.
+
+module "snippet"
+
+import "std/io"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@c_struct
+Rgba :: struct {
+    r: u8
+    g: u8
+    b: u8
+    a: u8
+}
+
+@c_struct
+Vec2 :: struct {
+    x: f32
+    y: f32
+}
+
+@c_struct
+Box2 :: struct {
+    origin: Vec2
+    extent: Vec2
+}
+
+@c_struct
+Texture :: struct {
+    id: u32
+    width: i32
+    height: i32
+    mipmaps: i32
+    format: i32
+}
+
+@c_header("<stdlib.h>")
+@extern("div")
+c_div :: fn(numerator: i32, denominator: i32) -> Div
+
+@c_header("helper.h")
+@extern
+rgba_invert :: fn(c: Rgba) -> Rgba
+
+@c_header("helper.h")
+@extern
+rgba_sum :: fn(c: Rgba) -> i32
+
+@c_header("helper.h")
+@extern
+vec2_scale :: fn(v: Vec2, k: f32) -> Vec2
+
+@c_header("helper.h")
+@extern
+box2_grow :: fn(b: Box2, by: f32) -> Box2
+
+@c_header("helper.h")
+@extern
+box2_area :: fn(b: Box2) -> f32
+
+@c_header("helper.h")
+@extern
+texture_load :: fn(id: u32) -> Texture
+
+@c_header("helper.h")
+@extern
+texture_checksum :: fn(t: Texture) -> i32
+
+main :: fn() -> i32 {
+    d :: c_div(-7, 2)
+    println("div: quot=${d.quot} rem=${d.rem}")
+    color :: Rgba {
+        .r = 10,
+        .g = 20,
+        .b = 30,
+        .a = 255,
+    }
+    inverted :: rgba_invert(color)
+    println(
+        "rgba: ${inverted.r} ${inverted.g} ${inverted.b} ${inverted.a}, sum ${rgba_sum(inverted)}",
+    )
+    v :: vec2_scale(Vec2 { .x = 1.5, .y = -2.0 }, 2.0)
+    println("vec2: ${v.x} ${v.y}")
+    texture :: texture_load(7)
+    println(
+        "texture: id=${texture.id} ${texture.width}x${texture.height} mipmaps=${texture.mipmaps} format=${texture.format}",
+    )
+    println("texture checksum: ${texture_checksum(texture)}")
+    box :: Box2 {
+        .origin = Vec2 { .x = 0.0, .y = 0.0 },
+        .extent = Vec2 { .x = 2.0, .y = 3.0 },
+    }
+    grown :: box2_grow(box, 1.0)
+    println(
+        "box2: origin ${grown.origin.x} ${grown.origin.y}, extent ${grown.extent.x} ${grown.extent.y}",
+    )
+    kept: Box2[]: []
+    for i in 0..<200000 {
+        b :: box2_grow(box, f32(i / 1000 % 4))
+        if i % 1000 == 0 {
+            kept.push(b)
+        }
+    }
+    total: f64 = 0.0
+    for b in kept {
+        total += f64(box2_area(b))
+    }
+    println("kept ${kept.len()} boxes, total area ${total}")
+    return 0
+}

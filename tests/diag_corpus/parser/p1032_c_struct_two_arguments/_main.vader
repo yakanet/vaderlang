@@ -1,0 +1,11 @@
+// P1032: `@c_struct` with two arguments. It names one C type, and a reader
+// that met anything else would take the struct for an ordinary one.
+module "snippet"
+
+@c_struct("div_t", "ldiv_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+main :: fn() -> i32 { return 0 }

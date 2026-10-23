@@ -1,0 +1,22 @@
+// A struct RETURNED by value stops `vader run` at the call, with a message that
+// names `vader build`.
+
+module "main"
+
+import "std/io"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@c_header("<stdlib.h>")
+@extern("div")
+c_div :: fn(numerator: i32, denominator: i32) -> Div
+
+main :: fn() -> i32 {
+    d :: c_div(7, 2)
+    println("quot=${d.quot}")
+    return 0
+}

@@ -1,1 +1,1 @@
-[7:17] error[T3050] invalid `@extern` declaration: `@extern` parameter type must be a primitive, `string`, an enum, or a primitive-element array, got `User`
+[7:17] error[T3050] invalid `@extern` declaration: `@extern` parameter type must be a primitive, `string`, an enum, a primitive-element array, or a `@c_struct`, got `User`

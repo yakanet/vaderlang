@@ -81,7 +81,7 @@ emit_import_shims :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
     // time, and nothing reads it at run time.
     printer.print_section(CSection {
         .comment = ["`@c_struct` layout — checked against the real headers."],
-        .items = c_struct_layout_asserts(ctx.module.types, crossing_mirrors(ctx.module)),
+        .items = c_struct_layout_asserts(ctx.module.types, mirror_crossings(ctx.module)),
     })
     printer.print_section(CSection { .items = shims })
 }
@@ -128,24 +128,44 @@ nested_member_mirrors :: fn(types: BcType[]) -> MutableSet<i32> {
     return out
 }
 
-/// Type indices of mirrors an `@extern` names as a PARAMETER — the ones that
-/// actually cross.
+/// How the mirrors the `@extern` declarations name cross the boundary.
+///
+/// One mirror can do both, through two declarations.
+MirrorCrossings :: struct {
+    /// Lent by address (`@c_pointer`): C works on the shim's struct, and the
+    /// interpreter builds a block of its own for it.
+    lent:   MutableSet<i32>
+    /// Copied by value: a parameter without `@c_pointer`, or a result.
+    copied: MutableSet<i32>
+}
+
+/// The type indices of the mirrors each `@extern` of `module` lends or copies.
 ///
 /// @param module  the bytecode module whose imports are scanned.
-/// @return        the set of parameter mirror type indices.
-crossing_mirrors :: fn(module: BytecodeModule) -> MutableSet<i32> {
-    out :: MutableSet<i32> {}
+mirror_crossings :: fn(module: BytecodeModule) -> MirrorCrossings {
+    lent :: MutableSet<i32> {}
+    copied :: MutableSet<i32> {}
     for imp in module.imports {
         if !imp.is_extern {
             continue
         }
-        for ti in imp.signature.param_types {
-            if mirrored_c_struct(module.types, ti) != "" {
-                out.add(ti)
+        for j in 0..<imp.signature.param_types.len() {
+            type_index :: imp.signature.param_types[j]
+            if mirror_at(module.types, type_index) == null {
+                continue
+            }
+            if param_is_by_address(imp.signature, j) {
+                lent.add(type_index)
+            } else {
+                copied.add(type_index)
             }
         }
+        result :: bc_single_result_type(imp.signature)
+        if mirror_at(module.types, result) != null {
+            copied.add(result)
+        }
     }
-    return out
+    return MirrorCrossings { .lent = lent, .copied = copied }
 }
 
 /// `_Static_assert` pinning a mirrored field's SIGNEDNESS to the C field's, or
@@ -231,6 +251,91 @@ push_member_copies :: fn(
     }
 }
 
+/// The capture, copy and return of a mirror result, which C hands back by value.
+///
+/// A nested mirror is a separate Vader object, so a result can take several
+/// allocations, and any of them can move the ones made before it. Each object
+/// is therefore a local declared up front, and the members are rooted while the
+/// rest is allocated. They are allocated before the struct that holds them: the
+/// outermost is the youngest object, so its stores need no write barrier, and
+/// nothing allocates after it. The fields are copied once every object exists.
+///
+/// @param types       the module type table.
+/// @param type_index  the result's mirror.
+/// @param mirror      its C type.
+/// @param forwarded   the call.
+mirror_result :: fn(
+    types: BcType[],
+    type_index: i32,
+    mirror: string,
+    forwarded: CExpression,
+) -> ForwardedResult {
+    names: string[]: []
+    declarations: CStatement[]: []
+    allocations: CStatement[]: []
+    outermost :: push_mirror_allocation(types, type_index, names, declarations, allocations, 0)
+    settle: CStatement[]: []
+    settle.push_all(declarations)
+    if names.len() == 1 {
+        settle.push_all(allocations)
+    } else {
+        roots: CExpression[]: []
+        for name in names[1..<names.len()] {
+            roots.push(cast("void**", address_of(verbatim(name))))
+        }
+        frame :: verbatim("__result_frame")
+        settle.push(array_declaration("void**", "__result_roots", roots))
+        count :: number(roots.len())
+        settle.push(perform("VADER_GC_PUSH_RAW", [frame, verbatim("__result_roots"), count]))
+        settle.push_all(allocations)
+        settle.push(perform("VADER_GC_POP_FRAME", [frame]))
+    }
+    fields :: bc_struct_fields(types, type_index)
+    push_member_copies(types, fields, verbatim("r"), verbatim(outermost), false, settle, 0)
+    return ForwardedResult {
+        .capture = declaration(mirror, "r", forwarded),
+        .settle = settle,
+        .returned = verbatim(outermost),
+    }
+}
+
+// Declare the local for the mirror at `type_index`, named in pre-order so the
+// outermost is `obj0`, then allocate its nested members and itself, and link
+// each member into it. Returns the local's name.
+push_mirror_allocation :: fn(
+    types: BcType[],
+    type_index: i32,
+    names: string[],
+    declarations: CStatement[],
+    allocations: CStatement[],
+    depth: i32,
+) -> string {
+    name :: "obj${names.len()}"
+    names.push(name)
+    vader_type :: struct_c_name(bc_struct_name(types, type_index))
+    declarations.push(declaration("${vader_type}*", name, NULL_POINTER))
+    links: CStatement[]: []
+    for f in bc_struct_fields(types, type_index) {
+        if nested_mirror(f, types) == null || depth + 1 >= NEST_CAP {
+            continue
+        }
+        member :: push_mirror_allocation(
+            types,
+            f.type_index,
+            names,
+            declarations,
+            allocations,
+            depth + 1,
+        )
+        target :: CMember { .base = verbatim(name), .member = field_c_name(f.name), .arrow = true }
+        links.push(CAssign { .target = target, .value = verbatim(member) })
+    }
+    allocations.push(CAssign { .target = verbatim(name), .value = gc_allocation(vader_type) })
+    allocations.push(perform("vader_obj_header_init", [verbatim(name), verbatim("${type_index}u")]))
+    allocations.push_all(links)
+    return name
+}
+
 /// Emit the width + signedness asserts for every LEAF of a mirror, descending
 /// into a nested one.
 ///
@@ -296,14 +401,16 @@ push_leaf_asserts :: fn(
 /// on the way in or out. Naming a field the C type does not have fails the build
 /// here too, which is the other half of the check.
 ///
-/// A mirror may therefore be SHORT — it stops early and ignores the members
-/// after it, which is what makes a struct with nested members usable at all.
-/// It may not be SPARSE: the offset assert below pins each field to
-/// `__builtin_offsetof`, so skipping a member is refused.
+/// A mirror lent by address may therefore be SHORT: it stops early and ignores
+/// the members after it, which is what makes a struct with nested members usable
+/// at all. A mirror copied by value may not, since a copy carries only what the
+/// mirror names. Neither may be SPARSE: the offset assert below pins each field
+/// to `__builtin_offsetof`, so skipping a member is refused.
 ///
-/// @param types  the module type table.
-/// @return       the asserts, empty when no struct mirrors a C type.
-c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> CTopLevel[] {
+/// @param types      the module type table.
+/// @param crossings  how each mirror crosses, which picks its size asserts.
+/// @return           the asserts, empty when no struct mirrors a C type.
+c_struct_layout_asserts :: fn(types: BcType[], crossings: MirrorCrossings) -> CTopLevel[] {
     out: CTopLevel[]: []
     nested :: nested_member_mirrors(types)
     for type_index in 0..<types.len() {
@@ -324,9 +431,11 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> CTo
         // `prefix` bound on a block nothing builds, which can reject a
         // perfectly good declaration while naming a type the user put in no
         // signature. A mirror that is BOTH nested and a parameter keeps its
-        // block — and so does every mirror when `crossing` comes back empty,
+        // block, and so does every mirror when `crossings` comes back empty,
         // which is the safe way for this to degrade.
-        if i32(type_index) in nested && !(i32(type_index) in crossing) {
+        lent :: i32(type_index) in crossings.lent
+        copied :: i32(type_index) in crossings.copied
+        if i32(type_index) in nested && !lent && !copied {
             continue
         }
         vt :: struct_c_name(t.name)
@@ -334,15 +443,28 @@ c_struct_layout_asserts :: fn(types: BcType[], crossing: MutableSet<i32>) -> CTo
         // real one, so a divergence fails the native build and names the field
         // rather than letting the interpreter write at a wrong offset.
         layout :: c_struct_layout(t.fields, types)
-        // A mirror may describe only a PREFIX — the trailing members of a
-        // `struct stat` are rarely worth naming. So the computed size must
-        // merely FIT, and the C type must in turn fit the block the interpreter
-        // allocates.
         c_size :: call("sizeof", [verbatim(t.c_name)])
-        fits_prefix :: binary(.LessOrEqual, number(layout.size), c_size)
-        out.push(static_assert(fits_prefix, "${t.c_name} prefix"))
-        fits_block :: binary(.LessOrEqual, c_size, number(MIRROR_BLOCK_FLOOR))
-        out.push(static_assert(fits_block, "${t.c_name} fits the interpreter block"))
+        if copied {
+            // A copy names EVERY member. With each leaf's offset pinned below,
+            // an equal size leaves no room for a member it skipped, except one
+            // small enough to hide in the tail padding.
+            is_whole :: binary(.Equal, number(layout.size), c_size)
+            message :: "${t.c_name} is mirrored whole, as a by-value crossing requires"
+            out.push(static_assert(is_whole, message))
+        } else {
+            // A mirror lent by address may describe only a PREFIX: the trailing
+            // members of a `struct stat` are rarely worth naming. So the
+            // computed size must merely FIT.
+            fits_prefix :: binary(.LessOrEqual, number(layout.size), c_size)
+            out.push(static_assert(fits_prefix, "${t.c_name} prefix"))
+        }
+        // The C type must fit the block the interpreter allocates, for a mirror
+        // it may lend. One that is only copied never gets a block: the
+        // interpreter stops at the call first.
+        if lent || !copied {
+            fits_block :: binary(.LessOrEqual, c_size, number(MIRROR_BLOCK_FLOOR))
+            out.push(static_assert(fits_block, "${t.c_name} fits the interpreter block"))
+        }
         // The shim would need neither of the per-leaf asserts below: it declares
         // its OWN C struct and copies member by member BY NAME, so `cc` resolves
         // both offsets itself and a Vader offset never meets a C one there.
@@ -409,8 +531,11 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
         // shim spills a real C struct and passes ITS address, so the erased
         // slot type would declare `void**` against a `struct timespec*`.
         // The two cascades must agree on the order or the prototype and the
-        // call site disagree.
-        return pointer_to(mirror, writes)
+        // call site disagree. Without `@c_pointer` the struct itself crosses.
+        if param_is_by_address(sig, j) {
+            return pointer_to(mirror, writes)
+        }
+        return mirror
     }
     if param_is_by_address(sig, j) {
         // `@c_pointer`: the callee takes `T*`. `const` unless `@c_out` says it
@@ -425,8 +550,13 @@ extern_parameter_type :: fn(imp: BcImport, types: BcType[], j: i64) -> string {
 
 // The C type the foreign symbol declares for the result of `imp`.
 extern_result_type :: fn(imp: BcImport, types: BcType[]) -> string {
-    if is_abi_nullable_pointer(types, bc_single_result_type(imp.signature)) {
+    result_type :: bc_single_result_type(imp.signature)
+    if is_abi_nullable_pointer(types, result_type) {
         return "void*"
+    }
+    mirror :: mirrored_c_struct(types, result_type)
+    if mirror != "" {
+        return mirror
     }
     return c_result_type(imp) ?? extern_c_type(bc_single_result(imp.signature))
 }
@@ -753,10 +883,11 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             bytes :: CMember { .base = verbatim("s${j}"), .member = "ptr" }
             call_args.push(if param_is_c_out(sig, j) { cast("void*", bytes) } else { bytes })
         } else if mirrored_c_struct(types, sig.param_types[j]) != "" {
-            // A struct crossing as an address. The shim declares a REAL one of
-            // the C type and marshals field by field, so `cc` computes every
-            // offset from the actual header — nothing here assumes a layout,
-            // which is why no `offsetof` and no `_Static_assert` appear.
+            // A mirrored struct, lent by address or copied by value. The shim
+            // declares a REAL one of the C type and marshals field by field, so
+            // `cc` computes every offset from the actual header: nothing here
+            // assumes a layout. The `_Static_assert` lines serve the interpreter's
+            // block and a copy's completeness (`c_struct_layout_asserts`).
             //
             // Field names are taken as-is: `@c_struct` says the Vader field
             // names ARE the C ones. `c_field_name` is the single place that
@@ -778,6 +909,12 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
             // writes `revents`. Filling a pure-out parameter costs one copy the
             // callee overwrites; NOT filling an in-out one hands C a zeroed struct.
             push_member_copies(types, fields, spilled, object, true, before, 0)
+            if !param_is_by_address(sig, j) {
+                // By value: C receives a copy of the spilled struct, and the
+                // typecheck refuses `@c_out` here, so nothing travels back.
+                call_args.push(spilled)
+                continue
+            }
             if param_is_c_out(sig, j) {
                 // And it travels back after the call (see `write_backs` below).
                 write_back_roots.push(address_of(a))
@@ -846,9 +983,7 @@ user_extern_shim :: fn(imp: BcImport, types: BcType[]) -> CStatement[] {
     }
     before.push(handled.capture)
     before.push_all(after)
-    if handled.settle != null {
-        before.push(handled.settle)
-    }
+    before.push_all(handled.settle)
     before.push_all(frees)
     before.push(CReturn { .value = handled.returned })
     return before
@@ -876,8 +1011,8 @@ ForwardedResult :: struct {
     capture: CStatement
     /// The capture already returns the call's value : nothing follows it.
     returns: bool = false
-    /// Converts `r` into `out` while the arguments are still alive, or null.
-    settle: CStatement | null = null
+    /// Convert `r` into `out` while the arguments are still alive.
+    settle: CStatement[] = []
     /// The shim's return value ; null for a `void` shim.
     returned: CExpression | null = null
 }
@@ -912,7 +1047,7 @@ forwarded_result :: fn(
         boxed :: box_call("i64", present_tag(types, .String), cast("int64_t", interned(result)))
         return ForwardedResult {
             .capture = declaration("const char*", "r", forwarded),
-            .settle = declaration("vader_box_t", "out", null_or(result, boxed)),
+            .settle = [declaration("vader_box_t", "out", null_or(result, boxed))],
             .returned = out,
         }
     }
@@ -941,9 +1076,13 @@ forwarded_result :: fn(
         }
         return ForwardedResult {
             .capture = declaration("const char*", "r", forwarded),
-            .settle = declaration("vader_string_t", "out", atom),
+            .settle = [declaration("vader_string_t", "out", atom)],
             .returned = out,
         }
+    }
+    mirror :: mirrored_c_struct(types, result_type)
+    if mirror != "" {
+        return mirror_result(types, result_type, mirror, forwarded)
     }
     if direct {
         return ForwardedResult { .capture = CReturn { .value = forwarded }, .returns = true }
@@ -972,14 +1111,8 @@ interned :: fn(text: CExpression) -> CExpression =
 /// @param type_index  the slot ; `-1` is absent.
 /// @return            e.g. `"struct timespec"`, or `""`.
 mirrored_c_struct :: fn(types: BcType[], type_index: i32) -> string {
-    if type_index < 0 || i64(type_index) >= types.len() {
-        return ""
-    }
-    t :: types[type_index]
-    if t is BcStruct {
-        return t.c_name
-    }
-    return ""
+    mirror :: mirror_at(types, type_index) ?? return ""
+    return mirror.c_name
 }
 
 /// The Vader struct name at `type_index`, or `""`.

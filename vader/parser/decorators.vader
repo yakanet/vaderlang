@@ -122,9 +122,9 @@ export DECORATORS: DecoratorSpec[]: [
     },
     DecoratorSpec {
         .name   = "c_struct",
-        .usage  = "@c_struct(\"struct name\")",
+        .usage  = "@c_struct, @c_struct(\"struct name\")",
         .places = [.Declaration],
-        .doc    = "Declares which C struct this struct mirrors, so it may cross an `@extern` call as an address. The mirror may be partial; fields are copied by name.",
+        .doc    = "Declares which C struct this struct mirrors, so it may cross an `@extern` call: by address with `@c_pointer`, by value otherwise (native build only). Bare, the C type has the struct's name. Fields are copied by name; a mirror lent by address may stop early, one copied by value names every member.",
     },
     DecoratorSpec {
         .name   = "c_variadic",

@@ -393,8 +393,8 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, 
 /// else traps naming the reason, because calling with a mis-marshalled frame
 /// would corrupt the stack instead of failing: a `char` or `f32` parameter, a
 /// call mixing floating and integer arguments, more than two floating ones, an
-/// `f32` or `string` result, and a callback (the interpreter has no address for
-/// a Vader function).
+/// `f32` or `string` result, a `@c_struct` passed or returned by value, and a
+/// callback (the interpreter has no address for a Vader function).
 ///
 /// The library is `BcImport.c_library` when the declaration names one, else the
 /// running process — which covers libc and anything linked into the binary.
@@ -413,6 +413,18 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     params :: info.signature.params
     if params.len() > 8 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: more than 8 arguments" }
+    }
+    // Where a struct copied by value travels depends on the ABI: split across
+    // integer and vector registers, or copied to the stack. The trampolines
+    // pass words and addresses only.
+    for i in 0..<info.signature.param_types.len() {
+        lent :: bc.param_is_by_address(info.signature, i)
+        if !lent && bc.mirror_at(types, info.signature.param_types[i]) != null {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} passes a struct by value, which only a native build can do; build the program with `vader build`" }
+        }
+    }
+    if bc.mirror_at(types, bc.bc_single_result_type(info.signature)) != null {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: returns a struct by value, which only a native build can do; build the program with `vader build`" }
     }
     // Under the DAP debugger, program output must NOT reach fd 1/2 directly —
     // in stdio transport that would corrupt the protocol stream. This is the
@@ -740,18 +752,8 @@ mirrored_struct_fields :: fn(types: bc.BcType[], param_types: i32[], i: i64) -> 
     if i >= param_types.len() {
         return null
     }
-    idx :: param_types[i]
-    if idx < 0 || i64(idx) >= types.len() {
-        return null
-    }
-    t :: types[idx]
-    if t !is bc.BcStruct {
-        return null
-    }
-    if t.c_name == "" {
-        return null
-    }
-    return t.fields
+    mirror :: bc.mirror_at(types, param_types[i]) ?? return null
+    return mirror.fields
 }
 
 /// A mirrored field's own value class, for the sign of the read-back.

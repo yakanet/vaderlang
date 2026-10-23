@@ -1,0 +1,23 @@
+// A struct PASSED by value stops `vader run` at the call, with a message that
+// names `vader build`.
+//
+// Nothing defines `takes_div`: the interpreter stops before it looks the symbol
+// up, and the program is never built natively.
+
+module "main"
+
+import "std/io"
+
+@c_struct("div_t")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+@extern
+takes_div :: fn(d: Div) -> i32
+
+main :: fn() -> i32 {
+    println("${takes_div(Div { .quot = 7, .rem = 2 })}")
+    return 0
+}

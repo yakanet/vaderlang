@@ -1,0 +1,230 @@
+# Lower
+
+## snippet
+  snippet.Div :: struct { quot: i32, rem: i32 }  // snippet$Div
+  snippet.Rgba :: struct { r: u8, g: u8, b: u8, a: u8 }  // snippet$Rgba
+  snippet.Vec2 :: struct { x: f32, y: f32 }  // snippet$Vec2
+  snippet.Box2 :: struct { origin: Vec2, extent: Vec2 }  // snippet$Box2
+  snippet.Texture :: struct { id: u32, width: i32, height: i32, mipmaps: i32, format: i32 }  // snippet$Texture
+  snippet.c_div :: fn(numerator: i32, denominator: i32) -> Div  // snippet$c_div
+  snippet.rgba_invert :: fn(c: Rgba) -> Rgba  // snippet$rgba_invert
+  snippet.rgba_sum :: fn(c: Rgba) -> i32  // snippet$rgba_sum
+  snippet.vec2_scale :: fn(v: Vec2, k: f32) -> Vec2  // snippet$vec2_scale
+  snippet.box2_grow :: fn(b: Box2, by: f32) -> Box2  // snippet$box2_grow
+  snippet.box2_area :: fn(b: Box2) -> f32  // snippet$box2_area
+  snippet.texture_load :: fn(id: u32) -> Texture  // snippet$texture_load
+  snippet.texture_checksum :: fn(t: Texture) -> i32  // snippet$texture_checksum
+  snippet.main :: fn() -> i32 {  // snippet$main
+      d: Div = snippet.c_div(-7, 2)
+      std.io.println<string>({
+          __buf_0: Buffer = std.core.new_byte_buffer(i64(55))
+          __off_1: i64 = 0
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, "div: quot=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, d.quot)
+          __off_1 = std.core.write_string_at(__buf_0, __off_1, " rem=")
+          __off_1 = std.core.write_int(__buf_0, __off_1, d.rem)
+          std.core.finish_buffer(__buf_0, __off_1)
+      } :string)
+      color: Rgba = Rgba {
+          .r = u8(10),
+          .g = u8(20),
+          .b = u8(30),
+          .a = u8(255),
+      }
+      inverted: Rgba = snippet.rgba_invert(color)
+      std.io.println<string>({
+          __buf_2: Buffer = std.core.new_byte_buffer(i64(115))
+          __off_3: i64 = 0
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, "rgba: ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, inverted.r)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, inverted.g)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, inverted.b)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, " ")
+          __off_3 = std.core.write_unsigned(__buf_2, __off_3, inverted.a)
+          __off_3 = std.core.write_string_at(__buf_2, __off_3, ", sum ")
+          __off_3 = std.core.write_int(__buf_2, __off_3, snippet.rgba_sum(inverted))
+          std.core.finish_buffer(__buf_2, __off_3)
+      } :string)
+      v: Vec2 = snippet.vec2_scale(Vec2 { .x = f32(1.5), .y = f32(-2.0) }, f32(2.0))
+      std.io.println<string>(concat_4("vec2: ", std.core.f32.to_string(v.x), " ", std.core.f32.to_string(v.y)))
+      texture: Texture = snippet.texture_load(u32(7))
+      std.io.println<string>({
+          __buf_4: Buffer = std.core.new_byte_buffer(i64(131))
+          __off_5: i64 = 0
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "texture: id=")
+          __off_5 = std.core.write_unsigned(__buf_4, __off_5, texture.id)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " ")
+          __off_5 = std.core.write_int(__buf_4, __off_5, texture.width)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, "x")
+          __off_5 = std.core.write_int(__buf_4, __off_5, texture.height)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " mipmaps=")
+          __off_5 = std.core.write_int(__buf_4, __off_5, texture.mipmaps)
+          __off_5 = std.core.write_string_at(__buf_4, __off_5, " format=")
+          __off_5 = std.core.write_int(__buf_4, __off_5, texture.format)
+          std.core.finish_buffer(__buf_4, __off_5)
+      } :string)
+      std.io.println<string>({
+          __buf_6: Buffer = std.core.new_byte_buffer(i64(38))
+          __off_7: i64 = 0
+          __off_7 = std.core.write_string_at(__buf_6, __off_7, "texture checksum: ")
+          __off_7 = std.core.write_int(__buf_6, __off_7, snippet.texture_checksum(texture))
+          std.core.finish_buffer(__buf_6, __off_7)
+      } :string)
+      box: Box2 = Box2 { .origin = Vec2 { .x = f32(0.0), .y = f32(0.0) }, .extent = Vec2 { .x = f32(2.0), .y = f32(3.0) } }
+      grown: Box2 = snippet.box2_grow(box, f32(1.0))
+      std.io.println<string>(concat_8("box2: origin ", std.core.f32.to_string(grown.origin.x), " ", std.core.f32.to_string(grown.origin.y), ", extent ", std.core.f32.to_string(grown.extent.x), " ", std.core.f32.to_string(grown.extent.y)))
+      kept: Box2[] = [] :Box2[]
+      {
+          i: i32 = 0
+          for i < 200000 {
+              b: Box2 = snippet.box2_grow(box, f32((i / 1000) % 4))
+              if (i % 1000) == 0 {
+                  @array.push(kept, b)
+              }
+          } @step {
+              i = i +% 1
+          }
+      }
+      total: f64 = 0.0
+      {
+          __for_arr_8: Box2[] = kept
+          __for_len_9: i64 = @array.len(__for_arr_8)
+          __for_i_10: i64 = 0
+          for __for_i_10 < __for_len_9 {
+              b: Box2 = __for_arr_8[__for_i_10]
+              total = total + f64(snippet.box2_area(b))
+          } @step {
+              __for_i_10 = __for_i_10 +% i64(1)
+          }
+      }
+      std.io.println<string>({
+          __p_11: string = std.core.f64.to_string(total)
+          __buf_12: Buffer = std.core.new_byte_buffer(i64(44) +% std.core.byte_len(__p_11))
+          __off_13: i64 = 0
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, "kept ")
+          __off_13 = std.core.write_int(__buf_12, __off_13, @array.len(kept))
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, " boxes, total area ")
+          __off_13 = std.core.write_string_at(__buf_12, __off_13, __p_11)
+          std.core.finish_buffer(__buf_12, __off_13)
+      } :string)
+      return 0
+  }
+  concat_4 :: fn(p0: string, p1: string, p2: string, p3: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      buf: Buffer = std.core.new_byte_buffer(c3)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.intern_string(buf, c3)
+  }
+  concat_8 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string, p5: string, p6: string, p7: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      c2: i64 = c1 +% std.core.byte_len(p2)
+      c3: i64 = c2 +% std.core.byte_len(p3)
+      c4: i64 = c3 +% std.core.byte_len(p4)
+      c5: i64 = c4 +% std.core.byte_len(p5)
+      c6: i64 = c5 +% std.core.byte_len(p6)
+      c7: i64 = c6 +% std.core.byte_len(p7)
+      buf: Buffer = std.core.new_byte_buffer(c7)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.write_string(buf, c1, p2)
+      std.core.Buffer.write_string(buf, c2, p3)
+      std.core.Buffer.write_string(buf, c3, p4)
+      std.core.Buffer.write_string(buf, c4, p5)
+      std.core.Buffer.write_string(buf, c5, p6)
+      std.core.Buffer.write_string(buf, c6, p7)
+      std.core.Buffer.intern_string(buf, c7)
+  }
+  concat_2 :: fn(p0: string, p1: string) -> string {
+      c0: i64 = std.core.byte_len(p0)
+      c1: i64 = c0 +% std.core.byte_len(p1)
+      buf: Buffer = std.core.new_byte_buffer(c1)
+      std.core.Buffer.write_string(buf, i64(0), p0)
+      std.core.Buffer.write_string(buf, c0, p1)
+      std.core.Buffer.intern_string(buf, c1)
+  }
+
+## lowered in dependencies
+  std/core
+    const DOUBLE_POW5_INV_SPLIT: u64[]  data pool #0
+    const DOUBLE_POW5_SPLIT: u64[]  data pool #1
+    const FLOAT_POW5_INV_SPLIT: u64[]  data pool #2
+    const FLOAT_POW5_SPLIT: u64[]  data pool #3
+    fn std.core.Buffer.intern_string  // std_core$Buffer$ByteAccess$intern_string
+    fn std.core.Buffer.memory_copy  // std_core$Buffer$ByteAccess$memory_copy
+    fn std.core.Buffer.store_u8  // std_core$Buffer$ByteAccess$store_u8
+    fn std.core.Buffer.write_string  // std_core$Buffer$ByteAccess$write_string
+    fn std.core.Range<i32>.contains  // std_core$Range$Contains$contains__i32
+    fn std.core.Range<i32>.next  // std_core$Range$Iterator$next__i32
+    fn std.core.Range<i64>.contains  // std_core$Range$Contains$contains__i64
+    fn std.core.Range<i64>.next  // std_core$Range$Iterator$next__i64
+    fn std.core.b2i  // std_core$b2i
+    fn std.core.b2u  // std_core$b2u
+    fn std.core.b2u32  // std_core$b2u32
+    fn std.core.d2d  // std_core$d2d
+    fn std.core.decimal_width  // std_core$decimal_width
+    fn std.core.f2d  // std_core$f2d
+    fn std.core.f32.to_bits  // std_core$f32$Float32Bits$to_bits
+    fn std.core.f32.to_string  // std_core$f32$Display$to_string
+    fn std.core.f64.to_bits  // std_core$f64$FloatBits$to_bits
+    fn std.core.f64.to_string  // std_core$f64$Display$to_string
+    fn std.core.finish_buffer  // std_core$finish_buffer
+    fn std.core.format_f32  // std_core$format_f32
+    fn std.core.format_f64  // std_core$format_f64
+    fn std.core.i32.compare  // std_core$i32$Comparable$compare
+    fn std.core.i32.step  // std_core$i32$Step$step
+    fn std.core.i64.compare  // std_core$i64$Comparable$compare
+    fn std.core.i64.step  // std_core$i64$Step$step
+    fn std.core.insert_point  // std_core$insert_point
+    fn std.core.log10_pow2  // std_core$log10_pow2
+    fn std.core.log10_pow5  // std_core$log10_pow5
+    fn std.core.mul_pow5_div_pow2  // std_core$mul_pow5_div_pow2
+    fn std.core.mul_pow5_inv_div_pow2  // std_core$mul_pow5_inv_div_pow2
+    fn std.core.mul_shift_32  // std_core$mul_shift_32
+    fn std.core.mul_shift_all_64  // std_core$mul_shift_all_64
+    fn std.core.multiple_of_power_of_2  // std_core$multiple_of_power_of_2
+    fn std.core.multiple_of_power_of_2_32  // std_core$multiple_of_power_of_2_32
+    fn std.core.multiple_of_power_of_5  // std_core$multiple_of_power_of_5
+    fn std.core.multiple_of_power_of_5_32  // std_core$multiple_of_power_of_5_32
+    fn std.core.pow5_factor  // std_core$pow5_factor
+    fn std.core.pow5_factor_32  // std_core$pow5_factor_32
+    fn std.core.pow5bits  // std_core$pow5bits
+    fn std.core.render  // std_core$render
+    fn std.core.shiftright128  // std_core$shiftright128
+    fn std.core.three_way  // std_core$three_way
+    fn std.core.umul128  // std_core$umul128
+    fn std.core.write_bool  // std_core$write_bool
+    fn std.core.write_decimal  // std_core$write_decimal
+    fn std.core.write_digits  // std_core$write_digits
+    fn std.core.write_int  // std_core$write_int
+    fn std.core.write_string_at  // std_core$write_string_at
+    fn std.core.write_unsigned  // std_core$write_unsigned
+    fn std.core.write_zeros  // std_core$write_zeros
+    struct std.core.Buffer  // std_core$Buffer
+    struct std.core.Dec64  // std_core$Dec64
+    struct std.core.FloatDec32  // std_core$FloatDec32
+    struct std.core.Range<Any>  // std_core$Range__Any
+    struct std.core.Range<i32>  // std_core$Range__i32
+    struct std.core.Range<i64>  // std_core$Range__i64
+  std/io
+    fn std.io.println<string>  // std_io$println__string
+    fn std.io.write  // std_io$write
+    fn std.io.write_bytes  // std_io$write_bytes
+  system/posix
+    struct system.posix.Pollfd  // system_posix$Pollfd
+    struct system.posix.Winsize  // system_posix$Winsize
+  system/windows
+    struct system.windows.Coord  // system_windows$Coord
+    struct system.windows.ProcessInformation  // system_windows$ProcessInformation
+    struct system.windows.ScreenBufferInfo  // system_windows$ScreenBufferInfo
+    struct system.windows.SecurityAttributes  // system_windows$SecurityAttributes
+    struct system.windows.SmallRect  // system_windows$SmallRect
+    struct system.windows.StartupInfo  // system_windows$StartupInfo

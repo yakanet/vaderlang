@@ -1,0 +1,13 @@
+// P1033: `@c_struct` naming its C type with an interpolated string. The C type
+// is read at compile time, as a plain string literal.
+module "snippet"
+
+SUFFIX :: "_t"
+
+@c_struct("div${SUFFIX}")
+Div :: struct {
+    quot: i32
+    rem: i32
+}
+
+main :: fn() -> i32 { return 0 }

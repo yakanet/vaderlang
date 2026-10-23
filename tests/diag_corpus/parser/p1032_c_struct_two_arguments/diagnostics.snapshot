@@ -1,0 +1,2 @@
+[5:1] error[P1032] wrong number of decorator arguments: `@c_struct` takes at most one argument : the C type, when it is not the struct's own name
+[6:1] warning[W0007] declaration is never used in its module: `Div` is never used

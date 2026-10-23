@@ -347,8 +347,7 @@ check_public_fn_visibility :: fn(
     if decl.visibility != .Public {
         return
     }
-    ret_span :: if decl.return_type != null { decl.return_type.span } else { decl.span }
-    report_private_leak(return_type, ret_span, decl.name, "returns", diags)
+    report_private_leak(return_type, return_type_span(decl), decl.name, "returns", diags)
     for i in 0..<decl.params.len() {
         p :: decl.params[i]
         span :: if p.ty != null { p.ty.span } else { p.span }
@@ -468,18 +467,7 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
         return ""
     }
     sd :: typed.struct_decls[t.symbol.id] ?? return ""
-    for d in sd.decorators {
-        if d.name == "c_struct" && d.args.len() == 1 {
-            a :: d.args[0]
-            if a is AST.StringLitExpr && a.parts.len() == 1 {
-                pt :: a.parts[0]
-                if pt is AST.StringLitText {
-                    return pt.value
-                }
-            }
-        }
-    }
-    return ""
+    return AST.c_struct_spelling(sd.decorators, sd.name)
 }
 
 /// Whether the declaration names the header that owns its prototype.
@@ -754,23 +742,24 @@ validate_extern :: fn(
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
-        // A struct crosses ONLY as `@c_pointer` on a type that declares which C
-        // type it mirrors. The shim then declares a real one and marshals field
-        // by field, so the C compiler computes the offsets from the real header
-        // — an undeclared struct has no C spelling to declare and would have to
-        // guess a layout instead.
+        // A struct crosses only on a type that declares which C type it mirrors:
+        // the shim declares a real one and marshals field by field, so the C
+        // compiler computes the offsets from the real header. An undeclared
+        // struct has no C spelling to declare and would have to guess a layout.
+        // With `@c_pointer` C gets the struct's address, without it a copy.
         if mirrors_a_c_struct(pt, typed) {
-            if param_has_c_pointer(decl.params[i]) {
-                validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
+            lent :: param_has_c_pointer(decl.params[i])
+            if !lent && AST.decorators_have(decl.params[i].decorators, "c_out") {
+                diags.push(
+                    typecheck_error(
+                        .InvalidParameterDecorator,
+                        decl.params[i].span,
+                        "`@c_out` on `${display_type(pt)}` passed by value: C receives a copy and writes nothing back; mark the parameter `@c_pointer` to lend the struct itself",
+                    ),
+                )
                 continue
             }
-            diags.push(
-                typecheck_error(
-                    .InvalidExternDecl,
-                    decl.params[i].span,
-                    "`@c_struct` type `${display_type(pt)}` crosses as an address — mark the parameter `@c_pointer`",
-                ),
-            )
+            validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
             continue
         }
         if AST.decorators_have(decl.params[i].decorators, "c_type") && !is_c_integer(pt) {
@@ -825,7 +814,7 @@ validate_extern :: fn(
                 typecheck_error(
                     .InvalidExternDecl,
                     decl.params[i].span,
-                    "`@extern` parameter type must be a primitive, `string`, an enum, or a primitive-element array, got `${display_type(pt)}`",
+                    "`@extern` parameter type must be a primitive, `string`, an enum, a primitive-element array, or a `@c_struct`, got `${display_type(pt)}`",
                 ),
             )
         }
@@ -840,16 +829,17 @@ validate_extern :: fn(
             ),
         )
     }
-    if !is_extern_abi_type(return_type, true) {
-        ret_span: Span = decl.span
-        if decl.return_type !is null {
-            ret_span = decl.return_type.span
-        }
+    result_span :: return_type_span(decl)
+    // A mirror comes back BY VALUE: the shim receives the C struct and copies it,
+    // field by field, into a fresh Vader one.
+    if mirrors_a_c_struct(return_type, typed) {
+        validate_mirror_fields(return_type, result_span, typed, MutableSet<i32> {}, diags)
+    } else if !is_extern_abi_type(return_type, true) {
         diags.push(
             typecheck_error(
                 .InvalidExternDecl,
-                ret_span,
-                "`@extern` return type must be a primitive, `string`, `CPointer | null`, or `void`, got `${display_type(return_type)}`",
+                result_span,
+                "`@extern` return type must be a primitive, `string`, `CPointer | null`, a `@c_struct`, or `void`, got `${display_type(return_type)}`",
             ),
         )
     }
@@ -880,6 +870,14 @@ validate_extern :: fn(
             ),
         )
     }
+}
+
+// The written result type, or the whole declaration when the type is inferred.
+return_type_span :: fn(decl: AST.FnDecl) -> Span {
+    if decl.return_type != null {
+        return decl.return_type.span
+    }
+    return decl.span
 }
 
 has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {

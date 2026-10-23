@@ -1,0 +1,1 @@
+[13:24] error[T3079] decorator not allowed on this parameter: `@c_out` on `Div` passed by value: C receives a copy and writes nothing back; mark the parameter `@c_pointer` to lend the struct itself

@@ -561,6 +561,7 @@ parse_decl :: fn(p: Parser) -> Decl | null {
     decorators :: p.parse_decorators()
     p.reject_assert_decorator(decorators)
     p.check_guard_arity(decorators)
+    p.check_c_struct_arguments(decorators)
     visibility: Visibility = .Private
     if p.match_kind(.KwExport) != null {
         visibility = .Public
@@ -694,6 +695,21 @@ check_guard_arity :: fn(p: Parser, decorators: Decorator[]) -> void {
             p.error(.DecoratorArgumentCount, d.span,
                 "`@${d.name}` expects one condition over the parameters : `@${d.name}(h in Hour)`")
         }
+    }
+}
+
+// `@c_struct` names the C type at most once, as a plain string: a reader that
+// met anything else would take the struct for an ordinary one, in silence.
+check_c_struct_arguments :: fn(p: Parser, decorators: Decorator[]) -> void {
+    d :: find_decorator(decorators, "c_struct") ?? return
+    if d.args.len() > 1 {
+        p.error(.DecoratorArgumentCount, d.span,
+            "`@c_struct` takes at most one argument : the C type, when it is not the struct's own name")
+        return
+    }
+    if d.args.len() == 1 && string_literal_text(d.args[0]) == null {
+        p.error(.DecoratorArgumentForm, d.args[0].span,
+            "`@c_struct` names the C type with a plain string literal (no interpolation)")
     }
 }
 

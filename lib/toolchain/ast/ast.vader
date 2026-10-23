@@ -214,6 +214,30 @@ export find_decorator :: fn(decs: Decorator[], name: string) -> Decorator | null
 /// @param decs  the decorators of an `@extern` declaration or of one parameter.
 export c_type_of :: fn(decs: Decorator[]) -> string {
     d :: find_decorator(decs, "c_type") ?? return ""
+    return sole_string_argument(d)
+}
+
+/// The C type a struct declaration mirrors, or `""` when it carries no
+/// `@c_struct`.
+///
+/// A bare `@c_struct` names the C type after the struct, read as a `typedef`
+/// name: `Color` mirrors `Color`. The argument spells a C type whose name differs
+/// (`@c_struct("struct pollfd")`). An argument that is not one plain string reads
+/// as `""`; the parser reports it (`P1032`, `P1033`).
+///
+/// @param decs         the struct's decorators.
+/// @param struct_name  the name the struct declares, never its mangled form.
+export c_struct_spelling :: fn(decs: Decorator[], struct_name: string) -> string {
+    d :: find_decorator(decs, "c_struct") ?? return ""
+    if d.args.len() == 0 {
+        return struct_name
+    }
+    return sole_string_argument(d)
+}
+
+// The text of `d`'s argument when it has exactly one, a plain string; `""`
+// otherwise.
+sole_string_argument :: fn(d: Decorator) -> string {
     if d.args.len() != 1 {
         return ""
     }
