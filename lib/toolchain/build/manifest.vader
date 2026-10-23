@@ -1,0 +1,38 @@
+// toolchain/build/manifest: the driver a `vader.json` stands for.
+//
+// A project described by a `vader.json` is built and checked by this driver,
+// compiled into `vader` itself and run in its own process: it adds the entries
+// and the assets the file declares, then drains the stream as any `build.vader`
+// does. A `build.vader` that needs more takes the same shape (`vader new
+// --build=driver`), its entries in code.
+
+module "toolchain/build"
+
+import "vader/pipeline"
+import "vader/resolver"
+
+/// Run the driver a `vader.json` stands for, as the CLI does for a project
+/// folder described by one: the counterpart of a `build.vader`'s `build`.
+///
+/// The file's `includePaths` are not copied into `ctx.include_paths`: the
+/// loader reads them from the project's `vader.json` itself, at the rank it
+/// gives them for every command.
+///
+/// @param request   what the command asks; its `project_root` is the folder
+///                  holding the `vader.json`.
+/// @param manifest  that file, read and found without problems.
+/// @return          0 when every entry built, or checked, cleanly; 1 otherwise,
+///                  after printing why.
+export build_from_manifest :: fn(request: DriverRequest, manifest: Manifest) -> i32 {
+    ctx :: new_build_context_from(request)
+    ctx.description_file = MANIFEST_FILENAME
+    for entry in manifest.entries {
+        ctx.add_entry(entry.name, entry.path)
+    }
+    for asset in manifest.assets {
+        ctx.add_asset(asset)
+    }
+    code :: ctx.emit_native()
+    _ :: ctx.flush_reports()
+    return code
+}

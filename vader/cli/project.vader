@@ -27,11 +27,11 @@ FileInput :: struct {
 
 /// A folder whose `vader.json` declares the programs to compile.
 ManifestProject :: struct {
-    dir:     string
-    /// The entries to compile: every one, or the one `--entry` names.
-    entries: ProjectEntry[]
-    /// What a build copies beside the binaries, relative to `dir`.
-    assets:  string[]
+    dir:      string
+    /// The entries to work on: every one, or the one `--entry` names.
+    entries:  ProjectEntry[]
+    /// The `vader.json`, read and found without problems.
+    manifest: Manifest
 }
 
 /// A folder whose `build.vader` decides what to compile.
@@ -81,7 +81,7 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
     return ManifestProject {
         .dir = dir,
         .entries = entries,
-        .assets = manifest.assets,
+        .manifest = manifest,
     }
 }
 
@@ -103,17 +103,16 @@ single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProj
     if input is i32 {
         return input
     }
-    why :: "`vader ${command}` works on one program"
     match input {
         is FileInput -> { return EntryInProject { .file = input.file, .project_root = null } }
         is ManifestProject -> {
-            entry :: sole_entry(command, input.dir, input.entries, why) ?? return 2
+            entry :: sole_entry(command, input.dir, input.entries) ?? return 2
             return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
         is DrivenProject -> {
             project :: prepared_project(command, input.dir, selected) ?? return 1
             entries :: project_entries(input.dir, project.entries)
-            entry :: sole_entry(command, input.dir, entries, why) ?? return 2
+            entry :: sole_entry(command, input.dir, entries) ?? return 2
             return EntryInProject {
                 .file = entry.file,
                 .project_root = input.dir,
@@ -212,14 +211,14 @@ chosen_entries :: fn(
     return null
 }
 
-// The one entry of `entries`, or null after saying that `--entry` must choose:
-// `why` says what takes a single program.
-sole_entry :: fn(command: string, dir: string, entries: ProjectEntry[], why: string) -> ProjectEntry | null {
+// The one entry of `entries`, or null after saying that `--entry` must choose,
+// since `command` works on one program.
+sole_entry :: fn(command: string, dir: string, entries: ProjectEntry[]) -> ProjectEntry | null {
     if entries.len() == 1 {
         return entries[0]
     }
-    eprintln("vader ${command}: ${why}, and `${dir}` declares ${entry_names(entries)}; "
-        + "choose one with `--entry=<name>`")
+    eprintln("vader ${command}: `vader ${command}` works on one program, and `${dir}` declares "
+        + "${entry_names(entries)}; choose one with `--entry=<name>`")
     return null
 }
 

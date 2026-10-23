@@ -285,6 +285,7 @@ export HookCode :: enum(CodeInfo) {
     GeneratedModuleNotWritten  { .id = "H6008", .message = "cannot write a generated module" },
     UnknownEntry               { .id = "H6009", .message = "the build names no such entry" },
     AssetOutsideProject        { .id = "H6010", .message = "asset outside the project" },
+    OutputForSeveralEntries    { .id = "H6011", .message = "one output for several entries" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers

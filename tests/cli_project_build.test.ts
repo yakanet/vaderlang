@@ -64,8 +64,8 @@ test("a project folder builds every entry into build/<profile>-<target>/", async
 test("--entry builds one entry, and --out needs exactly one", async () => {
   const dir = stage(TWO_ENTRIES);
   const both = await vader(["build", `--out=${join(dir, "x")}`, dir]);
-  expect(both.exit).toBe(2);
-  expect(both.stderr).toContain("choose one with `--entry=<name>`");
+  expect(both.exit).toBe(1);
+  expect(both.stderr).toContain("vader.json:1:1] error[H6011]");
 
   const one = await vader(["build", "--entry=tool", `--out=${join(dir, "out/tool")}`, dir]);
   expect(one.exit).toBe(0);

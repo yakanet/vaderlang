@@ -38,8 +38,8 @@ export DriverRequest :: struct {
     mode:           DriverMode = .Build
     /// The entry `--entry` names, empty for every entry.
     selected:       string = ""
-    /// The build options; `project_root` names the folder holding
-    /// `build.vader`, and an empty `cc` the default C compiler.
+    /// The build options; `project_root` names the project folder, and an
+    /// empty `cc` the default C compiler.
     build:          BuildRequest = BuildRequest {}
 }
 

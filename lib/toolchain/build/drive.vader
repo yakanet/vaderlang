@@ -65,14 +65,16 @@ AST :: import "toolchain/ast"
 /// What the command asked shapes the stream: `--entry` narrows the entries to
 /// one; a check lowers after the last generation round and links nothing; the
 /// preparation of a run writes the project for the CLI and stops after the last
-/// generation round. A build writes each binary to `build/<profile>-<target>/<name>`
-/// and copies the assets beside them. Every mode writes the generated modules.
+/// generation round. A build writes each binary to `build/<profile>-<target>/<name>`,
+/// or to `--out` for its one entry, copies the assets beside them, and stops at
+/// the first entry that fails. Every mode writes the generated modules.
 ///
 /// @param ctx  the configured context. Without an entry the stream yields only
 ///             `CompleteMessage`.
 /// @return     a lazy stream of messages, in pipeline order.
 /// @error      H6003 when the driver added no entry ; H6009 when `--entry`
-///             names none of them ; H6006 when generation never settles ; H6008
+///             names none of them ; H6011 when `--out` names one output for
+///             several entries ; H6006 when generation never settles ; H6008
 ///             when a generated module cannot be written. All land on
 ///             `ctx.diagnostics`.
 export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
@@ -91,6 +93,14 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     }
     chosen :: chosen_entries(ctx, request)
     if chosen == null {
+        yield CompleteMessage { .code = 1 }
+        return
+    }
+    writes_outputs :: request.mode == .Build && destination == .Native
+    if writes_outputs && output.out != "" && chosen.len() > 1 {
+        detail :: "`--out` names one output and ${chosen.len()} entries are built; "
+            + "choose one with `--entry`"
+        ctx.diagnostics.push(hook_error(.OutputForSeveralEntries, driver_span(ctx), detail))
         yield CompleteMessage { .code = 1 }
         return
     }
@@ -116,8 +126,8 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     sweep_generated(generated_root_of(ctx))
     code := 0
     output_dir :: project_output_dir(ctx.project_root, output.release, output.target)
-    writes_outputs :: request.mode == .Build && destination == .Native
-    if writes_outputs && !ensure_dir(output_dir) {
+    binaries :: binary_folder(output.out, output_dir)
+    if writes_outputs && !ensure_dir(binaries) {
         yield CompleteMessage { .code = 1 }
         return
     }
@@ -208,11 +218,24 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             yield PhaseMessage { .phase = .OutputWritten }
             break
         }
+        // A check reports on every entry; a build stops at the first failure.
+        if code != 0 && writes_outputs {
+            break
+        }
     }
-    if code == 0 && writes_binaries && !copy_assets(ctx.project_root, ctx.assets, output_dir) {
+    if code == 0 && writes_binaries && !copy_assets(ctx.project_root, ctx.assets, binaries) {
         code = 1
     }
     yield CompleteMessage { .code = code }
+}
+
+// The folder a build writes its binaries to: that of `--out` when `out_flag`
+// names one, else the project's `output_dir`.
+binary_folder :: fn(out_flag: string, output_dir: string) -> string {
+    if out_flag != "" {
+        return folder_of(Path(out_flag))
+    }
+    return output_dir
 }
 
 // The entries this run compiles: every one, or the one `--entry` names. Null
@@ -299,8 +322,8 @@ output_request :: fn(ctx: BuildContext) -> BuildRequest = BuildRequest {
 /// `--emit` names their C or their text bytecode.
 ///
 /// This is what makes a driver a build system rather than an observer. Each
-/// entry is compiled to `build/<profile>-<target>/<name>` under the project, the
-/// folder a `vader.json` project's binaries go to.
+/// entry is compiled to `build/<profile>-<target>/<name>` under the project, or
+/// to `--out` when one entry is built.
 ///
 /// Front-end and lowering diagnostics are **accumulated onto the context**, not
 /// printed, so they interleave with the driver's own reports in the order they
@@ -354,6 +377,17 @@ import "std/testing"
     reports :: ctx.reports_of()
     assert_eq(reports.len(), 1)
     assert_eq(reports[0].code.id, "H6009")
+}
+
+@test test_messages_with_one_output_for_two_entries_reports_h6011 :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj", "", "--out=/tmp/app"])
+    ctx.add_entry("app", "src/main.vader")
+    ctx.add_entry("tool", "tool.vader")
+    // Refused before any front end runs, so nothing is compiled.
+    for _ in ctx.messages() {}
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6011")
 }
 
 @test test_messages_without_entries_reports_h6003 :: fn() -> void {

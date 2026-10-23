@@ -1,9 +1,10 @@
 // vader/cli/build: the `vader build` command.
 //
-// The flags, the project layout, a `.virt` input, the C for several targets at
-// once (`--seed-targets`), and the diagnostic rendering. Turning a prepared
+// The flags, a `.virt` input, the C for several targets at once
+// (`--seed-targets`), and the diagnostic rendering. A project folder, of either
+// kind, is built by the driver stream (`toolchain/build`); turning a prepared
 // program into what the flags ask for, the split build included, is
-// `vader/pipeline/output.vader`, which a project's `build.vader` shares.
+// `vader/pipeline/output.vader`, which both paths share.
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
@@ -20,6 +21,7 @@ import "vader/resolver"
 import "vader/bytecode"
 import "vader/vm"
 import "vader/pipeline"
+Build :: import "toolchain/build"
 import "vader/diagnostics"
 import "vader/c_emit" { EmitOptions as CEmitOptions }
 import "std/sort"
@@ -97,6 +99,12 @@ cmd_build :: fn(args: string[]) -> i32 {
     if input is i32 {
         return input
     }
+    // The C of several targets at once is the seed's shape, emitted from one file.
+    if seed_flag != "" && input !is FileInput {
+        eprintln("vader build: a project folder does not take `--seed-targets`; "
+            + "name the entry file instead")
+        return 2
+    }
     no_hooks :: parsed.bool_flag("no-hooks")
     match input {
         is FileInput -> {
@@ -109,26 +117,20 @@ cmd_build :: fn(args: string[]) -> i32 {
             if !no_hooks && find_build_driver(current_working_directory()) != null {
                 eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
             }
-            return build_file(input.file, strip_input_suffix(input.file), request)
+            return build_file(input.file, request)
         }
-        is ManifestProject -> { return build_entries(input, request) }
+        is ManifestProject -> { return run_manifest_project(input, selected, request, .Build) }
         is DrivenProject -> {
             if no_hooks {
                 eprintln("vader build: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${input.dir}`, "
                     + "which leaves nothing to build; name the entry file instead")
                 return 1
             }
-            if refuse_unforwarded_flags("build", parsed, DRIVEN_BUILD_REFUSES) {
-                return 2
-            }
             driver_request :: DriverRequest { .selected = selected, .build = request }
             return run_build_driver("build", input.dir, driver_request)
         }
     }
 }
-
-// The flags of `vader build` a `build.vader` does not receive.
-DRIVEN_BUILD_REFUSES :: ["out", "include-paths", "seed-targets"]
 
 // The targets `--seed-targets` lists, empty without it, or null after saying
 // why the list cannot be honoured: the seed set is split by construction, one
@@ -154,44 +156,27 @@ strip_input_suffix :: fn(file: Path) -> Path =
         file.as_string().trim_suffix(".vader").to_path()
     }
 
-// Build the entries of a `vader.json` project into `build/<profile>-<target>/`,
-// then copy its assets beside the binaries.
-build_entries :: fn(project: ManifestProject, request: BuildRequest) -> i32 {
-    if request.out != "" && sole_entry("build", project.dir, project.entries, "`--out` names one output") == null {
-        return 2
+// Build or check the `vader.json` project through the driver that file stands
+// for (`build_from_manifest`), run in this process: the engine every
+// `build.vader` drives, with no driver to compile.
+run_manifest_project :: fn(
+    project: ManifestProject,
+    selected: string,
+    request: BuildRequest,
+    mode: DriverMode,
+) -> i32 {
+    driver_request :: DriverRequest {
+        .mode = mode,
+        .selected = selected,
+        .build = BuildRequest { ...request, .project_root = project.dir },
     }
-    output_dir :: project_output_dir(project.dir, request.release, request.target)
-    binaries :: binary_folder(request.out, output_dir)
-    if !ensure_dir(binaries) {
-        return 1
-    }
-    in_project :: BuildRequest { ...request, .project_root = project.dir }
-    for entry in project.entries {
-        code :: build_file(entry.file, Path(join_path(output_dir, entry.name)), in_project)
-        if code != 0 {
-            return code
-        }
-    }
-    // The assets a program reads beside itself, so only a binary needs them.
-    if request.emit == "executable" && !copy_assets(project.dir, project.assets, binaries) {
-        return 1
-    }
-    return 0
+    return Build.build_from_manifest(driver_request, project.manifest)
 }
 
-// The folder a project build writes its binaries to: that of `--out` when
-// `out_flag` names one, else `output_dir`.
-binary_folder :: fn(out_flag: string, output_dir: string) -> string {
-    if out_flag != "" {
-        return folder_of(Path(out_flag))
-    }
-    return output_dir
-}
-
-// Build one entry file as `request` asks. `stem` is what its outputs are named
-// after without `--out`: the entry without its extension for a file, the
-// entry's name in the output folder for a project.
-build_file :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
+// Build one entry file as `request` asks, its outputs named after it without
+// its extension unless `--out` names them.
+build_file :: fn(file: Path, request: BuildRequest) -> i32 {
+    stem :: strip_input_suffix(file)
     // A `.virt` input already holds its bytecode: there is no front end to run,
     // and so nothing to split.
     if file.extension() == "virt" {

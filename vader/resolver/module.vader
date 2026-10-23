@@ -28,6 +28,10 @@ import "std/string"
 import "toolchain/ast"
 import "vader/parser"
 
+/// The file through which a project drives its own build. Here, beside
+/// `MANIFEST_FILENAME`, because the CLI and the driver contract both name it.
+export DRIVER_FILENAME :: "build.vader"
+
 /// The file that describes a project folder. A command is handed the folder;
 /// only the language server and the debugger look for it, walking up from a
 /// file (`find_manifest_root`).

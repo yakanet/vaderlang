@@ -16,7 +16,8 @@
 //
 // This file is the CONTRACT — what a driver fills in, and what it reads back.
 // Draining the stream is `drive.vader`; writing generated modules is
-// `generate.vader`. All three share this module, so nothing crosses a boundary.
+// `generate.vader`; the driver a `vader.json` stands for is `manifest.vader`.
+// They share this module, so nothing crosses a boundary.
 //
 // `build` is a reserved name in `build.vader`, the way `main` is in a program —
 // no decorator is involved. The driver is compiled and run NATIVELY, not through
@@ -42,7 +43,8 @@ import "toolchain/span"
 /// asked (a build, a check or a run, the profile, `--entry`) comes from `args`
 /// and is not the driver's to change.
 export BuildContext :: struct {
-    /// The project folder: the one holding `build.vader`, as the compiler passed
+    /// The project folder: the one holding `build.vader`, or the `vader.json`
+    /// whose driver runs in the compiler's own process, as the compiler passed
     /// it. The front end searches it for modules and anchors the generated tree
     /// under it, as for any project (`project_of`).
     /// NOT guaranteed absolute — the stdlib exposes no `cwd()`, so this is
@@ -73,8 +75,9 @@ export BuildContext :: struct {
     /// never looks. One of the two halves has to be authoritative.
     @internal
     generated_root: string
-    /// What the command asked, read from `args`: the binaries go to
-    /// `build/<profile>-<target>/<name>` under `project_root`.
+    /// What the command asked, read from `args` or handed over in process:
+    /// the binaries go to `build/<profile>-<target>/<name>` under
+    /// `project_root`, or to `--out`.
     @internal
     request:        DriverRequest = DriverRequest {}
     /// C compiler for the link step.
@@ -106,8 +109,12 @@ export BuildContext :: struct {
     /// `project_root`.
     @internal
     assets:         string[] = []
-    /// Diagnostics of the build and the driver's own reports, in the order they
-    /// happened. `flush_reports` prints them.
+    /// The file that describes the project, which a diagnostic about the
+    /// driver's behaviour is anchored at.
+    @internal
+    description_file: string = DRIVER_FILENAME
+    /// Diagnostics of the build and the driver's own reports. `flush_reports`
+    /// prints them.
     @internal
     diagnostics:    Diagnostic[] = []
 }
@@ -135,18 +142,20 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none), no entry and no include paths. Returned MUTABLE: the whole
 ///              contract is that the driver fills it in.
-export new_build_context :: fn(args: string[]) -> BuildContext {
-    request :: parse_driver_request(args)
-    return BuildContext {
-        .project_root   = request.build.project_root ?? "",
-        .toolchain_root = request.toolchain_root,
-        .include_paths  = [],
-        .generated_root = DEFAULT_GENERATED_ROOT,
-        .request        = request,
-        .cc             = cc_or_default(request.build.cc),
-        .ldflags        = request.build.ldflags,
-        .target         = .Native,
-    }
+export new_build_context :: fn(args: string[]) -> BuildContext =
+    new_build_context_from(parse_driver_request(args))
+
+// A context for a request already in hand: `new_build_context` reads it from
+// `args`, `build_from_manifest` receives it from the CLI.
+new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildContext {
+    .project_root   = request.build.project_root ?? "",
+    .toolchain_root = request.toolchain_root,
+    .include_paths  = [],
+    .generated_root = DEFAULT_GENERATED_ROOT,
+    .request        = request,
+    .cc             = cc_or_default(request.build.cc),
+    .ldflags        = request.build.ldflags,
+    .target         = .Native,
 }
 
 /// What a drained `messages()` leaves behind.
@@ -159,14 +168,16 @@ export BuildTarget :: enum(u8) {
     None,
 }
 
-// Module search roots for the front end: what the driver configured, then the
-// compiler's own `lib/`.
+// Module search roots for the front end: the CLI's `--include-paths`, what the
+// driver configured, then the compiler's own `lib/`.
 //
 // The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
 // so that a driver which replaces that list keeps the stdlib instead of getting
 // `R2001 module not found: std/io`.
 search_roots :: fn(ctx: BuildContext) -> string[] {
-    roots :: include_roots(ctx)
+    roots: string[]: []
+    roots.push_all(ctx.request.build.include_paths)
+    roots.push_all(include_roots(ctx))
     library :: library_root_of(ctx)
     if library != null {
         roots.push(library)
@@ -225,18 +236,12 @@ toolchain_sidecar :: fn(ctx: BuildContext, subdir: string, marker: string) -> st
     return candidate
 }
 
-// The driver file's name, restated from `vader/cli::DRIVER_FILENAME` for the same
-// reason `GENERATED_BANNER` is restated there: `vader/cli` importing this module
-// would pull the whole driver contract into the compiler's own closure, and this
-// module cannot import `vader/cli` without a cycle. Keep the two in step.
-DRIVER_FILE :: "build.vader"
-
 // Where to anchor a diagnostic about the DRIVER's behaviour: no entry added, two
 // entries of one name, a module name it built badly. The faulty
 // line is unknown (it is a behaviour, not a statement) but the faulty FILE never
 // is, and `empty_span` would render as `<synthetic>`, naming nothing.
 driver_span :: fn(ctx: BuildContext) -> Span =
-    file_head_span(join_path(ctx.project_root, DRIVER_FILE))
+    file_head_span(join_path(ctx.project_root, ctx.description_file))
 
 // ---- configuration --------------------------------------------------------
 
@@ -308,9 +313,9 @@ export reports_of :: fn(ctx: BuildContext) -> Diagnostic[] = ctx.diagnostics
 /// Print every accumulated report, in the compiler's own diagnostic format.
 ///
 /// A driver has to call this: under this model the driver IS the process, so
-/// there is no host left to drain the reports for it. Accumulating first and
-/// printing once keeps the order the driver produced — which is what makes a
-/// driven build's output reproducible.
+/// there is no host left to drain the reports for it. They print once, sorted
+/// by file and position and without duplicates, which is what makes a driven
+/// build's output reproducible.
 ///
 /// @param ctx  the context holding the reports.
 /// @return     true when at least one report was printed, so a driver can pick

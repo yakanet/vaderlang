@@ -76,31 +76,18 @@ export cmd_check :: fn(args: string[]) -> i32 {
     match input {
         is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target, null)) }
         is ManifestProject -> {
-            return exit_code_of(check_entries(input, include_path_flags, target))
+            request :: BuildRequest { .target = target, .include_paths = include_path_flags }
+            return run_manifest_project(input, selected, request, .Check)
         }
         is DrivenProject -> {
-            if refuse_unforwarded_flags("check", parsed, ["include-paths"]) {
-                return 2
-            }
             driver_request :: DriverRequest {
                 .mode = .Check,
                 .selected = selected,
-                .build = BuildRequest { .target = target },
+                .build = BuildRequest { .target = target, .include_paths = include_path_flags },
             }
             return run_build_driver("check", input.dir, driver_request)
         }
     }
-}
-
-// Check every entry of `project`, and say whether none reported an error.
-check_entries :: fn(project: ManifestProject, include_path_flags: string[], target: Target | null) -> bool {
-    clean := true
-    for entry in project.entries {
-        if !check_entry(entry.file, include_path_flags, target, project.dir) {
-            clean = false
-        }
-    }
-    return clean
 }
 
 // Run the front end and the lowering over `file`, within `project_root` (null

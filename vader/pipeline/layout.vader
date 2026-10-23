@@ -2,9 +2,9 @@
 //
 // A project's binaries go under `build/<profile>-<target>/`, so that a debug and
 // a release build, or two targets, never overwrite each other, and its assets are
-// copied beside them. A `vader.json` project and a `build.vader` project follow
-// the same layout: the CLI builds the first, the driver's stream
-// (`toolchain/build`) the second, and both read it from here.
+// copied beside them. Both kinds of project follow it: the driver's stream
+// (`toolchain/build`) builds a `vader.json` project and a `build.vader` one
+// alike.
 
 module "vader/pipeline"
 
@@ -18,7 +18,7 @@ import "vader/target"
 /// binaries covers its driver too.
 export DRIVER_ARTEFACT_DIR :: "build/driver"
 
-/// The folder a project build writes its binaries to.
+/// The folder a project build writes its binaries to by default.
 ///
 /// @param dir      the project folder.
 /// @param release  whether the build is optimised, which names the profile.
