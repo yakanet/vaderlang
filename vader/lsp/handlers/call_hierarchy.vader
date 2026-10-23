@@ -1,0 +1,179 @@
+// vader/lsp/handlers/call_hierarchy: who calls a fn, and what it calls.
+//
+// `textDocument/prepareCallHierarchy` names the fn under the cursor as a
+// `CallHierarchyItem`; the client then asks `callHierarchy/incomingCalls` and
+// `callHierarchy/outgoingCalls` with that item, one level at a time.
+//
+// Both directions read the reference index (`analysis/reference_index`), whose
+// sites are keyed by the fn they run, an implicit run included (`a + b` calling
+// an impl's `add`):
+//
+//   - incoming : every site of the fn, past the document's project too
+//     (`analysis/workspace::reference_sites`), grouped by the fn whose body
+//     holds it ;
+//   - outgoing : every site inside the fn's own declaration, grouped by the fn
+//     it runs.
+//
+// An item is found again from what it carries (`decl_target.vader`), so it holds
+// no state of its own.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/span"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+
+/// Resolve `textDocument/prepareCallHierarchy` : the fn under the cursor.
+///
+/// @param state   the server state.
+/// @param params  the request params (`textDocument`, `position`).
+/// @return        a one-item `CallHierarchyItem[]`, or `JsonNull` when the cursor
+///                is not on a fn.
+export handle_prepare_call_hierarchy :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: fn_target(cursor_target(state, params)) ?? return JsonNull {}
+    return JsonArray { .items = [call_item_json(target, target.decl, target.decl_path)] }
+}
+
+/// Resolve `callHierarchy/incomingCalls` : the fns whose bodies call the item.
+///
+/// @param state   the server state.
+/// @param params  the request params (`item`).
+/// @return        a `CallHierarchyIncomingCall[]` : each caller with the ranges
+///                of its calls.
+export handle_incoming_calls :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: fn_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    groups :: CallGroups {}
+    for s in reference_sites(state, target.uri, target.project, target.index, target.site) {
+        if s.is_decl {
+            continue
+        }
+        path :: s.span.start.file
+        index :: doc_index_for(state, target.indices, path)
+        caller :: enclosing_fn(index, s.span.start.offset) ?? continue
+        groups.record_call(path, caller, s.span)
+    }
+    return groups.calls_json(target, "from")
+}
+
+/// Resolve `callHierarchy/outgoingCalls` : the fns the item's body calls.
+///
+/// @param state   the server state.
+/// @param params  the request params (`item`).
+/// @return        a `CallHierarchyOutgoingCall[]` : each callee with the ranges
+///                of the calls in the item's body.
+export handle_outgoing_calls :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: fn_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    // The calls in the body first, then the declaration of each callee : one
+    // pass over the project's sites for each, not one per call.
+    calls: RefSite[]: []
+    callees :: MutableSet<i64> {}
+    for s in target.index.sites {
+        in_body :: inside(s.span, target.decl_path, target.decl.full_span)
+        if !s.is_decl && is_fn_key(s.key) && in_body {
+            calls.push(s)
+            callees.add(s.key)
+        }
+    }
+    declared :: MutableMap<i64, Span> {}
+    for s in target.index.sites {
+        if s.is_decl && s.key in callees {
+            declared[s.key] = s.span
+        }
+    }
+    groups :: CallGroups {}
+    for call in calls {
+        at :: declared[call.key] ?? continue
+        index :: doc_index_for(state, target.indices, at.start.file)
+        callee :: index.entry_at_offset(at.start.offset) ?? continue
+        groups.record_call(at.start.file, callee, call.span)
+    }
+    return groups.calls_json(target, "to")
+}
+
+// `target` when it names a fn, else null.
+fn_target :: fn(target: DeclTarget | null) -> DeclTarget | null {
+    if target == null || !is_fn_key(target.site.key) {
+        return null
+    }
+    return target
+}
+
+// Whether `span` sits in `path`, within `outer`.
+inside :: fn(span: Span, path: string, outer: Span) -> bool =
+    span.start.file == path && span_encloses(outer, span)
+
+// The innermost fn of `idx` whose declaration holds the byte `offset` : a
+// top-level fn, or a member of a trait or an impl.
+enclosing_fn :: fn(idx: DocIndex, offset: i64) -> DeclEntry | null {
+    best: DeclEntry | null = null
+    for d in idx.decls {
+        if d.kind != .Fn || d.scope_span != null {
+            continue
+        }
+        if offset < d.full_span.start.offset || offset >= d.full_span.end.offset {
+            continue
+        }
+        if best == null || width(d.full_span) < width(best.full_span) {
+            best = d
+        }
+    }
+    return best
+}
+
+// How many bytes `span` covers.
+width :: fn(span: Span) -> i64 = span.end.offset - span.start.offset
+
+// ---- encoding --------------------------------------------------------------
+
+// Calls grouped by the fn on the other end, in the order first met.
+CallGroups :: struct {
+    /// By `path:offset` of each fn's name.
+    groups: MutableMap<string, CallGroup> = MutableMap<string, CallGroup> {}
+}
+
+// One fn on the other end of some calls, and where those calls are.
+CallGroup :: struct {
+    /// The file declaring `peer`.
+    path:  string
+    peer:  DeclEntry
+    calls: Span[] = []
+}
+
+// Record a call at `call` to or from the fn `f`, declared in `path`.
+record_call :: fn(self: CallGroups, path: string, f: DeclEntry, call: Span) -> void {
+    key :: "${path}:${f.name_span.start.offset}"
+    self.groups.get_or_put_with(key, () -> CallGroup { .path = path, .peer = f }).calls.push(call)
+}
+
+// `[{ <side>: item, fromRanges: Range[] }]`, `side` being `from` or `to`. The
+// ranges are those of the calls, in the file that holds them.
+calls_json :: fn(self: CallGroups, target: DeclTarget, side: string) -> JsonValue {
+    out: JsonValue[]: []
+    for [_, group] in self.groups {
+        ranges: JsonValue[]: []
+        for call in group.calls {
+            ranges.push(range_json(call.span_to_range_json(target.line_index_for(call.start.file))))
+        }
+        obj :: MutableMap<string, JsonValue> {}
+        obj[side] = call_item_json(target, group.peer, group.path)
+        obj["fromRanges"] = JsonArray { .items = ranges }
+        out.push(JsonObject { .entries = obj })
+    }
+    return JsonArray { .items = out }
+}
+
+// A `CallHierarchyItem` for the fn `f` declared in `path`, its owning type as
+// its detail.
+call_item_json :: fn(target: DeclTarget, f: DeclEntry, path: string) -> JsonValue =
+    hierarchy_item_json(target, f, path, fn_symbol_kind(f), f.owner)
+
+// The LSP `SymbolKind` of a fn : Method (6) for a member of a type, Function
+// otherwise.
+fn_symbol_kind :: fn(f: DeclEntry) -> i32 {
+    if f.owner.byte_len() > 0 {
+        return 6
+    }
+    return lsp_symbol_kind(.Fn)
+}

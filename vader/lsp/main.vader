@@ -282,6 +282,42 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         P.log_info("typeDefinition ${doc_uri(params)}")
         return .Continue
     }
+    if method == "textDocument/prepareCallHierarchy" {
+        result :: H.handle_prepare_call_hierarchy(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareCallHierarchy ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "callHierarchy/incomingCalls" {
+        result :: H.handle_incoming_calls(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("callHierarchy/incomingCalls")
+        return .Continue
+    }
+    if method == "callHierarchy/outgoingCalls" {
+        result :: H.handle_outgoing_calls(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("callHierarchy/outgoingCalls")
+        return .Continue
+    }
+    if method == "textDocument/prepareTypeHierarchy" {
+        result :: H.handle_prepare_type_hierarchy(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareTypeHierarchy ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "typeHierarchy/supertypes" {
+        result :: H.handle_supertypes(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeHierarchy/supertypes")
+        return .Continue
+    }
+    if method == "typeHierarchy/subtypes" {
+        result :: H.handle_subtypes(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeHierarchy/subtypes")
+        return .Continue
+    }
     if method == "textDocument/references" {
         result :: H.handle_references(state, params)
         P.write_frame(P.encode_response(id, result))

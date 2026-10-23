@@ -41,7 +41,13 @@ interface Query {
     | "textDocument/rename"
     | "textDocument/prepareRename"
     | "textDocument/semanticTokens/full"
-    | "textDocument/signatureHelp";
+    | "textDocument/signatureHelp"
+    | "textDocument/prepareCallHierarchy"
+    | "callHierarchy/incomingCalls"
+    | "callHierarchy/outgoingCalls"
+    | "textDocument/prepareTypeHierarchy"
+    | "typeHierarchy/supertypes"
+    | "typeHierarchy/subtypes";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
@@ -151,6 +157,8 @@ async function driveLsp(
         context: { diagnostics: [] },
         // `rename` is the only method that needs a value the others ignore.
         newName: "renamed",
+        // The call hierarchy's item, found again from its uri and selection.
+        item: { uri, selectionRange: { start: at, end: at } },
       },
     });
   }
@@ -407,6 +415,87 @@ test("lsp: hover renders a declaration as quick documentation", async () => {
   expect(value(2)).toStartWith("decorator\n\n```\n@allow_unused\n```");
   expect(value(2)).toContain("W0007");
   expect(value(3)).toStartWith("intrinsic\n\n```\n@size_of(T: type) -> i64\n```");
+}, { timeout: MEDIUM_BUILD });
+
+// The call hierarchy reads the reference index: the callers of a fn grouped by
+// the fn whose body holds each call, the callees of a fn grouped by callee.
+const CALLS_SOURCE = `module "lsptest"
+
+helper :: fn(x: i32) -> i32 = x + 1
+
+twice :: fn(x: i32) -> i32 = helper(helper(x))
+
+main :: fn() -> i32 {
+    return twice(1) + helper(2)
+}
+`;
+
+interface CallItemT { name: string; kind: number; selectionRange: RangeT }
+interface CallT { from?: CallItemT; to?: CallItemT; fromRanges: RangeT[] }
+
+test("lsp: call hierarchy lists a fn's callers and callees", async () => {
+  const results = await driveLsp(CALLS_SOURCE, [
+    { method: "textDocument/prepareCallHierarchy", position: { line: 2, character: 0 } },
+    { method: "callHierarchy/incomingCalls", position: { line: 2, character: 0 } },
+    { method: "callHierarchy/outgoingCalls", position: { line: 4, character: 0 } },
+  ]);
+  const prepared = results[0]!.result as CallItemT[];
+  expect(prepared.map((i) => [i.name, i.kind])).toEqual([["helper", 12]]);
+  const incoming = (results[1]!.result as CallT[]).map((c) =>
+    `${c.from!.name}@${c.fromRanges.map((r) => `${r.start.line}:${r.start.character}`).join(",")}`);
+  expect(incoming).toEqual(["twice@4:29,4:36", "main@7:22"]);
+  const outgoing = (results[2]!.result as CallT[]).map((c) => `${c.to!.name}@${c.fromRanges.length}`);
+  expect(outgoing).toEqual(["helper@2"]);
+}, { timeout: MEDIUM_BUILD });
+
+// The type hierarchy: a trait's subtypes are the types implementing it, a
+// type's supertypes the traits it implements, a union's subtypes its members.
+// `implementation` on a trait lists its `implements` blocks, on a trait method
+// the members implementing it.
+const TYPES_SOURCE = `module "lsptest"
+
+Shape :: trait {
+    area :: fn(self) -> i32
+}
+
+Square :: struct {
+    side: i32
+}
+
+Square implements Shape {
+    area :: fn(self) -> i32 = self.side * self.side
+}
+
+Disc :: struct {
+    r: i32
+}
+
+Disc implements Shape {
+    area :: fn(self) -> i32 = 3 * self.r * self.r
+}
+
+Figure :: Square | Disc
+
+main :: fn() -> i32 = Square { .side = 2 }.area()
+`;
+
+test("lsp: type hierarchy and trait implementations", async () => {
+  const results = await driveLsp(TYPES_SOURCE, [
+    { method: "textDocument/prepareTypeHierarchy", position: { line: 2, character: 0 } },
+    { method: "typeHierarchy/subtypes", position: { line: 2, character: 0 } },
+    { method: "typeHierarchy/supertypes", position: { line: 6, character: 0 } },
+    { method: "typeHierarchy/subtypes", position: { line: 22, character: 0 } },
+    { method: "textDocument/implementation", position: { line: 2, character: 0 } },
+    { method: "textDocument/implementation", position: { line: 3, character: 4 } },
+  ]);
+  const names = (i: number) => (results[i]!.result as { name: string }[]).map((t) => t.name);
+  const lines = (i: number) => (results[i]!.result as Location[]).map((l) => `${l.range.start.line}:${l.range.start.character}`);
+  expect((results[0]!.result as { name: string; kind: number }[]).map((t) => [t.name, t.kind])).toEqual([["Shape", 11]]);
+  expect(names(1)).toEqual(["Square", "Disc"]);
+  expect(names(2)).toEqual(["Shape"]);
+  expect(names(3)).toEqual(["Square", "Disc"]);
+  expect(lines(4)).toEqual(["10:0", "18:0"]);
+  expect(lines(5)).toEqual(["11:4", "19:4"]);
 }, { timeout: MEDIUM_BUILD });
 
 // A method-syntax call of a generic fn binds its type parameters with the receiver

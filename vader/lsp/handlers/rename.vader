@@ -33,7 +33,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
     file_path :: uri_to_path(uri)
     if file_path == "" { return JsonNull {} }
     cached :: typed_project_for(state, file_path)
-    index :: build_reference_index(cached.project, cached.result)
+    index :: reference_index_of(cached)
     site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
     return range_json(site.span.span_to_range_json(state.line_index_for_path(file_path)))
 }
@@ -50,7 +50,7 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     if new_name == "" { return JsonNull {} }
 
     cached :: typed_project_for(state, file_path)
-    index :: build_reference_index(cached.project, cached.result)
+    index :: reference_index_of(cached)
     site :: renameable_at(state, index, file_path, params) ?? return JsonNull {}
 
     sources :: MutableMap<string, string> {}

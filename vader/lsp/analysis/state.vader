@@ -36,6 +36,23 @@ export ProjectCache :: struct {
     /// it. Keyed by the logical `module "..."` name — the string an `import`
     /// uses — not the resolved filesystem path.
     module_name_index: MutableMap<string, LoadedModule>
+    /// The project's references, built on the first request that reads them
+    /// (`reference_index_of`).
+    references:        ReferenceIndex | null = null
+}
+
+/// The references of `cached`, built once per cache entry : find-usages, rename
+/// and each node a hierarchy expands all read them.
+///
+/// @param cached  a typed project from `typed_project_for`.
+export reference_index_of :: fn(cached: ProjectCache) -> ReferenceIndex {
+    kept :: cached.references
+    if kept != null {
+        return kept
+    }
+    built :: build_reference_index(cached.project, cached.result)
+    cached.references = built
+    return built
 }
 
 /// The sites of the last find-usages that reached past the document's project
@@ -45,7 +62,7 @@ export UsagesCache :: struct {
     entry_path: string
     /// The target, as the document's project keys it.
     key:        i64
-    sites:      RefSite[]
+    view:       ReferenceView
 }
 
 /// The navigation view of a project: loaded with NO target selection, so every
@@ -280,7 +297,9 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
 /// @param self         the server state (carries the overlay).
 /// @param file_path    the entry file's filesystem path.
 /// @param extra_seeds  the modules to load beside what the entry imports.
-export check_with_modules :: fn(self: ServerState, file_path: string, extra_seeds: string[]) -> FileCheck =
+export check_with_modules :: fn(
+    self: ServerState, file_path: string, extra_seeds: string[],
+) -> FileCheck =
     check_file(file_path, doc_overlay(self), self.include_flags, false, null, extra_seeds)
 
 /// The navigation view for `file_path`, loaded once and cached.

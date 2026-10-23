@@ -64,6 +64,9 @@ export ReferenceIndex :: struct {
     /// The module each exported declaration belongs to, by target : another
     /// module names it only through an import of that module.
     exports:  MutableMap<i64, string> = MutableMap<i64, string> {}
+    /// The targets that are types : a struct, an enum, a trait, an alias, a
+    /// distinct type.
+    types:    MutableSet<i64> = MutableSet<i64> {}
 }
 
 /// The named reference site whose span contains the 1-based cursor in `file`,
@@ -85,6 +88,11 @@ export site_at :: fn(index: ReferenceIndex, file: string, line: i32, col: i32) -
 // The key of a function: its declaration's node id, apart from every symbol id.
 // Node ids and symbol ids are two numberings, so functions take the negative half.
 fn_key :: fn(decl: AST.FnDecl) -> i64 = -decl.id - 1
+
+/// Whether `key` keys a function (see `fn_key`).
+///
+/// @param key  a target's key.
+export is_fn_key :: fn(key: i64) -> bool = key < 0
 
 /// True when `sp` is in `file` AND the 1-based (line, col) falls inside it.
 ///
@@ -146,6 +154,9 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 } else {
                     index.exports[key] = sym.module_name
                 }
+                if is_type_symbol(typed, sym) {
+                    index.types.add(key)
+                }
             }
         }
         for sym in typed.resolved.import_bindings {
@@ -196,12 +207,21 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
         .fixed    = index.fixed,
         .confined = index.confined,
         .exports  = index.exports,
+        .types    = index.types,
     }
 }
 
+// Whether `sym` declares a type. A distinct type or an alias written
+// `Name :: i32` is a const to the resolver ; the typecheck records it among the
+// alias types.
+is_type_symbol :: fn(typed: TypedProgram, sym: Symbol) -> bool =
+    sym.kind == .Struct || sym.kind == .Enum || sym.kind == .Trait || sym.kind == .TypeAlias
+    || (sym.kind == .Const && sym.id in typed.resolved.alias_types)
+
 // Whether a symbol of kind `k` lives in one body : a local, a parameter, a
 // pattern binding, a type parameter.
-is_local_kind :: fn(k: SymbolKind) -> bool = k == .Local || k == .Param || k == .Binding || k == .TypeParam
+is_local_kind :: fn(k: SymbolKind) -> bool =
+    k == .Local || k == .Param || k == .Binding || k == .TypeParam
 
 // The `__comptime_NAME` fn behind a `NAME :: @comptime …` const: compiler-internal,
 // declared at the `@comptime` token, which names nothing a user would rename.
@@ -218,6 +238,7 @@ IndexBuilder :: struct {
     fixed:    MutableSet<i64> = MutableSet<i64> {}
     confined: MutableSet<i64> = MutableSet<i64> {}
     exports:  MutableMap<i64, string> = MutableMap<i64, string> {}
+    types:    MutableSet<i64> = MutableSet<i64> {}
 }
 
 // Add `site` unless its span already holds a named site.
@@ -407,12 +428,20 @@ collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
             collect_decorators(d.decorators, out)
             collect_type_params(d.type_params, out)
             collect_opt_type(d.requires, out)
-            for m in d.members { collect_fn(m, out) }
+            // A trait method is declared here, as an impl member is in its
+            // block, and its name is as fixed: its impls carry it too.
+            for m in d.members {
+                out.members.push(m)
+                collect_fn(m, out)
+            }
         }
         is AST.ImplDecl -> {
             collect_decorators(d.decorators, out)
             collect_type_params(d.type_params, out)
             collect_type(d.for_type, out)
+            // The trait an `implements` names : the resolver records it among
+            // the idents, so the block counts as a use of the trait.
+            out.spans.push(d.trait_name_span)
             for ta in d.trait_args { collect_type(ta, out) }
             // A member materialised from a trait default has no source of its own.
             for m in d.members {

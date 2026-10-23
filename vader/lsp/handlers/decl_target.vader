@@ -1,0 +1,155 @@
+// vader/lsp/handlers/decl_target: the declaration a cursor or an item names.
+//
+// The call and type hierarchies hand the client an item and get it back in each
+// follow-up request. Both resolve it the same way : the site under a position in
+// the reference index of a typed project, then the index entry of its
+// declaration. An item carries in its `data` the document the hierarchy was
+// opened from : that document's project holds the item's file, so expanding a
+// node declared elsewhere reuses it rather than loading the file's own.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/span"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+
+// A declaration resolved from a position : the project and index it was found
+// in, the site under the cursor, and the declaration.
+DeclTarget :: struct {
+    state:     ServerState
+    /// The document whose project resolved it.
+    uri:       string
+    project:   ProjectCache
+    index:     ReferenceIndex
+    site:      RefSite
+    decl:      DeclEntry
+    /// The file declaring it.
+    decl_path: string
+    /// The files indexed so far for this request, by path.
+    indices:   MutableMap<string, DocIndex>
+    /// Their line indices, by path.
+    lines:     MutableMap<string, LineIndex>
+}
+
+// The declaration under the cursor of `params`, or null.
+cursor_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
+    uri :: position_uri(params)
+    path :: uri_to_path(uri)
+    if path == "" {
+        return null
+    }
+    return target_at(state, uri, path, position_line(params), position_character(params))
+}
+
+// The declaration the `item` of `params` names, found again at its selection
+// range : in the project of the document its hierarchy was opened from, else in
+// its own file's.
+item_target :: fn(state: ServerState, params: JsonValue) -> DeclTarget | null {
+    item :: get_field(params, "item")
+    path :: uri_to_path(get_string(item, "uri"))
+    if path == "" {
+        return null
+    }
+    start :: get_field(get_field(item, "selectionRange"), "start")
+    line :: get_number(start, "line")
+    character :: get_number(start, "character")
+    entry :: get_string(get_field(item, "data"), "entry")
+    if entry != "" {
+        found :: target_at(state, path_to_uri(entry), path, line, character)
+        if found != null {
+            return found
+        }
+    }
+    return target_at(state, path_to_uri(path), path, line, character)
+}
+
+// The declaration named at the 0-based position in the file at `path`, read in
+// the project of the document `uri`.
+target_at :: fn(
+    state: ServerState, uri: string, path: string, line: i32, character: i32,
+) -> DeclTarget | null {
+    cached :: typed_project_for(state, uri_to_path(uri))
+    index :: reference_index_of(cached)
+    [l, column] :: state.span_point(path, line, character)
+    site :: site_at(index, path, l, column) ?? return null
+    decl_site :: declaration_site(index, site.key) ?? return null
+    at :: decl_site.span.start
+    indices :: MutableMap<string, DocIndex> {}
+    decl :: doc_index_for(state, indices, at.file).entry_at_offset(at.offset) ?? return null
+    return DeclTarget {
+        .state     = state,
+        .uri       = uri,
+        .project   = cached,
+        .index     = index,
+        .site      = site,
+        .decl      = decl,
+        .decl_path = at.file,
+        .indices   = indices,
+        .lines     = MutableMap<string, LineIndex> {},
+    }
+}
+
+// The declaration site of the target `key`, or null.
+declaration_site :: fn(index: ReferenceIndex, key: i64) -> RefSite | null {
+    for s in index.sites {
+        if s.key == key && s.is_decl {
+            return s
+        }
+    }
+    return null
+}
+
+// The index of the file at `path`, the open document's when it is one, built
+// once per request otherwise.
+doc_index_for :: fn(
+    state: ServerState, indices: MutableMap<string, DocIndex>, path: string,
+) -> DocIndex = indices.get_or_put_with(path, () -> open_or_built_index(state, path))
+
+// The open document's index of the file at `path`, else one built from its text.
+open_or_built_index :: fn(state: ServerState, path: string) -> DocIndex {
+    uri :: path_to_uri(path)
+    open :: state.index_for(uri)
+    if open != null {
+        return open
+    }
+    return build_index(uri, state.source_for_path(path), state.position_encoding)
+}
+
+// A call or type hierarchy item for `decl`, declared in `path` : the whole
+// declaration as its range, the name as its selection, and in `data` the document
+// whose project resolves it again.
+hierarchy_item_json :: fn(
+    target: DeclTarget, decl: DeclEntry, path: string, kind: i32, detail: string,
+) -> JsonValue {
+    li :: target.line_index_for(path)
+    data :: MutableMap<string, JsonValue> {}
+    data["entry"] = JsonString { .value = target.project.entry_path }
+    obj :: MutableMap<string, JsonValue> {}
+    obj["name"]           = JsonString { .value = decl.name }
+    obj["kind"]           = JsonNumber { .value = f64(kind) }
+    obj["detail"]         = JsonString { .value = detail }
+    obj["uri"]            = JsonString { .value = path_to_uri(path) }
+    obj["range"]          = range_json(decl.full_span.span_to_range_json(li))
+    obj["selectionRange"] = range_json(decl.name_span.span_to_range_json(li))
+    obj["data"]           = JsonObject { .entries = data }
+    return JsonObject { .entries = obj }
+}
+
+// The line index of the file at `path`, read once per request : from its
+// document index when the request built one, through the overlay otherwise.
+line_index_for :: fn(target: DeclTarget, path: string) -> LineIndex =
+    target.lines.get_or_put_with(path, () -> read_line_index(target, path))
+
+// The line index of `path`, not memoised.
+read_line_index :: fn(target: DeclTarget, path: string) -> LineIndex {
+    idx :: target.indices[path] ?? return target.state.line_index_for_path(path)
+    return idx.line_index
+}
+
+// The `Location` of `span`.
+span_location :: fn(target: DeclTarget, span: Span) -> JsonValue {
+    path :: span.start.file
+    return location_json(path_to_uri(path), span.span_to_range_json(target.line_index_for(path)))
+}

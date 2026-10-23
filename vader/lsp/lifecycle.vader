@@ -162,6 +162,8 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     caps["documentLinkProvider"] = JsonObject { .entries = link_provider }
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
     caps["referencesProvider"] = JsonBool { .value = true }
+    caps["callHierarchyProvider"] = JsonBool { .value = true }
+    caps["typeHierarchyProvider"] = JsonBool { .value = true }
 
     // renameProvider with prepareProvider : the client first asks
     // prepareRename to validate + select the identifier, then rename.

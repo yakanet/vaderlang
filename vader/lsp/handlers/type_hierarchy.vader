@@ -1,0 +1,304 @@
+// vader/lsp/handlers/type_hierarchy: the traits a type implements, the types a trait has.
+//
+// `textDocument/prepareTypeHierarchy` names the type under the cursor (a struct,
+// an enum, a trait, an alias, a distinct type); `typeHierarchy/supertypes` and
+// `typeHierarchy/subtypes` walk one level at a time :
+//
+//   - a type's supertypes are the traits it implements ;
+//   - a trait's supertypes are the traits it requires, its subtypes the types
+//     implementing it and the traits requiring it ;
+//   - a union alias's subtypes are its members.
+//
+// An `implements` block is found through the sites of the name it holds
+// (`analysis/workspace::reference_view`, so in the modules importing the
+// declaration's too). Its other side is read from the same index, at the head
+// of the type written there : `Box<Square> implements Shape` is an impl of
+// `Box`, not of `Square`.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/span"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+import "vader/parser"
+AST :: import "toolchain/ast"
+
+/// Resolve `textDocument/prepareTypeHierarchy` : the type under the cursor.
+///
+/// @param state   the server state.
+/// @param params  the request params (`textDocument`, `position`).
+/// @return        a one-item `TypeHierarchyItem[]`, or `JsonNull` when the cursor
+///                is not on a type.
+export handle_prepare_type_hierarchy :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: type_target(cursor_target(state, params)) ?? return JsonNull {}
+    return JsonArray { .items = [type_item_json(target, target.decl, target.decl_path)] }
+}
+
+/// Resolve `typeHierarchy/supertypes` : the traits a type implements, or the
+/// traits a trait requires.
+///
+/// @param state   the server state.
+/// @param params  the request params (`item`).
+/// @return        a `TypeHierarchyItem[]`.
+export handle_supertypes :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: type_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    walk :: TypeWalk { .target = target }
+    if target.decl.kind == .Trait {
+        for head in required_heads(target.decl) {
+            walk.add_type_at(target.index, target.decl_path, head)
+        }
+    } else {
+        walk.implemented_traits()
+    }
+    return walk.items_json()
+}
+
+/// Resolve `typeHierarchy/subtypes` : the types implementing a trait and the
+/// traits requiring it, or the members of a union alias.
+///
+/// @param state   the server state.
+/// @param params  the request params (`item`).
+/// @return        a `TypeHierarchyItem[]`.
+export handle_subtypes :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: type_target(item_target(state, params)) ?? return JsonArray { .items = [] }
+    walk :: TypeWalk { .target = target }
+    if target.decl.kind == .Trait {
+        walk.implementing_types()
+    } else {
+        for head in union_heads(target.decl) {
+            walk.add_type_at(target.index, target.decl_path, head)
+        }
+    }
+    return walk.items_json()
+}
+
+// `target` when it names a type, else null.
+type_target :: fn(target: DeclTarget | null) -> DeclTarget | null {
+    if target == null || target.site.key !in target.index.types {
+        return null
+    }
+    return target
+}
+
+// The heads of the traits a trait declaration requires : `A & B<T>` gives `A`
+// and `B`.
+required_heads :: fn(d: DeclEntry) -> Span[] {
+    node :: d.node
+    if node is AST.TraitDecl {
+        req :: node.requires ?? return []
+        return heads_of(req, .BitAnd)
+    }
+    return []
+}
+
+// The heads of the members of a union alias, `A | B<T>` giving `A` and `B` ;
+// none for a distinct type or an alias of a single type, which have no subtypes.
+union_heads :: fn(d: DeclEntry) -> Span[] {
+    node :: d.node
+    if node is AST.TypeAliasDecl {
+        return union_member_heads(node.aliased)
+    }
+    if node is AST.ConstDecl {
+        return union_member_heads(node.value)
+    }
+    return []
+}
+
+// The heads of `e`'s members when it is a union, none otherwise.
+union_member_heads :: fn(e: AST.Expr) -> Span[] {
+    if e is AST.BinaryExpr && e.op == .BitOr {
+        return heads_of(e, .BitOr)
+    }
+    return []
+}
+
+// The heads of the operands of a chain of `op` : `a op b op c`.
+heads_of :: fn(e: AST.Expr, op: AST.BinaryOp) -> Span[] {
+    out: Span[]: []
+    push_heads(e, op, out)
+    return out
+}
+
+// Push the head of each operand of the `op` chain `e` to `out`.
+push_heads :: fn(e: AST.Expr, op: AST.BinaryOp, out: Span[]) -> void {
+    if e is AST.BinaryExpr && e.op == op {
+        push_heads(e.left, op, out)
+        push_heads(e.right, op, out)
+        return
+    }
+    head :: head_span(e) ?? return
+    out.push(head)
+}
+
+// Where the name a written type starts with sits : `Box` for `Box<T>`. Null for
+// a shape with no name of its own (`T[]`, `fn(i32) -> i32`).
+head_span :: fn(e: AST.Expr) -> Span | null {
+    if e is AST.IdentExpr {
+        return e.span
+    }
+    if e is AST.GenericInstExpr {
+        callee :: e.callee
+        if callee is AST.IdentExpr {
+            return callee.span
+        }
+    }
+    return null
+}
+
+// Whether `head` starts where `site` does.
+starts_at :: fn(head: Span | null, site: Span) -> bool {
+    h :: head ?? return false
+    return h.start.offset == site.start.offset
+}
+
+// ---- the walk ----------------------------------------------------------------
+
+// The types one request found, each once, and the files it read.
+TypeWalk :: struct {
+    target:   DeclTarget
+    /// By `path:offset` of each type's name, in the order first met.
+    found:    MutableMap<string, TypeHit> = MutableMap<string, TypeHit> {}
+    programs: MutableMap<string, AST.Program> = MutableMap<string, AST.Program> {}
+}
+
+// A type the walk found and the file declaring it.
+TypeHit :: struct {
+    path: string
+    decl: DeclEntry
+}
+
+// List the traits the type of the target implements : every `implements` block
+// whose type has it as its head.
+implemented_traits :: fn(self: TypeWalk) -> void {
+    view :: self.view()
+    for s in view.sites {
+        if s.is_decl || s.implicit {
+            continue
+        }
+        for d in self.program_of(s.span.start.file).decls {
+            if d is AST.ImplDecl && starts_at(head_span(d.for_type), s.span) {
+                self.add_type_at(view.index, s.span.start.file, d.trait_name_span)
+            }
+        }
+    }
+}
+
+// List the types implementing the trait of the target and the traits requiring
+// it : every `implements` block naming it as its trait, every `requires` naming
+// it.
+implementing_types :: fn(self: TypeWalk) -> void {
+    view :: self.view()
+    for s in view.sites {
+        if s.is_decl || s.implicit {
+            continue
+        }
+        for d in self.program_of(s.span.start.file).decls {
+            if d is AST.ImplDecl && d.trait_name_span.start.offset == s.span.start.offset {
+                head :: head_span(d.for_type) ?? continue
+                self.add_type_at(view.index, s.span.start.file, head)
+            }
+            if d is AST.TraitDecl && requires_head_at(d, s.span) {
+                self.add_declared(d.name_span)
+            }
+        }
+    }
+}
+
+// The `implements` blocks naming the trait of the target as their trait.
+impls_of :: fn(self: TypeWalk) -> AST.ImplDecl[] {
+    out: AST.ImplDecl[]: []
+    for s in self.view().sites {
+        if s.is_decl || s.implicit {
+            continue
+        }
+        for d in self.program_of(s.span.start.file).decls {
+            if d is AST.ImplDecl && d.trait_name_span.start.offset == s.span.start.offset {
+                out.push(d)
+            }
+        }
+    }
+    return out
+}
+
+// The sites of the target and the index they come from.
+view :: fn(self: TypeWalk) -> ReferenceView {
+    t :: self.target
+    return reference_view(t.state, t.uri, t.project, t.index, t.site)
+}
+
+// Whether the trait `d` requires, among its heads, the one at `site`.
+requires_head_at :: fn(d: AST.TraitDecl, site: Span) -> bool {
+    req :: d.requires ?? return false
+    for head in heads_of(req, .BitAnd) {
+        if head.start.offset == site.start.offset {
+            return true
+        }
+    }
+    return false
+}
+
+// Add the type `index` names at `at` in the file at `path`, unless what it names
+// there is no type. The path is given apart : a span of the document index's
+// AST names its file by URI.
+add_type_at :: fn(self: TypeWalk, index: ReferenceIndex, path: string, at: Span) -> void {
+    site :: site_at(index, path, at.start.line, at.start.column) ?? return
+    if site.key !in index.types {
+        return
+    }
+    decl :: declaration_site(index, site.key) ?? return
+    self.add_declared(decl.span)
+}
+
+// Add the type whose name starts at `at`, once.
+add_declared :: fn(self: TypeWalk, at: Span) -> void {
+    start :: at.start
+    key :: "${start.file}:${start.offset}"
+    if key in self.found {
+        return
+    }
+    index :: doc_index_for(self.target.state, self.target.indices, start.file)
+    decl :: index.entry_at_offset(start.offset) ?? return
+    self.found[key] = TypeHit { .path = start.file, .decl = decl }
+}
+
+// The program of the file at `path` : the typed project's when it holds the file,
+// whose spans the index's sites come from, else parsed once per request.
+program_of :: fn(self: TypeWalk, path: string) -> AST.Program =
+    self.programs.get_or_put_with(path, () -> self.read_program(path))
+
+// The program of `path`, not memoised.
+read_program :: fn(self: TypeWalk, path: string) -> AST.Program {
+    for [_, lm] in self.target.project.project.modules {
+        for f in lm.module.files {
+            if f.path == path {
+                return f.program
+            }
+        }
+    }
+    return parse_source(self.target.state.source_for_path(path), path).program
+}
+
+// The found types as a `TypeHierarchyItem[]`.
+items_json :: fn(self: TypeWalk) -> JsonValue {
+    out: JsonValue[]: []
+    for [_, hit] in self.found {
+        out.push(type_item_json(self.target, hit.decl, hit.path))
+    }
+    return JsonArray { .items = out }
+}
+
+// A `TypeHierarchyItem` for the type `decl` declared in `path`, its head as its
+// detail.
+type_item_json :: fn(target: DeclTarget, decl: DeclEntry, path: string) -> JsonValue =
+    hierarchy_item_json(target, decl, path, type_symbol_kind(decl.kind), decl.signature)
+
+// The LSP `SymbolKind` of a type declaration : a distinct type or an alias,
+// indexed as a const, shows as a class.
+type_symbol_kind :: fn(k: DeclKind) -> i32 {
+    if k == .Const {
+        return lsp_symbol_kind(.TypeAlias)
+    }
+    return lsp_symbol_kind(k)
+}

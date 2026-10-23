@@ -28,6 +28,14 @@ WALK_DEPTH_MAX: i64: 12
 // The module every file sees without importing it.
 PRELUDE :: "std/core"
 
+/// What a find-usages read : the sites of its target, and the index they come
+/// from, whose keys and spans a caller may look up further.
+export ReferenceView :: struct {
+    /// The document's project's references, or the wider project's.
+    index: ReferenceIndex
+    sites: RefSite[]
+}
+
 /// Every site of what `target` names, in the modules that import its own too.
 ///
 /// `index` covers the open file's project : the file and what it imports. A
@@ -35,43 +43,63 @@ PRELUDE :: "std/core"
 /// sites there. Otherwise the modules of the workspace that name it are loaded
 /// beside the file, and its sites come from that wider project, where the
 /// target is found again under the same cursor. The answer is kept until the
-/// next edit, for a rename that follows a find-usages.
+/// next edit, for the request that follows on the same target.
 ///
 /// @param state    the server state.
 /// @param uri      the document the request came from.
 /// @param project  the document's typed project.
 /// @param index    `project`'s references.
 /// @param target   the named site under the cursor, from `index`.
-/// @return         the sites, the declaration's and the implicit ones included.
-export reference_sites :: fn(
+/// @return         the sites, the declaration's and the implicit ones included,
+///                 and the index they belong to.
+export reference_view :: fn(
     state: ServerState, uri: string, project: ProjectCache, index: ReferenceIndex, target: RefSite,
-) -> RefSite[] {
-    local :: sites_of(index, target.key)
+) -> ReferenceView {
+    local :: ReferenceView { .index = index, .sites = sites_of(index, target.key) }
     if target.key in index.confined {
         return local
     }
     kept :: state.usages
     if kept != null && kept.entry_path == project.entry_path && kept.key == target.key {
-        return kept.sites
+        return kept.view
     }
-    roots :: document_roots(state, uri) ?? return local
+    view :: wider_view(state, uri, project, index, target) ?? local
+    state.usages = UsagesCache {
+        .entry_path = project.entry_path,
+        .key        = target.key,
+        .view       = view,
+    }
+    return view
+}
+
+/// The sites of `reference_view`, for a caller that reads no further.
+///
+/// @param state    the server state.
+/// @param uri      the document the request came from.
+/// @param project  the document's typed project.
+/// @param index    `project`'s references.
+/// @param target   the named site under the cursor, from `index`.
+export reference_sites :: fn(
+    state: ServerState, uri: string, project: ProjectCache, index: ReferenceIndex, target: RefSite,
+) -> RefSite[] = reference_view(state, uri, project, index, target).sites
+
+// The view from the project widened to the modules of the workspace naming the
+// target, or null when no module outside `project` does.
+wider_view :: fn(
+    state: ServerState, uri: string, project: ProjectCache, index: ReferenceIndex, target: RefSite,
+) -> ReferenceView | null {
+    roots :: document_roots(state, uri) ?? return null
     name :: span_text(state, target.span)
     spelling :: import_spelling(index, target.key)
     extra :: modules_mentioning(state, roots.paths, name, spelling, project.module_name_index)
     if extra.len() == 0 {
-        return local
+        return null
     }
     wide :: state.check_with_modules(project.entry_path, extra)
     wide_index :: build_reference_index(wide.project, wide.result)
     at :: target.span.start
-    again :: site_at(wide_index, at.file, at.line, at.column) ?? return local
-    sites :: sites_of(wide_index, again.key)
-    state.usages = UsagesCache {
-        .entry_path = project.entry_path,
-        .key        = target.key,
-        .sites      = sites,
-    }
-    return sites
+    again :: site_at(wide_index, at.file, at.line, at.column) ?? return null
+    return ReferenceView { .index = wide_index, .sites = sites_of(wide_index, again.key) }
 }
 
 // The sites of `index` whose target is `key`.
@@ -172,8 +200,7 @@ folder :: fn(self: Walk, root: IncludePath, dir: string, rel: string, depth: i64
             }
             continue
         }
-        // A file name carries an extension ; a module folder never does.
-        if "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth) || path in self.root_dirs {
+        if self.skips(entry, path, depth) {
             continue
         }
         if is_dir(path) {
@@ -181,6 +208,13 @@ folder :: fn(self: Walk, root: IncludePath, dir: string, rel: string, depth: i64
         }
     }
 }
+
+// Whether the walk stays out of `entry`, at `path`, `depth` levels under its
+// root : a file name carries an extension and a module folder never does, and
+// another root is walked from itself.
+skips :: fn(self: Walk, entry: string, path: string, depth: i64) -> bool =
+    "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth)
+    || path in self.root_dirs
 
 // Whether the file at `path`, in the folder `module` maps to, names what the
 // walk looks for and declares that module.

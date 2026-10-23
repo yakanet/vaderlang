@@ -6,11 +6,12 @@
 // shape:
 //
 //   - a bare `@target` declaration, whose bodies live under `@target(.Os, …)`;
-//   - a trait method, whose bodies live in each `implements` block.
+//   - a trait method, whose bodies live in each `implements` block (and the
+//     trait itself, whose implementations are those blocks).
 //
-// Only the first is served here. The trait half is a pre-existing gap (there has
-// never been an `implementation` handler at all) and wants the typed view's
-// `impl_methods`; this one is purely syntactic and needs no types.
+// The first is served from the union view below ; the second, when the cursor is
+// on no `@target` group, from the `implements` blocks the type hierarchy finds
+// (`type_hierarchy.vader`).
 //
 // THE UNION VIEW, and this is the whole reason the handler exists. Selection
 // runs at LOAD time, so by the time any typed project exists, the bodies for
@@ -53,7 +54,7 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
     name :: target_group_name_at(project, file_path, line, column)
     if name == "" {
-        return JsonNull {}
+        return trait_implementations(state, params)
     }
     out: JsonValue[]: []
     for [_, lm] in project.modules {
@@ -80,6 +81,56 @@ export handle_implementation :: fn(state: ServerState, params: JsonValue) -> Jso
         return JsonNull {}
     }
     return JsonArray { .items = out }
+}
+
+// The implementations of the trait, or of the trait method, the cursor names :
+// the `implements` blocks of the trait, or the members of those blocks that
+// implement the method. `JsonNull` when the cursor names neither, or nothing
+// implements it.
+trait_implementations :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: cursor_target(state, params) ?? return JsonNull {}
+    out: JsonValue[]: []
+    if target.decl.kind == .Trait {
+        for impl in (TypeWalk { .target = target }).impls_of() {
+            out.push(span_location(target, impl.for_type.span))
+        }
+    } else if target.decl.kind == .Fn {
+        owner :: owning_trait(target) ?? return JsonNull {}
+        for impl in (TypeWalk { .target = owner }).impls_of() {
+            for m in impl.members {
+                // A default the trait supplied, cloned into the block : the
+                // block wrote no body of its own.
+                if m.name == target.decl.name && !m.materialized {
+                    out.push(span_location(owner, m.name_span))
+                }
+            }
+        }
+    }
+    if out.len() == 0 {
+        return JsonNull {}
+    }
+    return JsonArray { .items = out }
+}
+
+// The trait declaring the method `target` names, as a target of its own, or null
+// when it is no trait method. A trait method sits in its trait's file.
+owning_trait :: fn(target: DeclTarget) -> DeclTarget | null {
+    owner :: target.decl.owner
+    if owner.byte_len() == 0 {
+        return null
+    }
+    idx :: doc_index_for(target.state, target.indices, target.decl_path)
+    declared :: idx.find_toplevel(owner) ?? return null
+    if declared.kind != .Trait {
+        return null
+    }
+    at :: declared.name_span.start
+    site :: site_at(target.index, target.decl_path, at.line, at.column) ?? return null
+    return DeclTarget {
+        ...target,
+        .site = site,
+        .decl = declared,
+    }
 }
 
 // The name of the `@target` group the cursor sits on, or "" when it sits on

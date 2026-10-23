@@ -23,7 +23,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     if file_path == "" { return JsonArray { .items = [] } }
 
     cached :: typed_project_for(state, file_path)
-    index :: build_reference_index(cached.project, cached.result)
+    index :: reference_index_of(cached)
 
     [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
     target :: site_at(index, file_path, line, column)
