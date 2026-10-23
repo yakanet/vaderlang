@@ -5,7 +5,8 @@
 // `lib/<os>-<arch>/` and a platform library. The test compiles the archive for
 // this machine, then checks that `vader build` adds the `-I`, links the archive
 // and evaluates the paths for the target, in both the split and the single-TU
-// builds. A missing archive is reported by the build, before `cc`.
+// builds. A missing archive is reported by the build, before `cc`, and the
+// interpreter, which opens no archive, says the program needs a native build.
 
 import { afterAll, expect, test } from "bun:test";
 import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
@@ -80,4 +81,15 @@ test("a missing archive stops the build and names the path", async () => {
   expect(build.exit).toBe(1);
   expect(build.stderr).toContain("library `greeter` has no archive for this target");
   expect(build.stderr).toContain(`lib/${hostTarget()}/libgreeter.a`);
+}, LONG_BUILD);
+
+test("the interpreter says a library shipped as archives needs a native build", async () => {
+  const dir = await stage(false);
+  const run = await spawnCapture(
+    ["run", join(dir, "main.vader")],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(run.exit).toBe(1);
+  expect(run.stderr).toContain("cannot open `greeter`: its binding ships static archives");
+  expect(run.stderr).toContain("build the program with `vader build`");
 }, LONG_BUILD);

@@ -384,6 +384,22 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, 
     return HostOk { .value = I64Val(i64(count)) }
 }
 
+// What a trap says when only a native build can make the call.
+BUILD_NATIVELY :: "build the program with `vader build`"
+
+// Why the library of `info` did not open. A binding that ships its library as
+// static archives has nothing the interpreter can open.
+unopened_reason :: fn(info: bc.BcImport) -> string {
+    if info.c_library == "" {
+        return "cannot open the running process"
+    }
+    library :: info.library
+    if library != null && library.archives.len() > 0 {
+        return "cannot open `${info.c_library}`: its binding ships static archives, which only a native build links; ${BUILD_NATIVELY}"
+    }
+    return "cannot open `${info.c_library}`"
+}
+
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
 /// and calling through a trampoline.
 ///
@@ -420,11 +436,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     for i in 0..<info.signature.param_types.len() {
         lent :: bc.param_is_by_address(info.signature, i)
         if !lent && bc.mirror_at(types, info.signature.param_types[i]) != null {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} passes a struct by value, which only a native build can do; build the program with `vader build`" }
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} passes a struct by value, which only a native build can do; ${BUILD_NATIVELY}" }
         }
     }
     if bc.mirror_at(types, bc.bc_single_result_type(info.signature)) != null {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: returns a struct by value, which only a native build can do; build the program with `vader build`" }
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: returns a struct by value, which only a native build can do; ${BUILD_NATIVELY}" }
     }
     // Under the DAP debugger, program output must NOT reach fd 1/2 directly —
     // in stdio transport that would corrupt the protocol stream. This is the
@@ -443,8 +459,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     // `kernel32.dll`, which the running process exports nothing of.
     lib :: ffi_open(info.c_library)
     if lib == 0 {
-        where :: if info.c_library == "" { "the running process" } else { "`${info.c_library}`" }
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: cannot open ${where}" }
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
     }
     sym :: ffi_symbol(lib, info.extern_name)
     if sym == 0 {
