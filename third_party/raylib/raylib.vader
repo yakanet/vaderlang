@@ -143,6 +143,10 @@ export clear_background :: fn(color: Color) -> void
 @extern(RAYLIB, "DrawText")
 export draw_text :: fn(text: string, x: i32, y: i32, font_size: i32, color: Color) -> void
 
+/// Draw the current frame rate, its top-left corner at `x`, `y`.
+@extern(RAYLIB, "DrawFPS")
+export draw_fps :: fn(x: i32, y: i32) -> void
+
 // ---- textures -------------------------------------------------------------
 
 @extern(RAYLIB, "LoadTexture")

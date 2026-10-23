@@ -1,14 +1,18 @@
-// examples/raylib_sprite: a window, and a sprite the arrow keys move.
+// examples/raylib_sprite: a window, and a sprite the arrow keys move: Vader's
+// logo (`editors/common/vader.svg`), drawn at 64 pixels.
 //
 //   vader build examples/raylib_sprite/raylib_sprite.vader
 //   ./examples/raylib_sprite/raylib_sprite
 //
-// raylib comes from the toolchain's `third_party/` folder, which `vader.json`
-// names. A native build only: `vader run` cannot call raylib.
+// The executable loads `sprite.png` from its own folder: built elsewhere with
+// `-o`, it needs the image copied beside it. raylib comes from the toolchain's
+// `third_party/` folder, which `vader.json` names. A native build only:
+// `vader run` cannot call raylib.
 
 module "main"
 
 import "raylib"
+import "std/io"
 
 SCREEN_WIDTH: i32: 800
 SCREEN_HEIGHT: i32: 450
@@ -19,7 +23,13 @@ main :: fn() -> i32 {
     init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Vader + raylib")
     defer close_window()
     set_target_fps(60)
-    sprite :: load_texture("${get_application_directory()}sprite.png") ?? return 1
+    sprite_path :: "${get_application_directory()}sprite.png"
+    sprite :: load_texture(sprite_path)
+    // raylib only logs the failure among its own lines.
+    if sprite == null {
+        eprintln("cannot load `${sprite_path}`: keep the executable beside sprite.png")
+        return 1
+    }
     defer unload_texture(sprite)
     max_x :: f32(SCREEN_WIDTH - sprite.width)
     max_y :: f32(SCREEN_HEIGHT - sprite.height)
@@ -36,6 +46,7 @@ main :: fn() -> i32 {
         clear_background(RAYWHITE)
         draw_texture_v(sprite, position, WHITE)
         draw_text("Move the sprite with the arrow keys", 10, 10, 20, DARKGRAY)
+        draw_fps(10, 40)
         end_drawing()
     }
     return 0
