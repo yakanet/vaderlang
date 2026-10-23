@@ -102,6 +102,12 @@ export ServerState :: struct {
     union_cache:                UnionCache | null
     /// The last find-usages past the document's project ; null after any edit.
     usages:                     UsagesCache | null
+    /// The folder the client opened, from `initialize` ; the working directory
+    /// when it names none.
+    workspace_root:             string
+    /// path → the symbols of a workspace file and the text they were read from
+    /// (`workspace_symbols`).
+    symbols:                    MutableMap<string, FileSymbols>
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
@@ -155,6 +161,8 @@ export new_state :: fn(library_root: string) -> ServerState {
         .cache_prev              = null,
         .union_cache             = null,
         .usages                  = null,
+        .workspace_root          = current_working_directory(),
+        .symbols                 = MutableMap<string, FileSymbols> {},
         .indices                 = MutableMap<string, DocIndex> {},
         .dirty                   = MutableMap<string, bool> {},
         .include_flags           = if library_root.byte_len() > 0 { [library_root] } else { [] },

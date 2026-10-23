@@ -51,10 +51,13 @@ export arg_kind :: fn(spec: IntrinsicSpec, i: i64) -> IntrinsicArgKind {
     return .Value
 }
 
-// Full set of recognised intrinsics. Add new entries here. A module constant, so
-// it bakes once into `.rodata`. `intrinsic_spec` hands an entry out, and an entry
-// carries an array a write could reach: that read builds a fresh table.
-INTRINSICS: IntrinsicSpec[]: [
+/// Full set of recognised intrinsics : what an editor offers after a `@`. Add
+/// new entries here.
+///
+/// A module constant, so it bakes once into `.rodata`. `intrinsic_spec` hands an
+/// entry out, and an entry carries an array a write could reach: that read builds
+/// a fresh table.
+export INTRINSICS: IntrinsicSpec[]: [
     // `@size_of(t)`: the lowerer folds a written type to a literal and routes a
     // run-time `type` value through the `size_of.type` intrinsic.
     IntrinsicSpec {

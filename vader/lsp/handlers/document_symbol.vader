@@ -2,10 +2,12 @@
 //
 // Powers the editor outline, breadcrumbs and the Cmd+Shift+O / Ctrl+F12 symbol
 // picker. Maps the per-document index's file-wide `DeclEntry[]`
-// (`indexer.vader`) to a flat `DocumentSymbol[]` : every top-level declaration
-// (`scope_span == null`) — fn / struct / enum / trait / type-alias / const.
-// Intra-file bindings (params, locals, for-in vars) carry a scope and are
-// excluded. No nesting in v1 (a struct's fields aren't surfaced as children).
+// (`indexer.vader`) to a `DocumentSymbol[]` : every top-level declaration
+// (`scope_span == null`), fn / struct / enum / trait / type-alias / const, a
+// type holding its members as children : a struct's fields, an enum's
+// variants, a trait's methods, and the methods its `implements` blocks in the
+// document define. Intra-file bindings (params, locals, for-in vars) carry a
+// scope and are excluded.
 //
 // Reuses `range_json` / `span_to_range_json` / `position_uri` from
 // `vader/lsp/protocol` and the per-document index from `vader/lsp/analysis`.
@@ -28,26 +30,57 @@ export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> Js
     idx :: state.index_for(uri)
     match idx {
         is null     -> { return JsonArray { .items = [] } }
-        is DocIndex -> { return document_symbol_json(toplevel_symbols(idx), idx.line_index) }
+        is DocIndex -> { return outline_json(idx) }
     }
 }
 
-/// The file-wide declarations an outline should list — every `DeclEntry` with
-/// no enclosing scope. Intra-file bindings (params / locals / for-in vars)
-/// carry a `scope_span` and are filtered out.
+/// The declarations at the top of the outline : every `DeclEntry` with no
+/// enclosing scope, but the members of a type the document declares, which
+/// nest under it (`members_of`). A method of a type declared elsewhere (`i32
+/// implements Display`) stays at the top. Intra-file bindings (params / locals /
+/// for-in vars) carry a `scope_span` and are filtered out.
 toplevel_symbols :: fn(idx: DocIndex) -> DeclEntry[] {
     out: DeclEntry[]: []
     for d in idx.decls {
-        // Members are excluded, not nested: they carry no `scope_span` like a
-        // top-level decl, but an outline listing every field and variant as a
-        // SIBLING of its struct went from 17 entries to 209 on `codes.vader`,
-        // with two `vm_required` at the same level. Nesting them under their
-        // owner would be a feature; nobody has asked for it, and this restores
-        // what the outline showed before members were indexed at all.
-        if d.scope_span == null && !is_member_kind(d.kind) { out.push(d) }
+        if d.scope_span != null || is_member_kind(d.kind) {
+            continue
+        }
+        if d.owner.byte_len() > 0 && declares_type(idx, d.owner) {
+            continue
+        }
+        out.push(d)
     }
     return out
 }
+
+/// The members of the type `owner` declares in the document, in source order :
+/// fields, variants, trait methods, and the methods of its `implements` blocks.
+///
+/// @param idx    the document's index.
+/// @param owner  the type's name.
+members_of :: fn(idx: DocIndex, owner: string) -> DeclEntry[] {
+    out: DeclEntry[]: []
+    for d in idx.decls {
+        if d.owner == owner {
+            out.push(d)
+        }
+    }
+    return out
+}
+
+// Whether the document declares a type named `name` at top level.
+declares_type :: fn(idx: DocIndex, name: string) -> bool {
+    for d in idx.decls {
+        if d.name == name && is_type_decl(d.kind) {
+            return true
+        }
+    }
+    return false
+}
+
+// Whether `k` declares a type that may hold members.
+is_type_decl :: fn(k: DeclKind) -> bool =
+    k == .Struct || k == .Enum || k == .Trait || k == .TypeAlias || k == .Const
 
 // Map a `DeclKind` onto its LSP `SymbolKind` wire number (LSP §3.17). Top-level
 // kinds get their natural icon ; the intra-file kinds (filtered out before
@@ -66,18 +99,28 @@ lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
     .ForIn     -> 13   // Variable
 }
 
-document_symbol_json :: fn(entries: DeclEntry[], li: LineIndex) -> JsonValue {
+// The outline of the document : its top-level declarations, each type with its
+// members as children.
+outline_json :: fn(idx: DocIndex) -> JsonValue {
     items: JsonValue[]: []
-    for e in entries { items.push(symbol_json(e, li)) }
+    for e in toplevel_symbols(idx) {
+        children: JsonValue[]: []
+        if is_type_decl(e.kind) {
+            for m in members_of(idx, e.name) {
+                children.push(symbol_json(m, idx.line_index, []))
+            }
+        }
+        items.push(symbol_json(e, idx.line_index, children))
+    }
     return JsonArray { .items = items }
 }
 
 // `range` spans the whole declaration ; `selectionRange` is just the name (what
 // the editor reveals + selects on pick).
-symbol_json :: fn(e: DeclEntry, li: LineIndex) -> JsonValue {
+symbol_json :: fn(e: DeclEntry, li: LineIndex, children: JsonValue[]) -> JsonValue {
     obj :: MutableMap<string, JsonValue> {}
     obj["name"]           = JsonString { .value = e.name }
-    obj["kind"]           = JsonNumber { .value = f64(lsp_symbol_kind(e.kind)) }
+    obj["kind"]           = JsonNumber { .value = f64(symbol_kind(e.kind, e.owner)) }
     obj["range"]          = range_json(e.full_span.span_to_range_json(li))
     // The LSP requires `selectionRange ⊆ range`. A malformed `name_span` (a
     // synthetic decl whose name span sits outside its full span) would otherwise
@@ -85,7 +128,22 @@ symbol_json :: fn(e: DeclEntry, li: LineIndex) -> JsonValue {
     // the full span when the name span isn't contained.
     sel :: if span_encloses(e.full_span, e.name_span) { e.name_span } else { e.full_span }
     obj["selectionRange"] = range_json(sel.span_to_range_json(li))
+    if children.len() > 0 {
+        obj["children"] = JsonArray { .items = children }
+    }
+    if e.owner.byte_len() > 0 {
+        obj["detail"] = JsonString { .value = e.owner }
+    }
     return JsonObject { .entries = obj }
+}
+
+// The `SymbolKind` a declaration of `kind` shows with : Method (6) for a fn
+// member of the type `owner`, its kind's otherwise.
+symbol_kind :: fn(kind: DeclKind, owner: string) -> i32 {
+    if kind == .Fn && owner.byte_len() > 0 {
+        return 6
+    }
+    return lsp_symbol_kind(kind)
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -121,6 +179,33 @@ MAX :: 10
     assert_eq(sym_name_at(syms, 1), "Point")
     assert_eq(sym_name_at(syms, 2), "add")
     assert_eq(sym_name_at(syms, 3), "MAX")
+}
+
+@test
+test_members_nest_under_their_type :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+}
+
+Point implements Display {
+    to_string :: fn(self) -> string = "p"
+}
+
+i32 implements Shape {
+    area :: fn(self) -> i32 = 0
+}
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    syms :: toplevel_symbols(idx)
+    // `Point`, then `area` : the method of a type declared elsewhere stays on top.
+    assert_eq(syms.len(), 2)
+    assert_eq(sym_name_at(syms, 0), "Point")
+    assert_eq(sym_name_at(syms, 1), "area")
+    members :: members_of(idx, "Point")
+    assert_eq(members.len(), 2)
+    assert_eq(sym_name_at(members, 0), "x")
+    assert_eq(sym_name_at(members, 1), "to_string")
 }
 
 @test

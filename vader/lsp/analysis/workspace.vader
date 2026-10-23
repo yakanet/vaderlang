@@ -144,83 +144,92 @@ export modules_mentioning :: fn(
     state: ServerState, roots: IncludePath[], name: string, spelling: string,
     loaded: MutableMap<string, LoadedModule>,
 ) -> string[] {
-    // A root nested in another (`lib/` under the project root) is walked as
-    // itself, where its folders get their module names, and not again from
-    // the outer root.
-    root_dirs :: MutableSet<string> {}
-    for root in roots {
-        root_dirs.add(root.dir)
-    }
-    walk :: Walk {
-        .state     = state,
-        .name      = name,
-        .spelling  = spelling,
-        .loaded    = loaded,
-        .root_dirs = root_dirs,
-    }
-    for root in roots {
-        walk.folder(root, root.dir, "", 0)
-    }
+    found :: MutableSet<string> {}
+    walk_module_folders(roots, (module: string, files: string[]) -> {
+        // Nothing to learn from a module the document's project already holds.
+        if module in loaded || module in found {
+            return
+        }
+        for path in files {
+            if file_names(state, path, module, name, spelling) {
+                found.add(module)
+                return
+            }
+        }
+    })
     out: string[]: []
-    for module in walk.found {
+    for module in found {
         out.push(module)
     }
     return out
 }
 
-// One `modules_mentioning` search : what it looks for and what it found so far.
-Walk :: struct {
-    state:     ServerState
-    name:      string
-    spelling:  string
-    loaded:    MutableMap<string, LoadedModule>
-    /// The roots' folders, each walked from its own root only.
-    root_dirs: MutableSet<string>
-    /// The modules found, in walk order.
-    found:     MutableSet<string> = MutableSet<string> {}
+/// Visit each folder under `roots` that may hold a module, with the module name
+/// an import gives it and its `.vader` files, read nowhere. A root nested in
+/// another (`lib/` under the project root) is walked from itself, where its
+/// folders get their module names, and not again from the outer root.
+///
+/// @param roots  the roots a document's imports search, from `document_roots`.
+/// @param visit  called with each folder's module name and files.
+walk_module_folders :: fn(roots: IncludePath[], visit: fn(string, string[]) -> void) -> void {
+    // A folder two roots name (the library, from the manifest and from the
+    // host) is walked once.
+    root_dirs :: MutableSet<string> {}
+    distinct: IncludePath[]: []
+    for root in roots {
+        if root_dirs.add(root.dir) {
+            distinct.push(root)
+        }
+    }
+    for root in distinct {
+        walk_folder(root, root.dir, "", 0, root_dirs, visit)
+    }
 }
 
-// Record the module of `dir` when one of its files names what the walk looks
-// for, then walk its sub-folders. `rel` is `dir` relative to `root`, "" at the
-// root.
-folder :: fn(self: Walk, root: IncludePath, dir: string, rel: string, depth: i64) -> void {
+// Visit the folder `dir`, `rel` under `root` ("" at the root), after its
+// sub-folders.
+walk_folder :: fn(
+    root: IncludePath, dir: string, rel: string, depth: i64,
+    root_dirs: MutableSet<string>, visit: fn(string, string[]) -> void,
+) -> void {
     entries :: read_dir(dir)
     if entries is IOError {
         return
     }
-    module :: module_for(root.prefix, rel)
-    // Nothing to learn from a module the document's project already holds.
-    searched := module.byte_len() == 0 || module in self.loaded || module in self.found
+    files: string[]: []
     for entry in entries {
         path :: join_path(dir, entry)
         if entry.ends_with(".vader") {
-            if !searched && self.names_it(path, module) {
-                searched = true
-                self.found.add(module)
-            }
+            files.push(path)
             continue
         }
-        if self.skips(entry, path, depth) {
+        if skips(entry, path, depth, root_dirs) {
             continue
         }
         if is_dir(path) {
-            self.folder(root, path, join_path(rel, entry), depth + 1)
+            walk_folder(root, path, join_path(rel, entry), depth + 1, root_dirs, visit)
         }
+    }
+    module :: module_for(root.prefix, rel)
+    if module.byte_len() > 0 && files.len() > 0 {
+        visit(module, files)
     }
 }
 
-// Whether the walk stays out of `entry`, at `path`, `depth` levels under its
-// root : a file name carries an extension and a module folder never does, and
-// another root is walked from itself.
-skips :: fn(self: Walk, entry: string, path: string, depth: i64) -> bool =
+// Whether a walk stays out of `entry`, at `path`, `depth` levels under its root :
+// a file name carries an extension and a module folder never does, and another
+// root is walked from itself.
+skips :: fn(entry: string, path: string, depth: i64, root_dirs: MutableSet<string>) -> bool =
     "." in entry || depth >= WALK_DEPTH_MAX || is_skipped_folder(entry, depth)
-    || path in self.root_dirs
+    || path in root_dirs
 
-// Whether the file at `path`, in the folder `module` maps to, names what the
-// walk looks for and declares that module.
-names_it :: fn(self: Walk, path: string, module: string) -> bool {
-    text :: self.state.source_for_path(path)
-    if !mentions_word(text, self.name) || !(self.spelling in text) {
+// Whether the file at `path`, in the folder `module` maps to, mentions `name`,
+// holds `spelling`, and declares that module.
+file_names :: fn(
+    state: ServerState, path: string, module: string, name: string, spelling: string,
+) -> bool {
+    text :: state.source_for_path(path)
+    if !mentions_word(text, name) || spelling !in text {
         return false
     }
     header :: parse_module_header(text, path) ?? return false

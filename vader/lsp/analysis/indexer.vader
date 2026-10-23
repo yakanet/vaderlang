@@ -36,6 +36,7 @@ import "vader/lsp/protocol"
 import "toolchain/span"
 
 Rs :: import "vader/resolver"
+Ty :: import "vader/types"
 import "vader/resolver/symbol"
 import "std/collections"
 
@@ -321,7 +322,24 @@ export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | nu
     offset :: li_offset(idx.line_index, line, character)
     name :: token_name_at(idx.tokens, offset)
     if name.byte_len() == 0 { return null }
+    declared :: binding_declared_at(idx.decls, name, offset)
+    if declared != null {
+        return declared
+    }
     return lookup_innermost(idx.decls, name, offset)
+}
+
+// The binding named `name` whose own name sits at `offset` : a parameter is
+// declared before the body its scope covers.
+binding_declared_at :: fn(decls: DeclEntry[], name: string, offset: i64) -> DeclEntry | null {
+    for d in decls {
+        at :: d.name_span
+        covers :: at.start.offset <= offset && offset < at.end.offset
+        if covers && d.name == name && is_binding_kind(d.kind) {
+            return d
+        }
+    }
+    return null
 }
 
 /// Return the identifier name at the click position, or `""` if no
@@ -561,7 +579,7 @@ collect_decl :: fn(
             entries.push(top_entry(d.name, .TypeAlias, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
         }
         is ConstDecl -> {
-            entries.push(top_entry(d.name, .Const, d.name_span, d.span, d, d.visibility == .Public, source, cmap))
+            entries.push(top_entry(d.name, const_kind(d), d.name_span, d.span, d, d.visibility == .Public, source, cmap))
         }
         is ImplDecl -> {
             // Impl members are fn decls on the target type. They
@@ -640,6 +658,75 @@ node_decorators :: fn(node: DeclNode) -> Decorator[] = match node {
     is Decl                      -> decl_decorators(node)
 }
 
+// The kind of a module constant : `.TypeAlias` for a distinct type or an alias,
+// `.Const` for a value.
+const_kind :: fn(d: ConstDecl) -> DeclKind {
+    if is_type_value(d.value) {
+        return .TypeAlias
+    }
+    return .Const
+}
+
+// Whether `e`, the value of a module constant, reads as a type (`Celsius :: f64`,
+// `Mixed :: i32 | string`, `Coord :: [i32, i32]`). The shapes are those of
+// `is_type_expr` in `vader/typecheck/orchestrate.vader` ; with no resolution at
+// hand, a name counts when it is a scalar type or spelled as a type is (`Rgb`),
+// not as a constant is (`MAX_LINE`).
+// @partial: every other expression computes a value.
+is_type_value :: fn(e: Expr) -> bool = @partial match e {
+    is IdentExpr                                    -> is_type_name(e.name)
+    is FieldExpr                                    -> is_member_type(e)
+    is GenericInstExpr | FnTypeExpr | ArrayTypeExpr -> true
+    is BinaryExpr                                   -> is_type_join(e)
+    is SeqLitExpr                                   -> is_tuple_type(e.elements)
+    _                                               -> false
+}
+
+// Whether `e` reads `Ns.Type` : a type a namespace exports.
+is_member_type :: fn(e: FieldExpr) -> bool = e.target is IdentExpr && is_type_name(e.field)
+
+// Whether `e` is a range type (`Int in 0..=23`) or a union of types.
+is_type_join :: fn(e: BinaryExpr) -> bool {
+    if e.op == .In {
+        return is_type_value(e.left)
+    }
+    return e.op == .BitOr && is_type_operand(e.left) && is_type_operand(e.right)
+}
+
+// Whether `e` may sit on either side of `|` in a type : `null` too.
+is_type_operand :: fn(e: Expr) -> bool = e is NullLitExpr || is_type_value(e)
+
+// Whether `elements` spell a tuple type : two types or more.
+is_tuple_type :: fn(elements: Expr[]) -> bool {
+    if elements.len() < 2 {
+        return false
+    }
+    for el in elements {
+        if !is_type_value(el) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether `name` names a type : a scalar the compiler knows (`f64`, `u8`), or a
+// name with an uppercase first letter and a lowercase one further on.
+is_type_name :: fn(name: string) -> bool {
+    if Ty.is_scalar_type_name(name) {
+        return true
+    }
+    if name.byte_len() == 0 || !is_upper_byte(name.byte_at(0)) {
+        return false
+    }
+    for i in 1..<name.byte_len() {
+        b :: name.byte_at(i)
+        if b >= 'a' && b <= 'z' {
+            return true
+        }
+    }
+    return false
+}
+
 // Smallest start-offset among the decl itself and every decorator
 // stacked above it. `///` comments contiguous with this offset are
 // the decl's vaderdoc.
@@ -673,32 +760,48 @@ ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
         is null      -> {}
         is BlockExpr -> {
             scope :: body.span
-            // Params live for the whole body. `FnParam.span` covers
-            // the whole `name: T = default` form ; goto-def should
-            // land on the name alone, so we synthesise a narrower
-            // span by stretching `name.byte_len()` past the start.
+            // Params live for the whole body. Goto-def lands on the name
+            // alone, not on the whole `name: T = default` of `FnParam.span`.
             for p in f.params {
-                name_span :: name_span_from(p.span.start, p.name)
                 sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, name_span, scope, sig))
+                entries.push(binding_entry(p.name, .Param, param_name_span(source, p), scope, sig))
             }
             ix_walk_block(body, source, entries)
         }
     }
 }
 
-// Synthesise a `Span` covering exactly `name` starting at `start`.
-// ASCII-only — non-ASCII identifier names would need codepoint
-// arithmetic, which the parser doesn't currently do here either.
-name_span_from :: fn(start: Position, name: string) -> Span {
-    width :: name.byte_len()
-    end :: Position {
-        .file   = start.file,
-        .offset = start.offset + width,
-        .line   = start.line,
-        .column = start.column + i32(width),
+// The span of `p`'s name in `source`, the text of its file : past its decorators
+// and a variadic `...`, where its span starts.
+param_name_span :: fn(source: string, p: FnParam) -> Span {
+    at := p.span.start
+    for deco in p.decorators {
+        if deco.span.end.offset > at.offset {
+            at = deco.span.end
+        }
     }
-    return Span { .start = start, .end = end }
+    for at.offset < source.byte_len() && !is_word_byte(source.byte_at(at.offset)) {
+        at = past_byte(at, source.byte_at(at.offset))
+    }
+    end :: Position {
+        ...at,
+        .offset = at.offset + p.name.byte_len(),
+        .column = at.column + i32(p.name.len()),
+    }
+    return Span { .start = at, .end = end }
+}
+
+// The position after the ASCII byte `b` at `at`.
+past_byte :: fn(at: Position, b: u8) -> Position {
+    if b == '\n' {
+        return Position {
+            .file   = at.file,
+            .offset = at.offset + 1,
+            .line   = at.line + 1,
+            .column = 1,
+        }
+    }
+    return Position { ...at, .offset = at.offset + 1, .column = at.column + 1 }
 }
 
 // `b` is the block being walked. Locals it declares scope from their
@@ -864,7 +967,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
             scope :: e.body.span
             for p in e.params {
                 sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, p.span, scope, sig))
+                entries.push(binding_entry(p.name, .Param, param_name_span(source, p), scope, sig))
             }
             ix_walk_block(e.body, source, entries)
         }
@@ -949,37 +1052,103 @@ param_signature_slice :: fn(span: Span, fallback: string, source: string) -> str
 // between) with the decl's start. Strips the leading `/// ` prefix and
 // joins with `\n`.
 leading_doc :: fn(cmap: CommentMap, decl_start: i64, source: string) -> string {
+    lines: string[]: []
+    for c in leading_doc_comments(cmap, decl_start, source) {
+        lines.push(strip_doc_prefix(c.text))
+    }
+    return lines.join("\n")
+}
+
+// The `///` comments right above `decl_start`, in source order : the run of doc
+// lines with only whitespace between them and the declaration.
+leading_doc_comments :: fn(cmap: CommentMap, decl_start: i64, source: string) -> Comment[] {
+    out: Comment[]: []
     n :: cmap.comments.len()
-    if n == 0 { return "" }
     next_boundary := decl_start
-    first_idx: i32 = -1
-    i: i32 = i32(n) - 1
+    first_idx: i64 = n
+    i: i64 = n - 1
     for i >= 0 {
         c :: cmap.comments[i]
         if c.end_offset > next_boundary {
-            i = i - 1
+            i -= 1
             continue
         }
-        if !whitespace_between(source, c.end_offset, next_boundary) { break }
-        if c.kind != .DocLine { break }
+        if !whitespace_between(source, c.end_offset, next_boundary) || c.kind != .DocLine {
+            break
+        }
         first_idx = i
         next_boundary = c.offset
-        i = i - 1
+        i -= 1
     }
-    if first_idx < 0 { return "" }
-    out := ""
-    for j in i64(first_idx)..<n {
+    for j in first_idx..<n {
         c :: cmap.comments[j]
-        if c.kind != .DocLine { break }
-        if c.offset >= decl_start { break }
-        line :: strip_doc_prefix(c.text)
-        if out == "" {
-            out = line
-        } else {
-            out = out + "\n" + line
+        if c.kind != .DocLine || c.offset >= decl_start {
+            break
         }
+        out.push(c)
     }
     return out
+}
+
+/// The spans of `name` in the `@param name` tags of the vaderdoc of `d`.
+///
+/// @param source  the text of the file declaring `d`.
+/// @param path    that file, as the spans name it.
+/// @param d       a declaration of that file.
+/// @param name    the name of one of its parameters.
+export param_tag_spans :: fn(source: string, path: string, d: DeclEntry, name: string) -> Span[] {
+    node :: d.node ?? return []
+    boundary :: doc_boundary_offset(d.full_span.start.offset, node_decorators(node))
+    out: Span[]: []
+    for c in leading_doc_comments(scan_comments(source), boundary, source) {
+        at :: param_tag_offset(c, name)
+        if at < 0 {
+            continue
+        }
+        column :: i32(at - line_start_offset(source, at)) + 1
+        start :: Position {
+            .file   = path,
+            .offset = at,
+            .line   = c.line,
+            .column = column,
+        }
+        end :: Position {
+            ...start,
+            .offset = at + name.byte_len(),
+            .column = column + i32(name.len()),
+        }
+        out.push(Span { .start = start, .end = end })
+    }
+    return out
+}
+
+// Where `name` sits in the doc comment `c` when it reads `/// @param name …`,
+// else -1.
+param_tag_offset :: fn(c: Comment, name: string) -> i64 {
+    body :: strip_doc_prefix(c.text).left_trim()
+    if doc_tag(body) != "@param" {
+        return -1
+    }
+    rest :: body.byte_slice("@param".byte_len(), body.byte_len()).left_trim()
+    after :: name.byte_len()
+    if !rest.starts_with(name) || (rest.byte_len() > after && is_word_byte(rest.byte_at(after))) {
+        return -1
+    }
+    return c.offset + c.text.byte_len() - rest.byte_len()
+}
+
+/// The vaderdoc tag `line` opens, or "" : `@param`, `@return`, `@error` or
+/// `@example`, followed by a blank or the end of the line, so `@params` opens
+/// none.
+///
+/// @param line  a doc line, past its `///` and its leading blanks.
+export doc_tag :: fn(line: string) -> string {
+    for tag in ["@param", "@return", "@error", "@example"] {
+        if line == tag || line.starts_with(tag + " ") || line.starts_with(tag + "\t") {
+            return tag
+        }
+    }
+    return ""
 }
 
 whitespace_between :: fn(source: string, start: i64, end: i64) -> bool {
@@ -1084,4 +1253,19 @@ test_index_modifier_list_drops_its_names :: fn() -> void {
     idx :: build_index("t.vader", src, .Utf16)
     assert(Rs.drops(idx.wildcards, "std/string", "split"), "a renamed name leaves the wildcard")
     assert(Rs.drops(idx.wildcards, "std/string", "join"), "an excluded name leaves the wildcard")
+}
+
+@test
+test_index_type_constants_as_types :: fn() -> void {
+    src :: "module \"t\"\n\nCelsius :: f64\nMixed :: i32 | string | null\nCoord :: [i32, i32]\n"
+        + "Names :: List<string>\nHour :: i32 in 0..=23\nNode :: Ns.Node\nMAX :: 42\n"
+        + "BOTH :: A | B\nPAIR :: [\"a\", \"b\"]\n"
+    idx :: build_index("t.vader", src, .Utf16)
+    kinds: string[]: []
+    for d in idx.decls {
+        kinds.push("${d.name}=${d.kind == .TypeAlias}")
+    }
+    want :: "Celsius=true Mixed=true Coord=true Names=true Hour=true Node=true MAX=false "
+        + "BOTH=false PAIR=false"
+    assert_eq(kinds.join(" "), want)
 }

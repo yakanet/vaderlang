@@ -25,6 +25,7 @@ import "vader/types"
 import "vader/typecheck"
 import "vader/lsp/protocol"
 AST :: import "toolchain/ast"
+import "toolchain/span"
 
 // ---- smallest typed expression at a position ------------------------------
 
@@ -292,8 +293,12 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
 
 hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
     // Skip until we have a type entry — no point reporting a node whose hover
-    // would show `?`, nor resolving a receiver the typed cache can't type.
-    if typed.expr_types[e.id] is null { return }
+    // would show `?`, nor resolving a receiver the typed cache can't type. A
+    // namespace alias is a receiver all the same : in a type position
+    // (`bc.LocalGet { … }`) it has no type, and its module lists the members.
+    if typed.expr_types[e.id] is null && !is_namespace_receiver(e, typed, st) {
+        return
+    }
     sp :: e.span
     if st.mode == .EndsAt {
         // Outermost node ending exactly at the dot — the member-access receiver.
@@ -313,6 +318,10 @@ hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
         st.best_size = size
     }
 }
+
+// Whether `e` is a namespace alias the receiver search may keep untyped.
+is_namespace_receiver :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> bool =
+    st.mode == .EndsAt && namespace_base_mod_id(e, typed) != null
 
 // ---- inferred type of the binding whose name is under the cursor ----------
 
@@ -526,9 +535,28 @@ export enclosing_exprs :: fn(decls: AST.Decl[], line: i32, col: i32) -> AST.Expr
 }
 
 EncloseState :: struct {
-    line: i32
-    col:  i32
-    acc:  AST.Expr[]
+    line:  i32
+    col:   i32
+    acc:   AST.Expr[]
+    /// The statements containing the position, innermost first.
+    stmts: Span[] = []
+}
+
+/// The spans of every expression and statement containing `(line, col)`, in no
+/// particular order : what "extend selection" steps through. 1-based coords.
+///
+/// @param decls  the file's top-level declarations to descend.
+/// @param line   1-based cursor line.
+/// @param col    1-based cursor column.
+export enclosing_spans :: fn(decls: AST.Decl[], line: i32, col: i32) -> Span[] {
+    st :: EncloseState { .line = line, .col = col, .acc = [] }
+    for d in decls { ee_walk_decl(d, st) }
+    out: Span[]: []
+    for e in st.acc {
+        out.push(e.span)
+    }
+    out.push_all(st.stmts)
+    return out
 }
 
 ee_walk_decl :: fn(d: AST.Decl, st: EncloseState) -> void {
@@ -599,6 +627,9 @@ ee_walk_stmt :: fn(s: AST.Stmt, st: EncloseState) -> void {
                 is AST.DeferBlockBody -> { ee_walk_block(dsb.block, st) }
             }
         }
+    }
+    if span_contains(s.span, st.line, st.col) {
+        st.stmts.push(s.span)
     }
 }
 

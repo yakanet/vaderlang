@@ -22,6 +22,7 @@ import "vader/typecheck"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 AST :: import "toolchain/ast"
+Parser :: import "vader/parser"
 Rs :: import "vader/resolver"
 import "vader/lexer"
 
@@ -41,9 +42,13 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             line0 :: position_line(params)
             char0 :: position_character(params)
 
+            li :: idx.line_index
+            if follows_at_sign(li.source, li_offset(li, line0, char0)) {
+                return completion_list(builtin_items())
+            }
+
             // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
             // struct fields + impl methods, resolved through the typed cache.
-            li :: idx.line_index
             dot :: member_context(li, line0, char0)
             if dot != null {
                 lead :: is_leading_dot(li.source, dot)
@@ -185,14 +190,24 @@ strip_binding_prefix :: fn(sig: string) -> string {
 /// byte offset in the source (the receiver ends just before it). Returns `null`
 /// when the cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
 member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i64 | null {
-    i := li_offset(li, line0, char0)
-    if i > li.source.byte_len() { i = li.source.byte_len() }
-    for i > 0 {
-        if is_ident_byte(li.source.byte_at(i - 1)) { i = i - 1 } else { break }
+    i :: ident_start(li.source, li_offset(li, line0, char0))
+    if i == 0 || li.source.byte_at(i - 1) != '.' {
+        return null
     }
-    if i == 0 { return null }
-    if li.source.byte_at(i - 1) != '.' { return null }
     return i - 1
+}
+
+// Where the identifier the cursor at byte `offset` ends starts : `offset` itself
+// when no identifier byte precedes it.
+ident_start :: fn(source: string, offset: i64) -> i64 {
+    i := offset
+    if i > source.byte_len() {
+        i = source.byte_len()
+    }
+    for i > 0 && is_ident_byte(source.byte_at(i - 1)) {
+        i -= 1
+    }
+    return i
 }
 
 // Member completions for `receiver.<cursor>` : the receiver's struct fields and
@@ -225,12 +240,12 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
         recv = find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
     }
     if recv == null { return completion_list([]) }
-    recv_type :: cached.result.typed.expr_types[recv.id] ?? return completion_list([])
 
     // Namespace-import alias receiver (`G.<member>` where `G :: import "p"`) :
     // list the target module's exports. The receiver types as UnresolvedType,
-    // and the UFCS loop below — via is_assignable's Unresolved-matches-every
-    // -free-fn rule — would otherwise offer every imported free fn (print/…).
+    // or not at all in a type position (`G.Node { … }`), and the UFCS loop
+    // below (through is_assignable's Unresolved-matches-every-free-fn rule) would
+    // otherwise offer every imported free fn (print/…).
     ns_mod :: namespace_base_mod_id(recv, cached.result.typed)
     if ns_mod != null {
         exports :: cached.result.typed.namespace_exports[ns_mod]
@@ -242,6 +257,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
             return completion_list(ns_items)
         }
     }
+    recv_type :: cached.result.typed.expr_types[recv.id] ?? return completion_list([])
 
     items: JsonValue[]: []
     seen :: MutableMap<string, bool> {}
@@ -269,35 +285,15 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
         }
     }
 
-    // Blanket array impls (`T[] implements ArrayOps` / `Contains` / `Into` / `Mul`)
-    // carry the built-in array methods (`len` / `push` / …) plus the trait ones.
-    // Arrays have no nominal symbol, so the `for_symbol`-keyed impl loop below
-    // misses them — enumerate the array-targeted impls directly.
-    if recv_type is ArrayType {
-        for impl_ in cached.result.impls.all {
-            if !(impl_.decl.for_type is AST.ArrayTypeExpr) {
-                continue
-            }
-            for m in impl_.decl.members {
-                if seen[m.name] != null { continue }
-                seen[m.name] = true
-                items.push(completion_item(m.name, .Method, render_signature_label(m)))
-            }
+    // Impl methods on the receiver's type (UFCS), whatever the type : a struct,
+    // an array (`T[] implements ArrayOps`), a primitive (`string implements
+    // Hash`), the one non-null member of a `T | null`.
+    for [name, method] in impl_members_of(cached.result.typed, subtract_type(recv_type, TY_NULL)) {
+        if seen[name] != null {
+            continue
         }
-    }
-
-    // Impl methods on the receiver type (UFCS). Limited to impls declared in the
-    // entry module's program — cross-module impl methods are a follow-up.
-    sym :: type_symbol(recv_type)
-    if sym != null {
-        for impl_ in cached.result.impls.all {
-            if impl_.target != declaration_key(sym) { continue }
-            for m in impl_.decl.members {
-                if seen[m.name] != null { continue }
-                seen[m.name] = true
-                items.push(completion_item(m.name, .Method, render_signature_label(m)))
-            }
-        }
+        seen[name] = true
+        items.push(completion_item(name, .Method, display_type(method.ty)))
     }
 
     // Free-fn UFCS methods — a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
@@ -716,7 +712,7 @@ import_ci_kind :: fn(name: string) -> CompletionItemKind {
     }
 }
 
-completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonValue {
+completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonObject {
     obj :: MutableMap<string, JsonValue> {}
     obj["label"] = JsonString { .value = label }
     obj["kind"]  = JsonNumber { .value = f64(i32(kind)) }
@@ -724,6 +720,34 @@ completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -
         obj["detail"] = JsonString { .value = detail }
     }
     return JsonObject { .entries = obj }
+}
+
+// Whether the identifier the cursor at byte `offset` ends follows a `@` : a
+// decorator or an intrinsic is being written.
+follows_at_sign :: fn(source: string, offset: i64) -> bool {
+    i :: ident_start(source, offset)
+    return i > 0 && source.byte_at(i - 1) == '@'
+}
+
+// The decorators, then the intrinsics, each with its usage and its documentation.
+builtin_items :: fn() -> JsonValue[] {
+    out: JsonValue[]: []
+    for d in Parser.DECORATORS {
+        out.push(documented_item(d.name, .Keyword, d.usage, d.doc))
+    }
+    for s in Parser.INTRINSICS {
+        out.push(documented_item(s.name, .Function, s.signature, s.doc))
+    }
+    return out
+}
+
+// A completion item whose documentation is the Markdown `doc`.
+documented_item :: fn(
+    label: string, kind: CompletionItemKind, detail: string, doc: string,
+) -> JsonValue {
+    item :: completion_item(label, kind, detail)
+    item.entries["documentation"] = markup_json(doc)
+    return item
 }
 
 completion_list :: fn(items: JsonValue[]) -> JsonValue {

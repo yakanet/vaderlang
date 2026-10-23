@@ -47,12 +47,16 @@ interface Query {
     | "callHierarchy/outgoingCalls"
     | "textDocument/prepareTypeHierarchy"
     | "typeHierarchy/supertypes"
-    | "typeHierarchy/subtypes";
+    | "typeHierarchy/subtypes"
+    | "textDocument/selectionRange"
+    | "workspace/symbol";
   // `position` drives hover/definition/completion/codeAction ; `range` drives
   // inlayHint ; documentLink needs neither — it answers for the whole document,
   // and the params it ignores are harmless.
   position?: Position;
   range?: LocationRange;
+  // `workspace/symbol`'s search text.
+  query?: string;
 }
 
 interface QueryResult {
@@ -159,6 +163,8 @@ async function driveLsp(
         newName: "renamed",
         // The call hierarchy's item, found again from its uri and selection.
         item: { uri, selectionRange: { start: at, end: at } },
+        query: q.query ?? "",
+        positions: [at],
       },
     });
   }
@@ -227,6 +233,7 @@ interface CompletionItem {
   label: string;
   kind?: number;
   detail?: string;
+  documentation?: { kind: string; value: string };
 }
 interface CompletionList {
   isIncomplete: boolean;
@@ -496,6 +503,33 @@ test("lsp: type hierarchy and trait implementations", async () => {
   expect(names(3)).toEqual(["Square", "Disc"]);
   expect(lines(4)).toEqual(["10:0", "18:0"]);
   expect(lines(5)).toEqual(["11:4", "19:4"]);
+}, { timeout: MEDIUM_BUILD });
+
+// `workspace/symbol` searches the declarations of every module of the
+// workspace, members included, the closest name first.
+test("lsp: workspace symbols find declarations by name", async () => {
+  const source = `module "lsptest"
+
+export frobnicate :: fn() -> i32 = 1
+
+Gizmo :: struct {
+    gizmo_size: i32
+}
+
+main :: fn() -> i32 = frobnicate()
+`;
+  const results = await driveLsp(source, [
+    { method: "workspace/symbol", query: "frobnic" },
+    { method: "workspace/symbol", query: "Gizmo" },
+    { method: "workspace/symbol", query: "" },
+  ]);
+  type SymbolT = { name: string; kind: number; containerName: string; location: Location };
+  const found = (i: number) => (results[i]!.result as SymbolT[]);
+  expect(found(0).map((s) => [s.name, s.kind, s.containerName])).toEqual([["frobnicate", 12, "lsptest"]]);
+  expect(found(0)[0]!.location.range.start).toEqual({ line: 2, character: 7 });
+  expect(found(1).map((s) => s.name)).toEqual(["Gizmo", "gizmo_size"]);
+  expect(found(1)[1]!.containerName).toBe("lsptest › Gizmo");
+  expect(found(2)).toEqual([]);
 }, { timeout: MEDIUM_BUILD });
 
 // A method-syntax call of a generic fn binds its type parameters with the receiver
@@ -987,6 +1021,82 @@ test("lsp: member completion on a namespace alias lists its module's exports", a
   // NOT every imported free fn (the old UFCS-soup bug surfaced these).
   expect(labels.has("println")).toBe(false);
   expect(labels.has("eprint")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+// A namespace member in a type position (`G.Badge { … }`) has no type of its
+// own: the receiver search skipped it and kept the whole literal, whose fields
+// it then offered.
+const NAMESPACE_TYPE_SOURCE = `module "demo"
+
+G :: import "demo/greeter"
+
+main :: fn() -> i32 {
+    b :: G.Badge { .size = 1 }
+    return b.size
+}
+`;
+
+test("lsp: completion after a namespace alias in a struct literal lists its module's exports", async () => {
+  const src = NAMESPACE_TYPE_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/completion", position: positionOf(src, "Badge {") },
+  ], {
+    "greeter/greeter.vader":
+      `module "demo/greeter"\n\nexport Badge :: struct { size: i32 }\n\nexport greet :: fn(name: string) -> string = name\n`,
+  });
+  const labels = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  expect(labels.has("Badge")).toBe(true);
+  expect(labels.has("greet")).toBe(true);
+  expect(labels.has("size")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+// A built-in receiver's methods come from impls the prelude declares, an
+// `@intrinsic` one among them, whose members its trait declares.
+const BUILTIN_RECEIVER_SOURCE = `module "lsptest"
+
+main :: fn() -> i32 {
+    name :: "vader"
+    names: string[]: []
+    names.push(name)
+    return i32(name.hash() % 7) + i32(names.len())
+}
+`;
+
+test("lsp: member completion lists the methods of a built-in receiver", async () => {
+  const src = BUILTIN_RECEIVER_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/completion", position: positionOf(src, "push(name)") },
+    { method: "textDocument/completion", position: positionOf(src, "hash()") },
+  ]);
+  const array = new Set((results[0]!.result as CompletionList).items.map((i) => i.label));
+  for (const m of ["push", "len", "clear", "into"]) expect(array.has(m)).toBe(true);
+  // An `into` is keyed by the type it converts into too: it lists once, by name.
+  expect([...array].filter((l) => l.includes(":"))).toEqual([]);
+  const text = new Set((results[1]!.result as CompletionList).items.map((i) => i.label));
+  for (const m of ["hash", "to_string", "byte_len"]) expect(text.has(m)).toBe(true);
+}, { timeout: MEDIUM_BUILD });
+
+// After a `@`, the decorators and the intrinsics, each with its documentation.
+const AT_SIGN_SOURCE = `module "lsptest"
+
+@tes
+check :: fn() -> void {}
+
+main :: fn() -> i32 = 0
+`;
+
+test("lsp: completion after a @ offers the decorators and the intrinsics, documented", async () => {
+  const src = AT_SIGN_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/completion", position: positionOf(src, "@tes", 4) },
+  ]);
+  const items = (results[0]!.result as CompletionList).items;
+  const test_ = items.find((i) => i.label === "test");
+  expect(test_?.documentation?.kind).toBe("markdown");
+  expect(test_?.documentation?.value).toContain("vader test");
+  const sizeOf = items.find((i) => i.label === "size_of");
+  expect(sizeOf?.detail).toContain("size_of");
+  expect(sizeOf?.documentation?.value.length).toBeGreaterThan(0);
 }, { timeout: MEDIUM_BUILD });
 
 // Member completion on a receiver typed as a trait-bounded generic param
@@ -2178,6 +2288,90 @@ test("lsp: a match header's binding is declared, renamed and hovered at its name
   // A use reads the binding at the type its arm narrowed it to.
   expect((results[2]!.result as { contents: { value: string } }).contents.value).toBe("```\nx: A\n```");
 }, { timeout: MEDIUM_BUILD });
+
+// A parameter is declared by its name: the resolver keys its symbol by the whole
+// `name: Type` slot, which no use ever starts at. Its `@param` tag is renamed
+// with it.
+const PARAM_SOURCE = `module "lsptest"
+
+/// Sum the values, each times the factor.
+///
+/// @param factor  the multiplier.
+/// @param xs      the values.
+scale :: fn(factor: i32, xs: i32[]) -> i32 {
+    total := 0
+    for x in xs {
+        total += x * factor
+    }
+    return total
+}
+
+main :: fn() -> i32 {
+    twice :: (n: i32) -> n * 2
+    return scale(2, [1, 2]) + twice(3)
+}
+`;
+
+test("lsp: a parameter is renamed and hovered from its declaration", async () => {
+  const src = PARAM_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/rename", position: positionOf(src, "factor: i32") },
+    { method: "textDocument/rename", position: positionOf(src, "xs: i32[]") },
+    { method: "textDocument/rename", position: positionOf(src, "n: i32)") },
+    { method: "textDocument/hover", position: positionOf(src, "factor: i32") },
+  ]);
+
+  const expected: [string, string[]][] = [
+    ["factor", ["factor  the", "factor: i32", "factor\n"]],
+    ["xs", ["xs      the", "xs: i32[]", "xs {"]],
+    ["n", ["n: i32)", "n * 2"]],
+  ];
+  expected.forEach(([name, needles], i) => {
+    const edits = soleFileEdits(results[i]!.result as WorkspaceEditT);
+    expect(starts(edits)).toEqual(needles.map((n) => key(positionOf(src, n))).sort());
+    for (const e of edits) expect(textAt(src, e.range)).toBe(name);
+  });
+  expect((results[3]!.result as { contents: { value: string } }).contents.value).toBe("```\nfactor: i32\n```");
+}, { timeout: MEDIUM_BUILD });
+
+// Extend Selection grows from the word under the cursor through each enclosing
+// expression and statement to the whole declaration, never twice the same range.
+const SELECTION_SOURCE = `module "lsptest"
+
+total :: fn(xs: i32[]) -> i32 {
+    sum := 0
+    for x in xs {
+        sum += x * 2
+    }
+    return sum
+}
+`;
+
+interface SelectionRangeT { range: RangeT; parent?: SelectionRangeT }
+
+test("lsp: the selection grows from the word to its declaration", async () => {
+  const src = SELECTION_SOURCE;
+  const results = await driveLsp(src, [
+    { method: "textDocument/selectionRange", position: positionOf(src, "x * 2") },
+  ]);
+  const chain: string[] = [];
+  for (let r: SelectionRangeT | undefined = (results[0]!.result as SelectionRangeT[])[0]; r; r = r.parent) {
+    chain.push(rangeText(src, r.range));
+  }
+  expect(chain[0]).toBe("x");
+  expect(chain).toContain("x * 2");
+  expect(chain).toContain("sum += x * 2");
+  expect(chain[chain.length - 1]).toBe(src.slice(src.indexOf("total ::"), src.lastIndexOf("}") + 1));
+  for (let i = 1; i < chain.length; i++) expect(chain[i]!.length).toBeGreaterThan(chain[i - 1]!.length);
+}, { timeout: MEDIUM_BUILD });
+
+// The source text a possibly multi-line range covers.
+function rangeText(source: string, range: RangeT): string {
+  const lines = source.split("\n");
+  const offset = (p: PositionT) =>
+    lines.slice(0, p.line).reduce((n, l) => n + l.length + 1, 0) + p.character;
+  return source.slice(offset(range.start), offset(range.end));
+}
 
 // A member reached through a NAMESPACE ALIAS. `S.trim` has no receiver whose
 // type could be read — the alias names a module, not a value — so the typed path

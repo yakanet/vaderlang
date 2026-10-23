@@ -32,6 +32,10 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
     state.definition_link_support = read_definition_link_support(params)
     state.inlay_refresh_support = read_inlay_refresh_support(params)
     state.position_encoding = negotiate_position_encoding(params)
+    root :: uri_to_path(get_string(params, "rootUri"))
+    if root.byte_len() > 0 {
+        state.workspace_root = root
+    }
     log_info("vader-lsp: client.linkSupport=${state.definition_link_support} positionEncoding=${position_encoding_kind(state.position_encoding)}")
     log_info(toolchain_home_line())
 
@@ -164,6 +168,8 @@ export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
     caps["referencesProvider"] = JsonBool { .value = true }
     caps["callHierarchyProvider"] = JsonBool { .value = true }
     caps["typeHierarchyProvider"] = JsonBool { .value = true }
+    caps["workspaceSymbolProvider"] = JsonBool { .value = true }
+    caps["selectionRangeProvider"] = JsonBool { .value = true }
 
     // renameProvider with prepareProvider : the client first asks
     // prepareRename to validate + select the identifier, then rename.

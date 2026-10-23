@@ -183,12 +183,17 @@ code_fence :: fn(code: string) -> string = "```\n" + code + "\n```"
 
 // A `Hover` payload whose contents are the Markdown `body`.
 markdown_hover :: fn(body: string) -> JsonValue {
-    contents :: MutableMap<string, JsonValue> {}
-    contents["kind"]  = JsonString { .value = "markdown" }
-    contents["value"] = JsonString { .value = body }
     obj :: MutableMap<string, JsonValue> {}
-    obj["contents"] = JsonObject { .entries = contents }
+    obj["contents"] = markup_json(body)
     return JsonObject { .entries = obj }
+}
+
+// A Markdown `MarkupContent` holding `body`.
+markup_json :: fn(body: string) -> JsonValue {
+    markup :: MutableMap<string, JsonValue> {}
+    markup["kind"]  = JsonString { .value = "markdown" }
+    markup["value"] = JsonString { .value = body }
+    return JsonObject { .entries = markup }
 }
 
 // ---- decorators and intrinsics ------------------------------------------
@@ -284,17 +289,6 @@ format_vaderdoc :: fn(raw: string) -> string {
         parts.push("**Example**\n" + code_fence(code))
     }
     return parts.join("\n\n")
-}
-
-// The vaderdoc tag `line` opens with (`@param`, `@return`, `@error`,
-// `@example`), or "" when it opens with none of them.
-doc_tag :: fn(line: string) -> string {
-    for tag in ["@param", "@return", "@error", "@example"] {
-        if line == tag || line.starts_with(tag + " ") || line.starts_with(tag + "\t") {
-            return tag
-        }
-    }
-    return ""
 }
 
 // The section `tag` adds its entries to.

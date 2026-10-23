@@ -318,6 +318,18 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         P.log_info("typeHierarchy/subtypes")
         return .Continue
     }
+    if method == "textDocument/selectionRange" {
+        result :: H.handle_selection_range(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("selectionRange ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "workspace/symbol" {
+        result :: H.handle_workspace_symbol(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("workspace/symbol")
+        return .Continue
+    }
     if method == "textDocument/references" {
         result :: H.handle_references(state, params)
         P.write_frame(P.encode_response(id, result))

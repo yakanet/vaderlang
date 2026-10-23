@@ -167,13 +167,4 @@ calls_json :: fn(self: CallGroups, target: DeclTarget, side: string) -> JsonValu
 // A `CallHierarchyItem` for the fn `f` declared in `path`, its owning type as
 // its detail.
 call_item_json :: fn(target: DeclTarget, f: DeclEntry, path: string) -> JsonValue =
-    hierarchy_item_json(target, f, path, fn_symbol_kind(f), f.owner)
-
-// The LSP `SymbolKind` of a fn : Method (6) for a member of a type, Function
-// otherwise.
-fn_symbol_kind :: fn(f: DeclEntry) -> i32 {
-    if f.owner.byte_len() > 0 {
-        return 6
-    }
-    return lsp_symbol_kind(.Fn)
-}
+    hierarchy_item_json(target, f, path, symbol_kind(f.kind, f.owner), f.owner)

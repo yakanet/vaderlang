@@ -31,9 +31,11 @@ export DecoratorSpec :: struct {
     doc:    string
 }
 
-// Each `doc` is the decorator's row of SPEC §12, kept to what a reader needs at
-// the use site; the SPEC holds the full rules.
-DECORATORS: DecoratorSpec[]: [
+/// Every decorator the compiler knows : what an editor offers after a `@`.
+///
+/// Each `doc` is the decorator's row of SPEC §12, kept to what a reader needs at
+/// the use site; the SPEC holds the full rules.
+export DECORATORS: DecoratorSpec[]: [
     DecoratorSpec {
         .name   = "comptime",
         .usage  = "@comptime",

@@ -200,6 +200,18 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 }
                 add_named(index, RefSite { .span = sp, .key = key })
             }
+            // The resolver keys a parameter's symbol by the parameter's whole
+            // span ; its site is its name alone.
+            for p in found.params {
+                sym :: typed.resolved.idents[p.span.hash()] ?? continue
+                key :: target_key(typed, sym)
+                index.confined.add(key)
+                add_named(index, RefSite {
+                    .span    = param_name_span(f.content, p),
+                    .key     = key,
+                    .is_decl = true,
+                })
+            }
         }
     }
     return ReferenceIndex {
@@ -401,6 +413,8 @@ Collected :: struct {
     spans: Span[] = []
     nodes: AST.Expr[] = []
     members: AST.FnDecl[] = []
+    /// The parameters of fns and lambdas, whose name span is read from the source.
+    params: AST.FnParam[] = []
 }
 
 collect_decl_idents :: fn(d: AST.Decl, out: Collected) -> void {
@@ -474,11 +488,9 @@ collect_decorators :: fn(ds: AST.Decorator[], out: Collected) -> void {
     }
 }
 
-// Type-param + fn-param DECL names aren't collected : `FnParam.span` /
-// `TypeParam.span` cover the whole `name: Type` slot (wide), so they're neither
-// a clean rename target nor a precise reference range. Their uses (IdentExpr)
-// are still collected. Param / type-param rename is a follow-up needing a
-// name-only span.
+// A type parameter's DECL name isn't collected : `TypeParam.span` covers the
+// whole `T: Bound` slot, so it is neither a clean rename target nor a precise
+// reference range. Its uses are still collected.
 collect_type_params :: fn(ps: AST.TypeParam[], out: Collected) -> void {
     for p in ps { collect_opt_type(p.bound, out) }
 }
@@ -487,6 +499,7 @@ collect_fn :: fn(d: AST.FnDecl, out: Collected) -> void {
     collect_decorators(d.decorators, out)
     collect_type_params(d.type_params, out)
     for p in d.params {
+        out.params.push(p)
         collect_opt_type(p.ty, out)
         collect_opt_expr(p.default_value, out)
     }
@@ -601,6 +614,7 @@ collect_expr :: fn(e: AST.Expr, out: Collected) -> void {
         is AST.BlockExpr  -> { collect_block(e, out) }
         is AST.LambdaExpr -> {
             for p in e.params {
+                out.params.push(p)
                 collect_opt_type(p.ty, out)
                 collect_opt_expr(p.default_value, out)
             }

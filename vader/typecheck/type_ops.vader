@@ -582,6 +582,41 @@ export impl_candidates :: fn(typed: TypedProgram, t: Type, suffix: string) -> Im
 
 NO_IMPL_METHODS: ImplMethod[]: []
 
+/// The members `t`'s impls provide, by name, as a member access on `t` finds
+/// them : those of an impl on `t` itself first, then its base's. A name keeps the
+/// first method registered under it. For an editor listing what may follow `t.`.
+///
+/// @param typed  a module of the project, whose impl tables it reads ; they hold
+///               the impls of every module it sees.
+/// @param t      the receiver.
+export impl_members_of :: fn(typed: TypedProgram, t: Type) -> MutableMap<string, ImplMethod> {
+    out :: MutableMap<string, ImplMethod> {}
+    own_key :: own_impl_key(typed, t)
+    if own_key != null {
+        add_members_under(typed, "${own_key}::", out)
+    }
+    add_members_under(typed, "${dispatch_key(t)}::", out)
+    return out
+}
+
+// Add to `out` the members keyed `prefix` + their name. An `into` is keyed
+// further by the type it converts into (`into_toward_suffix`) : it lists once,
+// as `into`.
+add_members_under :: fn(
+    typed: TypedProgram, prefix: string, out: MutableMap<string, ImplMethod>,
+) -> void {
+    for [key, methods] in typed.impl_tables.impl_methods {
+        if methods.len() == 0 || !key.starts_with(prefix) {
+            continue
+        }
+        rest :: key.byte_slice(prefix.byte_len(), key.byte_len())
+        name :: rest.split("::")[0]
+        if name !in out {
+            out[name] = methods[0]
+        }
+    }
+}
+
 /// The members named `method` of `t`'s impls of `trait_key` : `a + b` reaches
 /// `Add`'s `add`, never another trait's member of that name.
 ///

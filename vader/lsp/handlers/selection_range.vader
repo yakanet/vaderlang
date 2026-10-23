@@ -1,0 +1,93 @@
+// vader/lsp/handlers/selection_range: `textDocument/selectionRange`, what "extend
+// selection" steps through.
+//
+// For each position the client sends, the chain of ranges that contain it,
+// smallest first : the identifier, then each enclosing expression and statement
+// (`analysis/ast_walk::enclosing_spans`), then the declarations around them. A
+// range equal to the one before it is skipped, so each step grows the selection.
+
+module "vader/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "std/sort"
+import "toolchain/span"
+import "vader/lsp/analysis"
+import "vader/lsp/protocol"
+import "vader/parser"
+AST :: import "toolchain/ast"
+
+/// Resolve `textDocument/selectionRange`.
+///
+/// @param state   the server state.
+/// @param params  the request params (`textDocument`, `positions`).
+/// @return        a `SelectionRange[]`, one per position ; `JsonNull` for a
+///                document the server does not hold.
+export handle_selection_range :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    idx :: state.index_for(uri) ?? return JsonNull {}
+    path :: uri_to_path(uri)
+    decls :: parse_source(idx.source, path).program.decls
+    positions :: get_field(params, "positions")
+    out: JsonValue[]: []
+    if positions is JsonArray {
+        for p in positions.items {
+            chain :: selection_chain(idx, decls, get_number(p, "line"), get_number(p, "character"))
+            out.push(selection_json(chain, idx.line_index))
+        }
+    }
+    return JsonArray { .items = out }
+}
+
+// The ranges containing the 0-based LSP position, smallest first, each strictly
+// larger than the one before.
+selection_chain :: fn(idx: DocIndex, decls: AST.Decl[], line: i32, character: i32) -> Span[] {
+    spans: Span[]: []
+    word :: idx.span_at(line, character)
+    if word != null {
+        spans.push(word)
+    }
+    column :: lsp_span_column(idx.line_index, line, character)
+    spans.push_all(enclosing_spans(decls, line + 1, column))
+    offset :: li_offset(idx.line_index, line, character)
+    for d in idx.decls {
+        holds :: offset >= d.full_span.start.offset && offset < d.full_span.end.offset
+        if d.scope_span == null && holds {
+            spans.push(d.full_span)
+        }
+    }
+    ordered :: sort(spans, smaller)
+    out: Span[]: []
+    for sp in ordered {
+        if out.len() == 0 || encloses_strictly(sp, out[out.len() - 1]) {
+            out.push(sp)
+        }
+    }
+    return out
+}
+
+// Whether `a` covers fewer bytes than `b`.
+smaller :: fn(a: Span, b: Span) -> bool = width(a) < width(b)
+
+// Whether `outer` contains `inner` and is larger.
+encloses_strictly :: fn(outer: Span, inner: Span) -> bool =
+    span_encloses(outer, inner) && width(outer) > width(inner)
+
+// `{ range, parent: { range, parent: … } }`, the smallest range outermost in the
+// JSON : the chain read from its first span.
+selection_json :: fn(chain: Span[], li: LineIndex) -> JsonValue {
+    if chain.len() == 0 {
+        return JsonNull {}
+    }
+    return selection_node(chain, 0, li)
+}
+
+// The node of `chain[i]`, the larger spans after it as its parents.
+selection_node :: fn(chain: Span[], i: i64, li: LineIndex) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["range"] = range_json(chain[i].span_to_range_json(li))
+    if i + 1 < chain.len() {
+        obj["parent"] = selection_node(chain, i + 1, li)
+    }
+    return JsonObject { .entries = obj }
+}

@@ -23,6 +23,7 @@ import "vader/diagnostics"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
 import "toolchain/span"
+AST :: import "toolchain/ast"
 
 /// Validate that the cursor sits on a renameable identifier and return its
 /// range (LSP `prepareRename`). Returns `JsonNull` when the cursor isn't on a
@@ -58,6 +59,7 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     if old_name == "" { return JsonNull {} }
 
     edits :: sites_to_rename(state, reference_sites(state, uri, cached, index, site), old_name, sources)
+    edits.push_all(param_doc_tags(state, edits, old_name))
     li_cache :: MutableMap<string, LineIndex> {}
     return workspace_edit_json(edits, new_name, state, li_cache)
 }
@@ -91,6 +93,41 @@ sites_to_rename :: fn(
         out.push(s)
     }
     return out
+}
+
+// ---- vaderdoc tags --------------------------------------------------------
+
+// The `@param` tags naming a renamed parameter in the vaderdoc of the fn whose
+// signature declares it : a tag naming no parameter documents nothing.
+param_doc_tags :: fn(state: ServerState, sites: RefSite[], old_name: string) -> RefSite[] {
+    out: RefSite[]: []
+    for s in sites {
+        if !s.is_decl {
+            continue
+        }
+        at :: s.span.start
+        idx :: open_or_built_index(state, at.file)
+        param :: idx.entry_at_offset(at.offset) ?? continue
+        f :: enclosing_fn(idx, at.offset) ?? continue
+        if param.kind != .Param || !in_signature(f, at.offset) {
+            continue
+        }
+        for span in param_tag_spans(idx.source, at.file, f, old_name) {
+            out.push(RefSite { .span = span, .key = s.key })
+        }
+    }
+    return out
+}
+
+// Whether the byte `offset` sits in the signature of the fn `f`, before its body :
+// a lambda's parameter, in the body, is no parameter of `f`.
+in_signature :: fn(f: DeclEntry, offset: i64) -> bool {
+    node :: f.node
+    if node is AST.FnDecl {
+        body :: node.body ?? return true
+        return offset < body.span.start.offset
+    }
+    return false
 }
 
 // ---- WorkspaceEdit encoding ----------------------------------------------
