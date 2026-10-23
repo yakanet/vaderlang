@@ -34,7 +34,7 @@ import "std/testing"
     sw :: start()
     // Tiny busy-loop : we don't depend on the actual timing, only that the
     // monotonic clock never runs backwards.
-    for _ in 0..<1000 {}
+    for 0..<1000 {}
     elapsed :: sw.stop()
     assert(i64(elapsed) >= 0, "stopwatch elapsed must be non-negative")
 }

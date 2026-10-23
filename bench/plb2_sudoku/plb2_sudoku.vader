@@ -230,7 +230,7 @@ main :: fn() -> i32 {
     aux :: sd_genmat()
     tally :: Tally { .solutions = 0, .checksum = 0 }
     puzzles: i64 = 0
-    for _ in 0..<REPEATS {
+    for 0..<REPEATS {
         for puzzle in HARD20 {
             if puzzle.byte_len() >= 81 {
                 sd_solve(aux, puzzle.bytes(), tally)

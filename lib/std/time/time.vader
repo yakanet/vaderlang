@@ -524,7 +524,7 @@ import "std/testing"
     start :: monotonic()
     // Tiny busy-loop : we don't want to depend on the actual timing,
     // just that `since` returns a non-negative duration.
-    for _ in 0..<1000 {}
+    for 0..<1000 {}
     elapsed_dur :: start.since()
     assert(i64(elapsed_dur) >= 0, "monotonic clock ran backwards")
 }

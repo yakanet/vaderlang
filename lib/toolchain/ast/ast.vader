@@ -31,7 +31,7 @@ import "toolchain/span"
 /// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
 /// one building nodes by hand leaves them at the default — it is every node's
 /// `.id` default, so a construction may omit the field.
-export UNASSIGNED_NODE_ID :: i64(0)
+export UNASSIGNED_NODE_ID :i64 : 0
 
 // ============================================================================
 // Type aliases (declared first — see header)
@@ -121,7 +121,7 @@ export TypeExpr :: IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharL
 // ============================================================================
 
 /// Whether a declaration carries `export`.
-export Visibility :: enum(u8) {
+export Visibility :: enum {
     Public,
     Private,
 }

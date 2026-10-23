@@ -220,7 +220,7 @@ read_keys :: fn(max: i32) -> string | null {
         return null
     }
     buf: u8[]: [0] * i64(n)
-    for _ in 0..<READ_ATTEMPTS {
+    for 0..<READ_ATTEMPTS {
         got :: sys_read(0, buf, i64(n))
         if got > 0 {
             return buf[0..<got].bytes_to_string()
