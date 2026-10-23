@@ -16,36 +16,39 @@ typedef struct vader_struct___defer_env_std_io_1_t vader_struct___defer_env_std_
 typedef struct vader_struct___lambda_env_vader_bytecode_1_t vader_struct___lambda_env_vader_bytecode_1_t;
 typedef struct vader_struct___lambda_env_vader_bytecode_3_t vader_struct___lambda_env_vader_bytecode_3_t;
 typedef struct vader_struct___lambda_env_vader_bytecode_5_t vader_struct___lambda_env_vader_bytecode_5_t;
-typedef struct vader_struct___lambda_env_vader_c_emit_1_t vader_struct___lambda_env_vader_c_emit_1_t;
 typedef struct vader_struct___lambda_env_vader_c_emit_10_t vader_struct___lambda_env_vader_c_emit_10_t;
-typedef struct vader_struct___lambda_env_vader_c_emit_3_t vader_struct___lambda_env_vader_c_emit_3_t;
-typedef struct vader_struct___lambda_env_vader_c_emit_7_t vader_struct___lambda_env_vader_c_emit_7_t;
+typedef struct vader_struct___lambda_env_vader_c_emit_2_t vader_struct___lambda_env_vader_c_emit_2_t;
+typedef struct vader_struct___lambda_env_vader_c_emit_4_t vader_struct___lambda_env_vader_c_emit_4_t;
+typedef struct vader_struct___lambda_env_vader_c_emit_8_t vader_struct___lambda_env_vader_c_emit_8_t;
 typedef struct vader_struct___lambda_env_vader_c_emit_c_ast_1_t vader_struct___lambda_env_vader_c_emit_c_ast_1_t;
-typedef struct vader_struct___lambda_env_vader_effects_13_t vader_struct___lambda_env_vader_effects_13_t;
-typedef struct vader_struct___lambda_env_vader_effects_16_t vader_struct___lambda_env_vader_effects_16_t;
-typedef struct vader_struct___lambda_env_vader_effects_18_t vader_struct___lambda_env_vader_effects_18_t;
-typedef struct vader_struct___lambda_env_vader_effects_22_t vader_struct___lambda_env_vader_effects_22_t;
+typedef struct vader_struct___lambda_env_vader_effects_14_t vader_struct___lambda_env_vader_effects_14_t;
+typedef struct vader_struct___lambda_env_vader_effects_17_t vader_struct___lambda_env_vader_effects_17_t;
+typedef struct vader_struct___lambda_env_vader_effects_19_t vader_struct___lambda_env_vader_effects_19_t;
 typedef struct vader_struct___lambda_env_vader_effects_24_t vader_struct___lambda_env_vader_effects_24_t;
 typedef struct vader_struct___lambda_env_vader_effects_26_t vader_struct___lambda_env_vader_effects_26_t;
-typedef struct vader_struct___lambda_env_vader_effects_29_t vader_struct___lambda_env_vader_effects_29_t;
+typedef struct vader_struct___lambda_env_vader_effects_28_t vader_struct___lambda_env_vader_effects_28_t;
 typedef struct vader_struct___lambda_env_vader_effects_31_t vader_struct___lambda_env_vader_effects_31_t;
 typedef struct vader_struct___lambda_env_vader_effects_33_t vader_struct___lambda_env_vader_effects_33_t;
 typedef struct vader_struct___lambda_env_vader_effects_35_t vader_struct___lambda_env_vader_effects_35_t;
 typedef struct vader_struct___lambda_env_vader_effects_37_t vader_struct___lambda_env_vader_effects_37_t;
 typedef struct vader_struct___lambda_env_vader_effects_39_t vader_struct___lambda_env_vader_effects_39_t;
 typedef struct vader_struct___lambda_env_vader_effects_4_t vader_struct___lambda_env_vader_effects_4_t;
+typedef struct vader_struct___lambda_env_vader_effects_41_t vader_struct___lambda_env_vader_effects_41_t;
 typedef struct vader_struct___lambda_env_vader_effects_6_t vader_struct___lambda_env_vader_effects_6_t;
 typedef struct vader_struct___lambda_env_vader_effects_8_t vader_struct___lambda_env_vader_effects_8_t;
 typedef struct vader_struct___lambda_env_vader_fixpoint_2_t vader_struct___lambda_env_vader_fixpoint_2_t;
 typedef struct vader_struct___lambda_env_vader_fixpoint_4_t vader_struct___lambda_env_vader_fixpoint_4_t;
-typedef struct vader_struct___lambda_env_vader_lower_1_t vader_struct___lambda_env_vader_lower_1_t;
-typedef struct vader_struct___lambda_env_vader_lower_11_t vader_struct___lambda_env_vader_lower_11_t;
 typedef struct vader_struct___lambda_env_vader_lower_13_t vader_struct___lambda_env_vader_lower_13_t;
 typedef struct vader_struct___lambda_env_vader_lower_15_t vader_struct___lambda_env_vader_lower_15_t;
-typedef struct vader_struct___lambda_env_vader_lower_18_t vader_struct___lambda_env_vader_lower_18_t;
-typedef struct vader_struct___lambda_env_vader_lower_3_t vader_struct___lambda_env_vader_lower_3_t;
-typedef struct vader_struct___lambda_env_vader_lower_5_t vader_struct___lambda_env_vader_lower_5_t;
-typedef struct vader_struct___lambda_env_vader_lower_7_t vader_struct___lambda_env_vader_lower_7_t;
+typedef struct vader_struct___lambda_env_vader_lower_17_t vader_struct___lambda_env_vader_lower_17_t;
+typedef struct vader_struct___lambda_env_vader_lower_19_t vader_struct___lambda_env_vader_lower_19_t;
+typedef struct vader_struct___lambda_env_vader_lower_2_t vader_struct___lambda_env_vader_lower_2_t;
+typedef struct vader_struct___lambda_env_vader_lower_22_t vader_struct___lambda_env_vader_lower_22_t;
+typedef struct vader_struct___lambda_env_vader_lower_24_t vader_struct___lambda_env_vader_lower_24_t;
+typedef struct vader_struct___lambda_env_vader_lower_26_t vader_struct___lambda_env_vader_lower_26_t;
+typedef struct vader_struct___lambda_env_vader_lower_4_t vader_struct___lambda_env_vader_lower_4_t;
+typedef struct vader_struct___lambda_env_vader_lower_6_t vader_struct___lambda_env_vader_lower_6_t;
+typedef struct vader_struct___lambda_env_vader_lower_9_t vader_struct___lambda_env_vader_lower_9_t;
 typedef struct vader_struct___lambda_env_vader_midir_1_t vader_struct___lambda_env_vader_midir_1_t;
 typedef struct vader_struct___lambda_env_vader_midir_10_t vader_struct___lambda_env_vader_midir_10_t;
 typedef struct vader_struct___lambda_env_vader_midir_14_t vader_struct___lambda_env_vader_midir_14_t;
@@ -56,24 +59,29 @@ typedef struct vader_struct___lambda_env_vader_midir_8_t vader_struct___lambda_e
 typedef struct vader_struct___lambda_env_vader_parser_1_t vader_struct___lambda_env_vader_parser_1_t;
 typedef struct vader_struct___lambda_env_vader_parser_3_t vader_struct___lambda_env_vader_parser_3_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_1_t vader_struct___lambda_env_vader_typecheck_1_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_11_t vader_struct___lambda_env_vader_typecheck_11_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_13_t vader_struct___lambda_env_vader_typecheck_13_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_15_t vader_struct___lambda_env_vader_typecheck_15_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_19_t vader_struct___lambda_env_vader_typecheck_19_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_22_t vader_struct___lambda_env_vader_typecheck_22_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_21_t vader_struct___lambda_env_vader_typecheck_21_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_23_t vader_struct___lambda_env_vader_typecheck_23_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_25_t vader_struct___lambda_env_vader_typecheck_25_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_27_t vader_struct___lambda_env_vader_typecheck_27_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_29_t vader_struct___lambda_env_vader_typecheck_29_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_3_t vader_struct___lambda_env_vader_typecheck_3_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_31_t vader_struct___lambda_env_vader_typecheck_31_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_33_t vader_struct___lambda_env_vader_typecheck_33_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_36_t vader_struct___lambda_env_vader_typecheck_36_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_39_t vader_struct___lambda_env_vader_typecheck_39_t;
-typedef struct vader_struct___lambda_env_vader_typecheck_41_t vader_struct___lambda_env_vader_typecheck_41_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_37_t vader_struct___lambda_env_vader_typecheck_37_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_40_t vader_struct___lambda_env_vader_typecheck_40_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_43_t vader_struct___lambda_env_vader_typecheck_43_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_45_t vader_struct___lambda_env_vader_typecheck_45_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_47_t vader_struct___lambda_env_vader_typecheck_47_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_49_t vader_struct___lambda_env_vader_typecheck_49_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_5_t vader_struct___lambda_env_vader_typecheck_5_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_51_t vader_struct___lambda_env_vader_typecheck_51_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_54_t vader_struct___lambda_env_vader_typecheck_54_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_57_t vader_struct___lambda_env_vader_typecheck_57_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_59_t vader_struct___lambda_env_vader_typecheck_59_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_61_t vader_struct___lambda_env_vader_typecheck_61_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_63_t vader_struct___lambda_env_vader_typecheck_63_t;
+typedef struct vader_struct___lambda_env_vader_typecheck_65_t vader_struct___lambda_env_vader_typecheck_65_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_7_t vader_struct___lambda_env_vader_typecheck_7_t;
 typedef struct vader_struct___lambda_env_vader_typecheck_9_t vader_struct___lambda_env_vader_typecheck_9_t;
 typedef struct vader_struct___lambda_env_vader_vm_1_t vader_struct___lambda_env_vader_vm_1_t;
@@ -107,7 +115,7 @@ typedef struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_FnDec
 typedef struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_StructDecl_t vader_struct_std_collections_MutableMap__i32__toolchain_ast_StructDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_TraitDecl_t vader_struct_std_collections_MutableMap__i32__toolchain_ast_TraitDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__vader_bytecode_ArrayClear___vader_bytecode_ArrayCopy___vader_bytecode_ArrayGet___vader_bytecode_ArrayLen___vader_bytecode_ArrayNew___vader_bytecode_ArrayPush___vader_bytecode_ArrayPushAll___vader_bytecode_ArrayRemoveLast___vader_bytecode_ArrayRepeat___vader_bytecode_ArraySet___vader_bytecode_ArraySlice___vader_bytecode_BitsToF32___vader_bytecode_BitsToF64___vader_bytecode_Block___vader_bytecode_BoolAnd___vader_bytecode_BoolConst___vader_bytecode_BoolEq___vader_bytecode_BoolNe___vader_bytecode_BoolNot___vader_bytecode_BoolOr___vader_bytecode_Branch___vader_bytecode_BranchIf___vader_bytecode_BufferNew___vader_bytecode_BufferToString___vader_bytecode_BufferWriteString___vader_bytecode_Call___vader_bytecode_CallImport___vader_bytecode_CallIndirect___vader_bytecode_CharConst___vader_bytecode_CheckedArith___vader_bytecode_CheckedNeg___vader_bytecode_Convert___vader_bytecode_DataConst___vader_bytecode_DeferPopExec___vader_bytecode_DeferPush___vader_bytecode_Drop___vader_bytecode_Else___vader_bytecode_End___vader_bytecode_F32ToBits___vader_bytecode_F64Add___vader_bytecode_F64Const___vader_bytecode_F64Div___vader_bytecode_F64Eq___vader_bytecode_F64Ge___vader_bytecode_F64Gt___vader_bytecode_F64Le___vader_bytecode_F64Lt___vader_bytecode_F64Mul___vader_bytecode_F64Ne___vader_bytecode_F64Neg___vader_bytecode_F64Sub___vader_bytecode_F64ToBits___vader_bytecode_FnAddr___vader_bytecode_FnRef___vader_bytecode_GlobalGet___vader_bytecode_GlobalSet___vader_bytecode_I32Add___vader_bytecode_I32BitAnd___vader_bytecode_I32BitNot___vader_bytecode_I32BitOr___vader_bytecode_I32BitXor___vader_bytecode_I32Const___vader_bytecode_I32Div___vader_bytecode_I32Eq___vader_bytecode_I32Ge___vader_bytecode_I32Gt___vader_bytecode_I32Le___vader_bytecode_I32Lt___vader_bytecode_I32Mod___vader_bytecode_I32Mul___vader_bytecode_I32Ne___vader_bytecode_I32Neg___vader_bytecode_I32Shl___vader_bytecode_I32Shr___vader_bytecode_I32ShrU___vader_bytecode_I32Sub___vader_bytecode_I64Add___vader_bytecode_I64BitAnd___vader_bytecode_I64BitNot___vader_bytecode_I64BitOr___vader_bytecode_I64BitXor___vader_bytecode_I64Const___vader_bytecode_I64Div___vader_bytecode_I64Eq___vader_bytecode_I64Ge___vader_bytecode_I64Gt___vader_bytecode_I64Le___vader_bytecode_I64Lt___vader_bytecode_I64Mod___vader_bytecode_I64Mul___vader_bytecode_I64Ne___vader_bytecode_I64Neg___vader_bytecode_I64Shl___vader_bytecode_I64Shr___vader_bytecode_I64ShrU___vader_bytecode_I64Sub___vader_bytecode_If___vader_bytecode_LoadF64___vader_bytecode_LoadI32___vader_bytecode_LoadI64___vader_bytecode_LoadSlotF64___vader_bytecode_LoadSlotI32___vader_bytecode_LoadSlotI64___vader_bytecode_LoadU8___vader_bytecode_LocalField___vader_bytecode_LocalGet___vader_bytecode_LocalSet___vader_bytecode_LocalTee___vader_bytecode_Loop___vader_bytecode_MakeClosure___vader_bytecode_MemoryCopy___vader_bytecode_NullConst___vader_bytecode_RefCast___vader_bytecode_RefEq___vader_bytecode_RefNe___vader_bytecode_Retag___vader_bytecode_Return___vader_bytecode_ReturnLit___vader_bytecode_SizeOfType___vader_bytecode_StoreF64___vader_bytecode_StoreI32___vader_bytecode_StoreI64___vader_bytecode_StoreSlotF64___vader_bytecode_StoreSlotI32___vader_bytecode_StoreSlotI64___vader_bytecode_StoreU8___vader_bytecode_StringCompare___vader_bytecode_StringConst___vader_bytecode_StringEq___vader_bytecode_StringNe___vader_bytecode_StructGet___vader_bytecode_StructNew___vader_bytecode_StructSet___vader_bytecode_TypeCheck___vader_bytecode_TypeConst___vader_bytecode_U32Div___vader_bytecode_U32Ge___vader_bytecode_U32Gt___vader_bytecode_U32Le___vader_bytecode_U32Lt___vader_bytecode_U32Mod___vader_bytecode_U64Div___vader_bytecode_U64Ge___vader_bytecode_U64Gt___vader_bytecode_U64Le___vader_bytecode_U64Lt___vader_bytecode_U64Mod___vader_bytecode_UnionFieldGet___vader_bytecode_UnionFieldSet___vader_bytecode_Unreachable___vader_bytecode_VirtualCall_t vader_struct_std_collections_MutableMap__i32__vader_bytecode_ArrayClear___vader_bytecode_ArrayCopy___vader_bytecode_ArrayGet___vader_bytecode_ArrayLen___vader_bytecode_ArrayNew___vader_bytecode_ArrayPush___vader_bytecode_ArrayPushAll___vader_bytecode_ArrayRemoveLast___vader_bytecode_ArrayRepeat___vader_bytecode_ArraySet___vader_bytecode_ArraySlice___vader_bytecode_BitsToF32___vader_bytecode_BitsToF64___vader_bytecode_Block___vader_bytecode_BoolAnd___vader_bytecode_BoolConst___vader_bytecode_BoolEq___vader_bytecode_BoolNe___vader_bytecode_BoolNot___vader_bytecode_BoolOr___vader_bytecode_Branch___vader_bytecode_BranchIf___vader_bytecode_BufferNew___vader_bytecode_BufferToString___vader_bytecode_BufferWriteString___vader_bytecode_Call___vader_bytecode_CallImport___vader_bytecode_CallIndirect___vader_bytecode_CharConst___vader_bytecode_CheckedArith___vader_bytecode_CheckedNeg___vader_bytecode_Convert___vader_bytecode_DataConst___vader_bytecode_DeferPopExec___vader_bytecode_DeferPush___vader_bytecode_Drop___vader_bytecode_Else___vader_bytecode_End___vader_bytecode_F32ToBits___vader_bytecode_F64Add___vader_bytecode_F64Const___vader_bytecode_F64Div___vader_bytecode_F64Eq___vader_bytecode_F64Ge___vader_bytecode_F64Gt___vader_bytecode_F64Le___vader_bytecode_F64Lt___vader_bytecode_F64Mul___vader_bytecode_F64Ne___vader_bytecode_F64Neg___vader_bytecode_F64Sub___vader_bytecode_F64ToBits___vader_bytecode_FnAddr___vader_bytecode_FnRef___vader_bytecode_GlobalGet___vader_bytecode_GlobalSet___vader_bytecode_I32Add___vader_bytecode_I32BitAnd___vader_bytecode_I32BitNot___vader_bytecode_I32BitOr___vader_bytecode_I32BitXor___vader_bytecode_I32Const___vader_bytecode_I32Div___vader_bytecode_I32Eq___vader_bytecode_I32Ge___vader_bytecode_I32Gt___vader_bytecode_I32Le___vader_bytecode_I32Lt___vader_bytecode_I32Mod___vader_bytecode_I32Mul___vader_bytecode_I32Ne___vader_bytecode_I32Neg___vader_bytecode_I32Shl___vader_bytecode_I32Shr___vader_bytecode_I32ShrU___vader_bytecode_I32Sub___vader_bytecode_I64Add___vader_bytecode_I64BitAnd___vader_bytecode_I64BitNot___vader_bytecode_I64BitOr___vader_bytecode_I64BitXor___vader_bytecode_I64Const___vader_bytecode_I64Div___vader_bytecode_I64Eq___vader_bytecode_I64Ge___vader_bytecode_I64Gt___vader_bytecode_I64Le___vader_bytecode_I64Lt___vader_bytecode_I64Mod___vader_bytecode_I64Mul___vader_bytecode_I64Ne___vader_bytecode_I64Neg___vader_bytecode_I64Shl___vader_bytecode_I64Shr___vader_bytecode_I64ShrU___vader_bytecode_I64Sub___vader_bytecode_If___vader_bytecode_LoadF64___vader_bytecode_LoadI32___vader_bytecode_LoadI64___vader_bytecode_LoadSlotF64___vader_bytecode_LoadSlotI32___vader_bytecode_LoadSlotI64___vader_bytecode_LoadU8___vader_bytecode_LocalField___vader_bytecode_LocalGet___vader_bytecode_LocalSet___vader_bytecode_LocalTee___vader_bytecode_Loop___vader_bytecode_MakeClosure___vader_bytecode_MemoryCopy___vader_bytecode_NullConst___vader_bytecode_RefCast___vader_bytecode_RefEq___vader_bytecode_RefNe___vader_bytecode_Retag___vader_bytecode_Return___vader_bytecode_ReturnLit___vader_bytecode_SizeOfType___vader_bytecode_StoreF64___vader_bytecode_StoreI32___vader_bytecode_StoreI64___vader_bytecode_StoreSlotF64___vader_bytecode_StoreSlotI32___vader_bytecode_StoreSlotI64___vader_bytecode_StoreU8___vader_bytecode_StringCompare___vader_bytecode_StringConst___vader_bytecode_StringEq___vader_bytecode_StringNe___vader_bytecode_StructGet___vader_bytecode_StructNew___vader_bytecode_StructSet___vader_bytecode_TypeCheck___vader_bytecode_TypeConst___vader_bytecode_U32Div___vader_bytecode_U32Ge___vader_bytecode_U32Gt___vader_bytecode_U32Le___vader_bytecode_U32Lt___vader_bytecode_U32Mod___vader_bytecode_U64Div___vader_bytecode_U64Ge___vader_bytecode_U64Gt___vader_bytecode_U64Le___vader_bytecode_U64Lt___vader_bytecode_U64Mod___vader_bytecode_UnionFieldGet___vader_bytecode_UnionFieldSet___vader_bytecode_Unreachable___vader_bytecode_VirtualCall_t;
-typedef struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t;
+typedef struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ComptimeRoute_t vader_struct_std_collections_MutableMap__i32__vader_comptime_ComptimeRoute_t;
 typedef struct vader_struct_std_collections_MutableMap__i32__vader_effects_ConstantUse___t vader_struct_std_collections_MutableMap__i32__vader_effects_ConstantUse___t;
 typedef struct vader_struct_std_collections_MutableMap__i32__vader_lower_ClosureAlias_t vader_struct_std_collections_MutableMap__i32__vader_lower_ClosureAlias_t;
@@ -139,6 +147,7 @@ typedef struct vader_struct_std_collections_MutableMap__i64__string_t vader_stru
 typedef struct vader_struct_std_collections_MutableMap__i64__toolchain_ast_ConstDecl_t vader_struct_std_collections_MutableMap__i64__toolchain_ast_ConstDecl_t;
 typedef struct vader_struct_std_collections_MutableMap__i64__toolchain_ast_IntLitExpr_t vader_struct_std_collections_MutableMap__i64__toolchain_ast_IntLitExpr_t;
 typedef struct vader_struct_std_collections_MutableMap__i64__toolchain_span_Span_t vader_struct_std_collections_MutableMap__i64__toolchain_span_Span_t;
+typedef struct vader_struct_std_collections_MutableMap__i64__vader_comptime_NativeLibrary_t vader_struct_std_collections_MutableMap__i64__vader_comptime_NativeLibrary_t;
 typedef struct vader_struct_std_collections_MutableMap__i64__vader_comptime_NodeRecord_t vader_struct_std_collections_MutableMap__i64__vader_comptime_NodeRecord_t;
 typedef struct vader_struct_std_collections_MutableMap__i64__vader_effects_AnyCallee___vader_effects_CalleeNode___vader_effects_KnownEffects_t vader_struct_std_collections_MutableMap__i64__vader_effects_AnyCallee___vader_effects_CalleeNode___vader_effects_KnownEffects_t;
 typedef struct vader_struct_std_collections_MutableMap__i64__vader_effects_Root___t vader_struct_std_collections_MutableMap__i64__vader_effects_Root___t;
@@ -183,7 +192,7 @@ typedef struct vader_struct_std_collections_MutableMap__string__toolchain_ast_Fn
 typedef struct vader_struct_std_collections_MutableMap__string__toolchain_ast_FnDecl___t vader_struct_std_collections_MutableMap__string__toolchain_ast_FnDecl___t;
 typedef struct vader_struct_std_collections_MutableMap__string__toolchain_span_Span_t vader_struct_std_collections_MutableMap__string__toolchain_span_Span_t;
 typedef struct vader_struct_std_collections_MutableMap__string__vader_bytecode_ValType___t vader_struct_std_collections_MutableMap__string__vader_bytecode_ValType___t;
-typedef struct vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t;
+typedef struct vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t;
 typedef struct vader_struct_std_collections_MutableMap__string__vader_comptime_EvaluatedProgram_t vader_struct_std_collections_MutableMap__string__vader_comptime_EvaluatedProgram_t;
 typedef struct vader_struct_std_collections_MutableMap__string__vader_comptime_GenericInstance_t vader_struct_std_collections_MutableMap__string__vader_comptime_GenericInstance_t;
 typedef struct vader_struct_std_collections_MutableMap__string__vader_lower_ArrayMemberUse_t vader_struct_std_collections_MutableMap__string__vader_lower_ArrayMemberUse_t;
@@ -524,6 +533,7 @@ typedef struct vader_struct_vader_c_emit_EmitOptions_t vader_struct_vader_c_emit
 typedef struct vader_struct_vader_c_emit_FnState_t vader_struct_vader_c_emit_FnState_t;
 typedef struct vader_struct_vader_c_emit_FnValueUsage_t vader_struct_vader_c_emit_FnValueUsage_t;
 typedef struct vader_struct_vader_c_emit_ForwardedResult_t vader_struct_vader_c_emit_ForwardedResult_t;
+typedef struct vader_struct_vader_c_emit_MirrorCrossings_t vader_struct_vader_c_emit_MirrorCrossings_t;
 typedef struct vader_struct_vader_c_emit_PoolArray_t vader_struct_vader_c_emit_PoolArray_t;
 typedef struct vader_struct_vader_c_emit_PushCache_t vader_struct_vader_c_emit_PushCache_t;
 typedef struct vader_struct_vader_c_emit_ScopeInfo_t vader_struct_vader_c_emit_ScopeInfo_t;
@@ -595,6 +605,7 @@ typedef struct vader_struct_vader_comptime_BoolValue_t vader_struct_vader_compti
 typedef struct vader_struct_vader_comptime_CharValue_t vader_struct_vader_comptime_CharValue_t;
 typedef struct vader_struct_vader_comptime_ComptimeContext_t vader_struct_vader_comptime_ComptimeContext_t;
 typedef struct vader_struct_vader_comptime_ComptimeOrder_t vader_struct_vader_comptime_ComptimeOrder_t;
+typedef struct vader_struct_vader_comptime_EnumValue_t vader_struct_vader_comptime_EnumValue_t;
 typedef struct vader_struct_vader_comptime_EvalResult_t vader_struct_vader_comptime_EvalResult_t;
 typedef struct vader_struct_vader_comptime_EvaluatedProgram_t vader_struct_vader_comptime_EvaluatedProgram_t;
 typedef struct vader_struct_vader_comptime_EvaluatedProject_t vader_struct_vader_comptime_EvaluatedProject_t;
@@ -604,9 +615,11 @@ typedef struct vader_struct_vader_comptime_GenericInstance_t vader_struct_vader_
 typedef struct vader_struct_vader_comptime_InstanceRegistry_t vader_struct_vader_comptime_InstanceRegistry_t;
 typedef struct vader_struct_vader_comptime_IntValue_t vader_struct_vader_comptime_IntValue_t;
 typedef struct vader_struct_vader_comptime_MonoEntry_t vader_struct_vader_comptime_MonoEntry_t;
+typedef struct vader_struct_vader_comptime_NativeLibrary_t vader_struct_vader_comptime_NativeLibrary_t;
 typedef struct vader_struct_vader_comptime_NodeRecord_t vader_struct_vader_comptime_NodeRecord_t;
 typedef struct vader_struct_vader_comptime_Nodes_t vader_struct_vader_comptime_Nodes_t;
 typedef struct vader_struct_vader_comptime_NullValue_t vader_struct_vader_comptime_NullValue_t;
+typedef struct vader_struct_vader_comptime_ProjectConstants_t vader_struct_vader_comptime_ProjectConstants_t;
 typedef struct vader_struct_vader_comptime_StringValue_t vader_struct_vader_comptime_StringValue_t;
 typedef struct vader_struct_vader_comptime_StructValue_t vader_struct_vader_comptime_StructValue_t;
 typedef struct vader_struct_vader_comptime_TypeValue_t vader_struct_vader_comptime_TypeValue_t;
@@ -857,6 +870,7 @@ typedef struct vader_struct_vader_parser_CommaList__toolchain_ast_CallArg_t vade
 typedef struct vader_struct_vader_parser_CommaList__toolchain_ast_ImportName_t vader_struct_vader_parser_CommaList__toolchain_ast_ImportName_t;
 typedef struct vader_struct_vader_parser_CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t vader_struct_vader_parser_CommaList__toolchain_ast_StructLitField___toolchain_ast_StructLitSpread_t;
 typedef struct vader_struct_vader_parser_CompoundOpResult_t vader_struct_vader_parser_CompoundOpResult_t;
+typedef struct vader_struct_vader_parser_DecoratorSpec_t vader_struct_vader_parser_DecoratorSpec_t;
 typedef struct vader_struct_vader_parser_FnBodyTail_t vader_struct_vader_parser_FnBodyTail_t;
 typedef struct vader_struct_vader_parser_FnSignature_t vader_struct_vader_parser_FnSignature_t;
 typedef struct vader_struct_vader_parser_InfixOpDescr_t vader_struct_vader_parser_InfixOpDescr_t;
@@ -1077,19 +1091,19 @@ struct vader_struct___lambda_env_vader_bytecode_5_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_c_emit_1_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
 struct vader_struct___lambda_env_vader_c_emit_10_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_c_emit_3_t {
+struct vader_struct___lambda_env_vader_c_emit_2_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_c_emit_7_t {
+struct vader_struct___lambda_env_vader_c_emit_4_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_c_emit_8_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
@@ -1097,24 +1111,18 @@ struct vader_struct___lambda_env_vader_c_emit_c_ast_1_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_effects_13_t {
+struct vader_struct___lambda_env_vader_effects_14_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_effects_16_t {
+struct vader_struct___lambda_env_vader_effects_17_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_effects_18_t {
+struct vader_struct___lambda_env_vader_effects_19_t {
     vader_obj_header_t header;
     void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_effects_22_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-    void* f_cap_1;
-    void* f_cap_2;
 };
 struct vader_struct___lambda_env_vader_effects_24_t {
     vader_obj_header_t header;
@@ -1125,8 +1133,10 @@ struct vader_struct___lambda_env_vader_effects_24_t {
 struct vader_struct___lambda_env_vader_effects_26_t {
     vader_obj_header_t header;
     void* f_cap_0;
+    void* f_cap_1;
+    void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_effects_29_t {
+struct vader_struct___lambda_env_vader_effects_28_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
@@ -1137,20 +1147,20 @@ struct vader_struct___lambda_env_vader_effects_31_t {
 struct vader_struct___lambda_env_vader_effects_33_t {
     vader_obj_header_t header;
     void* f_cap_0;
-    void* f_cap_1;
-    void* f_cap_2;
 };
 struct vader_struct___lambda_env_vader_effects_35_t {
     vader_obj_header_t header;
     void* f_cap_0;
+    void* f_cap_1;
+    void* f_cap_2;
 };
 struct vader_struct___lambda_env_vader_effects_37_t {
     vader_obj_header_t header;
-    vader_string_t f_cap_0;
+    void* f_cap_0;
 };
 struct vader_struct___lambda_env_vader_effects_39_t {
     vader_obj_header_t header;
-    vader_box_t f_cap_0;
+    vader_string_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_effects_4_t {
     vader_obj_header_t header;
@@ -1160,6 +1170,10 @@ struct vader_struct___lambda_env_vader_effects_4_t {
     void* f_cap_3;
     void* f_cap_4;
     void* f_cap_5;
+};
+struct vader_struct___lambda_env_vader_effects_41_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
 };
 struct vader_struct___lambda_env_vader_effects_6_t {
     vader_obj_header_t header;
@@ -1179,7 +1193,25 @@ struct vader_struct___lambda_env_vader_fixpoint_4_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_lower_1_t {
+struct vader_struct___lambda_env_vader_lower_13_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+    vader_box_t f_cap_2;
+};
+struct vader_struct___lambda_env_vader_lower_15_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_lower_17_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_lower_19_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_lower_2_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
@@ -1187,34 +1219,34 @@ struct vader_struct___lambda_env_vader_lower_1_t {
     void* f_cap_3;
     void* f_cap_4;
 };
-struct vader_struct___lambda_env_vader_lower_11_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_lower_13_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_lower_15_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_lower_18_t {
+struct vader_struct___lambda_env_vader_lower_22_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_lower_3_t {
+struct vader_struct___lambda_env_vader_lower_24_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+    void* f_cap_2;
+};
+struct vader_struct___lambda_env_vader_lower_26_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    vader_string_t f_cap_1;
+    vader_string_t f_cap_2;
+};
+struct vader_struct___lambda_env_vader_lower_4_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_lower_5_t {
+struct vader_struct___lambda_env_vader_lower_6_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
 };
-struct vader_struct___lambda_env_vader_lower_7_t {
+struct vader_struct___lambda_env_vader_lower_9_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
@@ -1261,97 +1293,125 @@ struct vader_struct___lambda_env_vader_parser_3_t {
 };
 struct vader_struct___lambda_env_vader_typecheck_1_t {
     vader_obj_header_t header;
-    void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_11_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-    void* f_cap_1;
-};
-struct vader_struct___lambda_env_vader_typecheck_13_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
+    vader_string_t f_cap_0;
     void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_typecheck_15_t {
     vader_obj_header_t header;
     void* f_cap_0;
-    void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_typecheck_19_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
-struct vader_struct___lambda_env_vader_typecheck_22_t {
+struct vader_struct___lambda_env_vader_typecheck_21_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_23_t {
     vader_obj_header_t header;
     void* f_cap_0;
 };
 struct vader_struct___lambda_env_vader_typecheck_25_t {
     vader_obj_header_t header;
     void* f_cap_0;
+    void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_typecheck_27_t {
     vader_obj_header_t header;
     void* f_cap_0;
     void* f_cap_1;
+};
+struct vader_struct___lambda_env_vader_typecheck_3_t {
+    vader_obj_header_t header;
+    vader_string_t f_cap_0;
+    void* f_cap_1;
     void* f_cap_2;
 };
-struct vader_struct___lambda_env_vader_typecheck_29_t {
+struct vader_struct___lambda_env_vader_typecheck_31_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+};
+struct vader_struct___lambda_env_vader_typecheck_33_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+};
+struct vader_struct___lambda_env_vader_typecheck_37_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_40_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_43_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_45_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+    void* f_cap_1;
+    void* f_cap_2;
+};
+struct vader_struct___lambda_env_vader_typecheck_47_t {
     vader_obj_header_t header;
     void* f_cap_0;
     vader_string_t f_cap_1;
     void* f_cap_2;
     void* f_cap_3;
 };
-struct vader_struct___lambda_env_vader_typecheck_3_t {
+struct vader_struct___lambda_env_vader_typecheck_49_t {
     vader_obj_header_t header;
     void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_31_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_33_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_36_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_39_t {
-    vader_obj_header_t header;
-    void* f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_41_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_43_t {
-    vader_obj_header_t header;
-    vader_box_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_45_t {
-    vader_obj_header_t header;
-    vader_string_t f_cap_0;
-};
-struct vader_struct___lambda_env_vader_typecheck_47_t {
-    vader_obj_header_t header;
-    vader_string_t f_cap_0;
-    void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_typecheck_5_t {
     vader_obj_header_t header;
     void* f_cap_0;
+    vader_string_t f_cap_1;
+};
+struct vader_struct___lambda_env_vader_typecheck_51_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_54_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_57_t {
+    vader_obj_header_t header;
+    void* f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_59_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_61_t {
+    vader_obj_header_t header;
+    vader_box_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_63_t {
+    vader_obj_header_t header;
+    vader_string_t f_cap_0;
+};
+struct vader_struct___lambda_env_vader_typecheck_65_t {
+    vader_obj_header_t header;
+    vader_string_t f_cap_0;
+    void* f_cap_1;
 };
 struct vader_struct___lambda_env_vader_typecheck_7_t {
     vader_obj_header_t header;
-    void* f_cap_0;
+    vader_string_t f_cap_0;
+    void* f_cap_1;
+    void* f_cap_2;
 };
 struct vader_struct___lambda_env_vader_typecheck_9_t {
     vader_obj_header_t header;
-    void* f_cap_0;
+    vader_string_t f_cap_0;
     void* f_cap_1;
+    void* f_cap_2;
 };
 struct vader_struct___lambda_env_vader_vm_1_t {
     vader_obj_header_t header;
@@ -1400,6 +1460,7 @@ struct vader_struct_std_collections_MutableMap__Any__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1409,6 +1470,7 @@ struct vader_struct_std_collections_MutableMap__i32__Any_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1418,6 +1480,7 @@ struct vader_struct_std_collections_MutableMap__i32__Any___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1427,6 +1490,7 @@ struct vader_struct_std_collections_MutableMap__i32__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1436,6 +1500,7 @@ struct vader_struct_std_collections_MutableMap__i32__i32_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1445,6 +1510,7 @@ struct vader_struct_std_collections_MutableMap__i32__i32___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1454,6 +1520,7 @@ struct vader_struct_std_collections_MutableMap__i32__i64_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1463,6 +1530,7 @@ struct vader_struct_std_collections_MutableMap__i32__std_collections_MutableMap_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1472,6 +1540,7 @@ struct vader_struct_std_collections_MutableMap__i32__std_collections_MutableMap_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1481,6 +1550,7 @@ struct vader_struct_std_collections_MutableMap__i32__std_collections_MutableSet_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1490,6 +1560,7 @@ struct vader_struct_std_collections_MutableMap__i32__std_collections_MutableSet_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1499,6 +1570,7 @@ struct vader_struct_std_collections_MutableMap__i32__std_collections_MutableSet_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1508,6 +1580,7 @@ struct vader_struct_std_collections_MutableMap__i32__string_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1517,6 +1590,7 @@ struct vader_struct_std_collections_MutableMap__i32__string___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1526,6 +1600,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_ArrayTypeExpr
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1535,6 +1610,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_ConstDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1544,6 +1620,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_EnumDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1553,6 +1630,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_FnDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1562,6 +1640,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_StructDecl_t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1571,6 +1650,7 @@ struct vader_struct_std_collections_MutableMap__i32__toolchain_ast_TraitDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1580,15 +1660,17 @@ struct vader_struct_std_collections_MutableMap__i32__vader_bytecode_ArrayClear__
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t {
+struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1598,6 +1680,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_comptime_ComptimeRout
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1607,6 +1690,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_effects_ConstantUse__
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1616,6 +1700,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_ClosureAlias_t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1625,6 +1710,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_ConstFnWrap_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1634,6 +1720,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_EnvSlot_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1643,6 +1730,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_LoweredArrayLen
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1652,6 +1740,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_LoweredConstDec
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1661,6 +1750,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_lower_LoweredFnDecl_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1670,6 +1760,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_midir_CFGStructField_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1679,6 +1770,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_ConstLocal_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1688,6 +1780,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_ImportInfo_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1697,6 +1790,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_ResolvedModu
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1706,6 +1800,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_SymbolTarget
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1715,6 +1810,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_symbol_Symbo
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1724,6 +1820,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_resolver_symbol_Symbo
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1733,6 +1830,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_typecheck_ArgBound___
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1742,6 +1840,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_typecheck_NarrowSlot_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1751,6 +1850,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_typecheck_TypeParamBo
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1760,6 +1860,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_types_AnyType___vader
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1769,6 +1870,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_types_StructType___t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1778,6 +1880,7 @@ struct vader_struct_std_collections_MutableMap__i32__vader_types_TypeParamType__
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1787,6 +1890,7 @@ struct vader_struct_std_collections_MutableMap__i64__Any_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1796,6 +1900,7 @@ struct vader_struct_std_collections_MutableMap__i64__Any___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1805,6 +1910,7 @@ struct vader_struct_std_collections_MutableMap__i64__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1814,6 +1920,7 @@ struct vader_struct_std_collections_MutableMap__i64__i32_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1823,6 +1930,7 @@ struct vader_struct_std_collections_MutableMap__i64__i64_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1832,6 +1940,7 @@ struct vader_struct_std_collections_MutableMap__i64__i64___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1841,6 +1950,7 @@ struct vader_struct_std_collections_MutableMap__i64__string_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1850,6 +1960,7 @@ struct vader_struct_std_collections_MutableMap__i64__toolchain_ast_ConstDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1859,6 +1970,7 @@ struct vader_struct_std_collections_MutableMap__i64__toolchain_ast_IntLitExpr_t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1868,6 +1980,17 @@ struct vader_struct_std_collections_MutableMap__i64__toolchain_span_Span_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
+    int64_t f_size;
+    int64_t f_tombs;
+};
+struct vader_struct_std_collections_MutableMap__i64__vader_comptime_NativeLibrary_t {
+    vader_obj_header_t header;
+    void* f_ekeys;
+    void* f_evals;
+    void* f_index;
+    int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1877,6 +2000,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_comptime_NodeRecord_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1886,6 +2010,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_effects_AnyCallee___v
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1895,6 +2020,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_effects_Root___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1904,6 +2030,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_lower_LoweredArrayLen
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1913,6 +2040,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_resolver_symbol_Symbo
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1922,6 +2050,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_BodyShape_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1931,6 +2060,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_BoundMember
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1940,6 +2070,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_FnCandidate
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1949,6 +2080,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_GuardContra
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1958,6 +2090,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_GuardFact__
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1967,6 +2100,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_ImplEntry_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1976,6 +2110,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_ImplMethod_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1985,6 +2120,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_ImplMethod_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -1994,6 +2130,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_StaticMembe
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2003,6 +2140,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_TypedProgra
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2012,6 +2150,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_typecheck_WidenedArgu
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2021,6 +2160,7 @@ struct vader_struct_std_collections_MutableMap__i64__vader_types_AnyType___vader
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2030,6 +2170,7 @@ struct vader_struct_std_collections_MutableMap__string__Any_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2039,6 +2180,7 @@ struct vader_struct_std_collections_MutableMap__string__Any___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2048,6 +2190,7 @@ struct vader_struct_std_collections_MutableMap__string__Any_____t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2057,6 +2200,7 @@ struct vader_struct_std_collections_MutableMap__string___toolchain_ast_AssertDec
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2066,6 +2210,7 @@ struct vader_struct_std_collections_MutableMap__string___vader_effects_AnyCallee
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2075,6 +2220,7 @@ struct vader_struct_std_collections_MutableMap__string___vader_types_AnyType___v
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2084,6 +2230,7 @@ struct vader_struct_std_collections_MutableMap__string__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2093,6 +2240,7 @@ struct vader_struct_std_collections_MutableMap__string__i32_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2102,6 +2250,7 @@ struct vader_struct_std_collections_MutableMap__string__i32___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2111,6 +2260,7 @@ struct vader_struct_std_collections_MutableMap__string__i64_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2120,6 +2270,7 @@ struct vader_struct_std_collections_MutableMap__string__json_JsonArray___json_Js
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2129,6 +2280,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2138,6 +2290,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2147,6 +2300,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2156,6 +2310,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2165,6 +2320,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2174,6 +2330,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2183,6 +2340,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2192,6 +2350,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableM
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2201,6 +2360,7 @@ struct vader_struct_std_collections_MutableMap__string__std_collections_MutableS
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2210,6 +2370,7 @@ struct vader_struct_std_collections_MutableMap__string__string_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2219,6 +2380,7 @@ struct vader_struct_std_collections_MutableMap__string__string___t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2228,6 +2390,7 @@ struct vader_struct_std_collections_MutableMap__string__toolchain_ast_ArrayTypeE
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2237,6 +2400,7 @@ struct vader_struct_std_collections_MutableMap__string__toolchain_ast_FnDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2246,6 +2410,7 @@ struct vader_struct_std_collections_MutableMap__string__toolchain_ast_FnDecl___t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2255,6 +2420,7 @@ struct vader_struct_std_collections_MutableMap__string__toolchain_span_Span_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2264,15 +2430,17 @@ struct vader_struct_std_collections_MutableMap__string__vader_bytecode_ValType__
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
-struct vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t {
+struct vader_struct_std_collections_MutableMap__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue_t {
     vader_obj_header_t header;
     void* f_ekeys;
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2282,6 +2450,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_comptime_Evaluated
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2291,6 +2460,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_comptime_GenericIn
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2300,6 +2470,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_ArrayMemberU
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2309,6 +2480,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_Capture___t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2318,6 +2490,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_DefaultThunk
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2327,6 +2500,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_GenericFnIns
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2336,6 +2510,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_LoweredConst
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2345,6 +2520,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_LoweredFnDec
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2354,6 +2530,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_LoweredModul
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2363,6 +2540,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_LoweredStruc
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2372,6 +2550,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_MismatchPair
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2381,6 +2560,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_lower_ObservedFn_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2390,6 +2570,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_midir_CFGModule_t 
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2399,6 +2580,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_midir_CFGStructFie
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2408,6 +2590,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_resolver_Discovere
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2417,6 +2600,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_resolver_FileScope
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2426,6 +2610,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_resolver_LoadedMod
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2435,6 +2620,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_resolver_symbol_Sy
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2444,6 +2630,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_resolver_symbol_Sy
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2453,6 +2640,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_BoundedI
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2462,6 +2650,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_FnCandid
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2471,6 +2660,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_ImplEntr
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2480,6 +2670,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_ImplMeth
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2489,6 +2680,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_ImplShap
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2498,6 +2690,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_NarrowSl
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2507,6 +2700,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_typecheck_TypedPro
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2516,6 +2710,7 @@ struct vader_struct_std_collections_MutableMap__string__vader_types_AnyType___va
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2525,6 +2720,7 @@ struct vader_struct_std_collections_MutableMap__toolchain_span_Span__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2534,6 +2730,7 @@ struct vader_struct_std_collections_MutableMap__u64__Any_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2543,6 +2740,7 @@ struct vader_struct_std_collections_MutableMap__u64__bool_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2552,6 +2750,7 @@ struct vader_struct_std_collections_MutableMap__u64__i32_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2561,6 +2760,7 @@ struct vader_struct_std_collections_MutableMap__u64__i64_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2570,6 +2770,7 @@ struct vader_struct_std_collections_MutableMap__u64__std_collections_MutableSet_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2579,6 +2780,7 @@ struct vader_struct_std_collections_MutableMap__u64__std_collections_MutableSet_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2588,6 +2790,7 @@ struct vader_struct_std_collections_MutableMap__u64__toolchain_ast_ConstDecl_t {
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2597,6 +2800,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_lower_ConsumerShape_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2606,6 +2810,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_resolver_symbol_Symbo
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2615,6 +2820,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_typecheck_ConstState_
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2624,6 +2830,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_typecheck_GeneratorSt
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2633,6 +2840,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_typecheck_ImplEntry_t
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2642,6 +2850,7 @@ struct vader_struct_std_collections_MutableMap__u64__vader_types_AnyType___vader
     void* f_evals;
     void* f_index;
     int64_t f_mask;
+    int64_t f_grow_at;
     int64_t f_size;
     int64_t f_tombs;
 };
@@ -2931,6 +3140,7 @@ struct vader_struct_toolchain_ast_FnParam_t {
     void* f_span;
     int64_t f_id;
     vader_string_t f_name;
+    void* f_name_span;
     vader_box_t f_ty;
     vader_box_t f_default_value;
     bool f_variadic;
@@ -3469,6 +3679,7 @@ struct vader_struct_vader_bytecode_BcImport_t {
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
+    vader_box_t f_library;
     int32_t f_c_variadic_fixed;
     void* f_param_c_types;
     vader_string_t f_result_c_type;
@@ -4124,7 +4335,6 @@ struct vader_struct_vader_c_emit_EmitCtx_t {
     int32_t f_string_array_tag;
     void* f_may_alloc;
     void* f_import_may_collect;
-    bool f_release;
     bool f_split;
     void* f_internal_fns;
     bool f_verify_bounds;
@@ -4132,7 +4342,6 @@ struct vader_struct_vader_c_emit_EmitCtx_t {
 };
 struct vader_struct_vader_c_emit_EmitOptions_t {
     vader_obj_header_t header;
-    bool f_release;
     vader_string_t f_entry_mangled;
     bool f_split;
     void* f_atom_universe;
@@ -4149,7 +4358,8 @@ struct vader_struct_vader_c_emit_FnState_t {
     void* f_scopes;
     void* f_continue_targets;
     void* f_break_targets;
-    bool f_no_frame;
+    bool f_safepoint_free;
+    bool f_needs_frame;
     void* f_push_caches;
     void* f_bound_arrays;
     bool f_drop_call_result;
@@ -4166,8 +4376,13 @@ struct vader_struct_vader_c_emit_ForwardedResult_t {
     vader_obj_header_t header;
     vader_box_t f_capture;
     bool f_returns;
-    vader_box_t f_settle;
+    void* f_settle;
     vader_box_t f_returned;
+};
+struct vader_struct_vader_c_emit_MirrorCrossings_t {
+    vader_obj_header_t header;
+    void* f_lent;
+    void* f_copied;
 };
 struct vader_struct_vader_c_emit_PoolArray_t {
     vader_obj_header_t header;
@@ -4529,11 +4744,18 @@ struct vader_struct_vader_comptime_ComptimeContext_t {
     void* f_typed;
     void* f_bindings;
     int64_t f_depth;
+    vader_box_t f_project;
 };
 struct vader_struct_vader_comptime_ComptimeOrder_t {
     vader_obj_header_t header;
     void* f_order;
     void* f_cycle_diags;
+};
+struct vader_struct_vader_comptime_EnumValue_t {
+    vader_obj_header_t header;
+    void* f_enum_type;
+    vader_string_t f_variant;
+    int64_t f_value;
 };
 struct vader_struct_vader_comptime_EvalResult_t {
     vader_obj_header_t header;
@@ -4557,6 +4779,7 @@ struct vader_struct_vader_comptime_EvaluatedProject_t {
     void* f_file_exprs;
     void* f_instances;
     void* f_vm_required;
+    void* f_libraries;
 };
 struct vader_struct_vader_comptime_FileRead_t {
     vader_obj_header_t header;
@@ -4579,7 +4802,6 @@ struct vader_struct_vader_comptime_GenericInstance_t {
 struct vader_struct_vader_comptime_InstanceRegistry_t {
     vader_obj_header_t header;
     void* f_by_key;
-    void* f_order;
 };
 struct vader_struct_vader_comptime_IntValue_t {
     vader_obj_header_t header;
@@ -4598,6 +4820,14 @@ struct vader_struct_vader_comptime_MonoEntry_t {
     vader_box_t f_module;
     vader_box_t f_vtable_slot;
 };
+struct vader_struct_vader_comptime_NativeLibrary_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    vader_string_t f_header;
+    vader_string_t f_include;
+    void* f_archives;
+    void* f_system;
+};
 struct vader_struct_vader_comptime_NodeRecord_t {
     vader_obj_header_t header;
     void* f_decl;
@@ -4611,6 +4841,12 @@ struct vader_struct_vader_comptime_Nodes_t {
 };
 struct vader_struct_vader_comptime_NullValue_t {
     vader_obj_header_t header;
+};
+struct vader_struct_vader_comptime_ProjectConstants_t {
+    vader_obj_header_t header;
+    void* f_typed;
+    void* f_values;
+    void* f_pending;
 };
 struct vader_struct_vader_comptime_StringValue_t {
     vader_obj_header_t header;
@@ -5626,6 +5862,7 @@ struct vader_struct_vader_lower_LoweredProject_t {
     void* f_vtable_entries;
     void* f_data_pool;
     void* f_globals;
+    void* f_libraries;
     void* f_const_fn_wrap;
     void* f_const_inline;
     void* f_const_fresh_wrap;
@@ -5867,11 +6104,11 @@ struct vader_struct_vader_midir_CFGExternDecl_t {
     vader_box_t f_return_type;
     void* f_origin;
     vader_string_t f_extern_name;
-    bool f_is_exported;
     bool f_is_extern;
     vader_string_t f_c_header;
     vader_string_t f_c_library;
     int32_t f_c_variadic_fixed;
+    vader_box_t f_library;
 };
 struct vader_struct_vader_midir_CFGFunction_t {
     vader_obj_header_t header;
@@ -5882,9 +6119,6 @@ struct vader_struct_vader_midir_CFGFunction_t {
     void* f_blocks;
     int32_t f_entry;
     void* f_origin;
-    vader_string_t f_extern_name;
-    bool f_is_extern;
-    bool f_is_exported;
     void* f_scalarised_results;
 };
 struct vader_struct_vader_midir_CFGLocal_t {
@@ -6017,7 +6251,6 @@ struct vader_struct_vader_midir_FnMetadata_t {
     vader_string_t f_extern_name;
     bool f_is_extern;
     int32_t f_c_variadic_fixed;
-    bool f_is_exported;
     vader_string_t f_c_library;
     vader_string_t f_c_header;
 };
@@ -6205,7 +6438,6 @@ struct vader_struct_vader_midir_InstrMakeClosure_t {
     int32_t f_dst;
     void* f_fn_symbol;
     int32_t f_env;
-    vader_box_t f_env_type;
     vader_box_t f_type;
 };
 struct vader_struct_vader_midir_InstrMove_t {
@@ -6388,6 +6620,13 @@ struct vader_struct_vader_parser_CompoundOpResult_t {
     bool f_matched;
     uint8_t f_op;
 };
+struct vader_struct_vader_parser_DecoratorSpec_t {
+    vader_obj_header_t header;
+    vader_string_t f_name;
+    vader_string_t f_usage;
+    void* f_places;
+    vader_string_t f_doc;
+};
 struct vader_struct_vader_parser_FnBodyTail_t {
     vader_obj_header_t header;
     vader_box_t f_body;
@@ -6412,6 +6651,8 @@ struct vader_struct_vader_parser_IntrinsicSpec_t {
     vader_string_t f_name;
     void* f_args;
     vader_string_t f_result;
+    vader_string_t f_signature;
+    vader_string_t f_doc;
 };
 struct vader_struct_vader_parser_ModuleHeader_t {
     vader_obj_header_t header;
@@ -7117,6 +7358,7 @@ struct vader_struct_vader_typecheck_TypedProgram_t {
     void* f_extern_symbols;
     void* f_let_type_aliases;
     void* f_const_decls;
+    void* f_extern_libraries;
     void* f_enum_decls;
     void* f_fn_needs_concrete_instances;
     void* f_fn_observes_type_params;
@@ -7530,6 +7772,7 @@ bool std_core____Contains_contains__string(void* l0, vader_string_t l1);
 bool std_core____Contains_contains__i32(void* l0, int32_t l1);
 bool std_core____Contains_contains__bool(void* l0, bool l1);
 bool std_core____Contains_contains__vader_bytecode_ValType(void* l0, uint8_t l1);
+bool std_core____Contains_contains__vader_parser_DecoratorPlace(void* l0, uint8_t l1);
 vader_string_t std_core_u64_Display_to_string(uint64_t l0);
 vader_string_t std_core_char_Display_to_string(uint32_t l0);
 vader_string_t std_core_f64_Display_to_string(double l0);
@@ -7557,7 +7800,6 @@ vader_box_t std_collections_MutableMap_std_core_Index_at__i32__Any(void* l0, int
 void std_collections_MutableMap_std_core_IndexSet_set_at__i32__Any(void* l0, int32_t l1, vader_box_t l2);
 bool std_collections_MutableMap_std_core_Contains_contains__i32__Any(void* l0, int32_t l1);
 vader_box_t std_collections_MutableMap_std_core_Index_at__i32__string__(void* l0, int32_t l1);
-void std_collections_MutableMap_std_core_IndexSet_set_at__i32__string__(void* l0, int32_t l1, void* l2);
 void std_collections_MutableMap_std_core_IndexSet_set_at__i32__vader_comptime_ComptimeRoute(void* l0, int32_t l1, uint8_t l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__i32__vader_resolver_ConstLocal(void* l0, int32_t l1);
 void std_collections_MutableMap_std_core_IndexSet_set_at__i32__vader_resolver_ConstLocal(void* l0, int32_t l1, uint8_t l2);
@@ -7599,17 +7841,12 @@ void std_collections_MutableMap_std_core_IndexSet_set_at__string__i64(void* l0, 
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__string(void* l0, vader_string_t l1);
 void std_collections_MutableMap_std_core_IndexSet_set_at__string__string(void* l0, vader_string_t l1, vader_string_t l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType_(void* l0, vader_string_t l1);
-void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType_(void* l0, vader_string_t l1, void* l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string___vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType______(void* l0, vader_string_t l1);
-void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string___vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType______(void* l0, vader_string_t l1, void* l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string__vader_typecheck_FnCandidate___(void* l0, vader_string_t l1);
 void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string__vader_typecheck_FnCandidate___(void* l0, vader_string_t l1, void* l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string__bool_(void* l0, vader_string_t l1);
 void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string__bool_(void* l0, vader_string_t l1, void* l2);
-vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string__vader_lower_MismatchPair_(void* l0, vader_string_t l1);
-void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string__vader_lower_MismatchPair_(void* l0, vader_string_t l1, void* l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__string__std_collections_MutableMap_string__toolchain_ast_FnDecl_(void* l0, vader_string_t l1);
-void std_collections_MutableMap_std_core_IndexSet_set_at__string__std_collections_MutableMap_string__toolchain_ast_FnDecl_(void* l0, vader_string_t l1, void* l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__u64__Any(void* l0, uint64_t l1);
 void std_collections_MutableMap_std_core_IndexSet_set_at__u64__Any(void* l0, uint64_t l1, vader_box_t l2);
 vader_box_t std_collections_MutableMap_std_core_Index_at__u64__vader_typecheck_ConstState(void* l0, uint64_t l1);
@@ -7623,15 +7860,55 @@ bool std_collections_MutableSet_std_core_Contains_contains__i32(void* l0, int32_
 bool std_collections_MutableSet_std_core_Contains_contains__i64(void* l0, int64_t l1);
 bool std_collections_MutableSet_std_core_Contains_contains__string(void* l0, vader_string_t l1);
 bool std_collections_MutableSet_std_core_Contains_contains__u64(void* l0, uint64_t l1);
+int32_t std_collections_get_or_put__i32__i32(void* l0, int32_t l1, int32_t l2);
+void* std_collections_get_or_put__i32__i32__(void* l0, int32_t l1, void* l2);
+vader_string_t std_collections_get_or_put__i32__string(void* l0, int32_t l1, vader_string_t l2);
+vader_box_t std_collections_get_or_put__i32__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType(void* l0, int32_t l1, vader_box_t l2);
+int32_t std_collections_get_or_put__i64__i32(void* l0, int64_t l1, int32_t l2);
+vader_string_t std_collections_get_or_put__i64__string(void* l0, int64_t l1, vader_string_t l2);
+vader_box_t std_collections_get_or_put__i64__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType(void* l0, int64_t l1, vader_box_t l2);
+int32_t std_collections_get_or_put__string__i32(void* l0, vader_string_t l1, int32_t l2);
+int64_t std_collections_get_or_put__string__i64(void* l0, vader_string_t l1, int64_t l2);
+void* std_collections_get_or_put__string__string__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put__string__toolchain_ast_FnDecl(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put__string__vader_resolver_symbol_Symbol(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put__string__vader_resolver_symbol_Symbol__(void* l0, vader_string_t l1, void* l2);
+int32_t std_collections_get_or_put__u64__i32(void* l0, uint64_t l1, int32_t l2);
+void* std_collections_get_or_put__u64__vader_resolver_symbol_Symbol(void* l0, uint64_t l1, void* l2);
+vader_string_t std_collections_get_or_put_with__i32__string(void* l0, int32_t l1, void* l2);
+void* std_collections_get_or_put_with__i32__string__(void* l0, int32_t l1, void* l2);
+void* std_collections_get_or_put_with__i32__vader_effects_ConstantUse__(void* l0, int32_t l1, void* l2);
+void* std_collections_get_or_put_with__i32__vader_resolver_symbol_Symbol__(void* l0, int32_t l1, void* l2);
+void* std_collections_get_or_put_with__i64__vader_effects_Root__(void* l0, int64_t l1, void* l2);
+void* std_collections_get_or_put_with__string___vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType_____(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__i32__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string___vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType______(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string__bool_(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string__toolchain_ast_FnDecl_(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string__vader_lower_MismatchPair_(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string__vader_typecheck_FnCandidate___(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__std_collections_MutableMap_string__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType_(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__string__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__toolchain_ast_FnDecl__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_lower_ObservedFn(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_resolver_symbol_Symbol__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_typecheck_BoundedImpl__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_typecheck_FnCandidate__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_typecheck_ImplEntry__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_typecheck_ImplMethod__(void* l0, vader_string_t l1, void* l2);
+void* std_collections_get_or_put_with__string__vader_typecheck_ImplShape__(void* l0, vader_string_t l1, void* l2);
 void std_collections_clear__string__Any(void* l0);
 bool std_collections_remove__i32__vader_lower_LoweredArrayLen___vader_lower_LoweredArrayLit___vader_lower_LoweredArrayPush___vader_lower_LoweredArraySlice___vader_lower_LoweredBinary___vader_lower_LoweredBlock___vader_lower_LoweredBoolLit___vader_lower_LoweredCall___vader_lower_LoweredCast___vader_lower_LoweredCellGet___vader_lower_LoweredCellNew___vader_lower_LoweredCharLit___vader_lower_LoweredDataConst___vader_lower_LoweredFieldAccess___vader_lower_LoweredFloatLit___vader_lower_LoweredGlobalGet___vader_lower_LoweredIdent___vader_lower_LoweredIf___vader_lower_LoweredIndex___vader_lower_LoweredIntLit___vader_lower_LoweredIntrinsicCall___vader_lower_LoweredMakeClosure___vader_lower_LoweredNullLit___vader_lower_LoweredStringLit___vader_lower_LoweredStructLit___vader_lower_LoweredTypeCheck___vader_lower_LoweredTypeConst___vader_lower_LoweredUnary___vader_lower_LoweredUnionField___vader_lower_LoweredUnreachable___vader_lower_LoweredVirtualCall(void* l0, int32_t l1);
 bool std_collections_remove__i32__vader_typecheck_NarrowSlot(void* l0, int32_t l1);
 bool std_collections_remove__i64__vader_lower_LoweredArrayLen___vader_lower_LoweredArrayLit___vader_lower_LoweredArrayPush___vader_lower_LoweredArraySlice___vader_lower_LoweredBinary___vader_lower_LoweredBlock___vader_lower_LoweredBoolLit___vader_lower_LoweredCall___vader_lower_LoweredCast___vader_lower_LoweredCellGet___vader_lower_LoweredCellNew___vader_lower_LoweredCharLit___vader_lower_LoweredDataConst___vader_lower_LoweredFieldAccess___vader_lower_LoweredFloatLit___vader_lower_LoweredGlobalGet___vader_lower_LoweredIdent___vader_lower_LoweredIf___vader_lower_LoweredIndex___vader_lower_LoweredIntLit___vader_lower_LoweredIntrinsicCall___vader_lower_LoweredMakeClosure___vader_lower_LoweredNullLit___vader_lower_LoweredStringLit___vader_lower_LoweredStructLit___vader_lower_LoweredTypeCheck___vader_lower_LoweredTypeConst___vader_lower_LoweredUnary___vader_lower_LoweredUnionField___vader_lower_LoweredUnreachable___vader_lower_LoweredVirtualCall(void* l0, int64_t l1);
 bool std_collections_remove__string__vader_typecheck_NarrowSlot(void* l0, vader_string_t l1);
 int64_t std_collections_len__i32__bool(void* l0);
+int64_t std_collections_len__i32__i32(void* l0);
 int64_t std_collections_len__i32__Any(void* l0);
 int64_t std_collections_len__i64__Any(void* l0);
 int64_t std_collections_len__string__i64(void* l0);
+int64_t std_collections_len__string__string__(void* l0);
+int64_t std_collections_len__string__Any(void* l0);
 bool std_collections_is_empty__i32__bool(void* l0);
 bool std_collections_is_empty__i32__Any(void* l0);
 bool std_collections_is_empty__i64__Any(void* l0);
@@ -7640,12 +7917,13 @@ bool std_collections_is_empty__string__Any(void* l0);
 bool std_collections_is_empty__u64__Any(void* l0);
 void* std_collections_keys__i32__vader_types_AnyType___vader_types_ArrayType___vader_types_DistinctType___vader_types_EnumType___vader_types_FnType___vader_types_FreeCharType___vader_types_FreeFloatType___vader_types_FreeIntType___vader_types_InferVar___vader_types_NeverType___vader_types_PrimitiveType___vader_types_RangeType___vader_types_SelfType___vader_types_StructType___vader_types_TraitType___vader_types_TupleType___vader_types_TypeMetaType___vader_types_TypeParamType___vader_types_UnionType___vader_types_UnresolvedType(void* l0);
 void* std_collections_keys__string___toolchain_ast_AssertDecl___toolchain_ast_ConstDecl___toolchain_ast_EnumDecl___toolchain_ast_FnDecl___toolchain_ast_ImplDecl___toolchain_ast_ImportDecl___toolchain_ast_StructDecl___toolchain_ast_TraitDecl___toolchain_ast_TypeAliasDecl___(void* l0);
-void* std_collections_keys__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue(void* l0);
+void* std_collections_keys__string__vader_comptime_ArrayValue___vader_comptime_BoolValue___vader_comptime_CharValue___vader_comptime_EnumValue___vader_comptime_FloatValue___vader_comptime_IntValue___vader_comptime_NullValue___vader_comptime_StringValue___vader_comptime_StructValue___vader_comptime_TypeValue___vader_comptime_VoidValue(void* l0);
 void* std_collections_keys__string__vader_lower_LoweredModule(void* l0);
 void* std_collections_keys__string__vader_typecheck_TypedProgram(void* l0);
 void* std_collections_values__i32__vader_lower_ConstFnWrap(void* l0);
 void* std_collections_values__i64__vader_typecheck_BoundMember___vader_typecheck_Builtin___vader_typecheck_DirectFn___vader_typecheck_EachOf___vader_typecheck_ErroneousCallee___vader_typecheck_FnValue___vader_typecheck_TraitMember___vader_typecheck_UnsettledCallee(void* l0);
 void* std_collections_values__string__i64(void* l0);
+void* std_collections_values__string__vader_comptime_GenericInstance(void* l0);
 void* std_collections_values__string__vader_resolver_symbol_Symbol(void* l0);
 void* std_collections_values__string__vader_typecheck_TypedProgram(void* l0);
 bool std_collections_add__i32(void* l0, int32_t l1);
@@ -7684,6 +7962,7 @@ bool std_string_is_surrogate(uint32_t l0);
 bool std_string_is_high_surrogate(uint32_t l0);
 bool std_string_is_low_surrogate(uint32_t l0);
 uint32_t std_string_combine_surrogates(uint32_t l0, uint32_t l1);
+vader_string_t std_string_to_upper(vader_string_t l0);
 bool std_string_string_std_core_Contains_contains(vader_string_t l0, vader_string_t l1);
 vader_string_t std_path_to_posix(vader_string_t l0);
 bool __lambda_std_path_0(uint32_t l0);
@@ -7713,17 +7992,20 @@ void* vader_resolver_resolve_module_files(void* l0, vader_string_t l1, vader_str
 void* vader_resolver_wire_imports(void* l0);
 void vader_resolver_run_orphan_rule_check_for_module(void* l0, vader_string_t l1, void* l2, void* l3, void* l4);
 vader_box_t vader_resolver_decl_symbol(void* l0, vader_box_t l1);
+vader_string_t vader_resolver_join_path(vader_string_t l0, vader_string_t l1);
 void* vader_resolver_file_imports(void* l0, vader_string_t l1);
 void* vader_resolver_file_root_scope(void* l0, void* l1, void* l2, void* l3, void* l4);
 void vader_resolver_materialize_intrinsic_members(void* l0, void* l1, void* l2);
 void vader_resolver_materialize_sam_members(void* l0, void* l1, void* l2);
 void vader_resolver_materialize_default_members(void* l0, void* l1, void* l2);
 void* vader_resolver_resolve_module(void* l0, vader_string_t l1, void* l2);
-bool __lambda_vader_resolver_1(void* l0, void* l1);
+void* __lambda_vader_resolver_1(void);
+bool __lambda_vader_resolver_2(void* l0, void* l1);
 vader_box_t vader_resolver_find_async_module_id(void* l0);
-bool __lambda_vader_resolver_2(void* l0);
+bool __lambda_vader_resolver_3(void* l0);
 void* vader_resolver_required_methods(void* l0);
 void* vader_resolver_resolve_import_redirect(void* l0, void* l1);
+void* __lambda_vader_resolver_4(void);
 void* vader_typecheck_check_project_with_bodies(void* l0, void* l1, bool l2);
 void* vader_typecheck_new_typed_project(void* l0);
 void vader_typecheck_collect_impls(void* l0, void* l1, void* l2);
@@ -7741,11 +8023,20 @@ void* vader_typecheck_narrowest_width(void* l0);
 vader_box_t vader_typecheck_entry_of(void* l0, void* l1);
 bool vader_typecheck_type_list_equals(void* l0, void* l1);
 vader_string_t vader_typecheck_callee_label(vader_box_t l0);
+void* __lambda_vader_typecheck_0(void* l0);
+void* __lambda_vader_typecheck_2(void* l0);
+void* __lambda_vader_typecheck_4(void* l0);
+void* __lambda_vader_typecheck_6(void* l0);
+void* __lambda_vader_typecheck_8(void* l0);
+void* __lambda_vader_typecheck_10(void);
+void* __lambda_vader_typecheck_11(void);
+void* __lambda_vader_typecheck_12(void);
 vader_box_t vader_typecheck_declared_type_at(void* l0, void* l1);
 bool vader_typecheck_is_value_only_type(vader_box_t l0);
 vader_box_t vader_typecheck_type_from_expr(vader_box_t l0, void* l1, void* l2);
 void* vader_typecheck_impls_of(void* l0, vader_string_t l1, vader_string_t l2);
-void __lambda_vader_typecheck_0(void* l0, vader_box_t l1);
+void* __lambda_vader_typecheck_13(void);
+void __lambda_vader_typecheck_14(void* l0, vader_box_t l1);
 vader_string_t vader_typecheck_overload_suffix(void* l0, vader_string_t l1, void* l2);
 vader_box_t vader_typecheck_lift_enum_placeholder(vader_box_t l0, void* l1);
 vader_box_t vader_typecheck_erased_async_type(void* l0, vader_box_t l1);
@@ -7759,18 +8050,28 @@ vader_box_t vader_typecheck_laid_out_unions(vader_box_t l0);
 vader_box_t vader_typecheck_default_if_free(vader_box_t l0);
 vader_box_t vader_typecheck_lookup_pre_resolved_field(int32_t l0, vader_string_t l1, void* l2);
 bool vader_typecheck_equals_type(vader_box_t l0, vader_box_t l1);
+void* vader_typecheck_build_namespace_private_names(vader_string_t l0, void* l1);
+void* vader_typecheck_build_namespace_type_members(vader_string_t l0, void* l1, void* l2);
+void* __lambda_vader_typecheck_16(void);
+void* vader_typecheck_build_namespace_exports(vader_string_t l0, void* l1, void* l2);
+void* vader_typecheck_build_namespace_export_decls(vader_string_t l0, void* l1, void* l2);
+void* __lambda_vader_typecheck_17(void);
 vader_box_t vader_typecheck_type_to_target_symbol(vader_box_t l0);
 void* vader_typecheck_impl_type_params_of(void* l0, void* l1);
-bool __lambda_vader_typecheck_2(void* l0, void* l1);
-void __lambda_vader_typecheck_4(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_18(void* l0, void* l1);
+void* vader_typecheck_declared_symbol(void* l0, void* l1);
+vader_box_t vader_typecheck_type_of_symbol(void* l0, void* l1);
+void __lambda_vader_typecheck_20(void* l0, vader_box_t l1);
 bool vader_typecheck_type_contains_type_param(vader_box_t l0);
+bool vader_typecheck_struct_implements_trait(vader_box_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_typecheck_type_bounds(vader_box_t l0);
+void* vader_typecheck_sites_of(void* l0, uint8_t l1);
 vader_box_t vader_typecheck_primitive_from_name(vader_string_t l0);
 void* vader_typecheck_type_arguments(vader_box_t l0);
-uint8_t __lambda_vader_typecheck_6(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_typecheck_22(void* l0, vader_box_t l1);
 vader_box_t vader_typecheck_generator_state_of(void* l0, void* l1);
 vader_box_t vader_typecheck_async_result_arg(vader_box_t l0);
-bool __lambda_vader_typecheck_8(void* l0, int64_t l1, int64_t l2);
+bool __lambda_vader_typecheck_24(void* l0, int64_t l1, int64_t l2);
 void* vader_typecheck_covering_first(void* l0, vader_box_t l1);
 bool vader_typecheck_has_self_param(void* l0);
 void* vader_typecheck_impl_bindings_at(void* l0, vader_box_t l1);
@@ -7778,22 +8079,22 @@ bool vader_typecheck_contains_range(vader_box_t l0, bool l1);
 vader_box_t vader_typecheck_default_free_members(vader_box_t l0);
 vader_box_t vader_typecheck_subtract_type(vader_box_t l0, vader_box_t l1);
 bool vader_typecheck_names_a_type(void* l0, void* l1);
-uint8_t __lambda_vader_typecheck_10(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_typecheck_26(void* l0, vader_box_t l1);
 bool vader_typecheck_is_structural(vader_box_t l0);
-vader_box_t __lambda_vader_typecheck_12(void* l0);
-vader_box_t __lambda_vader_typecheck_14(void* l0);
+void* __lambda_vader_typecheck_28(void);
+void* __lambda_vader_typecheck_29(void);
+vader_box_t __lambda_vader_typecheck_30(void* l0);
+vader_box_t __lambda_vader_typecheck_32(void* l0);
 vader_box_t vader_typecheck_namespace_base_mod_id(vader_box_t l0, void* l1);
 bool vader_typecheck_is_free_numeric(vader_box_t l0);
-vader_string_t __lambda_vader_typecheck_16(vader_box_t l0);
-void* vader_typecheck_sites_of(void* l0, uint8_t l1);
+vader_string_t __lambda_vader_typecheck_34(vader_box_t l0);
 vader_box_t vader_typecheck_member_entry(void* l0, void* l1);
-vader_box_t vader_typecheck_type_of_symbol(void* l0, void* l1);
 void* vader_typecheck_enum_value_runs(void* l0);
-bool __lambda_vader_typecheck_17(int64_t l0, int64_t l1);
+bool __lambda_vader_typecheck_35(int64_t l0, int64_t l1);
 vader_box_t vader_typecheck_integer_values(vader_box_t l0);
 uint8_t vader_typecheck_probe_step(vader_box_t l0, void* l1);
 bool vader_typecheck_is_specialized_arg(void* l0, vader_box_t l1);
-bool __lambda_vader_typecheck_18(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_36(void* l0, vader_box_t l1);
 bool vader_typecheck_comes_before(vader_box_t l0, vader_string_t l1, vader_box_t l2, vader_string_t l3);
 vader_box_t vader_typecheck_union_literal_member(vader_box_t l0, void* l1);
 vader_box_t vader_typecheck_union_variants(vader_box_t l0);
@@ -7807,52 +8108,52 @@ vader_box_t vader_typecheck_check_in(void* l0, vader_box_t l1, vader_box_t l2, v
 vader_box_t vader_typecheck_check_integral(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
 vader_box_t vader_typecheck_check_compare(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
 vader_box_t vader_typecheck_check_arith(void* l0, vader_box_t l1, vader_box_t l2, void* l3, void* l4);
-void* vader_typecheck_declared_symbol(void* l0, void* l1);
 bool vader_typecheck_type_contains_unresolved(vader_box_t l0);
 vader_box_t vader_typecheck_enum_data_of(vader_box_t l0, vader_box_t l1);
+bool vader_typecheck_has_instance_impl(vader_box_t l0, vader_string_t l1, void* l2);
 bool vader_typecheck_keeps_concrete(void* l0, vader_box_t l1);
 void* vader_typecheck_union_leftovers(void* l0, void* l1);
-bool __lambda_vader_typecheck_20(void);
+bool __lambda_vader_typecheck_38(void);
 vader_box_t vader_typecheck_declared_struct_field_type(vader_box_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_typecheck_union_common_field_type(void* l0, vader_string_t l1, void* l2);
-bool __lambda_vader_typecheck_21(void* l0, void* l1);
+bool __lambda_vader_typecheck_39(void* l0, void* l1);
 void vader_typecheck_check_guard_return(void* l0, vader_box_t l1, void* l2, void* l3);
-vader_box_t __lambda_vader_typecheck_23(vader_box_t l0);
+vader_box_t __lambda_vader_typecheck_41(vader_box_t l0);
 void* vader_typecheck_impl_candidates(void* l0, vader_box_t l1, vader_string_t l2);
 bool vader_typecheck_is_gen_state_struct(vader_box_t l0);
-bool vader_typecheck_struct_implements_trait(vader_box_t l0, vader_string_t l1, void* l2);
 int64_t vader_typecheck_receiver_offset(void* l0, void* l1, void* l2);
-uint8_t __lambda_vader_typecheck_24(void* l0, vader_box_t l1);
+uint8_t __lambda_vader_typecheck_42(void* l0, vader_box_t l1);
 vader_box_t vader_typecheck_recorded_decl(void* l0, void* l1);
-void __lambda_vader_typecheck_26(void* l0, vader_box_t l1);
+void __lambda_vader_typecheck_44(void* l0, vader_box_t l1);
 void vader_typecheck_check_ensured_value(void* l0, vader_box_t l1, vader_string_t l2, void* l3, void* l4);
-void __lambda_vader_typecheck_28(void* l0, vader_box_t l1);
-bool __lambda_vader_typecheck_30(void* l0, void* l1);
-bool vader_typecheck_has_instance_impl(vader_box_t l0, vader_string_t l1, void* l2);
-bool __lambda_vader_typecheck_32(void* l0, void* l1);
-bool __lambda_vader_typecheck_34(vader_box_t l0);
+void __lambda_vader_typecheck_46(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_48(void* l0, void* l1);
+bool __lambda_vader_typecheck_50(void* l0, void* l1);
+bool __lambda_vader_typecheck_52(vader_box_t l0);
 vader_box_t vader_typecheck_counterpart(vader_box_t l0, vader_box_t l1);
-bool __lambda_vader_typecheck_35(void* l0, void* l1);
-bool __lambda_vader_typecheck_37(vader_box_t l0);
-bool __lambda_vader_typecheck_38(void* l0, vader_box_t l1);
-bool __lambda_vader_typecheck_42(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_53(void* l0, void* l1);
+bool __lambda_vader_typecheck_55(vader_box_t l0);
+bool __lambda_vader_typecheck_56(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_60(void* l0, vader_box_t l1);
 void* vader_typecheck_serving_impl(void* l0, void* l1, vader_box_t l2);
 vader_box_t vader_typecheck_for_in_element(vader_box_t l0, void* l1);
-bool __lambda_vader_typecheck_44(void* l0, vader_string_t l1);
-bool __lambda_vader_typecheck_46(void* l0, vader_box_t l1);
-bool __lambda_vader_typecheck_49(vader_box_t l0);
-bool __lambda_vader_typecheck_48(vader_box_t l0);
+bool __lambda_vader_typecheck_62(void* l0, vader_string_t l1);
+bool __lambda_vader_typecheck_64(void* l0, vader_box_t l1);
+bool __lambda_vader_typecheck_67(vader_box_t l0);
+bool __lambda_vader_typecheck_66(vader_box_t l0);
 vader_box_t vader_typecheck_lookup_struct_trait_args(vader_box_t l0, vader_string_t l1, void* l2);
 vader_box_t vader_typecheck_impl_at_args(void* l0, vader_box_t l1, vader_string_t l2, void* l3);
 bool vader_typecheck_nests_self(vader_box_t l0);
-bool __lambda_vader_typecheck_50(vader_box_t l0);
-bool __lambda_vader_typecheck_51(vader_box_t l0);
+bool __lambda_vader_typecheck_68(vader_box_t l0);
+bool __lambda_vader_typecheck_69(vader_box_t l0);
 bool vader_typecheck_has_yield(vader_box_t l0);
 void* __const_vader_typecheck_NO_IMPLS(void);
 void* __const_vader_typecheck_CHAR_VALUES(void);
 void* __const_vader_typecheck_NO_IMPL_METHODS(void);
 void* __const_vader_typecheck_NO_ARG_LISTS(void);
 void* __const_vader_typecheck_NO_TYPES(void);
+void* __lambda_vader_typecheck_70(void);
+void* __lambda_vader_typecheck_71(void);
 vader_string_t vader_types_mangle_module_id(vader_string_t l0);
 vader_string_t vader_types_display_type(vader_box_t l0);
 vader_box_t vader_types_mk_struct(void* l0, void* l1);
@@ -7896,6 +8197,7 @@ bool vader_types_is_float_name(vader_string_t l0);
 vader_box_t vader_types_primitive_meta(vader_string_t l0);
 vader_box_t vader_types_mk_trait(void* l0, void* l1);
 bool vader_types_has_builtin_impl(vader_box_t l0, vader_string_t l1);
+bool vader_types_is_c_library(vader_box_t l0);
 int64_t vader_types_integer_bound(void* l0, bool l1);
 bool vader_types_is_char(vader_box_t l0);
 bool vader_types_is_unsigned_int_name(vader_string_t l0);
@@ -7905,6 +8207,7 @@ bool vader_types_is_core_trait(void* l0, vader_string_t l1);
 vader_box_t vader_types_mk_distinct(void* l0, vader_box_t l1);
 bool vader_types_is_machine_integer(vader_box_t l0);
 void* vader_types_range_representation(void* l0);
+vader_box_t vader_types_mk_type_param(void* l0);
 vader_box_t vader_types_array_backing(vader_box_t l0);
 int64_t vader_types_slot_byte_size(vader_box_t l0);
 int64_t vader_types_slot_byte_align(vader_box_t l0);
@@ -7913,7 +8216,6 @@ vader_box_t vader_types_scalar_backing(vader_box_t l0);
 void* vader_types_narrowest_integer(void* l0);
 bool vader_types_is_reference_name(vader_string_t l0);
 int64_t vader_types_primitive_size(vader_string_t l0);
-vader_box_t vader_types_mk_type_param(void* l0);
 vader_string_t vader_types_display_range(void* l0);
 vader_string_t vader_types_trait_key_name(vader_string_t l0);
 bool vader_types_any_type(vader_box_t l0, void* l1);
@@ -7922,9 +8224,9 @@ bool vader_types_is_null_type(vader_box_t l0);
 void* vader_types_mk_fn_drop_self(void* l0);
 bool vader_types_is_counting_type(vader_box_t l0);
 void* vader_comptime_evaluate_project(void* l0, void* l1, void* l2);
-bool __lambda_vader_comptime_0(void* l0, void* l1);
 vader_box_t vader_comptime_string_val(vader_string_t l0);
 vader_box_t vader_comptime_float_val_typed(double l0, vader_string_t l1);
+bool vader_comptime_display_key_before(void* l0, void* l1);
 vader_box_t vader_comptime_int_val_typed(int64_t l0, vader_string_t l1);
 int64_t vader_comptime_wrap_to_width(int64_t l0, vader_string_t l1);
 int64_t vader_comptime_byte_size(vader_box_t l0);
@@ -7942,33 +8244,42 @@ int64_t vader_comptime_op_shr(int64_t l0, int64_t l1);
 int64_t vader_comptime_op_shl(int64_t l0, int64_t l1);
 vader_string_t vader_comptime_mangle_type_arg(vader_box_t l0);
 int64_t vader_comptime_op_mod(int64_t l0, int64_t l1);
-bool __lambda_vader_comptime_1(vader_string_t l0, vader_string_t l1);
+bool __lambda_vader_comptime_0(vader_string_t l0, vader_string_t l1);
 vader_string_t vader_comptime_sanitise_ident(vader_string_t l0);
 vader_string_t vader_comptime_uniq(void* l0, vader_string_t l1);
 void vader_comptime_vm_resolve_vm_required_decls(void* l0, void* l1, void* l2, void* l3);
 void* vader_lower_lower_project(void* l0, void* l1, void* l2, void* l3);
 void* vader_lower_prune_unreachable_fns(void* l0, bool l1);
-void __lambda_vader_lower_0(void* l0, int32_t l1, vader_string_t l2);
-void __lambda_vader_lower_2(void* l0, vader_string_t l1, vader_string_t l2);
+void* __lambda_vader_lower_0(void);
+void __lambda_vader_lower_1(void* l0, int32_t l1, vader_string_t l2);
+void __lambda_vader_lower_3(void* l0, vader_string_t l1, vader_string_t l2);
 bool vader_lower_opt_report_enabled(void);
-void __lambda_vader_lower_4(void* l0, vader_box_t l1);
-void __lambda_vader_lower_6(void* l0, vader_box_t l1);
+void __lambda_vader_lower_5(void* l0, vader_box_t l1);
+void* __lambda_vader_lower_7(void);
+void __lambda_vader_lower_8(void* l0, vader_box_t l1);
 void* vader_lower_lower_project_staged(void* l0, void* l1, void* l2, void* l3, void* l4);
 bool vader_lower_pending_fn_instance_less(void* l0, void* l1);
 void vader_lower_push_struct_shape(vader_box_t l0, void* l1, void* l2);
 bool vader_lower_binds_bare_capture(void* l0, void* l1);
 void* vader_lower_bare_capture_error(void* l0, vader_string_t l1);
-bool __lambda_vader_lower_8(vader_box_t l0);
-bool __lambda_vader_lower_9(vader_string_t l0, vader_string_t l1);
-void __lambda_vader_lower_10(void* l0, vader_box_t l1);
+void* vader_lower_ensure_local_symbol_index(void* l0, void* l1);
+bool __lambda_vader_lower_10(vader_box_t l0);
+bool __lambda_vader_lower_11(vader_string_t l0, vader_string_t l1);
+vader_string_t __lambda_vader_lower_12(void* l0);
+void __lambda_vader_lower_14(void* l0, vader_box_t l1);
 vader_string_t vader_lower_binary_op_name(uint8_t l0);
 void* vader_lower_param_types_of(vader_box_t l0);
-void __lambda_vader_lower_12(void* l0, vader_box_t l1);
-void __lambda_vader_lower_14(void* l0, vader_box_t l1);
+void __lambda_vader_lower_16(void* l0, vader_box_t l1);
+bool vader_lower_gb_is_cell(void* l0, int32_t l1);
+void __lambda_vader_lower_18(void* l0, vader_box_t l1);
 bool vader_lower_pc_stmt_exits(vader_box_t l0);
-bool __lambda_vader_lower_16(vader_box_t l0);
-bool __lambda_vader_lower_17(void* l0, vader_box_t l1);
+bool __lambda_vader_lower_20(vader_box_t l0);
+bool __lambda_vader_lower_21(void* l0, vader_box_t l1);
+void* __lambda_vader_lower_23(void* l0);
 bool vader_lower_loops_over(vader_box_t l0, void* l1, void* l2);
+bool vader_lower_is_local_binding(uint8_t l0);
+bool vader_lower_starts_within(void* l0, void* l1);
+void* __lambda_vader_lower_25(void* l0);
 bool vader_lower_is_defer(vader_box_t l0);
 void* vader_midir_build_cfg_project(void* l0, void* l1);
 void* vader_midir_eliminate_dead_cfg(void* l0);
@@ -8037,6 +8348,8 @@ int32_t vader_bytecode_bc_single_result_type(void* l0);
 vader_box_t vader_bytecode_param_c_type(void* l0, int64_t l1);
 vader_box_t vader_bytecode_c_result_type(void* l0);
 void* vader_bytecode_c_struct_layout(void* l0, void* l1);
+vader_box_t vader_bytecode_mirror_at(void* l0, int32_t l1);
+bool vader_bytecode_param_is_by_address(void* l0, int64_t l1);
 int32_t vader_bytecode_size_of_val_type(uint8_t l0);
 bool vader_bytecode_is_64_bit_int_val(uint8_t l0);
 bool vader_bytecode_is_integer_val(uint8_t l0);
@@ -8044,7 +8357,6 @@ vader_box_t vader_bytecode_checked_arith(uint8_t l0, uint8_t l1, int64_t l2, int
 int32_t __lambda_vader_bytecode_4(void* l0, int32_t l1);
 vader_string_t vader_bytecode_primitive_member_mangle(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 bool vader_bytecode_param_is_c_out(void* l0, int64_t l1);
-bool vader_bytecode_param_is_by_address(void* l0, int64_t l1);
 vader_box_t vader_bytecode_nested_mirror(void* l0, void* l1);
 int32_t vader_bytecode_array_kind_index(uint8_t l0);
 vader_string_t vader_bytecode_val_type_name(uint8_t l0);
@@ -8073,17 +8385,18 @@ bool vader_bytecode_is_unsigned_display(vader_string_t l0);
 bool vader_bytecode_is_narrow_valtype(uint8_t l0);
 vader_box_t vader_bytecode_c_field_width(void* l0, void* l1);
 void* vader_c_emit_emit_c_split(void* l0, void* l1, vader_string_t l2);
-void* __lambda_vader_c_emit_0(void* l0, int64_t l1);
-bool __lambda_vader_c_emit_2(void* l0, int32_t l1, int32_t l2);
-bool __lambda_vader_c_emit_4(vader_string_t l0, vader_string_t l1);
-bool __lambda_vader_c_emit_5(void* l0);
+void* __lambda_vader_c_emit_0(void);
+void* __lambda_vader_c_emit_1(void* l0, int64_t l1);
+bool __lambda_vader_c_emit_3(void* l0, int32_t l1, int32_t l2);
+bool __lambda_vader_c_emit_5(vader_string_t l0, vader_string_t l1);
+bool __lambda_vader_c_emit_6(void* l0);
 void* vader_c_emit_find_layout_siblings(void* l0, int32_t l1);
-bool __lambda_vader_c_emit_6(void* l0, void* l1);
-bool __lambda_vader_c_emit_8(vader_box_t l0);
+bool __lambda_vader_c_emit_7(void* l0, void* l1);
 bool vader_c_emit_fn_has_direct_alloc(void* l0, void* l1);
 bool __lambda_vader_c_emit_9(void* l0, vader_box_t l1);
 vader_box_t __lambda_vader_c_emit_11(vader_string_t l0);
 bool vader_c_emit_op_may_collect(vader_box_t l0, void* l1);
+bool __lambda_vader_c_emit_12(vader_box_t l0);
 vader_string_t std_target_Os_std_core_Display_to_string(uint8_t l0);
 vader_string_t std_target_Arch_std_core_Display_to_string(uint8_t l0);
 void std_string_builder_append(void* l0, vader_string_t l1);
@@ -8110,10 +8423,12 @@ void std_abort_todo(vader_string_t l0);
 void std_abort_unreachable(vader_string_t l0);
 bool toolchain_ast_decorators_have(void* l0, vader_string_t l1);
 vader_string_t toolchain_ast_c_type_of(void* l0);
+vader_string_t toolchain_ast_c_struct_spelling(void* l0, vader_string_t l1);
 vader_box_t toolchain_ast_find_decorator(void* l0, vader_string_t l1);
 int64_t toolchain_ast_int_literal_value(void* l0);
-vader_box_t toolchain_ast_string_literal_text(vader_box_t l0);
 vader_box_t toolchain_ast_decl_name_span(vader_box_t l0);
+vader_box_t toolchain_ast_string_literal_text(vader_box_t l0);
+void* toolchain_ast_decl_decorators(vader_box_t l0);
 vader_string_t toolchain_ast_int_literal_text(void* l0);
 vader_box_t toolchain_ast_coalesce_fallback_expr(vader_box_t l0);
 void* toolchain_ast_assign_places(void* l0);
@@ -8128,12 +8443,16 @@ void vader_parser_assign_program_ids(void* l0, void* l1);
 int64_t vader_parser_mint(void* l0);
 void vader_parser_assign_block_ids(void* l0, void* l1);
 vader_box_t vader_parser_intrinsic_spec(vader_string_t l0);
+uint8_t vader_parser_arg_kind(void* l0, int64_t l1);
+bool vader_parser_is_evaluated(uint8_t l0);
+bool vader_parser_decorator_on(vader_string_t l0, uint8_t l1);
 vader_string_t __lambda_vader_parser_0(void* l0, vader_string_t l1);
 vader_string_t __lambda_vader_parser_2(void* l0, vader_string_t l1);
 vader_string_t vader_parser_is_binding_hint(vader_box_t l0, vader_string_t l1, bool l2);
 vader_string_t __lambda_vader_parser_4(vader_string_t l0);
 vader_string_t __lambda_vader_parser_5(vader_string_t l0);
 void* __const_vader_parser_INTRINSICS(void);
+void* __const_vader_parser_DECORATORS(void);
 void* vader_resolver_symbol_make(void* l0, uint8_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4, uint8_t l5, vader_box_t l6);
 bool vader_resolver_symbol_is_frozen_const(void* l0);
 void* vader_target_host_target(void);
@@ -8150,7 +8469,6 @@ void* std_iter_clone__string(void* l0);
 void* std_iter_clone__vader_comptime_GenericInstance(void* l0);
 void* std_iter_clone__vader_diagnostics_Diagnostic(void* l0);
 void* std_iter_clone__vader_lower_PendingFnInstance(void* l0);
-void* std_iter_clone__vader_midir_BlockId(void* l0);
 void* std_iter_clone__vader_resolver_symbol_Symbol(void* l0);
 vader_box_t json_parse(vader_string_t l0);
 bool vader_integer_same_interval(void* l0, void* l1);
@@ -8219,22 +8537,24 @@ bool vader_effects_holds_references(vader_box_t l0);
 bool __lambda_vader_effects_7(void* l0, int32_t l1);
 void* __lambda_vader_effects_9(void);
 void* __lambda_vader_effects_10(void);
-vader_string_t __lambda_vader_effects_11(void* l0);
-bool __lambda_vader_effects_12(void* l0, void* l1);
-void* __lambda_vader_effects_14(void* l0);
+void* __lambda_vader_effects_11(void);
+vader_string_t __lambda_vader_effects_12(void* l0);
+bool __lambda_vader_effects_13(void* l0, void* l1);
+void* __lambda_vader_effects_15(void* l0);
 bool vader_effects_is_view(void* l0);
-bool __lambda_vader_effects_15(void* l0, void* l1);
-bool __lambda_vader_effects_17(void* l0, void* l1);
-bool __lambda_vader_effects_19(void* l0);
+bool __lambda_vader_effects_16(void* l0, void* l1);
+bool __lambda_vader_effects_18(void* l0, void* l1);
+bool __lambda_vader_effects_20(void* l0);
+void* __lambda_vader_effects_21(void);
 void* vader_effects_root_record(void* l0, int64_t l1);
 void* vader_effects_none(void);
 bool vader_effects_reaches(void* l0, void* l1);
 bool vader_effects_is_the_view(void* l0);
-bool __lambda_vader_effects_20(vader_box_t l0);
+bool __lambda_vader_effects_22(vader_box_t l0);
 bool vader_effects_is_kept(void* l0);
-bool __lambda_vader_effects_21(void* l0, void* l1);
-bool __lambda_vader_effects_25(void* l0, void* l1);
-bool __lambda_vader_effects_27(void* l0);
+bool __lambda_vader_effects_23(void* l0, void* l1);
+bool __lambda_vader_effects_27(void* l0, void* l1);
+bool __lambda_vader_effects_29(void* l0);
 bool vader_effects_modifies(void* l0);
 bool vader_effects_writes_view(void* l0, void* l1);
 bool vader_effects_is_unknown(void* l0);
@@ -8242,15 +8562,15 @@ bool vader_effects_written_at(void* l0, void* l1, void* l2, void* l3);
 bool vader_effects_keeps(void* l0);
 bool vader_effects_escapes(void* l0);
 void* vader_effects_targets_of(void* l0, vader_box_t l1);
-bool __lambda_vader_effects_28(void* l0, vader_box_t l1);
-bool vader_effects_may_hold_view(vader_box_t l0, void* l1);
 bool __lambda_vader_effects_30(void* l0, vader_box_t l1);
-bool vader_effects_may_be_written(void* l0, vader_box_t l1, void* l2, void* l3);
+bool vader_effects_may_hold_view(vader_box_t l0, void* l1);
 bool __lambda_vader_effects_32(void* l0, vader_box_t l1);
-void* __lambda_vader_effects_34(void* l0, vader_box_t l1);
-bool __lambda_vader_effects_36(void* l0, void* l1);
+bool vader_effects_may_be_written(void* l0, vader_box_t l1, void* l2, void* l3);
+bool __lambda_vader_effects_34(void* l0, vader_box_t l1);
+void* __lambda_vader_effects_36(void* l0, vader_box_t l1);
+bool __lambda_vader_effects_38(void* l0, void* l1);
 bool vader_effects_may_be_element(vader_box_t l0, vader_box_t l1);
-bool __lambda_vader_effects_38(void* l0, vader_box_t l1);
+bool __lambda_vader_effects_40(void* l0, vader_box_t l1);
 void vader_c_emit_c_ast_print_section(void* l0, void* l1);
 void vader_c_emit_c_ast_print_item(void* l0, vader_box_t l1);
 vader_string_t vader_c_emit_c_ast_printed_text(void* l0);
@@ -8295,12 +8615,32 @@ vader_box_t vader_fn_tramp_vader_diagnostics_diag_less(void* env, vader_box_t a0
 extern vader_fn_t vader_fn_static_vader_diagnostics_diag_less;
 vader_box_t vader_fn_tramp___lambda_vader_resolver_0(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static___lambda_vader_resolver_0;
-vader_box_t vader_fn_tramp___lambda_vader_resolver_1(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_tramp___lambda_vader_resolver_1(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_resolver_1;
+vader_box_t vader_fn_tramp___lambda_vader_resolver_2(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_resolver_2;
+vader_box_t vader_fn_tramp___lambda_vader_resolver_4(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_resolver_4;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_10(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_10;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_11(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_11;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_12(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_12;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_13(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_13;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_16(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_16;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_17(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_17;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_28(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_28;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_29(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_29;
 vader_box_t vader_fn_tramp_vader_typecheck_is_free_numeric(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_typecheck_is_free_numeric;
-vader_box_t vader_fn_tramp___lambda_vader_typecheck_17(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_typecheck_17;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_35(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_35;
 vader_box_t vader_fn_tramp_vader_typecheck_check_in(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
 extern vader_fn_t vader_fn_static_vader_typecheck_check_in;
 vader_box_t vader_fn_tramp_vader_typecheck_check_integral(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
@@ -8309,18 +8649,22 @@ vader_box_t vader_fn_tramp_vader_typecheck_check_compare(void* env, vader_box_t 
 extern vader_fn_t vader_fn_static_vader_typecheck_check_compare;
 vader_box_t vader_fn_tramp_vader_typecheck_check_arith(void* env, vader_box_t a0, vader_box_t a1, vader_box_t a2, vader_box_t a3, vader_box_t a4);
 extern vader_fn_t vader_fn_static_vader_typecheck_check_arith;
-vader_box_t vader_fn_tramp___lambda_vader_typecheck_20(void* env);
-extern vader_fn_t vader_fn_static___lambda_vader_typecheck_20;
-vader_box_t vader_fn_tramp___lambda_vader_typecheck_49(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_typecheck_49;
-vader_box_t vader_fn_tramp___lambda_vader_typecheck_51(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_typecheck_51;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_38(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_38;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_67(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_67;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_69(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_69;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_70(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_70;
+vader_box_t vader_fn_tramp___lambda_vader_typecheck_71(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_typecheck_71;
 vader_box_t vader_fn_tramp_vader_types_mk_struct(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_vader_types_mk_struct;
 vader_box_t vader_fn_tramp_vader_types_mk_trait(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_vader_types_mk_trait;
-vader_box_t vader_fn_tramp___lambda_vader_comptime_0(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_comptime_0;
+vader_box_t vader_fn_tramp_vader_comptime_display_key_before(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static_vader_comptime_display_key_before;
 vader_box_t vader_fn_tramp_vader_comptime_op_mul(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_vader_comptime_op_mul;
 vader_box_t vader_fn_tramp_vader_comptime_op_sub(void* env, vader_box_t a0, vader_box_t a1);
@@ -8343,12 +8687,16 @@ vader_box_t vader_fn_tramp_vader_comptime_op_shl(void* env, vader_box_t a0, vade
 extern vader_fn_t vader_fn_static_vader_comptime_op_shl;
 vader_box_t vader_fn_tramp_vader_comptime_op_mod(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_vader_comptime_op_mod;
-vader_box_t vader_fn_tramp___lambda_vader_comptime_1(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_comptime_1;
+vader_box_t vader_fn_tramp___lambda_vader_comptime_0(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_comptime_0;
+vader_box_t vader_fn_tramp___lambda_vader_lower_0(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_lower_0;
+vader_box_t vader_fn_tramp___lambda_vader_lower_7(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_lower_7;
 vader_box_t vader_fn_tramp_vader_lower_pending_fn_instance_less(void* env, vader_box_t a0, vader_box_t a1);
 extern vader_fn_t vader_fn_static_vader_lower_pending_fn_instance_less;
-vader_box_t vader_fn_tramp___lambda_vader_lower_9(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_lower_9;
+vader_box_t vader_fn_tramp___lambda_vader_lower_11(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_lower_11;
 vader_box_t vader_fn_tramp_vader_lower_is_defer(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_lower_is_defer;
 vader_box_t vader_fn_tramp___lambda_vader_midir_6(void* env);
@@ -8357,8 +8705,10 @@ vader_box_t vader_fn_tramp___lambda_vader_midir_11(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_midir_11;
 vader_box_t vader_fn_tramp___lambda_vader_midir_12(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_midir_12;
-vader_box_t vader_fn_tramp___lambda_vader_c_emit_4(void* env, vader_box_t a0, vader_box_t a1);
-extern vader_fn_t vader_fn_static___lambda_vader_c_emit_4;
+vader_box_t vader_fn_tramp___lambda_vader_c_emit_0(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_c_emit_0;
+vader_box_t vader_fn_tramp___lambda_vader_c_emit_5(void* env, vader_box_t a0, vader_box_t a1);
+extern vader_fn_t vader_fn_static___lambda_vader_c_emit_5;
 vader_box_t vader_fn_tramp___lambda_vader_parser_4(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static___lambda_vader_parser_4;
 vader_box_t vader_fn_tramp___lambda_vader_parser_5(void* env, vader_box_t a0);
@@ -8381,10 +8731,14 @@ vader_box_t vader_fn_tramp___lambda_vader_effects_9(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_effects_9;
 vader_box_t vader_fn_tramp___lambda_vader_effects_10(void* env);
 extern vader_fn_t vader_fn_static___lambda_vader_effects_10;
+vader_box_t vader_fn_tramp___lambda_vader_effects_11(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_effects_11;
+vader_box_t vader_fn_tramp___lambda_vader_effects_21(void* env);
+extern vader_fn_t vader_fn_static___lambda_vader_effects_21;
 vader_box_t vader_fn_tramp_vader_effects_is_kept(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_effects_is_kept;
-vader_box_t vader_fn_tramp___lambda_vader_effects_27(void* env, vader_box_t a0);
-extern vader_fn_t vader_fn_static___lambda_vader_effects_27;
+vader_box_t vader_fn_tramp___lambda_vader_effects_29(void* env, vader_box_t a0);
+extern vader_fn_t vader_fn_static___lambda_vader_effects_29;
 vader_box_t vader_fn_tramp_vader_effects_modifies(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_effects_modifies;
 vader_box_t vader_fn_tramp_vader_effects_is_unknown(void* env, vader_box_t a0);
@@ -8392,45 +8746,53 @@ extern vader_fn_t vader_fn_static_vader_effects_is_unknown;
 vader_box_t vader_fn_tramp_vader_effects_escapes(void* env, vader_box_t a0);
 extern vader_fn_t vader_fn_static_vader_effects_escapes;
 vader_box_t vader_fn_lift___defer_std_io_0(void* env);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_0(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_4(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_6(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_8(void* env, vader_box_t a0, vader_box_t a1);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_10(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_12(void* env);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_14(void* env);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_18(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_24(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_0(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_2(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_4(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_6(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_8(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_14(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_20(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_22(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_24(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_typecheck_26(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_28(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_typecheck_38(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_lower_0(void* env, vader_box_t a0, vader_box_t a1);
-vader_box_t vader_fn_lift___lambda_vader_lower_2(void* env, vader_box_t a0, vader_box_t a1);
-vader_box_t vader_fn_lift___lambda_vader_lower_4(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_lower_6(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_lower_10(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_lower_12(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_30(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_32(void* env);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_36(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_42(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_44(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_46(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_typecheck_56(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_1(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift___lambda_vader_lower_3(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift___lambda_vader_lower_5(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_8(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_12(void* env);
 vader_box_t vader_fn_lift___lambda_vader_lower_14(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_lower_17(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_16(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_18(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_21(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_lower_23(void* env);
+vader_box_t vader_fn_lift___lambda_vader_lower_25(void* env);
 vader_box_t vader_fn_lift___lambda_vader_midir_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_2(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_4(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_7(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_midir_9(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_c_emit_0(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_c_emit_2(void* env, vader_box_t a0, vader_box_t a1);
+vader_box_t vader_fn_lift___lambda_vader_c_emit_1(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_c_emit_3(void* env, vader_box_t a0, vader_box_t a1);
 vader_box_t vader_fn_lift___lambda_vader_parser_0(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_parser_2(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_fixpoint_1(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_effects_3(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_effects_21(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_effects_25(void* env, vader_box_t a0);
-vader_box_t vader_fn_lift___lambda_vader_effects_32(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_effects_23(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_effects_27(void* env, vader_box_t a0);
+vader_box_t vader_fn_lift___lambda_vader_effects_34(void* env, vader_box_t a0);
 vader_box_t vader_fn_lift___lambda_vader_c_emit_c_ast_0(void* env, vader_box_t a0, vader_box_t a1);
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2863u
+#define VADER_COMPTIME_ATOM_COUNT 2927u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;
@@ -8492,5 +8854,7 @@ extern int32_t vader_global_0;
 extern bool vader_global_1;
 extern int32_t vader_global_2;
 extern bool vader_global_3;
+extern int32_t vader_global_4;
+extern bool vader_global_5;
 extern vader_gc_frame_t vader_global_frame;
 extern const vader_atom_entry_t vader_atom_comptime_table[];
