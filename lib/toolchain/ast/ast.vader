@@ -217,6 +217,28 @@ export c_type_of :: fn(decs: Decorator[]) -> string {
     return sole_string_argument(d)
 }
 
+/// The C symbol an `@extern` declaration binds: the last argument of its
+/// `@extern` (`@extern("c_name")`, `@extern(LIBRARY, "c_name")`), else the name
+/// the declaration declares.
+///
+/// @param decl  the bodyless function declaration.
+export extern_symbol_of :: fn(decl: FnDecl) -> string {
+    d :: find_decorator(decl.decorators, "extern") ?? return decl.name
+    if d.args.len() == 0 {
+        return decl.name
+    }
+    return string_literal_text(d.args[d.args.len() - 1]) ?? decl.name
+}
+
+/// The header an `@extern` declaration's own `@c_header` names, verbatim with
+/// its brackets, or `""` when it carries none.
+///
+/// @param decl  the bodyless function declaration.
+export c_header_of :: fn(decl: FnDecl) -> string {
+    d :: find_decorator(decl.decorators, "c_header") ?? return ""
+    return sole_string_argument(d)
+}
+
 /// The C type a struct declaration mirrors, or `""` when it carries no
 /// `@c_struct`.
 ///

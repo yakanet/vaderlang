@@ -1,0 +1,12 @@
+// The second declarations of `abs` and `labs`.
+module "snippet/other"
+
+import "std/ffi"
+
+LIBC :: CLibrary { .name = "c", .header = "<stdlib.h>" }
+
+@extern("abs")
+export other_abs :: fn(x: i32) -> i32
+
+@extern(LIBC, "labs")
+export other_labs :: fn(x: i64) -> i64

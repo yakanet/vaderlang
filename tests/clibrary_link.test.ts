@@ -5,8 +5,9 @@
 // `lib/<os>-<arch>/` and a platform library. The test compiles the archive for
 // this machine, then checks that `vader build` adds the `-I`, links the archive
 // and evaluates the paths for the target, in both the split and the single-TU
-// builds. A missing archive is reported by the build, before `cc`, and the
-// interpreter, which opens no archive, says the program needs a native build.
+// builds, and through a `.virt`. A missing archive is reported by the build,
+// before `cc`, and the interpreter, which opens no archive, says the program
+// needs a native build.
 
 import { afterAll, expect, test } from "bun:test";
 import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
@@ -63,6 +64,25 @@ for (const split of [true, false]) {
     expect(run.exit).toBe(0);
   }, LONG_BUILD);
 }
+
+test("a `.virt` carries the library to a native build", async () => {
+  const dir = await stage(true);
+  const virt = join(dir, "main.virt");
+  const dump = await spawnCapture(
+    ["build", "--emit=bytecode-text", `--out=${virt}`, join(dir, "main.vader")],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(dump.exit).toBe(0);
+  const out = join(dir, "from-virt");
+  const build = await spawnCapture(
+    ["build", `--out=${out}`, virt],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(build.stderr).not.toContain("error");
+  expect(build.exit).toBe(0);
+  const run = await spawnCapture([], { bin: out + EXE_SUFFIX, cwd: dir });
+  expect(run.stdout).toBe("hello from C: 42\n");
+}, LONG_BUILD);
 
 test("a missing archive stops the build and names the path", async () => {
   const dir = await stage(false);

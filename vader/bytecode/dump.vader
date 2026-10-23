@@ -21,6 +21,7 @@
 
 module "vader/bytecode"
 
+import "std/ffi"
 import "std/string_builder"
 import "std/numbers"
 import "std/string"
@@ -301,7 +302,7 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // dropping it made the VM look up `GetStdHandle` in the C runtime
         // instead of `kernel32`, so every `.virt` re-read failed on Windows
         // while the direct run worked.
-        lib :: if imp.c_library == "" { "" } else { "${imp.c_library}:" }
+        lib :: library_prefix(imp)
         // The header, when one owns the prototype. Same reason as the library:
         // without it a `.virt` re-read SYNTHESISES a prototype, which is the
         // conflicting declaration `@c_header` exists to avoid. Written BEFORE
@@ -354,7 +355,10 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         } else {
             "result_c_type=${c_type_token(imp.result_c_type)} "
         }
-        attributes :: "${va}${header}${rt}${pt}${pm}${pa}${ct}${rc}"
+        // What a native build adds for the library (`native_flags`): a `.virt`
+        // rebuilt into a binary links what the source build would have.
+        li :: library_attributes(imp.library)
+        attributes :: "${va}${header}${rt}${pt}${pm}${pa}${ct}${rc}${li}"
         sb.append("import ${i} ${prefix}${lib}${imp.extern_name} ${imp.mangled_name} ${attributes}")
         write_signature(sb, imp.signature)
         sb.append("\n")
@@ -394,12 +398,59 @@ join_indices :: fn(xs: i32[]) -> string {
 /// `c_type_from_token` reads it back.
 ///
 /// @param spelling  the C type, as `@c_type` names it, or several joined by `,`.
-export c_type_token :: fn(spelling: string) -> string = spelling.replace(" ", "+")
+export c_type_token :: fn(spelling: string) -> string = spelling.replace_all(" ", "+")
+
+// `<lib>:` before the symbol of an import that names a library, `""` otherwise.
+// The colon marks the library, its name may be empty.
+library_prefix :: fn(imp: BcImport) -> string {
+    library :: imp.library ?? return ""
+    return "${library.name}:"
+}
+
+// The `library_*` attributes of an import whose declaration names a `CLibrary`,
+// `""` for none. Its name is the `<lib>:` prefix already, and its header is
+// `header=` when no `@c_header` of the declaration overrides it.
+library_attributes :: fn(library: CLibrary | null) -> string {
+    if library == null {
+        return ""
+    }
+    sb :: StringBuilder {}
+    if library.include != "" {
+        sb.append("library_include=${path_token(library.include)} ")
+    }
+    if library.archives.len() > 0 {
+        sb.append("library_archives=${path_tokens(library.archives)} ")
+    }
+    if library.system.len() > 0 {
+        sb.append("library_system=${path_tokens(library.system)} ")
+    }
+    return sb.to_string()
+}
+
+// A path as one attribute token, losslessly: an attribute ends at a space and a
+// list item at a comma, so both are percent-encoded, and `%` with them.
+path_token :: fn(text: string) -> string =
+    text.replace_all("%", "%25").replace_all(" ", "%20").replace_all(",", "%2C")
+
+/// The path a `path_token` stands for.
+///
+/// @param token  the token read from an import line.
+export path_from_token :: fn(token: string) -> string =
+    token.replace_all("%2C", ",").replace_all("%20", " ").replace_all("%25", "%")
+
+// A list of paths as one attribute value, comma-separated.
+path_tokens :: fn(texts: string[]) -> string = texts.map(path_token).collect().join(",")
+
+/// The paths a `path_tokens` value lists.
+///
+/// @param value  the attribute value read from an import line.
+export paths_from_tokens :: fn(value: string) -> string[] =
+    value.split(",").map(path_from_token).collect()
 
 /// The C type spelling a `c_type_token` stands for.
 ///
 /// @param token  the token read from an import line.
-export c_type_from_token :: fn(token: string) -> string = token.replace("+", " ")
+export c_type_from_token :: fn(token: string) -> string = token.replace_all("+", " ")
 
 /// Render per-parameter flags as a comma-separated run of `0` / `1`.
 ///

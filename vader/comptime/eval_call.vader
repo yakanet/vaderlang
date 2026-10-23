@@ -52,7 +52,8 @@ evaluate_call_expr :: fn(
     if callee_sym is null {
         return vm_required(expr.span, "CallExpr (callee unresolved)")
     }
-    fn_decl :: context.typed.fn_decls[callee_sym.id]
+    call_context :: declaring_context(callee_sym.module, context) ?? context
+    fn_decl :: call_context.typed.fn_decls[callee_sym.id]
     if fn_decl is null {
         return vm_required(expr.span, "CallExpr (no FnDecl for callee)")
     }
@@ -73,7 +74,21 @@ evaluate_call_expr :: fn(
         value :: arg_result.value ?? return arg_result
         arguments.push(value)
     }
-    return evaluate_with_arguments(fn_decl, arguments, bindings, context, expr.span)
+    return evaluate_with_arguments(fn_decl, arguments, bindings, call_context, expr.span)
+}
+
+// The context that evaluates code declared in `module` (a function body, a
+// constant, a field default): that module, where its names are resolved, with
+// no local binding. Null when the evaluation does not reach the project or the
+// module is unknown.
+declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeContext | null {
+    project :: context.project ?? return null
+    owner :: project.typed.modules[module] ?? return null
+    return ComptimeContext {
+        ...context,
+        .typed = owner,
+        .bindings = MutableMap<i32, ComptimeValue> {},
+    }
 }
 
 /// Evaluate the body of `fn_decl` with its parameters bound to `arguments`, on

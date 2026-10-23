@@ -10,6 +10,7 @@
 module "vader/comptime"
 
 import "std/collections"
+import "std/ffi"
 import "vader/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
@@ -31,7 +32,7 @@ evaluate_extern_libraries :: fn(
 ) -> void {
     constants :: ProjectConstants { .typed = typed }
     // One library per constant, shared by every declaration naming it.
-    evaluated :: MutableMap<i32, NativeLibrary> {}
+    evaluated :: MutableMap<i32, CLibrary> {}
     failed :: MutableSet<i32> {}
     for [_, module_typed] in typed.modules {
         for [decl_id, symbol] in module_typed.extern_libraries {
@@ -60,7 +61,7 @@ evaluate_library :: fn(
     symbol: Symbol,
     constants: ProjectConstants,
     diags: Diagnostic[],
-) -> NativeLibrary | null {
+) -> CLibrary | null {
     owner :: constants.typed.modules[symbol.module] ?? return null
     declaration :: owner.const_decls[symbol.id] ?? return null
     context :: ComptimeContext {
@@ -76,7 +77,7 @@ evaluate_library :: fn(
         }
         return null
     }
-    library :: native_library(value, symbol.module)
+    library :: resolved_library(value, symbol.module)
     if library == null {
         detail :: "`${symbol.name}` holds no `CLibrary`"
         diags.push(comptime_error(.CannotEvaluate, declaration.span, detail))
@@ -84,13 +85,13 @@ evaluate_library :: fn(
     return library
 }
 
-/// The `NativeLibrary` a `CLibrary` value describes, its paths resolved in
+/// The `CLibrary` a value describes, its `include` and `archives` resolved in
 /// `folder`, or null when `value` is not one: the evaluation fills every field,
 /// the defaults included, so one that is missing means the struct changed.
 ///
 /// @param value   the evaluated constant.
 /// @param folder  the folder of the module declaring it.
-native_library :: fn(value: ComptimeValue, folder: string) -> NativeLibrary | null {
+resolved_library :: fn(value: ComptimeValue, folder: string) -> CLibrary | null {
     if value !is StructValue {
         return null
     }
@@ -103,7 +104,7 @@ native_library :: fn(value: ComptimeValue, folder: string) -> NativeLibrary | nu
     for archive in archives {
         resolved.push(join_path(folder, archive))
     }
-    return NativeLibrary {
+    return CLibrary {
         .name = name,
         .header = header,
         .include = folder_beside(folder, include),

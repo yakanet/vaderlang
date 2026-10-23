@@ -287,17 +287,16 @@ build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: s
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
-emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null =
-    if file.extension() == "virt" {
-        emit_c_source_from_virt(file)
-    } else {
-        emit_c_source(file, release, include_path_flags, target, verify)
+emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
+    if file.extension() != "virt" {
+        return emit_c_source(file, release, include_path_flags, target, verify)
     }
+    module :: virt_module(file) ?? return null
+    return c_of_virt(module)
+}
 
-// Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
-// the C-emit. The entry fn is the module's `is_main` function (recovered from
-// the dump's `export main N` directive).
-emit_c_source_from_virt :: fn(file: Path) -> string | null {
+// Read a `.virt` text dump and reconstruct its `BytecodeModule`, or say why not.
+virt_module :: fn(file: Path) -> BytecodeModule | null {
     src :: read_file_string(file.as_string())
     if src is IOError {
         eprintln("vader build: cannot read ${file}")
@@ -308,8 +307,13 @@ emit_c_source_from_virt :: fn(file: Path) -> string | null {
         eprintln(module.display_virt_parse_error("vader build", file.as_string()))
         return null
     }
-    return emit_c(module, native_c_options(virt_entry_mangled(module)))
+    return module
 }
+
+// The C of a `.virt` module. The entry fn is the module's `is_main` function
+// (recovered from the dump's `export main N` directive).
+c_of_virt :: fn(module: BytecodeModule) -> string =
+    emit_c(module, native_c_options(virt_entry_mangled(module)))
 
 // Mangled name of the entry fn (the `is_main` function), or `""` when none.
 virt_entry_mangled :: fn(module: BytecodeModule) -> string {
@@ -334,8 +338,9 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     // `vader/pipeline`, so the two cannot drift on flags.
     quote_dir :: quote_include_dir(file)
     if file.extension() == "virt" {
-        c_src :: emit_c_source_from_virt(file) ?? return 1
-        return link_native(c_src, out, cc, release, ldflags, "", quote_dir, NativeFlags {})
+        module :: virt_module(file) ?? return 1
+        native :: native_flags(module)
+        return link_native(c_of_virt(module), out, cc, release, ldflags, "", quote_dir, native)
     }
     b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
     native :: native_flags(b.module)

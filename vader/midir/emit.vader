@@ -89,14 +89,6 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
     }
 }
 
-// What the interpreter opens: the library's name, `""` for the running process.
-library_name_of :: fn(library: NativeLibrary | null) -> string {
-    if library == null {
-        return ""
-    }
-    return library.name
-}
-
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     base :: build_cfg_signature(ext.params, ext.return_type, [], ctx)
     // `@c_pointer`, `@c_out` and `@c_type` are read straight off the origin AST
@@ -111,7 +103,6 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .signature = signature,
         .is_extern = ext.is_extern,
         .c_header = ext.c_header,
-        .c_library = library_name_of(ext.library),
         .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
@@ -189,7 +180,7 @@ reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
 ///
 /// Read from the AST decl rather than a symbol table: `MonoEntry` already
 /// carries the declaration a lowered struct came from, which is the same route
-/// `fn_metadata` takes for `@c_header`.
+/// `header_of` takes for `@c_header`.
 ///
 /// @param origin  the lowered struct's monomorphisation entry.
 /// @return        the C type spelling, or `""` for an ordinary Vader struct.

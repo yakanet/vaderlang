@@ -607,13 +607,6 @@ export TypedProgram :: struct {
     /// the first `fn_is_async` / `fn_is_generator` asked of this module.
     body_shapes: MutableMap<i64, BodyShape> = MutableMap<i64, BodyShape> {}
 
-    /// C symbol name → first `@extern`-decorated FnDecl of this module that
-    /// claimed it. Lets `validate_extern` (decl.vader) emit T3050 on the second
-    /// declaration of the same C symbol in the module: the backend would bind
-    /// both call sites to one prototype. Another module's declarations are not
-    /// in it.
-    extern_symbols: MutableMap<string, AST.FnDecl>
-
     /// In-fn type aliases : `t :: i32` inside a fn body. Keyed by the
     /// binding's `Symbol.id` (resolver-minted Local), value is the
     /// resolved underlying `Type`. Populated by `check_let` when the
@@ -831,7 +824,6 @@ new_typed_program :: fn(resolved: ResolvedModule) = TypedProgram {
     .node_spans      = MutableMap<i64, Span> {},
     .dump_types      = false,
     .generator_states = MutableMap<u64, GeneratorState> {},
-    .extern_symbols  = MutableMap<string, AST.FnDecl> {},
     .let_type_aliases = MutableMap<i32, Type> {},
     .const_decls = MutableMap<i32, AST.ConstDecl> {},
     .enum_decls = MutableMap<i32, AST.EnumDecl> {},

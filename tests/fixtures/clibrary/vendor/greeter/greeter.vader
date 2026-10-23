@@ -3,6 +3,7 @@
 
 module "greeter"
 
+import "libpath"
 import "std/ffi"
 import "std/target"
 
@@ -11,7 +12,7 @@ export GREETER: CLibrary: CLibrary {
     .name = "greeter",
     .header = "greeter.h",
     .include = "include",
-    .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libgreeter.a"],
+    .archives = [archive_for("greeter")],
     .system = match VADER_OS {
         .Linux | .Darwin | .Windows -> ["m"]
         .Wasi | .Browser            -> []

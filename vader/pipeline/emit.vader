@@ -26,7 +26,7 @@ import "vader/diagnostics"
 import "vader/resolver"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions }
-Ct :: import "vader/comptime"
+import "std/ffi"
 
 /// Directory holding the C runtime, for native linking.
 ///
@@ -201,7 +201,7 @@ export native_flags :: fn(module: BytecodeModule) -> NativeFlags {
 }
 
 // Add one library's flags to `flags`, each flag once.
-push_library_flags :: fn(flags: NativeFlags, library: Ct.NativeLibrary) -> void {
+push_library_flags :: fn(flags: NativeFlags, library: CLibrary) -> void {
     if library.include != "" {
         push_once(flags, flags.includes, ["-I", library.include])
     }

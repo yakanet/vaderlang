@@ -15,6 +15,7 @@
 module "vader/midir"
 
 import "std/collections"
+import "std/ffi"
 import "vader/diagnostics"
 import "vader/integer"
 import "vader/lower"
@@ -311,11 +312,6 @@ FnMetadata :: struct {
     is_extern:   bool
     /// See `BcImport.c_variadic_fixed`.
     c_variadic_fixed: i32
-    /// `@c_header("<windows.h>")`, or `""`. When set, the emitter INCLUDES that
-    /// header and does not synthesise a prototype — the header already has the
-    /// real one, and a synthesised one that differs is a conflicting
-    /// declaration the C compiler refuses outright.
-    c_header:    string
 }
 
 import "toolchain/ast"
@@ -326,21 +322,18 @@ import "toolchain/span"
 fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false
-    c_header := ""
     c_variadic_fixed: i32 = -1
     fn_decl :: d.origin.decl
     if fn_decl is FnDecl {
-        extern_name = extern_symbol_name(fn_decl)
+        extern_name = extern_symbol_of(fn_decl)
         // A body is the Vader function an `@extern` taking an enum with variant
         // data lowers to (`lower_extern_values.vader`), not the import.
         is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
-        c_header = c_header_of(fn_decl.decorators)
         c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
     }
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
-        .c_header    = c_header,
         .c_variadic_fixed = c_variadic_fixed,
     }
 }
@@ -360,45 +353,6 @@ c_variadic_fixed_of :: fn(decorators: Decorator[]) -> i32 {
     return -1
 }
 
-/// The header named by `@c_header("<...>")`, or `""` when absent.
-///
-/// @param decs  the declaration's decorators.
-/// @return      the header spelling, verbatim, including its brackets.
-c_header_of :: fn(decs: Decorator[]) -> string {
-    for d in decs {
-        if d.name == "c_header" && d.args.len() == 1 {
-            a :: d.args[0]
-            if a is StringLitExpr && a.parts.len() == 1 {
-                pt :: a.parts[0]
-                if pt is StringLitText {
-                    return pt.value
-                }
-            }
-        }
-    }
-    return ""
-}
-
-/// `@extern("c_name")` / `@extern(LIBRARY, "c_name")` reader: returns the
-/// trailing string-lit arg (the host symbol). Falls back to the source name
-/// only when the decorator is absent or carries no args. Mirrors
-/// `vader/typecheck/decl.vader::extern_symbol_name_for` (last-arg convention),
-/// so the linked C symbol stays consistent between the typer and codegen.
-extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
-    for dec in fn_decl.decorators {
-        if dec.name != "extern" { continue }
-        if dec.args.len() == 0 { continue }
-        last :: dec.args[dec.args.len() - 1]
-        if last is StringLitExpr {
-            if last.parts.len() == 1 {
-                t :: last.parts[0]
-                if t is StringLitText { return t.value }
-            }
-        }
-    }
-    return fn_decl.name
-}
-
 make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
     fields: CFGStructField[]: []
     for f in d.fields {
@@ -413,7 +367,7 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
 
 make_extern_decl :: fn(
     d: LoweredFnDecl,
-    libraries: MutableMap<i64, NativeLibrary>,
+    libraries: MutableMap<i64, CLibrary>,
 ) -> CFGExternDecl {
     meta :: fn_metadata(d)
     library :: library_of(d, libraries)
@@ -431,7 +385,7 @@ make_extern_decl :: fn(
         .origin      = d.origin,
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
-        .c_header    = header_of(meta, library),
+        .c_header    = header_of(d, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
     }
@@ -440,8 +394,8 @@ make_extern_decl :: fn(
 // The `CLibrary` the declaration `d` names, or null.
 library_of :: fn(
     d: LoweredFnDecl,
-    libraries: MutableMap<i64, NativeLibrary>,
-) -> NativeLibrary | null {
+    libraries: MutableMap<i64, CLibrary>,
+) -> CLibrary | null {
     decl :: d.origin.decl
     if decl is FnDecl {
         return libraries[decl.id]
@@ -449,12 +403,13 @@ library_of :: fn(
     return null
 }
 
-// The declaration's own `@c_header`, else its library's default header.
-header_of :: fn(meta: FnMetadata, library: NativeLibrary | null) -> string {
-    if meta.c_header != "" || library == null {
-        return meta.c_header
+// The header that owns the prototype of `d` (`extern_header`), or `""`.
+header_of :: fn(d: LoweredFnDecl, library: CLibrary | null) -> string {
+    decl :: d.origin.decl
+    if decl is FnDecl {
+        return extern_header(decl, library)
     }
-    return library.header
+    return ""
 }
 
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.

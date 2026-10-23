@@ -470,18 +470,6 @@ c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
     return AST.c_struct_spelling(sd.decorators, sd.name)
 }
 
-/// Whether the declaration names the header that owns its prototype.
-///
-/// @param d  the `@extern` declaration.
-declares_c_header :: fn(d: AST.FnDecl) -> bool {
-    for dec in d.decorators {
-        if dec.name == "c_header" {
-            return true
-        }
-    }
-    return false
-}
-
 /// Whether the parameter carries `@c_pointer`.
 ///
 /// @param pm  the parameter.
@@ -841,31 +829,6 @@ validate_extern :: fn(
             ),
         )
     }
-    // Keyed on the SYMBOL alone, because that is what the C side can tell apart:
-    // `emit_import_shims` dedupes on `extern_name` and emits ONE prototype per
-    // symbol, whatever library declares it. Keying on library + symbol would let
-    // two declarations through that the native backend then collapses into one
-    // prototype, the second shim calling the first's.
-    //
-    // The map is the module's own: two modules declaring one symbol are not
-    // compared here, and the backend still emits one prototype for both.
-    sym_name :: extern_symbol_name_for(decl)
-    // A first declaration is stored and read back as its own prior.
-    prior :: typed.extern_symbols.get_or_put(sym_name, decl)
-    // Unless BOTH name a header. The clash above is about the SYNTHESISED
-    // prototype, and `@c_header` emits none: each shim calls the symbol
-    // with its own types, which `cc` checks against the real declaration. It
-    // is what lets `stat` be declared once per system, the way every FFI
-    // does: the mirror it fills differs, so the signature does too.
-    if prior.id != decl.id && !(declares_c_header(decl) && declares_c_header(prior)) {
-        diags.push(
-            typecheck_error(
-                .InvalidExternDecl,
-                decl.span,
-                "duplicate `@extern` C symbol `${sym_name}` — already declared on `${prior.name}`",
-            ),
-        )
-    }
 }
 
 /// Check the library a 2-argument `@extern` names, and record the constant in
@@ -947,33 +910,6 @@ extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
         }
     }
     return []
-}
-
-/// `@extern("c_name")` override reader — falls back to the source fn
-/// name. Last string arg is the C symbol; the first of two is the library.
-///
-/// `vader/midir/build.vader::extern_symbol_name` is the post-lowering twin
-/// (it runs on the `LoweredFnDecl` shape) and follows the same last-arg
-/// convention, so the linked C symbol stays consistent across stages.
-extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
-    for d in decl.decorators {
-        if d.name != "extern" {
-            continue
-        }
-        if d.args.len() == 0 {
-            continue
-        }
-        last :: d.args[d.args.len() - 1]
-        if last is AST.StringLitExpr {
-            if last.parts.len() == 1 {
-                t :: last.parts[0]
-                if t is AST.StringLitText {
-                    return t.value
-                }
-            }
-        }
-    }
-    return decl.name
 }
 
 /// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two

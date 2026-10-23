@@ -10,6 +10,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "std/ffi"
 import "vader/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -134,7 +135,7 @@ export LoweredProject :: struct {
     globals:        GlobalSlot[] = []
     /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
     /// declaration's node id (`EvaluatedProject.libraries`).
-    libraries:      MutableMap<i64, NativeLibrary> = MutableMap<i64, NativeLibrary> {}
+    libraries:      MutableMap<i64, CLibrary> = MutableMap<i64, CLibrary> {}
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the

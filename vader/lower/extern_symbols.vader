@@ -1,0 +1,64 @@
+// vader/lower/extern_symbols: the C symbols the project's `@extern` declarations
+// claim, checked once comptime has evaluated their libraries.
+//
+// The backend emits one prototype per C symbol (`emit_import_shims`), so two
+// declarations of one symbol share it. When no header owns that prototype, it is
+// synthesised from one declaration's Vader signature, and a call through the
+// other declares the wrong types. A header owns it (`@c_header`, or the `header`
+// of the `CLibrary` the declaration names), and `cc` checks each call against
+// it: two declarations that both name one may differ, as `stat` does with the
+// mirror each system fills.
+
+module "vader/lower"
+
+import "std/collections"
+import "std/ffi"
+import "toolchain/ast"
+import "vader/diagnostics"
+import "vader/resolver"
+
+// Report each C symbol a second `@extern` declaration of the project claims
+// (M5011), unless both declarations name a header. Every module is read, not
+// only what the program reaches.
+check_extern_symbols :: fn(
+    loaded: LoadedProject,
+    libraries: MutableMap<i64, CLibrary>,
+    diags: Diagnostic[],
+) -> void {
+    claimed :: MutableMap<string, FnDecl> {}
+    for [_, module] in loaded.modules {
+        for decl in module_decls(module) {
+            if decl !is FnDecl || decl.body != null || !decorators_have(decl.decorators, "extern") {
+                continue
+            }
+            symbol :: extern_symbol_of(decl)
+            prior :: claimed.get_or_put(symbol, decl)
+            if prior.id == decl.id {
+                continue
+            }
+            if extern_header(prior, libraries[prior.id]) != ""
+                && extern_header(decl, libraries[decl.id]) != "" {
+                continue
+            }
+            detail :: "`${symbol}` is already declared on `${prior.name}`"
+            diags.push(lower_error(.ExternSymbolClaimedTwice, decl.name_span, detail))
+        }
+    }
+}
+
+/// The header that owns the prototype of an `@extern` declaration: its own
+/// `@c_header`, else the `header` of the library it names. `""` when none does.
+///
+/// The backend INCLUDES that header instead of synthesising a prototype: the
+/// header already has the real one, and a synthesised one that differs is a
+/// conflicting declaration the C compiler refuses outright.
+///
+/// @param decl     the bodyless function declaration.
+/// @param library  the `CLibrary` it names, as evaluated ; null for none.
+export extern_header :: fn(decl: FnDecl, library: CLibrary | null) -> string {
+    own :: c_header_of(decl)
+    if own != "" || library == null {
+        return own
+    }
+    return library.header
+}

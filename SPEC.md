@@ -2884,7 +2884,7 @@ export RAYLIB: CLibrary: CLibrary {
 export init_window :: fn(width: i32, height: i32, title: string) -> void
 ```
 
-A `CLibrary` names a C library once; each `@extern` that comes from it names the constant. The compiler **evaluates the constant at compile time**, for the build target, so its fields may depend on `VADER_OS` and `VADER_ARCH`. The evaluation reads literals, struct literals, enum variants, `match` on a value with variant and `_` arms, constants of any module, single-expression functions, and the interpolation of an enum through a `Display` impl that is one expression over `self`. A constant it cannot reduce is `C4001`, reported where the evaluation stopped inside it. No `@comptime` is needed: being named by an `@extern` is what asks for the evaluation.
+A `CLibrary` names a C library once; each `@extern` that comes from it names the constant. The compiler **evaluates the constant at compile time**, for the build target, so its fields may depend on `VADER_OS` and `VADER_ARCH`. The evaluation reads literals, struct literals, enum variants, `match` on a value with variant and `_` arms, constants and single-expression functions of any module, and the interpolation of an enum through a `Display` impl that is one expression over `self`. A constant it cannot reduce is `C4001`, reported where the evaluation stopped inside it. No `@comptime` is needed: being named by an `@extern` is what asks for the evaluation.
 
 | field | meaning |
 |---|---|
@@ -3234,7 +3234,7 @@ static size_t vader_host_snippet_c_strlen(vader_string_t a0) {
 
 The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee: the buffer is valid only during the call and released on return. A callee that RETAINS the pointer reads freed memory afterwards, and nothing diagnoses it.
 
-Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`) are `T3050` — the synthesised prototypes would disagree while the linker resolved both calls to one function. **`@c_header` on BOTH lifts it**, because neither synthesises a prototype and `cc` checks each call against the real one. That is what makes a varargs symbol bindable: one `@extern` per argument shape, each checked against the header.
+Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`), in one module or two, are `M5011`: the synthesised prototypes would disagree while the linker resolved both calls to one function. **A header on BOTH lifts it**, its own `@c_header` or its `CLibrary`'s `header`, because neither synthesises a prototype and `cc` checks each call against the real one. That is what makes a varargs symbol bindable: one `@extern` per argument shape, each checked against the header.
 
 ### Linking
 

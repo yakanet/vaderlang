@@ -1,0 +1,11 @@
+// A helper another module's binding calls while its `CLibrary` is evaluated:
+// the evaluation reaches functions of other modules, not only constants.
+
+module "libpath"
+
+import "std/target"
+
+/// Where a binding ships the static archive of `name` for the build target.
+///
+/// @param name  the library, as `-l` would spell it.
+export archive_for :: fn(name: string) -> string = "lib/${VADER_OS}-${VADER_ARCH}/lib${name}.a"

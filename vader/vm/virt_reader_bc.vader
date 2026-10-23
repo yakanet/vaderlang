@@ -24,6 +24,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
+import "std/ffi"
 import "std/string"
 import "std/numbers"
 
@@ -591,17 +592,7 @@ parse_import_decl_bc :: fn(
     // `<lib>:<symbol>` when the symbol comes from a named library — see
     // `write_imports`. A bare name means the default resolution scope.
     raw_name :: parts[name_i]
-    colon :: raw_name.index_of(':', 0)
-    c_library :: if colon < 0 {
-        ""
-    } else {
-        raw_name.byte_slice(0, colon)
-    }
-    extern_name :: if colon < 0 {
-        raw_name
-    } else {
-        raw_name.byte_slice(colon + 1, raw_name.byte_len())
-    }
+    extern_name :: raw_name.byte_slice(raw_name.index_of(':', 0) + 1, raw_name.byte_len())
     mangled :: parts[name_i + 1]
     sig: bc.BcSignature: if open < 0 {
         bc.BcSignature {
@@ -614,10 +605,9 @@ parse_import_decl_bc :: fn(
     } else {
         parse_signature_bc(after.byte_slice(open, after.byte_len()), types)
     }
-    // Attributes written between the mangled name and the signature —
-    // `header=<...>` and `result_type=<n>`, in either order and both optional.
-    // Read by scanning rather than by position, so adding a third one later does
-    // not silently shift the others.
+    // Attributes written between the mangled name and the signature, in any
+    // order and all optional. Read by scanning rather than by position, so a new
+    // one does not shift the others.
     c_header := ""
     c_variadic_fixed: i32 = -1
     result_type: i32 = 0
@@ -626,8 +616,12 @@ parse_import_decl_bc :: fn(
     param_by_address: bool[]: []
     param_c_types: string[] = []
     result_c_type := ""
+    library :: read_library(raw_name)
     for i in (name_i + 2)..<parts.len() {
         attr :: parts[i]
+        if library != null {
+            read_library_attribute(library, attr)
+        }
         if attr.starts_with("header=") {
             c_header = attr.trim_prefix("header=")
         }
@@ -707,7 +701,6 @@ parse_import_decl_bc :: fn(
         .mangled_name = mangled,
         .signature    = final_sig,
         .is_extern    = is_extern,
-        .c_library    = c_library,
         .c_header     = c_header,
         .c_variadic_fixed = c_variadic_fixed,
         // Positional like the flags : a list that does not cover every
@@ -718,8 +711,32 @@ parse_import_decl_bc :: fn(
             []
         },
         .result_c_type = result_c_type,
+        .library       = library,
     })
     return null
+}
+
+// The library an import names by `<lib>:` before its symbol, or null for one
+// that names none. Its other fields follow as `library_*` attributes.
+read_library :: fn(raw_name: string) -> CLibrary | null {
+    colon :: raw_name.index_of(':', 0)
+    if colon < 0 {
+        return null
+    }
+    return CLibrary { .name = raw_name.byte_slice(0, colon) }
+}
+
+// Fill the field of `library` that `attr` carries, when it is a `library_*` one.
+read_library_attribute :: fn(library: CLibrary, attr: string) -> void {
+    if attr.starts_with("library_include=") {
+        library.include = bc.path_from_token(attr.trim_prefix("library_include="))
+    }
+    if attr.starts_with("library_archives=") {
+        library.archives = bc.paths_from_tokens(attr.trim_prefix("library_archives="))
+    }
+    if attr.starts_with("library_system=") {
+        library.system = bc.paths_from_tokens(attr.trim_prefix("library_system="))
+    }
 }
 
 parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> DirectiveError | null {

@@ -248,6 +248,7 @@ export LowerCode :: enum(CodeInfo) {
     UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
     AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand, loop condition or match guard is not yet supported" },
     ComptimeForNotUnrollable { .id = "M5010", .message = "`@comptime for` cannot be unrolled" },
+    ExternSymbolClaimedTwice { .id = "M5011", .message = "two `@extern` declarations claim one C symbol" },
 }
 
 // `WARNING`: non-fatal diagnostics.

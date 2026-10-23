@@ -390,14 +390,11 @@ BUILD_NATIVELY :: "build the program with `vader build`"
 // Why the library of `info` did not open. A binding that ships its library as
 // static archives has nothing the interpreter can open.
 unopened_reason :: fn(info: bc.BcImport) -> string {
-    if info.c_library == "" {
-        return "cannot open the running process"
+    library :: info.library ?? return "cannot open the running process"
+    if library.archives.len() > 0 {
+        return "cannot open `${library.name}`: its binding ships static archives, which only a native build links; ${BUILD_NATIVELY}"
     }
-    library :: info.library
-    if library != null && library.archives.len() > 0 {
-        return "cannot open `${info.c_library}`: its binding ships static archives, which only a native build links; ${BUILD_NATIVELY}"
-    }
-    return "cannot open `${info.c_library}`"
+    return "cannot open `${library.name}`"
 }
 
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
@@ -412,7 +409,7 @@ unopened_reason :: fn(info: bc.BcImport) -> string {
 /// `f32` or `string` result, a `@c_struct` passed or returned by value, and a
 /// callback (the interpreter has no address for a Vader function).
 ///
-/// The library is `BcImport.c_library` when the declaration names one, else the
+/// The library is `BcImport.library` when the declaration names one, else the
 /// running process — which covers libc and anything linked into the binary.
 ///
 /// @param info         the import, for its `extern_name` and signature.
@@ -457,7 +454,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     }
     // The declared library, or the default scope. `GetStdHandle` lives in
     // `kernel32.dll`, which the running process exports nothing of.
-    lib :: ffi_open(info.c_library)
+    lib :: ffi_open(bc.library_name(info))
     if lib == 0 {
         return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
     }

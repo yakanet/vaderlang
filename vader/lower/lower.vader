@@ -264,6 +264,9 @@ lower_project_impl :: fn(
     // Last, so the passes above that rewrite a `let`'s value in place are checked too.
     verify_captured_cells(project, project_ctx.closures.cell_symbols, diags)
     verify_functions_defined_once(project, diags)
+    if !is_staging {
+        check_extern_symbols(loaded, evaluated.libraries, diags)
+    }
     return project
 }
 

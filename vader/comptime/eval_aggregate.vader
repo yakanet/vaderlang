@@ -21,10 +21,12 @@ AST :: import "toolchain/ast"
 /// @param expr     a struct literal, `.Variant`, a field access or a `match`.
 /// @param context  the evaluator context.
 evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
-    project :: context.project ?? return vm_required(expr.span, expr_kind_name(expr))
+    if context.project == null {
+        return vm_required(expr.span, expr_kind_name(expr))
+    }
     // @partial: the dispatch in `evaluate_expr` routes only these four kinds here.
     @partial match expr {
-        is AST.StructLitExpr  -> { return evaluate_struct_lit(expr, project, context) }
+        is AST.StructLitExpr  -> { return evaluate_struct_lit(expr, context) }
         is AST.DotVariantExpr -> { return evaluate_dot_variant(expr, context) }
         is AST.FieldExpr      -> { return evaluate_field(expr, context) }
         is AST.MatchExpr      -> { return evaluate_match(expr, context) }
@@ -36,11 +38,7 @@ evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult
 // A struct literal as a `StructValue` holding every field: the ones it writes,
 // and the defaults of the others, evaluated in the module declaring the struct.
 // A spread falls back to C4001.
-evaluate_struct_lit :: fn(
-    expr: AST.StructLitExpr,
-    project: ProjectConstants,
-    context: ComptimeContext,
-) -> EvalResult {
+evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> EvalResult {
     fields :: MutableMap<string, ComptimeValue> {}
     for item in expr.items {
         if item is AST.StructLitSpread {
@@ -55,15 +53,10 @@ evaluate_struct_lit :: fn(
     if t !is StructType {
         return vm_required(expr.span, "struct literal of a type that is not a struct")
     }
-    owner :: project.typed.modules[t.symbol.module]
+    owner_context :: declaring_context(t.symbol.module, context)
         ?? return vm_required(expr.span, "struct of no known module")
-    declaration :: owner.struct_decls[t.symbol.id]
+    declaration :: owner_context.typed.struct_decls[t.symbol.id]
         ?? return vm_required(expr.span, "struct of no known declaration")
-    owner_context :: ComptimeContext {
-        ...context,
-        .typed = owner,
-        .bindings = MutableMap<i32, ComptimeValue> {},
-    }
     for field in declaration.fields {
         default :: field.default
         if field.name in fields || default == null {
@@ -179,18 +172,15 @@ pattern_holds :: fn(pattern: AST.Pattern, value: ComptimeValue) -> bool | null {
 /// @param context  the evaluator context of the interpolation.
 /// @return         a `StringValue`, or C4001.
 display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -> EvalResult {
-    project :: context.project
-        ?? return vm_required(part.span, "enum interpolated outside a project")
+    if context.project == null {
+        return vm_required(part.span, "enum interpolated outside a project")
+    }
     callee :: sites_of(context.typed.call_sites, .Display)[part.id]
     if callee !is DirectFn {
         return vm_required(part.span, "enum without a `Display` member")
     }
-    owner :: project.typed.modules[value.enum_type.symbol.module]
+    impl_context :: declaring_context(value.enum_type.symbol.module, context)
         ?? return vm_required(part.span, "enum of no known module")
-    impl_context :: ComptimeContext {
-        ...context,
-        .typed = owner,
-    }
     bindings :: MutableMap<i32, ComptimeValue> {}
     result :: evaluate_with_arguments(callee.decl, [value], bindings, impl_context, part.span)
     text :: result.value ?? return result
@@ -217,15 +207,10 @@ evaluate_project_const :: fn(
     if known != null {
         return ok(known)
     }
-    owner :: project.typed.modules[symbol.module] ?? return null
-    declaration :: owner.const_decls[symbol.id] ?? return null
+    owner_context :: declaring_context(symbol.module, context) ?? return null
+    declaration :: owner_context.typed.const_decls[symbol.id] ?? return null
     if !project.pending.add(symbol.id) {
         return vm_required(span, "constant that reads itself")
-    }
-    owner_context :: ComptimeContext {
-        ...context,
-        .typed = owner,
-        .bindings = MutableMap<i32, ComptimeValue> {},
     }
     result :: evaluate_expr(declaration.value, owner_context)
     project.pending.remove(symbol.id)
