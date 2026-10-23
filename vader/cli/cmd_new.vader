@@ -368,7 +368,7 @@ render_driver :: fn(name: string) -> string {
     out :: StringBuilder {}
     out.append("// ${DRIVER_FILENAME} — this project drives its own build.\n")
     out.append("//\n")
-    out.append("// `vader build` with no file argument finds this file, compiles it, and runs\n")
+    out.append("// `vader build`, `check` and `run` given this folder compile this file and run\n")
     out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
     out.append("// shortcut that drains it — walk the messages yourself to lint or generate,\n")
     out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
@@ -382,10 +382,10 @@ render_driver :: fn(name: string) -> string {
     out.append("\n")
     out.append("build :: fn(args: string[]) -> i32 {\n")
     out.append("    ctx :: new_build_context(args)\n")
-    out.append("    ctx.add_build_file(\"${SOURCE_DIR}/${ENTRY_FILENAME}\")\n")
-    out.append("    // Without this the binary takes the entry file's name, `main`.\n")
-    out.append("    ctx.out = \"${name}\"\n")
-    out.append("    return ctx.emit_native()\n")
+    out.append("    ctx.add_entry(\"${name}\", \"${SOURCE_DIR}/${ENTRY_FILENAME}\")\n")
+    out.append("    code :: ctx.emit_native()\n")
+    out.append("    _ :: ctx.flush_reports()\n")
+    out.append("    return code\n")
     out.append("}\n")
     return out.to_string()
 }
@@ -529,8 +529,8 @@ import "std/testing"
     src :: render_driver("demo")
     assert("module \"build\"" in src, "the driver declares `module \"build\"`")
     assert("build :: fn(args: string[]) -> i32" in src, "with the reserved shape")
-    assert("add_build_file(\"src/main.vader\")" in src, "and it queues the entry")
-    assert("ctx.out = \"demo\"" in src, "named after the project")
+    assert("add_entry(\"demo\", \"src/main.vader\")" in src, "and adds the entry, named after the project")
+    assert("flush_reports()" in src, "and prints what the build reported")
 }
 
 @test test_build_flag_beats_the_question :: fn() -> void {

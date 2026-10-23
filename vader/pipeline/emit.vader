@@ -293,9 +293,7 @@ export INTERMEDIATE_DIR :: "c"
 ///             folder could not be made.
 export intermediate_stem :: fn(out: Path) -> Path | null {
     dir :: join_path(folder_of(out), INTERMEDIATE_DIR)
-    made :: create_dir(dir)
-    if made is IOError {
-        eprintln("vader build: cannot create `${dir}`: ${made.message()}")
+    if !ensure_dir(dir) {
         return null
     }
     return Path(join_path(dir, canonicalise(out).filename()))
@@ -464,21 +462,6 @@ export linked_binary :: fn(base: string) -> string | null {
     }
     return null
 }
-
-/// Default output name for an input: its path minus the recognised suffix.
-///
-/// What `vader build` derives when `--out` is absent, and what a driver gets
-/// when it leaves `ctx.out` empty — the two must agree, which is why this lives
-/// here rather than in either caller.
-///
-/// @param file  entry source, or a `.virt` bytecode dump.
-/// @return      the path with `.vader` / `.virt` removed; unchanged otherwise.
-export strip_input_suffix :: fn(file: Path) -> Path =
-    if file.extension() == "virt" {
-        file.as_string().trim_suffix(".virt").to_path()
-    } else {
-        file.as_string().trim_suffix(".vader").to_path()
-    }
 
 /// Emit C from an ALREADY-BUILT bytecode module.
 ///

@@ -32,8 +32,9 @@ import "vader/target"
 
 /// `vader check [--target=<os>-<arch>] <path>`: run the front end and report.
 ///
-/// A project folder has each entry of its `vader.json` checked, or the one
-/// `--entry` names.
+/// A project folder has each entry checked, or the one `--entry` names: those of
+/// its `vader.json`, or those its `build.vader` adds, the driver running its own
+/// rules on the way.
 ///
 /// @param args  positional args ; `args[0]` is the entry `.vader` file or a
 ///              project folder.
@@ -67,7 +68,8 @@ export cmd_check :: fn(args: string[]) -> i32 {
         }
     }
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
-    input :: resolve_input("check", file, parsed.string_flag("entry", ""))
+    selected :: parsed.string_flag("entry", "")
+    input :: resolve_input("check", file, selected)
     if input is i32 {
         return input
     }
@@ -76,7 +78,13 @@ export cmd_check :: fn(args: string[]) -> i32 {
         is ManifestProject -> {
             return exit_code_of(check_entries(input, include_path_flags, target))
         }
-        is DrivenProject -> { return refuse_driven("check", input.dir) }
+        is DrivenProject -> {
+            if refuse_unforwarded_flags("check", parsed, ["target", "include-paths"]) {
+                return 2
+            }
+            driver_request :: DriverRequest { .mode = .Check, .selected = selected }
+            return run_build_driver("check", input.dir, driver_request)
+        }
     }
 }
 

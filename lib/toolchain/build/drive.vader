@@ -23,6 +23,8 @@
 module "toolchain/build"
 
 import "std/collections"
+import "std/io"
+import "std/iter"
 import "std/path"
 import "std/string" { join as join_strings }
 import "vader/diagnostics"
@@ -35,7 +37,7 @@ AST :: import "toolchain/ast"
 /// Drive the compilation and yield what the pipeline produces.
 ///
 /// Nothing compiles until the first message is pulled, so a driver configures
-/// the context first and iterates second. Each queued entry file is run through
+/// the context first and iterates second. Each entry is run through
 /// the front end (`load → resolve + typecheck → comptime`), yielding one
 /// `TypecheckedMessage` per module, then a `PhaseMessage`, and finally one
 /// `CompleteMessage` for the whole run.
@@ -45,7 +47,7 @@ AST :: import "toolchain/ast"
 /// the honest default: which modules are "the project" is the driver's policy,
 /// not this function's.
 ///
-/// Every declaration is delivered exactly ONCE per queued entry, however many
+/// Every declaration is delivered exactly ONCE per entry, however many
 /// generation rounds that entry takes — see `TypecheckedMessage`. A module with
 /// nothing new is not yielded at all. The "once" is per ENTRY, not per build: two
 /// entries sharing a module both report it, which is already true of the stdlib.
@@ -60,26 +62,52 @@ AST :: import "toolchain/ast"
 /// end runs only after the last one. Declarations are still delivered once each
 /// (see `emit_module`), so an observing driver cannot tell the difference.
 ///
-/// @param ctx  the configured context. An empty `build_files` yields only
-///             `CompleteMessage` — the caller reports H6003.
+/// What the command asked shapes the stream: `--entry` narrows the entries to
+/// one; a check lowers after the last generation round and links nothing; the
+/// preparation of a run writes the project for the CLI and stops after the last
+/// generation round. A build writes each binary to `build/<profile>-<host>/<name>`
+/// and copies the assets beside them. Every mode writes the generated modules.
+///
+/// @param ctx  the configured context. Without an entry the stream yields only
+///             `CompleteMessage`.
 /// @return     a lazy stream of messages, in pipeline order.
-/// @error      H6006 when generation never settles ; H6008 when a generated
-///             module cannot be written. Both land on `ctx.diagnostics`.
+/// @error      H6003 when the driver added no entry ; H6009 when `--entry`
+///             names none of them ; H6006 when generation never settles ; H6008
+///             when a generated module cannot be written. All land on
+///             `ctx.diagnostics`.
 export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
-    // Configuration is read ONCE, here. Mutating `ctx.out` / `ctx.release` / …
+    // Configuration is read ONCE, here. Mutating `ctx.cc` / `ctx.target` / …
     // after the first pull is therefore ignored uniformly, rather than honoured
     // for entries not yet reached — a stream cannot re-read what it already
     // acted on, and half-applying a change is worse than ignoring it.
     target  :: ctx.target
-    release :: ctx.release
+    request :: ctx.request
     cc      :: ctx.cc
     ldflags :: ctx.ldflags
-    out     :: ctx.out
-    if ctx.build_files.len() == 0 {
-        ctx.diagnostics.push(hook_error(.NoBuildFiles, driver_span(ctx),
-            "call `ctx.add_build_file(...)` before iterating `messages()`"))
+    if ctx.entries.len() == 0 {
+        ctx.diagnostics.push(hook_error(.NoEntry, driver_span(ctx),
+            "call `ctx.add_entry(...)` before iterating `messages()`"))
         yield CompleteMessage { .code = 1 }
         return
+    }
+    chosen :: chosen_entries(ctx, request)
+    if chosen == null {
+        yield CompleteMessage { .code = 1 }
+        return
+    }
+    if request.mode == .Prepare {
+        written :: write_driver_project(ctx.project_root, include_roots(ctx), chosen, ctx.assets)
+        if written is IOError {
+            eprintln("vader: cannot write `${driver_project_path(ctx.project_root)}`: ${written.message()}")
+            yield CompleteMessage { .code = 1 }
+            return
+        }
+        // A run works on one entry: among several with none named, the CLI asks
+        // the user to choose, and nothing needs compiling before that.
+        if chosen.len() > 1 {
+            yield CompleteMessage { .code = 0 }
+            return
+        }
     }
     // Generated modules of an EARLIER build would still resolve, and — file
     // names being content hashes — a module whose text changed would sit beside
@@ -88,8 +116,10 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // cleanup, and the guarantee that matters is about the build starting now.
     sweep_generated(generated_root_of(ctx))
     code := 0
-    for file in ctx.build_files {
-        entry :: Path(join_path(ctx.project_root, file))
+    output_dir :: project_output_dir(ctx.project_root, request.release, null)
+    writes_binaries :: request.mode == .Build && target == .Native
+    for chosen_entry in chosen {
+        entry :: Path(join_path(ctx.project_root, chosen_entry.path))
         // Declarations are delivered ONCE per build — the Jai property, without
         // Jai's incremental typechecker. What is tracked is the FILE, not the
         // module, and that precision is load-bearing: when a driver emits into a
@@ -148,13 +178,24 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             }
             // Nothing moved: this is the fixed point, and the last round's
             // pipeline is the one the back end gets.
-            if target == .None {
+            // The command that follows a preparation reports on the program
+            // itself, so this run reports only on the driver.
+            if request.mode == .Prepare || target == .None {
                 break
             }
             lowered :: lower_to_entry_from(pipeline)
             yield PhaseMessage { .phase = .Lowered }
+            if request.mode == .Check {
+                ctx.diagnostics.push_all(lowered.pre_diags)
+                ctx.diagnostics.push_all(lowered.lower_diags)
+                if any_error_diag(lowered.pre_diags) || any_error_diag(lowered.lower_diags) {
+                    code = 1
+                }
+                break
+            }
 
-            built :: emit_one(ctx, lowered, entry, target, release, cc, ldflags, out, ctx.build_files.len())
+            binary :: Path(join_path(output_dir, chosen_entry.name))
+            built :: emit_one(ctx, lowered, entry, binary, target, request.release, cc, ldflags)
             if built != 0 {
                 code = built
             }
@@ -162,9 +203,29 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             break
         }
     }
+    if code == 0 && writes_binaries && !copy_assets(ctx.project_root, ctx.assets, output_dir) {
+        code = 1
+    }
     yield CompleteMessage { .code = code }
 }
 
+// The entries this run compiles: every one, or the one `--entry` names. Null
+// after reporting H6009 when it names none. Only the driver knows its entries,
+// so it chooses; the CLI takes the answer as it comes.
+chosen_entries :: fn(ctx: BuildContext, request: DriverRequest) -> ManifestEntry[] | null {
+    if request.selected == "" {
+        return ctx.entries
+    }
+    for entry in ctx.entries {
+        if entry.name == request.selected {
+            return [entry]
+        }
+    }
+    names :: ctx.entries.map((e) -> e.name).collect()
+    ctx.diagnostics.push(hook_error(.UnknownEntry, driver_span(ctx),
+        "`${request.selected}` is none of `${join_strings(names, "`, `")}`"))
+    return null
+}
 
 // Top-level declarations of the files not yet delivered, marking them delivered
 // as it goes. Returns empty when the module has nothing new — see the delivery
@@ -187,16 +248,9 @@ undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> A
 // Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on
 // the context so they interleave with the driver's own reports in order.
 emit_one :: fn(
-    ctx: BuildContext, lowered: LoweredEntry, entry: Path,
-    target: BuildTarget, release: bool, cc: string, ldflags: string, out: string, entries: i64,
+    ctx: BuildContext, lowered: LoweredEntry, entry: Path, binary: Path,
+    target: BuildTarget, release: bool, cc: string, ldflags: string,
 ) -> i32 {
-    // One `out` cannot name N binaries: the second would overwrite the first in
-    // silence. Refuse rather than pick a winner.
-    if out != "" && entries > 1 {
-        ctx.diagnostics.push(hook_error(.AmbiguousOutput, driver_span(ctx),
-            "`ctx.out` names one binary but ${entries} entries are queued — leave it empty to derive a name per entry"))
-        return 1
-    }
     cfg :: prepare_cfg_bytecode_from(lowered, entry, !release, false, proves_bounds(release))
     for d in cfg.pre_diags {
         ctx.diagnostics.push(d)
@@ -215,31 +269,25 @@ emit_one :: fn(
         ctx.c_sources.push(c)
         return 0
     }
-    binary :: if out != "" {
-        join_path(ctx.project_root, out)
-    } else {
-        strip_input_suffix(entry).as_string()
-    }
     quote_dir :: quote_include_dir(entry)
     native :: native_flags(cfg.module)
     runtime_root :: runtime_root_of(ctx)
-    return link_native(c, Path(binary), cc, release, ldflags, runtime_root, quote_dir, native)
+    return link_native(c, binary, cc, release, ldflags, runtime_root, quote_dir, native)
 }
 
 // ---- producing output -----------------------------------------------------
 
-/// Compile the queued entries into native binaries.
+/// Compile the entries into native binaries.
 ///
 /// This is what makes a driver a build system rather than an observer. Each
-/// queued file is compiled to `ctx.out` — or, when that is empty, to the entry's
-/// own name minus its extension, which is what `vader build` does without
-/// `--out`.
+/// entry is compiled to `build/<profile>-<host>/<name>` under the project, the
+/// folder a `vader.json` project's binaries go to.
 ///
 /// Front-end and lowering diagnostics are **accumulated onto the context**, not
 /// printed, so they interleave with the driver's own reports in the order they
 /// happened and `flush_reports` prints them all at once.
 ///
-/// @param ctx  the configured context ; queue entries with `add_build_file`.
+/// @param ctx  the configured context ; add entries with `add_entry`.
 /// @return     0 when every entry built, 1 as soon as one failed. A driver
 ///             normally returns this from `build`.
 export emit_native :: fn(ctx: BuildContext) -> i32 {
@@ -247,14 +295,14 @@ export emit_native :: fn(ctx: BuildContext) -> i32 {
     return drain(ctx)
 }
 
-/// Compile the queued entries to C, without linking.
+/// Compile the entries to C, without linking.
 ///
 /// The counterpart of `emit_native` for a driver that wants the source — to
 /// post-process it, to hand it to another toolchain, or just to look. Mirrors
 /// `--target=c`.
 ///
-/// @param ctx  the configured context ; queue entries with `add_build_file`.
-/// @return     one C source per queued entry, in queue order. Empty when a
+/// @param ctx  the configured context ; add entries with `add_entry`.
+/// @return     one C source per entry, in the order they were added. Empty when a
 ///             front end rejected an entry — the reports say why.
 export emit_c :: fn(ctx: BuildContext) -> string[] {
     ctx.target = .C
@@ -278,6 +326,16 @@ drain :: fn(ctx: BuildContext) -> i32 {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test test_messages_with_an_unknown_entry_reports_h6009 :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj", "", "--entry=tool"])
+    ctx.add_entry("app", "src/main.vader")
+    // The choice is checked before any front end runs, so nothing is compiled.
+    for _ in ctx.messages() {}
+    reports :: ctx.reports_of()
+    assert_eq(reports.len(), 1)
+    assert_eq(reports[0].code.id, "H6009")
+}
 
 @test test_messages_without_entries_reports_h6003 :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])

@@ -47,7 +47,7 @@ cmd_lint :: fn(args: string[]) -> i32 {
     if entry is i32 {
         return entry
     }
-    loaded :: load_project(entry.file.as_string(), [], entry.project_root)
+    loaded :: load_project(entry.file.as_string(), entry.include_paths, entry.project_root)
     // A parse / import error leaves no trustworthy reference graph — surface it
     // and bail. (Type errors don't matter to a name-reachability walk, so the
     // load stage — not a full typecheck — is the right gate.)

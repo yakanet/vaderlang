@@ -2694,6 +2694,8 @@ Any other key, or a key of the wrong shape, is refused by a command given the pr
 
 A native build writes the C it compiles to `c/` beside the binary, each file named after the binary, so that several binaries share the folder. An asset that is absolute or climbs out of the project with `..` is refused with the rest of the `vader.json`.
 
+A folder with a `build.vader` follows the same rules, over the entries and assets its driver adds (*Programmable build API* below): a `vader.json` is the declarative form of what a driver does in code. The driver builds for the host only.
+
 #### Include paths
 
 An import is resolved against an ordered list of roots. The first root whose folder at the module's location declares that module wins, and a later folder declaring the same name is ignored. The roots, in order:
@@ -2775,7 +2777,7 @@ folder, or run in it with **no argument**, finds it, compiles it, and runs it; t
 what to compile, because the compiler is part of its own import closure. A named file
 (`vader build src/main.vader`) bypasses the driver of the current folder and says so; `--no-hooks`
 skips it silently, and leaves a folder described by its `build.vader` alone with nothing to build.
-The driver's folder is the project of the entries it queues: it is searched for modules (step 4 of
+The driver's folder is the project of the entries it adds: it is searched for modules (step 4 of
 *Include paths*) and holds their `build/generated/`.
 
 `build.vader` declares `module "build"` and a `build` fn — a **reserved name**, the way `main` is in
@@ -2788,10 +2790,14 @@ import "toolchain/build"
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
-    ctx.add_build_file("src/main.vader")
-    return ctx.emit_native()
+    ctx.add_entry("myapp", "src/main.vader")
+    code :: ctx.emit_native()
+    _ :: ctx.flush_reports()
+    return code
 }
 ```
+
+A driver describes in code what a `vader.json` declares. `ctx.add_entry(name, path)` adds a program, as a key of `entries` does, and `ctx.add_asset(path)` a file or folder to copy beside the binaries, as `assets` does; module search roots go in `ctx.include_paths`. What the command asked reaches the driver in `args` and is not the driver's to change: `vader build` writes each binary to `build/<profile>-<host>/<name>` and copies the assets; `vader check` runs the driver up to the lowering and links nothing; `vader run`, `dump`, `lint` and `graph` let it run up to its last generation round, then work on the entry it chose, so that they read freshly generated code. Every command writes the generated modules. Module search roots in `ctx.include_paths` are resolved as `includePaths` are. The flags a driven build does not receive (`--target`, `--emit`, `--out`, …) are refused. `--release` and `--entry` mean what they mean for a `vader.json` project. A driver prints the diagnostics of its build, its own reports included, with `ctx.flush_reports()`.
 
 `toolchain/build` is the one module a driver imports (plus `toolchain/ast`, to name AST types). Draining
 `ctx.messages()` **is** the build: it yields each module's typed declarations, then the phase

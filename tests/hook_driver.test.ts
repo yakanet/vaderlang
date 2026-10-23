@@ -40,7 +40,7 @@ import { rmSync, writeFileSync, readFileSync, readdirSync, mkdirSync, cpSync, mk
 import { withStagedLibraryRoot } from "./lib-probe.ts";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, exePath, spawnCapture } from "./cli-bin.ts";
+import { ensureCliBuilt, CLI_BIN, EXE_SUFFIX, HEAVY_BUILD, HOST_TARGET, exePath, spawnCapture } from "./cli-bin.ts";
 import type { CliResult, SpawnOptions } from "./cli-bin.ts";
 import { formatRun, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
@@ -205,6 +205,9 @@ function normalise(text: string, dir: string): string {
   const real = slash(realpathSync(dir));
   let out = slash(text).replaceAll(real, "<project>");
   out = out.replaceAll(slash(dir), "<project>");
+  // A project's binaries go to `build/<profile>-<host>/`, and the host differs
+  // between the machines that run this.
+  out = out.replaceAll(HOST_TARGET, "<host>");
   if (EXE_SUFFIX !== "") {
     // The LINKER names the binary, so a `wrote <project>/hello` line reads
     // `hello.exe` on Windows. One spelling in the expectation, and a no-op off
@@ -218,6 +221,9 @@ function normalise(text: string, dir: string): string {
     // differently. What the expectation is about is that it was written at all.
     .replace(/^(vader build: wrote <project>\/build\/driver\/driver).*$/gm, "$1");
 }
+
+// Where a driven debug build writes a project's binaries.
+const BINARIES = `build/debug-${HOST_TARGET}`;
 
 // Where a driven build writes its generated modules, relative to the project —
 // `vader/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
@@ -405,7 +411,7 @@ test.concurrent("a bundle drives a build with nothing beside the project", async
   expect(built.stderr).not.toContain("error[");
   expect(built.exit).toBe(0);
 
-  const ran = await runBinary(exePath(`${dir}/app`), dir);
+  const ran = await runBinary(exePath(`${dir}/${BINARIES}/app`), dir);
   expect(ran.stdout).toContain('"home":{"city":"Lyon","zip":69001}');
 }, HEAVY_BUILD);
 
@@ -537,7 +543,7 @@ test.concurrent("a driven build sweeps the previous build's generated modules", 
   expect(existsSync(stale)).toBe(false);
   expect(readdirSync(genDir).length).toBe(1);
 
-  const ran = await runBinary(exePath(`${dir}/app`), dir);
+  const ran = await runBinary(exePath(`${dir}/${BINARIES}/app`), dir);
   expect(ran.stdout).toContain("Point(x, y) /");
   expect(ran.stdout).not.toContain("STALE");
 }, HEAVY_BUILD);
@@ -552,7 +558,7 @@ test.concurrent("the driver produces a working binary", async () => {
   // The whole point of decision 13: a driver is a build system, not an observer.
   // It compiles the project and the result runs — even though the driver went on
   // to report a rule violation.
-  const ran = await runBinary(exePath(`${dir}/hello`), dir);
+  const ran = await runBinary(exePath(`${dir}/${BINARIES}/hello`), dir);
   expect(ran.stdout).toContain("hello");
   expect(ran.exit).toBe(0);
 }, HEAVY_BUILD);
@@ -568,6 +574,37 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
     exePath(`${dir}/build/driver/driver`), dir, { VADER_PROFILE: "1" });
   const typechecks = (profiled.stderr.match(/^\s+typecheck\s/gm) ?? []).length;
   expect(typechecks).toBe(1);
+}, HEAVY_BUILD);
+
+test.concurrent("check and run take a driven project too", async () => {
+  // REASON: the driver runs in two modes no fixture covers. `check` lowers and
+  // links nothing; `run` lets the driver generate, then runs the entry in the VM,
+  // which reads what was just generated and the search root the driver set.
+  // Staged privately: both write the generated tree, and the project is edited.
+  const dir = stage(GENERATE);
+  staged.push(dir);
+  const driver = join(dir, "build.vader");
+  writeFileSync(driver, readFileSync(driver, "utf8").replace(
+    'ctx.add_entry("app", "src/main.vader")',
+    'ctx.add_entry("app", "src/main.vader")\n    ctx.include_paths.push("extra")',
+  ));
+  const main = join(dir, "src/main.vader");
+  writeFileSync(main, readFileSync(main, "utf8")
+    .replace('import "gen/describe"', 'import "gen/describe"\nimport "greet"')
+    .replace("${describe(p)}\")", "${describe(p)} / ${greeting()}\")"));
+  mkdirSync(join(dir, "extra/greet"), { recursive: true });
+  writeFileSync(join(dir, "extra/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
+
+  const checked = await run(["check", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(checked.stderr).not.toContain("error[");
+  expect(checked.exit).toBe(0);
+  expect(existsSync(exePath(`${dir}/${BINARIES}/app`))).toBe(false);
+
+  const ran = await run(["run", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(ran.stderr).not.toContain("error[");
+  expect(ran.stdout).toContain("Point(x, y) /");
+  expect(ran.stdout).toContain("/ hi");
+  expect(ran.exit).toBe(0);
 }, HEAVY_BUILD);
 
 test.concurrent("a named file bypasses the driver, and says so", async () => {
@@ -623,10 +660,10 @@ test.concurrent("driven build: a project scaffolded by `vader new`", async () =>
     );
     expect(built.exit).toBe(0);
 
-    // The binary is named after the PROJECT, which is what `ctx.out` in the
-    // template buys — without it the entry file's name would win.
+    // The binary is named after the PROJECT: the template's entry carries its
+    // name.
     const ran = await spawnCapture([], {
-      bin: exePath(join(project, "scaffolded")),
+      bin: exePath(join(project, BINARIES, "scaffolded")),
       timeoutMs: HEAVY_BUILD,
     });
     expect(ran.exit).toBe(0);

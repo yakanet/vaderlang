@@ -277,12 +277,14 @@ export WarningCode :: enum(CodeInfo) {
 export HookCode :: enum(CodeInfo) {
     MissingBuildEntry          { .id = "H6001", .message = "`build.vader` declares no `build` function" },
     InvalidBuildEntrySignature { .id = "H6002", .message = "invalid `build` signature" },
-    NoBuildFiles               { .id = "H6003", .message = "the build driver queued no entry file" },
+    NoEntry                    { .id = "H6003", .message = "the build driver added no entry" },
     HookReport                 { .id = "H6004", .message = "build driver reported a problem" },
-    AmbiguousOutput            { .id = "H6005", .message = "one output name for several entries" },
+    DuplicateEntryName         { .id = "H6005", .message = "two entries share one name" },
     GenerationDidNotSettle     { .id = "H6006", .message = "code generation did not reach a fixed point" },
     InvalidGeneratedModuleName { .id = "H6007", .message = "invalid generated module name" },
     GeneratedModuleNotWritten  { .id = "H6008", .message = "cannot write a generated module" },
+    UnknownEntry               { .id = "H6009", .message = "the build names no such entry" },
+    AssetOutsideProject        { .id = "H6010", .message = "asset outside the project" },
 }
 
 /// IR self-check codes, emitted by the cross-pass verifiers

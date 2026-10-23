@@ -13,8 +13,7 @@ import "toolchain/build"
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
-    ctx.add_build_file("src/main.vader")
-    ctx.out = "app"
+    ctx.add_entry("app", "src/main.vader")
     rounds := 0
     for msg in ctx.messages() {
         if msg is PhaseMessage {

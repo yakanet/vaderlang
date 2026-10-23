@@ -115,7 +115,8 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
     // No argument is the current folder: a project, described by its
     // `build.vader` or its `vader.json`.
-    input :: resolve_input("build", action_input(parsed), parsed.string_flag("entry", ""))
+    selected :: parsed.string_flag("entry", "")
+    input :: resolve_input("build", action_input(parsed), selected)
     if input is i32 {
         return input
     }
@@ -140,10 +141,22 @@ cmd_build :: fn(args: string[]) -> i32 {
                     + "which leaves nothing to build; name the entry file instead")
                 return 1
             }
-            return run_build_driver(input.dir, request.cc, request.ldflags)
+            if refuse_unforwarded_flags("build", parsed, DRIVEN_BUILD_REFUSES) {
+                return 2
+            }
+            driver_request :: DriverRequest {
+                .release = request.release,
+                .selected = selected,
+                .cc = request.cc,
+                .ldflags = request.ldflags,
+            }
+            return run_build_driver("build", input.dir, driver_request)
         }
     }
 }
+
+// The flags of `vader build` a `build.vader` does not receive.
+DRIVEN_BUILD_REFUSES :: ["out", "target", "emit", "no-split", "verify", "include-paths", "seed-targets"]
 
 // The targets `--seed-targets` lists, empty without it, or null after saying
 // why the list cannot be honoured: the seed set is split by construction, one
@@ -159,6 +172,15 @@ seed_target_list :: fn(seed_flag: string, no_split: bool) -> Target[] | null {
     }
     return parse_target_list(seed_flag)
 }
+
+// The output a file builds to without `--out`: its path minus `.vader`, or minus
+// `.virt` for a bytecode dump.
+strip_input_suffix :: fn(file: Path) -> Path =
+    if file.extension() == "virt" {
+        file.as_string().trim_suffix(".virt").to_path()
+    } else {
+        file.as_string().trim_suffix(".vader").to_path()
+    }
 
 // Build the entries of a `vader.json` project into `build/<profile>-<target>/`,
 // then copy its assets beside the binaries.

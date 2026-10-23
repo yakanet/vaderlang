@@ -10,8 +10,7 @@
 //
 //     build :: fn(args: string[]) -> i32 {
 //         ctx :: new_build_context(args)
-//         ctx.load_from_vader_config()
-//         ctx.add_build_file("src/main.vader")
+//         ctx.add_entry("app", "src/main.vader")
 //         for msg in ctx.messages() { … }
 //     }
 //
@@ -36,11 +35,12 @@ import "toolchain/span"
 
 // ---- context --------------------------------------------------------------
 
-/// Everything a build driver configures, plus the entry files it queues.
+/// Everything a build driver configures, plus the entries it adds.
 ///
-/// A driver mutates this in place. The fields carry what `vader.json` and the `vader build` flags
-/// carry today; a driver that sets them is authoritative — the manifest is only
-/// consulted when it asks, via `load_from_vader_config`.
+/// A driver mutates this in place. It describes in code what a `vader.json`
+/// declares: the entries, the module search roots, the assets. What the command
+/// asked (a build, a check or a run, the profile, `--entry`) comes from `args`
+/// and is not the driver's to change.
 export BuildContext :: struct {
     /// The project folder: the one holding `build.vader`, as the compiler passed
     /// it. The front end searches it for modules and anchors the generated tree
@@ -49,12 +49,13 @@ export BuildContext :: struct {
     /// whatever the compiler passed, which may be relative to the invocation
     /// directory. Join onto it rather than assuming a prefix.
     project_root:   string
-    /// Module search roots, GCC `-I` style, highest precedence first. Left
-    /// empty by `new_build_context` — a driver either fills it or calls
-    /// `load_from_vader_config`.
+    /// Module search roots, GCC `-I` style, highest precedence first, as
+    /// `includePaths` in a `vader.json`: each relative to `project_root`, or
+    /// under the toolchain's folder when it starts with `$VADER_HOME`. Left
+    /// empty by `new_build_context`.
     include_paths:  string[]
     /// Folder holding the `vader` executable that started this build, and
-    /// therefore its `lib/` and `runtime/c/`. Passed as `args[2]`.
+    /// therefore its `lib/` and `runtime/c/`, as the request carries it.
     ///
     /// `@internal`: a driver has no use for it, and it is not the driver's to
     /// choose. It exists because a driver runs as `<project>/build/driver/driver`,
@@ -72,11 +73,10 @@ export BuildContext :: struct {
     /// never looks. One of the two halves has to be authoritative.
     @internal
     generated_root: string
-    /// Binary to produce, relative to `project_root`. Empty means "derive it
-    /// from the entry file", the way `vader build` does without `--out`.
-    out:            string
-    /// Optimise, and drop `#line` from the emitted C.
-    release:        bool
+    /// What the command asked, read from `args`: the binaries go to
+    /// `build/<profile>-<host>/<name>` under `project_root`.
+    @internal
+    request:        DriverRequest = DriverRequest {}
     /// C compiler for the link step.
     cc:             string
     /// Raw linker flags, whitespace-split and appended verbatim.
@@ -85,7 +85,7 @@ export BuildContext :: struct {
     /// system builds; a driver that only observes leaves the loop at
     /// `BeforeEmit` rather than setting this.
     target:         BuildTarget
-    /// C emitted by a `.C`-targeted drain, in queue order.
+    /// C emitted by a `.C`-targeted drain, in the order of the entries.
     @internal
     c_sources:      string[] = []
     /// Modules the driver asked for in the CURRENT round, awaiting a flush.
@@ -97,13 +97,17 @@ export BuildContext :: struct {
     /// runs before the first round, so this set is authoritative for this run.
     @internal
     generated:      string[] = []
-    /// Entry files, in the order `add_build_file` queued them. Read by the
-    /// driver loop, never written directly — the order is what makes a build
-    /// reproducible, so it stays behind `add_build_file`.
+    /// Entries, in the order `add_entry` added them. Read by the driver loop,
+    /// never written directly: the order is what makes a build reproducible,
+    /// so it stays behind `add_entry`.
     @internal
-    build_files:    string[] = []
-    /// Diagnostics the driver reported, in the order it reported them. Drained
-    /// by the compiler once the driver returns.
+    entries:        ManifestEntry[] = []
+    /// Files and folders a build copies beside the binaries, relative to
+    /// `project_root`.
+    @internal
+    assets:         string[] = []
+    /// Diagnostics of the build and the driver's own reports, in the order they
+    /// happened. `flush_reports` prints them.
     @internal
     diagnostics:    Diagnostic[] = []
 }
@@ -121,31 +125,41 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 /// The project root comes from `args`, not from the process working directory:
 /// the stdlib exposes no `cwd()` (`std/env` has only `get_env`, and the C runtime
 /// no `getcwd`), so threading it is the only way a driver can know where it is.
-/// The compiler passes the root it resolved as `args[1]`; invoked bare, the root
-/// is left empty rather than guessed.
+/// The compiler passes the root it resolved in the request; invoked bare, the
+/// root is left empty rather than guessed.
 ///
-/// @param args  the driver's argv, as the compiler passes it: `args[0]` the
-///              driver binary, `args[1]` the project root, `args[2]` the folder
-///              holding the compiler that started the build. A driver invoked by
-///              hand may supply fewer; each missing one falls back.
+/// @param args  the driver's argv, as the compiler passes it: the request
+///              `parse_driver_request` reads. A driver invoked by hand may supply
+///              less; each missing part falls back, the whole to a debug build of
+///              every entry.
 /// @return      a context with `project_root` set (empty when `args` carried
-///              none) and no include paths. Returned MUTABLE: the whole contract
-///              is that the driver fills it in.
-export new_build_context :: fn(args: string[]) -> BuildContext = BuildContext {
-    .project_root   = project_root_from(args),
-    .toolchain_root = arg_or_empty(args, 2),
-    .include_paths  = [],
-    .generated_root = DEFAULT_GENERATED_ROOT,
-    .out            = "",
-    .release        = false,
-    .cc             = default_cc(),
-    .ldflags        = "",
-    .target         = .Native,
+///              none), no entry and no include paths. Returned MUTABLE: the whole
+///              contract is that the driver fills it in.
+export new_build_context :: fn(args: string[]) -> BuildContext {
+    request :: parse_driver_request(args)
+    return BuildContext {
+        .project_root   = request.project_root,
+        .toolchain_root = request.toolchain_root,
+        .include_paths  = [],
+        .generated_root = DEFAULT_GENERATED_ROOT,
+        .request        = request,
+        .cc             = cc_of(request),
+        .ldflags        = request.ldflags,
+        .target         = .Native,
+    }
+}
+
+// The C compiler the request names, or the default one.
+cc_of :: fn(request: DriverRequest) -> string {
+    if request.cc == "" {
+        return default_cc()
+    }
+    return request.cc
 }
 
 /// What a drained `messages()` leaves behind.
 export BuildTarget :: enum(u8) {
-    /// Link a binary at `out`.
+    /// Link a binary per entry.
     Native,
     /// Emit C only, collected by `emit_c`.
     C,
@@ -157,16 +171,23 @@ export BuildTarget :: enum(u8) {
 // compiler's own `lib/`.
 //
 // The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
-// because `load_from_vader_config` REPLACES that list — a driver calling it would
-// silently drop the stdlib and get `R2001 module not found: std/io`.
+// so that a driver which replaces that list keeps the stdlib instead of getting
+// `R2001 module not found: std/io`.
 search_roots :: fn(ctx: BuildContext) -> string[] {
-    roots: string[]: []
-    for p in ctx.include_paths {
-        roots.push(p)
-    }
+    roots :: include_roots(ctx)
     library :: library_root_of(ctx)
     if library != null {
         roots.push(library)
+    }
+    return roots
+}
+
+// The folders `ctx.include_paths` name, resolved as a `vader.json`'s are.
+include_roots :: fn(ctx: BuildContext) -> string[] {
+    library :: library_root_of(ctx)
+    roots: string[]: []
+    for p in ctx.include_paths {
+        roots.push(manifest_root(ctx.project_root, p, library))
     }
     return roots
 }
@@ -218,70 +239,52 @@ toolchain_sidecar :: fn(ctx: BuildContext, subdir: string, marker: string) -> st
 // module cannot import `vader/cli` without a cycle. Keep the two in step.
 DRIVER_FILE :: "build.vader"
 
-// Where to anchor a diagnostic about the DRIVER's behaviour — an entry it failed
-// to queue, output it named ambiguously, a module name it built badly. The faulty
+// Where to anchor a diagnostic about the DRIVER's behaviour: no entry added, two
+// entries of one name, a module name it built badly. The faulty
 // line is unknown (it is a behaviour, not a statement) but the faulty FILE never
 // is, and `empty_span` would render as `<synthetic>`, naming nothing.
 driver_span :: fn(ctx: BuildContext) -> Span =
     file_head_span(join_path(ctx.project_root, DRIVER_FILE))
 
-// Project root as `args` reports it, falling back to the empty string when the
-// driver was invoked bare. An empty root is not an error here — a driver may set
-// `project_root` itself; the compiler reports H6xxx when the build starts with
-// no usable root.
-project_root_from :: fn(args: string[]) -> string = arg_or_empty(args, 1)
-
-// `args[i]`, or "" when argv is shorter. A driver run by hand has neither the
-// project root nor the toolchain root, and both fall back rather than fail.
-arg_or_empty :: fn(args: string[], i: i64) -> string {
-    if args.len() > i {
-        return args[i]
-    }
-    return ""
-}
-
 // ---- configuration --------------------------------------------------------
 
-/// Queue an entry file for compilation.
+/// Add a program for the build to compile, as a key of `entries` does in a
+/// `vader.json`.
 ///
 /// Order is preserved and load-bearing: it fixes the order modules are read,
 /// and therefore symbol-id assignment, which is what keeps a build byte-identical
 /// across runs.
 ///
 /// @param ctx   the context being configured.
-/// @param path  entry `.vader` file, relative to `project_root`.
-export add_build_file :: fn(ctx: BuildContext, path: string) -> void {
-    ctx.build_files.push(path)
+/// @param name  what the binary is called, and what `--entry` selects it by.
+/// @param path  the entry `.vader` file, relative to `project_root`.
+/// @error       H6005 when an entry already has that name, since the two
+///              binaries would overwrite each other.
+export add_entry :: fn(ctx: BuildContext, name: string, path: string) -> void {
+    for entry in ctx.entries {
+        if entry.name == name {
+            ctx.diagnostics.push(hook_error(.DuplicateEntryName, driver_span(ctx),
+                "`${name}` names `${entry.path}` already, and now `${path}`"))
+            return
+        }
+    }
+    ctx.entries.push(ManifestEntry { .name = name, .path = path })
 }
 
-/// Entry files queued so far, in order.
+/// Add a file or folder for a build to copy beside the binaries, as `assets`
+/// does in a `vader.json`. It lands under the same relative path, and a folder
+/// is copied with everything it holds.
 ///
-/// @return the queued paths — empty when the driver has queued none, which the
-///         compiler surfaces as an error rather than compiling nothing.
-export build_files_of :: fn(ctx: BuildContext) -> string[] = ctx.build_files
-
-/// Refill `include_paths` from the project `vader.json`, each entry resolved as
-/// the compiler resolves it: relative to the project, or in the toolchain's
-/// folder under `$VADER_HOME`.
-///
-/// A convenience for projects that keep a manifest — never a prerequisite. A
-/// driver that sets `include_paths` itself has no reason to call this, and a
-/// project without a manifest gets an empty list rather than a diagnostic.
-///
-/// @param ctx  the context being configured; its `include_paths` is REPLACED,
-///             not appended to, so calling this after setting them by hand
-///             discards the hand-set values.
-export load_from_vader_config :: fn(ctx: BuildContext) -> void {
-    if ctx.project_root == "" {
+/// @param ctx    the context being configured.
+/// @param asset  the file or folder, relative to `project_root`.
+/// @error        H6010 when it is absolute or climbs out of the project.
+export add_asset :: fn(ctx: BuildContext, asset: string) -> void {
+    problem :: asset_problem(asset)
+    if problem != null {
+        ctx.diagnostics.push(hook_error(.AssetOutsideProject, driver_span(ctx), problem))
         return
     }
-    manifest :: read_manifest(ctx.project_root)
-    library :: library_root_of(ctx)
-    fresh: string[]: []
-    for p in manifest.include_paths {
-        fresh.push(manifest_root(ctx.project_root, p, library))
-    }
-    ctx.include_paths = fresh
+    ctx.assets.push(asset)
 }
 
 // ---- reporting ------------------------------------------------------------
@@ -352,57 +355,41 @@ import "std/testing"
     assert_eq(ctx.include_paths.len(), 0)
 }
 
-@test test_add_build_file_preserves_order :: fn() -> void {
+@test test_add_entry_preserves_order :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
-    ctx.add_build_file("a.vader")
-    ctx.add_build_file("b.vader")
-    queued :: ctx.build_files_of()
-    assert_eq(queued.len(), 2)
-    assert_eq(queued[0], "a.vader")
-    assert_eq(queued[1], "b.vader")
+    ctx.add_entry("app", "a.vader")
+    ctx.add_entry("tool", "b.vader")
+    assert_eq(ctx.entries.len(), 2)
+    assert_eq(ctx.entries[0].name, "app")
+    assert_eq(ctx.entries[1].path, "b.vader")
 }
 
-@test test_no_build_files_by_default :: fn() -> void {
+@test test_add_entry_refuses_a_second_entry_of_the_same_name :: fn() -> void {
     ctx :: new_build_context(["driver", "/tmp/proj"])
-    assert_eq(ctx.build_files_of().len(), 0)
+    ctx.add_entry("app", "a.vader")
+    ctx.add_entry("app", "b.vader")
+    assert_eq(ctx.entries.len(), 1)
+    assert_eq(ctx.reports_of()[0].code.id, "H6005")
 }
 
-@test test_load_config_without_root_is_a_noop :: fn() -> void {
-    ctx :: new_build_context(["driver"])
-    ctx.load_from_vader_config()
-    assert_eq(ctx.include_paths.len(), 0)
+@test test_add_asset_refuses_a_path_outside_the_project :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.add_asset("data")
+    ctx.add_asset("../elsewhere")
+    assert_eq(ctx.assets.len(), 1)
+    assert_eq(ctx.reports_of()[0].code.id, "H6010")
 }
 
-@test test_load_config_missing_manifest_yields_empty :: fn() -> void {
-    // `read_manifest` returns an empty Manifest for a missing / malformed file,
-    // so a project without `vader.json` is not an error — it just has no roots.
-    ctx :: new_build_context(["driver", "/nonexistent-project-root"])
-    ctx.load_from_vader_config()
-    assert_eq(ctx.include_paths.len(), 0)
+@test test_new_context_reads_the_request_from_args :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj", "", "--check", "--release"])
+    assert(ctx.request.mode == .Check, "the mode comes from args")
+    assert(ctx.request.release, "and the profile")
 }
 
-@test test_load_config_resolves_entries_as_the_compiler_does :: fn() -> void {
-    // A toolchain folder is recognised by the marker under its `lib/`.
-    home :: join_path(temp_dir(), "vader_ctx_probe_home")
-    marker_dir :: join_path(home, "lib/std/io")
-    for dir in [home, join_path(home, "lib"), join_path(home, "lib/std"), marker_dir] {
-        create_dir(dir)
-    }
-    marker :: join_path(home, "lib/${LIBRARY_ROOT_MARKER}")
-    write_file_string(marker, "module \"std/io\"\n")
-    project :: join_path(temp_dir(), "vader_ctx_probe_project")
-    create_dir(project)
-    manifest :: join_path(project, "vader.json")
-    dollar :: "${'$'}"
-    entries :: "[\"src\", \"${dollar}VADER_HOME/third_party\"]"
-    write_file_string(manifest, "{\"includePaths\": ${entries}}\n")
-    ctx :: new_build_context(["driver", project, home])
-    ctx.load_from_vader_config()
-    assert_eq(ctx.include_paths.len(), 2)
-    assert_eq(ctx.include_paths[0], join_path(project, "src"))
-    assert_eq(ctx.include_paths[1], join_path(home, "third_party"))
-    remove_file(manifest)
-    remove_file(marker)
+@test test_include_paths_are_relative_to_the_project :: fn() -> void {
+    ctx :: new_build_context(["driver", "/tmp/proj"])
+    ctx.include_paths.push("src")
+    assert_eq(search_roots(ctx)[0], "/tmp/proj/src")
 }
 
 @test test_report_accumulates_in_order :: fn() -> void {

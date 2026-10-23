@@ -1,0 +1,142 @@
+// vader/pipeline/layout: where a project build writes what it produces.
+//
+// A project's binaries go under `build/<profile>-<target>/`, so that a debug and
+// a release build, or two targets, never overwrite each other, and its assets are
+// copied beside them. A `vader.json` project and a `build.vader` project follow
+// the same layout: the CLI builds the first, the driver's stream
+// (`toolchain/build`) the second, and both read it from here.
+
+module "vader/pipeline"
+
+import "std/io"
+import "std/path"
+import "vader/resolver"
+import "vader/target"
+
+/// Where a driven build keeps the driver's own binary and C, relative to the
+/// project root. Under `build/`, so the ignore rule that covers a project's
+/// binaries covers its driver too.
+export DRIVER_ARTEFACT_DIR :: "build/driver"
+
+/// The folder a project build writes its binaries to.
+///
+/// @param dir      the project folder.
+/// @param release  whether the build is optimised, which names the profile.
+/// @param target   the platform built for, the host when null.
+/// @return         `<dir>/build/<debug|release>-<os>-<arch>`.
+export project_output_dir :: fn(dir: string, release: bool, target: Target | null) -> string =
+    join_path(dir, "build/${profile_name(release)}-${display_target(target ?? host_target())}")
+
+// The profile a build is made with, as the output folder spells it.
+profile_name :: fn(release: bool) -> string {
+    if release {
+        return "release"
+    }
+    return "debug"
+}
+
+/// Make the folder `path` when missing, with its missing parents.
+///
+/// @param path  the folder to make.
+/// @return      false after saying it could not be made.
+export ensure_dir :: fn(path: string) -> bool {
+    made :: create_dir(path)
+    if made is IOError {
+        eprintln("vader build: cannot create `${path}`: ${made.message()}")
+        return false
+    }
+    return true
+}
+
+// ---- assets ---------------------------------------------------------------
+
+// The largest asset a build copies: a game's textures and sounds, not a
+// stream with no end.
+ASSET_READ_LIMIT: i64: 1024 * 1024 * 1024
+
+/// Copy a project's assets beside its binaries.
+///
+/// Each asset is copied under the same relative path; a folder is copied with
+/// everything it holds, and a copy at least as recent as its file is left alone.
+/// An asset outside the project is refused earlier, by `read_manifest` for a
+/// `vader.json` and by `add_asset` for a driver.
+///
+/// @param dir     the project folder the assets are relative to.
+/// @param assets  the files and folders to copy.
+/// @param into    the folder holding the binaries.
+/// @return        false after saying which asset could not be copied.
+export copy_assets :: fn(dir: string, assets: string[], into: string) -> bool {
+    for asset in assets {
+        source :: join_path(dir, asset)
+        if !exists(source) {
+            eprintln("vader build: asset `${asset}` does not exist in `${dir}`")
+            return false
+        }
+        target :: join_path(into, asset)
+        if !ensure_dir(folder_of(Path(target))) || !copy_tree(source, target) {
+            return false
+        }
+    }
+    return true
+}
+
+// Copy the file or folder `source` to `target`, whose folder exists. A copy at
+// least as recent as its file is left alone. False after saying what could not
+// be copied.
+copy_tree :: fn(source: string, target: string) -> bool {
+    if is_dir(source) {
+        if !ensure_dir(target) {
+            return false
+        }
+        names :: read_dir(source)
+        if names is IOError {
+            eprintln("vader build: cannot list `${source}`: ${names.message()}")
+            return false
+        }
+        for name in names {
+            if !copy_tree(join_path(source, name), join_path(target, name)) {
+                return false
+            }
+        }
+        return true
+    }
+    if is_up_to_date(target, source) {
+        return true
+    }
+    bytes :: read_file_bytes(source, ASSET_READ_LIMIT)
+    if bytes is IOError {
+        eprintln("vader build: cannot read `${source}`: ${bytes.message()}")
+        return false
+    }
+    written :: write_file_bytes(target, bytes)
+    if written is IOError {
+        eprintln("vader build: cannot write `${target}`: ${written.message()}")
+        return false
+    }
+    return true
+}
+
+// Whether `copy` exists and was written no earlier than `original` changed.
+is_up_to_date :: fn(copy: string, original: string) -> bool {
+    copied :: modification_time(copy)
+    if copied is IOError {
+        return false
+    }
+    changed :: modification_time(original)
+    if changed is IOError {
+        return false
+    }
+    return copied >= changed
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_project_output_dir_names_profile_and_target :: fn() -> void {
+    linux :: Target { .os = .Linux, .arch = .X86_64 }
+    assert_eq(project_output_dir("app", true, linux), "app/build/release-linux-x86_64")
+    host :: display_target(host_target())
+    assert_eq(project_output_dir("app", false, null), "app/build/debug-${host}")
+}

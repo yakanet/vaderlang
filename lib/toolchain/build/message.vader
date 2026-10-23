@@ -24,7 +24,7 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 /// user's source. This is why a driver runs natively rather than through the
 /// comptime VM; see the plan referenced in `context.vader`.
 ///
-/// Each declaration is delivered exactly ONCE per queued entry. A module the
+/// Each declaration is delivered exactly ONCE per entry. A module the
 /// driver generated into is therefore delivered a second time carrying only the
 /// generated declarations, never the ones already seen — so a rule applied here
 /// fires once however many generation rounds that entry takes.

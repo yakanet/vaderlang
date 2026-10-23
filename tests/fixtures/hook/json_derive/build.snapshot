@@ -1,5 +1,5 @@
 # stderr
 vader build: wrote <project>/build/driver/driver
-vader build: wrote <project>/app (and <project>/c/app.c)
+vader build: wrote <project>/build/debug-<host>/app (and <project>/build/debug-<host>/c/app.c)
 # exit
 0

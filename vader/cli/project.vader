@@ -6,9 +6,6 @@
 // (the `entries` it declares): with both, nothing says which description wins,
 // and with neither, nothing says what to compile.
 //
-// A project's binaries go under `build/<profile>-<target>/`, so that a debug and
-// a release build, or two targets, never overwrite each other.
-//
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 
 module "vader/cli"
@@ -19,7 +16,6 @@ import "std/path"
 import "std/string"
 import "vader/pipeline"
 import "vader/resolver"
-import "vader/target"
 
 /// What the argument of `build`, `run`, `check`, `dump`, `lint` or `graph` names.
 ProjectInput :: FileInput | ManifestProject | DrivenProject
@@ -43,7 +39,8 @@ DrivenProject :: struct {
     dir: string
 }
 
-/// One program a project's `vader.json` declares.
+/// One program of a project: an entry of its `vader.json`, or one its
+/// `build.vader` adds.
 ProjectEntry :: struct {
     /// Its key in `entries`, which names the binary.
     name: string
@@ -72,11 +69,6 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
         return 1
     }
     if has_driver {
-        if selected != "" {
-            eprintln("vader ${command}: `--entry` chooses among the entries of a "
-                + "`${MANIFEST_FILENAME}`, and the `${DRIVER_FILENAME}` of `${dir}` decides its own")
-            return 2
-        }
         return DrivenProject { .dir = dir }
     }
     if !has_manifest {
@@ -95,9 +87,12 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
 
 /// One file to work on, and the project it belongs to.
 EntryInProject :: struct {
-    file:         Path
+    file:          Path
     /// The project folder, null for a file on its own.
-    project_root: string | null
+    project_root:  string | null
+    /// Module search roots a project's `build.vader` set, ready for the loader,
+    /// which reads those of a `vader.json` itself.
+    include_paths: string[] = []
 }
 
 // The one file `command` works on: the file `path` names, or the only entry of
@@ -108,15 +103,46 @@ single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProj
     if input is i32 {
         return input
     }
+    why :: "`vader ${command}` works on one program"
     match input {
         is FileInput -> { return EntryInProject { .file = input.file, .project_root = null } }
         is ManifestProject -> {
-            why :: "`vader ${command}` works on one program"
             entry :: sole_entry(command, input.dir, input.entries, why) ?? return 2
             return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
-        is DrivenProject -> { return refuse_driven(command, input.dir) }
+        is DrivenProject -> {
+            project :: prepared_project(command, input.dir, selected) ?? return 1
+            entries :: project_entries(input.dir, project.entries)
+            entry :: sole_entry(command, input.dir, entries, why) ?? return 2
+            return EntryInProject {
+                .file = entry.file,
+                .project_root = input.dir,
+                .include_paths = project.include_paths,
+            }
+        }
     }
+}
+
+// The project the `build.vader` of the folder `dir` describes, its entries
+// narrowed to the one `selected` names. The driver chooses the entries and runs
+// its generation first, so that `command` reads fresh generated code. Null after
+// the driver, or this function, said why there is none.
+prepared_project :: fn(command: string, dir: string, selected: string) -> Manifest | null {
+    // A driver that never drains its stream writes nothing: a previous run's
+    // answer must not stand in for it.
+    path :: driver_project_path(dir)
+    remove_file(path)
+    request :: DriverRequest { .mode = .Prepare, .selected = selected }
+    if run_build_driver(command, dir, request) != 0 {
+        return null
+    }
+    project :: read_driver_project(dir)
+    if project is IOError {
+        eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir}` described no project "
+            + "at `${path}`; does it drain `ctx.messages()`?")
+        return null
+    }
+    return project
 }
 
 // The project `vader test` and `vader doctor` take: `dir`, the folder they run
@@ -155,10 +181,24 @@ select_entries :: fn(
             + "add one, as in `\"entries\": { \"app\": \"src/main.vader\" }`")
         return null
     }
-    entries :: manifest.entries.map((e) -> ProjectEntry {
+    return chosen_entries(command, dir, project_entries(dir, manifest.entries), selected)
+}
+
+// The `entries` of the project `dir`, their files joined onto it.
+project_entries :: fn(dir: string, entries: ManifestEntry[]) -> ProjectEntry[] =
+    entries.map((e) -> ProjectEntry {
         .name = e.name,
         .file = Path(join_path(dir, e.path)),
     }).collect()
+
+// `entries` of a `vader.json`, or the one `selected` names among them, or null
+// after saying it names none. A driver chooses among its own.
+chosen_entries :: fn(
+    command: string,
+    dir: string,
+    entries: ProjectEntry[],
+    selected: string,
+) -> ProjectEntry[] | null {
     if selected == "" {
         return entries
     }
@@ -170,14 +210,6 @@ select_entries :: fn(
     eprintln("vader ${command}: `${dir}` declares no entry `${selected}`; "
         + "it declares ${entry_names(entries)}")
     return null
-}
-
-// The exit code of `command` given a project its `build.vader` builds: it
-// cannot ask the driver for its entry.
-refuse_driven :: fn(command: string, dir: string) -> i32 {
-    eprintln("vader ${command}: `${dir}` is built by its `${DRIVER_FILENAME}`, which "
-        + "`${command}` cannot ask for its entry; name the entry file instead")
-    return 1
 }
 
 // The one entry of `entries`, or null after saying that `--entry` must choose:
@@ -194,112 +226,3 @@ sole_entry :: fn(command: string, dir: string, entries: ProjectEntry[], why: str
 // `app`, `tool`: the names of `entries`, for a message.
 entry_names :: fn(entries: ProjectEntry[]) -> string =
     entries.map((e) -> "`${e.name}`").collect().join(", ")
-
-// Where a project build writes its binaries: `<dir>/build/<profile>-<target>`,
-// the host when no target is named.
-project_output_dir :: fn(dir: string, release: bool, target: Target | null) -> string =
-    join_path(dir, "build/${profile_name(release)}-${display_target(target ?? host_target())}")
-
-// The profile a build is made with, as the output folder spells it.
-profile_name :: fn(release: bool) -> string {
-    if release {
-        return "release"
-    }
-    return "debug"
-}
-
-// Make the folder `path` when missing. False after saying it could not be made.
-ensure_dir :: fn(path: string) -> bool {
-    made :: create_dir(path)
-    if made is IOError {
-        eprintln("vader build: cannot create `${path}`: ${made.message()}")
-        return false
-    }
-    return true
-}
-
-// ---- assets ---------------------------------------------------------------
-
-// The largest asset a build copies: a game's textures and sounds, not a
-// stream with no end.
-ASSET_READ_LIMIT: i64: 1024 * 1024 * 1024
-
-// Copy each of `assets`, relative to the project `dir`, into `into` under the
-// same relative path; a folder is copied with everything it holds. False after
-// saying which one could not be. `read_manifest` has refused an asset outside
-// the project.
-copy_assets :: fn(dir: string, assets: string[], into: string) -> bool {
-    for asset in assets {
-        source :: join_path(dir, asset)
-        if !exists(source) {
-            eprintln("vader build: asset `${asset}` does not exist in `${dir}`")
-            return false
-        }
-        target :: join_path(into, asset)
-        if !ensure_dir(folder_of(Path(target))) || !copy_tree(source, target) {
-            return false
-        }
-    }
-    return true
-}
-
-// Copy the file or folder `source` to `target`, whose folder exists. A copy at
-// least as recent as its file is left alone. False after saying what could not
-// be copied.
-copy_tree :: fn(source: string, target: string) -> bool {
-    if is_dir(source) {
-        if !ensure_dir(target) {
-            return false
-        }
-        names :: read_dir(source)
-        if names is IOError {
-            eprintln("vader build: cannot list `${source}`: ${names.message()}")
-            return false
-        }
-        for name in names {
-            if !copy_tree(join_path(source, name), join_path(target, name)) {
-                return false
-            }
-        }
-        return true
-    }
-    if is_up_to_date(target, source) {
-        return true
-    }
-    bytes :: read_file_bytes(source, ASSET_READ_LIMIT)
-    if bytes is IOError {
-        eprintln("vader build: cannot read `${source}`: ${bytes.message()}")
-        return false
-    }
-    written :: write_file_bytes(target, bytes)
-    if written is IOError {
-        eprintln("vader build: cannot write `${target}`: ${written.message()}")
-        return false
-    }
-    return true
-}
-
-// Whether `copy` exists and was written no earlier than `original` changed.
-is_up_to_date :: fn(copy: string, original: string) -> bool {
-    copied :: modification_time(copy)
-    if copied is IOError {
-        return false
-    }
-    changed :: modification_time(original)
-    if changed is IOError {
-        return false
-    }
-    return copied >= changed
-}
-
-// ---- tests ----------------------------------------------------------------
-
-import "std/testing"
-
-@test
-test_project_output_dir_names_profile_and_target :: fn() -> void {
-    linux :: Target { .os = .Linux, .arch = .X86_64 }
-    assert_eq(project_output_dir("app", true, linux), "app/build/release-linux-x86_64")
-    host :: display_target(host_target())
-    assert_eq(project_output_dir("app", false, null), "app/build/debug-${host}")
-}

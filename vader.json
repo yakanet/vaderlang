@@ -1,5 +1,8 @@
 {
   "name": "vader",
   "version": "0.1.0",
+  "entries": {
+    "vader": "vader/cli/main.vader"
+  },
   "includePaths": ["lib"]
 }

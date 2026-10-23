@@ -1,5 +1,5 @@
 // A driver that configures nothing: it drains `messages()` without ever calling
-// `add_build_file`. The compiler must say so (H6003) AND fail — a build that
+// `add_entry`. The compiler must say so (H6003) AND fail — a build that
 // compiled nothing while exiting 0 is the worst possible answer.
 
 module "build"

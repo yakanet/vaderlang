@@ -81,7 +81,7 @@ EMIT_VALUES: ValueSpec[]: [
 // Which program of a project folder: the key of one of its `vader.json` entries.
 ENTRY_FLAG :: FlagSpec {
     .name = "entry",
-    .help = "Project folder only: the `vader.json` entry to use, by name; `build` and `check` take every entry without it, the others the only one",
+    .help = "Project folder only: the entry to use, by name; `build` and `check` take every entry without it, the others the only one",
     .value_name = "name",
 }
 

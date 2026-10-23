@@ -369,7 +369,8 @@ export Manifest :: struct {
     problems: string[] = []
 }
 
-/// One program of a project: `"<name>": "<entry file>"` in its `entries`.
+/// One program of a project: `"<name>": "<entry file>"` in the `entries` of a
+/// `vader.json`, or what a driver's `add_entry` adds.
 export ManifestEntry :: struct {
     /// What the binary is called.
     name: string
@@ -393,8 +394,11 @@ export read_manifest :: fn(project_root: string) -> Manifest {
     return parse_manifest(try_read(manifest_path) ?? "")
 }
 
-// The `Manifest` the text of a `vader.json` describes.
-parse_manifest :: fn(text: string) -> Manifest {
+/// The `Manifest` the text of a `vader.json` describes.
+///
+/// @param text  the file's content.
+/// @return      the fields it declares; `problems` says what it gets wrong.
+export parse_manifest :: fn(text: string) -> Manifest {
     manifest :: Manifest {}
     parsed :: parse(text)
     if parsed is JsonError {
@@ -427,10 +431,11 @@ parse_manifest :: fn(text: string) -> Manifest {
         manifest.problems.push("`entries` is not an object of `\"<name>\": \"<entry file>\"`")
     }
     for asset in string_list(parsed, "assets", manifest.problems) {
-        if leaves_project(asset) {
-            manifest.problems.push("asset `${asset}` is not inside the project; name it relative to the project folder")
-        } else {
+        problem :: asset_problem(asset)
+        if problem == null {
             manifest.assets.push(asset)
+        } else {
+            manifest.problems.push(problem)
         }
     }
     return manifest
@@ -461,6 +466,19 @@ string_list :: fn(object: JsonObject, key: string, problems: string[]) -> string
         }
     }
     return strings
+}
+
+/// What is wrong with an asset of a project, which a build copies beside its
+/// binaries under the same relative path.
+///
+/// @param asset  the file or folder, as the project names it.
+/// @return       why it cannot be copied, worded to follow the project file's
+///               path, or null when it names something inside the project.
+export asset_problem :: fn(asset: string) -> string | null {
+    if leaves_project(asset) {
+        return "asset `${asset}` is not inside the project; name it relative to the project folder"
+    }
+    return null
 }
 
 // Whether `path` names something outside the project root it is relative to:

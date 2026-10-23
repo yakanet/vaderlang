@@ -16,8 +16,7 @@ AST :: import "toolchain/ast"
 
 build :: fn(args: string[]) -> i32 {
     ctx :: new_build_context(args)
-    ctx.add_build_file("src/main.vader")
-    ctx.out = "hello"
+    ctx.add_entry("hello", "src/main.vader")
 
     exit := 0
     for msg in ctx.messages() {

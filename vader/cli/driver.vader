@@ -1,9 +1,12 @@
-// vader/cli/driver — the build-driver path: `vader build` with no file argument.
+// vader/cli/driver: the build-driver path, for a project folder with a
+// `build.vader`.
 //
 // A project drives its own build by putting a `build.vader` at its root, holding
-// a `build` fn (a reserved name, the way `main` is in a program). `vader build`
-// with no file compiles that driver and runs it; the driver then decides what to
-// compile, because the compiler is part of its own import closure.
+// a `build` fn (a reserved name, the way `main` is in a program). `vader build`,
+// `check`, `run`, `dump`, `lint` and `graph` given that folder compile the driver
+// and run it with their request (`vader/pipeline/driver_request.vader`); the
+// driver then decides what to compile, because the compiler is part of its own
+// import closure.
 //
 // Why a GENERATED entry rather than teaching the lowerer a second entry name:
 // `is_main_decl` (`lower/lower_decl.vader:572`) recognises the entry by the
@@ -27,6 +30,7 @@
 
 module "vader/cli"
 
+import "cli"
 import "std/env"
 import "std/io"
 import "std/path"
@@ -63,11 +67,6 @@ export BUNDLED_SOURCE_DIR :: "src"
 /// A module the driver's own closure needs, so a root that lacks it is genuinely
 /// unusable rather than merely incomplete.
 export COMPILER_SOURCE_MARKER :: "vader/pipeline"
-
-/// Where a driven build puts the driver's binary and generated C, relative to
-/// the project root. Under `build/` so a checkout's existing ignore rules cover
-/// it — the driver is a build artefact like any other.
-export DRIVER_ARTEFACT_DIR :: "build/driver"
 
 /// Stamp recording what the cached driver binary was built from, beside it.
 export DRIVER_STAMP_FILENAME :: "driver.stamp"
@@ -347,19 +346,20 @@ returns_i32 :: fn(f: AST.FnDecl) -> bool {
 /// Compile the project's driver and run it.
 ///
 /// The driver decides what to compile, so this function's whole job is to hand
-/// control over: write the entry shim, build it, run it with the project root as
-/// `args[1]`, and clean the shim up. The compiler's own sources are added to the
+/// control over: write the entry shim, build it, run it with the request as its
+/// `args`, and clean the shim up. The compiler's own sources are added to the
 /// include paths so `import "toolchain/build"` resolves without the user configuring
 /// anything.
 ///
+/// @param command  the command running the driver, which names its messages.
 /// @param root     project root — where the driver and the shim live.
-/// @param cc       C compiler for the native link step.
-/// @param ldflags  extra linker flags, threaded through unchanged.
+/// @param request  what the command asks of the driver; its roots are filled
+///                 here. Its `cc` and `ldflags` also compile the driver itself.
 /// @return         the driver's own exit code, or 1 when the driver could not be
 ///                 built or written.
 /// @error          H6001 when the driver declares no `build` — surfaced as a
 ///                 compile error on the generated entry's call to it.
-export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 {
+export run_build_driver :: fn(command: string, root: string, request: DriverRequest) -> i32 {
     driver :: find_build_driver(root) ?? return 1
     problem :: validate_driver(driver)
     if problem is Diagnostic {
@@ -379,14 +379,15 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 
     // and it produces the same binary every time its inputs are unchanged, which
     // for anyone iterating on their project is every build but the first.
     if !driver_is_fresh(binary, stamp, key) {
-        build_code :: rebuild_driver(root, artefacts, binary, stamp, key, cc, ldflags)
+        cc :: cc_or_default(request.cc)
+        build_code :: rebuild_driver(command, root, artefacts, binary, stamp, key, cc, request.ldflags)
         if build_code != 0 {
             return build_code
         }
     }
     exe :: linked_binary(binary)
     if exe == null {
-        eprintln("vader build: the driver build left no binary at ${binary}")
+        eprintln("vader ${command}: the driver build left no binary at ${binary}")
         return 1
     }
 
@@ -398,21 +399,28 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 
     // `timeout` cancels its child on expiry, and `SpawnAsync.cancel` kills the
     // process — without that override the parent would unblock while the runaway
     // driver kept spinning a core.
-    // `args[2]` is the toolchain root — the folder holding THIS executable, and
-    // therefore its `lib/` and `runtime/c/`. The driver cannot work it out
+    // The toolchain root is the folder holding THIS executable, and therefore
+    // its `lib/` and `runtime/c/`. The driver cannot work it out
     // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
     // probe looks inside the project. Without this a driven build only resolves
     // `std/*` when the project happens to have a `lib/` beside it, which is
     // what the fixtures' symlinks were quietly providing.
-    toolchain :: current_executable_location().dir_of()
-    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async([exe, root, toolchain])))
+    rooted :: DriverRequest {
+        ...request,
+        .project_root = root,
+        .toolchain_root = current_executable_location().dir_of(),
+    }
+    argv :: [exe]
+    argv.push_all(driver_request_args(rooted))
+    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async(argv)))
     if outcome is TimeoutError {
-        eprintln("vader build: the build driver did not finish within ${DRIVER_TIMEOUT_MS / 1000}s — killed")
-        eprintln("(a loop in `${DRIVER_FILENAME}`? build with --no-hooks to skip it)")
+        seconds :: DRIVER_TIMEOUT_MS / 1000
+        eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
+        eprintln("(a loop in `${DRIVER_FILENAME}`?)")
         return 1
     }
     if outcome is ProcessError {
-        eprintln("vader build: cannot run the build driver: ${outcome.message()}")
+        eprintln("vader ${command}: cannot run the build driver: ${outcome.message()}")
         return 1
     }
     if outcome is ProcessResult {
@@ -429,18 +437,18 @@ export run_build_driver :: fn(root: string, cc: string, ldflags: string) -> i32 
 // behind after a failure is how a stale one gets compiled next time. The stamp is
 // written only on success, so a failed build never looks fresh.
 rebuild_driver :: fn(
-    root: string, artefacts: string, binary: string, stamp: string, key: string,
+    command: string, root: string, artefacts: string, binary: string, stamp: string, key: string,
     cc: string, ldflags: string,
 ) -> i32 {
     entry :: driver_entry_path(root)
     written :: write_file_string(entry, render_driver_entry())
     if written is IOError {
-        eprintln("vader build: cannot write the build entry at ${entry}: ${written.msg}")
+        eprintln("vader ${command}: cannot write the build entry at ${entry}: ${written.msg}")
         return 1
     }
     made :: create_dir(artefacts)
     if made is IOError {
-        eprintln("vader build: cannot create ${artefacts}: ${made.msg}")
+        eprintln("vader ${command}: cannot create ${artefacts}: ${made.msg}")
         remove_entry(entry)
         return 1
     }
@@ -477,6 +485,32 @@ rebuild_driver :: fn(
     // rebuild, which is what happens today anyway.
     write_file_string(stamp, key)
     return 0
+}
+
+// `cc`, or the default C compiler when it is empty.
+cc_or_default :: fn(cc: string) -> string {
+    if cc == "" {
+        return default_cc()
+    }
+    return cc
+}
+
+// Refuse the flags among `names` that `command` was given and a `build.vader`
+// does not receive: a driven build is for the host, into the layout every
+// project shares. True after saying which, so that a cross build never quietly
+// answers for the host.
+refuse_unforwarded_flags :: fn(command: string, parsed: ParsedArgs, names: string[]) -> bool {
+    given: string[]: []
+    for name in names {
+        if name in parsed.flags {
+            given.push("`--${name}`")
+        }
+    }
+    if given.len() == 0 {
+        return false
+    }
+    eprintln("vader ${command}: a `${DRIVER_FILENAME}` does not receive ${given.join(", ")}")
+    return true
 }
 
 /// How long a driver may run before the build gives up on it.

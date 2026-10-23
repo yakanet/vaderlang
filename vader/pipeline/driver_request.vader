@@ -1,0 +1,234 @@
+// vader/pipeline/driver_request: what the CLI asks of a build driver, and what
+// the driver tells it back.
+//
+// The CLI runs a project's `build.vader` as a child process and passes its
+// request as the driver's `args`. A driver run with `--prepare` answers with the
+// project as it described it, in the shape of a `vader.json`, from which the CLI
+// takes the entry `run`, `dump`, `lint` or `graph` works on and its module search
+// roots. The CLI and `toolchain/build` both read this file, so the two halves of
+// the exchange cannot drift.
+
+module "vader/pipeline"
+
+import "json"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/string"
+import "vader/resolver"
+
+/// What a driver run does once its entries are added.
+export DriverMode :: enum {
+    /// Compile the entries and write their outputs.
+    Build,
+    /// Run the front end, generation included, and the lowering; link nothing.
+    Check,
+    /// Write the project for the CLI, then run the front end, generation
+    /// included, for the one entry chosen; stop there when several are.
+    Prepare,
+}
+
+/// The CLI's request to a driver.
+export DriverRequest :: struct {
+    /// The project folder, the one holding `build.vader`.
+    project_root:   string = ""
+    /// The folder holding the compiler that started the build, and therefore
+    /// its `lib/` and `runtime/c/`.
+    toolchain_root: string = ""
+    mode:           DriverMode = .Build
+    /// Whether the build is optimised.
+    release:        bool = false
+    /// The entry `--entry` names, empty for every entry.
+    selected:       string = ""
+    /// C compiler for the link step, empty for the default one.
+    cc:             string = ""
+    /// Raw linker flags.
+    ldflags:        string = ""
+}
+
+CHECK_FLAG :: "--check"
+PREPARE_FLAG :: "--prepare"
+RELEASE_FLAG :: "--release"
+ENTRY_FLAG :: "--entry="
+CC_FLAG :: "--cc="
+LDFLAGS_FLAG :: "--ldflags="
+
+/// The arguments that carry a request to a driver: the project root, the
+/// toolchain root, then the flags.
+///
+/// @param request  what the CLI asks.
+/// @return         the arguments to place after the driver binary.
+export driver_request_args :: fn(request: DriverRequest) -> string[] {
+    args :: [request.project_root, request.toolchain_root]
+    match request.mode {
+        .Build   -> {}
+        .Check   -> { args.push(CHECK_FLAG) }
+        .Prepare -> { args.push(PREPARE_FLAG) }
+    }
+    if request.release {
+        args.push(RELEASE_FLAG)
+    }
+    if request.selected != "" {
+        args.push("${ENTRY_FLAG}${request.selected}")
+    }
+    if request.cc != "" {
+        args.push("${CC_FLAG}${request.cc}")
+    }
+    if request.ldflags != "" {
+        args.push("${LDFLAGS_FLAG}${request.ldflags}")
+    }
+    return args
+}
+
+/// The request a driver's `args` carry.
+///
+/// A driver run by hand may carry fewer: each missing root is empty, and no
+/// flag asks for a debug build of every entry. An argument this does not know
+/// is ignored.
+///
+/// @param args  the driver's argv, `args[0]` being the driver binary.
+/// @return      the request.
+export parse_driver_request :: fn(args: string[]) -> DriverRequest {
+    request :: DriverRequest {}
+    if args.len() > 1 {
+        request.project_root = args[1]
+    }
+    if args.len() > 2 {
+        request.toolchain_root = args[2]
+    }
+    for i in 3..<args.len() {
+        arg :: args[i]
+        if arg == CHECK_FLAG {
+            request.mode = .Check
+        } else if arg == PREPARE_FLAG {
+            request.mode = .Prepare
+        } else if arg == RELEASE_FLAG {
+            request.release = true
+        } else if arg.starts_with(ENTRY_FLAG) {
+            request.selected = arg.trim_prefix(ENTRY_FLAG)
+        } else if arg.starts_with(CC_FLAG) {
+            request.cc = arg.trim_prefix(CC_FLAG)
+        } else if arg.starts_with(LDFLAGS_FLAG) {
+            request.ldflags = arg.trim_prefix(LDFLAGS_FLAG)
+        }
+    }
+    return request
+}
+
+// ---- the project a prepared driver writes ---------------------------------
+
+// The file, in `DRIVER_ARTEFACT_DIR`.
+DRIVER_PROJECT_FILENAME :: "project.json"
+
+/// Where a driver run with `--prepare` writes the project it described.
+///
+/// @param root  the project folder.
+export driver_project_path :: fn(root: string) -> string =
+    join_path(join_path(root, DRIVER_ARTEFACT_DIR), DRIVER_PROJECT_FILENAME)
+
+/// Write the project a driver described, in the shape of a `vader.json`:
+/// `includePaths` holds the module search roots as the driver resolved them,
+/// `entries` the entries chosen, `assets` the files to copy.
+///
+/// @param root           the project folder.
+/// @param include_paths  the module search roots, ready for the loader.
+/// @param entries        the entries chosen, paths relative to `root`.
+/// @param assets         the assets, relative to `root`.
+/// @error                the `IOError` of a file that could not be written.
+export write_driver_project :: fn(
+    root: string,
+    include_paths: string[],
+    entries: ManifestEntry[],
+    assets: string[],
+) -> null | IOError {
+    path :: driver_project_path(root)
+    made :: create_dir(folder_of(Path(path)))
+    if made is IOError {
+        return made
+    }
+    named :: MutableMap<string, JsonValue> {}
+    for entry in entries {
+        named[entry.name] = JsonString { .value = entry.path }
+    }
+    project :: MutableMap<string, JsonValue> {}
+    project["includePaths"] = string_array(include_paths)
+    project["entries"] = JsonObject { .entries = named }
+    project["assets"] = string_array(assets)
+    return write_file_string(path, stringify(JsonObject { .entries = project }))
+}
+
+// `strings` as a JSON array.
+string_array :: fn(strings: string[]) -> JsonValue {
+    items: JsonValue[]: []
+    for s in strings {
+        items.push(JsonString { .value = s })
+    }
+    return JsonArray { .items = items }
+}
+
+/// The project a driver run with `--prepare` wrote.
+///
+/// @param root  the project folder.
+/// @return      the project; its `problems` say what a malformed file gets
+///              wrong.
+/// @error       the `IOError` of a file the driver did not write.
+export read_driver_project :: fn(root: string) -> Manifest | IOError {
+    text :: read_file_string(driver_project_path(root))
+    if text is IOError {
+        return text
+    }
+    return parse_manifest(text)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_driver_request_round_trips_through_args :: fn() -> void {
+    sent :: DriverRequest {
+        .project_root = "/p",
+        .toolchain_root = "/t",
+        .mode = .Prepare,
+        .release = true,
+        .selected = "tool",
+        .ldflags = "-L lib -lm",
+    }
+    args :: ["driver"]
+    args.push_all(driver_request_args(sent))
+    received :: parse_driver_request(args)
+    assert_eq(received.project_root, "/p")
+    assert_eq(received.toolchain_root, "/t")
+    assert(received.mode == .Prepare, "the mode crosses")
+    assert(received.release, "the profile crosses")
+    assert_eq(received.selected, "tool")
+    assert_eq(received.cc, "")
+    assert_eq(received.ldflags, "-L lib -lm")
+}
+
+@test
+test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
+    received :: parse_driver_request(["driver", "/p"])
+    assert_eq(received.project_root, "/p")
+    assert_eq(received.toolchain_root, "")
+    assert(received.mode == .Build, "a build")
+    assert(!received.release, "in debug")
+    assert_eq(received.selected, "")
+}
+
+@test
+test_driver_project_reads_back_as_a_manifest :: fn() -> void {
+    root :: join_path(temp_dir(), "vader_driver_project")
+    entries :: [ManifestEntry { .name = "app", .path = "src/main.vader" }]
+    written :: write_driver_project(root, ["/p/src"], entries, ["data"])
+    assert(written == null, "the project is written")
+    read :: read_driver_project(root)
+    if read is IOError {
+        assert(false, "the project reads back")
+        return
+    }
+    assert_eq(read.problems.len(), 0)
+    assert_eq(read.include_paths[0], "/p/src")
+    assert_eq(read.entries[0].name, "app")
+    assert_eq(read.assets[0], "data")
+}
