@@ -6,6 +6,7 @@ import com.intellij.psi.PsiFile
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.client.features.LSPFormattingFeature
+import com.redhat.devtools.lsp4ij.client.features.LSPWorkspaceSymbolFeature
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 
@@ -27,6 +28,15 @@ internal class VaderLanguageServerFactory : LanguageServerFactory {
             // Without this, semantic tokens have no colour key in IntelliJ and
             // land on the default foreground — see `VaderSemanticTokensFeature`.
             .setSemanticTokensFeature(VaderSemanticTokensFeature())
+            .setWorkspaceSymbolFeature(VaderWorkspaceSymbolFeature())
+}
+
+// LSP4IJ asks a server for the "Classes" tab of Search Everywhere only when the
+// feature says it may: `supportsGotoClass` is false by default, and the tab then
+// lists nothing from Vader. The server's types (structs, enums, traits, aliases)
+// carry class-like symbol kinds, which is what that tab keeps.
+private class VaderWorkspaceSymbolFeature : LSPWorkspaceSymbolFeature() {
+    override fun supportsGotoClass(): Boolean = true
 }
 
 // `.vader` files are mapped to the server by filename glob (TextMate grammar,
