@@ -185,7 +185,7 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
             match d {
                 is LoweredFnDecl -> {
                     if d.body is null {
-                        externs.push(make_extern_decl(d))
+                        externs.push(make_extern_decl(d, lp.libraries))
                     } else {
                         cfg_opt :: convert_function(d, ctx)
                         if cfg_opt !is null { functions.push(cfg_opt) }
@@ -442,8 +442,12 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
     }
 }
 
-make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
+make_extern_decl :: fn(
+    d: LoweredFnDecl,
+    libraries: MutableMap<i64, NativeLibrary>,
+) -> CFGExternDecl {
     meta :: fn_metadata(d)
+    library :: library_of(d, libraries)
     params: CFGParam[]: []
     for i in 0..<d.params.len() {
         p :: d.params[i]
@@ -458,10 +462,40 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         .origin      = d.origin,
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
-        .c_header    = meta.c_header,
-        .c_library   = meta.c_library,
+        .c_header    = header_of(meta, library),
+        .c_library   = library_name_of(meta, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
+        .library     = library,
     }
+}
+
+// The `CLibrary` the declaration `d` names, or null.
+library_of :: fn(
+    d: LoweredFnDecl,
+    libraries: MutableMap<i64, NativeLibrary>,
+) -> NativeLibrary | null {
+    decl :: d.origin.decl
+    if decl is FnDecl {
+        return libraries[decl.id]
+    }
+    return null
+}
+
+// The declaration's own `@c_header`, else its library's default header.
+header_of :: fn(meta: FnMetadata, library: NativeLibrary | null) -> string {
+    if meta.c_header != "" || library == null {
+        return meta.c_header
+    }
+    return library.header
+}
+
+// What the interpreter opens: the library's name, else the string a 2-argument
+// `@extern` writes.
+library_name_of :: fn(meta: FnMetadata, library: NativeLibrary | null) -> string {
+    if library == null {
+        return meta.c_library
+    }
+    return library.name
 }
 
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.

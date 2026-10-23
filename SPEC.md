@@ -2670,7 +2670,7 @@ See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 
 ### Configuration: `vader.json`
 
-`vader.json` is **optional**. The project root is the nearest folder holding one, walking up from the entry file. Its `includePaths` field lists extra module roots, each a literal folder path relative to the project root:
+`vader.json` is **optional**. The project root is the nearest folder holding one, walking up from the entry file. Its `includePaths` field lists extra module roots, each a folder path relative to the project root, or under `$VADER_HOME` (below):
 
 ```json
 {
@@ -2688,7 +2688,7 @@ An import is resolved against an ordered list of roots. The first root whose fol
 2. each root named by `--include-paths`;
 3. the toolchain's library root, when `$VADER_HOME` or the binary's own folder provides one (below);
 4. the project root;
-5. each `includePaths` entry, joined onto the project root (4 and 5 exist only when there is a `vader.json`);
+5. each `includePaths` entry, joined onto the project root (4 and 5 exist only when there is a `vader.json`). An entry that starts with `$VADER_HOME` is joined onto the toolchain's folder instead, the one holding the library root, whether or not the variable is set: `"$VADER_HOME/third_party"` reaches the libraries shipped beside the compiler from a project that lives anywhere. Without a library root from step 3, the toolchain's folder is the working directory, where step 6 looks for `lib/`;
 6. `lib/` relative to the working directory, only when step 3 found no library root;
 7. `build/generated/` under the project root (the invocation directory when there is no `vader.json`), which extends a module instead of shadowing it (see *Generated modules*).
 
@@ -2856,10 +2856,45 @@ A handful of `@intrinsic` impl methods are also **op-level** intrinsics: the byt
 ```vader
 @extern add_i32 :: fn(a: i32, b: i32) -> i32                    // C symbol: add_i32
 @extern("puts") c_puts :: fn(s: string) -> i32                  // C symbol: puts
-@extern("env", "console_log") log :: fn(p: i32, n: i32) -> void // C symbol: console_log
+@extern(LIBM, "cbrt") cube_root :: fn(x: f64) -> f64            // C symbol: cbrt, from LIBM
 ```
 
-The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). The **first** of two arguments names WHERE the symbol comes from. The VM `dlopen`s it, so `@extern("z", "compress2")` reaches `libz` under `vader run`; the C-emit DROPS it and the symbol resolves through the ordinary link line, so it never becomes a `-l`. A library that shadows a libc symbol therefore gives the two backends different functions from one source — name the library only when the VM needs it, and link it with `--ldflags`. A future WASM-emit consumes it as the import module (`"env"` by convention). Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
+The decorator accepts **0, 1, or 2 arguments**. The **last** is a string, the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). Omitting all arguments reuses the Vader-side fn name as the C symbol. The **first** of two names WHERE the symbol comes from: a constant of `std/ffi`'s `CLibrary` (below). A string there is the older form: the VM `dlopen`s it, and the C-emit drops it, leaving the link to `--ldflags`. 3+ arguments, a non-string symbol, or a library that is neither a string nor a `CLibrary` constant is `T3050`.
+
+#### `CLibrary`: the library a binding calls
+
+```vader
+import "std/ffi"
+import "std/target"
+
+export RAYLIB: CLibrary: CLibrary {
+    .name     = "raylib",
+    .header   = "raylib.h",
+    .include  = "include",
+    .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libraylib.a"],
+    .system   = match VADER_OS {
+        .Darwin          -> ["Cocoa.framework", "IOKit.framework", "OpenGL.framework"]
+        .Linux           -> ["GL", "m", "pthread", "dl", "rt", "X11"]
+        .Windows         -> ["opengl32", "gdi32", "winmm"]
+        .Wasi | .Browser -> []
+    },
+}
+
+@extern(RAYLIB, "InitWindow")
+export init_window :: fn(width: i32, height: i32, title: string) -> void
+```
+
+A `CLibrary` names a C library once; each `@extern` that comes from it names the constant. The compiler **evaluates the constant at compile time**, for the build target, so its fields may depend on `VADER_OS` and `VADER_ARCH`. The evaluation reads literals, struct literals, enum variants, `match` on a value with variant and `_` arms, constants of any module, single-expression functions, and the interpolation of an enum through a `Display` impl that is one expression over `self`. A constant it cannot reduce is `C4001`, reported where the evaluation stopped inside it. No `@comptime` is needed: being named by an `@extern` is what asks for the evaluation.
+
+| field | meaning |
+|---|---|
+| `name` | What the VM opens (`lib<name>.dylib`, `lib<name>.so`, `<name>.dll`), and what a native build links as `-l<name>` when the library ships no archive |
+| `header` | The header declaring its functions, written as `@c_header` writes it. It serves every `@extern` naming the library without a `@c_header` of its own |
+| `include` | A folder of headers, relative to the module declaring the constant, searched by every compilation (`-I`). A quoted header (`"raylib.h"`) is found there |
+| `archives` | Static archives shipped with the binding, relative to the module declaring the constant, linked in place of `-l<name>`. One that does not exist stops the build before `cc`, naming the path |
+| `system` | What the platform provides: a library by name (`"GL"` links `-lGL`), or an Apple framework by its bundle name (`"Cocoa.framework"` links `-framework Cocoa`) |
+
+A native build adds a library's flags only when one of its functions survives to the program: a binding imported for one call costs nothing else.
 
 `@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
 
@@ -3207,11 +3242,11 @@ Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + 
 vader build --emit=executable --ldflags="helper.o -lcrypto -L/usr/local/lib" prog.vader
 ```
 
-`--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format; everything goes through `--ldflags`.
+A library a binding declares with `CLibrary` (above) needs no flag: the build adds its headers, archives and platform libraries itself. `--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc`, for whatever no binding declares: `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks.
 
 ### VM behaviour
 
-The VM resolves an `@extern` user import at the call: it `dlopen`s the library named by a 2-argument `@extern` (the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline — one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
+The VM resolves an `@extern` user import at the call: it `dlopen`s the library a 2-argument `@extern` names (its `CLibrary`'s `name`, or the string; the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline: one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
 
 The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing: a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result, a `@c_struct` passed or returned by value. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
 

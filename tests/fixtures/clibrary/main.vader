@@ -1,0 +1,12 @@
+// A program calling a C library through a `CLibrary` constant: the build adds
+// the library's headers, its archive and its platform libraries by itself.
+
+module "main"
+
+import "greeter"
+import "std/io"
+
+main :: fn() -> i32 {
+    println("${name()}: ${add(40, 2)}")
+    return 0
+}

@@ -205,6 +205,11 @@ build_bytecode_text :: fn(
 // blocks the build, so the caller emits nothing and exits non-zero.
 emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
     b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
+    return emit_c_of(b)
+}
+
+// The single-TU C of a prepared program.
+emit_c_of :: fn(b: CfgBytecode) -> string {
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
@@ -327,8 +332,14 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
     // `vader/pipeline`, so the two cannot drift on flags.
-    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify) ?? return 1
-    return link_native(c_src, out, cc, release, ldflags, "", quote_include_dir(file))
+    quote_dir :: quote_include_dir(file)
+    if file.extension() == "virt" {
+        c_src :: emit_c_source_from_virt(file) ?? return 1
+        return link_native(c_src, out, cc, release, ldflags, "", quote_dir, NativeFlags {})
+    }
+    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
+    native :: native_flags(b.module)
+    return link_native(emit_c_of(b), out, cc, release, ldflags, "", quote_dir, native)
 }
 
 // ----------------------------------------------------------- split build
@@ -337,7 +348,12 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 // function TU per Vader module, then compile them concurrently and link. The
 // `.c` set is kept on failure for inspection.
 build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32, verify: bool) -> i32 {
-    prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify) ?? return 1
+    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
+    native :: native_flags(b.module)
+    if report_missing_archives(native) {
+        return 1
+    }
+    prog :: split_program(b, out)
     if write_split_files(out, prog) != 0 {
         return 1
     }
@@ -371,12 +387,17 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     for cf in c_files {
         obj :: "${cf}.o"
         obj_files.push(obj)
-        argvs.push(cc_compile_argv(cc, cf.as_string(), obj, rt, release, flavour, quote_dir))
+        source :: cf.as_string()
+        argvs.push(
+            cc_compile_argv(cc, source, obj, rt, release, flavour, quote_dir, native.includes),
+        )
     }
     rt_obj :: "${out}.split.runtime.o"
     obj_files.push(rt_obj)
     rt_src :: "${rt}/vader_runtime.c"
-    argvs.push(cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir))
+    argvs.push(
+        cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir, native.includes),
+    )
 
     wave :: if cc_jobs > 0 { i64(cc_jobs) } else { argvs.len() }
     results: (ProcessResult | ProcessError)[]: []
@@ -408,7 +429,9 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     // Link the objects into the final binary (link is inherently serial).
     // The link runs alone, so it may use what the compiles were bounded to.
     link_jobs :: if cc_jobs > 0 { cc_jobs } else { processor_count() }
-    lres :: spawn(cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs))
+    lres :: spawn(
+        cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links),
+    )
     if lres is ProcessError {
         eprintln("vader build: ${lres.message()}")
         return 1
@@ -435,6 +458,11 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
         return null
     }
     b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
+    return split_program(b, out)
+}
+
+// The split C of a prepared program, its TUs including `<out>.split.h`.
+split_program :: fn(b: CfgBytecode, out: Path) -> CProgram {
     // The `#include` name is the header's basename (split TUs sit next to it) —
     // `filename` via `to_posix` also handles `\` on Windows.
     header_name :: "${canonicalise(out).filename()}.split.h"
@@ -745,11 +773,13 @@ cc_compile_argv :: fn(
     release: bool,
     flavour: CcFlavour,
     quote_dir: string,
+    includes: string[],
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
     argv.push_all(lto_flags(flavour, release, false, 0))
     push_include_flags(argv, rt, quote_dir)
+    argv.push_all(includes)
     argv.push("-c")
     argv.push(src)
     argv.push("-o")
@@ -787,11 +817,12 @@ cc_flavour :: fn(cc: string) -> CcFlavour {
 // (a no-op on macOS / MinGW).
 cc_link_argv :: fn(
     cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
-    jobs: i32,
+    jobs: i32, links: string[],
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(lto_flags(flavour, release, true, jobs))
     argv.push_all(objs)
+    argv.push_all(links)
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())

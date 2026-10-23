@@ -221,7 +221,9 @@ emit_one :: fn(
         strip_input_suffix(entry).as_string()
     }
     quote_dir :: quote_include_dir(entry)
-    return link_native(c, Path(binary), cc, release, ldflags, runtime_root_of(ctx), quote_dir)
+    native :: native_flags(cfg.module)
+    runtime_root :: runtime_root_of(ctx)
+    return link_native(c, Path(binary), cc, release, ldflags, runtime_root, quote_dir, native)
 }
 
 // ---- producing output -----------------------------------------------------

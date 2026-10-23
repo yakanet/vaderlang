@@ -104,6 +104,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
         .is_extern = ext.is_extern,
         .c_header = ext.c_header,
         .c_library = ext.c_library,
+        .library = ext.library,
         .c_variadic_fixed = ext.c_variadic_fixed,
         .param_c_types = param_c_types_of(ext.origin),
         .result_c_type = result_c_type_of(ext.origin),

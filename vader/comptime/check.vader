@@ -42,6 +42,7 @@ export evaluate_project :: fn(
         }
         project.modules[module_id] = program
     }
+    evaluate_extern_libraries(typed, project, diags)
     // `instances` is the concrete generic-instance set the lowerer's
     // struct path materialises (`lower_mono_struct`). The lowerer is the
     // authoritative monomorphizer — there is no separate comptime mono pass.

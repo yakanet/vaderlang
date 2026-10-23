@@ -729,16 +729,22 @@ validate_extern :: fn(
         )
         return
     }
-    for a in args {
-        if !is_plain_string_literal(a) {
-            diags.push(
-                typecheck_error(
-                    .InvalidExternDecl,
-                    a.span,
-                    "`@extern` arguments must be plain string literals (no interpolation)",
-                ),
-            )
+    for i in 0..<args.len() {
+        a :: args[i]
+        if is_plain_string_literal(a) {
+            continue
         }
+        // A library is checked once the bodies are walked (`check_extern_library`).
+        if i == 0 && args.len() == 2 {
+            continue
+        }
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                a.span,
+                "`@extern` arguments must be plain string literals (no interpolation)",
+            ),
+        )
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
@@ -870,6 +876,52 @@ validate_extern :: fn(
             ),
         )
     }
+}
+
+/// Check the library a 2-argument `@extern` names, and record the constant in
+/// `typed.extern_libraries` when it is a `CLibrary` one: T3050 for a library
+/// that is not a named constant, or one of another type.
+///
+/// Runs after the module's bodies are walked, so a constant declared without a
+/// type has the one its value gave it. The older string form passes untouched.
+///
+/// @param decl   a function declaration.
+/// @param typed  the module.
+/// @param diags  where a refusal goes.
+export check_extern_library :: fn(
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    args :: extern_decorator_args(decl.decorators)
+    if args.len() != 2 || is_plain_string_literal(args[0]) {
+        return
+    }
+    argument :: args[0]
+    if argument !is AST.IdentExpr {
+        detail :: "the library is a `CLibrary` constant, named : `@extern(RAYLIB, \"InitWindow\")`"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    // An unresolved name is the resolver's to report.
+    named :: typed.resolved.idents[argument.span.hash()] ?? return
+    symbol :: declared_symbol(named, typed)
+    if symbol.kind != .Const {
+        detail :: "`${argument.name}` is not a constant ; the library is a `CLibrary` constant"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    t :: type_of_symbol(symbol, typed)
+    // A constant whose value failed to type has been reported already.
+    if t is UnresolvedType {
+        return
+    }
+    if !is_c_library(t) {
+        detail :: "`${argument.name}` is a `${display_type(t)}`, not a `CLibrary`"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    typed.extern_libraries[decl.id] = symbol
 }
 
 // The written result type, or the whole declaration when the type is inferred.

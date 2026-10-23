@@ -58,6 +58,10 @@ evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
         is AST.IntrinsicCallExpr -> evaluate_intrinsic_call(expr, context)
         is AST.CallExpr          -> evaluate_call_expr(expr, context)
         is AST.SeqLitExpr        -> evaluate_seq_lit(expr, context)
+        is AST.StructLitExpr     -> evaluate_aggregate(expr, context)
+        is AST.DotVariantExpr    -> evaluate_aggregate(expr, context)
+        is AST.FieldExpr         -> evaluate_aggregate(expr, context)
+        is AST.MatchExpr         -> evaluate_aggregate(expr, context)
         _                        -> vm_required(expr.span, expr_kind_name(expr))
     }
     context.depth = context.depth - 1

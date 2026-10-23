@@ -44,9 +44,9 @@ export DECORATORS: DecoratorSpec[]: [
     },
     DecoratorSpec {
         .name   = "extern",
-        .usage  = "@extern, @extern(\"symbol\"), @extern(\"module\", \"symbol\")",
+        .usage  = "@extern, @extern(\"symbol\"), @extern(LIBRARY, \"symbol\")",
         .places = [.Declaration],
-        .doc    = "Declares a bodyless fn supplied by user code across the FFI. Pair it with `@c_header` so `cc` checks the call against the real prototype.",
+        .doc    = "Declares a bodyless fn supplied by user code across the FFI. `LIBRARY` names a `CLibrary` constant (`std/ffi`), whose header, archives and platform libraries the native build adds. Pair it with `@c_header`, or a library header, so `cc` checks the call against the real prototype.",
     },
     DecoratorSpec {
         .name   = "export",

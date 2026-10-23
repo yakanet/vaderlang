@@ -1,0 +1,9 @@
+// T3050: the constant a 2-argument `@extern` names must be a `CLibrary`.
+module "snippet"
+
+NOT_A_LIBRARY :: 42
+
+@extern(NOT_A_LIBRARY, "abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

@@ -624,6 +624,17 @@ export is_core_trait :: fn(t: TraitType, name: string) -> bool =
 export is_core_struct :: fn(t: StructType, name: string) -> bool =
     t.symbol.module_name == "std/core" && t.symbol.name == name
 
+/// Whether `t` is `std/ffi`'s `CLibrary`, the struct a binding names the C library
+/// it calls with, told by its declaration rather than its spelling.
+///
+/// @param t  the candidate type.
+export is_c_library :: fn(t: Type) -> bool {
+    if t !is StructType {
+        return false
+    }
+    return t.symbol.module_name == "std/ffi" && t.symbol.name == "CLibrary"
+}
+
 /// The argument of `t` when it is the one-argument `std/core` trait `name`:
 /// `E` for `Iterator<E>`, `T` for `Async<T>`.
 ///

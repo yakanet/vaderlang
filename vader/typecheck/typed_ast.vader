@@ -625,6 +625,10 @@ export TypedProgram :: struct {
     /// Const Symbol.id → its declaration, from which the const walk finds its entry.
     const_decls: MutableMap<i32, AST.ConstDecl>
 
+    /// `@extern` node id → the `CLibrary` constant it names, as the typecheck
+    /// accepted it (`check_extern_library`) ; the comptime pass evaluates each.
+    extern_libraries: MutableMap<i64, Symbol> = MutableMap<i64, Symbol> {}
+
     /// Enum Symbol.id → its declaration, from which the lowerer builds the enum's
     /// variant data and value tables.
     enum_decls: MutableMap<i32, AST.EnumDecl>

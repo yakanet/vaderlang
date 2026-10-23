@@ -25,6 +25,21 @@ ComptimeContext :: struct {
     /// `evaluate_expr` ; shared across operand recursion so it tracks the live
     /// level.
     depth:    i64 = 0
+    /// The whole project, for an evaluation that reads constants of any module
+    /// and the aggregate forms (struct literals, enum variants, `match`); null
+    /// keeps it to the module's own `bindings` and to scalars. The passes that
+    /// bake constants for the lowerer leave it null: the lowerer inlines a baked
+    /// value at every use, and a struct table would be copied at each read.
+    project:  ProjectConstants | null = null
+}
+
+/// The module-level constants of the whole project, evaluated on demand.
+ProjectConstants :: struct {
+    typed:   TypedProject
+    /// The constants already evaluated, by symbol id.
+    values:  MutableMap<i32, ComptimeValue> = MutableMap<i32, ComptimeValue> {}
+    /// The constants being evaluated, to stop a constant that reads itself.
+    pending: MutableSet<i32> = MutableSet<i32> {}
 }
 
 /// Result of evaluating one expression. Three states :

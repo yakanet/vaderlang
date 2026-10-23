@@ -27,6 +27,7 @@ export ComptimeValue ::
     | ArrayValue
     | StructValue
     | TypeValue
+    | EnumValue
 
 /// Signed integer with the typechecker-resolved primitive name (`i32`,
 /// `i64`, `u8`, `i64`, …). The dump prints `<value>_<typeName>`.
@@ -77,6 +78,14 @@ export StructValue :: struct {
 /// dump uses `display_type` so the rendering matches every other
 /// type-position dump in the project.
 export TypeValue :: struct { value: Type }
+
+/// One variant of an enum without variant data, `.Darwin`. `value` is what the
+/// variant stores, `indices[variant]` of its type.
+export EnumValue :: struct {
+    enum_type: EnumType
+    variant:   string
+    value:     i64
+}
 
 /// Pre-built constants for the common cases. Construction sites can
 /// reuse these rather than allocating fresh `NullValue {}` each time.
@@ -145,6 +154,7 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
     is ArrayValue  -> render_array(value)
     is StructValue -> render_struct(value)
     is TypeValue   -> display_type(value.value)
+    is EnumValue   -> "${value.enum_type.symbol.name}.${value.variant}"
 }
 
 // The digits of `value`, read unsigned on an unsigned type: the upper half of a

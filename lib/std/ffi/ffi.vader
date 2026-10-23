@@ -1,0 +1,33 @@
+// std/ffi: what a binding declares about the C library it calls.
+//
+// A `CLibrary` constant names a library once; each `@extern` that comes from it
+// names the constant (`@extern(RAYLIB, "InitWindow")`). The compiler evaluates
+// the constant when it builds, so its fields may depend on the target through
+// `VADER_OS` and `VADER_ARCH`.
+
+module "std/ffi"
+
+/// A C library that `@extern` declarations come from.
+///
+/// A native build adds what it lists to the compilation and the link, and only
+/// when one of the library's functions is reached. The interpreter opens it by
+/// `name`.
+export CLibrary :: struct {
+    /// What the interpreter opens: `lib<name>.dylib`, `lib<name>.so` or
+    /// `<name>.dll`. A native build links `-l<name>` when the library ships no
+    /// archive.
+    name: string
+    /// The header declaring the library's functions, written as `@c_header`
+    /// writes it. It serves every `@extern` naming the library without a
+    /// `@c_header` of its own.
+    header: string = ""
+    /// A folder of headers, relative to the module declaring the constant: the
+    /// compilation searches it (`-I`).
+    include: string = ""
+    /// Static archives shipped with the binding, relative to the module
+    /// declaring the constant. A native build links them in place of `-l<name>`.
+    archives: string[] = []
+    /// What the platform provides: a library by name (`"GL"` links `-lGL`), or an
+    /// Apple framework by its bundle name (`"Cocoa.framework"`).
+    system: string[] = []
+}

@@ -96,6 +96,7 @@ same_kind :: fn(left: ComptimeValue, right: ComptimeValue) -> bool = match left 
     is ArrayValue  -> right is ArrayValue
     is StructValue -> right is StructValue
     is TypeValue   -> right is TypeValue
+    is EnumValue   -> right is EnumValue
 }
 
 combine_binary :: fn(

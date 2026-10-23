@@ -128,6 +128,25 @@ export EvaluatedProject :: struct {
     /// `pipeline/frontend` and `bootstrap`) which bakes each into the owning module's `comptime_decls`.
     /// Empty for projects with no VM-required comptime decls.
     vm_required: VmRequiredDecl[]
+
+    /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
+    /// declaration's node id.
+    libraries: MutableMap<i64, NativeLibrary> = MutableMap<i64, NativeLibrary> {}
+}
+
+/// A `CLibrary` (`std/ffi`) as the compiler evaluated it for the build target,
+/// its paths resolved against the folder of the module declaring it.
+export NativeLibrary :: struct {
+    /// What the interpreter opens, and the `-l` of a library with no archive.
+    name:     string
+    /// The default header of the `@extern` declarations naming it, `""` for none.
+    header:   string   = ""
+    /// The folder of headers the compilation searches, `""` for none.
+    include:  string   = ""
+    /// Absolute paths of the static archives to link.
+    archives: string[] = []
+    /// Platform libraries and Apple frameworks, as `CLibrary.system` writes them.
+    system:   string[] = []
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`.

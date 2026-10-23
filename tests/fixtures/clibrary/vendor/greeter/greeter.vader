@@ -1,0 +1,27 @@
+// A binding to a small C library, compiled by the test before the build: the
+// archive lies under `lib/<os>-<arch>/`, the header under `include/`.
+
+module "greeter"
+
+import "std/ffi"
+import "std/target"
+
+/// The greeter library, linked from the archive the test compiles.
+export GREETER: CLibrary: CLibrary {
+    .name = "greeter",
+    .header = "greeter.h",
+    .include = "include",
+    .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libgreeter.a"],
+    .system = match VADER_OS {
+        .Linux | .Darwin | .Windows -> ["m"]
+        .Wasi | .Browser            -> []
+    },
+}
+
+/// The sum of `a` and `b`, computed in C.
+@extern(GREETER, "greeter_add")
+export add :: fn(a: i32, b: i32) -> i32
+
+/// The greeting the library holds.
+@extern(GREETER, "greeter_name")
+export name :: fn() -> string

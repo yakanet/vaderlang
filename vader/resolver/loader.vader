@@ -18,6 +18,7 @@ module "vader/resolver"
 import "std/collections"
 import "std/io"
 import "std/path"
+import "std/string"
 import "vader/diagnostics"
 import "toolchain/ast"
 import "vader/parser"
@@ -542,7 +543,7 @@ project_include_paths :: fn(
             // own code under a directory of any name is its own. One probe per
             // entry, once per load.
             for p in manifest.include_paths {
-                dir :: join_path(project_root, p)
+                dir :: manifest_root(project_root, p, bundled)
                 roots.push(plain_root(dir, origin_of_root(dir)))
             }
         }
@@ -552,6 +553,42 @@ project_include_paths :: fn(
         roots.push(plain_root(LIBRARY_ROOT_DIR, origin_of_root(LIBRARY_ROOT_DIR)))
     }
     return roots
+}
+
+/// The folder a manifest's `includePaths` entry names.
+///
+/// One under `$VADER_HOME` is in the toolchain's own folder, the one holding
+/// `lib/`, whether or not the variable is set: `"$VADER_HOME/third_party"`
+/// reaches the libraries shipped beside the compiler from a project that lives
+/// anywhere. Any other entry is relative to the project.
+///
+/// @param project_root  the folder holding `vader.json`.
+/// @param entry         the entry, as written.
+/// @param bundled       the toolchain's library root (`sidecar_root`), or null
+///                      when there is none: `lib/` is then looked up in the
+///                      working directory, which is the toolchain's folder.
+export manifest_root :: fn(
+    project_root: string,
+    entry: string,
+    bundled: string | null,
+) -> string {
+    prefix :: "${'$'}${TOOLCHAIN_HOME_VAR}"
+    if entry == prefix {
+        return toolchain_folder(bundled)
+    }
+    rest :: entry.trim_prefix("${prefix}/")
+    if rest != entry {
+        return join_path(toolchain_folder(bundled), rest)
+    }
+    return join_path(project_root, entry)
+}
+
+// The folder holding the toolchain's `lib/`.
+toolchain_folder :: fn(bundled: string | null) -> string {
+    if bundled == null {
+        return "."
+    }
+    return dir_of(bundled)
 }
 
 // An unrooted include-path — no `prefix`, so it serves every module name.
@@ -707,4 +744,25 @@ test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")
     assert_eq(paths[0].origin, .Build)
+}
+
+@test
+test_manifest_root_under_vader_home_is_beside_the_bundled_library :: fn() -> void {
+    root :: manifest_root("project", "${'$'}VADER_HOME/third_party", "/opt/vader/lib")
+    assert_eq(root, "/opt/vader/third_party")
+}
+
+@test
+test_manifest_root_under_vader_home_without_a_bundle_is_the_working_directory :: fn() -> void {
+    assert_eq(manifest_root("project", "${'$'}VADER_HOME/third_party", null), "./third_party")
+}
+
+@test
+test_manifest_root_of_vader_home_alone_is_the_toolchain_folder :: fn() -> void {
+    assert_eq(manifest_root("project", "${'$'}VADER_HOME", "/opt/vader/lib"), "/opt/vader")
+}
+
+@test
+test_manifest_root_of_any_other_entry_is_relative_to_the_project :: fn() -> void {
+    assert_eq(manifest_root("project", "src", "/opt/vader/lib"), "project/src")
 }

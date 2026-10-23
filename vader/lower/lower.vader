@@ -79,6 +79,7 @@ lower_project_impl :: fn(
     populate_fn_symbols(typed, project_ctx)
     project :: new_lowered_project()
     project.entry = loaded.entry
+    project.libraries = evaluated.libraries
     // Seed runtime `is Trait` membership from the frontend's id-keyed map, which
     // holds the impls of the whole project. The emitter turns this into
     // `impl_table` rows per interned struct tag (`build_impl_table_from_vtable`).

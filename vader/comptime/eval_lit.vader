@@ -61,6 +61,12 @@ evaluate_string_lit :: fn(
             is AST.StringLitInterp -> {
                 inner :: evaluate_expr(part.expr, context)
                 value :: inner.value ?? return inner
+                if value is EnumValue {
+                    shown :: display_enum(value, part.expr, context)
+                    text :: shown.value ?? return shown
+                    sb.append(interp_value(text))
+                    continue
+                }
                 sb.append(interp_value(value))
             }
         }
@@ -86,6 +92,9 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
     is ArrayValue  -> display_value(v)
     is StructValue -> display_value(v)
     is TypeValue   -> display_value(v)
+    // `evaluate_string_lit` renders an enum through its `Display` impl before
+    // this; the arm completes the match.
+    is EnumValue   -> display_value(v)
 }
 
 // ---- tests ----------------------------------------------------------------

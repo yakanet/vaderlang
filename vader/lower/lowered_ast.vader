@@ -132,6 +132,9 @@ export LoweredProject :: struct {
     /// only by code the compiler generates. A slot holds its type's zero value
     /// until written.
     globals:        GlobalSlot[] = []
+    /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
+    /// declaration's node id (`EvaluatedProject.libraries`).
+    libraries:      MutableMap<i64, NativeLibrary> = MutableMap<i64, NativeLibrary> {}
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the

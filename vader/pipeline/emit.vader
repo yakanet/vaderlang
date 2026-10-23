@@ -15,6 +15,7 @@
 
 module "vader/pipeline"
 
+import "std/collections"
 import "std/env"
 import "std/io"
 import "std/path"
@@ -25,6 +26,7 @@ import "vader/diagnostics"
 import "vader/resolver"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions }
+Ct :: import "vader/comptime"
 
 /// Directory holding the C runtime, for native linking.
 ///
@@ -161,6 +163,94 @@ export push_math_library :: fn(argv: string[]) -> void {
     argv.push("-lm")
 }
 
+/// What a native build adds for the C libraries that a program's `@extern`
+/// declarations name (`std/ffi`'s `CLibrary`).
+export NativeFlags :: struct {
+    /// `-I <folder>` for each library's headers, at every compilation.
+    includes: string[] = []
+    /// The archives, `-l<name>` and `-framework <name>` of the link, each once,
+    /// in the order the imports name them.
+    links:    string[] = []
+    /// Archives a library lists that do not exist: no build for this target
+    /// ships them.
+    missing:  MissingArchive[] = []
+    /// The flags already added, each joined by a space.
+    @internal
+    added:    MutableSet<string> = MutableSet<string> {}
+}
+
+/// An archive a library lists and the build target lacks.
+export MissingArchive :: struct {
+    library: string
+    path:    string
+}
+
+/// The flags for the C libraries the imports of `module` name.
+///
+/// Only an import that survived to the module counts, so a library none of
+/// whose functions the program reaches adds nothing.
+///
+/// @param module  the program's bytecode.
+export native_flags :: fn(module: BytecodeModule) -> NativeFlags {
+    flags :: NativeFlags {}
+    for declaration in module.imports {
+        library :: declaration.library ?? continue
+        push_library_flags(flags, library)
+    }
+    return flags
+}
+
+// Add one library's flags to `flags`, each flag once.
+push_library_flags :: fn(flags: NativeFlags, library: Ct.NativeLibrary) -> void {
+    if library.include != "" {
+        push_once(flags, flags.includes, ["-I", library.include])
+    }
+    for archive in library.archives {
+        if push_once(flags, flags.links, [archive]) && !exists(archive) {
+            flags.missing.push(MissingArchive { .library = library.name, .path = archive })
+        }
+    }
+    if library.archives.len() == 0 {
+        push_once(flags, flags.links, ["-l${library.name}"])
+    }
+    for entry in library.system {
+        push_once(flags, flags.links, system_link(entry))
+    }
+}
+
+// The link flag of a `CLibrary.system` entry: `-framework Cocoa` for
+// `"Cocoa.framework"`, `-lGL` for `"GL"`.
+system_link :: fn(entry: string) -> string[] {
+    framework :: entry.trim_suffix(".framework")
+    if framework != entry {
+        return ["-framework", framework]
+    }
+    return ["-l${entry}"]
+}
+
+// Append the words of `flag` to `argv` unless `flags` has added them already, and
+// say whether it did: a binding names its library on every function.
+push_once :: fn(flags: NativeFlags, argv: string[], flag: string[]) -> bool {
+    if !flags.added.add(flag.join(" ")) {
+        return false
+    }
+    argv.push_all(flag)
+    return true
+}
+
+/// Report each archive a library lists and this target lacks, before `cc` meets
+/// it with an error that names no library.
+///
+/// @param native  the program's library flags.
+/// @return        whether any archive is missing.
+export report_missing_archives :: fn(native: NativeFlags) -> bool {
+    for missing in native.missing {
+        what :: "library `${missing.library}` has no archive for this target"
+        eprintln("vader build: ${what}: `${missing.path}` does not exist")
+    }
+    return native.missing.len() > 0
+}
+
 /// Split a user `--ldflags` string on spaces and append each token.
 ///
 /// Empty tokens are dropped, so a doubled or trailing space cannot reach `cc`
@@ -226,13 +316,16 @@ export cc_argv :: fn(
     ldflags: string,
     runtime_root: string,
     quote_dir: string,
+    native: NativeFlags,
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
     rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
     push_include_flags(argv, rt, quote_dir)
+    argv.push_all(native.includes)
     argv.push(c_file)
     argv.push("${rt}/vader_runtime.c")
+    argv.push_all(native.links)
     push_ldflags(argv, ldflags)
     argv.push("-o")
     argv.push(out.as_string())
@@ -283,6 +376,7 @@ export default_cc :: fn() -> string {
 /// @param ldflags       raw linker flags, appended verbatim.
 /// @param runtime_root  see `cc_argv`.
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
+/// @param native        what the C libraries of the program add.
 /// @return              0 on success, 1 when the C could not be written or `cc`
 ///                      failed. `cc`'s own stderr is forwarded as-is.
 export link_native :: fn(
@@ -293,12 +387,17 @@ export link_native :: fn(
     ldflags: string,
     runtime_root: string,
     quote_dir: string,
+    native: NativeFlags,
 ) -> i32 {
+    if report_missing_archives(native) {
+        return 1
+    }
     c_file :: "${out}.c".to_path()
     if write_out(c_file, c) != 0 {
         return 1
     }
-    res :: spawn(cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root, quote_dir))
+    argv :: cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root, quote_dir, native)
+    res :: spawn(argv)
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
         eprintln("(generated C kept at ${c_file})")

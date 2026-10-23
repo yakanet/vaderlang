@@ -67,20 +67,42 @@ evaluate_call_expr :: fn(
     for [k, bound] in context.bindings {
         bindings[k] = bound
     }
-    for i in 0..<expr.args.len() {
-        arg_result :: evaluate_expr(expr.args[i].value, context)
-        arg :: arg_result.value ?? return arg_result
-        param :: fn_decl.params[i]
-        param_sym :: context.typed.resolved.idents[param.span.hash()]
-        if param_sym is null {
-            return vm_required(expr.span, "CallExpr (param sym unresolved)")
-        }
-        bindings[param_sym.id] = arg
+    arguments: ComptimeValue[]: []
+    for arg in expr.args {
+        arg_result :: evaluate_expr(arg.value, context)
+        value :: arg_result.value ?? return arg_result
+        arguments.push(value)
     }
-    // Carry the caller's depth so the recursion guard also bounds cyclic
-    // comptime fn calls (a fresh `bindings`, but the same depth budget).
-    call_context :: ComptimeContext { .typed = context.typed, .bindings = bindings, .depth = context.depth }
-    return evaluate_fn_body(fn_decl, call_context, expr.span)
+    return evaluate_with_arguments(fn_decl, arguments, bindings, context, expr.span)
+}
+
+/// Evaluate the body of `fn_decl` with its parameters bound to `arguments`, on
+/// top of `bindings`. The parameters are resolved in `context.typed`, the module
+/// declaring `fn_decl`; the depth budget is the caller's, so the recursion guard
+/// also bounds cyclic comptime calls.
+///
+/// @param fn_decl    the function, its arity that of `arguments`.
+/// @param arguments  the values of its parameters, in order.
+/// @param bindings   the constants already bound, extended in place.
+/// @param context    the evaluator context of the declaring module.
+/// @param span       the call, for a C4001.
+evaluate_with_arguments :: fn(
+    fn_decl: AST.FnDecl,
+    arguments: ComptimeValue[],
+    bindings: MutableMap<i32, ComptimeValue>,
+    context: ComptimeContext,
+    span: Span,
+) -> EvalResult {
+    for i in 0..<arguments.len() {
+        parameter :: context.typed.resolved.idents[fn_decl.params[i].span.hash()]
+            ?? return vm_required(span, "CallExpr (param sym unresolved)")
+        bindings[parameter.id] = arguments[i]
+    }
+    call_context :: ComptimeContext {
+        ...context,
+        .bindings = bindings,
+    }
+    return evaluate_fn_body(fn_decl, call_context, span)
 }
 
 // True for the 10 integer primitive type names — the ones that appear as a

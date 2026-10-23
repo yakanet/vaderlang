@@ -1,0 +1,18 @@
+// C4001: the `CLibrary` an `@extern` names is evaluated at compile time, and a
+// value the evaluation cannot reduce is reported inside the constant.
+module "snippet"
+
+import "std/ffi"
+
+library_name :: fn() -> string {
+    name := "c"
+    name = "${name}"
+    return name
+}
+
+LIBC: CLibrary: CLibrary { .name = library_name() }
+
+@extern(LIBC, "abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

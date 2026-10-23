@@ -163,11 +163,20 @@ search_roots :: fn(ctx: BuildContext) -> string[] {
     for p in ctx.include_paths {
         roots.push(p)
     }
-    library :: toolchain_sidecar(ctx, LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-    if library != "" {
+    library :: library_root_of(ctx)
+    if library != null {
         roots.push(library)
     }
     return roots
+}
+
+// The compiler's own `lib/`, or null when the driver was not told where it is.
+library_root_of :: fn(ctx: BuildContext) -> string | null {
+    library :: toolchain_sidecar(ctx, LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
+    if library == "" {
+        return null
+    }
+    return library
 }
 
 // The compiler's own C runtime, or "" to let the link step probe for itself.
@@ -241,7 +250,9 @@ export add_build_file :: fn(ctx: BuildContext, path: string) -> void {
 ///         compiler surfaces as an error rather than compiling nothing.
 export build_files_of :: fn(ctx: BuildContext) -> string[] = ctx.build_files
 
-/// Refill `include_paths` from the project `vader.json`.
+/// Refill `include_paths` from the project `vader.json`, each entry resolved as
+/// the compiler resolves it: relative to the project, or in the toolchain's
+/// folder under `$VADER_HOME`.
 ///
 /// A convenience for projects that keep a manifest — never a prerequisite. A
 /// driver that sets `include_paths` itself has no reason to call this, and a
@@ -255,9 +266,10 @@ export load_from_vader_config :: fn(ctx: BuildContext) -> void {
         return
     }
     manifest :: read_manifest(ctx.project_root)
+    library :: library_root_of(ctx)
     fresh: string[]: []
     for p in manifest.include_paths {
-        fresh.push(p)
+        fresh.push(manifest_root(ctx.project_root, p, library))
     }
     ctx.include_paths = fresh
 }
@@ -357,6 +369,30 @@ import "std/testing"
     ctx :: new_build_context(["driver", "/nonexistent-project-root"])
     ctx.load_from_vader_config()
     assert_eq(ctx.include_paths.len(), 0)
+}
+
+@test test_load_config_resolves_entries_as_the_compiler_does :: fn() -> void {
+    // A toolchain folder is recognised by the marker under its `lib/`.
+    home :: join_path(temp_dir(), "vader_ctx_probe_home")
+    marker_dir :: join_path(home, "lib/std/io")
+    for dir in [home, join_path(home, "lib"), join_path(home, "lib/std"), marker_dir] {
+        create_dir(dir)
+    }
+    marker :: join_path(home, "lib/${LIBRARY_ROOT_MARKER}")
+    write_file_string(marker, "module \"std/io\"\n")
+    project :: join_path(temp_dir(), "vader_ctx_probe_project")
+    create_dir(project)
+    manifest :: join_path(project, "vader.json")
+    dollar :: "${'$'}"
+    entries :: "[\"src\", \"${dollar}VADER_HOME/third_party\"]"
+    write_file_string(manifest, "{\"includePaths\": ${entries}}\n")
+    ctx :: new_build_context(["driver", project, home])
+    ctx.load_from_vader_config()
+    assert_eq(ctx.include_paths.len(), 2)
+    assert_eq(ctx.include_paths[0], join_path(project, "src"))
+    assert_eq(ctx.include_paths[1], join_path(home, "third_party"))
+    remove_file(manifest)
+    remove_file(marker)
 }
 
 @test test_report_accumulates_in_order :: fn() -> void {

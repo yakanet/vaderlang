@@ -466,6 +466,7 @@ comptime_value_to_lowered :: fn(v: ComptimeValue, type_hint: Type, span: Span) -
             return LoweredStructLit { .span = span, .type = type_hint, .fields = fields }
         }
         is TypeValue -> { return LoweredUnreachable { .span = span, .type = type_hint, .reason = "comptime type-value lowering deferred" } }
+        is EnumValue -> { return LoweredIntLit { .span = span, .type = v.enum_type, .value = v.value } }
     }
 }
 
@@ -532,6 +533,7 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         is ArrayValue  -> { return true }
         is VoidValue   -> { return false }
         is TypeValue   -> { return false }
+        is EnumValue   -> { return true }
     }
 }
 

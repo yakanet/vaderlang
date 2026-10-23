@@ -326,8 +326,9 @@ check_manifest :: fn(root: string | null) -> Check {
     }
     parts: string[]: []
     missing := 0
+    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
     for p in manifest.include_paths {
-        dir :: join_path(root, p)
+        dir :: manifest_root(root, p, bundled)
         if !is_dir(dir) {
             missing += 1
             parts.push("${p} (missing)")

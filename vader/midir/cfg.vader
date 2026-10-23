@@ -80,6 +80,8 @@ export CFGExternDecl :: struct {
     c_library:   string
     /// See `BcImport.c_variadic_fixed`.
     c_variadic_fixed: i32 = -1
+    /// The `CLibrary` the declaration names, as evaluated ; null for none.
+    library: NativeLibrary | null = null
 }
 
 /// A struct declaration carrying only what the bytecode emitter needs

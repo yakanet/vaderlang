@@ -1,0 +1,1 @@
+[5:9] error[T3050] invalid `@extern` declaration: the library is a `CLibrary` constant, named : `@extern(RAYLIB, "InitWindow")`
