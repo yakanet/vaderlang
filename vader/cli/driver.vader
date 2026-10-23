@@ -463,7 +463,7 @@ rebuild_driver :: fn(
     // ships and only stands to gain the idle cores.
     // A driven build has no `--target`: it produces for this machine, which is
     // also the only platform whose toolchain it can invoke.
-    code :: build_native(Path(entry), binary, false, cc, ldflags, [compiler_source_root(root)], true, null, DRIVER_CC_JOBS)
+    code :: build_native(Path(entry), Path(binary), false, cc, ldflags, [compiler_source_root(root)], true, null, DRIVER_CC_JOBS)
     remove_entry(entry)
     if code != 0 {
         return code

@@ -30,11 +30,16 @@ import "cli"
 import "vader/pipeline"
 import "vader/target"
 
-/// `vader check [--target=<os>-<arch>] <file>` — run the front end and report.
+/// `vader check [--target=<os>-<arch>] <path>`: run the front end and report.
 ///
-/// @param args  positional args ; `args[0]` is the entry `.vader` file.
+/// A project folder has each entry of its `vader.json` checked, or the one
+/// `--entry` names.
+///
+/// @param args  positional args ; `args[0]` is the entry `.vader` file or a
+///              project folder.
 /// @return      0 when the front end is clean, 1 on any error-severity
-///              diagnostic or a missing file, 2 on a malformed `--target`.
+///              diagnostic, a missing file or a folder that names no entry, 2 on
+///              a malformed `--target` or an `--entry` given with a file.
 export cmd_check :: fn(args: string[]) -> i32 {
     parsed :: parse_action("check", args)
     if parsed is i32 {
@@ -45,7 +50,7 @@ export cmd_check :: fn(args: string[]) -> i32 {
     }
     file :: action_file(parsed)
     if file == "" {
-        eprintln("vader check: expected a file argument")
+        eprintln("vader check: expected a file or a project folder")
         return 1
     }
     target_flag :: parsed.string_flag("target", "")
@@ -62,14 +67,49 @@ export cmd_check :: fn(args: string[]) -> i32 {
         }
     }
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
+    input :: resolve_input("check", file, parsed.string_flag("entry", ""))
+    if input is i32 {
+        return input
+    }
+    match input {
+        is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target)) }
+        is ManifestProject -> {
+            return exit_code_of(check_entries(input.entries, include_path_flags, target))
+        }
+        is DrivenProject -> { return refuse_driven("check", input.dir) }
+    }
+}
+
+// Check every one of `entries`, and say whether none reported an error.
+check_entries :: fn(entries: ProjectEntry[], include_path_flags: string[], target: Target | null) -> bool {
+    clean := true
+    for entry in entries {
+        if !check_entry(entry.file, include_path_flags, target) {
+            clean = false
+        }
+    }
+    return clean
+}
+
+// Run the front end and the lowering over `file`, print what they report, and
+// say whether nothing among it is an error.
+check_entry :: fn(file: Path, include_path_flags: string[], target: Target | null) -> bool {
     // Lowering too, not just the front end. It needs no toolchain — it produces
     // IR, not C — and without it the gate answered "the Windows code resolves
-    // and type-checks", which is not what the header above promises. An `await`
+    // and type-checks", which is not what `vader check` promises. An `await`
     // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
     // passed `check` and failed the build. As for `build`, a program the front
     // end rejected is not lowered.
     le :: lower_to_entry_with(file, include_path_flags, target)
     // Diagnostics on STDERR, and stdout stays empty on success: a gate is read by
     // a script before it is read by a person.
-    return if flush_build_diags(le.pre_diags, le.lower_diags) { 0 } else { 1 }
+    return flush_build_diags(le.pre_diags, le.lower_diags)
+}
+
+// 0 for a clean check, 1 when it reported an error.
+exit_code_of :: fn(clean: bool) -> i32 {
+    if clean {
+        return 0
+    }
+    return 1
 }

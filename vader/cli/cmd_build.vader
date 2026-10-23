@@ -40,6 +40,23 @@ import "std/sort"
 parse_include_path_flag :: fn(raw: string) -> string[] =
     if raw == "" { [] } else { raw.split(",") }
 
+// What a `vader build` asks for, read once from its flags. A project build
+// hands one to each of its entries.
+BuildRequest :: struct {
+    emit:          string
+    /// `--out`, or `""` to derive the output from the entry.
+    out:           string
+    release:       bool
+    verify:        bool
+    cc:            string
+    ldflags:       string
+    include_paths: string[]
+    target:        Target | null
+    /// `--seed-targets`, empty without it.
+    seed_targets:  Target[]
+    no_split:      bool
+}
+
 cmd_build :: fn(args: string[]) -> i32 {
     parsed :: parse_action("build", args)
     if parsed is i32 {
@@ -49,66 +66,12 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 1
     }
 
-    emit         :: parsed.string_flag("emit", "executable")
-    target_flag  :: parsed.string_flag("target", "")
-    use_manifest :: parsed.bool_flag("manifest")
-    out_flag     :: parsed.string_flag("out", "")
-    release      :: parsed.bool_flag("release")
-    verify       :: parsed.bool_flag("verify")
-    cc           :: parsed.string_flag("cc", default_cc())
-    ldflags      :: parsed.string_flag("ldflags", "")
-    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
-
-    // No target validation here: `--target`'s accepted set lives on its
-    // `FlagSpec.values` in `spec.vader`, so the parser already rejected an
-    // unknown one and named the alternatives.
-    file :: action_file(parsed)
-    // Split is the DEFAULT: one TU per module, compiled concurrently. `--no-split`
-    // asks for the single monolithic TU, which is slower to compile and differs
-    // from the split output only in ways nothing depends on any more.
-    //
-    // Two input shapes can only be served by the single TU, and they SELECT it
-    // rather than being rejected: `--out=-` writes to stdout, which cannot
-    // receive one file per module, and a `.virt` input carries a bytecode module
-    // the split path has no front end to re-run. Neither is a user error — the
-    // request names the only shape that can satisfy it.
-    split :: !parsed.bool_flag("no-split")
-        && out_flag != "-"
-        && file.extension() != "virt"
-
-    no_hooks :: parsed.bool_flag("no-hooks")
-    root :: current_working_directory()
-    driver :: if no_hooks { null } else { find_build_driver(root) }
-
-    // No file: the project may drive its own build. A `build.vader` at the
-    // invocation root takes over from here — it decides what to compile, since
-    // the compiler is part of its own import closure. See `driver.vader`.
-    if file == "" && !use_manifest {
-        if driver != null {
-            return run_build_driver(root, cc, ldflags)
-        }
-        eprintln("vader build: expected a file, --manifest (vader.json), or a `${DRIVER_FILENAME}` here")
-        return 1
-    }
-
-    // A named file wins over the driver, and has to: `bootstrap/build.sh`
-    // compiles the compiler by name, and could not depend on a driver to do it.
-    // But silently skipping a project's own rules is worse than the extra line —
-    // a house rule that stops applying the moment you name a file is a rule
-    // nobody can trust. `--no-hooks` says "I know" and quiets this.
-    if driver != null && file != "" {
-        eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
-    }
-
-    if use_manifest {
-        eprintln("vader build --emit=${emit}: --manifest mode not yet implemented")
-        return 2
-    }
-
-    // Validated here rather than deeper, so a malformed target costs nothing:
-    // `--target=native` (the old spelling) would otherwise be swallowed in
-    // silence and the build would quietly produce something else.
+    // `--target` is validated here rather than deeper, so a malformed target
+    // costs nothing: `--target=native` (the old spelling) would otherwise be
+    // swallowed in silence and the build would quietly produce something else.
     // `parse_target` names the offending fragment.
+    target_flag :: parsed.string_flag("target", "")
+    emit :: parsed.string_flag("emit", "executable")
     build_target: Target | null = null
     if target_flag != "" {
         parsed_target :: parse_target(target_flag)
@@ -132,35 +95,148 @@ cmd_build :: fn(args: string[]) -> i32 {
         eprintln("vader build: `--seed-targets` carries its own target list — drop `--target=${target_flag}`")
         return 2
     }
+    no_split :: parsed.bool_flag("no-split")
+    seed_targets :: seed_target_list(seed_flag, no_split) ?? return 2
 
-    if emit == "c" {
-        if seed_flag != "" {
-            // The seed set is split by construction — one unit per module, shared
-            // across targets. `--no-split` cannot be honoured here, so say so
-            // rather than accept and ignore it, as the two checks above do for
-            // a wrong `--emit` and a redundant `--target`.
-            if parsed.bool_flag("no-split") {
-                eprintln("vader build: `--seed-targets` always emits split C — drop `--no-split`")
-                return 2
-            }
-            ts :: parse_target_list(seed_flag) ?? return 2
-            out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
-            return emit_c_for_targets(file, out, release, include_path_flags, ts, verify)
-        }
-        return build_c(file, out_flag, release, include_path_flags, split, build_target, verify)
+    request :: BuildRequest {
+        .emit = emit,
+        .out = parsed.string_flag("out", ""),
+        .release = parsed.bool_flag("release"),
+        .verify = parsed.bool_flag("verify"),
+        .cc = parsed.string_flag("cc", default_cc()),
+        .ldflags = parsed.string_flag("ldflags", ""),
+        .include_paths = parse_include_path_flag(parsed.string_flag("include-paths", "")),
+        .target = build_target,
+        .seed_targets = seed_targets,
+        .no_split = no_split,
     }
-    if emit == "executable" {
+    // No argument is the current folder: a project, described by its
+    // `build.vader` or its `vader.json`.
+    input :: resolve_input("build", action_input(parsed), parsed.string_flag("entry", ""))
+    if input is i32 {
+        return input
+    }
+    no_hooks :: parsed.bool_flag("no-hooks")
+    match input {
+        is FileInput -> {
+            // A named file bypasses the driver of the folder the build runs in,
+            // and has to: `bootstrap/build.sh` compiles the compiler by name, and
+            // could not depend on a driver to do it. But silently skipping a
+            // project's own rules is worse than the extra line — a house rule
+            // that stops applying the moment you name a file is a rule nobody
+            // can trust. `--no-hooks` says "I know" and quiets this.
+            if !no_hooks && find_build_driver(current_working_directory()) != null {
+                eprintln("vader build: `${DRIVER_FILENAME}` not applied — a named file bypasses it (use `vader build` alone, or --no-hooks to silence)")
+            }
+            return build_file(input.file, strip_input_suffix(input.file), request)
+        }
+        is ManifestProject -> { return build_entries(input, request) }
+        is DrivenProject -> {
+            if no_hooks {
+                eprintln("vader build: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${input.dir}`, "
+                    + "which leaves nothing to build; name the entry file instead")
+                return 1
+            }
+            return run_build_driver(input.dir, request.cc, request.ldflags)
+        }
+    }
+}
+
+// The targets `--seed-targets` lists, empty without it, or null after saying
+// why the list cannot be honoured: the seed set is split by construction, one
+// unit per module shared across targets, so `--no-split` is refused rather than
+// accepted and ignored.
+seed_target_list :: fn(seed_flag: string, no_split: bool) -> Target[] | null {
+    if seed_flag == "" {
+        return []
+    }
+    if no_split {
+        eprintln("vader build: `--seed-targets` always emits split C — drop `--no-split`")
+        return null
+    }
+    return parse_target_list(seed_flag)
+}
+
+// Build the entries of a `vader.json` project into `build/<profile>-<target>/`,
+// then copy its assets beside the binaries.
+build_entries :: fn(project: ManifestProject, request: BuildRequest) -> i32 {
+    if request.out != "" && sole_entry("build", project.dir, project.entries, "`--out` names one output") == null {
+        return 2
+    }
+    output_dir :: project_output_dir(project.dir, request.release, request.target)
+    binaries :: binary_folder(request.out, output_dir)
+    if !ensure_dir(binaries) {
+        return 1
+    }
+    for entry in project.entries {
+        code :: build_file(entry.file, Path(join_path(output_dir, entry.name)), request)
+        if code != 0 {
+            return code
+        }
+    }
+    // The assets a program reads beside itself, so only a binary needs them.
+    if request.emit == "executable" && !copy_assets(project.dir, project.assets, binaries) {
+        return 1
+    }
+    return 0
+}
+
+// The folder a project build writes its binaries to: that of `--out` when
+// `out_flag` names one, else `output_dir`.
+binary_folder :: fn(out_flag: string, output_dir: string) -> string {
+    if out_flag != "" {
+        return folder_of(Path(out_flag))
+    }
+    return output_dir
+}
+
+// What an artefact is written to: `--out` when `out_flag` names it, else the
+// path derived from the entry.
+output_path :: fn(out_flag: string, derived: Path) -> Path {
+    if out_flag != "" {
+        return out_flag.to_path()
+    }
+    return derived
+}
+
+// Build one entry file as `request` asks. `stem` is what its outputs are named
+// after without `--out`: the entry without its extension for a file, the
+// entry's name in the output folder for a project.
+build_file :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
+    // Split is the DEFAULT: one TU per module, compiled concurrently. `--no-split`
+    // asks for the single monolithic TU, which is slower to compile and differs
+    // from the split output only in ways nothing depends on any more.
+    //
+    // Two input shapes can only be served by the single TU, and they SELECT it
+    // rather than being rejected: `--out=-` writes to stdout, which cannot
+    // receive one file per module, and a `.virt` input carries a bytecode module
+    // the split path has no front end to re-run. Neither is a user error — the
+    // request names the only shape that can satisfy it.
+    split :: !request.no_split
+        && request.out != "-"
+        && file.extension() != "virt"
+
+    if request.emit == "c" {
+        if request.seed_targets.len() > 0 {
+            out :: output_path(request.out, stem)
+            return emit_c_for_targets(file, out, request.release, request.include_paths, request.seed_targets, request.verify)
+        }
+        return build_c(file, request.out, stem, request.release, request.include_paths, split, request.target, request.verify)
+    }
+    if request.emit == "executable" {
         // 0: the user's own build owns the machine, so it keeps the full fan-out
         // the `--split` measurements were taken with.
-        return build_native(file, out_flag, release, cc, ldflags, include_path_flags, split, build_target, 0, verify)
+        out :: output_path(request.out, stem)
+        return build_native(file, out, request.release, request.cc, request.ldflags, request.include_paths, split, request.target, 0, request.verify)
     }
 
-    if emit == "bytecode-text" {
-        return build_bytecode_text(file, out_flag, include_path_flags, build_target, verify)
+    if request.emit == "bytecode-text" {
+        out :: output_path(request.out, "${stem}.virt".to_path())
+        return build_bytecode_text(file, out, request.include_paths, request.target, request.verify)
     }
     // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
     // above covers the textual form; this one waits on a binary writer.
-    eprintln("vader build --emit=${emit}: not yet implemented")
+    eprintln("vader build --emit=${request.emit}: not yet implemented")
     return 2
 }
 
@@ -172,25 +248,20 @@ cmd_build :: fn(args: string[]) -> i32 {
 /// reading, a build produces what actually runs.
 ///
 /// @param file                entry source.
-/// @param out_flag            `-o` value, or "" to derive `<input>.virt`.
+/// @param out                 the `.virt` to write.
 /// @param include_path_flags  extra module search roots.
 /// @param target              the platform to select `@target` bodies for.
 /// @param verify              run the IR verifiers between passes.
 /// @return                    0 on success, 1 on a write failure, 2 on a
 ///                            front-end error (already reported).
 build_bytecode_text :: fn(
-    file: Path, out_flag: string, include_path_flags: string[], target: Target | null,
+    file: Path, out: Path, include_path_flags: string[], target: Target | null,
     verify: bool,
 ) -> i32 {
     b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target, verify)
     // Same gate as every other emit path: errors abort, warnings still print.
     if !ready_to_emit(b, "build", file) {
         return 2
-    }
-    out :: if out_flag != "" {
-        out_flag.to_path()
-    } else {
-        "${strip_input_suffix(file)}.virt".to_path()
     }
     if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
         return 1
@@ -265,9 +336,9 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout, for piping into another tool.
-build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: string[], split: bool, target: Target | null, verify: bool) -> i32 {
+build_c :: fn(file: Path, out_flag: string, stem: Path, release: bool, include_path_flags: string[], split: bool, target: Target | null, verify: bool) -> i32 {
     if split {
-        out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
+        out :: output_path(out_flag, stem)
         prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify) ?? return 1
         return write_split_files(out, prog)
     }
@@ -276,12 +347,7 @@ build_c :: fn(file: Path, out_flag: string, release: bool, include_path_flags: s
         print(c_src)
         return 0
     }
-    out :: if out_flag != "" {
-        out_flag.to_path()
-    } else {
-        "${strip_input_suffix(file)}.c".to_path()
-    }
-    return write_out(out, c_src)
+    return write_out(output_path(out_flag, "${stem}.c".to_path()), c_src)
 }
 
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
@@ -325,11 +391,10 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
     return ""
 }
 
-// `--emit=executable` : emit the C next to the binary, then invoke the C
+// `--emit=executable` : emit the C in `c/` beside the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
-// is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32, verify: bool = false) -> i32 {
-    out :: if out_flag != "" { out_flag.to_path() } else { strip_input_suffix(file) }
+// is kept, so the user can inspect the generated source.
+build_native :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32, verify: bool = false) -> i32 {
     if split {
         return build_native_split(file, out, release, cc, ldflags, include_path_flags, target, cc_jobs, verify)
     }
@@ -351,18 +416,20 @@ build_native :: fn(file: Path, out_flag: string, release: bool, cc: string, ldfl
 
 // `--split --emit=executable` : emit the program as a header + globals TU + one
 // function TU per Vader module, then compile them concurrently and link. The
-// `.c` set is kept on failure for inspection.
+// units and their objects go to `c/` beside the binary (`intermediate_stem`),
+// and stay there after the link, failed or not, for inspection.
 build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32, verify: bool) -> i32 {
     b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
     native :: native_flags(b.module)
     if report_missing_archives(native) {
         return 1
     }
-    prog :: split_program(b, out)
-    if write_split_files(out, prog) != 0 {
+    work :: intermediate_stem(out) ?? return 1
+    prog :: split_program(b, work)
+    if write_split_files(work, prog) != 0 {
         return 1
     }
-    c_files :: split_c_files(out, prog.unit_names)
+    c_files :: split_c_files(work, prog.unit_names)
     rt :: runtime_c_root()
 
     // Splitting is what makes the compiles parallel, and it is also what stops
@@ -397,7 +464,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
             cc_compile_argv(cc, source, obj, rt, release, flavour, quote_dir, native.includes),
         )
     }
-    rt_obj :: "${out}.split.runtime.o"
+    rt_obj :: "${work}.split.runtime.o"
     obj_files.push(rt_obj)
     rt_src :: "${rt}/vader_runtime.c"
     argvs.push(
@@ -419,13 +486,13 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
     for r in results {
         if r is ProcessError {
             eprintln("vader build: ${r.message()}")
-            eprintln("(generated C kept at ${out}.split.*.c)")
+            eprintln("(generated C kept in ${folder_of(work)})")
             return 1
         } else if r is ProcessResult {
             if r.exit != 0 {
                 eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
                 eprintln(r.stderr)
-                eprintln("(generated C kept at ${out}.split.*.c)")
+                eprintln("(generated C kept in ${folder_of(work)})")
                 return 1
             }
         }
@@ -454,7 +521,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
 emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null, verify: bool) -> CProgram | null {
-    // UNREACHABLE from the CLI: `split` (line 72) already excludes a `.virt`, and
+    // UNREACHABLE from the CLI: `split` (`build_file`) already excludes a `.virt`, and
     // both callers gate on it. Kept as the guard for a future third caller that
     // does not — the rule "a `.virt` has no front end to re-run" belongs next to
     // the code that would re-run it, not only in the flag computation.

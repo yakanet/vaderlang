@@ -595,9 +595,10 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
     );
   expect(quiet.stderr).not.toContain("not applied");
 
-  // With no file either, --no-hooks means the driver is not even looked for.
+  // With no file either, --no-hooks ignores the driver, and the folder then
+  // describes no build.
   const bare = await run(["build", "--no-hooks"], { cwd: dir, env: TOOLCHAIN_ENV });
-  expect(bare.stderr).toContain("expected a file");
+  expect(bare.stderr).toContain("leaves nothing to build");
   expect(bare.exit).toBe(1);
 }, HEAVY_BUILD);
 

@@ -2670,15 +2670,27 @@ See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 
 ### Configuration: `vader.json`
 
-`vader.json` is **optional**. The project root is the nearest folder holding one, walking up from the entry file. Its `includePaths` field lists extra module roots, each a folder path relative to the project root, or under `$VADER_HOME` (below):
+`vader.json` is **optional**. The project root is the nearest folder holding one, walking up from the entry file. Its `includePaths` field lists extra module roots, each a folder path relative to the project root, or under `$VADER_HOME` (below). `entries` names the programs `vader build <folder>` makes, each binary's name mapped to its entry file, and `assets` the files and folders copied beside them; both paths are relative to the project root. `name` and `version` describe the project and are read by nothing:
 
 ```json
 {
   "name": "myapp",
   "version": "0.1.0",
-  "includePaths": ["lib"]
+  "includePaths": ["lib"],
+  "entries": { "myapp": "src/main.vader" },
+  "assets": ["sprite.png"]
 }
 ```
+
+#### Building a project folder
+
+`vader build`, `vader run` and `vader check` take a file or a folder. A file is compiled as it is. A folder is a project, described by exactly one of its `build.vader` (*Programmable build API* below) and its `vader.json`; a folder holding both, or neither, is refused, and so is a `vader.json` that declares no entry. `vader build` with no argument builds the current folder.
+
+- `vader build <folder>` builds every entry, `--entry=<name>` only the one named. A binary goes to `<folder>/build/<profile>-<target>/<name>`: the profile is `debug`, or `release` under `--release`, and the target is the `--target` pair, the host's without one (`build/debug-darwin-arm64/myapp`). `--out` places the binary elsewhere, when one entry is built. An executable build then copies each asset into the binary's folder, under its path relative to the project.
+- `vader check <folder>` checks every entry, `--entry=<name>` only the one named.
+- `vader run <folder>` runs the folder's one entry, or the one `--entry` names when it declares several.
+
+A native build writes the C it compiles to `c/` beside the binary, each file named after the binary, so that several binaries share the folder. An asset that is absolute or climbs out of the project with `..` is refused with the rest of the `vader.json`.
 
 #### Include paths
 
@@ -2757,10 +2769,11 @@ generates is not buildable by one command only.
 
 ### Programmable build API — `build.vader`
 
-A project drives its own build by putting a `build.vader` at its root. `vader build` with **no file
-argument** finds it, compiles it, and runs it; the driver then decides what to compile, because the
-compiler is part of its own import closure. A named file (`vader build src/main.vader`) bypasses the
-driver and says so; `--no-hooks` skips it silently.
+A project drives its own build by putting a `build.vader` at its root. `vader build` given that
+folder, or run in it with **no argument**, finds it, compiles it, and runs it; the driver then decides
+what to compile, because the compiler is part of its own import closure. A named file
+(`vader build src/main.vader`) bypasses the driver of the current folder and says so; `--no-hooks`
+skips it silently, and leaves a folder described by its `build.vader` alone with nothing to build.
 
 `build.vader` declares `module "build"` and a `build` fn — a **reserved name**, the way `main` is in
 a program, with no decorator involved:
@@ -4076,14 +4089,14 @@ to the program like any other argument.
 | Command | Description |
 |---------|-------------|
 | `vader new [name]` | Scaffolds a project: the directory, `src/main.vader`, a `.gitignore` and what describes the build (`--build=manifest`, the default, writes a `vader.json`; `driver` a `build.vader`; `none` nothing). `--git` also runs `git init` |
-| `vader run <file> [args…]` | Interprets via the VM; everything after `<file>` is the program's argv. A `.virt` file runs as is |
-| `vader build [file]` | Compiles to a native binary for this machine. With no file, a `build.vader` in the current directory drives the build (§11). `--manifest` (read `vader.json`) is *(not yet implemented)* |
+| `vader run <path> [args…]` | Interprets via the VM; everything after `<path>` is the program's argv. A `.virt` file runs as is; a project folder runs its entry (`--entry=<name>` among several, §11 *Building a project folder*) |
+| `vader build [path]` | Compiles a file, or a project folder (the current one with no argument), to a native binary for this machine. A folder is built by its `build.vader` or from the `entries` of its `vader.json` (§11 *Building a project folder*) |
 | `vader build --emit=executable` | C-emit → `cc` → native binary (default) |
 | `vader build --emit=c` | Emits the generated C source only |
 | `vader build --emit=bytecode-text` | Writes the textual bytecode module (`.virt`) beside the input; `vader run` executes it |
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --target=<os>-<arch>` | Builds for another platform (§17), e.g. `--target=linux-x86_64`. WebAssembly is `--target=browser-wasm32` or `wasi-wasm32` *(not yet implemented)*; the artefact stays `--emit=executable`, since wasm is a platform, not an artefact kind |
-| `vader check <file>` | Type-checks without emitting, against any `--target` |
+| `vader check <path>` | Type-checks a file, or each entry of a project folder, without emitting, against any `--target` |
 | `vader lint <file>` | Project-wide lints kept out of the default build: an exported function unreachable from the project's roots (`W0012`) |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
 | `vader test [path]` | Runs every `@test` function under the path (default `.`) on the VM; a trap, such as a failed assertion, fails the test. Each module is compiled with its own import closure |

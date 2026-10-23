@@ -344,44 +344,102 @@ export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 import "json"
 
-/// The loader-relevant fields of a project `vader.json`, read in one pass.
+/// The fields of a project `vader.json`, read in one pass.
 export Manifest :: struct {
     /// Extra module search roots (`includePaths` key), each relative to the
     /// project root. Joined onto the project root and searched (after the
     /// manifest dir itself) by lazy resolution — GCC `-I` style. E.g.
     /// `["lib"]` makes `module "std/io"` resolve at `<root>/lib/std/io`.
-    include_paths: string[]
+    include_paths: string[] = []
+    /// The programs the project builds (`entries` key), in declaration order.
+    entries: ManifestEntry[] = []
+    /// Files and folders a build copies beside the project's binaries (`assets`
+    /// key), each relative to the project root.
+    assets: string[] = []
+    /// What the file gets wrong: unreadable JSON, a key of the wrong shape, each
+    /// worded to follow the file's path. The loader reads what it can and
+    /// ignores these; building the project refuses them.
+    problems: string[] = []
 }
 
-/// Read `vader.json` at `project_root` and extract its `includePaths` in one
-/// read + parse. Returns an empty `Manifest` when the file is missing /
-/// malformed / lacks the field.
+/// One program of a project: `"<name>": "<entry file>"` in its `entries`.
+export ManifestEntry :: struct {
+    /// What the binary is called.
+    name: string
+    /// The entry file, relative to the project root.
+    path: string
+}
+
+/// Read `vader.json` at `project_root` in one read + parse. Returns an empty
+/// `Manifest` when the file is missing, and records in `problems` what a
+/// malformed one gets wrong.
 ///
 /// One pass matters : the LSP re-loads the project on every didOpen / didChange,
 /// so re-reading + re-parsing the manifest per field would double the I/O.
+///
+/// @param project_root  the folder holding `vader.json`.
 export read_manifest :: fn(project_root: string) -> Manifest {
-    include_paths: string[]: []
+    manifest :: Manifest {}
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
     if !exists(manifest_path) {
-        return Manifest { .include_paths = include_paths }
+        return manifest
     }
-    content :: try_read(manifest_path)
-    raw :: if content == null { "" } else { content }
-    if raw == "" {
-        return Manifest { .include_paths = include_paths }
+    parsed :: parse(try_read(manifest_path) ?? "")
+    if parsed is JsonError {
+        manifest.problems.push("${parsed.message()} at byte ${parsed.pos}")
+        return manifest
     }
-    parsed :: parse(raw)
-    if parsed is JsonObject {
-        entry :: parsed.entries["includePaths"]
-        if entry is JsonArray {
-            for item in entry.items {
-                if item is JsonString {
-                    include_paths.push(item.value)
-                }
+    if parsed !is JsonObject {
+        manifest.problems.push("it is not a JSON object")
+        return manifest
+    }
+    manifest.include_paths.push_all(string_list(parsed, "includePaths", manifest.problems))
+    entries :: parsed.entries["entries"]
+    if entries is JsonObject {
+        for [name, path] in entries.entries {
+            if path is JsonString {
+                manifest.entries.push(ManifestEntry { .name = name, .path = path.value })
+            } else {
+                manifest.problems.push("entry `${name}` is not the path of its entry file")
             }
         }
+    } else if entries != null {
+        manifest.problems.push("`entries` is not an object of `\"<name>\": \"<entry file>\"`")
     }
-    return Manifest { .include_paths = include_paths }
+    for asset in string_list(parsed, "assets", manifest.problems) {
+        if leaves_project(asset) {
+            manifest.problems.push("asset `${asset}` is not inside the project; name it relative to the project folder")
+        } else {
+            manifest.assets.push(asset)
+        }
+    }
+    return manifest
+}
+
+// The strings the array `key` of `object` holds, empty when the key is absent.
+// What is not an array of strings goes to `problems`.
+string_list :: fn(object: JsonObject, key: string, problems: string[]) -> string[] {
+    found :: object.entries[key] ?? return []
+    if found !is JsonArray {
+        problems.push("`${key}` is not an array of strings")
+        return []
+    }
+    strings: string[]: []
+    for item in found.items {
+        if item is JsonString {
+            strings.push(item.value)
+        } else {
+            problems.push("`${key}` lists a value that is not a string")
+        }
+    }
+    return strings
+}
+
+// Whether `path` names something outside the project root it is relative to:
+// an absolute path, a drive, or a `..` step.
+leaves_project :: fn(path: string) -> bool {
+    posix :: to_posix(path)
+    return posix.starts_with("/") || ":" in posix || ".." in posix.split("/")
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -418,8 +476,36 @@ test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
 }
 
 @test
+test_read_manifest_reads_entries_in_order :: fn() -> void {
+    project :: join_path(temp_dir(), "vader_manifest_entries")
+    create_dir(project)
+    manifest :: join_path(project, MANIFEST_FILENAME)
+    write_file_string(manifest, "{\"entries\": {\"app\": \"src/main.vader\", \"tool\": \"tool.vader\"}}\n")
+    m :: read_manifest(project)
+    remove_file(manifest)
+    assert_eq(m.entries.len(), 2)
+    assert_eq(m.entries[0].name, "app")
+    assert_eq(m.entries[0].path, "src/main.vader")
+    assert_eq(m.entries[1].name, "tool")
+    assert_eq(m.problems.len(), 0)
+}
+
+@test
+test_read_manifest_reports_a_malformed_entry :: fn() -> void {
+    project :: join_path(temp_dir(), "vader_manifest_malformed")
+    create_dir(project)
+    manifest :: join_path(project, MANIFEST_FILENAME)
+    write_file_string(manifest, "{\"entries\": {\"app\": 42}}\n")
+    m :: read_manifest(project)
+    remove_file(manifest)
+    assert_eq(m.entries.len(), 0)
+    assert_eq(m.problems.len(), 1)
+}
+
+@test
 test_read_manifest_missing_is_empty :: fn() -> void {
     m :: read_manifest("/no/such/project/root")
     assert(m.include_paths.len() == 0, "absent manifest yields no include-paths")
+    assert(m.problems.len() == 0, "absent manifest is not a malformed one")
 }
 

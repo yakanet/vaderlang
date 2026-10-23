@@ -36,14 +36,29 @@ cmd_run :: fn(args: string[]) -> i32 {
     }
     path :: action_file(parsed)
     if path == "" {
-        eprintln("vader run: expected a file argument")
+        eprintln("vader run: expected a file or a project folder")
         return 1
     }
     // argv[0] is the program path, which the program itself skips.
     forward :: parsed.positionals
-    // `.virt` text bytecode runs directly through the VM. A `.vader`
-    // source (or any other extension) is compiled through the full
-    // pipeline to a `BytecodeModule`, then executed.
+    input :: resolve_input("run", path, parsed.string_flag("entry", ""))
+    if input is i32 {
+        return input
+    }
+    match input {
+        is FileInput -> { return run_file(input.file, forward) }
+        is ManifestProject -> {
+            entry :: sole_entry("run", input.dir, input.entries, "`vader run` runs one program") ?? return 2
+            return run_file(entry.file, forward)
+        }
+        is DrivenProject -> { return refuse_driven("run", input.dir) }
+    }
+}
+
+// Run `path`: a `.virt` text bytecode module directly through the VM, a `.vader`
+// source (or any other extension) compiled through the full pipeline to a
+// `BytecodeModule` first.
+run_file :: fn(path: Path, forward: string[]) -> i32 {
     if path.filename().ends_with(".virt") {
         return run_virt(path.as_string(), forward)
     }

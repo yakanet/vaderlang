@@ -9,21 +9,14 @@ tmp_mappoc/
 tmp_vrun/
 
 # Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`).
-# Split is the default emission, so one `vader build` writes `main.split.h`,
-# `main.split.g.c`, `main.imports.h` and one `main-<module>.c` (+ its `.o`) per
-# module beside the binary.
+# A native build writes its C, headers and objects to `c/` beside the binary.
 vader/cli/main
-vader/cli/main.c
-vader/cli/main-*.c
-vader/cli/main-*.o
-vader/cli/main.imports.h
-vader/cli/main.split.*
+vader/cli/c/
 vader/cli/main.dSYM/
 
-# An example built in place leaves its generated C beside it. No example ships C.
-examples/*/*.c
-examples/*/*.o
-examples/*/*.h
+# An example built in place leaves its binary beside it and its C in `c/`. No
+# example ships C.
+examples/*/c/
 examples/*/*.exe
 examples/raylib_sprite/raylib_sprite
 .DS_Store
@@ -84,17 +77,12 @@ bench/plb2_bedcov/plb2_bedcov
 poc/
 
 # Snippet artefacts — left behind when a dev runs `vader build` directly on
-# a `tests/snippets/<name>/_main.vader` to inspect the native output. The
-# C emitter writes `_main.c` next to the source and the linker emits a
-# `_main` binary ; a `--split` build writes one `_main-<module>.c` per module
-# plus its own header and objects. `tests/native.test.ts` uses `native.c` /
-# `native[.exe]` for its own runs and those are listed separately just below.
+# a `tests/snippets/<name>/_main.vader` to inspect the native output: the
+# `_main` binary, and its C, headers and objects in `c/`.
+# `tests/native.test.ts` uses `native.c` / `native[.exe]` for its own runs and
+# those are listed separately just below.
 tests/snippets/*/_main
-tests/snippets/*/_main.c
-tests/snippets/*/_main.imports.h
-tests/snippets/*/_main.split.*
-tests/snippets/*/_main-*.c
-tests/snippets/*/_main-*.o
+tests/snippets/*/c/
 tests/snippets/*/_main.dSYM/
 tests/snippets/*/native
 tests/snippets/*/native.c

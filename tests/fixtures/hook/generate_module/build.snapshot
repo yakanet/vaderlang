@@ -3,6 +3,6 @@ driver: 2 round(s), 2 generated file(s)
 driver: struct seen 1x, generated decls back 4
 # stderr
 vader build: wrote <project>/build/driver/driver
-vader build: wrote <project>/app (and <project>/app.c)
+vader build: wrote <project>/app (and <project>/c/app.c)
 # exit
 0

@@ -74,7 +74,7 @@ test("an option written after the file says so", async () => {
     // reporting a mysterious extra argument.
     const late = await runCli(["build", file, "--release", "--emit=c", "--out=-"], undefined, MEDIUM_BUILD);
     expect(late.exit).not.toBe(0);
-    expect(late.stderr).toContain("options must come before the file");
+    expect(late.stderr).toContain("options must come before the path");
   });
 }, MEDIUM_BUILD);
 
@@ -126,7 +126,7 @@ test("--help on an action prints that action's options", async () => {
   // it exits 0 — asking for help is a success, not a usage error.
   const viaFlag = await runCli(["build", "--help"], undefined, MEDIUM_BUILD);
   expect(viaFlag.exit).toBe(0);
-  expect(viaFlag.stdout).toContain("vader build <file>");
+  expect(viaFlag.stdout).toContain("vader build [path]");
   expect(viaFlag.stdout).toContain("-o, --out=<path>");
 
   // The alias, and the same text either way.
@@ -139,7 +139,7 @@ test("--help on an action prints that action's options", async () => {
   // the person is asking for.
   const withTypo = await runCli(["build", "--nope", "--help"], undefined, MEDIUM_BUILD);
   expect(withTypo.exit).toBe(0);
-  expect(withTypo.stdout).toContain("vader build <file>");
+  expect(withTypo.stdout).toContain("vader build [path]");
 }, MEDIUM_BUILD);
 
 test("--help past a run path belongs to the program", async () => {
@@ -164,7 +164,7 @@ test("help is generated per action, not one flat string", async () => {
   const overview = await runCli(["help"], undefined, MEDIUM_BUILD);
   expect(overview.exit).toBe(0);
   expect(overview.stdout).toContain("ACTIONS:");
-  expect(overview.stdout).toContain("build <file>");
+  expect(overview.stdout).toContain("build [path]");
 
   const perAction = await runCli(["help", "build"], undefined, MEDIUM_BUILD);
   expect(perAction.exit).toBe(0);

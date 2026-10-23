@@ -78,9 +78,21 @@ EMIT_VALUES: ValueSpec[]: [
     ValueSpec { .name = "bytecode-text", .help = "Textual bytecode module (`.virt`), the whole linked image" },
 ]
 
+// Which program of a project folder: the key of one of its `vader.json` entries.
+ENTRY_FLAG :: FlagSpec {
+    .name = "entry",
+    .help = "Project folder only: the `vader.json` entry to use, by name; `build` and `check` take every entry without it",
+    .value_name = "name",
+}
+
+// `run` takes a project's entry and nothing else: every other flag before the
+// path would be one the program never sees.
+RUN_FLAGS: FlagSpec[]: [ENTRY_FLAG]
+
 // `check` takes the platform axis and the search roots, and nothing else: it
 // produces no artefact, so every flag about HOW to emit would be noise.
 CHECK_FLAGS: FlagSpec[]: [
+    ENTRY_FLAG,
     FlagSpec {
         .name = "target",
         .alias = "t",
@@ -96,6 +108,7 @@ CHECK_FLAGS: FlagSpec[]: [
 ]
 
 BUILD_FLAGS: FlagSpec[]: [
+    ENTRY_FLAG,
     FlagSpec {
         .name = "out",
         .alias = "o",
@@ -126,11 +139,6 @@ BUILD_FLAGS: FlagSpec[]: [
         .kind = .Bool,
         .alias = "r",
         .help = "Optimise; default builds carry debug info",
-    },
-    FlagSpec {
-        .name = "manifest",
-        .kind = .Bool,
-        .help = "Read vader.json instead of a single file (not yet implemented)",
     },
     FlagSpec {
         .name = "cc",
@@ -348,15 +356,15 @@ export COMMANDS: CommandSpec[]: [
     },
     CommandSpec {
         .name = "run",
-        .summary = "Compile and run a file on the VM",
-        .usage = "<file> [program args...]",
-        .flags = [],
+        .summary = "Compile and run a file or a project on the VM",
+        .usage = "<path> [program args...]",
+        .flags = RUN_FLAGS,
         .tail = .Forward,
     },
     CommandSpec {
         .name = "build",
-        .summary = "Compile a Vader source file",
-        .usage = "<file>",
+        .summary = "Compile a file, or a project folder (the current one by default)",
+        .usage = "[path]",
         .flags = BUILD_FLAGS,
         .tail = .None,
     },
@@ -376,8 +384,8 @@ export COMMANDS: CommandSpec[]: [
     },
     CommandSpec {
         .name = "check",
-        .summary = "Type-check without emitting — works for any target",
-        .usage = "<file>",
+        .summary = "Type-check a file or a project without emitting, for any target",
+        .usage = "<path>",
         .flags = CHECK_FLAGS,
         .tail = .None,
     },
@@ -559,7 +567,7 @@ import "std/testing"
         assert(false, "`build` should be a known action")
         return
     }
-    assert_eq(positional_noun(build), "file")
+    assert_eq(positional_noun(build), "path")
     lsp :: find_command("lsp")
     if lsp == null {
         assert(false, "`lsp` should be a known action")

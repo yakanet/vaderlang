@@ -1,12 +1,12 @@
 // examples/raylib_sprite: a window, and a sprite the arrow keys move: Vader's
 // logo (`editors/common/vader.svg`), drawn at 64 pixels.
 //
-//   vader build examples/raylib_sprite/raylib_sprite.vader
-//   ./examples/raylib_sprite/raylib_sprite
+//   vader build examples/raylib_sprite
+//   ./examples/raylib_sprite/build/debug-<os>-<arch>/raylib_sprite
 //
-// The executable loads `sprite.png` from its own folder: built elsewhere with
-// `-o`, it needs the image copied beside it. raylib comes from the toolchain's
-// `third_party/` folder, which `vader.json` names. A native build only:
+// The executable loads `sprite.png` from its own folder, where the build copies
+// it (`assets` in `vader.json`). raylib comes from the toolchain's
+// `third_party/` folder, which `vader.json` names too. A native build only:
 // `vader run` cannot call raylib.
 
 module "main"

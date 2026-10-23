@@ -1,3 +1,5 @@
 {
-    "includePaths": ["$VADER_HOME/third_party"]
+    "includePaths": ["$VADER_HOME/third_party"],
+    "entries": { "raylib_sprite": "raylib_sprite.vader" },
+    "assets": ["sprite.png"]
 }

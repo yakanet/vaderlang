@@ -279,7 +279,7 @@ export search_roots :: fn(
     project_root :: find_manifest_root(entry)
     manifest :: match project_root {
         is string -> read_manifest(project_root)
-        is null   -> Manifest { .include_paths = [] }
+        is null   -> Manifest {}
     }
     entry_folder :: entry_folder_of(entry)
     plain :: project_include_paths(project_root, manifest, include_path_flags)
@@ -740,7 +740,7 @@ test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
     // A `--include-paths` flag is whatever the caller pointed at — including, in a
     // driven build, the compiler's own sources. Never the toolchain's, so R2034
     // does not fire on the compiler importing itself through that root.
-    paths :: project_include_paths(null, Manifest { .include_paths = [] }, ["some/where"])
+    paths :: project_include_paths(null, Manifest {}, ["some/where"])
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")
     assert_eq(paths[0].origin, .Build)

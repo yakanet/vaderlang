@@ -327,16 +327,16 @@ write_one :: fn(path: string, content: string) -> null | ScaffoldError {
     return null
 }
 
-/// The manifest, carrying only what something reads: the identity, and the
-/// include-path list the loader consults. An empty `includePaths` is not filler —
-/// it is where a second search root goes, and the file has to be there whatever
-/// it holds.
+/// The manifest: the identity, the include-path list the loader consults, and
+/// the one program `vader build` makes, named after the project. An empty
+/// `includePaths` is not filler: it is where a second search root goes.
 render_manifest :: fn(name: string) -> string {
     out :: StringBuilder {}
     out.append("{\n")
     out.append("    \"name\": \"${name}\",\n")
     out.append("    \"version\": \"0.1.0\",\n")
-    out.append("    \"includePaths\": []\n")
+    out.append("    \"includePaths\": [],\n")
+    out.append("    \"entries\": { \"${name}\": \"${SOURCE_DIR}/${ENTRY_FILENAME}\" }\n")
     out.append("}\n")
     return out.to_string()
 }
@@ -423,7 +423,7 @@ report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> s
         out.append("vader new: wrote ${project.dir}/\n")
     }
     if setup == .Manifest {
-        out.append("  ${MANIFEST_FILENAME}      makes this directory a module search root\n")
+        out.append("  ${MANIFEST_FILENAME}      declares the program; `vader build` writes it to build/\n")
     }
     if setup == .Driver {
         out.append("  ${DRIVER_FILENAME}     drives the build; run it with a bare `vader build`\n")
@@ -437,12 +437,16 @@ report :: fn(project: NewProject, setup: BuildSetup, git_initialised: bool) -> s
     if !project.in_place {
         out.append("  cd ${project.dir}\n")
     }
-    if setup == .Driver {
-        out.append("  vader build\n")
-    } else {
-        out.append("  vader run ${SOURCE_DIR}/${ENTRY_FILENAME}\n")
-    }
+    out.append("  ${first_command(setup)}\n")
     return out.to_string()
+}
+
+// What to type first in a new project: build it when something describes its
+// build, else run its one file.
+first_command :: fn(setup: BuildSetup) -> string = match setup {
+    .Driver   -> "vader build"
+    .Manifest -> "vader run ."
+    .None     -> "vader run ${SOURCE_DIR}/${ENTRY_FILENAME}"
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -460,6 +464,7 @@ import "std/testing"
     manifest :: render_manifest("my-app")
     assert("\"name\": \"my-app\"" in manifest, "the name reaches the manifest")
     assert("\"includePaths\": []" in manifest, "and the include-path list is there to fill")
+    assert("\"entries\": { \"my-app\": \"src/main.vader\" }" in manifest, "and its program")
 }
 
 @test test_a_flag_is_not_a_project_name :: fn() -> void {
@@ -481,7 +486,7 @@ import "std/testing"
         false,
     )
     assert("cd demo" in text, "a created project says how to enter it")
-    assert("vader run src/main.vader" in text, "and what to run once inside")
+    assert("vader run ." in text, "and what to run once inside")
 }
 
 @test test_in_place_report_skips_the_cd :: fn() -> void {
@@ -491,7 +496,7 @@ import "std/testing"
         false,
     )
     assert(!("cd " in text), "there is nowhere to cd to")
-    assert("vader run src/main.vader" in text, "the run line still applies")
+    assert("vader run ." in text, "the run line still applies")
 }
 
 @test test_report_names_only_what_was_written :: fn() -> void {

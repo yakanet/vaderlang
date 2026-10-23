@@ -89,6 +89,16 @@ parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
 action_file :: fn(parsed: ParsedArgs) -> Path =
     if parsed.positionals.len() == 0 { empty_path() } else { Path(parsed.positionals[0]) }
 
+// The action's own argument, or the folder the command runs in when it has
+// none: `vader build` alone builds the project there.
+action_input :: fn(parsed: ParsedArgs) -> Path {
+    given :: action_file(parsed)
+    if given == "" {
+        return Path(current_working_directory())
+    }
+    return given
+}
+
 // Reject a positional the action does not take — the SECOND one for an action
 // that takes an argument, the FIRST for one that takes none.
 //

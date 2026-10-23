@@ -268,12 +268,37 @@ export push_ldflags :: fn(argv: string[], ldflags: string) -> void {
 /// source, so `cc` is handed this directory as `-iquote`.
 ///
 /// @param entry  the file the build was asked for.
-export quote_include_dir :: fn(entry: Path) -> string {
-    dir :: canonicalise(entry).parent().as_string()
-    if dir == "" {
+export quote_include_dir :: fn(entry: Path) -> string = folder_of(entry)
+
+/// The folder holding `path`, `.` for a bare name.
+///
+/// @param path  a file path, with `/` or the OS's own separators.
+export folder_of :: fn(path: Path) -> string {
+    parent :: canonicalise(path).parent().as_string()
+    if parent == "" {
         return "."
     }
-    return dir
+    return parent
+}
+
+/// The folder beside a binary that holds the C it is compiled from.
+export INTERMEDIATE_DIR :: "c"
+
+/// The stem the C of the binary `out` is written under: the binary's name, in
+/// `c/` beside it, made when missing. Several binaries of one folder share `c/`,
+/// each file being named after its binary.
+///
+/// @param out  the binary to produce.
+/// @return     `<folder of out>/c/<name of out>`, or null after saying the
+///             folder could not be made.
+export intermediate_stem :: fn(out: Path) -> Path | null {
+    dir :: join_path(folder_of(out), INTERMEDIATE_DIR)
+    made :: create_dir(dir)
+    if made is IOError {
+        eprintln("vader build: cannot create `${dir}`: ${made.message()}")
+        return null
+    }
+    return Path(join_path(dir, canonicalise(out).filename()))
 }
 
 /// Push the include flags every `cc` compile of emitted code takes.
@@ -359,7 +384,7 @@ export default_cc :: fn() -> string {
     return if current_os() == .Windows { "gcc" } else { "cc" }
 }
 
-/// Write `c` beside `out` and link it into a native binary.
+/// Write `c` to `c/` beside `out` and link it into a native binary.
 ///
 /// The single link path: every caller that produces a native binary goes
 /// through here, so the flags cannot drift between them — release opts, the
@@ -367,7 +392,8 @@ export default_cc :: fn() -> string {
 /// named in the message, so the user can inspect what was actually produced.
 ///
 /// @param c             the emitted C source.
-/// @param out           binary to produce ; the C lands at `<out>.c`.
+/// @param out           binary to produce ; the C lands at `c/<name>.c` beside
+///                      it (`intermediate_stem`).
 /// @param cc            C compiler to invoke.
 /// @param release       passed to the opt flags.
 /// @param ldflags       raw linker flags, appended verbatim.
@@ -389,7 +415,8 @@ export link_native :: fn(
     if report_missing_archives(native) {
         return 1
     }
-    c_file :: "${out}.c".to_path()
+    stem :: intermediate_stem(out) ?? return 1
+    c_file :: "${stem}.c".to_path()
     if write_out(c_file, c) != 0 {
         return 1
     }

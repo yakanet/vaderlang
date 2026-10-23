@@ -16,7 +16,7 @@ import { test, expect } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { spawnCapture, MEDIUM_BUILD } from "./cli-bin.ts";
+import { EXE_SUFFIX, HOST_TARGET, spawnCapture, MEDIUM_BUILD } from "./cli-bin.ts";
 
 const REPO = resolve(".");
 
@@ -45,7 +45,7 @@ test("`vader new` writes a project that runs", async () => {
     expect(existsSync(join(project, "vader.json"))).toBe(true);
     expect(existsSync(join(project, "src/main.vader"))).toBe(true);
     expect(existsSync(join(project, ".gitignore"))).toBe(true);
-    expect(created.stdout).toContain("vader run src/main.vader");
+    expect(created.stdout).toContain("vader run .");
 
     // The manifest carries the directory's name, and the entry declares the
     // module its folder is called — the one rule about the layout that nothing
@@ -53,14 +53,22 @@ test("`vader new` writes a project that runs", async () => {
     expect(readFileSync(join(project, "vader.json"), "utf8")).toContain('"name": "my-app"');
     expect(readFileSync(join(project, "src/main.vader"), "utf8")).toContain('module "src"');
 
+    // The manifest names the program, so the folder runs and builds as it is.
     const ran = await spawnCapture(
-      ["run", "src/main.vader"],
+      ["run", "."],
       { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD },
     );
     expect(ran.exit).toBe(0);
     expect(ran.stdout).toContain("hello from my-app");
+
+    const built = await spawnCapture(
+      ["build"],
+      { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD },
+    );
+    expect(built.exit).toBe(0);
+    expect(existsSync(join(project, "build", `debug-${HOST_TARGET}`, `my-app${EXE_SUFFIX}`))).toBe(true);
   });
-}, MEDIUM_BUILD);
+}, MEDIUM_BUILD * 2);
 
 test("the two modes refuse different things", async () => {
   await withTempDir(async (workspace) => {
