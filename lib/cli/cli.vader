@@ -285,8 +285,7 @@ find_spec :: fn(specs: FlagSpec[], name: string, long: bool) -> FlagSpec | null 
 /// @param self  parser output.
 /// @param name  canonical flag name (not an alias — the parser normalises).
 export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
-    v :: self.flags[name]
-    match v {
+    match v :: self.flags[name] {
         is null   -> { return false }
         is string -> { return v == "true" }
     }
@@ -297,8 +296,7 @@ export bool_flag :: fn(self: ParsedArgs, name: string) -> bool {
 /// @param name     canonical flag name (not an alias).
 /// @param default  value returned when `name` wasn't on the command line.
 export string_flag :: fn(self: ParsedArgs, name: string, default: string) -> string {
-    v :: self.flags[name]
-    match v {
+    match v :: self.flags[name] {
         is null   -> { return default }
         is string -> { return v }
     }
