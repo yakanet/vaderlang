@@ -40,4 +40,5 @@ tasks.processResources {
     from(common) { include("*.tmLanguage.json"); into("bundle/syntaxes/") }
     from(common) { include("*language-configuration.json"); into("bundle/") }
     from(common) { include("*.svg"); into("icons/") }
+    from(common) { include("*.schema.json"); into("schemas/") }
 }

@@ -84,14 +84,7 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
             + "`${MANIFEST_FILENAME}`; name the entry file instead")
         return 1
     }
-    manifest :: read_manifest(dir)
-    if manifest.problems.len() > 0 {
-        path_of_manifest :: join_path(dir, MANIFEST_FILENAME)
-        for problem in manifest.problems {
-            eprintln("vader ${command}: `${path_of_manifest}`: ${problem}")
-        }
-        return 1
-    }
+    manifest :: checked_manifest(command, dir) ?? return 1
     entries :: select_entries(command, dir, manifest, selected) ?? return 1
     return ManifestProject {
         .dir = dir,
@@ -133,6 +126,20 @@ project_at :: fn(dir: string) -> string | null {
         return null
     }
     return dir
+}
+
+// The `vader.json` of the project `dir`, or null after saying what it gets
+// wrong: `command` refuses a manifest with problems.
+checked_manifest :: fn(command: string, dir: string) -> Manifest | null {
+    manifest :: read_manifest(dir)
+    if manifest.problems.len() == 0 {
+        return manifest
+    }
+    path :: join_path(dir, MANIFEST_FILENAME)
+    for problem in manifest.problems {
+        eprintln("vader ${command}: `${path}`: ${problem}")
+    }
+    return null
 }
 
 // The entries `manifest` declares for the project `dir`, or the one `selected`

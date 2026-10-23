@@ -461,7 +461,19 @@ import "std/testing"
     manifest :: render_manifest("my-app")
     assert("\"name\": \"my-app\"" in manifest, "the name reaches the manifest")
     assert("\"includePaths\": []" in manifest, "and the include-path list is there to fill")
-    assert("\"entries\": { \"my-app\": \"src/main.vader\" }" in manifest, "and its program")
+}
+
+@test test_the_reader_accepts_the_scaffolded_manifest :: fn() -> void {
+    project :: join_path(temp_dir(), "vader_new_manifest")
+    create_dir(project)
+    manifest :: join_path(project, MANIFEST_FILENAME)
+    write_file_string(manifest, render_manifest("my-app"))
+    m :: read_manifest(project)
+    remove_file(manifest)
+    assert_eq(m.problems.len(), 0)
+    assert_eq(m.entries.len(), 1)
+    assert_eq(m.entries[0].name, "my-app")
+    assert_eq(m.entries[0].path, "src/main.vader")
 }
 
 @test test_a_flag_is_not_a_project_name :: fn() -> void {

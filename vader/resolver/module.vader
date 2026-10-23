@@ -20,6 +20,7 @@
 
 module "vader/resolver"
 
+import "std/collections"
 import "std/env"
 import "std/io"
 import "std/path"
@@ -345,6 +346,11 @@ export DRIVER_CONTRACT_MODULE :: "toolchain/build"
 
 import "json"
 
+// Every key a `vader.json` may hold; `name` and `version` drive nothing.
+// `test_the_editor_schema_describes_exactly_the_manifest_keys` holds the schema
+// the editors validate the file against to this list, in this order.
+MANIFEST_KEYS :: ["name", "version", "includePaths", "entries", "assets"]
+
 /// The fields of a project `vader.json`, read in one pass.
 export Manifest :: struct {
     /// Extra module search roots (`includePaths` key), each relative to the
@@ -357,9 +363,9 @@ export Manifest :: struct {
     /// Files and folders a build copies beside the project's binaries (`assets`
     /// key), each relative to the project root.
     assets: string[] = []
-    /// What the file gets wrong: unreadable JSON, a key of the wrong shape, each
-    /// worded to follow the file's path. The loader reads what it can and
-    /// ignores these; building the project refuses them.
+    /// What the file gets wrong, each worded to follow the file's path. The
+    /// loader reads what it can and ignores these; a command given the project
+    /// refuses them.
     problems: string[] = []
 }
 
@@ -380,12 +386,17 @@ export ManifestEntry :: struct {
 ///
 /// @param project_root  the folder holding `vader.json`.
 export read_manifest :: fn(project_root: string) -> Manifest {
-    manifest :: Manifest {}
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
     if !exists(manifest_path) {
-        return manifest
+        return Manifest {}
     }
-    parsed :: parse(try_read(manifest_path) ?? "")
+    return parse_manifest(try_read(manifest_path) ?? "")
+}
+
+// The `Manifest` the text of a `vader.json` describes.
+parse_manifest :: fn(text: string) -> Manifest {
+    manifest :: Manifest {}
+    parsed :: parse(text)
     if parsed is JsonError {
         manifest.problems.push("${parsed.message()} at byte ${parsed.pos}")
         return manifest
@@ -394,6 +405,14 @@ export read_manifest :: fn(project_root: string) -> Manifest {
         manifest.problems.push("it is not a JSON object")
         return manifest
     }
+    for [key, _] in parsed.entries {
+        if key !in MANIFEST_KEYS {
+            known :: MANIFEST_KEYS.join("`, `")
+            manifest.problems.push("unknown key `${key}`; the keys are `${known}`")
+        }
+    }
+    check_string(parsed, "name", manifest.problems)
+    check_string(parsed, "version", manifest.problems)
     manifest.include_paths.push_all(string_list(parsed, "includePaths", manifest.problems))
     entries :: parsed.entries["entries"]
     if entries is JsonObject {
@@ -415,6 +434,14 @@ export read_manifest :: fn(project_root: string) -> Manifest {
         }
     }
     return manifest
+}
+
+// A key of `object` that holds something other than a string goes to `problems`.
+check_string :: fn(object: JsonObject, key: string, problems: string[]) -> void {
+    found :: object.entries[key] ?? return
+    if found !is JsonString {
+        problems.push("`${key}` is not a string")
+    }
 }
 
 // The strings the array `key` of `object` holds, empty when the key is absent.
@@ -478,12 +505,7 @@ test_origin_of_root_asks_the_marker_not_the_name :: fn() -> void {
 
 @test
 test_read_manifest_reads_entries_in_order :: fn() -> void {
-    project :: join_path(temp_dir(), "vader_manifest_entries")
-    create_dir(project)
-    manifest :: join_path(project, MANIFEST_FILENAME)
-    write_file_string(manifest, "{\"entries\": {\"app\": \"src/main.vader\", \"tool\": \"tool.vader\"}}\n")
-    m :: read_manifest(project)
-    remove_file(manifest)
+    m :: parse_manifest("{\"entries\": {\"app\": \"src/main.vader\", \"tool\": \"tool.vader\"}}")
     assert_eq(m.entries.len(), 2)
     assert_eq(m.entries[0].name, "app")
     assert_eq(m.entries[0].path, "src/main.vader")
@@ -493,14 +515,39 @@ test_read_manifest_reads_entries_in_order :: fn() -> void {
 
 @test
 test_read_manifest_reports_a_malformed_entry :: fn() -> void {
-    project :: join_path(temp_dir(), "vader_manifest_malformed")
-    create_dir(project)
-    manifest :: join_path(project, MANIFEST_FILENAME)
-    write_file_string(manifest, "{\"entries\": {\"app\": 42}}\n")
-    m :: read_manifest(project)
-    remove_file(manifest)
+    m :: parse_manifest("{\"entries\": {\"app\": 42}}")
     assert_eq(m.entries.len(), 0)
     assert_eq(m.problems.len(), 1)
+}
+
+@test
+test_read_manifest_reports_an_unknown_key :: fn() -> void {
+    m :: parse_manifest("{\"entries\": {\"app\": \"main.vader\"}, \"asset\": [\"a.png\"]}")
+    assert_eq(m.entries.len(), 1)
+    assert_eq(m.problems.len(), 1)
+    assert("`asset`" in m.problems[0], "the problem names the unknown key")
+}
+
+@test
+test_read_manifest_reports_a_version_that_is_not_a_string :: fn() -> void {
+    m :: parse_manifest("{\"version\": 1}")
+    assert_eq(m.problems.len(), 1)
+}
+
+@test
+test_the_editor_schema_describes_exactly_the_manifest_keys :: fn() -> void {
+    // Tests run with the repo root as cwd, as above.
+    schema :: parse(try_read("editors/common/vader.schema.json") ?? "")
+    if schema !is JsonObject {
+        assert(false, "the schema is a JSON object, read from the repo root")
+        return
+    }
+    properties :: schema.entries["properties"]
+    if properties !is JsonObject {
+        assert(false, "the schema lists its properties")
+        return
+    }
+    assert_eq(properties.entries.keys().join(", "), MANIFEST_KEYS.join(", "))
 }
 
 @test

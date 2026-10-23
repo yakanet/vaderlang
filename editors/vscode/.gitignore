@@ -3,9 +3,10 @@ out/
 *.vsix
 package-lock.json
 
-# Synced by `node sync.js` — regenerated on every build (grammar/icons from
-# editors/common/, LICENSE from the repo root).
+# Synced by `node sync.js` on every build: the grammar, icons and `vader.json`
+# schema from editors/common/, LICENSE from the repo root.
 icons/
+schemas/
 syntaxes/
 *language-configuration.json
 LICENSE

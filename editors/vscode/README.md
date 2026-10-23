@@ -9,6 +9,7 @@ VS Code extension for the [Vader](../../README.md) programming language. Provide
 - Semantic tokens via the Vader Language Server (richer highlighting for keywords, types, functions, parameters, decorators, and VaderDoc `@param` / `@return` / `@error` / `@example` tags)
 - Comment toggling (`//`, `/* */`, `///`) and `///` auto-continuation on Enter
 - Bracket matching and auto-closing pairs
+- Validation and completion of `vader.json`, against the schema shared with the JetBrains plugin ([`editors/common/vader.schema.json`](../common/vader.schema.json))
 
 ## Requirements
 

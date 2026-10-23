@@ -323,6 +323,13 @@ check_manifest :: fn(root: string | null) -> Check {
     }
     path :: join_path(root, MANIFEST_FILENAME)
     manifest :: read_manifest(root)
+    if manifest.problems.len() > 0 {
+        return check_fail(
+            "manifest",
+            "malformed: a command given this folder refuses it",
+            "${path}: ${manifest.problems.join("; ")}",
+        )
+    }
     if manifest.include_paths.len() == 0 {
         return check_ok("manifest", "found, declaring no extra search root", path)
     }

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "vader.json",
+  "description": "A Vader project: the programs built from its folder, where their modules are found, and the files copied beside the binaries.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The project's name, for its reader: the compiler does not use it.",
+      "type": "string"
+    },
+    "version": {
+      "description": "The project's version, for its reader: the compiler does not use it.",
+      "type": "string"
+    },
+    "includePaths": {
+      "description": "Extra module search roots, each a folder relative to the project, or under the toolchain's folder when it starts with $VADER_HOME.",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "entries": {
+      "description": "The programs the project builds: each binary's name mapped to its entry file, relative to the project.",
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "examples": [{ "app": "src/main.vader" }]
+    },
+    "assets": {
+      "description": "Files and folders copied beside the binaries, each relative to the project and inside it.",
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

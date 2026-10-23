@@ -5,12 +5,20 @@ const path = require('node:path');
 const HERE = __dirname;
 const COMMON = path.resolve(HERE, '../common');
 
-// Where each kind of shared file lands in the extension.
-const destination = (name) =>
-  name.endsWith('.tmLanguage.json') ? `syntaxes/${name}` :
-  name.endsWith('language-configuration.json') ? name :
-  name.endsWith('.svg') ? `icons/${name}` :
-  null;
+// The folder each kind of shared file lands in, by the end of its name.
+const FOLDERS = [
+  ['.tmLanguage.json', 'syntaxes'],
+  ['language-configuration.json', '.'],
+  ['.svg', 'icons'],
+  ['.schema.json', 'schemas'],
+];
+
+const destination = (name) => {
+  const kind = FOLDERS.find(([suffix]) => name.endsWith(suffix));
+  if (kind === undefined) return null;
+  const [, folder] = kind;
+  return path.posix.join(folder, name);
+};
 
 const files = fs.readdirSync(COMMON)
   .map((name) => [name, destination(name)])

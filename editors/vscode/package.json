@@ -76,6 +76,12 @@
         }
       }
     ],
+    "jsonValidation": [
+      {
+        "fileMatch": "vader.json",
+        "url": "./schemas/vader.schema.json"
+      }
+    ],
     "grammars": [
       {
         "language": "vader",

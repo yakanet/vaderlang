@@ -56,6 +56,9 @@ cmd_test :: fn(args: string[]) -> i32 {
     // in, as for `vader build` with no argument. Spelled `""`, the working
     // directory, so that module ids stay relative to it.
     project_root :: project_at("")
+    if project_root != null && checked_manifest("test", project_root) == null {
+        return 1
+    }
     ran :: MutableSet<string> {}
     total_pass := 0
     total_fail := 0

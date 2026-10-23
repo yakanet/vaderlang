@@ -109,6 +109,10 @@ test("a folder that does not say what to build is refused", async () => {
   expect(malformed.exit).toBe(1);
   expect(malformed.stderr).toContain("entry `app` is not the path of its entry file");
 
+  const misspelt = await vader(["build", stage(JSON.stringify({ entries: { app: "src/main.vader" }, asset: ["data"] }))]);
+  expect(misspelt.exit).toBe(1);
+  expect(misspelt.stderr).toContain("unknown key `asset`");
+
   const both = stage(TWO_ENTRIES);
   writeFileSync(join(both, "build.vader"), 'module "build"\n');
   const twice = await vader(["build", both]);

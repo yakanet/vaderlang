@@ -18,6 +18,9 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.plugins.textmate</depends>
     <depends>com.redhat.devtools.lsp4ij</depends>
+    <!-- JSON support, for the `vader.json` schema. A platform module up to
+         2024.2, a bundled plugin since: the same id names both. -->
+    <depends optional="true" config-file="vader-json.xml">com.intellij.modules.json</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <textmate.bundleProvider implementation="dev.vaderlang.intellij.VaderBundleProvider"/>

@@ -7,6 +7,7 @@ IntelliJ Platform plugin providing syntax highlighting **plus full LSP integrati
 - Syntax highlighting for `.vader` files via the bundled `org.jetbrains.plugins.textmate` plugin
 - Syntax highlighting and folding for `.virt` files — the text bytecode `vader dump --stage=bytecode` writes — plus, from the language server, hover documentation on ops, inlay hints naming each table index, and go-to-definition from an operand to what it names
 - Grammar shared with the [VS Code extension](../vscode/) through [`editors/common/`](../common/) — single source of truth, no duplication
+- Validation and completion of `vader.json`, against the schema shared with the VS Code extension ([`editors/common/vader.schema.json`](../common/vader.schema.json))
 - **LSP-driven semantic features** : goto-definition (with the Ctrl/Cmd-hover preview link), hover with VaderDoc, semantic tokens, diagnostics — delivered by the Vader Language Server (`vader lsp`) and wired through LSP4IJ
 
 ## Prerequisites

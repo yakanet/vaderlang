@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="JavaScript">
+        <JsonSchema.ProviderFactory implementation="dev.vaderlang.intellij.VaderJsonSchemaProviderFactory"/>
+    </extensions>
+</idea-plugin>

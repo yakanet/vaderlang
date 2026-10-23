@@ -2682,6 +2682,8 @@ See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 }
 ```
 
+Any other key, or a key of the wrong shape, is refused by a command given the project and by `vader test`, and reported by `vader doctor`; the language server and the debugger read what they can. The editors validate and complete the file against `editors/common/vader.schema.json`, which describes the same keys.
+
 #### Building a project folder
 
 `vader build`, `run`, `check`, `dump`, `lint` and `graph` take a file or a folder. A file is compiled as it is. A folder is a project, described by exactly one of its `build.vader` (*Programmable build API* below) and its `vader.json`; a folder holding both, or neither, is refused, and so is a `vader.json` that declares no entry. `vader build` with no argument builds the current folder.
