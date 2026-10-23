@@ -10,6 +10,7 @@ module "vader/text"
 // `std/string` for the `chars` free fn `for c in s` lowers to — the impl has to
 // be in THIS module's closure, not merely somewhere in the program.
 import "std/math"
+import "std/numbers"
 import "std/string"
 import "std/string_builder"
 
@@ -39,6 +40,48 @@ export quote_simple :: fn(s: string) -> string {
     }
     sb.append_char('"')
     return sb.to_string()
+}
+
+/// `s` as a Vader string literal: `"`, `\`, `$` (which would open an
+/// interpolation) and the control characters escaped, anything else as is.
+///
+/// @param s  the raw string to quote.
+export quote_vader :: fn(s: string) -> string {
+    sb :: StringBuilder {}
+    sb.append_char('"')
+    for c in s {
+        escape :: string_escape(c)
+        if escape == null {
+            sb.append_char(c)
+        } else {
+            sb.append(escape)
+        }
+    }
+    sb.append_char('"')
+    return sb.to_string()
+}
+
+string_escape :: fn(c: char) -> string | null {
+    code :: u32(c)
+    if code == 0x22 { return "\\\"" }
+    if code == 0x24 { return "\\\$" }
+    if code == 0x5C { return "\\\\" }
+    if code < 0x20 || code == 0x7F {
+        return escape_codepoint(code)
+    }
+    return null
+}
+
+/// The escape that writes the codepoint `code` in a Vader string or character
+/// literal: `\n`, `\t`, `\r`, `\0`, or `\u{…}` for any other.
+///
+/// @param code  a codepoint a literal cannot hold as is.
+export escape_codepoint :: fn(code: u32) -> string {
+    if code == 0x0A { return "\\n" }
+    if code == 0x09 { return "\\t" }
+    if code == 0x0D { return "\\r" }
+    if code == 0    { return "\\0" }
+    return "\\u{${to_hex(u64(code))}}"
 }
 
 /// `text` as a Markdown code span: fenced by more backticks than its longest run

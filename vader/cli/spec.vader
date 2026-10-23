@@ -330,6 +330,14 @@ NEW_FLAGS: FlagSpec[]: [
 // `doctor` probes the `cc` a build would invoke, so it takes the same override
 // `build` does — checking a compiler other than the one you would pass is a
 // check of nothing.
+EJECT_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "preserve-manifest",
+        .kind = .Bool,
+        .help = "Keep the `vader.json`, to remove by hand before building",
+    },
+]
+
 INFO_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "json",
@@ -433,6 +441,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Run the debug adapter (DAP over stdio)",
         .usage = "",
         .flags = [],
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "eject",
+        .summary = "Write the `build.vader` a `vader.json` stands for, and remove the `vader.json`",
+        .usage = "[path]",
+        .flags = EJECT_FLAGS,
         .tail = .None,
     },
     CommandSpec {

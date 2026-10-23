@@ -1,0 +1,100 @@
+// vader/cli/cmd_eject: `vader eject [--preserve-manifest] [<folder>]`, the
+// `build.vader` a `vader.json` stands for.
+//
+// A `vader.json` is built by the minimal driver compiled into `vader`
+// (`toolchain/build::build_from_manifest`). Ejecting writes that driver out as
+// the project's own `build.vader`, the same search roots, entries and assets in
+// code, for a project whose build has to go further than the file can say. The
+// `vader.json` goes, since a folder holding both is refused; with
+// `--preserve-manifest` it stays, for the user to remove.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/cli"
+
+import "cli"
+import "std/io"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "vader/resolver"
+
+/// `vader eject [--preserve-manifest] [<folder>]`: write the `build.vader` the
+/// folder's `vader.json` stands for, and remove the `vader.json`.
+///
+/// @param args  the action's zone, then the folder, the current one by default.
+/// @return      0, or 1 when the folder holds no `vader.json` to eject, already
+///              holds a `build.vader`, or a file could not be written or removed.
+cmd_eject :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("eject", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("eject", parsed) {
+        return 1
+    }
+    dir :: action_input(parsed).as_string()
+    manifest :: ejectable_manifest(dir) ?? return 1
+    driver :: join_path(dir, DRIVER_FILENAME)
+    written :: write_file_string(driver, render_driver(manifest))
+    if written is IOError {
+        eprintln("vader eject: cannot write `${driver}`: ${written.message()}")
+        return 1
+    }
+    println("vader eject: wrote ${driver}")
+    manifest_path :: join_path(dir, MANIFEST_FILENAME)
+    if parsed.bool_flag("preserve-manifest") {
+        println("vader eject: `${manifest_path}` kept; remove it before building, "
+            + "a folder holding both is refused")
+        return 0
+    }
+    removed :: remove_file(manifest_path)
+    if removed is IOError {
+        eprintln("vader eject: cannot remove `${manifest_path}`: ${removed.message()}")
+        return 1
+    }
+    println("vader eject: removed ${manifest_path}; its `name` and `version` are not carried, "
+        + "nothing reads them")
+    return 0
+}
+
+// The `vader.json` of the folder `dir`, or null after saying there is none to
+// eject: not a folder, a folder described otherwise, a file with problems, or
+// sources at the root, where the `build.vader` cannot go.
+ejectable_manifest :: fn(dir: string) -> Manifest | null {
+    if !is_dir(dir) {
+        eprintln(not_a_folder("eject", dir))
+        return null
+    }
+    described_by :: project_description("eject", dir, ", so there is nothing to eject") ?? return null
+    if described_by == DRIVER_FILENAME {
+        eprintln("vader eject: `${dir}` is already built by its `${DRIVER_FILENAME}`")
+        return null
+    }
+    manifest :: checked_manifest("eject", dir) ?? return null
+    // A folder holds one module, and the driver's is `build`: it cannot sit
+    // beside the project's own sources.
+    at_root :: sources_at_root(dir)
+    if at_root.len() > 0 {
+        eprintln("vader eject: move the sources at the root of `${dir}` (`${at_root.join("`, `")}`) "
+            + "into a folder such as `src/` first, then update the `entries` of its "
+            + "`${MANIFEST_FILENAME}`: the `${DRIVER_FILENAME}` would join their module")
+        return null
+    }
+    return manifest
+}
+
+// The `.vader` files directly inside `dir`, by name.
+sources_at_root :: fn(dir: string) -> string[] {
+    names :: read_dir(dir)
+    if names is IOError {
+        return []
+    }
+    sources: string[]: []
+    for name in names {
+        if name.ends_with(".vader") && !is_dir(join_path(dir, name)) {
+            sources.push(name)
+        }
+    }
+    return sort(sources, compare_ascending)
+}

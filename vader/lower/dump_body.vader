@@ -14,6 +14,7 @@
 module "vader/lower"
 
 import "std/string"
+import "vader/text"
 import "vader/typecheck"
 import "vader/types"
 
@@ -153,7 +154,7 @@ bare_expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string
     is LoweredBoolLit       -> "${e.value}"
     is LoweredNullLit       -> "null"
     is LoweredCharLit       -> literal_text("'${char_body(e.value)}'", e.type, "char")
-    is LoweredStringLit     -> vader_string(e.value)
+    is LoweredStringLit     -> quote_vader(e.value)
     is LoweredIdent         -> ident_text(names, e)
     is LoweredTypeConst     -> "@type(${display_type(e.value)})"
     is LoweredCall          -> call_text(names, e, indent)
@@ -171,7 +172,7 @@ bare_expr_text :: fn(names: DumpNames, e: LoweredExpr, indent: string) -> string
     is LoweredGlobalGet     -> "@global(${e.slot})"
     is LoweredCast          -> cast_text(names, e, indent)
     is LoweredTypeCheck     -> type_check_text(names, e, indent)
-    is LoweredUnreachable   -> "@unreachable(${vader_string(e.reason)})"
+    is LoweredUnreachable   -> "@unreachable(${quote_vader(e.reason)})"
     is LoweredIntrinsicCall -> "@${e.name}(${list_text(names, e.args, indent)})"
     is LoweredArrayLen      -> "@array.len(${expr_text(names, e.target, indent)})"
     is LoweredArrayPush     -> array_push_text(names, e, indent)

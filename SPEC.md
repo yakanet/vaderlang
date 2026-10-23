@@ -2694,7 +2694,7 @@ Any other key, or a key of the wrong shape, is refused by a command given the pr
 
 A native build writes the C it compiles to `c/` beside the binary and the objects `cc` makes of it to `obj/`, each file named after the binary, so that several binaries share the folders. An asset that is absolute or climbs out of the project with `..` is refused with the rest of the `vader.json`.
 
-A folder with a `build.vader` follows the same rules, over the entries and assets its driver adds (*Programmable build API* below). A `vader.json` is the declarative form of what a driver does in code: it is built and checked by the driver it stands for, which adds its entries and its assets, compiled into `vader` itself so that nothing is compiled before the project. A build stops at the first entry that fails; a check reports on every entry. `--seed-targets` takes a file, not a project folder.
+A folder with a `build.vader` follows the same rules, over the entries and assets its driver adds (*Programmable build API* below). A `vader.json` is the declarative form of what a driver does in code: it is built and checked by the driver it stands for, which declares its search roots, its entries and its assets, compiled into `vader` itself so that nothing is compiled before the project. `vader eject` writes that driver out as the project's `build.vader` and removes the `vader.json` (`--preserve-manifest` keeps it, to be removed before building). It refuses a project with `.vader` sources at its root: a folder holds one module, and the driver's is `build`, so the sources move into a folder first. A build stops at the first entry that fails; a check reports on every entry. `--seed-targets` takes a file, not a project folder.
 
 #### Include paths
 
@@ -4113,6 +4113,7 @@ to the program like any other argument.
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dap` | Runs the Debug Adapter (DAP over stdin/stdout), which drives the VM |
 | `vader dump --stage=<stage> <path>` | Dumps an IR stage (text, JSON or Markdown depending on stage) of a file or a project folder's entry |
+| `vader eject [path]` | Writes the `build.vader` a project folder's `vader.json` stands for (the current one with no argument), then removes the `vader.json`; `--preserve-manifest` keeps it. Refuses a folder with `.vader` sources at its root |
 | `vader info [path]` | Describes a project folder (the current one with no argument): its entries, search roots and assets, whether its `vader.json` or its `build.vader` declares them, without building anything. `--json` prints them in the shape of a `vader.json`, plus `kind` (`manifest` or `driver`) and `root`, for tools such as the language server |
 | `vader doctor` | Checks the toolchain (compiler, C compiler, library root, C runtime) and the project in the current directory; `--json` for CI |
 | `vader help [action]` | Usage overview, or one action's options in full |

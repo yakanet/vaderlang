@@ -14,9 +14,10 @@ import "vader/resolver"
 /// Run the driver a `vader.json` stands for, as the CLI does for a project
 /// folder described by one: the counterpart of a `build.vader`'s `build`.
 ///
-/// The file's `includePaths` are not copied into `ctx.include_paths`: the
-/// loader reads them from the project's `vader.json` itself, at the rank it
-/// gives them for every command.
+/// It declares what `vader eject` writes into a `build.vader`, search roots
+/// included, so that the two describe the project alike. The build itself does
+/// not depend on the roots it declares: the loader reads them from the
+/// `vader.json`, which it consults first.
 ///
 /// @param request   what the command asks; its `project_root` is the folder
 ///                  holding the `vader.json`.
@@ -26,6 +27,7 @@ import "vader/resolver"
 export build_from_manifest :: fn(request: DriverRequest, manifest: Manifest) -> i32 {
     ctx :: new_build_context_from(request)
     ctx.description_file = MANIFEST_FILENAME
+    ctx.include_paths.push_all(manifest.include_paths)
     for entry in manifest.entries {
         ctx.add_entry(entry.name, entry.path)
     }

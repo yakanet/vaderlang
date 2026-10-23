@@ -55,7 +55,7 @@ ProjectInfo :: struct {
 // report's job.
 project_info :: fn(dir: string) -> ProjectInfo | null {
     if !is_dir(dir) {
-        eprintln(not_a_folder(dir))
+        eprintln(not_a_folder("info", dir))
         return null
     }
     described_by :: project_description("info", dir, ", so it describes no project") ?? return null
@@ -65,15 +65,6 @@ project_info :: fn(dir: string) -> ProjectInfo | null {
         .root = dir,
         .manifest = manifest,
     }
-}
-
-// Why `vader info` refuses `path`, which names no folder.
-not_a_folder :: fn(path: string) -> string {
-    if exists(path) {
-        return "vader info: `${path}` is a file; `vader info` describes a project folder, "
-            + "one holding a `${DRIVER_FILENAME}` or a `${MANIFEST_FILENAME}`"
-    }
-    return "vader info: `${path}` does not exist"
 }
 
 // What the project `dir` declares in `described_by`, or null after saying why

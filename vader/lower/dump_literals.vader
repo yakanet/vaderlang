@@ -10,6 +10,7 @@ module "vader/lower"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
+import "vader/text"
 import "vader/typecheck"
 import "vader/types"
 
@@ -77,43 +78,7 @@ char_body :: fn(code: u32) -> string {
     if code >= 0x20 && code < 0x7F {
         return "${char(code)}"
     }
-    return escaped(code)
-}
-
-vader_string :: fn(s: string) -> string {
-    sb :: StringBuilder {}
-    sb.append_char('"')
-    for c in s {
-        escape :: string_escape(c)
-        if escape == null {
-            sb.append_char(c)
-        } else {
-            sb.append(escape)
-        }
-    }
-    sb.append_char('"')
-    return sb.to_string()
-}
-
-// A `$` would open an interpolation, so it is escaped like `"`, `\` and the
-// control characters.
-string_escape :: fn(c: char) -> string | null {
-    code :: u32(c)
-    if code == 0x22 { return "\\\"" }
-    if code == 0x24 { return "\\\$" }
-    if code == 0x5C { return "\\\\" }
-    if code < 0x20 || code == 0x7F {
-        return escaped(code)
-    }
-    return null
-}
-
-escaped :: fn(code: u32) -> string {
-    if code == 0x0A { return "\\n" }
-    if code == 0x09 { return "\\t" }
-    if code == 0x0D { return "\\r" }
-    if code == 0    { return "\\0" }
-    return "\\u{${to_hex(u64(code))}}"
+    return escape_codepoint(code)
 }
 
 /// Print `value` as a decimal string ; for a value held in an unsigned integer,

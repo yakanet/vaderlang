@@ -675,27 +675,58 @@ test.concurrent("--no-hooks silences that, and skips the driver entirely", async
 // and is `test.concurrent`, or it becomes a barrier that serialises the run; and
 // this is the corpus that would notice the scaffolded template drifting from the
 // `toolchain/build` contract, since it is the only place that compiles drivers.
-test.concurrent("driven build: a project scaffolded by `vader new`", async () => {
+test.concurrent("driven build: a project scaffolded by `vader new`, then ejected", async () => {
+  // `vader new --build=driver` and `vader eject` write their driver through one
+  // renderer, so one driver build covers both. The scaffolded `vader.json` gains
+  // a search root and an asset first: the ejected driver has to declare them as
+  // the file did, and the program has to build and run with them.
   await gated(async () => {
     const dir = mkdtempSync(`${tmpdir()}/vader-scaffolded-`);
     staged.push(dir);
-    const created = await spawnCapture(["new", "--build=driver", "scaffolded"], { cwd: dir });
+    const created = await spawnCapture(["new", "--build=manifest", "scaffolded"], { cwd: dir });
     expect(created.exit).toBe(0);
 
     const project = join(dir, "scaffolded");
-    const built = await spawnCapture(
-      ["build"],
-      { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD },
-    );
-    expect(built.exit).toBe(0);
+    const manifestPath = join(project, "vader.json");
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+    writeFileSync(manifestPath, JSON.stringify({ ...manifest, includePaths: ["vendor"], assets: ["data"] }));
+    mkdirSync(join(project, "vendor/greet"), { recursive: true });
+    writeFileSync(join(project, "vendor/greet/greet.vader"),
+      'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
+    mkdirSync(join(project, "data"));
+    writeFileSync(join(project, "data/note.txt"), "note\n");
+    const main = join(project, "src/main.vader");
+    writeFileSync(main, readFileSync(main, "utf8")
+      .replace('import "std/io"', 'import "greet"\nimport "std/io"')
+      .replace('println("hello from scaffolded")', 'println("hello from scaffolded, ${greeting()}")'));
 
-    // The binary is named after the PROJECT: the template's entry carries its
+    const opts = { cwd: project, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD };
+    const declared = await spawnCapture(["info", "--json", "."], opts);
+    expect(declared.exit).toBe(0);
+    const ejected = await spawnCapture(["eject", "."], opts);
+    expect(ejected.exit).toBe(0);
+    expect(existsSync(manifestPath)).toBe(false);
+
+    // The ejected driver, run to describe itself, says what the file said.
+    const described = await spawnCapture(["info", "--json", "."], opts);
+    expect(described.exit).toBe(0);
+    const shape = (json: string) => {
+      const { includePaths, entries, assets } = JSON.parse(json);
+      return { includePaths, entries, assets };
+    };
+    expect(shape(described.stdout)).toEqual(shape(declared.stdout));
+
+    const built = await spawnCapture(["build"], opts);
+    expect(built.stderr).not.toContain("error[");
+    expect(built.exit).toBe(0);
+    // The binary is named after the PROJECT: the scaffold's entry carries its
     // name.
     const ran = await spawnCapture([], {
       bin: exePath(join(project, BINARIES, "scaffolded")),
       timeoutMs: HEAVY_BUILD,
     });
     expect(ran.exit).toBe(0);
-    expect(ran.stdout).toContain("hello from scaffolded");
+    expect(ran.stdout).toContain("hello from scaffolded, hi");
+    expect(existsSync(join(project, BINARIES, "data/note.txt"))).toBe(true);
   });
 }, HEAVY_BUILD);

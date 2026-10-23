@@ -44,6 +44,7 @@ Parse :: import "vader/parser"
 import "vader/resolver"
 import "toolchain/span"
 import "vader/pipeline"
+import "vader/text"
 Build :: import "toolchain/build"
 
 // ---- discovery ------------------------------------------------------------
@@ -266,6 +267,71 @@ export render_driver_entry :: fn() -> string {
 /// @param root  the project root, where the driver lives.
 export driver_entry_path :: fn(root: string) -> string =
     join_path(root, DRIVER_ENTRY_FILENAME)
+
+/// The `build.vader` of a project that declares `manifest`: the driver a
+/// `vader.json` stands for, written out. `vader eject` writes it for a
+/// project's `vader.json`, `vader new --build=driver` for its single entry.
+///
+/// `emit_native` rather than a hand-rolled drain, because `emit_native` IS that
+/// drain (`toolchain/build::drain`) and a file that reimplements it would teach
+/// the long way round. Declares `DRIVER_MODULE` because a single file at a
+/// project root is not importable by module name; the compiler writes an entry
+/// shim beside it that shares the module. See `vader/cli/driver.vader`.
+///
+/// @param manifest  the search roots, entries and assets to declare.
+render_driver :: fn(manifest: Manifest) -> string {
+    out :: StringBuilder {}
+    out.append("// ${DRIVER_FILENAME}: this project drives its own build.\n")
+    out.append("//\n")
+    out.append("// `vader build`, `check` and `run` given this folder compile this file and run\n")
+    out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
+    out.append("// shortcut that drains it: walk the messages yourself to lint or generate,\n")
+    out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
+    out.append("//\n")
+    out.append("// The project folder is a module search root. Add another source directory\n")
+    out.append("// through `ctx.include_paths` when you need one.\n")
+    out.append("\n")
+    out.append("module \"${DRIVER_MODULE}\"\n")
+    out.append("\n")
+    out.append("import \"${DRIVER_CONTRACT_MODULE}\"\n")
+    out.append("\n")
+    out.append("build :: fn(args: string[]) -> i32 {\n")
+    out.append("    ctx :: new_build_context(args)\n")
+    for root in manifest.include_paths {
+        out.append("    ctx.include_paths.push(${string_literal(root)})\n")
+    }
+    for entry in manifest.entries {
+        out.append("    ctx.add_entry(${string_literal(entry.name)}, ${string_literal(entry.path)})\n")
+    }
+    for asset in manifest.assets {
+        out.append("    ctx.add_asset(${string_literal(asset)})\n")
+    }
+    out.append("    code :: ctx.emit_native()\n")
+    out.append("    _ :: ctx.flush_reports()\n")
+    out.append("    return code\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
+// `text` as a Vader string literal: raw when it holds a `$` or a `\` that a
+// raw literal can carry as is (`$VADER_HOME`), escaped otherwise.
+string_literal :: fn(text: string) -> string {
+    if (r"$" in text || "\\" in text) && holds_raw(text) {
+        return "r\"${text}\""
+    }
+    return quote_vader(text)
+}
+
+// Whether a raw literal holds `text` as is: no `"`, which would end it, and no
+// control character, which it cannot escape.
+holds_raw :: fn(text: string) -> bool {
+    for c in text {
+        if c == '"' || u32(c) < 0x20 {
+            return false
+        }
+    }
+    return true
+}
 
 // ---- validation -----------------------------------------------------------
 
@@ -601,4 +667,23 @@ import "std/testing"
     path :: join_path(temp_dir(), "vader_driver_probe_broken.vader")
     write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { (((\n")
     assert(validate_driver(path) == null, "parse errors are left to the real build")
+}
+
+@test
+test_ejected_driver_declares_what_the_manifest_does :: fn() -> void {
+    src :: render_driver(Manifest {
+        .include_paths = [r"$VADER_HOME/third_party", "vendor"],
+        .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
+        .assets = ["data"],
+    })
+    assert(r"""ctx.include_paths.push(r"$VADER_HOME/third_party")""" in src, "a toolchain root is raw")
+    assert("ctx.include_paths.push(\"vendor\")" in src, "a plain root is plain")
+    assert("ctx.add_entry(\"app\", \"src/main.vader\")" in src, "the entry is added")
+    assert("ctx.add_asset(\"data\")" in src, "and the asset")
+    assert("module \"build\"" in src, "the driver declares `module \"build\"`")
+}
+
+@test
+test_string_literal_escapes_what_a_raw_literal_cannot_hold :: fn() -> void {
+    assert_eq(string_literal("a\"\$b"), "\"a\\\"\\\$b\"")
 }

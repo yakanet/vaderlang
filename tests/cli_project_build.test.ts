@@ -6,7 +6,7 @@
 // (`hook_driver.test.ts`); this one stages a manifest project in a temp folder.
 
 import { afterEach, expect, test } from "bun:test";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EXE_SUFFIX, HOST_TARGET, MEDIUM_BUILD, spawnCapture, TOOLCHAIN_ENV } from "./cli-bin.ts";
@@ -110,11 +110,51 @@ test("info describes a project folder and builds nothing", async () => {
 
   const file = await vader(["info", join(dir, "tool.vader")]);
   expect(file.exit).toBe(1);
-  expect(file.stderr).toContain("is a file; `vader info` describes a project folder");
+  expect(file.stderr).toContain("is a file; name a project folder");
 
   const missing = await vader(["info", join(dir, "nope")]);
   expect(missing.exit).toBe(1);
   expect(missing.stderr).toContain("does not exist");
+}, MEDIUM_BUILD);
+
+test("eject writes the build.vader a vader.json stands for", async () => {
+  const dir = stage(JSON.stringify({
+    includePaths: ["$VADER_HOME/third_party"],
+    entries: { app: "src/main.vader" },
+    assets: ["data"],
+  }));
+  rmSync(join(dir, "tool.vader"));
+  const kept = await vader(["eject", "--preserve-manifest", dir]);
+  expect(kept.exit).toBe(0);
+  const driver = readFileSync(join(dir, "build.vader"), "utf8");
+  expect(driver).toContain('ctx.include_paths.push(r"$VADER_HOME/third_party")');
+  expect(driver).toContain('ctx.add_entry("app", "src/main.vader")');
+  expect(driver).toContain('ctx.add_asset("data")');
+  expect(existsSync(join(dir, "vader.json"))).toBe(true);
+
+  // The kept vader.json is the user's to remove: until then the folder holds both.
+  const both = await vader(["eject", dir]);
+  expect(both.exit).toBe(1);
+  expect(both.stderr).toContain("holds both a `build.vader` and a `vader.json`");
+
+  rmSync(join(dir, "build.vader"));
+  const ejected = await vader(["eject", dir]);
+  expect(ejected.exit).toBe(0);
+  expect(existsSync(join(dir, "vader.json"))).toBe(false);
+
+  const again = await vader(["eject", dir]);
+  expect(again.exit).toBe(1);
+  expect(again.stderr).toContain("is already built by its `build.vader`");
+}, MEDIUM_BUILD);
+
+test("eject asks to move the sources out of the project root first", async () => {
+  const dir = stage(TWO_ENTRIES);
+  const r = await vader(["eject", dir]);
+  expect(r.exit).toBe(1);
+  expect(r.stderr).toContain("move the sources at the root");
+  expect(r.stderr).toContain("(`tool.vader`)");
+  expect(existsSync(join(dir, "build.vader"))).toBe(false);
+  expect(existsSync(join(dir, "vader.json"))).toBe(true);
 }, MEDIUM_BUILD);
 
 test("no argument builds the current folder", async () => {

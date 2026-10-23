@@ -301,7 +301,7 @@ scaffold :: fn(project: NewProject, setup: BuildSetup) -> null | ScaffoldError {
     if setup == .Driver {
         driver :: write_one(
             join_path(project.dir, DRIVER_FILENAME),
-            render_driver(project.name),
+            render_driver(scaffolded_manifest(project.name)),
         )
         if driver is ScaffoldError {
             return driver
@@ -356,38 +356,10 @@ render_entry :: fn(name: string) -> string {
     return out.to_string()
 }
 
-/// A driver that does the ordinary thing, in the shape SPEC §11 teaches:
-/// `emit_native` rather than a hand-rolled drain, because `emit_native` IS that
-/// drain (`toolchain/build::drain`) and a scaffold that reimplements it would
-/// teach the long way round.
-///
-/// Declares `DRIVER_MODULE` because a single file at a project root is not
-/// importable by module name; the compiler writes an entry shim beside it that
-/// shares the module. See `vader/cli/driver.vader`.
-render_driver :: fn(name: string) -> string {
-    out :: StringBuilder {}
-    out.append("// ${DRIVER_FILENAME} — this project drives its own build.\n")
-    out.append("//\n")
-    out.append("// `vader build`, `check` and `run` given this folder compile this file and run\n")
-    out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
-    out.append("// shortcut that drains it — walk the messages yourself to lint or generate,\n")
-    out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
-    out.append("//\n")
-    out.append("// The project folder is a module search root. Add another source directory\n")
-    out.append("// through `ctx.include_paths` when you need one.\n")
-    out.append("\n")
-    out.append("module \"${DRIVER_MODULE}\"\n")
-    out.append("\n")
-    out.append("import \"${DRIVER_CONTRACT_MODULE}\"\n")
-    out.append("\n")
-    out.append("build :: fn(args: string[]) -> i32 {\n")
-    out.append("    ctx :: new_build_context(args)\n")
-    out.append("    ctx.add_entry(\"${name}\", \"${SOURCE_DIR}/${ENTRY_FILENAME}\")\n")
-    out.append("    code :: ctx.emit_native()\n")
-    out.append("    _ :: ctx.flush_reports()\n")
-    out.append("    return code\n")
-    out.append("}\n")
-    return out.to_string()
+// What a scaffolded project declares: one entry, named after the project. The
+// manifest says it in JSON, the driver in code (`render_driver`).
+scaffolded_manifest :: fn(name: string) -> Manifest = Manifest {
+    .entries = [ManifestEntry { .name = name, .path = "${SOURCE_DIR}/${ENTRY_FILENAME}" }],
 }
 
 /// One line: `build/` holds every artefact — the binary, the generated C, a
@@ -526,7 +498,7 @@ import "std/testing"
 @test test_driver_template_declares_the_build_module :: fn() -> void {
     // A root-level file is not importable by module name; the compiler writes an
     // entry shim beside it that shares this module.
-    src :: render_driver("demo")
+    src :: render_driver(scaffolded_manifest("demo"))
     assert("module \"build\"" in src, "the driver declares `module \"build\"`")
     assert("build :: fn(args: string[]) -> i32" in src, "with the reserved shape")
     assert("add_entry(\"demo\", \"src/main.vader\")" in src, "and adds the entry, named after the project")

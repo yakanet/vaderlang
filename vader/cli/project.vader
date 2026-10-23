@@ -75,6 +75,15 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
     }
 }
 
+// Why `command`, which takes a project folder, refuses `path`, which names none.
+not_a_folder :: fn(command: string, path: string) -> string {
+    if exists(path) {
+        return "vader ${command}: `${path}` is a file; name a project folder, one holding a "
+            + "`${DRIVER_FILENAME}` or a `${MANIFEST_FILENAME}`"
+    }
+    return "vader ${command}: `${path}` does not exist"
+}
+
 // The file that describes the project folder `dir`, its `build.vader` or its
 // `vader.json`, or null after saying it holds both or neither; `otherwise`
 // ends the second message.
