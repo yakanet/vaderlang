@@ -114,7 +114,7 @@ write_split_files :: fn(out: string, prog: CProgram) -> i32 {
 // returns null when an error-severity diagnostic blocks the build, so the
 // caller emits nothing and exits non-zero.
 emit_c_program :: fn(file: string, header_name: string) -> CProgram | null {
-    le :: lower_to_entry(file, null)
+    le :: lower_to_entry(file)
     // BEFORE the back end — see `cfg_bytecode_from`.
     if !flush_build_diags(le.pre_diags, le.lower_diags) { return null }
     b :: cfg_bytecode_from(le, file)
@@ -173,7 +173,7 @@ LoweredEntry :: struct {
 // harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
 // its per-module side-table maps leave scope before the CFG → bytecode tail.
 lower_to_entry :: fn(file: string) -> LoweredEntry {
-    pipeline :: prepare_evaluated_project(file, null)
+    pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[]: []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
