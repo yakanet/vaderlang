@@ -750,6 +750,37 @@ is_dir :: fn(path: string) -> bool {
     return (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0
 }
 
+/// When `path` was last modified, in nanoseconds since the Unix epoch : what a
+/// cache compares to learn that a file changed without reading it.
+///
+/// @param path  filesystem path to probe.
+/// @return      the time, or null when `path` does not exist or cannot be
+///              probed.
+@target
+export modification_time :: fn(path: string) -> i64 | null
+
+@target(.Linux, .Darwin)
+modification_time :: fn(path: string) -> i64 | null {
+    nanoseconds :: sys_path_mtime(path)
+    if nanoseconds == -1 {
+        return null
+    }
+    return nanoseconds
+}
+
+@target(.Windows)
+modification_time :: fn(path: string) -> i64 | null {
+    data: u32[]: [0] * 9
+    if !get_file_attributes_ex(to_wide(path), GET_FILE_EX_INFO_STANDARD, data) {
+        return null
+    }
+    ticks :: i64(data[5]) | (i64(data[6]) << 32)
+    return (ticks - FILETIME_UNIX_EPOCH_TICKS) * 100
+}
+
+// The 100 ns ticks a `FILETIME` counts from 1601-01-01 to the Unix epoch.
+FILETIME_UNIX_EPOCH_TICKS: i64: 116_444_736_000_000_000
+
 /// List the immediate entries of `path` in OS-provided order. Excludes
 /// `.` and `..`. Names are relative — join against `path` (e.g. via
 /// `std/path`) for full paths.
@@ -1042,6 +1073,17 @@ import "std/testing"
     assert(!is_dir(file), "a regular file is not")
     assert(exists(file), "and the probe is really there")
     assert(!is_dir("${temp_dir()}/vader_is_dir_absent"), "a missing path is not")
+}
+
+@test test_modification_time_of_a_file_and_of_a_missing_path :: fn() -> void {
+    file :: "${temp_dir()}/vader_mtime_probe"
+    wrote :: write_file_string(file, "x")
+    assert(wrote !is IOError, "the probe was written")
+    defer remove_file(file)
+
+    written :: modification_time(file) ?? 0
+    assert(written > 0, "a file just written has a time after the epoch")
+    assert(modification_time("${temp_dir()}/vader_mtime_absent") == null, "a missing path has none")
 }
 
 @test test_a_failed_read_carries_why :: fn() -> void {

@@ -105,8 +105,8 @@ export ServerState :: struct {
     /// The folder the client opened, from `initialize` ; the working directory
     /// when it names none.
     workspace_root:             string
-    /// path → the symbols of a workspace file and the text they were read from
-    /// (`workspace_symbols`).
+    /// path → the symbols of a workspace file read from the disk, and its
+    /// modification time then (`workspace_symbols`).
     symbols:                    MutableMap<string, FileSymbols>
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on

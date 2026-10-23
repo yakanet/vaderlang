@@ -1,13 +1,15 @@
 // vader/lsp/analysis/workspace_symbols: every declaration of the workspace, for
 // `workspace/symbol`.
 //
-// The files of the modules under the workspace's roots are indexed once and kept
-// while their text is unchanged : the editor's "go to symbol" box searches on
-// every keystroke.
+// The files of the modules under the workspace's roots are indexed once, and
+// read again only when they change : the editor's "go to symbol" box searches on
+// every keystroke, and a file on the disk is told unchanged by its modification
+// time alone.
 
 module "vader/lsp/analysis"
 
 import "std/collections"
+import "std/io"
 import "std/sort"
 import "std/string"
 import "vader/lsp/protocol"
@@ -28,9 +30,9 @@ export WorkspaceSymbol :: struct {
     range:  SpanRange
 }
 
-/// The symbols of one file, and the text they were read from.
+/// The symbols of a file read from the disk, and its modification time then.
 export FileSymbols :: struct {
-    source:  string
+    mtime:   i64
     symbols: WorkspaceSymbol[]
 }
 
@@ -57,9 +59,10 @@ export find_workspace_symbols :: fn(
     }
     wanted :: query.to_lower()
     scored: ScoredSymbol[]: []
+    kept :: MutableMap<string, FileSymbols> {}
     walk_module_folders(workspace_roots(state), (module: string, files: string[]) -> {
         for path in files {
-            for s in file_symbols(state, path, module) {
+            for s in file_symbols(state, kept, path, module) {
                 score :: match_score(s.name, s.folded, query, wanted)
                 if score >= 0 {
                     scored.push(ScoredSymbol { .symbol = s, .score = score })
@@ -67,6 +70,8 @@ export find_workspace_symbols :: fn(
             }
         }
     })
+    // A file the walk did not meet is gone, or out of the roots.
+    state.symbols = kept
     ranked :: sort(scored, ranks_before)
     out: WorkspaceSymbol[]: []
     for r in ranked {
@@ -194,31 +199,52 @@ common_prefix :: fn(word: string, query: string, at: i64) -> i64 {
     return n
 }
 
-// The symbols of the file at `path`, of the folder `module` maps to, read again
-// only when its text changed : none when the file declares another module, such
-// as a test fixture's `module "main"`.
-file_symbols :: fn(state: ServerState, path: string, module: string) -> WorkspaceSymbol[] {
-    source :: state.source_for_path(path)
-    kept :: state.symbols[path]
-    if kept != null && kept.source == source {
-        return kept.symbols
+// The symbols of the file at `path`, of the folder `module` maps to : the open
+// document's, from the index the server keeps for it, else the disk's, read again
+// only when the file's modification time changed, and kept in `kept`. None when
+// the file declares another module, such as a test fixture's `module "main"`.
+file_symbols :: fn(
+    state: ServerState, kept: MutableMap<string, FileSymbols>, path: string, module: string,
+) -> WorkspaceSymbol[] {
+    open :: state.index_for(path_to_uri(path))
+    if open != null {
+        return symbols_of(open, path, module)
     }
-    symbols :: index_symbols(state, path, source, module)
-    state.symbols[path] = FileSymbols { .source = source, .symbols = symbols }
+    mtime :: modification_time(path) ?? return []
+    known :: state.symbols[path]
+    if known != null && known.mtime == mtime {
+        kept[path] = known
+        return known.symbols
+    }
+    source :: read_file_string(path)
+    if source is IOError {
+        return []
+    }
+    symbols :: disk_symbols(state, path, source, module)
+    kept[path] = FileSymbols { .mtime = mtime, .symbols = symbols }
     return symbols
 }
 
-// The declarations of `source`, the text of the file at `path`, when it declares
-// `module`.
-index_symbols :: fn(
+// The declarations of `source`, the text of the file at `path` on the disk, when
+// it declares `module` : the header is read first, so a file of another module is
+// never indexed.
+disk_symbols :: fn(
     state: ServerState, path: string, source: string, module: string,
 ) -> WorkspaceSymbol[] {
-    out: WorkspaceSymbol[]: []
-    header :: parse_module_header(source, path) ?? return out
+    header :: parse_module_header(source, path) ?? return []
     if header.name != module {
+        return []
+    }
+    return symbols_of(build_index(path_to_uri(path), source, state.position_encoding), path, module)
+}
+
+// The top-level declarations and type members `idx` indexes, when its file
+// declares `module`.
+symbols_of :: fn(idx: DocIndex, path: string, module: string) -> WorkspaceSymbol[] {
+    out: WorkspaceSymbol[]: []
+    if idx.module != module {
         return out
     }
-    idx :: build_index(path_to_uri(path), source, state.position_encoding)
     for d in idx.decls {
         if d.scope_span != null {
             continue

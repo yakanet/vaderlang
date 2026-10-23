@@ -3612,6 +3612,20 @@ int32_t vader_path_kind(const char* path) {
     if (S_ISDIR(st.st_mode))  return 2;
     return 3;
 }
+
+/* When `path` was last modified, in nanoseconds since the Unix epoch, or -1 when
+ * `stat` fails. Here for the reason `vader_path_kind` gives, and because Darwin
+ * names the member `st_mtimespec` where Linux says `st_mtim`. */
+VADER_HOST_EXPORT
+int64_t vader_path_mtime(const char* path) {
+    struct stat st;
+    if (stat(path, &st) != 0) return -1;
+#  if defined(__APPLE__)
+    return (int64_t) st.st_mtimespec.tv_sec * INT64_C(1000000000) + st.st_mtimespec.tv_nsec;
+#  else
+    return (int64_t) st.st_mtim.tv_sec * INT64_C(1000000000) + st.st_mtim.tv_nsec;
+#  endif
+}
 #endif
 
 /* ------------------------------------------------- directory-entry accessors

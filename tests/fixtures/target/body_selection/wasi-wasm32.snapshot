@@ -7,10 +7,11 @@
 [lib/std/io/io.vader:708:28] error[T3071] a view of a string's bytes cannot be kept: `bytes()` returns a view of a string's bytes ; `.clone()` makes a copy to keep
 [lib/std/io/io.vader:716:8] error[R2041] no `@target` body covers the target being built: `exists` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 [lib/std/io/io.vader:737:8] error[R2041] no `@target` body covers the target being built: `is_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:760:8] error[R2041] no `@target` body covers the target being built: `read_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:830:8] error[R2041] no `@target` body covers the target being built: `current_executable_location` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:876:8] error[R2041] no `@target` body covers the target being built: `current_working_directory` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
-[lib/std/io/io.vader:918:8] error[R2041] no `@target` body covers the target being built: `temp_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:760:8] error[R2041] no `@target` body covers the target being built: `modification_time` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:791:8] error[R2041] no `@target` body covers the target being built: `read_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:861:8] error[R2041] no `@target` body covers the target being built: `current_executable_location` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:907:8] error[R2041] no `@target` body covers the target being built: `current_working_directory` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
+[lib/std/io/io.vader:949:8] error[R2041] no `@target` body covers the target being built: `temp_dir` has no body for `wasi-wasm32` and no general body ; its `@target` bodies cover .linux, .darwin, .windows
 
 # Baked
 VADER_OS = .Wasi
@@ -24,6 +25,7 @@ std_io$exists <- (no body)
 std_io$is_dir <- (no body)
 std_io$last_io_error <- (no body)
 std_io$mkdir_one <- (no body)
+std_io$modification_time <- (no body)
 std_io$poll_stdin <- lib/std/io/io.vader:363
 std_io$read_dir <- (no body)
 std_io$read_file_bytes <- (no body)
