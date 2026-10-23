@@ -1,0 +1,3 @@
+{
+    "includePaths": ["$VADER_HOME/third_party"]
+}

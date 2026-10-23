@@ -213,7 +213,7 @@ if ($Dist) {
     $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
     $distDir = "dist\vader-windows-$arch"
 
-    Step "[dist] Bundling $distDir  (vader + lib/ + src/vader + runtime/c)"
+    Step "[dist] Bundling $distDir  (vader + lib/ + src/vader + runtime/c + third_party/)"
     if (Test-Path $distDir) { Remove-Item -Recurse -Force $distDir }
     New-Item -ItemType Directory -Force "$distDir\runtime" | Out-Null
     New-Item -ItemType Directory -Force "$distDir\src" | Out-Null
@@ -227,6 +227,7 @@ if ($Dist) {
         Remove-Item -Recurse -Force "$distDir\src\vader\$($excluded.Trim())" -ErrorAction SilentlyContinue
     }
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
+    Copy-Item -Recurse third_party "$distDir\third_party"
 
     Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves lib\ + runtime\c\ next to the binary, so it runs -- and drives builds -- from any directory)." -ForegroundColor Green
 }

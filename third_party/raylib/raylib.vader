@@ -1,0 +1,178 @@
+// third_party/raylib/raylib: Vader binding to raylib, a library for games and
+// graphics programs.
+//
+// Covers what the examples use. Each function keeps raylib's behaviour under a
+// snake_case name. raylib's colours are macros, with no symbol to bind, so the
+// constants below restate their values.
+//
+// Native only: raylib passes its structs by value, which the VM cannot do, and
+// it ships as a static archive, which the VM cannot open. Where each archive
+// comes from is in README.md.
+
+module "raylib"
+
+import "std/ffi"
+import "std/target"
+
+// ---- library --------------------------------------------------------------
+
+/// raylib, linked statically from the archive shipped beside this module.
+///
+/// The archives load OpenGL and the window system themselves (`dlopen` on
+/// Linux), so a build machine needs no OpenGL or X11 development package.
+export RAYLIB: CLibrary: CLibrary {
+    .name = "raylib",
+    .header = "raylib.h",
+    .include = "include",
+    .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libraylib.a"],
+    .system = match VADER_OS {
+        .Darwin          -> ["Cocoa.framework", "IOKit.framework", "QuartzCore.framework"]
+        .Linux           -> ["m", "pthread", "dl", "rt"]
+        .Windows         -> ["opengl32", "gdi32", "winmm"]
+        .Wasi | .Browser -> []
+    },
+}
+
+// ---- types ----------------------------------------------------------------
+
+/// An RGBA colour, 8 bits per channel.
+@c_struct
+export Color :: struct {
+    r: u8
+    g: u8
+    b: u8
+    a: u8
+}
+
+/// A point or a vector on the screen, in pixels.
+@c_struct
+export Vector2 :: struct {
+    x: f32
+    y: f32
+}
+
+/// A texture in GPU memory. Read `width` and `height`; the rest is raylib's.
+@c_struct
+export Texture2D :: struct {
+    /// OpenGL texture id, 0 when loading failed.
+    id: u32
+    width: i32
+    height: i32
+    mipmaps: i32
+    /// A raylib `PixelFormat` value.
+    format: i32
+}
+
+/// The keys this binding names, by their GLFW key codes, which raylib reuses.
+export KeyboardKey :: enum(i32) {
+    Escape = 256,
+    Right  = 262,
+    Left   = 263,
+    Down   = 264,
+    Up     = 265,
+}
+
+// ---- colours --------------------------------------------------------------
+
+/// raylib's off-white, its usual background.
+export RAYWHITE :: Color {
+    .r = 245,
+    .g = 245,
+    .b = 245,
+    .a = 255,
+}
+
+/// Opaque white: as a tint, it leaves a texture unchanged.
+export WHITE :: Color {
+    .r = 255,
+    .g = 255,
+    .b = 255,
+    .a = 255,
+}
+
+/// A dark grey for text.
+export DARKGRAY :: Color {
+    .r = 80,
+    .g = 80,
+    .b = 80,
+    .a = 255,
+}
+
+// ---- window ---------------------------------------------------------------
+
+/// Open a window and create its OpenGL context.
+@extern(RAYLIB, "InitWindow")
+export init_window :: fn(width: i32, height: i32, title: string) -> void
+
+/// Close the window and release its OpenGL context.
+@extern(RAYLIB, "CloseWindow")
+export close_window :: fn() -> void
+
+/// Whether the user asked to close the window: its close button, or Escape.
+@extern(RAYLIB, "WindowShouldClose")
+export window_should_close :: fn() -> bool
+
+/// Cap the frame rate: `end_drawing` waits out the rest of each frame.
+@extern(RAYLIB, "SetTargetFPS")
+export set_target_fps :: fn(fps: i32) -> void
+
+/// Seconds the last frame took, to scale movement by.
+@extern(RAYLIB, "GetFrameTime")
+export get_frame_time :: fn() -> f32
+
+/// The folder holding the running executable, with a trailing separator: where
+/// a program finds the files it ships beside itself.
+@extern(RAYLIB, "GetApplicationDirectory")
+export get_application_directory :: fn() -> string
+
+// ---- drawing --------------------------------------------------------------
+
+/// Start a frame. Every draw call sits between this and `end_drawing`.
+@extern(RAYLIB, "BeginDrawing")
+export begin_drawing :: fn() -> void
+
+/// Show the frame, then wait for the next one.
+@extern(RAYLIB, "EndDrawing")
+export end_drawing :: fn() -> void
+
+/// Fill the whole frame with one colour.
+@extern(RAYLIB, "ClearBackground")
+export clear_background :: fn(color: Color) -> void
+
+/// Draw `text` in raylib's default font, its top-left corner at `x`, `y`.
+@extern(RAYLIB, "DrawText")
+export draw_text :: fn(text: string, x: i32, y: i32, font_size: i32, color: Color) -> void
+
+// ---- textures -------------------------------------------------------------
+
+@extern(RAYLIB, "LoadTexture")
+load_texture_or_empty :: fn(path: string) -> Texture2D
+
+/// Load an image file into GPU memory.
+///
+/// @param path  read from the working directory.
+/// @return      the texture, or `null` when the file cannot be read or decoded
+///              (raylib logs why).
+export load_texture :: fn(path: string) -> Texture2D | null {
+    texture :: load_texture_or_empty(path)
+    if texture.id == 0 {
+        return null
+    }
+    return texture
+}
+
+/// Release a texture's GPU memory.
+@extern(RAYLIB, "UnloadTexture")
+export unload_texture :: fn(texture: Texture2D) -> void
+
+/// Draw a texture, its top-left corner at `position`.
+///
+/// @param tint  multiplied into every pixel; `WHITE` draws the texture as is.
+@extern(RAYLIB, "DrawTextureV")
+export draw_texture_v :: fn(texture: Texture2D, position: Vector2, tint: Color) -> void
+
+// ---- input ----------------------------------------------------------------
+
+/// Whether `key` is held down during this frame.
+@extern(RAYLIB, "IsKeyDown")
+export is_key_down :: fn(key: KeyboardKey) -> bool

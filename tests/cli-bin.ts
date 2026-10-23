@@ -25,6 +25,23 @@ export const CLI_BIN = exePath("build/vader");
 // `spawn` THROWS on a missing program rather than exiting non-zero.
 export const HOST_CC = process.env.CC || (process.platform === "win32" ? "gcc" : "cc");
 
+// This machine as `<os>-<arch>`, the spelling of `VADER_OS` and `VADER_ARCH`.
+export const HOST_TARGET = `${hostOs()}-${hostArch()}`;
+
+function hostOs(): string {
+  if (process.platform === "win32") return "windows";
+  return process.platform;
+}
+
+function hostArch(): string {
+  if (process.arch === "x64") return "x86_64";
+  return process.arch;
+}
+
+// The toolchain this checkout is: a test building a project outside the repo
+// points `$VADER_HOME` here, so the project finds `lib/` and `third_party/`.
+export const TOOLCHAIN_ENV = { VADER_HOME: resolve(import.meta.dir, "..") };
+
 /// Whether `HOST_CC` runs, for the tests whose native half needs a C toolchain.
 export async function haveCc(): Promise<boolean> {
   try {

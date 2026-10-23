@@ -12,19 +12,11 @@ import { afterAll, expect, test } from "bun:test";
 import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { EXE_SUFFIX, LONG_BUILD, spawnCapture } from "./cli-bin.ts";
+import { EXE_SUFFIX, HOST_TARGET, LONG_BUILD, spawnCapture, TOOLCHAIN_ENV } from "./cli-bin.ts";
 
 const FIXTURE = resolve(import.meta.dir, "fixtures/clibrary");
-const TOOLCHAIN_ENV = { VADER_HOME: resolve(".") };
 // `$CC` first, as `vader build` reads it.
 const CC = process.env.CC || "cc";
-
-// This machine as `<os>-<arch>`, the spelling of `VADER_OS` and `VADER_ARCH`.
-function hostTarget(): string {
-  const os = process.platform === "win32" ? "windows" : process.platform;
-  const arch = process.arch === "x64" ? "x86_64" : process.arch;
-  return `${os}-${arch}`;
-}
 
 const staged: string[] = [];
 
@@ -44,7 +36,7 @@ async function stage(withArchive: boolean): Promise<string> {
     return dir;
   }
   const greeter = join(dir, "vendor/greeter");
-  const libDir = join(greeter, "lib", hostTarget());
+  const libDir = join(greeter, "lib", HOST_TARGET);
   mkdirSync(libDir, { recursive: true });
   const object = join(libDir, "greeter.o");
   const compile = Bun.spawnSync([CC, "-c", "-I", join(greeter, "include"), join(greeter, "greeter.c"), "-o", object]);
@@ -80,7 +72,7 @@ test("a missing archive stops the build and names the path", async () => {
   );
   expect(build.exit).toBe(1);
   expect(build.stderr).toContain("library `greeter` has no archive for this target");
-  expect(build.stderr).toContain(`lib/${hostTarget()}/libgreeter.a`);
+  expect(build.stderr).toContain(`lib/${HOST_TARGET}/libgreeter.a`);
 }, LONG_BUILD);
 
 test("the interpreter says a library shipped as archives needs a native build", async () => {
