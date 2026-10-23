@@ -40,10 +40,14 @@ cmd_lint :: fn(args: string[]) -> i32 {
     }
     file :: action_file(parsed)
     if file == "" {
-        eprintln("vader lint: expected a file argument")
+        eprintln("vader lint: expected a file or a project folder")
         return 1
     }
-    loaded :: load_project(file.as_string(), [])
+    entry :: single_entry("lint", file, parsed.string_flag("entry", ""))
+    if entry is i32 {
+        return entry
+    }
+    loaded :: load_project(entry.file.as_string(), [], entry.project_root)
     // A parse / import error leaves no trustworthy reference graph — surface it
     // and bail. (Type errors don't matter to a name-reachability walk, so the
     // load stage — not a full typecheck — is the right gate.)

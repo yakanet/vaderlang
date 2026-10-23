@@ -7,11 +7,12 @@
 // independent of discovery.
 //
 // Include-paths (search order, first match wins ; GCC `-I` style) :
-//   - the entry folder, rooted at its declared module name ;
-//   - the manifest dir + each `vader.json includePaths` entry (project modules
-//     + stdlib) when a manifest is found ;
-//   - the binary-adjacent stdlib default (so a deployed binary finds its
-//     bundled stdlib).
+//   - the entry's namespace: the first segment of its declared module name,
+//     rooted at the folder that segment names (`entry_namespace`) ;
+//   - the project folder + each `vader.json includePaths` entry, when the caller
+//     names a project ;
+//   - the binary-adjacent library root (so a deployed binary finds its bundled
+//     `lib/`).
 
 module "vader/resolver"
 
@@ -88,11 +89,15 @@ export LoadedModule :: struct {
 /// Build the module graph rooted at `entry_path`. Returns the loaded
 /// project ; callers feed it to `resolve_project` / `check_project`.
 /// Reads every module from disk.
+///
+/// @param project_root  the project the entry belongs to (`search_roots`),
+///                      null for a file compiled on its own.
 export load_project :: fn(
-    entry_path: string, include_path_flags: string[], selection: Selection | null = null,
+    entry_path: string, include_path_flags: string[], project_root: string | null,
+    selection: Selection | null = null,
 ) -> LoadedProject {
     return load_project_with_overlay(
-        entry_path, MutableMap<string, string> {}, include_path_flags, selection)
+        entry_path, MutableMap<string, string> {}, include_path_flags, project_root, selection)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -112,6 +117,8 @@ export load_project :: fn(
 /// @param entry_path   the entry file's path.
 /// @param overlay      filesystem path → current source text ; consulted
 ///                     before the disk in `parse_module_files`.
+/// @param project_root  the project the entry belongs to (`search_roots`),
+///                      null for a file compiled on its own.
 /// @param extra_seeds  modules to load beside what the entry imports, named as
 ///                     an import names them ; one no root holds is skipped. The
 ///                     LSP's find-usages loads the modules that import the
@@ -119,8 +126,8 @@ export load_project :: fn(
 ///                     always did, in the same order.
 export load_project_with_overlay :: fn(
     entry_path: string, overlay: MutableMap<string, string>,
-    include_path_flags: string[], selection: Selection | null = null,
-    extra_seeds: string[] = [],
+    include_path_flags: string[], project_root: string | null,
+    selection: Selection | null = null, extra_seeds: string[] = [],
 ) -> LoadedProject {
     factory :: SymbolFactory {}
     // ONE node-id factory for the whole project so AST node ids are globally
@@ -130,9 +137,10 @@ export load_project_with_overlay :: fn(
     // Windows hands the entry path with `\` separators ; the resolver keeps `/`
     // as its single internal separator (join_path, the module index, std/path
     // are all `/`-based), so normalise once at this boundary. POSIX paths are
-    // unchanged. Everything downstream derives the entry folder + manifest root
-    // from this normalised form.
+    // unchanged. The entry folder is derived from this normalised form, and the
+    // project folder is normalised the same way.
     entry :: entry_path.to_posix()
+    project :: posix_or_null(project_root)
     // Resolved ONCE, here, before anything loads: selection has to see the same
     // target in every module, and defaulting at each entry point instead would
     // mean every command remembering to ask. `host_target()` reads the running
@@ -157,8 +165,7 @@ export load_project_with_overlay :: fn(
     }
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]: []
-    roots :: search_roots(entry, include_path_flags, loader_diags)
-    project_root :: roots.project_root
+    roots :: search_roots(entry, include_path_flags, project, loader_diags)
 
     // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
     // is a cache filled on demand by `resolve_lazy`, which path-maps each module
@@ -179,7 +186,7 @@ export load_project_with_overlay :: fn(
                     + "add one above the imports, e.g. `module \"main\"`"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
-                .project_root = project_root,
+                .project_root = project,
                 .diags = loader_diags,
             }
         }
@@ -244,7 +251,7 @@ export load_project_with_overlay :: fn(
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = entry_module.folder, .modules = modules, .factory = factory,
-                .project_root = project_root,
+                .project_root = project,
                 .diags = loader_diags,
             }
         }
@@ -254,51 +261,88 @@ export load_project_with_overlay :: fn(
 /// Where a load from one entry file looks for modules — what `load_project`
 /// reads, and what the language server reads to follow an import the same way.
 export SearchRoots :: struct {
-    /// The folder holding the project's `vader.json`, or null outside a project.
-    project_root: string | null
     /// The module the entry's folder declares, or null when no file of it
     /// declares one.
-    entry:        DiscoveredModule | null
+    entry: DiscoveredModule | null
     /// The roots an `import "name"` is searched in, first match wins
-    /// (`resolve_lazy`) : the entry's folder rooted at its declared name, the
-    /// plain roots, then the generated tree. Without an entry module, the plain
-    /// roots alone.
-    paths:        IncludePath[]
+    /// (`resolve_lazy`) : the entry's namespace (`entry_namespace`), the plain
+    /// roots, then the generated tree. Without an entry module, the plain roots
+    /// alone.
+    paths: IncludePath[]
 }
 
 /// Find the roots a load from `entry` searches, in the order it searches them.
 ///
+/// The project is named by the caller, never searched for: a folder handed to
+/// the CLI is one, a file is not, and the language server walks up to the
+/// `vader.json` above the file it opened (`find_manifest_root`).
+///
 /// @param entry               the entry file's path, `/`-separated.
 /// @param include_path_flags  roots the caller names, searched before the
 ///                            project's own.
+/// @param project_root        the project folder, `/`-separated: its
+///                            `vader.json` adds its `includePaths`, and it
+///                            anchors the generated tree. Null for a file
+///                            compiled on its own.
 /// @param diags               R2020 / R2022 from scanning the entry's folder.
-/// @return                    the project, the entry module and the ordered roots.
+/// @return                    the entry module and the ordered roots.
 export search_roots :: fn(
-    entry: string, include_path_flags: string[], diags: Diagnostic[],
+    entry: string, include_path_flags: string[], project_root: string | null, diags: Diagnostic[],
 ) -> SearchRoots {
-    project_root :: find_manifest_root(entry)
-    manifest :: match project_root {
-        is string -> read_manifest(project_root)
-        is null   -> Manifest {}
-    }
-    entry_folder :: entry_folder_of(entry)
-    plain :: project_include_paths(project_root, manifest, include_path_flags)
+    plain :: project_include_paths(project_root, manifest_at(project_root), include_path_flags)
     // Generated modules are a property of the PROJECT, not of whoever asked for
     // the load: derived here, every command sees them — `run`, `test`, `lint`,
     // `dump` and the LSP, not only the `vader build` that produced them.
     generated :: generated_root_for(project_root)
-    // The entry's declared name is what roots its namespace at its own folder,
-    // so the include-paths cannot be built before this scan.
-    module :: seed_entry(entry_folder, diags)
-    paths: IncludePath[]: if module == null {
-        plain
-    } else {
-        include_paths(module.name, module.folder, plain, generated)
+    // The entry's declared name is what roots its namespace, so the include-paths
+    // cannot be built before this scan.
+    module :: seed_entry(entry_folder_of(entry), diags)
+    if module == null {
+        return SearchRoots { .entry = null, .paths = plain }
     }
     return SearchRoots {
-        .project_root = project_root,
-        .entry        = module,
-        .paths        = paths,
+        .entry = module,
+        .paths = include_paths(entry_namespace(module.name, module.folder), plain, generated),
+    }
+}
+
+// The `vader.json` of `project_root`, empty for a file on its own.
+manifest_at :: fn(project_root: string | null) -> Manifest {
+    root :: project_root ?? return Manifest {}
+    return read_manifest(root)
+}
+
+// `path` with `/` separators, null kept.
+posix_or_null :: fn(path: string | null) -> string | null {
+    given :: path ?? return null
+    return given.to_posix()
+}
+
+/// The root an entry's declared name vouches for: its namespace, the name's
+/// first segment, at the folder that segment names. `module "vader/cli"` in
+/// `<X>/vader/cli` roots `vader` at `<X>/vader`, so `import "vader/parser"`
+/// resolves at `<X>/vader/parser` and nothing else of `<X>` is searched. A
+/// folder that does not end with the name roots the name alone, at the folder.
+///
+/// The entry is the project's own code whatever folder it sits under, since the
+/// caller named it: the root is `.Build`.
+///
+/// @param name    the entry module's declared name.
+/// @param folder  the folder its files sit in, `/`-separated.
+export entry_namespace :: fn(name: string, folder: string) -> IncludePath {
+    alone :: IncludePath { .dir = folder, .prefix = name, .origin = .Build }
+    cut :: name.index_of('/', 0)
+    if cut < 0 {
+        return alone
+    }
+    trimmed :: folder.trim_suffix("/")
+    if trimmed != name && !trimmed.ends_with("/${name}") {
+        return alone
+    }
+    return IncludePath {
+        .dir = trimmed.trim_suffix(name.byte_slice(cut, name.byte_len())),
+        .prefix = name.byte_slice(0, cut),
+        .origin = .Build,
     }
 }
 
@@ -500,7 +544,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 // Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
 // first-match-wins: the `--include-paths` flag entries (a driven build injects the
 // compiler's own sources through these), then a BUNDLED library root when the
-// binary is part of one, then the manifest dir itself, then each `vader.json
+// binary is part of one, then the project folder itself, then each `vader.json
 // includePaths` entry joined onto it, then the cwd-relative library fallback.
 //
 // The bundled root outranks the project to RESERVE the namespaces `lib/` ships,
@@ -605,20 +649,17 @@ plain_root :: fn(dir: string, origin: ModuleOrigin) = IncludePath {
 /// the generated files still declare their own `module`, and an absent or empty
 /// directory contributes nothing.
 ///
-/// Anchored on the manifest root when the project has one, and on the invocation
-/// directory otherwise — the same shape as `resolve_sidecar`'s stdlib fallback,
-/// and for the same reason: `find_manifest_root` returns null for a project with
-/// no `vader.json`, which is most small projects and every test fixture. It also
-/// matches the anchor the DRIVER writes the tree against: the CLI hands it the
-/// invocation directory as `args[1]`. The consequence to know is that compiling a
-/// manifest-less project from a different directory will not find its generated
-/// tree — exactly the existing limitation on finding its stdlib.
+/// Anchored on the project folder the caller names, and on the invocation
+/// directory for a file on its own — the same shape as `resolve_sidecar`'s
+/// stdlib fallback. A driven build names its root (the folder holding
+/// `build.vader`), which is where `generate` writes the tree, so the two agree
+/// wherever the build is started from.
 ///
 /// Exported so `vader doctor` reports the tree the LOADER will actually use,
 /// rather than re-deriving the same anchor-and-join and being able to drift
 /// from it.
 ///
-/// @param project_root  the manifest root, or null for a project without one.
+/// @param project_root  the project folder, or null for a file on its own.
 /// @return              the generated tree's directory, or `""` when none exists.
 export generated_root_for :: fn(project_root: string | null) -> string {
     anchor :: match project_root {
@@ -744,6 +785,26 @@ test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")
     assert_eq(paths[0].origin, .Build)
+}
+
+@test
+test_entry_namespace_roots_the_first_segment :: fn() -> void {
+    nested :: entry_namespace("vader/cli", "/repo/vader/cli")
+    assert_eq(nested.dir, "/repo/vader")
+    assert_eq(nested.prefix, "vader")
+    relative :: entry_namespace("vader/lsp/handlers", "vader/lsp/handlers")
+    assert_eq(relative.dir, "vader")
+    assert_eq(relative.prefix, "vader")
+}
+
+@test
+test_entry_namespace_of_a_name_its_folder_does_not_end_with :: fn() -> void {
+    single :: entry_namespace("hello", "/code/hello")
+    assert_eq(single.dir, "/code/hello")
+    assert_eq(single.prefix, "hello")
+    elsewhere :: entry_namespace("vader/cli", "/repo/vader/xcli")
+    assert_eq(elsewhere.dir, "/repo/vader/xcli")
+    assert_eq(elsewhere.prefix, "vader/cli")
 }
 
 @test

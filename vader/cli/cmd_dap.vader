@@ -15,6 +15,7 @@ import "vader/bytecode"
 import "vader/midir"
 import "vader/pipeline"
 import "vader/diagnostics"
+import "vader/resolver"
 import "vader/vm"
 import "vader/dap"
 import "vader/lower"
@@ -43,7 +44,9 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     // The DAP layer hands over a raw string (it is compiler internals, outside
     // this refactor); wrap once here so the body speaks `Path` like the rest.
     path :: program.to_path()
-    le :: lower_to_entry(path)
+    // The debugger is handed a file by the editor, which knows no project: like
+    // the language server, it takes the `vader.json` above the file.
+    le :: lower_to_entry(path, find_manifest_root(program))
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg_diags: Diagnostic[]: []
     opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true }

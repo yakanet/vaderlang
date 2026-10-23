@@ -1,4 +1,5 @@
-// vader/cli/project: what the argument of `build`, `run` or `check` names.
+// vader/cli/project: what the argument of `build`, `run`, `check`, `dump`,
+// `lint` or `graph` names.
 //
 // A file is compiled as it is. A folder is a project, described by exactly one
 // of its `build.vader` (the project drives its own build) and its `vader.json`
@@ -20,7 +21,7 @@ import "vader/pipeline"
 import "vader/resolver"
 import "vader/target"
 
-/// What the argument of `build`, `run` or `check` names.
+/// What the argument of `build`, `run`, `check`, `dump`, `lint` or `graph` names.
 ProjectInput :: FileInput | ManifestProject | DrivenProject
 
 /// A file, compiled as it is.
@@ -97,6 +98,41 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
         .entries = entries,
         .assets = manifest.assets,
     }
+}
+
+/// One file to work on, and the project it belongs to.
+EntryInProject :: struct {
+    file:         Path
+    /// The project folder, null for a file on its own.
+    project_root: string | null
+}
+
+// The one file `command` works on: the file `path` names, or the only entry of
+// the project folder it names (the one `selected` names among several). The
+// exit code after saying why there is none.
+single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProject | i32 {
+    input :: resolve_input(command, path, selected)
+    if input is i32 {
+        return input
+    }
+    match input {
+        is FileInput -> { return EntryInProject { .file = input.file, .project_root = null } }
+        is ManifestProject -> {
+            why :: "`vader ${command}` works on one program"
+            entry :: sole_entry(command, input.dir, input.entries, why) ?? return 2
+            return EntryInProject { .file = entry.file, .project_root = input.dir }
+        }
+        is DrivenProject -> { return refuse_driven(command, input.dir) }
+    }
+}
+
+// The project `vader test` and `vader doctor` take: `dir`, the folder they run
+// in, when it holds a `vader.json`; null otherwise.
+project_at :: fn(dir: string) -> string | null {
+    if !exists(join_path(dir, MANIFEST_FILENAME)) {
+        return null
+    }
+    return dir
 }
 
 // The entries `manifest` declares for the project `dir`, or the one `selected`

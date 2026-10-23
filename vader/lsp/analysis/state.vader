@@ -285,9 +285,9 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
             }
         }
     }
-    // dump_types = false : the LSP reads expr_types (hover/defs) but never the
-    // dump-only expr_kinds / node_spans tables.
-    fc :: check_file(file_path, doc_overlay(self), self.include_flags, false)
+    // No extra seed, and `dump_types` off: the LSP reads expr_types (hover/defs)
+    // but never the dump-only expr_kinds / node_spans tables.
+    fc :: check_with_modules(self, file_path, [])
     entry :: ProjectCache {
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
         .module_name_index = module_index_by_name(fc.project),
@@ -308,7 +308,10 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
 export check_with_modules :: fn(
     self: ServerState, file_path: string, extra_seeds: string[],
 ) -> FileCheck =
-    check_file(file_path, doc_overlay(self), self.include_flags, false, null, extra_seeds)
+    check_file(
+        file_path, doc_overlay(self), self.include_flags, project_of_document(file_path), false,
+        null, extra_seeds,
+    )
 
 /// The navigation view for `file_path`, loaded once and cached.
 ///
@@ -329,7 +332,10 @@ export union_project_for :: fn(self: ServerState, file_path: string) -> LoadedPr
             return cached.project
         }
     }
-    project :: load_project_with_overlay(file_path, doc_overlay(self), self.include_flags, AllTargets {})
+    project :: load_project_with_overlay(
+        file_path, doc_overlay(self), self.include_flags, project_of_document(file_path),
+        AllTargets {},
+    )
     self.union_cache = UnionCache { .entry_path = file_path, .project = project }
     return project
 }

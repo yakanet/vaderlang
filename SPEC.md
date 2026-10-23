@@ -2670,7 +2670,7 @@ See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 
 ### Configuration: `vader.json`
 
-`vader.json` is **optional**. The project root is the nearest folder holding one, walking up from the entry file. Its `includePaths` field lists extra module roots, each a folder path relative to the project root, or under `$VADER_HOME` (below). `entries` names the programs `vader build <folder>` makes, each binary's name mapped to its entry file, and `assets` the files and folders copied beside them; both paths are relative to the project root. `name` and `version` describe the project and are read by nothing:
+`vader.json` is **optional**. It describes the project rooted at its folder, which a command is given explicitly: a folder handed to `vader build`, `run`, `check`, `dump`, `lint` or `graph` (*Building a project folder* below), or the folder `vader test` and `vader doctor` run in. A file handed to a command is compiled on its own and reads no `vader.json`. The language server and the debugger, which open a file, take the nearest `vader.json` above it. Its `includePaths` field lists extra module roots, each a folder path relative to the project root, or under `$VADER_HOME` (below). `entries` names the programs `vader build <folder>` makes, each binary's name mapped to its entry file, and `assets` the files and folders copied beside them; both paths are relative to the project root. `name` and `version` describe the project and are read by nothing:
 
 ```json
 {
@@ -2684,11 +2684,11 @@ See §6 *Exported declarations cannot expose a non-exported type* (`T3052`).
 
 #### Building a project folder
 
-`vader build`, `vader run` and `vader check` take a file or a folder. A file is compiled as it is. A folder is a project, described by exactly one of its `build.vader` (*Programmable build API* below) and its `vader.json`; a folder holding both, or neither, is refused, and so is a `vader.json` that declares no entry. `vader build` with no argument builds the current folder.
+`vader build`, `run`, `check`, `dump`, `lint` and `graph` take a file or a folder. A file is compiled as it is. A folder is a project, described by exactly one of its `build.vader` (*Programmable build API* below) and its `vader.json`; a folder holding both, or neither, is refused, and so is a `vader.json` that declares no entry. `vader build` with no argument builds the current folder.
 
 - `vader build <folder>` builds every entry, `--entry=<name>` only the one named. A binary goes to `<folder>/build/<profile>-<target>/<name>`: the profile is `debug`, or `release` under `--release`, and the target is the `--target` pair, the host's without one (`build/debug-darwin-arm64/myapp`). `--out` places the binary elsewhere, when one entry is built. An executable build then copies each asset into the binary's folder, under its path relative to the project.
 - `vader check <folder>` checks every entry, `--entry=<name>` only the one named.
-- `vader run <folder>` runs the folder's one entry, or the one `--entry` names when it declares several.
+- `vader run`, `dump`, `lint` and `graph` work on the folder's one entry, or the one `--entry` names when it declares several.
 
 A native build writes the C it compiles to `c/` beside the binary, each file named after the binary, so that several binaries share the folder. An asset that is absolute or climbs out of the project with `..` is refused with the rest of the `vader.json`.
 
@@ -2696,13 +2696,12 @@ A native build writes the C it compiles to `c/` beside the binary, each file nam
 
 An import is resolved against an ordered list of roots. The first root whose folder at the module's location declares that module wins, and a later folder declaring the same name is ignored. The roots, in order:
 
-1. the entry file's folder, rooted at the entry's own module name: an entry declaring `module "app"` finds `import "app/util"` in `<entry folder>/util`;
+1. the entry's namespace, the first segment of its declared name, rooted at the folder that segment names: an entry declaring `module "vader/cli"` in `<X>/vader/cli/` finds `import "vader/parser"` in `<X>/vader/parser` and `import "vader/cli/util"` in its own `util`, and nothing else of `<X>`. An entry whose folder does not end with its name, or whose name has one segment, roots that name at its own folder: `module "app"` finds `import "app/util"` in `<entry folder>/util`;
 2. each root named by `--include-paths`;
 3. the toolchain's library root, when `$VADER_HOME` or the binary's own folder provides one (below);
-4. the project root;
-5. each `includePaths` entry, joined onto the project root (4 and 5 exist only when there is a `vader.json`). An entry that starts with `$VADER_HOME` is joined onto the toolchain's folder instead, the one holding the library root, whether or not the variable is set: `"$VADER_HOME/third_party"` reaches the libraries shipped beside the compiler from a project that lives anywhere. Without a library root from step 3, the toolchain's folder is the working directory, where step 6 looks for `lib/`;
-6. `lib/` relative to the working directory, only when step 3 found no library root;
-7. `build/generated/` under the project root (the invocation directory when there is no `vader.json`), which extends a module instead of shadowing it (see *Generated modules*).
+4. the project folder, then each `includePaths` entry of its `vader.json`, joined onto it (4 exists only for a project). An entry that starts with `$VADER_HOME` is joined onto the toolchain's folder instead, the one holding the library root, whether or not the variable is set: `"$VADER_HOME/third_party"` reaches the libraries shipped beside the compiler from a project that lives anywhere. Without a library root from step 3, the toolchain's folder is the working directory, where step 5 looks for `lib/`;
+5. `lib/` relative to the working directory, only when step 3 found no library root;
+6. `build/generated/` under the project folder (the invocation directory for a file on its own), which extends a module instead of shadowing it (see *Generated modules*).
 
 #### Library root
 
@@ -2774,6 +2773,8 @@ folder, or run in it with **no argument**, finds it, compiles it, and runs it; t
 what to compile, because the compiler is part of its own import closure. A named file
 (`vader build src/main.vader`) bypasses the driver of the current folder and says so; `--no-hooks`
 skips it silently, and leaves a folder described by its `build.vader` alone with nothing to build.
+The driver's folder is the project of the entries it queues: it is searched for modules (step 4 of
+*Include paths*) and holds their `build/generated/`.
 
 `build.vader` declares `module "build"` and a `build` fn — a **reserved name**, the way `main` is in
 a program, with no decorator involved:
@@ -4097,13 +4098,13 @@ to the program like any other argument.
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --target=<os>-<arch>` | Builds for another platform (§17), e.g. `--target=linux-x86_64`. WebAssembly is `--target=browser-wasm32` or `wasi-wasm32` *(not yet implemented)*; the artefact stays `--emit=executable`, since wasm is a platform, not an artefact kind |
 | `vader check <path>` | Type-checks a file, or each entry of a project folder, without emitting, against any `--target` |
-| `vader lint <file>` | Project-wide lints kept out of the default build: an exported function unreachable from the project's roots (`W0012`) |
+| `vader lint <path>` | Project-wide lints kept out of the default build: an exported function unreachable from the project's roots (`W0012`). A file, or a project folder's entry |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
-| `vader test [path]` | Runs every `@test` function under the path (default `.`) on the VM; a trap, such as a failed assertion, fails the test. Each module is compiled with its own import closure |
-| `vader graph <file>` | Prints the project's module import graph (`--format=mermaid`, the default, or `dot`) |
+| `vader test [path]` | Runs every `@test` function under the path (default `.`) on the VM; a trap, such as a failed assertion, fails the test. Each module is compiled with its own import closure, in the project of the folder the command runs in |
+| `vader graph <path>` | Prints the project's module import graph (`--format=mermaid`, the default, or `dot`), from a file or a project folder's entry |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dap` | Runs the Debug Adapter (DAP over stdin/stdout), which drives the VM |
-| `vader dump --stage=<stage> <file>` | Dumps an IR stage (text, JSON or Markdown depending on stage) |
+| `vader dump --stage=<stage> <path>` | Dumps an IR stage (text, JSON or Markdown depending on stage) of a file or a project folder's entry |
 | `vader doctor` | Checks the toolchain (compiler, C compiler, library root, C runtime) and the project in the current directory; `--json` for CI |
 | `vader help [action]` | Usage overview, or one action's options in full |
 | `vader version` | Prints the compiler version (also `--version`, `-v`) |

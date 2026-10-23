@@ -54,7 +54,7 @@ for (const split of [true, false]) {
     const out = join(dir, "main");
     const flags = split ? [] : ["--no-split"];
     const build = await spawnCapture(
-      ["build", ...flags, `--out=${out}`, join(dir, "main.vader")],
+      ["build", ...flags, `--out=${out}`, dir],
       { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
     );
     expect(build.stderr).not.toContain("error");
@@ -69,7 +69,7 @@ test("a `.virt` carries the library to a native build", async () => {
   const dir = await stage(true);
   const virt = join(dir, "main.virt");
   const dump = await spawnCapture(
-    ["build", "--emit=bytecode-text", `--out=${virt}`, join(dir, "main.vader")],
+    ["build", "--emit=bytecode-text", `--out=${virt}`, dir],
     { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
   );
   expect(dump.exit).toBe(0);
@@ -87,7 +87,7 @@ test("a `.virt` carries the library to a native build", async () => {
 test("a missing archive stops the build and names the path", async () => {
   const dir = await stage(false);
   const build = await spawnCapture(
-    ["build", `--out=${join(dir, "main")}`, join(dir, "main.vader")],
+    ["build", `--out=${join(dir, "main")}`, dir],
     { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
   );
   expect(build.exit).toBe(1);
@@ -98,7 +98,7 @@ test("a missing archive stops the build and names the path", async () => {
 test("the interpreter says a library shipped as archives needs a native build", async () => {
   const dir = await stage(false);
   const run = await spawnCapture(
-    ["run", join(dir, "main.vader")],
+    ["run", dir],
     { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
   );
   expect(run.exit).toBe(1);

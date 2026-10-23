@@ -199,6 +199,13 @@ export first_in_files :: fn(
 
 // ---- module resolution ----------------------------------------------------
 
+/// The project of a document the editor opened: the folder of the nearest
+/// `vader.json` above it. The compiler is told its project; the editor, which
+/// opens a file, has to look for it.
+///
+/// @param path  the document's filesystem path.
+project_of_document :: fn(path: string) -> string | null = find_manifest_root(path)
+
 /// Where the document `uri` looks for modules : the loader's roots for a load
 /// from that file (`search_roots`), each made absolute, and the module the
 /// document belongs to. Null for a URI that names no file.
@@ -215,7 +222,7 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
         return null
     }
     discard: Diagnostic[]: []
-    roots :: search_roots(path, state.include_flags, discard)
+    roots :: search_roots(path, state.include_flags, project_of_document(path), discard)
     paths: IncludePath[]: []
     for root in roots.paths {
         paths.push(IncludePath { ...root, .dir = absolute_path(root.dir) })

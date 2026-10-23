@@ -42,8 +42,9 @@ import "toolchain/span"
 /// carry today; a driver that sets them is authoritative — the manifest is only
 /// consulted when it asks, via `load_from_vader_config`.
 export BuildContext :: struct {
-    /// Project root as the compiler resolved it: the folder holding
-    /// `vader.json`, or the invocation folder when the project has no manifest.
+    /// The project folder: the one holding `build.vader`, as the compiler passed
+    /// it. The front end searches it for modules and anchors the generated tree
+    /// under it, as for any project (`project_of`).
     /// NOT guaranteed absolute — the stdlib exposes no `cwd()`, so this is
     /// whatever the compiler passed, which may be relative to the invocation
     /// directory. Join onto it rather than assuming a prefix.
@@ -168,6 +169,15 @@ search_roots :: fn(ctx: BuildContext) -> string[] {
         roots.push(library)
     }
     return roots
+}
+
+// The project the front end compiles in: `project_root`, null when the CLI
+// passed none.
+project_of :: fn(ctx: BuildContext) -> string | null {
+    if ctx.project_root == "" {
+        return null
+    }
+    return ctx.project_root
 }
 
 // The compiler's own `lib/`, or null when the driver was not told where it is.

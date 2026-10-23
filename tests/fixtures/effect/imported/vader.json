@@ -1,5 +1,5 @@
 {
   "name": "imported",
   "version": "0.1.0",
-  "includePaths": []
+  "entries": { "app": "app/main.vader" }
 }

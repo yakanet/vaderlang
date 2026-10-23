@@ -9,9 +9,9 @@
 import { afterAll, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { HOST_TARGET, LONG_BUILD, spawnCapture, TOOLCHAIN_ENV } from "./cli-bin.ts";
-import { exampleEntry } from "./vader-sources.ts";
+import { exampleInput } from "./vader-sources.ts";
 
 const ARCHIVE = resolve(import.meta.dir, `../third_party/raylib/lib/${HOST_TARGET}/libraylib.a`);
 const out = mkdtempSync(join(tmpdir(), "vader-raylib-"));
@@ -24,7 +24,7 @@ test.skipIf(!existsSync(ARCHIVE))(
   "the raylib example builds natively",
   async () => {
     const build = await spawnCapture(
-      ["build", `--out=${join(out, "raylib_sprite")}`, dirname(exampleEntry("raylib_sprite"))],
+      ["build", `--out=${join(out, "raylib_sprite")}`, exampleInput("raylib_sprite")],
       { env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
     );
     expect(build.stderr).not.toContain("error");

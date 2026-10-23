@@ -94,6 +94,8 @@ export FileCheck :: struct {
 /// @param overlay      filesystem path → unsaved source text, consulted before
 ///                     the disk ; pass an empty map for on-disk CLI behaviour
 ///                     (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
+/// @param project_root the project the entry belongs to, null for a file on its
+///                     own (`search_roots`).
 /// @param extra_seeds  modules to load and check beside what the entry imports
 ///                     (see `load_project_with_overlay`).
 /// @return             the loaded project, the typed result, and the merged
@@ -102,11 +104,14 @@ export check_file :: fn(
     entry_path: string,
     overlay: MutableMap<string, string>,
     include_path_flags: string[],
+    project_root: string | null,
     dump_types: bool,
     selection: Selection | null = null,
     extra_seeds: string[] = [],
 ) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay, include_path_flags, selection, extra_seeds)
+    project :: load_project_with_overlay(
+        entry_path, overlay, include_path_flags, project_root, selection, extra_seeds,
+    )
     diags: Diagnostic[]: []
     checked :: check_project(project, diags, dump_types)
     return FileCheck {

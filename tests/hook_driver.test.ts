@@ -495,9 +495,9 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
 
   const dir = mkdtempSync(`${tmpdir()}/vader-reserved-`);
   staged.push(dir);
-  // The manifest is what makes the project root a search root at all — without
-  // one, only the entry's own folder is searched and the clash cannot arise.
-  writeFileSync(`${dir}/vader.json`, '{ "name": "reserved-clash" }\n');
+  // The project is what makes its root a search root at all — a file on its own
+  // searches only its folder, and the clash cannot arise.
+  writeFileSync(`${dir}/vader.json`, '{ "name": "reserved-clash", "entries": { "app": "app.vader" } }\n');
   mkdirSync(`${dir}/reserved`, { recursive: true });
   writeFileSync(
     `${dir}/reserved/reserved.vader`,
@@ -509,7 +509,7 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
       + 'main :: fn() -> i32 {\n    println("who=${who()}")\n    return 0\n}\n',
   );
 
-  const ran = await run(["run", "app.vader"], { bin: `${bundle}/${basename(CLI_BIN)}`, cwd: dir });
+  const ran = await run(["run", "."], { bin: `${bundle}/${basename(CLI_BIN)}`, cwd: dir });
   expect(ran.stdout).toContain("who=1");
   expect(ran.stdout).not.toContain("who=999");
 }, HEAVY_BUILD);

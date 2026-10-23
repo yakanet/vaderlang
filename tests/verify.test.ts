@@ -20,7 +20,7 @@ import { ensureCliBuilt, runCli, MEDIUM_BUILD, LONG_BUILD } from "./cli-bin.ts";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { COMPILER_ENTRY, exampleEntry, exampleNames } from "./vader-sources.ts";
+import { COMPILER_ENTRY, exampleEntry, exampleInput, exampleNames } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
@@ -42,7 +42,7 @@ const buildVerify = (entry: string, timeout: number, out: string) =>
 test("verify finds nothing in the examples", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vader-verify-"));
   try {
-    for (const entry of exampleNames().map(exampleEntry)) {
+    for (const entry of exampleNames().map(exampleInput)) {
       // LONG_BUILD, matching this test's own declared budget rather than the
       // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/bytecode`,
       // so it type-checks 40 modules where the other seven load 12. That is

@@ -81,13 +81,14 @@ EMIT_VALUES: ValueSpec[]: [
 // Which program of a project folder: the key of one of its `vader.json` entries.
 ENTRY_FLAG :: FlagSpec {
     .name = "entry",
-    .help = "Project folder only: the `vader.json` entry to use, by name; `build` and `check` take every entry without it",
+    .help = "Project folder only: the `vader.json` entry to use, by name; `build` and `check` take every entry without it, the others the only one",
     .value_name = "name",
 }
 
-// `run` takes a project's entry and nothing else: every other flag before the
-// path would be one the program never sees.
-RUN_FLAGS: FlagSpec[]: [ENTRY_FLAG]
+// The flags of an action that takes a project's entry and nothing else: `run`,
+// where every other flag before the path would be one the program never sees,
+// and `lint`.
+ENTRY_FLAGS: FlagSpec[]: [ENTRY_FLAG]
 
 // `check` takes the platform axis and the search roots, and nothing else: it
 // produces no artefact, so every flag about HOW to emit would be noise.
@@ -211,6 +212,7 @@ GRAPH_SCOPES: ValueSpec[]: [
 ]
 
 GRAPH_FLAGS: FlagSpec[]: [
+    ENTRY_FLAG,
     // Same spelling and meaning as `build`'s — a graph that cannot see the roots
     // a build sees is not drawing the same project.
     FlagSpec {
@@ -236,6 +238,7 @@ GRAPH_FLAGS: FlagSpec[]: [
 ]
 
 DUMP_FLAGS: FlagSpec[]: [
+    ENTRY_FLAG,
     // Same spelling and meaning as `build`'s: a dump that cannot see the roots a
     // build sees is not dumping the same program. Reaching for a dump is the one
     // way to observe an order-sensitive materialisation bug WITHOUT perturbing
@@ -298,7 +301,7 @@ FMT_FLAGS: FlagSpec[]: [
 NEW_BUILD_SETUPS: ValueSpec[]: [
     ValueSpec {
         .name = "manifest",
-        .help = "a `vader.json`, which makes the directory a module search root",
+        .help = "a `vader.json`, which declares the program, so the folder builds as it is",
     },
     ValueSpec {
         .name = "driver",
@@ -358,7 +361,7 @@ export COMMANDS: CommandSpec[]: [
         .name = "run",
         .summary = "Compile and run a file or a project on the VM",
         .usage = "<path> [program args...]",
-        .flags = RUN_FLAGS,
+        .flags = ENTRY_FLAGS,
         .tail = .Forward,
     },
     CommandSpec {
@@ -392,21 +395,21 @@ export COMMANDS: CommandSpec[]: [
     CommandSpec {
         .name = "lint",
         .summary = "Project-wide lints kept out of the default build",
-        .usage = "<file>",
-        .flags = [],
+        .usage = "<path>",
+        .flags = ENTRY_FLAGS,
         .tail = .None,
     },
     CommandSpec {
         .name = "graph",
         .summary = "Print the project's module import graph",
-        .usage = "<file>",
+        .usage = "<path>",
         .flags = GRAPH_FLAGS,
         .tail = .None,
     },
     CommandSpec {
         .name = "dump",
         .summary = "Dump an IR stage",
-        .usage = "<file>",
+        .usage = "<path>",
         .flags = DUMP_FLAGS,
         .tail = .None,
     },

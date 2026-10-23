@@ -96,12 +96,13 @@ cmd_doctor :: fn(args: string[]) -> i32 {
 //
 // The two lookups every check would otherwise redo are done once here. That is
 // not for the syscalls — it is so the report cannot contradict itself: one
-// manifest walk-up decides both what the manifest check reports and where the
+// manifest lookup decides both what the manifest check reports and where the
 // generated tree is anchored, and one executable-location query is both what the
-// probes used and what the "looked under …" messages name.
+// probes used and what the "looked under …" messages name. The project is the
+// folder the command runs in, as for `vader build` with no argument.
 collect_checks :: fn(cc: string) -> Check[] {
     cwd :: current_working_directory()
-    manifest_root :: find_manifest_root(cwd)
+    manifest_root :: project_at(cwd)
     exe_dir :: current_executable_location().dir_of()
     // `$VADER_HOME` as set, and what it resolves to — asked once, because THREE
     // checks report on it and a report that contradicts itself about which probe
@@ -308,15 +309,16 @@ check_runtime_headers :: fn() -> Check {
 // `pipeline::runtime_c_root` probes for.
 RUNTIME_HEADER :: "vader.h"
 
-// Whether this directory is a project root at all, and whether the roots its
-// manifest declares exist. A missing `vader.json` is not an error — it is the
-// first surprise, so it is reported rather than passed over.
+// Whether this directory is a project at all, and whether the roots its
+// manifest declares exist. A missing `vader.json` is not an error, and it is
+// reported rather than passed over: without one, `vader build` here has
+// nothing to build.
 check_manifest :: fn(root: string | null) -> Check {
     if root == null {
         return check_ok(
             "manifest",
-            "none — only the entry file's own folder is a search root",
-            "add a `${MANIFEST_FILENAME}` (see `vader new`) to make a directory one",
+            "none here: a file builds on its own, this folder does not",
+            "add a `${MANIFEST_FILENAME}` with `entries` (see `vader new`) to build the folder",
         )
     }
     path :: join_path(root, MANIFEST_FILENAME)

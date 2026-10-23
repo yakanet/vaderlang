@@ -51,8 +51,12 @@ cmd_graph :: fn(args: string[]) -> i32 {
     }
     file :: parsed.action_file()
     if file == "" {
-        eprintln("vader graph: expected a file argument")
+        eprintln("vader graph: expected a file or a project folder")
         return 1
+    }
+    entry :: single_entry("graph", file, parsed.string_flag("entry", ""))
+    if entry is i32 {
+        return entry
     }
 
     // `std/cli` has already rejected anything outside the declared `.values`
@@ -62,7 +66,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
     include_all :: parsed.string_flag("scope", "project") == "all"
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
-    loaded :: load_project(file.as_string(), include_path_flags)
+    loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
     // A parse or import error leaves a graph with edges missing — the one thing
     // this command exists to show. Surface it rather than draw a partial picture.
     if any_error_diag(loaded.diags) {

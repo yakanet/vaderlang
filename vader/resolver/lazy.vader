@@ -55,33 +55,25 @@ export IncludePath :: struct {
     origin: ModuleOrigin
 }
 
-/// The ordered include-paths for lazy resolution. The entry roots its declared
-/// namespace at its own folder (so `import "snippet/lib"` → `<entry>/lib`), then
+/// The ordered include-paths for lazy resolution. The entry's namespace first
+/// (`entry_namespace` : `import "vader/parser"` from `module "vader/cli"`), then
 /// the caller-assembled plain roots (`plain`) in order. Searched in order, first
 /// match wins (GCC `-I`).
 ///
-/// `plain` is assembled by the loader from the include-path layers (manifest dir,
-/// `vader.json includePaths`, binary-adjacent defaults, and the
-/// `--include-paths` flag). Module names are RELATIVE to a plain root :
-/// `module "std/io"` lives at `<plain>/std/io`.
+/// `plain` is assembled by the loader from the include-path layers (the
+/// `--include-paths` flag, the bundled library root, the project folder and its
+/// `vader.json includePaths`, the cwd-relative library fallback). Module names
+/// are RELATIVE to a plain root : `module "std/io"` lives at `<plain>/std/io`.
 ///
-/// @param entry_module  the entry's declared module name — the namespace it roots.
-/// @param entry_folder  the folder the entry file lives in (the namespace root).
-/// @param plain         the ordered plain include-paths (no namespace prefix).
-/// @param generated     root holding a build driver's generated modules, or ""
-///                      when nothing generates. Appended LAST and flagged
-///                      `merge`, so it extends a module rather than shadowing
-///                      one — see `IncludePath.merge`.
-export include_paths :: fn(
-    entry_module: string, entry_folder: string, plain: IncludePath[], generated: string,
-) -> IncludePath[] {
-    // The entry and the generated tree are `.Build` — the default. A root exists
-    // because the caller named that file, so the entry is the project's own code
-    // whatever directory it sits under (see `ModuleOrigin.Build`), and a generated
-    // tree is written by this build.
-    paths: IncludePath[]: [
-        IncludePath { .dir = entry_folder, .prefix = entry_module, .origin = .Build },
-    ]
+/// @param entry      the root the entry's declared name vouches for.
+/// @param plain      the ordered plain include-paths (no namespace prefix).
+/// @param generated  root holding a build driver's generated modules, or ""
+///                   when nothing generates. Appended LAST and flagged `merge`,
+///                   so it extends a module rather than shadowing one — see
+///                   `IncludePath.merge`.
+export include_paths :: fn(entry: IncludePath, plain: IncludePath[], generated: string) -> IncludePath[] {
+    // The generated tree is `.Build`, being written by this build.
+    paths: IncludePath[]: [entry]
     paths.push_all(plain)
     if generated != "" {
         paths.push(IncludePath {

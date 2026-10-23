@@ -215,43 +215,11 @@ than through `vader.json`.
 
 ### 2.2 `vader.json`
 
-`vader.json` is **optional**. A project without external dependencies
-(beyond stdlib) does not require one.
-
-**Default whitelist when `vader.json` is absent or omits `modules`** :
-the scan covers only the entry file's containing folder, plus the
-stdlib (§2.1). This keeps single-file invocations and trivial projects
-working without ceremony ; larger projects with multiple source roots
-need a manifest.
-
-The `modules` field accepts **literal folder paths only**. Glob
-patterns (`src/**`, `vader/*/`) are not supported — each root is a
-plain relative path resolved from the manifest's directory.
-
-When present, a `modules` field declares the source roots to scan :
-
-```json
-{
-  "name": "myapp",
-  "version": "0.1.0",
-  "modules": ["src/"]
-}
-```
-
-For the `vaderlang2` repo itself, the manifest would declare :
-
-```json
-{
-  "modules": ["src/", "vader/"]
-}
-```
-
-Folders not listed (e.g. `tests/`, `bench/`, `examples/`, `build/`,
-`dist/`, `node_modules/`, `.git/`) are excluded from the scan, even
-when they contain `.vader` files. They cannot be imported by name.
-
-Future post-MVP : an additional field for declaring external library
-roots will land here. Out of scope for this redesign.
+Superseded: the `modules` whitelist described here never shipped. SPEC §11
+*Configuration: `vader.json`* is the reference: `includePaths`, `entries` and
+`assets`, read for a project folder a command is given (or the folder `vader
+test` and `vader doctor` run in); a file handed to a command reads none, and an
+entry's declared module name roots the folder its siblings resolve under.
 
 ### 2.3 CLI fallback for out-of-scope files
 

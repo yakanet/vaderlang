@@ -72,35 +72,36 @@ export cmd_check :: fn(args: string[]) -> i32 {
         return input
     }
     match input {
-        is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target)) }
+        is FileInput -> { return exit_code_of(check_entry(input.file, include_path_flags, target, null)) }
         is ManifestProject -> {
-            return exit_code_of(check_entries(input.entries, include_path_flags, target))
+            return exit_code_of(check_entries(input, include_path_flags, target))
         }
         is DrivenProject -> { return refuse_driven("check", input.dir) }
     }
 }
 
-// Check every one of `entries`, and say whether none reported an error.
-check_entries :: fn(entries: ProjectEntry[], include_path_flags: string[], target: Target | null) -> bool {
+// Check every entry of `project`, and say whether none reported an error.
+check_entries :: fn(project: ManifestProject, include_path_flags: string[], target: Target | null) -> bool {
     clean := true
-    for entry in entries {
-        if !check_entry(entry.file, include_path_flags, target) {
+    for entry in project.entries {
+        if !check_entry(entry.file, include_path_flags, target, project.dir) {
             clean = false
         }
     }
     return clean
 }
 
-// Run the front end and the lowering over `file`, print what they report, and
-// say whether nothing among it is an error.
-check_entry :: fn(file: Path, include_path_flags: string[], target: Target | null) -> bool {
+// Run the front end and the lowering over `file`, within `project_root` (null
+// for a file on its own), print what they report, and say whether nothing among
+// it is an error.
+check_entry :: fn(file: Path, include_path_flags: string[], target: Target | null, project_root: string | null) -> bool {
     // Lowering too, not just the front end. It needs no toolchain — it produces
     // IR, not C — and without it the gate answered "the Windows code resolves
     // and type-checks", which is not what `vader check` promises. An `await`
     // in a short-circuit operand (M5009) inside a `@target(.Windows)` body
     // passed `check` and failed the build. As for `build`, a program the front
     // end rejected is not lowered.
-    le :: lower_to_entry_with(file, include_path_flags, target)
+    le :: lower_to_entry_with(file, include_path_flags, project_root, target)
     // Diagnostics on STDERR, and stdout stays empty on success: a gate is read by
     // a script before it is read by a person.
     return flush_build_diags(le.pre_diags, le.lower_diags)

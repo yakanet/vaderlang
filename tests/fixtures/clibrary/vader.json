@@ -1,1 +1,1 @@
-{ "name": "clibrary", "includePaths": ["vendor"] }
+{ "name": "clibrary", "includePaths": ["vendor"], "entries": { "main": "main.vader" } }

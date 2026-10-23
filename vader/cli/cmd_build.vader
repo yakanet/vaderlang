@@ -43,18 +43,21 @@ parse_include_path_flag :: fn(raw: string) -> string[] =
 // What a `vader build` asks for, read once from its flags. A project build
 // hands one to each of its entries.
 BuildRequest :: struct {
-    emit:          string
+    emit:          string = "executable"
     /// `--out`, or `""` to derive the output from the entry.
-    out:           string
-    release:       bool
-    verify:        bool
+    out:           string = ""
+    release:       bool = false
+    verify:        bool = false
     cc:            string
-    ldflags:       string
-    include_paths: string[]
-    target:        Target | null
+    ldflags:       string = ""
+    include_paths: string[] = []
+    target:        Target | null = null
     /// `--seed-targets`, empty without it.
-    seed_targets:  Target[]
-    no_split:      bool
+    seed_targets:  Target[] = []
+    no_split:      bool = false
+    /// The project the entry belongs to, null for a file compiled on its own
+    /// (`search_roots`).
+    project_root:  string | null = null
 }
 
 cmd_build :: fn(args: string[]) -> i32 {
@@ -168,8 +171,9 @@ build_entries :: fn(project: ManifestProject, request: BuildRequest) -> i32 {
     if !ensure_dir(binaries) {
         return 1
     }
+    in_project :: BuildRequest { ...request, .project_root = project.dir }
     for entry in project.entries {
-        code :: build_file(entry.file, Path(join_path(output_dir, entry.name)), request)
+        code :: build_file(entry.file, Path(join_path(output_dir, entry.name)), in_project)
         if code != 0 {
             return code
         }
@@ -219,20 +223,20 @@ build_file :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
     if request.emit == "c" {
         if request.seed_targets.len() > 0 {
             out :: output_path(request.out, stem)
-            return emit_c_for_targets(file, out, request.release, request.include_paths, request.seed_targets, request.verify)
+            return emit_c_for_targets(file, out, request)
         }
-        return build_c(file, request.out, stem, request.release, request.include_paths, split, request.target, request.verify)
+        return build_c(file, stem, request, split)
     }
     if request.emit == "executable" {
         // 0: the user's own build owns the machine, so it keeps the full fan-out
         // the `--split` measurements were taken with.
         out :: output_path(request.out, stem)
-        return build_native(file, out, request.release, request.cc, request.ldflags, request.include_paths, split, request.target, 0, request.verify)
+        return build_native(file, out, request, split, 0)
     }
 
     if request.emit == "bytecode-text" {
         out :: output_path(request.out, "${stem}.virt".to_path())
-        return build_bytecode_text(file, out, request.include_paths, request.target, request.verify)
+        return build_bytecode_text(file, out, request)
     }
     // TODO: --emit=bytecode — the BINARY (.vir) module. `--emit=bytecode-text`
     // above covers the textual form; this one waits on a binary writer.
@@ -247,18 +251,15 @@ build_file :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
 /// VM executes. The separation is the point — a dump narrows to what you are
 /// reading, a build produces what actually runs.
 ///
-/// @param file                entry source.
-/// @param out                 the `.virt` to write.
-/// @param include_path_flags  extra module search roots.
-/// @param target              the platform to select `@target` bodies for.
-/// @param verify              run the IR verifiers between passes.
-/// @return                    0 on success, 1 on a write failure, 2 on a
-///                            front-end error (already reported).
-build_bytecode_text :: fn(
-    file: Path, out: Path, include_path_flags: string[], target: Target | null,
-    verify: bool,
-) -> i32 {
-    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target, verify)
+/// @param file     entry source.
+/// @param out      the `.virt` to write.
+/// @param request  the search roots, the target and `--verify`.
+/// @return         0 on success, 1 on a write failure, 2 on a front-end error
+///                 (already reported).
+build_bytecode_text :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
+    b :: prepare_cfg_bytecode_with(
+        file, false, request.include_paths, request.project_root, request.target, request.verify,
+    )
     // Same gate as every other emit path: errors abort, warnings still print.
     if !ready_to_emit(b, "build", file) {
         return 2
@@ -274,8 +275,8 @@ build_bytecode_text :: fn(
 // pipeline `dump --stage=c` uses) and return the generated C. Pipeline
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
-emit_c_source :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
-    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
+emit_c_source :: fn(file: Path, request: BuildRequest) -> string | null {
+    b :: prepared_module(file, request) ?? return null
     return emit_c_of(b)
 }
 
@@ -299,9 +300,15 @@ emit_c_of :: fn(b: CfgBytecode) -> string {
 // paths. Debug build → populate the per-op `debug` table so the c-emit keeps
 // `#line` ; release drops it (the seed + shipped compiler stay lean). Returns
 // null when an error-severity diagnostic blocks the build.
-prepared_module :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> CfgBytecode | null {
+prepared_module :: fn(file: Path, request: BuildRequest) -> CfgBytecode | null {
     b :: prepare_cfg_bytecode_with(
-        file, !release, include_path_flags, target, verify, proves_bounds(release),
+        file,
+        !request.release,
+        request.include_paths,
+        request.project_root,
+        request.target,
+        request.verify,
+        proves_bounds(request.release),
     )
     if !ready_to_emit(b, "build", file) {
         return null
@@ -336,26 +343,26 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout, for piping into another tool.
-build_c :: fn(file: Path, out_flag: string, stem: Path, release: bool, include_path_flags: string[], split: bool, target: Target | null, verify: bool) -> i32 {
+build_c :: fn(file: Path, stem: Path, request: BuildRequest, split: bool) -> i32 {
     if split {
-        out :: output_path(out_flag, stem)
-        prog :: emit_c_program_for(file, release, include_path_flags, out, target, verify) ?? return 1
+        out :: output_path(request.out, stem)
+        prog :: emit_c_program_for(file, request, out) ?? return 1
         return write_split_files(out, prog)
     }
-    c_src :: emit_c_for_input(file, release, include_path_flags, target, verify) ?? return 1
-    if out_flag == "-" {
+    c_src :: emit_c_for_input(file, request) ?? return 1
+    if request.out == "-" {
         print(c_src)
         return 0
     }
-    return write_out(output_path(out_flag, "${stem}.c".to_path()), c_src)
+    return write_out(output_path(request.out, "${stem}.c".to_path()), c_src)
 }
 
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
-emit_c_for_input :: fn(file: Path, release: bool, include_path_flags: string[], target: Target | null, verify: bool) -> string | null {
+emit_c_for_input :: fn(file: Path, request: BuildRequest) -> string | null {
     if file.extension() != "virt" {
-        return emit_c_source(file, release, include_path_flags, target, verify)
+        return emit_c_source(file, request)
     }
     module :: virt_module(file) ?? return null
     return c_of_virt(module)
@@ -394,9 +401,9 @@ virt_entry_mangled :: fn(module: BytecodeModule) -> string {
 // `--emit=executable` : emit the C in `c/` beside the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept, so the user can inspect the generated source.
-build_native :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], split: bool, target: Target | null, cc_jobs: i32, verify: bool = false) -> i32 {
+build_native :: fn(file: Path, out: Path, request: BuildRequest, split: bool, cc_jobs: i32) -> i32 {
     if split {
-        return build_native_split(file, out, release, cc, ldflags, include_path_flags, target, cc_jobs, verify)
+        return build_native_split(file, out, request, cc_jobs)
     }
     // The CLI keeps its own C emission — it handles a `.virt` input and prints
     // diagnostics through `flush_build_diags` — but the LINK is shared with
@@ -405,11 +412,11 @@ build_native :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: st
     if file.extension() == "virt" {
         module :: virt_module(file) ?? return 1
         native :: native_flags(module)
-        return link_native(c_of_virt(module), out, cc, release, ldflags, "", quote_dir, native)
+        return link_native(c_of_virt(module), out, request.cc, request.release, request.ldflags, "", quote_dir, native)
     }
-    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
+    b :: prepared_module(file, request) ?? return 1
     native :: native_flags(b.module)
-    return link_native(emit_c_of(b), out, cc, release, ldflags, "", quote_dir, native)
+    return link_native(emit_c_of(b), out, request.cc, request.release, request.ldflags, "", quote_dir, native)
 }
 
 // ----------------------------------------------------------- split build
@@ -418,8 +425,11 @@ build_native :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: st
 // function TU per Vader module, then compile them concurrently and link. The
 // units and their objects go to `c/` beside the binary (`intermediate_stem`),
 // and stay there after the link, failed or not, for inspection.
-build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldflags: string, include_path_flags: string[], target: Target | null, cc_jobs: i32, verify: bool) -> i32 {
-    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return 1
+build_native_split :: fn(file: Path, out: Path, request: BuildRequest, cc_jobs: i32) -> i32 {
+    cc :: request.cc
+    release :: request.release
+    ldflags :: request.ldflags
+    b :: prepared_module(file, request) ?? return 1
     native :: native_flags(b.module)
     if report_missing_archives(native) {
         return 1
@@ -520,7 +530,7 @@ build_native_split :: fn(file: Path, out: Path, release: bool, cc: string, ldfla
 // Prepare the module and emit it as a `CProgram`. The header basename embeds a
 // `.split.` infix so it never collides with the runtime's `vader.h` when
 // `--out` basename is `vader`. Null on a front-end error or `.virt` input.
-emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[], out: Path, target: Target | null, verify: bool) -> CProgram | null {
+emit_c_program_for :: fn(file: Path, request: BuildRequest, out: Path) -> CProgram | null {
     // UNREACHABLE from the CLI: `split` (`build_file`) already excludes a `.virt`, and
     // both callers gate on it. Kept as the guard for a future third caller that
     // does not — the rule "a `.virt` has no front end to re-run" belongs next to
@@ -529,7 +539,7 @@ emit_c_program_for :: fn(file: Path, release: bool, include_path_flags: string[]
         eprintln("vader build: split needs a `.vader` front end; `.virt` takes the single TU")
         return null
     }
-    b :: prepared_module(file, release, include_path_flags, target, verify) ?? return null
+    b :: prepared_module(file, request) ?? return null
     return split_program(b, out)
 }
 
@@ -557,20 +567,16 @@ split_program :: fn(b: CfgBytecode, out: Path) -> CProgram {
 ///                            written once as `<out>-<module>.c`; the ones that
 ///                            differ go to `<out>.<os>-<arch>-<module>.c`,
 ///                            beside the shared `<out>.split.h` / `.split.g.c`.
-/// @param release             build at `-O3`; threaded through to each target's
-///                            front end, since it changes the bytecode.
-/// @param include_path_flags  `-I`-style module roots, as passed on the command
-///                            line — the same set for every target.
-/// @param targets             the targets to emit for, at least one.
-/// @param verify              run the IR verifiers between passes.
+/// @param request             the targets to emit for (`seed_targets`, at least
+///                            one), and what every target's front end shares:
+///                            `--release`, which changes the bytecode, the search
+///                            roots and `--verify`.
 /// @return                    0 on success, 1 when any target fails to build.
-emit_c_for_targets :: fn(
-    file: Path, out: Path, release: bool, include_path_flags: string[], targets: Target[],
-    verify: bool,
-) -> i32 {
+emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
+    targets :: request.seed_targets
     mods: CfgBytecode[]: []
     for t in targets {
-        b :: prepared_module(file, release, include_path_flags, t, verify) ?? return 1
+        b :: prepared_module(file, BuildRequest { ...request, .target = t }) ?? return 1
         mods.push(b)
     }
     universe :: union_of_string_pools(mods)

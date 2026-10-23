@@ -5,7 +5,7 @@
 // substring `@test`, which `std/testing`'s own doc-comment defeats. The answer
 // below is the one `vader_e2e` had already paid for.
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
@@ -23,6 +23,14 @@ export function exampleNames(): string[] {
 
 /** The entry of example `name`: `examples/<name>/<name>.vader`. */
 export const exampleEntry = (name: string): string => join(ROOT, "examples", name, `${name}.vader`);
+
+/** What a command is handed to work on example `name`: its folder when a
+ *  `vader.json` makes it a project (a file reads none), its entry otherwise. */
+export const exampleInput = (name: string): string => {
+  const dir = join(ROOT, "examples", name);
+  if (existsSync(join(dir, "vader.json"))) return dir;
+  return exampleEntry(name);
+};
 
 // Anchor on `^@test\s` rather than a substring search : `std/testing` itself
 // only mentions `@test` in its module-level doc-comment, which would otherwise

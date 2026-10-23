@@ -84,8 +84,13 @@ test("vader lint scopes by provenance, not by a `std/` name", async () => {
     // containing only the bare `"lib"`: provenance matched nothing, the whole
     // stdlib was classified as the project's own, and the run reported 24 W0012
     // naming `print`, `eprintln`, `assert_ne`… The two invocations must agree.
-    writeFileSync(join(dir, "vader.json"), '{ "name": "p", "includePaths": ["lib"] }\n');
-    const abs = await spawnCapture(["lint", join(dir, "app.vader")]);
+    // The folder is linted as the project its `vader.json` describes: a file
+    // reads no manifest.
+    writeFileSync(
+      join(dir, "vader.json"),
+      '{ "name": "p", "includePaths": ["lib"], "entries": { "app": "app.vader" } }\n',
+    );
+    const abs = await spawnCapture(["lint", dir]);
     const absOut = abs.stdout + abs.stderr;
     expect(absOut).toContain("never_used_in_app");
     expect(absOut).not.toContain("never_used_in_probe");

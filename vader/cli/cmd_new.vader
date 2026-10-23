@@ -4,10 +4,9 @@
 // from the test fixtures. What a project actually needs is small, and none of it
 // is discoverable:
 //
-//   * a `vader.json` — its PRESENCE is what makes the directory a module search
-//     root (`resolver::project_include_paths`). Without one, only the entry
-//     file's own folder is searched, which is the first thing that surprises
-//     someone whose second module does not resolve.
+//   * a `vader.json`, which declares the program (`entries`), so that the folder
+//     builds and runs as it is, and where extra search roots go
+//     (`includePaths`).
 //   * `src/main.vader` declaring `module "src"` — the module name is the folder
 //     name, and the compiler does not infer it from the filesystem.
 //   * a `.gitignore` covering `build/`, where every artefact lands.
@@ -37,12 +36,11 @@ import "vader/resolver"
 /// layers: a driver supersedes the manifest as the build's description rather
 /// than sitting on top of it.
 BuildSetup :: enum(u8) {
-    /// Nothing but the program. Only the entry file's own folder is searched,
-    /// which is enough for a single module and nothing more.
+    /// Nothing but the program, run by naming its file: only its own folder is
+    /// searched, which is enough for a single module and nothing more.
     None,
-    /// A `vader.json`. Its PRESENCE is what makes the directory a module search
-    /// root — the difference that surprises people whose second module does not
-    /// resolve.
+    /// A `vader.json`, declaring the program so that the folder builds and runs
+    /// as it is, and holding the extra search roots.
     Manifest,
     /// A `build.vader`, which `vader build` finds and runs so the project decides
     /// its own compilation (SPEC §11). Needs the compiler's own sources
@@ -375,8 +373,7 @@ render_driver :: fn(name: string) -> string {
     out.append("// shortcut that drains it — walk the messages yourself to lint or generate,\n")
     out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
     out.append("//\n")
-    out.append("// Only the entry file's own folder is a module search root here; there is no\n")
-    out.append("// `vader.json` to promote the project root. Add a second source directory\n")
+    out.append("// The project folder is a module search root. Add another source directory\n")
     out.append("// through `ctx.include_paths` when you need one.\n")
     out.append("\n")
     out.append("module \"${DRIVER_MODULE}\"\n")

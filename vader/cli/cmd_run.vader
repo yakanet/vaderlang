@@ -41,36 +41,29 @@ cmd_run :: fn(args: string[]) -> i32 {
     }
     // argv[0] is the program path, which the program itself skips.
     forward :: parsed.positionals
-    input :: resolve_input("run", path, parsed.string_flag("entry", ""))
-    if input is i32 {
-        return input
+    entry :: single_entry("run", path, parsed.string_flag("entry", ""))
+    if entry is i32 {
+        return entry
     }
-    match input {
-        is FileInput -> { return run_file(input.file, forward) }
-        is ManifestProject -> {
-            entry :: sole_entry("run", input.dir, input.entries, "`vader run` runs one program") ?? return 2
-            return run_file(entry.file, forward)
-        }
-        is DrivenProject -> { return refuse_driven("run", input.dir) }
-    }
+    return run_file(entry.file, forward, entry.project_root)
 }
 
 // Run `path`: a `.virt` text bytecode module directly through the VM, a `.vader`
 // source (or any other extension) compiled through the full pipeline to a
-// `BytecodeModule` first.
-run_file :: fn(path: Path, forward: string[]) -> i32 {
+// `BytecodeModule` first, within `project_root` (null for a file on its own).
+run_file :: fn(path: Path, forward: string[], project_root: string | null) -> i32 {
     if path.filename().ends_with(".virt") {
         return run_virt(path.as_string(), forward)
     }
-    return run_source(path, forward)
+    return run_source(path, forward, project_root)
 }
 
-run_source :: fn(file: Path, host_argv: string[]) -> i32 {
+run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
     // side-table maps dominate the live set) before this CFG → bytecode tail —
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
-    le :: lower_to_entry(file)
+    le :: lower_to_entry(file, project_root)
     prepared :: prepare_cfg_bytecode_from(le, file, false)
     module :: prepared.module
     // Report errors and bail before executing, as `build` does : `lower_to_entry`

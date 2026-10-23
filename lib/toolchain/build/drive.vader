@@ -110,7 +110,7 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             // The generated tree is not passed: the loader derives it from the
             // project root, so what this build reads is what `vader run` and the
             // LSP read too.
-            pipeline :: prepare_evaluated_project_with(entry, search_roots(ctx))
+            pipeline :: prepare_evaluated_project_with(entry, search_roots(ctx), project_of(ctx))
             for [_, loaded] in pipeline.loaded.modules {
                 fresh :: undelivered_decls(loaded.module.files, delivered)
                 // Nothing new in this module: say nothing about it at all,

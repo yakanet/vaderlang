@@ -244,7 +244,8 @@ export LoweredEntry :: struct {
 /// CFG → bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
 /// the emitter's own tables at the memory peak.
-export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(file, [])
+export lower_to_entry :: fn(file: Path, project_root: string | null) -> LoweredEntry =
+    lower_to_entry_with(file, [], project_root)
 
 /// Front end + lower, in one call.
 ///
@@ -253,12 +254,18 @@ export lower_to_entry :: fn(file: Path) -> LoweredEntry = lower_to_entry_with(fi
 ///
 /// @param file                entry source.
 /// @param include_path_flags  extra module search roots.
+/// @param project_root        the project the entry belongs to, null for a file
+///                            on its own (`search_roots`).
 /// @param target              platform to lower for ; this machine when null.
 /// @param verify              run the IR verifiers between passes (`--verify`).
 export lower_to_entry_with :: fn(
-    file: Path, include_path_flags: string[], target: Target | null = null, verify: bool = false,
+    file: Path, include_path_flags: string[], project_root: string | null,
+    target: Target | null = null, verify: bool = false,
 ) -> LoweredEntry =
-    lower_to_entry_from(prepare_evaluated_project_with(file, include_path_flags, target), verify)
+    lower_to_entry_from(
+        prepare_evaluated_project_with(file, include_path_flags, project_root, target),
+        verify,
+    )
 
 /// Lower an ALREADY-EVALUATED pipeline.
 ///
@@ -314,7 +321,8 @@ export CfgBytecode :: struct {
 /// and diverged from it on ~150 snippets. Both `dump --stage` consumers route
 /// through here. Const-fold is deliberately NOT run, since arith collapse would
 /// over-shrink vs the parity snapshot.
-export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode = prepare_cfg_bytecode_with(file, want_debug, [])
+export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool, project_root: string | null) -> CfgBytecode =
+    prepare_cfg_bytecode_with(file, want_debug, [], project_root)
 
 /// Front end + lower + prune → CFG → bytecode, in one call.
 ///
@@ -322,16 +330,18 @@ export prepare_cfg_bytecode :: fn(file: Path, want_debug: bool) -> CfgBytecode =
 /// @param want_debug          populate the per-op debug table (kept only when
 ///                            the C emit will keep `#line`).
 /// @param include_path_flags  extra module search roots.
+/// @param project_root        the project the entry belongs to, null for a file
+///                            on its own (`search_roots`).
 /// @param target              platform to build for ; this machine when null.
 /// @param verify              run the IR verifiers between passes (`--verify`).
 /// @param prove_bounds        mark the accesses the range analysis proves in
 ///                            bounds (`proves_bounds`).
 export prepare_cfg_bytecode_with :: fn(
-    file: Path, want_debug: bool, include_path_flags: string[], target: Target | null = null,
-    verify: bool = false, prove_bounds: bool = false,
+    file: Path, want_debug: bool, include_path_flags: string[], project_root: string | null,
+    target: Target | null = null, verify: bool = false, prove_bounds: bool = false,
 ) -> CfgBytecode =
     prepare_cfg_bytecode_from(
-        lower_to_entry_with(file, include_path_flags, target, verify),
+        lower_to_entry_with(file, include_path_flags, project_root, target, verify),
         file,
         want_debug,
         verify,

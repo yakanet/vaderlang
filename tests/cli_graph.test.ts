@@ -62,9 +62,11 @@ test("scope=all reaches the library, the default does not", async () => {
 // so they arrive as `ModuleOrigin.Build` — the same provenance as the user's own
 // code. Filtering on provenance alone drew all 18 of them as "the project"; the
 // module NAME is what separates them, exactly as `diagnose_import_path` does.
+// The graph is handed the same root a driven build passes: the checkout, which
+// holds `vader/`.
 test("scope=project hides the compiler from a driven project", async () => {
   const driven = join(import.meta.dir, "fixtures", "hook", "observe_only", "build.vader");
-  const r = await runCli(["graph", driven], undefined, MEDIUM_BUILD);
+  const r = await runCli(["graph", "--include-paths=.", driven], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).not.toContain("vader/pipeline");
   expect(r.stdout).toContain('build["build"]');
@@ -90,5 +92,5 @@ test("graph rejects an unknown format and names the alternatives", async () => {
 test("graph asks for a file when given none", async () => {
   const r = await runCli(["graph"], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(1);
-  expect(r.stderr).toContain("expected a file argument");
+  expect(r.stderr).toContain("expected a file or a project folder");
 });

@@ -18,7 +18,9 @@ ensureCliBuilt();
 const SUMMARIES = join(import.meta.dir, "fixtures", "effect", "summaries", "summaries.vader");
 const FROZEN = join(import.meta.dir, "fixtures", "effect", "frozen", "frozen.vader");
 const VARIANCE = join(import.meta.dir, "fixtures", "effect", "variance", "variance.vader");
-const IMPORTED = join(import.meta.dir, "fixtures", "effect", "imported", "app", "main.vader");
+// A project: `app` reaches its sibling `lib` through the folder its `vader.json`
+// makes the project, not through the folder above its own.
+const IMPORTED = join(import.meta.dir, "fixtures", "effect", "imported");
 
 /** Each function of the `summaries` module with its accesses, in source order. */
 function functionsOf(dump: string): [string, string[]][] {

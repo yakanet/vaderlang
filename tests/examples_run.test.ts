@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { ensureCliBuilt, LONG_BUILD, runCli } from "./cli-bin.ts";
 import { snapshotDiff } from "./diff.ts";
 import { formatRun, snapshotEquals } from "./snapshot.ts";
-import { exampleEntry, exampleNames } from "./vader-sources.ts";
+import { exampleInput, exampleNames } from "./vader-sources.ts";
 
 ensureCliBuilt();
 
@@ -30,7 +30,7 @@ for (const name of examples) {
   // LONG_BUILD: `brainfuck` imports `vader/vm`, so it loads about 40 modules
   // where the others load 12 (see `verify.test.ts`).
   test.concurrent(`example runs: ${name}`, async () => {
-    const r = await runCli(["run", exampleEntry(name)], undefined, LONG_BUILD);
+    const r = await runCli(["run", exampleInput(name)], undefined, LONG_BUILD);
     const actual = formatRun(r.stdout, r.stderr, r.exit);
     const snap = snapshotEquals(SNAPSHOTS, `${name}.run.snapshot`, actual);
     if (!snap.ok) {

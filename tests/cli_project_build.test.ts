@@ -79,7 +79,7 @@ test("run takes one entry, and check takes them all", async () => {
   const dir = stage(TWO_ENTRIES);
   const ambiguous = await vader(["run", dir]);
   expect(ambiguous.exit).toBe(2);
-  expect(ambiguous.stderr).toContain("`vader run` runs one program");
+  expect(ambiguous.stderr).toContain("`vader run` works on one program");
 
   const ran = await vader(["run", "--entry=tool", dir]);
   expect(ran.exit).toBe(0);

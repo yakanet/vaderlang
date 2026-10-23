@@ -27,8 +27,9 @@ import "std/string"
 import "toolchain/ast"
 import "vader/parser"
 
-/// Project-root marker file. `find_manifest_root` walks up looking
-/// for this name to anchor bare-name imports.
+/// The file that describes a project folder. A command is handed the folder;
+/// only the language server and the debugger look for it, walking up from a
+/// file (`find_manifest_root`).
 export MANIFEST_FILENAME :: "vader.json"
 
 /// Module a project's build driver declares, and the entry shim shares.
@@ -169,8 +170,8 @@ export Module :: struct {
 
 /// Walk up from `start` looking for `MANIFEST_FILENAME`. Returns
 /// the containing directory, or null if no manifest is found up to
-/// the filesystem root. Used to anchor `import "vader/parser"`
-/// style bare-name imports.
+/// the filesystem root. The language server's way to the project of the file
+/// it opened: the compiler is told its project, a file having none.
 export find_manifest_root :: fn(start: string) -> string | null {
     // Accept either a file or a directory as the start point ; for
     // a file, walk-up begins at its parent.

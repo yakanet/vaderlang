@@ -59,7 +59,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         module_filter = module_arg.split(",")
     }
     if stage == "" || file == "" {
-        eprintln("vader dump: expected --stage=<stage> <file>")
+        eprintln("vader dump: expected --stage=<stage> <path>")
         eprintln("run \"vader help dump\" for the stage list")
         return 1
     }
@@ -73,47 +73,53 @@ cmd_dump :: fn(args: string[]) -> i32 {
         eprintln("vader dump --target=${target_arg}: ${target.reason} `${target.fragment}`")
         return 2
     }
+    resolved :: single_entry("dump", file, parsed.string_flag("entry", ""))
+    if resolved is i32 {
+        return resolved
+    }
+    entry :: resolved.file
+    project_root :: resolved.project_root
     if stage == "lexer" {
-        return run_lexer_stage(file)
+        return run_lexer_stage(entry)
     }
     if stage == "ast" {
-        return run_parser_stage(file)
+        return run_parser_stage(entry)
     }
     if stage == "resolved-ast" {
-        return run_resolver_stage(file, module_filter, include_path_flags, target)
+        return run_resolver_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "typed-ast" {
-        return run_typecheck_stage(file, module_filter, include_path_flags, target)
+        return run_typecheck_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "callees" {
-        return run_callees_stage(file, module_filter, target)
+        return run_callees_stage(entry, module_filter, target, project_root)
     }
     if stage == "effects" {
-        return run_effects_stage(file, module_filter, target)
+        return run_effects_stage(entry, module_filter, target, project_root)
     }
     if stage == "evaluated-ast" {
-        return run_comptime_stage(file, module_filter, include_path_flags, target)
+        return run_comptime_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "lowered-ast" {
-        return run_lower_stage(file, module_filter, include_path_flags, target)
+        return run_lower_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "bytecode" {
-        return run_bytecode_stage(file, annotate, include_path_flags, target)
+        return run_bytecode_stage(entry, annotate, include_path_flags, target, project_root)
     }
     if stage == "cfg" {
-        return run_cfg_stage(file, module_filter, include_path_flags, target)
+        return run_cfg_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "ranges" {
-        return run_ranges_stage(file, module_filter, include_path_flags, target)
+        return run_ranges_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "c" {
-        return run_c_stage(file, line_directives, include_path_flags, target)
+        return run_c_stage(entry, line_directives, include_path_flags, target, project_root)
     }
     if stage == "dced-ast" {
-        return run_dced_stage(file, module_filter, include_path_flags, target)
+        return run_dced_stage(entry, module_filter, include_path_flags, target, project_root)
     }
     if stage == "targets" {
-        return run_targets_stage(file, target)
+        return run_targets_stage(entry, target, project_root)
     }
     // Recognised stages we know about but can't run yet.
     if stage == "wasm" {
@@ -176,8 +182,9 @@ run_parser_stage :: fn(file: Path) -> i32 {
 
 run_resolver_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    project :: load_project(file.as_string(), include_path_flags, target)
+    project :: load_project(file.as_string(), include_path_flags, project_root, target)
     resolved :: resolve_loaded_project(project, dump_scope(module_filter, project))
     println(dump_project(resolved))
     diags :: collect_resolver_diags(project, resolved)
@@ -243,12 +250,15 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 // so snapshots can byte-diff stdout.
 run_typecheck_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
     // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
     // side-tables, so ask the typecheck to populate them (the only path that does).
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true, target)
+    fc :: check_file(
+        file.as_string(), MutableMap<string, string> {}, include_path_flags, project_root, true, target,
+    )
     // No `LoadedProject` here ; the entry typed module (`fc.result.typed`)
     // carries its own display path for the default scope.
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
@@ -259,9 +269,9 @@ run_typecheck_stage :: fn(
     return 0
 }
 
-run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
+run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | null, project_root: string | null) -> i32 {
     // `dump_types` files each site's span, the position the dump prints.
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], true, target)
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], project_root, true, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_call_sites_project(fc.result.typed, fc.result.others, scope))
     if fc.diags.len() > 0 {
@@ -270,8 +280,8 @@ run_callees_stage :: fn(file: Path, module_filter: string[], target: Target | nu
     return 0
 }
 
-run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | null) -> i32 {
-    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], false, target)
+run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | null, project_root: string | null) -> i32 {
+    fc :: check_file(file.as_string(), MutableMap<string, string> {}, [], project_root, false, target)
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
     print(dump_effects(fc.effects, scope))
     if fc.diags.len() > 0 {
@@ -282,8 +292,9 @@ run_effects_stage :: fn(file: Path, module_filter: string[], target: Target | nu
 
 run_comptime_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
     scope :: dump_scope(module_filter, pipeline.loaded)
     println(dump_evaluated(pipeline.evaluated, scope))
     // The dump is Markdown, so its diagnostics are a Markdown section ; the
@@ -297,8 +308,9 @@ run_comptime_stage :: fn(
 
 run_cfg_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
     // A front-end-rejected program is never lowered : print its diagnostics alone.
     le :: lower_to_entry_from(pipeline)
     cfg_diags: Diagnostic[]: []
@@ -322,8 +334,9 @@ run_ranges_stage :: fn(
     module_filter: string[],
     include_path_flags: string[],
     target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
     le :: lower_to_entry_from(pipeline)
     scope :: dump_scope(module_filter, pipeline.loaded)
     cfg_diags: Diagnostic[]: []
@@ -357,9 +370,10 @@ parse_dump_target :: fn(flag: string) -> Target | null | TargetParseError {
 
 run_bytecode_stage :: fn(
     file: Path, annotate: bool, include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
     // The bytecode dump never renders `debug`, so skip populating it.
-    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, target)
+    b :: prepare_cfg_bytecode_with(file, false, include_path_flags, project_root, target)
     // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
     // skips lowering on a front-end error) — print only the diagnostics, never
     // a bare `module` shell for code that was never compiled. Gate on
@@ -389,11 +403,13 @@ run_bytecode_stage :: fn(
 
 run_c_stage :: fn(
     file: Path, line_directives: bool, include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
     // `dump --stage=c` is a non-release C view. The C carries a `#line` wherever
     // the bytecode records a position, so `want_debug` is the switch.
     b :: prepare_cfg_bytecode_with(
-        file, line_directives, include_path_flags, target, false, proves_bounds(false),
+        file, line_directives, include_path_flags, project_root, target, false,
+        proves_bounds(false),
     )
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
@@ -430,8 +446,9 @@ run_c_stage :: fn(
 
 run_lower_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
     // A front-end-rejected program is never lowered : print its diagnostics alone.
     le :: lower_to_entry_from(pipeline)
     if !any_error_diag(le.pre_diags) {
@@ -454,8 +471,8 @@ run_lower_stage :: fn(
 // (`tests/target_model.test.ts`), and it needs NO TOOLCHAIN — so it answers for
 // every target from any machine, which is what makes cross-target selection
 // testable in CI as it stands.
-run_targets_stage :: fn(file: Path, target: Target | null) -> i32 {
-    project :: load_project(file.as_string(), [], target)
+run_targets_stage :: fn(file: Path, target: Target | null, project_root: string | null) -> i32 {
+    project :: load_project(file.as_string(), [], project_root, target)
     // The baked constants, read back from the module the compiler GENERATED —
     // not re-rendered from the `Target` parsed above. The difference is the
     // whole point: a build that parses `--target=windows-x86_64` and then bakes
@@ -545,8 +562,9 @@ selected_by_target :: fn(fd: FnDecl) -> bool {
 
 run_dced_stage :: fn(
     file: Path, module_filter: string[], include_path_flags: string[], target: Target | null,
+    project_root: string | null,
 ) -> i32 {
-    pipeline :: prepare_evaluated_project_with(file, include_path_flags, target)
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags, project_root, target)
     // A front-end-rejected program is never lowered : print its diagnostics alone.
     le :: lower_to_entry_from(pipeline)
     if !any_error_diag(le.pre_diags) {

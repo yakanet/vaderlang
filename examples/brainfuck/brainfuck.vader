@@ -22,9 +22,12 @@
 // emits a "store 0" sequence and the BF program sees end-of-stream as 0.
 //
 // Usage :
-//   vader run examples/brainfuck/brainfuck.vader              # runs examples/brainfuck/hello.bf
-//   vader run examples/brainfuck/brainfuck.vader path/to.bf   # arbitrary BF source
-//   vader build --out=bf examples/brainfuck/brainfuck.vader   # then ./bf path/to.bf
+//   vader run examples/brainfuck              # runs examples/brainfuck/hello.bf
+//   vader run examples/brainfuck path/to.bf   # arbitrary BF source
+//   vader build --out=bf examples/brainfuck   # then ./bf path/to.bf
+//
+// The folder is a project: its `vader.json` reaches the compiler's own modules
+// (`vader/vm`, `vader/bytecode`) at the root of the checkout.
 //
 // Built natively or run by `vader run`, this program embeds the VM : the
 // Brainfuck module always runs on it.
