@@ -201,13 +201,18 @@ export build_reference_index :: fn(project: LoadedProject, result: CheckResult) 
                 add_named(index, RefSite { .span = sp, .key = key })
             }
             // The resolver keys a parameter's symbol by the parameter's whole
-            // span ; its site is its name alone.
+            // span ; its site is its name alone, in this file. A parameter a
+            // clone copied from elsewhere (an impl's SAM member taking its
+            // trait's) has no name here.
             for p in found.params {
+                if p.name_span.start.file != f.program.file {
+                    continue
+                }
                 sym :: typed.resolved.idents[p.span.hash()] ?? continue
                 key :: target_key(typed, sym)
                 index.confined.add(key)
                 add_named(index, RefSite {
-                    .span    = param_name_span(f.content, p),
+                    .span    = p.name_span,
                     .key     = key,
                     .is_decl = true,
                 })
@@ -404,7 +409,7 @@ add_namespace_member :: fn(index: IndexBuilder, typed: TypedProgram, e: AST.Fiel
 //
 // Accumulate every identifier-bearing span : `IdentExpr` use-sites AND the
 // name_spans of declarations the body-walker records in `idents` — local lets,
-// params, type-params, for-bindings, pattern bindings. Top-level decl names are
+// type-params, for-bindings, pattern bindings. Top-level decl names are
 // NOT pushed here (they come from `resolved.symbols`). Every expression node is
 // gathered too, for the call sites the typecheck recorded at it, and every impl
 // member a source declares.
@@ -413,7 +418,6 @@ Collected :: struct {
     spans: Span[] = []
     nodes: AST.Expr[] = []
     members: AST.FnDecl[] = []
-    /// The parameters of fns and lambdas, whose name span is read from the source.
     params: AST.FnParam[] = []
 }
 

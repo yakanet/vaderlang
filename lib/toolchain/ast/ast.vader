@@ -356,15 +356,21 @@ export FnParam :: struct {
     span:          Span
     id:            i64 = UNASSIGNED_NODE_ID
     name:          string
+    /// The name alone, where `span` covers the whole slot, decorators, a variadic
+    /// `...`, the type and the default included : what a rename rewrites. `span`
+    /// stays the parameter's identity, the key of the side tables.
+    ///
+    /// REQUIRED, like `decorators` and for the same reason.
+    name_span:     Span
     // Optional in lambdas.
     ty:            TypeExpr | null
     default_value: Expr | null
     variadic:      bool
     /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
     ///
-    /// REQUIRED, with no default, deliberately: three sites in
-    /// `resolver/materialize.vader` rebuild a `FnParam` field by field, and a
-    /// defaulted field is dropped there in silence.
+    /// REQUIRED, with no default, deliberately: `resolver/substitute_body.vader`
+    /// rebuilds a `FnParam` field by field, and a defaulted field is dropped
+    /// there in silence.
     decorators:    Decorator[]
 }
 

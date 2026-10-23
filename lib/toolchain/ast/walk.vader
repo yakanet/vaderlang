@@ -386,6 +386,7 @@ lambda_of :: fn(param_type: Expr, body: Expr) -> LambdaExpr {
     param :: FnParam {
         .span = empty_span(),
         .name = "x",
+        .name_span = empty_span(),
         .ty = param_type,
         .default_value = null,
         .variadic = false,

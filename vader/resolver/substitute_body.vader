@@ -297,6 +297,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 }
                 new_params.push(AST.FnParam {
                     .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
+                    .name_span = pm.name_span,
                     .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
                     // Carried over — see the field's own note on why it has no default.
                     .decorators = pm.decorators,
@@ -725,6 +726,7 @@ stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
             e.span = next_clone_span(stamp)
             for pm in e.params {
                 pm.span = next_clone_span(stamp)
+                pm.name_span = empty_span()
                 if pm.ty !is null {
                     stamp_expr_spans(pm.ty, stamp)
                 }

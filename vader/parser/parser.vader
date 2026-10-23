@@ -1287,6 +1287,7 @@ parse_fn_signature_params :: fn(p: Parser) -> FnSignature {
             params.push(FnParam {
                 .span          = p.span_of(start_tok, p.peek_at(-1)),
                 .name          = param_name_tok.text,
+                .name_span     = param_name_tok.span,
                 .ty            = ty,
                 .default_value = default_value,
                 .variadic      = is_variadic,
@@ -3629,6 +3630,7 @@ parse_single_param_lambda_tail :: fn(p: Parser, param_ident: IdentExpr) -> Lambd
     param :: FnParam {
         .span          = param_ident.span,
         .name          = param_ident.name,
+        .name_span     = param_ident.span,
         .ty            = null,
         .default_value = null,
         .variadic      = false,

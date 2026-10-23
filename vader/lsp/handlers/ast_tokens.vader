@@ -273,9 +273,7 @@ walk_opt_block :: fn(b: AST.BlockExpr | null, out: RawToken[]) -> void {
 }
 
 walk_fn_param :: fn(p: AST.FnParam, out: RawToken[]) -> void {
-    // `p.span` runs through the type annotation (`a: i32`) ; tag only the
-    // param name so the type token below doesn't overlap it.
-    push_name_token(out, p.span.start, 0, p.name, .Parameter)
+    push_span(out, p.name_span, .Parameter)
     walk_opt_type(p.ty, out)
     walk_opt_expr(p.default_value, out)
 }

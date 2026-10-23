@@ -130,6 +130,7 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
         out.push(AST.FnParam {
             ...p,
             .span = next_clone_span(stamp),
+            .name_span = empty_span(),
             .id = AST.UNASSIGNED_NODE_ID,
             .ty = substitute_opt_type(p.ty, subst),
         })
@@ -160,6 +161,7 @@ substitute_params_disambiguated :: fn(
         out.push(AST.FnParam {
             ...p,
             .span = span,
+            .name_span = empty_span(),
             .id = AST.UNASSIGNED_NODE_ID,
             .ty = substitute_opt_type(p.ty, subst),
         })

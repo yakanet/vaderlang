@@ -760,48 +760,14 @@ ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
         is null      -> {}
         is BlockExpr -> {
             scope :: body.span
-            // Params live for the whole body. Goto-def lands on the name
-            // alone, not on the whole `name: T = default` of `FnParam.span`.
+            // Params live for the whole body.
             for p in f.params {
                 sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, param_name_span(source, p), scope, sig))
+                entries.push(binding_entry(p.name, .Param, p.name_span, scope, sig))
             }
             ix_walk_block(body, source, entries)
         }
     }
-}
-
-// The span of `p`'s name in `source`, the text of its file : past its decorators
-// and a variadic `...`, where its span starts.
-param_name_span :: fn(source: string, p: FnParam) -> Span {
-    at := p.span.start
-    for deco in p.decorators {
-        if deco.span.end.offset > at.offset {
-            at = deco.span.end
-        }
-    }
-    for at.offset < source.byte_len() && !is_word_byte(source.byte_at(at.offset)) {
-        at = past_byte(at, source.byte_at(at.offset))
-    }
-    end :: Position {
-        ...at,
-        .offset = at.offset + p.name.byte_len(),
-        .column = at.column + i32(p.name.len()),
-    }
-    return Span { .start = at, .end = end }
-}
-
-// The position after the ASCII byte `b` at `at`.
-past_byte :: fn(at: Position, b: u8) -> Position {
-    if b == '\n' {
-        return Position {
-            .file   = at.file,
-            .offset = at.offset + 1,
-            .line   = at.line + 1,
-            .column = 1,
-        }
-    }
-    return Position { ...at, .offset = at.offset + 1, .column = at.column + 1 }
 }
 
 // `b` is the block being walked. Locals it declares scope from their
@@ -967,7 +933,7 @@ ix_walk_expr :: fn(e: Expr, source: string, entries: DeclEntry[]) -> void {
             scope :: e.body.span
             for p in e.params {
                 sig :: param_signature_slice(p.span, p.name, source)
-                entries.push(binding_entry(p.name, .Param, param_name_span(source, p), scope, sig))
+                entries.push(binding_entry(p.name, .Param, p.name_span, scope, sig))
             }
             ix_walk_block(e.body, source, entries)
         }

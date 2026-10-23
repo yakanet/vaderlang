@@ -204,17 +204,35 @@ mint_local :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span)
 // header's `x ::` doesn't route here : reusing the scrutinee's name there is
 // idiomatic, not problematic shadowing.
 bind_local_checked :: fn(self: ResolveState, kind: SymbolKind, name: string, span: Span) -> Symbol {
+    self.warn_collision(name, span)
+    return self.bind_local(kind, name, span)
+}
+
+// Bind the parameter `p` under its whole slot, the span the side tables key it
+// by, while a collision warning points at its name. The Symbol is persisted in
+// `idents` under that span so a pass recovers it with no use site to read : the
+// comptime fn-body interpreter, and the lambda-lifter, which would otherwise drop
+// an unused param and break the closure's `[env +] params` arity at
+// `call.indirect`.
+bind_param :: fn(self: ResolveState, p: AST.FnParam) -> void {
+    self.warn_collision(p.name, p.name_span)
+    self.idents[p.span.hash()] = self.bind_local(.Param, p.name, p.span)
+}
+
+// Push W0009 or W0008 when `name`, about to be bound at `at`, collides with a
+// local or a parameter already in scope (see `bind_local_checked`).
+warn_collision :: fn(self: ResolveState, name: string, at: Span) -> void {
     // `_` is the discard wildcard — many `_` bindings coexist by design
     // (`for _ in …`, `_ :: expr`), so never flag it as a shadow / redeclaration.
     idx :: if name == "_" { -1 } else { self.scope.lookup_frame_index(name) }
-    if idx > 0 {
-        if idx == self.scope.frame_count() - 1 {
-            self.diags.push(warning(.LocalRedeclaration, span, "`${name}`"))
-        } else {
-            self.diags.push(warning(.LocalShadowsOuter, span, "`${name}`"))
-        }
+    if idx <= 0 {
+        return
     }
-    return self.bind_local(kind, name, span)
+    if idx == self.scope.frame_count() - 1 {
+        self.diags.push(warning(.LocalRedeclaration, at, "`${name}`"))
+    } else {
+        self.diags.push(warning(.LocalShadowsOuter, at, "`${name}`"))
+    }
 }
 
 // Mint a value binding (`.Local`, `.Param`, `.Binding`) and bind it, with no
@@ -345,12 +363,7 @@ walk_fn_decl :: fn(self: ResolveState, d: AST.FnDecl) -> void {
     for p in d.params {
         self.walk_opt_expr(p.ty)
         self.walk_opt_expr(p.default_value)
-        sym :: self.bind_local_checked(.Param, p.name, p.span)
-        // Persist the param's minted Symbol in `idents` keyed by the
-        // param's own span so downstream passes (e.g. comptime fn-body
-        // interpreter) can recover the Symbol.id without re-walking
-        // the body to find a use-site.
-        self.idents[p.span.hash()] = sym
+        self.bind_param(p)
     }
     for contract in d.decorators {
         if !is_contract_decorator(contract.name) {
@@ -919,14 +932,7 @@ walk_lambda :: fn(self: ResolveState, l: AST.LambdaExpr) -> void {
     self.scope.push()
     for p in l.params {
         self.walk_opt_expr(p.ty)
-        sym :: self.bind_local_checked(.Param, p.name, p.span)
-        // Persist the param's Symbol in `idents` at its def-site (mirror
-        // `walk_fn_decl`) so the lambda-lifter (`lambda_params`) recovers
-        // it even when the body never references the param. Without this, an
-        // unused lambda param is dropped from the lifted fn, whose arity then
-        // mismatches the closure's `[env +] params` calling convention at
-        // `call.indirect` (VM trap ; native miscompile).
-        self.idents[p.span.hash()] = sym
+        self.bind_param(p)
     }
     self.walk_opt_expr(l.return_type)
     self.walk_block(l.body)
