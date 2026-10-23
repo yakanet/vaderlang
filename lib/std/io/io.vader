@@ -754,25 +754,25 @@ is_dir :: fn(path: string) -> bool {
 /// cache compares to learn that a file changed without reading it.
 ///
 /// @param path  filesystem path to probe.
-/// @return      the time, or null when `path` does not exist or cannot be
-///              probed.
+/// @error       `IOError` when `path` cannot be probed : `NotFound` when it does
+///              not exist.
 @target
-export modification_time :: fn(path: string) -> i64 | null
+export modification_time :: fn(path: string) -> i64 | IOError
 
 @target(.Linux, .Darwin)
-modification_time :: fn(path: string) -> i64 | null {
+modification_time :: fn(path: string) -> i64 | IOError {
     nanoseconds :: sys_path_mtime(path)
     if nanoseconds == -1 {
-        return null
+        return last_io_error("cannot probe file")
     }
     return nanoseconds
 }
 
 @target(.Windows)
-modification_time :: fn(path: string) -> i64 | null {
+modification_time :: fn(path: string) -> i64 | IOError {
     data: u32[]: [0] * 9
     if !get_file_attributes_ex(to_wide(path), GET_FILE_EX_INFO_STANDARD, data) {
-        return null
+        return last_io_error("cannot probe file")
     }
     ticks :: i64(data[5]) | (i64(data[6]) << 32)
     return (ticks - FILETIME_UNIX_EPOCH_TICKS) * 100
@@ -1081,9 +1081,14 @@ import "std/testing"
     assert(wrote !is IOError, "the probe was written")
     defer remove_file(file)
 
-    written :: modification_time(file) ?? 0
-    assert(written > 0, "a file just written has a time after the epoch")
-    assert(modification_time("${temp_dir()}/vader_mtime_absent") == null, "a missing path has none")
+    written :: modification_time(file)
+    assert(written is i64 && written > 0, "a file just written has a time after the epoch")
+    missing :: modification_time("${temp_dir()}/vader_mtime_absent")
+    if missing is IOError {
+        assert_eq(missing.kind, .NotFound)
+    } else {
+        assert(false, "a missing path has no modification time")
+    }
 }
 
 @test test_a_failed_read_carries_why :: fn() -> void {

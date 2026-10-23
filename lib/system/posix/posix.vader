@@ -109,7 +109,7 @@ export sys_path_kind :: fn(path: string) -> i32
 /// gives, and Darwin names it `st_mtimespec` where Linux says `st_mtim`.
 ///
 /// @param path  the path to probe.
-/// @return      -1 when `stat` fails, for any reason.
+/// @return      -1 when `stat` fails, `errno` saying why.
 @extern("vader_path_mtime")
 export sys_path_mtime :: fn(path: string) -> i64
 

@@ -210,7 +210,10 @@ file_symbols :: fn(
     if open != null {
         return symbols_of(open, path, module)
     }
-    mtime :: modification_time(path) ?? return []
+    mtime :: modification_time(path)
+    if mtime is IOError {
+        return []
+    }
     known :: state.symbols[path]
     if known != null && known.mtime == mtime {
         kept[path] = known
