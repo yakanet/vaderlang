@@ -792,12 +792,12 @@ static int64_t std_core_insert_point(void* l0, int64_t l1, int32_t l2, int32_t l
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static int32_t std_math_min_1(int32_t l0, int32_t l1);
+static int32_t std_math_min_2(int32_t l0, int32_t l1);
 static double std_math_min(double l0, double l1);
-static int32_t std_math_max_1(int32_t l0, int32_t l1);
+static int32_t std_math_max_2(int32_t l0, int32_t l1);
 static int32_t std_math_abs_1(int32_t l0);
 static double std_math_abs(double l0);
-static int32_t std_math_clamp_1(int32_t l0, int32_t l1, int32_t l2);
+static int32_t std_math_clamp_2(int32_t l0, int32_t l1, int32_t l2);
 static double std_math_clamp(double l0, double l1, double l2);
 static double std_math_max(double l0, double l1);
 
@@ -928,7 +928,7 @@ static int32_t snippet_main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(36));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 4u);
-    t1 = std_math_min_1(INT32_C(3), INT32_C(5));
+    t1 = std_math_min_2(INT32_C(3), INT32_C(5));
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l0, l2, l3);
     t0 = std_core_finish_buffer(l0, l2);
@@ -940,7 +940,7 @@ static int32_t snippet_main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(36));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 6u);
-    t1 = std_math_max_1(INT32_C(-2), INT32_C(8));
+    t1 = std_math_max_2(INT32_C(-2), INT32_C(8));
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l0, l2, l3);
     t0 = std_core_finish_buffer(l0, l2);
@@ -960,7 +960,7 @@ static int32_t snippet_main(void) {
     l0 = (void*) vader_buffer_new((size_t) INT64_C(44));
     l2 = INT64_C(0);
     l2 = std_core_write_string_at(l0, l2, 9u);
-    t1 = std_math_clamp_1(INT32_C(15), INT32_C(0), INT32_C(10));
+    t1 = std_math_clamp_2(INT32_C(15), INT32_C(0), INT32_C(10));
     l3 = ((int64_t) (int32_t) t1);
     l2 = std_core_write_int(l0, l2, l3);
     t0 = std_core_finish_buffer(l0, l2);
@@ -1876,7 +1876,7 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_math_min_1(int32_t l0, int32_t l1) {
+static int32_t std_math_min_2(int32_t l0, int32_t l1) {
     if ((l0 < l1)) {
         return l0;
     }
@@ -1890,7 +1890,7 @@ static double std_math_min(double l0, double l1) {
     return l1;
 }
 
-static int32_t std_math_max_1(int32_t l0, int32_t l1) {
+static int32_t std_math_max_2(int32_t l0, int32_t l1) {
     if ((l0 > l1)) {
         return l0;
     }
@@ -1913,10 +1913,10 @@ static double std_math_abs(double l0) {
     return l0;
 }
 
-static int32_t std_math_clamp_1(int32_t l0, int32_t l1, int32_t l2) {
+static int32_t std_math_clamp_2(int32_t l0, int32_t l1, int32_t l2) {
     int32_t t0, t1;
-    t0 = std_math_max_1(l0, l1);
-    t1 = std_math_min_1(t0, l2);
+    t0 = std_math_max_2(l0, l1);
+    t1 = std_math_min_2(t0, l2);
     return t1;
 }
 

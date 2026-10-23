@@ -163,7 +163,7 @@
     fn std.io.write  // std_io$write
     fn std.io.write_bytes  // std_io$write_bytes
   std/math
-    fn std.math.min  // std_math$min_1
+    fn std.math.min  // std_math$min_2
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

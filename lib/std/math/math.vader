@@ -63,12 +63,14 @@ export tan :: fn(x: f64) -> f64
 
 // ---- Comparison + helpers -------------------------------------------------
 //
-// `min` / `max` / `clamp` ship in `i32` / `i64` / `f64` flavours, `abs`
+// `min` / `max` / `clamp` ship in `i32` / `i64` / `f32` / `f64` flavours, `abs`
 // in `i32` + `f64` (unsigned types can't be negative). All dispatched via
 // first-param-type overloading (SPEC *Function overloading*).
 
 /// Smaller of two `f64`s. `min(NaN, x) == NaN` (NaN propagates).
 export min :: fn(a: f64, b: f64) = if a < b { a } else { b }
+/// Smaller of two `f32`s. `min(NaN, x) == NaN` (NaN propagates).
+export min :: fn(a: f32, b: f32) = if a < b { a } else { b }
 /// Smaller of two `i32`s.
 export min :: fn(a: i32, b: i32) = if a < b { a } else { b }
 /// Smaller of two `i64`s.
@@ -76,6 +78,8 @@ export min :: fn(a: i64, b: i64) = if a < b { a } else { b }
 
 /// Larger of two `f64`s. `max(NaN, x) == NaN`.
 export max :: fn(a: f64, b: f64) = if a > b { a } else { b }
+/// Larger of two `f32`s. `max(NaN, x) == NaN`.
+export max :: fn(a: f32, b: f32) = if a > b { a } else { b }
 /// Larger of two `i32`s.
 export max :: fn(a: i32, b: i32) = if a > b { a } else { b }
 /// Larger of two `i64`s.
@@ -93,6 +97,8 @@ export abs :: fn(x: i64) = if x < 0 { -x } else { x }
 /// Clamp `x` to `[lo, hi]`. Equivalent to `min(max(x, lo), hi)`. Behaviour
 /// when `lo > hi` matches the underlying calls — `lo` wins.
 export clamp :: fn(x: f64, lo: f64, hi: f64) = min(max(x, lo), hi)
+/// Clamp an `f32` to `[lo, hi]`.
+export clamp :: fn(x: f32, lo: f32, hi: f32) = min(max(x, lo), hi)
 /// Clamp an `i32` to `[lo, hi]`.
 export clamp :: fn(x: i32, lo: i32, hi: i32) = min(max(x, lo), hi)
 /// Clamp an `i64` to `[lo, hi]`.
@@ -158,6 +164,14 @@ import "std/testing"
 @test test_min_max_f64 :: fn() -> void {
     assert_close(min(1.5, 2.5), 1.5, 0.000001)
     assert_close(max(1.5, 2.5), 2.5, 0.000001)
+}
+
+@test test_min_max_clamp_f32 :: fn() -> void {
+    low: f32: 1.5
+    high: f32: 2.5
+    assert_eq(min(low, high), low)
+    assert_eq(max(low, high), high)
+    assert_eq(clamp(high, 0.0, low), low)
 }
 
 @test test_abs :: fn() -> void {

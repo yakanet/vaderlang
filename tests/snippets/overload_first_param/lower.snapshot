@@ -26,7 +26,7 @@
           __buf_0: Buffer = std.core.new_byte_buffer(i64(36))
           __off_1: i64 = 0
           __off_1 = std.core.write_string_at(__buf_0, __off_1, "min(3, 5)     = ")
-          __off_1 = std.core.write_int(__buf_0, __off_1, std_math$min_1(3, 5))
+          __off_1 = std.core.write_int(__buf_0, __off_1, std_math$min_2(3, 5))
           std.core.finish_buffer(__buf_0, __off_1)
       } :string)
       std.io.println<string>(concat_2("min(3.5, 5.0) = ", std.core.f64.to_string(std_math$min(3.5, 5.0))))
@@ -34,7 +34,7 @@
           __buf_2: Buffer = std.core.new_byte_buffer(i64(36))
           __off_3: i64 = 0
           __off_3 = std.core.write_string_at(__buf_2, __off_3, "max(-2, 8)    = ")
-          __off_3 = std.core.write_int(__buf_2, __off_3, std_math$max_1(-2, 8))
+          __off_3 = std.core.write_int(__buf_2, __off_3, std_math$max_2(-2, 8))
           std.core.finish_buffer(__buf_2, __off_3)
       } :string)
       std.io.println<string>({
@@ -49,7 +49,7 @@
           __buf_6: Buffer = std.core.new_byte_buffer(i64(44))
           __off_7: i64 = 0
           __off_7 = std.core.write_string_at(__buf_6, __off_7, "clamp(15, 0, 10)      = ")
-          __off_7 = std.core.write_int(__buf_6, __off_7, std_math$clamp_1(15, 0, 10))
+          __off_7 = std.core.write_int(__buf_6, __off_7, std_math$clamp_2(15, 0, 10))
           std.core.finish_buffer(__buf_6, __off_7)
       } :string)
       std.io.println<string>(concat_2("clamp(1.5, 0.0, 1.0)  = ", std.core.f64.to_string(std_math$clamp(1.5, 0.0, 1.0))))
@@ -120,11 +120,11 @@
     fn std_math$abs
     fn std_math$abs_1
     fn std_math$clamp
-    fn std_math$clamp_1
+    fn std_math$clamp_2
     fn std_math$max
-    fn std_math$max_1
+    fn std_math$max_2
     fn std_math$min
-    fn std_math$min_1
+    fn std_math$min_2
   system/posix
     struct system.posix.Pollfd  // system_posix$Pollfd
     struct system.posix.Winsize  // system_posix$Winsize

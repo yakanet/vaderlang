@@ -70,7 +70,7 @@ static int64_t std_core_write_int(void* l0, int64_t l1, int64_t l2);
 static void std_io_write(uint8_t l0, vader_string_t l1);
 static int32_t std_io_write_bytes(uint8_t l0, void* l1, int64_t l2);
 static void std_io_println__string(vader_string_t l0);
-static int32_t std_math_min_1(int32_t l0, int32_t l1);
+static int32_t std_math_min_2(int32_t l0, int32_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -317,7 +317,7 @@ static int32_t snippet_main(void* l0) {
     t1 = vader_array_read_u8(_a7_slotarr, _a7_slotarr->offset + (size_t) INT32_C(2), 2u);
     t2 = ((uint8_t) t1.payload.i);
     l9 = ((int32_t) (uint8_t) t2);
-    t0 = std_math_min_1(l8, l9);
+    t0 = std_math_min_2(l8, l9);
     l5 = ((int64_t) (int32_t) t0);
     l4 = std_core_write_int(l6, l4, l5);
     t3 = std_core_finish_buffer(l6, l4);
@@ -517,7 +517,7 @@ static void std_io_println__string(vader_string_t l0) {
     { vader_gc_top = gc_frame.prev; return; }
 }
 
-static int32_t std_math_min_1(int32_t l0, int32_t l1) {
+static int32_t std_math_min_2(int32_t l0, int32_t l1) {
     if ((l0 < l1)) {
         return l0;
     }

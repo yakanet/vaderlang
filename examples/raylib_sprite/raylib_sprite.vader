@@ -13,6 +13,8 @@ module "main"
 
 import "raylib"
 import "std/io"
+import "std/math"
+import "std/path"
 
 SCREEN_WIDTH: i32: 800
 SCREEN_HEIGHT: i32: 450
@@ -23,7 +25,7 @@ main :: fn() -> i32 {
     init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Vader + raylib")
     defer close_window()
     set_target_fps(60)
-    sprite_path :: "${get_application_directory()}sprite.png"
+    sprite_path :: Path(get_application_directory()).join("sprite.png").as_string()
     sprite :: load_texture(sprite_path)
     // raylib only logs the failure among its own lines.
     if sprite == null {
@@ -40,8 +42,8 @@ main :: fn() -> i32 {
         if is_key_down(.Left)  { position.x -= step }
         if is_key_down(.Down)  { position.y += step }
         if is_key_down(.Up)    { position.y -= step }
-        position.x = clamp_f32(position.x, 0.0, max_x)
-        position.y = clamp_f32(position.y, 0.0, max_y)
+        position.x = clamp(position.x, 0.0, max_x)
+        position.y = clamp(position.y, 0.0, max_y)
         begin_drawing()
         clear_background(RAYWHITE)
         draw_texture_v(sprite, position, WHITE)
@@ -50,15 +52,4 @@ main :: fn() -> i32 {
         end_drawing()
     }
     return 0
-}
-
-/// `value` brought back between `low` and `high`.
-clamp_f32 :: fn(value: f32, low: f32, high: f32) -> f32 {
-    if value < low {
-        return low
-    }
-    if value > high {
-        return high
-    }
-    return value
 }

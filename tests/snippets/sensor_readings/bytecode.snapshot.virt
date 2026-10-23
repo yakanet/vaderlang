@@ -345,7 +345,7 @@ fn 6 snippet$main (ref) -> i32
   local.set 9   ; $cast_96
   local.get 8   ; $cast_93
   local.get 9   ; $cast_96
-  call 15   ; std_math$min_1
+  call 15   ; std_math$min_2
   i32.to_i64
   local.set 5   ; $cast_16
   local.get 6   ; __buf_4
@@ -743,7 +743,7 @@ fn 14 std_io$println__string (string) -> void
   return
 end
 
-fn 15 std_math$min_1 (i32,i32) -> i32
+fn 15 std_math$min_2 (i32,i32) -> i32
   local.get 0   ; arg 0
   local.get 1   ; arg 1
   i32.lt
