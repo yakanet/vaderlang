@@ -14,11 +14,13 @@ away.
 drive roots, path separators, CRLF stdio, pipes, process spawn — every bug the
 Windows job has actually caught.
 
-**What it does not**: CI builds `x86_64-w64-mingw32` with gcc; this guest builds
-`aarch64` with clang. It isolates *OS* behaviour from *arch* behaviour, which is
-the axis the bugs live on — but a gcc-on-x86 codegen bug will not reproduce
-here. Install an x86_64 mingw in the same guest and let Prism emulate it if that
-day comes; the OS underneath stays real either way.
+**What it does not**: CI builds `x86_64-w64-mingw32` and this guest builds
+`aarch64`, both with clang (on the MinGW sysroot in CI, see
+[ADR 0021](../../docs/adr/0021-the-windows-ci-builds-with-clang-and-cc-is-read.md);
+llvm-mingw here). It isolates *OS* behaviour from *arch* behaviour, which is the
+axis the bugs live on. An x86_64 codegen bug will not reproduce here. Install an
+x86_64 mingw in the same guest and let Prism emulate it if that day comes; the
+OS underneath stays real either way.
 
 ## One-time setup
 

@@ -135,7 +135,7 @@ The `dist/vader-<os>-<arch>/` bundle (binary + `lib/` + C runtime) resolves `lib
 
 ### On Windows
 
-The runtime relies on GCC/Clang extensions (`__attribute__((weak))`), so build with **mingw-w64** (gcc or clang) — **not** MSVC. Install a toolchain with [winget](https://winstall.app/apps/BrechtSanders.WinLibs.MCF.UCRT), then run the PowerShell wrapper:
+The runtime relies on GCC/Clang builtins (`__builtin_add_overflow` and its siblings, `__builtin_clzll`), so build with **mingw-w64** (gcc or clang), **not** MSVC. Install a toolchain with [winget](https://winstall.app/apps/BrechtSanders.WinLibs.MCF.UCRT), then run the PowerShell wrapper:
 
 ```powershell
 winget install BrechtSanders.WinLibs.MCF.UCRT                       # mingw-w64 on PATH (once; reopen the terminal)
@@ -219,7 +219,7 @@ vader dump -s typed-ast      examples/hello/hello.vader   # same, via the alias
 
 ```sh
 vader build --emit=executable --out=/tmp/foo foo.vader            # native binary + foo.c
-vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`CC` is read by the bootstrap scripts only)
+vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C compiler (`--cc` wins over `CC`)
 ```
 
 **Cross-compile to Windows from macOS/Linux** — install [mingw-w64](https://www.mingw-w64.org/) (`brew install mingw-w64` / `apt install mingw-w64`), then point `vader build` at the cross-compiler. The `.exe` extension is added automatically when the triplet ends in `mingw32-gcc`:
@@ -228,6 +228,8 @@ vader build --emit=executable --cc=clang --out=/tmp/foo foo.vader # pick the C c
 vader build --emit=executable --cc=x86_64-w64-mingw32-gcc --out=/tmp/hello-win examples/hello/hello.vader
 file /tmp/hello-win.exe          # → PE32+ executable (console) x86-64, for MS Windows
 ```
+
+**On Windows, `vader build` needs mingw-w64 too.** The C it generates uses the same GCC/Clang builtins as the runtime (`__builtin_offsetof`, `__builtin_inf`), so MSVC cannot compile it; clang aimed at a MinGW sysroot works as well as the default `gcc`. A static library a program links must come from a MinGW toolchain too: one built by MSVC expects the MSVC C runtime.
 
 `std/process.spawn` works on Windows via `CreateProcess` + `CreatePipe` (ANSI argv via `CreateProcessA`; `CreateProcessW` / Unicode paths not yet wired).
 
