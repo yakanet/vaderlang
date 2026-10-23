@@ -35,7 +35,8 @@
 
 /* Windows: `GetCurrentThreadStackLimits` (the conservative old-gen stack scan,
  * vader_runtime.c) and `GetSystemTimePreciseAsFileTime` (the wall clock, called
- * by EMITTED code — `std/time` declares it through `@c_header("<windows.h>")`)
+ * by EMITTED code; `system/windows` declares it from `KERNEL32`, whose header
+ * is <windows.h>)
  * are Windows 8 APIs, declared only when `_WIN32_WINNT >= 0x0602`.
  * Some mingw-w64 toolchains leave `_WIN32_WINNT` unset (or below 0x0602),
  * gating those declarations out — `-Wimplicit-function-declaration` errors.
@@ -1526,9 +1527,11 @@ vader_array_t* vader_runtime_argv(int argc, char** argv,
 
 #include <time.h>
 
-#ifdef _WIN32
+/* A `<windows.h>` the generated C includes later (the header of a `CLibrary`
+ * such as `system/windows`'s `KERNEL32`) comes in lean: without winsock 1,
+ * which would clash with a binding's `<winsock2.h>`, nor OLE or the shell. */
+#if defined(_WIN32) && !defined(WIN32_LEAN_AND_MEAN)
 #  define WIN32_LEAN_AND_MEAN
-#  include <windows.h>
 #endif
 
 #endif /* VADER_H */
