@@ -330,6 +330,14 @@ NEW_FLAGS: FlagSpec[]: [
 // `doctor` probes the `cc` a build would invoke, so it takes the same override
 // `build` does — checking a compiler other than the one you would pass is a
 // check of nothing.
+INFO_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "json",
+        .kind = .Bool,
+        .help = "Report as JSON, for tools",
+    },
+]
+
 DOCTOR_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "json",
@@ -425,6 +433,13 @@ export COMMANDS: CommandSpec[]: [
         .summary = "Run the debug adapter (DAP over stdio)",
         .usage = "",
         .flags = [],
+        .tail = .None,
+    },
+    CommandSpec {
+        .name = "info",
+        .summary = "Describe a project folder: its entries, search roots and assets",
+        .usage = "[path]",
+        .flags = INFO_FLAGS,
         .tail = .None,
     },
     CommandSpec {

@@ -576,10 +576,11 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
   expect(typechecks).toBe(1);
 }, HEAVY_BUILD);
 
-test.concurrent("check, run and the build flags take a driven project too", async () => {
-  // REASON: the driver runs in two modes no fixture covers. `check` lowers and
-  // links nothing; `run` lets the driver generate, then runs the entry in the VM,
-  // which reads what was just generated and the search root the driver set.
+test.concurrent("info, check, run and the build flags take a driven project too", async () => {
+  // REASON: the driver runs in modes no fixture covers. `info` has it describe
+  // itself and compile nothing; `check` lowers and links nothing; `run` lets the
+  // driver generate, then runs the entry in the VM, which reads what was just
+  // generated and the search root the driver set.
   // Staged privately: both write the generated tree, and the project is edited.
   const dir = stage(GENERATE);
   staged.push(dir);
@@ -594,6 +595,16 @@ test.concurrent("check, run and the build flags take a driven project too", asyn
     .replace("${describe(p)}\")", "${describe(p)} / ${greeting()}\")"));
   mkdirSync(join(dir, "extra/greet"), { recursive: true });
   writeFileSync(join(dir, "extra/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
+
+  // The fixture's driver prints its own counters: they go to stderr, leaving
+  // stdout to the JSON a tool parses.
+  const info = await run(["info", "--json", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(info.exit).toBe(0);
+  const described = JSON.parse(info.stdout);
+  expect(described.kind).toBe("driver");
+  expect(described.includePaths).toEqual(["extra"]);
+  expect(described.entries).toEqual({ app: "src/main.vader" });
+  expect(existsSync(`${dir}/${GENERATED}`)).toBe(false);
 
   const checked = await run(["check", "."], { cwd: dir, env: TOOLCHAIN_ENV });
   expect(checked.stderr).not.toContain("error[");
@@ -613,6 +624,16 @@ test.concurrent("check, run and the build flags take a driven project too", asyn
   expect(emitted.exit).toBe(0);
   expect(existsSync(`${dir}/${BINARIES}/app.split.h`)).toBe(true);
   expect(existsSync(exePath(`${dir}/${BINARIES}/app`))).toBe(false);
+}, HEAVY_BUILD);
+
+test.concurrent("info describes a driver that adds no entry", async () => {
+  // REASON: `info` reports a project as declared, so the missing entry the
+  // corpus expectation pins as H6003 for a build is a line of the report here.
+  const { dir } = await drivenBuild("no_entry_added");
+  const r = await run(["info", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(r.stderr).not.toContain("error[");
+  expect(r.stdout).toContain("entry    none");
+  expect(r.exit).toBe(0);
 }, HEAVY_BUILD);
 
 test.concurrent("a named file bypasses the driver, and says so", async () => {

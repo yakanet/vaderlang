@@ -65,7 +65,6 @@ cmd_graph :: fn(args: string[]) -> i32 {
               else { GraphFormat.Mermaid }
     include_all :: parsed.string_flag("scope", "project") == "all"
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
-    include_path_flags.push_all(entry.include_paths)
 
     loaded :: load_project(entry.file.as_string(), include_path_flags, entry.project_root)
     // A parse or import error leaves a graph with edges missing — the one thing

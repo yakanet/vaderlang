@@ -53,6 +53,7 @@ main :: fn(argv: string[]) -> i32 {
     if action == "lint"   { return cmd_lint(action_args) }
     if action == "graph"  { return cmd_graph(action_args) }
     if action == "doctor" { return cmd_doctor(action_args) }
+    if action == "info"   { return cmd_info(action_args) }
 
     eprintln("vader: unknown action \"${action}\"")
     eprintln("run \"vader help\" for usage")

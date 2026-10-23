@@ -419,7 +419,14 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         return 1
     }
     if outcome is ProcessResult {
-        print(outcome.stdout)
+        // A driver run to describe or prepare the project works for another
+        // command, whose stdout carries that command's own output (`vader info
+        // --json`, `vader dump`): what the driver prints goes to stderr.
+        if request.mode == .Describe || request.mode == .Prepare {
+            eprint(outcome.stdout)
+        } else {
+            print(outcome.stdout)
+        }
         eprint(outcome.stderr)
         return outcome.exit
     }

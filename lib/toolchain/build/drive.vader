@@ -85,6 +85,12 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     destination :: ctx.target
     request     :: ctx.request
     output      :: output_request(ctx)
+    // A description reports the project as the driver declared it, with or
+    // without entries, and compiles nothing.
+    if request.mode == .Describe {
+        yield CompleteMessage { .code = write_description(ctx, ctx.entries) }
+        return
+    }
     if ctx.entries.len() == 0 {
         ctx.diagnostics.push(hook_error(.NoEntry, driver_span(ctx),
             "call `ctx.add_entry(...)` before iterating `messages()`"))
@@ -104,19 +110,15 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         yield CompleteMessage { .code = 1 }
         return
     }
-    if request.mode == .Prepare {
-        written :: write_driver_project(ctx.project_root, include_roots(ctx), chosen, ctx.assets)
-        if written is IOError {
-            eprintln("vader: cannot write `${driver_project_path(ctx.project_root)}`: ${written.message()}")
-            yield CompleteMessage { .code = 1 }
-            return
-        }
-        // A run works on one entry: among several with none named, the CLI asks
-        // the user to choose, and nothing needs compiling before that.
-        if chosen.len() > 1 {
-            yield CompleteMessage { .code = 0 }
-            return
-        }
+    if write_description(ctx, chosen) != 0 {
+        yield CompleteMessage { .code = 1 }
+        return
+    }
+    // A run among several entries with none named needs nothing compiled: the
+    // CLI asks the user to choose first.
+    if request.mode == .Prepare && chosen.len() > 1 {
+        yield CompleteMessage { .code = 0 }
+        return
     }
     // Generated modules of an EARLIER build would still resolve, and — file
     // names being content hashes — a module whose text changed would sit beside
@@ -132,8 +134,12 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
         return
     }
     writes_binaries :: writes_outputs && output.emit == "executable"
-    roots :: search_roots(ctx)
     project :: output.project_root
+    // The loader reads the driver's roots where it reads a manifest's.
+    if project != null {
+        register_project_roots(project, ctx.include_paths)
+    }
+    roots :: search_roots(ctx)
     for chosen_entry in chosen {
         entry :: Path(join_path(ctx.project_root, chosen_entry.path))
         // Declarations are delivered ONCE per build — the Jai property, without
@@ -236,6 +242,22 @@ binary_folder :: fn(out_flag: string, output_dir: string) -> string {
         return folder_of(Path(out_flag))
     }
     return output_dir
+}
+
+// Write the description the CLI asked for, the project as declared with
+// `entries`: 0, or 1 after saying why it could not be written. Nothing to do
+// when none was asked.
+write_description :: fn(ctx: BuildContext, entries: ManifestEntry[]) -> i32 {
+    path :: ctx.request.description
+    if path == "" {
+        return 0
+    }
+    written :: write_driver_description(path, ctx.include_paths, entries, ctx.assets)
+    if written is IOError {
+        eprintln("vader: cannot write `${path}`: ${written.message()}")
+        return 1
+    }
+    return 0
 }
 
 // The entries this run compiles: every one, or the one `--entry` names. Null

@@ -51,10 +51,10 @@ export BuildContext :: struct {
     /// whatever the compiler passed, which may be relative to the invocation
     /// directory. Join onto it rather than assuming a prefix.
     project_root:   string
-    /// Module search roots, GCC `-I` style, highest precedence first, as
-    /// `includePaths` in a `vader.json`: each relative to `project_root`, or
-    /// under the toolchain's folder when it starts with `$VADER_HOME`. Left
-    /// empty by `new_build_context`.
+    /// Module search roots, highest precedence first, as `includePaths` in a
+    /// `vader.json`: each relative to `project_root`, or under the toolchain's
+    /// folder when it starts with `$VADER_HOME`, searched after the project
+    /// folder. Left empty by `new_build_context`.
     include_paths:  string[]
     /// Folder holding the `vader` executable that started this build, and
     /// therefore its `lib/` and `runtime/c/`, as the request carries it.
@@ -168,8 +168,9 @@ export BuildTarget :: enum(u8) {
     None,
 }
 
-// Module search roots for the front end: the CLI's `--include-paths`, what the
-// driver configured, then the compiler's own `lib/`.
+// The roots the front end takes as flags: the CLI's `--include-paths`, then the
+// compiler's own `lib/`. What the driver configured reaches the loader at the
+// rank of a manifest's `includePaths` instead (`register_project_roots`).
 //
 // The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
 // so that a driver which replaces that list keeps the stdlib instead of getting
@@ -177,20 +178,9 @@ export BuildTarget :: enum(u8) {
 search_roots :: fn(ctx: BuildContext) -> string[] {
     roots: string[]: []
     roots.push_all(ctx.request.build.include_paths)
-    roots.push_all(include_roots(ctx))
     library :: library_root_of(ctx)
     if library != null {
         roots.push(library)
-    }
-    return roots
-}
-
-// The folders `ctx.include_paths` name, resolved as a `vader.json`'s are.
-include_roots :: fn(ctx: BuildContext) -> string[] {
-    library :: library_root_of(ctx)
-    roots: string[]: []
-    for p in ctx.include_paths {
-        roots.push(manifest_root(ctx.project_root, p, library))
     }
     return roots
 }
@@ -381,12 +371,6 @@ import "std/testing"
     ctx :: new_build_context(["driver", "/tmp/proj", "", "--check", "--release"])
     assert(ctx.request.mode == .Check, "the mode comes from args")
     assert(ctx.request.build.release, "and the profile")
-}
-
-@test test_include_paths_are_relative_to_the_project :: fn() -> void {
-    ctx :: new_build_context(["driver", "/tmp/proj"])
-    ctx.include_paths.push("src")
-    assert_eq(search_roots(ctx)[0], "/tmp/proj/src")
 }
 
 @test test_report_accumulates_in_order :: fn() -> void {

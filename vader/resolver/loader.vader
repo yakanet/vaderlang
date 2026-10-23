@@ -306,10 +306,32 @@ export search_roots :: fn(
     }
 }
 
-// The `vader.json` of `project_root`, empty for a file on its own.
+// What the project `project_root` declares: its `vader.json`, or the roots its
+// driver declared (`register_project_roots`); empty for a file on its own.
 manifest_at :: fn(project_root: string | null) -> Manifest {
     root :: project_root ?? return Manifest {}
-    return read_manifest(root)
+    if exists(join_path(root, MANIFEST_FILENAME)) {
+        return read_manifest(root)
+    }
+    declared :: declared_roots()[root] ?? return Manifest {}
+    return Manifest { .include_paths = declared }
+}
+
+// The module search roots of the projects without a `vader.json`, by project
+// folder, as their driver configured them.
+@singleton
+declared_roots :: fn() -> MutableMap<string, string[]> = MutableMap<string, string[]> {}
+
+/// Declare the module search roots of a project that has no `vader.json`, as
+/// its driver configured them. The loader reads them where it reads a
+/// manifest's `includePaths`: at the same rank, resolved the same way.
+///
+/// @param project_root  the project folder, with `\` or `/` separators.
+/// @param roots         the roots, each relative to the project or under
+///                      `$VADER_HOME`.
+export register_project_roots :: fn(project_root: string, roots: string[]) -> void {
+    // Keyed as the loader looks it up: it normalises the project folder.
+    declared_roots()[project_root.to_posix()] = roots
 }
 
 // `path` with `/` separators, null kept.
@@ -785,6 +807,33 @@ test_project_include_paths_calls_a_flag_the_builds_own :: fn() -> void {
     assert(paths.len() >= 1, "the flag is a root")
     assert_eq(paths[0].dir, "some/where")
     assert_eq(paths[0].origin, .Build)
+}
+
+@test
+test_declared_roots_rank_as_a_manifest_does :: fn() -> void {
+    // A driver's roots come after the project folder, as `includePaths` do, so
+    // they cannot shadow the project's own modules or the shipped namespaces.
+    root :: "/no/such/vader_declared_project"
+    register_project_roots(root, ["src"])
+    paths :: project_include_paths(root, manifest_at(root), [])
+    project_rank: i64 = -1
+    declared_rank: i64 = -1
+    for i in 0..<paths.len() {
+        if paths[i].dir == root {
+            project_rank = i
+        }
+        if paths[i].dir == "${root}/src" {
+            declared_rank = i
+        }
+    }
+    assert(project_rank >= 0, "the project folder is a root")
+    assert(declared_rank > project_rank, "the declared root follows it")
+}
+
+@test
+test_declared_roots_are_found_whatever_the_separators :: fn() -> void {
+    register_project_roots(r"C:\no\such\vader_project", ["vendor"])
+    assert_eq(manifest_at("C:/no/such/vader_project").include_paths.len(), 1)
 }
 
 @test

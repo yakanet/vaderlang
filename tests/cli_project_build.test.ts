@@ -92,6 +92,31 @@ test("run takes one entry, and check takes them all", async () => {
   expect(checked.exit).toBe(0);
 }, MEDIUM_BUILD);
 
+test("info describes a project folder and builds nothing", async () => {
+  const dir = stage(TWO_ENTRIES);
+  const text = await vader(["info", dir]);
+  expect(text.exit).toBe(0);
+  expect(text.stdout).toContain("(vader.json)");
+  expect(text.stdout).toContain("entry    tool → tool.vader");
+
+  const json = await vader(["info", "--json", dir]);
+  expect(json.exit).toBe(0);
+  const described = JSON.parse(json.stdout);
+  expect(described.kind).toBe("manifest");
+  expect(described.entries).toEqual({ app: "src/main.vader", tool: "tool.vader" });
+  expect(described.assets).toEqual(["data"]);
+  expect(described.includePaths).toEqual([]);
+  expect(existsSync(join(dir, "build"))).toBe(false);
+
+  const file = await vader(["info", join(dir, "tool.vader")]);
+  expect(file.exit).toBe(1);
+  expect(file.stderr).toContain("is a file; `vader info` describes a project folder");
+
+  const missing = await vader(["info", join(dir, "nope")]);
+  expect(missing.exit).toBe(1);
+  expect(missing.stderr).toContain("does not exist");
+}, MEDIUM_BUILD);
+
 test("no argument builds the current folder", async () => {
   const dir = stage(JSON.stringify({ entries: { app: "src/main.vader" } }));
   const r = await vader(["build"], dir);

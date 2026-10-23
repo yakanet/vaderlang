@@ -2,18 +2,18 @@
 // the driver tells it back.
 //
 // The CLI runs a project's `build.vader` as a child process and passes its
-// request as the driver's `args`. A driver run with `--prepare` answers with the
-// project as it described it, in the shape of a `vader.json`, from which the CLI
-// takes the entry `run`, `dump`, `lint` or `graph` works on and its module search
-// roots. The CLI and `toolchain/build` both read this file, so the two halves of
-// the exchange cannot drift.
+// request as the driver's `args`. A driver run with `--describe` or `--prepare`
+// answers with the project as it described it, in the shape of a `vader.json`,
+// written to a file the CLI names and reads back at once: `vader info` shows it,
+// and `run`, `dump`, `lint` and `graph` take their entry and the project's
+// module search roots from it. The CLI and `toolchain/build` both read this
+// file, so the two halves of the exchange cannot drift.
 
 module "vader/pipeline"
 
 import "json"
 import "std/collections"
 import "std/io"
-import "std/path"
 import "std/string"
 import "vader/resolver"
 import "vader/target"
@@ -27,6 +27,8 @@ export DriverMode :: enum {
     /// Write the project for the CLI, then run the front end, generation
     /// included, for the one entry chosen; stop there when several are.
     Prepare,
+    /// Write the project for the CLI and compile nothing.
+    Describe,
 }
 
 /// The CLI's request to a driver: what to do with the entries, and the build
@@ -38,6 +40,8 @@ export DriverRequest :: struct {
     mode:           DriverMode = .Build
     /// The entry `--entry` names, empty for every entry.
     selected:       string = ""
+    /// Where a driver run with `--describe` or `--prepare` writes the project.
+    description:    string = ""
     /// The build options; `project_root` names the project folder, and an
     /// empty `cc` the default C compiler.
     build:          BuildRequest = BuildRequest {}
@@ -45,6 +49,8 @@ export DriverRequest :: struct {
 
 CHECK_FLAG :: "--check"
 PREPARE_FLAG :: "--prepare"
+DESCRIBE_FLAG :: "--describe"
+DESCRIPTION_FLAG :: "--description="
 ENTRY_FLAG :: "--entry="
 RELEASE_FLAG :: "--release"
 VERIFY_FLAG :: "--verify"
@@ -64,12 +70,16 @@ INCLUDE_PATHS_FLAG :: "--include-paths="
 export driver_request_args :: fn(request: DriverRequest) -> string[] {
     args :: [request.build.project_root ?? "", request.toolchain_root]
     match request.mode {
-        .Build   -> {}
-        .Check   -> { args.push(CHECK_FLAG) }
-        .Prepare -> { args.push(PREPARE_FLAG) }
+        .Build    -> {}
+        .Check    -> { args.push(CHECK_FLAG) }
+        .Prepare  -> { args.push(PREPARE_FLAG) }
+        .Describe -> { args.push(DESCRIBE_FLAG) }
     }
     if request.selected != "" {
         args.push("${ENTRY_FLAG}${request.selected}")
+    }
+    if request.description != "" {
+        args.push("${DESCRIPTION_FLAG}${request.description}")
     }
     args.push_all(build_request_args(request.build))
     return args
@@ -131,8 +141,12 @@ export parse_driver_request :: fn(args: string[]) -> DriverRequest {
             request.mode = .Check
         } else if arg == PREPARE_FLAG {
             request.mode = .Prepare
+        } else if arg == DESCRIBE_FLAG {
+            request.mode = .Describe
         } else if arg.starts_with(ENTRY_FLAG) {
             request.selected = arg.trim_prefix(ENTRY_FLAG)
+        } else if arg.starts_with(DESCRIPTION_FLAG) {
+            request.description = arg.trim_prefix(DESCRIPTION_FLAG)
         } else {
             read_build_arg(request.build, arg)
         }
@@ -166,46 +180,50 @@ read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
     }
 }
 
-// ---- the project a prepared driver writes ---------------------------------
-
-// The file, in `DRIVER_ARTEFACT_DIR`.
-DRIVER_PROJECT_FILENAME :: "project.json"
-
-/// Where a driver run with `--prepare` writes the project it described.
-///
-/// @param root  the project folder.
-export driver_project_path :: fn(root: string) -> string =
-    join_path(join_path(root, DRIVER_ARTEFACT_DIR), DRIVER_PROJECT_FILENAME)
+// ---- the project a driver describes --------------------------------------
 
 /// Write the project a driver described, in the shape of a `vader.json`:
-/// `includePaths` holds the module search roots as the driver resolved them,
+/// `includePaths` holds the module search roots as the driver declared them,
 /// `entries` the entries chosen, `assets` the files to copy.
 ///
-/// @param root           the project folder.
-/// @param include_paths  the module search roots, ready for the loader.
-/// @param entries        the entries chosen, paths relative to `root`.
-/// @param assets         the assets, relative to `root`.
+/// @param path           where the CLI asked for it.
+/// @param include_paths  the module search roots, each relative to the project
+///                       or under `$VADER_HOME`.
+/// @param entries        the entries chosen, paths relative to the project.
+/// @param assets         the assets, relative to the project.
 /// @error                the `IOError` of a file that could not be written.
-export write_driver_project :: fn(
-    root: string,
+export write_driver_description :: fn(
+    path: string,
     include_paths: string[],
     entries: ManifestEntry[],
     assets: string[],
 ) -> null | IOError {
-    path :: driver_project_path(root)
-    made :: create_dir(folder_of(Path(path)))
-    if made is IOError {
-        return made
-    }
+    project :: MutableMap<string, JsonValue> {}
+    write_project_json(project, include_paths, entries, assets)
+    return write_file_string(path, stringify(JsonObject { .entries = project }))
+}
+
+/// Add a project's keys to `out` in the shape of a `vader.json`: what a driver
+/// describes, and what `vader info --json` reports.
+///
+/// @param out            the JSON object being built; keys already there stay
+///                       first.
+/// @param include_paths  the module search roots, as declared.
+/// @param entries        the entries, paths relative to the project.
+/// @param assets         the assets, relative to the project.
+export write_project_json :: fn(
+    out: MutableMap<string, JsonValue>,
+    include_paths: string[],
+    entries: ManifestEntry[],
+    assets: string[],
+) -> void {
     named :: MutableMap<string, JsonValue> {}
     for entry in entries {
         named[entry.name] = JsonString { .value = entry.path }
     }
-    project :: MutableMap<string, JsonValue> {}
-    project["includePaths"] = string_array(include_paths)
-    project["entries"] = JsonObject { .entries = named }
-    project["assets"] = string_array(assets)
-    return write_file_string(path, stringify(JsonObject { .entries = project }))
+    out["includePaths"] = string_array(include_paths)
+    out["entries"] = JsonObject { .entries = named }
+    out["assets"] = string_array(assets)
 }
 
 // `strings` as a JSON array.
@@ -217,14 +235,14 @@ string_array :: fn(strings: string[]) -> JsonValue {
     return JsonArray { .items = items }
 }
 
-/// The project a driver run with `--prepare` wrote.
+/// The project a driver described.
 ///
-/// @param root  the project folder.
+/// @param path  where the driver wrote it.
 /// @return      the project; its `problems` say what a malformed file gets
 ///              wrong.
 /// @error       the `IOError` of a file the driver did not write.
-export read_driver_project :: fn(root: string) -> Manifest | IOError {
-    text :: read_file_string(driver_project_path(root))
+export read_driver_description :: fn(path: string) -> Manifest | IOError {
+    text :: read_file_string(path)
     if text is IOError {
         return text
     }
@@ -241,6 +259,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
         .toolchain_root = "/t",
         .mode = .Prepare,
         .selected = "tool",
+        .description = "/tmp/project.json",
         .build = BuildRequest {
             .project_root = "/p",
             .release = true,
@@ -258,6 +277,7 @@ test_driver_request_round_trips_through_args :: fn() -> void {
     assert_eq(received.toolchain_root, "/t")
     assert(received.mode == .Prepare, "the mode crosses")
     assert_eq(received.selected, "tool")
+    assert_eq(received.description, "/tmp/project.json")
     assert(received.build.release, "the profile crosses")
     assert_eq(received.build.cc, "")
     assert_eq(received.build.ldflags, "-L lib -lm")
@@ -280,18 +300,19 @@ test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
 }
 
 @test
-test_driver_project_reads_back_as_a_manifest :: fn() -> void {
-    root :: join_path(temp_dir(), "vader_driver_project")
+test_driver_description_reads_back_as_a_manifest :: fn() -> void {
+    path :: join_path(temp_dir(), "vader_driver_description.json")
     entries :: [ManifestEntry { .name = "app", .path = "src/main.vader" }]
-    written :: write_driver_project(root, ["/p/src"], entries, ["data"])
+    written :: write_driver_description(path, ["src"], entries, ["data"])
     assert(written == null, "the project is written")
-    read :: read_driver_project(root)
+    read :: read_driver_description(path)
+    remove_file(path)
     if read is IOError {
         assert(false, "the project reads back")
         return
     }
     assert_eq(read.problems.len(), 0)
-    assert_eq(read.include_paths[0], "/p/src")
+    assert_eq(read.include_paths[0], "src")
     assert_eq(read.entries[0].name, "app")
     assert_eq(read.assets[0], "data")
 }

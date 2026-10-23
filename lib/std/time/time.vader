@@ -84,11 +84,11 @@ monotonic_ns :: fn() -> i64 {
 
 @target(.Windows)
 monotonic_ns :: fn() -> i64 {
-    freq: i64[] = [0]
+    freq: i64[]: [0]
     if !query_performance_frequency(freq) || freq[0] == 0 {
         return 0
     }
-    counter: i64[] = [0]
+    counter: i64[]: [0]
     if !query_performance_counter(counter) {
         return 0
     }

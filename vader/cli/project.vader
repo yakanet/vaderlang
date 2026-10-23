@@ -14,6 +14,7 @@ import "std/io"
 import "std/iter"
 import "std/path"
 import "std/string"
+Time :: import "std/time"
 import "vader/pipeline"
 import "vader/resolver"
 
@@ -61,20 +62,9 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
         }
         return FileInput { .file = path }
     }
-    has_driver :: find_build_driver(dir) != null
-    has_manifest :: exists(join_path(dir, MANIFEST_FILENAME))
-    if has_driver && has_manifest {
-        eprintln("vader ${command}: `${dir}` holds both a `${DRIVER_FILENAME}` and a "
-            + "`${MANIFEST_FILENAME}`; keep the one that describes its build")
-        return 1
-    }
-    if has_driver {
+    described_by :: project_description(command, dir, "; name the entry file instead") ?? return 1
+    if described_by == DRIVER_FILENAME {
         return DrivenProject { .dir = dir }
-    }
-    if !has_manifest {
-        eprintln("vader ${command}: `${dir}` holds neither a `${DRIVER_FILENAME}` nor a "
-            + "`${MANIFEST_FILENAME}`; name the entry file instead")
-        return 1
     }
     manifest :: checked_manifest(command, dir) ?? return 1
     entries :: select_entries(command, dir, manifest, selected) ?? return 1
@@ -85,14 +75,33 @@ resolve_input :: fn(command: string, path: Path, selected: string) -> ProjectInp
     }
 }
 
+// The file that describes the project folder `dir`, its `build.vader` or its
+// `vader.json`, or null after saying it holds both or neither; `otherwise`
+// ends the second message.
+project_description :: fn(command: string, dir: string, otherwise: string) -> string | null {
+    has_driver :: find_build_driver(dir) != null
+    has_manifest :: exists(join_path(dir, MANIFEST_FILENAME))
+    if has_driver && has_manifest {
+        eprintln("vader ${command}: `${dir}` holds both a `${DRIVER_FILENAME}` and a "
+            + "`${MANIFEST_FILENAME}`; keep the one that describes its build")
+        return null
+    }
+    if has_driver {
+        return DRIVER_FILENAME
+    }
+    if has_manifest {
+        return MANIFEST_FILENAME
+    }
+    eprintln("vader ${command}: `${dir}` holds neither a `${DRIVER_FILENAME}` nor a "
+        + "`${MANIFEST_FILENAME}`${otherwise}")
+    return null
+}
+
 /// One file to work on, and the project it belongs to.
 EntryInProject :: struct {
-    file:          Path
+    file:         Path
     /// The project folder, null for a file on its own.
-    project_root:  string | null
-    /// Module search roots a project's `build.vader` set, ready for the loader,
-    /// which reads those of a `vader.json` itself.
-    include_paths: string[] = []
+    project_root: string | null
 }
 
 // The one file `command` works on: the file `path` names, or the only entry of
@@ -110,35 +119,44 @@ single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProj
             return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
         is DrivenProject -> {
-            project :: prepared_project(command, input.dir, selected) ?? return 1
+            // The driver chooses the entry and generates first, so that
+            // `command` reads fresh generated code.
+            project :: described_project(command, input.dir, .Prepare, selected) ?? return 1
+            register_project_roots(input.dir, project.include_paths)
             entries :: project_entries(input.dir, project.entries)
             entry :: sole_entry(command, input.dir, entries) ?? return 2
-            return EntryInProject {
-                .file = entry.file,
-                .project_root = input.dir,
-                .include_paths = project.include_paths,
-            }
+            return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
     }
 }
 
-// The project the `build.vader` of the folder `dir` describes, its entries
-// narrowed to the one `selected` names. The driver chooses the entries and runs
-// its generation first, so that `command` reads fresh generated code. Null after
-// the driver, or this function, said why there is none.
-prepared_project :: fn(command: string, dir: string, selected: string) -> Manifest | null {
-    // A driver that never drains its stream writes nothing: a previous run's
-    // answer must not stand in for it.
-    path :: driver_project_path(dir)
-    remove_file(path)
-    request :: DriverRequest { .mode = .Prepare, .selected = selected }
+// The project the `build.vader` of the folder `dir` describes, its driver run
+// in `mode` with `selected` as `--entry`. The driver writes the description to
+// a temporary file, read back and removed at once, so that its own output never
+// mixes with it. Null after the driver, or this function, said why there is
+// none.
+described_project :: fn(
+    command: string,
+    dir: string,
+    mode: DriverMode,
+    selected: string,
+) -> Manifest | null {
+    // Unique to this run: the language server may describe the project while a
+    // command in a terminal prepares it.
+    path :: join_path(temp_dir(), "vader-project-${i64(Time.monotonic())}.json")
+    request :: DriverRequest {
+        .mode = mode,
+        .selected = selected,
+        .description = path,
+    }
     if run_build_driver(command, dir, request) != 0 {
         return null
     }
-    project :: read_driver_project(dir)
+    project :: read_driver_description(path)
+    remove_file(path)
     if project is IOError {
-        eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir}` described no project "
-            + "at `${path}`; does it drain `ctx.messages()`?")
+        eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir}` described no project; "
+            + "does it drain `ctx.messages()`?")
         return null
     }
     return project

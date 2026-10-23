@@ -78,7 +78,6 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return resolved
     }
     entry :: resolved.file
-    include_path_flags.push_all(resolved.include_paths)
     project_root :: resolved.project_root
     if stage == "lexer" {
         return run_lexer_stage(entry)
