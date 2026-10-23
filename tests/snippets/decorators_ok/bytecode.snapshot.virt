@@ -1,6 +1,8 @@
 module _main
 type 0 scalar null
 type 1 scalar i32
+string 0 "env"
+string 1 ""
 export main 0
 
 fn 0 snippet$main () -> i32

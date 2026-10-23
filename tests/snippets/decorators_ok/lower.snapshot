@@ -1,6 +1,8 @@
 # Lower
 
 ## snippet
+  storage
+    const ENV: CLibrary  data pool #0, element 0
   snippet.log :: fn(ptr: i32, len: i32) -> void  // snippet$log
   snippet.test_log :: fn() -> void {  // snippet$test_log
       snippet.log(0, 0)
@@ -24,3 +26,5 @@
     struct std.core.Range<Any>  // std_core$Range__Any
     struct std.core.Range<i32>  // std_core$Range__i32
     struct std.core.Range<i64>  // std_core$Range__i64
+  std/ffi
+    struct std.ffi.CLibrary  // std_ffi$CLibrary

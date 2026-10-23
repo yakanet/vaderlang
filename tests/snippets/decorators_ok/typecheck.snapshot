@@ -1,8 +1,11 @@
 # Typecheck
 
 ## tests/snippets/decorators_ok
+  ConstDecl      ENV                  :: CLibrary
   FnDecl         log                  :: fn(i32, i32) -> void
   FnDecl         main                 :: fn() -> i32
   FnDecl         test_log             :: fn() -> void
-  expr 8:5      CallExpr       :: void
-  expr 8:5      IdentExpr      :: fn(i32, i32) -> void
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(i32, i32) -> void
+  expr 5:27     StringLitExpr  :: string
+  expr 5:8      StructLitExpr  :: CLibrary

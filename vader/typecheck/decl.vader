@@ -724,27 +724,19 @@ validate_extern :: fn(
             typecheck_error(
                 .InvalidExternDecl,
                 decl.span,
-                "`@extern` accepts 0, 1, or 2 string arguments — got ${args.len()}",
+                "`@extern` accepts 0, 1, or 2 arguments, got ${args.len()}",
             ),
         )
         return
     }
-    for i in 0..<args.len() {
-        a :: args[i]
-        if is_plain_string_literal(a) {
-            continue
+    // The symbol is the last argument; a library before it is checked once the
+    // bodies are walked (`check_extern_library`).
+    if args.len() > 0 {
+        symbol :: args[args.len() - 1]
+        if AST.string_literal_text(symbol) == null {
+            detail :: "`@extern` names its symbol with a plain string literal (no interpolation)"
+            diags.push(typecheck_error(.InvalidExternDecl, symbol.span, detail))
         }
-        // A library is checked once the bodies are walked (`check_extern_library`).
-        if i == 0 && args.len() == 2 {
-            continue
-        }
-        diags.push(
-            typecheck_error(
-                .InvalidExternDecl,
-                a.span,
-                "`@extern` arguments must be plain string literals (no interpolation)",
-            ),
-        )
     }
     for i in 0..<decl.params.len() {
         pt :: params[i]
@@ -851,9 +843,8 @@ validate_extern :: fn(
     }
     // Keyed on the SYMBOL alone, because that is what the C side can tell apart:
     // `emit_import_shims` dedupes on `extern_name` and emits ONE prototype per
-    // symbol, and the declared library reaches no `-l` — it is read by the VM's
-    // `ffi_open` and nowhere else. Keying on library + symbol would let two
-    // declarations through that the native backend then collapses into one
+    // symbol, whatever library declares it. Keying on library + symbol would let
+    // two declarations through that the native backend then collapses into one
     // prototype, the second shim calling the first's.
     //
     // The cost is that a stdlib `@extern` reserves its C name project-wide:
@@ -883,7 +874,7 @@ validate_extern :: fn(
 /// that is not a named constant, or one of another type.
 ///
 /// Runs after the module's bodies are walked, so a constant declared without a
-/// type has the one its value gave it. The older string form passes untouched.
+/// type has the one its value gave it.
 ///
 /// @param decl   a function declaration.
 /// @param typed  the module.
@@ -894,12 +885,12 @@ export check_extern_library :: fn(
     diags: Diagnostic[],
 ) -> void {
     args :: extern_decorator_args(decl.decorators)
-    if args.len() != 2 || is_plain_string_literal(args[0]) {
+    if args.len() != 2 {
         return
     }
     argument :: args[0]
     if argument !is AST.IdentExpr {
-        detail :: "the library is a `CLibrary` constant, named : `@extern(RAYLIB, \"InitWindow\")`"
+        detail :: "the library is a `CLibrary` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
         diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
         return
     }
@@ -959,19 +950,8 @@ extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
     return []
 }
 
-is_plain_string_literal :: fn(e: AST.Expr) -> bool {
-    if e !is AST.StringLitExpr {
-        return false
-    }
-    if e.parts.len() != 1 {
-        return false
-    }
-    return e.parts[0] is AST.StringLitText
-}
-
 /// `@extern("c_name")` override reader — falls back to the source fn
-/// name. Last string arg is the C symbol (2-arg form reserves the
-/// first slot for a future WASM module hint).
+/// name. Last string arg is the C symbol; the first of two is the library.
 ///
 /// `vader/midir/build.vader::extern_symbol_name` is the post-lowering twin
 /// (it runs on the `LoweredFnDecl` shape) and follows the same last-arg

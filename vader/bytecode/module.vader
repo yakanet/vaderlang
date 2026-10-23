@@ -179,8 +179,8 @@ export BcImport :: struct {
     /// Header to `#include` instead of synthesising a prototype, or `""`.
     /// See `FnMetadata.c_header`.
     c_header: string = ""
-    /// Library to open before resolving the symbol, or `""` for the default
-    /// scope. See `FnMetadata.c_library`.
+    /// The name of `library`, which the interpreter opens before resolving the
+    /// symbol, or `""` for the running process. A `.virt` carries only this.
     c_library: string = ""
     /// The `CLibrary` the declaration names, as evaluated ; null for none. What a
     /// native build adds to the compilation and the link for it (`native_flags`).

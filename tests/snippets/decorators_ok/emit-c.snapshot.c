@@ -5,8 +5,13 @@
 #include <string.h>
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
-static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };
-#define VADER_COMPTIME_ATOM_COUNT 0u
+static const char vader_atom_blob[] = "env" "\0";
+
+static const vader_atom_entry_t vader_atom_comptime_table[] = {
+    { 0u, 0u, 3u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+};
+
+#define VADER_COMPTIME_ATOM_COUNT 1u
 
 static int32_t snippet_main(void);
 

@@ -210,9 +210,6 @@ push_library_flags :: fn(flags: NativeFlags, library: Ct.NativeLibrary) -> void 
             flags.missing.push(MissingArchive { .library = library.name, .path = archive })
         }
     }
-    if library.archives.len() == 0 {
-        push_once(flags, flags.links, ["-l${library.name}"])
-    }
     for entry in library.system {
         push_once(flags, flags.links, system_link(entry))
     }

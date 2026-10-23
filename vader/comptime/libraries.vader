@@ -30,9 +30,16 @@ evaluate_extern_libraries :: fn(
     diags: Diagnostic[],
 ) -> void {
     constants :: ProjectConstants { .typed = typed }
+    // One library per constant, shared by every declaration naming it.
+    evaluated :: MutableMap<i32, NativeLibrary> {}
     failed :: MutableSet<i32> {}
     for [_, module_typed] in typed.modules {
         for [decl_id, symbol] in module_typed.extern_libraries {
+            known :: evaluated[symbol.id]
+            if known != null {
+                project.libraries[decl_id] = known
+                continue
+            }
             if symbol.id in failed {
                 continue
             }
@@ -41,6 +48,7 @@ evaluate_extern_libraries :: fn(
                 failed.add(symbol.id)
                 continue
             }
+            evaluated[symbol.id] = library
             project.libraries[decl_id] = library
         }
     }

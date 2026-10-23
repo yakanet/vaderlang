@@ -311,11 +311,6 @@ FnMetadata :: struct {
     is_extern:   bool
     /// See `BcImport.c_variadic_fixed`.
     c_variadic_fixed: i32
-    /// The library named by the 2-argument `@extern("kernel32", "WriteFile")`,
-    /// or `""`. The linker does not need it — it resolves against what is on the
-    /// command line — but the VM does: it opens the library to find the symbol,
-    /// and `GetStdHandle` lives in `kernel32.dll`, not in the C runtime.
-    c_library:   string
     /// `@c_header("<windows.h>")`, or `""`. When set, the emitter INCLUDES that
     /// header and does not synthesise a prototype — the header already has the
     /// real one, and a synthesised one that differs is a conflicting
@@ -332,7 +327,6 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     extern_name := d.mangled
     is_extern := false
     c_header := ""
-    c_library := ""
     c_variadic_fixed: i32 = -1
     fn_decl :: d.origin.decl
     if fn_decl is FnDecl {
@@ -341,14 +335,12 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
         // data lowers to (`lower_extern_values.vader`), not the import.
         is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
         c_header = c_header_of(fn_decl.decorators)
-        c_library = extern_library_name(fn_decl)
         c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
     }
     return FnMetadata {
         .extern_name = extern_name,
         .is_extern   = is_extern,
         .c_header    = c_header,
-        .c_library   = c_library,
         .c_variadic_fixed = c_variadic_fixed,
     }
 }
@@ -366,29 +358,6 @@ c_variadic_fixed_of :: fn(decorators: Decorator[]) -> i32 {
         }
     }
     return -1
-}
-
-/// The library named by a 2-argument `@extern`, or `""`.
-///
-/// `@extern("kernel32", "WriteFile")` names WHERE the symbol comes from: a
-/// linker library natively, a WASM import module, and the shared object the VM
-/// opens. One argument means the default resolution scope.
-///
-/// @param d  the declaration.
-/// @return   the library's bare name, or `""`.
-extern_library_name :: fn(d: FnDecl) -> string {
-    for dec in d.decorators {
-        if dec.name == "extern" && dec.args.len() == 2 {
-            a :: dec.args[0]
-            if a is StringLitExpr && a.parts.len() == 1 {
-                pt :: a.parts[0]
-                if pt is StringLitText {
-                    return pt.value
-                }
-            }
-        }
-    }
-    return ""
 }
 
 /// The header named by `@c_header("<...>")`, or `""` when absent.
@@ -410,7 +379,7 @@ c_header_of :: fn(decs: Decorator[]) -> string {
     return ""
 }
 
-/// `@extern("c_name")` / `@extern("module", "c_name")` reader — returns the
+/// `@extern("c_name")` / `@extern(LIBRARY, "c_name")` reader: returns the
 /// trailing string-lit arg (the host symbol). Falls back to the source name
 /// only when the decorator is absent or carries no args. Mirrors
 /// `vader/typecheck/decl.vader::extern_symbol_name_for` (last-arg convention),
@@ -463,7 +432,6 @@ make_extern_decl :: fn(
         .extern_name = meta.extern_name,
         .is_extern   = meta.is_extern,
         .c_header    = header_of(meta, library),
-        .c_library   = library_name_of(meta, library),
         .c_variadic_fixed = meta.c_variadic_fixed,
         .library     = library,
     }
@@ -487,15 +455,6 @@ header_of :: fn(meta: FnMetadata, library: NativeLibrary | null) -> string {
         return meta.c_header
     }
     return library.header
-}
-
-// What the interpreter opens: the library's name, else the string a 2-argument
-// `@extern` writes.
-library_name_of :: fn(meta: FnMetadata, library: NativeLibrary | null) -> string {
-    if library == null {
-        return meta.c_library
-    }
-    return library.name
 }
 
 /// Convert one body-having `LoweredFnDecl` into a `CFGFunction`.

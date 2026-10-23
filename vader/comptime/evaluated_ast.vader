@@ -137,7 +137,7 @@ export EvaluatedProject :: struct {
 /// A `CLibrary` (`std/ffi`) as the compiler evaluated it for the build target,
 /// its paths resolved against the folder of the module declaring it.
 export NativeLibrary :: struct {
-    /// What the interpreter opens, and the `-l` of a library with no archive.
+    /// What the interpreter opens.
     name:     string
     /// The default header of the `@extern` declarations naming it, `""` for none.
     header:   string   = ""

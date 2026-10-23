@@ -14,8 +14,7 @@ module "std/ffi"
 /// `name`.
 export CLibrary :: struct {
     /// What the interpreter opens: `lib<name>.dylib`, `lib<name>.so` or
-    /// `<name>.dll`. A native build links `-l<name>` when the library ships no
-    /// archive.
+    /// `<name>.dll`. A native build links what `archives` and `system` list.
     name: string
     /// The header declaring the library's functions, written as `@c_header`
     /// writes it. It serves every `@extern` naming the library without a
@@ -25,7 +24,7 @@ export CLibrary :: struct {
     /// compilation searches it (`-I`).
     include: string = ""
     /// Static archives shipped with the binding, relative to the module
-    /// declaring the constant. A native build links them in place of `-l<name>`.
+    /// declaring the constant.
     archives: string[] = []
     /// What the platform provides: a library by name (`"GL"` links `-lGL`), or an
     /// Apple framework by its bundle name (`"Cocoa.framework"`).

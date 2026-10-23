@@ -376,7 +376,7 @@ count_token_overlaps :: fn(toks: RawToken[]) -> i32 {
 // struct fields, typed fn params, and an intrinsic call.
 @test
 test_no_overlapping_tokens :: fn() -> void {
-    src :: "module \"t\"\n\n@extern(\"env\", \"now\")\nclock :: fn(a: i32, b: i32) -> i64\n\nPoint :: struct {\n    x: i32\n    y: i32\n}\n\nmain :: fn() -> void {\n    n :: @size_of(i32)\n    p :: Point { .x = 1, .y = 2 }\n}\n"
+    src :: "module \"t\"\n\n@extern(\"now\")\nclock :: fn(a: i32, b: i32) -> i64\n\nPoint :: struct {\n    x: i32\n    y: i32\n}\n\nmain :: fn() -> void {\n    n :: @size_of(i32)\n    p :: Point { .x = 1, .y = 2 }\n}\n"
     toks :: build_sorted_for_test(src, "file:///t.vader")
     assert_eq(count_token_overlaps(toks), 0)
 }

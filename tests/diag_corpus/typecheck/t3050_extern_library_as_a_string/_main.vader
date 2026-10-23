@@ -1,0 +1,8 @@
+// T3050: the library of a 2-argument `@extern` is a `CLibrary` constant; a
+// string naming it is refused.
+module "snippet"
+
+@extern("c", "abs")
+c_abs :: fn(x: i32) -> i32
+
+main :: fn() -> i32 { return c_abs(-1) }

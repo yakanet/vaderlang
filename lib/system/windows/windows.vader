@@ -6,6 +6,12 @@
 
 module "system/windows"
 
+import "std/ffi"
+
+/// The library the Win32 calls below come from: the interpreter opens
+/// `kernel32.dll` to find them, and `<windows.h>` declares them.
+KERNEL32 :: CLibrary { .name = "kernel32", .header = "<windows.h>" }
+
 /// A Win32 `HANDLE` — an opaque kernel object, never dereferenced.
 export Handle :: CPointer
 
@@ -23,8 +29,7 @@ export STD_INPUT_HANDLE: u32 : 0xFFFF_FFF6
 ///
 /// @param which  one of the `STD_*_HANDLE` selectors.
 /// @return       the standard device's handle.
-@c_header("<windows.h>")
-@extern("kernel32", "GetStdHandle")
+@extern(KERNEL32, "GetStdHandle")
 export get_std_handle :: fn(which: u32) -> Handle
 
 /// `ALL_PROCESSOR_GROUPS` — asks `GetActiveProcessorCount` for every group, not
@@ -35,16 +40,14 @@ export ALL_PROCESSOR_GROUPS: u16 : 0xFFFF
 /// failure.
 ///
 /// @param group  a processor group, or `ALL_PROCESSOR_GROUPS`.
-@c_header("<windows.h>")
-@extern("kernel32", "GetActiveProcessorCount")
+@extern(KERNEL32, "GetActiveProcessorCount")
 export get_active_processor_count :: fn(group: u16) -> u32
 
 /// `GetModuleFileNameW`. Writes the running module's path into `buf` and
 /// returns its length; 0 on failure, or `size` exactly when it was truncated.
 ///
 /// @param module  `null` for the running executable.
-@c_header("<windows.h>")
-@extern("kernel32", "GetModuleFileNameW")
+@extern(KERNEL32, "GetModuleFileNameW")
 export get_module_file_name :: fn(module: CPointer | null, @c_out buf: u16[], size: u32) -> u32
 
 /// `GetCurrentDirectoryW`. Writes the working directory into `buf` and returns
@@ -52,8 +55,7 @@ export get_module_file_name :: fn(module: CPointer | null, @c_out buf: u16[], si
 ///
 /// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
 /// @param buf   receives the path, NUL-terminated.
-@c_header("<windows.h>")
-@extern("kernel32", "GetCurrentDirectoryW")
+@extern(KERNEL32, "GetCurrentDirectoryW")
 export get_current_directory :: fn(size: u32, @c_out buf: u16[]) -> u32
 
 /// `GetTempPathW`. Writes the temp directory, trailing backslash included, into
@@ -63,8 +65,7 @@ export get_current_directory :: fn(size: u32, @c_out buf: u16[]) -> u32
 /// @param size  `buf`'s capacity in UTF-16 UNITS, not bytes.
 /// @param buf   receives the path, NUL-terminated.
 /// @return      UTF-16 units written, excluding the NUL.
-@c_header("<windows.h>")
-@extern("kernel32", "GetTempPathW")
+@extern(KERNEL32, "GetTempPathW")
 export get_temp_path :: fn(size: u32, @c_out buf: u16[]) -> u32
 
 /// `CreateDirectoryW`. False on failure, `ERROR_ALREADY_EXISTS` included — the
@@ -72,8 +73,7 @@ export get_temp_path :: fn(size: u32, @c_out buf: u16[]) -> u32
 ///
 /// @param path      directory to create.
 /// @param security  `lpSecurityAttributes`; `null` for the default descriptor.
-@c_header("<windows.h>")
-@extern("kernel32", "CreateDirectoryW")
+@extern(KERNEL32, "CreateDirectoryW")
 export create_directory :: fn(path: u16[], security: CPointer | null) -> bool
 
 /// `FILE_ATTRIBUTE_DIRECTORY` — set when the entry is a directory.
@@ -95,8 +95,7 @@ export GET_FILE_EX_INFO_STANDARD: i32: 0
 /// @param level  always `GET_FILE_EX_INFO_STANDARD`.
 /// @param data   receives the attribute data ; nine cells at least.
 /// @return       whether the query succeeded.
-@c_header("<windows.h>")
-@extern("kernel32", "GetFileAttributesExW")
+@extern(KERNEL32, "GetFileAttributesExW")
 export get_file_attributes_ex :: fn(path: u16[], level: i32, @c_out data: u32[]) -> bool
 
 /// `GetFileAttributesW`. `INVALID_FILE_ATTRIBUTES` when the path cannot be
@@ -104,8 +103,7 @@ export get_file_attributes_ex :: fn(path: u16[], level: i32, @c_out data: u32[])
 ///
 /// @param path  the path to query.
 /// @return      the attribute bitmask, or `INVALID_FILE_ATTRIBUTES`.
-@c_header("<windows.h>")
-@extern("kernel32", "GetFileAttributesW")
+@extern(KERNEL32, "GetFileAttributesW")
 export get_file_attributes :: fn(path: u16[]) -> u32
 
 /// `DeleteFileW`. Zero on failure. Refuses a directory outright, which is the
@@ -113,8 +111,7 @@ export get_file_attributes :: fn(path: u16[]) -> u32
 ///
 /// @param path  the file to delete.
 /// @return      non-zero on success.
-@c_header("<windows.h>")
-@extern("kernel32", "DeleteFileW")
+@extern(KERNEL32, "DeleteFileW")
 export delete_file :: fn(path: u16[]) -> i32
 
 /// `GetLastError`. The calling thread's last Win32 error code.
@@ -123,8 +120,7 @@ export delete_file :: fn(path: u16[]) -> i32
 /// between may overwrite it.
 ///
 /// @return the raw Win32 code ; 0 when nothing has failed.
-@c_header("<windows.h>")
-@extern("kernel32", "GetLastError")
+@extern(KERNEL32, "GetLastError")
 export get_last_error :: fn() -> u32
 
 /// Win32 error codes `std/io` classifies. Unlike `errno` these are stable
@@ -154,8 +150,7 @@ export ERROR_ALREADY_EXISTS: u32: 183
 /// @param written     scratch the callee fills with the byte count; unread.
 /// @param overlapped  always null here — this is the synchronous form.
 /// @return            whether the write succeeded.
-@c_header("<windows.h>")
-@extern("kernel32", "WriteFile")
+@extern(KERNEL32, "WriteFile")
 export write_file :: fn(h: Handle, buf: u8[], count: u32,
                         @c_out written: u32[], overlapped: CPointer | null) -> bool
 
@@ -175,8 +170,7 @@ export CP_UTF8: u32 : 65001
 /// @param dst      receives the UTF-16 units; may be empty when `dst_len` is 0.
 /// @param dst_len  `dst`'s capacity in UTF-16 units, or 0 to measure.
 /// @return         units written (or required, when measuring); 0 on failure.
-@c_header("<windows.h>")
-@extern("kernel32", "MultiByteToWideChar")
+@extern(KERNEL32, "MultiByteToWideChar")
 export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, src_len: i32,
                                      @c_out dst: u16[], dst_len: i32) -> i32
 
@@ -186,8 +180,7 @@ export multi_byte_to_wide_char :: fn(code_page: u32, flags: u32, src: string, sr
 /// @param src_len  units to read, or `-1` for a NUL-terminated input.
 /// @param dst_len  `dst`'s capacity in bytes, or 0 to measure.
 /// @return         bytes written (or required, when measuring); 0 on failure.
-@c_header("<windows.h>")
-@extern("kernel32", "WideCharToMultiByte")
+@extern(KERNEL32, "WideCharToMultiByte")
 export wide_char_to_multi_byte :: fn(code_page: u32, flags: u32, src: u16[], src_len: i32,
                                      @c_out dst: u8[], dst_len: i32,
                                      default_char: CPointer | null,
@@ -229,8 +222,7 @@ export FILE_ATTRIBUTE_NORMAL: u32 : 0x80
 /// @param path         UTF-16, NUL-terminated. Prefix `\\?\\` to pass MAX_PATH.
 /// @param security     `lpSecurityAttributes`; null for the default descriptor.
 /// @param template     `hTemplateFile`; always null here.
-@c_header("<windows.h>")
-@extern("kernel32", "CreateFileW")
+@extern(KERNEL32, "CreateFileW")
 export create_file_w :: fn(path: u16[], access: u32, share: u32,
                            security: CPointer | null, disposition: u32,
                            flags: u32, template: CPointer | null) -> Handle
@@ -255,23 +247,20 @@ export FIND_DATA_BYTES: i64: 1024
 /// @param pattern  a NUL-terminated UTF-16 glob, from `to_wide`.
 /// @param data     `FIND_DATA_BYTES` of scratch the callee fills.
 /// @return         a search handle.
-@c_header("<windows.h>")
-@extern("kernel32", "FindFirstFileW")
+@extern(KERNEL32, "FindFirstFileW")
 export find_first_file :: fn(pattern: u16[], @c_out data: u8[]) -> Handle
 
 /// `FindNextFileW`. False once the search is exhausted.
 ///
 /// @param handle  the search handle `find_first_file` returned.
 /// @param data    the same buffer, refilled.
-@c_header("<windows.h>")
-@extern("kernel32", "FindNextFileW")
+@extern(KERNEL32, "FindNextFileW")
 export find_next_file :: fn(handle: Handle, @c_out data: u8[]) -> bool
 
 /// `FindClose`. Pairs with `find_first_file`.
 ///
 /// @param handle  the search handle.
-@c_header("<windows.h>")
-@extern("kernel32", "FindClose")
+@extern(KERNEL32, "FindClose")
 export find_close :: fn(handle: Handle) -> bool
 
 /// The `cFileName` of a filled `WIN32_FIND_DATAW`, as a Vader string.
@@ -318,8 +307,7 @@ export ScreenBufferInfo :: struct {
 /// `srWindow` is the VISIBLE window, which is what a width should be measured
 /// from: the buffer (`dwSize`) is often far wider, and wrapping follows what is
 /// on screen.
-@c_header("<windows.h>")
-@extern("kernel32", "GetConsoleScreenBufferInfo")
+@extern(KERNEL32, "GetConsoleScreenBufferInfo")
 export get_console_screen_buffer_info :: fn(
     h: Handle,
     @c_pointer @c_out info: ScreenBufferInfo,
@@ -336,15 +324,13 @@ export get_console_screen_buffer_info :: fn(
 /// @param read       always null, for the same reason.
 /// @param available  receives the byte count; a one-element array so it reads back.
 /// @param message    always null: only a message-mode pipe uses it.
-@c_header("<windows.h>")
-@extern("kernel32", "PeekNamedPipe")
+@extern(KERNEL32, "PeekNamedPipe")
 export peek_named_pipe :: fn(h: Handle, buf: CPointer | null, size: u32,
                              read: CPointer | null, @c_out available: u32[],
                              message: CPointer | null) -> bool
 
 /// `Sleep`. Milliseconds, and it is the only wait Win32 offers without a handle.
-@c_header("<windows.h>")
-@extern("kernel32", "Sleep")
+@extern(KERNEL32, "Sleep")
 export sleep_ms :: fn(ms: u32) -> void
 
 // ---- subprocess ------------------------------------------------------------
@@ -425,8 +411,7 @@ export ProcessInformation :: struct {
 /// @param write_end  a one-word buffer receiving the write end.
 /// @param attrs      a `SecurityAttributes` with `bInheritHandle` set.
 /// @param size       suggested buffer size; 0 for the default.
-@c_header("<windows.h>")
-@extern("kernel32", "CreatePipe")
+@extern(KERNEL32, "CreatePipe")
 export create_pipe :: fn(@c_out read_end: u64[], @c_out write_end: u64[],
                          @c_pointer attrs: SecurityAttributes, size: u32) -> bool
 
@@ -452,8 +437,7 @@ export HANDLE_FLAG_INHERIT: u32 : 1
 /// @param h      the handle to adjust.
 /// @param mask   which flags to touch, `HANDLE_FLAG_INHERIT` here.
 /// @param flags  their new value; 0 to clear.
-@c_header("<windows.h>")
-@extern("kernel32", "SetHandleInformation")
+@extern(KERNEL32, "SetHandleInformation")
 export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
 
 /// `CreateProcessA`. Launches `command_line`, inheriting the handles named in
@@ -472,8 +456,7 @@ export set_handle_information :: fn(h: Handle, mask: u32, flags: u32) -> bool
 /// @param directory     null — inherit the parent's.
 /// @param startup       the redirected handles.
 /// @param info          filled with the child's handles and ids.
-@c_header("<windows.h>")
-@extern("kernel32", "CreateProcessA")
+@extern(KERNEL32, "CreateProcessA")
 export create_process :: fn(application: CPointer | null, @c_out command_line: u8[],
                             proc_attrs: CPointer | null, thread_attrs: CPointer | null,
                             inherit: bool, flags: u32,
@@ -485,24 +468,21 @@ export create_process :: fn(application: CPointer | null, @c_out command_line: u
 ///
 /// @param h           the process handle.
 /// @param timeout_ms  0 to poll without waiting.
-@c_header("<windows.h>")
-@extern("kernel32", "WaitForSingleObject")
+@extern(KERNEL32, "WaitForSingleObject")
 export wait_for_single_object :: fn(h: Handle, timeout_ms: u32) -> u32
 
 /// `GetExitCodeProcess`.
 ///
 /// @param h     the process handle.
 /// @param code  a one-element array receiving the status.
-@c_header("<windows.h>")
-@extern("kernel32", "GetExitCodeProcess")
+@extern(KERNEL32, "GetExitCodeProcess")
 export get_exit_code_process :: fn(h: Handle, @c_out code: u32[]) -> bool
 
 /// `TerminateProcess`.
 ///
 /// @param h     the process handle.
 /// @param code  the exit status to report for the killed child.
-@c_header("<windows.h>")
-@extern("kernel32", "TerminateProcess")
+@extern(KERNEL32, "TerminateProcess")
 export terminate_process :: fn(h: Handle, code: u32) -> bool
 
 /// Console INPUT mode bits raw mode turns off — line buffering, echo, and the
@@ -521,14 +501,12 @@ export ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 : 0x0004
 /// a caller tests for one, a redirected stream having no mode to read.
 ///
 /// @param mode  receives the current mode; a one-element array so it reads back.
-@c_header("<windows.h>")
-@extern("kernel32", "GetConsoleMode")
+@extern(KERNEL32, "GetConsoleMode")
 export get_console_mode :: fn(h: Handle, @c_out mode: u32[]) -> bool
 
 /// `SetConsoleMode`. False on failure — an old console refusing a mode bit it
 /// does not know, which is what tells a caller ANSI is unavailable.
-@c_header("<windows.h>")
-@extern("kernel32", "SetConsoleMode")
+@extern(KERNEL32, "SetConsoleMode")
 export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 
 /// `ReadFile`. False on failure; a synchronous read returning true with `read`
@@ -537,15 +515,13 @@ export set_console_mode :: fn(h: Handle, mode: u32) -> bool
 /// @param read        receives the byte count; a one-element array so it reads
 ///                    back — Win32 forbids null here on a synchronous call.
 /// @param overlapped  always null: this is the synchronous form.
-@c_header("<windows.h>")
-@extern("kernel32", "ReadFile")
+@extern(KERNEL32, "ReadFile")
 export read_file :: fn(h: Handle, @c_out buf: u8[], count: u32, @c_out read: u32[],
                        overlapped: CPointer | null) -> bool
 
 /// `CloseHandle`. False on failure, which a caller that is done with the file
 /// has nothing to do about.
-@c_header("<windows.h>")
-@extern("kernel32", "CloseHandle")
+@extern(KERNEL32, "CloseHandle")
 export close_handle :: fn(h: Handle) -> bool
 
 // ---- clocks ---------------------------------------------------------------
@@ -554,16 +530,13 @@ export close_handle :: fn(h: Handle) -> bool
 // `DWORD`s, low half first, and a `LARGE_INTEGER`'s `QuadPart` is one i64.
 
 /// `GetSystemTimePreciseAsFileTime`. Fills `ft` with 100-ns ticks since 1601.
-@c_header("<windows.h>")
-@extern("kernel32", "GetSystemTimePreciseAsFileTime")
+@extern(KERNEL32, "GetSystemTimePreciseAsFileTime")
 export get_system_time_precise_as_file_time :: fn(@c_out ft: i64[]) -> void
 
 /// `QueryPerformanceCounter`. Fills `counter`; false on failure.
-@c_header("<windows.h>")
-@extern("kernel32", "QueryPerformanceCounter")
+@extern(KERNEL32, "QueryPerformanceCounter")
 export query_performance_counter :: fn(@c_out counter: i64[]) -> bool
 
 /// `QueryPerformanceFrequency`. Fills `freq` with counts per second; false on failure.
-@c_header("<windows.h>")
-@extern("kernel32", "QueryPerformanceFrequency")
+@extern(KERNEL32, "QueryPerformanceFrequency")
 export query_performance_frequency :: fn(@c_out freq: i64[]) -> bool

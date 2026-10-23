@@ -2812,7 +2812,7 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 | `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
 | `@c_struct` or `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross an `@extern` call: as an address with `@c_pointer`, by value otherwise. Bare, the C type has the struct's name. More than one argument is `P1032`, one that is not a plain string `P1033`. See §13 |
 | `@c_variadic(N)` | an `@extern` fn | The callee is variadic with `N` fixed parameters. See §13 |
-| `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
+| `@extern`, `@extern("symbol")`, or `@extern(LIBRARY, "symbol")` | fn (no body) | Declares a user-supplied FFI symbol, see §13 |
 | `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit (see below) |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
 | `@test` | fn | Marks as a test, executed by `vader test` |
@@ -2859,7 +2859,7 @@ A handful of `@intrinsic` impl methods are also **op-level** intrinsics: the byt
 @extern(LIBM, "cbrt") cube_root :: fn(x: f64) -> f64            // C symbol: cbrt, from LIBM
 ```
 
-The decorator accepts **0, 1, or 2 arguments**. The **last** is a string, the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). Omitting all arguments reuses the Vader-side fn name as the C symbol. The **first** of two names WHERE the symbol comes from: a constant of `std/ffi`'s `CLibrary` (below). A string there is the older form: the VM `dlopen`s it, and the C-emit drops it, leaving the link to `--ldflags`. 3+ arguments, a non-string symbol, or a library that is neither a string nor a `CLibrary` constant is `T3050`.
+The decorator accepts **0, 1, or 2 arguments**. The **last** is a string, the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). Omitting all arguments reuses the Vader-side fn name as the C symbol. The **first** of two names WHERE the symbol comes from: a constant of `std/ffi`'s `CLibrary` (below). 3+ arguments, a non-string symbol, or a library that is not a `CLibrary` constant is `T3050`.
 
 #### `CLibrary`: the library a binding calls
 
@@ -2888,10 +2888,10 @@ A `CLibrary` names a C library once; each `@extern` that comes from it names the
 
 | field | meaning |
 |---|---|
-| `name` | What the VM opens (`lib<name>.dylib`, `lib<name>.so`, `<name>.dll`), and what a native build links as `-l<name>` when the library ships no archive |
+| `name` | What the VM opens (`lib<name>.dylib`, `lib<name>.so`, `<name>.dll`). A native build links only what `archives` and `system` list |
 | `header` | The header declaring its functions, written as `@c_header` writes it. It serves every `@extern` naming the library without a `@c_header` of its own |
 | `include` | A folder of headers, relative to the module declaring the constant, searched by every compilation (`-I`). A quoted header (`"raylib.h"`) is found there |
-| `archives` | Static archives shipped with the binding, relative to the module declaring the constant, linked in place of `-l<name>`. One that does not exist stops the build before `cc`, naming the path |
+| `archives` | Static archives shipped with the binding, relative to the module declaring the constant. One that does not exist stops the build before `cc`, naming the path |
 | `system` | What the platform provides: a library by name (`"GL"` links `-lGL`), or an Apple framework by its bundle name (`"Cocoa.framework"` links `-framework Cocoa`) |
 
 A native build adds a library's flags only when one of its functions survives to the program: a binding imported for one call costs nothing else.
@@ -3246,7 +3246,7 @@ A library a binding declares with `CLibrary` (above) needs no flag: the build ad
 
 ### VM behaviour
 
-The VM resolves an `@extern` user import at the call: it `dlopen`s the library a 2-argument `@extern` names (its `CLibrary`'s `name`, or the string; the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline: one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
+The VM resolves an `@extern` user import at the call: it `dlopen`s the library a 2-argument `@extern` names (its `CLibrary`'s `name`; the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline: one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``.
 
 The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing: a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result, a `@c_struct` passed or returned by value. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
 
@@ -3255,10 +3255,10 @@ The C emitter resolves `@extern` against the system linker; the same `@extern` d
 ### Future WASM target
 
 When the WASM emitter lands (see §17 *Compilation Targets*), `@extern` will additionally support the WASM `(module, field)` shape:
-- 2-arg form `@extern("env", "console_log") log` → `(import "env" "console_log" (func …))`
-- 1-arg / 0-arg form defaults the module to `"env"`.
+- 1-arg / 0-arg form defaults the module to `"env"`: `@extern("console_log") log` → `(import "env" "console_log" (func …))`.
+- How a declaration names another module is designed with the emitter.
 
-The C-emit will continue to drop that first string; the VM will continue to `dlopen` it. The same `@extern` decl compiles for every target — only the binding mechanism differs.
+The same `@extern` decl compiles for every target; only the binding mechanism differs.
 
 ### `@export` — exposing a function
 
@@ -4352,10 +4352,10 @@ main :: fn() -> i32 {
 
 ### `@extern`: calling JS from WASM *(planned, §17)*
 
-Same shape as the C path (§13) — the 2-arg form gives the WASM `(module, field)` pair. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack; the user-side glue (JS) reads the linear memory accordingly.
+Same shape as the C path (§13); the module defaults to `"env"`. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack; the user-side glue (JS) reads the linear memory accordingly.
 
 ```vader
-@extern("env", "alert")
+@extern("alert")
 js_alert :: fn(msg: string) -> void
 
 @export("greet")

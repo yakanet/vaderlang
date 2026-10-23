@@ -7,6 +7,43 @@
     },
     "decls": [
       {
+        "kind": "ImportDecl",
+        "path": "std/ffi",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "ENV",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "StructLitExpr",
+          "typeName": {
+            "kind": "IdentExpr",
+            "name": "CLibrary"
+          },
+          "items": [
+            {
+              "kind": "field",
+              "name": "name",
+              "value": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "env"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "decorators": []
+      },
+      {
         "kind": "FnDecl",
         "name": "log",
         "visibility": "public",
@@ -38,13 +75,8 @@
             "name": "extern",
             "args": [
               {
-                "kind": "StringLitExpr",
-                "parts": [
-                  {
-                    "kind": "text",
-                    "value": "env"
-                  }
-                ]
+                "kind": "IdentExpr",
+                "name": "ENV"
               },
               {
                 "kind": "StringLitExpr",
