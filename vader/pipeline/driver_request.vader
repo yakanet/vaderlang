@@ -16,6 +16,7 @@ import "std/io"
 import "std/path"
 import "std/string"
 import "vader/resolver"
+import "vader/target"
 
 /// What a driver run does once its entries are added.
 export DriverMode :: enum {
@@ -28,30 +29,32 @@ export DriverMode :: enum {
     Prepare,
 }
 
-/// The CLI's request to a driver.
+/// The CLI's request to a driver: what to do with the entries, and the build
+/// options a `vader build` of a file would take.
 export DriverRequest :: struct {
-    /// The project folder, the one holding `build.vader`.
-    project_root:   string = ""
     /// The folder holding the compiler that started the build, and therefore
     /// its `lib/` and `runtime/c/`.
     toolchain_root: string = ""
     mode:           DriverMode = .Build
-    /// Whether the build is optimised.
-    release:        bool = false
     /// The entry `--entry` names, empty for every entry.
     selected:       string = ""
-    /// C compiler for the link step, empty for the default one.
-    cc:             string = ""
-    /// Raw linker flags.
-    ldflags:        string = ""
+    /// The build options; `project_root` names the folder holding
+    /// `build.vader`, and an empty `cc` the default C compiler.
+    build:          BuildRequest = BuildRequest {}
 }
 
 CHECK_FLAG :: "--check"
 PREPARE_FLAG :: "--prepare"
-RELEASE_FLAG :: "--release"
 ENTRY_FLAG :: "--entry="
+RELEASE_FLAG :: "--release"
+VERIFY_FLAG :: "--verify"
+NO_SPLIT_FLAG :: "--no-split"
 CC_FLAG :: "--cc="
 LDFLAGS_FLAG :: "--ldflags="
+EMIT_FLAG :: "--emit="
+TARGET_FLAG :: "--target="
+OUT_FLAG :: "--out="
+INCLUDE_PATHS_FLAG :: "--include-paths="
 
 /// The arguments that carry a request to a driver: the project root, the
 /// toolchain root, then the flags.
@@ -59,23 +62,49 @@ LDFLAGS_FLAG :: "--ldflags="
 /// @param request  what the CLI asks.
 /// @return         the arguments to place after the driver binary.
 export driver_request_args :: fn(request: DriverRequest) -> string[] {
-    args :: [request.project_root, request.toolchain_root]
+    args :: [request.build.project_root ?? "", request.toolchain_root]
     match request.mode {
         .Build   -> {}
         .Check   -> { args.push(CHECK_FLAG) }
         .Prepare -> { args.push(PREPARE_FLAG) }
     }
-    if request.release {
-        args.push(RELEASE_FLAG)
-    }
     if request.selected != "" {
         args.push("${ENTRY_FLAG}${request.selected}")
     }
-    if request.cc != "" {
-        args.push("${CC_FLAG}${request.cc}")
+    args.push_all(build_request_args(request.build))
+    return args
+}
+
+// The flags that carry the build options of `build`, `seed_targets` and
+// `runtime_root` aside: they never cross to a driver.
+build_request_args :: fn(build: BuildRequest) -> string[] {
+    args: string[]: []
+    if build.release {
+        args.push(RELEASE_FLAG)
     }
-    if request.ldflags != "" {
-        args.push("${LDFLAGS_FLAG}${request.ldflags}")
+    if build.verify {
+        args.push(VERIFY_FLAG)
+    }
+    if build.no_split {
+        args.push(NO_SPLIT_FLAG)
+    }
+    if build.cc != "" {
+        args.push("${CC_FLAG}${build.cc}")
+    }
+    if build.ldflags != "" {
+        args.push("${LDFLAGS_FLAG}${build.ldflags}")
+    }
+    if build.emit != "executable" {
+        args.push("${EMIT_FLAG}${build.emit}")
+    }
+    if build.target is Target {
+        args.push("${TARGET_FLAG}${display_target(build.target)}")
+    }
+    if build.out != "" {
+        args.push("${OUT_FLAG}${build.out}")
+    }
+    if build.include_paths.len() > 0 {
+        args.push("${INCLUDE_PATHS_FLAG}${build.include_paths.join(",")}")
     }
     return args
 }
@@ -84,14 +113,14 @@ export driver_request_args :: fn(request: DriverRequest) -> string[] {
 ///
 /// A driver run by hand may carry fewer: each missing root is empty, and no
 /// flag asks for a debug build of every entry. An argument this does not know
-/// is ignored.
+/// is ignored, a `--target` that names no platform among them.
 ///
 /// @param args  the driver's argv, `args[0]` being the driver binary.
 /// @return      the request.
 export parse_driver_request :: fn(args: string[]) -> DriverRequest {
     request :: DriverRequest {}
-    if args.len() > 1 {
-        request.project_root = args[1]
+    if args.len() > 1 && args[1] != "" {
+        request.build.project_root = args[1]
     }
     if args.len() > 2 {
         request.toolchain_root = args[2]
@@ -102,17 +131,39 @@ export parse_driver_request :: fn(args: string[]) -> DriverRequest {
             request.mode = .Check
         } else if arg == PREPARE_FLAG {
             request.mode = .Prepare
-        } else if arg == RELEASE_FLAG {
-            request.release = true
         } else if arg.starts_with(ENTRY_FLAG) {
             request.selected = arg.trim_prefix(ENTRY_FLAG)
-        } else if arg.starts_with(CC_FLAG) {
-            request.cc = arg.trim_prefix(CC_FLAG)
-        } else if arg.starts_with(LDFLAGS_FLAG) {
-            request.ldflags = arg.trim_prefix(LDFLAGS_FLAG)
+        } else {
+            read_build_arg(request.build, arg)
         }
     }
     return request
+}
+
+// Apply the build flag `arg` to `build`, when it is one.
+read_build_arg :: fn(build: BuildRequest, arg: string) -> void {
+    if arg == RELEASE_FLAG {
+        build.release = true
+    } else if arg == VERIFY_FLAG {
+        build.verify = true
+    } else if arg == NO_SPLIT_FLAG {
+        build.no_split = true
+    } else if arg.starts_with(CC_FLAG) {
+        build.cc = arg.trim_prefix(CC_FLAG)
+    } else if arg.starts_with(LDFLAGS_FLAG) {
+        build.ldflags = arg.trim_prefix(LDFLAGS_FLAG)
+    } else if arg.starts_with(EMIT_FLAG) {
+        build.emit = arg.trim_prefix(EMIT_FLAG)
+    } else if arg.starts_with(TARGET_FLAG) {
+        platform :: parse_target(arg.trim_prefix(TARGET_FLAG))
+        if platform is Target {
+            build.target = platform
+        }
+    } else if arg.starts_with(OUT_FLAG) {
+        build.out = arg.trim_prefix(OUT_FLAG)
+    } else if arg.starts_with(INCLUDE_PATHS_FLAG) {
+        build.include_paths = arg.trim_prefix(INCLUDE_PATHS_FLAG).split(",")
+    }
 }
 
 // ---- the project a prepared driver writes ---------------------------------
@@ -187,32 +238,44 @@ import "std/testing"
 @test
 test_driver_request_round_trips_through_args :: fn() -> void {
     sent :: DriverRequest {
-        .project_root = "/p",
         .toolchain_root = "/t",
         .mode = .Prepare,
-        .release = true,
         .selected = "tool",
-        .ldflags = "-L lib -lm",
+        .build = BuildRequest {
+            .project_root = "/p",
+            .release = true,
+            .ldflags = "-L lib -lm",
+            .emit = "c",
+            .target = Target { .os = .Linux, .arch = .X86_64 },
+            .no_split = true,
+            .include_paths = ["a", "b"],
+        },
     }
     args :: ["driver"]
     args.push_all(driver_request_args(sent))
     received :: parse_driver_request(args)
-    assert_eq(received.project_root, "/p")
+    assert_eq(received.build.project_root ?? "", "/p")
     assert_eq(received.toolchain_root, "/t")
     assert(received.mode == .Prepare, "the mode crosses")
-    assert(received.release, "the profile crosses")
     assert_eq(received.selected, "tool")
-    assert_eq(received.cc, "")
-    assert_eq(received.ldflags, "-L lib -lm")
+    assert(received.build.release, "the profile crosses")
+    assert_eq(received.build.cc, "")
+    assert_eq(received.build.ldflags, "-L lib -lm")
+    assert_eq(received.build.emit, "c")
+    assert_eq(display_target(received.build.target ?? host_target()), "linux-x86_64")
+    assert(received.build.no_split, "`--no-split` crosses")
+    assert(!received.build.verify, "`--verify` was not asked")
+    assert_eq(received.build.include_paths.join(","), "a,b")
 }
 
 @test
 test_driver_request_defaults_to_a_debug_build_of_every_entry :: fn() -> void {
     received :: parse_driver_request(["driver", "/p"])
-    assert_eq(received.project_root, "/p")
+    assert_eq(received.build.project_root ?? "", "/p")
     assert_eq(received.toolchain_root, "")
     assert(received.mode == .Build, "a build")
-    assert(!received.release, "in debug")
+    assert(!received.build.release, "in debug")
+    assert(received.build.target == null, "for the host")
     assert_eq(received.selected, "")
 }
 

@@ -2,7 +2,7 @@
 driver: 1 report(s) — build failed
 # stderr
 vader build: wrote <project>/build/driver/driver
-vader build: wrote <project>/build/debug-<host>/hello (and <project>/build/debug-<host>/c/hello.c)
+vader build: wrote <project>/build/debug-<host>/hello (split: 7 objects compiled in parallel)
 
 # Diagnostics
 [src/main.vader:6:1] error[H6004] build driver reported a problem: struct `badlyNamed` should be PascalCase

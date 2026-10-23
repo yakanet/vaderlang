@@ -79,10 +79,14 @@ export cmd_check :: fn(args: string[]) -> i32 {
             return exit_code_of(check_entries(input, include_path_flags, target))
         }
         is DrivenProject -> {
-            if refuse_unforwarded_flags("check", parsed, ["target", "include-paths"]) {
+            if refuse_unforwarded_flags("check", parsed, ["include-paths"]) {
                 return 2
             }
-            driver_request :: DriverRequest { .mode = .Check, .selected = selected }
+            driver_request :: DriverRequest {
+                .mode = .Check,
+                .selected = selected,
+                .build = BuildRequest { .target = target },
+            }
             return run_build_driver("check", input.dir, driver_request)
         }
     }

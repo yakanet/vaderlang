@@ -576,7 +576,7 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
   expect(typechecks).toBe(1);
 }, HEAVY_BUILD);
 
-test.concurrent("check and run take a driven project too", async () => {
+test.concurrent("check, run and the build flags take a driven project too", async () => {
   // REASON: the driver runs in two modes no fixture covers. `check` lowers and
   // links nothing; `run` lets the driver generate, then runs the entry in the VM,
   // which reads what was just generated and the search root the driver set.
@@ -605,6 +605,14 @@ test.concurrent("check and run take a driven project too", async () => {
   expect(ran.stdout).toContain("Point(x, y) /");
   expect(ran.stdout).toContain("/ hi");
   expect(ran.exit).toBe(0);
+
+  // The build flags reach the driver's back end: `--emit=c` writes the split C
+  // where the binary would go, and links nothing.
+  const emitted = await run(["build", "--emit=c", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(emitted.stderr).not.toContain("error[");
+  expect(emitted.exit).toBe(0);
+  expect(existsSync(`${dir}/${BINARIES}/app.split.h`)).toBe(true);
+  expect(existsSync(exePath(`${dir}/${BINARIES}/app`))).toBe(false);
 }, HEAVY_BUILD);
 
 test.concurrent("a named file bypasses the driver, and says so", async () => {

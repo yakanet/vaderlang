@@ -1,0 +1,271 @@
+// vader/pipeline/split_build: the split native build, one C unit per module
+// compiled across cores, which is how `emit_program` builds an executable unless
+// the request says `--no-split`.
+
+module "vader/pipeline"
+
+import "std/async"
+import "std/io"
+import "std/path"
+import "std/process"
+import "std/string"
+import "vader/c_emit"
+
+// An executable, split: emit the program as a header + globals TU + one
+// function TU per Vader module, then compile them concurrently and link. The
+// units go to `c/` beside the binary (`intermediate_stem`) and their objects to
+// `obj/` (`object_stem`), and stay there after the link, failed or not, for
+// inspection.
+build_native_split :: fn(b: CfgBytecode, file: Path, out: Path, request: BuildRequest) -> i32 {
+    cc :: request.cc
+    cc_jobs :: request.cc_jobs
+    release :: request.release
+    ldflags :: request.ldflags
+    native :: native_flags(b.module)
+    if report_missing_archives(native) {
+        return 1
+    }
+    work :: intermediate_stem(out) ?? return 1
+    objects :: object_stem(out) ?? return 1
+    prog :: split_program(b, work)
+    if write_split_files(work, prog) != 0 {
+        return 1
+    }
+    c_files :: split_c_files(work, prog.unit_names)
+    rt :: runtime_or_probe(request.runtime_root)
+
+    // Splitting stops `cc` inlining across the cut; the link-time optimisation
+    // `lto_flags` turns on gives it back.
+    flavour :: lto_flavour(cc, release)
+
+    // One `cc -c` per TU (+ the runtime), spawned concurrently so the OS
+    // compiles them across cores. `join_all` joins a wave; `block_on` drives the
+    // cooperative scheduler from this synchronous entry. A bound (`cc_jobs`)
+    // turns one wave into ceil(n / cc_jobs) waves, each as long as its slowest
+    // unit.
+    argvs: string[][]: []
+    obj_files: string[]: []
+    quote_dir :: quote_include_dir(file)
+    for cf in c_files {
+        obj :: object_of(objects, work, cf)
+        obj_files.push(obj)
+        source :: cf.as_string()
+        argvs.push(
+            cc_compile_argv(cc, source, obj, rt, release, flavour, quote_dir, native.includes),
+        )
+    }
+    rt_obj :: "${objects}.split.runtime.o"
+    obj_files.push(rt_obj)
+    rt_src :: "${rt}/vader_runtime.c"
+    argvs.push(
+        cc_compile_argv(cc, rt_src, rt_obj, rt, release, flavour, quote_dir, native.includes),
+    )
+
+    wave :: if cc_jobs > 0 { i64(cc_jobs) } else { argvs.len() }
+    results: (ProcessResult | ProcessError)[]: []
+    start: i64 = 0
+    for start < argvs.len() {
+        stop :: if start + wave < argvs.len() { start + wave } else { argvs.len() }
+        tasks: Async<ProcessResult | ProcessError>[]: []
+        for k in start..<stop {
+            tasks.push(spawn_async(argvs[k]))
+        }
+        results.push_all(block_on(join_all(tasks)))
+        start = stop
+    }
+    for r in results {
+        if r is ProcessError {
+            eprintln("vader build: ${r.message()}")
+            eprintln("(generated C kept in ${folder_of(work)})")
+            return 1
+        } else if r is ProcessResult {
+            if r.exit != 0 {
+                eprintln("vader build: ${cc} -c failed (exit ${r.exit})")
+                eprintln(r.stderr)
+                eprintln("(generated C kept in ${folder_of(work)})")
+                return 1
+            }
+        }
+    }
+
+    // Link the objects into the final binary (link is inherently serial).
+    // The link runs alone, so it may use what the compiles were bounded to.
+    link_jobs :: if cc_jobs > 0 { cc_jobs } else { processor_count() }
+    lres :: spawn(
+        cc_link_argv(cc, obj_files, out, ldflags, release, flavour, link_jobs, native.links),
+    )
+    if lres is ProcessError {
+        eprintln("vader build: ${lres.message()}")
+        return 1
+    }
+    if lres.exit != 0 {
+        eprintln("vader build: ${cc} link failed (exit ${lres.exit})")
+        eprintln(lres.stderr)
+        return 1
+    }
+    eprintln("vader build: wrote ${out} (split: ${obj_files.len()} objects compiled in parallel)")
+    return 0
+}
+
+// The toolchain family the link-time optimisation flags are chosen for, probed
+// only for a release build: a debug build takes none (`lto_flags`).
+lto_flavour :: fn(cc: string, release: bool) -> CcFlavour {
+    if !release {
+        return .Unknown
+    }
+    return cc_flavour(cc)
+}
+
+// The object `cc` compiles the unit `unit` to: its name under the C stem `work`,
+// placed under the object stem `objects` instead, with `.o` for `.c`.
+object_of :: fn(objects: Path, work: Path, unit: Path) -> string =
+    "${objects}${unit.as_string().trim_prefix(work.as_string()).trim_suffix(".c")}.o"
+
+// The split C of a prepared program, its TUs including `<out>.split.h`.
+split_program :: fn(b: CfgBytecode, out: Path) -> CProgram {
+    return emit_c_split(b.module, native_c_options(b.entry), split_header_name(out))
+}
+
+/// The name a split program's units include their header by: its basename,
+/// since the units sit beside it. `filename` via `to_posix` also handles `\`
+/// on Windows.
+///
+/// @param out  the split output stem.
+export split_header_name :: fn(out: Path) -> string = "${canonicalise(out).filename()}.split.h"
+
+/// Where a split program's shared header is written.
+///
+/// @param out  the split output stem.
+export split_header_path :: fn(out: Path) -> Path = "${out}.split.h".to_path()
+
+/// Where a split program's globals unit is written.
+///
+/// @param out  the split output stem.
+export split_globals_path :: fn(out: Path) -> Path = "${out}.split.g.c".to_path()
+
+/// Path of the imports header beside `out`, under the FIXED name the shared
+/// header includes. A per-target build writes it into its own directory instead
+/// (the CLI's `write_deduplicated`), and the compile adds that directory ahead of
+/// the shared one on the include path.
+///
+/// Built from `out` the same way `${out}.split.h` is, NOT from `out.parent()`:
+/// a bare `out` with no directory part would yield an empty parent and an
+/// absolute `/p.imports.h`.
+///
+/// @param out  the split output stem.
+export imports_header_path :: fn(out: Path) -> Path = "${out}${IMPORTS_HEADER_SUFFIX}".to_path()
+
+// Write the split program: its header, its imports header, its globals unit,
+// and `<out>-<unit>.c` for each function unit. All co-located so each TU's
+// `#include "<base>.split.h"` resolves relative to its own directory.
+write_split_files :: fn(out: Path, prog: CProgram) -> i32 {
+    if write_out(split_header_path(out), prog.header) != 0 { return 1 }
+    if write_out(imports_header_path(out), prog.imports) != 0 { return 1 }
+    if write_out(split_globals_path(out), prog.globals) != 0 { return 1 }
+    for k in 0..<prog.units.len() {
+        if write_out(unit_path(out, "", prog.unit_names[k]), prog.units[k]) != 0 { return 1 }
+    }
+    return 0
+}
+
+// The `.c` files to compile : the globals TU + each function TU (the header is
+// included, not compiled).
+split_c_files :: fn(out: Path, unit_names: string[]) -> Path[] {
+    files: Path[]: [split_globals_path(out)]
+    for n in unit_names {
+        files.push(unit_path(out, "", n))
+    }
+    return files
+}
+
+/// Where one split unit is written: `<out>-<unit>.c` when every target agreed on
+/// it, `<out-dir>/<target>/<stem>.<unit>.c` when they did not — the directory
+/// already says which target, so the name no longer repeats it.
+///
+/// A per-target unit sits in that target's directory, beside the imports header
+/// that is already there — so a build compiles the flat shared set plus ONE
+/// directory, and an obsolete unit stays visible instead of blending into the
+/// flat listing.
+///
+/// Named by MODULE and not by index: an index shifts every later unit the
+/// moment a module is added, which renames and rewrites files whose contents
+/// did not change.
+///
+/// @param out     the `--out` stem.
+/// @param target  the target's display name, or `""` for a shared unit.
+/// @param unit    the module's unit name.
+/// @return        the path to write.
+export unit_path :: fn(out: Path, target: string, unit: string) -> Path =
+    if target == "" {
+        "${out}-${unit}.c".to_path()
+    } else {
+        "${out.parent()}/${target}/${out.filename()}.${unit}.c".to_path()
+    }
+
+// `cc -c <src> -o <obj>` for one split TU (or the runtime). Same optimisation
+// flags and includes (`push_include_flags`) as the monolithic `cc_argv`. One of
+// these runs per object, in parallel.
+cc_compile_argv :: fn(
+    cc: string,
+    src: string,
+    obj: string,
+    rt: string,
+    release: bool,
+    flavour: CcFlavour,
+    quote_dir: string,
+    includes: string[],
+) -> string[] {
+    argv: string[]: [cc]
+    argv.push_all(cc_opt_flags(release))
+    argv.push_all(lto_flags(flavour, release, false, 0))
+    push_include_flags(argv, rt, quote_dir)
+    argv.push_all(includes)
+    argv.push("-c")
+    argv.push(src)
+    argv.push("-o")
+    argv.push(obj)
+    return argv
+}
+
+/// Probe `cc --version`, once per build.
+///
+/// Order matters: a clang banner does not say "gcc", but a GCC one may be
+/// spelled `cc (GCC) 14.2.0`, so clang is tested first and the GCC test is
+/// case-insensitive.
+///
+/// @param cc  the C compiler this build invokes.
+/// @return    the toolchain family, `Unknown` when the probe fails.
+cc_flavour :: fn(cc: string) -> CcFlavour {
+    r :: spawn([cc, "--version"])
+    if r is ProcessError {
+        return .Unknown
+    }
+    if r.exit != 0 {
+        return .Unknown
+    }
+    banner :: r.stdout.to_lower()
+    if "clang" in banner {
+        return .Clang
+    }
+    if "gcc" in banner || "free software foundation" in banner {
+        return .Gcc
+    }
+    return .Unknown
+}
+
+// `cc` linking `objs` into `out`, with the link-time optimisation flags, the
+// native libraries, the user's `ldflags` and the math library.
+cc_link_argv :: fn(
+    cc: string, objs: string[], out: Path, ldflags: string, release: bool, flavour: CcFlavour,
+    jobs: i32, links: string[],
+) -> string[] {
+    argv: string[]: [cc]
+    argv.push_all(lto_flags(flavour, release, true, jobs))
+    argv.push_all(objs)
+    argv.push_all(links)
+    push_ldflags(argv, ldflags)
+    argv.push("-o")
+    argv.push(out.as_string())
+    push_math_library(argv)
+    return argv
+}

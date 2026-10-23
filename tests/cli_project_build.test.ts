@@ -52,8 +52,11 @@ test("a project folder builds every entry into build/<profile>-<target>/", async
   const out = join(dir, "build", `debug-${HOST_TARGET}`);
   expect(existsSync(join(out, `app${EXE_SUFFIX}`))).toBe(true);
   expect(existsSync(join(out, `tool${EXE_SUFFIX}`))).toBe(true);
-  // The C units sit in `c/` beside the binaries, not in the project folder.
-  expect(existsSync(join(out, "c"))).toBe(true);
+  // The C units sit in `c/` beside the binaries, their objects in `obj/`, not
+  // in the project folder.
+  expect(existsSync(join(out, "c", "app.split.h"))).toBe(true);
+  expect(existsSync(join(out, "obj", "app.split.runtime.o"))).toBe(true);
+  expect(existsSync(join(out, "c", "app.split.runtime.o"))).toBe(false);
   // A folder asset is copied with what it holds.
   expect(existsSync(join(out, "data/greeting.txt"))).toBe(true);
 }, MEDIUM_BUILD * 2);
@@ -127,11 +130,12 @@ test("an asset outside the project is refused", async () => {
   expect(r.stderr).toContain("asset `../elsewhere` is not inside the project");
 }, MEDIUM_BUILD);
 
-test("a file builds as it is, its C units in c/ beside the binary", async () => {
+test("a file builds as it is, its C units in c/ and its objects in obj/ beside the binary", async () => {
   const dir = stage(TWO_ENTRIES);
   const r = await vader(["build", join(dir, "tool.vader")]);
   expect(r.exit).toBe(0);
   expect(existsSync(join(dir, `tool${EXE_SUFFIX}`))).toBe(true);
   expect(existsSync(join(dir, "c"))).toBe(true);
+  expect(existsSync(join(dir, "obj"))).toBe(true);
   expect(existsSync(join(dir, "tool-_root.c"))).toBe(false);
 }, MEDIUM_BUILD);

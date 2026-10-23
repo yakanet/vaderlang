@@ -1,0 +1,179 @@
+// vader/pipeline/output: the artefact a build asks for, from a prepared program.
+//
+// `vader build` and a project's `build.vader` both prepare their program (front
+// end, lowering, bytecode), gate on its diagnostics in their own way, then hand
+// it to `emit_program`, which writes what the request asks: an executable, its
+// C, or its text bytecode. The split build (`split_build.vader`) is the default
+// for the first two, the single C unit (`emit.vader`) the other way.
+
+module "vader/pipeline"
+
+import "std/io"
+import "std/path"
+import "vader/bytecode"
+Prof :: import "vader/profile"
+import "vader/target"
+
+/// What a build asks for, read once from the `vader build` flags or from the
+/// request a driver received.
+export BuildRequest :: struct {
+    /// `executable`, `c` or `bytecode-text`.
+    emit:          string = "executable"
+    /// The output, or `""` to derive it from the entry; `-` streams C to stdout.
+    out:           string = ""
+    release:       bool = false
+    /// Run the IR verifiers between passes.
+    verify:        bool = false
+    /// The C compiler, `""` for the default one.
+    cc:            string = ""
+    ldflags:       string = ""
+    include_paths: string[] = []
+    target:        Target | null = null
+    /// `--seed-targets`, empty without it.
+    seed_targets:  Target[] = []
+    no_split:      bool = false
+    /// The project the entry belongs to, null for a file compiled on its own
+    /// (`search_roots`).
+    project_root:  string | null = null
+    /// The C runtime to compile against, `""` to look for it beside the compiler.
+    runtime_root:  string = ""
+    /// How many `cc` a split build runs at once, 0 for no bound: a build that
+    /// does not own the machine bounds it.
+    cc_jobs:       i32 = 0
+}
+
+/// Prepare `file` for the artefact `request` asks for: front end, lowering and
+/// bytecode.
+///
+/// @param file     the entry source.
+/// @param request  the search roots, the project, the target, the profile and
+///                 `--verify`.
+/// @return         the program and its diagnostics, which the caller gates on.
+export prepare_program :: fn(file: Path, request: BuildRequest) -> CfgBytecode =
+    prepare_cfg_bytecode_with(
+        file,
+        wants_debug(request),
+        request.include_paths,
+        request.project_root,
+        request.target,
+        request.verify,
+        marks_proven_bounds(request),
+    )
+
+/// Carry an already-lowered entry to the bytecode of the artefact `request`
+/// asks for, for a caller that ran the front end itself.
+///
+/// @param lowered  the lowered entry.
+/// @param file     the entry source.
+/// @param request  the profile and `--verify`.
+/// @return         the program and its diagnostics, which the caller gates on.
+export prepare_program_from :: fn(
+    lowered: LoweredEntry,
+    file: Path,
+    request: BuildRequest,
+) -> CfgBytecode =
+    prepare_cfg_bytecode_from(
+        lowered,
+        file,
+        wants_debug(request),
+        request.verify,
+        marks_proven_bounds(request),
+    )
+
+// Whether the bytecode keeps its per-op debug table: a debug build's C keeps
+// `#line`, and the text bytecode is written without it.
+wants_debug :: fn(request: BuildRequest) -> bool =
+    request.emit != "bytecode-text" && !request.release
+
+// Whether the range analysis marks the accesses it proves in bounds, which only
+// the C of a native build uses.
+marks_proven_bounds :: fn(request: BuildRequest) -> bool =
+    request.emit != "bytecode-text" && proves_bounds(request.release)
+
+/// What keeps a prepared program from being emitted or run, its diagnostics
+/// aside: a program without `main` has nothing to start at.
+///
+/// @param b     the program.
+/// @param file  its entry source, which the problem names.
+/// @return      the problem, worded to follow the command's name, or null.
+export entry_problem :: fn(b: CfgBytecode, file: Path) -> string | null {
+    if b.entry != "" {
+        return null
+    }
+    return "`${file}` declares no `main`, the function a program starts at"
+}
+
+/// Write the artefact `request` asks for.
+///
+/// @param b        the program, whose diagnostics hold no error and which has
+///                 an entry (`entry_problem`).
+/// @param file     its entry source, whose folder its C includes from.
+/// @param stem     what the outputs are named after without `--out`.
+/// @param request  the emit kind, the output, the profile, the C toolchain.
+/// @return         0 on success, 1 after saying what failed.
+export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: BuildRequest) -> i32 {
+    resolved :: BuildRequest { ...request, .cc = cc_or_default(request.cc) }
+    // Split is the default: one TU per module, compiled concurrently. `--out=-`
+    // writes to stdout, which cannot receive one file per module, so it selects
+    // the single TU rather than being refused.
+    split :: !resolved.no_split && resolved.out != "-"
+    if resolved.emit == "executable" {
+        out :: output_path(resolved.out, stem)
+        if split {
+            return build_native_split(b, file, out, resolved)
+        }
+        return link_native(
+            emit_c_of(b),
+            out,
+            resolved.cc,
+            resolved.release,
+            resolved.ldflags,
+            resolved.runtime_root,
+            quote_include_dir(file),
+            native_flags(b.module),
+        )
+    }
+    if resolved.emit == "c" {
+        if split {
+            work :: output_path(resolved.out, stem)
+            return write_split_files(work, split_program(b, work))
+        }
+        c :: emit_c_of(b)
+        if resolved.out == "-" {
+            print(c)
+            return 0
+        }
+        return write_out(output_path(resolved.out, "${stem}.c".to_path()), c)
+    }
+    out :: output_path(resolved.out, "${stem}.virt".to_path())
+    if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
+        return 1
+    }
+    eprintln("vader build: wrote ${out}")
+    return 0
+}
+
+/// What an artefact is written to.
+///
+/// @param out_flag  `--out`, or `""`.
+/// @param derived   the path derived from the entry.
+/// @return          `out_flag` when it names one, else `derived`.
+export output_path :: fn(out_flag: string, derived: Path) -> Path {
+    if out_flag != "" {
+        return out_flag.to_path()
+    }
+    return derived
+}
+
+// The single-TU C of a prepared program. The entry is designated by mangled
+// name, so the `main()` shim resolves the entry module's `main` even when
+// several modules of the input declare one.
+emit_c_of :: fn(b: CfgBytecode) -> string {
+    Prof.prof_begin(.CEmit)
+    c :: c_source_of(b)
+    Prof.prof_end(.CEmit)
+    // End of the compile pipeline: the per-pass profile, a no-op unless
+    // $VADER_PROFILE is set, idempotent if the atexit fallback also fires.
+    Prof.prof_dump()
+    return c
+}

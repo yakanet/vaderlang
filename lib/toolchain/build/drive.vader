@@ -65,7 +65,7 @@ AST :: import "toolchain/ast"
 /// What the command asked shapes the stream: `--entry` narrows the entries to
 /// one; a check lowers after the last generation round and links nothing; the
 /// preparation of a run writes the project for the CLI and stops after the last
-/// generation round. A build writes each binary to `build/<profile>-<host>/<name>`
+/// generation round. A build writes each binary to `build/<profile>-<target>/<name>`
 /// and copies the assets beside them. Every mode writes the generated modules.
 ///
 /// @param ctx  the configured context. Without an entry the stream yields only
@@ -80,10 +80,9 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // after the first pull is therefore ignored uniformly, rather than honoured
     // for entries not yet reached — a stream cannot re-read what it already
     // acted on, and half-applying a change is worse than ignoring it.
-    target  :: ctx.target
-    request :: ctx.request
-    cc      :: ctx.cc
-    ldflags :: ctx.ldflags
+    destination :: ctx.target
+    request     :: ctx.request
+    output      :: output_request(ctx)
     if ctx.entries.len() == 0 {
         ctx.diagnostics.push(hook_error(.NoEntry, driver_span(ctx),
             "call `ctx.add_entry(...)` before iterating `messages()`"))
@@ -116,8 +115,15 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
     // cleanup, and the guarantee that matters is about the build starting now.
     sweep_generated(generated_root_of(ctx))
     code := 0
-    output_dir :: project_output_dir(ctx.project_root, request.release, null)
-    writes_binaries :: request.mode == .Build && target == .Native
+    output_dir :: project_output_dir(ctx.project_root, output.release, output.target)
+    writes_outputs :: request.mode == .Build && destination == .Native
+    if writes_outputs && !ensure_dir(output_dir) {
+        yield CompleteMessage { .code = 1 }
+        return
+    }
+    writes_binaries :: writes_outputs && output.emit == "executable"
+    roots :: search_roots(ctx)
+    project :: output.project_root
     for chosen_entry in chosen {
         entry :: Path(join_path(ctx.project_root, chosen_entry.path))
         // Declarations are delivered ONCE per build — the Jai property, without
@@ -140,7 +146,7 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             // The generated tree is not passed: the loader derives it from the
             // project root, so what this build reads is what `vader run` and the
             // LSP read too.
-            pipeline :: prepare_evaluated_project_with(entry, search_roots(ctx), project_of(ctx))
+            pipeline :: prepare_evaluated_project_with(entry, roots, project, output.target)
             for [_, loaded] in pipeline.loaded.modules {
                 fresh :: undelivered_decls(loaded.module.files, delivered)
                 // Nothing new in this module: say nothing about it at all,
@@ -180,10 +186,10 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
             // pipeline is the one the back end gets.
             // The command that follows a preparation reports on the program
             // itself, so this run reports only on the driver.
-            if request.mode == .Prepare || target == .None {
+            if request.mode == .Prepare || destination == .None {
                 break
             }
-            lowered :: lower_to_entry_from(pipeline)
+            lowered :: lower_to_entry_from(pipeline, output.verify)
             yield PhaseMessage { .phase = .Lowered }
             if request.mode == .Check {
                 ctx.diagnostics.push_all(lowered.pre_diags)
@@ -194,8 +200,8 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
                 break
             }
 
-            binary :: Path(join_path(output_dir, chosen_entry.name))
-            built :: emit_one(ctx, lowered, entry, binary, target, request.release, cc, ldflags)
+            stem :: Path(join_path(output_dir, chosen_entry.name))
+            built :: emit_one(ctx, lowered, entry, stem, destination, output)
             if built != 0 {
                 code = built
             }
@@ -245,42 +251,55 @@ undelivered_decls :: fn(files: SourceFile[], delivered: MutableSet<string>) -> A
     return concat_file_decls(fresh)
 }
 
-// Carry one lowered entry to its output, per `ctx.target`. Diagnostics land on
+// Carry one lowered entry to its output, per `destination`. Diagnostics land on
 // the context so they interleave with the driver's own reports in order.
 emit_one :: fn(
-    ctx: BuildContext, lowered: LoweredEntry, entry: Path, binary: Path,
-    target: BuildTarget, release: bool, cc: string, ldflags: string,
+    ctx: BuildContext,
+    lowered: LoweredEntry,
+    entry: Path,
+    stem: Path,
+    destination: BuildTarget,
+    output: BuildRequest,
 ) -> i32 {
-    cfg :: prepare_cfg_bytecode_from(lowered, entry, !release, false, proves_bounds(release))
-    for d in cfg.pre_diags {
-        ctx.diagnostics.push(d)
-    }
-    for d in cfg.lower_diags {
-        ctx.diagnostics.push(d)
-    }
+    cfg :: prepare_program_from(lowered, entry, output)
+    ctx.diagnostics.push_all(cfg.pre_diags)
+    ctx.diagnostics.push_all(cfg.lower_diags)
     // BOTH bags, as `flush_build_diags` does for `vader build <file>`: a lowering
     // error still leaves bytecode behind, so gating on `pre_diags` alone would
     // emit C from it, link a binary, and report success — a silently wrong build.
     if any_error_diag(cfg.pre_diags) || any_error_diag(cfg.lower_diags) {
         return 1
     }
-    c :: c_source_of(cfg)
-    if target == .C {
-        ctx.c_sources.push(c)
+    problem :: entry_problem(cfg, entry)
+    if problem != null {
+        eprintln("vader build: ${problem}")
+        return 1
+    }
+    if destination == .C {
+        ctx.c_sources.push(c_source_of(cfg))
         return 0
     }
-    quote_dir :: quote_include_dir(entry)
-    native :: native_flags(cfg.module)
-    runtime_root :: runtime_root_of(ctx)
-    return link_native(c, binary, cc, release, ldflags, runtime_root, quote_dir, native)
+    return emit_program(cfg, entry, stem, output)
+}
+
+// What the outputs of this run are: the CLI's build options, with the driver's
+// C toolchain and the runtime beside the compiler that started it. The project
+// is the driver's, whatever the options name.
+output_request :: fn(ctx: BuildContext) -> BuildRequest = BuildRequest {
+    ...ctx.request.build,
+    .cc = ctx.cc,
+    .ldflags = ctx.ldflags,
+    .project_root = project_of(ctx),
+    .runtime_root = runtime_root_of(ctx),
 }
 
 // ---- producing output -----------------------------------------------------
 
-/// Compile the entries into native binaries.
+/// Compile the entries into what the command asks: native binaries unless
+/// `--emit` names their C or their text bytecode.
 ///
 /// This is what makes a driver a build system rather than an observer. Each
-/// entry is compiled to `build/<profile>-<host>/<name>` under the project, the
+/// entry is compiled to `build/<profile>-<target>/<name>` under the project, the
 /// folder a `vader.json` project's binaries go to.
 ///
 /// Front-end and lowering diagnostics are **accumulated onto the context**, not

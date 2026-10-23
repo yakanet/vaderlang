@@ -48,7 +48,7 @@ export prepare_evaluated_project_with :: fn(
     target: Target | null = null,
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
-    // prepare_cfg_bytecode_with / emit_c_source). `prof_begin` / `prof_end` are
+    // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
     // no-ops — one cached env check + early return — unless $VADER_PROFILE is
     // set, in which case the runtime accumulates the per-pass wall / RSS / GC
     // table dumped at the end of the compile. Kept in the pipeline so the

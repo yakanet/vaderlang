@@ -1,17 +1,10 @@
-// vader/pipeline/emit — the native link.
+// vader/pipeline/emit: the native link, and the `cc` flags every link shares.
 //
-// Bytecode → C → binary, monolithic: one C unit plus the external runtime, one
-// `cc`. The split path, the CLI's default (`--no-split` opts out), stays in the
-// CLI, which owns that flag.
-//
-// Here rather than in the CLI because a build driver has to be able to produce
-// output, and re-implementing the link in every project is how flags drift —
-// release opts, the runtime include path, `ldflags`. A driver hands back a
-// linked binary, not C.
-//
-// The CLI keeps its own `emit_c_source` / `prepared_module` pair: those carry
-// its diagnostic renderer and its `.virt` input path, neither of which a driver
-// wants. Only the link helpers moved.
+// Bytecode → C → binary as one C unit plus the external runtime, one `cc`.
+// `split_build.vader` is the split form, and `output.vader` chooses between
+// them. Both live in the pipeline because a build driver produces output too,
+// and a link written once per caller is how flags drift: release opts, the
+// runtime include path, `ldflags`.
 
 module "vader/pipeline"
 
@@ -27,6 +20,17 @@ import "vader/resolver"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions }
 import "std/ffi"
+
+/// The C runtime a build compiles against.
+///
+/// @param runtime_root  the runtime a caller named, `""` for none.
+/// @return              `runtime_root`, or the runtime beside the compiler.
+export runtime_or_probe :: fn(runtime_root: string) -> string {
+    if runtime_root == "" {
+        return runtime_c_root()
+    }
+    return runtime_root
+}
 
 /// Directory holding the C runtime, for native linking.
 ///
@@ -140,7 +144,7 @@ export lto_flags :: fn(flavour: CcFlavour, release: bool, linking: bool, jobs: i
 /// macOS and MinGW carrying the math symbols in their C runtime.
 ///
 /// Shared by BOTH link paths — the mono `cc_argv` here and the split
-/// `cc_link_argv` in `vader/cli`. Only the split one produces a `--release`
+/// `cc_link_argv` in `split_build.vader`. Only the split one produces a `--release`
 /// build, so a flag added to just one of them leaves the shipped binary
 /// without it.
 ///
@@ -284,6 +288,10 @@ export folder_of :: fn(path: Path) -> string {
 /// The folder beside a binary that holds the C it is compiled from.
 export INTERMEDIATE_DIR :: "c"
 
+/// The folder beside a binary that holds the objects `cc` compiled its C to,
+/// apart from the C so that the generated source reads on its own.
+export OBJECT_DIR :: "obj"
+
 /// The stem the C of the binary `out` is written under: the binary's name, in
 /// `c/` beside it, made when missing. Several binaries of one folder share `c/`,
 /// each file being named after its binary.
@@ -291,8 +299,20 @@ export INTERMEDIATE_DIR :: "c"
 /// @param out  the binary to produce.
 /// @return     `<folder of out>/c/<name of out>`, or null after saying the
 ///             folder could not be made.
-export intermediate_stem :: fn(out: Path) -> Path | null {
-    dir :: join_path(folder_of(out), INTERMEDIATE_DIR)
+export intermediate_stem :: fn(out: Path) -> Path | null = stem_in(out, INTERMEDIATE_DIR)
+
+/// The stem the objects of the binary `out` are written under: the binary's
+/// name, in `obj/` beside it, made when missing.
+///
+/// @param out  the binary to produce.
+/// @return     `<folder of out>/obj/<name of out>`, or null after saying the
+///             folder could not be made.
+export object_stem :: fn(out: Path) -> Path | null = stem_in(out, OBJECT_DIR)
+
+// `<folder of out>/<subdir>/<name of out>`, the folder made when missing; null
+// after saying it could not be.
+stem_in :: fn(out: Path, subdir: string) -> Path | null {
+    dir :: join_path(folder_of(out), subdir)
     if !ensure_dir(dir) {
         return null
     }
@@ -302,7 +322,7 @@ export intermediate_stem :: fn(out: Path) -> Path | null {
 /// Push the include flags every `cc` compile of emitted code takes.
 ///
 /// Shared by BOTH compile paths, the mono `cc_argv` here and the split
-/// `cc_compile_argv` in `vader/cli`. `-I <rt>` reaches `vader.h`. `-iquote <rt>`
+/// `cc_compile_argv` in `split_build.vader`. `-I <rt>` reaches `vader.h`. `-iquote <rt>`
 /// comes before `quote_dir`: a quoted include searches the `-iquote` list first,
 /// so a `vader.h` beside the entry would otherwise stand in for the runtime's.
 ///
@@ -340,7 +360,7 @@ export cc_argv :: fn(
 ) -> string[] {
     argv: string[]: [cc]
     argv.push_all(cc_opt_flags(release))
-    rt :: if runtime_root == "" { runtime_c_root() } else { runtime_root }
+    rt :: runtime_or_probe(runtime_root)
     push_include_flags(argv, rt, quote_dir)
     argv.push_all(native.includes)
     argv.push(c_file)
@@ -380,6 +400,17 @@ export default_cc :: fn() -> string {
         return from_env
     }
     return if current_os() == .Windows { "gcc" } else { "cc" }
+}
+
+/// The C compiler a request names.
+///
+/// @param cc  the compiler named, `""` for none.
+/// @return    `cc`, or `default_cc()`.
+export cc_or_default :: fn(cc: string) -> string {
+    if cc == "" {
+        return default_cc()
+    }
+    return cc
 }
 
 /// Write `c` to `c/` beside `out` and link it into a native binary.
