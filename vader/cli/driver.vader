@@ -72,15 +72,17 @@ export COMPILER_SOURCE_MARKER :: "vader/pipeline"
 /// it sits in, so finding one two directories up would silently build something
 /// the user did not mean, the way a stray `Makefile` never does.
 ///
+/// A `build.vader` is a driver when it declares `module "build"`
+/// (`holds_build_driver`, the one rule every command and editor reads).
+///
 /// @param root  directory to look in — normally the invocation directory.
 /// @return      path to the driver file, or `null` when the project has none,
 ///              in which case `vader build` keeps its current behaviour.
 export find_build_driver :: fn(root: string) -> string | null {
-    candidate :: join_path(root, DRIVER_FILENAME)
-    if exists(candidate) {
-        return candidate
+    if !holds_build_driver(root) {
+        return null
     }
-    return null
+    return join_path(root, DRIVER_FILENAME)
 }
 
 // ---- compiler-source resolution -------------------------------------------

@@ -48,7 +48,7 @@ export DrivenProject :: struct {
 /// @param root  a project folder, as `project_of_document` names it.
 /// @return      false while the project has no roots yet: its diagnostics wait.
 export ensure_described :: fn(self: ServerState, root: string) -> bool {
-    if exists(join_path(root, MANIFEST_FILENAME)) || !holds_build_driver(root) {
+    if !is_driven_project(root) {
         return true
     }
     known :: self.driven.get_or_put_with(root, () -> DrivenProject {})

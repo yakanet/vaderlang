@@ -45,8 +45,17 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     // this refactor); wrap once here so the body speaks `Path` like the rest.
     path :: program.to_path()
     // The debugger is handed a file by the editor, which knows no project: like
-    // the language server, it takes the `vader.json` above the file.
-    project_root :: find_manifest_root(program)
+    // the language server, it takes the nearest project above the file. A
+    // driven one is prepared first, as `vader run --project` does, for its
+    // search roots and the modules it generates.
+    project_root :: find_project_root(program)
+    if project_root != null && is_driven_project(project_root) {
+        _ :: prepared_project("dap", project_root, "") ?? return DapProgram {
+            .state = null,
+            .entry_index = -1,
+            .error = "the build driver of `${project_root}` describes no project; the adapter's log says why",
+        }
+    }
     le :: lower_to_entry(path, project_root)
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg_diags: Diagnostic[]: []

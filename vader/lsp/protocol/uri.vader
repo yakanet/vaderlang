@@ -9,7 +9,7 @@
 // slash after the scheme (the path is `/c:/...`, not `c:/...`), so the two
 // conversions add / strip that slash. Without this, `uri_to_path` leaves a
 // stray leading `/` before the drive (`/c:/...`) — an invalid Windows path that
-// fails `exists()`, so `find_manifest_root` can't locate `vader.json` and the
+// fails `exists()`, so `find_project_root` can't locate `vader.json` and the
 // whole project resolves against the binary-adjacent stdlib instead of the
 // workspace ; and `file://` + a Windows path yields `file://c:\...`, which the
 // client reads as the UNC host `c:`.

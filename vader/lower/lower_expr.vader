@@ -378,8 +378,8 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
 // Fold a reference to an UNBAKED module-level const to its value. The
 // comptime const-bake runs entry-only (`populate_comptime_value_index` reads
 // `evaluated.modules[*].comptime_decls`), so a const declared in an IMPORTED
-// module — e.g. `MANIFEST_FILENAME :: "vader.json"` referenced from its own
-// module's `find_manifest_root` — never lands in `comptime_value_by_symbol_id`.
+// module (`MANIFEST_FILENAME :: "vader.json"` referenced from its own module's
+// `find_project_root`, say) never lands in `comptime_value_by_symbol_id`.
 // The scalar-const fold in `lower_ident` then misses and the bare const ident
 // reaches `midir/build.vader::build_ident`, which has no const case → it emits
 // `unreachable`, truncating the function. Recover by lowering the const decl's
