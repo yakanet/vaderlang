@@ -93,7 +93,7 @@ from one round to the next.
 
 ## Consequences
 
-Measured on 2026-10-08 against `e613df8d0`, on the self-check (`vader check vader/cli/main.vader`):
+Measured on 2026-10-08 against `e613df8d0`, on the self-check (`vader check vader/tools/cli/main.vader`):
 
 - **Two rounds**, whether the written markers are in place or removed.
 - **The deduced marks are a subset of the written ones:** of the 2 504 written,

@@ -50,7 +50,7 @@ Three independent holes, each verified against `HEAD` before any change:
    The same laundering worked from a read-only parameter — `fn(q: P) { held.push(q);
    held[0].x = 9 }`.
 
-Tree cost, measured on `vader/cli/main.vader` + `vader/bootstrap/bootstrap.vader`:
+Tree cost, measured on `vader/tools/cli/main.vader` + `vader/bootstrap/bootstrap.vader`:
 
 | change | new errors |
 |---|---|

@@ -1,0 +1,18 @@
+// vader/tools/fmt/style — formatting constants.
+//
+// No config flags in v1 : every value here is the single canonical choice.
+// Style mirrors the existing stdlib (sampled from `lib/std/core/core.vader`,
+// `lib/std/collections/collections.vader`): 4-space indent, K&R braces, uniform
+// operator spacing, normalized trailing commas in multi-line lists.
+
+module "vader/tools/fmt"
+
+// Visual indent width (4 spaces). Tabs are deliberately not on the table.
+export INDENT :: "    "
+
+// Soft wrap threshold. Calls / struct literals / array literals whose
+// single-line rendering exceeds this width break to one-per-line.
+export MAX_LINE :: 100
+
+export NL :: "\n"
+

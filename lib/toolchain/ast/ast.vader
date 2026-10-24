@@ -1376,7 +1376,7 @@ export ArrayTypeExpr :: struct {
 
 /// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a
-/// single-element list. Used by `vader/fmt` and `vader/typecheck` to
+/// single-element list. Used by `vader/tools/fmt` and `vader/typecheck` to
 /// avoid hand-rolling the same recursion on each side.
 export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
     out: Expr[]: []

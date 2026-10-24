@@ -57,7 +57,7 @@ Two shapes were measured on a throwaway prototype of the typecheck before choosi
 - The rigid set, the held-binding rule, `T := T`, four of the five T3069 silences,
   `fn_has_type_params`, `collect_unbound_type_params`, `seed_explicit_type_args` and
   `seed_ufcs_bindings` are gone. Only the arity-mismatch silence of T3069 remains.
-- Measured on a self-compile (`check vader/cli/main.vader`): typecheck time +2 to
+- Measured on a self-compile (`check vader/tools/cli/main.vader`): typecheck time +2 to
   3 %, bytes allocated +0.3 % (2 026 generic calls, 2 192 variables, none left
   unsolved). The peak resident memory moved from 727 to 848 MB with the same
   allocations and the same number of collections, and a smaller live set at the

@@ -4,7 +4,7 @@
 // DEBUG rendering, deliberately not the round-trippable one : the reload-safe
 // `.virt` serialiser is `vader/vm/virt_writer.vader::write_virt`, paired with
 // `parse_virt_bc`. This dump drops the data pool, so never feed its output back
-// through the reader (`vader/cli/main.vader` says the same at its call site).
+// through the reader (`vader/tools/cli/main.vader` says the same at its call site).
 //
 // Output shape (per fn) :
 //
@@ -486,8 +486,8 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
 // `is_main` flag, so the VM's `parse_virt` recovers the entry from this
 // directive — without it, it falls back to "first `$main`-suffixed fn",
 // which is emission-order-dependent and picks the wrong module's `main`
-// when several modules declare one (e.g. `vader_lsp$main` before
-// `vader_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
+// when several modules declare one (e.g. `vader_tools_lsp$main` before
+// `vader_tools_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
 write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled: string) -> void {
     if entry_mangled == "" { return }
     entry_idx: i32 = -1

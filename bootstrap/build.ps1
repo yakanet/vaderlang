@@ -186,7 +186,7 @@ $work1 = Join-Path $PWD 'build\work\stage1'
 Remove-Item -Recurse -Force $work1 -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $work1 | Out-Null
 # A frozen contract with an older stage0 -- see `vader/bootstrap/bootstrap.vader::main`.
-& .\build\stage0.exe vader\cli\main.vader (Join-Path $work1 'stage1')
+& .\build\stage0.exe vader\tools\cli\main.vader (Join-Path $work1 'stage1')
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1 units (exit $LASTEXITCODE)" }
 $stage1Units = @(Get-ChildItem -Path $work1 -Filter '*.c' | ForEach-Object { $_.FullName })
 $stage1Units += (Join-Path $PWD $runtime)
@@ -197,7 +197,7 @@ $stage2Dir = Join-Path $PWD 'build\work\stage2'
 Remove-Item -Recurse -Force $stage2Dir -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $stage2Dir | Out-Null
 $stage2Out = Join-Path $stage2Dir 'vader'
-& .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\cli\main.vader
+& .\build\stage1.exe build --release --emit=executable "--out=$stage2Out" --cc=$ccAbs vader\tools\cli\main.vader
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 # `cc -o vader` writes `vader.exe` here and `vader` on Unix -- the same reason
 # `vader/pipeline::linked_binary` probes instead of guessing.

@@ -36,7 +36,7 @@ the plan that operationalises §2.7 ("Bootstrap success check").
 
 **Goal** : a contributor (or a CI job) clones the repo, runs
 `bash bootstrap/build.sh` (`cc` with the external runtime), and gets a
-compiler capable of rebuilding itself from `vader/cli/main.vader`.
+compiler capable of rebuilding itself from `vader/tools/cli/main.vader`.
 
 > ⚠️ **NOTHING VERIFIES THIS AUTOMATICALLY ANY MORE** (2026-08-30). The
 > `seed-rebuild` job that did was removed as a duplicate of `Test`'s own
@@ -123,7 +123,7 @@ Required state on TODO.md :
 - §2.1 (parser) — done
 - §2.2 (C emitter port) — done
 - §2.3 (bytecode emitter port) — done
-- §2.4 (VM port) — done (or stubbed if not needed by `vader/cli/main.vader`)
+- §2.4 (VM port) — done (or stubbed if not needed by `vader/tools/cli/main.vader`)
 - §2.5b (comptime port) — done
 - §2.5c (lowerer port) — done
 - §2.6 (typer port) — done
@@ -131,7 +131,7 @@ Required state on TODO.md :
   the TS compiler as the v0 anchor) — **passes**
 
 In short : the self-hosted compiler must emit correct C for
-`vader/cli/main.vader` and reproduce itself. This already holds today via
+`vader/tools/cli/main.vader` and reproduce itself. This already holds today via
 `dump --stage=c` + `cc` (fixed-point byte-identical). Exposing that emission as
 `vader build --emit=c` is the *Blocking prerequisite* above.
 
@@ -164,7 +164,7 @@ once the self-hosted compiler is the source of truth.
 │ stage1  (mini build-only compiler)
 └────────────┬─────────────────┘
              │
-             ▼  stage1 vader/cli/main.vader → main.c → cc
+             ▼  stage1 vader/tools/cli/main.vader → main.c → cc
 ┌──────────────────────────────┐
 │ build/vader  (FULL compiler, release candidate)
 └──────────────────────────────┘
@@ -189,7 +189,7 @@ once the self-hosted compiler is the source of truth.
   11.7 MB per target without either.
 - **stage1** — a build-only compiler produced by compiling the seed with a plain
   C compiler. It carries the entire pipeline, so it can compile any
-  `.vader` — including `vader/cli/main.vader`.
+  `.vader` — including `vader/tools/cli/main.vader`.
 - **build/vader** — the full compiler, produced by stage1 rebuilding the current
   source.
 
@@ -208,7 +208,7 @@ for escape hatches if growth pressure ever flips that decision).
 ## The seed source : `vader/bootstrap/bootstrap.vader`
 
 The seed compiles from a **dedicated build-only entrypoint**, not from
-`vader/cli/main.vader`. This is the central piece of the new design.
+`vader/tools/cli/main.vader`. This is the central piece of the new design.
 
 **Role** — a minimal compiler (~30-50 LoC) whose only job is
 `<input.vader> → <output.c>`. It reuses the exact pipeline of the full compiler
@@ -217,7 +217,7 @@ keeps the two entrypoints separate rather than extracting a shared module).
 
 **Imports** — pipeline only :
 `resolver`, `typecheck`, `comptime`, `lower`, `midir`, `bytecode`, `c_emit`,
-`diagnostics`. It **must not** import `vader/vm`, `vader/fmt`, or `vader/lsp` —
+`diagnostics`. It **must not** import `vader/vm`, `vader/tools/fmt`, or `vader/tools/lsp` —
 that exclusion is the whole point (it is what decouples the seed from the CLI and
 keeps it stable as those modules grow).
 
@@ -232,7 +232,7 @@ module "vader/bootstrap"
 
 import "vader/midir"
 import "vader/c_emit"
-// pipeline imports only — NOT vader/vm, vader/fmt, vader/lsp
+// pipeline imports only — NOT vader/vm, vader/tools/fmt, vader/tools/lsp
 
 main :: fn(args: string[]) -> i32 {
     // args : <input.vader> <output.c>
@@ -244,7 +244,7 @@ main :: fn(args: string[]) -> i32 {
 
 Note : the pipeline helpers (`lower_to_entry`, `prepare_cfg_bytecode`,
 `prepare_evaluated_project`, `entry_main_name`, `gather_pipeline_diags`,
-`module_name_from_file`) currently live in `vader/cli/main.vader`. The duplication
+`module_name_from_file`) currently live in `vader/tools/cli/main.vader`. The duplication
 they require is a deliberate trade-off (no shared `driver` module) ; `verify.sh`
 (self-reproduction) catches a stale `bootstrap.vader`.
 
@@ -377,7 +377,7 @@ bootstrap/
 
 ```
 vader_source_sha: <git rev-parse HEAD when regenerated>
-vader_version:    <`CLI_VERSION` in vader/cli/spec.vader at regen time>
+vader_version:    <`CLI_VERSION` in vader/tools/cli/spec.vader at regen time>
 regenerated_at:   <ISO date>
 generator:        <vader binary path + --version output>
 ```
@@ -465,8 +465,8 @@ fi
 # from sources if needed via the existing toolchain.
 if ! command -v vader >/dev/null && [ ! -x ./build/vader ]; then
   echo "error: no vader binary available. Build one first." >&2
-  echo "  pre-bootstrap path : bun src/index.ts build vader/cli/main.vader --release --out=build/vader" >&2
-  echo "  post-bootstrap path: bootstrap/build.sh && build/stage1 vader/cli/main.vader build/main.c && cc build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader" >&2
+  echo "  pre-bootstrap path : bun src/index.ts build vader/tools/cli/main.vader --release --out=build/vader" >&2
+  echo "  post-bootstrap path: bootstrap/build.sh && build/stage1 vader/tools/cli/main.vader build/main.c && cc build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader" >&2
   exit 1
 fi
 VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
@@ -481,7 +481,7 @@ VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
 cat > bootstrap/VERSION <<EOF
 vader_source_sha: $(git rev-parse HEAD)
-vader_version:    $(grep -E '^export CLI_VERSION' vader/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
+vader_version:    $(grep -E '^export CLI_VERSION' vader/tools/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
 regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER ($("$VADER" --version))
 EOF
@@ -494,7 +494,7 @@ echo "  git commit -m 'chore(bootstrap): bump seed'"
 ```
 
 Implementation note : the seed source is `vader/bootstrap/bootstrap.vader`
-(build-only), **not** `vader/cli/main.vader`. `vader build --emit=c --out=<path>`
+(build-only), **not** `vader/tools/cli/main.vader`. `vader build --emit=c --out=<path>`
 must be wired in `cmd_build` first (Blocking prerequisite). The runtime stays
 **external** (no bundling) — `build.sh` links `runtime/c/` at `cc` time.
 
@@ -527,10 +527,10 @@ The first time `bootstrap.c.gz` is generated, you need a working Vader binary
 **with `cmd_build` wired**. At that point the TS compiler is still present
 (deletion happens at §2.8, **after** this plan succeeds). Sequence :
 
-0. (Prerequisite) Wire `cmd_build --emit=c` in `vader/cli/main.vader`, and
+0. (Prerequisite) Wire `cmd_build --emit=c` in `vader/tools/cli/main.vader`, and
    create `vader/bootstrap/bootstrap.vader`.
 1. Build a Vader binary via TS one last time (now carries the wired `cmd_build`) :
-   `bun src/index.ts build vader/cli/main.vader --release --out=build/vader-via-ts`
+   `bun src/index.ts build vader/tools/cli/main.vader --release --out=build/vader-via-ts`
 2. Emit the first seed from the build-only entrypoint :
    `VADER=./build/vader-via-ts bootstrap/regenerate.sh`
    (or, equivalently, emit straight from TS :
@@ -563,7 +563,7 @@ nor a pre-installed `vader` — only a C compiler. (The Bun
 The `rebuild` job, running on each push :
 
 1. `cc -O2 bootstrap/seed/bootstrap.split.g.c bootstrap/seed/bootstrap-*.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/stage1`
-2. `./build/stage1 vader/cli/main.vader build/main.c` — stage1 emits the FULL compiler's C
+2. `./build/stage1 vader/tools/cli/main.vader build/main.c` — stage1 emits the FULL compiler's C
 3. `cc -O2 build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader`
 4. `./build/vader --version` smoke test
 5. (Optional gate) `./build/vader test …` — sanity check against the
@@ -610,7 +610,7 @@ to run after a reseed.
   Full suite **2283 pass / 0 fail / 5 skip** at each gate. The 5 skips are all
   justified, none a regression: `defer_on_panic` / `defer_in_lambda` (VM
   defer-unwind deferred), `extern_native_basic` (VM has no `@extern` host-fn
-  registry — permanent), and `vader/bytecode` (43/43) / `vader/lsp` (52/52)
+  registry — permanent), and `vader/bytecode` (43/43) / `vader/tools/lsp` (52/52)
   whose native `@test`s pass — only their VM run is skipped for the CI time
   budget.
 
@@ -807,7 +807,7 @@ and will later self-host in Vader." becomes :
 >
 > ```sh
 > bash bootstrap/build.sh                           # cc the seed → ./build/stage1
-> ./build/stage1 vader/cli/main.vader build/main.c  # stage1 emits the full compiler's C
+> ./build/stage1 vader/tools/cli/main.vader build/main.c  # stage1 emits the full compiler's C
 > cc -O2 build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader
 > ```
 >
@@ -831,7 +831,7 @@ Measured 2026-06-05 on `build/vader.c` (the emitted C of the full compiler) :
 |---|---|---|
 | **gzip -9** | 8.9 MB → ~790 KB (11×) | ⛔️ **reversed 2026-07-28** — adopted at the time, but it optimised the wrong quantity: one seed got 11× smaller while *history* got ~14× bigger, because git cannot delta a gzip stream. See § *Why the seed is stored uncompressed*. |
 | mini-VM + committed bytecode | gzipped bytecode ≈ gzipped C ; **+~3000 LoC of C** to write/maintain ; `stage1` would be *interpreted* (slow) | ❌ no size win, more work |
-| seed = full `vader/cli/main.vader` | +~3 % size ; **re-bumps on every lsp/fmt/cli change** | ❌ unstable seed |
+| seed = full `vader/tools/cli/main.vader` | +~3 % size ; **re-bumps on every lsp/fmt/cli change** | ❌ unstable seed |
 | better stdlib DCE | stdlib = 4.4 % of the C and **already DCE'd** (`is_stdlib_path`) ; headroom < 4 % | ❌ essentially already done |
 
 Why the format and the pruning barely matter : the seed is **dominated by the
@@ -899,7 +899,7 @@ Strictly sequential (each step gates the next) :
 
 1. **Self-host port + fixed-point** (TODO §2.1-2.7) — ✅ done. Phase 0 codegen
    determinism is effective (byte-identical proves it).
-2. **Wire `cmd_build`** (`--emit=c` minimum) in `vader/cli/main.vader` —
+2. **Wire `cmd_build`** (`--emit=c` minimum) in `vader/tools/cli/main.vader` —
    **blocking prerequisite** ; promote `run_c_stage` into a real `build` command
    writing `--out`.
 3. **Cleanliness refactor** `op.vader → vader/bytecode` — recommended, ~1 file

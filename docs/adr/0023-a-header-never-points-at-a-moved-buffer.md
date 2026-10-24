@@ -48,7 +48,7 @@ compiler's emitted C included):
 | workload | change |
 |---|---|
 | VM, 7 interpreter benches (fib, loop, arr, field, str, map, shapes) | −17 % to −25 % |
-| self-compile, `dump --stage=c vader/cli/main.vader` (4.32 s → 3.48 s) | −19 % |
+| self-compile, `dump --stage=c vader/tools/cli/main.vader` (4.32 s → 3.48 s) | −19 % |
 | native `arr_rw` / `hashmap` / `map_iter` / `sort_by` / `matmul` | −37 % / −28 % / −22 % / −21 % / −13 % |
 | the other 21 programs of `bench/` | −5 % to +2 %, within noise |
 

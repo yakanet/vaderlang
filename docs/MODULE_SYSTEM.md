@@ -376,17 +376,17 @@ vader/lexer/*.vader        →   module "vader/lexer"
 vader/parser/*.vader       →   module "vader/parser"
 vader/typecheck/*.vader    →   module "vader/typecheck"
 ...
-vader/cli/main.vader       →   module "vader/cli"
+vader/tools/cli/main.vader       →   module "vader/tools/cli"
 ```
 
-The `vader/fmt/` and `vader/lsp/` trees migrate together with the rest
+The `vader/tools/fmt/` and `vader/tools/lsp/` trees migrate together with the rest
 for consistency, even though they're not on the self-host critical
 path.
 
 Around 117 files. Mechanical patch ; can be scripted from the existing
 folder structure (`module "vader/" + basename(dirname(file))`).
 
-Note : `vader/cli/main.vader` becomes `module "vader/cli"` (not
+Note : `vader/tools/cli/main.vader` becomes `module "vader/tools/cli"` (not
 `"main"`) so it doesn't collide globally with `examples/*.vader` (each
 of which uses `module "main"` per §6, scoped in via CLI fallback).
 
@@ -470,8 +470,8 @@ follow-up.
 ### Phase 9 — LSP ✅ done (`33b1af8d`)
 
 - Recognise `module` as a keyword token in
-  `vader/lsp/handlers/ast_tokens.vader` and
-  `vader/lsp/handlers/semantic_tokens.vader`.
+  `vader/tools/lsp/handlers/ast_tokens.vader` and
+  `vader/tools/lsp/handlers/semantic_tokens.vader`.
 - Surface the parser-level diagnostic when the keyword is absent
   (currently the LSP would just show a parse error ; we want a clear
   "missing module declaration" message).
@@ -528,7 +528,7 @@ becomes stable.
 | `vader/resolver/loader.vader` | Strict-mode BFS with lazy `parse_source` (decision #44) | 8 |
 | `vader/parser/parse_module_header` | Header-only byte scanner | 8 |
 | `vader/support/diagnostics/codes.vader` | New R2020-R2028 + P1028-P1030 entries (mirror) | 8 |
-| `vader/lsp/`, `vader/fmt/` | Keyword recognition + diagnostic | 9 |
+| `vader/tools/lsp/`, `vader/tools/fmt/` | Keyword recognition + diagnostic | 9 |
 | `tests/parity-broad.test.ts` | Byte-diff TS vs Vader on real modules | 10 |
 
 ## 7. Decision log
@@ -561,9 +561,9 @@ Open arbitrations from the design discussion, with the final call :
 | 22 | Diagnostic location on global-name conflict ? | **On the second occurrence**, secondary span on the first (R2011-like). |
 | 23 | Compilation modes ? | **Focus** by default (typecheck reachable only) ; whole-project is post-MVP. |
 | 24 | TS-first vs alternating with Vader port ? | **TS-first end-to-end** (Phases 1-6), then Vader port (Phases 7-8). |
-| 25 | `vader/fmt/` `vader/lsp/` migration timing ? | **Same wave as the rest of `vader/`** (Phase 5). |
+| 25 | `vader/tools/fmt/` `vader/tools/lsp/` migration timing ? | **Same wave as the rest of `vader/`** (Phase 5). |
 | 26 | Index cache on disk ? | **Out of scope MVP.** Cold scan on every invocation. |
-| 27 | `vader/cli/main.vader` module name ? | **`module "vader/cli"`**, not `"main"`, to avoid global collision with `examples/*.vader` (which use `module "main"` via CLI fallback). |
+| 27 | `vader/tools/cli/main.vader` module name ? | **`module "vader/tools/cli"`**, not `"main"`, to avoid global collision with `examples/*.vader` (which use `module "main"` via CLI fallback). |
 | 28 | Intra-module duplicate decls ? | **Hard error** for non-fn decls (struct / type / const / enum / trait) across files of the same module ; **fn decls join the same overload set** (no error at decl ; T3032 surfaces only on ambiguous call sites). |
 | 29 | Migration order with parser/resolver strictness ? | **Tolerant parser (TS + Vader) → migration of all `.vader` files → strict resolver + parser-flip.** Each phase is a green-build commit. |
 | 30 | Re-exports ? | **Not supported.** No `export import "..."` form ; façade modules must wrap each binding manually. |

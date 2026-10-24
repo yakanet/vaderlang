@@ -1972,7 +1972,7 @@ settle_external_expr_bodied_returns :: fn(
 // wildcard imports. Imports are file-scoped (SPEC §"Modules"), so two files of
 // one module see different names — including the same path imported bare in one
 // and under a modifier list in the other, which is real in-tree usage
-// (`vader/lsp/main_entry.vader` vs `vader/lsp/main.vader` on `std/cli`).
+// (`vader/tools/lsp/main_entry.vader` vs `vader/tools/lsp/main.vader` on `std/cli`).
 //
 // Only the forms that put names in UNQUALIFIED scope feed a table: bare
 // `import "p"`, `import "p" { … }` minus what its modifiers drop, the names a

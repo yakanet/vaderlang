@@ -166,7 +166,7 @@ const IMPLS: readonly Impl[] = [
     // TIMED run is the emit itself (no separate build step, no per-workload
     // binary). Every other impl lacks a `bench/selfcompile_c/*` source, so they
     // are silently skipped and the row shows only this column.
-    source: (w) => w === "selfcompile_c" ? "vader/cli/main.vader" : `bench/${w}/${w}.vader`,
+    source: (w) => w === "selfcompile_c" ? "vader/tools/cli/main.vader" : `bench/${w}/${w}.vader`,
     build: (w) => w === "selfcompile_c"
       ? Promise.resolve()
       : runBuild("./build/vader", ["build", "--emit=executable", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
@@ -174,7 +174,7 @@ const IMPLS: readonly Impl[] = [
       // No `--no-split`: this measures the DEFAULT emission, which is what every
       // real caller takes. The baseline was recorded on the single-TU path and is
       // updated with this change rather than the measurement bent to fit it.
-      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile", "vader/cli/main.vader"] }
+      ? { cmd: "./build/vader", args: ["build", "--emit=c", "--release", "--out=build/_bench_selfcompile", "vader/tools/cli/main.vader"] }
       : { cmd: `./bench/${w}/${w}`, args: [] },
   },
   {

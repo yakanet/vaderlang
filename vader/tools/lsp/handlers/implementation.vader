@@ -1,0 +1,181 @@
+// vader/tools/lsp/handlers/implementation — `textDocument/implementation` handler.
+//
+// Where goto-`definition` jumps to a name's single binding, `implementation`
+// answers "and where are its BODIES" — a question that only exists because one
+// name can have several. Two constructs have that shape, and they are the same
+// shape:
+//
+//   - a bare `@target` declaration, whose bodies live under `@target(.Os, …)`;
+//   - a trait method, whose bodies live in each `implements` block (and the
+//     trait itself, whose implementations are those blocks).
+//
+// The first is served from the union view below ; the second, when the cursor is
+// on no `@target` group, from the `implements` blocks the type hierarchy finds
+// (`type_hierarchy.vader`).
+//
+// THE UNION VIEW, and this is the whole reason the handler exists. Selection
+// runs at LOAD time, so by the time any typed project exists, the bodies for
+// other platforms are gone — `implementation` on a Mac would list the Darwin
+// body and claim that is all there is. It reads `union_project_for` instead,
+// which loads with `AllTargets` and keeps every body. That view must never feed
+// diagnostics (see `analysis/state`), but listing locations is exactly what it
+// is for.
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "toolchain/span"
+import "vader/tools/lsp/protocol"
+import "vader/tools/lsp/analysis"
+AST :: import "toolchain/ast"
+import "vader/resolver"
+
+/// Resolve `textDocument/implementation` for the position in `params`.
+///
+/// Returns a `Location[]` — one per body of the `@target` group under the
+/// cursor — or `JsonNull` when the cursor is not on a name that has bodies. An
+/// empty array is never returned: "no implementations" and "not that kind of
+/// name" are the same answer to a client, and null is the cheaper one.
+///
+/// @param state   the server state (carries the overlay + both caches).
+/// @param params  the LSP request params (`textDocument`, `position`).
+/// @return        a JSON array of `Location`, or `JsonNull`.
+export handle_implementation :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" {
+        return JsonNull {}
+    }
+    file_path :: uri_to_path(uri)
+    if file_path == "" {
+        return JsonNull {}
+    }
+    project :: union_project_for(state, file_path)
+    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
+    name :: target_group_name_at(project, file_path, line, column)
+    if name == "" {
+        return trait_implementations(state, params)
+    }
+    out: JsonValue[]: []
+    for [_, lm] in project.modules {
+        for f in lm.module.files {
+            for d in f.program.decls {
+                if d is AST.FnDecl {
+                    if d.name != name {
+                        continue
+                    }
+                    // The bodies, not the declaration: jumping from a
+                    // declaration to itself is the one answer the user already
+                    // has. A `@target(.Os, …)` is always a body (SPEC §17).
+                    sel :: d.decorators.target_selector_count()
+                    if sel == 0 {
+                        continue
+                    }
+                    out.push(location_json(path_to_uri(d.name_span.start.file),
+                        d.name_span.span_to_range_json(state.line_index_for_path(d.name_span.start.file))))
+                }
+            }
+        }
+    }
+    if out.len() == 0 {
+        return JsonNull {}
+    }
+    return JsonArray { .items = out }
+}
+
+// The implementations of the trait, or of the trait method, the cursor names :
+// the `implements` blocks of the trait, or the members of those blocks that
+// implement the method. `JsonNull` when the cursor names neither, or nothing
+// implements it.
+trait_implementations :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    target :: cursor_target(state, params) ?? return JsonNull {}
+    out: JsonValue[]: []
+    if target.decl.kind == .Trait {
+        for impl in (TypeWalk { .target = target }).impls_of() {
+            out.push(span_location(target, impl.for_type.span))
+        }
+    } else if target.decl.kind == .Fn {
+        owner :: owning_trait(target) ?? return JsonNull {}
+        for impl in (TypeWalk { .target = owner }).impls_of() {
+            for m in impl.members {
+                // A default the trait supplied, cloned into the block : the
+                // block wrote no body of its own.
+                if m.name == target.decl.name && !m.materialized {
+                    out.push(span_location(owner, m.name_span))
+                }
+            }
+        }
+    }
+    if out.len() == 0 {
+        return JsonNull {}
+    }
+    return JsonArray { .items = out }
+}
+
+// The trait declaring the method `target` names, as a target of its own, or null
+// when it is no trait method. A trait method sits in its trait's file.
+owning_trait :: fn(target: DeclTarget) -> DeclTarget | null {
+    owner :: target.decl.owner
+    if owner.byte_len() == 0 {
+        return null
+    }
+    idx :: doc_index_for(target.state, target.indices, target.decl_path)
+    declared :: idx.find_toplevel(owner) ?? return null
+    if declared.kind != .Trait {
+        return null
+    }
+    at :: declared.name_span.start
+    site :: site_at(target.index, target.decl_path, at.line, at.column) ?? return null
+    return DeclTarget {
+        ...target,
+        .site = site,
+        .decl = declared,
+    }
+}
+
+// The name of the `@target` group the cursor sits on, or "" when it sits on
+// something else.
+//
+// Matched on the DECLARATION's name span, not on an expression: `implementation`
+// is asked from the declaration, and resolving a call site would answer a
+// different question (that is `definition`'s job). Any member of the group
+// answers — a user who invokes it from one body means the group.
+target_group_name_at :: fn(
+    project: LoadedProject, file_path: string, line: i32, col: i32,
+) -> string {
+    for [_, lm] in project.modules {
+        sf :: source_file_for_path(lm.module.files, file_path) ?? continue
+        for d in sf.program.decls {
+            if d is AST.FnDecl {
+                if !has_target_decorator(d.decorators) {
+                    continue
+                }
+                if span_contains(d.name_span, line, col) {
+                    return d.name
+                }
+            }
+        }
+    }
+    return ""
+}
+
+// How many OS selectors a `@target` carries: 0 for the bare form (THE
+// declaration), more for a body. Returns 0 when there is no `@target` at all —
+// callers pair it with `has_target_decorator`, which separates the two cases.
+target_selector_count :: fn(decorators: AST.Decorator[]) -> i64 {
+    for d in decorators {
+        if d.name == "target" {
+            return d.args.len()
+        }
+    }
+    return 0
+}
+
+has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
+    for d in decorators {
+        if d.name == "target" {
+            return true
+        }
+    }
+    return false
+}

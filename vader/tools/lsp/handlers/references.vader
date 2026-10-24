@@ -1,0 +1,57 @@
+// vader/tools/lsp/handlers/references — `textDocument/references` handler.
+//
+// Find-usages across the workspace. Builds the reference index of the document's
+// project (`analysis/reference_index`), locates the target under the cursor, then
+// returns every site of that target as a `Location[]`, the sites that run it
+// without naming it included, in the modules that import the document's too
+// (`analysis/workspace::reference_sites`). Honours `context.includeDeclaration`.
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "vader/tools/lsp/protocol"
+import "vader/tools/lsp/analysis"
+
+/// Resolve find-references for the position in `params`. Returns a `Location[]`
+/// (every reference to the target under the cursor), empty when the cursor isn't
+/// on a resolvable identifier. Honours `context.includeDeclaration`.
+export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonArray { .items = [] } }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonArray { .items = [] } }
+
+    cached :: typed_project_for(state, file_path)
+    index :: reference_index_of(cached)
+
+    [line, column] :: state.span_point(file_path, position_line(params), position_character(params))
+    target :: site_at(index, file_path, line, column)
+    if target == null { return JsonArray { .items = [] } }
+
+    include_decl :: include_declaration(params)
+    items: JsonValue[]: []
+    // Memoise one LineIndex per referenced file — a symbol can have many sites in
+    // the same file, and `line_index_for_path` reads from disk for non-open ones.
+    li_cache :: MutableMap<string, LineIndex> {}
+    for s in reference_sites(state, uri, cached, index, target) {
+        if s.is_decl && !include_decl { continue }
+        path :: s.span.start.file
+        li :: line_index_cached(state, li_cache, path)
+        items.push(location_json(path_to_uri(path), s.span.span_to_range_json(li)))
+    }
+    return JsonArray { .items = items }
+}
+
+// Fetch (and memoise) the LineIndex for `path` within one request.
+line_index_cached :: fn(state: ServerState, cache: MutableMap<string, LineIndex>, path: string) -> LineIndex =
+    cache.get_or_put_with(path, () -> state.line_index_for_path(path))
+
+// `params.context.includeDeclaration`, defaulting to true (the LSP default
+// when the client omits it).
+include_declaration :: fn(params: JsonValue) -> bool {
+    ctx :: get_field(params, "context")
+    v :: get_field(ctx, "includeDeclaration")
+    if v is JsonBool { return v.value }
+    return true
+}

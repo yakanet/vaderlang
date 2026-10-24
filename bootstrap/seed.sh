@@ -199,7 +199,7 @@ cmd_regenerate() {
     # usually still compiles the tree.
     if [ -n "$(find $SEED_SOURCE_DIRS -name '*.vader' -newer "$VADER" -print -quit)" ]; then
         echo "$VADER is older than the .vader sources — building the tree with it first."
-        if ! "$VADER" build --release --emit=executable --out=build/vader.next vader/cli/main.vader; then
+        if ! "$VADER" build --release --emit=executable --out=build/vader.next vader/tools/cli/main.vader; then
             echo "error: $VADER cannot build the tree — refusing to write a seed." >&2
             exit 1
         fi
@@ -265,7 +265,7 @@ cmd_regenerate() {
 
     cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)
-vader_version:    $(grep -E '^export CLI_VERSION' vader/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
+vader_version:    $(grep -E '^export CLI_VERSION' vader/tools/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
 regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER
 META

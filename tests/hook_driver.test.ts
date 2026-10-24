@@ -488,7 +488,7 @@ test.concurrent("a bundled namespace outranks a project module of the same name"
   // library split lands. Include-paths are first-match-wins, so with the project
   // searched first a project declaring `module "cli"` silently wins over the
   // shipped one. Bad alone, worse in a driven build: the compiler's sources are
-  // compiled in the SAME unit as the project, so `vader/cli` would be built
+  // compiled in the SAME unit as the project, so `vader/tools/cli` would be built
   // against the user's module. Reproduced before the fix, pinned here.
   //
   // A bundle is the shape where it bites — that is where a library root is

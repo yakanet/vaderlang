@@ -963,7 +963,7 @@ VADER_NOINLINE void vader_array_push_ref_slow(vader_array_t* a, void* obj);
  * growth, which is what made two separate instances of this bug cost a
  * self-compile SIGSEGV each to find. Trapping here turns the whole family into
  * an immediate, located failure. Debug builds and the test suite get it;
- * `--release` passes -DNDEBUG and pays nothing (see `vader/cli/main.vader`). */
+ * `--release` passes -DNDEBUG and pays nothing (see `vader/tools/cli/main.vader`). */
 #ifndef NDEBUG
 #define VADER_ARRAY_PUSH_KIND_CHECK(ctype)                                         \
     if (a->buf != NULL && vader_array_element_size(a->buf->element_kind) != sizeof(ctype)) { \

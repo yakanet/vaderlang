@@ -1,0 +1,703 @@
+// vader/tools/cli/driver: the build-driver path, for a project folder with a
+// `build.vader`.
+//
+// A project drives its own build by putting a `build.vader` at its root, holding
+// a `build` fn (a reserved name, the way `main` is in a program). `vader build`,
+// `check`, `run`, `dump`, `lint` and `graph` given that folder compile the driver
+// and run it with their request (`vader/pipeline/driver_request.vader`); the
+// driver then decides what to compile, because the compiler is part of its own
+// import closure.
+//
+// Why a GENERATED entry rather than teaching the lowerer a second entry name:
+// `is_main_decl` (`lower/decl.vader`) recognises the entry by the
+// literal name `main`, and widening it would make every project's `build` fn an
+// entry point. Worse, a driver compiled directly would be silently ELIMINATED —
+// `lower/dce.vader:238` roots only `is_main` and `@export` decls, so `build`
+// disappears and `emit_main` falls back to its `return 0` stub: a binary that
+// does nothing, with no diagnostic. The generated `main` makes `build` reachable,
+// so no DCE rule has to change.
+//
+// The shim is written BESIDE the driver, declaring the SAME module, and calls
+// `build` directly rather than importing it. A single `.vader` file at a
+// project root is not importable by module name (the loader maps a module to a
+// folder of the same name), so `import "build"` cannot resolve a root-level
+// `build.vader` — sharing the module sidesteps that, and needs no directory
+// creation, which `std/io` cannot do anyway.
+//
+// The driver runs NATIVELY, not through the comptime VM: it reads the compiler's
+// own AST nodes, and the VM has its own value representation (per-module type
+// indices and atom ids) that no shared layout reconciles.
+
+module "vader/tools/cli"
+
+import "std/env"
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/string_builder"
+import "std/async"
+import "std/process"
+import "vader/support/diagnostics"
+import "crypto"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
+import "vader/resolver"
+import "toolchain/span"
+import "vader/pipeline"
+import "vader/support/text"
+Build :: import "toolchain/build"
+
+// ---- discovery ------------------------------------------------------------
+
+/// Filename of the generated entry, written beside the driver. Named so it reads
+/// as machine-written in a directory listing.
+export DRIVER_ENTRY_FILENAME :: "vader_build_entry.vader"
+
+/// Subdirectory of a `dist/` bundle holding the compiler's own sources.
+///
+/// The bundled binary is named `vader`, so the sources cannot live at
+/// `<bundle>/vader/` — hence one level of indirection. `bootstrap/build.sh
+/// --dist` writes them here and `compiler_source_root` looks for them here.
+export BUNDLED_SOURCE_DIR :: "src"
+
+/// Directory proving a candidate root really holds the compiler's sources.
+///
+/// A module the driver's own closure needs, so a root that lacks it is genuinely
+/// unusable rather than merely incomplete.
+export COMPILER_SOURCE_MARKER :: "vader/pipeline"
+
+/// Locate the project's build driver.
+///
+/// Looked up in `root` only — no walk up the tree. A driver governs the project
+/// it sits in, so finding one two directories up would silently build something
+/// the user did not mean, the way a stray `Makefile` never does.
+///
+/// A `build.vader` is a driver when it declares `module "build"`
+/// (`holds_build_driver`, the one rule every command and editor reads).
+///
+/// @param root  directory to look in — normally the invocation directory.
+/// @return      path to the driver file, or `null` when the project has none,
+///              in which case `vader build` keeps its current behaviour.
+export find_build_driver :: fn(root: string) -> string | null {
+    if !holds_build_driver(root) {
+        return null
+    }
+    return join_path(root, DRIVER_FILENAME)
+}
+
+// ---- compiler-source resolution -------------------------------------------
+
+/// The compiler's own sources under `$VADER_HOME`, or `""` when it does not
+/// supply them (unset, or holding neither layout).
+///
+/// Both layouts are accepted: a checkout holds `vader/` at its root, a bundle
+/// holds `src/vader/`. A value holding neither is ignored exactly as it is in
+/// `resolver::sidecar_root` — `vader doctor` is what reports it.
+///
+/// Split out so the REPORT and the RESOLUTION ask the same question. `doctor`
+/// first inferred the answer by testing whether the resolved root started with
+/// `$VADER_HOME`, which is a string prefix, not a path: with the variable set to
+/// `…/vaderlang` and the sources at `…/vaderlang2`, it claimed the sources came
+/// through the variable. Comparing against what this returns cannot say that.
+///
+/// @return the directory holding `vader/pipeline`, or `""`.
+export compiler_source_home :: fn() -> string {
+    home :: get_env(TOOLCHAIN_HOME_VAR) ?? ""
+    if home == "" {
+        return ""
+    }
+    if exists(join_path(home, COMPILER_SOURCE_MARKER)) {
+        return home
+    }
+    bundled :: join_path(home, BUNDLED_SOURCE_DIR)
+    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
+        return bundled
+    }
+    return ""
+}
+
+/// Include-path root under which the COMPILER's own modules resolve.
+///
+/// A driver imports `toolchain/build`, which the library root already provides —
+/// but that module imports `vader/pipeline`, and `vader/` is not an include-path
+/// root anywhere. This is what supplies it, injected for driver builds only.
+///
+/// Mirrors `resolver::resolve_sidecar`'s shape: prefer a location tied to the
+/// running binary, and fall back to `root` — which is what a checkout gives,
+/// where `vader/` sits at the project root. Returns a root CONTAINING `vader/`,
+/// not `vader/` itself, since include paths are searched by module name.
+///
+/// Two binary-relative layouts, in order:
+///
+///   * `<binary dir>/vader/` — a checkout whose binary sits at the root.
+///   * `<binary dir>/src/vader/` — the `dist/` bundle. Two reasons for the
+///     indirection, and the second is why it is `src/` and not `lib/`: the
+///     bundled binary is itself NAMED `vader`, so the sources cannot sit at
+///     `<binary dir>/vader/` without colliding with it; and the compiler is not
+///     a library the toolchain ships for consumption, it is the implementation a
+///     driver links, so `lib/` — which holds `std/`, `toolchain/` and the rest —
+///     is the wrong neighbourhood for it. Keeping it out also makes the layering
+///     structural rather than policed: nothing under `lib/` is the compiler.
+///
+/// ⚠️ The marker is `vader/pipeline`, and it must stay a module the driver's own
+/// closure needs. It used to be `vader/hooks` — the contract itself — which broke
+/// the moment that moved out to `toolchain/build`: both probes then missed and the
+/// function fell through to `root`, which a CHECKOUT masks (the repo root does
+/// hold `vader/`) and a BUNDLE does not. The dist-bundle case of
+/// `tests/hook_driver.test.ts` is what catches it.
+///
+/// @param root  invocation directory, used as the checkout fallback.
+/// @return      a directory under which `vader/pipeline/` is expected to resolve.
+export compiler_source_root :: fn(root: string) -> string {
+    // `$VADER_HOME` first, the same precedence it gets in every other sidecar
+    // probe (`resolver::sidecar_root`). Both layouts are accepted under it: a
+    // checkout holds `vader/` at its root, a bundle holds `src/vader/`. A value
+    // holding neither is ignored here exactly as it is there — `vader doctor`
+    // is what reports it.
+    from_home :: compiler_source_home()
+    if from_home != "" {
+        return from_home
+    }
+    beside_binary :: current_executable_location().dir_of()
+    if exists(join_path(beside_binary, COMPILER_SOURCE_MARKER)) {
+        return beside_binary
+    }
+    bundled :: join_path(beside_binary, BUNDLED_SOURCE_DIR)
+    if exists(join_path(bundled, COMPILER_SOURCE_MARKER)) {
+        return bundled
+    }
+    // NOT a walk up the filesystem. An unbounded search would find some
+    // unrelated checkout's `vader/` and compile the driver against a different
+    // AST than the binary running it — the same reason `find_build_driver` looks
+    // in one directory only. Either the sources sit beside the binary (a bundle)
+    // or at the project root (a checkout); anything else is a setup the user
+    // should be told about rather than guessed around.
+    return root
+}
+
+// ---- caching the driver binary --------------------------------------------
+
+/// Key identifying what the cached driver binary was built from.
+///
+/// Two inputs decide that binary: the driver source, and the compiler that
+/// compiles it. `build.vader` is hashed by content; the compiler by a SHA-256 of
+/// its own executable — **38 ms for 3.4 MB natively**, against an 8.2 s driver
+/// build, which is what makes checking cheaper than rebuilding.
+///
+/// ⚠️ Measure natively, not through `vader run`: the same hash takes 27 s in the
+/// VM, and reading that as a `std/crypto` problem is a mistake I made. The VM
+/// only ever runs the comptime table construction here.
+///
+/// What it deliberately does NOT catch: editing `vader/` or `lib/` sources
+/// WITHOUT rebuilding the compiler. The driver is compiled from those sources, so
+/// a cached driver would then be stale. Hashing both trees is affordable too
+/// (284 files, 4.6 MB) but the case is a compiler-developer one, and this repo's
+/// own test harness already refuses to run against a `build/vader` older than its
+/// sources — so the binary hash tracks it in practice. Delete `build/driver/` to
+/// force a rebuild.
+///
+/// @param driver_path  the project's `build.vader`.
+/// @return             a key that changes when either input does.
+driver_input_key :: fn(driver_path: string) -> string {
+    src :: read_file_string(driver_path)
+    driver_hash :: match src {
+        is string  -> src.hash()
+        is IOError -> 0
+    }
+    exe :: read_file_bytes(current_executable_location(), READ_LIMIT_DEFAULT)
+    compiler_hash :: match exe {
+        is u8[]    -> sha256(exe)
+        is IOError -> ""
+    }
+    return "${driver_hash}-${compiler_hash}"
+}
+
+/// True when the cached driver binary can be reused for `key`.
+///
+/// Both halves matter: the stamp says what the binary was built from, and the
+/// binary has to still be there — `build/` is a directory users delete.
+///
+/// @param binary  the cached driver binary.
+/// @param stamp   the file recording its input key.
+/// @param key     the key of the current inputs.
+driver_is_fresh :: fn(binary: string, stamp: string, key: string) -> bool {
+    if linked_binary(binary) == null {
+        return false
+    }
+    recorded :: read_file_string(stamp)
+    if recorded is IOError {
+        return false
+    }
+    return recorded.trim() == key
+}
+
+// ---- generated entry ------------------------------------------------------
+
+/// Render the entry module that calls a driver's `build`.
+///
+/// Kept to two statements on purpose: everything a driver needs it builds
+/// itself through `new_build_context`, so this shim carries no policy — only the
+/// `main` the lowerer insists on.
+///
+/// @return the module source, ready to write next to a `module "..."` folder
+///         named `DRIVER_ENTRY_MODULE`.
+export render_driver_entry :: fn() -> string {
+    out :: StringBuilder {}
+    // The banner is what `sweep_generated` deletes on; this shim escapes the
+    // sweep only because it is written at the project root, outside the
+    // generated tree.
+    out.append("${Build.GENERATED_BANNER}\n")
+    out.append("//\n")
+    out.append("// Entry shim for this project's `${DRIVER_FILENAME}`: it shares that file's\n")
+    out.append("// module so it can call `build` without an import, and gives the lowerer the\n")
+    out.append("// `main` it recognises as the entry. Written before each driven build and\n")
+    out.append("// removed after; delete it freely.\n")
+    out.append("\n")
+    out.append("module \"${DRIVER_MODULE}\"\n")
+    out.append("\n")
+    out.append("main :: fn(args: string[]) -> i32 {\n")
+    out.append("    return build(args)\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
+/// Path of the generated entry: beside the driver, sharing its module.
+///
+/// @param root  the project root, where the driver lives.
+export driver_entry_path :: fn(root: string) -> string =
+    join_path(root, DRIVER_ENTRY_FILENAME)
+
+/// The `build.vader` of a project that declares `manifest`: the driver a
+/// `vader.json` stands for, written out. `vader eject` writes it for a
+/// project's `vader.json`, `vader new --build=driver` for its single entry.
+///
+/// `emit_native` rather than a hand-rolled drain, because `emit_native` IS that
+/// drain (`toolchain/build::drain`) and a file that reimplements it would teach
+/// the long way round. Declares `DRIVER_MODULE` because a single file at a
+/// project root is not importable by module name; the compiler writes an entry
+/// shim beside it that shares the module. See `vader/tools/cli/driver.vader`.
+///
+/// @param manifest  the search roots, entries and assets to declare.
+render_driver :: fn(manifest: Manifest) -> string {
+    out :: StringBuilder {}
+    out.append("// ${DRIVER_FILENAME}: this project drives its own build.\n")
+    out.append("//\n")
+    out.append("// `vader build`, `check` and `run` given this folder compile this file and run\n")
+    out.append("// `build`. Draining `ctx.messages()` IS the build, and `emit_native` is the\n")
+    out.append("// shortcut that drains it: walk the messages yourself to lint or generate,\n")
+    out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
+    out.append("//\n")
+    out.append("// `vader check`, `run` and `info` run this file without building: a step after\n")
+    out.append("// the build (install, package) checks `ctx.mode() == .Build` first.\n")
+    out.append("//\n")
+    out.append("// The project folder is a module search root. Add another source directory\n")
+    out.append("// through `ctx.include_paths` when you need one.\n")
+    out.append("\n")
+    out.append("module \"${DRIVER_MODULE}\"\n")
+    out.append("\n")
+    out.append("import \"${DRIVER_CONTRACT_MODULE}\"\n")
+    out.append("\n")
+    out.append("build :: fn(args: string[]) -> i32 {\n")
+    out.append("    ctx :: new_build_context(args)\n")
+    for root in manifest.include_paths {
+        out.append("    ctx.include_paths.push(${string_literal(root)})\n")
+    }
+    for entry in manifest.entries {
+        out.append("    ctx.add_entry(${string_literal(entry.name)}, ${string_literal(entry.path)})\n")
+    }
+    for asset in manifest.assets {
+        out.append("    ctx.add_asset(${string_literal(asset)})\n")
+    }
+    out.append("    code :: ctx.emit_native()\n")
+    out.append("    _ :: ctx.flush_reports()\n")
+    out.append("    return code\n")
+    out.append("}\n")
+    return out.to_string()
+}
+
+// `text` as a Vader string literal: raw when it holds a `$` or a `\` that a
+// raw literal can carry as is (`$VADER_HOME`), escaped otherwise.
+string_literal :: fn(text: string) -> string {
+    if (r"$" in text || "\\" in text) && holds_raw(text) {
+        return "r\"${text}\""
+    }
+    return quote_vader(text)
+}
+
+// Whether a raw literal holds `text` as is: no `"`, which would end it, and no
+// control character, which it cannot escape.
+holds_raw :: fn(text: string) -> bool {
+    for c in text {
+        if c == '"' || u32(c) < 0x20 {
+            return false
+        }
+    }
+    return true
+}
+
+// ---- validation -----------------------------------------------------------
+
+/// Check that a driver file declares a usable `build`, before anything is built.
+///
+/// Without this the failure surfaces as a compile error inside the GENERATED
+/// entry — pointing at machine-written code for a mistake in the user's file.
+/// Parsing the driver first costs one parse and lets the diagnostic land on the
+/// driver itself, or on nothing at all when the fn is simply absent.
+///
+/// Parse errors are left alone: the real build reports them against the driver
+/// with full spans, and duplicating them here would double every message.
+///
+/// @param path  the driver file, already known to exist.
+/// @return      the diagnostic to report, or `null` when the driver is usable.
+/// @error       H6001 when no `build` fn is declared ; H6002 when one is declared
+///              with a signature the generated entry cannot call.
+export validate_driver :: fn(path: string) -> Diagnostic | null {
+    source :: match s :: read_file_string(path) {
+        is string  -> s
+        is IOError -> ""
+    }
+    if source == "" {
+        return null
+    }
+    parsed :: Parse.parse_source(source, path)
+    if parsed.errors.len() > 0 {
+        return null
+    }
+    for d in parsed.program.decls {
+        if d is AST.FnDecl {
+            if d.name == DRIVER_ENTRY {
+                return signature_problem(d)
+            }
+        }
+    }
+    // Anchor on the file's first character: there is no declaration to point at,
+    // and `empty_span()` would render as `<synthetic>`, naming no file at all.
+    return hook_error(.MissingBuildEntry, file_head_span(path),
+        "add `${DRIVER_ENTRY} :: fn(args: string[]) -> void`")
+}
+
+// The generated entry does `return build(args)`, so two shapes have to hold: one
+// parameter, and an `i32` result. The result matters — a `void` driver could not
+// fail a build, which is how a reported problem used to exit 0. A wrong parameter
+// TYPE is still left to the typechecker, which names expected and actual better
+// than this could.
+signature_problem :: fn(f: AST.FnDecl) -> Diagnostic | null {
+    if f.params.len() != 1 {
+        return hook_error(.InvalidBuildEntrySignature, f.name_span,
+            "`${DRIVER_ENTRY}` takes one parameter, `args: string[]`, and got ${f.params.len()}")
+    }
+    if !returns_i32(f) {
+        return hook_error(.InvalidBuildEntrySignature, f.name_span,
+            "`${DRIVER_ENTRY}` must return `i32` — the build's exit status")
+    }
+    return null
+}
+
+// True when the declared return type is spelled `i32`. Textual on purpose: this
+// runs on a parsed, un-resolved AST, where there is no type to compare against.
+returns_i32 :: fn(f: AST.FnDecl) -> bool {
+    rt :: f.return_type ?? return false
+    if rt is AST.IdentExpr {
+        return rt.name == "i32"
+    }
+    return false
+}
+
+// ---- running the driver ---------------------------------------------------
+
+/// Compile the project's driver and run it.
+///
+/// The driver decides what to compile, so this function's whole job is to hand
+/// control over: write the entry shim, build it, run it with the request as its
+/// `args`, and clean the shim up. The compiler's own sources are added to the
+/// include paths so `import "toolchain/build"` resolves without the user configuring
+/// anything.
+///
+/// @param command  the command running the driver, which names its messages.
+/// @param root     project root — where the driver and the shim live.
+/// @param request  what the command asks of the driver; its roots are filled
+///                 here. Its `cc` and `ldflags` also compile the driver itself.
+/// @return         the driver's own exit code, or 1 when the driver could not be
+///                 built or written.
+/// @error          H6001 when the driver declares no `build` — surfaced as a
+///                 compile error on the generated entry's call to it.
+export run_build_driver :: fn(command: string, root: string, request: DriverRequest) -> i32 {
+    driver :: find_build_driver(root) ?? return 1
+    problem :: validate_driver(driver)
+    if problem is Diagnostic {
+        eprintln(dump_diagnostics_with_file([problem]))
+        return 1
+    }
+
+    // Artefacts go under `build/`, not the project root: a driven build should
+    // not litter the directory the user works in. `create_dir` makes the path
+    // rather than requiring it to exist.
+    artefacts :: join_path(root, DRIVER_ARTEFACT_DIR)
+    binary :: join_path(artefacts, "driver")
+    stamp  :: driver_stamp_path(root)
+    key    :: driver_input_key(driver)
+
+    // Compiling a driver compiles the WHOLE compiler — 274k lines of C, 8.2 s —
+    // and it produces the same binary every time its inputs are unchanged, which
+    // for anyone iterating on their project is every build but the first.
+    if !driver_is_fresh(binary, stamp, key) {
+        cc :: cc_or_default(request.build.cc)
+        ldflags :: request.build.ldflags
+        build_code :: rebuild_driver(command, root, artefacts, binary, stamp, key, cc, ldflags)
+        if build_code != 0 {
+            return build_code
+        }
+    }
+    exe :: linked_binary(binary)
+    if exe == null {
+        eprintln("vader ${command}: the driver build left no binary at ${binary}")
+        return 1
+    }
+
+    // Bounded: a driver is user code with no supervisor, and a `for { }` in one
+    // would otherwise hang the build with no message and no way out. It runs as
+    // a child process, so a timeout costs nothing more than naming one — no
+    // instruction budget is possible (the driver is native, not VM-interpreted),
+    // but a wall-clock bound is what actually catches an infinite loop.
+    // `timeout` cancels its child on expiry, and `SpawnAsync.cancel` kills the
+    // process — without that override the parent would unblock while the runaway
+    // driver kept spinning a core.
+    // The toolchain root is the folder holding THIS executable, and therefore
+    // its `lib/` and `runtime/c/`. The driver cannot work it out
+    // itself: it runs as `<project>/build/driver/driver`, so its own sidecar
+    // probe looks inside the project. Without this a driven build only resolves
+    // `std/*` when the project happens to have a `lib/` beside it, which is
+    // what the fixtures' symlinks were quietly providing.
+    rooted :: DriverRequest {
+        ...request,
+        .toolchain_root = current_executable_location().dir_of(),
+        .build = BuildRequest { ...request.build, .project_root = root },
+    }
+    argv :: [exe]
+    argv.push_all(driver_request_args(rooted))
+    outcome :: block_on(timeout(DRIVER_TIMEOUT_MS, spawn_async(argv)))
+    if outcome is TimeoutError {
+        seconds :: DRIVER_TIMEOUT_MS / 1000
+        eprintln("vader ${command}: the build driver did not finish within ${seconds}s, killed")
+        eprintln("(a loop in `${DRIVER_FILENAME}`?)")
+        return 1
+    }
+    if outcome is ProcessError {
+        eprintln("vader ${command}: cannot run the build driver: ${outcome.message()}")
+        return 1
+    }
+    if outcome is ProcessResult {
+        // A driver run to describe or prepare the project works for another
+        // command, whose stdout carries that command's own output (`vader info
+        // --json`, `vader dump`): what the driver prints goes to stderr.
+        if request.mode == .Describe || request.mode == .Prepare {
+            eprint(outcome.stdout)
+        } else {
+            print(outcome.stdout)
+        }
+        eprint(outcome.stderr)
+        return outcome.exit
+    }
+    return 1
+}
+
+/// Whether the project `root`'s driver is compiled as it stands, from its
+/// `build.vader` and this compiler: what `run_build_driver` would run without
+/// compiling first.
+///
+/// @param root  the project folder, holding a `build.vader`.
+export driver_is_compiled :: fn(root: string) -> bool {
+    driver :: find_build_driver(root) ?? return false
+    binary :: join_path(join_path(root, DRIVER_ARTEFACT_DIR), "driver")
+    return driver_is_fresh(binary, driver_stamp_path(root), driver_input_key(driver))
+}
+
+// Write the entry shim, compile the driver, record what it was built from.
+//
+// The shim is removed whether or not the build worked: leaving a generated file
+// behind after a failure is how a stale one gets compiled next time. The stamp is
+// written only on success, so a failed build never looks fresh.
+rebuild_driver :: fn(
+    command: string, root: string, artefacts: string, binary: string, stamp: string, key: string,
+    cc: string, ldflags: string,
+) -> i32 {
+    entry :: driver_entry_path(root)
+    written :: write_file_string(entry, render_driver_entry())
+    if written is IOError {
+        eprintln("vader ${command}: cannot write the build entry at ${entry}: ${written.msg}")
+        return 1
+    }
+    made :: create_dir(artefacts)
+    if made is IOError {
+        eprintln("vader ${command}: cannot create ${artefacts}: ${made.msg}")
+        remove_entry(entry)
+        return 1
+    }
+    // The driver is a normal native build; `toolchain/build` resolves through the
+    // compiler's own sources, and the driver's module through the entry's folder.
+    // The driver splits like every other build; what it does NOT inherit is the
+    // user's `--no-split`, since a driver is a build artefact nobody diffs or
+    // ships and only stands to gain the idle cores. It is built for this
+    // machine, the only one whose toolchain it can invoke, whatever `--target`
+    // says of the project.
+    request :: BuildRequest {
+        .cc = cc,
+        .ldflags = ldflags,
+        .include_paths = [compiler_source_root(root)],
+        .cc_jobs = DRIVER_CC_JOBS,
+    }
+    code :: build_driver_binary(command, Path(entry), Path(binary), request)
+    remove_entry(entry)
+    if code != 0 {
+        return code
+    }
+    // A stamp we cannot write is not fatal — it only costs the next build a
+    // rebuild, which is what happens today anyway.
+    write_file_string(stamp, key)
+    return 0
+}
+
+// How many `cc` a driver's own build runs at once. Bounded, unlike the user's
+// own build: compiling a driver compiles the whole compiler, one `cc` per Vader
+// module, and several driven builds may run at once, so an unbounded fan-out
+// oversubscribes the machine. Eight is a floor on the runners this project
+// targets (GitHub's are 4-core).
+DRIVER_CC_JOBS: i32: 8
+
+// Compile the driver's entry shim into its binary.
+build_driver_binary :: fn(
+    command: string,
+    entry: Path,
+    binary: Path,
+    request: BuildRequest,
+) -> i32 {
+    b :: prepared_program(entry, request, command) ?? return 1
+    return emit_program(b, entry, binary, request)
+}
+
+/// How long a driver may run before the build gives up on it.
+///
+/// Generous on purpose: a driver compiles a real project, and a large one
+/// legitimately takes minutes. This is a backstop against a hang, not a
+/// performance budget — a driver that needs longer is better served by
+/// `--no-hooks` and a manual build than by raising this.
+export DRIVER_TIMEOUT_MS: i64: 600_000
+
+// Best-effort deletion: a leftover shim is a nuisance, not a failure, so the
+// error is dropped. It matters that this really unlinks — a blanked file left in
+// the project root would be a `.vader` that declares nothing.
+remove_entry :: fn(path: string) -> void {
+    remove_file(path)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_find_driver_absent :: fn() -> void {
+    found :: find_build_driver("/nonexistent-project-root")
+    assert(found == null, "a project without build.vader has no driver")
+}
+
+@test test_entry_shares_the_driver_module :: fn() -> void {
+    src :: render_driver_entry()
+    assert("module \"build\"" in src, "entry declares the driver's own module")
+}
+
+@test test_entry_does_not_import_the_driver :: fn() -> void {
+    // A root-level `build.vader` is not importable by module name, so sharing
+    // the module is the point — an import here would not resolve.
+    src :: render_driver_entry()
+    assert(!("import \"build\"" in src), "entry does not import what it shares a module with")
+}
+
+@test test_entry_calls_build_and_returns :: fn() -> void {
+    src :: render_driver_entry()
+    assert("build(args)" in src, "entry calls build with argv")
+    assert("main :: fn(args: string[]) -> i32" in src, "entry declares the main the lowerer needs")
+}
+
+@test test_entry_is_marked_generated :: fn() -> void {
+    src :: render_driver_entry()
+    assert("do not edit" in src, "generated file says so")
+}
+
+@test test_entry_sits_beside_the_driver :: fn() -> void {
+    // Same folder as the driver, so both contribute to one multi-file module.
+    assert_eq(driver_entry_path("/some-project"), "/some-project/vader_build_entry.vader")
+}
+
+@test test_compiler_source_root_falls_back_to_root :: fn() -> void {
+    // No compiler sources beside a bogus binary location, so the checkout fallback
+    // wins — which is what a clone gives.
+    root :: compiler_source_root("/some-project")
+    assert(root == "/some-project" || exists(join_path(root, COMPILER_SOURCE_MARKER)),
+        "either the fallback root, or a real sidecar layout")
+}
+
+@test test_validate_driver_missing_build :: fn() -> void {
+    // A driver with no `build` must be caught before anything is generated.
+    path :: join_path(temp_dir(), "vader_driver_probe_missing.vader")
+    write_file_string(path, "module \"build\"\n\nother :: fn() -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a driver without `build` is a problem")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6001")
+    }
+}
+
+@test test_validate_driver_wrong_arity :: fn() -> void {
+    path :: join_path(temp_dir(), "vader_driver_probe_arity.vader")
+    write_file_string(path, "module \"build\"\n\nbuild :: fn() -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a nullary `build` cannot be called by the entry")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6002")
+    }
+}
+
+@test test_validate_driver_accepts_the_expected_shape :: fn() -> void {
+    path :: join_path(temp_dir(), "vader_driver_probe_ok.vader")
+    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { return 0 }\n")
+    assert(validate_driver(path) == null, "the documented shape validates")
+}
+
+@test test_validate_driver_rejects_a_void_build :: fn() -> void {
+    // A `void` driver could not fail a build — that is how a reported problem
+    // used to exit 0.
+    path :: join_path(temp_dir(), "vader_driver_probe_void.vader")
+    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> void {}\n")
+    problem :: validate_driver(path)
+    assert(problem is Diagnostic, "a void `build` cannot carry an exit status")
+    if problem is Diagnostic {
+        assert_eq(problem.code.id, "H6002")
+    }
+}
+
+@test test_validate_driver_stays_quiet_on_parse_errors :: fn() -> void {
+    // The real build reports these against the driver with full spans; saying
+    // it twice would double every message.
+    path :: join_path(temp_dir(), "vader_driver_probe_broken.vader")
+    write_file_string(path, "module \"build\"\n\nbuild :: fn(args: string[]) -> i32 { (((\n")
+    assert(validate_driver(path) == null, "parse errors are left to the real build")
+}
+
+@test
+test_ejected_driver_declares_what_the_manifest_does :: fn() -> void {
+    src :: render_driver(Manifest {
+        .include_paths = [r"$VADER_HOME/third_party", "vendor"],
+        .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
+        .assets = ["data"],
+    })
+    assert(r"""ctx.include_paths.push(r"$VADER_HOME/third_party")""" in src, "a toolchain root is raw")
+    assert("ctx.include_paths.push(\"vendor\")" in src, "a plain root is plain")
+    assert("ctx.add_entry(\"app\", \"src/main.vader\")" in src, "the entry is added")
+    assert("ctx.add_asset(\"data\")" in src, "and the asset")
+    assert("module \"build\"" in src, "the driver declares `module \"build\"`")
+    assert("ctx.mode() == .Build" in src, "and teaches when a step after the build runs")
+}
+
+@test
+test_string_literal_escapes_what_a_raw_literal_cannot_hold :: fn() -> void {
+    assert_eq(string_literal("a\"\$b"), "\"a\\\"\\\$b\"")
+}

@@ -6,7 +6,7 @@
 // is only worth anything if what it writes RUNS. That is the first test below,
 // and it is the reason this file spawns rather than unit-tests: the per-file
 // pieces (the templates, the target rules, the environment parsing) are covered
-// by colocated `@test`s in `vader/cli/cmd_new.vader` and `cmd_doctor.vader`.
+// by colocated `@test`s in `vader/tools/cli/cmd_new.vader` and `cmd_doctor.vader`.
 // What only a spawn can show is the three files reaching the compiler.
 //
 // NOT in `cli_unknown_flag.test.ts`: that file pins the ARGUMENT BOUNDARY — one

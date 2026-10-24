@@ -1,0 +1,406 @@
+// vader/tools/lsp/main — LSP event loop.
+//
+// Reads JSON-RPC frames from stdin in a loop, dispatches on `method`, writes
+// responses to stdout. The dispatch `match` below is the authoritative method
+// list — it is not restated here, because it grows. Anything it does not name is
+// answered with a JSON-RPC `MethodNotFound` so the client degrades gracefully.
+//
+// Exit contract : `shutdown` responds null and arms the flag ; `exit` terminates
+// with 0 if `shutdown` was received first, 1 otherwise.
+//
+// The server is split across three submodules reached via aliases here :
+//   - `P` (vader/tools/lsp/protocol) : JSON-RPC framing, encoders, logging.
+//   - `A` (vader/tools/lsp/analysis) : server state + document/typecheck caches.
+//   - `H` (vader/tools/lsp/handlers) : one `handle_*` per request method.
+
+module "vader/tools/lsp"
+
+// `parse as _`: this file needs `FlagSpec` to declare `LSP_FLAGS`, but its frame
+// loop calls `std/json::parse`. Both modules export a `parse`, so dropping
+// `std/cli`'s keeps the JSON one unqualified (R2031 otherwise). The argv parse
+// itself happens in `main_entry.vader` and in the CLI, not here.
+import "cli" { parse as _ }
+import "std/io"
+import "json"
+P :: import "vader/tools/lsp/protocol"
+A :: import "vader/tools/lsp/analysis"
+H :: import "vader/tools/lsp/handlers"
+
+/// The two flags the server accepts, declared here rather than in the CLI's
+/// table because they belong to this module — `vader/tools/cli/spec.vader` borrows
+/// them for the `lsp` action, and the standalone `vader-lsp` binary
+/// (`main_entry.vader`) parses against the same array. One declaration, two
+/// entry points, no drift.
+export LSP_FLAGS: FlagSpec[]: [
+    FlagSpec {
+        .name = "library-root",
+        .help = "A library root searched before the project's own",
+        .value_name = "path",
+    },
+    // Accepted and ignored. `vscode-languageclient` APPENDS `--stdio` to the
+    // server's argv whenever the transport is `TransportKind.stdio`, which the
+    // VSCode extension uses — the client does not offer a way to suppress it,
+    // and every other language server accepts it for the same reason. Since
+    // argv parsing became strict (`9255d3add`), rejecting it took the whole
+    // extension down: "Server initialization failed", five restarts, then give
+    // up. There is nothing to select — stdio is the only transport this server
+    // speaks — so the flag names the transport rather than choosing it.
+    FlagSpec {
+        .name = "stdio",
+        .help = "Accepted for LSP-client compatibility; stdio is the only transport",
+        .kind = .Bool,
+    },
+]
+
+/// LSP server entry. Blocks reading frames until EOF or `exit` notification.
+///
+/// Takes its root decoded rather than scanning argv: it is declared on the `lsp`
+/// action in `vader/tools/cli/spec.vader` and parsed by `std/cli`, like every other
+/// flag, so a mistyped one is an error rather than a silent fallback to the
+/// empty string.
+///
+/// @param library_root  a library root searched before the project's own ;
+///                      empty when the client named none.
+/// @return              0 on a clean `exit` notification, 1 on an abnormal one.
+export run_server :: fn(library_root: string) -> i32 {
+    state :: A.new_state(library_root)
+    // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
+    // the pipe (the debounce relies on it). Must run before any `read_frame`.
+    shutdown_received := false
+    for {
+        // Block for the next message, then process it. While a driver describes
+        // itself, wait for one only so long, then look whether it answered.
+        if !A.is_describing_any(state) || P.poll_pending(DESCRIBE_POLL_MS) {
+            // The message, then the rest of its burst : every frame already
+            // queued is processed now. A run of `didChange` notifications (one
+            // per keystroke) collapses into repeated dirty marks rather than one
+            // typecheck each.
+            for {
+                rc :: read_and_process(state, shutdown_received)
+                if rc == .Exit         { return 0 }
+                if rc == .ExitAbnormal { return 1 }
+                if rc == .ShutdownRequested { shutdown_received = true }
+                if !P.poll_pending(0) {
+                    break
+                }
+            }
+        }
+        A.poll_descriptions(state)
+
+        // Burst settled. If a didChange left diagnostics dirty, wait out a short
+        // quiescent window before the (single) typecheck : if the user is still
+        // typing, more input arrives within DEBOUNCE_MS and we loop back to drain
+        // it — type-checking a buffer that's about to change again is wasted work
+        // and the source of the per-keystroke freeze.
+        if A.has_dirty(state) {
+            if !P.poll_pending(DEBOUNCE_MS) {
+                A.flush_dirty_diagnostics(state)
+            }
+        }
+    }
+}
+
+// Milliseconds the loop waits for a message while a driver describes itself,
+// before looking whether it answered.
+DESCRIBE_POLL_MS :: 100
+
+// Milliseconds of input silence before a debounced diagnostics typecheck fires.
+// Below the threshold of perception, above the inter-keystroke interval — so a
+// burst of edits coalesces into a single typecheck once typing pauses.
+DEBOUNCE_MS :: 200
+
+// Read one frame (blocking) and process it. Transport errors (incl. EOF) map to
+// `ExitAbnormal` so the caller tears down. Shared by the blocking first read and
+// the non-blocking burst drain.
+read_and_process :: fn(state: A.ServerState, shutdown_received: bool) -> DispatchResult {
+    frame :: P.read_frame()
+    match frame {
+        is P.TransportError -> {
+            eprintln("lsp: transport error, exiting")
+            return .ExitAbnormal
+        }
+        is string -> { return process_frame(state, frame, shutdown_received) }
+    }
+}
+
+// Parse a frame body and dispatch it. JSON-RPC frames are always top-level
+// objects ; non-object payloads are protocol violations, dropped with a warning.
+process_frame :: fn(state: A.ServerState, body: string, shutdown_received: bool) -> DispatchResult {
+    msg :: parse(body)
+    match msg {
+        is JsonObject -> { return dispatch(state, msg, shutdown_received) }
+        is JsonError -> {
+            eprintln("lsp: malformed JSON, dropping frame")
+            return .Continue
+        }
+        is JsonString | JsonNumber | JsonBool | JsonNull | JsonArray -> {
+            eprintln("lsp: top-level non-object payload, dropping")
+            return .Continue
+        }
+    }
+}
+
+DispatchResult :: enum(u8) {
+    Continue,
+    ShutdownRequested,
+    Exit,
+    ExitAbnormal,
+}
+
+dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
+    method :: P.method_name(msg)
+    id :: P.request_id(msg)
+    params :: P.params_value(msg)
+
+    if method == "initialize" {
+        result :: handle_initialize(state, params)
+        P.write_frame(P.encode_response(id, result))
+        // First log emitted *after* the response so the client has already
+        // installed its trace listener — earlier log lines are sometimes
+        // dropped by clients that buffer pre-initialize traffic.
+        P.log_info("vader-lsp: initialize complete")
+        return .Continue
+    }
+    if method == "initialized" {
+        A.register_file_watchers(state)
+        return .Continue
+    }
+    // A response to a request this server sent (the `*/refresh` pushes, the
+    // watcher registration): nothing waits on it.
+    if method == "" {
+        return .Continue
+    }
+    if method == "shutdown" {
+        P.write_frame(P.encode_response(id, JsonNull {}))
+        P.log_info("vader-lsp: shutdown requested")
+        return .ShutdownRequested
+    }
+    if method == "exit" {
+        if shutdown_received {
+            return .Exit
+        }
+        return .ExitAbnormal
+    }
+    if method == "textDocument/didOpen" {
+        A.handle_did_open(state, params)
+        P.log_info("didOpen ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/didChange" {
+        A.handle_did_change(state, params)
+        return .Continue
+    }
+    if method == "textDocument/didSave" {
+        A.handle_did_save(state, params)
+        return .Continue
+    }
+    if method == "workspace/didChangeWatchedFiles" {
+        A.handle_did_change_watched_files(state, params)
+        return .Continue
+    }
+    if method == "textDocument/didClose" {
+        A.handle_did_close(state, params)
+        P.log_info("didClose ${doc_uri(params)}")
+        return .Continue
+    }
+    // A `.virt` document is the text bytecode : the server documents its ops on
+    // hover, names their table indices in inlay hints and follows them to their
+    // declaration, and returns nothing for every other request.
+    if A.is_virt_uri(P.position_uri(params)) && !P.is_json_null(id) {
+        if method == "textDocument/inlayHint" {
+            P.write_frame(P.encode_response_text(id, H.handle_virt_inlay_hint(state, params)))
+            return .Continue
+        }
+        result :: match method {
+            "textDocument/hover"      -> H.handle_virt_hover(state, params)
+            "textDocument/definition" -> H.handle_virt_definition(state, params)
+            _                         -> JsonNull {}
+        }
+        P.write_frame(P.encode_response(id, result))
+        return .Continue
+    }
+    if method == "textDocument/semanticTokens/full" {
+        result :: H.handle_semantic_tokens_full(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("semanticTokens/full ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/definition" {
+        result :: H.handle_definition(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("definition ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/hover" {
+        result :: H.handle_hover(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("hover ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/completion" {
+        result :: H.handle_completion(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("completion ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/codeAction" {
+        result :: H.handle_code_action(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("codeAction ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/inlayHint" {
+        result :: H.handle_inlay_hint(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("inlayHint ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/signatureHelp" {
+        result :: H.handle_signature_help(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("signatureHelp ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/documentSymbol" {
+        result :: H.handle_document_symbol(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentSymbol ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/foldingRange" {
+        result :: H.handle_folding_range(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("foldingRange ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/documentHighlight" {
+        result :: H.handle_document_highlight(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentHighlight ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/formatting" {
+        result :: H.handle_formatting(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("formatting ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/documentLink" {
+        result :: H.handle_document_link(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentLink ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/implementation" {
+        result :: H.handle_implementation(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("implementation ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/typeDefinition" {
+        result :: H.handle_type_definition(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeDefinition ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/prepareCallHierarchy" {
+        result :: H.handle_prepare_call_hierarchy(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareCallHierarchy ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "callHierarchy/incomingCalls" {
+        result :: H.handle_incoming_calls(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("callHierarchy/incomingCalls")
+        return .Continue
+    }
+    if method == "callHierarchy/outgoingCalls" {
+        result :: H.handle_outgoing_calls(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("callHierarchy/outgoingCalls")
+        return .Continue
+    }
+    if method == "textDocument/prepareTypeHierarchy" {
+        result :: H.handle_prepare_type_hierarchy(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareTypeHierarchy ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "typeHierarchy/supertypes" {
+        result :: H.handle_supertypes(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeHierarchy/supertypes")
+        return .Continue
+    }
+    if method == "typeHierarchy/subtypes" {
+        result :: H.handle_subtypes(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeHierarchy/subtypes")
+        return .Continue
+    }
+    if method == "textDocument/selectionRange" {
+        result :: H.handle_selection_range(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("selectionRange ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "workspace/symbol" {
+        result :: H.handle_workspace_symbol(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("workspace/symbol")
+        return .Continue
+    }
+    if method == "textDocument/references" {
+        result :: H.handle_references(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("references ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/prepareRename" {
+        result :: H.handle_prepare_rename(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareRename ${doc_uri(params)}")
+        return .Continue
+    }
+    if method == "textDocument/rename" {
+        result :: H.handle_rename(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("rename ${doc_uri(params)}")
+        return .Continue
+    }
+    // Unknown method. Respond with MethodNotFound for requests (have an
+    // id) ; ignore notifications (id is JsonNull{} per `request_id`'s
+    // convention).
+    if !P.is_json_null(id) {
+        P.write_frame(P.encode_method_not_found(id, method))
+        P.log_warn("unknown request method: ${method}")
+    }
+    return .Continue
+}
+
+// Best-effort URI extraction for log lines — handles the
+// `{ textDocument: { uri } }` shape used by every textDocument/* request.
+// Returns "" when params doesn't carry a textDocument, which keeps the
+// log line readable rather than aborting the dispatch.
+doc_uri :: fn(params: JsonValue) -> string {
+    // @partial: best-effort walk of the `{ textDocument: { uri } }` shape ;
+    // any other JSON variant (or a missing/non-object/non-string entry) has
+    // no URI, so "" is the right answer for every case but the matched one.
+    @partial match params {
+        is JsonObject -> {
+            td :: params.entries["textDocument"]
+            @partial match td {
+                is JsonObject -> {
+                    uri :: td.entries["uri"]
+                    @partial match uri {
+                        is JsonString -> { return uri.value }
+                        _ -> { return "" }
+                    }
+                }
+                _ -> { return "" }
+            }
+        }
+        _ -> { return "" }
+    }
+}

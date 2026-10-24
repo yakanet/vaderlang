@@ -1,0 +1,178 @@
+// vader/tools/cli/cmd_info: `vader info [--json] [<folder>]`, what a project folder
+// describes.
+//
+// The entries, the module search roots and the assets of a project, whichever
+// of its `vader.json` and its `build.vader` describes it: for the second, the
+// driver runs to describe itself and compiles nothing. A readable report by
+// default, JSON with `--json` for tools.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "cli"
+Json :: import "json"
+import "std/collections"
+import "std/io"
+import "std/path"
+import "std/string"
+import "std/string_builder"
+import "vader/pipeline"
+import "vader/resolver"
+
+/// `vader info [--json] [<folder>]`: print what a project folder describes.
+///
+/// @param args  the action's zone, then the folder, the current one by default.
+/// @return      0, or 1 when the folder describes no project.
+cmd_info :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("info", args)
+    if parsed is i32 {
+        return parsed
+    }
+    if reject_extra_positionals("info", parsed) {
+        return 1
+    }
+    info :: project_info(action_input(parsed).as_string(), !parsed.bool_flag("no-driver-build"))
+    if info is i32 {
+        return info
+    }
+    if parsed.bool_flag("json") {
+        println(render_info_json(info))
+    } else {
+        println(render_info_text(info))
+    }
+    return 0
+}
+
+// What `vader info` reports of a project.
+ProjectInfo :: struct {
+    /// The file that describes it, its `build.vader` or its `vader.json`.
+    described_by: string
+    root:         string
+    /// What it declares, in the shape of a `vader.json`.
+    manifest:     Manifest
+}
+
+// What the project folder `dir` describes, or the exit code after saying it
+// describes none. A project with no entry is described all the same: saying so
+// is the report's job. A driver not compiled as it stands is compiled first
+// when `may_compile`.
+project_info :: fn(dir: string, may_compile: bool) -> ProjectInfo | i32 {
+    if !is_dir(dir) {
+        eprintln(not_a_folder("info", dir))
+        return 1
+    }
+    described_by :: project_description("info", dir, ", so it describes no project") ?? return 1
+    manifest :: declared_project(dir, described_by, may_compile)
+    if manifest is i32 {
+        return manifest
+    }
+    return ProjectInfo {
+        .described_by = described_by,
+        .root = dir,
+        .manifest = manifest,
+    }
+}
+
+// What the project `dir` declares in `described_by`, or the exit code after
+// saying why it could not be read: `DRIVER_NOT_COMPILED_EXIT` for a driver not
+// compiled as it stands, unless `may_compile`.
+declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> Manifest | i32 {
+    if described_by == MANIFEST_FILENAME {
+        manifest :: checked_manifest("info", dir) ?? return 1
+        return manifest
+    }
+    if !may_compile && !driver_is_compiled(dir) {
+        eprintln("vader info: the `${DRIVER_FILENAME}` of `${dir}` is not compiled as it stands; "
+            + "`vader build` compiles it")
+        return DRIVER_NOT_COMPILED_EXIT
+    }
+    described :: described_project("info", dir, .Describe, "") ?? return 1
+    return described
+}
+
+// The report a reader takes in: one labelled line per fact, each search root
+// with the folder it resolves to.
+render_info_text :: fn(info: ProjectInfo) -> string {
+    out :: StringBuilder {}
+    out.append("project  ${info.root} (${info.described_by})\n")
+    for entry in info.manifest.entries {
+        out.append("entry    ${entry.name} → ${entry.path}\n")
+    }
+    if info.manifest.entries.len() == 0 {
+        out.append("entry    none\n")
+    }
+    bundled :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
+    for root in info.manifest.include_paths {
+        out.append("root     ${root} → ${manifest_root(info.root, root, bundled)}\n")
+    }
+    for asset in info.manifest.assets {
+        out.append("asset    ${asset}\n")
+    }
+    out.append("output   ${project_output_dir(info.root, false, null)} (debug)")
+    return out.to_string()
+}
+
+// The report a tool reads: the project in the shape of a `vader.json`, with
+// `kind` (`manifest` or `driver`) and `root`.
+render_info_json :: fn(info: ProjectInfo) -> string {
+    report :: MutableMap<string, Json.JsonValue> {}
+    report["kind"] = Json.JsonString { .value = kind_of(info) }
+    report["root"] = Json.JsonString { .value = info.root }
+    manifest :: info.manifest
+    write_project_json(report, manifest.include_paths, manifest.entries, manifest.assets)
+    return Json.stringify_pretty(Json.JsonObject { .entries = report }, 2)
+}
+
+// `driver` or `manifest`, the `kind` of `vader info --json`.
+kind_of :: fn(info: ProjectInfo) -> string {
+    if info.described_by == DRIVER_FILENAME {
+        return "driver"
+    }
+    return "manifest"
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_info_json_carries_the_project_in_the_shape_of_a_manifest :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = DRIVER_FILENAME,
+        .root = "game",
+        .manifest = Manifest {
+            .include_paths = ["vendor"],
+            .entries = [ManifestEntry { .name = "app", .path = "src/main.vader" }],
+            .assets = ["sprite.png"],
+        },
+    }
+    parsed :: Json.parse(render_info_json(info))
+    if parsed !is Json.JsonObject {
+        assert(false, "the report is a JSON object")
+        return
+    }
+    assert_eq(parsed.entries.keys().join(","), "kind,root,includePaths,entries,assets")
+    kind :: parsed.entries["kind"]
+    assert(kind is Json.JsonString && kind.value == "driver", "a driven project says so")
+}
+
+@test
+test_info_text_names_the_file_that_describes_the_project :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = MANIFEST_FILENAME,
+        .root = "game",
+        .manifest = Manifest {},
+    }
+    assert("project  game (vader.json)" in render_info_text(info), "the description file is named")
+}
+
+@test
+test_info_text_says_a_project_has_no_entry :: fn() -> void {
+    info :: ProjectInfo {
+        .described_by = DRIVER_FILENAME,
+        .root = "game",
+        .manifest = Manifest {},
+    }
+    assert("entry    none" in render_info_text(info), "an empty project says so")
+}

@@ -38,7 +38,7 @@ import "vader/c_emit/c_ast"
 /// `entry_mangled` is the designated program-entry main's mangled name
 /// (`<entry-module-id>$main`, the same `dump_bytecode` stamps as
 /// `export main N`). A multi-module program — the compiler imports
-/// `vader/lsp`, which has its OWN `main` — has several fns all flagged
+/// `vader/tools/lsp`, which has its OWN `main` — has several fns all flagged
 /// `is_main`, and the entry one isn't necessarily first in the fn table, so
 /// the `main()` shim resolves it by name. Empty → fall back to the first
 /// `is_main` fn (single-main programs).

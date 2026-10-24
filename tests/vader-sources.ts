@@ -11,7 +11,7 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dir, "..");
 
 /** The compiler's own entry, the program every whole-compiler suite runs on. */
-export const COMPILER_ENTRY = join(ROOT, "vader", "cli", "main.vader");
+export const COMPILER_ENTRY = join(ROOT, "vader", "tools", "cli", "main.vader");
 
 /** The examples the repo ships, by name, sorted. */
 export function exampleNames(): string[] {

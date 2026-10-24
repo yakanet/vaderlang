@@ -1,0 +1,298 @@
+// vader/tools/lsp/actions/registry — the code-action framework.
+//
+// A code action is a cursor-driven source refactoring (`textDocument/codeAction`
+// → the editor lightbulb). Each action is a plain record carrying a predicate
+// and an edit producer ; `ALL_ACTIONS` is the central registration table. The
+// handler (`handlers/code_action`) finds the AST node under the cursor and calls
+// `run_actions`, which returns one `ActionResult` per applicable action.
+//
+// Edit production is server-side : an action returns the replacement *text* for
+// its node's span (`render_rewrite`), and the handler wraps it in a
+// `WorkspaceEdit`. Declining is signalled by an empty string.
+//
+// Lossy policy : an action whose rewrite would lose information (match arms with
+// guards / destructuring, etc.) must DECLINE in `is_applicable` rather than emit
+// a partial rewrite.
+
+module "vader/tools/lsp/actions"
+
+import "std/string"
+import "vader/support/diagnostics"
+import "vader/tools/fmt"
+import "vader/tools/lsp/protocol"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
+import "toolchain/span"
+
+/// What an action needs to produce its edit. Carries the document source so
+/// actions can render rewrites (and slice reused sub-expressions) against it.
+export ActionCtx :: struct {
+    source: string
+}
+
+/// One cursor-driven refactoring. `is_applicable` gates the lightbulb ; `apply`
+/// returns the replacement text for the node's span (empty string = decline,
+/// e.g. on a lossy case `is_applicable` couldn't cheaply rule out).
+export CodeAction :: struct {
+    /// LSP `CodeActionKind` (e.g. `"refactor.rewrite"`).
+    kind:          string
+    /// Human-facing lightbulb title.
+    title:         string
+    is_applicable: fn(AST.Expr, ActionCtx) -> bool
+    apply:         fn(AST.Expr, ActionCtx) -> string
+}
+
+/// A produced edit : the action's kind + title, the span of the node it targets
+/// (the edit range), and the replacement text for that span.
+export ActionResult :: struct {
+    kind:        string
+    title:       string
+    target_span: Span
+    new_text:    string
+}
+
+/// Every registered code action. Central registration — add new actions here.
+/// Entries are defined in sibling files of this folder module (e.g.
+/// `match_to_if_action` in `match_to_if.vader`).
+///
+/// A function (not a const array) so the explicit `CodeAction[]` return type
+/// pins a homogeneous array and the cross-file action references resolve in a
+/// fn body — a top-level const literal infers a heterogeneous tuple when a
+/// sibling-file entry isn't resolved yet under the test-entry compile order.
+all_actions :: fn() -> CodeAction[] = [
+    match_to_if_action(),
+    if_to_match_action(),
+    ufcs_action(),
+]
+
+/// Run every action against the enclosing-expression chain `nodes` (innermost
+/// first). Each action fires on the innermost node it applies to, producing one
+/// result whose `target_span` is that node's span. Actions that apply to no node
+/// (or decline with an empty edit) contribute nothing.
+///
+/// @param nodes  the containing expressions under the cursor, innermost first
+///               (`analysis/ast_walk::enclosing_exprs`).
+/// @param ctx    the action context (document source).
+/// @return       the applicable actions' results, in registration order.
+export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
+    out: ActionResult[]: []
+    acts :: all_actions()
+    for ai in 0..<acts.len() {
+        a :: acts[ai]
+        for ni in 0..<nodes.len() {
+            node :: nodes[ni]
+            if a.is_applicable(node, ctx) {
+                text :: a.apply(node, ctx)
+                if text != "" {
+                    out.push(ActionResult {
+                        .kind = a.kind, .title = a.title, .target_span = node.span, .new_text = text,
+                    })
+                }
+                break
+            }
+        }
+    }
+    return out
+}
+
+// ---- source (file-level) actions ------------------------------------------
+
+/// A file-level code action (`source.*`) — operates on the whole file's
+/// declarations rather than a cursor node. The node-driven `CodeAction` can't
+/// express it : its target (e.g. the import block) isn't an `AST.Expr` and its
+/// edit range is computed from the decls, not a single node's span. So `apply`
+/// returns a complete `ActionResult` (its own `target_span` + text), or `null`
+/// to decline — including the no-op case where the file is already organised.
+export SourceAction :: struct {
+    /// LSP `CodeActionKind` (e.g. `"source.organizeImports"`).
+    kind:          string
+    /// Human-facing title.
+    title:         string
+    is_applicable: fn(AST.Decl[], ActionCtx) -> bool
+    apply:         fn(AST.Decl[], ActionCtx) -> ActionResult | null
+}
+
+/// Every registered source action. Central registration — add new ones here.
+/// A function (not a const) for the same reason as `all_actions`.
+all_source_actions :: fn() -> SourceAction[] = [
+    organize_imports_action(),
+]
+
+/// Run every source action against the file's `decls`. Each applicable action
+/// that produces a non-null edit contributes one result.
+///
+/// @param decls  the file's top-level declarations.
+/// @param ctx    the action context (document source).
+/// @return       the applicable source actions' results, in registration order.
+export run_source_actions :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult[] {
+    out: ActionResult[]: []
+    acts :: all_source_actions()
+    for ai in 0..<acts.len() {
+        a :: acts[ai]
+        if a.is_applicable(decls, ctx) {
+            r :: a.apply(decls, ctx)
+            if r != null { out.push(r) }
+        }
+    }
+    return out
+}
+
+/// The text a rewrite action puts in place of the node it rebuilt : `rewritten`
+/// rendered with the comments inside it, every line after the first indented as
+/// the source line the node starts on. Shared by the rewrite actions.
+///
+/// @param source     the document.
+/// @param rewritten  the node built in place of another, with its span, around
+///                   sub-expressions that keep theirs.
+export render_rewrite :: fn(source: string, rewritten: AST.Expr) -> string = reindent(
+    format_expr_keeping_comments(source, rewritten),
+    line_indent(source, rewritten.span.start.offset),
+)
+
+// The width of the indentation of the line holding byte `offset`.
+line_indent :: fn(source: string, offset: i64) -> i32 {
+    start :: line_start_offset(source, offset)
+    end := start
+    for end < source.byte_len() && (source.byte_at(end) == ' ' || source.byte_at(end) == '\t') {
+        end += 1
+    }
+    return i32(end - start)
+}
+
+// A rendering from column 0, every line after the first indented by `indent`
+// spaces : the indentation of the line it lands on.
+reindent :: fn(text: string, indent: i32) -> string {
+    if indent <= 0 { return text }
+    pad :: " ".repeat(i64(indent))
+    out := ""
+    i := 0
+    for line in text.split("\n") {
+        if i == 0 {
+            out = line
+        } else {
+            out = out + "\n"
+            if line != "" { out = out + pad + line }
+        }
+        i = i + 1
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Splice an action result over its target span — byte-for-byte what the editor
+// does with the emitted `WorkspaceEdit` : replace `[start.offset, end.offset)`
+// with `new_text`. The offsets are raw UTF-8 byte offsets and the span is
+// half-open, so a byte slice covers exactly the region the editor would.
+rt_splice :: fn(src: string, r: ActionResult) -> string {
+    prefix :: src.byte_slice(0, r.target_span.start.offset)
+    suffix :: src.byte_slice(r.target_span.end.offset, src.byte_len())
+    return prefix + r.new_text + suffix
+}
+
+// Round-trip an action over a single source-backed node, exactly as the handler
+// would (`run_actions` → splice the result over its target span), and report
+// whether the rewritten document still reparses clean.
+//
+// A substring assert (in each action's own tests) proves a rewrite *looks*
+// right ; this proves the spliced edit is well-formed Vader. Parse-clean is the
+// meaningful machine check here : the rewrites only restructure control flow /
+// call shape and reuse every original sub-expression verbatim by span — they
+// introduce no new names or types — so type validity is preserved by
+// construction and a full typecheck would add no signal a reparse misses.
+// (A standalone typecheck isn't reachable anyway : `check_file` needs the entry
+// to sit in a scanned-root module, which a synthetic snippet doesn't.)
+rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
+    ctx :: ActionCtx { .source = src }
+    nodes: AST.Expr[]: [node]
+    results :: run_actions(nodes, ctx)
+    if results.len() == 0 { return false }
+    for i in 0..<results.len() {
+        spliced :: rt_splice(src, results[i])
+        reparsed :: Parse.parse_source(spliced, "rt.vader")
+        if reparsed.errors.len() != 0 { return false }
+    }
+    return true
+}
+
+// Shared test walker : the first statement-position expression in a fn body that
+// `pred` accepts. Each action's finder (tm_find_match / tif_find_if /
+// tu_find_call) is this walk with a one-line predicate — only the accepted node
+// kind differs.
+t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    for di in 0..<decls.len() {
+        d :: decls[di]
+        if d is AST.FnDecl {
+            match b :: d.body {
+                is null          -> {}
+                is AST.BlockExpr -> {
+                    found :: t_find_in_block(b, pred)
+                    if found != null { return found }
+                }
+            }
+        }
+    }
+    return null
+}
+
+t_find_in_block :: fn(b: AST.BlockExpr, pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    for si in 0..<b.stmts.len() {
+        found :: t_find_in_stmt(b.stmts[si], pred)
+        if found != null { return found }
+    }
+    t :: b.trailing ?? return null
+    if pred(t) { return t }
+    return null
+}
+
+t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    match s {
+        is AST.LetStmt    -> { if pred(s.value) { return s.value } }
+        is AST.ExprStmt   -> { if pred(s.expr)  { return s.expr } }
+        is AST.YieldStmt  -> { if pred(s.value) { return s.value } }
+        is AST.ReturnStmt -> {
+            v :: s.value ?? return null
+            if pred(v) { return v }
+        }
+        _ -> {}
+    }
+    return null
+}
+
+@test
+test_roundtrip_match_to_if :: fn() -> void {
+    src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "rt.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    assert(rt_roundtrip_clean(src, m), "match→if edit reparses clean")
+}
+
+@test
+test_roundtrip_if_to_match :: fn() -> void {
+    src :: CONVERTIBLE_IF_CHAIN
+    parsed :: Parse.parse_source(src, "rt.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    assert(rt_roundtrip_clean(src, ifx), "if→match edit reparses clean")
+}
+
+@test
+test_roundtrip_ufcs :: fn() -> void {
+    src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
+    parsed :: Parse.parse_source(src, "rt.vader")
+    c :: tu_find_call(parsed.program.decls)
+    if c == null {
+        assert(false, "expected a call")
+        return
+    }
+    assert(rt_roundtrip_clean(src, c), "ufcs edit reparses clean")
+}

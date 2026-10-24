@@ -50,7 +50,7 @@ edges, closure, W0017 / W0018, `vader fix`, the inlay hint and the hover are sha
 ### Printing
 
 A marker the compiler inserted is flagged `deduced` on the `MutableTypeExpr`, and
-`vader/fmt`'s printer leaves it out; a written marker put back after the first round
+`vader/tools/fmt`'s printer leaves it out; a written marker put back after the first round
 is not flagged. A tool that prints a typed body — the LSP's rewrite actions do —
 prints the source's markers only. Signature help shows the deduced ones: they are
 the contract a caller meets.

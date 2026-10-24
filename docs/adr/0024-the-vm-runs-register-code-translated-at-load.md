@@ -78,7 +78,7 @@ against the register engine at the end of this work, same machine:
 | `vm_shapes` | 203 ms | 81 ms | ×2.5 |
 
 The compiler running on its own bytecode (`vader run compiler.virt dump --stage=c
-vader/cli/main.vader`) went from 593 s to 164 s, its output byte-identical to the
+vader/tools/cli/main.vader`) went from 593 s to 164 s, its output byte-identical to the
 native compiler's.
 
 `vm_map` measured 203 ms instead of 139 in one build of `build/vader` and 138 ms in

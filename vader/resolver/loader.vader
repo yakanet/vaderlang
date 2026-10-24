@@ -352,8 +352,8 @@ posix_or_null :: fn(path: string | null) -> string | null {
 }
 
 /// The root an entry's declared name vouches for: its namespace, the name's
-/// first segment, at the folder that segment names. `module "vader/cli"` in
-/// `<X>/vader/cli` roots `vader` at `<X>/vader`, so `import "vader/parser"`
+/// first segment, at the folder that segment names. `module "vader/tools/cli"` in
+/// `<X>/vader/tools/cli` roots `vader` at `<X>/vader`, so `import "vader/parser"`
 /// resolves at `<X>/vader/parser` and nothing else of `<X>` is searched. A
 /// folder that does not end with the name roots the name alone, at the folder.
 ///
@@ -584,7 +584,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 // which are ordinary directory names (`std`, and in time `json`, `cli`, …).
 // Project-first, a project declaring `module "cli"` wins over the shipped `cli` —
 // and in a DRIVEN build, where the compiler's sources compile in the same unit,
-// `vader/cli` would then be built against the user's module.
+// `vader/tools/cli` would then be built against the user's module.
 //
 // Only the BUNDLED root is promoted, never the cwd-relative fallback: a bundle's
 // root is authoritative (the marker proves the toolchain planted it) where a bare
@@ -849,10 +849,10 @@ test_declared_roots_are_found_whatever_the_separators :: fn() -> void {
 
 @test
 test_entry_namespace_roots_the_first_segment :: fn() -> void {
-    nested :: entry_namespace("vader/cli", "/repo/vader/cli")
+    nested :: entry_namespace("vader/tools/cli", "/repo/vader/tools/cli")
     assert_eq(nested.dir, "/repo/vader")
     assert_eq(nested.prefix, "vader")
-    relative :: entry_namespace("vader/lsp/handlers", "vader/lsp/handlers")
+    relative :: entry_namespace("vader/tools/lsp/handlers", "vader/tools/lsp/handlers")
     assert_eq(relative.dir, "vader")
     assert_eq(relative.prefix, "vader")
 }
@@ -862,9 +862,9 @@ test_entry_namespace_of_a_name_its_folder_does_not_end_with :: fn() -> void {
     single :: entry_namespace("hello", "/code/hello")
     assert_eq(single.dir, "/code/hello")
     assert_eq(single.prefix, "hello")
-    elsewhere :: entry_namespace("vader/cli", "/repo/vader/xcli")
-    assert_eq(elsewhere.dir, "/repo/vader/xcli")
-    assert_eq(elsewhere.prefix, "vader/cli")
+    elsewhere :: entry_namespace("vader/tools/cli", "/repo/vader/tools/xcli")
+    assert_eq(elsewhere.dir, "/repo/vader/tools/xcli")
+    assert_eq(elsewhere.prefix, "vader/tools/cli")
 }
 
 @test

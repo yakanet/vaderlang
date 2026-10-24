@@ -22,7 +22,7 @@
  *
  * Included once, by vader_runtime.c. It is a header rather than its own
  * translation unit because the runtime builds as a single TU
- * (`bootstrap/build.sh`, `build.ps1`, `cli/cmd_build.vader`), and a second `.c`
+ * (`bootstrap/build.sh`, `build.ps1`, `vader/tools/cli/cmd_build.vader`), and a second `.c`
  * would mean teaching all three.
  */
 

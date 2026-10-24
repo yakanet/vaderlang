@@ -44,7 +44,7 @@ loop. The `s.bytes()` calls left hand a real `u8[]` to code that takes one
 
 ## Consequences
 
-- Measured on 2026-10-14, `vader dump --stage=bytecode vader/cli/main.vader`, six
+- Measured on 2026-10-14, `vader dump --stage=bytecode vader/tools/cli/main.vader`, six
   alternated runs, median: 3.583 s with the passes (`a98dfc8f1`, runs 3.41 to
   3.74 s), 3.459 s without (3.39 to 3.64 s).
 - User code that still writes `for b in s.bytes()`, or indexes a held view, pays

@@ -1,0 +1,146 @@
+// vader/tools/lsp/protocol/rpc — JSON-RPC field accessors + response encoders.
+//
+// LSP messages are JSON-RPC 2.0 wrappers :
+//   request      : { jsonrpc, id, method, params }
+//   notification : { jsonrpc,     method, params }      (no id)
+//   response     : { jsonrpc, id, result }              (success)
+//                | { jsonrpc, id, error: { code, message, data? } }
+//
+// Accessor helpers return `JsonNull{}` for absent fields rather than
+// `JsonValue | null` — sidesteps the matching-on-alias-union friction
+// that Vader's pattern checker hits when a `| null` is added to an
+// already-aliased union.
+
+module "vader/tools/lsp/protocol"
+
+import "std/string_builder"
+import "json"
+import "std/collections"
+
+// ---- field accessors ------------------------------------------------------
+
+/// Pluck the `method` field. Returns `""` when absent or non-string.
+export method_name :: fn(msg: JsonValue) -> string {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `method` field, so "" is the right answer.
+    @partial match msg {
+        is JsonObject -> { return obj_string(msg, "method") }
+        _ -> { return "" }
+    }
+}
+
+/// Pluck the `id` field. Returns `JsonNull{}` for notifications. The
+/// response encoder echoes the same shape regardless.
+export request_id :: fn(msg: JsonValue) -> JsonValue {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `id` field, so the notification sentinel `JsonNull{}` is correct.
+    @partial match msg {
+        is JsonObject -> { return get_field_or_null(msg, "id") }
+        _ -> { return JsonNull {} }
+    }
+}
+
+/// Pluck the `params` field. Returns `JsonNull{}` when absent.
+export params_value :: fn(msg: JsonValue) -> JsonValue {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `params` field, so `JsonNull{}` is correct.
+    @partial match msg {
+        is JsonObject -> { return get_field_or_null(msg, "params") }
+        _ -> { return JsonNull {} }
+    }
+}
+
+/// True iff `v` represents JSON null (or is the absent sentinel `JsonNull`).
+export is_json_null :: fn(v: JsonValue) -> bool = v is JsonNull
+
+// ---- response encoders ----------------------------------------------------
+
+/// Encode a successful response : `{ jsonrpc, id, result }`. `id` echoes
+/// the request's id verbatim (use `JsonNull{}` for notifications, but
+/// notifications shouldn't get responses).
+export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = id
+    obj["result"]  = result
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Encode a successful response whose `result` is already JSON text — for a
+/// result too large to build as a `JsonValue` tree first.
+///
+/// @param id      the request's id, echoed verbatim.
+/// @param result  the result, as JSON text.
+export encode_response_text :: fn(id: JsonValue, result: string) -> string =
+    "{\"jsonrpc\":\"2.0\",\"id\":${stringify(id)},\"result\":${result}}"
+
+/// Encode an error response : `{ jsonrpc, id, error: { code, message } }`.
+/// `code` is the JSON-RPC standard code (cf. SPEC §JSON-RPC error codes).
+export encode_error :: fn(id: JsonValue, code: i32, message: string) -> string {
+    err_obj :: MutableMap<string, JsonValue> {}
+    err_obj["code"]    = JsonNumber { .value = f64(code) }
+    err_obj["message"] = JsonString { .value = message }
+
+    obj :: MutableMap<string, JsonValue> {}
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = id
+    obj["error"]   = JsonObject { .entries = err_obj }
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Shortcut for `MethodNotFound` — code -32601 per the JSON-RPC spec.
+export encode_method_not_found :: fn(id: JsonValue, method: string) -> string {
+    return encode_error(id, -32601, "Method not found: ${method}")
+}
+
+/// Encode a server-pushed notification : `{ jsonrpc, method, params }`,
+/// no `id`. Used for `window/logMessage`, `textDocument/publishDiagnostics`,
+/// etc. — anything the server emits unprompted.
+export encode_notification :: fn(method: string, params: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["method"]  = JsonString { .value = method }
+    obj["params"]  = params
+    return stringify(JsonObject { .entries = obj })
+}
+
+/// Encode a server-INITIATED request : `{ jsonrpc, id, method, params }`. Unlike
+/// a notification it carries an `id`, so the client sends back a response — the
+/// server ignores it (a response frame has no `method`, so `dispatch` drops it).
+/// Used for `workspace/*/refresh` pushes after a rebuild.
+export encode_request :: fn(id: i64, method: string, params: JsonValue) -> string {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["jsonrpc"] = JsonString { .value = "2.0" }
+    obj["id"]      = JsonNumber { .value = f64(id) }
+    obj["method"]  = JsonString { .value = method }
+    obj["params"]  = params
+    return stringify(JsonObject { .entries = obj })
+}
+
+// ---- internal helpers -----------------------------------------------------
+
+get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {
+    v :: o.entries[key]
+    match v {
+        is null -> { return JsonNull {} }
+        is JsonString -> { return v }
+        is JsonNumber -> { return v }
+        is JsonBool -> { return v }
+        is JsonNull -> { return v }
+        is JsonArray -> { return v }
+        is JsonObject -> { return v }
+    }
+}
+
+obj_string :: fn(o: JsonObject, key: string) -> string {
+    v :: o.entries[key]
+    match v {
+        is null       -> { return "" }
+        is JsonString -> { return v.value }
+        is JsonNumber -> { return "" }
+        is JsonBool   -> { return "" }
+        is JsonNull   -> { return "" }
+        is JsonArray  -> { return "" }
+        is JsonObject -> { return "" }
+    }
+}

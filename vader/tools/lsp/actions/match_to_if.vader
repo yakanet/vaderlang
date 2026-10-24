@@ -1,0 +1,365 @@
+// vader/tools/lsp/actions/match_to_if — the `match` → `if` rewrite action.
+//
+// Converts a two-arm `match` whose first arm reduces to an `if` condition into
+// an `if / else`. The cursor-driven form of the "`if` for ≤ 2 cases"
+// convention.
+//
+//   match cell {            if cell is null {
+//       is null  -> A           A
+//       is Node  -> B   →   } else {
+//   }                           B
+//                           }
+//
+// When ONE arm's body is empty (`-> {}`) the empty branch is dropped and the
+// other becomes a single-branch guard on the (possibly negated) condition —
+// the common null-guard idiom:
+//
+//   match ns_lookup {          if ns_lookup !is null {
+//       is null -> {}     →        return ns_lookup
+//       _ -> { return … }      }
+//   }
+//
+// Lossy policy = REFUSE : exactly two arms, no guards, the first arm an `is T`
+// (no nested sub-pattern) or a literal (→ the condition), and the second arm
+// droppable to the `else` — a `_`, a literal, or an `is T`. The second arm's
+// predicate is implied by the match's exhaustiveness.
+
+module "vader/tools/lsp/actions"
+
+import "vader/tools/fmt"
+AST :: import "toolchain/ast"
+Parse :: import "vader/parser"
+
+/// The match→if code action. Registered in `registry.vader::all_actions`.
+/// A factory fn (not a const) so cross-file references resolve regardless of
+/// the module's file order under the test-entry compile.
+match_to_if_action :: fn() -> CodeAction = CodeAction {
+    .kind          = "refactor.rewrite",
+    .title         = "Convert match to if",
+    .is_applicable = mti_applicable,
+    .apply         = mti_apply,
+}
+
+mti_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
+    if node is AST.MatchExpr { return is_convertible(node) }
+    return false
+}
+
+mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
+    if node is AST.MatchExpr {
+        if !is_convertible(node) { return "" }
+        return render_rewrite(ctx.source, build_if(node))
+    }
+    return ""
+}
+
+// Exactly two arms, no guards, arm 0 reducible to an `if` condition, arm 1
+// droppable to the `else`. Everything else declines (lossy = refuse).
+is_convertible :: fn(m: AST.MatchExpr) -> bool {
+    // `match x :: e` : an `if` has no place to scope the binding, and dropping
+    // it leaves every `x` in the arms unbound.
+    if m.binding != null { return false }
+    if m.arms.len() != 2 { return false }
+    a0 :: m.arms[0]
+    a1 :: m.arms[1]
+    if a0.guard != null { return false }
+    if a1.guard != null { return false }
+    return cond_pattern_ok(a0.pattern) && else_pattern_ok(a1.pattern)
+}
+
+// A pattern that becomes the `if` condition : `is T` (no nested pattern) or a
+// literal.
+cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
+    if p is AST.IsPattern { return p.inner == null }
+    if p is AST.LiteralPattern { return true }
+    return false
+}
+
+// A pattern that can be dropped to the `else` branch — it binds nothing the arm
+// body could reference : `_`, a literal, or `is T` with no nested pattern.
+else_pattern_ok :: fn(p: AST.Pattern) = p is AST.WildcardPattern || cond_pattern_ok(p)
+
+// Synthesise the `if` from a convertible match. Sub-expressions (scrutinee,
+// pattern type, literal value, arm bodies) are reused verbatim — they keep
+// their original spans, so `format_expr` slices their exact source text.
+build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
+    a0 :: m.arms[0]
+    a1 :: m.arms[1]
+    cond :: build_cond(m.scrutinee, a0.pattern)
+    // Arm 0 empty (`is null -> {}`) → a single-branch guard on the NEGATED
+    // condition running arm 1's body (`if X !is null { … }`, no else).
+    if arm_body_empty(a0.body) {
+        return AST.IfExpr {
+            .span        = m.span,
+            .cond        = negate_cond(cond),
+            .then_block  = arm_block(a1.body),
+            .else_branch = null,
+        }
+    }
+    // Arm 1 empty (`_ -> {}`) → a single-branch guard on the condition running
+    // arm 0's body ; the empty else is dropped.
+    if arm_body_empty(a1.body) {
+        return AST.IfExpr {
+            .span        = m.span,
+            .cond        = cond,
+            .then_block  = arm_block(a0.body),
+            .else_branch = null,
+        }
+    }
+    return AST.IfExpr {
+        .span        = m.span,
+        .cond        = cond,
+        .then_block  = arm_block(a0.body),
+        .else_branch = AST.IfElseBlock { .block = arm_block(a1.body) },
+    }
+}
+
+// True when an arm body is the empty block `{}` — no statements, no trailing
+// value. Such an arm carries no work, so the `if` drops that branch.
+arm_body_empty :: fn(body: AST.Expr) -> bool {
+    if body is AST.BlockExpr {
+        return body.stmts.len() == 0 && body.trailing == null
+    }
+    return false
+}
+
+// Negate a condition for the empty-arm-0 case. `X == v` → `X != v` ; `X is T`
+// → `X !is T` (built as `Not(Is)`, which the printer restores to the `!is`
+// spelling — a binding is dropped, unusable on the negated side). Anything else
+// wraps in `!(…)`.
+negate_cond :: fn(cond: AST.Expr) -> AST.Expr {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Eq {
+            return AST.BinaryExpr {
+                .span = cond.span, .op = .Neq,
+                .left = cond.left, .right = cond.right,
+            }
+        }
+        if cond.op == .Is {
+            is_bare :: AST.BinaryExpr {
+                .span = cond.span, .op = .Is, .left = cond.left, .right = cond.right,
+            }
+            return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = is_bare }
+        }
+    }
+    return AST.UnaryExpr { .span = cond.span, .op = .Not, .operand = cond }
+}
+
+// `is T` → `scrutinee is T` ; literal `v` → `scrutinee == v`.
+build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
+    if p is AST.IsPattern {
+        return AST.BinaryExpr {
+            .span = scrut.span, .op = .Is, .left = scrut, .right = p.ty,
+        }
+    }
+    if p is AST.LiteralPattern {
+        return AST.BinaryExpr {
+            .span = scrut.span, .op = .Eq, .left = scrut, .right = p.value,
+        }
+    }
+    // Unreachable for a convertible match — `is_convertible` gates the kinds.
+    return scrut
+}
+
+// An arm body becomes a branch block : reuse it when it's already a block,
+// otherwise wrap the single expression as the block's trailing value.
+arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
+    if body is AST.BlockExpr { return body }
+    no_stmts: AST.Stmt[]: []
+    return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Find the first source-backed `MatchExpr` in a parsed program — test helper so
+// the asserts run against real (source-backed) AST nodes. Shares the descent
+// with the other actions via `registry::t_find_expr`.
+tm_is_match :: fn(e: AST.Expr) -> bool = e is AST.MatchExpr
+
+tm_find_match :: fn(decls: AST.Decl[]) -> AST.MatchExpr | null {
+    e :: t_find_expr(decls, tm_is_match)
+    if e is AST.MatchExpr { return e }
+    return null
+}
+
+@test
+test_match_to_if_converts_literal :: fn() -> void {
+    src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "2-arm literal/_ match converts")
+    out :: mti_apply(m, ctx)
+    assert("if x == 0" in out, "renders the equality condition")
+    assert("else" in out, "renders an else branch")
+}
+
+@test
+test_match_to_if_converts_is_pattern :: fn() -> void {
+    src :: "g :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 -> v\n        _ -> 0\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "is-pattern + wildcard converts")
+    out :: mti_apply(m, ctx)
+    assert("if v is i32" in out, "renders the is condition")
+}
+
+@test
+test_match_to_if_declines_three_arms :: fn() -> void {
+    src :: "h :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        1 -> 2\n        _ -> 3\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!mti_applicable(m, ctx), "three arms are not a clean if/else")
+}
+
+@test
+test_match_to_if_two_is_arms :: fn() -> void {
+    // The null-narrowing shape: both arms `is`, no wildcard. The second arm has
+    // no binding, so it drops to the `else`.
+    src :: "classify :: fn(cell: i32 | null) -> i32 {\n    match cell {\n        is null -> println(\"none\")\n        is i32 -> println(\"got value\")\n    }\n    return 0\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "two is-arms (no wildcard) convert")
+    out :: mti_apply(m, ctx)
+    assert("cell is null" in out, "renders the is-null condition")
+    assert("else" in out, "second arm becomes the else")
+}
+
+@test
+test_match_to_if_null_guard :: fn() -> void {
+    // The empty null arm collapses to a single-branch `if X !is null { … }` —
+    // no empty `if` branch, no `else`.
+    src :: """
+f :: fn(ns: i32 | null) -> i32 {
+    match ns {
+        is null -> {}
+        _ -> { return ns }
+    }
+    return 0
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "empty null arm + `_` body converts")
+    out :: mti_apply(m, ctx)
+    assert("ns !is null" in out, "renders the negated `!is null` condition")
+    assert("return ns" in out, "keeps the non-empty arm's body")
+    assert(!("else" in out), "no else branch — the empty arm is dropped")
+}
+
+@test
+test_match_to_if_empty_second_arm :: fn() -> void {
+    // The empty `_` arm drops ; arm 0's body becomes the single branch.
+    src :: """
+g :: fn(v: i32 | string) -> void {
+    match v {
+        is i32 -> { work(v) }
+        _ -> {}
+    }
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "empty `_` arm converts")
+    out :: mti_apply(m, ctx)
+    assert("if v is i32" in out, "renders the positive condition")
+    assert(!("else" in out), "no else branch — the empty arm is dropped")
+}
+
+@test
+test_match_to_if_declines_header_binding :: fn() -> void {
+    // The header names the scrutinee `s` for both arms — an `if` has no place for it.
+    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match s :: v {\n        is i32 -> 0\n        is string -> s.byte_len()\n    }\n}\n"
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!mti_applicable(m, ctx), "header binding -> decline")
+}
+
+@test
+test_match_to_if_keeps_comments_and_indent :: fn() -> void {
+    src :: """
+f :: fn(cell: i32 | null) -> i32 {
+    return match cell {
+        is null -> {
+            // nothing to read
+            0
+        }
+        _ -> {
+            // the value itself
+            1
+        }
+    }
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    out :: mti_apply(m, ActionCtx { .source = src })
+    assert("// nothing to read" in out, "keeps the first arm's comment")
+    assert("// the value itself" in out, "keeps the second arm's comment")
+    assert("\n        // nothing to read\n" in out, "indents from the line, not the match column")
+    assert("\n    } else {\n" in out, "closes the branch at the line's indent")
+}
+
+@test
+test_match_to_if_replaces_the_partial_prefix :: fn() -> void {
+    src :: """
+f :: fn(cell: i32 | null) -> i32 {
+    @partial match cell {
+        is null -> {
+            return 0
+        }
+        _ -> {
+            return 1
+        }
+    }
+}
+"""
+    parsed :: Parse.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    spliced :: src.byte_slice(0, m.span.start.offset) + mti_apply(m, ActionCtx { .source = src })
+    assert(!("@partial" in spliced), "the `if` keeps no `@partial`")
+}

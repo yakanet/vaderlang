@@ -204,7 +204,8 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         if !in_function {
             // `vader dump --stage=bytecode` appends a `# Diagnostics` report
             // after the module when the compile raised warnings
-            // (`cli/cmd_dump.vader::run_bytecode_stage` → `support/diagnostics/render.vader`).
+            // (`tools/cli/cmd_dump.vader::run_bytecode_stage` →
+            // `support/diagnostics/render.vader`).
             // It is prose, always terminal, and never bytecode — so it ends the
             // stream rather than failing it. Inside a function body a `#` is not
             // this block (the report is appended past the last `end`) and stays

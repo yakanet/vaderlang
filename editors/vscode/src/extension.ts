@@ -1,6 +1,6 @@
 // Vader VSCode extension — spawns the Vader Language Server and routes
 // every `.vader` document through it. The server itself is implemented
-// in Vader (`vader/lsp/main_entry.vader`) and shipped with the Vader CLI
+// in Vader (`vader/tools/lsp/main_entry.vader`) and shipped with the Vader CLI
 // binary ; this extension is a thin client.
 
 import * as vscode from "vscode";
@@ -140,7 +140,7 @@ async function startClient(attempt = 0): Promise<void> {
 
 // Registers the debug adapter for the `vader` debug type. VS Code spawns the
 // descriptor's executable and speaks DAP over its stdio — the adapter is the
-// Vader CLI's `dap` subcommand (implemented in `vader/dap/`), reusing the same
+// Vader CLI's `dap` subcommand (implemented in `vader/tools/dap/`), reusing the same
 // binary path as the LSP client (`vader.lsp.path`).
 function registerDebugAdapter(context: vscode.ExtensionContext): void {
   const factory: vscode.DebugAdapterDescriptorFactory = {

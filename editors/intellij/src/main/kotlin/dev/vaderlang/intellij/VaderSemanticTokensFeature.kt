@@ -16,7 +16,7 @@ import com.redhat.devtools.lsp4ij.client.features.LSPSemanticTokensFeature
 // user, or not? Three answers, three branches:
 //
 //   documentation modifier → an explicit doc-comment key. Our own modifier
-//     (`TOKEN_MODIFIERS` in `vader/lsp/protocol/tokens.vader`), which LSP4IJ's
+//     (`TOKEN_MODIFIERS` in `vader/tools/lsp/protocol/tokens.vader`), which LSP4IJ's
 //     default knows nothing about, so vaderdoc tags would read as live code.
 //   type → the plugin's own key, because NEITHER side colours it (see `VaderColors`).
 //   function → null, i.e. no semantic colouring at all, because the TextMate

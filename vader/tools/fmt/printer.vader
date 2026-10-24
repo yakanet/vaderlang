@@ -1,0 +1,2596 @@
+// vader/tools/fmt/printer — AST → source emitter.
+//
+// `emit_expr` / `emit_type_expr` accept `Expr | null` directly (with `null`
+// being a no-op) — the Vader typechecker flattens the union-alias `Expr` into
+// its 26 individual variants for exhaustiveness purposes, so passing
+// `TypeExpr | null` through a generic dispatch is only practical when the
+// dispatcher itself enumerates every variant in one place.
+
+module "vader/tools/fmt"
+
+import "std/string"
+import "std/string_builder"
+import "std/io"
+import "vader/support/diagnostics"
+p :: import "toolchain/ast"
+import "toolchain/span"
+
+// ============================================================================
+// Printer
+// ============================================================================
+
+export Printer :: struct {
+    buf:      StringBuilder
+    depth:    i32
+    source:   string
+    comments: CommentMap
+    // Set to true after the first character has been written ; used by
+    // `flush_remaining_comments` to skip an initial empty line.
+    has_written: bool
+    // Active column-alignment target for `::`. The decl-group loop in
+    // `emit_program` sets this to the max-name-width of the current
+    // contiguous group of alignable decls (signature-only fns + consts) ;
+    // emit_fn_decl / emit_const_decl pad the name to this width. `0`
+    // disables alignment (single-space `::`).
+    align_name_width: i64
+    // How the NEXT `emit_block_expr` should lay out its body. The block-stmt
+    // loop sets it per statement (then restores) : `.Expand` for a control-flow
+    // statement body (`if` / `for` / `while` — always multi-line), `.Inline` for
+    // a member of a lookup-table `if`-chain (kept inline), `.Preserve` (the
+    // default) everywhere else (inline iff the source was single-line).
+    // Value-position blocks (`x :: if c { a } else { b }`) stay `.Preserve`, so
+    // concise conditional values are untouched.
+    @internal
+    block_mode: BlockLayout = .Preserve
+    // Column-alignment target for the `{` of a lookup-table `if`-chain member :
+    // the max `if <cond>` condition width across the chain run. `emit_if` pads
+    // the condition to this width so the braces line up. `0` disables (not a
+    // chain). Mirrors `align_name_width` for `::` decl groups.
+    align_if_width: i64 = 0
+    // Current output column (bytes since the last newline). Maintained by
+    // `write` / `newline` / `indent` so a delimited construct can decide
+    // whether its single-line form fits within `MAX_LINE`.
+    column: i64 = 0
+    // Rendering in "flat" mode : delimited constructs (struct-lit, call, seq)
+    // force their single-line form and never explode — used by `flat_width`
+    // to MEASURE a construct before deciding its real layout.
+    flat: bool = false
+    // Keep the line breaks the source writes around a binary operator, after a
+    // fn's `=` and before an `else`. Off for a standalone rendering
+    // (`format_expr`), whose output measures a width or lands at an indentation
+    // the source never had.
+    keep_line_breaks: bool = true
+    // Width that follows on the same line once the NEXT delimited construct
+    // closes — the ` ?? return …` after a call. That construct counts it in its
+    // fit test (`fits_inline`), which clears it before the construct's own
+    // children are emitted.
+    trailing: i64 = 0
+}
+
+/// How `emit_block_expr` lays out a block body (see `Printer.block_mode`).
+BlockLayout :: enum(u8) {
+    /// Inline iff the source was single-line — the default.
+    Preserve,
+    /// Always multi-line — a control-flow statement body (`if` / `for` / `while`).
+    Expand,
+    /// Always inline — a member of a lookup-table `if`-chain.
+    Inline,
+}
+
+export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
+    return Printer {
+        .buf = StringBuilder {},
+        .depth = 0,
+        .source = source,
+        .comments = comments,
+        .has_written = false,
+        .align_name_width = 0,
+    }
+}
+
+export finish :: fn(self: Printer) -> string {
+    return self.buf.to_string()
+}
+
+// ----- low-level primitives -----
+
+write :: fn(self: Printer, s: string) -> void {
+    self.buf.append(s)
+    n :: s.text_width()
+    if n > 0 { self.has_written = true }
+    // Emitted strings never carry a real newline (string literals escape `\n`,
+    // comments are written line-by-line), so a plain add tracks the column.
+    self.column = self.column + n
+}
+
+newline :: fn(self: Printer) -> void {
+    self.buf.append(NL)
+    self.has_written = true
+    self.column = 0
+}
+
+indent :: fn(self: Printer) -> void {
+    for 0..<self.depth { self.buf.append(INDENT) }
+    self.column = self.column + i64(self.depth) * INDENT.byte_len()
+}
+
+// Columns `s` takes on a line: one per codepoint, as `pad_start` and `pad_end`
+// count them, not one per byte. Every width and alignment in the printer goes
+// through it, so a line holding `"été"` lines up with its neighbours.
+text_width :: fn(s: string) -> i64 = s.len()
+
+// Newline followed by current-depth indent. The most common emit shape across
+// blocks / decl lists / match arms.
+nl_indent :: fn(self: Printer) -> void {
+    self.newline()
+    self.indent()
+}
+
+// ----- source-slice helper (for shapes we can't faithfully reconstruct
+//        from the AST — strings, generic-inst syntax forms) -----
+
+source_slice :: fn(self: Printer, span: Span) -> string =
+    self.source.byte_slice(span.start.offset, span.end.offset)
+
+// Write `name` followed by enough trailing spaces to reach
+// `self.align_name_width`. No-op padding when `align_name_width == 0`
+// (single decl, not in an alignment group) or when the name already
+// matches / exceeds the target (uniform-length group).
+write_name_padded :: fn(self: Printer, name: string) -> void {
+    self.write(name)
+    self.write_padding(name.text_width(), self.align_name_width)
+}
+
+// Spaces from column `used` up to `target` ; none once `used` reaches it.
+write_padding :: fn(self: Printer, used: i64, target: i64) -> void {
+    if used >= target {
+        return
+    }
+    for _ in 0..<target - used {
+        self.write(" ")
+    }
+}
+
+// Whether a blank line separates a node from the one ending on `prev_end` : the
+// gap is measured up to the node's first leading comment, so a comment written
+// right under the previous node stays attached to it.
+opens_gap :: fn(self: Printer, prev_end: i32, offset: i64, line: i32) -> bool {
+    top :: self.comments.first_line_before(offset) ?? line
+    return top > prev_end + 1
+}
+
+// ----- comment interleaving -----
+
+// Emit every queued leading comment as one full line each, terminated by
+// a newline. Preserves source blank lines between consecutive comments
+// AND between the last comment and the node that follows (caller passes
+// `node_line` — the source line where the AST node starts ; if there's a
+// gap > 1 line, emit one extra newline as the visual separator).
+// `prev_end_line` tracks where the previous comment FINISHED — needed for
+// multi-line block comments whose `start_line` is well before `end_line`.
+flush_leading_comments :: fn(self: Printer, before: i64, node_line: i32) -> void {
+    cs :: self.comments.take_before(before)
+    prev_end_line: i32 = 0
+    has_prev := false
+    // Callers flush right after a node, with or without the newline that ends
+    // it ; every comment below starts on a line of its own.
+    if cs.len() > 0 && self.column != 0 {
+        self.newline()
+    }
+    for c in cs {
+        if c.after_code {
+            // Marked, on its own line : `attach_trailing_comments` moves it
+            // back to the end of the code line above and aligns the run.
+            self.write(TRAILING_MARK)
+            self.write(c.text)
+            self.newline()
+        } else {
+            if has_prev && c.line > prev_end_line + 1 {
+                self.newline()
+            }
+            self.indent()
+            self.write(c.text)
+            self.newline()
+        }
+        prev_end_line = c.end_line
+        has_prev = true
+    }
+    if has_prev && node_line > prev_end_line + 1 {
+        self.newline()
+    }
+}
+
+// Trailing comments after the last decl. Each lands on its own line,
+// preceded by a newline since the previous decl ends without one.
+flush_remaining_comments :: fn(self: Printer) -> void {
+    cs :: self.comments.drain_remaining()
+    for c in cs {
+        if self.has_written {
+            self.newline()
+        }
+        if c.after_code {
+            self.write(TRAILING_MARK)
+        } else {
+            self.indent()
+        }
+        self.write(c.text)
+    }
+}
+
+// Close a braced body at `span`: flush the comments left inside it (after its
+// last member), dedent, and write `}` on its own line.
+close_brace_after_comments :: fn(self: Printer, span: Span) -> void {
+    inner_trailing :: self.comments.has_before(span.end.offset)
+    self.flush_leading_comments(span.end.offset, span.end.line)
+    self.depth = self.depth - 1
+    // A flush ends on a newline, so only the indent is missing.
+    if inner_trailing {
+        self.indent()
+    } else {
+        self.nl_indent()
+    }
+    self.write("}")
+}
+
+// Prefix of a trailing comment in the raw output, on a line of its own.
+// Never produced otherwise : string and char literals escape control bytes.
+TRAILING_MARK :: "\u{1}"
+
+// Move each marked trailing comment to the end of the line above it, and
+// align the comments of a run of consecutive such lines at one indentation
+// on a single column : one space past the longest code line of the run.
+attach_trailing_comments :: fn(text: string) -> string {
+    if !(TRAILING_MARK in text) {
+        return text
+    }
+    codes: string[]: []
+    notes: string[]: []
+    // Set once a comment had to stand alone : the rest of its batch follows it
+    // on lines of their own, in source order.
+    standalone := false
+    for line in text.split("\n") {
+        if line.starts_with(TRAILING_MARK) && codes.len() > 0 {
+            last :: codes.len() - 1
+            note :: line.trim_prefix(TRAILING_MARK)
+            if notes[last] == "" && !standalone {
+                notes[last] = note
+            } else {
+                // Several source lines folded into one output line : one comment
+                // ends it, the others go below rather than inside that comment.
+                codes.push(" ".repeat(indent_width(codes[last])) + note)
+                notes.push("")
+                standalone = true
+            }
+            continue
+        }
+        codes.push(line)
+        notes.push("")
+        standalone = false
+    }
+    i: i64 = 0
+    for i < codes.len() {
+        if notes[i] == "" {
+            i += 1
+            continue
+        }
+        ind :: indent_width(codes[i])
+        end := i
+        width: i64 = 0
+        for end < codes.len() && notes[end] != "" && indent_width(codes[end]) == ind {
+            w :: codes[end].right_trim().text_width()
+            if w > width { width = w }
+            end += 1
+        }
+        for k in i..<end {
+            code :: codes[k].right_trim()
+            codes[k] = code + " ".repeat(width - code.text_width() + 1) + notes[k]
+        }
+        i = end
+    }
+    return codes.join("\n")
+}
+
+// Leading spaces of `line`.
+indent_width :: fn(line: string) -> i64 {
+    n: i64 = 0
+    for i in 0..<line.byte_len() {
+        b :: line.byte_at(i)
+        if b != ' ' { break }
+        n += 1
+    }
+    return n
+}
+
+// ============================================================================
+// Program
+// ============================================================================
+
+// Source-visible decls only : drops the synthetic `__comptime_NAME` helper
+// fns produced by the `@comptime` const-sugar desugar. Every other decl passes
+// through in order.
+emittable_decls :: fn(decls: p.Decl[]) -> p.Decl[] {
+    out: p.Decl[]: []
+    for d in decls {
+        if d is p.FnDecl {
+            if d.comptime_synthetic { continue }
+        }
+        out.push(d)
+    }
+    return out
+}
+
+export emit_program :: fn(self: Printer, prog: p.Program) -> string {
+    // Drop the `__comptime_NAME` helper fns the parser synthesises for the
+    // `NAME :: @comptime <expr>` const sugar : they are never source-visible,
+    // and the surface sugar is re-emitted from the paired `ConstDecl`
+    // (see `emit_const_decl`). Filtering here keeps the alignment pre-pass and
+    // the blank-line layout below indexed over the source-visible decls only.
+    decls :: emittable_decls(prog.decls)
+    // Group-alignment pre-pass. Resolved here once so `emit_fn_decl` /
+    // `emit_const_decl` can look up their group's max-name width without
+    // re-scanning siblings each time.
+    align_widths :: compute_decl_alignment_widths(decls)
+    // The `module "..."` declaration opens the file, before any decl. Its
+    // leading `//` header comment flushes first ; the blank-line separation
+    // down to the first decl is handled by the loop's `has_module` branch.
+    module_end_line: i32 = 0
+    has_module: bool = false
+    match m :: prog.module {
+        is null         -> {}
+        is p.ModuleDecl -> {
+            self.flush_leading_comments(m.span.start.offset, m.span.start.line)
+            self.indent()
+            self.write("module \"${m.name}\"")
+            module_end_line = m.span.end.line
+            has_module = true
+        }
+    }
+    for i in 0..<decls.len() {
+        d :: decls[i]
+        span :: d.span
+        before :: span.start.offset
+        // Layout between decls : preserve the source's blank-line decision.
+        //   prev_end_line + 1 == this_decl_start_line  → contiguous, single \n
+        //   gap >= 2                                    → one blank line, \n\n
+        // The first decl follows the module line (or the file head when there
+        // is no module decl, in which case no separator).
+        if i > 0 || has_module {
+            self.newline()
+            prev_end_line := module_end_line
+            if i > 0 { prev_end_line = decls[i - 1].span.end.line }
+            if self.opens_gap(prev_end_line, before, decl_first_line(d)) {
+                self.newline()
+            }
+        }
+        self.flush_leading_comments(before, decl_first_line(d))
+        self.indent()
+        self.align_name_width = align_widths[i]
+        self.emit_decl(d)
+        self.align_name_width = 0
+    }
+    self.flush_remaining_comments()
+    self.newline()
+    return attach_trailing_comments(self.finish())
+}
+
+// ============================================================================
+// Declarations
+// ============================================================================
+
+emit_decl :: fn(self: Printer, d: p.Decl) -> void {
+    match d {
+        is p.ImportDecl    -> self.emit_import(d)
+        is p.FnDecl        -> self.emit_fn_decl(d)
+        is p.StructDecl    -> self.emit_struct_decl(d)
+        is p.EnumDecl      -> self.emit_enum_decl(d)
+        is p.TraitDecl     -> self.emit_trait_decl(d)
+        is p.ImplDecl      -> self.emit_impl_decl(d)
+        is p.TypeAliasDecl -> self.emit_type_alias(d)
+        is p.ConstDecl     -> self.emit_const_decl(d)
+        is p.AssertDecl    -> self.emit_assert_decl(d)
+    }
+}
+
+// True when the decl's name is in a `name :: …` slot eligible for column
+// alignment within a group. Signature-only fns and consts both fit ;
+// fns with a body (block or expression) don't — the existing stdlib
+// convention is single-space `::` for those.
+decl_is_alignable :: fn(d: p.Decl) -> bool {
+    // @partial: only signature-only fns and consts get column-aligned `::`
+    // slots ; imports, structs, enums, traits, impls, type aliases and
+    // asserts are never alignable, so any other decl kind → false.
+    @partial match d {
+        is p.FnDecl -> {
+            if d.sam_synthetic        { return false }
+            if d.is_expression_bodied { return false }
+            return d.body == null
+        }
+        is p.ConstDecl -> { return true }
+        _              -> { return false }
+    }
+}
+
+decl_alignable_name :: fn(d: p.Decl) -> string {
+    // @partial: only fns and consts have a name in an alignable `::` slot ;
+    // every other decl kind (import, struct, enum, trait, impl, type alias,
+    // assert) is never part of an alignment group, so it has no name → "".
+    @partial match d {
+        is p.FnDecl | p.ConstDecl -> { return d.name }
+        _ -> { return "" }
+    }
+}
+
+// True iff `a` and `b` carry the same ordered list of decorator names.
+// Walks both lists in lock-step — no intermediate `string[]` allocation.
+decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if a[i].name != b[i].name { return false }
+    }
+    return true
+}
+
+// True when `cur` can extend a group anchored on `prev` : same decl kind,
+// same body shape (only signature-only fns are alignable), same
+// visibility, same decorator names, and visually adjacent (no blank line
+// between `prev.end` and `cur.first_line`).
+decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
+    if !decl_is_alignable(prev) { return false }
+    if !decl_is_alignable(cur)  { return false }
+    if decl_first_line(cur) != prev.span.end.line + 1 { return false }
+    // @partial: only fn and const groups are alignable (guarded above by
+    // `decl_is_alignable`) ; any other `prev` kind can never anchor a group,
+    // so it → false. `cur` must additionally match `prev`'s kind to extend.
+    @partial match prev {
+        is p.FnDecl -> {
+            if cur is p.FnDecl {
+                if prev.visibility != cur.visibility { return false }
+                return decorators_equal(prev.decorators, cur.decorators)
+            }
+            return false
+        }
+        is p.ConstDecl -> {
+            if cur is p.ConstDecl {
+                if prev.visibility != cur.visibility { return false }
+                return decorators_equal(prev.decorators, cur.decorators)
+            }
+            return false
+        }
+        _ -> { return false }
+    }
+}
+
+// Pre-pass over the project's decls : for each decl, return the
+// alignment width that its emitter should use for the `name :: ` slot.
+// Decls outside an alignable group (or that are the sole member of one)
+// get `0`, which disables padding. Groups extending across two or more
+// decls all see the same width — the max name length in the group — so
+// every name in the group aligns to the same column.
+compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
+    for i < decls.len() {
+        if !decl_is_alignable(decls[i]) {
+            out.push(0)
+            i = i + 1
+            continue
+        }
+        end := i + 1
+        width: i64 = decl_alignable_name(decls[i]).text_width()
+        for end < decls.len() {
+            if !decls_in_same_group(decls[end - 1], decls[end]) { break }
+            w :: decl_alignable_name(decls[end]).text_width()
+            if w > width { width = w }
+            end = end + 1
+        }
+        // Solo groups (`end == i + 1`) skip alignment — `pad_end` of a
+        // name to its own width is a no-op, just wasted work.
+        group_width :: if end == i + 1 { 0 } else { width }
+        for k in i..<end { out.push(group_width) }
+        i = end
+    }
+    return out
+}
+
+
+// Decorators sit OUTSIDE the decl's own span — they're collected separately
+// by the parser. For "what line does this decl visually start on" we want
+// the first decorator's line if any, else the decl's own span start.
+decl_first_line :: fn(d: p.Decl) -> i32 {
+    decos :: p.decl_decorators(d)
+    if decos.len() > 0 { return decos[0].span.start.line }
+    return d.span.start.line
+}
+
+// Decorators followed by either a newline (the common case ; matches the
+// canonical multi-line form) or a single space (when the source placed the
+// decorator on the same line as the decl). `decl_start_line` is the line
+// of the decl's first non-decorator token — the printer's call site picks
+// it (`name_span.start.line` for named decls, fallback to `span.start.line`).
+/// One decorator — `@name` or `@name(args)` — with nothing after it.
+///
+/// Shared by the declaration form, which picks its separator from the source
+/// lines, and the parameter form, which is always inline.
+emit_decorator :: fn(self: Printer, deco: p.Decorator) -> void {
+    self.write("@")
+    self.write(deco.name)
+    if deco.args.len() > 0 {
+        self.write("(")
+        for j in 0..<deco.args.len() {
+            if j > 0 { self.write(", ") }
+            self.emit_expr(deco.args[j])
+        }
+        self.write(")")
+    }
+}
+
+emit_decorators :: fn(self: Printer, decos: p.Decorator[], decl_start_line: i32) -> void {
+    for i in 0..<decos.len() {
+        deco :: decos[i]
+        self.emit_decorator(deco)
+        // Next-thing's line : the following decorator's line if any, else
+        // the decl's start line.
+        next_line :: if i + 1 < decos.len() {
+            decos[i + 1].span.start.line
+        } else {
+            decl_start_line
+        }
+        if deco.span.end.line == next_line {
+            self.write(" ")
+        } else {
+            self.newline()
+            self.indent()
+        }
+    }
+}
+
+emit_visibility :: fn(self: Printer, v: p.Visibility) -> void {
+    match v {
+        .Public  -> self.write("export ")
+        .Private -> {}
+    }
+}
+
+// ---- Import ----
+
+emit_import :: fn(self: Printer, d: p.ImportDecl) -> void {
+    self.emit_decorators(d.decorators, d.span.start.line)
+    match nn :: d.binding {
+        is p.NamedNamespaceImport -> {
+            self.write(nn.name)
+            self.write(" :: import \"")
+            self.write(d.path)
+            self.write("\"")
+        }
+        is p.WildcardImport       -> {
+            self.write("import \"")
+            self.write(d.path)
+            self.write("\"")
+        }
+        is p.DestructureImport    -> {
+            self.write("import \"")
+            self.write(d.path)
+            self.write("\"")
+            // `import "p" {}` — an empty modifier list is just the bare wildcard;
+            // normalise it away (this also silences W0011 on re-format).
+            if nn.names.len() > 0 { self.emit_import_name_block(nn.names, nn.trailing_comma) }
+        }
+    }
+}
+
+emit_import_name_block :: fn(self: Printer, names: p.ImportName[], trailing_comma: bool) -> void {
+    // Dart-style : a trailing comma forces one name per line ; otherwise keep
+    // it single-line when it fits under the column budget. `flat` mode
+    // (measuring) always renders single-line.
+    inline :: self.flat
+        || (!trailing_comma && self.column + flat_import_block_width(self.source, names) <= i64(MAX_LINE))
+    self.emit_comma_list(names, " {", "}", true, inline, emit_import_name)
+}
+
+// Flat width of an import modifier block rendered as ` { a, b as c }`,
+// including the surrounding braces — drives the Dart-style layout choice.
+// Measures by rendering through the real emitter in `flat` mode (which forces
+// the single-line branch), so the two never drift.
+flat_import_block_width :: fn(source: string, names: p.ImportName[]) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_import_name_block(names, false)
+    return sub.finish().text_width()
+}
+
+emit_import_name :: fn(self: Printer, n: p.ImportName) -> void {
+    self.write(n.name)
+    match a :: n.alias {
+        is null   -> {}
+        is string -> {
+            self.write(" as ")
+            self.write(a)
+        }
+    }
+}
+
+// ---- Fn ----
+
+emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
+    if d.sam_synthetic { return }   // parser-fabricated, not source
+
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write_name_padded(d.name)
+    self.write(" :: fn")
+    self.emit_type_params(d.type_params)
+    self.emit_fn_params(d.params, d.trailing_comma)
+    self.emit_type_expr_with_prefix(" -> ", d.return_type)
+    if d.is_expression_bodied {
+        self.write(" =")
+        // Expression-bodied : body is normalised to BlockExpr with empty
+        // stmts + trailing expr. Re-emit the trailing expr alone.
+        match b :: d.body {
+            is null        -> self.write(" /* missing body */")
+            is p.BlockExpr -> self.emit_expression_body(b.trailing)
+        }
+    } else {
+        match b :: d.body {
+            is null -> {}    // signature-only (@intrinsic / @extern)
+            is p.BlockExpr -> {
+                self.write(" ")
+                self.emit_block_expr(b)
+            }
+        }
+    }
+}
+
+emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
+    if params.len() == 0 { return }
+    self.write("<")
+    for i in 0..<params.len() {
+        if i > 0 { self.write(", ") }
+        tp :: params[i]
+        self.write(tp.name)
+        self.emit_type_expr_with_prefix(": ", tp.bound)
+        self.emit_type_expr_with_prefix(" = ", tp.default)
+    }
+    self.write(">")
+}
+
+emit_fn_params :: fn(self: Printer, params: p.FnParam[], trailing_comma: bool) -> void {
+    inline :: self.flat
+        || params.len() == 0
+        || (!trailing_comma && self.column + flat_params_width(self.source, params) <= i64(MAX_LINE))
+    self.emit_comma_list(params, "(", ")", false, inline, emit_fn_param)
+}
+
+// Flat width of a parameter list rendered as `(a: T, b: U)`, including the
+// parens — used to decide the Dart-style single-line vs exploded layout.
+flat_params_width :: fn(source: string, params: p.FnParam[]) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_fn_params(params, false)
+    return sub.finish().text_width()
+}
+
+emit_fn_param :: fn(self: Printer, fp: p.FnParam) -> void {
+    // A parameter decorator is always inline (`@c_pointer d: Div`). Dropping it
+    // is not cosmetic: without `@c_pointer` a `@c_struct` crosses by value
+    // instead of by address, so a formatted file would call C with another
+    // signature, or stop compiling where `@c_out` needs the address.
+    for deco in fp.decorators {
+        self.emit_decorator(deco)
+        self.write(" ")
+    }
+    if fp.variadic { self.write("...") }
+    self.write(fp.name)
+    self.emit_type_expr_with_prefix(": ", fp.ty)
+    self.emit_expr_with_prefix(" = ", fp.default_value)
+}
+
+// ---- Struct ----
+
+emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    self.write(" :: struct")
+    self.emit_type_params(d.type_params)
+    if d.fields.len() == 0 {
+        self.write(" {}")
+        return
+    }
+    // Inline rendering when the source was single-line — matches the
+    // stdlib idiom `export Foo :: struct { value: string }` for small
+    // newtype-style declarations. An `@internal` field renders on its own
+    // line, so a struct carrying one falls through to the multi-line form.
+    if d.span.start.line == d.span.end.line && !has_internal_field(d.fields) {
+        self.write(" { ")
+        for i in 0..<d.fields.len() {
+            if i > 0 { self.write(", ") }
+            self.emit_struct_field(d.fields[i])
+        }
+        self.write(" }")
+        return
+    }
+    self.write(" {")
+    self.depth = self.depth + 1
+    for f in d.fields {
+        // Flush the field's leading `///` vaderdoc / `//` comments — without
+        // this they detach from the field and get dumped at end-of-file. An
+        // `@internal` field renders the decorator one line above the field
+        // name ; use THAT line for the blank-line check so a doc directly above
+        // it isn't split off by a spurious blank line.
+        self.newline()
+        node_line :: if f.visibility == .Private {
+            f.span.start.line - 1
+        } else {
+            f.span.start.line
+        }
+        self.flush_leading_comments(f.span.start.offset, node_line)
+        self.indent()
+        self.emit_struct_field(f)
+    }
+    self.close_brace_after_comments(d.span)
+}
+
+// True when any field opts out of the public default via `@internal`
+// (`.Private`) — such a struct can't use the inline single-line form.
+has_internal_field :: fn(fields: p.StructField[]) -> bool {
+    for f in fields { if f.visibility == .Private { return true } }
+    return false
+}
+
+emit_struct_field :: fn(self: Printer, f: p.StructField) -> void {
+    // Fields are public by default ; a `.Private` field carries the
+    // `@internal` decorator, emitted on its own line above the field.
+    if f.visibility == .Private {
+        self.write("@internal")
+        self.nl_indent()
+    }
+    self.write(f.name)
+    self.write(": ")
+    self.emit_type_expr(f.ty)
+    self.emit_expr_with_prefix(" = ", f.default)
+}
+
+// ---- Enum ----
+
+emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    self.write(" :: enum")
+    if d.header.len() > 0 {
+        self.emit_comma_list(d.header, "(", ")", false, true, emit_type_expr_item)
+    }
+    if d.variants.len() == 0 {
+        self.write(" {}")
+        return
+    }
+    // Inline rendering when the source was single-line — matches stdlib
+    // idiom `Color :: enum { Red, Green, Blue }`. No trailing comma.
+    if d.span.start.line == d.span.end.line {
+        self.write(" { ")
+        for i in 0..<d.variants.len() {
+            if i > 0 { self.write(", ") }
+            self.emit_enum_variant(d.variants[i], EnumVariantColumns {})
+        }
+        self.write(" }")
+        return
+    }
+    columns :: enum_variant_columns(self.source, d.variants)
+    self.write(" {")
+    self.depth = self.depth + 1
+    for i in 0..<d.variants.len() {
+        v :: d.variants[i]
+        // A blank line in the source survives : it also ends an alignment
+        // group, so dropping it would realign the next run on a second pass.
+        self.newline()
+        if i > 0 && self.opens_gap(variant_last_line(d.variants[i - 1]), v.span.start.offset, v.span.start.line) {
+            self.newline()
+        }
+        // Flush the variant's leading `///` / `//` comments — without this they
+        // detach from the variant and are relocated after the enum's `}`.
+        self.flush_leading_comments(v.span.start.offset, v.span.start.line)
+        self.indent()
+        self.emit_enum_variant(v, columns[i])
+        self.write(",")
+    }
+    self.close_brace_after_comments(d.span)
+}
+
+// The widths a variant pads to so that, across its group, the `{ … }` blocks
+// start in one column and the `=` in another. `0` pads nothing.
+EnumVariantColumns :: struct {
+    name:  i64 = 0
+    block: i64 = 0
+}
+
+// One `EnumVariantColumns` per variant. A group is a run of variants on
+// adjacent lines — a blank line or a comment line ends it — and a variant
+// alone in its group pads nothing.
+enum_variant_columns :: fn(source: string, variants: p.EnumVariant[]) -> EnumVariantColumns[] {
+    out: EnumVariantColumns[]: []
+    i: i64 = 0
+    for i < variants.len() {
+        end := i + 1
+        for end < variants.len() && variants[end].span.start.line == variant_last_line(variants[end - 1]) + 1 {
+            end = end + 1
+        }
+        columns :: EnumVariantColumns {}
+        if end > i + 1 {
+            for k in i..<end {
+                name_width :: variants[k].name.text_width()
+                block_width :: variant_block_width(source, variants[k])
+                if name_width > columns.name {
+                    columns.name = name_width
+                }
+                if block_width > columns.block {
+                    columns.block = block_width
+                }
+            }
+        }
+        for _ in i..<end {
+            out.push(columns)
+        }
+        i = end
+    }
+    return out
+}
+
+// The last source line a variant occupies — its value, else its data block.
+variant_last_line :: fn(v: p.EnumVariant) -> i32 {
+    if v.value_span is Span {
+        return v.value_span.end.line
+    }
+    data :: v.data
+    if data !is null && data.len() > 0 {
+        return data[data.len() - 1].span.end.line
+    }
+    return v.span.end.line
+}
+
+// Single-line width of a variant's `{ … }` block ; `0` without one.
+variant_block_width :: fn(source: string, v: p.EnumVariant) -> i64 {
+    data :: v.data ?? return 0
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
+    return sub.finish().text_width()
+}
+
+// `Name { … } = value`, padded to `columns`. The value is copied from the
+// source, so `0x8892` and `-1` keep their spelling. Padding stops at the last
+// written part : a line never ends in spaces.
+emit_enum_variant :: fn(self: Printer, v: p.EnumVariant, columns: EnumVariantColumns) -> void {
+    start :: self.column
+    self.write(v.name)
+    if v.data == null && v.value_span == null {
+        return
+    }
+    self.write_padding(self.column, start + columns.name)
+    data :: v.data
+    if data !is null {
+        self.write(" ")
+        self.emit_comma_list(data, "{", "}", true, true, emit_struct_lit_item)
+    }
+    value_span :: v.value_span
+    if value_span is Span {
+        block :: if columns.block > 0 { columns.block + 1 } else { 0 }
+        self.write_padding(self.column, start + columns.name + block)
+        self.write(" = ")
+        self.write(self.source_slice(value_span))
+    }
+}
+
+// ---- Trait / Impl ----
+
+emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    self.write(" :: trait")
+    self.emit_type_params(d.type_params)
+    self.emit_type_expr_with_prefix(": ", d.requires)
+    if d.members.len() == 0 {
+        self.write(" {}")
+        return
+    }
+    // Inline single-line trait body — matches the stdlib idiom
+    // `Add :: trait { add :: fn(self, other: Self) -> Self }`. Single-stmt
+    // bodies stay on one line ; multi-stmt bodies break.
+    if d.span.start.line == d.span.end.line && d.members.len() == 1 {
+        self.write(" { ")
+        self.emit_fn_decl(d.members[0])
+        self.write(" }")
+        return
+    }
+    self.write(" {")
+    self.depth = self.depth + 1
+    member_widths :: compute_fn_alignment_widths(d.members)
+    for i in 0..<d.members.len() {
+        m :: d.members[i]
+        first :: m.span.start
+        // Preserve blank lines between members + interleave inner comments.
+        if i > 0 {
+            prev_end :: d.members[i - 1].span.end.line
+            self.newline()
+            if self.opens_gap(prev_end, first.offset, first.line) { self.newline() }
+        } else {
+            self.newline()
+        }
+        self.flush_leading_comments(first.offset, first.line)
+        self.indent()
+        self.align_name_width = member_widths[i]
+        self.emit_fn_decl(m)
+        self.align_name_width = 0
+    }
+    self.close_brace_after_comments(d.span)
+}
+
+// Mirror of `compute_decl_alignment_widths` for `FnDecl[]` — drives the
+// `::` column alignment inside trait / impl bodies. Same group rule :
+// consecutive signature-only fns with matching visibility and decorator
+// set share a group.
+compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
+    for i < members.len() {
+        m :: members[i]
+        if m.sam_synthetic || m.is_expression_bodied {
+            out.push(0)
+            i = i + 1
+            continue
+        }
+        if m.body != null {
+            out.push(0)
+            i = i + 1
+            continue
+        }
+        // Group : consecutive sig-only members, adjacent lines, same
+        // visibility, same decorator set.
+        end := i + 1
+        width: i64 = m.name.text_width()
+        for end < members.len() {
+            prev :: members[end - 1]
+            cur :: members[end]
+            if cur.sam_synthetic || cur.is_expression_bodied { break }
+            if cur.body != null { break }
+            if cur.span.start.line != prev.span.end.line + 1 { break }
+            if prev.visibility != cur.visibility { break }
+            if !decorators_equal(prev.decorators, cur.decorators) { break }
+            w :: cur.name.text_width()
+            if w > width { width = w }
+            end = end + 1
+        }
+        group_width :: if end == i + 1 { 0 } else { width }
+        for k in i..<end { out.push(group_width) }
+        i = end
+    }
+    return out
+}
+
+emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
+    self.emit_decorators(d.decorators, d.for_type.span.start.line)
+    self.emit_type_expr(d.for_type)
+    self.write(" implements")
+    // Bounded-generic typeParam list — `Foo<T> implements<T: Bound> Trait`.
+    // The angle list always follows the keyword that opens its scope
+    // (here `implements`), mirroring `fn<T>` / `struct<T>` / `trait<T>`.
+    if d.type_params.len() > 0 {
+        self.write("<")
+        for i in 0..<d.type_params.len() {
+            if i > 0 { self.write(", ") }
+            tp :: d.type_params[i]
+            self.write(tp.name)
+            self.emit_type_expr_with_prefix(": ", tp.bound)
+            self.emit_type_expr_with_prefix(" = ", tp.default)
+        }
+        self.write(">")
+    }
+    self.write(" ")
+    self.write(d.trait_name)
+    if d.trait_args.len() > 0 {
+        self.write("<")
+        for i in 0..<d.trait_args.len() {
+            if i > 0 { self.write(", ") }
+            self.emit_type_expr(d.trait_args[i])
+        }
+        self.write(">")
+    }
+    if d.members.len() == 0 {
+        // `@intrinsic Type implements Trait` (no body) is a valid form
+        // for host-provided impls. Skip the empty `{}` so we round-trip
+        // the source layout exactly.
+        is_intrinsic := false
+        for deco in d.decorators {
+            if deco.name == "intrinsic" { is_intrinsic = true }
+        }
+        if is_intrinsic { return }
+        self.write(" {}")
+        return
+    }
+    // SAM-sugar forms — the parser synthesises a single fn member with
+    // `sam_synthetic = true` for `Type implements Trait -> expr` and
+    // `Type implements Trait { stmts }`. Re-emit the user-facing surface
+    // rather than the synthesised `name :: fn(args) { … }` shape.
+    if d.members.len() == 1 && d.members[0].sam_synthetic {
+        m :: d.members[0]
+        match b :: m.body {
+            is null        -> {}
+            is p.BlockExpr -> {
+                // Arrow form : block body is a no-stmt wrapper around the
+                // trailing expr.
+                if b.stmts.len() == 0 {
+                    if b.trailing !is null {
+                        self.write(" -> ")
+                        self.emit_expr(b.trailing)
+                        return
+                    }
+                }
+                // Block form : `Type implements Trait { stmts… }`.
+                self.write(" ")
+                self.emit_block_expr(b)
+                return
+            }
+        }
+        // Fallthrough : malformed SAM (body null) — emit `{}` to keep parse.
+        self.write(" {}")
+        return
+    }
+    self.write(" {")
+    self.depth = self.depth + 1
+    impl_widths :: compute_fn_alignment_widths(d.members)
+    for i in 0..<d.members.len() {
+        m :: d.members[i]
+        first :: m.span.start
+        if i > 0 {
+            prev_end :: d.members[i - 1].span.end.line
+            self.newline()
+            if self.opens_gap(prev_end, first.offset, first.line) { self.newline() }
+        } else {
+            self.newline()
+        }
+        self.flush_leading_comments(first.offset, first.line)
+        self.indent()
+        self.align_name_width = impl_widths[i]
+        self.emit_fn_decl(m)
+        self.align_name_width = 0
+    }
+    self.close_brace_after_comments(d.span)
+}
+
+// ---- TypeAlias / Const / Assert ----
+
+emit_type_alias :: fn(self: Printer, d: p.TypeAliasDecl) -> void {
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    // Generic type-aliases use the LHS-angle head : `Name<T> :: body`.
+    // Non-generic ones drop the angle list and read as a plain const.
+    self.emit_type_params(d.type_params)
+    self.write(" :: ")
+    self.emit_type_expr(d.aliased)
+}
+
+emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
+    // `NAME :: @comptime <expr>` / `NAME: T: @comptime <expr>` sugar : the
+    // parser desugared it to a `__comptime_NAME` helper (skipped at emit time)
+    // plus this const rewritten to call it. Re-emit the surface sugar from the
+    // preserved operand instead of the desugared `__comptime_NAME()` call.
+    cb :: d.comptime_body
+    if cb != null {
+        self.emit_comptime_const(d, cb)
+        return
+    }
+    self.emit_decorators(d.decorators, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    // Typed const-decls use the Odin-style `NAME: T: value` form (two single
+    // colons — `parse_typed_const_decl`), not `NAME: T :: value`. They skip
+    // name-column alignment : the `: T` segment breaks the per-name column
+    // anyway.
+    name_width: i64 = 0
+    match d.ty {
+        is null -> {
+            self.write_name_padded(d.name)
+            self.write(" :: ")
+            target :: self.align_name_width
+            n :: d.name.text_width()
+            name_width = if target > n { target } else { n }
+        }
+        _ -> {
+            self.write(d.name)
+            self.write(": ")
+            self.emit_type_expr(d.ty)
+            self.write(": ")
+            name_width = 0  // typed form skips multi-line union layout
+        }
+    }
+    // Multi-line union layout : if the RHS is a `|` chain and the single-
+    // line rendering wouldn't fit, break with leading pipes aligned with
+    // the first variant :
+    //   T :: A
+    //       | B
+    //       | C
+    // Typed constants skip this path (the `: T :` segment makes the prefix
+    // shape too irregular for the simple align rule to read cleanly).
+    if d.ty is null && is_bitor_chain(d.value) {
+        prefix_width :: i64(self.depth) * 4 + name_width + 4 // " :: "
+        rendered :: format_expr(self.source, d.value)
+        if prefix_width + rendered.text_width() > i64(MAX_LINE) {
+            self.emit_union_multiline(d.value, name_width)
+            return
+        }
+        // A union that fits takes one line, whatever line breaks the source has.
+        keep :: self.keep_line_breaks
+        self.keep_line_breaks = false
+        self.emit_expr(d.value)
+        self.keep_line_breaks = keep
+        return
+    }
+    self.emit_expr(d.value)
+}
+
+// Re-emit the `NAME :: @comptime <expr>` (untyped) or `NAME: T: @comptime
+// <expr>` (typed) const sugar from a desugared `ConstDecl`. `body` is the raw
+// operand the parser kept in `comptime_body`. The desugar appended a synthetic
+// `@comptime` decorator to `d.decorators` for the compile path — strip that
+// trailing entry, since the inline `@comptime` keyword below carries it.
+emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
+    n :: d.decorators.len()
+    leading :: if n > 0 && d.decorators[n - 1].name == "comptime" {
+        d.decorators[0..<(n - 1)]
+    } else {
+        d.decorators
+    }
+    self.emit_decorators(leading, d.name_span.start.line)
+    self.emit_visibility(d.visibility)
+    self.write(d.name)
+    if d.ty == null {
+        self.write(" :: @comptime ")
+    } else {
+        self.write(": ")
+        self.emit_type_expr(d.ty)
+        self.write(": @comptime ")
+    }
+    self.emit_expr(body)
+}
+
+// True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
+// candidate for the multi-line layout in `emit_const_decl`.
+is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
+
+// `collect_bitor_variants` now lives in `vader/parser/ast` so both the
+// formatter and the typechecker share one implementation.
+
+/// Render a single expression to a standalone string. `source` is the document
+/// the expression's spans index into — leaf emitters slice verbatim literal
+/// spellings (radix, underscores) from it, so reused sub-expressions keep their
+/// exact text ; freshly synthesised nodes are emitted structurally. Comments are
+/// skipped : used to measure a width, where `format_expr_keeping_comments`
+/// renders a rewritten expression for the LSP's actions.
+///
+/// @param source  the document the expression's spans index into.
+/// @param e       the expression to render.
+/// @return        the formatted single-expression text.
+export format_expr :: fn(source: string, e: p.Expr) -> string {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
+    sub.emit_expr(e)
+    return sub.finish()
+}
+
+/// `format_expr`, keeping the comments inside `e`'s span : each lands where the
+/// printer reaches the node it leads, as in a whole-file format, and one no node
+/// leads follows the expression. For the LSP's rewrite actions, which rebuild a
+/// node around sub-expressions that keep their spans.
+///
+/// @param source  the document the expression's spans index into.
+/// @param e       the expression to render.
+/// @return        the formatted text, its comments included.
+export format_expr_keeping_comments :: fn(source: string, e: p.Expr) -> string {
+    sub :: new_printer(source, comments_within(scan_comments(source), e.span))
+    sub.keep_line_breaks = false
+    sub.emit_expr(e)
+    sub.flush_remaining_comments()
+    return attach_trailing_comments(sub.finish())
+}
+
+emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: i64) -> void {
+    variants :: p.collect_bitor_variants(value)
+    if variants.len() < 2 {
+        // Defensive fallback : a degenerate chain (or a single-variant
+        // `BitOr` that shouldn't exist) renders inline.
+        self.emit_expr(value)
+        return
+    }
+    self.emit_binary_operand(variants[0], .BitOr, true)
+    // Leading-pipe indent : `depth*4` for the base indent + `name_width`
+    // to step past the name column + 2 more cols so the `|` lands one
+    // space before each variant's column (matches the first variant).
+    pad :: i64(self.depth) * 4 + name_width + 2
+    for i in 1..<variants.len() {
+        self.newline()
+        for k in 0..<pad {
+            self.buf.append(" ")
+        }
+        self.write("| ")
+        self.emit_binary_operand(variants[i], .BitOr, false)
+    }
+}
+
+emit_assert_decl :: fn(self: Printer, d: p.AssertDecl) -> void {
+    self.emit_decorators(d.decorators, d.span.start.line)
+    self.write("@assert(")
+    self.emit_expr(d.condition)
+    if d.message_span != null {
+        self.write(", ${self.source_slice(d.message_span)}")
+    }
+    self.write(")")
+}
+
+// ============================================================================
+// Statements
+// ============================================================================
+
+emit_stmt :: fn(self: Printer, s: p.Stmt) -> void {
+    match s {
+        is p.LetStmt               -> self.emit_let_stmt(s)
+        is p.AssignStmt            -> self.emit_assign_stmt(s)
+        is p.DestructureAssignStmt -> self.emit_destructure_assign_stmt(s)
+        is p.ExprStmt              -> self.emit_expr(s.expr)
+        is p.ReturnStmt            -> self.emit_return_stmt(s)
+        is p.YieldStmt             -> self.emit_yield_stmt(s)
+        is p.ForStmt               -> self.emit_for_stmt(s)
+        is p.BreakStmt             -> self.emit_break_stmt(s)
+        is p.ContinueStmt          -> self.emit_continue_stmt(s)
+        is p.DeferStmt             -> self.emit_defer_stmt(s)
+    }
+}
+
+emit_let_binding :: fn(self: Printer, b: p.LetBinding) -> void {
+    match b {
+        is p.SimpleBinding   -> self.write(b.name)
+        is p.WildcardBinding -> self.write("_")
+        is p.RestBinding     -> {
+            self.write("...")
+            self.write(b.name)
+        }
+        is p.TupleBinding -> {
+            self.write("[")
+            for i in 0..<b.elements.len() {
+                if i > 0 { self.write(", ") }
+                self.emit_let_binding(b.elements[i])
+            }
+            self.write("]")
+        }
+    }
+}
+
+emit_let_stmt :: fn(self: Printer, s: p.LetStmt) -> void {
+    // Surface forms (mirrors the parser) — the `mutable` flag picks between
+    // the two forms in each column :
+    //   untyped immutable   name :: value
+    //   untyped mutable     name := value
+    //   typed   immutable   name: T: value      (two single colons)
+    //   typed   mutable     name: T = value
+    // Emitting ` = ` for a typed immutable local silently widens it to mutable
+    // (`mutable: false` → `true` on reparse), so the typed branch also keys on
+    // `mutable` — mirrors the top-level typed-const form in `emit_const_decl`.
+    self.emit_let_binding(s.binding)
+    match s.ty {
+        is null -> {
+            if s.mutable {
+                self.write(" := ")
+            } else {
+                self.write(" :: ")
+            }
+        }
+        _ -> {
+            self.write(": ")
+            self.emit_type_expr(s.ty)
+            if s.mutable {
+                self.write(" = ")
+            } else {
+                self.write(": ")
+            }
+        }
+    }
+    self.emit_expr(s.value)
+}
+
+emit_destructure_assign_stmt :: fn(self: Printer, s: p.DestructureAssignStmt) -> void {
+    self.write("[")
+    for i in 0..<s.targets.len() {
+        if i > 0 {
+            self.write(", ")
+        }
+        match t :: s.targets[i] {
+            is p.PlaceTarget    -> self.emit_expr(t.place)
+            is p.WildcardTarget -> self.write("_")
+            is p.RestTarget     -> {
+                self.write("...")
+                self.emit_expr(t.place)
+            }
+        }
+    }
+    self.write("] = ")
+    self.emit_expr(s.value)
+}
+
+emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
+    // Recover compound assignment (`+=`, `-=`, `*=`, `/=`, `%=`) — the parser
+    // desugars `lhs += rhs` to `lhs = lhs + rhs` (`p.compound_assign_op`).
+    // Falling back to `=` for anything else preserves the expansion when the
+    // user typed it out.
+    aug :: compound_assign_symbol(s)
+    match aug {
+        is null -> {
+            self.emit_expr(s.target)
+            self.write(" = ")
+            self.emit_expr(s.value)
+        }
+        is string -> {
+            self.emit_expr(s.target)
+            self.write(" ")
+            self.write(aug)
+            self.write(" ")
+            // `value` is a BinaryExpr with `lhs` on the left ; emit only
+            // the right operand so `i += 1` round-trips as `i += 1`.
+            match b :: s.value {
+                is p.BinaryExpr -> self.emit_expr(b.right)
+                _ -> self.emit_expr(s.value)   // unreachable per `aug`
+            }
+        }
+    }
+}
+
+// The augmented-assignment symbol (`"+="`, `"-="`, …) of a compound
+// assignment, or `null` so the caller renders the plain `=`.
+compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
+    op :: p.compound_assign_op(s) ?? return null
+    return "${p.binary_op_symbol(op)}="
+}
+
+emit_return_stmt :: fn(self: Printer, s: p.ReturnStmt) -> void {
+    self.write("return")
+    self.emit_expr_with_prefix(" ", s.value)
+}
+
+emit_yield_stmt :: fn(self: Printer, s: p.YieldStmt) -> void {
+    self.write("yield ")
+    self.emit_expr(s.value)
+}
+
+emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
+    match l :: s.label {
+        is null   -> {}
+        is string -> {
+            self.write(l)
+            self.write(": ")
+        }
+    }
+    self.write("for")
+    match form :: s.form {
+        is p.InfiniteFor -> {}
+        is p.WhileFor    -> {
+            self.write(" ")
+            self.emit_condition(form.cond)
+        }
+        is p.InFor       -> {
+            // The loop variable lives structurally on the node (no parse-time
+            // desugaring), so each shape re-prints verbatim — no span heuristics.
+            match nv :: form.loop_var {
+                is p.NamedVar       -> {
+                    self.write(" ")
+                    self.write(nv.name)
+                    self.write(" in ")
+                    self.emit_condition(form.iter)
+                }
+                is p.DestructureVar -> {
+                    self.write(" ")
+                    self.emit_let_binding(nv.pattern)
+                    self.write(" in ")
+                    self.emit_condition(form.iter)
+                }
+                is p.DiscardVar     -> {
+                    // `for <range>` — no variable written ; the iterable follows `for`.
+                    self.write(" ")
+                    self.emit_expr(form.iter)
+                }
+            }
+        }
+    }
+    self.write(" ")
+    self.emit_block_expr(s.body)
+}
+
+emit_break_stmt :: fn(self: Printer, s: p.BreakStmt) -> void {
+    self.write("break")
+    match l :: s.label {
+        is null   -> {}
+        is string -> {
+            self.write(" ")
+            self.write(l)
+        }
+    }
+}
+
+emit_continue_stmt :: fn(self: Printer, s: p.ContinueStmt) -> void {
+    self.write("continue")
+    match l :: s.label {
+        is null   -> {}
+        is string -> {
+            self.write(" ")
+            self.write(l)
+        }
+    }
+}
+
+emit_defer_stmt :: fn(self: Printer, s: p.DeferStmt) -> void {
+    self.write("defer ")
+    match b :: s.body {
+        is p.DeferStmtBody  -> self.emit_stmt(b.stmt)
+        is p.DeferBlockBody -> self.emit_block_expr(b.block)
+    }
+}
+
+// `left ?? fallback` — the fallback is a value expression or a divergent
+// statement (`return` / `break` / `continue`).
+emit_null_coalesce :: fn(self: Printer, e: p.NullCoalesceExpr) -> void {
+    right_start :: fallback_start(e.fallback)
+    place :: self.operator_place("??", e.left.span.end, right_start)
+    // A left operand that closes on a delimiter decides its layout knowing the
+    // ` ?? …` that shares its last line, and explodes rather than run past
+    // `MAX_LINE`.
+    shares_line :: !self.flat && place.at == .Inline
+    if shares_line && e.left is p.CallExpr | p.StructLitExpr | p.SeqLitExpr | p.IntrinsicCallExpr {
+        self.trailing = coalesce_tail_width(self.source, e.fallback)
+    }
+    self.emit_expr(e.left)
+    self.write_operator(place, "??", right_start)
+    self.emit_coalesce_fallback(e.fallback)
+    if place.at != .Inline {
+        self.depth -= 1
+    }
+}
+
+// The expression after a fn's `=` : on the same line, or on the next one a level
+// deeper when the source breaks the line right after the `=`.
+emit_expression_body :: fn(self: Printer, body: p.Expr | null) -> void {
+    if body == null || !self.keeps_line_breaks()
+        || !line_breaks_before(self.source, body.span.start.offset) {
+        self.write(" ")
+        self.emit_expr(body)
+        return
+    }
+    self.depth += 1
+    self.break_line(body.span.start.offset, body.span.start.line)
+    self.emit_expr(body)
+    self.depth -= 1
+}
+
+// A measurement (`flat`) or a standalone rendering lays everything on one line.
+keeps_line_breaks :: fn(self: Printer) -> bool = !self.flat && self.keep_line_breaks
+
+// Whether only blanks separate `offset` from the line break before it.
+line_breaks_before :: fn(source: string, offset: i64) -> bool =
+    offset > 0 && !code_before_on_line(source, offset)
+
+fallback_start :: fn(fallback: p.CoalesceFallback) -> Position = match fallback {
+    is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> fallback.span.start
+    is p.Expr                                      -> fallback.span.start
+}
+
+// ---- source line breaks around an operator --------------------------------
+
+/// Where the source breaks the line around a binary operator. `vader fmt` keeps
+/// such a break and never adds one.
+LineBreakAt :: enum {
+    /// No break : ` op ` between the operands.
+    Inline,
+    /// `a` then `op b` on the next line.
+    BeforeOp,
+    /// `a op` then `b` on the next line.
+    AfterOp,
+}
+
+/// The operator between two operands, as the source writes it.
+OperatorPlace :: struct {
+    at: LineBreakAt
+    /// Byte offset of the operator, where a `BeforeOp` break flushes the
+    /// comments up to.
+    offset: i64
+}
+
+// Where the source breaks the line around `symbol`, the operator written between
+// `left_end` and `right_start`. Operands on one line keep it inline with no scan ;
+// otherwise the operator is found past blanks, `//` comments and the `)` closing a
+// parenthesised left operand — anything else there keeps it inline, as does a
+// measurement.
+operator_place :: fn(
+    self: Printer,
+    symbol: string,
+    left_end: Position,
+    right_start: Position,
+) -> OperatorPlace {
+    inline :: OperatorPlace { .at = .Inline, .offset = 0 }
+    if !self.keeps_line_breaks() || left_end.line == right_start.line {
+        return inline
+    }
+    source :: self.source
+    i := left_end.offset
+    for i < right_start.offset {
+        c :: source.byte_at(i)
+        if c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == ')' {
+            i += 1
+        } else if c == '/' && i + 1 < right_start.offset && source.byte_at(i + 1) == '/' {
+            for i < right_start.offset && source.byte_at(i) != '\n' {
+                i += 1
+            }
+        } else {
+            break
+        }
+    }
+    if i + symbol.byte_len() > right_start.offset || !source.matches_at(i, symbol) {
+        return inline
+    }
+    at: LineBreakAt: if line_breaks_before(source, i) { .BeforeOp } else { .AfterOp }
+    return OperatorPlace { .at = at, .offset = i }
+}
+
+// Write `symbol` between two operands where `place` says, with the comments the
+// source holds there. A broken line leaves the right operand one level deeper :
+// the caller restores the depth once it is written.
+write_operator :: fn(
+    self: Printer,
+    place: OperatorPlace,
+    symbol: string,
+    right_start: Position,
+) -> void {
+    match place.at {
+        .Inline -> self.write(" ${symbol} ")
+        .BeforeOp -> {
+            self.depth += 1
+            self.break_line(place.offset, right_start.line)
+            self.write("${symbol} ")
+        }
+        .AfterOp -> {
+            self.depth += 1
+            self.write(" ${symbol}")
+            self.break_line(right_start.offset, right_start.line)
+        }
+    }
+}
+
+// A kept line break : the comments the source holds before `before`, then a fresh
+// line at the current depth.
+break_line :: fn(self: Printer, before: i64, node_line: i32) -> void {
+    self.flush_leading_comments(before, node_line)
+    if self.column != 0 {
+        self.newline()
+    }
+    self.indent()
+}
+
+emit_coalesce_fallback :: fn(self: Printer, fallback: p.CoalesceFallback) -> void {
+    match fallback {
+        is p.ReturnStmt | p.BreakStmt | p.ContinueStmt -> self.emit_stmt(fallback)
+        is p.Expr -> self.emit_expr(fallback)
+    }
+}
+
+// Width of ` ?? ` and the fallback's first line, laid out on its own : all of a
+// short fallback, the head of one that explodes (`return Foo {`).
+coalesce_tail_width :: fn(source: string, fallback: p.CoalesceFallback) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.write(" ?? ")
+    sub.emit_coalesce_fallback(fallback)
+    return first_line_len(sub.finish())
+}
+
+// Whether a delimited construct stays on one line : always in `flat` mode or when
+// empty, never with a source trailing comma, else when its flat form and the
+// `trailing` width after it fit within `MAX_LINE`.
+fits_inline :: fn(self: Printer, x: p.Expr, empty: bool, trailing_comma: bool) -> bool {
+    trailing :: self.trailing
+    self.trailing = 0
+    return self.flat
+        || empty
+        || (!trailing_comma && self.column + flat_width(self.source, x) + trailing <= i64(MAX_LINE))
+}
+
+// ============================================================================
+// Expressions
+// ============================================================================
+
+// `Expr | null` accepted so callers with optional slots don't need a
+// per-call match dispatch. `null` is a no-op : the surrounding context is
+// responsible for emitting (or not emitting) any prefix.
+emit_expr :: fn(self: Printer, e: p.Expr | null) -> void {
+    match e {
+        is null                -> {}
+        is p.IntLitExpr        -> self.emit_int_lit(e)
+        is p.FloatLitExpr      -> self.emit_float_lit(e)
+        is p.BoolLitExpr       -> self.write(if e.value { "true" } else { "false" })
+        is p.NullLitExpr       -> self.write("null")
+        is p.CharLitExpr       -> self.emit_char_lit(e)
+        is p.StringLitExpr     -> self.emit_string_lit(e)
+        is p.IdentExpr         -> self.emit_ident(e)
+        is p.CallExpr          -> self.emit_call(e)
+        is p.FieldExpr         -> self.emit_field(e)
+        is p.IndexExpr         -> self.emit_index(e)
+        is p.UnaryExpr         -> self.emit_unary(e)
+        is p.BinaryExpr        -> self.emit_binary(e)
+        is p.NullCoalesceExpr  -> self.emit_null_coalesce(e)
+        is p.IfExpr            -> self.emit_if(e)
+        is p.MatchExpr         -> self.emit_match(e)
+        is p.BlockExpr         -> self.emit_block_expr(e)
+        is p.LambdaExpr        -> self.emit_lambda(e)
+        is p.StructLitExpr     -> self.emit_struct_lit(e)
+        is p.SeqLitExpr        -> self.emit_seq_lit(e)
+        is p.RangeExpr         -> self.emit_range(e)
+        is p.AwaitExpr         -> self.emit_await(e)
+        is p.CastExpr          -> self.emit_cast(e)
+        is p.GenericInstExpr   -> self.emit_generic_inst(e)
+        is p.IntrinsicCallExpr -> self.emit_intrinsic_call(e)
+        is p.DotVariantExpr    -> {
+            self.write(".")
+            self.write(e.variant)
+        }
+        is p.FnTypeExpr    -> self.emit_fn_type(e)
+        is p.ArrayTypeExpr -> {
+            // Postfix `[]` binds tighter than `|` / `&` — `A | B[]` parses
+            // as `A | (B[])`. If the element is a union/intersection
+            // BinaryExpr, wrap it so the round-trip stays semantically
+            // identical : source `(A | B)[]` must round-trip verbatim.
+            self.emit_array_or_union_element(e.element)
+            self.write("[]")
+        }
+    }
+}
+
+// Wraps the element of an `ArrayTypeExpr` in parens iff
+// dropping them would change what the text parses as.
+//
+// The TYPE postfix `[]` asks the same question as the value postfixes
+// `.field` / `[i]` / `(...)`, so they share the predicate: an operand only
+// reaches here bearing a looser-binding shape because the source parenthesised
+// it, and re-emitting it bare rebinds the postfix into the operand. Enumerating
+// the shapes twice is how `(fn(i64) -> i64)[]`, `(0..<3)[]` and `(1 + 1)[]` were
+// all being corrupted while `(0..<3).count()` was not.
+emit_array_or_union_element :: fn(self: Printer, e: p.Expr) -> void {
+    self.emit_postfix_target(e)
+}
+
+// Type-position emission forwards. Vader's union-alias `TypeExpr` flattens
+// identically to `Expr` for the typechecker, so the same dispatcher serves
+// both positions.
+// `emit_comma_list` item emitter over a non-null type expression.
+emit_type_expr_item :: fn(self: Printer, t: p.TypeExpr) -> void = self.emit_type_expr(t)
+
+emit_type_expr :: fn(self: Printer, t: p.TypeExpr | null) -> void {
+    self.emit_expr(t)
+}
+
+// Emit `prefix` followed by the expression, but only when non-null. Saves
+// every caller from a repeated `match { is null -> {} _ -> { write prefix ;
+// emit } }` boilerplate.
+emit_expr_with_prefix :: fn(self: Printer, prefix: string, e: p.Expr | null) -> void {
+    if e !is null {
+        self.write(prefix)
+        self.emit_expr(e)
+    }
+}
+
+emit_type_expr_with_prefix :: fn(self: Printer, prefix: string, t: p.TypeExpr | null) -> void {
+    if t !is null {
+        self.write(prefix)
+        self.emit_type_expr(t)
+    }
+}
+
+// ---- literals ----
+
+emit_int_lit :: fn(self: Printer, x: p.IntLitExpr) -> void {
+    // The AST stores the decoded `i64` value but discards the source radix
+    // (`0x` / `0b` / `0o` / decimal) plus any underscore separators. To
+    // round-trip the spelling, emit the verbatim source slice. The slice
+    // already includes the optional suffix (`42_i32`, `0xFF_u8`).
+    self.write(self.source_slice(x.span))
+}
+
+emit_float_lit :: fn(self: Printer, x: p.FloatLitExpr) -> void {
+    // Same rationale as `emit_int_lit` — preserve underscores and the
+    // exact mantissa / exponent formatting from the source.
+    self.write(self.source_slice(x.span))
+}
+
+// Char + string literals : verbatim-from-source to preserve escape spelling,
+// raw/triple-quoted form, and `$ident` interp shorthand. The AST only retains
+// the decoded text + interpolation positions ; round-trip equality demands
+// the original surface form survives.
+emit_char_lit :: fn(self: Printer, x: p.CharLitExpr) -> void {
+    self.write(self.source_slice(x.span))
+}
+
+emit_string_lit :: fn(self: Printer, x: p.StringLitExpr) -> void {
+    self.write(self.source_slice(x.span))
+}
+
+// ---- ident / call / access ----
+
+emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
+    if x.implicit_dot { self.write(".") }
+    if x.is_type_param_intro { self.write("$") }
+    self.write(x.name)
+}
+
+emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
+    self.emit_postfix_target(x.callee)
+    if x.type_args.len() > 0 {
+        self.emit_comma_list(x.type_args, "<", ">", false, true, emit_type_expr_item)
+    }
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_call_arg)
+}
+
+emit_call_arg :: fn(self: Printer, a: p.CallArg) -> void {
+    if a.spread { self.write("...") }
+    match n :: a.name {
+        is null   -> {}
+        is string -> {
+            self.write(n)
+            self.write(" = ")
+        }
+    }
+    self.emit_expr(a.value)
+}
+
+emit_field :: fn(self: Printer, x: p.FieldExpr) -> void {
+    self.emit_postfix_target(x.target)
+    self.write(".")
+    self.write(x.field)
+}
+
+emit_index :: fn(self: Printer, x: p.IndexExpr) -> void {
+    self.emit_postfix_target(x.target)
+    self.write("[")
+    self.emit_expr(x.index)
+    self.write("]")
+}
+
+// Emit the target / callee of a postfix operator (`.field`, `[index]`, call
+// `(...)`), parenthesising it when it binds looser than the postfix.
+emit_postfix_target :: fn(self: Printer, target: p.Expr) -> void {
+    if postfix_target_needs_parens(target) {
+        self.write("(")
+        self.emit_expr(target)
+        self.write(")")
+    } else {
+        self.emit_expr(target)
+    }
+}
+
+// Postfix operators (`.field`, `[index]`, call `(...)`) bind tightest in the
+// grammar, so a looser-binding target only ends up here if the source
+// parenthesised it. Re-wrap it or the parens are dropped and the postfix
+// re-targets a sub-expression : `(0..<3).count()` → `0..<3.count()` rebinds
+// `.count()` to `3`, `(x + y).abs()` → `x + y.abs()` rebinds to `y`, and
+// `(-x).abs()` → `-x.abs()` rebinds to `x`. Covers every non-primary,
+// non-postfix operand ; primaries / postfix chains / self-delimiting forms
+// (`T(x)`, `T<U>`) fall through and stay bare.
+postfix_target_needs_parens :: fn(e: p.Expr) -> bool {
+    if e is p.BinaryExpr { return true }
+    if e is p.NullCoalesceExpr { return true }
+    if e is p.RangeExpr  { return true }
+    if e is p.UnaryExpr  { return true }
+    if e is p.IfExpr     { return true }
+    if e is p.MatchExpr  { return true }
+    if e is p.BlockExpr  { return true }
+    if e is p.LambdaExpr { return true }
+    // `await` binds looser than postfix (bp 95 < 100), so `(await x).f` /
+    // `(await x)[i]` only reach a postfix target because the source
+    // parenthesised the await — keep the parens or the postfix rebinds inside
+    // the await (`await x.f` = `await (x.f)`).
+    if e is p.AwaitExpr  { return true }
+    // A fn type's result extends to the right, so a postfix placed after one
+    // lands inside the result : `(fn(i64) -> i64)[]` printed bare is
+    // `fn(i64) -> i64[]`, a fn RETURNING an array.
+    if e is p.FnTypeExpr { return true }
+    return false
+}
+
+// ---- operators ----
+
+emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
+    // `!is` sugar : parser produces `Not(Is(...))` ; restore the spelling
+    // for round-trip stability.
+    if x.op == .Not {
+        match inner :: x.operand {
+            is p.BinaryExpr -> {
+                if inner.op == .Is {
+                    self.emit_binary_operand(inner.left, inner.op, true)
+                    self.write(" !is ")
+                    self.emit_binary_operand(inner.right, inner.op, false)
+                    return
+                }
+            }
+            _               -> {}
+        }
+    }
+    self.write(p.unary_op_symbol(x.op))
+    // A binary operand binds looser than the unary, so it must be parenthesised
+    // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
+    // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
+    // one binary case that needs no parens.) A negation of an operand that starts
+    // with a number keeps them too: `-5` and `-5.abs()` would reparse with the `-`
+    // inside the literal.
+    negated_number :: x.op == .Neg && starts_with_number(x.operand)
+    if x.operand is p.BinaryExpr || x.operand is p.NullCoalesceExpr || negated_number {
+        self.write("(")
+        self.emit_expr(x.operand)
+        self.write(")")
+    } else {
+        self.emit_expr(x.operand)
+    }
+}
+
+// Whether `e` prints starting with a number literal: the literal itself, or a
+// postfix chain on one (`5.abs()`, `5.0.to_string()[0]`).
+starts_with_number :: fn(e: p.Expr) -> bool {
+    if e is p.IntLitExpr || e is p.FloatLitExpr {
+        return true
+    }
+    if e is p.FieldExpr {
+        return starts_with_number(e.target)
+    }
+    if e is p.CallExpr {
+        return starts_with_number(e.callee)
+    }
+    if e is p.IndexExpr {
+        return starts_with_number(e.target)
+    }
+    return false
+}
+
+emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
+    symbol :: p.binary_op_symbol(x.op)
+    place :: self.operator_place(symbol, x.left.span.end, x.right.span.start)
+    self.emit_binary_operand(x.left, x.op, true)
+    self.write_operator(place, symbol, x.right.span.start)
+    self.emit_binary_operand(x.right, x.op, false)
+    if place.at != .Inline {
+        self.depth -= 1
+    }
+}
+
+// Emit an operand wrapped in parentheses iff the child is a `BinaryExpr`
+// whose precedence rank is strictly lower than the parent's (so that the
+// rendered source would otherwise re-parse with a different grouping).
+// `is_left` controls the equal-rank case : associative ops are left-assoc, so
+// only a right-hand same-rank child needs parens ; non-associative ops
+// (comparisons, `is`, `in`) reject chaining entirely, so a same-rank child on
+// either side is parenthesised.
+emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp, is_left: bool) -> void {
+    // A fn type as a union / intersection operand must be parenthesised : its
+    // `-> ReturnType` greedily absorbs a following `| T`, so bare `(fn() -> A) | B`
+    // re-emits as `fn() -> A | B` and reparses as `fn() -> (A | B)`. Always wrap
+    // (redundant only on the chain's rightmost leaf, but structurally correct and
+    // idempotent). A fn type never operands any other binary op, so the guard on
+    // `.BitOr` / `.BitAnd` keeps arithmetic / comparison emission untouched.
+    if operand is p.FnTypeExpr {
+        if parent_op == .BitOr || parent_op == .BitAnd {
+            self.write("(")
+            self.emit_expr(operand)
+            self.write(")")
+            return
+        }
+    }
+    // `??` binds looser than every binary operator, so a null-coalescing
+    // operand of any binary parent must be parenthesised — otherwise
+    // `(a ?? b) + c` re-emits as `a ?? b + c` and reparses as `a ?? (b + c)`.
+    if operand is p.NullCoalesceExpr {
+        self.write("(")
+        self.emit_expr(operand)
+        self.write(")")
+        return
+    }
+    match operand {
+        is p.BinaryExpr -> {
+            parent_rank :: binary_precedence(parent_op)
+            child_rank  :: binary_precedence(operand.op)
+            // Equal-rank child needs parens on the right (left-assoc), or on
+            // either side when the parent is non-associative.
+            equal_needs :: !is_left || is_non_assoc_binop(parent_op)
+            need_parens :: child_rank < parent_rank
+                || (child_rank == parent_rank && equal_needs)
+                || mixed_family_parens(parent_op, operand.op)
+            if need_parens {
+                self.write("(")
+                self.emit_expr(operand)
+                self.write(")")
+            } else {
+                self.emit_expr(operand)
+            }
+        }
+        _ -> self.emit_expr(operand)
+    }
+}
+
+// Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
+// `vader/parser/parser.vader::infix_for` (the only authority on what the
+// parser accepts) : comparisons AND `is` / `in` / `!in` share one rank
+// (parser bp 20, non-associative). Rank 4 is reserved for ranges (parser bp
+// 30) and consulted by `range_operand_needs_parens`. Adding a `BinaryOp`
+// variant trips T3013 here, forcing a rank decision.
+binary_precedence :: fn(op: p.BinaryOp) -> i32 = match op {
+    .Or     -> 1
+    .And    -> 2
+    .Eq     -> 3
+    .Neq    -> 3
+    .Lt     -> 3
+    .Lte    -> 3
+    .Gt     -> 3
+    .Gte    -> 3
+    .Is     -> 3
+    .In     -> 3
+    .NotIn  -> 3
+    .Same   -> 3
+    .NotSame -> 3
+    .BitOr  -> 5
+    .BitXor -> 6
+    .BitAnd -> 7
+    .Shl    -> 8
+    .Shr    -> 8
+    .Add    -> 9
+    .Sub    -> 9
+    .AddWrap -> 9
+    .SubWrap -> 9
+    .Mul    -> 10
+    .Div    -> 10
+    .Mod    -> 10
+    .MulWrap -> 10
+}
+
+// Non-associative binary ops (parser bp 20, `non_assoc = true`) — a chained
+// `a == b == c` / `a is T is U` is a parse error, so a same-rank operand on
+// EITHER side must be parenthesised, not just the right-hand one.
+is_non_assoc_binop :: fn(op: p.BinaryOp) = binary_precedence(op) == 3
+
+is_shift_op   :: fn(op: p.BinaryOp) = op == .Shl || op == .Shr
+is_bitwise_op :: fn(op: p.BinaryOp) = op == .BitAnd || op == .BitOr || op == .BitXor
+
+// Add clarifying parentheses around a `BinaryExpr` operand when it mixes the
+// arithmetic / shift / bitwise families — C's classic `a + b & c` precedence
+// footgun (`+` binds tighter than `&`, which almost nobody remembers). Same
+// family is fine (`a * b + c` reads clearly) except two *different* bitwise ops
+// (`a & b | c`). This only ever ADDS parens (OR-ed into `need_parens`), so it
+// can't drop a precedence-required one.
+mixed_family_parens :: fn(parent: p.BinaryOp, child: p.BinaryOp) -> bool {
+    p_in :: p.is_arith_op(parent) || is_shift_op(parent) || is_bitwise_op(parent)
+    c_in :: p.is_arith_op(child)  || is_shift_op(child)  || is_bitwise_op(child)
+    if !p_in || !c_in { return false }
+    if p.is_arith_op(parent) && p.is_arith_op(child) { return false }
+    if is_shift_op(parent)   && is_shift_op(child)   { return false }
+    if is_bitwise_op(parent) && is_bitwise_op(child) { return parent != child }
+    return true
+}
+
+// ---- control-flow expressions ----
+
+// Emit a condition / scrutinee / for-iterable. The parser parses no struct
+// literal at the condition's own bracket depth (`no_struct_lit_at`), so a
+// `Point { … }` whose `{` would otherwise be read as the block opener must be
+// wrapped in parens, inside which literals parse again, and which reparses to
+// the same AST (`if (Point { .x = 1 }).ok { … }`).
+emit_condition :: fn(self: Printer, cond: p.Expr) -> void {
+    if expr_head_is_struct_lit(cond) {
+        self.write("(")
+        self.emit_expr(cond)
+        self.write(")")
+    } else {
+        self.emit_expr(cond)
+    }
+}
+
+// True when `e`'s leftmost atom is a struct literal, possibly behind a field /
+// index / call / binary / range / try chain (`Point { … }.ok`, `Point { … } + x`).
+expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
+    if e is p.StructLitExpr     { return true }
+    if e is p.FieldExpr   { return expr_head_is_struct_lit(e.target) }
+    if e is p.IndexExpr  { return expr_head_is_struct_lit(e.target) }
+    if e is p.CallExpr    { return expr_head_is_struct_lit(e.callee) }
+    if e is p.BinaryExpr   { return expr_head_is_struct_lit(e.left) }
+    if e is p.RangeExpr   { return expr_head_is_struct_lit(e.lower) }
+    return false
+}
+
+emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
+    self.write("if ")
+    self.emit_condition(x.cond)
+    // Lookup-table chain : pad the condition so the `{` column lines up.
+    if self.align_if_width > 0 {
+        self.write_padding(format_expr(self.source, x.cond).text_width(), self.align_if_width)
+    }
+    self.write(" ")
+    self.emit_block_expr(x.then_block)
+    match else_branch :: x.else_branch {
+        is null          -> {}
+        is p.IfElseIf    -> {
+            // Preserve source : if the `else if` branch started on a new
+            // line, keep the break ; else inline. The discriminant is the
+            // then_block's end line vs the else-branch's first line.
+            if self.breaks_before_else(x.then_block, else_branch.branch.span) {
+                self.newline()
+                self.indent()
+            } else {
+                self.write(" ")
+            }
+            self.write("else ")
+            self.emit_if(else_branch.branch)
+        }
+        is p.IfElseBlock -> {
+            if self.breaks_before_else(x.then_block, else_branch.block.span) {
+                self.newline()
+                self.indent()
+            } else {
+                self.write(" ")
+            }
+            self.write("else ")
+            self.emit_block_expr(else_branch.block)
+        }
+    }
+}
+
+// Whether an `else` keeps the line the source starts it on, below the `}` of
+// `then_block` : a standalone rendering joins them.
+breaks_before_else :: fn(self: Printer, then_block: p.BlockExpr, branch: Span) -> bool =
+    self.keeps_line_breaks() && branch.start.line > then_block.span.end.line
+
+emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
+    if x.partial { self.write("@partial ") }
+    if x.unreachable { self.write("@unreachable ") }
+    self.write("match ")
+    binding :: x.binding
+    if binding != null {
+        self.write(binding.name)
+        self.write(" :: ")
+    }
+    self.emit_condition(x.scrutinee)
+    self.write(" {")
+    self.depth = self.depth + 1
+    // Align every arm's `->` : pad each arm head (`pattern [if guard]`) to the
+    // widest head across the arms, so the arrows line up. `0` disables — fewer than 2 arms, or a head too wide to
+    // align without pushing the bodies off the line.
+    align :: match_arm_align(self.source, x.arms)
+    for arm in x.arms {
+        self.newline()
+        self.flush_leading_comments(arm.span.start.offset, arm.span.start.line)
+        self.indent()
+        self.emit_pattern(arm.pattern)
+        self.emit_expr_with_prefix(" if ", arm.guard)
+        if align > 0 {
+            self.write_padding(match_arm_head_width(self.source, arm), align)
+        }
+        self.write(" -> ")
+        self.emit_expr(arm.body)
+    }
+    self.close_brace_after_comments(x.span)
+}
+
+// Rendered width of a match arm's head — `pattern [if guard]`, the part before
+// ` -> `. Measured via a sub-printer, like `if_cond_width`.
+match_arm_head_width :: fn(source: string, arm: p.MatchArm) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.keep_line_breaks = false
+    sub.emit_pattern(arm.pattern)
+    sub.emit_expr_with_prefix(" if ", arm.guard)
+    return sub.finish().text_width()
+}
+
+// The `->` alignment column for a match : the widest arm head. `0` (no
+// alignment) when there are fewer than 2 arms, or when the widest head exceeds
+// `MATCH_ALIGN_MAX` — past that, padding the short arms wastes space and risks
+// pushing bodies past `MAX_LINE`, so each `->` just follows its own head.
+match_arm_align :: fn(source: string, arms: p.MatchArm[]) -> i64 {
+    if arms.len() < 2 { return 0 }
+    w: i64 = 0
+    for arm in arms {
+        head :: match_arm_head_width(source, arm)
+        if head > w { w = head }
+    }
+    if w > MATCH_ALIGN_MAX { return 0 }
+    return w
+}
+
+// Widest arm head that still gets `->` alignment. Beyond it a match's arrows are
+// left unaligned (see `match_arm_align`). Chosen so an aligned `->` + a short
+// body still fits comfortably under `MAX_LINE`.
+MATCH_ALIGN_MAX: i64: 44
+
+// A single-line `if <cond> { <one stmt/expr> }` with no `else` — a lookup-table
+// entry. A RUN of ≥2 consecutive such statements is kept inline (the aligned
+// lookup-table idiom) ; a lone one is expanded like any other control-flow body.
+inline_if_stmt :: fn(s: p.Stmt) -> bool {
+    if s is p.ExprStmt {
+        iff :: s.expr
+        if iff is p.IfExpr {
+            if iff.else_branch != null { return false }
+            tb :: iff.then_block
+            if tb.span.start.line != tb.span.end.line { return false }
+            one_stmt :: tb.stmts.len() == 1 && tb.trailing == null
+            one_expr :: tb.stmts.len() == 0 && tb.trailing != null
+            return one_stmt || one_expr
+        }
+    }
+    return false
+}
+
+// A statement whose body is a control-flow block that should always expand
+// multi-line : a statement-position `if` (`for` / `while` are `ForStmt`).
+control_flow_stmt :: fn(s: p.Stmt) -> bool {
+    if s is p.ForStmt { return true }
+    if s is p.ExprStmt { return s.expr is p.IfExpr }
+    return false
+}
+
+// Layout for statement `i` of a block : keep a lookup-table `if`-chain inline,
+// force a control-flow body multi-line, otherwise preserve the source form.
+block_mode_for :: fn(stmts: p.Stmt[], i: i64) -> BlockLayout {
+    if inline_if_stmt(stmts[i]) {
+        prev :: i > 0 && inline_if_stmt(stmts[i - 1])
+        next :: i + 1 < stmts.len() && inline_if_stmt(stmts[i + 1])
+        if prev || next { return .Inline }
+    }
+    if control_flow_stmt(stmts[i]) { return .Expand }
+    return .Preserve
+}
+
+// Rendered width of a lookup-table `if`'s condition (for `{`-column alignment),
+// or 0 when `s` isn't an inline `if`.
+if_cond_width :: fn(s: p.Stmt, source: string) -> i64 {
+    if s is p.ExprStmt {
+        if s.expr is p.IfExpr {
+            return format_expr(source, s.expr.cond).text_width()
+        }
+    }
+    return 0
+}
+
+// Per-statement `{`-alignment target : for each run of ≥2 consecutive inline
+// `if`s (a lookup table), the max condition width across the run ; 0 otherwise.
+// Mirrors the `::` decl-group width computation in `alignment_widths`.
+compute_if_align :: fn(stmts: p.Stmt[], source: string) -> i64[] {
+    out: i64[]: []
+    i: i64 = 0
+    for i < stmts.len() {
+        if !inline_if_stmt(stmts[i]) {
+            out.push(0)
+            i = i + 1
+            continue
+        }
+        end := i + 1
+        w_max := if_cond_width(stmts[i], source)
+        for end < stmts.len() {
+            if !inline_if_stmt(stmts[end]) { break }
+            w :: if_cond_width(stmts[end], source)
+            if w > w_max { w_max = w }
+            end = end + 1
+        }
+        // Solo inline `if` (run of 1) expands, so it needs no alignment.
+        group :: if end - i >= 2 { w_max } else { 0 }
+        for k in i..<end { out.push(group) }
+        i = end
+    }
+    return out
+}
+
+// Does this block's INLINE form (`{ <one stmt or trailing expr> }`) fit on the
+// current line ? `4` covers the braces and their two spaces. True for any block
+// shape that has no inline form to begin with (empty, or more than one entry) —
+// those are decided elsewhere and must not be forced to expand here.
+inline_block_fits :: fn(self: Printer, b: p.BlockExpr) -> bool {
+    tr :: b.trailing
+    if b.stmts.len() == 0 {
+        if tr == null {
+            return true
+        }
+        return self.column + 4 + flat_width(self.source, tr) <= i64(MAX_LINE)
+    }
+    if b.stmts.len() == 1 && tr == null {
+        return self.column + 4 + flat_stmt_width(self.source, b.stmts[0]) <= i64(MAX_LINE)
+    }
+    return true
+}
+
+emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
+    // Inline this block ? `.Expand` never, `.Inline` always, else preserve the
+    // source's single-line form. Set by the enclosing stmt loop.
+    //
+    // `.Preserve` needs the FIT test too, not just the source's shape. A block
+    // written on one line whose body is too wide for `MAX_LINE` used to keep its
+    // inline braces while the body exploded inside them, which is not idempotent:
+    //
+    //     f :: fn() -> T | null = if c { null } else { g(
+    //         a, b, c,
+    //     ) }
+    //
+    // A second `vader fmt` reads that block as multi-line and expands the braces,
+    // so `fmt(fmt(x)) != fmt(x)`.
+    //
+    // `.Inline` keeps its UNCONDITIONAL answer, and that is measured rather than
+    // assumed: a lookup-table `if`-chain stays inline by contract, and
+    // giving it the fit test too takes tree-wide idempotency from 272/285 to
+    // 267/285 — a member that expands stops the run from reading as a chain on the
+    // next pass, so the alignment moves instead. The chain members that do not fit
+    // are a SEPARATE non-idempotency, not this one.
+    inline_ok :: match self.block_mode {
+        .Expand   -> false
+        .Inline   -> true
+        .Preserve -> b.span.start.line == b.span.end.line && self.inline_block_fits(b)
+    }
+    // Empty block.
+    if b.stmts.len() == 0 {
+        tr :: b.trailing
+        if tr == null {
+            // If the source carried an inner comment (e.g. `{ // skip
+            // }`), render it as a multi-line block so the comment
+            // survives. `flush_leading_comments` ends each
+            // comment with `\n`, so the closing `}` only needs indent
+            // (no leading newline).
+            if self.comments.has_before(b.span.end.offset) && b.span.start.line != b.span.end.line {
+                self.write("{")
+                self.depth = self.depth + 1
+                self.newline()
+                self.flush_leading_comments(b.span.end.offset, b.span.end.line)
+                self.depth = self.depth - 1
+                self.indent()
+                self.write("}")
+                return
+            }
+            self.write("{}")
+            return
+        }
+        // Single trailing expression.
+        if inline_ok {
+            self.write("{ ")
+            self.emit_expr(tr)
+            self.write(" }")
+            return
+        }
+        self.write("{")
+        self.depth = self.depth + 1
+        // Flush the trailing's leading comments — without this a comment above a
+        // block-trailing expression (e.g. a doc line above a `match` that is a
+        // function's whole body) detaches and is relocated to end-of-block or
+        // swallowed by a nested block. Mirrors the stmt-loop / main-trailing flush.
+        self.newline()
+        self.flush_leading_comments(tr.span.start.offset, tr.span.start.line)
+        self.indent()
+        self.emit_expr(tr)
+        self.depth = self.depth - 1
+        self.nl_indent()
+        self.write("}")
+        return
+    }
+    // Single-stmt no-trailing block — inline per `block_mode` (a lookup-table
+    // `if`-chain member, or a preserved single-line source block).
+    if b.stmts.len() == 1 && inline_ok {
+        match b.trailing {
+            is null -> {
+                self.write("{ ")
+                self.emit_stmt(b.stmts[0])
+                self.write(" }")
+                return
+            }
+            _ -> {}
+        }
+    }
+    self.write("{")
+    self.depth = self.depth + 1
+    if_align :: compute_if_align(b.stmts, self.source)
+    for i in 0..<b.stmts.len() {
+        s :: b.stmts[i]
+        sp :: s.span
+        self.newline()
+        self.flush_leading_comments(sp.start.offset, sp.start.line)
+        self.indent()
+        saved_mode :: self.block_mode
+        saved_align :: self.align_if_width
+        self.block_mode = block_mode_for(b.stmts, i)
+        self.align_if_width = if_align[i]
+        self.emit_stmt(s)
+        self.block_mode = saved_mode
+        self.align_if_width = saved_align
+    }
+    trailing :: b.trailing
+    if trailing != null {
+        sp :: trailing.span
+        self.newline()
+        self.flush_leading_comments(sp.start.offset, sp.start.line)
+        self.indent()
+        self.emit_expr(trailing)
+    }
+    self.close_brace_after_comments(b.span)
+}
+
+emit_lambda :: fn(self: Printer, x: p.LambdaExpr) -> void {
+    // Arrow form (`(p) -> expr` or `x -> expr`) and `fn(p) { expr }`
+    // both parse into a `LambdaExpr` whose body is a `BlockExpr` with
+    // no stmts and a single trailing expression — the AST loses the
+    // surface form. The arrow form only accepts an inferred return
+    // type, so emit it when there's no explicit `return_type` and the
+    // body collapses to one expression. Higher-order callsites
+    // (`filter(xs, (x) -> x > 0)`) thus round-trip cleanly instead of
+    // bloating to a block. Block-bodied lambdas and any lambda with an
+    // explicit return type keep the `fn(p) -> T { ... }` form.
+    if x.return_type is null && x.body.stmts.len() == 0 && !(x.body.trailing is null) {
+        self.emit_fn_params(x.params, x.trailing_comma)
+        self.write(" -> ")
+        self.emit_expr(x.body.trailing)
+        return
+    }
+    self.write("fn")
+    self.emit_fn_params(x.params, x.trailing_comma)
+    self.emit_type_expr_with_prefix(" -> ", x.return_type)
+    self.write(" ")
+    self.emit_block_expr(x.body)
+}
+
+// ---- aggregates ----
+
+// Emit `items` as a comma-separated list between `open` and `close`, driving
+// the Dart-style layout : when `inline`, render on one line (an inner space on
+// each side when `inner_space`, e.g. `{ a, b }`) ; otherwise explode one item
+// per line, each ending in a trailing comma. An empty list collapses to
+// `open`+`close`. `emit_item` renders a single element — pass the element's
+// dedicated emitter (`emit_call_arg`, `emit_fn_param`, …). The caller writes
+// any prefix (callee, type name) and computes `inline` before calling.
+emit_comma_list :: fn<T>(
+    self: Printer,
+    items: T[],
+    open: string,
+    close: string,
+    inner_space: bool,
+    inline: bool,
+    emit_item: fn(Printer, T) -> void
+) -> void {
+    self.write(open)
+    if items.len() == 0 {
+        self.write(close)
+        return
+    }
+    if inline {
+        if inner_space { self.write(" ") }
+        for i in 0..<items.len() {
+            if i > 0 { self.write(", ") }
+            emit_item(self, items[i])
+        }
+        if inner_space { self.write(" ") }
+        self.write(close)
+        return
+    }
+    self.depth = self.depth + 1
+    for it in items {
+        self.nl_indent()
+        emit_item(self, it)
+        self.write(",")
+    }
+    self.depth = self.depth - 1
+    self.nl_indent()
+    self.write(close)
+}
+
+// Adapter so `emit_expr` (which accepts `Expr | null`) can be passed as an
+// `emit_comma_list` item emitter over a non-null `Expr` element.
+emit_expr_item :: fn(self: Printer, e: p.Expr) -> void = self.emit_expr(e)
+
+emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
+    // Dart-style layout : a source trailing comma FORCES the exploded form ;
+    // otherwise stay single-line iff it fits within `MAX_LINE` at the current
+    // column. `flat` mode (measuring) always renders single-line. An empty
+    // literal collapses to `Type {}`.
+    inline :: self.fits_inline(x, x.items.len() == 0, x.trailing_comma)
+    self.emit_type_expr(x.type_name)
+    self.emit_comma_list(x.items, " {", "}", true, inline, emit_struct_lit_item)
+}
+
+emit_struct_lit_item :: fn(self: Printer, it: p.StructLitField | p.StructLitSpread) -> void {
+    match it {
+        is p.StructLitField -> {
+            self.write(".")
+            self.write(it.name)
+            self.write(" = ")
+            self.emit_expr(it.value)
+        }
+        is p.StructLitSpread -> {
+            self.write("...")
+            self.emit_expr(it.expr)
+        }
+    }
+}
+
+// Single-line (flat) rendered width of an expression — for the fit-in-`MAX_LINE`
+// decision on delimited constructs. Renders in `flat` mode so nested constructs
+// stay single-line too.
+flat_width :: fn(source: string, e: p.Expr) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_expr(e)
+    return sub.finish().text_width()
+}
+
+// Same, for a statement — the inline-block fit decision in `emit_block_expr`.
+flat_stmt_width :: fn(source: string, st: p.Stmt) -> i64 {
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
+    sub.flat = true
+    sub.emit_stmt(st)
+    return sub.finish().text_width()
+}
+
+emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
+    inline :: self.fits_inline(x, x.elements.len() == 0, x.trailing_comma)
+    self.emit_comma_list(x.elements, "[", "]", false, inline, emit_expr_item)
+}
+
+emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
+    self.emit_range_operand(x.lower)
+    if x.inclusive { self.write("..=") } else { self.write("..<") }
+    self.emit_range_operand(x.upper)
+}
+
+// A range binds at parser bp 30 (rank 4 here) — tighter than comparisons /
+// `is` / `in` / `and` / `or`, looser than bitwise + arithmetic. An operand
+// that is a looser binary, or another range (range is non-associative), must
+// be parenthesised : otherwise `(a < b)..<c` re-emits as `a < b..<c` and
+// reparses as `a < (b..<c)`.
+emit_range_operand :: fn(self: Printer, operand: p.Expr) -> void {
+    if range_operand_needs_parens(operand) {
+        self.write("(")
+        self.emit_expr(operand)
+        self.write(")")
+    } else {
+        self.emit_expr(operand)
+    }
+}
+
+range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
+    if operand is p.BinaryExpr { return binary_precedence(operand.op) < 4 }
+    if operand is p.RangeExpr { return true }
+    if operand is p.NullCoalesceExpr { return true }   // `??` binds looser than `..`
+    return false
+}
+
+// ---- error / cast / generic / variant ----
+
+emit_await :: fn(self: Printer, x: p.AwaitExpr) -> void {
+    self.write("await ")
+    // A binary / range / `??` inner binds looser than `await` (bp 95), so it
+    // must be parenthesised — `await (a + b)` otherwise reparses as `(await a) + b`.
+    if x.inner is p.BinaryExpr || x.inner is p.RangeExpr || x.inner is p.NullCoalesceExpr {
+        self.write("(")
+        self.emit_expr(x.inner)
+        self.write(")")
+    } else {
+        self.emit_expr(x.inner)
+    }
+}
+
+emit_cast :: fn(self: Printer, x: p.CastExpr) -> void {
+    self.emit_type_expr(x.target)
+    self.write("(")
+    self.emit_expr(x.value)
+    self.write(")")
+}
+
+emit_generic_inst :: fn(self: Printer, x: p.GenericInstExpr) -> void {
+    // Verbatim from source to preserve `[T, U]` vs `(T, U)` choice — both
+    // shapes collapse to the same AST node and the surrounding context drives
+    // the surface form.
+    self.write(self.source_slice(x.span))
+}
+
+emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
+    inline :: self.fits_inline(x, x.args.len() == 0, x.trailing_comma)
+    self.write("@")
+    self.write(x.name)
+    self.emit_comma_list(x.args, "(", ")", false, inline, emit_expr_item)
+}
+
+emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
+    self.write("fn(")
+    for i in 0..<x.params.len() {
+        if i > 0 { self.write(", ") }
+        self.emit_type_expr(x.params[i])
+    }
+    self.write(")")
+    self.emit_type_expr_with_prefix(" -> ", x.return_type)
+}
+
+// ============================================================================
+// Patterns
+// ============================================================================
+
+emit_pattern :: fn(self: Printer, pat: p.Pattern) -> void {
+    match pat {
+        is p.IsPattern          -> self.emit_is_pattern(pat)
+        is p.StructPattern      -> self.emit_struct_pattern(pat)
+        is p.WildcardPattern    -> self.write("_")
+        is p.EnumVariantPattern -> {
+            self.write(".")
+            self.write(pat.variant)
+        }
+        is p.LiteralPattern -> self.emit_expr(pat.value)
+        is p.RangePattern   -> self.emit_range_pattern(pat)
+        is p.OrPattern      -> self.emit_or_pattern(pat)
+    }
+}
+
+emit_range_pattern :: fn(self: Printer, x: p.RangePattern) -> void {
+    self.emit_expr(x.lower)
+    self.write(if x.inclusive { "..=" } else { "..<" })
+    self.emit_expr(x.upper)
+}
+
+emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
+    self.write("is ")
+    self.emit_type_expr(x.ty)
+    match inner :: x.inner {
+        is null                 -> {}
+        is p.IsPattern          -> {
+            self.write(" ")
+            self.emit_is_pattern(inner)
+        }
+        is p.StructPattern      -> {
+            self.write(" ")
+            self.emit_struct_pattern(inner)
+        }
+        is p.WildcardPattern    -> self.write(" _")
+        is p.EnumVariantPattern -> {
+            self.write(" .")
+            self.write(inner.variant)
+        }
+        is p.LiteralPattern     -> {
+            self.write(" ")
+            self.emit_expr(inner.value)
+        }
+        is p.RangePattern       -> {
+            self.write(" ")
+            self.emit_range_pattern(inner)
+        }
+        is p.OrPattern          -> {
+            self.write(" ")
+            self.emit_or_pattern(inner)
+        }
+    }
+}
+
+emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
+    self.write("{ ")
+    for i in 0..<x.fields.len() {
+        if i > 0 { self.write(", ") }
+        f :: x.fields[i]
+        self.write(f.name)
+        match value :: f.value {
+            is p.PatternBinding -> {
+                if value.name != f.name {
+                    self.write(": ")
+                    self.write(value.name)
+                }
+            }
+            is p.PatternLiteral -> {
+                // Source spells a literal field match `field: <expr>` (see
+                // `parse_struct_pattern`) — emit `:`, not `=`, or the result
+                // no longer reparses (audit F5).
+                self.write(": ")
+                self.emit_expr(value.value)
+            }
+        }
+    }
+    self.write(" }")
+}
+
+emit_or_pattern :: fn(self: Printer, x: p.OrPattern) -> void {
+    for i in 0..<x.patterns.len() {
+        if i > 0 { self.write(" | ") }
+        self.emit_pattern(x.patterns[i])
+    }
+}

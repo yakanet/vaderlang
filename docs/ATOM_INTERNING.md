@@ -27,7 +27,7 @@ for the per-phase lessons.
 ## Why
 
 Profile evidence from
-`VADER_GC_PROFILE=1 ./build/vader dump --stage=typed-ast vader/cli/main.vader`
+`VADER_GC_PROFILE=1 ./build/vader dump --stage=typed-ast vader/tools/cli/main.vader`
 (2026-05-25, after the morning's erasure-dedupe work) :
 
 - **81 MB live working-set** at peak.
@@ -529,7 +529,7 @@ GC stress tests (`VADER_GC_STRESS=1`) catch missing marks.
 - Multi-module aggregation : entry module collects atoms from all
   imports.
 - Profile : `VADER_GC_PROFILE=1` baseline before/after on
-  `vader/cli/main.vader`. Target : peak working-set down ~25 % from
+  `vader/tools/cli/main.vader`. Target : peak working-set down ~25 % from
   81 MB.
 - Bench : `bun run bench` within ±5 % on string-light, expected
   improvement on string-heavy workloads.
@@ -555,8 +555,8 @@ GC stress tests (`VADER_GC_STRESS=1`) catch missing marks.
 - `bun run typecheck` green (TS bootstrap compiler)
 - `bun test` green (all snapshot + parity + LSP suites)
 - `tests/atom/*.c` standalone harness green (Phase 0+)
-- `VADER_GC_STRESS=1 ./build/vader build vader/cli/main.vader && ./build/vader-self <demo>` runs (Phase 4+)
-- `VADER_GC_PROFILE=1 ./build/vader dump --stage=typed-ast vader/cli/main.vader` shows expected drop (Phase 5)
+- `VADER_GC_STRESS=1 ./build/vader build vader/tools/cli/main.vader && ./build/vader-self <demo>` runs (Phase 4+)
+- `VADER_GC_PROFILE=1 ./build/vader dump --stage=typed-ast vader/tools/cli/main.vader` shows expected drop (Phase 5)
 - `bun run bench` (mandelbrot + primes) within 10% of baseline ; Phase 5 expects net positive on identifier-heavy workloads
 
 ## Risks

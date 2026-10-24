@@ -1,0 +1,196 @@
+// vader/tools/cli/main — entry point of the Vader-in-Vader CLI.
+//
+// Dispatches `vader <action>` to one `cmd_*.vader` per action, and holds the
+// argument helpers those share. The command surface itself is `spec.vader`; the
+// help text renders from it (`cmd_help.vader`).
+
+module "vader/tools/cli"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "cli"
+import "vader/lower"
+import "vader/bytecode"
+TTY :: import "std/tty"
+import "toolchain/ast"
+import "vader/pipeline"
+
+// Every invocation is `vader <action> <options>`: the action comes first and
+// owns the whole tail. There is no global option zone ahead of it — the old
+// `parse_global_opts` pass scanned all of argv and pulled its three flags out
+// from anywhere, which is how `vader run prog --allow-env` used to consume the
+// flag instead of forwarding it to the program.
+main :: fn(argv: string[]) -> i32 {
+    // argv[0] is the binary path ; meaningful args start at index 1.
+    args :: argv[1..<argv.len()]
+    if args.len() == 0 {
+        return cmd_repl()
+    }
+
+    action :: args[0]
+    action_args :: args[1..<args.len()]
+
+    // `--help` / `-h` / `--version` / `-v` are spellings of the `help` and
+    // `version` actions, kept because they are what people type.
+    if action == "help" || action == "--help" || action == "-h" {
+        return cmd_help(action_args)
+    }
+    if action == "version" || action == "--version" || action == "-v" {
+        println(CLI_VERSION)
+        return 0
+    }
+    if action == "new"    { return cmd_new(action_args) }
+    if action == "run"    { return cmd_run(action_args) }
+    if action == "build"  { return cmd_build(action_args) }
+    if action == "fmt"    { return cmd_fmt(action_args) }
+    if action == "test"   { return cmd_test(action_args) }
+    if action == "dump"   { return cmd_dump(action_args) }
+    if action == "lsp"    { return cmd_lsp(action_args) }
+    if action == "dap"    { return cmd_dap(action_args) }
+    if action == "check"  { return cmd_check(action_args) }
+    if action == "lint"   { return cmd_lint(action_args) }
+    if action == "graph"  { return cmd_graph(action_args) }
+    if action == "doctor" { return cmd_doctor(action_args) }
+    if action == "info"   { return cmd_info(action_args) }
+    if action == "eject"  { return cmd_eject(action_args) }
+
+    eprintln("vader: unknown action \"${action}\"")
+    eprintln("run \"vader help\" for usage")
+    return 1
+}
+
+
+// Parse one action's zone against its own flags plus the common ones, reporting
+// every error under the action's name.
+parse_action :: fn(name: string, args: string[]) -> ParsedArgs | i32 {
+    cmd :: find_command(name)
+    if cmd == null {
+        eprintln("vader: unknown action \"${name}\"")
+        return 1
+    }
+    parsed :: parse(args, command_specs(cmd))
+    // `--help` outranks a parse error: someone who mistyped a flag AND asked for
+    // help wants the option list, not the complaint about the typo.
+    if parsed.bool_flag("help") {
+        print(render_command_help("vader", cmd, COMMON_FLAGS))
+        return 0
+    }
+    if parsed.errors.len() > 0 {
+        for e in parsed.errors {
+            eprintln("vader ${name}: ${e}")
+        }
+        return 1
+    }
+    return parsed
+}
+
+// The action's own argument — `positionals[0]`, or `""` when it has none.
+// Anything past it belongs to the action's `TailKind`, never to the CLI.
+action_file :: fn(parsed: ParsedArgs) -> Path =
+    if parsed.positionals.len() == 0 { empty_path() } else { Path(parsed.positionals[0]) }
+
+// The action's own argument, or the folder the command runs in when it has
+// none: `vader build` alone builds the project there.
+action_input :: fn(parsed: ParsedArgs) -> Path {
+    given :: action_file(parsed)
+    if given == "" {
+        return Path(current_working_directory())
+    }
+    return given
+}
+
+// Reject a positional the action does not take — the SECOND one for an action
+// that takes an argument, the FIRST for one that takes none.
+//
+// Both halves come from the action's own usage line via `positional_noun`: an
+// empty noun means "takes none", and a present one is what the message calls it.
+// That is why there is one guard rather than one per noun — `build` says "file",
+// `new` says "name", and `doctor` names no argument because it accepts none.
+//
+// The message names the likely cause: a flag written after the argument, which
+// the boundary leaves in the tail rather than reading. That only applies to an
+// action that HAS an argument; for one that does not, the token is simply
+// unexpected wherever it came from.
+reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
+    cmd :: find_command(name)
+    // An unknown action never reaches here (`parse_action` rejects it first);
+    // the fallback keeps this total rather than assuming so.
+    noun :: if cmd == null { "" } else { positional_noun(cmd) }
+    // Annotated, not cast: the literals are free and the slot is compared against
+    // `positionals.len()`, an `i64`.
+    allowed: i64: if noun == "" { 0 } else { 1 }
+    if parsed.positionals.len() <= allowed {
+        return false
+    }
+    extra :: parsed.positionals[allowed]
+    if extra.starts_with("-") && noun != "" {
+        eprintln("vader ${name}: options must come before the ${noun}, got \"${extra}\" after it")
+        return true
+    }
+    eprintln("vader ${name}: unexpected argument \"${extra}\"")
+    return true
+}
+
+// ----------------------------------------------------------- REPL / run / fmt / test
+
+
+
+// `forwarded_argv` is gone: the parser already hands back exactly the argv the
+// program wants — `positionals[0]` is the path (which the program skips as its
+// own argv[0]) and the rest is its tail, untouched.
+
+// Compile a `.vader` source through load → typecheck → comptime → lower →
+// CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
+// the result on the VM. The emitted `BytecodeModule` round-trips through
+// `dump_bytecode` / `parse_virt_bc` — the in-memory equivalent of
+// `vader dump --stage=bytecode … | vader run` — preserving the exact `.virt`
+// behaviour the VM corpus is validated against.
+
+// Resolve the VM entry index for `vader run <file>`. The default entry is the
+// first `is_main` fn (`reduce_main_index`), which is blind to which file was
+// named — so with two sibling programs `a.vader` / `b.vader` in one folder,
+// `vader run b.vader` would silently run `a.vader`'s `main`. Prefer the `main`
+// DECLARED in the named file instead. Match by file basename : sibling files of
+// a folder-module can't share a basename, so it's unambiguous and sidesteps
+// path-normalisation (absolute vs relative, `./`, symlinks). Falls back to
+// `default_index` when the named file declares no `main` of its own (e.g. a
+// library file naming an entry that lives in a sibling).
+entry_index_for_file :: fn(
+    module: BytecodeModule, lowered: LoweredProject, file: Path, default_index: i32,
+) -> i32 {
+    mangled :: named_file_main_mangled(lowered, file)
+    if mangled == "" {
+        return default_index
+    }
+    for i in 0..<module.functions.len() {
+        if module.functions[i].name == mangled {
+            return i32(i)
+        }
+    }
+    return default_index
+}
+
+// Mangled name of the `main` declared in the named entry file, or "" when the
+// entry module declares no `main` whose source-file basename matches `file`.
+// Reads the lowered fn's origin AST `FnDecl` for its span's file — the same
+// `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
+named_file_main_mangled :: fn(lowered: LoweredProject, file: Path) -> string {
+    md :: lowered.modules[lowered.entry] ?? return ""
+    named_base :: canonicalise(file).filename()
+    for d in md.decls {
+        if d is LoweredFnDecl {
+            if !d.origin.is_main {
+                continue
+            }
+            ast :: d.origin.decl
+            if ast is FnDecl {
+                decl_base :: ast.span.start.file.to_posix().to_path().filename()
+                if decl_base == named_base {
+                    return d.mangled
+                }
+            }
+        }
+    }
+    return ""
+}

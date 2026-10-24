@@ -41,7 +41,7 @@ Looked at again on 2026-10-18:
     union variants in the lowering.
 - The comptime's instance key was a second copy of `canonical_key`, distincts keyed
   as their backing.
-- Sampling a self-build (`vader build vader/cli/main.vader`, three runs, 1 ms
+- Sampling a self-build (`vader build vader/tools/cli/main.vader`, three runs, 1 ms
   interval): rendering, keying and comparing types take 40 to 60 samples of about
   2 300 on the CPU, 2 to 2.5 %. The garbage collector takes about 40 %.
 

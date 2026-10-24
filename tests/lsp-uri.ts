@@ -1,6 +1,6 @@
 // tests/lsp-uri — build a `file://` URI the way the SERVER does.
 //
-// Mirrors `vader/lsp/protocol/uri.vader::path_to_uri`: forward-slash the path, and
+// Mirrors `vader/tools/lsp/protocol/uri.vader::path_to_uri`: forward-slash the path, and
 // give a Windows drive path (`C:\…`) the extra leading slash so it becomes
 // `file:///C:/…`. On POSIX the path already starts with `/`, so this is
 // byte-identical to a naive `file://${p}` — which is why the naive form survives

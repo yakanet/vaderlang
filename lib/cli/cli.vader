@@ -74,7 +74,7 @@ export FlagSpec :: struct {
     default_text: string = ""
     /// Defaults to `Str`, the common case. A `Bool` must say so — declaring one
     /// by accident makes it demand a value and swallow the next token, which the
-    /// `value_name` check in `vader/cli/spec.vader`'s tests is there to catch.
+    /// `value_name` check in `vader/tools/cli/spec.vader`'s tests is there to catch.
     kind:         FlagKind = .Str
     /// Closed value set. Empty means any string is accepted. Meaningless on
     /// `Bool`, and on `Int` the range check is the caller's business.

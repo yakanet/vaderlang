@@ -1,0 +1,117 @@
+// vader/tools/lsp/protocol/transport — JSON-RPC framing over stdin/stdout.
+//
+// LSP wraps every JSON message in :
+//
+//   Content-Length: <bytes>\r\n
+//   \r\n
+//   {…JSON body…}
+//
+// Other headers may appear before `\r\n\r\n` (notably `Content-Type`) ;
+// we read until the blank line, capture `Content-Length`, then read
+// exactly that many bytes for the body. Both directions use the same
+// framing.
+
+module "vader/tools/lsp/protocol"
+
+import "std/io"
+import "std/string"
+import "std/string_builder"
+
+export TransportError :: struct {
+    msg: string
+}
+
+TransportError implements Error {
+    message :: fn(self) -> string { return self.msg }
+}
+
+/// Read one JSON-RPC frame from stdin. Returns the raw JSON body as a
+/// UTF-8 string ; the caller parses it. Blocks until a complete frame
+/// arrives. Returns `TransportError` on malformed headers, missing
+/// `Content-Length`, or EOF.
+/// @return  the JSON body (UTF-8, exactly `Content-Length` bytes).
+/// @error   `TransportError` on malformed frame or EOF.
+export read_frame :: fn() -> string | TransportError {
+    content_length: i64 = -1
+    // Read header lines until the blank `\r\n`. Each line ends with
+    // `\r\n` so we read 1 byte at a time looking for the terminator —
+    // header lines are short (typically < 100 bytes) so the per-byte
+    // overhead is negligible compared to the body payload.
+    line_buf := StringBuilder {}
+    finished := false
+    for !finished {
+        b :: read_stdin(1)
+        match b {
+            is IOError -> { return TransportError { .msg = "EOF in header" } }
+            is string -> {
+                if b == "\r" {
+                    nl :: read_stdin(1)
+                    match nl {
+                        is IOError -> { return TransportError { .msg = "EOF after CR" } }
+                        is string -> {
+                            if nl != "\n" {
+                                return TransportError { .msg = "expected LF after CR in header" }
+                            }
+                            line :: line_buf.to_string()
+                            if line.byte_len() == 0 {
+                                // Blank line = end of headers.
+                                finished = true
+                            } else {
+                                if line.starts_with("Content-Length:") {
+                                    raw :: line.trim_prefix("Content-Length:")
+                                    trimmed :: raw.trim()
+                                    parsed :: trimmed.parse_int()
+                                    match parsed {
+                                        is ParseError -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
+                                        is i32 -> { content_length = i64(parsed) }
+                                    }
+                                }
+                                // Other headers (`Content-Type`, etc.) are
+                                // silently ignored — LSP allows them but
+                                // doesn't require them.
+                                line_buf = StringBuilder {}
+                            }
+                        }
+                    }
+                } else {
+                    line_buf.append(b)
+                }
+            }
+        }
+    }
+    if content_length < 0 {
+        return TransportError { .msg = "missing Content-Length header" }
+    }
+    body :: read_stdin(content_length)
+    match body {
+        is IOError -> { return TransportError { .msg = "EOF in body" } }
+        is string -> { return body }
+    }
+}
+
+
+/// True iff a frame's first byte is already available within `timeout_ms`
+/// (`0` = non-blocking probe). The event loop uses it twice : `poll_pending(0)`
+/// to drain a burst of queued frames, and `poll_pending(DEBOUNCE_MS)` to wait
+/// out a quiescent edit window before the debounced typecheck. Requires
+/// A `true` only guarantees the first byte is ready —
+/// `read_frame` may still block briefly to finish a partially-arrived frame,
+/// which is fine (the remainder is already in flight).
+/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
+/// @return            `true` if `read_frame` won't block on the first byte
+///                    (data ready, or peer hangup so the read sees EOF).
+export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
+
+/// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`
+/// header from the body's byte length, emits the `\r\n\r\n` separator,
+/// then the body. Flushes via `print` (which calls `fflush(stdout)`).
+/// @param body  the JSON-encoded message to send.
+export write_frame :: fn(body: string) -> void {
+    n :: body.byte_len()
+    sb :: StringBuilder {}
+    sb.append("Content-Length: ")
+    sb.append("${n}")
+    sb.append("\r\n\r\n")
+    sb.append(body)
+    print(sb.to_string())
+}

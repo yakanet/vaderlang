@@ -2707,7 +2707,7 @@ A folder with a `build.vader` follows the same rules, over the entries and asset
 
 An import is resolved against an ordered list of roots. The first root whose folder at the module's location declares that module wins, and a later folder declaring the same name is ignored. The roots, in order:
 
-1. the entry's namespace, the first segment of its declared name, rooted at the folder that segment names: an entry declaring `module "vader/cli"` in `<X>/vader/cli/` finds `import "vader/parser"` in `<X>/vader/parser` and `import "vader/cli/util"` in its own `util`, and nothing else of `<X>`. An entry whose folder does not end with its name, or whose name has one segment, roots that name at its own folder: `module "app"` finds `import "app/util"` in `<entry folder>/util`;
+1. the entry's namespace, the first segment of its declared name, rooted at the folder that segment names: an entry declaring `module "vader/tools/cli"` in `<X>/vader/tools/cli/` finds `import "vader/parser"` in `<X>/vader/parser` and `import "vader/tools/cli/util"` in its own `util`, and nothing else of `<X>`. An entry whose folder does not end with its name, or whose name has one segment, roots that name at its own folder: `module "app"` finds `import "app/util"` in `<entry folder>/util`;
 2. each root named by `--include-paths`;
 3. the toolchain's library root, when `$VADER_HOME` or the binary's own folder provides one (below);
 4. the project folder, then each `includePaths` entry of its `vader.json`, or each root its `build.vader` puts in `ctx.include_paths`, joined onto it (4 exists only for a project). An entry that starts with `$VADER_HOME` is joined onto the toolchain's folder instead, the one holding the library root, whether or not the variable is set: `"$VADER_HOME/third_party"` reaches the libraries shipped beside the compiler from a project that lives anywhere. Without a library root from step 3, the toolchain's folder is the working directory, where step 5 looks for `lib/`;
@@ -4101,7 +4101,7 @@ Short aliases: `-o` (`--out`), `-t` (`--target`), `-r` (`--release`), `-s`
 it after `=` or after a space, in either spelling.
 
 Actions, their flags and the accepted values of each enumerated flag are declared
-once in `vader/cli/spec.vader`; `vader <action> --help` (equivalently `-h`, or
+once in `vader/tools/cli/spec.vader`; `vader <action> --help` (equivalently `-h`, or
 `vader help <action>`) renders from that same table, so the help cannot drift
 from what the parser accepts. A `--help` written past a `run` path is forwarded
 to the program like any other argument.
@@ -4228,8 +4228,8 @@ The **Vader 1.0 edition** is the set of features the Vader compiler needs to com
 1. **Lexer** ✅ (`vader/lexer/`) — straightforward, table-driven.
 2. **Parser** ✅ (`vader/parser/`) — recursive-descent + Pratt expressions.
 3. **Resolver** ✅ (`vader/resolver/`) — body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the typechecker.
-4. **Formatter** ✅ (`vader/fmt/`) — idempotent + parse round-trip on the stdlib.
-5. **LSP** ✅ (`vader/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
+4. **Formatter** ✅ (`vader/tools/fmt/`) — idempotent + parse round-trip on the stdlib.
+5. **LSP** ✅ (`vader/tools/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
 6. **VM** ✅ (`vader/vm/`) — runs the bytecode for the whole snippet corpus.
 7. **Type-checker** ✅ (`vader/typecheck/`).
 8. **Comptime** ✅ (`vader/comptime/`).

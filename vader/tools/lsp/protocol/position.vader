@@ -1,0 +1,209 @@
+// vader/tools/lsp/protocol/position — LSP position geometry + params extraction.
+//
+// The JSON encoders for the LSP `Position` / `Range` / `Location` shapes, plus
+// the params-object readers every position-bearing request shares. The byte ↔
+// (line, character) conversion itself lives in `line_index.vader` : a `LineIndex`
+// counts `character` offsets in the encoding negotiated at `initialize`
+// (`general.positionEncodings`, LSP 3.17+ — see `lifecycle.vader`). `Span`→range
+// encoding therefore takes the span's own `LineIndex` so cross-file results
+// (goto-def / references) count in the right file's text.
+//
+// LSP positions are 0-based ; Vader `Span`s are 1-based, so `span_to_range_json`
+// subtracts one on the line and defers the column to the LineIndex.
+
+module "vader/tools/lsp/protocol"
+
+import "json"
+import "std/collections"
+import "vader/support/diagnostics"
+import "toolchain/span"
+
+// ---- range geometry -------------------------------------------------------
+
+/// LSP-encoded range : 0-based line + character pairs.
+export SpanRange :: struct {
+    start_line:      i32
+    start_character: i32
+    end_line:        i32
+    end_character:   i32
+}
+
+/// Convert a 1-based compiler `Span` to a 0-based LSP range, counting `character`
+/// in `li`'s negotiated encoding. `li` must index the span's own file (the span
+/// carries a byte offset ; the encoding conversion needs that file's text).
+export span_to_range_json :: fn(s: Span, li: LineIndex) -> SpanRange {
+    return SpanRange {
+        .start_line      = s.start.line - 1,
+        .start_character = li_character(li, s.start.line - 1, s.start.offset),
+        .end_line        = s.end.line - 1,
+        .end_character   = li_character(li, s.end.line - 1, s.end.offset),
+    }
+}
+
+/// True when the 1-based `(line, col)` falls inside the closed span
+/// `[start, end]` of `s`. The AST position-finders use it to decide whether
+/// the cursor sits within a node.
+export span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
+    if line < s.start.line { return false }
+    if line > s.end.line   { return false }
+    if line == s.start.line && col < s.start.column { return false }
+    if line == s.end.line   && col > s.end.column   { return false }
+    return true
+}
+
+/// True when `inner` sits entirely within `outer` by byte offset. Distinct from
+/// `span_contains` (a `(line, col)` point test) — this is span-in-span, used to
+/// enforce the LSP `selectionRange ⊆ range` contract in `documentSymbol`.
+export span_encloses :: fn(outer: Span, inner: Span) -> bool =
+    inner.start.offset >= outer.start.offset && inner.end.offset <= outer.end.offset
+
+/// Coarse character extent of a span — `(lines << 16) | columns`. Used as a
+/// tie-breaker so the *smallest* node containing the cursor wins.
+export span_size :: fn(s: Span) -> u64 {
+    line_extent :: u64(s.end.line - s.start.line)
+    col_extent  :: u64(s.end.column - s.start.column)
+    return (line_extent << 16) + col_extent
+}
+
+/// Byte offset of the first character on the source line containing `pos`.
+/// Used to absorb `export` / visibility prefixes that the parser doesn't
+/// include in a decl's `span.start`, and to compute a column from a byte
+/// offset in the semantic-token scanners.
+export line_start_offset :: fn(source: string, pos: i64) -> i64 {
+    if pos == 0 { return 0 }
+    i: i32 = i32(pos) - 1
+    for i >= 0 {
+        if source.byte_at(i64(i)) == '\n' { return i64(i) + 1 }
+        i = i - 1
+    }
+    return 0
+}
+
+// ---- JSON encoders --------------------------------------------------------
+
+/// `{ line, character }` — a single LSP `Position`.
+export position_json :: fn(line: i32, character: i32) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["line"]      = JsonNumber { .value = f64(line) }
+    obj["character"] = JsonNumber { .value = f64(character) }
+    return JsonObject { .entries = obj }
+}
+
+/// `{ start, end }` — an LSP `Range` from a `SpanRange`.
+export range_json :: fn(r: SpanRange) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["start"] = position_json(r.start_line, r.start_character)
+    obj["end"]   = position_json(r.end_line,   r.end_character)
+    return JsonObject { .entries = obj }
+}
+
+/// `{ uri, range }` — an LSP `Location`.
+export location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["uri"]   = JsonString { .value = uri }
+    obj["range"] = range_json(range)
+    return JsonObject { .entries = obj }
+}
+
+/// The answer to a definition request : a one-element `LocationLink` array when
+/// the client said at `initialize` it reads links, else a `Location` on
+/// `selection`. A link keeps "where to jump" (`selection`) apart from "what to
+/// highlight" (`full`), plus the clicked range when there is one.
+///
+/// @param link_support  the client's `textDocument.definition.linkSupport`.
+/// @param origin        the range of what was clicked, or null to let the client
+///                      pick the word under the cursor.
+/// @param uri           the target document.
+/// @param full          the whole target.
+/// @param selection     the part of it the cursor lands on.
+export definition_json :: fn(
+    link_support: bool,
+    origin: SpanRange | null,
+    uri: string,
+    full: SpanRange,
+    selection: SpanRange,
+) -> JsonValue {
+    if !link_support {
+        return location_json(uri, selection)
+    }
+    return JsonArray { .items = [location_link_json(origin, uri, full, selection)] }
+}
+
+location_link_json :: fn(
+    origin: SpanRange | null,
+    uri: string,
+    full: SpanRange,
+    selection: SpanRange,
+) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    if origin != null {
+        obj["originSelectionRange"] = range_json(origin)
+    }
+    obj["targetUri"]            = JsonString { .value = uri }
+    obj["targetRange"]          = range_json(full)
+    obj["targetSelectionRange"] = range_json(selection)
+    return JsonObject { .entries = obj }
+}
+
+// ---- params extraction ----------------------------------------------------
+
+/// `params.textDocument.uri`, or `""` when absent.
+export position_uri :: fn(params: JsonValue) -> string {
+    td :: get_field(params, "textDocument")
+    return get_string(td, "uri")
+}
+
+/// `params.position.line` (0-based), or `0` when absent.
+export position_line :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "line")
+}
+
+/// `params.position.character` (0-based), or `0` when absent.
+export position_character :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "character")
+}
+
+/// `params.position.<key>` as an `i32` — generic reader for callers that
+/// pull `line` / `character` by name.
+export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, key)
+}
+
+/// `params.range.<bound>.<key>` (a 0-based coordinate), or `0` when absent.
+///
+/// @param params  request params carrying a `range`.
+/// @param bound   `"start"` or `"end"`.
+/// @param key     `"line"` or `"character"`.
+export range_field :: fn(params: JsonValue, bound: string, key: string) -> i32 =
+    get_number(get_field(get_field(params, "range"), bound), key)
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_span_to_range_utf8 :: fn() -> void {
+    // "café x" : span [0, 6) → end char 6 (bytes) under utf-8.
+    li :: new_line_index("café x", .Utf8)
+    sp :: Span {
+        .start = Position { .file = "t", .offset = 0, .line = 1, .column = 1 },
+        .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 6 },
+    }
+    r :: span_to_range_json(sp, li)
+    assert_eq(r.start_character, 0)
+    assert_eq(r.end_character, 6)
+}
+
+@test
+test_span_to_range_utf16_astral :: fn() -> void {
+    // "a😀b" : 'b' at byte 5 → utf-16 character 3 (😀 counts 2).
+    li :: new_line_index("a😀b", .Utf16)
+    sp :: Span {
+        .start = Position { .file = "t", .offset = 5, .line = 1, .column = 3 },
+        .end   = Position { .file = "t", .offset = 6, .line = 1, .column = 4 },
+    }
+    assert_eq(span_to_range_json(sp, li).start_character, 3)
+}

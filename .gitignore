@@ -8,11 +8,11 @@ build/
 tmp_mappoc/
 tmp_vrun/
 
-# Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`).
+# Self-host CLI build artefacts (binary + generated C from `vader build vader/tools/cli/main.vader`).
 # A native build writes its C, headers and objects to `c/` beside the binary.
-vader/cli/main
-vader/cli/c/
-vader/cli/main.dSYM/
+vader/tools/cli/main
+vader/tools/cli/c/
+vader/tools/cli/main.dSYM/
 
 # An example built in place leaves its binary beside it and its C in `c/`. No
 # example ships C.

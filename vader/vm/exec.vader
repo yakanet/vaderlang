@@ -426,7 +426,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
 /// `host_argv` carries the forwarded CLI args (argv[0] = program path, then the
-/// program's own args), set by `vader run` (`vader/cli/cmd_run.vader`) so the
+/// program's own args), set by `vader run` (`vader/tools/cli/cmd_run.vader`) so the
 /// compiler can run itself through the VM. When empty, falls back to a single
 /// synthetic path element. Returns an empty arg list when `main` takes no
 /// parameters.

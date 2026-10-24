@@ -197,13 +197,13 @@ step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles"
 rm -rf build/work/stage1
 mkdir -p build/work/stage1
 # A frozen contract with an older stage0 — see `vader/bootstrap/bootstrap.vader::main`.
-./build/stage0 vader/cli/main.vader build/work/stage1/stage1
+./build/stage0 vader/tools/cli/main.vader build/work/stage1/stage1
 cc_link_parallel "$stage1_cflags" build/work/stage1 build/stage1 "$stage1_ldflags" build/work/stage1/*.c "$runtime"
 
 step "[3/3] Building vader = stage2 (via stage1, --release)"
 rm -rf build/work/stage2
 mkdir -p build/work/stage2
-./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/cli/main.vader
+./build/stage1 build --release --emit=executable --out=build/work/stage2/vader --cc="$CC_ABS" vader/tools/cli/main.vader
 # `cc -o vader` writes `vader` on Unix and `vader.exe` on Windows — the same
 # reason `vader/pipeline::linked_binary` probes instead of guessing.
 if [ -f build/work/stage2/vader ]; then

@@ -39,7 +39,7 @@ export MANIFEST_FILENAME :: "vader.json"
 
 /// Module a project's build driver declares, and the entry shim shares.
 ///
-/// Lives here, not in `vader/cli`, because two passes need it and only one of
+/// Lives here, not in `vader/tools/cli`, because two passes need it and only one of
 /// them may import a front-end: the CLI writes the shim, and the dead-code lint
 /// has to know that `DRIVER_ENTRY` in this module is an ENTRY POINT. Without
 /// that, `build` reads as unreachable — nothing in the project calls it, since

@@ -1,0 +1,132 @@
+// vader/tools/lsp/handlers/type_definition — `textDocument/typeDefinition` handler.
+//
+// Where goto-`definition` jumps to a name's *binding*, typeDefinition jumps to
+// the declaration of the value's *type*. Cursor over a local, field or call
+// result → resolve its inferred `Type` from the typed-project cache, pull the
+// declaring `Symbol` off the type (struct / enum / trait / type-param), and
+// return that symbol's `defined_at` span as a `Location`.
+//
+// Reuses the typed cache + the `find_expr_at` expr-finder that powers hover
+// (`handlers/hover`, same folder module) and the `location_json` encoder from
+// `vader/tools/lsp/protocol`. A `T | null` nullable unwraps to `T`. Types with no
+// single declaration to jump to — primitives, tuples/arrays, function types,
+// genuine multi-member unions — yield no result. (A named union alias collapses
+// to a structural `UnionType` in the type IR, so the alias itself has no symbol
+// to target; that's a known limitation, not handled here.)
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/tools/lsp/protocol"
+import "vader/tools/lsp/analysis"
+
+/// Resolve typeDefinition for the position carried in `params`. Returns a
+/// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on
+/// a typed value or the value's type has no declaration to jump to.
+export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonNull {} }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonNull {} }
+
+    cursor :: typed_cursor(state, file_path, position_line(params), position_character(params)) ?? return JsonNull {}
+    found :: expr_under(cursor) ?? return JsonNull {}
+    ty :: cursor.typed.expr_types[found.id] ?? return JsonNull {}
+
+    sym :: type_symbol(ty) ?? return JsonNull {}
+    da :: sym.defined_at ?? return JsonNull {}
+    li :: state.line_index_for_path(da.start.file)
+    return location_json(path_to_uri(da.start.file), da.span_to_range_json(li))
+}
+
+// The declaring `Symbol` carried by a named type, or null for types with no
+// declaration site (primitives, structural composites, fn types). A distinct
+// (newtype) jumps to its `Name :: <primitive>` decl, not the backing. TypeParam
+// is included so jumping to a generic param's introduction site works too. A
+// `T | null`-style union unwraps to its single non-null member — the common
+// nullable case — so the cursor still jumps to `T`'s declaration.
+/// The declaring `Symbol` of a named type, or null for one with no single
+/// declaration (primitives, arrays, tuples, a genuine sum type).
+///
+/// Shared with `definition.vader`, which uses it for the other half of the same
+/// question: typeDefinition asks "where is this VALUE's type declared", member
+/// goto-def asks "which type declares this member" — both start by naming the
+/// type's symbol.
+///
+/// @param t  the type to name.
+/// @return   its declaring symbol, or null.
+export type_symbol :: fn(t: Type) -> Symbol | null {
+    if t is StructType  { return t.symbol }
+    if t is EnumType  { return t.symbol }
+    if t is DistinctType  { return t.symbol }
+    if t is TraitType { return t.symbol }
+    if t is TypeParamType { return t.symbol }
+    if t is UnionType  { return union_symbol(t) }
+    return null
+}
+
+// Resolve the single non-null member of a union to its symbol. `T | null`
+// (one non-null member) → `T`'s symbol ; a genuine multi-member sum type has
+// no single declaration to jump to → null.
+union_symbol :: fn(u: UnionType) -> Symbol | null {
+    named: Type[]: []
+    for v in u.variants {
+        if !is_null_type(v) { named.push(v) }
+    }
+    if named.len() != 1 { return null }
+    return type_symbol(named[0])
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_type_symbol_extracts_named_type :: fn() -> void {
+    sym :: Symbol {
+        .id = 1, .kind = .Struct, .name = "Box", .module = "t",
+        .module_name = "t",
+        .visibility = .Private, .defined_at = null,
+    }
+    no_args: Type[]: []
+    extracted :: type_symbol(mk_struct(sym, no_args))
+    if extracted == null { assert(false, "struct type must carry a symbol") }
+    else { assert_eq(extracted.name, "Box") }
+}
+
+@test
+test_type_symbol_null_for_primitive :: fn() -> void {
+    // Primitives have no declaration to jump to.
+    assert(type_symbol(TY_VOID) == null, "primitive yields no type definition")
+}
+
+@test
+test_type_symbol_unwraps_nullable :: fn() -> void {
+    // `User | null` resolves to `User`'s symbol — the common nullable case.
+    sym :: Symbol {
+        .id = 2, .kind = .Struct, .name = "User", .module = "t",
+        .module_name = "t",
+        .visibility = .Private, .defined_at = null,
+    }
+    no_args: Type[]: []
+    members: Type[]: [mk_struct(sym, no_args), TY_NULL]
+    extracted :: type_symbol(mk_union(members))
+    if extracted == null { assert(false, "T | null must resolve to T's symbol") }
+    else { assert_eq(extracted.name, "User") }
+}
+
+@test
+test_type_symbol_distinct_jumps_to_newtype :: fn() -> void {
+    // Go-to-type-definition on a distinct (`Mass :: i64`) jumps to the newtype
+    // decl, not the backing primitive (which has no declaration site).
+    sym :: Symbol {
+        .id = 3, .kind = .TypeAlias, .name = "Mass", .module = "t",
+        .module_name = "t",
+        .visibility = .Private, .defined_at = null,
+    }
+    extracted :: type_symbol(mk_distinct(sym, TY_I64))
+    if extracted == null { assert(false, "distinct type must carry its newtype symbol") }
+    else { assert_eq(extracted.name, "Mass") }
+}

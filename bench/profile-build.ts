@@ -1,5 +1,5 @@
 // Self-compile profiler harness — measures where the compiler spends time,
-// CPU, and memory while compiling ITSELF (`vader/cli/main.vader`).
+// CPU, and memory while compiling ITSELF (`vader/tools/cli/main.vader`).
 //
 // Two complementary layers:
 //   1. In-compiler per-pass profiler (VADER_PROFILE=1) — load / typecheck /
@@ -33,7 +33,7 @@ interface Args {
 }
 
 function parseArgs(): Args {
-  let input = "vader/cli/main.vader";
+  let input = "vader/tools/cli/main.vader";
   let vader = "build/vader";
   let cc = true;
   let gcProfile = false;

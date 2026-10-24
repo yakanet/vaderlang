@@ -14,7 +14,7 @@
 // public fn unreachable across the whole project — invisible to the per-module
 // W0007 and to a lowered-project DCE diff (lazy lowering never materialises it) —
 // is flagged. Never on the default build — `vader lint` and the LSP's diagnostic
-// pass (`lsp/analysis/diagnostics.vader`) are its only two callers.
+// pass (`tools/lsp/analysis/diagnostics.vader`) are its only two callers.
 //
 // Name-based by design. Resolving every reference to a `Symbol.id` is the gap
 // that sank the unused-import attempt (W0006) : `resolved.idents` is span-keyed,
@@ -22,7 +22,7 @@
 // over-approximates uses (a local shadowing a top-level name marks it used) — the
 // SAFE bias for a lint : we under-report, never false-positive (a false positive
 // would tell you to delete live code). Mirrors the AST traversal of
-// `vader/lsp/analysis/reference_index.vader`, with two additions it lacks but
+// `vader/tools/lsp/analysis/reference_index.vader`, with two additions it lacks but
 // dead-code needs : `FieldExpr.field` (UFCS `recv.foo()`) and string-interpolation
 // parts (`"${foo()}"`).
 
@@ -627,7 +627,7 @@ dead_exports :: fn(decls: AST.Decl[], discarded: AST.FnDecl[] = []) -> DeadExpor
 /// in W0007's per-module roots. Rooting it makes the lint RUN on a driven
 /// project, whose closure is the whole compiler — and every compiler export the
 /// driver does not reach then reports as unused, all of
-/// them alive and called by `vader/cli`, which is not in that closure. Running it
+/// them alive and called by `vader/tools/cli`, which is not in that closure. Running it
 /// needs a scope predicate first: "was this module provided by a TOOLCHAIN root or
 /// by the project?", which `Module.origin` answers for `lib/` but not for
 /// the compiler, since a checkout reaches `vader/` through the project root — and
@@ -639,8 +639,8 @@ export UnusedExportReport :: struct {
 
 /// Run `dead_exports` over a loaded project : merge every non-stdlib module's
 /// decls, detect the `main` root, and lint. The single source of truth for
-/// "lint a loaded project", shared by `vader lint` (`vader/cli`) and the LSP
-/// (`vader/lsp/analysis`) so the stdlib filter and `main` detection never drift.
+/// "lint a loaded project", shared by `vader lint` (`vader/tools/cli`) and the LSP
+/// (`vader/tools/lsp/analysis`) so the stdlib filter and `main` detection never drift.
 ///
 /// Bodies target selection discarded are gathered from the same modules and fed
 /// in as reachability seeds — see `dead_exports`.

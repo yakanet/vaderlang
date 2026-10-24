@@ -23,7 +23,7 @@ export SEP_STR :: "/"
 /// funnelled through here first, otherwise `parent` / `filename` (which split
 /// on `SEP`) silently return empty. POSIX paths pass through unchanged.
 /// Takes and returns a raw `string`, not a `Path`: the compiler internals it
-/// serves (`vader/resolver::loader`, `vader/lsp/protocol::uri`) are string-based,
+/// serves (`vader/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
 /// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
 /// forces this any more — a `Path -> Path` signature used to panic in midir on the
 /// chained cast inside, which is fixed — it is scope.

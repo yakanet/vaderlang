@@ -1,0 +1,555 @@
+// vader/tools/lsp/handlers/semantic_tokens — `textDocument/semanticTokens/full` handler.
+//
+// LSP encodes semantic tokens as a flat `i32[]` array of 5-tuples :
+//
+//   [ deltaLine, deltaStartChar, length, tokenType, tokenModifiers, ...]
+//
+// `deltaLine` is line distance from the previous token. `deltaStartChar`
+// is the column distance — relative to the previous token's start when
+// `deltaLine == 0`, absolute (0-based) when starting a new line. We
+// produce tokens in document order so this encoding is straightforward.
+//
+// Positions are 0-based. Producers fill each `RawToken`'s byte offsets and stay
+// encoding-agnostic ; `reencode_columns` then derives every `col` + `length` in
+// the negotiated position encoding (utf-8 / utf-16 / utf-32) through the
+// document's `LineIndex`, so multi-byte and astral content lands correctly.
+
+module "vader/tools/lsp/handlers"
+
+import "std/string"
+import "json"
+import "std/collections"
+import "vader/lexer"
+import "vader/tools/fmt"
+import "vader/tools/lsp/protocol"
+import "vader/tools/lsp/analysis"
+import "vader/support/text"
+
+// ---- handler --------------------------------------------------------------
+
+/// Handle `textDocument/semanticTokens/full`. Returns the JSON value to
+/// ship as the `result` field — either `{ data: [...] }` or `null` when
+/// the document is unknown / closed.
+/// @param state   shared server state.
+/// @param params  request params : `{ textDocument: { uri } }`.
+/// @return        `{ data: [...] }` or `null`.
+export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri.byte_len() == 0 {
+        return JsonNull {}
+    }
+    source :: state.source_for(uri)
+    match source {
+        is null -> { return JsonNull {} }
+        is string -> {
+            if source.byte_len() == 0 { return JsonNull {} }
+            data :: produce_tokens(source, uri, new_line_index(source, state.position_encoding))
+            result :: MutableMap<string, JsonValue> {}
+            result["data"] = data
+            return JsonObject { .entries = result }
+        }
+    }
+}
+
+// ---- producer -------------------------------------------------------------
+
+produce_tokens :: fn(source: string, uri: string, li: LineIndex) -> JsonValue {
+    raws: RawToken[]: []
+    collect_token_kinds(source, uri, raws)
+    collect_comment_kinds(source, raws)
+    collect_ast_idents(li, uri, raws)
+    reencode_columns(raws, li)
+    sort_raws(raws)
+    return encode_delta(raws)
+}
+
+// Derive every token's `col` + `length` from its byte offsets in the negotiated
+// encoding. Run once, after all producers have filled the offsets. This is the
+// sole place the position encoding is applied — producers stay encoding-agnostic.
+reencode_columns :: fn(out: RawToken[], li: LineIndex) -> void {
+    for i in 0..<out.len() {
+        col :: li_character(li, out[i].line, out[i].start_offset)
+        out[i].col    = col
+        out[i].length = li_character(li, out[i].line, out[i].end_offset) - col
+    }
+}
+
+// ---- lexer tokens → semantic tokens --------------------------------------
+
+collect_token_kinds :: fn(source: string, uri: string, out: RawToken[]) -> void {
+    lex :: tokenize(source, uri)
+    toks :: lex.tokens
+    for i in 0..<toks.len() {
+        t :: toks[i]
+        // `!is` / `!in` : the leading `!` (Bang) is part of the negated operator,
+        // so paint it as a keyword too — otherwise `!` classifies as an operator
+        // and the two halves colour differently (mirrors the `!is` / `!in`
+        // patterns in the TextMate grammar).
+        bang_neg :: t.kind == .Bang && i + 1 < toks.len()
+            && (toks[i + 1].kind == .KwIs || toks[i + 1].kind == .KwIn)
+        tt :: if bang_neg { i32(TokenType.Keyword) } else { classify_token(t) }
+        if tt >= 0 {
+            out.push(raw_of_type(t, tt))
+        }
+    }
+}
+
+// Build a `RawToken` for `t` with the given semantic type. The token loop
+// computes the type (with the `!is` / `!in` Bang override) and calls this so the
+// span arithmetic lives in one place.
+raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
+    sp :: t.span
+    return RawToken {
+        .line         = sp.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = tt,
+        .modifiers    = 0,
+        .start_offset = sp.start.offset,
+        .end_offset   = sp.end.offset,
+    }
+}
+
+// Exhaustive over `TokenKind` (no wildcard) so a new variant — a new keyword in
+// particular — trips T3013 here instead of silently going uncoloured, the exact
+// drift that once left `yield` / `const` unhighlighted.
+classify_token :: fn(t: Token) -> i32 = match t.kind {
+    // Keywords — mirrors `lexer/keywords.vader::lookup_keyword`.
+    .KwFn | .KwStruct | .KwTrait | .KwImplements | .KwEnum | .KwIf | .KwElse
+        | .KwMatch | .KwIs | .KwFor | .KwIn | .KwReturn | .KwYield | .KwAwait | .KwDefer
+        | .KwBreak | .KwContinue | .KwImport | .KwAs | .KwExport | .KwTrue
+        | .KwFalse | .KwNull | .KwSelf | .KwConst -> i32(TokenType.Keyword)
+
+    .IntLit | .FloatLit -> i32(TokenType.Number)
+
+    // Operators + interpolation delimiters.
+    .InterpOpen | .InterpClose
+        | .Plus | .Minus | .Star | .Slash | .Percent | .PlusPercent | .MinusPercent | .StarPercent
+        | .Amp | .Pipe | .Caret | .Tilde | .Shl | .Shr
+        | .Eq | .Neq | .Same | .NotSame | .Lt | .Lte | .Gt | .Gte
+        | .AndAnd | .OrOr | .Bang | .QuestionQuestion
+        | .Assign | .PlusAssign | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign
+        | .PlusPercentAssign | .MinusPercentAssign | .StarPercentAssign
+        | .DeclConst | .DeclVar | .RangeExcl | .RangeIncl
+        | .Arrow | .FatArrow -> i32(TokenType.Operator)
+
+    // No token in THIS lexer-driven pass. Identifiers are deliberately skipped —
+    // with only the lexer we can't tell function / parameter / variable apart,
+    // and mis-typing them makes clients (LSP4IJ) underline every word; the
+    // AST-driven pass (`ast_tokens.vader::collect_ast_idents`) paints idents.
+    //
+    // String and char literals are skipped for the same reason one level up: the
+    // lexer sees ONE `StringPart` spanning the whole literal body, so a `string`
+    // token over it FLATTENS what the TextMate grammar paints in two colours —
+    // escape sequences (`\t`, `\n`) lost theirs the moment the LSP loaded. The
+    // shared grammar (`editors/common/vader.tmLanguage.json`) already owns
+    // strings, escapes included, so the semantic layer only degrades them.
+    // `.InterpOpen` / `.InterpClose` keep their operator token above: they
+    // delimit a real expression, not literal text.
+    //
+    // Punctuation / brackets / layout / `@` / `$` / `...` carry no token.
+    .Ident | .Eof | .Newline | .DotDotDot | .At | .Dollar
+        | .CharLit | .StringBegin | .StringPart | .StringEnd
+        | .LParen | .RParen | .LBracket | .RBracket | .LBrace | .RBrace
+        | .Comma | .Dot | .Colon -> -1
+}
+
+// ---- comments → semantic tokens ------------------------------------------
+
+collect_comment_kinds :: fn(source: string, out: RawToken[]) -> void {
+    cm :: scan_comments(source)
+    for c in cm.comments {
+        rt :: comment_to_raw(c)
+        out.push_all(rt)
+    }
+}
+
+// Returns one or more RawTokens for a comment :
+//   - regular `Line` / `Block` : one Comment-typed token covering the full span.
+//   - `DocLine` (`///`) : multiple tokens — the leading `///` + body as
+//     comment (documentation modifier), `@param`/`@return`/etc. as
+//     decorator (documentation modifier), `@param`'s name as parameter
+//     (documentation modifier).
+comment_to_raw :: fn(c: Comment) -> RawToken[] {
+    out: RawToken[]: []
+    // Base case : non-doc comments emit a single comment-typed token.
+    match c.kind {
+        .Line -> {
+            out.push(make_comment_token(c, 0))
+            return out
+        }
+        .Block -> {
+            // Multi-line block comments emit the whole span as one token and
+            // let the client re-wrap.
+            out.push(make_comment_token(c, 0))
+            return out
+        }
+        .DocLine -> {
+            collect_doc_line_tokens(c, out)
+            return out
+        }
+    }
+}
+
+make_comment_token :: fn(c: Comment, modifiers: i32) -> RawToken {
+    // `Comment` carries no end column, so derive the end from the text's byte
+    // length ; `reencode_columns` turns the offsets into col + length.
+    return RawToken {
+        .line         = c.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(TokenType.Comment),
+        .modifiers    = modifiers,
+        .start_offset = c.offset,
+        .end_offset   = c.offset + c.text.byte_len(),
+    }
+}
+
+// `c.text` is the full source slice including the `///` prefix. Tokenise
+// recognised vaderdoc tags (`@param <name>`, `@return`, `@error`,
+// `@example`) and emit one RawToken per match. The comment body itself
+// is intentionally NOT covered by a base token : LSP semantic tokens
+// forbid overlap, and a base-comment token spanning the whole line
+// would either swallow the tag tokens (when the client favours the
+// earlier token at each character) or break the spec contract. The
+// `///` prefix and narrative therefore keep their TextMate coloring
+// from `comment.line.documentation.vader` ; only the tag fragments
+// receive semantic-token treatment.
+collect_doc_line_tokens :: fn(c: Comment, out: RawToken[]) -> void {
+    text :: c.text
+    n :: text.byte_len()
+    i: i64 = 0
+    line :: c.line - 1   // 0-based
+    // Each fragment's absolute byte offset is `c.offset + <index into text>` ;
+    // `reencode_columns` later turns the offsets into columns in the negotiated
+    // encoding, so an indented doc line and a multi-byte narrative before the tag
+    // (`/// café @param x`) both land correctly with no manual bookkeeping.
+    for i < n {
+        if text.byte_at(i) != '@' {
+            i = i + 1
+            continue
+        }
+        // Try to match `@param name`, `@return`, `@error`, `@example`.
+        tag_end :: scan_ident_end(text, i + 1)
+        if tag_end == i + 1 {
+            i = i + 1
+            continue
+        }
+        tag_name :: text.byte_slice(i + 1, tag_end)
+        is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
+        if !is_known {
+            i = tag_end
+            continue
+        }
+        out.push(RawToken {
+            .line         = line,
+            .col          = 0,
+            .length       = 0,
+            .tok_type     = i32(TokenType.Decorator),
+            .modifiers    = modifier_bit(.Documentation),
+            .start_offset = c.offset + i,
+            .end_offset   = c.offset + tag_end,
+        })
+        i = tag_end
+        if tag_name == "param" {
+            // Skip whitespace then capture an identifier.
+            j: i64 = i
+            for j < n && (text.byte_at(j) == ' ' || text.byte_at(j) == '\t') {
+                j = j + 1
+            }
+            name_end :: scan_ident_end(text, j)
+            if name_end > j {
+                out.push(RawToken {
+                    .line         = line,
+                    .col          = 0,
+                    .length       = 0,
+                    .tok_type     = i32(TokenType.Parameter),
+                    .modifiers    = modifier_bit(.Documentation),
+                    .start_offset = c.offset + j,
+                    .end_offset   = c.offset + name_end,
+                })
+                i = name_end
+            }
+        }
+    }
+}
+
+scan_ident_end :: fn(text: string, start: i64) -> i64 {
+    n :: text.byte_len()
+    j := start
+    for j < n && is_ident_byte(text.byte_at(j)) {
+        j = j + 1
+    }
+    return j
+}
+
+// ---- sorting + delta encoding ---------------------------------------------
+
+// Sort by (line, col) ascending. The lexer emits tokens in source order
+// already, but comment tokens are produced separately and need merging.
+// Insertion sort suffices — token count per file is small (≤ a few k).
+sort_raws :: fn(arr: RawToken[]) -> void {
+    n :: arr.len()
+    for i in 1..<n {
+        x :: arr[i]
+        j := i
+        for j > 0 {
+            prev :: arr[j - 1]
+            if prev.line < x.line { break }
+            if prev.line == x.line && prev.col <= x.col { break }
+            arr[j] = arr[j - 1]
+            j = j - 1
+        }
+        arr[j] = x
+    }
+}
+
+encode_delta :: fn(arr: RawToken[]) -> JsonValue {
+    out: JsonValue[]: []
+    prev_line: i32 = 0
+    prev_col:  i32 = 0
+    for r in arr {
+        d_line :: r.line - prev_line
+        d_col := r.col
+        if d_line == 0 { d_col = r.col - prev_col }
+        out.push(JsonNumber { .value = f64(d_line) })
+        out.push(JsonNumber { .value = f64(d_col) })
+        out.push(JsonNumber { .value = f64(r.length) })
+        out.push(JsonNumber { .value = f64(r.tok_type) })
+        out.push(JsonNumber { .value = f64(r.modifiers) })
+        prev_line = r.line
+        prev_col  = r.col
+    }
+    return JsonArray { .items = out }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Build the full sorted RawToken list the way `produce_tokens` does, exposing
+// the pre-encoding tokens so tests can inspect classifications + overlaps.
+build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
+    // The colocated tests assert codepoint-equivalent columns, so index in
+    // utf-16 (BMP codepoint == 1 utf-16 unit).
+    raws: RawToken[]: []
+    li :: new_line_index(source, .Utf16)
+    collect_token_kinds(source, uri, raws)
+    collect_comment_kinds(source, raws)
+    collect_ast_idents(li, uri, raws)
+    reencode_columns(raws, li)
+    sort_raws(raws)
+    return raws
+}
+
+// Column of the first documentation-modifier token of `tok_type` on `line`,
+// or -1 if none. Test helper for doc-comment tag positioning.
+doc_token_col :: fn(toks: RawToken[], line: i32, tok_type: i32) -> i32 {
+    for t in toks {
+        if t.line == line && t.tok_type == tok_type && t.modifiers != 0 { return t.col }
+    }
+    return -1
+}
+
+// Count tokens that start inside the extent of an earlier token on the same
+// line. The LSP semantic-tokens spec forbids overlap ; clients render it
+// inconsistently, so this must stay zero.
+count_token_overlaps :: fn(toks: RawToken[]) -> i32 {
+    overlaps := 0
+    cur_line: i32 = -1
+    line_end: i32 = 0
+    for t in toks {
+        if t.line != cur_line {
+            cur_line = t.line
+            line_end = t.col + t.length
+        } else {
+            if t.col < line_end { overlaps = overlaps + 1 }
+            end :: t.col + t.length
+            if end > line_end { line_end = end }
+        }
+    }
+    return overlaps
+}
+
+// Regression guard for the four shapes that used to emit a full-`span` token
+// overlapping an inner type / argument token : a decorator with args, typed
+// struct fields, typed fn params, and an intrinsic call.
+@test
+test_no_overlapping_tokens :: fn() -> void {
+    src :: "module \"t\"\n\n@extern(\"now\")\nclock :: fn(a: i32, b: i32) -> i64\n\nPoint :: struct {\n    x: i32\n    y: i32\n}\n\nmain :: fn() -> void {\n    n :: @size_of(i32)\n    p :: Point { .x = 1, .y = 2 }\n}\n"
+    toks :: build_sorted_for_test(src, "file:///t.vader")
+    assert_eq(count_token_overlaps(toks), 0)
+}
+
+// Token lengths must be in codepoints (UTF-16 units), not bytes : a 2-byte `é`
+// is one codepoint, so a token covering accented text must not run long and
+// overlap its neighbour. `// café` is 7 codepoints / 8 bytes.
+//
+// Carried by a COMMENT since the string-literal token this used to assert on is
+// no longer emitted (`classify_token` leaves literals to TextMate) — the length
+// path under test (`reencode_columns`) is shared by every producer.
+@test
+test_multibyte_token_length :: fn() -> void {
+    toks :: build_sorted_for_test("// café\nx :: 1\n", "file:///t.vader")
+    found := false
+    for t in toks {
+        if t.line == 0 && t.tok_type == i32(TokenType.Comment) {
+            assert_eq(t.length, 7)
+            found = true
+            break
+        }
+    }
+    assert(found, "comment token not found on line 0")
+}
+
+// The literal-skipping policy itself : a string (with an escape) and a char
+// literal must contribute NO token, or the client's TextMate colouring of the
+// escape is overridden the moment the LSP loads. The interpolation delimiters
+// and the expression inside them still get theirs.
+@test
+test_literals_emit_no_token :: fn() -> void {
+    toks :: build_sorted_for_test("x :: \"a\\tb\"\ny :: 'c'\n", "file:///t.vader")
+    for t in toks {
+        assert(t.tok_type != i32(TokenType.String), "no token may claim TokenType.String")
+    }
+    // Sanity : the pass still runs and paints the non-literal parts.
+    assert(toks.len() > 0, "the token pass still produces tokens")
+}
+
+// Doc-comment tags carry source columns, not within-comment byte offsets : an
+// indented `/// @param x` (a trait-method doc) places `@param` at the comment's
+// column + `/// ` (4 + 4 = 8) and `x` at 15 ; a multi-byte narrative before the
+// tag (`/// café …`, café = 4 codepoints / 5 bytes) must not shift it either.
+@test
+test_doc_tag_columns :: fn() -> void {
+    indented :: build_sorted_for_test("M :: trait {\n    /// @param x ok.\n    f :: fn(x: i32) -> i32\n}\n", "file:///d.vader")
+    assert_eq(doc_token_col(indented, 1, i32(TokenType.Decorator)), 8)
+    assert_eq(doc_token_col(indented, 1, i32(TokenType.Parameter)), 15)
+    multibyte :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
+    assert_eq(doc_token_col(multibyte, 0, i32(TokenType.Decorator)), 9)
+}
+
+// Is there a token of `tok_type` at exactly (`line`, `col`) spanning `length`?
+token_at :: fn(toks: RawToken[], line: i32, col: i32, length: i32, tok_type: i32) -> bool {
+    for t in toks {
+        if t.line == line && t.col == col && t.length == length && t.tok_type == tok_type {
+            return true
+        }
+    }
+    return false
+}
+
+// Call sites must carry `Function`, through BOTH callee shapes — a method call
+// (`out.push(…)`, tagged on the field span) and a bare free-fn call
+// (`mk_primitive(…)`). Asserted on the full pipeline, so a later pass
+// overwriting the tag with `Variable` would fail here.
+//
+// This is the server half of the "call-site names lose their colour under the
+// LSP" report: the tag IS emitted, so a client rendering them in the default
+// foreground is missing a semantic-token → attributes mapping.
+@test
+test_call_sites_are_tagged_function :: fn() -> void {
+    src :: "main :: fn() -> void {\n    out.push(1)\n    mk_primitive(\"i64\")\n}\n"
+    toks :: build_sorted_for_test(src, "file:///c.vader")
+    assert(token_at(toks, 1, 8, 4, i32(TokenType.Function)), "`push` tagged Function")
+    assert(token_at(toks, 2, 4, 12, i32(TokenType.Function)), "`mk_primitive` tagged Function")
+}
+
+// A `match` header's binding is a local like any other : its name is tagged where
+// it is declared (`match x ::`) as well as where it is read.
+@test
+test_match_binding_names_are_tagged :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 = match n :: v {\n    is i32    -> n\n    is string -> 0\n}\n"
+    toks :: build_sorted_for_test(src, "file:///a.vader")
+    var :: i32(TokenType.Variable)
+    assert(token_at(toks, 0, 40, 1, var), "`n` of `match n :: v` tagged Variable")
+    assert(token_at(toks, 1, 17, 1, var), "`n` read in an arm tagged Variable")
+}
+
+// Modifier bitmask of the token at (`line`, `col`), or -1 if there is none.
+token_mods_at :: fn(toks: RawToken[], line: i32, col: i32) -> i32 {
+    for t in toks {
+        if t.line == line && t.col == col {
+            return t.modifiers
+        }
+    }
+    return -1
+}
+
+// Struct fields carry `Property`, not the `Variable` catch-all — in all three
+// positions they appear in. Clients colour `Variable` as a *reassignable local*
+// (LSP4IJ underlines it), which is wrong twice over for a field.
+@test
+test_struct_fields_are_property :: fn() -> void {
+    src :: "Opts :: struct { release: bool }\n\nread :: fn(o: Opts) -> bool = o.release\n"
+    toks :: build_sorted_for_test(src, "file:///f.vader")
+    prop :: i32(TokenType.Property)
+    assert(token_at(toks, 0, 17, 7, prop), "field declaration is Property")
+    assert(token_at(toks, 2, 32, 7, prop), "`o.release` read is Property")
+    lit :: build_sorted_for_test("Opts :: struct { release: bool }\n\nmk :: fn() -> Opts = Opts { .release = true }\n", "file:///g.vader")
+    assert(token_at(lit, 2, 29, 7, prop), "`.release = …` in a struct literal is Property")
+}
+
+// A module const is `static` + `readonly`, which is what makes a client resolve it
+// to its constant colour instead of painting `SCREAMING_SNAKE` as a mutable local.
+@test
+test_module_const_carries_static_readonly :: fn() -> void {
+    toks :: build_sorted_for_test("MAX :: 42\n\nget :: fn() -> i32 = MAX\n", "file:///c.vader")
+    expected :: modifier_bit(.Static) | modifier_bit(.Readonly)
+    assert_eq(token_mods_at(toks, 2, 21), expected)
+}
+
+@test
+test_yield_const_classified_as_keyword :: fn() -> void {
+    // Regression: `yield` / `const` were the two keywords the old if-cascade
+    // forgot, leaving them uncoloured. The exhaustive `match` now covers them.
+    sp :: empty_file_span("t.vader")
+    assert_eq(classify_token(make_token(.KwYield, "yield", sp)), i32(TokenType.Keyword))
+    assert_eq(classify_token(make_token(.KwConst, "const", sp)), i32(TokenType.Keyword))
+}
+
+// The semantic type of the token starting at byte `offset`, or -1 if none.
+tok_type_at :: fn(toks: RawToken[], offset: i64) -> i32 {
+    for r in toks {
+        if r.start_offset == offset {
+            return r.tok_type
+        }
+    }
+    return -1
+}
+
+@test
+test_bang_is_in_paint_as_keyword :: fn() -> void {
+    // `!is` / `!in` : the leading `!` paints as a keyword (not an operator) so
+    // the negated operator colours as one unit — mirrors the TextMate grammar.
+    is_toks: RawToken[]: []
+    collect_token_kinds("x !is y\n", "t.vader", is_toks)
+    assert_eq(tok_type_at(is_toks, 2), i32(TokenType.Keyword))
+
+    in_toks: RawToken[]: []
+    collect_token_kinds("x !in y\n", "t.vader", in_toks)
+    assert_eq(tok_type_at(in_toks, 2), i32(TokenType.Keyword))
+
+    // A bare `!` (logical not) still classifies as an operator.
+    not_toks: RawToken[]: []
+    collect_token_kinds("!x\n", "t.vader", not_toks)
+    assert_eq(tok_type_at(not_toks, 0), i32(TokenType.Operator))
+}
+
+@test
+test_resolver_refines_param_use :: fn() -> void {
+    // The `x` in `return x` is a parameter USE ; only the resolver-refinement
+    // pass can paint it Parameter (Phase-1 can't tell a param-use from a local).
+    // Guards the refine↔reencode ordering: `refine_via_resolver` probes the
+    // resolver map by a codepoint column derived from the token's byte offset,
+    // NOT the RawToken.col (which is 0 until the later reencode pass). Both `x`
+    // occurrences — the param decl and its use — must end up Parameter.
+    toks :: build_sorted_for_test("add :: fn(x: i32) -> i32 {\n    return x + 1\n}\n", "file:///r.vader")
+    params := 0
+    for t in toks {
+        if t.tok_type == i32(TokenType.Parameter) { params += 1 }
+    }
+    assert_eq(params, 2)
+}
+
+

@@ -1,0 +1,839 @@
+// vader/tools/lsp/handlers/completion — `textDocument/completion` handler.
+//
+// Tier 1 : scope-aware identifier + keyword completion. Returns every name
+// reachable at the cursor — the file's top-level declarations, the intra-file
+// bindings (params / locals / for-in vars) whose scope covers the cursor, the
+// imported names, and the language keywords. The client does the prefix /
+// fuzzy filtering, so we return the full candidate set rather than matching the
+// typed prefix ourselves.
+//
+// Member completion after `.` (struct fields + UFCS methods, resolved through
+// the typed cache) is not wired yet. Until it lands the
+// provider declares no `.` trigger, so it fires on identifier typing only.
+
+module "vader/tools/lsp/handlers"
+
+import "json"
+import "std/collections"
+import "std/string"
+import "vader/types"
+import "vader/support/text"
+import "vader/typecheck"
+import "vader/tools/lsp/protocol"
+import "vader/tools/lsp/analysis"
+AST :: import "toolchain/ast"
+Parser :: import "vader/parser"
+Rs :: import "vader/resolver"
+import "vader/lexer"
+
+/// Build the completion response for the position in `params`. Returns a
+/// `CompletionList` (`{ isIncomplete, items }`) — empty when the document was
+/// never indexed.
+///
+/// @param state   shared server state (carries the per-document index).
+/// @param params  request params : `{ textDocument: { uri }, position }`.
+/// @return        a `CompletionList` of in-scope identifiers + keywords.
+export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    idx :: state.index_for(uri)
+    match idx {
+        is null     -> { return completion_list([]) }
+        is DocIndex -> {
+            line0 :: position_line(params)
+            char0 :: position_character(params)
+
+            li :: idx.line_index
+            if follows_at_sign(li.source, li_offset(li, line0, char0)) {
+                return completion_list(builtin_items())
+            }
+
+            // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
+            // struct fields + impl methods, resolved through the typed cache.
+            dot :: member_context(li, line0, char0)
+            if dot != null {
+                lead :: is_leading_dot(li.source, dot)
+                skey :: dot_after_brace_or_comma(li.source, dot)
+                return member_completion(state, uri, line0, span_column(li, line0, dot), lead, skey)
+            }
+
+            // Tier 1 : in-scope identifiers + keywords. LSP positions are
+            // 0-based ; the indexer's spans are 1-based.
+            line :: line0 + 1
+            col  :: lsp_span_column(li, line0, char0)
+
+            items: JsonValue[]: []
+            seen :: MutableMap<string, bool> {}
+
+            // The typed cache lets us show a binding's *inferred* type
+            // (`x :: foo()` → `Symbol`) instead of the index's RHS source
+            // slice — see `decl_detail`.
+            ctx :: detail_ctx(state, uri_to_path(uri))
+
+            for d in visible_decls(idx, line, col) {
+                if seen[d.name] != null { continue }
+                seen[d.name] = true
+                items.push(completion_item(d.name, ci_kind(d.kind), decl_detail(d, ctx.decls, ctx.typed)))
+            }
+
+            for imp in idx.imports {
+                if seen[imp.local] != null { continue }
+                seen[imp.local] = true
+                items.push(completion_item(imp.local, import_ci_kind(imp.local), "import \"${imp.path}\""))
+            }
+
+            // Names a wildcard import brings into scope — the index records only
+            // the paths, so their exports are enumerated here.
+            append_wildcard_completions(state, uri_to_path(uri), idx, seen, items)
+
+            for kw in KEYWORDS {
+                if seen[kw] != null { continue }
+                seen[kw] = true
+                items.push(completion_item(kw, .Keyword, ""))
+            }
+            // `module` is a soft keyword — recognised contextually by the parser,
+            // not by the lexer keyword table, so it is not in `KEYWORDS`.
+            if seen["module"] == null {
+                items.push(completion_item("module", .Keyword, ""))
+            }
+
+            return completion_list(items)
+        }
+    }
+}
+
+// The typed program plus the entry file's top-level decls — what `decl_detail`
+// needs to resolve a binding's inferred type, from a single (cached)
+// `typed_project_for` lookup.
+DetailCtx :: struct {
+    typed: TypedProgram | null
+    decls: AST.Decl[]
+}
+
+// Resolve the `DetailCtx` for the document at `fp`. `typed` is null / `decls`
+// empty when the document has no on-disk path or its module never loaded — so
+// `decl_detail` falls back to the index's source slice. Loading the project
+// typechecks it (cached within the edit window), the same cost the
+// member-completion / hover / inlay handlers already pay.
+detail_ctx :: fn(state: ServerState, fp: string) -> DetailCtx {
+    if fp == "" { return DetailCtx { .typed = null, .decls = [] } }
+    cached :: typed_project_for(state, fp)
+    typed :: cached.result.typed
+    entry :: cached.project.modules[cached.project.entry]
+    if entry == null { return DetailCtx { .typed = typed, .decls = [] } }
+    sf :: source_file_for_path(entry.module.files, fp)
+    if sf == null { return DetailCtx { .typed = typed, .decls = [] } }
+    return DetailCtx { .typed = typed, .decls = sf.program.decls }
+}
+
+// Detail string for a scope-completion item. An unannotated local binding
+// (`x :: foo()`) carries only a RHS source slice in the index ; when the typed
+// cache resolves its inferred type, show that (`Symbol`, `i32`, …) instead —
+// matching the hover / inlay UX. The type is read from the typed project's own
+// AST (by cursor position, file-independent), since the index is a separate
+// parse. Everything else keeps the index's signature (decl heads, annotated
+// params, imports).
+decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -> string {
+    // Functions: drop the redundant `<name> :: ` prefix — the label already
+    // carries the name — leaving just the signature (`fn(ctx: …) -> Symbol`).
+    if d.kind == .Fn { return strip_binding_prefix(d.signature) }
+    if d.kind != .Local { return d.signature }
+    if typed == null { return d.signature }
+    ty :: find_binding_rhs_type_at(decls, d.name_span.start.line, d.name_span.start.column, typed)
+    if ty == null { return d.signature }
+    if ty is UnresolvedType || ty is FreeIntType || ty is FreeFloatType { return d.signature }
+    return display_type(ty)
+}
+
+// Offer the names each wildcard import brings into scope, minus those its
+// modifier list drops. The per-file index records only the wildcard PATHS (a
+// wildcard binds no named `ImportEntry`), so enumerate each wildcard-imported
+// module's exports via the project cache's memoized name index, filtered through
+// the resolver's own `wildcard_exposes` predicate (one source of truth for
+// "what a wildcard exposes", shared with `core_seed::seed_wildcard_exports`). Icon
+// falls back to the casing heuristic, as for renamed imports. `seen` dedups
+// against the scope + renamed names already offered.
+append_wildcard_completions :: fn(
+    state: ServerState, fp: string, idx: DocIndex,
+    seen: MutableMap<string, bool>, items: JsonValue[],
+) -> void {
+    if fp == "" || idx.wildcards.paths.len() == 0 { return }
+    cached :: typed_project_for(state, fp)
+    // The import-name → module map is memoized on the project cache; each
+    // wildcard path names a module whose public, wildcard-exposable exports
+    // (fn / struct / enum / trait / alias / const) enter scope unqualified —
+    // the same predicate the resolver's scope seeding uses.
+    for path in idx.wildcards.paths {
+        target :: cached.module_name_index[path] ?? continue
+        dropped :: idx.wildcards.excludes[path]
+        for [_, sym] in target.collected.symbols {
+            if !Rs.wildcard_exposes(sym, dropped) { continue }
+            if seen[sym.name] != null { continue }
+            seen[sym.name] = true
+            items.push(completion_item(sym.name, import_ci_kind(sym.name), "import \"${path}\""))
+        }
+    }
+}
+
+// Everything in a decl-head signature after the binding operator — the type
+// without the `<name> :: ` prefix. Returns `sig` unchanged when there's no
+// ` :: ` (defensive ; every real decl head carries exactly one).
+strip_binding_prefix :: fn(sig: string) -> string {
+    parts :: sig.split(" :: ")
+    if parts.len() < 2 { return sig }
+    return parts[1]
+}
+
+// ---- Tier 2 : member completion after `.` ---------------------------------
+
+/// Detect a member-access completion at the cursor. Scans back over any partial
+/// member identifier already typed ; if a `.` precedes it, returns that dot's
+/// byte offset in the source (the receiver ends just before it). Returns `null`
+/// when the cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
+member_context :: fn(li: LineIndex, line0: i32, char0: i32) -> i64 | null {
+    i :: ident_start(li.source, li_offset(li, line0, char0))
+    if i == 0 || li.source.byte_at(i - 1) != '.' {
+        return null
+    }
+    return i - 1
+}
+
+// Where the identifier the cursor at byte `offset` ends starts : `offset` itself
+// when no identifier byte precedes it.
+ident_start :: fn(source: string, offset: i64) -> i64 {
+    i := offset
+    if i > source.byte_len() {
+        i = source.byte_len()
+    }
+    for i > 0 && is_ident_byte(source.byte_at(i - 1)) {
+        i -= 1
+    }
+    return i
+}
+
+// Member completions for `receiver.<cursor>` : the receiver's struct fields and
+// the methods of every entry-module impl on its type. The receiver is the
+// smallest typed expression ending at `dot_col - 1` (the char before the `.`) —
+// the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
+// still typed, so the typed cache resolves the receiver even mid-edit.
+member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32, leading: bool, struct_key: bool) -> JsonValue {
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return completion_list([]) }
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry] ?? return completion_list([])
+    sf :: source_file_for_path(entry.module.files, file_path) ?? return completion_list([])
+
+    // The receiver is the expression ending exactly at the dot (spans encode
+    // `end` one-past-the-last-char). Anchoring on that end column resolves a
+    // call receiver (`f(a, b).m`) to the call itself, not its last argument —
+    // whose exclusive-end overlaps the closing `)` under a plain positional
+    // lookup. Fall back to the positional finder when nothing ends at the dot.
+    // A leading dot (`S { .`, `f(.`, `x = .`) isn't a member access — it's a
+    // struct-literal field key or an enum literal, resolved from context. Handle
+    // it before the receiver path, which would otherwise treat the enclosing
+    // expr that `find_expr_at` recovers (e.g. the call for `f(.`) as a receiver.
+    if leading {
+        return leading_dot_completion(sf.program.decls, cached.result.typed, line0 + 1, dot_col, struct_key)
+    }
+
+    recv := find_receiver_before_dot(sf.program.decls, line0 + 1, dot_col, cached.result.typed)
+    if recv == null {
+        recv = find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
+    }
+    if recv == null { return completion_list([]) }
+
+    // Namespace-import alias receiver (`G.<member>` where `G :: import "p"`) :
+    // list the target module's exports. The receiver types as UnresolvedType,
+    // or not at all in a type position (`G.Node { … }`), and the UFCS loop
+    // below (through is_assignable's Unresolved-matches-every-free-fn rule) would
+    // otherwise offer every imported free fn (print/…).
+    ns_mod :: namespace_base_mod_id(recv, cached.result.typed)
+    if ns_mod != null {
+        exports :: cached.result.typed.namespace_exports[ns_mod]
+        if exports != null {
+            ns_items: JsonValue[]: []
+            for [name, ty] in exports {
+                ns_items.push(completion_item(name, import_ci_kind(name), display_type(ty)))
+            }
+            return completion_list(ns_items)
+        }
+    }
+    recv_type :: cached.result.typed.expr_types[recv.id] ?? return completion_list([])
+
+    items: JsonValue[]: []
+    seen :: MutableMap<string, bool> {}
+
+    // Struct fields — look up the receiver type's decl in the project-wide
+    // `struct_decls` registry (keyed by the struct symbol's id), so a receiver
+    // whose type is declared in an IMPORTED module (e.g. `lambda : AST.LambdaExpr`
+    // from `vader/parser`) resolves its fields too — not just entry-module structs.
+    if recv_type is StructType {
+        decl :: cached.result.typed.struct_decls[recv_type.symbol.id]
+        fmap :: cached.result.typed.struct_field_types[recv_type.symbol.id]
+        if decl != null {
+            for fld in decl.fields {
+                if seen[fld.name] != null { continue }
+                seen[fld.name] = true
+                // The field's resolved type, for the completion detail (`body:
+                // BlockExpr`-style) — read from the project-wide field-type map.
+                detail := ""
+                if fmap != null {
+                    ft :: fmap[fld.name]
+                    if ft != null { detail = display_type(ft) }
+                }
+                items.push(completion_item(fld.name, .Field, detail))
+            }
+        }
+    }
+
+    // Impl methods on the receiver's type (UFCS), whatever the type : a struct,
+    // an array (`T[] implements ArrayOps`), a primitive (`string implements
+    // Hash`), the one non-null member of a `T | null`.
+    for [name, method] in impl_members_of(cached.result.typed, subtract_type(recv_type, TY_NULL)) {
+        if seen[name] != null {
+            continue
+        }
+        seen[name] = true
+        items.push(completion_item(name, .Method, display_type(method.ty)))
+    }
+
+    // Free-fn UFCS methods — a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
+    // `mint :: fn(self: NodeIdFactory)` invoked `f.mint()`. Not in an impl block,
+    // so the loop above misses them ; match every free fn whose first param fits.
+    // Skipped for UnresolvedType / TypeParamType receivers : an Unresolved one fits
+    // EVERY free fn, so the loop would be noise — and a bound type param's real
+    // methods come from the bound walk just below.
+    if !(recv_type is UnresolvedType) && !(recv_type is TypeParamType) {
+        // `sf.program.file`, not `file_path` : the overload table is keyed by
+        // the path the parser stamped into the file's spans, and only that form
+        // matches. Imports are file-scoped, so completion offers this file's.
+        for um in ufcs_methods_for(recv_type, sf.program.file, cached.result.typed) {
+            if seen[um.name] != null { continue }
+            seen[um.name] = true
+            items.push(completion_item(um.name, .Method, display_type(um.curried)))
+        }
+    }
+
+    // Trait methods reachable through a generic param's bound (`t: T` where
+    // `T: Display` → offer `to_string`). The impl + UFCS loops can't see these.
+    if recv_type is TypeParamType {
+        for mname in typeparam_bound_method_names(recv_type, cached.result.typed) {
+            if seen[mname] != null { continue }
+            seen[mname] = true
+            items.push(completion_item(mname, .Method, ""))
+        }
+    }
+
+    return completion_list(items)
+}
+
+// True when the dot at byte `dot_off` is a LEADING dot, an enum literal `.Variant`,
+// not a member access `recv.field`. Decided from the byte IMMEDIATELY before the
+// dot, with no whitespace skip: a member access glues its value to the dot, so a
+// value end (ident, `)`, `]`) means member access; a space, `(`, `=`, `{`, a
+// keyword gap (`return .`) or the start of input means a leading dot.
+is_leading_dot :: fn(source: string, dot_off: i64) -> bool {
+    if dot_off == 0 { return true }
+    b :: source.byte_at(dot_off - 1)
+    if is_ident_byte(b) { return false }
+    if b == ')' || b == ']' { return false }
+    return true
+}
+
+// The source byte before the dot at byte `dot_off`, skipping whitespace ; 0 at
+// the start of input. Shared by the leading-dot classifiers.
+byte_before_dot :: fn(source: string, dot_off: i64) -> u8 {
+    if dot_off == 0 { return 0 }
+    i := dot_off - 1
+    for i > 0 {
+        if source.byte_at(i) == ' ' || source.byte_at(i) == '\t' { i = i - 1 } else { break }
+    }
+    return source.byte_at(i)
+}
+
+// True when the dot opens a struct-literal field key — the byte before it (after
+// whitespace) is `{` or `,` (`S { .field` / `, .field`). A subset of is_leading_dot.
+dot_after_brace_or_comma :: fn(source: string, dot_off: i64) -> bool {
+    b :: byte_before_dot(source, dot_off)
+    return b == '{' || b == ','
+}
+
+// Leading-dot completion (`S { .`, `f(.`, `= .`, `match e { .`, `c == .`): the dot
+// has no receiver, so what follows comes from context — a struct-literal field key
+// (after `{` / `,`) or an enum literal (elsewhere). The enum side covers a fn
+// parameter's default value, a fn-call argument slot, a match-arm pattern and an
+// equality's other operand.
+leading_dot_completion :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32, struct_key: bool) -> JsonValue {
+    // `S { .field }` — the enclosing struct literal's field names.
+    if struct_key {
+        si :: struct_lit_field_items(decls, typed, line, col)
+        if si != null { return completion_list(si) }
+    }
+    // Otherwise an enum literal whose enum is reconstructed from context.
+    et :: expected_enum_at(decls, line, col, typed) ?? return completion_list([])
+    items: JsonValue[]: []
+    for [name, _] in et.indices {
+        items.push(completion_item(name, .Enum, ""))
+    }
+    return completion_list(items)
+}
+
+// Field items of the struct literal enclosing `(line, col)`, or null when the
+// cursor isn't inside a typed struct literal. Mirrors the struct-field block of
+// `member_completion` (decl.fields + struct_field_types for the detail).
+struct_lit_field_items :: fn(decls: AST.Decl[], typed: TypedProgram, line: i32, col: i32) -> JsonValue[] | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.StructLitExpr {
+            t :: typed.expr_types[e.id]
+            if t is StructType {
+                decl :: typed.struct_decls[t.symbol.id] ?? return null
+                fmap :: typed.struct_field_types[t.symbol.id]
+                items: JsonValue[]: []
+                for fld in decl.fields {
+                    detail := ""
+                    if fmap != null {
+                        ft :: fmap[fld.name]
+                        if ft != null { detail = display_type(ft) }
+                    }
+                    items.push(completion_item(fld.name, .Field, detail))
+                }
+                return items
+            }
+        }
+    }
+    return null
+}
+
+// The enum expected at a leading-dot position, or null. Tries the other operand
+// of an equality first, the one context that names the dot itself ; then a
+// parameter default value, a fn-call argument slot, a match scrutinee, a
+// struct-literal field value, a match result and a statement's expected type.
+// Lifts the placeholder a bare enum name resolves to (see lift_enum_placeholder)
+// into the real EnumType.
+expected_enum_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> EnumType | null {
+    co :: comparison_operand_type_at(decls, line, col, typed)
+    if co != null {
+        en :: as_enum_type(co, typed)
+        if en != null { return en }
+    }
+    pd :: param_default_type_at(decls, line, col, typed)
+    if pd != null {
+        en :: as_enum_type(pd, typed)
+        if en != null { return en }
+    }
+    ca :: call_arg_type_at(decls, line, col, typed)
+    if ca != null {
+        en :: as_enum_type(ca, typed)
+        if en != null { return en }
+    }
+    ms :: match_scrutinee_type_at(decls, line, col, typed)
+    if ms != null {
+        en :: as_enum_type(ms, typed)
+        if en != null { return en }
+    }
+    sv :: struct_field_value_type_at(decls, line, col, typed)
+    if sv != null {
+        en :: as_enum_type(sv, typed)
+        if en != null { return en }
+    }
+    mr :: match_result_type_at(decls, line, col, typed)
+    if mr != null {
+        en :: as_enum_type(mr, typed)
+        if en != null { return en }
+    }
+    se :: stmt_expected_type_at(decls, line, col, typed)
+    if se != null {
+        en :: as_enum_type(se, typed)
+        if en != null { return en }
+    }
+    return null
+}
+
+// The right operand of an equality, when it is the dot at the cursor (`c == .|`):
+// the expected type is the left operand's, as the typecheck gives it. Only the dot
+// itself counts — in `c == f(.|)` the call's slot decides — and only on the right,
+// where the typecheck reads `.Variant` against the other side.
+comparison_operand_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.BinaryExpr && (e.op == .Eq || e.op == .Neq) {
+            if e.right is AST.DotVariantExpr && span_contains(e.right.span, line, col) {
+                return typed.expr_types[e.left.id]
+            }
+        }
+    }
+    return null
+}
+
+// Field-value position inside a struct literal (`S { .f = .| }`): the expected
+// type is field `f`'s declared type. Finds the enclosing struct literal and the
+// item whose value span holds the cursor.
+struct_field_value_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.StructLitExpr {
+            t :: typed.expr_types[e.id]
+            if t is StructType {
+                fmap :: typed.struct_field_types[t.symbol.id] ?? return null
+                for j in 0..<e.items.len() {
+                    it :: e.items[j]
+                    if it is AST.StructLitField {
+                        if span_contains(it.value.span, line, col) { return fmap[it.name] }
+                    }
+                }
+            }
+            return null
+        }
+    }
+    return null
+}
+
+// Arm-body position of a match (`match e { _ -> .| }`): the expected type is the
+// match's own result type. (The pattern position is handled by
+// match_scrutinee_type_at, which returns null when the cursor is in a body.)
+match_result_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.MatchExpr {
+            for j in 0..<e.arms.len() {
+                if span_contains(e.arms[j].body.span, line, col) { return typed.expr_types[e.id] }
+            }
+            return null
+        }
+    }
+    return null
+}
+
+// Statement-context expected type : a `return .|` value (the enclosing fn's
+// return type) or a typed local's value (`x: T = .|` → the annotation `T`).
+// Walks fn bodies, threading the fn's return TypeExpr ; explicit `return` is
+// honoured at any depth, the implicit-return value only at the fn-body trailing.
+stmt_expected_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    for d in decls {
+        if d is AST.FnDecl {
+            r :: scan_fn_body(d, line, col, typed)
+            if r != null { return r }
+        } else if d is AST.ImplDecl {
+            for m in d.members {
+                r :: scan_fn_body(m, line, col, typed)
+                if r != null { return r }
+            }
+        }
+    }
+    return null
+}
+
+scan_fn_body :: fn(fd: AST.FnDecl, line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    b :: fd.body ?? return null
+    if !span_contains(b.span, line, col) {
+        return null
+    }
+    return scan_block(b, line, col, fd.return_type, typed, true)
+}
+
+scan_block :: fn(b: AST.BlockExpr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram, fn_body: bool) -> Type | null {
+    for i in 0..<b.stmts.len() {
+        r :: scan_stmt(b.stmts[i], line, col, ret_ty, typed)
+        if r != null { return r }
+    }
+    tr :: b.trailing
+    if tr != null {
+        r :: scan_value_expr(tr, line, col, ret_ty, typed)
+        if r != null { return r }
+    }
+    // Fn-body fallback: a leading dot anywhere in the body that wasn't a typed
+    // local or a nested block is a `return` / implicit-return value → the fn's
+    // return type. Nested blocks pass fn_body = false, so they don't trigger it.
+    if fn_body && ret_ty != null { return type_from_expr(ret_ty, typed.resolved, []) }
+    return null
+}
+
+scan_stmt :: fn(s: AST.Stmt, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
+    if s is AST.LetStmt {
+        ann :: s.ty
+        if ann != null && span_contains(s.value.span, line, col) {
+            return type_from_expr(ann, typed.resolved, [])
+        }
+        return scan_value_expr(s.value, line, col, ret_ty, typed)
+    }
+    if s is AST.ReturnStmt {
+        rv :: s.value
+        if rv != null { return scan_value_expr(rv, line, col, ret_ty, typed) }
+        return null
+    }
+    if s is AST.ExprStmt { return scan_value_expr(s.expr, line, col, ret_ty, typed) }
+    if s is AST.YieldStmt { return scan_value_expr(s.value, line, col, ret_ty, typed) }
+    if s is AST.ForStmt { return scan_block(s.body, line, col, ret_ty, typed, false) }
+    return null
+}
+
+// Descend a value-position expr into the nested blocks it may carry (if / match
+// arms / block), so a `return` / typed local inside them is still reached.
+scan_value_expr :: fn(e: AST.Expr, line: i32, col: i32, ret_ty: AST.TypeExpr | null, typed: TypedProgram) -> Type | null {
+    if e is AST.BlockExpr { return scan_block(e, line, col, ret_ty, typed, false) }
+    if e is AST.IfExpr {
+        r :: scan_block(e.then_block, line, col, ret_ty, typed, false)
+        if r != null { return r }
+        eb :: e.else_branch
+        if eb is AST.IfElseBlock { return scan_block(eb.block, line, col, ret_ty, typed, false) }
+        if eb is AST.IfElseIf { return scan_value_expr(eb.branch, line, col, ret_ty, typed) }
+    }
+    if e is AST.MatchExpr {
+        for j in 0..<e.arms.len() {
+            r :: scan_value_expr(e.arms[j].body, line, col, ret_ty, typed)
+            if r != null { return r }
+        }
+    }
+    return null
+}
+
+// Scrutinee type of the enclosing `match` when the cursor is in an arm PATTERN
+// position (`match e { .| }`) — i.e. inside the match but not inside any arm's
+// body expression (a value position, where the expected type would be the arm
+// result, not the scrutinee). Null otherwise.
+match_scrutinee_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    chain :: enclosing_exprs(decls, line, col)
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.MatchExpr {
+            for j in 0..<e.arms.len() {
+                if span_contains(e.arms[j].body.span, line, col) { return null }
+            }
+            return typed.expr_types[e.scrutinee.id]
+        }
+    }
+    return null
+}
+
+as_enum_type :: fn(t: Type, typed: TypedProgram) -> EnumType | null {
+    lifted :: lift_enum_placeholder(t, typed)
+    if lifted is EnumType { return lifted }
+    return null
+}
+
+// Declared type of the parameter whose default value contains `(line, col)`.
+// Walks top-level fn decls (covers the `fn(s: Stream = .|)` site).
+param_default_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    for d in decls {
+        if d is AST.FnDecl {
+            for p in d.params {
+                dv :: p.default_value ?? continue
+                if span_contains(dv.span, line, col) {
+                    return typed.param_types[p.span.hash()]
+                }
+            }
+        }
+    }
+    return null
+}
+
+// Declared type of the parameter slot the cursor sits in for an enclosing call
+// `f(…, .|, …)` or `x.f(…, .|, …)` — the callee resolves via `lookup_fn_decl`.
+call_arg_type_at :: fn(decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram) -> Type | null {
+    call :: find_enclosing_call(decls, line, col) ?? return null
+    fd :: lookup_fn_decl(call.callee, typed) ?? return null
+    if fd.params.len() == 0 { return null }
+    // Clamp into range : an incomplete arg (`f(.`) can make active_param_index
+    // count "past" the only slot, and over-supplied args shouldn't index OOB —
+    // either way fall back to the last parameter's type.
+    idx := active_param_index(call, line, col) + receiver_slots(call, typed)
+    if idx < 0 { idx = 0 }
+    if i64(idx) >= fd.params.len() { idx = i32(fd.params.len()) - 1 }
+    return typed.param_types[fd.params[idx].span.hash()]
+}
+
+/// Declarations reachable at `(line, col)` : every file-wide decl plus the
+/// intra-file bindings whose `scope_span` covers the cursor. 1-based coords.
+visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
+    out: DeclEntry[]: []
+    for d in idx.decls {
+        // A field or a variant is not a name in scope — writing it bare is
+        // R2006. Offering them here took `codes.vader` from 43 completions to
+        // 233, 188 of them uninsertable.
+        if is_member_kind(d.kind) {
+            continue
+        }
+        ss :: d.scope_span
+        if ss != null {
+            if !span_contains(ss, line, col) { continue }
+        }
+        out.push(d)
+    }
+    return out
+}
+
+/// LSP `CompletionItemKind` wire values (LSP §3.17) — the subset we emit. The
+/// backing integer is what travels on the wire, so `i32(kind)` yields the
+/// protocol number.
+CompletionItemKind :: enum(i32) {
+    Method    = 2,
+    Function  = 3,
+    Field     = 5,
+    Variable  = 6,
+    Class     = 7,
+    Interface = 8,
+    Enum      = 13,
+    Keyword   = 14,
+    Constant  = 21,
+    Struct    = 22,
+    // LSP §3.17 EnumMember. Distinct from `Enum` — one is the type, the other
+    // is a value of it.
+    EnumMember = 20,
+}
+
+// Map an indexer `DeclKind` to its `CompletionItemKind`.
+ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
+    .Fn        -> .Function
+    .Struct    -> .Struct
+    .Enum      -> .Enum
+    .Trait     -> .Interface
+    .TypeAlias -> .Class
+    .Const     -> .Constant
+    .Field     -> .Field
+    .EnumVariant -> .EnumMember
+    .Param     -> .Variable
+    .Local     -> .Variable
+    .ForIn     -> .Variable
+}
+
+// Imported names carry no resolved kind in the index, so guess from the
+// casing : PascalCase reads as a type (Class icon), otherwise a fn / value.
+import_ci_kind :: fn(name: string) -> CompletionItemKind {
+    if name.byte_len() == 0 {
+        return .Function
+    }
+    return match name.byte_at(0) {
+        'A'..='Z' -> .Class
+        _         -> .Function
+    }
+}
+
+completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonObject {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["label"] = JsonString { .value = label }
+    obj["kind"]  = JsonNumber { .value = f64(i32(kind)) }
+    if detail.byte_len() > 0 {
+        obj["detail"] = JsonString { .value = detail }
+    }
+    return JsonObject { .entries = obj }
+}
+
+// Whether the identifier the cursor at byte `offset` ends follows a `@` : a
+// decorator or an intrinsic is being written.
+follows_at_sign :: fn(source: string, offset: i64) -> bool {
+    i :: ident_start(source, offset)
+    return i > 0 && source.byte_at(i - 1) == '@'
+}
+
+// The decorators, then the intrinsics, each with its usage and its documentation.
+builtin_items :: fn() -> JsonValue[] {
+    out: JsonValue[]: []
+    for d in Parser.DECORATORS {
+        out.push(documented_item(d.name, .Keyword, d.usage, d.doc))
+    }
+    for s in Parser.INTRINSICS {
+        out.push(documented_item(s.name, .Function, s.signature, s.doc))
+    }
+    return out
+}
+
+// A completion item whose documentation is the Markdown `doc`.
+documented_item :: fn(
+    label: string, kind: CompletionItemKind, detail: string, doc: string,
+) -> JsonValue {
+    item :: completion_item(label, kind, detail)
+    item.entries["documentation"] = markup_json(doc)
+    return item
+}
+
+completion_list :: fn(items: JsonValue[]) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["isIncomplete"] = JsonBool { .value = false }
+    obj["items"]        = JsonArray { .items = items }
+    return JsonObject { .entries = obj }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// True when some visible decl is named `name`.
+has_decl :: fn(decls: DeclEntry[], name: string) -> bool {
+    for d in decls {
+        if d.name == name { return true }
+    }
+    return false
+}
+
+@test
+test_visible_decls_lists_toplevel :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    sum :: a + b
+    return sum
+}
+
+MAX :: 10
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    // Cursor on the `return sum` line — inside add's body, so `sum` (Local) is
+    // visible alongside the top-level decls.
+    vis :: visible_decls(idx, 3, 5)
+    assert(has_decl(vis, "add"), "top-level fn is visible")
+    assert(has_decl(vis, "MAX"), "top-level const is visible")
+    assert(has_decl(vis, "sum"), "in-scope local is visible")
+}
+
+@test
+test_visible_decls_excludes_out_of_scope_locals :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    sum :: a + b
+    return sum
+}
+
+MAX :: 10
+"""
+    idx :: build_index("t.vader", src, .Utf16)
+    // Cursor on the `MAX` line — outside add's body, so `sum` is not visible,
+    // but the top-level decls still are.
+    vis :: visible_decls(idx, 6, 1)
+    assert(has_decl(vis, "MAX"), "top-level const is visible")
+    assert(has_decl(vis, "add"), "top-level fn is visible")
+    assert(!has_decl(vis, "sum"), "out-of-scope local is hidden")
+}
+
+@test
+test_ci_kind_mapping :: fn() -> void {
+    assert(ci_kind(.Fn) == .Function, "Fn -> Function")
+    assert(ci_kind(.Struct) == .Struct, "Struct -> Struct")
+    assert(ci_kind(.Const) == .Constant, "Const -> Constant")
+    assert(ci_kind(.Local) == .Variable, "Local -> Variable")
+}
+
+@test
+test_import_ci_kind_casing :: fn() -> void {
+    assert(import_ci_kind("MutableMap") == .Class, "type -> Class")
+    assert(import_ci_kind("println") == .Function, "value -> Function")
+}
+
+@test
+test_member_context_detects_dot :: fn() -> void {
+    // "p.x": cursor after `x` (0-based char 3) ; the `.` sits at byte 1.
+    assert(member_context(new_line_index("p.x", .Utf8), 0, 3) == 1, "the dot at byte 1")
+}
+
+@test
+test_member_context_detects_dot_no_partial :: fn() -> void {
+    // "p.": cursor right after the dot (char 2). Dot at byte 1.
+    assert(member_context(new_line_index("p.", .Utf8), 0, 2) == 1, "a trailing dot")
+}
+
+@test
+test_member_context_none_without_dot :: fn() -> void {
+    assert(member_context(new_line_index("foo", .Utf8), 0, 3) == null, "plain ident is not a member context")
+}

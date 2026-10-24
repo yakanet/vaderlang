@@ -1,0 +1,137 @@
+// vader/tools/cli/run — the `vader run` command.
+//
+// Compiles to bytecode and executes it on the embedded VM, forwarding the
+// program's own argv. The one action that stops at bytecode rather than C: it is
+// also how the VM is exercised against the real pipeline.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "std/io"
+import "std/path"
+import "std/string"
+import "cli"
+import "vader/bytecode"
+import "vader/midir"
+import "vader/pipeline"
+import "vader/support/diagnostics"
+import "vader/vm"
+import "vader/lower"
+
+
+
+
+
+// The one forwarding action: the CLI reads flags up to the path, and everything
+// after it is the executed program's argv — verbatim, uninspected, `-o` and
+// `--allow-env` alike. No `--` needed:
+//   vader run compiler.virt dump --stage=bytecode vader/tools/cli/main.vader
+// A `--` is still accepted, but as a zone-closer BEFORE the path, which is how a
+// path starting with a dash is named (`vader run -- -weird.vader`).
+cmd_run :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("run", args)
+    if parsed is i32 {
+        return parsed
+    }
+    path :: action_file(parsed)
+    if path == "" {
+        eprintln("vader run: expected a file or a project folder")
+        return 1
+    }
+    // argv[0] is the program path, which the program itself skips.
+    forward :: parsed.positionals
+    entry :: single_entry("run", path, parsed)
+    if entry is i32 {
+        return entry
+    }
+    return run_file(entry.file, forward, entry.project_root)
+}
+
+// Run `path`: a `.virt` text bytecode module directly through the VM, a `.vader`
+// source (or any other extension) compiled through the full pipeline to a
+// `BytecodeModule` first, within `project_root` (null for a file on its own).
+run_file :: fn(path: Path, forward: string[], project_root: string | null) -> i32 {
+    if path.filename().ends_with(".virt") {
+        return run_virt(path, forward)
+    }
+    return run_source(path, forward, project_root)
+}
+
+// Run the `.virt` text bytecode module at `path`, with the adapters of its
+// `@extern`s, as a source run has. The exit code of its `main`, or 1 after
+// saying why it could not run.
+run_virt :: fn(path: Path, forward: string[]) -> i32 {
+    source :: read_file_string(path.as_string())
+    if source is IOError {
+        eprintln("vader run: cannot read ${path}")
+        return 1
+    }
+    module :: parse_virt_bc(source)
+    if module is VirtParseError {
+        eprintln(module.display_virt_parse_error("vader run", path.as_string()))
+        return 1
+    }
+    state :: prepare(module)
+    if state is VerifyError {
+        eprintln("vader run: ${display_verify_error(state)}")
+        return 1
+    }
+    problem :: attach_ffi_adapters(state, null, path)
+    if problem != null {
+        eprintln("vader run: ${problem}")
+        return 1
+    }
+    return match o :: exec(state, forward) {
+        is Ok   -> o.value
+        is Trap -> {
+            eprintln("vader vm: ${o.message}")
+            1
+        }
+    }
+}
+
+run_source :: fn(file: Path, host_argv: string[], project_root: string | null) -> i32 {
+    // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
+    // side-table maps dominate the live set) before this CFG → bytecode tail —
+    // the lowered IR carries its own `Type`s, so emit never revisits the
+    // typed-AST tables.
+    le :: lower_to_entry(file, project_root)
+    prepared :: prepare_cfg_bytecode_from(le, file, false)
+    module :: prepared.module
+    // Report errors and bail before executing, as `build` does : `lower_to_entry`
+    // returns an empty lowered project on a front-end error (it won't lower a
+    // rejected program), which would otherwise reach the VM as a "no entry
+    // function" trap that buries the real diagnostic ; and a lowering or CFG error
+    // puts an `unreachable` where it could not lower, which would cut the function
+    // short with nothing said.
+    if !ready_to_emit(prepared, "run", file) {
+        return 1
+    }
+    // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
+    // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
+    // pointless overhead and lossy (dump_bytecode drops the data pool).
+    // `run_virt` still parses real `.virt` files ; this is the source path.
+    state :: prepare(module)
+    if state is VerifyError {
+        eprintln("vader run: ${display_verify_error(state)}")
+        return 1
+    }
+    problem :: attach_ffi_adapters(state, project_root, file)
+    if problem != null {
+        eprintln("vader run: ${problem}")
+        return 1
+    }
+    // Run the `main` declared in the NAMED file, not the VM's default first
+    // `is_main` : sibling files in one folder merge into a single module, so a
+    // folder can hold several `main` fns and `prepare`'s `main_index` would pick
+    // the first-declared one regardless of which file was named on the CLI.
+    entry_index :: entry_index_for_file(module, le.lowered, file, state.main_index)
+    return match o :: exec_entry(state, entry_index, host_argv, null, false, null) {
+        is Ok   -> o.value
+        is Trap -> {
+            eprintln("vader vm: ${o.message}")
+            1
+        }
+    }
+}

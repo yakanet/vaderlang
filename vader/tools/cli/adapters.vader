@@ -1,0 +1,36 @@
+// vader/tools/cli/adapters: the adapters an interpreted program calls C through,
+// attached before it runs.
+//
+// The interpreter calls an `@extern` none of its trampolines covers through an
+// adapter (`vader/vm/adapters.vader`), which `vader run`, `vader test` and the
+// debugger build with `cc` before the first instruction runs
+// (`vader/pipeline/ffi_adapters.vader`). A program without such an `@extern`
+// needs no C compiler.
+
+module "vader/tools/cli"
+
+import "std/path"
+import "vader/pipeline"
+import "vader/vm"
+
+// Give `state` the adapters of its program, building them when it has any.
+//
+// The library is kept under the `build/` of `project_root`, or of the folder of
+// `entry` for a file on its own; a quoted `@c_header` resolves from that folder
+// too. Null on success, else why the program cannot run on the interpreter,
+// worded to follow "vader <command>:".
+attach_ffi_adapters :: fn(state: VmState, project_root: string | null, entry: Path) -> string | null {
+    adapted :: adapted_imports(state.bc)
+    if adapted.len() == 0 {
+        return null
+    }
+    entry_dir :: quote_include_dir(entry)
+    built :: build_ffi_adapters(state.bc, adapted, project_root ?? entry_dir, cc_or_default(""), entry_dir)
+    if built is AdapterBuildError {
+        imp :: state.bc.imports[adapted[0]]
+        reason :: adapter_reason(imp, state.bc.types) ?? ""
+        return "extern `${imp.extern_name}` is called through an adapter (${reason}), and the adapters "
+            + "${built.message}; or build the program with `vader build`"
+    }
+    return attach_adapters(state, built, adapted)
+}

@@ -1,0 +1,615 @@
+// vader/tools/lsp/handlers/ast_tokens — semantic-token classification driven by the parsed
+// AST + the body-walking resolver.
+//
+// Lexer-based classification in `semantic_tokens.vader` covers keywords,
+// literals, comments, and operators ; this module fills in the last gap
+// — identifiers. Two phases :
+//
+//   1. Positional walk : attribute a role by AST position (callee of
+//      CallExpr → Function, TypeExpr slot → Type, decl name → matching
+//      kind, …). Catches declaration sites + structural roles.
+//   2. Resolver refinement : run `vader/resolver/body` to map every
+//      IdentExpr to its bound Symbol, then override Phase-1 tokens
+//      whose span matches a resolved ident with the symbol's actual
+//      kind. This is what distinguishes a parameter use site from a
+//      local use site — Phase 1 can't tell them apart.
+
+module "vader/tools/lsp/handlers"
+
+import "std/collections"
+import "vader/parser"
+AST :: import "toolchain/ast"
+import "vader/support/diagnostics"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/tools/lsp/protocol"
+import "toolchain/span"
+
+/// Primitive type names recognised by the lexer / typechecker but not as
+/// individual keywords. When an `IdentExpr` carries one of these names in
+/// expression position (`i32(x)` cast, `i32.MAX` field access, …) we
+/// paint it `Type` instead of the positional `Variable` default. Order
+/// doesn't matter — keep alphabetised for human scanning.
+// The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
+// elsewhere) plus `type` (the metatype). Derives from `vader/types` so a new
+// primitive is picked up automatically.
+is_primitive_type_name :: fn(name: string) -> bool =
+    (is_scalar_type_name(name) && name != "null") || name == "type"
+
+/// Parse the source `li` indexes and walk every AST node, pushing a `RawToken`
+/// for each identifier. The walk runs in two phases: the AST walker tags every
+/// ident by position, then the resolver-refinement pass overrides
+/// tokens whose ident resolves to a Symbol with a kind that Phase 1
+/// couldn't infer (most notably Param vs Local).
+collect_ast_idents :: fn(li: LineIndex, uri: string, out: RawToken[]) -> void {
+    parsed :: parse_source(li.source, uri)
+    program :: parsed.program
+    // Soft keyword : `module "..."` on the first non-trivial line is
+    // not a `Kw*` token at the lexer level (it stays an Ident). Surface
+    // the keyword colour here using the parsed AST.ModuleDecl's nameSpan
+    // start to anchor the 6-char "module" span.
+    match md :: program.module {
+        is null           -> {}
+        is AST.ModuleDecl -> { push_module_keyword_span(md, out) }
+    }
+    for d in program.decls {
+        walk_decl(d, out)
+    }
+    refine_via_resolver(program, uri, out, li)
+}
+
+push_module_keyword_span :: fn(md: AST.ModuleDecl, out: RawToken[]) -> void {
+    // The `module` keyword occupies the first 6 chars of the decl ;
+    // md.span.start lines up with the `m` of `module`.
+    out.push(RawToken {
+        .line         = md.span.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(TokenType.Keyword),
+        .modifiers    = 0,
+        .start_offset = md.span.start.offset,
+        .end_offset   = md.span.start.offset + 6,
+    })
+}
+
+/// Walk every ident through the body-resolver and override matching Phase-1
+/// tokens with the symbol-kind-derived TokenType + modifiers.
+///
+/// The root scope is SEEDED with the file's own top-level decls and import
+/// bindings (`file_root_scope` over `collect_module_no_index` — the mono-file
+/// collector, no module index or loader needed). Without the seed a top-level name never resolves from a body,
+/// so every reference to this file's consts / fns / types fell to the `Variable`
+/// catch-all: a module const then read as a reassignable local rather than a
+/// constant. Seeding also gets shadowing right for free — `Scope.lookup` walks
+/// innermost-out, so a local shadowing a const name still resolves to the local.
+///
+/// Sibling-file and imported names remain unresolved (they need the project's
+/// module graph) and keep the `Variable` fallback.
+refine_via_resolver :: fn(
+    program: AST.Program, uri: string, out: RawToken[], li: LineIndex,
+) -> void {
+    factory :: SymbolFactory {}
+    collected :: collect_module_no_index(program, uri, factory)
+    none :: MutableMap<string, Symbol> {}
+    seed :: file_root_scope(none, collected, collected.files[0], MutableMap<string, LoadedModule> {}, none)
+    resolved :: resolve_program(program, seed, uri, factory)
+    for i in 0..<out.len() {
+        rt :: out[i]
+        // `idents` is keyed by `Span.hash()` = (file, line, codepoint column), so
+        // the probe is a zero-width span at the token's start in the resolved
+        // file. A RawToken carries only byte offsets until `reencode_columns`.
+        col :: span_column(li, rt.line, rt.start_offset)
+        probe_pos :: Position { .file = uri, .offset = 0, .line = rt.line + 1, .column = col }
+        probe :: Span { .start = probe_pos, .end = probe_pos }
+        hit :: resolved.idents[probe.hash()]
+        match hit {
+            is Symbol -> {
+                // Only the token type + modifiers are refined ; offsets stay
+                // canonical and col/length are still derived later by
+                // `reencode_columns`.
+                out[i].tok_type = i32(token_type_of_symbol(hit.kind))
+                out[i].modifiers = modifiers_of_symbol(hit)
+            }
+            is null -> {}
+        }
+    }
+}
+
+/// Map a `SymbolKind` to the LSP token type the wire format expects ; a kind
+/// without a meaningful LSP analogue reads as a `Variable`.
+token_type_of_symbol :: fn(k: SymbolKind) -> TokenType = match k {
+    .Fn | .BuiltinFn                                                  -> .Function
+    .Struct | .Enum | .Trait | .TypeAlias | .BuiltinType | .TypeParam -> .Type
+    .Param                                                            -> .Parameter
+    .Local | .Binding | .Const | .ImportBinding | .Impl | .Synthetic  -> .Variable
+}
+
+/// Modifier bitmask for a symbol, `0` for kinds carrying none.
+///
+/// A module const is `static` + `readonly`, the pair clients resolve to their
+/// "constant" colour (LSP4IJ → `CONSTANT`); without it a `SCREAMING_SNAKE` const
+/// read as a plain (and worse, reassignable) local.
+modifiers_of_symbol :: fn(sym: Symbol) -> i32 {
+    if !is_frozen_const(sym) {
+        return 0
+    }
+    return modifier_bit(.Static) | modifier_bit(.Readonly)
+}
+
+// ---- raw-token helpers ----------------------------------------------------
+
+push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
+    if sp.end.offset <= sp.start.offset { return }
+    out.push(RawToken {
+        .line         = sp.start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(kind),
+        .modifiers    = 0,
+        .start_offset = sp.start.offset,
+        .end_offset   = sp.end.offset,
+    })
+}
+
+/// Push a token anchored at `start`, spanning `prefix` leading chars plus
+/// the `name` text — `prefix = 1` for the `@` of a decorator / intrinsic,
+/// `0` for a bare declaration name.
+///
+/// Used where the AST node's `span` reaches past the name : a struct-field
+/// or fn-param `span` runs through the type annotation (`x: i32`), a
+/// decorator `span` runs to the closing `)` of its args (`@extern("c")`).
+/// Tagging the full span would overlap the inner type / argument tokens,
+/// which LSP forbids and clients render inconsistently — so anchor on the
+/// name alone. `name` is a declaration / decorator / intrinsic identifier,
+/// which the lexer admits as ASCII only (`is_alpha`), so its byte length
+/// already equals its codepoint length — no UTF-16 adjustment needed here,
+/// unlike the span-based `span_token_length`.
+push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
+    // `prefix` (`@`) and `name` are ASCII, so the byte width equals the char
+    // width ; `reencode_columns` derives col + length from the offsets.
+    end_off :: start.offset + i64(prefix) + name.byte_len()
+    if end_off <= start.offset { return }
+    out.push(RawToken {
+        .line         = start.line - 1,
+        .col          = 0,
+        .length       = 0,
+        .tok_type     = i32(kind),
+        .modifiers    = 0,
+        .start_offset = start.offset,
+        .end_offset   = end_off,
+    })
+}
+
+// Optional-arm helpers. Vader's `match` over a union doesn't auto-cover all
+// variants of an inner union (e.g. `match x : Expr | null { is Expr -> … }`
+// doesn't fire — `is Expr` isn't a one-arm match on the underlying ~30
+// variants). We funnel `TypeExpr | null` / `Expr | null` / `Pattern | null`
+// through these helpers so each call site stays a single line and the null
+// narrowing happens once.
+
+walk_opt_type :: fn(t: AST.Expr | null, out: RawToken[]) -> void {
+    if t !is null {
+        walk_type_expr(t, out)
+    }
+}
+
+walk_opt_expr :: fn(e: AST.Expr | null, out: RawToken[]) -> void {
+    if e !is null {
+        walk_expr(e, out)
+    }
+}
+
+walk_opt_pattern :: fn(p: AST.Pattern | null, out: RawToken[]) -> void {
+    if p !is null {
+        walk_pattern(p, out)
+    }
+}
+
+// ---- decl walkers ---------------------------------------------------------
+
+walk_decl :: fn(d: AST.Decl, out: RawToken[]) -> void {
+    match d {
+        is AST.ImportDecl    -> { walk_import_decl(d, out) }
+        is AST.FnDecl        -> { walk_fn_decl(d, out) }
+        is AST.StructDecl    -> { walk_struct_decl(d, out) }
+        is AST.EnumDecl      -> { walk_enum_decl(d, out) }
+        is AST.TraitDecl     -> { walk_trait_decl(d, out) }
+        is AST.ImplDecl      -> { walk_impl_decl(d, out) }
+        is AST.TypeAliasDecl -> { walk_type_alias(d, out) }
+        is AST.ConstDecl     -> { walk_const_decl(d, out) }
+        is AST.AssertDecl    -> {
+            walk_decorators(d.decorators, out)
+            walk_expr(d.condition, out)
+        }
+    }
+}
+
+walk_decorators :: fn(ds: AST.Decorator[], out: RawToken[]) -> void {
+    for deco in ds {
+        // `deco.span` covers `@name(args)` whole ; tag only `@name` so the
+        // argument tokens (walked below) don't sit inside a Decorator token.
+        push_name_token(out, deco.span.start, 1, deco.name, .Decorator)
+        for a in deco.args { walk_expr(a, out) }
+    }
+}
+
+walk_type_params :: fn(ps: AST.TypeParam[], out: RawToken[]) -> void {
+    for p in ps {
+        push_span(out, p.span, .Type)
+        walk_opt_type(p.bound, out)
+    }
+}
+
+walk_import_decl :: fn(d: AST.ImportDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    match dest :: d.binding {
+        is AST.NamedNamespaceImport -> {}
+        is AST.WildcardImport       -> {}
+        is AST.DestructureImport    -> {
+            for n in dest.names {
+                // A modifier names an export of the module, dropped from the
+                // wildcard or rebound under its alias. Whether it is a fn or a
+                // type is not known here — default to Variable.
+                push_span(out, n.span, .Variable)
+            }
+        }
+    }
+}
+
+walk_fn_decl :: fn(d: AST.FnDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Function)
+    walk_type_params(d.type_params, out)
+    for p in d.params { walk_fn_param(p, out) }
+    walk_opt_type(d.return_type, out)
+    walk_opt_block(d.body, out)
+}
+
+walk_opt_block :: fn(b: AST.BlockExpr | null, out: RawToken[]) -> void {
+    if b !is null {
+        walk_block(b, out)
+    }
+}
+
+walk_fn_param :: fn(p: AST.FnParam, out: RawToken[]) -> void {
+    push_span(out, p.name_span, .Parameter)
+    walk_opt_type(p.ty, out)
+    walk_opt_expr(p.default_value, out)
+}
+
+walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Type)
+    walk_type_params(d.type_params, out)
+    for f in d.fields { walk_struct_field(f, out) }
+}
+
+walk_struct_field :: fn(f: AST.StructField, out: RawToken[]) -> void {
+    // `f.span` runs through the type annotation (`x: i32`) ; tag only the
+    // field name so the type token below doesn't overlap it.
+    push_name_token(out, f.span.start, 0, f.name, .Property)
+    walk_type_expr(f.ty, out)
+    walk_opt_expr(f.default, out)
+}
+
+walk_enum_decl :: fn(d: AST.EnumDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Type)
+    for h in d.header { walk_type_expr(h, out) }
+    for v in d.variants {
+        push_span(out, v.span, .EnumMember)
+        if v.data !is null {
+            walk_struct_lit_items(v.data, out)
+        }
+    }
+}
+
+walk_trait_decl :: fn(d: AST.TraitDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Type)
+    walk_type_params(d.type_params, out)
+    walk_opt_type(d.requires, out)
+    for m in d.members { walk_fn_decl(m, out) }
+}
+
+walk_impl_decl :: fn(d: AST.ImplDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    walk_type_params(d.type_params, out)
+    walk_type_expr(d.for_type, out)
+    push_span(out, d.trait_name_span, .Type)
+    for ta in d.trait_args { walk_type_expr(ta, out) }
+    for m in d.members { walk_fn_decl(m, out) }
+}
+
+walk_type_alias :: fn(d: AST.TypeAliasDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Type)
+    walk_type_params(d.type_params, out)
+    walk_type_expr(d.aliased, out)
+}
+
+walk_const_decl :: fn(d: AST.ConstDecl, out: RawToken[]) -> void {
+    walk_decorators(d.decorators, out)
+    push_span(out, d.name_span, .Variable)
+    walk_opt_type(d.ty, out)
+    walk_expr(d.value, out)
+}
+
+// ---- stmt walkers ---------------------------------------------------------
+
+walk_stmt :: fn(s: AST.Stmt, out: RawToken[]) -> void {
+    match s {
+        is AST.LetStmt               -> { walk_let(s, out) }
+        is AST.AssignStmt            -> {
+            walk_expr(s.target, out)
+            walk_expr(s.value, out)
+        }
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                walk_expr(place, out)
+            }
+            walk_expr(s.value, out)
+        }
+        is AST.ExprStmt              -> { walk_expr(s.expr, out) }
+        is AST.ReturnStmt            -> { walk_opt_expr(s.value, out) }
+        is AST.YieldStmt             -> { walk_expr(s.value, out) }
+        is AST.ForStmt               -> { walk_for(s, out) }
+        is AST.BreakStmt             -> {}
+        is AST.ContinueStmt          -> {}
+        is AST.DeferStmt             -> { walk_defer(s, out) }
+    }
+}
+
+walk_let :: fn(s: AST.LetStmt, out: RawToken[]) -> void {
+    walk_binding(s.binding, out)
+    walk_opt_type(s.ty, out)
+    walk_expr(s.value, out)
+}
+
+walk_binding :: fn(b: AST.LetBinding, out: RawToken[]) -> void {
+    match b {
+        is AST.SimpleBinding -> { push_span(out, b.name_span, .Variable) }
+        is AST.TupleBinding -> { for e in b.elements { walk_binding(e, out) } }
+        is AST.WildcardBinding -> {}
+        is AST.RestBinding -> { push_span(out, b.span, .Variable) }
+    }
+}
+
+walk_for :: fn(s: AST.ForStmt, out: RawToken[]) -> void {
+    match w :: s.form {
+        is AST.InfiniteFor -> {}
+        is AST.WhileFor    -> { walk_expr(w.cond, out) }
+        is AST.InFor       -> {
+            match nv :: w.loop_var {
+                is AST.NamedVar       -> { push_span(out, nv.span, .Variable) }
+                is AST.DestructureVar -> { walk_binding(nv.pattern, out) }
+                is AST.DiscardVar     -> {}
+            }
+            walk_expr(w.iter, out)
+        }
+    }
+    walk_block(s.body, out)
+}
+
+walk_defer :: fn(s: AST.DeferStmt, out: RawToken[]) -> void {
+    match x :: s.body {
+        is AST.DeferStmtBody  -> { walk_stmt(x.stmt, out) }
+        is AST.DeferBlockBody -> { walk_block(x.block, out) }
+    }
+}
+
+walk_block :: fn(b: AST.BlockExpr, out: RawToken[]) -> void {
+    for s in b.stmts { walk_stmt(s, out) }
+    walk_opt_expr(b.trailing, out)
+}
+
+// ---- expr walkers ---------------------------------------------------------
+
+// Expressions in value position. `IdentExpr` defaults to Variable here ;
+// the `CallExpr` walker upgrades its callee ident to Function.
+walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
+    match e {
+        is AST.NullCoalesceExpr -> {
+            walk_expr(e.left, out)
+            inner :: AST.coalesce_fallback_expr(e.fallback)
+            if inner != null { walk_expr(inner, out) }
+        }
+        is AST.IdentExpr -> {
+            // Primitives in value position (the receiver of a TypeMeta
+            // method call, e.g. `i32.MAX`) paint as Type instead of the
+            // catch-all Variable.
+            if e.name.is_primitive_type_name() {
+                push_span(out, e.span, .Type)
+            } else {
+                push_span(out, e.span, .Variable)
+            }
+        }
+        is AST.CallExpr  -> { walk_call(e, out) }
+        is AST.FieldExpr -> {
+            walk_expr(e.target, out)
+            // Field READ. `Mode.Fast` and `Ns.CONST` are also FieldExprs and land
+            // here rather than on `EnumMember` / a const: telling them apart needs
+            // the target's resolved type, which this walker doesn't have. Clients
+            // colour property and enum-member from the same family (LSP4IJ maps them
+            // to `INSTANCE_FIELD` / `STATIC_FIELD`), so the two are visually alike.
+            push_span(out, e.field_span, .Property)
+        }
+        is AST.IndexExpr -> {
+            walk_expr(e.target, out)
+            walk_expr(e.index, out)
+        }
+        is AST.UnaryExpr  -> { walk_expr(e.operand, out) }
+        is AST.BinaryExpr -> {
+            walk_expr(e.left, out)
+            walk_expr(e.right, out)
+        }
+        is AST.IfExpr        -> { walk_if(e, out) }
+        is AST.MatchExpr     -> { walk_match(e, out) }
+        is AST.BlockExpr     -> { walk_block(e, out) }
+        is AST.LambdaExpr    -> { walk_lambda(e, out) }
+        is AST.StructLitExpr -> { walk_struct_lit(e, out) }
+        is AST.SeqLitExpr    -> { for it in e.elements { walk_expr(it, out) } }
+        is AST.RangeExpr     -> {
+            walk_expr(e.lower, out)
+            walk_expr(e.upper, out)
+        }
+        is AST.AwaitExpr -> { walk_expr(e.inner, out) }
+        is AST.CastExpr  -> {
+            walk_expr(e.value, out)
+            walk_type_expr(e.target, out)
+        }
+        is AST.GenericInstExpr -> {
+            walk_type_expr(e.callee, out)
+            for a in e.type_args { walk_type_expr(a, out) }
+        }
+        is AST.IntrinsicCallExpr -> {
+            // Tag `@name` as Decorator so intrinsics colour like decorators
+            // (`@test`, `@extern`) rather than falling through uncoloured.
+            push_name_token(out, e.span.start, 1, e.name, .Decorator)
+            for a in e.args { walk_expr(a, out) }
+        }
+        is AST.DotVariantExpr -> { push_span(out, e.span, .EnumMember) }
+        is AST.FnTypeExpr     -> {
+            for p in e.params { walk_type_expr(p, out) }
+            walk_opt_type(e.return_type, out)
+        }
+        is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
+        // Literals carry no identifiers worth tagging.
+        is AST.IntLitExpr   -> {}
+        is AST.FloatLitExpr -> {}
+        is AST.BoolLitExpr  -> {}
+        is AST.NullLitExpr  -> {}
+        is AST.CharLitExpr  -> {}
+        is AST.StringLitExpr -> {}
+    }
+}
+
+walk_call :: fn(c: AST.CallExpr, out: RawToken[]) -> void {
+    // Upgrade the callee's bare-ident position to Function — unless the
+    // ident names a primitive type, in which case the call is a cast
+    // (`i32(x)`, `i64(n)`) and the callee is a type.
+    match callee :: c.callee {
+        is AST.IdentExpr -> {
+            if callee.name.is_primitive_type_name() {
+                push_span(out, callee.span, .Type)
+            } else {
+                push_span(out, callee.span, .Function)
+            }
+        }
+        is AST.FieldExpr -> {
+            walk_expr(callee.target, out)
+            push_span(out, callee.field_span, .Function)
+        }
+        _                -> { walk_expr(c.callee, out) }
+    }
+    for t in c.type_args { walk_type_expr(t, out) }
+    for a in c.args { walk_expr(a.value, out) }
+}
+
+walk_if :: fn(e: AST.IfExpr, out: RawToken[]) -> void {
+    walk_expr(e.cond, out)
+    walk_block(e.then_block, out)
+    match x :: e.else_branch {
+        is null            -> {}
+        is AST.IfElseIf    -> { walk_if(x.branch, out) }
+        is AST.IfElseBlock -> { walk_block(x.block, out) }
+    }
+}
+
+walk_match :: fn(e: AST.MatchExpr, out: RawToken[]) -> void {
+    if e.binding != null {
+        walk_binding(e.binding, out)
+    }
+    walk_expr(e.scrutinee, out)
+    for arm in e.arms {
+        walk_pattern(arm.pattern, out)
+        walk_opt_expr(arm.guard, out)
+        walk_expr(arm.body, out)
+    }
+}
+
+walk_pattern :: fn(p: AST.Pattern, out: RawToken[]) -> void {
+    match p {
+        is AST.IsPattern -> {
+            walk_type_expr(p.ty, out)
+            walk_opt_pattern(p.inner, out)
+        }
+        is AST.StructPattern -> {
+            for f in p.fields {
+                push_span(out, f.name_span, .Variable)
+                match lit :: f.value {
+                    is AST.PatternBinding -> {}
+                    is AST.PatternLiteral -> { walk_expr(lit.value, out) }
+                }
+            }
+        }
+        is AST.WildcardPattern    -> {}
+        is AST.EnumVariantPattern -> { push_span(out, p.span, .EnumMember) }
+        is AST.LiteralPattern     -> { walk_expr(p.value, out) }
+        is AST.RangePattern       -> {
+            walk_expr(p.lower, out)
+            walk_expr(p.upper, out)
+        }
+        is AST.OrPattern -> { for alt in p.patterns { walk_pattern(alt, out) } }
+    }
+}
+
+walk_lambda :: fn(l: AST.LambdaExpr, out: RawToken[]) -> void {
+    for p in l.params { walk_fn_param(p, out) }
+    walk_opt_type(l.return_type, out)
+    walk_block(l.body, out)
+}
+
+walk_struct_lit :: fn(s: AST.StructLitExpr, out: RawToken[]) -> void {
+    walk_type_expr(s.type_name, out)
+    walk_struct_lit_items(s.items, out)
+}
+
+walk_struct_lit_items :: fn(items: AST.StructLitItem[], out: RawToken[]) -> void {
+    for it in items {
+        if it is AST.StructLitField {
+            push_span(out, it.name_span, .Property)
+            walk_expr(it.value, out)
+        } else {
+            walk_expr(it.expr, out)
+        }
+    }
+}
+
+// Expressions in TYPE position : the topmost identifier names a type, not a
+// value. Generic argument lists recurse through `walk_type_expr` so nested
+// `Map<string, List<i32>>` paints each layer with Type colour.
+walk_type_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
+    match e {
+        is AST.IdentExpr       -> { push_span(out, e.span, .Type) }
+        is AST.GenericInstExpr -> {
+            walk_type_expr(e.callee, out)
+            for a in e.type_args { walk_type_expr(a, out) }
+        }
+        is AST.CallExpr -> {
+            // `Map<K, V>` in type position parses as a call ; the callee is
+            // a type, the args are types.
+            walk_type_expr(e.callee, out)
+            for a in e.args { walk_type_expr(a.value, out) }
+        }
+        is AST.FieldExpr -> {
+            // `pkg.Type` — walk receiver in value position (it's a module
+            // namespace) and the field as Type.
+            walk_expr(e.target, out)
+            push_span(out, e.field_span, .Type)
+        }
+        is AST.BinaryExpr -> {
+            walk_type_expr(e.left, out)
+            walk_type_expr(e.right, out)
+        }
+        is AST.FnTypeExpr -> {
+            for p in e.params { walk_type_expr(p, out) }
+            walk_opt_type(e.return_type, out)
+        }
+        is AST.ArrayTypeExpr   -> { walk_type_expr(e.element, out) }
+        // Anything else — literal in a type position (`null`, `0..<N` etc.)
+        // — defer to the value walker so spans still get classified.
+        _ -> { walk_expr(e, out) }
+    }
+}

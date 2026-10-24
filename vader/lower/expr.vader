@@ -407,7 +407,7 @@ try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> L
 // True when `e` is a scalar literal (int / float / bool / null / char /
 // string). Gates `try_fold_unbaked_const` to RHS shapes that fold without
 // touching other consts. Shape predicate (`_ -> false`), mirroring
-// `fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
+// `tools/fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
 // @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
 is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true

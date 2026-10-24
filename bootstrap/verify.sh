@@ -29,7 +29,7 @@ if [ ! -d build/work/stage2/c ]; then
 fi
 rm -rf build/work/verify
 mkdir -p build/work/verify
-./build/vader build --release --emit=c --out=build/work/verify/vader vader/cli/main.vader
+./build/vader build --release --emit=c --out=build/work/verify/vader vader/tools/cli/main.vader
 
 # `diff -r` of two EMPTY trees returns 0, so the gate would pass vacuously on an
 # emission that wrote nothing. The old `cmp` on two files at least required both
@@ -98,7 +98,7 @@ CC_ABS="$(command -v "${CC:-cc}" || true)"
 rm -rf build/work/repro
 mkdir -p build/work/repro
 ./build/stage1 build --release --emit=executable \
-  --out=build/work/repro/vader --cc="$CC_ABS" vader/cli/main.vader >/dev/null
+  --out=build/work/repro/vader --cc="$CC_ABS" vader/tools/cli/main.vader >/dev/null
 if ! cmp -s build/work/repro/vader build/vader; then
   echo "NOT REPRODUCIBLE — two split builds of the same input differ" >&2
   ls -l build/work/repro/vader build/vader >&2

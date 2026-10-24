@@ -4,15 +4,14 @@
 // It is the source the committed C seed (`bootstrap/seed/`) is generated from —
 // see docs/BOOTSTRAP.md. `cc`-ing that seed yields **stage0**, whose single
 // invocation (`bootstrap/build.sh`) is
-// `stage0 vader/cli/main.vader build/work/stage1/stage1` —
+// `stage0 vader/tools/cli/main.vader build/work/stage1/stage1` —
 // stage0 therefore has to carry a complete compilation pipeline, even though it
 // only ever compiles that one input.
 //
 // The point of a dedicated entrypoint (rather than seeding from
-// `vader/cli/main.vader`) is to DECOUPLE the seed from the CLI : it never
-// imports `vader/fmt`, `vader/lsp`, `vader/dap` or the CLI itself, so growing
-// the formatter / language server / debugger never re-bumps the seed. Only a
-// pipeline change does.
+// `vader/tools/cli/main.vader`) is to DECOUPLE the seed from the CLI : it never
+// imports `vader/tools/` (the CLI, formatter, language server and debugger), so
+// growing them never re-bumps the seed. Only a pipeline change does.
 //
 // It pull `vader/vm` in, transitively — `vader/comptime/vm` (imported
 // below) embeds the VM to bake loop-bearing `@comptime` decls, and `std/core`
@@ -22,7 +21,7 @@
 // it would mean freezing those tables as literals — a deliberate reversal of
 // the dtoa work, not a cleanup.
 //
-// The pipeline-driver helpers below are duplicated from `vader/cli/main.vader`
+// The pipeline-driver helpers below are duplicated from `vader/tools/cli/main.vader`
 // (deliberate trade-off : no shared `driver` module, see docs/BOOTSTRAP.md).
 // `bootstrap/verify.sh` catches a stale copy by re-emitting and diffing.
 
@@ -83,7 +82,7 @@ main :: fn(argv: string[]) -> i32 {
 }
 
 // `<out>.split.h`, `<out>.split.g.c`, and `<out>-<module>.c` per function unit —
-// the same layout `vader/cli`'s split build writes, so one convention covers the
+// the same layout `vader/tools/cli`'s split build writes, so one convention covers the
 // seed, a driven build, and this entrypoint.
 write_split_files :: fn(out: string, prog: CProgram) -> i32 {
     if write_out("${out}.split.h", prog.header) != 0 {
@@ -106,7 +105,7 @@ write_split_files :: fn(out: string, prog: CProgram) -> i32 {
     return 0
 }
 
-// ---- pipeline driver (duplicated from vader/cli/main.vader) ----------------
+// ---- pipeline driver (duplicated from vader/tools/cli/main.vader) ----------------
 
 // Lower `file` through the canonical CFG → bytecode → c_emit path (the same
 // pipeline `dump --stage=c` uses) and return the split C program — header,
@@ -120,7 +119,7 @@ emit_c_program :: fn(file: string, header_name: string) -> CProgram | null {
     b :: cfg_bytecode_from(le, file)
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
-    // `main` even when a multi-module input (the compiler imports `vader/lsp`,
+    // `main` even when a multi-module input (the compiler imports `vader/tools/lsp`,
     // which has its own `main`) flags several fns `is_main`.
     // No `#line`: `cfg_bytecode_from` records no positions. The seed is cc'd
     // with `-O2` separately.
@@ -217,7 +216,7 @@ cfg_bytecode_from :: fn(le: LoweredEntry, file: string) -> CfgBytecode {
     }
 }
 
-// Mangled name of the entry module's `main` (e.g. `vader_cli$main`), used to
+// Mangled name of the entry module's `main` (e.g. `vader_tools_cli$main`), used to
 // emit the `export main <index>` directive. Returns "" when the entry module
 // isn't resolvable, which suppresses the directive.
 entry_main_name :: fn(typed: TypedProject, entry: string) -> string {

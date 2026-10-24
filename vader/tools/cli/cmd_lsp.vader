@@ -1,0 +1,20 @@
+// vader/tools/cli/lsp — the `vader lsp` command.
+//
+// Serves the Language Server Protocol over stdio. The server is `vader/tools/lsp`;
+// this is the CLI entry that hands it the streams.
+//
+// Same module as `main.vader`: imports are file-scoped, declarations are not.
+
+module "vader/tools/cli"
+
+import "std/io"
+import "cli"
+import "vader/tools/lsp"
+
+cmd_lsp :: fn(args: string[]) -> i32 {
+    parsed :: parse_action("lsp", args)
+    if parsed is i32 {
+        return parsed
+    }
+    return run_server(parsed.string_flag("library-root", ""))
+}

@@ -3,7 +3,7 @@
 // into a single module (folder = module), so a folder can hold several `main`
 // fns; the VM's default entry is the first `is_main` fn, which is blind to which
 // file was named. The regression: `vader run dir/b.vader` silently ran
-// `dir/a.vader`'s `main`. See `vader/cli/main.vader::entry_index_for_file`.
+// `dir/a.vader`'s `main`. See `vader/tools/cli/main.vader::entry_index_for_file`.
 //
 // A module that declares no `main` has nothing to start at: `run` and `build`
 // refuse it, naming the file.

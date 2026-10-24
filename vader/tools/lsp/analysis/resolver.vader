@@ -1,0 +1,256 @@
+// vader/tools/lsp/analysis/resolver — cross-file goto-def + hover support.
+//
+// When a click falls on a name that doesn't resolve in the current
+// document, we look for it where the compiler would : the other files of the
+// document's module, the file's import bindings, the prelude, then the
+// wildcard imports. A module is found as the loader finds it — `search_roots`
+// gives the roots in the loader's order and `resolve_lazy` the folder whose
+// files declare that module — and each candidate file is parsed + indexed to
+// locate the decl.
+
+module "vader/tools/lsp/analysis"
+
+import "std/collections"
+import "std/io"
+import "std/string"
+import "vader/support/diagnostics"
+import "vader/resolver"
+import "vader/tools/lsp/protocol"
+
+/// Where a cross-file goto-def landed : a file URI + the target's
+/// `name_span` so the handler can encode an LSP `Location`. Returns
+/// `null` from `resolve` when no candidate file held the symbol.
+export ExternalHit :: struct {
+    uri:    string
+    target: DeclEntry
+    /// The `module "…"` of the file at `uri` ; "" when it has none.
+    module: string
+    /// The text `target` was indexed from, which its spans index into.
+    source: string
+}
+
+/// Resolve `name`, which the document `idx` does not declare, the way the
+/// compiler resolves an unqualified name in that file : a declaration of the
+/// module in another of its files, then an import binding of the file, then the
+/// prelude, then a wildcard import. Null when none holds it.
+///
+/// @param allow_member  whether to fall back to a MEMBER search when the name is
+///                      not a top-level one anywhere. Only true when the cursor
+///                      actually follows a dot: without the gate the search
+///                      fires on ordinary identifiers, and a parameter named
+///                      `decls` jumped to `DocIndex.decls` — a field it has
+///                      nothing to do with. It also costs a full re-read of
+///                      every wildcard module plus `std/core` (79 files, 1.2 MB
+///                      for `lower/expr.vader`), which a miss should not pay.
+export resolve :: fn(
+    state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
+) -> ExternalHit | null {
+    if name.byte_len() == 0 { return null }
+    roots :: document_roots(state, idx.uri) ?? return null
+    // A declaration of the module wins over every import of the file : the
+    // per-document index only sees the open file, so search the module's other
+    // files. The dominant cross-file case in the compiler tree, and no import
+    // leads there.
+    module :: roots.entry
+    if module != null {
+        sibling :: first_in_files(state, module.files, uri_to_path(idx.uri), (sub: DocIndex) -> sub.find_toplevel(name))
+        if sibling != null { return sibling }
+    }
+    imp :: idx.find_import(name)
+    if imp != null {
+        original :: imp.imported_name ?? return null
+        return find_in_module(state, roots.paths, imp.path, original, false)
+    }
+    // The prelude answers where nothing of the file does, ahead of any wildcard.
+    prelude :: find_in_module(state, roots.paths, PRELUDE_MODULE, name, true)
+    if prelude != null { return prelude }
+    // A wildcard import binds no `ImportEntry` — search each wildcard-imported
+    // module for an export of this name. First hit wins ; a name two of them
+    // export is an R2031 compile error anyway, so any provider is acceptable for
+    // goto / hover.
+    for path in idx.wildcards.paths {
+        if idx.wildcards.drops(path, name) {
+            continue
+        }
+        hit :: find_in_module(state, roots.paths, path, name, true)
+        if hit != null { return hit }
+    }
+    if !allow_member {
+        return null
+    }
+    // Still nothing — the name may be a MEMBER: a method or a struct field,
+    // i.e. whatever sits after a dot. Every strategy above hunts a top-level
+    // name that a module EXPORTS, and a member is neither: a trait method lives
+    // in its trait's body, a field in its struct's. Measured dead for `push`,
+    // `len`, `push_all` and `e.cond` — the form most of this tree is written in.
+    return resolve_member(state, roots.paths, idx, name)
+}
+
+// The module every file sees without importing it.
+PRELUDE_MODULE :: "std/core"
+
+// Search for a member named `name`: first the wildcard-imported modules, then
+// the prelude.
+//
+// The prelude is searched even though nothing imports it — it is where the
+// methods of the BUILT-IN receivers live (`i32[]`, `string`, `MutableMap`). A
+// user struct's methods come through the wildcard pass or the in-document index;
+// the built-ins have no import to follow, which is why they were the ones that
+// failed.
+//
+// First hit wins, and that is a real limitation rather than an oversight: two
+// types can declare `to_string` or a `name` field, and telling them apart needs
+// the receiver's TYPE, which lives in the typechecker and not here. Landing on
+// one declaration of the right name beats landing on nothing; a precise answer
+// wants the dispatched declaration recorded per call site (see TODO).
+resolve_member :: fn(
+    state: ServerState, paths: IncludePath[], idx: DocIndex, name: string,
+) -> ExternalHit | null {
+    for path in idx.wildcards.paths {
+        if idx.wildcards.drops(path, name) {
+            continue
+        }
+        hit :: member_in_module(state, paths, path, name)
+        if hit != null {
+            return hit
+        }
+    }
+    return member_in_module(state, paths, PRELUDE_MODULE, name)
+}
+
+// `find_in_module`'s shape, looking for a member instead of a top-level decl.
+member_in_module :: fn(
+    state: ServerState, paths: IncludePath[], module_path: string, name: string,
+) -> ExternalHit | null {
+    module :: module_named(state, module_path, paths) ?? return null
+    return first_in_files(state, module.files, "", (sub: DocIndex) -> sub.find_member(name))
+}
+
+/// Find `name` among the top-level decls of the module `module_path` names, as
+/// seen from the document `from_uri`.
+///
+/// Exported for the namespace-alias path in `handlers/definition`: `AST.Foo` has
+/// no receiver type to key on, so resolving `Foo` as an export of `AST`'s module
+/// is the only route to it.
+///
+/// @param state          carries `--library-root`, searched first.
+/// @param from_uri       the document the import is written in.
+/// @param module_path    the module name, as the `import` spells it.
+/// @param name           the decl to find.
+/// @param exported_only  true for a wildcard or an alias, which expose only the
+///                       public surface; false for a rename binding.
+export resolve_in_module :: fn(
+    state: ServerState, from_uri: string, module_path: string, name: string, exported_only: bool,
+) -> ExternalHit | null {
+    roots :: document_roots(state, from_uri) ?? return null
+    return find_in_module(state, roots.paths, module_path, name, exported_only)
+}
+
+// Resolve `name` to a top-level decl of the module `module_path` names, its
+// files read in the order the loader reads them. A wildcard or an alias exposes
+// only the module's public surface ; a rename may name a private decl, which
+// still deserves the jump.
+find_in_module :: fn(
+    state: ServerState, paths: IncludePath[], module_path: string, name: string, exported_only: bool,
+) -> ExternalHit | null {
+    module :: module_named(state, module_path, paths) ?? return null
+    return first_in_files(state, module.files, "", (sub: DocIndex) -> if exported_only {
+        sub.find_exported_toplevel(name)
+    } else {
+        sub.find_toplevel(name)
+    })
+}
+
+/// The first of `files` whose index answers `query`, each read through the
+/// overlay — the open document's unsaved text first, the disk second.
+///
+/// The overlay is not optional : `def_response` encodes the returned span with
+/// `line_index_for_path`, which reads the overlay too, so reading the disk here
+/// would pair one text's offsets with another text's line index. The file being
+/// edited is usually the first one searched.
+///
+/// @param state  the server state, for the overlay and the position encoding.
+/// @param files  the candidate files, in search order.
+/// @param skip   a file to pass over — the document already searched — or `""`.
+/// @param query  the decl to look for in one file's index.
+export first_in_files :: fn(
+    state: ServerState, files: string[], skip: string, query: fn(DocIndex) -> DeclEntry | null,
+) -> ExternalHit | null {
+    for file in files {
+        if file == skip {
+            continue
+        }
+        src :: state.source_for_path(file)
+        if src.byte_len() == 0 {
+            continue
+        }
+        uri :: path_to_uri(file)
+        index :: build_index(uri, src, state.position_encoding)
+        found :: query(index) ?? continue
+        return ExternalHit {
+            .uri    = uri,
+            .target = found,
+            .module = index.module,
+            .source = index.source,
+        }
+    }
+    return null
+}
+
+// ---- module resolution ----------------------------------------------------
+
+/// The project of a document the editor opened: the nearest folder above it
+/// holding a `vader.json` or a build driver. The compiler is told its project;
+/// the editor, which opens a file, has to look for it. A driven project's roots
+/// are known once `ensure_described` has had it describe itself.
+///
+/// @param path  the document's filesystem path.
+project_of_document :: fn(path: string) -> string | null = find_project_root(path)
+
+/// Where the document `uri` looks for modules : the loader's roots for a load
+/// from that file (`search_roots`), each made absolute, and the module the
+/// document belongs to. Null for a URI that names no file.
+///
+/// Absolute because a target becomes a URI, and `path_to_uri("lib/…")` reads as
+/// root-absolute to the editor ("file not found") — the loader falls back to a
+/// cwd-relative `lib` when no bundle sits beside the binary.
+///
+/// @param state  carries the host's roots, searched first (`include_flags`).
+/// @param uri    the document's URI.
+export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | null {
+    path :: uri_to_path(uri)
+    if path.byte_len() == 0 {
+        return null
+    }
+    discard: Diagnostic[]: []
+    roots :: search_roots(
+        path, state.include_flags, project_of_document(path), doc_overlay(state), discard,
+    )
+    paths: IncludePath[]: []
+    for root in roots.paths {
+        paths.push(IncludePath { ...root, .dir = absolute_path(root.dir) })
+    }
+    return SearchRoots { ...roots, .paths = paths }
+}
+
+/// The module `name` names when searched in `paths` — the folder of the first
+/// root whose files declare it, with those files in the loader's order, the
+/// documents open in the editor included. Null when no root holds it.
+///
+/// @param state  carries the open documents.
+/// @param name   the module name, as an `import` spells it.
+/// @param paths  the roots, from `document_roots`.
+export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
+    index :: MutableMap<string, DiscoveredModule> {}
+    discard: Diagnostic[]: []
+    return resolve_lazy(name, paths, index, doc_overlay(state), discard)
+}
+
+// `path` made absolute against the working directory, the base a relative root
+// is read from.
+absolute_path :: fn(path: string) -> string {
+    if path.starts_with("/") || (path.byte_len() > 1 && path.byte_at(1) == ':') {
+        return path
+    }
+    return join_path(current_working_directory(), path)
+}

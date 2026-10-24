@@ -7,9 +7,9 @@
 // engine asks the controller whether to stop ; a normal run has none, and pays
 // nothing.
 //
-// The record is deliberately data + callbacks (no `vader/dap` import) so the
+// The record is deliberately data + callbacks (no `vader/tools/dap` import) so the
 // VM never depends on the DAP layer — the closures that mutate DAP state live
-// in `vader/dap` and are stored here by value — that one-way edge is what keeps
+// in `vader/tools/dap` and are stored here by value — that one-way edge is what keeps
 // the two layers acyclic.
 
 module "vader/vm"

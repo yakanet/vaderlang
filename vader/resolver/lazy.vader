@@ -57,7 +57,7 @@ export IncludePath :: struct {
 }
 
 /// The ordered include-paths for lazy resolution. The entry's namespace first
-/// (`entry_namespace` : `import "vader/parser"` from `module "vader/cli"`), then
+/// (`entry_namespace` : `import "vader/parser"` from `module "vader/tools/cli"`), then
 /// the caller-assembled plain roots (`plain`) in order. Searched in order, first
 /// match wins (GCC `-I`).
 ///

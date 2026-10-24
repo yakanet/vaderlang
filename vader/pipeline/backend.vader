@@ -2,7 +2,7 @@
 //
 // The tail of the pipeline: `lower_to_entry` runs the front end and lowers,
 // `prepare_cfg_bytecode` carries that through prune → CFG → bytecode. Both were
-// private to `vader/cli/main.vader`, which was their only caller; a build driver
+// private to `vader/tools/cli/main.vader`, which was their only caller; a build driver
 // needs the same chain to produce output, and duplicating it is the one thing
 // guaranteed to drift.
 //
@@ -12,7 +12,7 @@
 // every other dependency was already exported by `vader/resolver` or
 // `vader/lower`.
 //
-// Sits below its callers in the import graph: `vader/cli` and `toolchain/build`
+// Sits below its callers in the import graph: `vader/tools/cli` and `toolchain/build`
 // import this; it imports neither.
 
 module "vader/pipeline"
@@ -72,7 +72,7 @@ export dump_scope :: fn(module_filter: string[], loaded: LoadedProject) -> strin
 /// Mangled name of the entry module's `main`.
 ///
 /// Resolved from the typed AST rather than from `is_main` flags: a multi-module
-/// input can carry several `main`s (the compiler imports `vader/lsp`, which has
+/// input can carry several `main`s (the compiler imports `vader/tools/lsp`, which has
 /// its own), and only the entry module's counts.
 ///
 /// @param typed  the typed project.

@@ -80,7 +80,7 @@ test("an option written after the file says so", async () => {
 
 test("an unknown value names the accepted set", async () => {
   await withScratch(async (file) => {
-    // `--stage`'s twelve values live in one array in `vader/cli/spec.vader`,
+    // `--stage`'s twelve values live in one array in `vader/tools/cli/spec.vader`,
     // which drives the validation, this message and the help alike.
     const bad = await runCli(["dump", "--stage=nope", file], undefined, MEDIUM_BUILD);
     expect(bad.exit).not.toBe(0);
