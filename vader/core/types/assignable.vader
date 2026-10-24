@@ -389,7 +389,6 @@ export literal_family_holds :: fn(got: Type, t: Type) -> bool = match got {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/core/symbol"
 
 @test
 test_assignable_identity :: fn() -> void {
@@ -459,20 +458,25 @@ test_array_unresolved_element_wildcard :: fn() -> void {
     assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (wildcard)")
 }
 
-type_param_named :: fn(name: string) -> Type {
-    factory :: SymbolFactory {}
-    return mk_type_param(factory.make(.TypeParam, name, "test", "test", .Private, null))
-}
-
 @test
 test_type_param_is_opaque :: fn() -> void {
     // A generic body holds for every instance at once : only `T` fits a `T`, and a
     // `T` fits only a slot that names it.
-    t :: type_param_named("T")
+    t :: mk_type_param(fresh_type_param(1, "T"))
     i64_t: Type: TY_I64
     assert(is_assignable(t, t), "T → T")
     assert(!is_assignable(i64_t, t), "i64 ↛ T")
     assert(!is_assignable(t, i64_t), "T ↛ i64")
     assert(!is_assignable(TY_FREE_INT, t), "{integer} ↛ T")
     assert(is_assignable(t, mk_union([t, TY_NULL])), "T → T | null")
+}
+
+@test
+test_erased_type_param_fits_any_argument :: fn() -> void {
+    // Matching against a signature nothing has instantiated yet erases its
+    // parameters first.
+    t :: mk_type_param(fresh_type_param(1, "T"))
+    i32_arr: Type: mk_array(TY_I32)
+    assert(!is_assignable(i32_arr, mk_array(t)), "i32[] ↛ T[]")
+    assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] → erased T[]")
 }

@@ -1,27 +1,32 @@
-// vader/front/typecheck/unify — structural unification of `TypeParam` binders.
+// vader/core/types/unify: structural unification of type parameters.
 //
-// Walks the shape of a parameter type against a concrete argument type
-// and extracts the `TypeParam.symbol.id → concrete Type` bindings that
-// make the param match. Consumed by generic fn dispatch in `call.vader`
-// (and UFCS receiver re-unification in `field.vader`) to infer a call's
-// type-args from its positional args.
+// Walks the shape of a parameter type against a concrete argument type and
+// extracts the bindings that make the parameter match: by `TypeParam.symbol.id`
+// for a declaration's own pattern (`unify_type_param`), by inference variable for a
+// call to a quantified signature (`unify_infer`, resolved by `zonk`). The checker
+// infers a call's type arguments this way.
 //
-// A `TraitType` param binds only against a value of that same trait :
-// binding it from a concrete argument would need the impl registry,
-// which this module does not see.
+// A `TraitType` parameter binds only against a value of that same trait: binding
+// it from a concrete argument would need the impl registry, which this module does
+// not see.
 
-module "vader/front/typecheck"
+module "vader/core/types"
 
 import "std/collections"
-import "std/iter"
 import "std/math"
-import "vader/core/types"
+
+// ---- type parameters ------------------------------------------------------
 
 /// Walk `param_type` against `arg_type` and record any TypeParam
 /// binding into `out`. The first binding wins. Matches a declaration's own
 /// pattern (an impl's target, a UFCS first parameter) ; a call binds through
 /// `unify_infer` instead.
-unify_type_param :: fn(
+///
+/// @param param_type  the declaration's pattern.
+/// @param arg_type    the type it is matched against.
+/// @param out         the bindings so far, by type parameter symbol id ; extended
+///                    in place.
+export unify_type_param :: fn(
     param_type: Type,
     arg_type: Type,
     out: MutableMap<i32, Type>,
@@ -121,77 +126,12 @@ unify_type_param :: fn(
     }
 }
 
-/// True when `t` carries an `UnresolvedType` anywhere in its tree — i.e. the
-/// checker failed to work out part of it, so the type says nothing. Used by
-/// `unify_type_param` to refuse a binding that would freeze a type-param at `?`.
-type_contains_unresolved :: fn(t: Type) -> bool {
-    // @partial: only these variants have inner types to walk ; every scalar /
-    // primitive variant carries nothing unresolved.
-    @partial match t {
-        is UnresolvedType -> { return true }
-        is ArrayType -> { return type_contains_unresolved(t.element) }
-        is TupleType -> {
-            for el in t.elements { if type_contains_unresolved(el) { return true } }
-            return false
-        }
-        is StructType -> {
-            for a in t.args { if type_contains_unresolved(a) { return true } }
-            return false
-        }
-        is TraitType -> {
-            for a in t.args { if type_contains_unresolved(a) { return true } }
-            return false
-        }
-        is FnType -> {
-            for p in t.params { if type_contains_unresolved(p) { return true } }
-            return type_contains_unresolved(t.return_type)
-        }
-        is UnionType -> {
-            for v in t.variants { if type_contains_unresolved(v) { return true } }
-            return false
-        }
-        is DistinctType -> { return type_contains_unresolved(t.backing) }
-        _ -> { return false }
-    }
-}
-
-/// True if `t` contains at least one `TypeParam`, or an inference variable,
-/// anywhere in its shape : a slot that still waits on a type parameter.
-export type_contains_type_param :: fn(t: Type) -> bool {
-    // @partial: only TypeParam and the composite variants can hold a type-param;
-    // every scalar / primitive variant has no inner type → false.
-    @partial match t {
-        is TypeParamType | InferVar -> { return true }
-        is ArrayType -> { return type_contains_type_param(t.element) }
-        is TupleType -> {
-            for el in t.elements { if type_contains_type_param(el) { return true } }
-            return false
-        }
-        is StructType -> { return any_contains(t.args) }
-        is TraitType -> { return any_contains(t.args) }
-        is FnType -> {
-            for p in t.params { if type_contains_type_param(p) { return true } }
-            return type_contains_type_param(t.return_type)
-        }
-        is UnionType -> {
-            for v in t.variants { if type_contains_type_param(v) { return true } }
-            return false
-        }
-        _ -> { return false }
-    }
-}
-
-// ---- helpers --------------------------------------------------------------
-
-any_contains :: fn(ts: Type[]) -> bool {
-    for t in ts { if type_contains_type_param(t) { return true } }
-    return false
-}
-
 unify_args :: fn(p_args: Type[], a_args: Type[], out: MutableMap<i32, Type>) -> void {
     n :: min(p_args.len(), a_args.len())
     for i in 0..<n { unify_type_param(p_args[i], a_args[i], out) }
 }
+
+// ---- union patterns -------------------------------------------------------
 
 /// A variant of a union pattern left unmatched, and the argument type it unifies
 /// with.
@@ -201,8 +141,8 @@ export UnionLeftover :: struct {
 }
 
 /// What is left to unify of a union pattern against a union argument, once the
-/// variants they share are paired off. Shared by the typer (`unify_type_param`) and
-/// the lowerer (`unify_params`) so the two bind a type parameter alike.
+/// variants they share are paired off. Shared by `unify_type_param`, `unify_infer`
+/// and the lowerer's `unify_params`, so all three bind a type parameter alike.
 ///
 /// The shared variants go first so that `T | null` never binds `T = null`. A
 /// pattern variant with no type parameter that the argument lacks binds nothing,
@@ -261,40 +201,7 @@ find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
     return i32(-1)
 }
 
-/// Walk `t` and replace each `TypeParam` whose symbol id appears in
-/// `subst` with the bound concrete type. The `_map` suffix distinguishes
-/// this fn from the `Substitution`-arg version exported by
-/// `substitution.vader` — both share the same first-param type so the
-/// resolver's UFCS dispatch can't tell them apart in an overload set.
-export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
-    // @partial: only TypeParam and the composite variants can carry a binding to
-    // substitute; every scalar / primitive variant is returned unchanged.
-    @partial match t {
-        is TypeParamType -> {
-            repl :: subst[t.symbol.id] ?? return t
-            return repl
-        }
-        is ArrayType -> { return mk_array(substitute_map(t.element, subst)) }
-        is TupleType -> { return mk_tuple(substitute_each_map(t.elements, subst)) }
-        is StructType -> { return mk_struct(t.symbol, substitute_each_map(t.args, subst)) }
-        is TraitType -> { return TraitType { ...t, .args = substitute_each_map(t.args, subst) } }
-        is FnType -> { return substitute_fn_map(t, subst) }
-        is UnionType -> { return union_of(substitute_each_map(t.variants, subst)) }
-        _ -> { return t }
-    }
-}
-
 // ---- inference variables --------------------------------------------------
-
-/// A fresh inference variable instantiating `tp` for one use.
-///
-/// @param typed  the module, which numbers the variables it mints.
-/// @param tp     the declared parameter the variable stands for.
-fresh_infer_var :: fn(typed: TypedProgram, tp: TypeParamType) -> InferVar {
-    id :: typed.next_infer_id
-    typed.next_infer_id = id + 1
-    return InferVar { .id = id, .origin = tp.symbol }
-}
 
 /// Bind the inference variables of `pattern` so that it matches `actual`. A type
 /// parameter in either is rigid : it binds nothing and is bound by nothing. The
@@ -305,7 +212,7 @@ fresh_infer_var :: fn(typed: TypedProgram, tp: TypeParamType) -> InferVar {
 /// @param actual     the type the argument (or the result slot) has.
 /// @param solutions  the bindings so far, by variable id ; extended in place.
 /// @param held       the variables an explicit `<…>` fixed. Null holds none.
-unify_infer :: fn(
+export unify_infer :: fn(
     pattern: Type,
     actual: Type,
     solutions: MutableMap<i32, Type>,
@@ -358,7 +265,13 @@ unify_infer :: fn(
     }
 }
 
-unify_infer_each :: fn(
+/// `unify_infer` over two lists, position by position, up to the shorter.
+///
+/// @param patterns   the instantiated parameter types.
+/// @param actuals    the types the arguments have.
+/// @param solutions  the bindings so far, by variable id ; extended in place.
+/// @param held       the variables an explicit `<...>` fixed. Null holds none.
+export unify_infer_each :: fn(
     patterns: Type[],
     actuals: Type[],
     solutions: MutableMap<i32, Type>,
@@ -398,10 +311,52 @@ bind_infer_var :: fn(
 }
 
 /// Whether `t` mentions the inference variable `id`.
-mentions_infer_var :: fn(t: Type, id: i32) -> bool = holds_infer_var(t, id)
+///
+/// @param t   the type to scan.
+/// @param id  the variable's id.
+export mentions_infer_var :: fn(t: Type, id: i32) -> bool = holds_infer_var(t, id)
+
+/// True when `t` carries an `UnresolvedType` anywhere in its tree — i.e. the
+/// checker failed to work out part of it, so the type says nothing. Used by
+/// `unify_type_param` and `bind_infer_var` to refuse a binding that would freeze a
+/// parameter at `?`.
+///
+/// @param t  the type to scan.
+export type_contains_unresolved :: fn(t: Type) -> bool {
+    // @partial: only these variants have inner types to walk ; every scalar /
+    // primitive variant carries nothing unresolved.
+    @partial match t {
+        is UnresolvedType -> { return true }
+        is ArrayType -> { return type_contains_unresolved(t.element) }
+        is TupleType -> {
+            for el in t.elements { if type_contains_unresolved(el) { return true } }
+            return false
+        }
+        is StructType -> {
+            for a in t.args { if type_contains_unresolved(a) { return true } }
+            return false
+        }
+        is TraitType -> {
+            for a in t.args { if type_contains_unresolved(a) { return true } }
+            return false
+        }
+        is FnType -> {
+            for p in t.params { if type_contains_unresolved(p) { return true } }
+            return type_contains_unresolved(t.return_type)
+        }
+        is UnionType -> {
+            for v in t.variants { if type_contains_unresolved(v) { return true } }
+            return false
+        }
+        is DistinctType -> { return type_contains_unresolved(t.backing) }
+        _ -> { return false }
+    }
+}
 
 /// Whether `t` mentions any inference variable.
-type_contains_infer_var :: fn(t: Type) -> bool = holds_infer_var(t, ANY_INFER_VAR)
+///
+/// @param t  the type to scan.
+export type_contains_infer_var :: fn(t: Type) -> bool = holds_infer_var(t, ANY_INFER_VAR)
 
 // Matches every variable in `holds_infer_var` : the ids start at 0.
 ANY_INFER_VAR: i32: -1
@@ -440,7 +395,7 @@ any_holds_infer_var :: fn(ts: Type[], id: i32) -> bool {
 ///
 /// @param t          the type to resolve.
 /// @param solutions  the bindings, by variable id.
-zonk :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type {
+export zonk :: fn(t: Type, solutions: MutableMap<i32, Type>) -> Type {
     if !type_contains_infer_var(t) {
         return t
     }
@@ -473,72 +428,6 @@ zonk_each :: fn(types: Type[], solutions: MutableMap<i32, Type>) -> Type[] {
     for t in types {
         out.push(zonk_in(t, solutions))
     }
-    return out
-}
-
-/// `t` with every type parameter replaced by a wildcard — the shape to match an
-/// argument against when nothing has bound the parameters yet : picking an
-/// overload, fitting a UFCS receiver, inferring a generic struct literal's
-/// arguments from its fields. `is_assignable` holds a type parameter opaque, so
-/// those questions ask it about this shape instead of the declared one.
-///
-/// @param t  a type from a generic signature or declaration.
-/// @return   `t`, its type parameters turned into `TY_UNRESOLVED`.
-erase_type_params :: fn(t: Type) -> Type =
-    if type_contains_type_param(t) { erase_params_in(t) } else { t }
-
-// The rebuilt shape is only ever an `is_assignable` target, so a union keeps its
-// variants as they are (`mk_union`) rather than being re-normalised.
-// @partial: only TypeParam and the composite variants can hold a type-param; every
-// scalar / primitive variant is returned unchanged.
-erase_params_in :: fn(t: Type) -> Type = @partial match t {
-    is TypeParamType -> TY_UNRESOLVED
-    is InferVar      -> TY_UNRESOLVED
-    is ArrayType     -> mk_array(erase_params_in(t.element))
-    is TupleType     -> mk_tuple(erase_each(t.elements))
-    is StructType    -> mk_struct(t.symbol, erase_each(t.args))
-    is TraitType     -> TraitType { ...t, .args = erase_each(t.args) }
-    is FnType        -> mk_fn(erase_each(t.params), erase_params_in(t.return_type))
-    is UnionType     -> mk_union(erase_each(t.variants))
-    _                -> t
-}
-
-// `f` with every bound type parameter replaced — `substitute_map` on a fn type,
-// typed as one: the instance's signature.
-substitute_fn_map :: fn(f: FnType, subst: MutableMap<i32, Type>) -> FnType =
-    mk_fn(
-        substitute_each_map(f.params, subst),
-        substitute_map(f.return_type, subst),
-        unbound_quantifier(f.type_params, subst),
-    )
-
-// The parameters of `quantifier` that `subst` leaves unbound.
-unbound_quantifier :: fn(
-    quantifier: TypeParamType[], subst: MutableMap<i32, Type>,
-) -> TypeParamType[] {
-    if quantifier.len() == 0 || !quantifier.any_match((tp) -> subst[tp.symbol.id] != null) {
-        return quantifier
-    }
-    out: TypeParamType[]: []
-    for tp in quantifier {
-        if subst[tp.symbol.id] == null {
-            out.push(tp)
-        }
-    }
-    return out
-}
-
-erase_each :: fn(types: Type[]) -> Type[] {
-    out: Type[]: []
-    for t in types {
-        out.push(erase_params_in(t))
-    }
-    return out
-}
-
-substitute_each_map :: fn(types: Type[], subst: MutableMap<i32, Type>) -> Type[] {
-    out: Type[]: []
-    for t in types { out.push(substitute_map(t, subst)) }
     return out
 }
 

@@ -586,7 +586,7 @@ reject_overlapping_impl :: fn(
     if for_ty is ArrayType && for_ty.element !is TypeParamType {
         return false
     }
-    if !type_contains_type_param(for_ty) && !any_contains(args) {
+    if !type_contains_type_param(for_ty) && !any_contains_type_param(args) {
         return false
     }
     bucket :: "${impl_base_key(for_ty)}#${trait_key}"

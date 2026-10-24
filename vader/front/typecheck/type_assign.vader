@@ -248,21 +248,6 @@ test_array_widening_tuple_is_a_reference :: fn() -> void {
     assert(widening_depth(nullable, mixed, typed) == null, "a tuple union ↛ a boxed union")
 }
 
-type_param_named :: fn(name: string) -> Type {
-    factory :: SymbolFactory {}
-    return mk_type_param(factory.make(.TypeParam, name, "test", "test", .Private, null))
-}
-
-@test
-test_erased_type_param_fits_any_argument :: fn() -> void {
-    // Matching against a signature nothing has instantiated yet erases its
-    // parameters first.
-    t :: type_param_named("T")
-    i32_arr: Type: mk_array(TY_I32)
-    assert(!is_assignable(i32_arr, mk_array(t)), "i32[] ↛ T[]")
-    assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] → erased T[]")
-}
-
 @test
 test_widening_depth_of_an_element_into_a_union :: fn() -> void {
     circles: Type: mk_array(circle_type())

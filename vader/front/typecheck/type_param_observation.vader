@@ -11,6 +11,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
+import "vader/core/types"
 import "vader/support/diagnostics"
 import "vader/support/fixpoint"
 

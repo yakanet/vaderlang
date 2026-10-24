@@ -2,7 +2,7 @@
 // infer the concrete element type, not the erased type parameter `T`. An array
 // argument satisfies an `Iterator<T>` parameter via the blanket `T[] -> Iterator<T>`
 // `into` coercion ; the element type has to be unified with `T` during generic
-// call solving (see `vader/front/typecheck/unify.vader`, the `TraitType` / `ArrayType`
+// call solving (see `vader/core/types/unify.vader`, the `TraitType` / `ArrayType`
 // case). When it wasn't, `chain(a, b)` / `a.map(f)` / `a.filter(p)` over `Rec[]`
 // left the element typed as the bare `T`, so a field read (`r.value`) failed with
 // T3008 — or, when a target type masked it, corrupted the erased-layout array

@@ -32,6 +32,16 @@ CallInference :: struct {
     typed:     TypedProgram
 }
 
+/// A fresh inference variable instantiating `tp` for one use.
+///
+/// @param typed  the module, which numbers the variables it mints.
+/// @param tp     the declared parameter the variable stands for.
+fresh_infer_var :: fn(typed: TypedProgram, tp: TypeParamType) -> InferVar {
+    id :: typed.next_infer_id
+    typed.next_infer_id = id + 1
+    return InferVar { .id = id, .origin = tp.symbol }
+}
+
 // Type a call whose callee quantifies over parameters (`callee_ty.type_params`), each
 // instantiated afresh here ; `n` arguments line up with a parameter. Returns what
 // the instance returns.
