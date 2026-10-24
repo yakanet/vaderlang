@@ -1,4 +1,4 @@
-// vader/midir/scheduler — stack-pass-through hints.
+// vader/emit/bytecode/scheduler — stack-pass-through hints.
 //
 // Recognises CFG patterns where an
 // instruction's result is consumed immediately by its single successor's
@@ -15,48 +15,29 @@
 // Same shape for last-instruction → terminator with Return.value /
 // CondBranch.cond.
 //
-// Vader-specific design : `Set<Instruction>` keyed by object identity
-// doesn't translate ; we use position-encoded keys instead.
-// `pos_key(block, idx) = block × POS_STRIDE + idx`. POS_STRIDE × max(blocks)
-// must fit in i64 ; with 1 000 000 we get headroom for ~9 × 10¹² blocks.
+// Instructions are keyed by position (`pos_key`, `vader/midir/cfg.vader`).
 
-module "vader/midir"
+module "vader/emit/bytecode"
 
 import "std/collections"
-
-export POS_STRIDE :: i64(1000000)
-
-/// Encode a (block, instruction-index) position as a single i64 key.
-export pos_key :: fn(block: BlockId, idx: i64) -> i64 {
-    return i64(block) * POS_STRIDE + idx
-}
+import "vader/midir"
 
 /// Stack-pass-through hints for one fn.
-export ScheduleHints :: struct {
+ScheduleHints :: struct {
     /// Instructions whose result should be left on the stack
     /// (no `local.set`). Keys = `pos_key(block, instr_idx)`.
-    skip_set: MutableSet<i64>
+    skip_set: MutableSet<i64> = MutableSet<i64> {}
     /// Instructions whose first stack-pushed operand should be read
     /// from the stack (no `local.get`). Same key scheme as skip_set.
-    skip_first_get: MutableSet<i64>
+    skip_first_get: MutableSet<i64> = MutableSet<i64> {}
     /// Block IDs whose terminator's first read should come from the
     /// stack.
-    skip_terminator_get: MutableSet<BlockId>
+    skip_terminator_get: MutableSet<BlockId> = MutableSet<BlockId> {}
 }
 
-/// Empty hints — `schedule_stack` callers that disable scheduling get
-/// this sentinel. Every `.contains()` query returns false.
-export no_hints :: fn() -> ScheduleHints {
-    return ScheduleHints {
-        .skip_set            = MutableSet<i64> {},
-        .skip_first_get      = MutableSet<i64> {},
-        .skip_terminator_get = MutableSet<BlockId> {},
-    }
-}
-
-export schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {
+schedule_stack :: fn(fn_: CFGFunction) -> ScheduleHints {
     use_count :: count_uses(fn_)
-    hints :: no_hints()
+    hints :: ScheduleHints {}
     for b in fn_.blocks {
         for i in 0..<b.instructions.len() {
             if i + 1 >= b.instructions.len() { break }
@@ -101,7 +82,7 @@ can_pass_through_terminator :: fn(
 }
 
 /// First operand pushed onto the stack by the instruction's emit
-/// sequence. Mirrors the per-instr emit order in `emit/bytecode/emit.vader`.
+/// sequence. Mirrors the per-instr emit order in `emit.vader`.
 /// Returns null for instructions that take no operands.
 first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
     match ins {

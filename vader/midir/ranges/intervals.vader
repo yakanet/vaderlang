@@ -1,13 +1,14 @@
-// vader/midir/ranges_intervals — the intervals of the integer types, and the
+// vader/midir/ranges/intervals — the intervals of the integer types, and the
 // widening that settles a loop.
 //
 // The interval domain itself is `vader/support/integer/interval.vader`. The interval of a
 // local is read within the local's type, whose ends are exact : `u64`'s upper end
 // lies at `u64.max`, past every `i64`.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "vader/core/types"
+import "vader/midir"
 import "vader/support/integer"
 
 // ---- intervals ------------------------------------------------------------

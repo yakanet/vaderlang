@@ -1,13 +1,14 @@
-// vader/midir/ranges_edges — what a conditional branch on a comparison teaches
+// vader/midir/ranges/edges — what a conditional branch on a comparison teaches
 // each of its edges.
 //
 // The edge on which `x < y` holds learns the fact `x - y <= -1`, `x` below the
 // greatest `y` and `y` above the least `x`; the other edge learns the negation.
-// An edge whose comparison cannot hold is ruled out. The analysis itself is in
-// `ranges.vader`.
+// An edge whose comparison cannot hold is ruled out. One instruction's step is in
+// `transfer.vader`, the fixed point in `flow.vader`.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
+import "vader/midir"
 import "vader/support/integer"
 
 /// The instruction whose result `cond`, the condition of `block`'s branch,

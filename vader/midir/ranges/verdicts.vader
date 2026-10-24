@@ -1,20 +1,21 @@
-// vader/midir/ranges_verdicts — what the range analysis proves about each array
+// vader/midir/ranges/verdicts — what the range analysis proves about each array
 // access and checked operation of a function.
 //
 // Each site gets a verdict from the state just before it, at the fixed point of
-// `ranges_flow.vader`. An observation: nothing here changes the CFG.
+// `flow.vader`. An observation: nothing here changes the CFG.
 //
 // An access is judged with checked operations that wrap, as in `--release`,
 // where its index check is the only guard left. A checked operation is judged
 // with checked operations that stop the run, as outside `--release`, the one
 // build where proving it fits removes anything.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
 import "std/sort"
 import "toolchain/span"
 import "vader/lower"
+import "vader/midir"
 import "vader/support/integer"
 
 /// What the analysis concludes about one array access or checked operation.

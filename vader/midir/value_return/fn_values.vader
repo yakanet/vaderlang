@@ -1,4 +1,4 @@
-// vader/midir/value_return_forwarding — keeping a scalarised function reachable
+// vader/midir/value_return/fn_values — keeping a scalarised function reachable
 // as a VALUE.
 //
 // A vtable row, a `fn.ref` and a `fn.addr` all promise ONE signature to a site
@@ -9,12 +9,13 @@
 // `value_return.vader` owns the selection and the call-site rewrite; this file
 // owns who needs a copy and what the two halves look like.
 
-module "vader/midir"
+module "vader/midir/value_return"
 
 import "std/collections"
 import "vader/core/types"
 import "vader/front/comptime"
 import "vader/core/symbol"
+import "vader/midir"
 
 // What `f` becomes: itself, its scalarised self, or a forwarding pair.
 //
@@ -58,7 +59,7 @@ scalarised_copy :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction = CFGF
 // shape it was compiled against.
 forwarding_body :: fn(f: CFGFunction, copy_mangle: string) -> CFGFunction {
     // Only the params and the result are named by this body. Params occupy slots
-    // `0..<params.len()` (`build.vader` writes them at entry), so the rest of the
+    // `0..<params.len()` (`vader/midir/build.vader` writes them at entry), so the rest of the
     // original's table would arrive dead and cost `eliminate_dead_cfg` a full
     // re-emission of the function to drop again.
     locals: CFGLocal[]: []

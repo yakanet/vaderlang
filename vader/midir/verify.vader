@@ -517,13 +517,6 @@ fn_value_kind :: fn(ins: InstrFnRef | InstrFnAddr | InstrMakeClosure) = match in
     is InstrMakeClosure -> "closure over"
 }
 
-// A CFGFunction carries no span of its own ; its entry block holds the
-// closest one.
-fn_span :: fn(fn_: CFGFunction) -> Span {
-    if fn_.blocks.len() == 0 { return empty_span() }
-    return fn_.blocks[0].span
-}
-
 // Whether every value the terminator names is `never` — the result of a
 // divergent call, which produces nothing to hand back.
 returns_only_never :: fn(fn_: CFGFunction, values: LocalId[]) -> bool {

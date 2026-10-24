@@ -1,7 +1,7 @@
 // vader/midir/array_shrink — which calls may shorten an array.
 //
 // The range analysis keeps what it knows of an array's length across an
-// instruction that cannot shorten one (`ranges.vader`, `transfer`). Only
+// instruction that cannot shorten one (`ranges/transfer.vader`, `transfer`). Only
 // `remove_last` and `clear` shorten an array (`ArrayOps` in `std/core`); every
 // other change makes it longer, which leaves `i < len(xs)` true.
 //
@@ -23,15 +23,18 @@ Bc :: import "vader/core/bytecode"
 import "vader/midir/select"
 
 /// Per node of a project's call graph, whether running it may shorten an array.
-ShrinkSummary :: struct {
+/// Built by `summarise_array_shrinking`, read through `shrink_predicate`.
+export ShrinkSummary :: struct {
+    @internal
     calls: CallGraph
+    @internal
     may_shrink: bool[]
 }
 
 /// Work out, for every function of `p`, whether calling it may shorten an array.
 ///
 /// @param p  the CFG ; read only.
-summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
+export summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
     calls :: build_call_graph(p)
     may_shrink: bool[]: []
     for node in calls.nodes {
@@ -45,22 +48,25 @@ summarise_array_shrinking :: fn(p: CFGProject) -> ShrinkSummary {
 /// (`RangeContext.shrinks`).
 ///
 /// @param summary  the project's summary.
-shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool = fn(ins: Instruction) {
-    // Asked of every instruction the analysis steps over: the common answers
-    // build no callee list.
-    if !instruction_runs_code(ins) {
-        return false
+export shrink_predicate :: fn(summary: ShrinkSummary) -> fn(Instruction) -> bool =
+    fn(ins: Instruction) {
+        // Asked of every instruction the analysis steps over: the common answers
+        // build no callee list.
+        if !instruction_runs_code(ins) {
+            return false
+        }
+        may_shrink :: summary.may_shrink
+        if ins is InstrCall {
+            return may_shrink[callee_node(summary.calls.index, ins.callee)]
+        }
+        callees :: instruction_callees(summary.calls.index, ins)
+        return is_shrinking_intrinsic(ins) || callees.any_match((callee) -> may_shrink[callee])
     }
-    may_shrink :: summary.may_shrink
-    if ins is InstrCall {
-        return may_shrink[callee_node(summary.calls.index, ins.callee)]
-    }
-    callees :: instruction_callees(summary.calls.index, ins)
-    return is_shrinking_intrinsic(ins) || callees.any_match((callee) -> may_shrink[callee])
-}
 
 /// One line on what the summary concluded, for `$VADER_OPT_REPORT`.
-summary_line :: fn(s: ShrinkSummary) -> string {
+///
+/// @param s  the project's summary.
+export shrink_summary_line :: fn(s: ShrinkSummary) -> string {
     nodes :: s.calls.nodes
     is_function :: (i: i64) -> nodes[i] is CFGFunction
     functions :: count_where(nodes.len(), is_function)

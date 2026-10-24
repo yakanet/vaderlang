@@ -26,6 +26,9 @@ import "vader/core/types"
 import "vader/lower"
 import "vader/emit/bytecode"
 import "vader/midir"
+import "vader/midir/optimise"
+import "vader/midir/ranges"
+import "vader/midir/value_return"
 import "vader/core/bytecode"
 Prof :: import "vader/support/profile"
 
@@ -171,7 +174,7 @@ export build_optimised_cfg :: fn(
     // Return a small tuple in registers instead of a heap object. BEFORE DCE:
     // the `struct.new` that built the tuple becomes unread once the terminator
     // names its fields, and DCE is what removes it — running after would leave
-    // the allocation and the pass would buy nothing. See `value_return.vader`.
+    // the allocation and the pass would buy nothing. See `vader/midir/value_return`.
     Prof.prof_begin(.ValueReturn)
     scalarised :: scalarise_value_returns(cfg)
     Prof.prof_end(.ValueReturn)

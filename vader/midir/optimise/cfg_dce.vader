@@ -1,4 +1,4 @@
-// vader/midir/cfg_dce — CFG-level cleanup on each `CFGFunction`.
+// vader/midir/optimise/cfg_dce — CFG-level cleanup on each `CFGFunction`.
 //
 //   Pass 0 — `fold_moves` : copy-fold `producer.dst=X ; Move dst=Y src=X`
 //            where X is single-use, so the producer writes directly into
@@ -12,10 +12,11 @@
 // it removed 73 ops out of 129 772 on the compiler itself for ~10,5 % of the
 // emit time.
 
-module "vader/midir"
+module "vader/midir/optimise"
 
 import "std/collections"
 import "vader/core/symbol"
+import "vader/midir"
 import "vader/midir/select"
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in

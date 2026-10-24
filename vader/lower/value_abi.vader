@@ -1,7 +1,7 @@
 // vader/lower/value_abi — which composites cross a call in registers.
 //
 // A composite small enough crosses a call boundary in registers rather than as a
-// heap object : `vader/midir/value_return.vader` scalarises the returns this file
+// heap object : `vader/midir/value_return` scalarises the returns this file
 // finds eligible. This file answers ELIGIBILITY only, for that pass and for the
 // report of the sites a value ABI reaches ; it emits nothing.
 //
@@ -136,7 +136,7 @@ value_abi_type_size :: fn(t: Type) -> i64 {
 
 /// The elements a tuple return can be handed back as, or null when it cannot.
 ///
-/// The single gate both the report and `vader/midir/value_return.vader` ask.
+/// The single gate both the report and `vader/midir/value_return` ask.
 /// ONE element is refused: it already crosses in a register, and the object
 /// exists only because the tuple type does — splitting it buys nothing and the
 /// caller would rebuild it anyway.

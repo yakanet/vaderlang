@@ -1,13 +1,14 @@
-// vader/midir/forwarding — send edges past the blocks that only forward them.
+// vader/emit/bytecode/forwarding_blocks — send edges past the blocks that only forward them.
 //
 // The builder gives each arm of an `if` its block before it knows what the arm
 // holds, so a lone `break` or `continue` is a block with nothing in it but a
 // `branch`. `skip_forwarding_blocks` retargets the edges into such blocks before
-// `emit/bytecode/structure.vader` places anything.
+// `structure.vader` places anything.
 
-module "vader/midir"
+module "vader/emit/bytecode"
 
 import "std/collections"
+import "vader/midir"
 
 /// `fn_` with every edge into a forwarding block — no instructions, a lone
 /// `branch` — sent straight on to where that block leads.
@@ -23,7 +24,7 @@ import "std/collections"
 ///
 /// @param fn_  a function about to be structured.
 /// @return     the same function, its terminators retargeted.
-export skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
+skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
     n :: fn_.blocks.len()
     entries: i32[]: [0] * n
     for b in fn_.blocks {

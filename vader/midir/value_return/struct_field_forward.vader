@@ -1,4 +1,4 @@
-// vader/midir/struct_field_forward — reads of a freshly built tuple, forwarded.
+// vader/midir/value_return/struct_field_forward — reads of a freshly built tuple, forwarded.
 //
 // The value ABI hands a small composite back in registers, and the caller
 // rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before —
@@ -25,10 +25,11 @@
 // element cannot be written (T3101). A struct's fields can be, and a field
 // spelled `_0` names no position.
 
-module "vader/midir"
+module "vader/midir/value_return"
 
 import "std/collections"
 import "vader/core/types"
+import "vader/midir"
 
 /// Forward struct-field reads across every block of every function. The
 /// transform is value-preserving — a `Move` from the local the field was built

@@ -1,10 +1,10 @@
-// vader/midir/ranges — how one instruction moves what the range analysis knows.
+// vader/midir/ranges/transfer — how one instruction moves what the range analysis knows.
 //
 // Constants, copies and `+` / `-` of a single value carry intervals and facts
-// along. What a branch edge learns is in `ranges_edges.vader`, when a sum
-// provably fits its type in `ranges_fits.vader`, the fixed point over a whole
-// function in `ranges_flow.vader` and its verdicts in `ranges_verdicts.vader`,
-// the values in `ranges_intervals.vader` and `ranges_state.vader`.
+// along. What a branch edge learns is in `edges.vader`, when a sum provably fits
+// its type in `fits.vader`, the fixed point over a whole function in `flow.vader`
+// and its verdicts in `verdicts.vader`, the values in `intervals.vader` and
+// `state.vader`.
 //
 // A result reaches its type in one of two ways. A checked operation that stops
 // the run on overflow, as outside `--release`, proves by going on that its
@@ -15,14 +15,15 @@
 // A length fact survives a push, which only grows the array, and dies at any
 // instruction the context says may shorten an array: any code the CFG does not
 // show (`instruction_runs_code`), or only what the call summaries cannot clear
-// (`array_shrink.vader`). Such code might shorten it through an alias this
+// (`vader/midir/array_shrink.vader`). Such code might shorten it through an alias this
 // analysis does not see.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
 import "vader/core/types"
 import "vader/lower"
+import "vader/midir"
 import "vader/support/integer"
 
 // ---- context --------------------------------------------------------------

@@ -1,19 +1,20 @@
-// vader/midir/ranges_mark — mark every array access the range analysis proves in bounds.
+// vader/midir/ranges/mark — mark every array access the range analysis proves in bounds.
 //
 // A native build that proves bounds (`proves_bounds`, `vader/pipeline`) runs the
-// range analysis (`ranges_verdicts.vader`) on each function as the bytecode
+// range analysis (`verdicts.vader`) on each function as the bytecode
 // emitter receives it, and marks `bounds_safe` every array access it proves. The
 // C emitter then drops that access's index check, or keeps it with a message of
 // its own under `$VADER_VERIFY_BOUNDS` (`emit_slot_array_local`). The VM ignores
 // the mark and checks every access.
 //
 // An access is judged as in `--release`, where checked operations wrap, and a
-// call through the summary of what may shorten an array (`array_shrink.vader`).
+// call through the summary of what may shorten an array (`vader/midir/array_shrink.vader`).
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
 import "std/iter"
+import "vader/midir"
 
 /// Mark `bounds_safe` every array access of `p` the range analysis proves in
 /// bounds.

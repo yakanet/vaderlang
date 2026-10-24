@@ -6,7 +6,7 @@
 // single-use temp to write the Move's destination at the producer's
 // (earlier) position, clobbering a slot that an intervening assignment still
 // reads — turning `a = b ; b = a+b` into a doubling. `examples/fibonacci`
-// printed 2^49 instead of fib(50). Fixed in `vader/midir/cfg_dce.vader`
+// printed 2^49 instead of fib(50). Fixed in `vader/midir/optimise/cfg_dce.vader`
 // (`fold_moves_in_block` now also bails on an intervening READ of the
 // Move's destination).
 

@@ -1,4 +1,4 @@
-// vader/midir/value_return — return a small composite in registers, not on the heap.
+// vader/midir/value_return/value_return — return a small composite in registers, not on the heap.
 //
 // A function returning `[char, i64]` allocates a heap object the caller reads
 // twice and drops.
@@ -20,12 +20,13 @@
 // what removes it. Running after would leave the allocation in place and the
 // whole pass would buy nothing.
 
-module "vader/midir"
+module "vader/midir/value_return"
 
 import "std/collections"
 import "std/string"
 import "vader/core/types"
 import "vader/lower"
+import "vader/midir"
 
 /// Rewrite every eligible function to return its tuple's elements, and fix its
 /// call sites to match.

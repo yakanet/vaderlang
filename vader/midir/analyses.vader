@@ -1,8 +1,6 @@
 // vader/midir/analyses — shared CFG analyses + traversals.
 //
 // Pure data — no IO, no diagnostics.
-// Used by the structurer (`emit/bytecode/emit.vader`), DCE (`cfg_dce.vader`), escape
-// (`escape.vader`) and any future Mid-IR pass.
 //
 // Operand-walking helpers (`for_each_read_local`,
 // `for_each_read_in_terminator`) thread a closure that gets called on

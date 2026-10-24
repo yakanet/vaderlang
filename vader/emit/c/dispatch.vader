@@ -67,7 +67,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
     return BcSignature {
         .params = first_sig.params,
         // The receiver's own result type, so the two arrays stay the same
-        // length — a vtable target is never scalarised (`value_return.vader`
+        // length — a vtable target is never scalarised (`vader/midir/value_return`
         // drops every function a row names), so this is always one entry.
         .results = [.Any],
         .param_types = first_sig.param_types,

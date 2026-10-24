@@ -1,14 +1,15 @@
-// vader/midir/ranges_flow — the range analysis's fixed point over one function.
+// vader/midir/ranges/flow — the range analysis's fixed point over one function.
 //
-// Forward, in reverse postorder (`ranges.vader` for one step): each block's
+// Forward, in reverse postorder (`transfer.vader` for one step): each block's
 // entry state joins what its predecessors' edges carry, and a loop header
 // widens it, so a round that changes nothing comes within a few. A block is
 // walked again only once its entry state changed.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
 import "std/sort"
+import "vader/midir"
 
 /// Rounds after which the analysis of a function gives up. Each loop header
 /// settles within `THRESHOLD_WIDENINGS` widenings and one more, so this only

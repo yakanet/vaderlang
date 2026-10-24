@@ -1,8 +1,8 @@
-// vader/midir/ranges_report — the range analysis's verdicts, rendered: one line
+// vader/midir/ranges/report — the range analysis's verdicts, rendered: one line
 // per site for `vader dump --stage=ranges`, and the totals of a whole build for
-// `$VADER_OPT_REPORT` (`ranges_verdicts.vader` for the verdicts).
+// `$VADER_OPT_REPORT` (`verdicts.vader` for the verdicts).
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
 import "std/io"
@@ -10,6 +10,7 @@ import "std/sort"
 import "std/string_builder"
 import "vader/front/resolver"
 import "vader/lower"
+import "vader/midir"
 
 // ---- report ---------------------------------------------------------------
 
@@ -71,7 +72,7 @@ export report_ranges :: fn(p: CFGProject) -> void {
     out.append("  without call summaries:\n")
     out.append("    accesses: ${counts_line(without_summaries.accesses)}\n")
     out.append("    checked:  ${counts_line(without_summaries.checked)}\n")
-    out.append("  call summaries: ${summary_line(summary)}\n")
+    out.append("  call summaries: ${shrink_summary_line(summary)}\n")
     out.append("\n  per module, accesses: proven + already safe / sites, checked: proven / sites\n")
     for [path, tally] in sort(modules, (a, b) -> a.0 < b.0) {
         out.append("    ${path}: ${tally_line(tally)}\n")

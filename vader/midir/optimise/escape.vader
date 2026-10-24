@@ -1,4 +1,4 @@
-// vader/midir/escape — intra-procedural escape analysis.
+// vader/midir/optimise/escape — intra-procedural escape analysis.
 //
 // For each StructNew / ArrayNew
 // allocation, decides whether the value can escape its fn. Escapes :
@@ -15,11 +15,12 @@
 // container (and its stored allocs) to the heap with it. Allocs with no
 // escaping reachable use are marked `stack: true` for downstream codegen.
 
-module "vader/midir"
+module "vader/midir/optimise"
 
 import "std/collections"
 import "std/io"
 import "std/string_builder"
+import "vader/midir"
 import "vader/midir/select"
 import "vader/lower"
 import "vader/core/types"

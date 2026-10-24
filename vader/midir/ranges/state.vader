@@ -1,14 +1,15 @@
-// vader/midir/ranges_state — what the range analysis knows at one program point.
+// vader/midir/ranges/state — what the range analysis knows at one program point.
 //
-// Per integer local: the interval of its possible values (`ranges_intervals.vader`).
+// Per integer local: the interval of its possible values (`intervals.vader`).
 // Between locals: the facts `x - y <= c`, and which local is at most the length
 // of which array. The analysis joins the states that reach a block (what holds
 // on every way in) and widens them at a loop header, so its fixed point comes in
 // a few rounds.
 
-module "vader/midir"
+module "vader/midir/ranges"
 
 import "std/collections"
+import "vader/midir"
 import "vader/support/integer"
 
 /// What holds at one program point.

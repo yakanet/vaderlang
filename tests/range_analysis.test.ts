@@ -5,7 +5,7 @@
 // function's sites in source order as `<operation> -> <verdict>`, positions left
 // out so that a change of layout in the fixture does not read as a change of
 // verdict. The domain and the transfer steps have their own `@test`s in
-// `vader/midir/ranges*.vader`; this pins what the whole analysis concludes on
+// `vader/midir/ranges/`; this pins what the whole analysis concludes on
 // the CFG the bytecode emitter receives, and which index checks the emitted C
 // keeps once a release build drops the proven ones.
 

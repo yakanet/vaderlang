@@ -735,7 +735,7 @@ collect_baked_symbols :: fn(v: BcDataValue, out: MutableSet<i32>) -> void {
     }
 }
 
-/// Stack-pass-through hints — see vader/midir/scheduler. Queried by
+/// Stack-pass-through hints — see `scheduler.vader`. Queried by
 /// emit_get / emit_set / TermReturn to elide the local.set + local.get
 /// pair when an instruction's single-use result flows directly to the
 /// next consumer.

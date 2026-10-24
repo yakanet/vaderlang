@@ -159,6 +159,13 @@ The CFG supports the analyses that need def-use chains:
 - **range analysis**: tracks integer intervals and array lengths. A release native
   build drops the index checks it proves useless.
 
+`vader/midir/` holds the CFG, its construction from the lowered AST, its verifier
+and the call graph. The passes over it are sub-modules that import it: `optimise/`
+(move folding and local compaction, escape analysis, repeated array loads),
+`value_return/` (a small composite, or an `S | null`, handed back in registers
+rather than on the heap) and `ranges/` (the range analysis). Below it, `select/`
+maps a type to the value type the bytecode holds it as, and an operation to its op.
+
 The bytecode emitter reads the CFG and recovers structured nesting, placing each
 block once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-once-by-dominator-tree.md)).
 The design is in [`MID_IR_DESIGN.md`](MID_IR_DESIGN.md).

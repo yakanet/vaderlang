@@ -1,4 +1,4 @@
-// vader/midir/array_load_forward — redundant array-load elimination (intra-block).
+// vader/midir/optimise/array_load_forward — redundant array-load elimination (intra-block).
 //
 // Within a basic block, a second read `a[i]` of a slot whose value is already
 // known — from a prior read, or the `a[i] = v` store that just wrote it — is
@@ -21,9 +21,10 @@
 //     invalidates it (locals are mutable pre-SSA — the value local can be
 //     reassigned between the store and a later load).
 
-module "vader/midir"
+module "vader/midir/optimise"
 
 import "std/collections"
+import "vader/midir"
 
 // A known array-slot value live in the current block : `target[index]` holds the
 // value currently in local `value`.

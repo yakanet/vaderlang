@@ -1,4 +1,4 @@
-// vader/midir/value_return_nullable — the `S | null` half of the value-return
+// vader/midir/value_return/nullable — the `S | null` half of the value-return
 // pass.
 //
 // A `fn(…) -> S | null` whose every `return` builds `S` on the spot or hands
@@ -7,13 +7,14 @@
 // call-site rewrite; this file owns what makes a function eligible and what its
 // returns and rebuild arms become.
 
-module "vader/midir"
+module "vader/midir/value_return"
 
 import "std/collections"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/lower"
+import "vader/midir"
 
 // ---- the nullable struct case ---------------------------------------------
 //

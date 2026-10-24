@@ -1,6 +1,6 @@
 // vader/midir/cfg — CFG / Instruction / Terminator data types.
 //
-// Pure type declarations ; no behaviour.
+// The types, and the few accessors every pass shares (`fn_span`, `pos_key`).
 // The Lowered ↔ CFG ↔ bytecode pipeline keeps the two IRs distinct :
 // the build pass (`build.vader`) walks LoweredProject into CFGProject ;
 // CFG-private types (this file) include BasicBlock / Instruction /
@@ -60,6 +60,17 @@ export CFGFunction :: struct {
     /// these. The bytecode signature is what carries the arity to the backends,
     /// and it is built from this list when it is set.
     scalarised_results: Type[] = []
+}
+
+/// The closest span a function has: a `CFGFunction` carries none of its own, so
+/// this is its entry block's.
+///
+/// @param fn_  the function.
+export fn_span :: fn(fn_: CFGFunction) -> Span {
+    if fn_.blocks.len() == 0 {
+        return empty_span()
+    }
+    return fn_.blocks[0].span
 }
 
 /// Declaration of a bodyless fn (typically @extern). Bytecode emit
@@ -176,6 +187,20 @@ export TermUnreachable :: struct {
     reason: string
 }
 
+// ---- instruction positions ------------------------------------------------
+
+// An instruction's position as one key: `block × POS_STRIDE + index`. The stride
+// bounds a block's instruction count and leaves room in an `i64` for about
+// 9 × 10¹² blocks.
+POS_STRIDE: i64: 1000000
+
+/// Encode an instruction's position as one `i64` key, for the sets that mark
+/// instructions: an `Instruction` has no identity to key a set on.
+///
+/// @param block  the block holding the instruction.
+/// @param idx    its index in `block.instructions`.
+export pos_key :: fn(block: BlockId, idx: i64) -> i64 = i64(block) * POS_STRIDE + idx
+
 // ---- instructions ---------------------------------------------------------
 //
 // Three-address code, pre-SSA. Each instruction reads operand LocalIds
@@ -263,7 +288,7 @@ export InstrCall :: struct {
     span:   Span
     /// Where the callee's results land, in the order it hands them back. EMPTY
     /// for a void call. More than one only for a callee the value-ABI pass
-    /// scalarised — see `value_return.vader`; every other call has at most one.
+    /// scalarised (`value_return/value_return.vader`); every other call has at most one.
     dsts:   LocalId[]
     callee: Symbol
     args:   LocalId[]
@@ -432,7 +457,7 @@ export InstrStructNew :: struct {
     /// Per-field initialiser locals, in declaration order.
     fields: LocalId[]
     /// True when the struct value never escapes its fn and can be
-    /// stack-allocated. Set by escape.vader ; defaults to false (heap
+    /// stack-allocated. Set by `optimise/escape.vader` ; defaults to false (heap
     /// alloc). Stack-alloc codegen lives in a later phase ; the flag
     /// is informational + shows up in the dump.
     stack: bool
