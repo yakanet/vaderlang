@@ -14,6 +14,7 @@ import { join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
+import { encodeFrame, readFrames } from "./rpc-frames.ts";
 
 ensureCliBuilt();
 
@@ -35,28 +36,15 @@ interface Diag {
 // reports what did arrive.
 const WAIT_MS = 15_000;
 
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-function frame(obj: object): Uint8Array {
-  const body = encoder.encode(JSON.stringify({ jsonrpc: "2.0", ...obj }));
-  const header = encoder.encode(`Content-Length: ${body.byteLength}\r\n\r\n`);
-  const out = new Uint8Array(header.byteLength + body.byteLength);
-  out.set(header, 0);
-  out.set(body, header.byteLength);
-  return out;
-}
-
 class Session {
   readonly messages: Message[] = [];
-  private buffer = new Uint8Array(0);
   private nextId = 1;
   private readonly proc;
 
   constructor(dir: string, capabilities: object) {
     this.proc = Bun.spawn({
       cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
-      cwd: process.cwd(), env: hermeticEnv(), stdin: "pipe", stdout: "pipe", stderr: "pipe",
+      cwd: process.cwd(), env: hermeticEnv(), stdin: "pipe", stdout: "pipe", stderr: "ignore",
     });
     void this.pump();
     this.send({ id: this.nextId++, method: "initialize", params: { rootUri: pathToUri(dir), capabilities } });
@@ -64,41 +52,13 @@ class Session {
   }
 
   private async pump(): Promise<void> {
-    const reader = this.proc.stdout.getReader();
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) {
-        return;
-      }
-      const grown = new Uint8Array(this.buffer.byteLength + value.byteLength);
-      grown.set(this.buffer, 0);
-      grown.set(value, this.buffer.byteLength);
-      this.buffer = grown;
-      this.split();
-    }
-  }
-
-  // Move every complete frame of the buffer into `messages`.
-  private split(): void {
-    for (;;) {
-      const text = decoder.decode(this.buffer);
-      const sep = text.indexOf("\r\n\r\n");
-      if (sep < 0) {
-        return;
-      }
-      const length = Number(/content-length:\s*(\d+)/i.exec(text.slice(0, sep))![1]);
-      // The header is ASCII: its characters are its bytes.
-      const start = sep + 4;
-      if (this.buffer.byteLength < start + length) {
-        return;
-      }
-      this.messages.push(JSON.parse(decoder.decode(this.buffer.subarray(start, start + length))));
-      this.buffer = this.buffer.subarray(start + length);
+    for await (const message of readFrames(this.proc.stdout)) {
+      this.messages.push(message);
     }
   }
 
   send(obj: object): void {
-    this.proc.stdin.write(frame(obj));
+    this.proc.stdin.write(encodeFrame({ jsonrpc: "2.0", ...obj }));
     this.proc.stdin.flush();
   }
 

@@ -15,91 +15,23 @@ import { join } from "node:path";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
+import { MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
+import { exchangeFrames } from "./rpc-frames.ts";
 
 ensureCliBuilt();
 
 type Json = { seq: number; type: string; command?: string; event?: string; body?: any; success?: boolean };
 
-// Encode `obj` as a DAP frame : Content-Length header + JSON body (same framing
-// as LSP).
-function frame(obj: object): Uint8Array {
-  const body = new TextEncoder().encode(JSON.stringify(obj));
-  const header = new TextEncoder().encode(`Content-Length: ${body.byteLength}\r\n\r\n`);
-  const out = new Uint8Array(header.byteLength + body.byteLength);
-  out.set(header, 0);
-  out.set(body, header.byteLength);
-  return out;
-}
-
-function findSeparator(buf: Uint8Array): number {
-  for (let i = 0; i + 3 < buf.byteLength; i++) {
-    if (buf[i] === 0x0d && buf[i + 1] === 0x0a && buf[i + 2] === 0x0d && buf[i + 3] === 0x0a) return i;
-  }
-  return -1;
-}
-
-function readFrame(chunks: Uint8Array, cursor: number): { body: Json; cursor: number } | null {
-  const view = chunks.subarray(cursor);
-  const sep = findSeparator(view);
-  if (sep < 0) return null;
-  const headerText = new TextDecoder().decode(view.subarray(0, sep));
-  let length = -1;
-  for (const line of headerText.split("\r\n")) {
-    const m = /^content-length:\s*(\d+)$/i.exec(line);
-    if (m) length = Number(m[1]);
-  }
-  if (length < 0) throw new Error(`no Content-Length in header: ${headerText}`);
-  const bodyStart = cursor + sep + 4;
-  const bodyEnd = bodyStart + length;
-  if (chunks.byteLength < bodyEnd) return null;
-  const bodyText = new TextDecoder().decode(chunks.subarray(bodyStart, bodyEnd));
-  return { body: JSON.parse(bodyText), cursor: bodyEnd };
-}
-
-// Batch-write `requests` to a fresh `vader dap` over stdio and return every
-// frame it emitted, in order. The DAP flow is deterministic and the server
-// (incl. the paused-state loop) reads frames sequentially off the pipe, so a
-// pre-built request list drives the whole session — no reactive client needed.
-async function sendDap(_program: string, requests: object[]): Promise<Json[]> {
-  const total = requests.reduce<number>((n, r) => n + frame(r).byteLength, 0);
-  const stdin = new Uint8Array(total);
-  let offset = 0;
-  for (const r of requests) {
-    const f = frame(r);
-    stdin.set(f, offset);
-    offset += f.byteLength;
-  }
-
-  const proc = Bun.spawn({
-    cmd: [CLI_BIN, "dap"],
-    cwd: process.cwd(),
-    env: hermeticEnv(),
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
-  proc.stdin.write(stdin);
-  await proc.stdin.end();
-  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  await proc.exited;
-  clearTimeout(killer);
-
-  const frames: Json[] = [];
-  let cursor = 0;
-  while (cursor < stdout.byteLength) {
-    const r = readFrame(stdout, cursor);
-    if (r === null) break;
-    cursor = r.cursor;
-    frames.push(r.body);
-  }
-  return frames;
+// Every frame a fresh `vader dap` emits for `requests`. The server reads frames
+// in order, the paused-state loop included, so a pre-built request list drives
+// the whole session.
+async function sendDap(requests: object[]): Promise<Json[]> {
+  return exchangeFrames(["dap"], requests, MEDIUM_BUILD);
 }
 
 // The proof-of-life flow : run to completion, no breakpoints.
 async function driveDap(program: string): Promise<Json[]> {
-  return sendDap(program, [
+  return sendDap([
     { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
     { seq: 2, type: "request", command: "launch", arguments: { program } },
     // VSCode sends setBreakpoints between `initialized` and configurationDone,
@@ -183,7 +115,7 @@ test("dap: breakpoint stops the program and continue resumes it", async () => {
     { seq: 6, type: "request", command: "continue", arguments: { threadId: 1 } },
     { seq: 7, type: "request", command: "disconnect" },
   ];
-  const frames = await sendDap(program, requests);
+  const frames = await sendDap(requests);
 
   // The breakpoint fired.
   const stopped = frames.find((f) => f.event === "stopped");
@@ -235,7 +167,7 @@ test("dap: step over advances the line, and Variables shows source locals with v
     { seq: 14, type: "request", command: "continue", arguments: { threadId: 1 } },
     { seq: 15, type: "request", command: "disconnect" },
   ];
-  const frames = await sendDap(program, requests);
+  const frames = await sendDap(requests);
 
   // Two stops : the breakpoint, then the step.
   const stops = frames.filter((f) => f.event === "stopped");
@@ -283,7 +215,7 @@ test("dap: a runtime trap stops on the exception with its message", async () => 
   // the debugger it must surface a `stopped {reason:"exception"}` carrying the
   // trap message (so VSCode shows "Paused on exception"), then exit 1 on resume.
   const program = join(process.cwd(), "tests/snippets/defer_on_panic/_main.vader");
-  const frames = await sendDap(program, [
+  const frames = await sendDap([
     { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
     { seq: 2, type: "request", command: "launch", arguments: { program } },
     { seq: 3, type: "request", command: "configurationDone" },
@@ -325,7 +257,7 @@ test("dap: the Variables view names function parameters from source", async () =
     ``,
   ].join("\n"));
   try {
-    const frames = await sendDap(program, [
+    const frames = await sendDap([
       { seq: 1, type: "request", command: "initialize", arguments: { adapterID: "vader" } },
       { seq: 2, type: "request", command: "launch", arguments: { program } },
       // Line 6 = `    sum :: x + y`, the first statement inside `add`.

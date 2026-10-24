@@ -46,6 +46,7 @@ import { formatRun, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { containsTestFn } from "./vader-sources.ts";
 import { pathToUri } from "./lsp-uri.ts";
+import { encodeFrame, readFrames } from "./rpc-frames.ts";
 
 ensureCliBuilt();
 
@@ -576,8 +577,9 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
   const { dir } = await drivenBuild("pascal_case_lint");
   const profiled = await runBinary(
     exePath(`${dir}/build/driver/driver`), dir, { VADER_PROFILE: "1" });
-  const typechecks = (profiled.stderr.match(/^\s+typecheck\s/gm) ?? []).length;
-  expect(typechecks).toBe(1);
+  // The profile has one row per pass; its last column counts the runs.
+  const typecheck = profiled.stderr.match(/^\s+typecheck\s.*\s(\d+)\s*$/m);
+  expect(Number(typecheck?.[1])).toBe(1);
 }, HEAVY_BUILD);
 
 test.concurrent("info, check, run, build --run and the build flags take a driven project too", async () => {
@@ -663,36 +665,13 @@ function lspSession(cwd: string) {
     stdout: "pipe",
     stderr: "ignore",
   });
-  const reader = proc.stdout.getReader();
-  const encoder = new TextEncoder();
-  let pending = new Uint8Array(0);
+  const frames = readFrames(proc.stdout);
   const send = (message: object) => {
-    const body = encoder.encode(JSON.stringify(message));
-    proc.stdin.write(encoder.encode(`Content-Length: ${body.byteLength}\r\n\r\n`));
-    proc.stdin.write(body);
+    proc.stdin.write(encodeFrame(message));
     proc.stdin.flush();
   };
   // The next message the server sends, or null once it closed its output.
-  const next = async (): Promise<any> => {
-    for (;;) {
-      const header = new TextDecoder().decode(pending).indexOf("\r\n\r\n");
-      if (header >= 0) {
-        const length = Number(/Content-Length: (\d+)/.exec(new TextDecoder().decode(pending.slice(0, header)))![1]);
-        const start = header + 4;
-        if (pending.byteLength >= start + length) {
-          const body = pending.slice(start, start + length);
-          pending = pending.slice(start + length);
-          return JSON.parse(new TextDecoder().decode(body));
-        }
-      }
-      const { value, done } = await reader.read();
-      if (done) return null;
-      const grown = new Uint8Array(pending.byteLength + value.byteLength);
-      grown.set(pending);
-      grown.set(value, pending.byteLength);
-      pending = grown;
-    }
-  };
+  const next = async (): Promise<any> => (await frames.next()).value ?? null;
   return { proc, send, next };
 }
 

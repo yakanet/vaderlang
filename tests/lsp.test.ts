@@ -15,8 +15,9 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv, runCli } from "./cli-bin.ts";
+import { MEDIUM_BUILD, ensureCliBuilt, runCli } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
+import { exchangeFrames } from "./rpc-frames.ts";
 import { listSnippets } from "./snapshot.ts";
 
 ensureCliBuilt();
@@ -62,49 +63,6 @@ interface Query {
 interface QueryResult {
   query: Query;
   result: Json;
-}
-
-// Encode `obj` as a JSON-RPC frame : Content-Length header + body.
-function frame(obj: object): Uint8Array {
-  const body = new TextEncoder().encode(JSON.stringify(obj));
-  const header = new TextEncoder().encode(
-    `Content-Length: ${body.byteLength}\r\n\r\n`,
-  );
-  const out = new Uint8Array(header.byteLength + body.byteLength);
-  out.set(header, 0);
-  out.set(body, header.byteLength);
-  return out;
-}
-
-// Read one JSON-RPC frame from `chunks` starting at `cursor`. Returns the
-// parsed JSON and the new cursor, or `null` if `chunks` doesn't yet hold
-// a complete frame.
-function readFrame(
-  chunks: Uint8Array, cursor: number,
-): { body: Json; cursor: number } | null {
-  const view = chunks.subarray(cursor);
-  const sep = findSeparator(view);
-  if (sep < 0) return null;
-  const headerText = new TextDecoder().decode(view.subarray(0, sep));
-  let length = -1;
-  for (const line of headerText.split("\r\n")) {
-    const m = /^content-length:\s*(\d+)$/i.exec(line);
-    if (m) length = Number(m[1]);
-  }
-  if (length < 0) throw new Error(`no Content-Length in header: ${headerText}`);
-  const bodyStart = cursor + sep + 4;
-  const bodyEnd = bodyStart + length;
-  if (chunks.byteLength < bodyEnd) return null;
-  const bodyText = new TextDecoder().decode(chunks.subarray(bodyStart, bodyEnd));
-  return { body: JSON.parse(bodyText), cursor: bodyEnd };
-}
-
-function findSeparator(buf: Uint8Array): number {
-  for (let i = 0; i + 3 < buf.byteLength; i++) {
-    if (buf[i] === 0x0d && buf[i + 1] === 0x0a
-     && buf[i + 2] === 0x0d && buf[i + 3] === 0x0a) return i;
-  }
-  return -1;
 }
 
 // Run one LSP session : open `source` as a virtual document, fire every
@@ -171,43 +129,15 @@ async function driveLsp(
   requests.push({ jsonrpc: "2.0", id: 999, method: "shutdown", params: null });
   requests.push({ jsonrpc: "2.0", method: "exit", params: null });
 
-  const stdin = new Uint8Array(
-    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
-  );
-  let offset = 0;
-  for (const r of requests) {
-    const f = frame(r);
-    stdin.set(f, offset);
-    offset += f.byteLength;
-  }
-
   // No root flag by default, as an editor launches it : the server then searches
   // what `vader build` would for the same file, the checkout's `lib/` reached as
   // the cwd fallback.
-  const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", ...serverArgs],
-    cwd: process.cwd(),
-    env: hermeticEnv(),
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
-  proc.stdin.write(stdin);
-  await proc.stdin.end();
-  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  await proc.exited;
-  clearTimeout(killer);
+  const messages = await exchangeFrames(["lsp", ...serverArgs], requests, MEDIUM_BUILD);
   rmSync(dir, { recursive: true, force: true });
 
-  // Parse every frame, index by request id.
+  // Index every answer by request id.
   const responses = new Map<number, Json>();
-  let cursor = 0;
-  while (cursor < stdout.byteLength) {
-    const r = readFrame(stdout, cursor);
-    if (r === null) break;
-    cursor = r.cursor;
-    const msg = r.body as { id?: number; result?: Json };
+  for (const msg of messages) {
     if (typeof msg.id === "number" && "result" in msg) {
       responses.set(msg.id, msg.result);
     }
@@ -1701,38 +1631,11 @@ main :: fn() -> i32 {
     { jsonrpc: "2.0", id: 999, method: "shutdown", params: null },
     { jsonrpc: "2.0", method: "exit", params: null },
   ];
-  const stdin = new Uint8Array(
-    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
+  const messages = await exchangeFrames(
+    ["lsp", `--library-root=${process.cwd()}/lib`], requests, MEDIUM_BUILD,
   );
-  let offset = 0;
-  for (const r of requests) {
-    const f = frame(r);
-    stdin.set(f, offset);
-    offset += f.byteLength;
-  }
-  const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
-    cwd: process.cwd(),
-    env: hermeticEnv(),
-    stdin: "pipe", stdout: "pipe", stderr: "pipe",
-  });
-  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
-  proc.stdin.write(stdin);
-  await proc.stdin.end();
-  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  await proc.exited;
-  clearTimeout(killer);
   rmSync(dir, { recursive: true, force: true });
-
-  let defResult: Json = null;
-  let cursor = 0;
-  while (cursor < stdout.byteLength) {
-    const r = readFrame(stdout, cursor);
-    if (r === null) break;
-    cursor = r.cursor;
-    const msg = r.body as { id?: number; result?: Json };
-    if (msg.id === 2) defResult = msg.result ?? null;
-  }
+  const defResult: Json = messages.find((m) => m.id === 2)?.result ?? null;
 
   // LocationLink[] : array with one LocationLink (originSelectionRange
   // + targetUri + targetRange + targetSelectionRange).
@@ -1765,40 +1668,10 @@ test("lsp: initialize advertises definition + hover providers", async () => {
     { jsonrpc: "2.0", id: 999, method: "shutdown", params: null },
     { jsonrpc: "2.0", method: "exit", params: null },
   ];
-  const stdin = new Uint8Array(
-    requests.reduce<number>((n, r) => n + frame(r).byteLength, 0),
+  const messages = await exchangeFrames(
+    ["lsp", `--library-root=${process.cwd()}/lib`], requests, MEDIUM_BUILD,
   );
-  let offset = 0;
-  for (const r of requests) {
-    const f = frame(r);
-    stdin.set(f, offset);
-    offset += f.byteLength;
-  }
-
-  const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
-    cwd: process.cwd(),
-    env: hermeticEnv(),
-    stdin: "pipe",
-    stdout: "pipe",
-    stderr: "pipe",
-  });
-  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
-  proc.stdin.write(stdin);
-  await proc.stdin.end();
-  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  await proc.exited;
-  clearTimeout(killer);
-
-  let initResult: Json = null;
-  let cursor = 0;
-  while (cursor < stdout.byteLength) {
-    const r = readFrame(stdout, cursor);
-    if (r === null) break;
-    cursor = r.cursor;
-    const msg = r.body as { id?: number; result?: Json };
-    if (msg.id === 1) initResult = msg.result ?? null;
-  }
+  const initResult: Json = messages.find((m) => m.id === 1)?.result ?? null;
 
   const caps = (initResult as { capabilities?: Record<string, unknown> })?.capabilities;
   expect(caps).toBeDefined();

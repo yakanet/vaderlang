@@ -89,10 +89,13 @@ render_diagnostics :: fn(diags: Diagnostic[], show_file: bool, cap: bool) -> str
     return sb.to_string()
 }
 
-// Drop exact-duplicate diagnostics, preserving first-seen order. The same error
-// can surface through more than one path (e.g. a cross-module symbol reported
-// once per importer) ; the user should see it a single time.
-dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
+/// Drop exact-duplicate diagnostics, preserving first-seen order. The same error
+/// can surface through more than one path (e.g. a cross-module symbol reported
+/// once per importer) ; the user should see it a single time.
+///
+/// @param diags  the diagnostics, in the order they are shown.
+/// @return       each distinct one once: same severity, code, span and detail.
+export dedup_diagnostics :: fn(diags: Diagnostic[]) -> Diagnostic[] {
     seen :: MutableSet<string> {}
     out: Diagnostic[]: []
     for d in diags {

@@ -142,6 +142,8 @@ export interface SpawnOptions {
   readonly cwd?: string;
   readonly env?: Record<string, string>;
   readonly timeoutMs?: number;
+  /** Bytes for the child's standard input, closed after them. */
+  readonly stdin?: Uint8Array;
 }
 
 /// The process environment a spawned `build/vader` should see, plus `extra`.
@@ -169,6 +171,7 @@ export async function spawnCapture(args: string[], opts: SpawnOptions = {}): Pro
   const bin = resolve(opts.bin ?? CLI_BIN);
   const proc = Bun.spawn([bin, ...args], {
     cwd: opts.cwd,
+    ...(opts.stdin === undefined ? {} : { stdin: opts.stdin }),
     stdout: "pipe",
     stderr: "pipe",
     env: hermeticEnv(opts.env),

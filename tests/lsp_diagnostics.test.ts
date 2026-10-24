@@ -10,8 +10,9 @@ import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt, hermeticEnv } from "./cli-bin.ts";
+import { MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
 import { pathToUri } from "./lsp-uri.ts";
+import { exchangeFrames } from "./rpc-frames.ts";
 
 ensureCliBuilt();
 
@@ -19,23 +20,8 @@ interface Diag {
   code: string;
   message: string;
   severity: number;
+  range: { start: { line: number; character: number } };
   tags?: number[];
-}
-
-function frame(obj: object): Uint8Array {
-  const body = new TextEncoder().encode(JSON.stringify(obj));
-  const header = new TextEncoder().encode(`Content-Length: ${body.byteLength}\r\n\r\n`);
-  const out = new Uint8Array(header.byteLength + body.byteLength);
-  out.set(header, 0);
-  out.set(body, header.byteLength);
-  return out;
-}
-
-function sepIndex(buf: Uint8Array): number {
-  for (let i = 0; i + 3 < buf.byteLength; i++) {
-    if (buf[i] === 0x0d && buf[i + 1] === 0x0a && buf[i + 2] === 0x0d && buf[i + 3] === 0x0a) return i;
-  }
-  return -1;
 }
 
 // Spawn `vader lsp`, open `source` as a document, and return the diagnostics of
@@ -53,43 +39,15 @@ async function diagnosticsFor(source: string): Promise<Diag[]> {
     { jsonrpc: "2.0", id: 999, method: "shutdown", params: null },
     { jsonrpc: "2.0", method: "exit", params: null },
   ];
-  const stdin = new Uint8Array(requests.reduce<number>((n, r) => n + frame(r).byteLength, 0));
-  let off = 0;
-  for (const r of requests) { const f = frame(r); stdin.set(f, off); off += f.byteLength; }
-
-  const proc = Bun.spawn({
-    cmd: [CLI_BIN, "lsp", `--library-root=${process.cwd()}/lib`],
-    cwd: process.cwd(), env: hermeticEnv(), stdin: "pipe", stdout: "pipe", stderr: "pipe",
-  });
-  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
-  proc.stdin.write(stdin);
-  await proc.stdin.end();
-  const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
-  await proc.exited;
-  clearTimeout(killer);
+  const messages = await exchangeFrames(
+    ["lsp", `--library-root=${process.cwd()}/lib`], requests, MEDIUM_BUILD,
+  );
   rmSync(dir, { recursive: true, force: true });
 
-  // Walk every frame, keep the latest publishDiagnostics for our uri.
-  let latest: Diag[] = [];
-  let cursor = 0;
-  while (cursor < stdout.byteLength) {
-    const view = stdout.subarray(cursor);
-    const sep = sepIndex(view);
-    if (sep < 0) break;
-    const header = new TextDecoder().decode(view.subarray(0, sep));
-    const m = /^content-length:\s*(\d+)$/im.exec(header);
-    if (!m) break;
-    const len = Number(m[1]);
-    const bodyStart = cursor + sep + 4;
-    const bodyEnd = bodyStart + len;
-    if (stdout.byteLength < bodyEnd) break;
-    const body = JSON.parse(new TextDecoder().decode(stdout.subarray(bodyStart, bodyEnd)));
-    cursor = bodyEnd;
-    if (body?.method === "textDocument/publishDiagnostics" && body?.params?.uri === uri) {
-      latest = body.params.diagnostics as Diag[];
-    }
-  }
-  return latest;
+  const latest = messages.findLast(
+    (m) => m.method === "textDocument/publishDiagnostics" && m.params.uri === uri,
+  );
+  return latest?.params.diagnostics ?? [];
 }
 
 test("LSP surfaces W0012 (unused-export) on a dead exported fn, faded", async () => {
@@ -135,4 +93,17 @@ test("LSP surfaces W0007 (dead code) on an unused private fn, faded", async () =
   expect(w0007[0]!.message).toContain("helper");
   expect(w0007[0]!.severity).toBe(2);        // Warning
   expect(w0007[0]!.tags).toEqual([1]);       // Unnecessary → rendered faded
+}, MEDIUM_BUILD);
+
+test("LSP publishes each diagnostic once, as the CLI prints it", async () => {
+  // An `implements` naming an unknown type reports some of its spans twice.
+  const source = [
+    `module "snippet"`,
+    `Vector2 implements Add<Vector2> -> Vector2 { .x = self.x + other.x }`,
+    ``,
+  ].join("\n");
+  const diags = await diagnosticsFor(source);
+  const keys = diags.map(d => `${d.code}@${d.range.start.line}:${d.range.start.character}`);
+  expect(keys.length).toBeGreaterThan(0);
+  expect(new Set(keys).size).toBe(keys.length);
 }, MEDIUM_BUILD);
