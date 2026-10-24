@@ -138,7 +138,7 @@ bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
 
 import "std/testing"
 import "toolchain/span"
-import "vader/types"
+import "vader/core/types"
 
 // A project holding `f :: fn() { x :: <value> }`, `x` being symbol 1.
 captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {

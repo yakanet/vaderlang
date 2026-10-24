@@ -25,8 +25,8 @@ import "std/collections"
 import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/support/fixpoint"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 // The graph of instantiations, over the parameters of each function.

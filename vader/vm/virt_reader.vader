@@ -16,7 +16,7 @@ bc :: import "vader/bytecode"
 
 import "std/string"
 import "std/numbers"
-import "vader/types"
+import "vader/core/types"
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader`, and the
 // scope stack / branch wiring that consume them in `branch_scopes.vader` —

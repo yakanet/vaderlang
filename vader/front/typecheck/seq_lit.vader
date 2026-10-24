@@ -16,7 +16,7 @@ module "vader/front/typecheck"
 import "std/math"
 import "std/iter"
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Type a bracketed literal contextually : returns `Tuple(...)` when
@@ -226,7 +226,7 @@ pick_seq_variant :: fn(u: UnionType, arity: i64) -> Type | null {
 import "std/testing"
 import "vader/front/parser"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "toolchain/span"
 
 accept_seq :: fn(e: AST.Expr) -> AST.Expr | null {

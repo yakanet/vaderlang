@@ -8,7 +8,7 @@
 
 module "vader/front/typecheck"
 
-import "vader/types"
+import "vader/core/types"
 
 AST :: import "toolchain/ast"
 
@@ -153,7 +153,7 @@ bound_widens_into :: fn(param: TypeParamType, wanted: TraitType, typed: TypedPro
 
 import "std/testing"
 import "toolchain/span"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 // A minimal `Iterator<elem>` trait type — `try_array_to_iter` only reads the
 // symbol's name and module and the args, so the other Symbol fields are

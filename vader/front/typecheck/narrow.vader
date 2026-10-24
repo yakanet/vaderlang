@@ -32,7 +32,7 @@ module "vader/front/typecheck"
 
 import "std/collections"
 import "std/string"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// One narrowing-table entry : the narrowed type plus the slot's kill

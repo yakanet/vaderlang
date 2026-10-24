@@ -12,8 +12,8 @@ module "vader/front/comptime"
 import "std/collections"
 import "std/sort"
 import "std/string"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// One registered instantiation. `args` carries the concrete (or
 /// possibly type-param) type arguments ; `display_key` is the dedup key :

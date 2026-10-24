@@ -12,7 +12,7 @@
 module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// The type of a value one of several branches gives — an `if`'s two, a `match`'s
@@ -430,7 +430,7 @@ detect_is_narrow :: fn(
 import "std/testing"
 import "vader/front/parser"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "toolchain/span"
 
 accept_if :: fn(e: AST.Expr) -> AST.Expr | null {

@@ -11,8 +11,8 @@ module "vader/lower"
 import "std/abort"
 import "std/collections"
 import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"
 
@@ -248,7 +248,7 @@ export declared_type :: fn(self: EntryTypes, name_span: Span) -> Type =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 @test test_apply_is_identity_under_empty_subst :: fn() -> void {
     typed :: empty_typed_program()

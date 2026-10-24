@@ -22,7 +22,7 @@ import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/front/parser"
 import "std/string"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/support/target"
 import "toolchain/span"
 

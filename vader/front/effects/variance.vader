@@ -17,9 +17,9 @@ module "vader/front/effects"
 import "std/collections"
 import "std/iter"
 import "toolchain/span"
-import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+import "vader/support/diagnostics"
 
 AST :: import "toolchain/ast"
 

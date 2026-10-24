@@ -8,7 +8,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
-import "vader/types"
+import "vader/core/types"
 
 /// Mapping from `TypeParam.symbol.id` to a concrete replacement type.
 /// `self` rebinds `Self` to its concrete carrier inside an impl ;
@@ -112,7 +112,7 @@ substitute_each :: fn(types: Type[], subst: Substitution) -> Type[] {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "toolchain/ast"
 
 fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {

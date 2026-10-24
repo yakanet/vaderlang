@@ -23,8 +23,8 @@ import "std/iter"
 import "std/string"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 import "toolchain/span"
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass

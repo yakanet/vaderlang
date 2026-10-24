@@ -8,7 +8,7 @@
 module "vader/front/resolver"
 
 import "std/collections"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 /// What an ImportBinding resolves to. Three flat side-tables keyed
 /// by Symbol.id : `symbol_targets` for destructured-named imports,

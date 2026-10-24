@@ -16,11 +16,11 @@ import "std/collections"
 import "std/io"
 import "std/string"
 import "toolchain/span"
-import "vader/tools/lsp/protocol"
 import "vader/front/parser"
 import "vader/front/resolver"
-import "vader/support/text"
 import "vader/front/typecheck"
+import "vader/support/text"
+import "vader/tools/lsp/protocol"
 
 /// How deep under a root a walk looks for module folders.
 WALK_DEPTH_MAX: i64: 12

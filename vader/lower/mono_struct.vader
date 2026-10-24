@@ -10,9 +10,9 @@ import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 import "vader/front/comptime"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 // Phase 1 of the two-pass instance materialisation : concrete struct decls only.
 // Phase 2 (`materialize_representatives`, after the fn-instance drain) owns its

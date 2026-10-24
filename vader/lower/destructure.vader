@@ -5,9 +5,9 @@ module "vader/lower"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 import "toolchain/span"
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with

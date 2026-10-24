@@ -21,7 +21,7 @@
 module "vader/bytecode"
 
 import "std/string"
-import "vader/types"
+import "vader/core/types"
 
 export ValType :: enum(u8) {
     // Signed integers
@@ -582,7 +582,7 @@ export BcFn :: struct {
 // Helpers
 // =========================================================================
 
-/// Byte size of a `ValType` : a primitive class the width `vader/types` gives its
+/// Byte size of a `ValType` : a primitive class the width `vader/core/types` gives its
 /// type (`primitive_size`, the one table of them), computed when the compiler is
 /// built so that a read is a literal, every checked integer op of the VM asking
 /// it ; a reference shape its slot's.
@@ -610,7 +610,7 @@ export size_of_val_type :: fn(v: ValType) -> i32 = match v {
     .Any     -> i32(BOX_SLOT_BYTES)
 }
 
-// Each primitive class's width, folded from `vader/types` when the compiler is
+// Each primitive class's width, folded from `vader/core/types` when the compiler is
 // built : the widths stay written in one table, and `size_of_val_type` reads
 // literals.
 I8_BYTES: i32: @comptime { return i32(primitive_size("i8")) }

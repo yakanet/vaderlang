@@ -28,9 +28,9 @@ import "std/sort"
 import "std/string"
 import "std/string_builder"
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
-import "vader/types"
 
 AST :: import "toolchain/ast"
 

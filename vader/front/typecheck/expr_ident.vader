@@ -22,9 +22,9 @@ module "vader/front/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
-import "vader/types"
 
 /// Return the Type of an `IdentExpr` in value position. Returns
 /// `TY_UNRESOLVED` when the resolver couldn't bind the ident (the
@@ -114,8 +114,8 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/support/diagnostics"
 import "vader/front/parser"
+import "vader/support/diagnostics"
 
 // Test harness — bundles parse + resolve + check. Returns the parsed
 // program and the populated typed program ; tests reach into both.

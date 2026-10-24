@@ -7,8 +7,8 @@
 
 module "vader/midir"
 
+import "vader/core/types"
 import "vader/support/integer"
-import "vader/types"
 
 // ---- intervals ------------------------------------------------------------
 

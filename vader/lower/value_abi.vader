@@ -5,7 +5,7 @@
 // finds eligible. This file answers ELIGIBILITY only, for that pass and for the
 // report of the sites a value ABI reaches ; it emits nothing.
 //
-// The predicate lives HERE and not in `vader/types` because judging a struct
+// The predicate lives HERE and not in `vader/core/types` because judging a struct
 // needs its field types, which a bare `Type` does not carry — a lowered decl
 // does. `vader/midir`, `vader/bytecode` and `vader/c_emit` all import
 // `vader/lower`, so every consumer reaches it from here.
@@ -19,10 +19,10 @@ module "vader/lower"
 
 import "std/collections"
 import "std/string_builder"
-import "vader/types"
+import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 /// Widest payload that crosses in registers rather than through memory.
 ///

@@ -14,10 +14,10 @@ module "vader/front/typecheck"
 import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/support/diagnostics"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/support/diagnostics"
 
 /// The type declared at `name_span`: the `decl_types` entry of the symbol
 /// declared there, or for an impl member, which has no symbol of its own, its

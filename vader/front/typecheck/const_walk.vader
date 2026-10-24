@@ -12,7 +12,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "toolchain/span"
 import "vader/support/diagnostics"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 AST :: import "toolchain/ast"
 
 /// Start the const bookkeeping of a walk over `decls` (`TypedProgram.const_walk`).

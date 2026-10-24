@@ -14,7 +14,7 @@ module "vader/front/resolver"
 
 import "std/collections"
 import "std/string"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/front/parser"
 import "vader/support/target"
 

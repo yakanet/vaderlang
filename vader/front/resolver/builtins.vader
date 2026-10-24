@@ -12,8 +12,8 @@
 module "vader/front/resolver"
 
 import "std/collections"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// Synthetic module id every builtin symbol carries in its `.module` field.
 export BUILTIN_MODULE_ID :: "<builtin>"

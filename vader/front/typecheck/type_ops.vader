@@ -1288,8 +1288,8 @@ removed_covers :: fn(removed: Type, t: Type) -> bool {
 
 import "std/abort"
 import "std/testing"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 @test
 test_equals_integer :: fn() -> void {

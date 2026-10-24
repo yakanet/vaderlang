@@ -333,8 +333,8 @@ collect_stmt_deps :: fn(
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/symbol"
 import "vader/front/parser"
-import "vader/front/resolver/symbol"
 
 build_order :: fn(src: string) -> ComptimeOrder {
     parsed :: parse_source(src, "t.vader")

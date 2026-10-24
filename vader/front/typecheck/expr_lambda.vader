@@ -12,9 +12,9 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-import "vader/support/diagnostics"
+import "vader/core/types"
 import "vader/front/resolver"
-import "vader/types"
+import "vader/support/diagnostics"
 
 /// What checking a body that runs later than it is written sets aside, put back
 /// by `leave_later_body`.

@@ -36,8 +36,8 @@ import "vader/tools/lsp/protocol"
 import "toolchain/span"
 
 Rs :: import "vader/front/resolver"
-Ty :: import "vader/types"
-import "vader/front/resolver/symbol"
+Ty :: import "vader/core/types"
+import "vader/core/symbol"
 import "std/collections"
 
 /// What kind of declaration a DeclEntry points at. Drives the hover

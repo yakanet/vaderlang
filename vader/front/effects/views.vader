@@ -16,8 +16,8 @@ module "vader/front/effects"
 
 import "std/collections"
 import "std/iter"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 // What a root that holds a view comes to, if anything. Its elements are bytes:
 // one kept or returned is a value, not the view.

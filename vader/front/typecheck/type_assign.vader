@@ -14,9 +14,9 @@ module "vader/front/typecheck"
 
 import "std/collections"
 import "toolchain/span"
+import "vader/core/types"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/types"
 
 /// Whether `from` can flow into a slot expecting `to` without explicit coercion.
 ///
@@ -480,7 +480,7 @@ is_heap_reference :: fn(t: Type) = t is StructType || t is ArrayType || t is FnT
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 @test
 test_assignable_identity :: fn() -> void {

@@ -24,7 +24,7 @@ module "vader/lower"
 import "std/collections"
 import "std/iter"
 import "toolchain/ast"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 /// Drop functions unreachable from the program roots, returning a new
 /// `LoweredProject`. Structs and consts survive verbatim.

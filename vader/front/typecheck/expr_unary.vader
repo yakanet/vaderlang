@@ -7,7 +7,7 @@
 module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Type-check a `UnaryExpr`. T3017 when the op doesn't admit the

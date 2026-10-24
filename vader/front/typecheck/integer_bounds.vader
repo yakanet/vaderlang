@@ -26,7 +26,7 @@ import "std/collections"
 import "std/sort"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// The type of `x in T` or `x !in T`, `T` a type : a `bool`, `x` an integer

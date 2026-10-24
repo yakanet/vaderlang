@@ -10,7 +10,7 @@
 module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// `T[]` in value position : lower the element for side-effects,

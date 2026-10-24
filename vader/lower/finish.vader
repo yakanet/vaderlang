@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 // One `LoweredVtableEntry` per surviving impl member — the slot its `MonoEntry`
 // records (`(trait_key, method)`) for the receiver type of its `self`.

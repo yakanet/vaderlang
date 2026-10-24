@@ -10,9 +10,9 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 /// Index every free fn's symbol by its declaration's node id
 /// (`LowerProjectCtx.fn_symbols`). A module's `fn_overloads` lists the fns it

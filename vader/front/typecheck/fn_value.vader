@@ -22,7 +22,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "toolchain/span"
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// The instance a generic function named by `expr` takes in the slot `expected`.

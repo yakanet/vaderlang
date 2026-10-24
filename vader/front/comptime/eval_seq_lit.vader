@@ -10,7 +10,7 @@ module "vader/front/comptime"
 
 import "std/collections"
 AST :: import "toolchain/ast"
-import "vader/types"
+import "vader/core/types"
 
 /// Evaluate a `[e0, e1, …]` literal : each element in order, then a tuple or an
 /// array according to the literal's checked type.

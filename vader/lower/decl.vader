@@ -9,10 +9,10 @@ import "std/collections"
 import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "toolchain/span"
 
 // Each `T implements Trait { method ... }` member surfaces as a fn

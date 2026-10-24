@@ -15,7 +15,7 @@ module "vader/front/typecheck"
 import "std/collections"
 import "std/iter"
 import "std/math"
-import "vader/types"
+import "vader/core/types"
 
 /// Whether `t` is the type of a free literal : an integer, a float or a `char` one,
 /// which takes the type of the slot it fills.

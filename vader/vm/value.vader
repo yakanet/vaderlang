@@ -16,7 +16,7 @@ module "vader/vm"
 import "std/string"
 import "std/string_builder"
 import "vader/bytecode"
-import "vader/types"
+import "vader/core/types"
 bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32

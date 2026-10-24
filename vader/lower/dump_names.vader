@@ -13,11 +13,11 @@ module "vader/lower"
 import "std/collections"
 import "std/string"
 import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
 import "vader/front/typecheck"
-import "vader/types"
 
 /// The printed name of every lowered declaration, by mangled name and by the
 /// id of the symbol it was lowered from, and of every trait by its key.

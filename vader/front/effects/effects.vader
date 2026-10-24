@@ -11,9 +11,9 @@ module "vader/front/effects"
 
 import "std/collections"
 import "std/iter"
-import "vader/support/fixpoint"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+import "vader/support/fixpoint"
 
 /// The most sweeps one strongly connected component of the call graph may take.
 /// A component still moving then is set to any effects at all.

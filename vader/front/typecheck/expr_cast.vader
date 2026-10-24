@@ -8,9 +8,9 @@
 
 module "vader/front/typecheck"
 
+import "vader/core/types"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/types"
 // `display_type` and `is_numeric` live in sibling files of this module and are
 // referenced directly (a re-import would trip R2026 duplicate-declaration).
 AST :: import "toolchain/ast"

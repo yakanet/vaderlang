@@ -14,8 +14,8 @@ module "vader/midir"
 import "std/collections"
 import "std/sort"
 import "toolchain/span"
-import "vader/support/integer"
 import "vader/lower"
+import "vader/support/integer"
 
 /// What the analysis concludes about one array access or checked operation.
 RangeVerdict :: enum {

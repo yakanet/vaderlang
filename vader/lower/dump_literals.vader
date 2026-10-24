@@ -10,9 +10,9 @@ module "vader/lower"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
-import "vader/support/text"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/support/text"
 
 // A value written into a slot of its own type : a literal prints bare, and a
 // value joining branches drops the type the slot already gives.

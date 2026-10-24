@@ -10,9 +10,9 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "toolchain/span"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Evaluate one of the forms only an evaluation reaching the project reads;

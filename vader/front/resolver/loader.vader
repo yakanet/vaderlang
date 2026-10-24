@@ -24,7 +24,7 @@ import "std/string"
 import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/front/parser"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/support/target"
 import "toolchain/span"
 

@@ -13,9 +13,9 @@ module "vader/front/typecheck"
 import "std/iter"
 import "std/string"
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/support/diagnostics"
-import "vader/front/resolver/symbol"
-import "vader/types"
 
 /// The member `method` a use site reaches on the union `u` through a trait every
 /// variant implements, `Self` standing for `u` ; null when no such trait declares

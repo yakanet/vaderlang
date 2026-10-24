@@ -11,8 +11,8 @@ module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
 import "vader/front/parser"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Type-check an `@name(...)` call, argument by argument as the intrinsic's spec

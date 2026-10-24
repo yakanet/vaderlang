@@ -27,8 +27,8 @@ module "vader/lower"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 import "toolchain/span"
 
 /// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on

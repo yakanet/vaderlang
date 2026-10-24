@@ -5,7 +5,7 @@ module "vader/front/typecheck"
 
 import "std/collections"
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Type-check the read `target[index]` : an array's element, a bound's or an impl's

@@ -19,10 +19,10 @@
 module "vader/lower"
 
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/comptime"
-import "vader/front/resolver/symbol"
 import "vader/front/typecheck"
-import "vader/types"
 
 AST :: import "toolchain/ast"
 

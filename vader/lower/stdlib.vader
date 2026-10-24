@@ -7,9 +7,9 @@ import "std/string"
 import "std/collections"
 
 import "toolchain/ast"
+import "vader/core/types"
 import "vader/front/resolver"
 import "vader/front/typecheck"
-import "vader/types"
 
 
 /// Post-lowering pass : surface the referenced impl members of every

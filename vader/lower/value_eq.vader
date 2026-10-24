@@ -29,8 +29,8 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
     left_ty  :: ctx.types.expr_type(binary.left)

@@ -16,7 +16,7 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "std/string_builder"
-import "vader/types"
+import "vader/core/types"
 import "vader/support/text"
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.

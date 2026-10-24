@@ -14,8 +14,8 @@ module "vader/lower"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// Lower a `RangeExpr` into a `Range` struct literal.
 /// @param ctx          the fn-body context.

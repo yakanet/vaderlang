@@ -22,9 +22,9 @@ import "std/io"
 import "std/path"
 import "std/process"
 import "std/string"
-import "vader/tools/lsp/protocol"
-import "vader/pipeline"
 import "vader/front/resolver"
+import "vader/pipeline"
+import "vader/tools/lsp/protocol"
 
 /// What the server knows of one project its `build.vader` describes.
 export DrivenProject :: struct {

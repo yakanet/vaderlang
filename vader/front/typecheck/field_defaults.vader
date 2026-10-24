@@ -13,7 +13,7 @@ import "std/collections"
 import "std/string"
 import "toolchain/span"
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 // A walk over the defaults literals fill in.

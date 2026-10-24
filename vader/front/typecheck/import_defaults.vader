@@ -26,8 +26,8 @@ module "vader/front/typecheck"
 import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/span"
+import "vader/core/types"
 import "vader/front/resolver"
-import "vader/types"
 
 /// Publish the resolutions for every identifier inside `fd`'s default values.
 ///

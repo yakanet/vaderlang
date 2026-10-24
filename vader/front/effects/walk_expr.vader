@@ -8,9 +8,9 @@
 module "vader/front/effects"
 
 import "std/collections"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 AST :: import "toolchain/ast"
 Parse :: import "vader/front/parser"

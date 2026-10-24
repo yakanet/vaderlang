@@ -23,9 +23,9 @@ import "std/math"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 AST :: import "toolchain/ast"
-import "vader/types"
+import "vader/core/types"
 
 /// Lower `expr` from type position to a `Type`. Unresolvable shapes
 /// surface T3002 and return `TY_UNRESOLVED` ; downstream passes treat

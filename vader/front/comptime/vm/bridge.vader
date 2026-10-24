@@ -19,7 +19,7 @@
 module "vader/front/comptime/vm"
 
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
 import "toolchain/span"

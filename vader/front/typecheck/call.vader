@@ -27,8 +27,8 @@ import "std/math"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 AST :: import "toolchain/ast"
-import "vader/types"
-import "vader/front/resolver/symbol"
+import "vader/core/types"
+import "vader/core/symbol"
 import "toolchain/span"
 
 // True when the callee names a free fn with 2+ overloads — the only shape where

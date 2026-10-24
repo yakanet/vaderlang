@@ -26,7 +26,7 @@ import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/front/comptime"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).

@@ -9,7 +9,7 @@
 module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// Type-check `await e` : diagnose it outside an `async` body, type the inner,

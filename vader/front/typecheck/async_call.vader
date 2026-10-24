@@ -10,8 +10,8 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// The `Async<T>` result type when `c`'s callee is an async coroutine or declares
 /// an `Async<T>` return, else null.

@@ -9,8 +9,8 @@
 module "vader/front/resolver"
 
 import "std/collections"
+import "vader/core/symbol"
 import "vader/support/diagnostics"
-import "vader/front/resolver/symbol"
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.
 export Scope :: struct {

@@ -33,9 +33,9 @@ import "std/numbers"
 import "std/path"
 import "std/string"
 import "std/string_builder"
-import "vader/support/diagnostics"
 Parse :: import "vader/front/parser"
 import "vader/front/resolver"
+import "vader/support/diagnostics"
 
 // ---- the contract ---------------------------------------------------------
 

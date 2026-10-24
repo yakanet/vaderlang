@@ -9,7 +9,7 @@ module "vader/lower"
 
 import "std/sort"
 import "std/string"
-import "vader/types"
+import "vader/core/types"
 
 // Where the module's constants and global slots live : the constants by name,
 // then the slots by number. Pool indices and slot numbers are project-wide.

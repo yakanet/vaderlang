@@ -20,8 +20,8 @@ import "std/string"
 import "std/string_builder"
 import "toolchain/span"
 import "vader/front/resolver"
-import "vader/support/text"
 import "vader/front/typecheck"
+import "vader/support/text"
 
 /// Render the project's `# Comptime` dump as a single Markdown string. Only
 /// modules in `scope` are rendered (the entry's subtree by default, `--module` to

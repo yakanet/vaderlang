@@ -15,8 +15,8 @@ import "std/path"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
-import "vader/support/diagnostics"
 import "vader/front/resolver"
+import "vader/support/diagnostics"
 
 /// How to spell the graph.
 GraphFormat :: enum(u8) {

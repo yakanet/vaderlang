@@ -15,7 +15,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in
 /// the project. Pure : returns a fresh CFGProject sharing unchanged
@@ -476,7 +476,7 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction = match ins {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/types"
+import "vader/core/types"
 import "toolchain/span"
 
 // `fold_moves_in_block` holds every decision the pass makes ; `fold_moves` is the

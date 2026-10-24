@@ -268,7 +268,7 @@ test_organize_interleaves_every_origin :: fn() -> void {
     // The regression the groups caused: `toolchain/ast` and `json` used to land in a
     // third bucket after everything, so a file mixing all four origins could not be
     // read in one pass. One list puts them where their name says.
-    src :: "module \"t\"\n\nimport \"vader/types\"\nimport \"json\"\nimport \"std/io\"\nimport \"toolchain/ast\"\n"
+    src :: "module \"t\"\n\nimport \"vader/grid\"\nimport \"json\"\nimport \"std/io\"\nimport \"toolchain/ast\"\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)
@@ -276,7 +276,7 @@ test_organize_interleaves_every_origin :: fn() -> void {
         assert(false, "expected an edit")
         return
     }
-    expected :: "import \"json\"\nimport \"std/io\"\nimport \"toolchain/ast\"\nimport \"vader/types\""
+    expected :: "import \"json\"\nimport \"std/io\"\nimport \"toolchain/ast\"\nimport \"vader/grid\""
     assert(r.new_text == expected, "one alphabetical list across all four origins: got [${r.new_text}]")
 }
 

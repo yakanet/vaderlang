@@ -1,4 +1,4 @@
-// vader/types/types — the Type IR.
+// vader/core/types/types — the Type IR.
 //
 // Every Vader value gets exactly one
 // Type. The discriminated union has 20 variants ; constructors are
@@ -6,13 +6,13 @@
 // `type_ops.vader` walks structurally instead of relying on reference
 // identity). Interning lands when a downstream hot path needs it.
 
-module "vader/types"
+module "vader/core/types"
 
 import "std/abort"
 import "std/collections"
 import "std/string_builder"
+import "vader/core/symbol"
 import "vader/support/integer"
-import "vader/front/resolver/symbol"
 
 // ---- variants -------------------------------------------------------------
 
@@ -380,7 +380,7 @@ export Type ::
 /// `front/resolver/builtins` mints builtin symbol IDs in this order (embedded in
 /// snapshots), so new primitives append at the end. Consumer-owned mappings
 /// (bytecode `ValType`, c-emit C spellings) map a row onto their own enum rather
-/// than living here, so `vader/types` stays a near-leaf. `size` is bytes (align ==
+/// than living here, so `vader/core/types` stays a near-leaf. `size` is bytes (align ==
 /// size on the 64-bit target).
 export PrimitiveMeta :: struct {
     name:     string
@@ -500,7 +500,7 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// This is what `@size_of` reports, and the operational truth is
 /// `bytecode::val_type_of_type` composed with `c_emit::c_type_for_val_bare`:
 /// those two decide the C declaration, and any disagreement with this function
-/// is a bug here. It lives in `vader/types` because `vader/front/comptime` folds
+/// is a bug here. It lives in `vader/core/types` because `vader/front/comptime` folds
 /// `@size_of` and cannot reach `vader/bytecode` without inverting an import
 /// edge; the colocated tests below pin one case per class against the emitted C.
 ///

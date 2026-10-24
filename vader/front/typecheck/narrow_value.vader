@@ -15,7 +15,7 @@
 module "vader/front/typecheck"
 
 import "vader/support/integer"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 
 /// The narrowing a comparison `cond` gives the range it tests, or a call to a guard

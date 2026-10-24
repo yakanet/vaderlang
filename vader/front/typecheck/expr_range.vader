@@ -7,9 +7,9 @@
 module "vader/front/typecheck"
 
 AST :: import "toolchain/ast"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/support/diagnostics"
-import "vader/front/resolver/symbol"
-import "vader/types"
 
 /// Type-check a range. Resolves to `Range<T>` when `std/core::Range`
 /// is loaded (auto-loaded by `loader.vader`), otherwise Unresolved.

@@ -21,7 +21,7 @@
 module "vader/lower"
 
 import "toolchain/span"
-import "vader/types"
+import "vader/core/types"
 
 // One `s = s + …` append statement, destructured. `args` is the concat call's
 // full operand list — `args[0]` is the `s` being appended to, the rest is what

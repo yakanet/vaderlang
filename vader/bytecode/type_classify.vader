@@ -12,10 +12,10 @@ module "vader/bytecode"
 
 import "std/iter"
 import "std/string"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/front/resolver/symbol"
-import "vader/types"
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`
 /// allocation by keying directly on the primitive name (already a

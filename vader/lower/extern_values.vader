@@ -12,10 +12,10 @@ module "vader/lower"
 
 import "toolchain/ast"
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/comptime"
-import "vader/front/resolver/symbol"
 import "vader/front/typecheck"
-import "vader/types"
 
 /// Whether `fn_decl` is an `@extern` that has to lower through
 /// `lower_extern_through_values`: one of its parameters is an enum with

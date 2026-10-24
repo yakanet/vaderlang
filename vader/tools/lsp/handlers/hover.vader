@@ -38,7 +38,7 @@ import "vader/tools/fmt"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 AST :: import "toolchain/ast"
 Parser :: import "vader/front/parser"
 

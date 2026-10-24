@@ -22,7 +22,7 @@ bc :: import "vader/bytecode"
 
 import "std/io"
 import "std/string"
-import "vader/types"
+import "vader/core/types"
 
 // Maximum frame depth — guards against runaway recursion (the
 // callee-frame allocation could otherwise grow unbounded). Picked

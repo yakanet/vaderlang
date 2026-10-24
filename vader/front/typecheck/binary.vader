@@ -17,8 +17,8 @@ module "vader/front/typecheck"
 
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// Type-check a `BinaryExpr`.
 infer_binary :: fn(

@@ -22,9 +22,9 @@ module "vader/front/typecheck"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/front/resolver"
-import "vader/types"
+import "vader/core/types"
 
 /// Render a typed module and the non-entry typed modules `others`. Each module
 /// renders its own `## <path>` section with its own decls + exprs, sorted by

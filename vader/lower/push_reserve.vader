@@ -16,8 +16,8 @@
 module "vader/lower"
 
 import "toolchain/span"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// When the last statement of `stmts` is a counted loop, create each empty array
 /// it fills — one push per turn — at the loop's trip count instead.

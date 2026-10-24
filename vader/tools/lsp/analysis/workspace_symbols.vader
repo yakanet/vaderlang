@@ -12,9 +12,9 @@ import "std/collections"
 import "std/io"
 import "std/sort"
 import "std/string"
-import "vader/tools/lsp/protocol"
 import "vader/front/parser"
 import "vader/front/resolver"
+import "vader/tools/lsp/protocol"
 
 /// A declaration of the workspace : a top-level one, or a member of a type.
 export WorkspaceSymbol :: struct {

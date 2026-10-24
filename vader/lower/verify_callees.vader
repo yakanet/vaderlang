@@ -21,9 +21,9 @@ import "std/string"
 import "std/string_builder"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 /// Environment variable that turns the verification on.
 VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"

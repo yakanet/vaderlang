@@ -21,8 +21,8 @@ import "vader/front/parser"
 AST :: import "toolchain/ast"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
-import "vader/front/resolver/symbol"
-import "vader/types"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/tools/lsp/protocol"
 import "toolchain/span"
 
@@ -32,7 +32,7 @@ import "toolchain/span"
 /// paint it `Type` instead of the positional `Variable` default. Order
 /// doesn't matter — keep alphabetised for human scanning.
 // The canonical primitives paint as `Type`, minus `null` (a keyword, coloured
-// elsewhere) plus `type` (the metatype). Derives from `vader/types` so a new
+// elsewhere) plus `type` (the metatype). Derives from `vader/core/types` so a new
 // primitive is picked up automatically.
 is_primitive_type_name :: fn(name: string) -> bool =
     (is_scalar_type_name(name) && name != "null") || name == "type"

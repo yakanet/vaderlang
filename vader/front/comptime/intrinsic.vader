@@ -9,7 +9,7 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 
@@ -170,7 +170,7 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
 
 // `@size_of` / `@align_of` report the width of the SLOT that carries the type —
 // what the C emitter declares for a field, a local or a parameter, not the size
-// of the object a reference points at. `vader/types::slot_byte_size` owns the
+// of the object a reference points at. `vader/core/types::slot_byte_size` owns the
 // answer for every kind and names the two functions that make it operational.
 export byte_size :: fn(t: Type) -> i64 = slot_byte_size(t)
 

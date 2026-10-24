@@ -19,9 +19,9 @@ import "std/abort"
 import "toolchain/ast"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
 import "vader/front/typecheck"
-import "vader/types"
+import "vader/core/types"
 import "toolchain/span"
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {

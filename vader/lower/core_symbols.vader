@@ -10,9 +10,9 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
-import "vader/front/resolver/symbol"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/types"
 
 /// Resolve a `std/core` symbol by name from the project's cache.
 /// @param ctx   the fn-body context.

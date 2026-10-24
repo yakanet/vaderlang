@@ -1,13 +1,12 @@
-// vader/front/resolver/symbol — symbol table primitives.
+// vader/core/symbol — symbol table primitives.
 //
 // Symbols are minted by the resolver as
 // it walks the AST and consumed by every later phase. The MVP carries the
 // kind, name, visibility and the source span ; the AST-decl back-reference
 // is deferred until typecheck/lower needs it.
 
-module "vader/front/resolver/symbol"
+module "vader/core/symbol"
 
-import "vader/support/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 
@@ -44,7 +43,7 @@ export Symbol :: struct {
     /// tests, and NOT usable as a stable key: it is an absolute path, so it
     /// differs between a checkout, a `dist/` bundle and a staged temp dir.
     module:      string
-    /// The module's DECLARED name (`module "vader/types"`). One module resolves
+    /// The module's DECLARED name (`module "vader/core/types"`). One module resolves
     /// to exactly one folder, so this identifies the same thing as `module`
     /// while staying identical everywhere — which is what a type-intern key
     /// needs. Same split as `Module.id` vs `Module.display_path`.
