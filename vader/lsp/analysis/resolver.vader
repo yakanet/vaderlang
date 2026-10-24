@@ -122,7 +122,7 @@ resolve_member :: fn(
 member_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string,
 ) -> ExternalHit | null {
-    module :: module_named(module_path, paths) ?? return null
+    module :: module_named(state, module_path, paths) ?? return null
     return first_in_files(state, module.files, "", (sub: DocIndex) -> sub.find_member(name))
 }
 
@@ -153,7 +153,7 @@ export resolve_in_module :: fn(
 find_in_module :: fn(
     state: ServerState, paths: IncludePath[], module_path: string, name: string, exported_only: bool,
 ) -> ExternalHit | null {
-    module :: module_named(module_path, paths) ?? return null
+    module :: module_named(state, module_path, paths) ?? return null
     return first_in_files(state, module.files, "", (sub: DocIndex) -> if exported_only {
         sub.find_exported_toplevel(name)
     } else {
@@ -223,7 +223,9 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
         return null
     }
     discard: Diagnostic[]: []
-    roots :: search_roots(path, state.include_flags, project_of_document(path), discard)
+    roots :: search_roots(
+        path, state.include_flags, project_of_document(path), doc_overlay(state), discard,
+    )
     paths: IncludePath[]: []
     for root in roots.paths {
         paths.push(IncludePath { ...root, .dir = absolute_path(root.dir) })
@@ -232,15 +234,16 @@ export document_roots :: fn(state: ServerState, uri: string) -> SearchRoots | nu
 }
 
 /// The module `name` names when searched in `paths` — the folder of the first
-/// root whose files declare it, with those files in the loader's order. Null
-/// when no root holds it.
+/// root whose files declare it, with those files in the loader's order, the
+/// documents open in the editor included. Null when no root holds it.
 ///
+/// @param state  carries the open documents.
 /// @param name   the module name, as an `import` spells it.
 /// @param paths  the roots, from `document_roots`.
-export module_named :: fn(name: string, paths: IncludePath[]) -> DiscoveredModule | null {
+export module_named :: fn(state: ServerState, name: string, paths: IncludePath[]) -> DiscoveredModule | null {
     index :: MutableMap<string, DiscoveredModule> {}
     discard: Diagnostic[]: []
-    return resolve_lazy(name, paths, index, discard)
+    return resolve_lazy(name, paths, index, doc_overlay(state), discard)
 }
 
 // `path` made absolute against the working directory, the base a relative root

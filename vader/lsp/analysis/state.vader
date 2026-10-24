@@ -141,8 +141,14 @@ export ServerState :: struct {
     /// re-requests hints computed against the pre-edit source (e.g. right after
     /// a format edit) — otherwise their positions stay stale until the next edit.
     inlay_refresh_support:      bool
-    /// Monotonic id for server-INITIATED requests (the `*/refresh` pushes). The
-    /// client's response is ignored, so uniqueness is the only requirement.
+    /// True when the client advertised
+    /// `capabilities.workspace.didChangeWatchedFiles.dynamicRegistration = true`:
+    /// the server can then ask to hear of the files changed outside the editor
+    /// (`register_file_watchers`).
+    watched_files_support:      bool
+    /// Monotonic id for server-INITIATED requests (the `*/refresh` pushes, the
+    /// watcher registration). The client's response is ignored, so uniqueness
+    /// is the only requirement.
     next_request_id:            i64
     /// uri → an open `.virt` document read back by the bytecode reader. Filled on
     /// the first request that needs it, dropped on every didOpen / didChange /
@@ -173,6 +179,7 @@ export new_state :: fn(library_root: string) -> ServerState {
         .definition_link_support = false,
         .position_encoding       = .Utf16,
         .inlay_refresh_support   = false,
+        .watched_files_support   = false,
         .next_request_id         = 1,
         .virt_listings           = MutableMap<string, Vm.VirtListing | Vm.VirtParseError> {},
         .virt_line_indices       = MutableMap<string, LineIndex> {},
@@ -348,26 +355,24 @@ export union_project_for :: fn(self: ServerState, file_path: string) -> LoadedPr
 /// Pick the `SourceFile` of `files` whose `path` matches the requested
 /// document. A module can span several files (a folder module — every
 /// `vader/lower/*.vader` shares `module "vader/lower"`), so a per-document
-/// request must walk the file the user actually opened, NOT `files[0]`.
-/// Walking `files[0]` surfaces another file's AST nodes : hints / hovers /
-/// signatures land at that file's positions with that file's types, both
-/// wrong (the `dce.vader` inlay hints showing `closure_analysis.vader`'s
-/// bindings). Falls back to the sole file for a single-file module (whose
-/// path always matches anyway) ; returns null for a multi-file module with
-/// no match, so the handler yields nothing rather than another file's data.
+/// request must walk the file the user actually opened, never another one:
+/// its AST nodes would put that file's hints, hovers and signatures at that
+/// file's positions. Null when no file matches, so the handler yields nothing
+/// rather than another file's data.
 export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> SourceFile | null {
     for f in files {
         if f.path == file_path { return f }
     }
-    if files.len() == 1 { return files[0] }
     return null
 }
 
 /// Build a filesystem-path → current-text overlay from every open document,
-/// for the resolver to consult before the disk. `docs` is keyed by uri ; the
-/// loader reads by path, so convert each key via `uri_to_path`. Closed
-/// documents (stored as "") are skipped.
-doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
+/// for the resolver to consult before the disk, to discover modules as to read
+/// them. `docs` is keyed by uri ; the loader reads by path, so convert each key
+/// via `uri_to_path`. An empty document is left to the disk.
+///
+/// @param self  the server state, holding the open documents.
+export doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
     overlay :: MutableMap<string, string> {}
     for [uri, text] in self.docs {
         if text != "" { overlay[uri_to_path(uri)] = text }
@@ -403,7 +408,12 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
 /// roots: its project describes itself again (`ensure_described`), its known
 /// roots serving meanwhile. Params shape : { textDocument: { uri } }
 export handle_did_save :: fn(self: ServerState, params: JsonValue) -> void {
-    path :: uri_to_path(get_string(get_field(params, "textDocument"), "uri"))
+    describe_again_if_driver(self, uri_to_path(get_string(get_field(params, "textDocument"), "uri")))
+}
+
+// Have the project of `path` describe itself again when `path` is its
+// `build.vader`: the roots it declares may have changed.
+describe_again_if_driver :: fn(self: ServerState, path: string) -> void {
     if path.ends_with("/${DRIVER_FILENAME}") {
         _ :: ensure_described(self, dir_of(path))
     }
@@ -498,11 +508,92 @@ export flush_dirty_diagnostics :: fn(self: ServerState) -> void {
 // Push a `workspace/inlayHint/refresh` request. The client answers by
 // re-issuing `textDocument/inlayHint`, which now hits the fresh analysis. The
 // response is ignored (a bare response frame carries no `method`, so `dispatch`
-// drops it). No-op unless the client advertised `inlayHint.refreshSupport`.
-send_inlay_hint_refresh :: fn(self: ServerState) -> void {
+// drops it). Sent only when the client advertised `inlayHint.refreshSupport`.
+send_inlay_hint_refresh :: fn(self: ServerState) -> void = send_request(self, "workspace/inlayHint/refresh", JsonNull {})
+
+// Send the client a request whose response nothing waits on.
+send_request :: fn(self: ServerState, method: string, params: JsonValue) -> void {
     id :: self.next_request_id
     self.next_request_id = self.next_request_id + 1
-    write_frame(encode_request(id, "workspace/inlayHint/refresh", JsonNull {}))
+    write_frame(encode_request(id, method, params))
+}
+
+/// Ask the client to report what changes outside the editor in the `.vader`
+/// files and the `vader.json` of the workspace (`workspace/didChangeWatchedFiles`):
+/// a file created by `git checkout`, a sibling rewritten by a generator. LSP
+/// offers no static registration for it, so this goes through
+/// `client/registerCapability` once the connection is up. Nothing when the
+/// client cannot register dynamically.
+///
+/// @param self  the server state, holding the client's capabilities.
+export register_file_watchers :: fn(self: ServerState) -> void {
+    if !self.watched_files_support {
+        return
+    }
+    watchers: JsonValue[]: []
+    for pattern in ["**/*.vader", "**/${MANIFEST_FILENAME}"] {
+        watcher :: MutableMap<string, JsonValue> {}
+        watcher["globPattern"] = JsonString { .value = pattern }
+        watchers.push(JsonObject { .entries = watcher })
+    }
+    options :: MutableMap<string, JsonValue> {}
+    options["watchers"] = JsonArray { .items = watchers }
+    registration :: MutableMap<string, JsonValue> {}
+    registration["id"]              = JsonString { .value = "vader-watched-files" }
+    registration["method"]          = JsonString { .value = "workspace/didChangeWatchedFiles" }
+    registration["registerOptions"] = JsonObject { .entries = options }
+    params :: MutableMap<string, JsonValue> {}
+    params["registrations"] = JsonArray { .items = [JsonObject { .entries = registration }] }
+    send_request(self, "client/registerCapability", JsonObject { .entries = params })
+}
+
+/// `workspace/didChangeWatchedFiles` handler: files changed on disk outside the
+/// editor. The typed analyses are forgotten, and every open document a changed
+/// file can affect is marked for a new publish, since a sibling's change moves a
+/// module's diagnostics; a changed `build.vader` has its project describe itself
+/// again. A change to an open document's file is a save of text the server
+/// already holds, and is skipped. Params shape : { changes: [ { uri, type } ] }
+///
+/// @param self    the server state.
+/// @param params  the notification's params.
+export handle_did_change_watched_files :: fn(self: ServerState, params: JsonValue) -> void {
+    changes :: get_field(params, "changes")
+    if changes !is JsonArray {
+        return
+    }
+    changed: string[]: []
+    for change in changes.items {
+        uri :: get_string(change, "uri")
+        if self.docs[uri] != null {
+            continue
+        }
+        path :: uri_to_path(uri)
+        changed.push(path)
+        describe_again_if_driver(self, path)
+    }
+    if changed.len() == 0 {
+        return
+    }
+    forget_analyses(self)
+    self.union_cache = null
+    for [uri, _] in self.docs {
+        if !is_virt_uri(uri) && touches_document(changed, uri_to_path(uri)) {
+            self.dirty[uri] = true
+        }
+    }
+}
+
+// Whether one of the files `changed` can move the analysis of the document at
+// `path`: it sits in the document's project, or in its folder when it has none.
+// Each document marked costs a typecheck of its own.
+touches_document :: fn(changed: string[], path: string) -> bool {
+    scope :: project_of_document(path) ?? dir_of(path)
+    for file in changed {
+        if file.starts_with("${scope}/") {
+            return true
+        }
+    }
+    return false
 }
 
 /// True iff a didChange has left some document's diagnostics pending a publish.

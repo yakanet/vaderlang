@@ -340,7 +340,7 @@ member_in_declaring_module :: fn(
     // The module's files as the loader reads them : those of the folder that
     // declare its module, in order.
     discard: Diagnostic[]: []
-    module :: seed_entry(dir_of(path), discard) ?? return null
+    module :: seed_entry(dir_of(path), doc_overlay(state), discard) ?? return null
     return first_in_files(state, module.files, path, query)
 }
 

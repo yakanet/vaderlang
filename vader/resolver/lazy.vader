@@ -20,6 +20,7 @@ module "vader/resolver"
 
 import "std/collections"
 import "std/io"
+import "std/path"
 import "std/sort"
 import "std/string"
 import "vader/diagnostics"
@@ -99,14 +100,17 @@ rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
 /// GCC `-I` style), memoising in `index`. Emits R2020 / R2022 for the resolved
 /// folder (mirrors `discover_modules`), only for modules actually reached.
 ///
-/// @param name   the module path (== the `import "..."` path == its `module` decl).
-/// @param paths  the ordered include-paths (`include_paths`).
-/// @param index  the lazy cache, keyed by module name.
-/// @return       the resolved module, or null when no include-path hosts it (the
-///               caller — `diagnose_import_path` — turns that into R2001).
+/// @param name     the module path (== the `import "..."` path == its `module` decl).
+/// @param paths    the ordered include-paths (`include_paths`).
+/// @param index    the lazy cache, keyed by module name.
+/// @param overlay  path → text of the documents an editor holds open, read
+///                 before the disk (`scan_folder`) ; empty outside the LSP.
+/// @return         the resolved module, or null when no include-path hosts it (the
+///                 caller, `diagnose_import_path`, turns that into R2001).
 export resolve_lazy :: fn(
     name: string, paths: IncludePath[],
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, overlay: MutableMap<string, string>,
+    diags: Diagnostic[],
 ) -> DiscoveredModule | null {
     cached :: index[name]
     if cached is DiscoveredModule { return cached }
@@ -132,7 +136,7 @@ export resolve_lazy :: fn(
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, diags) ?? continue
+        bucket :: scan_folder(cand, overlay, diags) ?? continue
         if bucket.name != name { continue }   // folder exists but declares another module
         if home == null {
             home = cand
@@ -162,16 +166,21 @@ export resolve_lazy :: fn(
 /// "module not found" diagnostic), else null. The folder was already scanned
 /// (any R2020 / R2022 emitted) during resolution, so this re-scan discards diags.
 ///
+/// Reads the disk alone, without the editor's open documents: under an unsaved
+/// `module` line, the message may name the header on disk, while whether the
+/// module resolves never depends on it.
+///
 /// @param name   the unresolved module path.
 /// @param paths  the include-paths that were searched.
 /// @return       the wrong `module` name declared at `name`'s location, or null.
 export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
     discard: Diagnostic[]: []
+    disk_only :: MutableMap<string, string> {}
     for pi in 0..<paths.len() {
         cand_opt :: rooted_candidate(paths[pi], name) ?? continue
         cand :: cand_opt
         if !is_dir(cand) { continue }
-        bucket :: scan_folder(cand, discard) ?? continue
+        bucket :: scan_folder(cand, disk_only, discard) ?? continue
         if bucket.name != "" && bucket.name != name { return bucket.name }
     }
     return null
@@ -186,13 +195,15 @@ export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string |
 /// keeps the merge rule (`IncludePath.merge`) written once.
 ///
 /// @param entry_folder  the folder containing the entry file.
+/// @param overlay       path → text of the documents an editor holds open, read
+///                      before the disk ; empty outside the LSP.
 /// @return              the discovered module, or null for a folder with no
 ///                      module decl (→ the caller emits R2001, matching the eager
 ///                      `find_by_folder` miss).
 export seed_entry :: fn(
-    entry_folder: string, diags: Diagnostic[],
+    entry_folder: string, overlay: MutableMap<string, string>, diags: Diagnostic[],
 ) -> DiscoveredModule | null {
-    bucket :: scan_folder(entry_folder, diags) ?? return null
+    bucket :: scan_folder(entry_folder, overlay, diags) ?? return null
     if bucket.name == "" { return null }
     // `.Build`: this is the ENTRY, and a root exists because the caller named that
     // file — see `ModuleOrigin.Build`. Never cached in `index` anyway (below), so
@@ -216,15 +227,18 @@ export seed_entry :: fn(
 /// @param sources  the entry/module's parsed files.
 /// @param paths    the include paths each import is resolved against.
 /// @param index    the lazy cache to populate.
+/// @param overlay  path → text of the documents an editor holds open, read
+///                 before the disk ; empty outside the LSP.
 /// @param diags    collects R2001 and friends when a path doesn't resolve.
 export preresolve_imports :: fn(
     sources: SourceFile[], paths: IncludePath[],
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, overlay: MutableMap<string, string>,
+    diags: Diagnostic[],
 ) -> void {
     for sf in sources {
         for d in sf.program.decls {
             if d is AST.ImportDecl {
-                resolve_lazy(d.path, paths, index, diags)
+                resolve_lazy(d.path, paths, index, overlay, diags)
             }
         }
     }
@@ -232,13 +246,23 @@ export preresolve_imports :: fn(
 
 // Scan a single folder NON-recursively : its sorted `.vader` files, header-parsed
 // and bucketed by declared module name (R2020 missing decl / R2022 mixed names).
-// Returns null when the folder has no `.vader`. The non-recursive sibling of
-// `discover.vader::walk_dir` (which recurses) — lazy never descends.
-scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
+// Returns null when the folder has no `.vader`. Lazy never descends.
+//
+// The folder holds what the disk lists and the documents of `overlay` that sit
+// in it, and each file is read from `overlay` before the disk: a document open
+// in an editor belongs to its module before it is ever saved, under the header
+// its buffer declares.
+scan_folder :: fn(dir: string, overlay: MutableMap<string, string>, diags: Diagnostic[]) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
     raw: string[]: match entries_opt {
         is string[] -> entries_opt
         is IOError   -> []
+    }
+    for [path, _] in overlay {
+        name :: name_in_folder(path, dir) ?? continue
+        if name !in raw {
+            raw.push(name)
+        }
     }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
@@ -250,14 +274,13 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
     if files_here.len() == 0 { return null }
     bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
     for path in files_here {
-        content_opt :: read_file_string(path)
-        content :: match content_opt { is string -> content_opt, is IOError -> "" }
+        content :: read_with_overlay(overlay, path)
         if content == "" { continue }
         bucket.files.push(path)
         header :: parse_module_header(content, path)
         match header {
             is null -> {
-                diags.push(resolver_error(.ModuleDeclMissing, empty_span(), "`${path}`"))
+                diags.push(resolver_error(.ModuleDeclMissing, file_head_span(path), ""))
             }
             is ModuleHeader -> {
                 if bucket.name == "" {
@@ -273,4 +296,14 @@ scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
         }
     }
     return bucket
+}
+
+// The file name of `path` when it sits directly in `dir`, as `join_path` would
+// spell it ; null otherwise.
+name_in_folder :: fn(path: string, dir: string) -> string | null {
+    name :: path.to_path().filename()
+    if name == "" || join_path(dir, name) != path {
+        return null
+    }
+    return name
 }

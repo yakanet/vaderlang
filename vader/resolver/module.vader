@@ -221,7 +221,9 @@ walk_up :: fn(start: string, holds: fn(string) -> bool) -> string | null {
             return dir
         }
         parent_dir :: dir_of(dir)
-        if parent_dir == dir {
+        // A drive (`C:`) has no parent: the empty path `dir_of` gives back for it
+        // names the working directory.
+        if parent_dir == dir || (parent_dir == "" && dir.ends_with(":")) {
             return null
         }
         dir = parent_dir

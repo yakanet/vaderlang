@@ -162,6 +162,12 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         return .Continue
     }
     if method == "initialized" {
+        A.register_file_watchers(state)
+        return .Continue
+    }
+    // A response to a request this server sent (the `*/refresh` pushes, the
+    // watcher registration): nothing waits on it.
+    if method == "" {
         return .Continue
     }
     if method == "shutdown" {
@@ -186,6 +192,10 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
     }
     if method == "textDocument/didSave" {
         A.handle_did_save(state, params)
+        return .Continue
+    }
+    if method == "workspace/didChangeWatchedFiles" {
+        A.handle_did_change_watched_files(state, params)
         return .Continue
     }
     if method == "textDocument/didClose" {

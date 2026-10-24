@@ -42,7 +42,7 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
     roots :: document_roots(state, uri) ?? return JsonArray { .items = [] }
     for d in parsed.program.decls {
         if d is ImportDecl {
-            link :: import_link(d, idx.source, roots.paths, idx.line_index)
+            link :: import_link(state, d, idx.source, roots.paths, idx.line_index)
             if link != null { links.push(link) }
         }
     }
@@ -52,8 +52,10 @@ export handle_document_link :: fn(state: ServerState, params: JsonValue) -> Json
 // ---- link construction ---------------------------------------------------
 
 // One `DocumentLink` for an import, or null when no root holds its module.
-import_link :: fn(imp: ImportDecl, source: string, paths: IncludePath[], li: LineIndex) -> JsonValue | null {
-    module :: module_named(imp.path, paths) ?? return null
+import_link :: fn(
+    state: ServerState, imp: ImportDecl, source: string, paths: IncludePath[], li: LineIndex,
+) -> JsonValue | null {
+    module :: module_named(state, imp.path, paths) ?? return null
     if module.files.len() == 0 {
         return null
     }

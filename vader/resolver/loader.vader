@@ -107,17 +107,13 @@ export load_project :: fn(
 /// …) reflect unsaved edits instead of the last-saved file ; the CLI calls
 /// `load_project` (empty overlay, disk-only).
 ///
-/// Scope: the overlay is consulted only by the loader's *content* read
-/// (`parse_module_files`), NOT by module *discovery* (`discover.vader`, which
-/// scans the disk via `read_dir` + a header-only `read_file`). So an unsaved
-/// edit to a SAVED file's body is reflected, but (a) a never-saved file is not
-/// enumerated, and (b) an unsaved edit to a file's `module "..."` header is
-/// bucketed by the stale on-disk header. Threading the overlay into discovery
-/// (both the dir enumeration and the header read) is a follow-up.
+/// Module discovery reads it too (`scan_folder`): an open document joins the
+/// module of its folder before it is ever saved, under the header its buffer
+/// declares.
 ///
 /// @param entry_path   the entry file's path.
 /// @param overlay      filesystem path → current source text ; consulted
-///                     before the disk in `parse_module_files`.
+///                     before the disk, to discover modules and to parse them.
 /// @param project_root  the project the entry belongs to (`search_roots`),
 ///                      null for a file compiled on its own.
 /// @param extra_seeds  modules to load beside what the entry imports, named as
@@ -166,7 +162,11 @@ export load_project_with_overlay :: fn(
     }
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]: []
-    roots :: search_roots(entry, include_path_flags, project, loader_diags)
+    // The entry's folder is scanned again when the entry resolves below, which
+    // reports its R2020 / R2022 once; these are kept only for an entry that
+    // does not resolve.
+    entry_scan: Diagnostic[]: []
+    roots :: search_roots(entry, include_path_flags, project, overlay, entry_scan)
 
     // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
     // is a cache filled on demand by `resolve_lazy`, which path-maps each module
@@ -179,6 +179,7 @@ export load_project_with_overlay :: fn(
     entry_module :: roots.entry
     match entry_module {
         is null -> {
+            loader_diags.push_all(entry_scan)
             entry_folder :: entry_folder_of(entry)
             // The class is "module not found", but the fix is a line the
             // developer has to write, so the detail says which line and where.
@@ -201,9 +202,9 @@ export load_project_with_overlay :: fn(
             // module if resolution somehow misses, which it cannot: `paths[0]`
             // matches by construction.
             entry_resolved :: resolve_lazy(
-                entry_module.name, bases, index, loader_diags) ?? entry_module
+                entry_module.name, bases, index, overlay, loader_diags) ?? entry_module
             queue: DiscoveredModule[]: [entry_resolved]
-            core :: resolve_lazy("std/core", bases, index, loader_diags)
+            core :: resolve_lazy("std/core", bases, index, overlay, loader_diags)
             match core {
                 is DiscoveredModule -> {
                     if core.folder != entry_module.folder { queue.push(core) }
@@ -219,7 +220,7 @@ export load_project_with_overlay :: fn(
             // load order — and thus symbol-id assignment — stays identical to a
             // build that never asked for it. Seeding it early strands `build_stmt`
             // in bootstrap.vader.
-            string_builder :: resolve_lazy("std/string_builder", bases, index, loader_diags)
+            string_builder :: resolve_lazy("std/string_builder", bases, index, overlay, loader_diags)
             match string_builder {
                 is DiscoveredModule -> {
                     if !has_module(modules, string_builder.folder) {
@@ -231,7 +232,7 @@ export load_project_with_overlay :: fn(
             }
             extra_queue: DiscoveredModule[]: []
             for seed in extra_seeds {
-                found :: resolve_lazy(seed, bases, index, loader_diags) ?? continue
+                found :: resolve_lazy(seed, bases, index, overlay, loader_diags) ?? continue
                 extra_queue.push(found)
             }
             drain_load_queue(extra_queue, bases, modules, factory, index, loader_diags, overlay, node_factory, effective_target)
@@ -286,10 +287,13 @@ export SearchRoots :: struct {
 ///                            `vader.json` adds its `includePaths`, and it
 ///                            anchors the generated tree. Null for a file
 ///                            compiled on its own.
+/// @param overlay             path → text of the documents an editor holds
+///                            open, read before the disk ; empty outside the LSP.
 /// @param diags               R2020 / R2022 from scanning the entry's folder.
 /// @return                    the entry module and the ordered roots.
 export search_roots :: fn(
-    entry: string, include_path_flags: string[], project_root: string | null, diags: Diagnostic[],
+    entry: string, include_path_flags: string[], project_root: string | null,
+    overlay: MutableMap<string, string>, diags: Diagnostic[],
 ) -> SearchRoots {
     plain :: project_include_paths(project_root, manifest_at(project_root), include_path_flags)
     // Generated modules are a property of the PROJECT, not of whoever asked for
@@ -298,7 +302,7 @@ export search_roots :: fn(
     generated :: generated_root_for(project_root)
     // The entry's declared name is what roots its namespace, so the include-paths
     // cannot be built before this scan.
-    module :: seed_entry(entry_folder_of(entry), diags)
+    module :: seed_entry(entry_folder_of(entry), overlay, diags)
     if module == null {
         return SearchRoots { .entry = null, .paths = plain }
     }
@@ -381,7 +385,7 @@ load_baked_target :: fn(
     overlay: MutableMap<string, string>, factory: SymbolFactory,
     node_factory: NodeIdFactory, target: Target,
 ) -> void {
-    std_target :: resolve_lazy("std/target", bases, index, diags) ?? return
+    std_target :: resolve_lazy("std/target", bases, index, overlay, diags) ?? return
     if !has_module(modules, std_target.folder) {
         pre: DiscoveredModule[]: [std_target]
         drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
@@ -503,7 +507,7 @@ ingest_module :: fn(
     // Pre-resolve this module's imports into the cache so `collect_files`'
     // `diagnose_import_path` finds them instead of firing a spurious R2001 —
     // the failure mode that reverted the earlier lazy attempt.
-    preresolve_imports(sources, bases, index, diags)
+    preresolve_imports(sources, bases, index, overlay, diags)
     collected :: collect_files(sources, m.folder, m.name, factory, index, bases, diags)
     modules[m.folder] = LoadedModule {
         .discarded_bodies = dropped_bodies,
