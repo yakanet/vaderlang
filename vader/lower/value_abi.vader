@@ -7,8 +7,7 @@
 //
 // The predicate lives HERE and not in `vader/core/types` because judging a struct
 // needs its field types, which a bare `Type` does not carry — a lowered decl
-// does. `vader/midir`, `vader/midir/select` and `vader/emit/bytecode` import
-// `vader/lower`, so every consumer reaches it from here.
+// does. Its consumer, `vader/midir/value_return`, imports `vader/lower` for it.
 //
 // `T | null` counts: a fallible lookup returns one, and the crossing needs one
 // register for the tag, which `ValueAbiSite.nullable` records. A parameter the
@@ -23,6 +22,7 @@ import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"
 import "vader/core/symbol"
+import "vader/lower/ir"
 
 /// Widest payload that crosses in registers rather than through memory.
 ///
@@ -533,9 +533,4 @@ test_fresh_returns_looks_inside_an_if :: fn() -> void {
     assert(!returns_only_fresh_composites(fresh_test_body([nested])), "an arm's return counts")
 }
 
-fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = LoweredBlock {
-    .span = empty_span(),
-    .type = TY_VOID,
-    .stmts = stmts,
-    .trailing = null,
-}
+fresh_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = mk_void_block(stmts, empty_span())

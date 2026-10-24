@@ -37,6 +37,7 @@ AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/front/comptime"
 import "vader/core/types"
+import "vader/lower/ir"
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
 // `2 * N` ops to rebuild the literal once N passes this threshold.

@@ -26,6 +26,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 
 /// Route every `Equals` vtable slot whose receiver carries its own tag through a
 /// guard fn — see the file header. Runs before `collect_vtable_entries`, which then

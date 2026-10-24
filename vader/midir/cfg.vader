@@ -17,7 +17,7 @@ import "vader/core/types"
 import "vader/core/symbol"
 import "vader/front/comptime"
 import "vader/core/bytecode"
-import "vader/lower"
+import "vader/lower/ir"
 import "toolchain/span"
 import "std/collections"
 import "std/ffi"
@@ -86,7 +86,7 @@ export CFGExternDecl :: struct {
     /// that the linker resolves). False for @intrinsic-style bodyless
     /// fns (stdlib host bindings handled by the c-emit shim switch).
     is_extern:   bool
-    /// See `extern_header` (`vader/lower`).
+    /// See `extern_header` (`vader/front/comptime`).
     c_header:    string
     /// See `BcImport.c_variadic_fixed`.
     c_variadic_fixed: i32 = -1

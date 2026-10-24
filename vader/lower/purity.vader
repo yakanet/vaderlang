@@ -9,9 +9,10 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/lower/ir"
 
 /// Project-wide purity memo. A callee is resolved to its decl the same two ways
-/// the backend does (`emit/bytecode/emit.vader`, and the sibling walk in `dce.vader`): by
+/// the backend does (`emit/bytecode/emit.vader`, and the walk in `vader/lower/dce`): by
 /// mangle (impl-member calls carry the mangle in `symbol.name`) then by definition
 /// symbol id (bare free-fn calls carry it in `symbol.id`). `memo` caches
 /// `is_pure_fn` verdicts keyed by mangle, and doubles as the recursion-cycle

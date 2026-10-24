@@ -1,10 +1,10 @@
-// vader/lower/verify — structural self-check of a `LoweredProject`.
+// vader/lower/ir/verify — structural self-check of a `LoweredProject`.
 //
 // `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
 // pass that mints them and the state-machine transform that consumes them
-// (`generator.vader`, `coroutine.vader`), and never reach a
+// (`vader/lower/generator.vader`, `vader/lower/coroutine.vader`), and never reach a
 // backend. No type says so — they are ordinary `LoweredStmt` variants — and
-// `midir/build.vader:594` panics when one survives, naming `build_stmt`, the
+// `vader/midir/build.vader` panics when one survives, naming `build_stmt`, the
 // consumer, rather than the pass that failed to consume it.
 //
 // Symbol resolution is NOT checked here: it is a property of the CFG boundary
@@ -14,7 +14,7 @@
 // `--verify`; `verify_captured_cells` and `verify_functions_defined_once` run on
 // every build, because the defect each looks for is otherwise silent.
 
-module "vader/lower"
+module "vader/lower/ir"
 
 import "std/collections"
 import "vader/support/diagnostics"
@@ -64,11 +64,15 @@ verify_no_coroutine_markers :: fn(
     }
 }
 
-// I7012: a function given a body twice, under one mangle or from one symbol.
-// The backend keys a function's slot by both (`vader/emit/bytecode/emit.vader`), so the
-// copies collide : one slot receives both bodies, the second dead behind the
-// first `return`. Reported against the second body.
-verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]) -> void {
+/// Report (I7012) a function given a body twice, under one mangle or from one
+/// symbol. The backend keys a function's slot by both
+/// (`vader/emit/bytecode/emit.vader`), so the copies collide: one slot receives
+/// both bodies, the second dead behind the first `return`. Reported against the
+/// second body.
+///
+/// @param project  the lowered IR. Read only.
+/// @param diags    accumulator ; one `I7012` per second body.
+export verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]) -> void {
     mangles :: MutableSet<string> {}
     symbols :: MutableMap<i32, string> {}
     for [_module_id, m] in project.modules {
@@ -107,7 +111,7 @@ verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]
 /// @param captured  symbol ids of every binding a closure captures and an
 ///                  assignment rebinds.
 /// @param diags     accumulator ; one `I7011` per bare binding.
-verify_captured_cells :: fn(
+export verify_captured_cells :: fn(
     project: LoweredProject, captured: MutableSet<i32>, diags: Diagnostic[],
 ) -> void {
     if captured.len() == 0 {
@@ -125,11 +129,19 @@ verify_captured_cells :: fn(
     }
 }
 
-// True when `s` binds a symbol that lives in a cell to anything but a fresh cell.
-binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
+/// Whether `s` binds a symbol that lives in a cell to anything but a fresh cell.
+///
+/// @param captured  symbol ids of the bindings that live in a cell.
+/// @param s         the binding.
+export binds_bare_capture :: fn(captured: MutableSet<i32>, s: LoweredLet) =
     s.symbol.id in captured && !(s.value is LoweredCellNew)
 
-bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
+/// The `I7011` for a binding that holds its bare value where a closure reads it
+/// through a cell.
+///
+/// @param s      the binding.
+/// @param owner  the mangle of the function holding it.
+export bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
     .CapturedBindingNotInCell, s.span,
     "`${s.name}` in `${owner}` holds its bare value, but a closure reads it through a cell",
 )
@@ -138,7 +150,39 @@ bare_capture_error :: fn(s: LoweredLet, owner: string) = internal_error(
 
 import "std/testing"
 import "toolchain/span"
+import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/comptime"
+import "vader/front/typecheck"
+
+// A function symbol of the module `test`.
+test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {
+    .id = id,
+    .kind = .Fn,
+    .name = name,
+    .module = "test",
+    .module_name = "test",
+    .visibility = .Private,
+    .defined_at = null,
+}
+
+// The function `sym`, taking nothing, with `body`.
+test_fn_decl :: fn(sym: Symbol, body: LoweredBlock) -> LoweredFnDecl = LoweredFnDecl {
+    .mangled = sym.name,
+    .params = [],
+    .return_type = TY_VOID,
+    .body = body,
+    .origin = MonoEntry {
+        .id = sym.id,
+        .is_main = false,
+        .mangled = sym.name,
+        .decl = stub_decl_for(sym),
+        .symbol = sym,
+        .subst = new_substitution(),
+        .type_arguments = [],
+        .module = null,
+    },
+}
 
 // A project holding `f :: fn() { x :: <value> }`, `x` being symbol 1.
 captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {
@@ -146,7 +190,7 @@ captured_let_project :: fn(value: LoweredExpr) -> LoweredProject {
         .span = empty_span(), .name = "x", .symbol = test_fn_symbol(1, "x"), .type = TY_BOOL,
         .value = value,
     }
-    f :: test_fn_decl(test_fn_symbol(2, "f"), fresh_test_body([binding]))
+    f :: test_fn_decl(test_fn_symbol(2, "f"), mk_void_block([binding], empty_span()))
     return one_module_project([f])
 }
 
@@ -172,8 +216,8 @@ bare :: fn() -> LoweredExpr = LoweredBoolLit { .span = empty_span(), .type = TY_
 @test
 test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {
     f :: test_fn_symbol(2, "f")
-    first :: test_fn_decl(f, fresh_test_body([]))
-    second :: test_fn_decl(f, fresh_test_body([]))
+    first :: test_fn_decl(f, mk_void_block([], empty_span()))
+    second :: test_fn_decl(f, mk_void_block([], empty_span()))
     project :: one_module_project([first, second])
     diags: Diagnostic[]: []
     verify_functions_defined_once(project, diags)
@@ -184,8 +228,9 @@ test_verify_functions_defined_once_reports_the_second_body :: fn() -> void {
 @test
 test_verify_functions_defined_once_reports_one_symbol_under_two_names :: fn() -> void {
     f :: test_fn_symbol(2, "f")
-    first :: test_fn_decl(f, fresh_test_body([]))
-    copy :: LoweredFnDecl { ...test_fn_decl(f, fresh_test_body([])), .mangled = "f_copy" }
+    first :: test_fn_decl(f, mk_void_block([], empty_span()))
+    original :: test_fn_decl(f, mk_void_block([], empty_span()))
+    copy :: LoweredFnDecl { ...original, .mangled = "f_copy" }
     project :: one_module_project([first, copy])
     diags: Diagnostic[]: []
     verify_functions_defined_once(project, diags)

@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/string"
 import "std/collections"
+import "vader/lower/ir"
 
 import "toolchain/ast"
 import "vader/core/types"

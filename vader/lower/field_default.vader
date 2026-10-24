@@ -20,6 +20,7 @@ import "std/collections"
 import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/lower/ir"
 
 /// Lower the default of `field` for a literal of the struct instance `st`.
 ///

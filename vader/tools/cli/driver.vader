@@ -12,7 +12,7 @@
 // `is_main_decl` (`lower/decl.vader`) recognises the entry by the
 // literal name `main`, and widening it would make every project's `build` fn an
 // entry point. Worse, a driver compiled directly would be silently ELIMINATED —
-// `lower/dce.vader:238` roots only `is_main` and `@export` decls, so `build`
+// `lower/dce/dce.vader` roots only `is_main` and `@export` decls, so `build`
 // disappears and `emit_main` falls back to its `return 0` stub: a binary that
 // does nothing, with no diagnostic. The generated `main` makes `build` reachable,
 // so no DCE rule has to change.

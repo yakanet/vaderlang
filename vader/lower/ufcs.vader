@@ -9,6 +9,7 @@ module "vader/lower"
 
 import "std/abort"
 import "std/collections"
+import "vader/lower/ir"
 
 import "toolchain/ast"
 import "vader/front/typecheck"

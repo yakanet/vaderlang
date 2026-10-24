@@ -13,6 +13,7 @@ import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 
 /// Lower a `MatchExpr` to a block containing the scrutinee binding
 /// + an if-chain over the arms.
@@ -98,14 +99,14 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     for cursor > 0 {
         cursor = cursor - 1
         arm :: expr.arms[cursor]
-        arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
+        mk_void_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
         predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type)
         match predicate {
-            is null -> { chain = arm_block }
+            is null -> { chain = mk_void_block }
             _ -> {
                 if_node :: LoweredIf {
                     .span = arm.span, .type = result_type,
-                    .cond = predicate, .then_block = arm_block, .else_block = chain,
+                    .cond = predicate, .then_block = mk_void_block, .else_block = chain,
                 }
                 chain = wrap_as_block(if_node, arm.span)
             }

@@ -9,6 +9,7 @@ import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/span"
+import "vader/lower/ir"
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).

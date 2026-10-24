@@ -23,6 +23,7 @@ import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"
 import "std/abort"
+import "vader/lower/ir"
 
 // The element the `generator` `decl` yields, from the typecheck-side registry
 // (`generator_state_of`) substituted by the call's instance subst. Null when the

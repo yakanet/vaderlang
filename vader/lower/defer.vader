@@ -25,6 +25,7 @@ import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/front/comptime"
 import "toolchain/span"
+import "vader/lower/ir"
 
 /// Lower a `DeferStmt` to a `LoweredDeferPush`. Synthesises the lifted
 /// fn + the env struct, pushes both onto `ctx.project.synth_decls`,

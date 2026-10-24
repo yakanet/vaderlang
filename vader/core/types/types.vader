@@ -749,6 +749,16 @@ export mk_fn :: fn(
     .type_params = type_params,
 }
 
+/// The parameter types of a callee's fn type.
+///
+/// @param callee_type  the callee's type ; anything but a fn type has none.
+export param_types_of :: fn(callee_type: Type | null) -> Type[] {
+    if callee_type is FnType {
+        return callee_type.params
+    }
+    return []
+}
+
 /// Raw union constructor. Callers that need flattening + dedup must go
 /// through `union_of` in `type_ops.vader`.
 export mk_union :: fn(variants: Type[]) -> Type = UnionType { .variants = variants }

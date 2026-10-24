@@ -19,7 +19,7 @@ import "toolchain/span"
 /// Per-entry view over the typed program with substitution applied at
 /// every read. The struct holds both inputs ; the accessor functions
 /// short-circuit when `subst` is empty.
-export EntryTypes :: struct {
+EntryTypes :: struct {
     typed: TypedProgram
     subst: Substitution
 }
@@ -38,7 +38,7 @@ make_entry_types :: fn(typed: TypedProgram, subst: Substitution) -> EntryTypes {
 /// @param self  the entry-types view.
 /// @param t     the type to rewrite.
 /// @return      the rewritten type (may be `t` itself).
-export apply :: fn(self: EntryTypes, t: Type) -> Type = laid_out_unions(substitute(t, self.subst))
+apply :: fn(self: EntryTypes, t: Type) -> Type = laid_out_unions(substitute(t, self.subst))
 
 // ---- declaration-level reads ----------------------------------------------
 //
@@ -145,7 +145,7 @@ raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// @param self     the entry-types view.
 /// @param binding  the `SimpleBinding` AST node.
 /// @return         the resolved type.
-export local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
+local_type :: fn(self: EntryTypes, binding: SimpleBinding) -> Type {
     return apply_or_unresolved(self, self.typed.local_types[binding.name_span.hash()])
 }
 
@@ -184,7 +184,7 @@ concrete_local_type :: fn(self: EntryTypes, key: u64) -> Type | null {
 /// @param self   the entry-types view.
 /// @param param  the `FnParam` AST node.
 /// @return       the resolved type.
-export param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
+param_type :: fn(self: EntryTypes, param: FnParam) -> Type {
     return apply_or_unresolved(self, self.typed.param_types[param.span.hash()])
 }
 
@@ -241,7 +241,7 @@ declared_field_type :: fn(typed: TypedProgram, struct_symbol: Symbol, name: stri
 /// @param self       the entry being lowered.
 /// @param name_span  a declaration's name span.
 /// @return           unresolved when nothing is declared there.
-export declared_type :: fn(self: EntryTypes, name_span: Span) -> Type =
+declared_type :: fn(self: EntryTypes, name_span: Span) -> Type =
     apply_or_unresolved(self, declared_type_at(self.typed, name_span))
 
 

@@ -17,7 +17,7 @@ import "vader/support/diagnostics"
 import "vader/front/resolver"
 import "vader/vm"
 import "vader/tools/dap"
-import "vader/lower"
+import "vader/lower/dce"
 
 // `vader dap` : Debug Adapter Protocol server on stdio (VSCode F5). Drives the
 // bytecode VM. The compile step is injected as a callback so `vader/tools/dap` stays

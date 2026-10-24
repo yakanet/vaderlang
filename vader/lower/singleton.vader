@@ -23,6 +23,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 
 AST :: import "toolchain/ast"
 
@@ -83,7 +84,7 @@ lower_singleton :: fn(
         .mangled     = entry.mangled,
         .params      = [],
         .return_type = return_type,
-        .body        = arm_block(stmts, span),
+        .body        = mk_void_block(stmts, span),
         .origin      = entry,
     }
 }
@@ -143,7 +144,7 @@ when_state :: fn(state: LoweredGlobalGet, value: i64, body: LoweredStmt) -> Lowe
         .span       = state.span,
         .type       = TY_VOID,
         .cond       = equals_primop(state, state_value(state.span, value), state.span),
-        .then_block = arm_block([body], state.span),
+        .then_block = mk_void_block([body], state.span),
         .else_block = null,
     }
     return LoweredExprStmt { .span = state.span, .expr = branch }

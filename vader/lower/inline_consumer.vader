@@ -23,6 +23,7 @@ import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "std/abort"
+import "vader/lower/ir"
 
 /// How a callee consumes its iterator parameter — found once per callee.
 ConsumerShape :: struct {

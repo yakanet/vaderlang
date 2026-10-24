@@ -32,6 +32,7 @@ module "vader/lower"
 import "std/collections"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/lower/ir"
 
 /// Rewrite calls through a fn-value local into direct calls to the concrete
 /// callable, in place, across every fn body in `project`.

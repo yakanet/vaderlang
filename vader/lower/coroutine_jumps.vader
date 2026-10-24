@@ -10,6 +10,8 @@
 
 module "vader/lower"
 
+import "vader/lower/ir"
+
 /// Label of the dispatch loop of a coroutine's `next()` / `resume`. `$` is not an
 /// identifier character, so no source label can name it.
 DISPATCH_LABEL :: "dispatch$"

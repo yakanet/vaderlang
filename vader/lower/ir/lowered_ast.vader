@@ -1,13 +1,12 @@
-// vader/lower/lowered_ast — output shape of the lowering pass.
+// vader/lower/ir/lowered_ast — output shape of the lowering pass.
 //
-// The lowerer reads an
-// `EvaluatedProject` (typed AST + comptime values + mono entries) and
-// emits a `LoweredProject` — a flatter IR consumed by the bytecode
-// emitter, the C emitter, and the DCE / CFG passes. Every expression
-// carries its static `Type` so downstream phases never need to revisit
-// the typed-AST tables.
+// The lowerer reads an `EvaluatedProject` (typed AST + comptime values + mono
+// entries) and emits a `LoweredProject`, a flatter IR that DCE
+// (`vader/lower/dce`) prunes and the CFG build (`vader/midir`) consumes. Every
+// expression carries its static `Type` so downstream phases never need to
+// revisit the typed-AST tables.
 
-module "vader/lower"
+module "vader/lower/ir"
 
 import "std/collections"
 import "std/ffi"
@@ -42,7 +41,7 @@ export GlobalSlot :: struct {
 }
 
 /// Where `inline_consts` stores a module constant.
-ConstStorage :: InlineConst | PooledConst | AccessorConst
+export ConstStorage :: InlineConst | PooledConst | AccessorConst
 
 /// A constant rebuilt at each read.
 export InlineConst :: struct {}
@@ -138,7 +137,7 @@ export LoweredProject :: struct {
     /// Const symbol id → accessor fn, populated by `inline_consts` for
     /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
     /// `call` to the accessor. The accessor carries a fresh synthetic id, so the
-    /// DCE seeds it as a root (`dce.vader`).
+    /// DCE seeds it as a root (`vader/lower/dce`).
     const_fn_wrap:  MutableMap<i32, ConstFnWrap>
     /// Const symbol id → lowered value, populated by `inline_consts` for
     /// every other (non-fn-wrapped) const. `build_ident` re-builds the
@@ -167,7 +166,7 @@ export LoweredModule :: struct {
 }
 
 /// Tagged union of every lowered top-level decl shape.
-LoweredDecl ::
+export LoweredDecl ::
     | LoweredFnDecl
     | LoweredStructDecl
     | LoweredConstDecl
@@ -284,9 +283,9 @@ export LoweredReturn :: struct {
 }
 
 /// TRANSIENT generator marker — one `yield e` inside a `generator` body.
-/// Emitted by `stmt.vader` ONLY when `FnLowerCtx.in_generator` is set, and
+/// Emitted by `vader/lower/stmt.vader` ONLY when `FnLowerCtx.in_generator` is set, and
 /// wholly consumed by the generator state-machine transform
-/// (`generator.vader`) — it never reaches the backend. Backend / midir
+/// (`vader/lower/generator.vader`) — it never reaches the backend. Backend / midir
 /// consumers arm it as `unreachable`: a `LoweredYield` surviving past the
 /// generator transform is a compiler bug.
 export LoweredYield :: struct {
@@ -296,7 +295,7 @@ export LoweredYield :: struct {
 
 /// TRANSIENT async marker — one `await e` inside an `async` body, produced by
 /// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
-/// coroutine state-machine transform (`coroutine.vader`). Like
+/// coroutine state-machine transform (`vader/lower/coroutine.vader`). Like
 /// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the
 /// resolved value of `awaited` (an `Async<target_type>`) to the local `target`.
 export LoweredAwait :: struct {
@@ -340,7 +339,7 @@ export LoweredLoop :: struct {
 /// it — any expression, a call included: evaluating either one again, or
 /// earlier, is the reader's to prove safe.
 ///
-/// Valid only while the block holding the loop lowers (`push_reserve.vader`):
+/// Valid only while the block holding the loop lowers (`vader/lower/push_reserve.vader`):
 /// no later pass rewrites these expressions, and no backend reads them.
 export LoopTurns :: struct {
     counter:   Symbol
@@ -696,7 +695,7 @@ export LoweredArrayPush :: struct {
     /// array's length / capacity / slots in locals instead of memory — nothing
     /// in the body observes the array, and nothing but this push's own grow can
     /// move its buffer. A backend may honour it or ignore it; ignoring it is the
-    /// current shape and stays correct. See `push_cache.vader`.
+    /// current shape and stays correct. See `vader/lower/push_cache.vader`.
     cached: bool = false
 }
 
@@ -789,7 +788,7 @@ export LoweredMakeClosure :: struct {
 /// Canonical intrinsic names embedded into `LoweredIntrinsicCall.name`.
 /// Kept as string constants rather than an enum so the bytecode emitter's
 /// dispatch table can key directly off the wire form.
-INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
+export INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 
 /// Array construction / bulk-mutation intrinsics. Each maps to a dedicated
 /// parameterless bytecode op (`intrinsic_op_for_name`) backed by a GC-coupled
@@ -797,23 +796,28 @@ INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 /// per-pass Lowered/Instr node is needed. The runtime reads the element kind/tag
 /// off the array buf, so none of these need a static element type_id.
 /// `[lhs] * n` — repeat / preallocate (`[] * n` reserves n, length 0).
-INTRINSIC_ARRAY_REPEAT :: "array.repeat"
+export INTRINSIC_ARRAY_REPEAT :: "array.repeat"
 /// `dst.push_all(src)` — append every element of `src` to `dst` (grows dst).
-INTRINSIC_ARRAY_PUSH_ALL :: "array.push_all"
+export INTRINSIC_ARRAY_PUSH_ALL :: "array.push_all"
 /// `src.copy_to(src_start, dst, dst_start, len)` — overlap-safe positional copy.
-INTRINSIC_ARRAY_COPY :: "array.copy"
+export INTRINSIC_ARRAY_COPY :: "array.copy"
 /// `arr.remove_last()` — pop + return the last element as `T | null`.
-INTRINSIC_ARRAY_REMOVE_LAST :: "array.remove_last"
+export INTRINSIC_ARRAY_REMOVE_LAST :: "array.remove_last"
 /// `arr.clear()` — drop every element (length 0, keep buf + capacity).
-INTRINSIC_ARRAY_CLEAR :: "array.clear"
+export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 
 // ============================================================================
 // Constructors
 // ============================================================================
 
-// `[source] * count`, of the array type `type` : the `array.repeat` intrinsic, the
-// count going in as the `i64` the runtime takes.
-mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type, span: Span) =
+/// `[source] * count`, of the array type `type`: the `array.repeat` intrinsic,
+/// the count going in as the `i64` the runtime takes.
+///
+/// @param source  the element, or the array, repeated.
+/// @param count   how many times.
+/// @param type    the resulting array type.
+/// @param span    the source construct.
+export mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type, span: Span) =
     LoweredIntrinsicCall {
         .span = span,
         .type = type,
@@ -821,6 +825,60 @@ mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type, span:
         .args = [source, count],
         .param_types = [type, TY_I64],
     }
+
+/// A block of `stmts` that yields nothing.
+///
+/// @param stmts  the statements.
+/// @param span   the source construct.
+export mk_void_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock =
+    LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+
+/// The step of `lp` as a block, for a predicate that folds over blocks.
+///
+/// @param lp  the loop.
+export loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = mk_void_block(lp.step, lp.span)
+
+/// The vtable row `d` fills: the slot its `MonoEntry` records, for the type of its
+/// receiver ; null for a decl that fills none.
+///
+/// @param d  a lowered decl.
+export vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
+    if d !is LoweredFnDecl || d.params.len() == 0 {
+        return null
+    }
+    slot :: d.origin.vtable_slot ?? return null
+    // fn_symbol is informational here: the table builder
+    // (`emit/bytecode/emit.vader::build_impl_table_from_vtable`) only keys on
+    // (struct_type, trait_name).
+    return LoweredVtableEntry {
+        .trait_name  = slot.trait_key,
+        .method_name = slot.method,
+        .struct_type = d.params[0].type,
+        .fn_symbol   = fn_symbol_of(d),
+    }
+}
+
+/// The symbol a call or a vtable entry names `d` by: its own, or one carrying its
+/// mangle when the impl-member resolver found none. The emitter resolves either.
+///
+/// @param d  the function.
+export fn_symbol_of :: fn(d: LoweredFnDecl) -> Symbol =
+    d.origin.symbol ?? synthetic_symbol(0, .Fn, d.mangled)
+
+/// A symbol no resolver minted, private to no module.
+///
+/// @param id    from `next_project_synthetic_id`, or 0 where only the name is read.
+/// @param kind  what it names.
+/// @param name  its name, the mangle of what it names.
+export synthetic_symbol :: fn(id: i32, kind: SymbolKind, name: string) = Symbol {
+    .id = id,
+    .kind = kind,
+    .name = name,
+    .module = "",
+    .module_name = "",
+    .visibility = .Private,
+    .defined_at = null,
+}
 
 /// Construct an empty `LoweredProject`. The lowering orchestrator fills
 /// `modules` and the vtable / data pool tables as it processes each module.

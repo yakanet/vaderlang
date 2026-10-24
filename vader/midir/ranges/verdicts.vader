@@ -14,7 +14,7 @@ module "vader/midir/ranges"
 import "std/collections"
 import "std/sort"
 import "toolchain/span"
-import "vader/lower"
+import "vader/lower/ir"
 import "vader/midir"
 import "vader/support/integer"
 

@@ -24,6 +24,7 @@ import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 import "vader/support/diagnostics"
 
 /// The slot holding `value`'s variant data : `<Enum>$data[i64(value)]`.

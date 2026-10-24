@@ -412,7 +412,7 @@ record_ident_capture :: fn(
     }
 }
 
-is_capturable :: fn(symbol: Symbol) = symbol.kind == .Param || symbol.kind == .Local || symbol.kind == .Binding
+is_capturable :: fn(symbol: Symbol) = is_local_binding(symbol.kind)
 
 add_capture :: fn(
     symbol: Symbol, ident: AST.IdentExpr,

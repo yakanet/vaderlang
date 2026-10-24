@@ -10,6 +10,7 @@ import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/span"
+import "vader/lower/ir"
 
 lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     compound :: compound_assign_op(assign_stmt) != null

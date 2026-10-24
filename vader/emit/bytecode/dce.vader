@@ -12,7 +12,7 @@
 // entries that nothing alive references.
 //
 // **Whole-program DCE** happens earlier and elsewhere :
-// `vader/lower/dce.vader::prune_unreachable_fns`, on the LoweredProject, before
+// `prune_unreachable_fns` (`vader/lower/dce`), on the LoweredProject, before
 // the CFG build. What is left for here is what only exists AFTER the body emit —
 // the emitter's own import / fn / type tables, their dense renumbering, and
 // reachability facts no earlier pass can see (which `virtual.call` keys actually

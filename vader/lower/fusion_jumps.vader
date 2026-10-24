@@ -23,6 +23,7 @@ AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/front/typecheck"
 import "std/abort"
+import "vader/lower/ir"
 
 // ---- frames -----------------------------------------------------------------
 
@@ -68,7 +69,8 @@ pop_jump_frame :: fn(ctx: FnLowerCtx) -> JumpFrame =
 /// @param body   the loop body.
 resumable_body :: fn(frame: JumpFrame, body: LoweredBlock) -> LoweredBlock {
     label :: frame.resume ?? return body
-    return arm_block([labelled_block(label, body.span, block_stmts_with_trailing(body))], body.span)
+    labelled :: labelled_block(label, body.span, block_stmts_with_trailing(body))
+    return mk_void_block([labelled], body.span)
 }
 
 /// `stmts`, the producer's code for `frame`'s loop: inside its exit block when a

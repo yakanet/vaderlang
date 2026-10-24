@@ -57,6 +57,13 @@ export Symbol :: struct {
 /// @param sym  the symbol a name resolves to.
 export is_frozen_const :: fn(sym: Symbol) -> bool = sym.kind == .Const
 
+/// Whether a symbol of this kind names a local binding: a parameter, a local,
+/// a pattern binding.
+///
+/// @param kind  the symbol's kind.
+export is_local_binding :: fn(kind: SymbolKind) -> bool =
+    kind == .Param || kind == .Local || kind == .Binding
+
 // IDs start at 1 so dumps keyed on the id stay stable.
 export SymbolFactory :: struct {
     next: i32 = 1

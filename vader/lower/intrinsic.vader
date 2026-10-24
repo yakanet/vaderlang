@@ -10,6 +10,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
 import "toolchain/span"
+import "vader/lower/ir"
 
 // Preserve the `@<name>(args)` call shape. Comptime-foldable variants
 // (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach

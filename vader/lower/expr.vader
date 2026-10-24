@@ -16,6 +16,7 @@ module "vader/lower"
 import "std/collections"
 import "std/sort"
 import "std/string"
+import "vader/lower/ir"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
@@ -829,7 +830,7 @@ store_value :: fn(value: LoweredExpr, target: LoweredExpr, out: LoweredStmt[]) -
 stored_arm :: fn(block: LoweredBlock, target: LoweredExpr) -> LoweredBlock {
     stmts: LoweredStmt[]: []
     store_value(block, target, stmts)
-    return arm_block(stmts, block.span)
+    return mk_void_block(stmts, block.span)
 }
 
 stored_else :: fn(block: LoweredBlock | null, target: LoweredExpr) -> LoweredBlock | null {
@@ -839,14 +840,11 @@ stored_else :: fn(block: LoweredBlock | null, target: LoweredExpr) -> LoweredBlo
     return stored_arm(block, target)
 }
 
-arm_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock =
-    LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
-
 // Whether `e` holds a `LoweredAwait` statement: the case `lift_awaiting_value`
 // rewrites.
 value_has_await :: fn(e: LoweredExpr) -> bool {
     found := false
-    stmt_node_expr(e, (s: LoweredStmt) -> {
+    for_each_stmt_node_in_expr(e, (s: LoweredStmt) -> {
         if s is LoweredAwait {
             found = true
         }

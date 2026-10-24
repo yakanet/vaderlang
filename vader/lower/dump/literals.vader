@@ -1,17 +1,18 @@
-// vader/lower/dump_literals — the literals of a lowered body, as Vader writes them.
+// vader/lower/dump/literals — the literals of a lowered body, as Vader writes them.
 //
 // A literal of the type a bare one takes in the source (`i32`, `f64`, `char`,
 // `string`, `bool`) prints bare, and so does one written into a slot of its own
 // type ; any other prints as the conversion that names its type, `i64(27)`.
 // A string escapes its `$`, which would open an interpolation.
 
-module "vader/lower"
+module "vader/lower/dump"
 
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
 import "vader/core/types"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 import "vader/support/text"
 
 // A value written into a slot of its own type : a literal prints bare, and a

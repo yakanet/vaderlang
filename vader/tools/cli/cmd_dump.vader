@@ -22,7 +22,8 @@ import "vader/support/target"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "vader/front/comptime"
-import "vader/lower"
+import "vader/lower/dump"
+import "vader/lower/dce"
 import "vader/emit/virt"
 import "vader/midir"
 import "vader/midir/ranges"
@@ -353,7 +354,7 @@ run_ranges_stage :: fn(
 /// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
 /// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
 /// `LoweredProject` carries a static `Type` on every expression (see
-/// `vader/lower/lowered_ast.vader`), so nothing here references the typecheck
+/// `vader/lower/ir/lowered_ast.vader`), so nothing here references the typecheck
 /// side-table maps that dominate the live set — returning this lets the caller
 /// run emit without those maps coexisting with the emitter's own tables.
 

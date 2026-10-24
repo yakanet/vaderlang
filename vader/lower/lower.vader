@@ -11,8 +11,8 @@
 // (populate.vader), per-decl lowering (decl.vader), generic instance
 // materialization (mono_fn.vader, mono_struct.vader), substitutions and
 // mangling (subst.vader), stdlib/intrinsic extern surfacing (stdlib.vader),
-// the DCE reference walker (ref.vader), and vtable / output assembly
-// (finish.vader).
+// and vtable / output assembly (finish.vader). The IR it produces is
+// `vader/lower/ir`.
 
 module "vader/lower"
 
@@ -20,6 +20,7 @@ import "std/collections"
 import "std/io"
 import "std/sort"
 import "std/string_builder"
+import "vader/lower/ir"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"

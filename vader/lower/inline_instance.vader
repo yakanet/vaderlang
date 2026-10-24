@@ -23,6 +23,7 @@ import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "std/abort"
+import "vader/lower/ir"
 
 // ---- instances --------------------------------------------------------------
 
@@ -103,9 +104,6 @@ declared_bindings :: fn(
         return found
     },
 )
-
-is_local_binding :: fn(kind: SymbolKind) -> bool =
-    kind == .Param || kind == .Local || kind == .Binding
 
 // True when `inner` starts inside `outer`, in the same file.
 starts_within :: fn(outer: Span, inner: Span) -> bool =
@@ -259,7 +257,7 @@ wrap_instance_exit :: fn(instance: InlineInstance, span: Span, stmts: LoweredStm
 /// @param span   the block's span.
 /// @param stmts  the block's statements.
 labelled_block :: fn(label: string, span: Span, stmts: LoweredStmt[]) -> LoweredStmt =
-    LoweredLabelledBlock { .span = span, .label = label, .body = arm_block(stmts, span) }
+    LoweredLabelledBlock { .span = span, .label = label, .body = mk_void_block(stmts, span) }
 
 // ---- tests ----------------------------------------------------------------
 

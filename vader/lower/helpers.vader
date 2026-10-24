@@ -14,6 +14,7 @@ import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/span"
 import "std/string_builder"
+import "vader/lower/ir"
 
 /// `expr`, the value of `node`, through the `into` the typecheck recorded for it
 /// toward `slot`, told to the callee verifier (`verify_callees.vader`).
@@ -463,9 +464,6 @@ prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> Lowe
     stmts.push_all(block.stmts)
     return LoweredBlock { ...block, .stmts = stmts }
 }
-
-// The step of `lp` as a block, for a predicate that folds over blocks.
-loop_step_block :: fn(lp: LoweredLoop) -> LoweredBlock = arm_block(lp.step, lp.span)
 
 // ---- operands --------------------------------------------------------------
 //

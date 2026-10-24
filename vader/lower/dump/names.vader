@@ -1,4 +1,4 @@
-// vader/lower/dump_names — the qualified names the `# Lower` dump prints.
+// vader/lower/dump/names — the qualified names the `# Lower` dump prints.
 //
 // A declaration the program wrote is named after its module and its source
 // name, `std.io.println<string>` or `std.core.Range<i32>.next` for an impl
@@ -8,7 +8,7 @@
 // the same. A use resolves its symbol as the backend does (`resolve_fn_index`):
 // the mangled name first, then the symbol id.
 
-module "vader/lower"
+module "vader/lower/dump"
 
 import "std/collections"
 import "std/string"
@@ -18,6 +18,7 @@ import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 
 /// The printed name of every lowered declaration, by mangled name and by the
 /// id of the symbol it was lowered from, and of every trait by its key.

@@ -27,7 +27,7 @@
 module "vader/midir/select"
 
 import "vader/core/bytecode"
-import "vader/lower"
+import "vader/lower/ir"
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
 /// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any` / `null`) lower

@@ -15,6 +15,7 @@ import "vader/support/diagnostics"
 import "toolchain/span"
 import "std/collections"
 import "std/abort"
+import "vader/lower/ir"
 
 // ---- sentinel -------------------------------------------------------------
 

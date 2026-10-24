@@ -16,6 +16,7 @@ import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 import "vader/support/integer"
 
 /// The conversion `call`, `T(value)`, into the range `target`.
@@ -491,7 +492,7 @@ if_then :: fn(cond: LoweredExpr, body: LoweredStmt[], span: Span) -> LoweredStmt
         .span = span,
         .type = TY_VOID,
         .cond = cond,
-        .then_block = arm_block(body, span),
+        .then_block = mk_void_block(body, span),
         .else_block = null,
     },
 }

@@ -1,7 +1,7 @@
-// vader/lower/ref — whole-program reference walker and type visitor (DCE).
-//
+// vader/lower/ir/walk — walks over the lowered IR: every type a declaration
+// names, every function it references (what DCE follows), every statement node.
 
-module "vader/lower"
+module "vader/lower/ir"
 
 import "vader/core/types"
 import "vader/core/symbol"
@@ -10,7 +10,10 @@ import "vader/core/symbol"
 /// signature + body (fn), type + value (const). `visit` is passed as a
 /// direct fn argument (threaded through the recursion), never stored on a
 /// struct, so it stays on the working closure-call path.
-for_each_lowered_type :: fn(decl: LoweredDecl, visit: fn(Type) -> void) -> void {
+///
+/// @param decl   the lowered top-level decl to scan.
+/// @param visit  called on every `Type` node, nested ones included.
+export for_each_lowered_type :: fn(decl: LoweredDecl, visit: fn(Type) -> void) -> void {
     match decl {
         is LoweredFnDecl -> {
             for p in decl.params { for_each_type(p.type, visit) }
@@ -149,7 +152,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
 /// `LoweredCall` with a `LoweredIdent` callee yields the callee
 /// symbol's `(id, name)` to `visit_fn`, and every `LoweredVirtualCall`
 /// yields its `(trait, method)` to `visit_virtual`. Used by
-/// `prune_unreachable_fns` (vader/lower/dce.vader) to mark reachable
+/// `prune_unreachable_fns` (`vader/lower/dce`) to mark reachable
 /// functions from the program roots.
 ///
 /// The callbacks are passed as DIRECT fn args rather than bundled in a struct.
@@ -164,7 +167,7 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
 /// @param visit_virtual called with `(trait_name, method_name)` for every
 ///                      virtual call so the vtable fixpoint can keep the
 ///                      matching impl fns.
-for_each_lowered_ref :: fn(
+export for_each_lowered_ref :: fn(
     decl: LoweredDecl,
     visit_fn: fn(i32, string) -> void,
     visit_virtual: fn(string, string) -> void,
@@ -302,101 +305,110 @@ for_each_lowered_stmt_node :: fn(decl: LoweredDecl, visit: fn(LoweredStmt) -> vo
     match decl {
         is LoweredFnDecl -> {
             body :: decl.body
-            if body != null { stmt_node_block(body, visit) }
+            if body != null { for_each_stmt_node_in_block(body, visit) }
         }
-        is LoweredConstDecl  -> stmt_node_expr(decl.value, visit)
+        is LoweredConstDecl  -> for_each_stmt_node_in_expr(decl.value, visit)
         is LoweredStructDecl -> {}
     }
 }
 
-stmt_node_block :: fn(b: LoweredBlock, visit: fn(LoweredStmt) -> void) -> void {
-    for s in b.stmts { stmt_node_stmt(s, visit) }
+/// Visit every statement node of `b`, nested ones included, in source order.
+///
+/// @param b      the block.
+/// @param visit  called once per statement.
+export for_each_stmt_node_in_block :: fn(b: LoweredBlock, visit: fn(LoweredStmt) -> void) -> void {
+    for s in b.stmts { for_each_stmt_node_in_stmt(s, visit) }
     trailing :: b.trailing
-    if trailing != null { stmt_node_expr(trailing, visit) }
+    if trailing != null { for_each_stmt_node_in_expr(trailing, visit) }
 }
 
-stmt_node_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
+for_each_stmt_node_in_stmt :: fn(s: LoweredStmt, visit: fn(LoweredStmt) -> void) -> void {
     visit(s)
     match s {
-        is LoweredLet     -> stmt_node_expr(s.value, visit)
+        is LoweredLet     -> for_each_stmt_node_in_expr(s.value, visit)
         is LoweredAssign  -> {
-            stmt_node_expr(s.target, visit)
-            stmt_node_expr(s.value, visit)
+            for_each_stmt_node_in_expr(s.target, visit)
+            for_each_stmt_node_in_expr(s.value, visit)
         }
         is LoweredCellSet -> {
-            stmt_node_expr(s.target, visit)
-            stmt_node_expr(s.value, visit)
+            for_each_stmt_node_in_expr(s.target, visit)
+            for_each_stmt_node_in_expr(s.value, visit)
         }
-        is LoweredGlobalSet -> stmt_node_expr(s.value, visit)
-        is LoweredExprStmt -> stmt_node_expr(s.expr, visit)
+        is LoweredGlobalSet -> for_each_stmt_node_in_expr(s.value, visit)
+        is LoweredExprStmt -> for_each_stmt_node_in_expr(s.expr, visit)
         is LoweredReturn   -> {
             value :: s.value
-            if value != null { stmt_node_expr(value, visit) }
+            if value != null { for_each_stmt_node_in_expr(value, visit) }
         }
-        is LoweredYield    -> stmt_node_expr(s.value, visit)
-        is LoweredAwait    -> stmt_node_expr(s.awaited, visit)
-        is LoweredLabelledBlock -> stmt_node_block(s.body, visit)
+        is LoweredYield    -> for_each_stmt_node_in_expr(s.value, visit)
+        is LoweredAwait    -> for_each_stmt_node_in_expr(s.awaited, visit)
+        is LoweredLabelledBlock -> for_each_stmt_node_in_block(s.body, visit)
         is LoweredLoop     -> {
             cond :: s.cond
-            if cond != null { stmt_node_expr(cond, visit) }
-            stmt_node_block(s.body, visit)
+            if cond != null { for_each_stmt_node_in_expr(cond, visit) }
+            for_each_stmt_node_in_block(s.body, visit)
             for st in s.step {
-                stmt_node_stmt(st, visit)
+                for_each_stmt_node_in_stmt(st, visit)
             }
         }
-        is LoweredDeferPush    -> stmt_node_expr(s.thunk, visit)
+        is LoweredDeferPush    -> for_each_stmt_node_in_expr(s.thunk, visit)
         is LoweredBreak        -> {}
         is LoweredContinue     -> {}
         is LoweredDeferPopExec -> {}
     }
 }
 
-stmt_node_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
+/// Visit every statement node nested in `e`, in the blocks it holds (an `if`'s
+/// branches, a block expression), in source order.
+///
+/// @param e      the expression.
+/// @param visit  called once per statement.
+export for_each_stmt_node_in_expr :: fn(e: LoweredExpr, visit: fn(LoweredStmt) -> void) -> void {
     match e {
         is LoweredCall        -> {
-            stmt_node_expr(e.callee, visit)
-            for a in e.args { stmt_node_expr(a, visit) }
+            for_each_stmt_node_in_expr(e.callee, visit)
+            for a in e.args { for_each_stmt_node_in_expr(a, visit) }
         }
         is LoweredVirtualCall -> {
-            stmt_node_expr(e.receiver, visit)
-            for a in e.args { stmt_node_expr(a, visit) }
+            for_each_stmt_node_in_expr(e.receiver, visit)
+            for a in e.args { for_each_stmt_node_in_expr(a, visit) }
         }
-        is LoweredFieldAccess -> stmt_node_expr(e.target, visit)
-        is LoweredUnionField  -> stmt_node_expr(e.target, visit)
+        is LoweredFieldAccess -> for_each_stmt_node_in_expr(e.target, visit)
+        is LoweredUnionField  -> for_each_stmt_node_in_expr(e.target, visit)
         is LoweredIndex       -> {
-            stmt_node_expr(e.target, visit)
-            stmt_node_expr(e.index, visit)
+            for_each_stmt_node_in_expr(e.target, visit)
+            for_each_stmt_node_in_expr(e.index, visit)
         }
-        is LoweredUnary  -> stmt_node_expr(e.operand, visit)
+        is LoweredUnary  -> for_each_stmt_node_in_expr(e.operand, visit)
         is LoweredBinary -> {
-            stmt_node_expr(e.left, visit)
-            stmt_node_expr(e.right, visit)
+            for_each_stmt_node_in_expr(e.left, visit)
+            for_each_stmt_node_in_expr(e.right, visit)
         }
         is LoweredIf -> {
-            stmt_node_expr(e.cond, visit)
-            stmt_node_block(e.then_block, visit)
+            for_each_stmt_node_in_expr(e.cond, visit)
+            for_each_stmt_node_in_block(e.then_block, visit)
             else_block :: e.else_block
-            if else_block != null { stmt_node_block(else_block, visit) }
+            if else_block != null { for_each_stmt_node_in_block(else_block, visit) }
         }
-        is LoweredBlock     -> stmt_node_block(e, visit)
-        is LoweredStructLit -> { for f in e.fields { stmt_node_expr(f.value, visit) } }
-        is LoweredArrayLit  -> { for el in e.elements { stmt_node_expr(el, visit) } }
-        is LoweredCast      -> stmt_node_expr(e.value, visit)
-        is LoweredTypeCheck -> stmt_node_expr(e.value, visit)
-        is LoweredIntrinsicCall -> { for a in e.args { stmt_node_expr(a, visit) } }
-        is LoweredArrayLen  -> stmt_node_expr(e.target, visit)
+        is LoweredBlock     -> for_each_stmt_node_in_block(e, visit)
+        is LoweredStructLit -> { for f in e.fields { for_each_stmt_node_in_expr(f.value, visit) } }
+        is LoweredArrayLit  -> { for el in e.elements { for_each_stmt_node_in_expr(el, visit) } }
+        is LoweredCast      -> for_each_stmt_node_in_expr(e.value, visit)
+        is LoweredTypeCheck -> for_each_stmt_node_in_expr(e.value, visit)
+        is LoweredIntrinsicCall -> { for a in e.args { for_each_stmt_node_in_expr(a, visit) } }
+        is LoweredArrayLen  -> for_each_stmt_node_in_expr(e.target, visit)
         is LoweredArrayPush -> {
-            stmt_node_expr(e.target, visit)
-            stmt_node_expr(e.value, visit)
+            for_each_stmt_node_in_expr(e.target, visit)
+            for_each_stmt_node_in_expr(e.value, visit)
         }
         is LoweredArraySlice -> {
-            stmt_node_expr(e.target, visit)
-            stmt_node_expr(e.lo, visit)
-            stmt_node_expr(e.hi, visit)
+            for_each_stmt_node_in_expr(e.target, visit)
+            for_each_stmt_node_in_expr(e.lo, visit)
+            for_each_stmt_node_in_expr(e.hi, visit)
         }
-        is LoweredCellNew     -> stmt_node_expr(e.value, visit)
-        is LoweredCellGet     -> stmt_node_expr(e.target, visit)
-        is LoweredMakeClosure -> stmt_node_expr(e.env, visit)
+        is LoweredCellNew     -> for_each_stmt_node_in_expr(e.value, visit)
+        is LoweredCellGet     -> for_each_stmt_node_in_expr(e.target, visit)
+        is LoweredMakeClosure -> for_each_stmt_node_in_expr(e.env, visit)
         is LoweredIntLit      -> {}
         is LoweredFloatLit    -> {}
         is LoweredBoolLit     -> {}

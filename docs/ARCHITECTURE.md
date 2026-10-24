@@ -30,8 +30,8 @@ flowchart TD
 | Resolver | `vader/front/resolver/` | names bound to declarations, imports collected |
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
 | Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values, generic struct instances |
-| Lowerer | `vader/lower/` | lowered AST, generic instances materialised |
-| Dead-code elimination | `vader/lower/` | functions unreachable from the roots removed |
+| Lowerer | `vader/lower/` | lowered AST (`vader/lower/ir/`), generic instances materialised |
+| Dead-code elimination | `vader/lower/dce/` | functions unreachable from the roots removed |
 | Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
 | Bytecode emitter | `vader/emit/bytecode/` | stack-based bytecode, whose format is `vader/core/bytecode/` |
 | `.virt` text | `vader/emit/virt/`, `vader/front/virt/` | the bytecode written as text, and read back |
@@ -116,7 +116,9 @@ and `vader/lower/subst.vader`.
 ## Lowered AST
 
 The lowerer reads the typed AST and builds a separate, smaller AST of primitive
-operations. The typed AST is never mutated.
+operations. The typed AST is never mutated. That lowered AST, its walks and its
+self-check are `vader/lower/ir/`, which DCE, the CFG core and the emitters read
+without the lowerer; its `vader dump --stage=lowered-ast` text is `vader/lower/dump/`.
 
 - **`match`**: each arm becomes a guarded `if` on the pattern's discriminator (type
   tag, struct shape, literal equality) and its optional guard. The `match x :: e`

@@ -34,6 +34,7 @@ import "vader/support/diagnostics"
 import "toolchain/span"
 import "std/abort"
 import "vader/front/comptime"
+import "vader/lower/ir"
 
 // ---- state-struct synthesis + entry ---------------------------------------
 

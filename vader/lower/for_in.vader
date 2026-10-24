@@ -31,6 +31,7 @@ import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/span"
+import "vader/lower/ir"
 
 /// Lower a `for x in iter { body }` statement to a step-loop driven
 /// by the `Iterator<T>.next()` dispatch.

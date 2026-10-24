@@ -1,10 +1,10 @@
-// vader/lower/dump — `# Lower` snapshot dump.
+// vader/lower/dump/dump — `# Lower` snapshot dump.
 //
 // Walks every in-scope `LoweredModule`, module ids sorted alphabetically, and
-// renders its storage, its declarations as Vader (`dump_body.vader`) and its
+// renders its storage, its declarations as Vader (`body.vader`) and its
 // vtable rows ; then what the lowering materialised in the other modules
-// (`dump_decisions.vader`). A declaration prints under its qualified name
-// (`dump_names.vader`), its mangled name in a trailing comment :
+// (`decisions.vader`). A declaration prints under its qualified name
+// (`names.vader`), its mangled name in a trailing comment :
 //
 //   # Lower
 //
@@ -25,13 +25,14 @@
 //       fn <name>  // <mangled>
 //       struct <name>  // <mangled>
 
-module "vader/lower"
+module "vader/lower/dump"
 
 import "std/collections"
 import "std/sort"
 import "std/string"
 import "vader/core/types"
 import "vader/front/resolver"
+import "vader/lower/ir"
 
 /// Render the project's `# Lower` dump as a single string. Only modules in
 /// `scope` are rendered in full (the entry's subtree by default, `--module` to

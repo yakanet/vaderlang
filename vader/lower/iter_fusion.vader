@@ -16,6 +16,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
 import "toolchain/span"
+import "vader/lower/ir"
 
 // ---- chain fusion ---------------------------------------------------------
 

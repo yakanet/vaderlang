@@ -18,6 +18,7 @@ import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/front/comptime"
 import "vader/front/resolver"
+import "vader/lower/ir"
 
 // ============================================================================
 // Closure analysis output

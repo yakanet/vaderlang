@@ -8,6 +8,7 @@ import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
+import "vader/lower/ir"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"

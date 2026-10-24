@@ -1,4 +1,4 @@
-// vader/lower/dump_body — a lowered body, printed as Vader.
+// vader/lower/dump/body — a lowered body, printed as Vader.
 //
 // One statement per line, in the syntax of the source wherever the language has
 // one. `+` is the checked addition and `+%` the one the lowering leaves
@@ -7,15 +7,16 @@
 // `@pool(k)`, `@global(k)`, `@vcall(trait.method, receiver, …)`,
 // `@closure(f, env)`, `@defer_push(f)`, `@defer_run(n)`, and `@fresh(NAME)` for
 // a use that reads its constant fresh. A type is printed where it says
-// something : on a `let`, on a literal (`dump_literals.vader`), on a conversion,
+// something : on a `let`, on a literal (`literals.vader`), on a conversion,
 // on a value joining branches that no slot types, and as `:?` on any value whose
 // type is unresolved.
 
-module "vader/lower"
+module "vader/lower/dump"
 
 import "std/string"
 import "vader/core/types"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 import "vader/support/text"
 
 INDENT_STEP :: "    "

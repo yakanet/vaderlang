@@ -14,6 +14,7 @@ module "vader/lower"
 import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
+import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 
@@ -44,21 +45,4 @@ check_extern_symbols :: fn(
             diags.push(lower_error(.ExternSymbolClaimedTwice, decl.name_span, detail))
         }
     }
-}
-
-/// The header that owns the prototype of an `@extern` declaration: its own
-/// `@c_header`, else the `header` of the library it names. `""` when none does.
-///
-/// The backend INCLUDES that header instead of synthesising a prototype: the
-/// header already has the real one, and a synthesised one that differs is a
-/// conflicting declaration the C compiler refuses outright.
-///
-/// @param decl     the bodyless function declaration.
-/// @param library  the `CLibrary` it names, as evaluated ; null for none.
-export extern_header :: fn(decl: FnDecl, library: CLibrary | null) -> string {
-    own :: c_header_of(decl)
-    if own != "" || library == null {
-        return own
-    }
-    return library.header
 }

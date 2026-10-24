@@ -15,6 +15,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/typecheck"
+import "vader/lower/ir"
 
 /// The type each type parameter of the member `callee` names takes at the call, in
 /// the order the member declares them. Null for a member that declares none.

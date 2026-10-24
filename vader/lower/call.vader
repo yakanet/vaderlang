@@ -4,6 +4,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/lower/ir"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
@@ -97,16 +98,6 @@ equals_primop :: fn(left: LoweredExpr, right: LoweredExpr, span: Span) = Lowered
 lower_callee :: fn(ctx: FnLowerCtx, call: CallExpr) -> LoweredExpr {
     symbol :: recorded_fn_symbol(ctx, call) ?? return lower_expr(ctx, call.callee)
     return fn_reference(ctx, symbol, call.callee.span, ctx.types.expr_type(call.callee))
-}
-
-/// The parameter types of a callee's fn type.
-///
-/// @param callee_type  the callee's type ; anything but a fn type has none.
-export param_types_of :: fn(callee_type: Type | null) -> Type[] {
-    if callee_type is FnType {
-        return callee_type.params
-    }
-    return []
 }
 
 /// `Type.member(args)` on a static trait member (`T.zero()`, `i64.zero()`) : a

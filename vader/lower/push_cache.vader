@@ -24,6 +24,8 @@
 
 module "vader/lower"
 
+import "vader/lower/ir"
+
 /// Mark every `push` whose loop can keep the array's state out of memory.
 ///
 /// Runs over the whole project after lowering.
@@ -287,7 +289,7 @@ pc_single_target :: fn(pushes: LoweredArrayPush[]) -> i32 | null {
 // refused.
 pc_has_extra_exit :: fn(b: LoweredBlock) -> bool {
     found := false
-    stmt_node_block(b, (st: LoweredStmt) -> {
+    for_each_stmt_node_in_block(b, (st: LoweredStmt) -> {
         if pc_stmt_exits(st) {
             found = true
         }
