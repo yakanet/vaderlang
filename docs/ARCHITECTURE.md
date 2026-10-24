@@ -31,10 +31,14 @@ flowchart TD
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
 | Comptime | `vader/front/comptime/` | `@comptime` values, generic struct instances |
 | Lowerer | `vader/lower/` | lowered AST, generic instances materialised |
-| Mid-IR | `vader/midir/` | CFG, DCE, escape analysis |
+| Dead-code elimination | `vader/lower/` | functions unreachable from the roots removed |
+| Mid-IR | `vader/midir/` | CFG, escape analysis, dead-store elimination |
 | Bytecode | `vader/bytecode/` | stack-based bytecode |
 | VM | `vader/vm/` | runs the bytecode |
 | C emitter | `vader/emit/c/` | one C file per module (`--split`) or one for the program |
+
+The stack-based bytecode is the canonical IR: the VM runs it, the C emitter
+translates it, and it maps one to one to WebAssembly.
 
 Every stage can be dumped with `vader dump --stage=<name>`. The resolver is shared
 with the LSP (`vader/tools/lsp/`) and the formatter (`vader/tools/fmt/`).
@@ -50,15 +54,9 @@ STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOS
 `STRING_PART` carries decoded text. Between `INTERP_OPEN` and `INTERP_CLOSE` the
 lexer emits ordinary tokens. A stack of modes (string or interpolation) handles
 nesting. A raw string emits `STRING_BEGIN`, a single `STRING_PART` with its contents
-as written, and `STRING_END` .
+as written, and `STRING_END`.
 
 The lexer drops comments. Tools that need doc blocks re-scan the source.
-
-## Canonical IR
-
-The canonical IR is a stack-based bytecode. The VM runs it directly, the C emitter
-translates it to C text, and it maps one to one to WebAssembly, which is also
-stack-based.
 
 ## Comptime engine
 
@@ -73,10 +71,9 @@ A step budget stops loops that do not terminate. Running out of it, like any VM
 trap, is reported as a comptime evaluation error (`C4002`). A shape neither engine
 can evaluate is `C4001`.
 
-The compiler's own tree must stay reproducible. `bootstrap/verify.sh` compares
-stage1 and stage2 byte for byte on every pull request, so a `@comptime` value that
-depends on the clock or the environment inside the compiler fails CI. The language
-does not impose this rule on other programs.
+Inside the compiler's own tree, a `@comptime` value must not depend on the clock or
+the environment, or the fixed-point check fails (*Self-hosting and bootstrap*). The
+language does not impose this on other programs.
 
 ## Monomorphization
 
@@ -159,8 +156,8 @@ The CFG supports the analyses that need def-use chains:
 
 - **escape analysis**: structs that do not outlive their function are allocated on
   the stack;
-- **loop-carried dependencies**: replaces the old rule that anything in a loop
-  escapes;
+- **loop-carried dependencies**: refines escape analysis for values allocated in
+  a loop;
 - **dead-store elimination**: removes individual writes whose value is never read.
 
 The bytecode emitter reads the CFG and recovers structured nesting, placing each
