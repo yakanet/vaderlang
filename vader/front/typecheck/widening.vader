@@ -1,10 +1,11 @@
-// vader/front/typecheck/type_assign: how deep an array widens into another, the
+// vader/front/typecheck/widening: how deep an array widens into another, the
 // slot layouts that decide it, and the type-mismatch diagnostic.
 //
 // Assignability itself, the question types answer alone, is
 // `vader/core/types/assignable.vader`. What also needs the typed program is
 // here: an element that widens into a trait it implements, a type that
-// implements a trait twice.
+// implements a trait twice. A value widening into a trait is
+// `coerce.vader::try_trait_widen`.
 
 module "vader/front/typecheck"
 

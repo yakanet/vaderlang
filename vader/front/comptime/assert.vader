@@ -9,7 +9,6 @@ module "vader/front/comptime"
 
 import "std/collections"
 import "vader/support/diagnostics"
-import "vader/front/typecheck"
 AST :: import "toolchain/ast"
 
 /// Evaluate each `AssertDecl` of `decls` through the tree-walker, emit `C4015`

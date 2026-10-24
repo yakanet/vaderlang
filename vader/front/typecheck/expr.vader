@@ -26,6 +26,7 @@ AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
 import "toolchain/span"
+import "vader/support/integer"
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-

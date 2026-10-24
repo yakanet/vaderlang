@@ -15,7 +15,6 @@ module "vader/lower/dump"
 
 import "std/string"
 import "vader/core/types"
-import "vader/front/typecheck"
 import "vader/lower/ir"
 import "vader/support/text"
 

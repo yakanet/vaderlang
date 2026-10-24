@@ -424,7 +424,7 @@ export entry_of :: fn(self: ImplRegistry, decl: ImplDecl) -> ImplEntry | null = 
 /// for shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
 /// Union, …). A distinct (newtype) is nominal — it carries its OWN impls
 /// (`MyId implements Hash`), not the backing's — so it resolves to its own
-/// symbol. Used by `is_assignable`'s trait-widening branch.
+/// symbol.
 export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     // @partial: only the three nominal variants carry an impl target symbol;
     // every structural / primitive variant (Array, Fn, Union, …) carries none.

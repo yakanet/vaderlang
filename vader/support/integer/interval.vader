@@ -98,6 +98,27 @@ export interval_within :: fn(a: Interval, outer: Interval) -> bool =
 export holds_value :: fn(values: Interval, v: i64) -> bool =
     (values.lo_open || values.lo <= v) && (values.hi_open || v <= values.hi)
 
+/// Whether an integer literal, its magnitude and its sign as written, is one of
+/// `values` : `x: u8 = 300`, `x: i8 = 128`, `z: u32 = -1` and `h: Hour = 30` are
+/// rejected (T3066), and so is `b == '💩'` on a `u8` (T3055), a `char` literal
+/// standing for its code point.
+///
+/// @param value     the literal's magnitude, the `u64` the AST carries.
+/// @param negative  whether the literal is written with a `-` (`IntLitExpr.negative`).
+/// @param values    the values of the integer type it lands in.
+export literal_fits :: fn(value: u64, negative: bool, values: Interval) -> bool {
+    if negative {
+        // A negative magnitude reaches 2^63 at most, the least `i64`.
+        return value <= 0x8000_0000_0000_0000 && holds_value(values, 0 -% i64(value))
+    }
+    if value <= u64(I64_MAX) {
+        return holds_value(values, i64(value))
+    }
+    // Past `i64.max` : a range holding it holds every value from `i64.max` up, its
+    // lower bound being within `i64`.
+    return interval_within(interval_up_to(I64_MAX, value), values)
+}
+
 /// The number of bits that count the values of `values` from the least : 8 for
 /// `u8` and `i8`, 5 for `0..=23`, 64 for a 64-bit integer and an interval opening
 /// past `i64`.
@@ -315,6 +336,7 @@ end_difference :: fn(x: i64, x_open: bool, y: i64, y_open: bool) -> i64 | null {
 
 // ---- tests ----------------------------------------------------------------
 
+import "std/abort"
 import "std/testing"
 
 @test
@@ -468,4 +490,45 @@ test_count_bits_reads_the_number_of_values :: fn() -> void {
     assert_eq(count_bits(interval(5, 5)), 0)
     assert_eq(count_bits(interval(I64_MIN, I64_MAX)), 64)
     assert_eq(count_bits(U64_VALUES), 64)
+}
+
+// The values of the machine integer `name`, for the tests below.
+values_of_named :: fn(name: string) -> Interval {
+    m :: machine_integer_named(name) ?? panic("`${name}` is no machine integer")
+    return m.values
+}
+
+@test
+test_literal_fits_machine_bounds :: fn() -> void {
+    // Out of range → rejected (T3066 at the pin site).
+    assert(!literal_fits(9000000000, false, values_of_named("i32")), "9e9 does not fit i32")
+    assert(!literal_fits(300, false, values_of_named("u8")), "300 does not fit u8")
+    assert(!literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("i64")), "u64.MAX past i64")
+    assert(!literal_fits(128, false, values_of_named("i8")), "128 does not fit i8")
+    assert(!literal_fits(0x8000_0000, false, values_of_named("i32")), "2^31 does not fit i32")
+    assert(!literal_fits(0x8000_0000_0000_0000, false, values_of_named("i64")), "2^63 past i64")
+    // In-range values and maxima → accepted.
+    assert(literal_fits(0x7FFF_FFFF, false, values_of_named("i32")), "i32.MAX fits i32")
+    assert(literal_fits(255, false, values_of_named("u8")), "u8.MAX fits u8")
+    assert(literal_fits(0xFFFF_FFFF_FFFF_FFFF, false, values_of_named("u64")), "u64.MAX fits u64")
+}
+
+@test
+test_literal_fits_negative_literals :: fn() -> void {
+    assert(literal_fits(128, true, values_of_named("i8")), "-128 fits i8")
+    assert(!literal_fits(129, true, values_of_named("i8")), "-129 does not fit i8")
+    assert(literal_fits(0x8000_0000, true, values_of_named("i32")), "i32.MIN fits i32")
+    assert(literal_fits(0x8000_0000_0000_0000, true, values_of_named("i64")), "i64.MIN fits i64")
+    assert(!literal_fits(0x8000_0000_0000_0001, true, values_of_named("i64")), "past i64.MIN")
+    assert(!literal_fits(1, true, values_of_named("u32")), "-1 does not fit u32")
+    assert(literal_fits(0, true, values_of_named("u8")), "-0 fits u8")
+}
+
+@test
+test_literal_fits_a_range :: fn() -> void {
+    assert(literal_fits(23, false, interval(0, 23)), "23 is an Hour")
+    assert(!literal_fits(24, false, interval(0, 23)), "24 is no Hour")
+    past :: interval_up_to(0, 0x8000_0000_0000_0005)
+    assert(literal_fits(0x8000_0000_0000_0005, false, past), "the top of a range past i64")
+    assert(!literal_fits(0x8000_0000_0000_0006, false, past), "past the top of a range past i64")
 }

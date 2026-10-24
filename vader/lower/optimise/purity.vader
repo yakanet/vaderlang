@@ -215,7 +215,6 @@ indexed_decl :: fn(ctx: PurityCtx, symbol: Symbol) -> LoweredFnDecl | null {
 
 import "std/testing"
 import "vader/support/diagnostics"
-import "vader/front/typecheck"
 import "vader/front/comptime"
 AST :: import "toolchain/ast"
 import "toolchain/span"

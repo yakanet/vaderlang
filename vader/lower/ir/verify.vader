@@ -153,7 +153,6 @@ import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
-import "vader/front/typecheck"
 
 // A function symbol of the module `test`.
 test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {

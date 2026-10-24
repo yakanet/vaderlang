@@ -9,7 +9,6 @@ import "vader/lower/optimise"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/front/typecheck"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"

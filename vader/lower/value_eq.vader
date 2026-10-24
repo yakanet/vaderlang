@@ -30,7 +30,6 @@ import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/types"
-import "vader/front/typecheck"
 import "vader/lower/ir"
 
 try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {

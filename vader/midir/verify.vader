@@ -28,7 +28,6 @@ import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/typecheck"
 
 // ---- resolution tables ----------------------------------------------------
 

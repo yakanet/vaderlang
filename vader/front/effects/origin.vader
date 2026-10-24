@@ -14,7 +14,6 @@ module "vader/front/effects"
 import "std/abort"
 import "std/collections"
 import "toolchain/span"
-import "vader/front/typecheck"
 
 // ---- origin words ---------------------------------------------------------
 

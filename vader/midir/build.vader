@@ -21,7 +21,6 @@ import "vader/support/integer"
 import "vader/lower/ir"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/typecheck"
 import "std/abort"
 
 /// Project-level interning context — accumulates strings into a single

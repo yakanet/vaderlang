@@ -10,7 +10,6 @@ module "vader/lower"
 
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/typecheck"
 import "vader/support/diagnostics"
 import "toolchain/span"
 import "std/collections"

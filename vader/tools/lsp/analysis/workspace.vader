@@ -18,7 +18,6 @@ import "std/string"
 import "toolchain/span"
 import "vader/front/parser"
 import "vader/front/resolver"
-import "vader/front/typecheck"
 import "vader/support/text"
 import "vader/tools/lsp/protocol"
 
