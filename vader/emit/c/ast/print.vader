@@ -1,10 +1,10 @@
-// vader/c_emit/c_ast/print — writes a statement tree (`c_ast.vader`) as C text.
+// vader/emit/c/ast/print — writes a statement tree (`ast.vader`) as C text.
 //
 // Every layout decision lives here : indentation (4 spaces per level), braces,
 // `else if` chains, `end_N: ;` labels, `#line` directives at column 0, and the
 // spelling of a return around the GC frame restore.
 
-module "vader/c_emit/c_ast"
+module "vader/emit/c/ast"
 
 import "std/abort"
 import "std/string"

@@ -1,4 +1,4 @@
-// vader/c_emit/push_cache_emit — emit a push loop with the array state in locals.
+// vader/emit/c/push_cache_emit — emit a push loop with the array state in locals.
 //
 // `push_cache_tag` (`vader/lower`) proved which pushes sit in a loop that can
 // keep the array's `length` / `capacity` / slots out of memory, and passed the
@@ -21,9 +21,9 @@
 // barrier and leaves the collector reading `buf->length` for the slots it must
 // scan, so lifting one is a separate argument; the hint is simply declined here.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 import "vader/bytecode"
 vm :: import "vader/bytecode"
 

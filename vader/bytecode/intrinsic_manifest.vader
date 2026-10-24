@@ -12,7 +12,7 @@
 //
 //   2. Host-intrinsic identity. `intrinsic_id_for` classifies a host import's
 //      mangled name into an `IntrinsicId` — THE single classification both
-//      backends (`vm/host::dispatch_import`, `c_emit/host::import_shim`) dispatch
+//      backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch
 //      on, so the two can't drift and a new host trips T3013 at both sites.
 //
 // Still inlined elsewhere (folding through here is a follow-up): the arith /
@@ -86,7 +86,7 @@ strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
 
 /// Identity of a recognised host `@intrinsic` import, keyed on the mangled name
 /// by `intrinsic_id_for`. THE single classification the two backends
-/// (`vm/host::dispatch_import`, `c_emit/host::import_shim`) dispatch on, so the
+/// (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch on, so the
 /// host-mangle grammar lives in one place and the two can't drift. The union of
 /// what either backend serves — a backend that doesn't serve a variant handles
 /// it in a grouped fallthrough arm, but the exhaustive `match` forces that to be
@@ -229,7 +229,7 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
     if is_extern { return }
     if intrinsic_op_for_mangled(mangled) != null { return }
     if intrinsic_id_for(mangled) != .NotIntrinsic { return }
-    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `c_emit/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
+    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
 }
 
 // ---- tests ----------------------------------------------------------------

@@ -1,4 +1,4 @@
-// vader/c_emit/adapters: the C adapters through which the interpreter calls
+// vader/emit/c/adapters: the C adapters through which the interpreter calls
 // what none of its trampolines can.
 //
 // The VM calls a foreign function through a trampoline written ahead of time,
@@ -17,13 +17,13 @@
 // One unit per `CLibrary`, as the native build gives each its unit
 // (`emit_library_unit`): two libraries' headers need not agree.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/collections"
 import "std/sort"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 
 /// The C units of a program's adapters, compiled together into one library.
 export AdapterUnits :: struct {

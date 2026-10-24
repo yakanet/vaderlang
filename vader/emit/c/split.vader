@@ -1,4 +1,4 @@
-// vader/c_emit/split — multi-file C emit for a parallel native build.
+// vader/emit/c/split — multi-file C emit for a parallel native build.
 //
 // The monolithic emitter (`emit.vader::emit_c`) produces one `.c` TU that
 // `cc -O3` compiles single-threaded — the dominant local build cost. This
@@ -29,14 +29,14 @@
 // A build that does not split by module still gives each `CLibrary` its unit
 // (`emit_c_units`).
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/abort"
 import "std/collections"
 import "std/sort"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 import "vader/support/text"
 
 /// A program emitted as several C translation units. `header` is the shared

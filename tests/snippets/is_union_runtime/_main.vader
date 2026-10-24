@@ -2,7 +2,7 @@
 // or-pattern union form. The runtime ORs the per-variant tag checks
 // (`emit_type_check` on native, `union_matches` in the VM), so it reports real
 // membership rather than always-false. This is the form
-// `vader/c_emit/walker.vader::is_cache_safe` relies on ; the retired W0003
+// `vader/emit/c/walker.vader::is_cache_safe` relies on ; the retired W0003
 // warning used to (wrongly) flag it as "always returns false at runtime".
 
 module "snippet"

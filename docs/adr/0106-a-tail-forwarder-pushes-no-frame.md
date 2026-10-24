@@ -47,7 +47,7 @@ forwarder reaches a safepoint and pushes no frame, so both are false.
   needs_frame = fn_builds_stack_object || (may_alloc && !is_tail_forwarder)
   ```
 
-`is_tail_forwarder` (`vader/c_emit/frame.vader`) recognises one closed shape on
+`is_tail_forwarder` (`vader/emit/c/frame.vader`) recognises one closed shape on
 the bytecode body, after the bytecode passes, and refuses everything else:
 
 1. pure reads (`local.get`, `local.field`, a `ConstOp` constant), exactly as many

@@ -8,7 +8,7 @@
 // sink, so anything it did raise was dropped. The pattern then interned as `ref _`,
 // which matches every erased value under the VM but nothing native: the same `match`
 // took a different arm depending on the backend, silently. Four arms in `vader/vm`
-// and `vader/c_emit` lived that way for months.
+// and `vader/emit/c` lived that way for months.
 module "snippet"
 
 L :: import "snippet/lib"

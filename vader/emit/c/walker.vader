@@ -1,4 +1,4 @@
-// vader/c_emit/walker — bytecode function-body → C walker.
+// vader/emit/c/walker — bytecode function-body → C walker.
 //
 // The per-op emission core of the C emitter : `emit_functions` drives one
 // C definition per `BcFunction` ; `function_definition` walks the op stream
@@ -6,17 +6,17 @@
 // signature → local decls → temp decls → body ; `emit_op` is the
 // exhaustive per-op dispatch. Split out of `emit.vader` (which keeps the
 // driver + section emitters) per the plan's file decomposition. Same
-// module (`vader/c_emit`), so `EmitCtx`, `signature_for`, the `stack.vader`
+// module (`vader/emit/c`), so `EmitCtx`, `signature_for`, the `stack.vader`
 // model, and the `body.vader` helpers are all in scope without imports.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 import "vader/support/fixpoint"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
@@ -259,10 +259,10 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
     // Coalesce operand temps with disjoint live ranges into shared slots — the
     // walk mints one `tN` per materialisation and never recycles, inflating the
     // frame and GC-root set. The declarations below are one per slot. See
-    // `c_ast/coalesce.vader`.
+    // `ast/coalesce.vader`.
     slot_types :: coalesce_temporaries(s.root, s.temporaries)
     // After the coalescing, whose live ranges read the scopes as the walk built
-    // them. See `c_ast/loops.vader`.
+    // them. See `ast/loops.vader`.
     structure_loops(s.root)
     // GC roots : ref-typed params, then locals + temps (collected by the
     // decl emitters). Order is irrelevant to the GC scan. A fn without a frame
@@ -1264,7 +1264,7 @@ callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> i64 {
 // The operand stack MUST be empty at every scope boundary : the lowerer
 // materialises all control-flow results into locals (`vader/midir/build.vader`
 // — `if_res` / `and_res` / `or_res`, loops are void), so no operand ever
-// survives a block / loop / if / br. `c_emit/c_ast/coalesce.vader`'s GC-safety
+// survives a block / loop / if / br. `emit/c/ast/coalesce.vader`'s GC-safety
 // rests on exactly this — a temp live across a scope would break its
 // straight-line live-range assumption and could free a still-live GC slot.
 // Guard it here so a future change that leaks an operand trips a loud ICE

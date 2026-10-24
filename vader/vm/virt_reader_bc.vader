@@ -2,7 +2,7 @@
 //
 // Sibling of `virt_reader.vader`, which parses the same `.virt` text into the
 // runtime-only VM `Module`. This reader instead reconstructs the richer
-// `vader/bytecode::BytecodeModule` that `c_emit::emit_c` consumes — so a
+// `vader/bytecode::BytecodeModule` that `emit/c::emit_c` consumes — so a
 // hand-authored or dumped `.virt` can be compiled to C (`vader build x.virt
 // --target=c`). Both readers share the hard part — the structured control-flow
 // → linear op-stream + jump-table wiring (`ParserState`, `parse_op_line`,
@@ -13,7 +13,7 @@
 // no signature `BcType` indices (`param_types` / `result_type`), no struct
 // `symbol_id`, and no debug spans. The first is RECONSTRUCTED here from the
 // type table via `class_tag_of` (exact for scalar slots ; `0` for
-// ref/any slots, which `c_emit::box_expr` ignores anyway — Ref/Any box to a
+// ref/any slots, which `emit/c::box_expr` ignores anyway — Ref/Any box to a
 // bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
 // identity the data section names it by (`bytecode/dump`) — and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
@@ -1085,8 +1085,8 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
 // ---- small reconstruction helpers -----------------------------------------
 
 /// BcType index of the `BcScalar` whose stack class is `val`, or `0` when
-/// none is materialised. Local mirror of `c_emit::class_tag_of` (the VM does
-/// not import `vader/c_emit`). Ref/Any return `0`, harmless since
+/// none is materialised. Local mirror of `emit/c::class_tag_of` (the VM does
+/// not import `vader/emit/c`). Ref/Any return `0`, harmless since
 /// `box_expr` boxes Ref/Any as bare values without a tag.
 class_tag_of :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
     for i in 0..<types.len() {

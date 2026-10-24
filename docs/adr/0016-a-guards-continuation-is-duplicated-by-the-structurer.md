@@ -49,7 +49,7 @@ Measured, three alternating draws each: `vader_vm.c` **46 250 → 32 667 lines
 compiler **6,04 → 4,77 s (−21 %)**, for **+1,7 %** on the comptime pass — ~3 % of a
 real compile, so about **+0,05 %** end to end.
 
-**The attribution was wrong.** `vader/c_emit` renders faithfully what it is
+**The attribution was wrong.** `vader/emit/c` renders faithfully what it is
 handed; the duplication is already in the bytecode. Minimal repro, on
 `dump --stage=bytecode`, counting the continuation's `i32.const 13`:
 

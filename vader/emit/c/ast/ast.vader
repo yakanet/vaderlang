@@ -1,6 +1,6 @@
-// vader/c_emit/c_ast/c_ast — the tree a C function is built as.
+// vader/emit/c/ast/ast — the tree a C function is built as.
 //
-// The walker (`vader/c_emit/walker.vader`, through `stack.vader`) appends
+// The walker (`vader/emit/c/walker.vader`, through `stack.vader`) appends
 // statements to the block it is in, and `print.vader` writes the whole tree
 // once the walk is done. A nested block is a node of its own, so its depth is
 // structural.
@@ -10,7 +10,7 @@
 // reading C text. Shapes the tree does not model yet are spelled as
 // `CVerbatim` text inside a `CSequence`.
 
-module "vader/c_emit/c_ast"
+module "vader/emit/c/ast"
 
 import "vader/bytecode"
 

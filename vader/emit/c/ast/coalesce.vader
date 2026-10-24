@@ -1,7 +1,7 @@
-// vader/c_emit/c_ast/coalesce — post-walk operand-temp cleanup: copy elision + slot
-// coalescing, on the statement tree (`c_ast.vader`).
+// vader/emit/c/ast/coalesce — post-walk operand-temp cleanup: copy elision + slot
+// coalescing, on the statement tree (`ast.vader`).
 //
-// The body walker (`vader/c_emit/walker.vader`) mints a fresh `tN` for every
+// The body walker (`vader/emit/c/walker.vader`) mints a fresh `tN` for every
 // materialised operand and never recycles it, so a function's frame — and its
 // GC-root set — grows with the TOTAL number of materialisations, not the number
 // live at once. The bytecode is a stack machine, so a temp is dead the moment
@@ -44,7 +44,7 @@
 // PC-ranges — which this pass cannot reach : operand temps exist only in the
 // c_emit walk, not in the bytecode.
 
-module "vader/c_emit/c_ast"
+module "vader/emit/c/ast"
 
 import "std/sort"
 import "vader/bytecode"

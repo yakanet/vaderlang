@@ -4236,7 +4236,7 @@ The **Vader 1.0 edition** is the set of features the Vader compiler needs to com
 9. **Lowerer** ✅ (`vader/lower/`).
 10. **Mid-IR (CFG / DCE / escape / scheduler)** ✅ (`vader/midir/`).
 11. **Bytecode-emit** ✅ (`vader/bytecode/`).
-12. **C-emit** ✅ (`vader/c_emit/`).
+12. **C-emit** ✅ (`vader/emit/c/`).
 13. **WASM-emit** ⏳.
 
 Legend: ✅ ported, ⏳ not yet (post-MVP).

@@ -4,7 +4,7 @@
 // known — from a prior read, or the `a[i] = v` store that just wrote it — is
 // rewritten to an `InstrMove` from that value. This drops the per-`ArrayGet`
 // bounds check and load the C backend re-emits otherwise
-// (`c_emit/walker.vader::emit_slot_array_local`) — the dominant cost in tight
+// (`emit/c/walker.vader::emit_slot_array_local`) — the dominant cost in tight
 // `a[i] = a[i] + 1` loops.
 //
 // Conservative, intra-block only :

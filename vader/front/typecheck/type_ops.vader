@@ -1247,7 +1247,7 @@ export subtract_type :: fn(from: Type, removed: Type) -> Type {
 
 /// `subtract_type` extended for a trait `removed` : a runtime trait test
 /// matches every union variant whose nominal carrier implements the trait
-/// (mirroring `c_emit/walker.vader::trait_check_expr` and the VM's
+/// (mirroring `emit/c/walker.vader::trait_check_expr` and the VM's
 /// `ref_type_matches`), so those variants leave the remainder too —
 /// With `x: IOError | string`, `match x { is string …, is Error … }` is exhaustive.
 /// A non-trait `removed` delegates to plain `subtract_type`.

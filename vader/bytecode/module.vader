@@ -14,7 +14,7 @@
 //   - the .virt readers (`vader/vm/virt_reader_bc` for C-emit ; `virt_reader`
 //     → `bc_to_vm` for the VM) build one from a text dump.
 //
-// Consumers : `vader/c_emit/emit` lowers it to a single C source file ;
+// Consumers : `vader/emit/c/emit` lowers it to a single C source file ;
 // `vader/vm/exec` runs it directly.
 
 module "vader/bytecode"

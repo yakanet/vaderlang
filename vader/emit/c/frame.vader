@@ -1,4 +1,4 @@
-// vader/c_emit/frame: whether a function pushes a GC shadow-stack frame.
+// vader/emit/c/frame: whether a function pushes a GC shadow-stack frame.
 //
 // A frame roots the function's own ref slots, so that a slot read after a
 // safepoint sees the pointer the collector forwarded. It is decided per
@@ -7,7 +7,7 @@
 // nothing it reads afterwards is a slot of its own. The header cache asks the
 // other question, through `FnState.safepoint_free`. See ADR 0106.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "vader/bytecode"
 vm :: import "vader/bytecode"

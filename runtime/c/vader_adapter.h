@@ -5,7 +5,7 @@
  * of time, one per shape of signature (`vader_ffi.h`). A call no trampoline
  * covers (a struct by value, a `float`, floating and integer arguments mixed,
  * a symbol in a static archive) goes through an ADAPTER instead:
- * `vader/c_emit/adapters.vader` writes one per such `@extern`, `vader run`
+ * `vader/emit/c/adapters.vader` writes one per such `@extern`, `vader run`
  * compiles them with the library into a shared library, and the VM calls them
  * through `vader_ffi_call_frame`.
  *

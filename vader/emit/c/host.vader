@@ -1,4 +1,4 @@
-// vader/c_emit/host — `call.import` host-fn shims.
+// vader/emit/c/host — `call.import` host-fn shims.
 //
 // Every `call.import N` op resolves to a `vader_host_<mangled>(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :
@@ -13,17 +13,17 @@
 // prototypes: two libraries' headers need not agree with each other, as
 // `raylib.h` and `<windows.h>` do not (`Rectangle`, `CloseWindow`).
 //
-// Same module (`vader/c_emit`), so `EmitCtx` + `c_type_for_val_bare` are
+// Same module (`vader/emit/c`), so `EmitCtx` + `c_type_for_val_bare` are
 // in scope without imports.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/collections"
 import "std/iter"
 import "std/sort"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 
 // ---- driver ---------------------------------------------------------------
 

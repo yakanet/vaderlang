@@ -9,7 +9,7 @@ import "std/io"
 import "std/path"
 import "std/process"
 import "std/string"
-import "vader/c_emit"
+import "vader/emit/c"
 
 // An executable, split: emit the program as a header + globals TU + one
 // function TU per Vader module, then compile them concurrently and link. The

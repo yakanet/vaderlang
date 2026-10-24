@@ -441,7 +441,7 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
 }
 
 /* Call an ADAPTER: a function of the frame alone, written and compiled for one
- * `@extern` no shape above covers (`vader/c_emit/adapters.vader`), so that `cc`
+ * `@extern` no shape above covers (`vader/emit/c/adapters.vader`), so that `cc`
  * applies the ABI rather than this file. `desc` classes the slots as for
  * `vader_ffi_call_n`, and each ADDR slot is turned into the address it names
  * before the call: the adapter reads every slot as a value

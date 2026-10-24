@@ -4,7 +4,7 @@
 // of `runtime/c/vader_ffi.h`, written ahead of time for one SHAPE of signature:
 // words, or one or two doubles. A call no shape covers, and a symbol a static
 // archive holds, goes through an ADAPTER instead: a C function of the call's
-// frame, written by `vader/c_emit/adapters.vader` and compiled against the real
+// frame, written by `vader/emit/c/adapters.vader` and compiled against the real
 // prototype into a shared library (`vader/pipeline/ffi_adapters.vader`), so that
 // `cc` applies the ABI. `adapter_reason` is the one rule both sides read: the
 // interpreter refuses exactly what the driver did not adapt.

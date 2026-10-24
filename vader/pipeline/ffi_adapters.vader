@@ -2,7 +2,7 @@
 // calls C through, built once and kept.
 //
 // `vader/vm/adapters.vader` names the `@extern`s no trampoline of the
-// interpreter covers, and `vader/c_emit/adapters.vader` writes an adapter for
+// interpreter covers, and `vader/emit/c/adapters.vader` writes an adapter for
 // each. This compiles them into one shared library under
 // `<project>/build/ffi/<fingerprint>/`, linked the way the interpreter would
 // reach each symbol: a library's archives and `system` libraries, and the
@@ -22,7 +22,7 @@ import "std/process"
 import "std/string"
 import "std/target"
 import "vader/bytecode"
-import "vader/c_emit"
+import "vader/emit/c"
 import "vader/front/resolver"
 
 /// Why the adapter library could not be built.

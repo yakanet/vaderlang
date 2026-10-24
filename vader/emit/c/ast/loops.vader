@@ -1,4 +1,4 @@
-// vader/c_emit/c_ast/loops — C loops in place of labels and `goto`.
+// vader/emit/c/ast/loops — C loops in place of labels and `goto`.
 //
 // The walker lowers a bytecode `loop` to a labelled scope, `loop_N: { … }`,
 // and every `br` to a `goto` : to `loop_N` to continue, to the `end_N` label
@@ -9,7 +9,7 @@
 // It runs after `coalesce_temporaries` (`coalesce.vader`), whose live ranges
 // are computed on the scopes the walker built.
 
-module "vader/c_emit/c_ast"
+module "vader/emit/c/ast"
 
 import "std/collections"
 import "std/iter"

@@ -24,7 +24,7 @@ import "vader/vm"
 import "vader/pipeline"
 Build :: import "toolchain/build"
 import "vader/support/diagnostics"
-import "vader/c_emit" { EmitOptions as CEmitOptions }
+import "vader/emit/c" { EmitOptions as CEmitOptions }
 import "std/sort"
 
 // ----------------------------------------------------------- build

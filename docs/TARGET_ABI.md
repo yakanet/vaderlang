@@ -1,7 +1,7 @@
 # Target ABI — minimizing the per-target runtime surface
 
 Vader compiles to several backends — the bytecode VM (`vader/vm/`), the C
-emitter (`vader/c_emit/` → `runtime/c/`), and (planned) a WASM target
+emitter (`vader/emit/c/` → `runtime/c/`), and (planned) a WASM target
 (§2.5 / §3.10). Today each backend re-implements the runtime: `runtime/c/`
 alone exports **~200 `vader_*` symbols**. Every symbol that isn't a true
 primitive is a per-target cost — it has to be re-written for the VM, for C, for

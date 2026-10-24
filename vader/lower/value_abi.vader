@@ -7,7 +7,7 @@
 //
 // The predicate lives HERE and not in `vader/core/types` because judging a struct
 // needs its field types, which a bare `Type` does not carry — a lowered decl
-// does. `vader/midir`, `vader/bytecode` and `vader/c_emit` all import
+// does. `vader/midir`, `vader/bytecode` and `vader/emit/c` all import
 // `vader/lower`, so every consumer reaches it from here.
 //
 // `T | null` counts: a fallible lookup returns one, and the crossing needs one

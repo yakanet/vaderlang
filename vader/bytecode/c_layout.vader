@@ -73,7 +73,7 @@ export c_field_val_type :: fn(f: BcField, types: BcType[]) -> ValType | null {
 /// different width fails the native build rather than laying out wrongly here.
 ///
 /// The SIGNEDNESS is not carried here. The interpreter takes it from the Vader
-/// field, and `vader/c_emit/host.vader::signedness_assert` is what holds that
+/// field, and `vader/emit/c/host.vader::signedness_assert` is what holds that
 /// agreement to the C side.
 ///
 /// @param f      the field.

@@ -31,7 +31,7 @@ import "vader/support/diagnostics"
 import "vader/front/effects"
 import "std/collections"
 import "toolchain/ast"
-import "vader/c_emit"
+import "vader/emit/c"
 
 // ----------------------------------------------------------- dump
 

@@ -27,7 +27,7 @@ the entry of their helpers, before anything can collect; the emitted code passes
 headers read from rooted locals and frame temps. Two places depended on the swap:
 
 - The C emitter's header cache (the `_slotarrK` locals, `is_cache_safe` in
-  `vader/c_emit/walker.vader`) let a header bound before a `fn.addr` be reused
+  `vader/emit/c/walker.vader`) let a header bound before a `fn.addr` be reused
   after it, although the first `fn.addr` a program runs collects
   (`vader_ffi_callback_first_escape`). The reused header pointed at the abandoned
   copy and read the right bytes by chance. This was a latent bug under the swap

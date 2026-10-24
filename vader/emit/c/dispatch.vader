@@ -1,4 +1,4 @@
-// vader/c_emit/dispatch — trait-method dispatchers for the generated C.
+// vader/emit/c/dispatch — trait-method dispatchers for the generated C.
 //
 // One output feeds virtual dispatch in the generated C: a per-`(trait.method)`
 // dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes — a
@@ -19,13 +19,13 @@
 // while the old seed's C still referenced it. Any change of this shape (the emit
 // stops producing something the runtime declares) needs the same two steps.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/collections"
 import "std/sort"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 
 // ---- per-key dispatcher metadata ------------------------------------------
 

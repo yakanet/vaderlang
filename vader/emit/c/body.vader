@@ -1,4 +1,4 @@
-// vader/c_emit/body — shared name/type helpers for the C-emit pipeline.
+// vader/emit/c/body — shared name/type helpers for the C-emit pipeline.
 //
 // Holds the C identifier / literal escaping helpers and the
 // `BcType` / `ValType` → C type mapping + box / unbox / coerce helpers
@@ -11,11 +11,11 @@
 // `c_type_for` / `val_type_of_bc_type` are lossy by design — reach for
 // `struct_c_name` when you need the concrete `vader_struct_<name>_t`.
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/numbers"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 import "vader/support/text"
 
 // =========================================================================

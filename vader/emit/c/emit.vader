@@ -1,4 +1,4 @@
-// vader/c_emit/emit — BytecodeModule → C source.
+// vader/emit/c/emit — BytecodeModule → C source.
 //
 // The pipeline driver (`emit_c`) + the section emitters : type decls,
 // forward decls, fn-sig typedefs, fn-value trampolines, the type-info
@@ -12,7 +12,7 @@
 //     vars (one per push) ; the C compiler folds the chain back into
 //     expression form ;
 //   - structured control (`block`/`loop`/`if`) is walked into labelled
-//     scopes and `goto`s, named from the opener's pc ; `c_ast/loops.vader`
+//     scopes and `goto`s, named from the opener's pc ; `ast/loops.vader`
 //     then rewrites them as `while` / `for (;;)` with `continue` / `break` ;
 //   - primitives flow as their native C type ; a struct, array, tuple or
 //     fn value as a raw `void*` ; a union or an erased value as a
@@ -24,14 +24,14 @@
 // Output : a single `string` containing the C source, terminated by
 // two newlines (the last appended entry already carries a `\n`).
 
-module "vader/c_emit"
+module "vader/emit/c"
 
 import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string"
 import "vader/bytecode"
-import "vader/c_emit/c_ast"
+import "vader/emit/c/ast"
 
 /// Options threaded through the emit.
 ///

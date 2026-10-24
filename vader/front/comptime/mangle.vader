@@ -8,7 +8,7 @@
 //   - `ResolvedModule` keeps `path: string` flat, so the public entry
 //     `mangle` here takes `module_path` directly. Callers thread
 //     `module.path` (matches what the loader writes).
-//   - `sanitise_ident` is distinct from `vader/c_emit/body.sanitise` :
+//   - `sanitise_ident` is distinct from `vader/emit/c/body.sanitise` :
 //     the C-emit version also escapes C keywords (`int`, `static`, …),
 //     which would corrupt user identifiers in the mangled-name space.
 
@@ -69,7 +69,7 @@ export mangle_type_arg :: fn(t: Type) -> string =
     sanitise_ident(qualified_display_type(strip_distinct(t)))
 
 /// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
-/// `vader/c_emit/body.sanitise` — the C-emit variant additionally
+/// `vader/emit/c/body.sanitise` — the C-emit variant additionally
 /// suffixes the result with `_v` on C-keyword collision. The mangled-
 /// name space here doesn't need that since `$` and `__` separators
 /// prevent collision with any single C keyword.

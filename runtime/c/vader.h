@@ -544,7 +544,7 @@ typedef struct {
 /* The array lend: follow a pending GC forward on the header, then branch on
  * borrowed view (bytes live in the owner atom) versus materialised buffer,
  * honouring `offset` and the element width. Used by the `@extern` shims
- * (`vader/c_emit/host.vader`) and by `vader_ffi_call_n`.
+ * (`vader/emit/c/host.vader`) and by `vader_ffi_call_n`.
  *
  * `vader_string_as_string` still open-codes the same branch; converting it is a
  * separate cleanup, and until it lands this is one of two copies.
@@ -1294,7 +1294,7 @@ typedef struct {
     uint8_t             slot_size;
     const uint16_t*     string_offsets;/* byte offsets of raw vader_string_t fields */
     /* Byte offsets of fields holding a raw `void*` to a concrete object (struct,
-     * array, tuple, fn): the `.Ref` class of `vader/c_emit/body.vader::
+     * array, tuple, fn): the `.Ref` class of `vader/emit/c/body.vader::
      * val_type_of_bc_type`, scanned via `vader_gc_scan_raw`. A union, `T | null`
      * included, is a `vader_box_t` field in `ptr_offsets`. */
     uint16_t            ref_count;
@@ -1306,7 +1306,7 @@ extern const vader_type_info_t  vader_type_info_table[];
 extern const size_t             vader_type_info_count;
 
 /* Shadow stack frame: emitted at the entry of a C function whose own slots must
- * survive a safepoint (`needs_frame`, `vader/c_emit/frame.vader`). A fn the
+ * survive a safepoint (`needs_frame`, `vader/emit/c/frame.vader`). A fn the
  * emitter proves cannot allocate pushes none, and neither does a tail forwarder
  * (ADR 0106). That is one reason
  * the major collection still scans the C stack conservatively. The frames that
@@ -1387,7 +1387,7 @@ extern vader_gc_frame_t* vader_gc_top;
 /* Function value — fat pointer `{ code, env }`. Pushed by `fn.ref`, consumed
  * by `call.indirect`. `env == NULL` for a non-capturing global fn ref; a CLOSURE
  * heap-allocates its env and stores the pointer here, which `call.indirect`
- * passes as argument 0 (`make_closure`, `vader/c_emit/walker.vader`).
+ * passes as argument 0 (`make_closure`, `vader/emit/c/walker.vader`).
  *
  * `code` always points to a function whose first parameter is `void* env`,
  * even when the underlying fn doesn't use it — the C emitter generates a

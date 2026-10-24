@@ -197,7 +197,7 @@ sign_extend :: fn(v: i64, bits: i64) -> i64 {
 }
 
 // Mask a shift's right operand to the result width (5 bits for a 32-bit type,
-// 6 for a 64-bit / unknown one), as the backends mask it (`c_emit/walker.vader`
+// 6 for a 64-bit / unknown one), as the backends mask it (`emit/c/walker.vader`
 // `push_shift`).
 mask_shift_amount :: fn(rhs: ComptimeValue, rname: string) -> ComptimeValue {
     if rhs is IntValue { return int_val_typed(rhs.value & shift_amount_mask(rname), rhs.type_name) }

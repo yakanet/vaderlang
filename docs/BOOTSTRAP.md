@@ -216,8 +216,8 @@ The seed compiles from a **dedicated build-only entrypoint**, not from
 keeps the two entrypoints separate rather than extracting a shared module).
 
 **Imports** — pipeline only :
-`resolver`, `typecheck`, `comptime`, `lower`, `midir`, `bytecode`, `c_emit`,
-`diagnostics`. It **must not** import `vader/vm`, `vader/tools/fmt`, or `vader/tools/lsp` —
+`front/resolver`, `front/typecheck`, `front/comptime`, `lower`, `midir`, `bytecode`,
+`emit/c`, `support/diagnostics`. It **must not** import `vader/vm`, `vader/tools/fmt`, or `vader/tools/lsp` —
 that exclusion is the whole point (it is what decouples the seed from the CLI and
 keeps it stable as those modules grow).
 
@@ -231,7 +231,7 @@ Skeleton :
 module "vader/bootstrap"
 
 import "vader/midir"
-import "vader/c_emit"
+import "vader/emit/c"
 // pipeline imports only — NOT vader/vm, vader/tools/fmt, vader/tools/lsp
 
 main :: fn(args: string[]) -> i32 {
@@ -273,7 +273,7 @@ These fixes have a **two-stage rollout** :
    ports against the TS reference), and the §2.2 port lands against a
    clean canonical design rather than copying a fragile one.
 2. **After §2.2 (in Vader)** — verify the same canonicalisations are
-   present in `vader/c_emit/`. Mirror, don't re-audit. Snapshot parity
+   present in `vader/emit/c/`. Mirror, don't re-audit. Snapshot parity
    tests catch regressions either way.
 
 ### Fix 1 — vtable signature anchor (CRITICAL)
