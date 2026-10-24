@@ -47,6 +47,20 @@ export DRIVER_NOT_COMPILED_EXIT: i32: 3
 export project_output_dir :: fn(dir: string, release: bool, target: Target | null) -> string =
     dir.join_path("build/${profile_name(release)}-${display_target(target ?? host_target())}")
 
+/// Where a project build writes the binary of one entry, before the linker adds
+/// a `.exe`: its name, in `project_output_dir`.
+///
+/// @param dir      the project folder.
+/// @param name     the entry's name.
+/// @param release  whether the build is optimised.
+/// @param target   the platform built for, the host when null.
+export project_entry_stem :: fn(
+    dir: string,
+    name: string,
+    release: bool,
+    target: Target | null,
+) -> Path = Path(join_path(project_output_dir(dir, release, target), name))
+
 // The profile a build is made with, as the output folder spells it.
 profile_name :: fn(release: bool) -> string {
     if release {

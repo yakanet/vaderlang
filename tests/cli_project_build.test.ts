@@ -1,4 +1,4 @@
-// tests/cli_project_build: `vader build`, `run` and `check` given a project folder,
+// tests/cli_project_build: `vader build`, `build --run`, `run` and `check` given a project folder,
 // and `vader run` given a file within the project `--project` names.
 //
 // A folder is described by its `build.vader` or by the `entries` of its
@@ -92,6 +92,17 @@ test("run takes one entry, and check takes them all", async () => {
   const checked = await vader(["check", dir]);
   expect(checked.exit).toBe(0);
 }, MEDIUM_BUILD);
+
+test("build --run runs the one entry, or the one --entry names, from where the build wrote it", async () => {
+  const dir = stage(TWO_ENTRIES);
+  const ambiguous = await vader(["build", "--run", dir]);
+  expect(ambiguous.exit).toBe(2);
+  expect(ambiguous.stderr).toContain("`vader build --run` works on one program");
+
+  const ran = await vader(["build", "--run", "--entry=tool", "--release", dir]);
+  expect(ran.stdout).toBe("tool\n");
+  expect(ran.exit).toBe(0);
+}, MEDIUM_BUILD * 2);
 
 test("--project runs one file of a project with the project's search roots", async () => {
   const dir = stage(JSON.stringify({ includePaths: ["libs"], entries: { app: "src/main.vader" } }));

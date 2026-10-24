@@ -580,11 +580,12 @@ test.concurrent("the front end runs ONCE for a driver that observes and builds",
   expect(typechecks).toBe(1);
 }, HEAVY_BUILD);
 
-test.concurrent("info, check, run and the build flags take a driven project too", async () => {
+test.concurrent("info, check, run, build --run and the build flags take a driven project too", async () => {
   // REASON: the driver runs in modes no fixture covers. `info` has it describe
   // itself and compile nothing; `check` lowers and links nothing; `run` lets the
   // driver generate, then runs the entry in the VM, which reads what was just
-  // generated and the search root the driver set.
+  // generated and the search root the driver set; `build --run` has it describe
+  // its entries to find the one to run, then build it.
   // Staged privately: both write the generated tree, and the project is edited.
   const dir = stage(GENERATE);
   staged.push(dir);
@@ -633,6 +634,11 @@ test.concurrent("info, check, run and the build flags take a driven project too"
   expect(emitted.exit).toBe(0);
   expect(existsSync(`${dir}/${BINARIES}/app.split.h`)).toBe(true);
   expect(existsSync(exePath(`${dir}/${BINARIES}/app`))).toBe(false);
+
+  const builtAndRan = await run(["build", "--run", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(builtAndRan.stderr).not.toContain("error[");
+  expect(builtAndRan.stdout).toContain("Point(x, y) / Point = 1 + 2 / hi\n");
+  expect(builtAndRan.exit).toBe(0);
 }, HEAVY_BUILD);
 
 test.concurrent("info describes a driver that adds no entry", async () => {

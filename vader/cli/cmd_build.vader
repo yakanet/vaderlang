@@ -14,6 +14,7 @@ import "std/collections"
 import "std/io"
 import "std/iter"
 import "std/path"
+import "std/process"
 import "std/string"
 import "cli"
 import "vader/target"
@@ -39,7 +40,9 @@ cmd_build :: fn(args: string[]) -> i32 {
     if parsed is i32 {
         return parsed
     }
-    if reject_extra_positionals("build", parsed) {
+    // Under `--run`, what follows the path is the program's.
+    run :: parsed.bool_flag("run")
+    if !run && reject_extra_positionals("build", parsed) {
         return 1
     }
 
@@ -79,6 +82,15 @@ cmd_build :: fn(args: string[]) -> i32 {
     }
     no_split :: parsed.bool_flag("no-split")
     seed_targets :: seed_target_list(seed_flag, no_split) ?? return 2
+    if run && emit != "executable" {
+        eprintln("vader ${RUN_COMMAND}: `--emit=${emit}` produces no program to run")
+        return 2
+    }
+    if run && build_target != null && build_target != host_target() {
+        eprintln("vader ${RUN_COMMAND}: a program built for `${display_target(build_target)}` "
+            + "does not run on this `${display_target(host_target())}` machine")
+        return 2
+    }
 
     request :: BuildRequest {
         .emit = emit,
@@ -106,6 +118,32 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
     no_hooks :: parsed.bool_flag("no-hooks")
+    if no_hooks && input is DrivenProject {
+        eprintln("vader build: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${input.dir}`, "
+            + "which leaves nothing to build; name the entry file instead")
+        return 1
+    }
+    if !run {
+        return build_input(input, selected, request, no_hooks)
+    }
+    binary :: binary_to_run(input, selected, request)
+    if binary is i32 {
+        return binary
+    }
+    code :: build_input(input, selected, request, no_hooks)
+    if code != 0 {
+        return code
+    }
+    return run_built(binary, parsed.positionals.skip(1).collect())
+}
+
+// Build what `input` names, `selected` choosing among a project's entries.
+build_input :: fn(
+    input: ProjectInput,
+    selected: string,
+    request: BuildRequest,
+    no_hooks: bool,
+) -> i32 {
     match input {
         is FileInput -> {
             // A named file bypasses the driver of the folder the build runs in,
@@ -121,15 +159,68 @@ cmd_build :: fn(args: string[]) -> i32 {
         }
         is ManifestProject -> { return run_manifest_project(input, selected, request, .Build) }
         is DrivenProject -> {
-            if no_hooks {
-                eprintln("vader build: `--no-hooks` ignores the `${DRIVER_FILENAME}` of `${input.dir}`, "
-                    + "which leaves nothing to build; name the entry file instead")
-                return 1
-            }
             driver_request :: DriverRequest { .selected = selected, .build = request }
             return run_build_driver("build", input.dir, driver_request)
         }
     }
+}
+
+// How the messages about the program to run name the command.
+RUN_COMMAND :: "build --run"
+
+// Where the build of `input` writes the one program it makes, `selected` choosing
+// among a project's entries, before the linker adds a `.exe`; the exit code
+// after saying why `input` does not make exactly one. `selected` has already
+// narrowed a `vader.json`'s entries.
+binary_to_run :: fn(input: ProjectInput, selected: string, request: BuildRequest) -> Path | i32 {
+    match input {
+        is FileInput -> { return output_path(request.out, strip_input_suffix(input.file)) }
+        is ManifestProject -> {
+            entry :: sole_entry(RUN_COMMAND, input.dir, input.entries) ?? return 2
+            return entry_binary(input.dir, entry.name, request)
+        }
+        is DrivenProject -> {
+            // The driver declares the entries: it runs once to describe them all,
+            // which compiles nothing.
+            project :: described_project(RUN_COMMAND, input.dir, .Describe, "") ?? return 1
+            described :: project_entries(input.dir, project.entries)
+            entries :: chosen_entries(RUN_COMMAND, input.dir, described, selected) ?? return 1
+            entry :: sole_entry(RUN_COMMAND, input.dir, entries) ?? return 2
+            return entry_binary(input.dir, entry.name, request)
+        }
+    }
+}
+
+// The binary a build of the project `dir` writes for its entry `name`.
+entry_binary :: fn(dir: string, name: string, request: BuildRequest) -> Path =
+    output_path(request.out, project_entry_stem(dir, name, request.release, request.target))
+
+// Run the program a build wrote at `binary` with `program_args`, on this
+// process's terminal, and answer its exit code; 1 after saying why it did not
+// run to an exit.
+run_built :: fn(binary: Path, program_args: string[]) -> i32 {
+    exe :: linked_binary(binary.as_string())
+    if exe == null {
+        eprintln("vader ${RUN_COMMAND}: the build left no program at `${binary}`")
+        return 1
+    }
+    argv :: [launchable(exe)]
+    argv.push_all(program_args)
+    outcome :: run_attached(argv)
+    if outcome is ProcessError {
+        eprintln("vader ${RUN_COMMAND}: ${outcome.message()}")
+        return 1
+    }
+    return outcome
+}
+
+// `path` as a program to launch. A name without a folder would be looked up on
+// `PATH`, so one in the current folder is named through it.
+launchable :: fn(path: string) -> string {
+    if path.to_path().parent() == "" {
+        return "./${path}"
+    }
+    return path
 }
 
 // The targets `--seed-targets` lists, empty without it, or null after saying

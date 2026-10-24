@@ -216,7 +216,12 @@ export messages :: fn(ctx: BuildContext) -> Iterator<Message> {
                 break
             }
 
-            stem :: Path(join_path(output_dir, chosen_entry.name))
+            stem :: project_entry_stem(
+                ctx.project_root,
+                chosen_entry.name,
+                output.release,
+                output.target,
+            )
             built :: emit_one(ctx, lowered, entry, stem, destination, output)
             if built != 0 {
                 code = built

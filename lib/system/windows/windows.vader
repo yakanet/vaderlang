@@ -348,6 +348,9 @@ export STARTF_USESTDHANDLES: u32 : 0x0100
 /// `WAIT_OBJECT_0` — the object is signalled, i.e. the process has exited.
 export WAIT_OBJECT_0: u32 : 0
 
+/// `INFINITE`: a wait with no timeout.
+export INFINITE: u32 : 0xFFFF_FFFF
+
 /// `SECURITY_ATTRIBUTES`, mirrored for the two members a pipe needs.
 ///
 /// EVERY member, in order — not a prefix of the useful ones. The interpreter
@@ -474,7 +477,7 @@ export create_process :: fn(application: CPointer | null, @c_out command_line: u
 /// `WaitForSingleObject`. `WAIT_OBJECT_0` once the process has exited.
 ///
 /// @param h           the process handle.
-/// @param timeout_ms  0 to poll without waiting.
+/// @param timeout_ms  0 to poll without waiting, `INFINITE` to wait for the exit.
 @extern(KERNEL32, "WaitForSingleObject")
 export wait_for_single_object :: fn(h: Handle, timeout_ms: u32) -> u32
 

@@ -58,6 +58,8 @@ export Target :: struct {
     arch: Arch
 }
 
+Target implements Equals -> self.os == other.os && self.arch == other.arch
+
 /// Render a target as `<os>-<arch>` — the form `--target=` accepts and
 /// `parse_target` round-trips.
 ///

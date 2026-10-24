@@ -2697,7 +2697,7 @@ Any other key, or a key of the wrong shape, is refused by a command given the pr
 
 - `vader build <folder>` builds every entry, `--entry=<name>` only the one named. A binary goes to `<folder>/build/<profile>-<target>/<name>`: the profile is `debug`, or `release` under `--release`, and the target is the `--target` pair, the host's without one (`build/debug-darwin-arm64/myapp`). `--out` places the binary elsewhere, when one entry is built. An executable build then copies each asset into the binary's folder, under its path relative to the project.
 - `vader check <folder>` checks every entry, `--entry=<name>` only the one named.
-- `vader run`, `dump`, `lint` and `graph` work on the folder's one entry, or the one `--entry` names when it declares several.
+- `vader run`, `build --run`, `dump`, `lint` and `graph` work on the folder's one entry, or the one `--entry` names when it declares several.
 
 A native build writes the C it compiles to `c/` beside the binary and the objects `cc` makes of it to `obj/`, each file named after the binary, so that several binaries share the folders. An asset that is absolute or climbs out of the project with `..` is refused with the rest of the `vader.json`.
 
@@ -3823,6 +3823,8 @@ processor_count :: fn() -> i32                      // logical processors online
 
 spawn_async :: fn(argv: string[]) -> Async<ProcessResult | ProcessError>   // completes on exit, without blocking the scheduler
 
+run_attached :: fn(argv: string[]) -> i32 | ProcessError   // on this process's standard streams, nothing captured; blocks until exit
+
 // Handle-based primitives `spawn_async` is built on.
 spawn_start       :: fn(argv: string[]) -> i64   // a handle, or negative on launch failure
 spawn_poll        :: fn(handle: i64) -> i32      // -1 while running, -2 on a signal, else the exit code
@@ -4089,8 +4091,8 @@ The C backend (`--emit=executable`, `--emit=c`) and the VM's bytecode, in its te
 
 Every invocation is `vader <action> [options] [args]`. **An action's options come
 before its first positional argument**; everything after that argument belongs to
-whatever the action passes it to — for `run`, the executed program's argv,
-verbatim and with no `--` needed. A bare `--` closes the option zone explicitly,
+whatever the action passes it to: for `run` and `build --run`, the executed
+program's argv, verbatim and with no `--` needed. A bare `--` closes the option zone explicitly,
 which is how a path beginning with a dash is named. Anything an action doesn't
 recognise is an error, in both `--long` and `-s` forms.
 
@@ -4114,6 +4116,7 @@ to the program like any other argument.
 | `vader build --emit=bytecode-text` | Writes the textual bytecode module (`.virt`) beside the input; `vader run` executes it |
 | `vader build --emit=bytecode` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --target=<os>-<arch>` | Builds for another platform (§17), e.g. `--target=linux-x86_64`. WebAssembly is `--target=browser-wasm32` or `wasi-wasm32` *(not yet implemented)*; the artefact stays `--emit=executable`, since wasm is a platform, not an artefact kind |
+| `vader build --run [path] [args…]` | Builds, then runs the binary on this process's standard streams, everything after `[path]` being its argv, and exits with its code. A program ended by a signal (an exception, on Windows) is reported, with exit code 1; a failed build runs nothing. Only a program for this machine runs: an `--emit` other than `executable`, or a `--target` naming another platform, is refused |
 | `vader check <path>` | Type-checks a file, or each entry of a project folder, without emitting, against any `--target` |
 | `vader lint <path>` | Project-wide lints kept out of the default build: an exported function unreachable from the project's roots (`W0012`). A file, or a project folder's entry |
 | `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |

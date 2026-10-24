@@ -150,6 +150,11 @@ BUILD_FLAGS: FlagSpec[]: [
         .help = "Optimise; default builds carry debug info",
     },
     FlagSpec {
+        .name = "run",
+        .kind = .Bool,
+        .help = "Then run the program, passing it what follows the path; exit with its code",
+    },
+    FlagSpec {
         .name = "cc",
         .help = "Native only: C compiler to invoke",
         .value_name = "path",
