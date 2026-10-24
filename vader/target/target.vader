@@ -34,14 +34,23 @@ import "std/target"
 /// A library's Windows bug would squiggle in a Linux editor.
 export AllTargets :: struct {}
 
-/// What a load selects on — one target, or all of them.
+/// The `@comptime` view of a build for another OS: the `@target` bodies of the
+/// machine the compiler runs on, since the comptime VM executes them there, and
+/// the constants (`VADER_OS`, `VADER_ARCH`) of `target`, the build the values
+/// are baked into.
+export HostBodies :: struct {
+    target: Target
+}
+
+/// What a load selects on: one target, all of them, or the host's bodies under
+/// another target's constants.
 ///
 /// NOT named `Union`: `A | B` already IS a union in this language, and
 /// `Target | Union` made the word mean two things in one line.
 ///
-/// Two views, and the split is load-bearing rather than ergonomic: the cut
-/// happens at LOAD time, so one `LoadedProject` cannot serve both.
-export Selection :: Target | AllTargets
+/// The split is load-bearing rather than ergonomic: the cut happens at LOAD
+/// time, so one `LoadedProject` cannot serve two views.
+export Selection :: Target | AllTargets | HostBodies
 
 /// A compilation target — the pair a build is parameterised by.
 export Target :: struct {

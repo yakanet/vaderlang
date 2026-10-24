@@ -53,3 +53,15 @@ test("a @comptime read names a file beside its source, in a native build", async
   const run = await spawnCapture([], { bin: join(dir, out + EXE_SUFFIX), cwd: dir });
   expect(run.stdout).toBe(EXPECTED);
 }, LONG_BUILD);
+
+// The comptime VM runs on the build machine, so in a build for another OS a
+// value runs the host's `@target` bodies: the target's would call into a library
+// this machine does not have (`kernel32` from a Mac).
+const OTHER_OS = process.platform === "win32" ? "linux-x86_64" : "windows-x86_64";
+
+test("a @comptime read runs the build machine's bodies in a build for another OS", async () => {
+  const dump = await spawnCapture(["dump", "--stage=evaluated-ast", `--target=${OTHER_OS}`, join("src", "main.vader")], {
+    cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD,
+  });
+  expect(dump.stdout).toContain(`@comptime DATA = [${DATA.map((b) => `${b}_u8`).join(", ")}]`);
+}, LONG_BUILD);

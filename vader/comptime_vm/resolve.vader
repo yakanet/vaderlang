@@ -18,6 +18,7 @@
 module "vader/comptime_vm"
 
 import "std/abort"
+import "std/collections"
 import "std/io"
 import "std/string"
 import "vader/diagnostics"
@@ -150,6 +151,39 @@ find_callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string 
         if f.name.ends_with(suffix) { return f.name }
     }
     return ""
+}
+
+/// Copy into `into` the values the VM baked for the deferred decls of `from`, a
+/// load of the same sources under another view (`HostBodies`). A decl is matched
+/// by its position in the source, which both loads share; its symbol id is not.
+///
+/// @param from   the evaluated project the VM ran on.
+/// @param into   the evaluated project the values belong to.
+/// @param diags  receives the decls of `into` that `from` did not defer.
+/// @error        C4001 for a decl `from` evaluated otherwise, which would
+///               otherwise be left to run in the built program.
+export copy_baked_values :: fn(
+    from: Ct.EvaluatedProject, into: Ct.EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    deferred :: MutableMap<u64, Ct.ComptimeValue | null> {}
+    for vr in from.vm_required {
+        deferred[vr.span.hash()] = baked_value(from, vr)
+    }
+    for vr in into.vm_required {
+        if vr.span.hash() !in deferred {
+            diags.push(comptime_error(.CannotEvaluate, vr.span,
+                "the build machine's `@target` bodies evaluate it another way"))
+            continue
+        }
+        value :: deferred[vr.span.hash()] ?? continue
+        inject(into, vr, value)
+    }
+}
+
+// What the VM baked for `vr` in `evaluated`, or null when it did not.
+baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.ComptimeValue | null {
+    program :: evaluated.modules[vr.module_id] ?? return null
+    return program.comptime_decls[vr.symbol_id]
 }
 
 // Inject the bridged value into the owning module's `comptime_decls`, keyed by

@@ -136,6 +136,10 @@ Code in `@comptime` context can:
   with the folder of the file that declares it as working directory, so
   `read_file_bytes("sprite.png", …)` reads the file beside that source wherever
   the compiler was started, and `current_working_directory()` answers that folder.
+- ✅ run on the build machine whatever the target: in a build for another OS, a
+  `@comptime` value runs the `@target` bodies of the machine the compiler runs
+  on, while `VADER_OS` and `VADER_ARCH` keep the target's values, so reading a
+  file or the clock works the same in a cross build.
 - ❌ ask what machine the COMPILER is running on: `current_os` / `current_arch`,
   the scheduler's clock, and the dynamic FFI (`ffi_open` / `ffi_symbol` /
   `ffi_call`, which resolves a symbol out of a library chosen at build time).

@@ -42,10 +42,11 @@ export prepare_evaluated_project :: fn(file: Path, project_root: string | null) 
 
 // Like `prepare_evaluated_project`, with extra `--include-paths` search roots
 // threaded to the loader, beside the project the entry belongs to, null for a
-// file compiled on its own (`search_roots`).
+// file compiled on its own (`search_roots`). `view` is what the load selects on:
+// a build target, or null for this machine.
 export prepare_evaluated_project_with :: fn(
     file: Path, include_path_flags: string[], project_root: string | null,
-    target: Target | null = null,
+    view: Selection | null = null,
 ) -> EvaluatedPipeline {
     // Per-pass profiling brackets (here + in lower_to_entry_with /
     // prepare_cfg_bytecode_with / the C emit of `output.vader`). `prof_begin` / `prof_end` are
@@ -56,7 +57,7 @@ export prepare_evaluated_project_with :: fn(
     // never read the clock when off and never touch the emitted output. See
     // vader/profile.
     Prof.prof_begin(.Load)
-    loaded :: load_project(file.as_string(), include_path_flags, project_root, target)
+    loaded :: load_project(file.as_string(), include_path_flags, project_root, view)
     Prof.prof_end(.Load)
     typecheck_diags: Diagnostic[]: []
     Prof.prof_begin(.Typecheck)
@@ -76,6 +77,7 @@ export prepare_evaluated_project_with :: fn(
     // parse-float table would otherwise ICE every errored user compile). A
     // program with front-end errors never reaches codegen, so nothing to bake.
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    Prof.prof_end(.Comptime)
     // Only bake when the project is error-free — front end AND comptime. The
     // VM-backed baking stages the WHOLE project to bytecode ; on a front-end-
     // errored program that ICEs on malformed IR, and on a program with a
@@ -86,11 +88,8 @@ export prepare_evaluated_project_with :: fn(
         && !any_error_diag(resolver_diags)
         && !any_error_diag(typecheck_diags)
     if front_end_ok && !any_error_diag(comptime_diags) {
-        // Bake any loop-bearing `@comptime` decls the tree-walk deferred
-        // (two-pass, see vader/comptime_vm). No-op when none deferred.
-        resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
+        bake_deferred_values(file, include_path_flags, view, loaded, evaluated, comptime_diags)
     }
-    Prof.prof_end(.Comptime)
     return EvaluatedPipeline {
         .loaded          = loaded,
         .typed           = typed,
@@ -99,6 +98,48 @@ export prepare_evaluated_project_with :: fn(
         .typecheck_diags = typecheck_diags,
         .comptime_diags  = comptime_diags,
     }
+}
+
+// Bake the `@comptime` decls the tree-walk deferred to the VM (two-pass, see
+// vader/comptime_vm). The VM executes them on the machine the compiler runs on,
+// so they need that machine's `@target` bodies: in a build for another OS, they
+// run in a second front end that keeps the host's bodies and bakes the target's
+// constants (`HostBodies`), whose values are copied into this build. Its own
+// profile brackets sit beside this one's, never inside: the profiler pairs them.
+bake_deferred_values :: fn(
+    file: Path, include_path_flags: string[], view: Selection | null,
+    loaded: LoadedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    if evaluated.vm_required.len() == 0 || view !is Target || view.os == host_target().os {
+        bake_with_own_bodies(loaded, evaluated, diags)
+        return
+    }
+    host :: prepare_evaluated_project_with(
+        file, include_path_flags, loaded.project_root, HostBodies { .target = view },
+    )
+    // The host's bodies are another platform's code to this build, and `@target`
+    // keeps their errors out of it. When they do not compile, the values are
+    // staged with the target's bodies, which serve every value that reaches no
+    // `@target` function.
+    if any_error_diag(host.loaded.diags) || any_error_diag(host.resolver_diags)
+        || any_error_diag(host.typecheck_diags) {
+        bake_with_own_bodies(loaded, evaluated, diags)
+        return
+    }
+    for d in host.comptime_diags {
+        if d.severity == .Error {
+            diags.push(d)
+        }
+    }
+    copy_baked_values(host.evaluated, evaluated, diags)
+}
+
+// Bake the deferred values of `evaluated` on the VM, with the bodies `loaded`
+// selected.
+bake_with_own_bodies :: fn(loaded: LoadedProject, evaluated: EvaluatedProject, diags: Diagnostic[]) -> void {
+    Prof.prof_begin(.Comptime)
+    resolve_vm_required_decls(loaded, evaluated.typed, evaluated, diags)
+    Prof.prof_end(.Comptime)
 }
 
 /// Drain non-entry modules' `resolved.diags` (body-walker output)

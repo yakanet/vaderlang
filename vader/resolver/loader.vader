@@ -144,22 +144,8 @@ export load_project_with_overlay :: fn(
     // platform, which is the right default — a build with no `--target=` is a
     // build for this machine.
     view :: selection ?? host_target()
-    // The baked constants need a CONCRETE target either way: `VADER_OS` has to
-    // exist in the union view too, where it takes the host's value. Only the
-    // FILTERING is switched off there.
-    bake_target :: if view is AllTargets {
-        host_target()
-    } else {
-        view
-    }
-    // Null here means "keep every body" — `select_target_bodies` returns its
-    // input unchanged. That is the union view, and the ONLY thing that reaches
-    // it is navigation.
-    effective_target: Target | null: if view is AllTargets {
-        null
-    } else {
-        view
-    }
+    bake_target :: baked_target_of(view)
+    effective_target :: selected_target_of(view)
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[]: []
     // The entry's folder is scanned again when the entry resolves below, which
@@ -244,12 +230,12 @@ export load_project_with_overlay :: fn(
             // cross-compile. Skipped without `std/target`, since the constants
             // name `Os` and `Arch` and there would be no module to name them from.
             //
-            // `bake_target`, NOT `effective_target`: the constants must exist in
-            // the union view too, where selection is off but `VADER_OS` is still a
-            // name any file may use. Defaulting here rather than per entry point
-            // is what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
+            // Its constants take `bake_target` and the modules it loads keep the
+            // bodies of `effective_target`: the two differ in the union view and
+            // under `HostBodies`. Defaulting here rather than per entry point is
+            // what makes `run` / `test` / `lint` / `dump` / the LSP consistent.
             load_baked_target(modules, bases, index, loader_diags, overlay,
-                factory, node_factory, bake_target)
+                factory, node_factory, effective_target, bake_target)
             detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = entry_module.folder, .modules = modules, .factory = factory,
@@ -258,6 +244,23 @@ export load_project_with_overlay :: fn(
             }
         }
     }
+}
+
+// The target whose constants (`VADER_OS`, `VADER_ARCH`) a load under `view`
+// bakes: a concrete one in every view, the host's in the union view.
+baked_target_of :: fn(view: Selection) -> Target = match view {
+    is Target     -> view
+    is AllTargets -> host_target()
+    is HostBodies -> view.target
+}
+
+// The target whose `@target` bodies a load under `view` keeps. Null keeps every
+// body (`select_target_bodies` returns its input unchanged): the union view,
+// which only navigation reaches.
+selected_target_of :: fn(view: Selection) -> Target | null = match view {
+    is Target     -> view
+    is AllTargets -> null
+    is HostBodies -> host_target()
 }
 
 /// Where a load from one entry file looks for modules — what `load_project`
@@ -383,18 +386,18 @@ load_baked_target :: fn(
     modules: MutableMap<string, LoadedModule>, bases: IncludePath[],
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, factory: SymbolFactory,
-    node_factory: NodeIdFactory, target: Target,
+    node_factory: NodeIdFactory, selected: Target | null, baked_for: Target,
 ) -> void {
     std_target :: resolve_lazy("std/target", bases, index, overlay, diags) ?? return
     if !has_module(modules, std_target.folder) {
         pre: DiscoveredModule[]: [std_target]
-        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, target)
+        drain_load_queue(pre, bases, modules, factory, index, diags, overlay, node_factory, selected)
     }
     // A COPY of the overlay: the baked source is this call's business, not the
     // caller's.
     with_baked :: MutableMap<string, string> {}
     for [path, text] in overlay { with_baked[path] = text }
-    with_baked[BAKED_PATH] = baked_module_source(target)
+    with_baked[BAKED_PATH] = baked_module_source(baked_for)
     baked :: DiscoveredModule {
         .name = BAKED_MODULE,
         .folder = BAKED_FOLDER,
@@ -402,7 +405,7 @@ load_baked_target :: fn(
         .origin = .Toolchain,
     }
     queue: DiscoveredModule[]: [baked]
-    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, target)
+    drain_load_queue(queue, bases, modules, factory, index, diags, with_baked, node_factory, selected)
 }
 
 // BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
