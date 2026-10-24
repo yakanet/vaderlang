@@ -92,6 +92,55 @@ build_call_graph :: fn(p: CFGProject) -> CallGraph {
     }
 }
 
+/// The functions each of `roots` may run, itself included, by mangled name:
+/// through its direct calls, its virtual calls (every vtable row of the key) and
+/// its indirect calls (every function some body takes as a value).
+///
+/// @param p      the CFG ; read only.
+/// @param roots  mangled names of functions of `p`.
+/// @return       one set per root, in order; empty for a root `p` does not define.
+export functions_run_from :: fn(p: CFGProject, roots: string[]) -> MutableSet<string>[] {
+    calls :: build_call_graph(p)
+    node_of :: MutableMap<string, i32> {}
+    for i in 0..<calls.nodes.len() {
+        node :: calls.nodes[i]
+        if node is CFGFunction {
+            node_of[node.mangled] = i32(i)
+        }
+    }
+    out: MutableSet<string>[]: []
+    for root in roots {
+        out.push(mangles_reached(calls, node_of[root]))
+    }
+    return out
+}
+
+// The mangles of the functions `start` reaches in `calls`, itself included; none
+// from a null start.
+mangles_reached :: fn(calls: CallGraph, start: i32 | null) -> MutableSet<string> {
+    mangles :: MutableSet<string> {}
+    if start == null {
+        return mangles
+    }
+    seen :: MutableSet<i32> {}
+    seen.add(start)
+    work: i32[]: [start]
+    cursor: i64 = 0
+    for cursor < work.len() {
+        node :: calls.nodes[work[cursor]]
+        if node is CFGFunction {
+            mangles.add(node.mangled)
+        }
+        for next in calls.graph.successors[work[cursor]] {
+            if seen.add(next) {
+                work.push(next)
+            }
+        }
+        cursor += 1
+    }
+    return mangles
+}
+
 // The functions some body takes as a Vader value, and those it hands to foreign
 // code as an address.
 TakenFunctions :: struct {

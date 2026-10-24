@@ -20,6 +20,7 @@ module "vader/comptime_vm"
 import "std/abort"
 import "std/collections"
 import "std/io"
+import "std/iter"
 import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
@@ -34,10 +35,14 @@ Vm :: import "vader/vm"
 /// No-op when `evaluated.vm_required` is empty (the common case — most projects
 /// have no loop-bearing comptime const). Mutates `evaluated` in place.
 ///
+/// The decls run in layers: a decl whose value reads another one still waiting
+/// runs once that one is baked, so each runs once, in the folder of its own
+/// source (`evaluate_layer`).
+///
 /// @param loaded     the loaded project (staging lower input).
 /// @param typed      the typed project (staging lower input).
-/// @param evaluated  the complete evaluated project ; its `vm_required` list is
-///                   consumed and `modules[...].comptime_decls` mutated.
+/// @param evaluated  the complete evaluated project ; its
+///                   `modules[...].comptime_decls` are mutated.
 /// @param diags      comptime diagnostics — a failed staging / VM run appends
 ///                   C4002 (panic) here ; the decl is left un-baked.
 /// @error            C4002 when the staged callee traps in the VM ; C4001 when
@@ -45,60 +50,142 @@ Vm :: import "vader/vm"
 export resolve_vm_required_decls :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
 ) -> void {
-    if evaluated.vm_required.len() == 0 { return }
+    home :: current_working_directory()
+    pending: Ct.VmRequiredDecl[] = evaluated.vm_required
+    for pending.len() > 0 {
+        pending = evaluate_layer(loaded, typed, evaluated, pending, home, diags)
+    }
+}
 
-    // Pass-1 staging : lower + emit the whole project with the deferred consts
-    // still un-baked. Diagnostics are throwaway — the real pass-2 lower reports
-    // any genuine errors.
+/// A pending decl staged for one layer.
+StagedDecl :: struct {
+    decl:    Ct.VmRequiredDecl
+    /// The mangle of its callee in the staged module.
+    callee:  string
+    /// The mangles of the functions that callee may run, itself included.
+    reached: MutableSet<string>
+}
+
+// Stage the project with the `pending` decls still un-baked, run those whose
+// callee reaches no other pending callee, and bake them; the decls left for the
+// next layer are returned.
+//
+// A pending decl that another decl reads is not a value yet: lowering inlines
+// its callee at the read, so running the reader would run that callee again, in
+// the reader's folder. Once baked, the next staging inlines its literal instead.
+evaluate_layer :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    evaluated: Ct.EvaluatedProject,
+    pending: Ct.VmRequiredDecl[],
+    home: string,
+    diags: Diagnostic[],
+) -> Ct.VmRequiredDecl[] {
+    // Pass-1 staging : lower + emit the project with the pending consts still
+    // un-baked. Diagnostics are throwaway — the real pass-2 lower reports any
+    // genuine errors.
     stage_diags: Diagnostic[]: []
-    module :: stage_to_bytecode(loaded, typed, evaluated, stage_diags)
+    cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
+    module :: emit_bytecode_from_cfg(cfg, "comptime", default_emit_options())
     state :: Vm.prepare(module)
     if state is Vm.VerifyError {
         // The staged bytecode is the compiler's own output, so this is an emitter
         // bug ; every decl waiting on it is left un-baked, and says why.
-        for vr in evaluated.vm_required {
+        for vr in pending {
             diags.push(comptime_error(.EvaluationPanic, vr.span, Vm.display_verify_error(state)))
         }
-        return
+        return []
     }
+    // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so its
+    // value is genuinely unneeded — skip it silently.
+    lowered: Ct.VmRequiredDecl[]: []
+    callees: string[]: []
+    for vr in pending {
+        callee :: callee_mangle(module, vr.callee_name) ?? continue
+        lowered.push(vr)
+        callees.push(callee)
+    }
+    reached :: functions_run_from(cfg, callees)
+    staged: StagedDecl[]: []
+    for i in 0..<lowered.len() {
+        staged.push(StagedDecl {
+            .decl = lowered[i],
+            .callee = callees[i],
+            .reached = reached[i],
+        })
+    }
+    ready: StagedDecl[] = []
+    waiting: StagedDecl[] = []
+    for s in staged {
+        if staged.any_match((other) -> other.callee != s.callee && other.callee in s.reached) {
+            waiting.push(s)
+        } else {
+            ready.push(s)
+        }
+    }
+    // Decls that only read one another form a cycle no order breaks: they run as
+    // they are.
+    if ready.len() == 0 {
+        ready = waiting
+        waiting = []
+    }
+    failed: string[]: []
+    for s in ready {
+        if !bake_decl(state, s.callee, s.decl, home, evaluated, diags) {
+            failed.push(s.callee)
+        }
+    }
+    // A decl that reads one whose run failed is dropped, its error already
+    // reported.
+    next: Ct.VmRequiredDecl[]: []
+    for s in waiting {
+        if !failed.any_match((f) -> f in s.reached) {
+            next.push(s.decl)
+        }
+    }
+    return next
+}
 
+// Run the callee `mangle` of `vr` in the folder of the file declaring it, and
+// inject the value; false after reporting why there is none.
+bake_decl :: fn(
+    state: Vm.VmState,
+    mangle: string,
+    vr: Ct.VmRequiredDecl,
+    home: string,
+    evaluated: Ct.EvaluatedProject,
+    diags: Diagnostic[],
+) -> bool {
     // A `@comptime` value is evaluated in the folder of the file declaring it,
     // so a relative path it reads names a file beside that file, wherever the
     // compiler was started.
-    home :: current_working_directory()
-    for vr in evaluated.vm_required {
-        mangle :: find_callee_mangle(module, vr.callee_name)
-        // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so
-        // its value is genuinely unneeded — skip silently.
-        if mangle == "" { continue }
-
-        switched :: enter_source_folder(home, vr.span.start.file)
-        outcome :: Vm.exec_fn_value(state, mangle)
-        if switched {
-            leave_source_folder(home)
-        }
-        if outcome is Vm.Trap {
-            // An impure host reached at comptime (clock / env / fs / stdin /
-            // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
-            // surfaces as C4016 rather than the generic C4002 panic.
-            if Vm.is_impure_comptime_trap_message(outcome.message) {
-                diags.push(comptime_error(.ImpureHostAtComptime, vr.span, outcome.message))
-            } else if Vm.is_singleton_comptime_trap_message(outcome.message) {
-                diags.push(comptime_error(.SingletonAtComptime, vr.span, outcome.message))
-            } else {
-                diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.message))
-            }
-            continue
-        }
-        if outcome is Vm.ValueOk {
-            bridged :: value_to_comptime(outcome.value, vr.decl_type, vr.span)
-            if bridged is Diagnostic {
-                diags.push(bridged)
-                continue
-            }
-            inject(evaluated, vr, bridged)
-        }
+    switched :: enter_source_folder(home, vr.span.start.file)
+    outcome :: Vm.exec_fn_value(state, mangle)
+    if switched {
+        leave_source_folder(home)
     }
+    if outcome is Vm.Trap {
+        // An impure host reached at comptime (clock / env / fs / stdin /
+        // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
+        // surfaces as C4016 rather than the generic C4002 panic.
+        if Vm.is_impure_comptime_trap_message(outcome.message) {
+            diags.push(comptime_error(.ImpureHostAtComptime, vr.span, outcome.message))
+        } else if Vm.is_singleton_comptime_trap_message(outcome.message) {
+            diags.push(comptime_error(.SingletonAtComptime, vr.span, outcome.message))
+        } else {
+            diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.message))
+        }
+        return false
+    }
+    if outcome is Vm.ValueOk {
+        bridged :: value_to_comptime(outcome.value, vr.decl_type, vr.span)
+        if bridged is Diagnostic {
+            diags.push(bridged)
+            return false
+        }
+        inject(evaluated, vr, bridged)
+    }
+    return true
 }
 
 // Make the folder of `file` the working directory, and say whether it changed.
@@ -121,36 +208,42 @@ leave_source_folder :: fn(home: string) -> void {
     }
 }
 
-// Run the canonical lower → cfg → dce → escape → emit tail over the (still
-// un-baked) project. Mirror of `bootstrap.vader::prepare_cfg_bytecode`'s tail.
-stage_to_bytecode :: fn(
-    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
-) -> BytecodeModule {
-    // Stage only the modules owning vm_required consts (+ their harvested
-    // closure), not the whole entry-rooted project : each such module's un-baked
-    // const inlines its RHS call, pulling the nullary callee thunk into the
-    // harvest so `find_callee_mangle` locates it.
+// Run the canonical lower → cfg → dce → escape tail over the (still un-baked)
+// project, up to the CFG the bytecode is emitted from. Mirror of
+// `bootstrap.vader::prepare_cfg_bytecode`'s tail.
+stage_to_cfg :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    evaluated: Ct.EvaluatedProject,
+    pending: Ct.VmRequiredDecl[],
+    diags: Diagnostic[],
+) -> CFGProject {
+    // Stage only the modules owning pending consts (+ their harvested closure),
+    // not the whole entry-rooted project : each such module's un-baked const
+    // inlines its RHS call, pulling the nullary callee thunk into the harvest so
+    // `callee_index` locates it.
     eager_modules: string[]: []
-    for vr in evaluated.vm_required {
+    for vr in pending {
         if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
     }
     lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
     pruned :: prune_unreachable_fns(lowered, false)
     cfg :: build_cfg_project(pruned, diags)
     dced :: eliminate_dead_cfg(cfg)
-    escaped :: annotate_escape(dced).project
-    return emit_bytecode_from_cfg(escaped, "comptime", default_emit_options())
+    return annotate_escape(dced).project
 }
 
-// Locate the lowered fn whose mangled name ends in `$<callee_name>`. Returns ""
-// when absent (the fn wasn't lowered → its const is unused). MVP: a bare suffix
-// match ; unambiguous for the nullary in-module helpers this path targets.
-find_callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string {
+// The lowered fn whose mangled name ends in `$<callee_name>`, null when absent
+// (the fn wasn't lowered → its const is unused). MVP: a bare suffix match ;
+// unambiguous for the nullary in-module helpers this path targets.
+callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string | null {
     suffix :: "\$${callee_name}"
     for f in module.functions {
-        if f.name.ends_with(suffix) { return f.name }
+        if f.name.ends_with(suffix) {
+            return f.name
+        }
     }
-    return ""
+    return null
 }
 
 /// Copy into `into` the values the VM baked for the deferred decls of `from`, a

@@ -54,6 +54,41 @@ test("a @comptime read names a file beside its source, in a native build", async
   expect(run.stdout).toBe(EXPECTED);
 }, LONG_BUILD);
 
+// A value that reads another one still waiting for the VM runs after it: the
+// value read is evaluated once, in its own folder, here `assets/` while the
+// reader sits in `app/`. The compile-time line says how many times it ran.
+// `TOTAL` reads it through a function and a call through a trait.
+test("a @comptime value reading another one runs after it, which runs once in its own folder", async () => {
+  const project = join(dir, "layers");
+  mkdirSync(join(project, "app"), { recursive: true });
+  mkdirSync(join(project, "assets"));
+  writeFileSync(join(project, "assets", "icon.bin"), "abc");
+  writeFileSync(join(project, "vader.json"), JSON.stringify({ entries: { app: "app/main.vader" } }));
+  writeFileSync(
+    join(project, "assets", "assets.vader"),
+    `module "assets"\n\nimport "std/abort"\nimport "std/io"\n\n`
+      + `export ICON :: @comptime {\n    println("reading the icon")\n`
+      + `    read :: read_file_bytes("icon.bin")\n`
+      + `    if read is IOError {\n        panic("cannot read \`icon.bin\`: \${read.message()}")\n    }\n`
+      + `    return read\n}\n`,
+  );
+  writeFileSync(
+    join(project, "app", "main.vader"),
+    `module "app"\n\nimport "assets"\nimport "std/io"\n\n`
+      + `ICON_SIZE :: @comptime ICON.len() * 2\n\n`
+      + `Sized :: trait {\n    size :: fn(self) -> i64\n}\n\n`
+      + `Icon :: struct {}\n\nIcon implements Sized {\n    size :: fn(self) -> i64 = ICON.len()\n}\n\n`
+      + `Empty :: struct {}\n\nEmpty implements Sized {\n    size :: fn(self) -> i64 = 0\n}\n\n`
+      + `total_size :: fn(items: Sized[]) -> i64 {\n    total: i64 = 0\n`
+      + `    for item in items {\n        total += item.size()\n    }\n    return total\n}\n\n`
+      + `TOTAL :: @comptime total_size([Icon {}, Empty {}]) + ICON_SIZE\n\n`
+      + `main :: fn() -> i32 {\n    println("\${ICON_SIZE} \${TOTAL}")\n    return 0\n}\n`,
+  );
+  const run = await spawnCapture(["run", "layers"], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: MEDIUM_BUILD });
+  expect(run.stderr).toBe("");
+  expect(run.stdout).toBe("reading the icon\n6 9\n");
+}, LONG_BUILD);
+
 // The comptime VM runs on the build machine, so in a build for another OS a
 // value runs the host's `@target` bodies: the target's would call into a library
 // this machine does not have (`kernel32` from a Mac).
