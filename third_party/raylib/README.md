@@ -19,6 +19,10 @@ the interpreter opens no static archive, so the run first compiles, with `cc`,
 a small adapter per raylib function the program calls, and links them with the
 archive into a shared library kept under the project's `build/ffi/`.
 
+On Linux, both link X11 (`-lX11`): a machine that builds a raylib program needs
+X11's development package (`libx11-dev` on Debian and Ubuntu). A machine that
+only runs one needs the library itself, which every X11 or XWayland desktop has.
+
 ## Where each file comes from
 
 The release archives are those of

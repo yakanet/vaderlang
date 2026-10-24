@@ -3,7 +3,8 @@
 // this machine.
 //
 // It is not run: it opens a window. A machine with no archive in
-// `third_party/raylib/lib/` for its target is skipped.
+// `third_party/raylib/lib/` for its target is skipped. On Linux the link needs
+// X11's development package (`third_party/raylib/README.md`).
 
 import { afterAll, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";

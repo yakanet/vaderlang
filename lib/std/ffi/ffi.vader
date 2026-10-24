@@ -28,9 +28,7 @@ export CLibrary :: struct {
     /// Static archives shipped with the binding, relative to the module
     /// declaring the constant.
     archives: string[] = []
-    /// What the platform provides: a library by name (`"GL"` links `-lGL`), a
-    /// library by its file name after a colon (`":libX11.so.6"` links
-    /// `-l:libX11.so.6`, GNU linkers only), or an Apple framework by its bundle
-    /// name (`"Cocoa.framework"`).
+    /// What the platform provides: a library by name (`"GL"` links `-lGL`), or an
+    /// Apple framework by its bundle name (`"Cocoa.framework"`).
     system: string[] = []
 }

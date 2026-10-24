@@ -20,9 +20,9 @@ import "std/target"
 /// raylib, linked statically from the archive shipped beside this module.
 ///
 /// The archives load OpenGL and the window system themselves (`dlopen` on
-/// Linux), so a build machine needs no OpenGL or X11 development package. Only
-/// raylib's clipboard calls X11 directly: the Linux link names the runtime
-/// library by its file (`-l:libX11.so.6`), as `-lX11` needs the development one.
+/// Linux), so a build machine needs no OpenGL development package. On Linux,
+/// raylib's image clipboard calls X11 directly, hence `"X11"` below; README.md
+/// says what that asks of a build machine.
 export RAYLIB: CLibrary: CLibrary {
     .name = "raylib",
     .header = "raylib.h",
@@ -30,7 +30,7 @@ export RAYLIB: CLibrary: CLibrary {
     .archives = ["lib/${VADER_OS}-${VADER_ARCH}/libraylib.a"],
     .system = match VADER_OS {
         .Darwin          -> ["Cocoa.framework", "IOKit.framework", "QuartzCore.framework"]
-        .Linux           -> ["m", "pthread", "dl", "rt", ":libX11.so.6"]
+        .Linux           -> ["m", "pthread", "dl", "rt", "X11"]
         .Windows         -> ["opengl32", "gdi32", "winmm"]
         .Wasi | .Browser -> []
     },
