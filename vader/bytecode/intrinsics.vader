@@ -125,7 +125,7 @@ primitive_cmp_op :: fn(mangled: string) -> Op | null {
 }
 
 /// Fail loud when a bodyless `@intrinsic` host import is not wired into the
-/// manifest. Called per-import at emit (`midir/emit.vader::reserve_cfg_extern`).
+/// manifest. Called per-import at emit (`emit/bytecode/emit.vader::reserve_cfg_extern`).
 ///
 /// A non-`@extern` import whose mangle is served by NEITHER a dedicated
 /// bytecode op (`intrinsic_op_for_mangled`) NOR a recognised `IntrinsicId`
@@ -143,6 +143,21 @@ export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void 
     if intrinsic_op_for_mangled(mangled) != null { return }
     if intrinsic_id_for(mangled) != .NotIntrinsic { return }
     panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
+}
+
+/// Map an InstrIntrinsic's canonical name onto its dedicated Op, or null when
+/// the name maps to none. The emitter panics on `null` rather than emit a
+/// function-truncating stub.
+///
+/// @param name  the intrinsic's canonical name (`InstrIntrinsic.name`).
+export intrinsic_op_for_name :: fn(name: string) -> Op | null {
+    if name == "size_of.type"      { return SizeOfType {} }
+    if name == "array.repeat"      { return ArrayRepeat {} }
+    if name == "array.push_all"    { return ArrayPushAll {} }
+    if name == "array.copy"        { return ArrayCopy {} }
+    if name == "array.remove_last" { return ArrayRemoveLast {} }
+    if name == "array.clear"       { return ArrayClear {} }
+    return null
 }
 
 // ---- tests ----------------------------------------------------------------

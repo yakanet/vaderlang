@@ -40,7 +40,7 @@ scalarised_forms :: fn(f: CFGFunction, shape: ReturnShape | null) -> CFGFunction
 // `f` under the copy's name, and findable ONLY by that name.
 //
 // A function has TWO identities here — its mangle and its `origin.symbol.id` —
-// and `midir/emit` registers both (`function_index_by_symbol_id[sym.id]`) then
+// and `emit/bytecode/emit` registers both (`function_index_by_symbol_id[sym.id]`) then
 // resolves a callee by symbol id when the mangle probe misses. Renaming only the
 // mangle leaves the copy answering to the original's id as well, so both land in
 // one slot: the wrapper resolves its own call back onto itself and recurses
@@ -184,7 +184,7 @@ note_if_taken_as_value :: fn(
     }
 }
 
-// Note `sym`'s function under BOTH names: `midir/emit` resolves a callee by
+// Note `sym`'s function under BOTH names: `emit/bytecode/emit` resolves a callee by
 // mangle OR by symbol id, and a function answering to two names must be noted
 // under both.
 note_symbol :: fn(
@@ -206,7 +206,7 @@ mark_forwarding :: fn(
     }
     copy_mangle :: scalarised_copy_mangle(mangled)
     chosen[mangled] = ReturnShape { ...shape, .forward_to = copy_mangle }
-    // The copy answers to a name of its own: `midir/emit` resolves a callee by
+    // The copy answers to a name of its own: `emit/bytecode/emit` resolves a callee by
     // mangle FIRST, so the wrapper's call finds it under this key. Its shape is
     // the original's — the guard above already proved `forward_to` null.
     chosen[copy_mangle] = shape
@@ -224,7 +224,7 @@ mark_forwarding :: fn(
 // a visibility this pass has no business inventing, and only the name is what
 // resolution reads.
 //
-// The id is KEPT, deliberately. `midir/emit` probes the mangle first and finds
+// The id is KEPT, deliberately. `emit/bytecode/emit` probes the mangle first and finds
 // the copy there; the id is the fallback, and the original's still names the
 // wrapper — which has the signature this call site was compiled against, so a
 // missed probe degrades to a correct call rather than a wrong one. A sentinel
@@ -234,7 +234,7 @@ forwarded_symbol :: fn(sym: Symbol, copy_mangle: string) -> Symbol =
 
 // Symbol id → mangle, for the chosen functions only.
 //
-// `midir/emit` resolves a callee by mangle FIRST and by symbol id second, and a
+// `emit/bytecode/emit` resolves a callee by mangle FIRST and by symbol id second, and a
 // call site carries whichever the lowerer put there — an impl member carries its
 // mangle with a synthetic id 0, a free fn its bare name. Resolving only one way
 // is how a call site keeps the old shape while its callee changed.
@@ -252,7 +252,7 @@ fill_mangles_by_symbol_id :: fn(
 }
 
 /// The shape a call to `callee` now hands back, or null when it is not a
-/// scalarised function. Mirrors `midir/emit`'s resolution order.
+/// scalarised function. Mirrors `emit/bytecode/emit`'s resolution order.
 callee_shape :: fn(
     callee: Symbol, chosen: MutableMap<string, ReturnShape>, by_symbol: MutableMap<i32, string>,
 ) -> ReturnShape | null {

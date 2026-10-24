@@ -298,7 +298,7 @@ LowerProjectCtx :: struct {
     /// without a decl for the struct its `self` is typed with: that pairing is
     /// the whole `ref`-orphan bug class (a fn whose receiver has no struct decl
     /// interns as a bare `ref`, and its first field access panics in
-    /// `midir/emit`).
+    /// `emit/bytecode/emit`).
     materialized_struct_mangles: MutableSet<string>
 
     /// Each module's typed program by its display path (`ImplEntry.module`),

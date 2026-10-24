@@ -49,7 +49,7 @@ import "vader/emit/c/ast"
 /// split (one program → header + globals + N function TUs, compiled in
 /// parallel). Off by default → the monolithic single-TU output (with `static`
 /// everywhere) that CI / release builds ship, unchanged.
-export EmitOptions :: struct {
+export CEmitOptions :: struct {
     entry_mangled: string
     split: bool = false
     /// String literals the atom table must cover, in the order that fixes their
@@ -108,7 +108,7 @@ export EmitCtx :: struct {
     import_may_collect: bool[]
     /// External-linkage mode — drops `static` on every emitted def and adds
     /// closure forward decls, so the output can be split across TUs. Mirrors
-    /// `EmitOptions.split`. Read by `wrapper_storage`.
+    /// `CEmitOptions.split`. Read by `wrapper_storage`.
     split: bool
     /// Per-function: true when NO other unit refers to it, so it can keep
     /// internal linkage inside its own TU and stay inlinable. Parallel to
@@ -116,16 +116,16 @@ export EmitCtx :: struct {
     /// monolithic build (everything is already `static` there) and any caller
     /// that has not computed it. Filled by `split.vader::internal_fn_flags`.
     internal_fns: bool[]
-    /// Mirrors `EmitOptions.verify_bounds`. Read by `emit_slot_array_local`.
+    /// Mirrors `CEmitOptions.verify_bounds`. Read by `emit_slot_array_local`.
     verify_bounds: bool
-    /// Mirrors `EmitOptions.library_units`. Read by `emit_import_shims`.
+    /// Mirrors `CEmitOptions.library_units`. Read by `emit_import_shims`.
     library_units: bool
     /// Erased layout siblings per type slot (`find_layout_siblings`), empty
     /// for most. Read by `push_struct_field` at every field access.
     layout_siblings: i32[][]
 }
 
-new_ctx :: fn(m: BytecodeModule, opts: EmitOptions, internal_fns: bool[] = []) -> EmitCtx {
+new_ctx :: fn(m: BytecodeModule, opts: CEmitOptions, internal_fns: bool[] = []) -> EmitCtx {
     names :: struct_c_names_of(m.types)
     string_tag :: string_primitive_tag(m.types)
     import_may_collect :: imports_may_collect(m.imports)
@@ -273,9 +273,9 @@ export atom_universe_gaps :: fn(strings: string[], universe: string[]) -> string
 /// Output ends with a trailing newline.
 ///
 /// @param m     the bytecode module to lower.
-/// @param opts  emit-time switches (see `EmitOptions`).
+/// @param opts  emit-time switches (see `CEmitOptions`).
 /// @return      a fresh string containing the generated C source.
-export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string =
+export emit_c :: fn(m: BytecodeModule, opts: CEmitOptions) -> string =
     single_unit(new_ctx(m, opts), opts.entry_mangled)
 
 // The C source of the whole program in one unit, but for the `CLibrary` shims
@@ -994,7 +994,7 @@ emit_str_data_entry :: fn(
 }
 
 // Value → comptime atom id, parallel to `module.strings` / `atom_ids`. Every
-// data-pool string is interned into `module.strings` by `midir::emit`, so each
+// data-pool string is interned into `module.strings` by `emit/bytecode`, so each
 // element resolves here ; `atom_for` defaults a stray miss to the empty atom.
 build_string_atom_map :: fn(ctx: EmitCtx) -> MutableMap<string, i32> {
     m :: MutableMap<string, i32> {}

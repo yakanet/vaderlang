@@ -1,4 +1,4 @@
-// vader/bytecode/slot_coalesce — coalesce non-overlapping live ranges
+// vader/emit/bytecode/slot_coalesce — coalesce non-overlapping live ranges
 // onto shared physical slots.
 //
 // Runs AFTER propagate + peephole + drop_dead_stores so the per-slot
@@ -11,7 +11,7 @@
 // read on the next iteration (back-edge jumps from `end` back to
 // `loop`), so any range touching a loop covers its whole body.
 
-module "vader/bytecode"
+module "vader/emit/bytecode"
 
 import "vader/core/bytecode"
 

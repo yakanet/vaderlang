@@ -404,7 +404,7 @@ export BcPrimData :: struct {
 
 /// A pooled read-only `string[]`. `values` carries the element string values ; each
 /// backend resolves them its own way (native : a boxed atom-id slot in `.rodata`
-/// once `midir` has interned them into the module string table ; VM : a
+/// once the bytecode emitter has interned them into the module string table ; VM : a
 /// `StringVal` sharing the value). Stored as Boxed slots at runtime — a string
 /// is a `vader_string_t` atom id, never an inline primitive.
 export BcStrData :: struct {
@@ -436,7 +436,7 @@ export BcValPrim :: struct {
 }
 
 /// A string leaf — the value verbatim ; resolved to an atom id at the backend
-/// (interned into `module.strings` by `midir::emit`).
+/// (interned into `module.strings` by `emit/bytecode`).
 export BcValStr :: struct {
     value: string
 }

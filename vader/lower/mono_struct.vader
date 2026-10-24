@@ -356,7 +356,7 @@ materialize_shape :: fn(
 /// A materialised impl member types its `self` with the receiver's struct, and
 /// the bytecode interner only ever upgrades a slot to `BcStruct` from a lowered
 /// struct DECL. Member without decl ⇒ `self` interns as a bare `ref` and the
-/// first field access panics in `midir/emit` — the whole bug class this closes.
+/// first field access panics in `emit/bytecode/emit` — the whole bug class this closes.
 ///
 /// `materialize_one_instance` already pairs the two, so this is a no-op there.
 /// The path that needed it is `pending_generic_impl_recv` (`mono_fn.vader`):

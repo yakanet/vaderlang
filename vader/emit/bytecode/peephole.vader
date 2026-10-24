@@ -1,9 +1,9 @@
-// vader/bytecode/emit — bytecode-level peepholes over an emitted `BcFunction`.
+// vader/emit/bytecode/peephole — bytecode-level peepholes over an emitted
+// `BcFunction`.
 //
-// Despite the name, nothing here emits: the `LoweredProject` → `BytecodeModule`
-// walk lives in `vader/midir` (`emit_bytecode_from_cfg`), and the `emit_project`
-// tree-walker other comments still name is gone. What is left is the post-emit
-// rewrite layer that emitter calls into, one exported pass each:
+// The `CFGProject` → `BytecodeModule` walk is `emit.vader`
+// (`emit_bytecode_from_cfg`) ; this is the post-emit rewrite layer it calls into,
+// one exported pass each:
 //   - `run_bc_peephole`         — `set N ; get N` → `tee N`, bool-not folds.
 //   - `run_bc_return_lit_fold`  — `<const> ; return` → `ReturnLit`.
 //   - `run_bc_const_fold_arith` — `<const> ; <const> ; <op>` → one const.
@@ -14,19 +14,12 @@
 // `debug` are remapped in lock-step with `body` (`remap_jump_table` /
 // `remap_debug`) : a branch target or a `#line` that lags the rewrite is a silent
 // mis-compile, not a cosmetic slip.
-//
-// The `vader/bytecode/peephole.vader` that comments across the tree point at IS
-// this file. Renaming it is an open follow-up.
 
-module "vader/bytecode"
+module "vader/emit/bytecode"
 
+import "vader/bytecode"
 import "vader/core/bytecode"
 import "std/collections"
-import "vader/support/diagnostics"
-import "vader/core/types"
-import "vader/core/symbol"
-import "vader/front/parser"
-Lo :: import "vader/lower"
 
 
 /// Rule-5-only pass : `<Const> ; Return` → `ReturnLit { value }`. Used
@@ -584,7 +577,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
         reads.push(0)
     }
     // Count slot reads — `local.get` plus the fused composite
-    // `local.field` (midir/emit.vader::try_fuse_local_field).
+    // `local.field` (emit/bytecode/emit.vader::try_fuse_local_field).
     for op in function.body {
         if op is LocalGet {
             reads[op.slot] += 1
@@ -698,8 +691,8 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
 /// Build the wrapper body : per-param `local.get` in order, then the
 /// dedicated bytecode op (when one exists) or a `call.import`
 /// fallback, then `return`. Caller wraps the result into a
-/// `BcFunction` and registers the fn-index. Shared with the MIDIR
-/// emitter's `synthesise_cfg_intrinsic_wrappers` so the op-vs-import
+/// `BcFunction` and registers the fn-index. Shared with
+/// `emit.vader::synthesise_cfg_intrinsic_wrappers` so the op-vs-import
 /// choice lives in ONE place.
 ///
 /// @param imp           the import the wrapper forwards to.

@@ -29,7 +29,7 @@ block to share: an `if` without `else`, and a loop condition.
 ## Decision
 
 Replace the walk with Ramsey's algorithm (*Beyond Relooper*, ICFP 2022), which
-LLVM's WebAssembly `CFGStackify` also implements, in `vader/midir/structure.vader`:
+LLVM's WebAssembly `CFGStackify` also implements, in `vader/emit/bytecode/structure.vader`:
 
 - every block is emitted exactly once, beneath its parent in the dominator tree;
 - a loop header opens a `loop`; back edges are `br`s to it;
@@ -83,7 +83,7 @@ header that only forwards has no test of its own, so the C emitter cannot write
 the loop as a `while` when its body opens with `if c { break }` — and threading
 such a header instead merges it into a loop its body opens on.
 
-`drop_unbranched_blocks` (`vader/bytecode/emit.vader`) then removes every `block`
+`drop_unbranched_blocks` (`vader/emit/bytecode/peephole.vader`) then removes every `block`
 no `br` leaves through: the structurer opens one per merge before it knows
 whether control will branch to the merge or fall into it.
 

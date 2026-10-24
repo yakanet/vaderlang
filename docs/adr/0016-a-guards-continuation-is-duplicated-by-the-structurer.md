@@ -79,7 +79,7 @@ run :: fn(flag: bool, n: i32) -> i32 {
 Two guards in a **straight-line** function, no loop at all, also give 4. It is
 2^N in the number of guards whose body can exit.
 
-The mechanism is in `vader/midir/emit.vader`. `cond_branch_merge` picks the
+The mechanism is in `vader/emit/bytecode/emit.vader`. `cond_branch_merge` picks the
 rejoin point by **immediate post-dominator**:
 
 ```vader

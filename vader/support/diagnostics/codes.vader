@@ -237,7 +237,7 @@ export LowerCode :: enum(CodeInfo) {
     /// Reserved: a destructure through an `into` that is not plain field reads traps
     /// at run time instead.
     IntoCoercionFailed { .id = "M5004", .message = "`Into` coercion cannot be lowered" },
-    /// Reserved: an intrinsic the lowerer cannot lower panics in `midir/emit` instead.
+    /// Reserved: an intrinsic the lowerer cannot lower panics in `emit/bytecode/emit` instead.
     IntrinsicUnsupported     { .id = "M5005", .message = "intrinsic not implemented by the lowerer" },
     UnresolvedIdent          { .id = "M5007", .message = "identifier did not resolve at lowering" },
     AwaitInShortCircuit      { .id = "M5009", .message = "`await` in a short-circuit operand, loop condition or match guard is not yet supported" },
@@ -293,7 +293,7 @@ export HookCode :: enum(CodeInfo) {
 export InternalCode :: enum(CodeInfo) {
     StrayCoroutineMarker  { .id = "I7001", .message = "a transient coroutine marker survived lowering" },
     UnresolvedFnReference { .id = "I7002", .message = "function reference resolves to no emitted function" },
-    /// Reserved: `midir/emit` panics on that case instead.
+    /// Reserved: `emit/bytecode/emit` panics on that case instead.
     FieldNotAMember       { .id = "I7003", .message = "field access names no member of its receiver" },
     BlockIdOutOfRange     { .id = "I7004", .message = "terminator names a block outside the function" },
     LocalIdOutOfRange     { .id = "I7005", .message = "instruction names a local outside the function" },

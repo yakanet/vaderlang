@@ -101,7 +101,7 @@ can_pass_through_terminator :: fn(
 }
 
 /// First operand pushed onto the stack by the instruction's emit
-/// sequence. Mirrors the per-instr emit order in `emit.vader`.
+/// sequence. Mirrors the per-instr emit order in `emit/bytecode/emit.vader`.
 /// Returns null for instructions that take no operands.
 first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
     match ins {

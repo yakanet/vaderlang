@@ -39,7 +39,7 @@
 // can stay live across arbitrary control flow — they are coalesced upstream,
 // loop-aware, by the bytecode pass instead.
 //
-// Sibling `vader/bytecode/slot_coalesce.vader` runs the same greedy
+// Sibling `vader/emit/bytecode/slot_coalesce.vader` runs the same greedy
 // interval-partition on the *other* IR — bytecode local slots (`lN`) over op
 // PC-ranges — which this pass cannot reach : operand temps exist only in the
 // c_emit walk, not in the bytecode.

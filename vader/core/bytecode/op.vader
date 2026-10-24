@@ -427,7 +427,7 @@ export ConvertTarget :: enum(u8) {
 
 /// Map a `ValType` to the matching `ConvertTarget`. Returns `null` for
 /// non-numeric / non-char targets — callers skip the `Convert` emit since the
-/// runtime tag is unchanged. Used by the midir bytecode emitter and the `.virt`
+/// runtime tag is unchanged. Used by the bytecode emitter and the `.virt`
 /// reader. (Both `ValType` and `ConvertTarget` live in `vader/core/bytecode`, so this
 /// needs no imports.)
 export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {

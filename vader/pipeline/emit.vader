@@ -17,9 +17,8 @@ import "std/process"
 import "std/target"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
-import "vader/bytecode"
 import "vader/core/bytecode"
-import "vader/emit/c" { EmitOptions as CEmitOptions }
+import "vader/emit/c"
 import "std/ffi"
 
 /// The C runtime a build compiles against.

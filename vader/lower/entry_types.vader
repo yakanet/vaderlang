@@ -140,7 +140,7 @@ raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// materialised default-method body clone (`substitute_body.vader::
 /// stamp_binding_spans`) stamps `span` and `name_span` with DISTINCT synthetic
 /// spans. Reading `span` then missed the `name_span`-keyed type and the local
-/// collapsed to `?` (a method call on it tripped the midir/emit ICE). Read the
+/// collapsed to `?` (a method call on it tripped the emit/bytecode/emit ICE). Read the
 /// authoritative `name_span`.
 /// @param self     the entry-types view.
 /// @param binding  the `SimpleBinding` AST node.

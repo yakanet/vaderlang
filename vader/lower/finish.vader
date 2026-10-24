@@ -27,7 +27,7 @@ vtable_entry_of :: fn(d: LoweredDecl) -> LoweredVtableEntry | null {
     }
     slot :: d.origin.vtable_slot ?? return null
     // fn_symbol is informational here: the table builder
-    // (`midir/emit.vader::build_impl_table_from_vtable`) only keys on
+    // (`emit/bytecode/emit.vader::build_impl_table_from_vtable`) only keys on
     // (struct_type, trait_name).
     return LoweredVtableEntry {
         .trait_name  = slot.trait_key,

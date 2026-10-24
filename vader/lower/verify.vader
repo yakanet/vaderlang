@@ -65,7 +65,7 @@ verify_no_coroutine_markers :: fn(
 }
 
 // I7012: a function given a body twice, under one mangle or from one symbol.
-// The backend keys a function's slot by both (`vader/midir/emit.vader`), so the
+// The backend keys a function's slot by both (`vader/emit/bytecode/emit.vader`), so the
 // copies collide : one slot receives both bodies, the second dead behind the
 // first `return`. Reported against the second body.
 verify_functions_defined_once :: fn(project: LoweredProject, diags: Diagnostic[]) -> void {

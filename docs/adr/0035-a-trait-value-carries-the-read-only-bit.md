@@ -94,6 +94,6 @@ Still open:
 - **Two older backend bugs** sit next to this change. Both are already wrong at
   `135fe2160`:
   - `b is Cfg` on a trait-typed parameter, followed by a field write, panics in
-    `midir/emit`;
+    `emit/bytecode/emit`;
   - a const array or tuple of trait values panics in `c_emit` ("baked struct …
     not in the module type table").

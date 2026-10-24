@@ -1,12 +1,8 @@
 // vader/bytecode/type_classify — typecheck `Type` → bytecode shapes.
 //
-// Shared by the bytecode emitter (`vader/midir/emit`, per-decl interning) and any
-// future pass that needs to project a `Type` into the bytecode IR
-// (e.g. the data-pool encoder, the WASM emit, the LSP type-info
-// renderer).
-//
-// `bc_type_of_with_ctx` (reached through `intern_type`) interns a type's nested
-// types into their own `BcArray` / `BcUnion` / `BcFn` / `BcStruct` entries.
+// The value type a `Type` is held as, and the key a type is interned under.
+// Read by the bytecode emitter (`vader/emit/bytecode`) and by the `midir`
+// passes that reason about slots before emission.
 
 module "vader/bytecode"
 
@@ -69,7 +65,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
 /// monsters opaque.
 ///
 /// @param elements  the tuple's element types, in order.
-tuple_shape_name :: fn(elements: Type[]) -> string {
+export tuple_shape_name :: fn(elements: Type[]) -> string {
     // The hash is taken over the EXACT key, never over the sanitised spelling.
     // `c_safe_key` is many-to-one -- it collapses each run of characters C
     // rejects into one `_`, so `Box<i32>` and `Box_i32<>` spell alike -- and
@@ -225,91 +221,6 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is NeverType          -> .Void
 }
 
-/// Context-aware translation : recursively interns element / param /
-/// return types so the resulting `BcType` carries the right type-table
-/// indices for composite shapes : Struct/Trait → `BcRef { trait_name }`,
-/// Array → `BcArray { element }`, Union → `BcUnion { variants }`,
-/// Fn → `BcFn { params, return_type }`.
-/// Tuple synthesises an anonymous struct keyed by the caller-provided
-/// slot index ; the caller passes its own table position so the synth
-/// name (`__Tuple_<idx>`) stays stable.
-///
-/// Exhaustive over `Type` by design (no `_` fall-through) : the bare
-/// types that have no first-class bytecode shape (type-params, meta,
-/// self, unresolved, free numerics, never) collapse to an opaque
-/// `BcRef { "" }`, but listing them keeps the match honest, so adding a
-/// new `Type` variant trips T3013 here instead of silently degrading to
-/// `ref` (the failure mode that hid the missing `Tuple` case).
-///
-/// @param t           the type to translate.
-/// @param ctx         the emit context — nested types intern through it.
-/// @param slot_index  this type's own table position, reserved by the
-///                    caller. Used only to name synthesised tuple
-///                    structs (`__Tuple_<slot_index>`) stably.
-/// @return            the `BcType` for the type table.
-export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> BcType {
-    match t {
-        is PrimitiveType -> { return BcScalar { .val = val_type_of_primitive_name(t.name) } }
-        is EnumType | RangeType -> { return BcScalar { .val = val_type_of_type(t) } }
-        is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx, slot_index) }
-        is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
-        is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
-        is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
-        is UnionType     -> {
-            variant_indices: i32[]: []
-            for v in t.variants { variant_indices.push(intern_type(v, ctx)) }
-            return BcUnion { .variants = variant_indices }
-        }
-        is FnType -> {
-            param_indices: i32[]: []
-            for p in t.params { param_indices.push(intern_type(p, ctx)) }
-            return BcFn {
-                .params = param_indices,
-                .return_type = intern_type(t.return_type, ctx),
-            }
-        }
-        // Anonymous struct with positional fields `_0`, `_1`, … , named after
-        // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
-        // distinct C structs.
-        //
-        // The name must not depend on the slot's RANK in the type table: a rank
-        // shifts when anything interned earlier differs, and a name that shifts
-        // makes identical modules emit different C. `type_intern_key` is the
-        // same key `intern_type` dedupes on, so two tuples share a name exactly
-        // when they share a slot.
-        is TupleType -> {
-            fields: BcField[]: []
-            for i in 0..<t.elements.len() {
-                fields.push(BcField {
-                    .name       = "_${i}",
-                    .type_index = intern_type(t.elements[i], ctx),
-                })
-            }
-            return BcStruct {
-                .name      = "__Tuple_${tuple_shape_name(t.elements)}",
-                .fields    = fields,
-                .c_name    = "",
-                .symbol_id = -1,
-            }
-        }
-        // No first-class bytecode shape — opaque `ref`. Listed explicitly
-        // (not a `_` catch-all) so a new `Type` variant trips T3013.
-        is TypeParamType  -> { return OPAQUE_REF }
-        is InferVar       -> { leaked_infer_var(t) }
-        is TypeMetaType   -> { return OPAQUE_REF }
-        is SelfType       -> { return OPAQUE_REF }
-        is UnresolvedType -> { return OPAQUE_REF }
-        is FreeIntType    -> { return OPAQUE_REF }
-        is FreeCharType   -> { return OPAQUE_REF }
-        is FreeFloatType  -> { return OPAQUE_REF }
-        is NeverType      -> { return OPAQUE_REF }
-        is AnyType        -> { return OPAQUE_REF }
-    }
-}
-
-/// Opaque `ref` for a `Type` with no first-class bytecode shape.
-OPAQUE_REF :: BcRef { .trait_name = "" }
-
 /// Map a primitive name to its `ValType`. Unknown names degrade to
 /// `Any` so the upstream typechecker has the only say in rejecting
 /// the source.
@@ -326,6 +237,17 @@ export val_type_of_primitive_name :: fn(name: string) -> ValType {
     parsed :: parse_val_type(name) ?? return .Any
     return parsed
 }
+
+/// True when a value of class `v` carries no tag of its own ; a ref's header does.
+///
+/// @param v  the value class.
+export is_scalar_class :: fn(v: ValType) -> bool = !is_ref_class(v) && v != .Void
+
+/// True when a slot of type `t` boxes a scalar entering it : its value class is
+/// `Any`, a union's, an erased generic slot's, a trait value's.
+///
+/// @param t  the slot's type.
+export is_boxed_slot :: fn(t: Type) -> bool = val_type_of_type(t) == .Any
 
 // ---- tests ----------------------------------------------------------------
 

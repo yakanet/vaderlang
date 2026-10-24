@@ -1,14 +1,14 @@
-// vader/bytecode/emit_ctx — per-project emit context + interning.
+// vader/emit/bytecode/emit_ctx — per-project emit context + interning.
 //
-// Extracted from `emit.vader` to keep that file under the 800 LoC
-// hard cap. Owns `EmitOptions` + `EmitterCtx` (the project-wide
-// type / string / fn / import tables) and the two interners
-// (`intern_type`, `intern_string`) every per-shape emit fn calls.
+// Owns `EmitOptions` + `EmitterCtx` (the project-wide type / string / fn /
+// import tables) and the two interners (`intern_type`, `intern_string`) every
+// per-shape emit fn calls.
 
-module "vader/bytecode"
+module "vader/emit/bytecode"
 
 import "std/abort"
 import "std/collections"
+import "vader/bytecode"
 import "vader/core/bytecode"
 import "vader/core/types"
 
@@ -43,7 +43,7 @@ export EmitOptions :: struct {
 export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [], .want_debug = false }
 
 /// Per-project emit context. Built once at the top of
-/// `midir/emit.vader::emit_bytecode_from_cfg`, threaded through every
+/// `emit/bytecode/emit.vader::emit_bytecode_from_cfg`, threaded through every
 /// reservation + body-emit call it makes. Carries the
 /// type / string / fn / import interning tables plus the inverse
 /// lookups (symbol id → fn / import index) downstream phases query.
@@ -114,14 +114,14 @@ export EmitterCtx :: struct {
     /// Type indices that aren't directly referenced by any op or fn
     /// signature but must survive `prune_unused_types`, and that aren't
     /// scoped to a single function (the vtable-receiver pins from the
-    /// midir Pass-4 prune setup, already gated on used vtable keys).
+    /// Pass-4 prune setup, already gated on used vtable keys).
     /// Per-call arg/result pins live in `pinned_types_by_fn` instead.
     pinned_types: i32[]
 
     /// Set once `prune_unused_types` has run. Past that point the table is
     /// FINAL: a slot minted afterwards is invisible to the prune, so it survives
     /// as an orphan `ref` — dead, pinned, and permanent — and any field access
-    /// reaching it panics with `midir/emit: no field ... on ...`. That is not
+    /// reaching it panics with `emit/bytecode/emit: no field ... on ...`. That is not
     /// hypothetical: `build_vtables_from_entries` did exactly this until
     /// `aba0fcff4`, and its sibling had carried the rule as a comment for months.
     /// A comment is not a guard, hence this flag: `intern_type` refuses to CREATE
@@ -203,7 +203,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
         return existing
     }
     if ctx.types_frozen {
-        panic("bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types — the table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
+        panic("emit/bytecode/emit_ctx: intern_type would mint `${key}` after prune_unused_types — the table is final by then, so the slot would survive as an orphan `ref` and panic at the first field access. Look the type up and skip the entry instead, as `build_impl_table_from_vtable` does.")
     }
     // Reserve placeholder so recursive / self types don't loop. The index is
     // registered above; a `BcRef` placeholder (empty `trait_name`) fills its
@@ -216,7 +216,7 @@ export intern_type :: fn(t: Type, ctx: EmitterCtx) -> i32 {
         ctx.type_hash[h] = new_index
     }
     record_slot_type(ctx, new_index, t)
-    ctx.types[new_index] = bc_type_of_with_ctx(t, ctx, new_index)
+    ctx.types[new_index] = bc_type_of_with_ctx(t, ctx)
     return new_index
 }
 
@@ -272,6 +272,86 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     })
     return new_index
 }
+
+/// Context-aware translation : recursively interns element / param /
+/// return types so the resulting `BcType` carries the right type-table
+/// indices for composite shapes : Struct/Trait → `BcRef { trait_name }`,
+/// Array → `BcArray { element }`, Union → `BcUnion { variants }`,
+/// Fn → `BcFn { params, return_type }`.
+/// Tuple synthesises an anonymous struct named after its shape.
+///
+/// Exhaustive over `Type` by design (no `_` fall-through) : the bare
+/// types that have no first-class bytecode shape (type-params, meta,
+/// self, unresolved, free numerics, never) collapse to an opaque
+/// `BcRef { "" }`, but listing them keeps the match honest, so adding a
+/// new `Type` variant trips T3013 here instead of silently degrading to
+/// `ref` (the failure mode that hid the missing `Tuple` case).
+///
+/// @param t    the type to translate.
+/// @param ctx  the emit context — nested types intern through it.
+/// @return     the `BcType` for the type table.
+bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx) -> BcType {
+    match t {
+        is PrimitiveType -> { return BcScalar { .val = val_type_of_primitive_name(t.name) } }
+        is EnumType | RangeType -> { return BcScalar { .val = val_type_of_type(t) } }
+        is DistinctType  -> { return bc_type_of_with_ctx(t.backing, ctx) }
+        is StructType    -> { return BcRef { .trait_name = t.symbol.name } }
+        is TraitType     -> { return BcRef { .trait_name = trait_key_of(t.symbol) } }
+        is ArrayType     -> { return BcArray { .element = intern_type(t.element, ctx) } }
+        is UnionType     -> {
+            variant_indices: i32[]: []
+            for v in t.variants { variant_indices.push(intern_type(v, ctx)) }
+            return BcUnion { .variants = variant_indices }
+        }
+        is FnType -> {
+            param_indices: i32[]: []
+            for p in t.params { param_indices.push(intern_type(p, ctx)) }
+            return BcFn {
+                .params = param_indices,
+                .return_type = intern_type(t.return_type, ctx),
+            }
+        }
+        // Anonymous struct with positional fields `_0`, `_1`, … , named after
+        // the tuple's SHAPE so `[i32, string]` and `[bool, string]` still emit
+        // distinct C structs.
+        //
+        // The name must not depend on the slot's RANK in the type table: a rank
+        // shifts when anything interned earlier differs, and a name that shifts
+        // makes identical modules emit different C. `type_intern_key` is the
+        // same key `intern_type` dedupes on, so two tuples share a name exactly
+        // when they share a slot.
+        is TupleType -> {
+            fields: BcField[]: []
+            for i in 0..<t.elements.len() {
+                fields.push(BcField {
+                    .name       = "_${i}",
+                    .type_index = intern_type(t.elements[i], ctx),
+                })
+            }
+            return BcStruct {
+                .name      = "__Tuple_${tuple_shape_name(t.elements)}",
+                .fields    = fields,
+                .c_name    = "",
+                .symbol_id = -1,
+            }
+        }
+        // No first-class bytecode shape — opaque `ref`. Listed explicitly
+        // (not a `_` catch-all) so a new `Type` variant trips T3013.
+        is TypeParamType  -> { return OPAQUE_REF }
+        is InferVar       -> { leaked_infer_var(t) }
+        is TypeMetaType   -> { return OPAQUE_REF }
+        is SelfType       -> { return OPAQUE_REF }
+        is UnresolvedType -> { return OPAQUE_REF }
+        is FreeIntType    -> { return OPAQUE_REF }
+        is FreeCharType   -> { return OPAQUE_REF }
+        is FreeFloatType  -> { return OPAQUE_REF }
+        is NeverType      -> { return OPAQUE_REF }
+        is AnyType        -> { return OPAQUE_REF }
+    }
+}
+
+/// Opaque `ref` for a `Type` with no first-class bytecode shape.
+OPAQUE_REF :: BcRef { .trait_name = "" }
 
 // ---- tests ----------------------------------------------------------------
 

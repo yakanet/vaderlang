@@ -7,7 +7,7 @@
 // those directly rather than a carrier struct — `FunctionBuilder` and
 // `ParserState` each keep their own fields and pass them in.
 //
-// `midir/emit.vader` has a sibling that resolves by `BlockId` and prefers loop
+// `emit/bytecode/emit.vader` has a sibling that resolves by `BlockId` and prefers loop
 // scopes on a tie: a different rule, not a copy of this one.
 
 module "vader/core/bytecode/builder"

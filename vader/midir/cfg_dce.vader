@@ -15,6 +15,7 @@
 module "vader/midir"
 
 import "std/collections"
+import "vader/bytecode"
 import "vader/core/symbol"
 
 /// Top-level entry — apply all CFG-level optimisations to every fn in
@@ -472,6 +473,15 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction = match ins {
         | InstrUnionFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet | InstrGlobalSet
         | InstrDeferPush | InstrDeferPopExec -> ins
 }
+
+/// True when `m` is where a scalar is tagged entering a boxed slot : the producer
+/// of its source is typed as the scalar, so it must not write that slot itself.
+///
+/// @param locals  the function's locals, indexed by slot.
+/// @param m       the move to judge.
+move_retags :: fn(locals: CFGLocal[], m: InstrMove) -> bool =
+    is_boxed_slot(locals[i64(m.dst)].type)
+        && is_scalar_class(val_type_of_type(locals[i64(m.src)].type))
 
 // ---- tests ----------------------------------------------------------------
 

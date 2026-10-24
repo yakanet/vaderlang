@@ -114,7 +114,7 @@ hosted_frame_call :: fn(
 export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId, adapter: i64) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
-    // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
+    // `@extern` is EXEMPT from the emit-time wiring check (`emit/bytecode/emit.vader` :
     // "@extern imports are link-resolved and exempt") — correct for user FFI,
     // which the C linker resolves, but it means an `@extern` the COMPILER ITSELF
     // uses is invisible to this dispatcher: the moment the compiler runs on its

@@ -87,7 +87,7 @@ export PrimDataPoolEntry :: struct {
 }
 
 /// A pooled `string[]`. Carries the element string values verbatim ;
-/// `midir` interns them into the module string table at emit (so the comptime
+/// the bytecode emitter interns them into the module string table (so the comptime
 /// atom table covers them) and lowers to a `BcStrData { values }`.
 export StrDataPoolEntry :: struct {
     values: string[]

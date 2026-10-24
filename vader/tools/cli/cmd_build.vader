@@ -19,14 +19,14 @@ import "std/string"
 import "cli"
 import "vader/support/target"
 import "vader/front/resolver"
-import "vader/bytecode"
+import "vader/emit/bytecode"
 import "vader/core/bytecode"
 import "vader/core/bytecode/text"
 import "vader/vm"
 import "vader/pipeline"
 Build :: import "toolchain/build"
 import "vader/support/diagnostics"
-import "vader/emit/c" { EmitOptions as CEmitOptions }
+import "vader/emit/c"
 import "std/sort"
 
 // ----------------------------------------------------------- build

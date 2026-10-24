@@ -1097,9 +1097,8 @@ emit_local_set :: fn(s: FnState, slot: i32, tee: bool) -> void {
 
 // ---- control flow ---------------------------------------------------------
 
-/// Kind of a structured-control scope. Unlike `vader/bytecode`'s
-/// emitter `ScopeKind` (Block / Loop only), the C walker also records `If` ;
-/// only `Loop` changes what is emitted (a `loop_<opener>:` continue target).
+/// Kind of a structured-control scope. Only `Loop` changes what is emitted (a
+/// `loop_<opener>:` continue target).
 ScopeKind :: enum(u8) {
     Block,
     Loop,

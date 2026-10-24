@@ -2,7 +2,7 @@
 // be servable by the VM's host dispatcher.
 //
 // WHY: `@extern` is EXEMPT from the emit-time wiring check that guarantees a
-// host import is servable (`vader/midir/emit.vader`: "@extern imports are
+// host import is servable (`vader/emit/bytecode/emit.vader`: "@extern imports are
 // link-resolved and exempt"). That exemption is right for USER FFI — the C
 // linker resolves it. But an `@extern` the COMPILER ITSELF uses is invisible to
 // `vader/vm/host.vader`, so it traps as "unbound host import" the moment the

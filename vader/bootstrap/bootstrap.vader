@@ -39,11 +39,11 @@ import "vader/core/types"
 import "vader/front/comptime"
 import "vader/front/comptime/vm"
 import "vader/lower"
+import "vader/emit/bytecode"
 import "vader/midir"
 import "vader/pipeline/check"
-import "vader/bytecode"
 import "vader/core/bytecode"
-import "vader/emit/c" { EmitOptions as CEmitOptions }
+import "vader/emit/c"
 
 /// Build-only entrypoint : compile `<input.vader>` to a multi-unit C program.
 ///
@@ -201,7 +201,7 @@ CfgBytecode :: struct {
 // Takes the ALREADY-LOWERED entry rather than lowering itself, so the caller can
 // refuse a front-end error BEFORE the back end runs. It cannot cope with a
 // malformed AST: a declaration that failed to parse leaves a local with no type,
-// and `midir/emit` panics on it instead of the error being reported.
+// and `emit/bytecode/emit` panics on it instead of the error being reported.
 cfg_bytecode_from :: fn(le: LoweredEntry, file: string) -> CfgBytecode {
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg_diags: Diagnostic[]: []

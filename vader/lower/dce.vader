@@ -13,7 +13,7 @@
 // `fn_sym.id` and distinguishes instances by mangle). The call
 // graph is therefore followed by MANGLE first, then symbol id. That keeps
 // DCE-survival ⟺ emit-resolvable : the emitter
-// (`midir/emit.vader::emit_bytecode_from_cfg`) reserves every fn under BOTH keys
+// (`emit/bytecode/emit.vader::emit_bytecode_from_cfg`) reserves every fn under BOTH keys
 // and resolves symbol-id-then-mangle, and a generic instance necessarily comes
 // in through the mangle — `mono_fn.vader::build_fn_instance_decl` leaves
 // its `origin.symbol` null on purpose. So a fn the emitter can resolve at a call
@@ -51,7 +51,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
             if d is LoweredFnDecl {
                 sym :: d.origin.symbol
                 // Index on exactly what the EMITTER indexes on — whether the decl
-                // carries a symbol (`midir/emit.vader::reserve_cfg_function`) —
+                // carries a symbol (`emit/bytecode/emit.vader::reserve_cfg_function`) —
                 // never on "is it a generic instance". The two are not the same
                 // question, and answering the second broke the header invariant:
                 //

@@ -4,19 +4,19 @@
 // `BlockId` is an `i32`, so nothing stops a terminator naming a block that
 // does not exist; a `LocalId` is an `i32`, so nothing stops an instruction
 // reading a slot past the end of `locals`. The emitter meets such a shape
-// late and panics (`emit.vader:999`, `:1101`, `:1144`, `:1159`, `:1420`),
+// late and panics (`emit/bytecode/emit.vader`),
 // naming the function it was emitting rather than the pass that broke it.
 //
 // This module checks the same invariants at a pass boundary and reports
 // every violation in one run. Pure read over the CFG — no mutation, no IO —
 // wired behind `--verify`, so a normal build does not pay for it.
 //
-// Symbol resolution (`I7002`) mirrors `emit.vader` exactly, and the two
+// Symbol resolution (`I7002`) mirrors `emit/bytecode/emit.vader` exactly, and the two
 // chains differ in a way that is load-bearing:
 //   - `InstrCall` resolves through fn-mangle, fn-symbol, import-symbol, then
-//     import-mangle (`emit.vader:1086-1101`).
+//     import-mangle (`resolve_direct_call`).
 //   - `InstrFnRef` / `InstrFnAddr` / `InstrMakeClosure` resolve through
-//     fn-symbol ONLY (`emit.vader:1139`, `:1154`, `:1416`) — a fn taken as a
+//     fn-symbol ONLY — a fn taken as a
 //     value has no import path, so an extern-only match is still a break.
 // Widening either chain here turns a real break into a pass.
 
@@ -457,7 +457,7 @@ verify_locals :: fn(
 }
 
 // I7002 — the emitter's four unresolved-callee panics, as one check. Reachable blocks only:
-// `emit_cfg_function_body` walks from the entry (`emit.vader:644`), so a
+// `emit_cfg_function_body` walks from the entry, so a
 // reference in a dead block never resolves and never breaks the emit. The
 // file header explains why the call chain and the fn-as-value chain differ.
 verify_fn_references :: fn(

@@ -10,9 +10,8 @@ module "vader/pipeline"
 
 import "std/io"
 import "std/path"
-import "vader/bytecode"
 import "vader/core/bytecode/text"
-import "vader/emit/c" { EmitOptions as CEmitOptions }
+import "vader/emit/c"
 Prof :: import "vader/support/profile"
 import "vader/support/target"
 

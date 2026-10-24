@@ -4,7 +4,7 @@
 // The pass keeps such a function under its own name and signature — so the
 // `fn.ref` still sees the shape it was compiled against — and gives the
 // scalarised form a copy under a derived mangle. A function has two identities
-// in this pipeline, its mangle AND its `origin.symbol.id`, and `midir/emit`
+// in this pipeline, its mangle AND its `origin.symbol.id`, and `emit/bytecode/emit`
 // resolves a callee by the id when the mangle probe misses. Renaming only the
 // mangle left both under one slot: the wrapper resolved its own call back onto
 // itself and recursed until the stack went ("call stack overflow at

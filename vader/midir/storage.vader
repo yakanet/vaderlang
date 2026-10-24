@@ -245,12 +245,12 @@ note_struct_fields :: fn(slots: SlotTypes, d: CFGStructDecl) -> void {
 }
 
 /// The key a struct is laid out under : the intern key of its type, or its mangle
-/// for a struct no symbol declares. `emit.vader::reserve_cfg_struct` reserves the
+/// for a struct no symbol declares. `emit/bytecode/emit.vader::reserve_cfg_struct` reserves the
 /// layout under it, and a value's type finds it by its own intern key.
 ///
 /// @param origin   what the struct was laid out from.
 /// @param mangled  its mangled name.
-layout_key :: fn(origin: MonoEntry, mangled: string) -> string {
+export layout_key :: fn(origin: MonoEntry, mangled: string) -> string {
     sym :: origin.symbol ?? return mangled
     return type_intern_key(mk_struct(sym, origin.type_arguments))
 }

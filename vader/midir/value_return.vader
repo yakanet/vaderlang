@@ -189,7 +189,7 @@ rewrite_call_sites :: fn(
     locals: CFGLocal[]: []
     locals.push_all(f.locals)
     // A rewritten block keeps `b.id`, so `kept` stays indexed by id — which is
-    // how `emit.vader` reads it (`blocks[i64(id)]`). A nullable rebuild needs
+    // how `emit/bytecode/emit.vader` reads it (`blocks[i64(id)]`). A nullable rebuild needs
     // extra blocks; they take fresh ids ABOVE every existing one, in the order
     // they are minted, so appending `extra` keeps the whole array indexed.
     kept: BasicBlock[]: []

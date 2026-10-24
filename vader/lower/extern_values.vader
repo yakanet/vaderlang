@@ -87,7 +87,7 @@ lower_extern_through_values :: fn(
             },
         )
     }
-    // Its own symbol, so neither of the two identities `midir/emit` indexes a
+    // Its own symbol, so neither of the two identities `emit/bytecode/emit` indexes a
     // function by is shared with the Vader function.
     import_origin :: MonoEntry {
         ...entry,

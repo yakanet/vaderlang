@@ -9,7 +9,7 @@
 // the full import/export tables, and the vtable map.
 //
 // Construction sites :
-//   - the bytecode emitter (`emit_bytecode_from_cfg`, `vader/midir/emit`)
+//   - the bytecode emitter (`emit_bytecode_from_cfg`, `vader/emit/bytecode/emit`)
 //     builds a fresh `BytecodeModule` per project ;
 //   - the .virt readers (`vader/core/bytecode/text/virt_reader_bc` for C-emit ; `virt_reader`
 //     → `bc_to_vm` for the VM) build one from a text dump.

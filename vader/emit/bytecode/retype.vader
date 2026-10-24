@@ -1,4 +1,4 @@
-// vader/bytecode/retype — rebase a module's type table onto a shared one.
+// vader/emit/bytecode/retype — rebase a module's type table onto a shared one.
 //
 // `BytecodeModule.types` is index-addressed, so two targets that compile the
 // same program can hold the same type at different slots — and one extra type
@@ -11,7 +11,7 @@
 // string literals. Same shape: a canonical key (`bc_type_key`), a shared order,
 // and every reference rewritten to it.
 
-module "vader/bytecode"
+module "vader/emit/bytecode"
 
 import "std/collections"
 import "std/sort"

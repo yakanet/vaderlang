@@ -1,9 +1,9 @@
-// vader/bytecode/dce — late EmitterCtx-level prunes.
+// vader/emit/bytecode/dce — late EmitterCtx-level prunes.
 //
 // Hosts `prune_unused_imports` / `prune_unused_functions` / `prune_unused_data` /
 // `prune_unused_globals` / `prune_unused_types`. (There is no
 // `prune_unused_vtables` peer pass : vtable rows are reachability-filtered when
-// they're built: `vader/midir/emit.vader::build_vtables_from_entries` only emits a
+// they're built: `vader/emit/bytecode/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
 // the same `used_vt_keys` set gates which vtable targets root the fn walk.)
 // Run after the CFG → bytecode body emit, before the final
@@ -18,7 +18,7 @@
 // reachability facts no earlier pass can see (which `virtual.call` keys actually
 // survived, the `_vt` thunks emit synthesises). The two are not redundant.
 
-module "vader/bytecode"
+module "vader/emit/bytecode"
 
 import "std/collections"
 import "std/iter"

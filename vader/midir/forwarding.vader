@@ -3,7 +3,7 @@
 // The builder gives each arm of an `if` its block before it knows what the arm
 // holds, so a lone `break` or `continue` is a block with nothing in it but a
 // `branch`. `skip_forwarding_blocks` retargets the edges into such blocks before
-// `structure.vader` places anything.
+// `emit/bytecode/structure.vader` places anything.
 
 module "vader/midir"
 
@@ -23,7 +23,7 @@ import "std/collections"
 ///
 /// @param fn_  a function about to be structured.
 /// @return     the same function, its terminators retargeted.
-skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
+export skip_forwarding_blocks :: fn(fn_: CFGFunction) -> CFGFunction {
     n :: fn_.blocks.len()
     entries: i32[]: [0] * n
     for b in fn_.blocks {

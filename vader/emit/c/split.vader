@@ -73,8 +73,8 @@ export CUnits :: struct {
 ///
 /// @param m     the bytecode module to lower.
 /// @param opts  emit-time switches ; `entry_mangled` resolves `main`.
-export emit_c_units :: fn(m: BytecodeModule, opts: EmitOptions) -> CUnits {
-    ctx :: new_ctx(m, EmitOptions { ...opts, .library_units = true })
+export emit_c_units :: fn(m: BytecodeModule, opts: CEmitOptions) -> CUnits {
+    ctx :: new_ctx(m, CEmitOptions { ...opts, .library_units = true })
     names: string[]: []
     units: string[]: []
     push_library_units(ctx, names, units)
@@ -144,13 +144,13 @@ export imports_header_name :: fn(header_name: string) -> string {
 /// @return             the header, the globals TU, and one function TU per
 ///                     module (plus unit 0 for the glue), then one per
 ///                     `CLibrary`.
-export emit_c_split :: fn(m: BytecodeModule, opts: EmitOptions, header_name: string) -> CProgram {
+export emit_c_split :: fn(m: BytecodeModule, opts: CEmitOptions, header_name: string) -> CProgram {
     // The partition comes FIRST: the linkage analysis needs to know which unit
     // each function lands in, and the context needs the analysis.
     buckets :: partition_functions(m.functions)
     ctx :: new_ctx(
         m,
-        EmitOptions { ...opts, .split = true, .library_units = true },
+        CEmitOptions { ...opts, .split = true, .library_units = true },
         internal_fn_flags(m, buckets, opts.entry_mangled),
     )
 
