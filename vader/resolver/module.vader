@@ -175,9 +175,37 @@ export Module :: struct {
 
 /// Walk up from `start` looking for `MANIFEST_FILENAME`. Returns
 /// the containing directory, or null if no manifest is found up to
-/// the filesystem root. The language server's way to the project of the file
-/// it opened: the compiler is told its project, a file having none.
-export find_manifest_root :: fn(start: string) -> string | null {
+/// the filesystem root. The debugger's way to the project of the file it
+/// runs: the compiler is told its project, a file having none.
+export find_manifest_root :: fn(start: string) -> string | null =
+    walk_up(start, (dir) -> exists(join_path(dir, MANIFEST_FILENAME)))
+
+/// Walk up from `start` to the nearest folder holding a `vader.json` or a build
+/// driver (`holds_build_driver`), whichever describes the project. The language
+/// server's way to the project of the file it opened.
+///
+/// @param start  a file or a folder; for a file, the walk starts at its folder.
+/// @return       that folder, or null when none up to the filesystem root does.
+export find_project_root :: fn(start: string) -> string | null =
+    walk_up(start, (dir) -> exists(join_path(dir, MANIFEST_FILENAME)) || holds_build_driver(dir))
+
+/// Whether `dir` holds a build driver: a `build.vader` that declares
+/// `module "build"`. A file of that name in another module (the compiler's own
+/// `vader/midir/build.vader`) is an ordinary source file of its folder.
+///
+/// @param dir  the folder to look in.
+export holds_build_driver :: fn(dir: string) -> bool {
+    path :: join_path(dir, DRIVER_FILENAME)
+    text :: read_file_string(path)
+    if text is IOError {
+        return false
+    }
+    header :: parse_module_header(text, path) ?? return false
+    return header.name == DRIVER_MODULE
+}
+
+// The nearest folder from `start` up whose `holds` is true, or null.
+walk_up :: fn(start: string, holds: fn(string) -> bool) -> string | null {
     // Accept either a file or a directory as the start point ; for
     // a file, walk-up begins at its parent.
     dir := start
@@ -189,8 +217,7 @@ export find_manifest_root :: fn(start: string) -> string | null {
         dir = dir_of(dir)
     }
     for {
-        candidate :: join_path(dir, MANIFEST_FILENAME)
-        if exists(candidate) {
+        if holds(dir) {
             return dir
         }
         parent_dir :: dir_of(dir)
@@ -495,6 +522,16 @@ leaves_project :: fn(path: string) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {
+    dir :: join_path(temp_dir(), "vader_holds_build_driver_probe")
+    create_dir(dir)
+    write_file_string(join_path(dir, DRIVER_FILENAME), "module \"tools\"\n")
+    assert(!holds_build_driver(dir), "a source file named build.vader is no driver")
+    write_file_string(join_path(dir, DRIVER_FILENAME), "module \"build\"\n")
+    assert(holds_build_driver(dir), "one declaring `module \"build\"` is")
+}
 
 @test
 test_read_manifest_reads_repo_include_paths :: fn() -> void {

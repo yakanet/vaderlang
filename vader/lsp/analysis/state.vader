@@ -152,6 +152,9 @@ export ServerState :: struct {
     /// / didChange : each request on it converts a position, and indexing a large
     /// dump costs milliseconds.
     virt_line_indices:          MutableMap<string, LineIndex>
+    /// project folder → what the server knows of a project its `build.vader`
+    /// describes: the roots registered, the `vader info` run in flight.
+    driven:                     MutableMap<string, DrivenProject>
 }
 
 export new_state :: fn(library_root: string) -> ServerState {
@@ -172,6 +175,7 @@ export new_state :: fn(library_root: string) -> ServerState {
         .next_request_id         = 1,
         .virt_listings           = MutableMap<string, Vm.VirtListing | Vm.VirtParseError> {},
         .virt_line_indices       = MutableMap<string, LineIndex> {},
+        .driven                  = MutableMap<string, DrivenProject> {},
     }
 }
 
@@ -390,10 +394,26 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
         return
     }
     self.indices[uri] = build_index(uri, text, self.position_encoding)
+    forget_analyses(self)
+    publish_diagnostics_for_uri(self, uri)
+}
+
+/// `textDocument/didSave` handler. A saved `build.vader` may declare other
+/// roots: its project describes itself again (`ensure_described`), its known
+/// roots serving meanwhile. Params shape : { textDocument: { uri } }
+export handle_did_save :: fn(self: ServerState, params: JsonValue) -> void {
+    path :: uri_to_path(get_string(get_field(params, "textDocument"), "uri"))
+    if path.ends_with("/${DRIVER_FILENAME}") {
+        _ :: ensure_described(self, dir_of(path))
+    }
+}
+
+// Forget the typed analyses: a document opened or closed changes what they
+// were built from.
+forget_analyses :: fn(self: ServerState) -> void {
     self.cache = null
     self.cache_prev = null
     self.usages = null
-    publish_diagnostics_for_uri(self, uri)
 }
 
 /// `textDocument/didChange` handler. With full-document sync the params
@@ -442,9 +462,7 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
         self.virt_listings.remove(uri)
         return
     }
-    self.cache = null
-    self.cache_prev = null
-    self.usages = null
+    forget_analyses(self)
     self.dirty.remove(uri)
     self.indices.remove(uri)
     clear_diagnostics_for_uri(self, uri)

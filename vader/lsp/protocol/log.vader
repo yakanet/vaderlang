@@ -1,4 +1,5 @@
-// vader/lsp/protocol/log — server-side logging via LSP `window/logMessage`.
+// vader/lsp/protocol/log: server-side logging via LSP `window/logMessage`, and
+// the warnings the user must see, via `window/showMessage`.
 //
 // The client (VSCode, IntelliJ, …) renders these as plain lines in the
 // `Vader Language Server` output channel, alongside the JSON-RPC trace.
@@ -21,12 +22,20 @@ export LogLevel :: enum(i32) {
 }
 
 /// Emit a `window/logMessage` notification.
-export log :: fn(level: LogLevel, message: string) -> void {
+export log :: fn(level: LogLevel, message: string) -> void = notify("window/logMessage", level, message)
+
+/// Show `message` to the user as a warning (`window/showMessage`): what the
+/// server cannot do and the user has to act on, not a line of its log.
+///
+/// @param message  the text the editor shows.
+export show_warning :: fn(message: string) -> void = notify("window/showMessage", .Warning, message)
+
+// A `window/*Message` notification: `method`, carrying `message` at `level`.
+notify :: fn(method: string, level: LogLevel, message: string) -> void {
     params_map :: MutableMap<string, JsonValue> {}
     params_map["type"]    = JsonNumber { .value = f64(i32(level)) }
     params_map["message"] = JsonString { .value = message }
-    params :: JsonObject { .entries = params_map }
-    write_frame(encode_notification("window/logMessage", params))
+    write_frame(encode_notification(method, JsonObject { .entries = params_map }))
 }
 
 export log_warn  :: fn(message: string) -> void { log(.Warning, message) }

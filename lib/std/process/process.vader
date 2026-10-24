@@ -665,21 +665,38 @@ SpawnAsync implements Async<ProcessResult | ProcessError> {
         if sched_now() < self.deadline {
             return Suspended { .wake_at = self.deadline }
         }
-        code :: spawn_poll(self.handle)
-        if code == RUNNING {
+        finished :: spawn_finished(self.handle, self.argv[0])
+        if finished == null {
             self.deadline = sched_now() + POLL_MS
             sched_arm(self.deadline)
             return Suspended { .wake_at = self.deadline }
         }
-        // Done — take both pipes (stdout first, then stderr, which frees the
-        // slot) before deciding success vs signal.
-        out :: spawn_take_stdout(self.handle)
-        err :: spawn_take_stderr(self.handle)
-        if code == SIGNALED {
-            return ProcessError { .msg = "spawn: \"${self.argv[0]}\" terminated by signal" }
-        }
-        return ProcessResult { .exit = code, .stdout = out, .stderr = err }
+        return finished
     }
+}
+
+/// What a child `spawn_start` launched came to, WITHOUT waiting: null while it
+/// runs, then its `ProcessResult`, or a `ProcessError` when a signal stopped
+/// it. For a caller with an event loop of its own, polling between two events;
+/// once it answers, the handle is spent.
+///
+/// @param handle   the handle `spawn_start` returned.
+/// @param program  the program it runs, which names it in a `ProcessError`.
+/// @return         null while the child runs, its result once it exited.
+/// @error          `ProcessError` when a signal terminated it.
+export spawn_finished :: fn(handle: i64, program: string) -> ProcessResult | ProcessError | null {
+    code :: spawn_poll(handle)
+    if code == RUNNING {
+        return null
+    }
+    // Both pipes, stdout first, then stderr, which frees the slot, before
+    // deciding success vs signal.
+    out :: spawn_take_stdout(handle)
+    err :: spawn_take_stderr(handle)
+    if code == SIGNALED {
+        return ProcessError { .msg = "spawn: \"${program}\" terminated by signal" }
+    }
+    return ProcessResult { .exit = code, .stdout = out, .stderr = err }
 }
 
 /// Run `argv[0]` with `argv[1..]` as an awaitable — launches immediately, then

@@ -20,8 +20,8 @@ import "vader/resolver"
 /// (today : `textDocument.definition.linkSupport`).
 ///
 /// Capabilities advertised :
-///   - `textDocumentSync = 1` (full document sync ; we replace the
-///     whole source on every `didChange`).
+///   - `textDocumentSync` full (we replace the whole source on every
+///     `didChange`), with `save` notifications.
 ///   - `semanticTokensProvider` with legend + `full = true`.
 ///   - `definitionProvider` + `hoverProvider`.
 ///
@@ -129,9 +129,13 @@ json_array_has_string :: fn(v: JsonValue, needle: string) -> bool {
 /// @param encoding  the negotiated position encoding, echoed back so the client
 ///                  counts `character` offsets in the same unit the server does.
 export server_capabilities :: fn(encoding: PositionEncoding) -> JsonValue {
-    // textDocumentSync = 1 (full). The numeric form is wire-cheaper than
-    // the equivalent object form `{ openClose: true, change: 1 }`.
-    text_document_sync :: JsonNumber { .value = 1.0 }
+    // Full sync (`change: 1`), and `save` so that a saved `build.vader` has its
+    // project describe itself again (`handle_did_save`).
+    sync :: MutableMap<string, JsonValue> {}
+    sync["openClose"] = JsonBool { .value = true }
+    sync["change"]    = JsonNumber { .value = 1.0 }
+    sync["save"]      = JsonObject { .entries = MutableMap<string, JsonValue> {} }
+    text_document_sync :: JsonObject { .entries = sync }
 
     // semanticTokensProvider : we declare full-document tokenisation and
     // omit `range` / `delta` for the MVP.

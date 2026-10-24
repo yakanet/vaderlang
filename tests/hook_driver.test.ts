@@ -45,6 +45,7 @@ import type { CliResult, SpawnOptions } from "./cli-bin.ts";
 import { formatRun, snapshotEquals } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { containsTestFn } from "./vader-sources.ts";
+import { pathToUri } from "./lsp-uri.ts";
 
 ensureCliBuilt();
 
@@ -634,6 +635,115 @@ test.concurrent("info describes a driver that adds no entry", async () => {
   expect(r.stderr).not.toContain("error[");
   expect(r.stdout).toContain("entry    none");
   expect(r.exit).toBe(0);
+}, HEAVY_BUILD);
+
+// One language-server session driven message by message: the server answers a
+// driven project on its own schedule, which a write-everything-then-read client
+// cannot wait for.
+function lspSession(cwd: string) {
+  const proc = Bun.spawn({
+    cmd: [resolve(CLI_BIN), "lsp"],
+    cwd,
+    env: { ...process.env, ...TOOLCHAIN_ENV },
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const reader = proc.stdout.getReader();
+  const encoder = new TextEncoder();
+  let pending = new Uint8Array(0);
+  const send = (message: object) => {
+    const body = encoder.encode(JSON.stringify(message));
+    proc.stdin.write(encoder.encode(`Content-Length: ${body.byteLength}\r\n\r\n`));
+    proc.stdin.write(body);
+    proc.stdin.flush();
+  };
+  // The next message the server sends, or null once it closed its output.
+  const next = async (): Promise<any> => {
+    for (;;) {
+      const header = new TextDecoder().decode(pending).indexOf("\r\n\r\n");
+      if (header >= 0) {
+        const length = Number(/Content-Length: (\d+)/.exec(new TextDecoder().decode(pending.slice(0, header)))![1]);
+        const start = header + 4;
+        if (pending.byteLength >= start + length) {
+          const body = pending.slice(start, start + length);
+          pending = pending.slice(start + length);
+          return JSON.parse(new TextDecoder().decode(body));
+        }
+      }
+      const { value, done } = await reader.read();
+      if (done) return null;
+      const grown = new Uint8Array(pending.byteLength + value.byteLength);
+      grown.set(pending);
+      grown.set(value, pending.byteLength);
+      pending = grown;
+    }
+  };
+  return { proc, send, next };
+}
+
+test.concurrent("the language server reads the search roots a driver declares", async () => {
+  // REASON: a whole language-server session over a driven project. The server
+  // has the driver describe itself through `vader info --json`, which compiles
+  // it first, without waiting on it, and holds the document's diagnostics back
+  // until the roots are known: the import of a module under a root the driver
+  // declares never shows as unresolved, not even while the driver builds.
+  await gated(async () => {
+    const dir = mkdtempSync(`${tmpdir()}/vader-lsp-driven-`);
+    staged.push(dir);
+    mkdirSync(join(dir, "src"));
+    mkdirSync(join(dir, "vendor/greet"), { recursive: true });
+    writeFileSync(join(dir, "build.vader"), [
+      'module "build"', "", 'import "toolchain/build"', "",
+      "build :: fn(args: string[]) -> i32 {",
+      "    ctx :: new_build_context(args)",
+      '    ctx.include_paths.push("vendor")',
+      '    ctx.add_entry("app", "src/main.vader")',
+      "    code :: ctx.emit_native()",
+      "    _ :: ctx.flush_reports()",
+      "    return code",
+      "}", "",
+    ].join("\n"));
+    const main = 'module "src"\n\nimport "greet"\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println(greeting())\n    return 0\n}\n';
+    writeFileSync(join(dir, "src/main.vader"), main);
+    writeFileSync(join(dir, "vendor/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
+
+    const lsp = lspSession(dir);
+    const uri = pathToUri(join(dir, "src/main.vader"));
+    lsp.send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { rootUri: pathToUri(dir), capabilities: {} } });
+    lsp.send({ jsonrpc: "2.0", method: "initialized", params: {} });
+    lsp.send({
+      jsonrpc: "2.0", method: "textDocument/didOpen",
+      params: { textDocument: { uri, languageId: "vader", version: 1, text: main } },
+    });
+    // The next diagnostics the server publishes for the document.
+    const nextPublished = async (): Promise<string | null> => {
+      for (;;) {
+        const message = await lsp.next();
+        if (message === null) return null;
+        if (message.method === "textDocument/publishDiagnostics" && message.params.uri === uri) {
+          return JSON.stringify(message.params.diagnostics);
+        }
+      }
+    };
+    const first = await nextPublished();
+
+    // A saved `build.vader` that no longer declares the root: the project
+    // describes itself again, and the import no longer resolves.
+    const driver = join(dir, "build.vader");
+    writeFileSync(driver, readFileSync(driver, "utf8").replace('    ctx.include_paths.push("vendor")\n', ""));
+    lsp.send({ jsonrpc: "2.0", method: "textDocument/didSave", params: { textDocument: { uri: pathToUri(driver) } } });
+    const second = await nextPublished();
+
+    lsp.send({ jsonrpc: "2.0", id: 2, method: "shutdown", params: null });
+    lsp.send({ jsonrpc: "2.0", method: "exit", params: null });
+    await lsp.proc.exited;
+
+    expect(first).not.toBeNull();
+    expect(first).not.toContain("R2001");
+    expect(first).not.toContain("R2006");
+    expect(second).toContain("R2001");
+  });
 }, HEAVY_BUILD);
 
 test.concurrent("a named file bypasses the driver, and says so", async () => {

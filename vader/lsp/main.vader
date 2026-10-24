@@ -64,25 +64,30 @@ export LSP_FLAGS: FlagSpec[]: [
 /// @return              0 on a clean `exit` notification, 1 on an abnormal one.
 export run_server :: fn(library_root: string) -> i32 {
     state :: A.new_state(library_root)
+    // No `vader info` run outlives the server.
+    defer A.cancel_descriptions(state)
     // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
     // the pipe (the debounce relies on it). Must run before any `read_frame`.
     shutdown_received := false
     for {
-        // Block for the next message, then process it.
-        rc :: read_and_process(state, shutdown_received)
-        if rc == .Exit         { return 0 }
-        if rc == .ExitAbnormal { return 1 }
-        if rc == .ShutdownRequested { shutdown_received = true }
-
-        // Drain the rest of the burst : every frame already queued is processed
-        // now. A run of `didChange` notifications (one per keystroke) collapses
-        // into repeated dirty marks rather than one typecheck each.
-        for P.poll_pending(0) {
-            rc2 :: read_and_process(state, shutdown_received)
-            if rc2 == .Exit         { return 0 }
-            if rc2 == .ExitAbnormal { return 1 }
-            if rc2 == .ShutdownRequested { shutdown_received = true }
+        // Block for the next message, then process it. While a driver describes
+        // itself, wait for one only so long, then look whether it answered.
+        if !A.is_describing_any(state) || P.poll_pending(DESCRIBE_POLL_MS) {
+            // The message, then the rest of its burst : every frame already
+            // queued is processed now. A run of `didChange` notifications (one
+            // per keystroke) collapses into repeated dirty marks rather than one
+            // typecheck each.
+            for {
+                rc :: read_and_process(state, shutdown_received)
+                if rc == .Exit         { return 0 }
+                if rc == .ExitAbnormal { return 1 }
+                if rc == .ShutdownRequested { shutdown_received = true }
+                if !P.poll_pending(0) {
+                    break
+                }
+            }
         }
+        A.poll_descriptions(state)
 
         // Burst settled. If a didChange left diagnostics dirty, wait out a short
         // quiescent window before the (single) typecheck : if the user is still
@@ -96,6 +101,10 @@ export run_server :: fn(library_root: string) -> i32 {
         }
     }
 }
+
+// Milliseconds the loop waits for a message while a driver describes itself,
+// before looking whether it answered.
+DESCRIBE_POLL_MS :: 100
 
 // Milliseconds of input silence before a debounced diagnostics typecheck fires.
 // Below the threshold of perception, above the inter-keystroke interval — so a
@@ -175,6 +184,10 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
     }
     if method == "textDocument/didChange" {
         A.handle_did_change(state, params)
+        return .Continue
+    }
+    if method == "textDocument/didSave" {
+        A.handle_did_save(state, params)
         return .Continue
     }
     if method == "textDocument/didClose" {

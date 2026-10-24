@@ -30,6 +30,13 @@ export publish_diagnostics_for_uri :: fn(self: ServerState, uri: string) -> void
         publish(self, uri, [])
         return
     }
+    // Held back until a driven project's roots are first known: every import of
+    // a root its driver declares would read as unresolved. They mark the
+    // document again when they arrive.
+    root :: project_of_document(file_path)
+    if root != null && !ensure_described(self, root) {
+        return
+    }
     cached :: typed_project_for(self, file_path)
     // Merge the typecheck diagnostics (W0007 etc.) with the opt-in project-wide
     // lints the LSP surfaces but `vader build` never runs (W0012 unused-export).

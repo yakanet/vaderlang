@@ -199,12 +199,13 @@ export first_in_files :: fn(
 
 // ---- module resolution ----------------------------------------------------
 
-/// The project of a document the editor opened: the folder of the nearest
-/// `vader.json` above it. The compiler is told its project; the editor, which
-/// opens a file, has to look for it.
+/// The project of a document the editor opened: the nearest folder above it
+/// holding a `vader.json` or a build driver. The compiler is told its project;
+/// the editor, which opens a file, has to look for it. A driven project's roots
+/// are known once `ensure_described` has had it describe itself.
 ///
 /// @param path  the document's filesystem path.
-project_of_document :: fn(path: string) -> string | null = find_manifest_root(path)
+project_of_document :: fn(path: string) -> string | null = find_project_root(path)
 
 /// Where the document `uri` looks for modules : the loader's roots for a load
 /// from that file (`search_roots`), each made absolute, and the module the
