@@ -464,7 +464,7 @@ call_foreign :: fn(callee: i64, through_adapter: bool, desc: u8[], frame: u8[], 
 /// @param adapter      the address of the import's adapter, `0` for none.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
 dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, types: bc.BcType[], debug: DebugController | null, adapter: i64) -> HostCallResult {
-    // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
+    // A foreign call at comptime is allowed — SPEC §14 *Sandbox*. What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
     params :: info.signature.params

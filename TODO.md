@@ -90,7 +90,7 @@ Open (`[ ]`) and in-progress (`[~]`) items keep the full context needed to act o
   }
   ```
 
-  SPEC §"Pattern match → if/else chains" documents this as the deliberate MVP lowering ("naive code is fine for the bytecode emitter to optimise later"), so it is a debt taken knowingly, not an oversight.
+  `docs/ARCHITECTURE.md` (*Lowered AST*: "There is no decision-tree compilation") documents this as the deliberate lowering, so it is a debt taken knowingly, not an oversight.
 
   **The nuance that decides what to measure**: because every arm `return`s, these are semantically already an `else if` chain — control never falls through, so the *branch count* is not the cost. What is lost is the DENSITY information. `switch (l0)` over `0..5` tells the C compiler a jump table is legal; a run of comparisons leaves it to prove that, which gcc/clang often do for this exact shape but not always, and never once the values are sparse or the arms carry guards.
 

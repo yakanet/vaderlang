@@ -32,8 +32,8 @@ flowchart TD
 | Comptime | `vader/front/comptime/` | `@comptime` values, generic struct instances |
 | Lowerer | `vader/lower/` | lowered AST, generic instances materialised |
 | Dead-code elimination | `vader/lower/` | functions unreachable from the roots removed |
-| Mid-IR | `vader/midir/` | CFG, escape analysis, dead-store elimination |
-| Bytecode | `vader/bytecode/` | stack-based bytecode |
+| Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
+| Bytecode emitter | `vader/emit/bytecode/` | stack-based bytecode, whose format is `vader/core/bytecode/` |
 | VM | `vader/vm/` | runs the bytecode |
 | C emitter | `vader/emit/c/` | one C file per module (`--split`) or one for the program |
 
@@ -134,8 +134,6 @@ operations. The typed AST is never mutated.
   member directly. A call on a trait-typed value, or on the receiver of an erased
   instance, goes through a vtable (`virtual.call`) filled with the impl members that
   take `self`.
-- **Bounds checks**: a release build drops the array index checks that range
-  analysis proves useless.
 
 ## Dead-code elimination
 
@@ -154,11 +152,11 @@ emitter reuses.
 
 The CFG supports the analyses that need def-use chains:
 
-- **escape analysis**: structs that do not outlive their function are allocated on
-  the stack;
-- **loop-carried dependencies**: refines escape analysis for values allocated in
-  a loop;
-- **dead-store elimination**: removes individual writes whose value is never read.
+- **escape analysis**: a struct or array allocation that cannot outlive its function
+  is placed on the stack. An allocation made in a loop and still live when the next
+  iteration starts counts as escaping.
+- **range analysis**: tracks integer intervals and array lengths. A release native
+  build drops the index checks it proves useless.
 
 The bytecode emitter reads the CFG and recovers structured nesting, placing each
 block once by dominator tree ([ADR 0027](adr/0027-the-structurer-places-each-block-once-by-dominator-tree.md)).

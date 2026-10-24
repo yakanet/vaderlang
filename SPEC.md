@@ -3,7 +3,7 @@
 > **Status**: Draft, pre-1.0
 > **Author**: Mathieu BROUTIN
 
-This document describes the Vader language, its execution model, type system, MVP standard library, and bootstrap strategy. The compiler that implements it is written in Vader and compiles itself (§19).
+This document describes the Vader language: its syntax, type system, execution model and MVP standard library. The compiler is written in Vader and compiles itself; its internals are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ---
 
@@ -19,139 +19,48 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 
 ### Explicit non-goals
 
-- **No OOP** — no inheritance, no classes, no "real" methods. UFCS (`a.f(b)` ≡ `f(a, b)`) covers object-call ergonomics.
-- **No visible pointers** in source code. No pointer arithmetic. Memory layout is opaque.
-- **No implicit `null`**. Nullability is expressed only as an explicit union (`T | null`).
-- **No exceptions**. Errors are values, returned in a union with the success type.
-- **No text macros** nor runtime reflection. Metaprogramming goes through typed `@comptime`.
+- **No OOP**: no inheritance, no classes, no methods. UFCS (`a.f(b)` ≡ `f(a, b)`) gives the method-call syntax.
+- **No visible pointers**: no pointer arithmetic, and memory layout is opaque.
+- **No implicit `null`**: a nullable value has an explicit union type, `T | null`.
+- **No exceptions**: errors are values, returned in a union with the success type.
+- **No text macros and no runtime reflection**: metaprogramming goes through typed `@comptime`.
 
 ### Philosophy
 
-- **Simplicity over exotic features** — no feature for the feature's sake.
-- **Reading > writing** — syntax must read top to bottom. Generics use the
-  familiar `<T>` form (Java/C# style), told apart from comparison `<` by one
-  local rule (§4 *Generics*).
-- **Compile-time errors > runtime errors** — string interpolation is type-checked at compile time.
-- **Rich diagnostics** — every phase emits structured diagnostics (§18 *Diagnostics*), continues after errors when possible, and produces messages that read well both in the terminal and through an LSP.
-- **Evolvability** — the pipeline must be easy to extend, every intermediate IR dumpable.
+- **Simplicity over exotic features**: no feature for its own sake.
+- **Reading over writing**: code reads top to bottom. Generics use the familiar `<T>` of Java and C#; a local rule tells it apart from the comparison `<` (§4 *Generics*).
+- **Compile-time errors over run-time errors**: string interpolation, for instance, is type-checked at compile time.
+- **Rich diagnostics**: every phase reports structured diagnostics (§18 *Diagnostics*), keeps going after an error when it can, and writes messages that read well in a terminal and in an editor.
+- **Evolvability**: the pipeline is easy to extend, and every intermediate representation can be dumped.
 
 ---
 
 ## 2. Compilation Model
 
-### Overall pipeline
-
-```
-Source (.vader)
-  ↓ Lexer            → Tokens
-  ↓ Parser           → AST
-  ↓ Resolver         → AST with resolved names (modules, imports)
-  ↓ Type-checker     → Typed AST (with narrowing, traits, bidirectional inference)
-  ↓ Comptime engine  → Typed AST (@comptime values evaluated, @assert checked)
-  ↓ Lowerer          → Lowered AST (generic instances materialised, pattern match → if/else chains, trait calls → direct or vtable dispatch)
-  ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
-  ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators; substrate for escape / liveness analyses
-  ↓ Bytecode emitter → Bytecode IR (stack-based)
-  │
-  ├──→ Stack-based VM   → vader run / @comptime
-  ├──→ IR text emitter  → .virt file (debug / inspection / replay)
-  ├──→ C emitter        → cc → native binary (Linux/macOS/Windows)
-  └──→ WASM emitter     → .wasm (planned, §17)
-```
-
-### Canonical IR
-
-The canonical IR is a **stack-based bytecode**. This IR is the pivot of the ecosystem:
-
-- it is directly executable by the **VM** (interp + comptime modes)
-- it is translatable to **C** (text) for the native backend
-- it maps **1:1** to WASM (both are stack-based)
-
-### Comptime
-
-The comptime pass evaluates `@comptime` values and checks `@assert`; a value its tree-walk cannot compute runs on the VM (§14 *Implementation note*).
-
-### Monomorphization
-
-Monomorphization happens in the lowerer. The comptime pass records the generic struct instances the typed program names; the lowerer materialises them, and discovers and materialises each generic function instance as it lowers the bodies that call it, until no new instance appears. A generic recursion that would grow its type argument without end is refused (`T3104`). Every `Struct<args>` reference then points to an emitted decl, and every generic-fn call to the instance that serves it: a per-type clone, or a shared erased body for reference type arguments (see *Instance flavor* below).
-
-Lowering and every downstream phase therefore never see an *unbound* type parameter: each instance's type arguments are either substituted to concrete types or erased to the uniform-pointer representation, per its **instance flavor** (below).
-
-### Instance flavor (monomorphise vs erase)
-
-Cloning *every* instance in full would blow up code size — a `List<T>` used at ten different reference types would emit ten identical pointer-shuffling bodies. So each observed `(decl, type-args)` instance is classified into one of three **flavors**, which decide how its type arguments are represented in the emitted body. The split keys on whether a type argument is a **primitive value-type** — the fixed-width numerics (`i8`…`i64`, `u8`…`u64`), `f32`/`f64`, `bool`, `char`, `string`, distinct newtypes over any of these, an integer range, and an enum, kept as itself — or a **reference type** (structs, arrays, tuples, closures — everything represented at runtime as a uniform pointer):
-
-- **Mono** — full concrete substitution, one body per instance (`second__i32`). A free fn is `Mono` when it dispatches a trait method on a type parameter (the call must bind to a concrete impl) or returns a `T[]`.
-- **Mixed** — at least one type argument is a primitive. Primitive parameters stay **concrete and raw** — a `Box<i64>` field is laid out as a raw `i64` (not a boxed slot), and `msg.to_string()` on a primitive resolves to the one impl statically — while reference parameters are erased to the uniform pointer. Mangling keeps one body per distinct primitive shape (`Box__i64`, `Box__f32`, …).
-- **Erased** — every type argument is a reference type. All type parameters erase to a single uniform-pointer representation (spelled `Any`), so identical erased instances **deduplicate to one emitted body**, and a trait-method call on an erased receiver dispatches at runtime on the boxed tag. A reference is a reference regardless of what it points to, so one body serves them all.
-
-The classifier is `fn_instance_flavor` in `vader/lower/mono_fn.vader` for free functions, with the matching struct-layout and impl-materialisation logic in `vader/lower/mono_struct.vader` and `vader/lower/subst.vader`. The payoff is the **box-vs-raw partition**: a primitive instance is fully concrete (its representation is known statically, primitive ops inline, no vtable), while a reference instance stays erased and uniform (small code, one shared body). Because the split is derived structurally from the type arguments, generics need no per-declaration "always specialise" annotation — the compiler already keeps every primitive instance concrete on its own.
-
-### Lowered AST
-
-The lowerer consumes the typed AST and produces a **separate, smaller AST** (the *Lowered AST*) where high-level constructs are desugared into a fixed set of primitive operations the backends understand. The original typed AST is never mutated. Specifically the lowerer:
-
-- **Pattern match → if/else chains.** Naive linear lowering: each arm becomes a guarded `if` whose predicate is the pattern's discriminator (type tag, struct shape, literal equality) ∧ its optional `if`-guard. The `match x :: e` binder becomes a local binding ahead of the arms; struct destructuring binds locals at the head of the arm body. No decision-tree compilation in MVP — naive code is fine for the bytecode emitter to optimise later.
-- **String interpolation → one string build.** Each `"…${x}…"` lowers to plain Vader calls on the `std/core` byte-buffer API, or to the shared `concat_N` when no segment is an integer or a bool (§9 *Compile-time verification*). A segment of any other type renders through its `Display.to_string`, called directly when the impl is known at that point.
-- **`defer` → a per-frame stack of thunks.** Each `defer` body is lifted into a closure over the locals it captures (a captured local is promoted to a heap cell), and the `defer` statement pushes it onto the frame's defer stack (`defer.push`). Every exit of a block pops and runs the thunks registered since the block was entered, LIFO (`defer.pop_exec N`): implicit fallthrough, `return` (every block up to the fn root), `break` / `continue` (every block up to the target loop's body). A value leaving the block — a `return` value, a trailing expression — is computed before the thunks run. In an async coroutine the stack lives in the coroutine's frame, so it survives a suspension. A `panic` (or trap) **runs the pending defers** of every frame it unwinds through — LIFO, innermost frame first — before the process aborts; the panic stays fatal (no recovery). Each frame runs its own defers as the stack tears down; defers do not otherwise propagate across function boundaries.
-- **Trait calls → a direct call where the receiver is concrete.** A call whose receiver has a concrete type becomes a direct call of that type's impl member: `recv.to_string()` calls the receiver's own `to_string`. A call on a trait-typed value (a parameter typed `Display`, an `Iterator<T>` held in a field, the receiver inside an erased generic instance) dispatches through a vtable instead (`virtual.call`), filled by the impl members that take `self`; a static member has no slot (§Traits).
-- **Runtime checks.** Narrowing covers nullability: there is no null check at run time. The program stops, in every build, on an array index out of bounds (a release build drops the checks the range analysis proves), on an integer `div` / `mod` by zero (`INT_MIN / -1` gives `INT_MIN`; a float divide keeps IEEE `inf` / `nan`), and on a conversion into a range, an enum or a `char` outside its values (`Hour(x)`, `E(x)`, `char(x)`). An integer `+`, `-`, `*` or unary `-` that overflows stops the run except in a release build, where it wraps (§Integer overflow).
-
-The Lowered AST is the input to the dead-code elimination pass. It is dumpable, printed as Vader, via `vader dump --stage=lowered-ast` for debugging and snapshot tests.
-
-### Mid-IR (CFG)
-
-Between the (DCE'd) Lowered AST and the bytecode emitter, a Mid-IR layer lowers every `LoweredFnDecl` to a **reducible CFG** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings are interned into a project-level pool reused verbatim by the emitter.
-
-The CFG is the substrate for analyses that need def-use chains rather than tree walks:
-
-- **Escape analysis** — stack-allocates structs whose lifetime stays within the function (no SSA).
-- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter.
-- **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
-
-The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that places each block once by dominator tree (`docs/adr/0027`), and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design: `docs/MID_IR_DESIGN.md`.
-
-### Dead-code elimination
-
-Between the lowerer and the CFG, a DCE pass drops the functions that are not transitively reachable from the roots; structs and constants are kept. Roots: `main`; any function carrying `@export` or `@extern`, or with no body; `@test` functions in a test build; and, when the program has no `main`, every function of the entry module. A call through a vtable keeps every impl member that can fill that slot. It is dumpable via `vader dump --stage=dced-ast`.
+A program is compiled as a whole. Every module is parsed, resolved and type-checked before any code runs, and `@comptime` values are computed at build time (§14).
 
 ### Exposed execution modes
 
-The actions (`run` on the VM, `build` through the C backend, and the others) are listed in §18.
+The compiled program runs in one of two ways:
 
-### Compile-time sandbox
+- **on the Vader virtual machine**: `vader run`, `vader test`, and the evaluation of `@comptime` values;
+- **as a native binary**, through generated C and the system C compiler: `vader build`.
 
-Code in `@comptime` context can:
+A WebAssembly target is planned (§17). The full list of CLI actions is in §18.
 
-- ✅ compute (pure functions)
-- ✅ allocate memory and manipulate structures
-- ✅ write debug output to `stdout` (`println`) — a side effect that never enters
-  the baked value, so it cannot affect reproducibility
-- ✅ read the clock, the environment or the filesystem. Baking
-  `now()` into a build stamp is an ordinary thing for a program to want. What it
-  costs is reproducibility, and that is the program author's call to make — the
-  language does not take it away.
-- ✅ name a file relative to its own source: a `@comptime` value is evaluated
-  with the folder of the file that declares it as working directory, so
-  `read_file_bytes("sprite.png", …)` reads the file beside that source wherever
-  the compiler was started, and `current_working_directory()` answers that folder.
-- ✅ run on the build machine whatever the target: in a build for another OS, a
-  `@comptime` value runs the `@target` bodies of the machine the compiler runs
-  on, while `VADER_OS` and `VADER_ARCH` keep the target's values, so reading a
-  file or the clock works the same in a cross build.
-- ❌ ask what machine the COMPILER is running on: `current_os` / `current_arch`,
-  the scheduler's clock, and the dynamic FFI (`ffi_open` / `ffi_symbol` /
-  `ffi_call`, which resolves a symbol out of a library chosen at build time).
-  Refused with `C4016`. These are a different thing from an impure value: baking
-  one makes the same SOURCE emit differently depending on who built it, which no
-  author asked for and none can see.
-- ❌ call a `@singleton` function (`C4018`), which rules out what reaches one,
-  such as spawning a process.
-- The compiler holds ITSELF to a stricter rule than the language, and checks it
-  directly rather than by forbidding: `bootstrap/verify.sh` compares stage1 to
-  stage2 byte for byte on every PR, so a non-reproducible `@comptime` inside the
-  compiler's own tree fails CI. That is where this tree's guarantee lives — not
-  in a restriction on everyone else's programs.
+### Run-time checks
+
+The program stops, in every build mode, when:
+
+- an array index is out of bounds;
+- an integer division or remainder has a zero divisor;
+- a conversion into a range type, an enum or `char` gets a value outside the target type (`Hour(x)`, `E(x)`, `char(x)`).
+
+`INT_MIN / -1` gives `INT_MIN`. A float division follows IEEE 754 and can give `inf` or `nan`.
+
+An integer `+`, `-`, `*` or unary `-` that overflows also stops the program, except in a release build, where it wraps (§4 *Integer overflow*).
+
+There is no null check at run time: narrowing settles nullability at compile time.
 
 ---
 
@@ -159,11 +68,13 @@ Code in `@comptime` context can:
 
 ### Source encoding
 
-UTF-8. A leading BOM is silently ignored and takes no column. A file holding a byte sequence that does not decode as UTF-8 is L0012, reported once, at its first malformed run, with the count; the lexer reads each run as a U+FFFD one column wide and goes on (§Strings, *Malformed UTF-8*).
+Source files are UTF-8. A leading BOM is ignored and takes no column.
+
+A byte sequence that is not valid UTF-8 is an error, reported once per file, at the first malformed run, with the number of runs. The lexer reads each run as one U+FFFD, one column wide, and continues (§4 *Strings*).
 
 ### Shebang
 
-A `#!` shebang line is allowed on the **first line only** and is silently skipped by the lexer. Anywhere else, `#!` is a lexical error. With `#!/usr/bin/env -S vader run`, a script is directly executable on Unix.
+A `#!` line is allowed on the first line only, and the lexer skips it. Anywhere else, `#!` is a lexical error. With `#!/usr/bin/env -S vader run`, a script runs directly on Unix.
 
 ```vader
 #!/usr/bin/env -S vader run
@@ -184,20 +95,20 @@ main :: fn() -> i32 { return 0 }
 */
 ```
 
-Nested block comments are supported: the lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
+Block comments nest: a block comment ends at the `*/` that matches its `/*`.
 
 ### VaderDoc
 
-Doc-comments start with `///` (line form). Each successive `///` line is part of the same doc-block attached to the declaration that immediately follows. The lexer drops every comment before the parser sees it; tooling consumes them by re-scanning the source. The `///` form is the only supported VaderDoc shape — `/**` block-style doc-comments are NOT recognised.
+A doc comment starts with `///`. Consecutive `///` lines form one doc block, attached to the declaration that follows. `/** ... */` is an ordinary block comment.
 
-Doc-comments may use the following tags. Tags appear one per line, after a blank-line-separated body:
+After the description and a blank line, a doc block may use these tags, one per line:
 
-| Tag        | Meaning                                                                          |
-|------------|----------------------------------------------------------------------------------|
-| `@param`   | Describe one named parameter. Format: `@param <name>  <description>`.           |
-| `@return`  | Describe the return value. Omit for `void` returns.                              |
-| `@error`   | Describe which `Error` variant(s) can be returned and under what cause.          |
-| `@example` | A usage snippet block. Lines after the bare `@example` line are the body: runnable Vader, indented. |
+| Tag        | Meaning                                                                    |
+|------------|----------------------------------------------------------------------------|
+| `@param`   | One parameter: `@param <name>  <description>`.                             |
+| `@return`  | The return value. Omitted for `void`.                                      |
+| `@error`   | Which error variants can be returned, and when.                            |
+| `@example` | A usage example: the indented lines that follow, in runnable Vader.        |
 
 ```vader
 /// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
@@ -211,11 +122,11 @@ Doc-comments may use the following tags. Tags appear one per line, after a blank
 export parse_int :: fn(s: string) -> i32 | ParseError
 ```
 
-Every public method in the standard library carries a VaderDoc block following this convention.
+Every exported function of the standard library has a doc block in this form.
 
 ### Identifiers
 
-`[a-zA-Z_][a-zA-Z0-9_]*`. Case-sensitive. No Unicode in identifiers in MVP.
+`[a-zA-Z_][a-zA-Z0-9_]*`, case-sensitive. Identifiers are ASCII only in the MVP.
 
 ### Reserved keywords
 
@@ -228,11 +139,12 @@ true false null
 self
 ```
 
-`const` is reserved (`P1027`). `module` is a contextual keyword, a keyword only at the head of a file's module declaration.
+Also reserved:
 
-The identifier `void` is **reserved**: binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. It names the type of expressions that yield no value (§6 *Declaration*).
-
-`Self` (capitalised) is **not** a lexical keyword — it is a reserved *type name* resolved by the typechecker, usable only inside `trait` / `implements` bodies where it denotes the implementing type. Using it elsewhere is `T3023` (reserved: not reported yet). (Only lowercase `self`, the receiver parameter, is a keyword.)
+- `const`, which is no longer part of the language and cannot be used as an identifier.
+- `module`, a keyword only at the start of a file's module declaration.
+- `void`, which names the type of expressions that produce no value (§6 *Declaration*). It cannot name a function, struct, parameter, local, type parameter, pattern binding or namespace import.
+- `Self`, a type name rather than a keyword. Inside a `trait` or `implements` body it denotes the implementing type. Using it elsewhere is `T3023` (reserved: not reported yet). The receiver parameter `self` is a keyword.
 
 ### Literals
 
@@ -242,20 +154,21 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 - Hexadecimal: `0xFF`, `0xff`, `0xFF_FF` (case-insensitive after `0x`)
 - Binary: `0b1010`, `0b1010_1010`
 - Octal: `0o755`, `0o7_5_5`
-- Default type: `i32` when no surrounding context pins a width. A literal is *free* (untyped) until its context provides a concrete integer type — there is **no typed-suffix form** (`42i32` / `42_i32` are errors); write a typed slot, annotation, or cast instead.
-- Underscore rules: never two in a row (`1__000` is an error), never leading or trailing on the digits (`0x_FF`, `42_` are errors).
+
+An integer literal is *free*: it takes the integer type its context requires, and `i32` when the context requires none. There is no type suffix (`42i32` and `42_i32` are errors); give the type through the slot, an annotation or a cast.
+
+Underscores separate digits, but never two in a row (`1__000`) and never at the start or end of the digits (`0x_FF`, `42_`).
 
 #### Float literals
 
-- Standard: `3.14`, `0.5`, `00.5` (leading zeros allowed), `1.0e-10`, `1.5E+3`
-- A trailing point with no fractional digits is forbidden: `5.` is an error — write `5.0`.
-- A bare `.5` is forbidden — write `0.5`.
-- Default type: `f64`. Like integers, a float literal is *free* until context pins a width; there is **no typed-suffix form** (`3.14f32` is an error — annotate the slot for `f32`).
-- Same underscore rules as integers.
+- Forms: `3.14`, `0.5`, `00.5` (leading zeros allowed), `1.0e-10`, `1.5E+3`.
+- The point needs digits on both sides: `5.` and `.5` are errors; write `5.0` and `0.5`.
+- A float literal is free like an integer literal, and `f64` when the context requires no type. There is no type suffix (`3.14f32` is an error); annotate the slot to get an `f32`.
+- Underscores follow the integer rules.
 
 #### Boolean / null
 
-`true`, `false`, `null` are reserved keywords producing literal tokens.
+`true`, `false` and `null` are keywords.
 
 #### Char literals
 
@@ -266,9 +179,12 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 '\u{1F600}'  // explicit codepoint
 ```
 
-- Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits, a Unicode scalar value: a surrogate `D800..DFFF` or a value past `10FFFF` is L0009, in a char or a string literal).
-- Exactly **one** logical codepoint per literal. `''` and `'ab'` are lexical errors.
-- A char **literal** is *free*: in an integer context it coerces to that integer type, a range included, carrying its codepoint, bounds-checked at compile time (`b == '/'` with `b: u8` works, and so does `d: 48..=57: '5'`; `b == '💩'` is rejected — U+1F4A9 is not in `u8`). With no integer context it defaults to `char`. Arithmetic on char literals computes on their code points and gives an integer: `'a' - 'A'` is `32`, and `char('\u{D7FF}' + 1)` is checked as any `char(x)`. This replaces the old `b'X'` byte literal — write `'X'`, not `b'X'`. (There is no `b'…'` form anymore.) A char **variable** keeps the concrete `char` type and never auto-coerces: convert it explicitly with `u8(c)` (which truncates codepoints above `0xFF`).
+- Escapes: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, and `\u{H...}` with 1 to 6 hex digits. The value must be a Unicode scalar value: a surrogate (`D800` to `DFFF`) or a value above `10FFFF` is an error, in a char literal as in a string literal.
+- A char literal holds exactly one code point: `''` and `'ab'` are lexical errors.
+- A char literal is free. In an integer context, range types included, it takes that type and holds its code point, which must fit: with `b: u8`, `b == '/'` and `d: 48..=57: '5'` are valid, `b == '💩'` is an error. Elsewhere it is a `char`.
+- Arithmetic on char literals works on their code points and gives an integer: `'a' - 'A'` is `32`.
+- There is no `b'X'` byte literal: `'X'` does the job.
+- A `char` variable keeps the type `char` and never converts implicitly. `u8(c)` converts it, truncating code points above `0xFF`.
 
 #### String literals
 
@@ -283,24 +199,15 @@ multi-line
 r"""raw multi-line"""          // raw and triple-quoted: may contain `"`, no interpolation, no escapes
 ```
 
-- Escape set inside `"..."` and `"""..."""`: `\n`, `\t`, `\r`, `\\`, `\"`, `\$` (literal dollar), `\0`, `\u{HHHH}`.
-- Inside `r"..."`: backslashes are taken literally; `\n` stays as two characters; no `${...}` interpretation.
-- Triple-quoted strings consume an optional immediately-following newline after the opening `"""` (so the body starts on a fresh line cleanly).
+- Escapes in `"..."` and `"""..."""`: `\n`, `\t`, `\r`, `\\`, `\"`, `\$` (a dollar sign), `\0`, `\u{H...}`.
+- In a raw string, a backslash is an ordinary character (`\n` stays two characters) and `${...}` is plain text.
+- A newline right after the opening `"""` is not part of the string, so the text can start on its own line.
 
-#### String interpolation tokens
+#### String interpolation
 
-The lexer emits a flat token stream when crossing into and out of `${...}`:
+`${expr}` inside a non-raw string inserts the value of any expression. Interpolations nest: `"outer ${"inner ${x}"}"`.
 
-```
-STRING_BEGIN  STRING_PART("foo ")  INTERP_OPEN  <expression tokens>  INTERP_CLOSE  STRING_PART(" bar")  STRING_END
-```
-
-- `STRING_BEGIN` / `STRING_END` mark the literal's boundaries.
-- `STRING_PART` carries decoded text.
-- Inside `INTERP_OPEN..INTERP_CLOSE` the lexer is in **expression mode** and emits regular tokens.
-- **Nested interpolation** is allowed: `"outer ${"inner ${x}"}"`. The lexer maintains a stack of modes (string vs. interpolation) so it can re-enter string mode after a nested `INTERP_CLOSE`.
-- **Braceless shorthand**: a bare `$ident` interpolates a single identifier without braces — `"Hello, $name"` is equivalent to `"Hello, ${name}"`. Only a plain identifier is accepted after `$`; anything more (a field access, a call, an expression) needs the `${...}` form.
-- Raw strings (`r"..."`) emit `STRING_BEGIN`, a single `STRING_PART` (with the literal contents, no escape processing, no interpolation scan), then `STRING_END`.
+A single identifier needs no braces: `"Hello, $name"` is `"Hello, ${name}"`. Anything longer (a field access, a call) needs `${...}`.
 
 ### Operators
 
@@ -309,11 +216,11 @@ Arithmetic   : + - * / %
 Wrapping     : +% -% *%  (integers only: the result wraps around the operand's width)
 Bitwise      : & | ^ ~ << >>  (a shift's count keeps its low 5 bits, 6 for a 64-bit type: `1 << 33` on an `i32` is 2, `u8(1) << 9` is 0)
 Comparison   : == != < <= > >=
-Identity     : === !==   (same object; references only — §Equality, *Identity*)
+Identity     : === !==   (same object; references only, §4 *Identity*)
 Membership   : in   (sugar for `right.contains(left)`)
-              !in   (sugar for `!right.contains(left)`, parsed as `bang` + `kw_in`)
+              !in   (sugar for `!right.contains(left)`)
 Type test    : is Type   (in `match` arms and in `if`/`else` conditions; narrows the scrutinee)
-              !is Type   (negated form, parsed as `bang` + `kw_is`; desugars to `!(x is Type)`)
+              !is Type   (same as `!(x is Type)`)
 Logical      : && || !
 Assignment   : =  (also compound : += -= *= /= %= +%= -%= *%=, each `lhs op= rhs` meaning `lhs = lhs op rhs`, `lhs` evaluated once)
 Declaration  : x :: value           (immutable, type inferred)
@@ -326,13 +233,38 @@ Field access : .name
 Index access : [expr]
 ```
 
-`in` and `!in` desugar to a method call on the `Contains<T>` trait (§Traits, *Operator overloading*), except with a type on the right: `x in Hour` tests an integer against the bounds of an integer type (§Range types, *Bounds*), `x in Weekday` against the values of an enum (§Enums, *Values*), `x in char` against the Unicode scalar values (§Casts, *`char` ↔ integer*). The element is `contains`'s `value`: `n in r` with `n: i64` on a `Range<i32>` is T3017, as `r.contains(n)` is, and so is an `i32 | null` on an `i32[]`; a free element takes the container's type (`4_000_000_000 in r` on a `Range<i64>`). A literal range or array on the right takes the element's type, a distinct's backing for a distinct element, as `<` gives a literal: `n in 5_000_000_000..=6_000_000_000` over an `i64` is a `Range<i64>`, `b in [' ', '\t']` over a `u8` a `u8[]`, `m in 0..=9` holds for a distinct over `i64`, and `b in -1..=3` over a `u8` is T3066. `s in "a"..="m"` is then a `Range<string>`, which implements no `Contains` (T3043). A union element gives the literal nothing to take, whose variant it cannot pick. Char comparisons (`<`, `<=`, `>`, `>=`) work on codepoint order (`char` is wire-compatible with `u32`); string comparisons on byte order, which in UTF-8 is codepoint order too.
+Characters compare by code point. Strings compare by bytes, which for UTF-8 is also code-point order.
 
-A variable's type is fixed at its declaration. A reassignment (`x = v`, `arr[i] = v`, `m[k] = v`, `obj.f = v`, and every compound form) must supply a value assignable to that declared slot type — the same rule the initializer applies, `Into` coercions included — otherwise it raises **T3063**. The check targets the *declared* type, not any active flow-narrowing: inside `if x is A { … }` a write `x = b` of another union member is allowed (it retires the narrowing) as long as `b` fits `x`'s declaration.
+#### Membership: `in`
+
+`x in c` calls `c.contains(x)` from the `Contains<T>` trait (§4 *Operator overloading*), and `x !in c` negates it.
+
+With a type on the right, `in` tests the values of that type:
+
+- `x in Hour` checks an integer against the bounds of an integer type (§4 *Range types*);
+- `x in Weekday` checks against the values of an enum (§4 *Enums*);
+- `x in char` checks against the Unicode scalar values (§4 *Casts*).
+
+The left operand must have the element type that `contains` expects. With `r: Range<i32>`, `n in r` is an error for `n: i64` and for an `i32 | null`, as `r.contains(n)` would be. A free literal on the left takes the element type: `4_000_000_000 in r` is valid for `r: Range<i64>`.
+
+A literal range or array on the right takes the type of the left operand (its backing type, for a distinct type). A union on the left gives it no type.
+
+```vader
+n in 5_000_000_000..=6_000_000_000   // n: i64, the range is a Range<i64>
+b in [' ', '\t']                     // b: u8, the array is a u8[]
+b in -1..=3                          // b: u8, error: -1 is not a u8
+s in "a"..="m"                       // error: Range<string> does not implement Contains
+```
+
+#### Assignment
+
+A variable's type is fixed by its declaration. Every assignment (`x = v`, `arr[i] = v`, `m[k] = v`, `obj.f = v`, and the compound forms) must give a value assignable to the declared type, `Into` conversions included, as for the initializer.
+
+The check uses the declared type even where the variable is narrowed. Inside `if x is A { ... }`, `x = b` is allowed when `b` fits the declaration of `x`, and it ends the narrowing.
 
 ### Operator precedence
 
-From tightest to loosest. Higher levels bind more tightly. Non-assoc operators forbid chaining (`a == b == c` is a parse error — write `(a == b) == c`).
+From the tightest (level 1) to the loosest:
 
 | Level | Operators                              | Associativity |
 |-------|----------------------------------------|----------------|
@@ -351,27 +283,92 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 13    | `??` (null-coalescing)                 | left (non-chaining) |
 | 14    | `=` (statement-level only)             | n/a            |
 
-Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. A `-` written against a number literal, with nothing in between, where an operand is expected, is not the level-2 prefix operator but part of the literal, so a postfix applies to the negative value: `-5.to_string()` is `"-5"` and `-5.abs()` is `5`, while `-x.abs()`, `-(5).abs()` and `- 5.abs()` negate the call (§Default integer). After an operand, `-` is the subtraction: `a -5` is `a - 5`. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else.
+Non-associative operators do not chain: `a == b == c` is a parse error; write `(a == b) == c`.
 
-`is` checks the runtime *struct-tag* of the value. A **union on the right-hand side is a membership test**: `x is A | B` — and equally `x is MyUnion` for a `MyUnion :: A | B` alias — is true when `x`'s tag is one of that union's members, and narrows `x` to it in the then-branch. So given `U :: A | B | C` and `AB :: A | B`, a value of type `U` holding a `B` satisfies `v is AB`, and inside that branch `v` may be passed where an `AB` is expected. A test that *cannot* match — the right-hand side shares no values with the scrutinee's type, e.g. `v is D` on a `v: A | B` — is the error `T3040`, not a warning.
+A cast `Type(expr)` is a call, at level 1.
 
-An `is` test binds no name: it narrows the name or field chain it tests, in place. A value with no name of its own gets one first, `r :: f()`, then the test narrows that name: `if r is T { … r … }`. `x is T as y` (and `x !is T as y`) is **P1036**.
+A `-` written directly against a number literal, where an operand is expected, belongs to the literal. A postfix then applies to the negative value: `-5.to_string()` is `"-5"` and `-5.abs()` is `5`. With anything in between, `-` is the prefix operator and negates the whole call: `-x.abs()`, `-(5).abs()`, `- 5.abs()`. After an operand, `-` is a subtraction: `a -5` is `a - 5`.
 
-Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed).
+### Type tests and narrowing
 
-Narrowing flows through a `||` condition in the mirror direction. The **false** branch of a disjunction narrows every binding its operands tested — reaching it means *each* operand was false — so `if x is A || x is B { … } else { … }` sees `x` as its declared type minus `A | B` in the else, and the same complement applies to the rest of the block after a divergent guard (`if x is A || x is B { return }`). The **true** branch narrows only when *every* operand tests the same binding, and then to the **union** of what they matched: `if x is A || x is B { … }` sees `x` as `A | B`. A disjunction with one non-narrowing operand (`if x is A || flag`) narrows nothing on the true side — a true condition doesn't reveal which operand fired — while the false side still narrows `x`; likewise `if x is A || y is B` narrows neither on the true side and both on the false one.
+`x is T` tests the run-time type of a value. In the branch where the test holds, `x` is narrowed to `T`.
 
-The two operators are duals: a conjunction's **true** side applies each operand's positive narrowing and its false side applies none; a disjunction's **false** side applies each operand's negative narrowing and its true side applies one only in the single-binding case. The right operand of each sees the outcome its evaluation implies — `&&` the left's true side, `||` the left's false side — so `y == null || y.a > 0` type-checks with `y` non-null on the right.
+With a union on the right, `is` tests membership: `x is A | B`, or `x is AB` for an alias `AB :: A | B`, holds when the value is an `A` or a `B`, and narrows `x` to that union. Given `U :: A | B | C`, a `U` holding a `B` satisfies `v is AB` and can then be passed where an `AB` is expected.
 
-These rules compose at any depth, through `!` as well: `!c` narrows what `c` narrows on the opposite side, and each operand of `&&` / `||` is itself a condition. So `if (y is A || y is B) && p { … }` sees `y` as `A | B`, and `if !(y is A || y is B) { … }` sees it as what neither matched.
+A test that can never hold is an error: `v is D` with `v: A | B`.
 
-A loop condition narrows the body as an `if` condition narrows its then-block, since each iteration tests it before it runs: `for cursor != null { … cursor = cursor.next }` reads `cursor` as non-null until the write retires the narrowing. The code after the loop is not narrowed: a `break` may leave it with the condition still true.
+An `is` test binds no name. It narrows the name or field chain it tests, in place. To test a value without a name, bind it first:
 
-**A predicate narrows as its condition does.** A function of the module whose body is one condition over its parameters (`= cond`, returning `bool`, not generic) is a *guard*: a call to it in a condition narrows each argument that is a binding or a field chain as `cond` narrows the matching parameter, on both sides, and composes through `!`, `&&`, `||` and a divergent guard like any test. With `Weekday :: Int in 0..=6` and `is_weekend :: fn(d: Weekday) -> bool = d >= 5`, `if is_weekend(d)` sees `d` as a `5..=6` and its `else` as a `0..=4`; `is_walk :: fn(a: Activity) -> bool = a is Walk` narrows a union, and `has_name :: fn(n: string | null) -> bool = n != null` a nullable. A guard may be written after its call, called as `d.is_weekend()`, and built on another guard. It holds in its own module: another module calls it as a plain predicate. A predicate with a block body is no guard, and what a condition proves of a parameter's field (`b.label != null`) is not carried to the argument.
+```vader
+r :: f()
+if r is T {
+    use(r)                 // `r` is a `T` here
+}
+```
 
-**A declared guard.** `@returns(cond)` on a free function returning `bool` states its contract, that it returns the value of `cond`: a call narrows its arguments as `cond` narrows the parameters, in every module, and the body is held to it, both ways, at each value it returns. Where it returns true, each parameter must lie within what `cond` proves on its true side; where it returns false, within its false side: `@returns(d in Weekend) is_weekend :: fn(d: Weekday) -> bool = d >= 4` is **T3111**, true for `d = 4`. A block body is held at each `return` and at its trailing value, with the narrowings in force there; `return true` and `return false` on their own side only, an `if` value branch by branch. The body may not write a parameter, from a lambda either (**T3113**). A generic function, a result other than `bool`, a function with no body, or a condition proving nothing of the parameters (one that only reaches its own guard included) is **T3112**; more than one condition is **P1032**; `@returns` on anything but a free function is **P1014**.
+`x is T as y` is a parse error.
 
-**A declared postcondition.** `@ensures(cond)` on a free function states what holds once it has returned normally: a call written as a statement, or as the initializer of a declaration (`r :: f(n)`), narrows its arguments as `cond` narrows the parameters where it is true, for the rest of the block, in every module. Only an argument that is a binding no lambda rebinds is narrowed: a field may be written through another name during the call, and a local by a lambda it runs. Nothing is checked at run time; the body is held to it instead, at each `return` and at its end, with the narrowings in force there: each parameter must lie within what `cond` proves on its true side, else **T3114**. A body that stops the program where `cond` fails (`if h !in Hour { panic(…) }`) holds it, as does one returning a call to a function ensuring it (`= require_hour(h)`); an `if` value is held branch by branch, a branch that never ends not at all. The function may return any type, but its body must have run once a call returns: a generator, a function that awaits and one with no body (`@extern`) are **T3112**. The rules of `@returns` apply: no write to a parameter (**T3113**); a generic function or a condition proving nothing of the parameters is **T3112**; more than one condition is **P1032**, and declares no contract; anything but a free function is **P1014**.
+#### Conditions with `&&`, `||` and `!`
+
+- **`&&`**: in `if x is T && rest`, `x` is narrowed in `rest` and in the then-branch, so `if x is Circle && x.radius > 0` type-checks. The else-branch is not narrowed: a false `a && b` does not say which operand was false.
+- **`||`**: the else-branch narrows every binding an operand tested. After `if x is A || x is B`, the else-branch sees `x` without `A` and `B`. The then-branch narrows only when every operand tests the same binding, to the union of the tested types: there `x` is `A | B`. `if x is A || flag` narrows nothing in the then-branch, and `x` in the else-branch.
+- **Right operand**: it sees the outcome of the left one. The right of `&&` sees the left as true, the right of `||` sees it as false, so `y == null || y.a > 0` type-checks.
+- **`!`** swaps the two branches. The rules compose at any depth: `if !(y is A || y is B)` sees `y` as neither `A` nor `B`.
+
+A guard that leaves the block narrows the rest of the block like an else-branch:
+
+```vader
+if x is A || x is B {
+    return
+}
+// `x` is neither an `A` nor a `B` here
+```
+
+A loop condition narrows the loop body. In `for cursor != null { ... cursor = cursor.next }`, `cursor` is non-null until the assignment. The code after the loop is not narrowed, since a `break` can leave while the condition still holds.
+
+#### Guards
+
+A *guard* is a function of the same module whose body is a single condition on its parameters: `= cond`, returning `bool`, not generic. Calling a guard in a condition narrows the arguments as `cond` narrows the parameters, in both branches.
+
+```vader
+Weekday :: Int in 0..=6
+is_weekend :: fn(d: Weekday) -> bool = d >= 5
+is_walk :: fn(a: Activity) -> bool = a is Walk
+has_name :: fn(n: string | null) -> bool = n != null
+
+if is_weekend(d) {
+    // `d` is a `5..=6` here, and a `0..=4` in the else-branch
+}
+```
+
+- Only an argument that is a binding or a field chain is narrowed.
+- A guard can be declared after its call, called as `d.is_weekend()`, and built on another guard.
+- In another module, a guard is an ordinary predicate and narrows nothing; `@returns` makes it narrow everywhere.
+- A function with a block body is not a guard. A condition on a field of a parameter (`b.label != null`) does not narrow the argument.
+
+#### Declared guards: `@returns`
+
+`@returns(cond)` declares that a free function returns the value of `cond`. Its calls narrow their arguments as a guard's do, in every module.
+
+The compiler checks the body against `cond` at each value it returns. Where the function returns true, `cond` must hold; where it returns false, `cond` must fail (`T3111`):
+
+```vader
+@returns(d in Weekend)
+is_weekend :: fn(d: Weekday) -> bool = d >= 4   // error: true for d = 4
+```
+
+A block body is checked at each `return` and at its trailing value, with the narrowings in force there. An `if` value is checked branch by branch.
+
+The following are errors:
+
+- a function that is generic, does not return `bool`, or has no body (`T3112`);
+- a body that assigns a parameter, directly or from a lambda (`T3113`);
+- a condition that says nothing about the parameters (`T3112`);
+- more than one condition (`P1032`), or `@returns` on anything but a free function (`P1014`).
+
+#### Declared postconditions: `@ensures`
+
+`@ensures(cond)` declares that `cond` holds once the function returns normally. After a call written as a statement, or as the initializer of a declaration (`r :: f(n)`), the arguments are narrowed as `cond` narrows the parameters, for the rest of the block, in every module.
 
 ```vader
 @ensures(h in Hour)
@@ -385,21 +382,36 @@ require_hour(n)
 label(n)                   // `n` is an `Hour` here
 ```
 
-**A narrowing lasts while nothing can have changed what it tested.** A write to the narrowed name or field retires it unless the value still fits (§ reassignment above). Beyond that:
+- Only an argument that is a binding no lambda assigns is narrowed.
+- Nothing is checked at run time. The compiler checks the body at each `return` and at its end: `cond` must hold there (`T3114`). Stopping the program where `cond` fails satisfies it, as `require_hour` does, and so does returning a call to a function that ensures the same condition.
+- The function may return any type, but its body must have finished when a call returns: a generator, a function that uses `await` or a function without a body is an error (`T3112`).
+- The other rules of `@returns` apply.
 
-- A **call** may write any object it reaches, through its arguments, an alias or a closure, so it retires every narrowing of a field (`a.s`, `self.items`) and the narrowing of a local that some lambda rebinds. A write through a user `IndexSet` (`m[k] = v`) runs its `set_at` and is one; a conversion `T(x)` is not. An `await` and a `yield` let other code run before the body resumes, and count as calls. A narrowing of a local that nothing else rebinds survives them.
-- A narrowing made **before a loop** does not hold inside it for what an earlier iteration may have changed: every field narrowing, and every local the body rebinds. The iterable of a `for x in e` is read once, before the first iteration, and still sees it.
-- A **field write** through any path (`b.s = v`, `xs[i].s = v`) retires every narrowing that goes through a field of that name, since `b` may be `a`.
-- In `a && b` (and the false side of `a || b`), a call in `b` retires what `a` narrowed, for the narrowed block as for the rest of `b`.
-- Code that runs **later than it is written**, a lambda's body or a `defer` body, runs after code that may change anything: it sees the narrowing of a binding no assignment rebinds, and no other. `defer println(c.value)` under `for c != null { … c = c.next }` is **T3008**, `c` being rebound before the deferred read runs.
+#### How long a narrowing lasts
 
-The usual remedy is to bind the field to a local before testing it, `s :: a.s` then `if s is Circle { reset(a); s.r }`: the local keeps the value that was tested.
+A narrowing lasts as long as nothing can have changed what it tested. An assignment to the narrowed name or field ends it, unless the new value still fits (*Assignment*, above). It also ends:
+
+- **after a call**, for every field narrowing (`a.s`, `self.items`) and for each local that some lambda assigns, since a call can write any object it reaches. Writing through a user `IndexSet` (`m[k] = v`), `await` and `yield` count as calls. A conversion `T(x)` does not.
+- **inside a loop**, for what an earlier iteration can have changed: field narrowings, and locals the body assigns. The iterable of `for x in e` is evaluated once, before the loop, and keeps the narrowing.
+- **after a field assignment** through any path (`b.s = v`, `xs[i].s = v`), for every narrowing through a field of that name: `b` may be the same object as `a`.
+- **after a call in the right operand** of `&&` (or of `||`, on its false side), for what the left operand narrowed: in the rest of the condition and in the branch.
+- **in code that runs later than written** (a lambda body, a `defer` body), which keeps only the narrowings of bindings that are never reassigned. Under `for c != null { ... c = c.next }`, `defer println(c.value)` is an error.
+
+The narrowing of a local that nothing else assigns survives all of these. To keep a narrowing across a call, bind the field to a local first:
+
+```vader
+s :: a.s
+if s is Circle {
+    reset(a)
+    use(s.r)               // `s` still holds the value that was tested
+}
+```
 
 ### Statement separators
 
-Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.
+Statements in a block are separated by newlines (*Newline-significant*, below). `;` is not a separator.
 
-A leading newline immediately after `{` is silently absorbed: a block may start on a new line without an empty statement.
+A newline right after `{` is ignored, so a block can start on the next line.
 
 ### Trailing commas
 
@@ -407,15 +419,15 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 
 ### Newline-significant
 
-A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the five cases below, where the newline is silently absorbed:
+A newline ends a statement, except in these five cases, where it is ignored:
 
-1. **Inside an unclosed bracket** `(` or `[`, and inside a `${…}` interpolation: newlines there are insignificant. Newlines inside a `{ }` block stay significant, since they separate statements, and that holds for a block opened inside a bracket or an interpolation too, such as the body of a lambda passed as an argument. Only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.
-2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `??`, `..<`, `..=`, and the spread `...`. (A newline after `!` is **not** absorbed.)
-3. **After a comma** `,`.
-4. **After a token that expects a right-hand side**: `=`, `:`, `->`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=` `+%=` `-%=` `*%=`.
-5. **Before a leading operator that has no prefix form**: when the next line *opens* with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, the newline before it is absorbed so the operator continues the previous expression. None of these has a prefix / unary meaning, so a line starting with one is unambiguously a continuation — in a `{ }` block too, where nothing else holds the expression open: a leading `+` continues a sum or a concatenation, `??` a fallback, `&&` / `||` a condition, `&` / `|` a type intersection / union. `//` comment lines between the two are looked past. A compound assignment (`+=`, `*=`, `/=`, `%=`, `+%=`, …) is **not** a continuation. Operators that *do* have a prefix form — `-`, `~`, `!`, `.` — are excluded, so they never silently join the previous line.
+1. **Inside an open `(` or `[`**, and inside a `${...}` interpolation. Inside a `{ }` block, newlines still separate statements, even when the block is inside brackets (the body of a lambda passed as an argument).
+2. **After an operator that still needs its operand**: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `===`, `!==`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `+%`, `-%`, `*%`, `??`, `..<`, `..=`, and the spread `...`. A newline after `!` is not ignored.
+3. **After a comma.**
+4. **After a token that needs a right-hand side**: `=`, `:`, `->`, `::`, `:=`, and the compound assignments `+=` `-=` `*=` `/=` `%=` `+%=` `-%=` `*%=`.
+5. **Before an operator with no prefix form.** When the next line starts with `+`, `*`, `/`, `%`, `+%`, `-%`, `*%`, `^`, `??`, `==`, `!=`, `===`, `!==`, `<`, `<=`, `<<`, `>`, `>=`, `>>`, `&&`, `||`, `&` or `|`, it continues the previous expression, in a `{ }` block too. Comment lines in between are skipped. A compound assignment (`+=`, `*=`, ...) does not continue the previous line, nor do `-`, `~`, `!` and `.`, which can start an expression.
 
-There is **no backslash-continuation** (`\` at end of line is not special). If you need to break a long expression, use one of the five cases above (typically wrap in parentheses, or break after — or before — a binary operator).
+There is no backslash continuation: a `\` at the end of a line is a lexical error. To break a long expression, use parentheses or break before or after a binary operator.
 
 ```vader
 // OK: break inside parens
@@ -670,7 +682,7 @@ A constant the compiler folds follows the same rule: an overflow while evaluatin
 
 The **wrapping operators** `+%`, `-%` and `*%` (and `+%=`, `-%=`, `*%=`) wrap in every mode: integer operands only (`T3017` otherwise, and no trait overloads them), the result wrapping around the operands' width, an 8- or 16-bit one included: so `250 +% 10` is `4` on a `u8`, at run time as when a constant folds. They are the form for arithmetic meant to wrap (a hash, a PRNG, a checksum): `h *%= 16_777_619`. There is no wrapping negation: write `0 -% x`.
 
-A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§Lowered AST); a narrowing cast truncates (§Casts) and a shift never traps (§Operators).
+A negative integer literal is one value (§Default integer), so `x: i64: -9_223_372_036_854_775_808` holds the least `i64` rather than negating a magnitude past its range. Division by zero traps in every mode (§2 *Run-time checks*); a narrowing cast truncates (§Casts) and a shift never traps (§Operators).
 
 ### Range types
 
@@ -700,7 +712,7 @@ Clock :: struct {
 
 A local takes the type of its first value, a range included, whether it is mutable or not: `next := h + 1` is a `1..=24`, and `next = next % 24` is **T3063**, `0..=23` not lying in it. A local that must hold other values writes its type (`next: i32 = h + 1`), and the detail of the T3063 says so; a local copied from a narrowed value takes its range too (*Bounds*).
 
-**Narrowing.** A comparison narrows a range where it holds, for a binding or a field chain, as `is` narrows a union (the flow narrowing under §Operator precedence), for as long and through `!`, `&&`, `||` and a guard that leaves the block alike. After `if h < 12` on an `Hour`, `h` is a `0..=11` in the branch and a `12..=23` in the `else` and past `if h < 12 { return … }`; `if h >= 6 && h <= 9` sees a `6..=9`. The value compared with is a literal or a value of a range, read by its bounds: `h < k` with `k: 1..=5` holds `h` within `0..=4`. `==` narrows to the compared values; `!=` removes a value at an end of the range only, a range having no hole: `h != 23` makes an `Hour` a `0..=22`, `h != 12` leaves it whole. For the same reason, where ranges meet again they join into the one holding them all: a true `||` (`if h < 6 || h > 20` sees a whole `Hour`, its `else` a `6..=20`), the branches of an `if` or a `match` (`if h < 12 { h } else { h }` is an `Hour`, a free literal among them standing for its own value, through a nested `if` or `match` as well: `if c { h } else if d { 30 } else { 40 }` is a `0..=40`) and the `return`s of a function whose result is inferred. A union written in the source keeps its ranges apart. A side no value reaches is `never`. A machine integer, or an integer of a primitive type, is not narrowed by a comparison; `in` narrows it (*Bounds*). A write to a narrowed binding, a destructuring one included, is checked against its declared range, as any write (§Operators), and retires the narrowing: `x = 0` is legal where `x == 23` holds.
+**Narrowing.** A comparison narrows a range where it holds, for a binding or a field chain, as `is` narrows a union (§3 *Type tests and narrowing*), for as long and through `!`, `&&`, `||` and a guard that leaves the block alike. After `if h < 12` on an `Hour`, `h` is a `0..=11` in the branch and a `12..=23` in the `else` and past `if h < 12 { return … }`; `if h >= 6 && h <= 9` sees a `6..=9`. The value compared with is a literal or a value of a range, read by its bounds: `h < k` with `k: 1..=5` holds `h` within `0..=4`. `==` narrows to the compared values; `!=` removes a value at an end of the range only, a range having no hole: `h != 23` makes an `Hour` a `0..=22`, `h != 12` leaves it whole. For the same reason, where ranges meet again they join into the one holding them all: a true `||` (`if h < 6 || h > 20` sees a whole `Hour`, its `else` a `6..=20`), the branches of an `if` or a `match` (`if h < 12 { h } else { h }` is an `Hour`, a free literal among them standing for its own value, through a nested `if` or `match` as well: `if c { h } else if d { 30 } else { 40 }` is a `0..=40`) and the `return`s of a function whose result is inferred. A union written in the source keeps its ranges apart. A side no value reaches is `never`. A machine integer, or an integer of a primitive type, is not narrowed by a comparison; `in` narrows it (*Bounds*). A write to a narrowed binding, a destructuring one included, is checked against its declared range, as any write (§3 *Assignment*), and retires the narrowing: `x = 0` is legal where `x == 23` holds.
 
 **Bounds.** `@min(T)` and `@max(T)` are the least and the greatest value of an integer type, a range or a primitive, as values of `T`: `@max(Hour)` is `23`, `@min(i8)` `-128`, `@max(u64)` `18446744073709551615`. A comparison with one narrows as the literal it stands for does (`if h == @max(Hour) { … }`). `x in T`, `T` an integer type, tests the integer `x` against the bounds of `T`, a constant where the type of `x` already decides it (`x` still runs); `x !in T` is its negation. It narrows `x` within `T` where it holds, an integer of a primitive type included: `if n in Hour { return n }` returns an `Hour` from an `i64`, with no conversion that could stop the program. Where it fails, a range `x` is narrowed past an end `T` covers, a primitive one is not: past most `T`, its values are two intervals. A narrowed integer is a value of the range for what follows, its arithmetic included, as a value declared of it would be: after `if n !in Hour { return }`, `n * 1000` computes `0..=23000`, the type `acc := n * 1000` takes (§*Operations*); `a := n` is an `Hour`, `i64(n)` the `i64` `n` was declared as, and `n << 8` is **T3115** where `i64(n) << 8` is not. Past `b in 0..=10` with `b: u8`, `c := b` is a `0..=10` and `u8(b)` the `u8`. A value narrowed to the bounds of a machine integer is that integer, its arithmetic closed and checked: past `n in u8`, `acc := n` is a `u8`, and `acc = acc * 2` stops the program once `acc` passes `127`, as on any `u8`. A range with integer literal bounds on the right narrows the same way (`if h in 0..<12`), its test still the `Range`'s `contains`. An enum without variant data has its values as bounds (§Enums, *Values*), and `char` the Unicode scalar values (§Casts, *`char` ↔ integer*): `@min(char)` is U+0000, `@max(char)` U+10FFFF, and `x in char` narrows nothing, its values being two intervals around the surrogates. Any other type with no integer bounds is **T3110**, for `in` and for `@min` / `@max`. The values of `T` are not counted: `@max(T) - @min(T) + 1` is the number of them.
 
@@ -1112,7 +1124,7 @@ must_greet :: fn(a: Animal | null) -> string {
 }
 ```
 
-Mirrors the per-arm narrowing inside `match`. This is the flow narrowing of §Operator precedence applied to `null`: a binding or a field chain, either operand order, both branches, and past a guard that leaves the block (`return`, `break`, `continue`).
+Mirrors the per-arm narrowing inside `match`. This is the flow narrowing of §3 *Type tests and narrowing* applied to `null`: a binding or a field chain, either operand order, both branches, and past a guard that leaves the block (`return`, `break`, `continue`).
 
 #### Null-coalescing `??`
 
@@ -1366,7 +1378,7 @@ match value {
   }                               }
   ```
 
-- `is Type` for type narrowing. On an instance of a generic struct the test tells the instances apart when every type argument is a primitive or an enum (`is Spec<bool>` never matches a `Spec<string>`, nor `is Box<Color>` a `Box<Direction>` or a `Box<u8>`). **A type argument that erases is `T3087`** — a reference type, or a type parameter, which a reference may bind: `Box<Foo>` and `Box<Bar>` share one body (*Instance flavor* above), whose values carry the shared tag, so no test can tell them apart. Test the field that holds the type argument instead (`x.value is Foo`). A generic fn may test one of its own type parameters (`x is U`, `match x { is U -> … }`): the test reads what the call binds `U` to, through generic callers too. Inside an impl member it is `T3087`.
+- `is Type` for type narrowing. On an instance of a generic struct the test tells the instances apart when every type argument is a primitive or an enum (`is Spec<bool>` never matches a `Spec<string>`, nor `is Box<Color>` a `Box<Direction>` or a `Box<u8>`). **A type argument that erases is `T3087`** — a reference type, or a type parameter, which a reference may bind: `Box<Foo>` and `Box<Bar>` share one body, whose values carry the same tag, so no test can tell them apart. Test the field that holds the type argument instead (`x.value is Foo`). A generic fn may test one of its own type parameters (`x is U`, `match x { is U -> … }`): the test reads what the call binds `U` to, through generic callers too. Inside an impl member it is `T3087`.
 - **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The arm matches when `scrutinee == literal` holds, with the literal typed as that right operand: a free literal takes the type of the variant it fills (`5` against `i64 | string` is an `i64`), a union compares by variant and a float by IEEE (`0.0` matches `-0.0`). The literal is typed against what the arms above leave of the scrutinee: after `is Point ->`, `"a"` against `Point | string | null` compares with `string | null`, so `Point` needs no `Equals` — placed before that arm, the same literal is T3043, as `==` on the whole union would be. A literal whose variant an arm above consumed (`"a"` after `is string ->`) can no longer match: `W0014`. A literal no value of the scrutinee can equal is T3001. A literal in a struct pattern (`is Holder { v: 5 }`) follows the same rule against its field.
 - **Range patterns**: `'a'..='z' -> …` / `0..<10 -> …` match a scalar scrutinee (char / integer) that falls in the range. `..=` includes the upper bound, `..<` excludes it (matching the range-expression operators). The bounds are scalar literals of the scrutinee's type, a free literal taking it: `5_000_000_000..=6_000_000_000` over an `i64` is two `i64`, and `-1..=3` over a `u8` is T3066. Over a distinct they take its backing, as `<` does. Over a union they take its integer or `char` variant, and the arm tests that variant first: after `is null ->`, `0..=9` matches an `i32 | null` holding 0 to 9; once the arms above took that variant, the range is W0014, as a literal is. A scrutinee with no integer or `char` to order is T3001. Range patterns bind nothing; over an integer type they and literal patterns cover its values (next item).
 - **Exhaustive over an integer type**: a `match` over a range, an integer primitive or `char` (a distinct over one included) needs no `_` once its unguarded literal and range arms cover every value: `match h { 0..=11 -> …, 12..=23 -> … }` on an `Hour`, `0..<128` and `128..=255` on a `u8`, every Unicode scalar value on a `char` (the surrogates are none). A value no arm takes is `T3013`, which names the first one missing (`value `12` of Hour is not covered`). `u64` reaches past `i64`, which no literal does: it keeps needing `_`. An arm whose values earlier arms all took, and a `_` after arms covering the type, are `W0014`.
@@ -1497,7 +1509,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 
 A bound names traits, or `Int` (§Range types, *Generic over integers*), joined by `&` (`K: A & B`: K satisfies both). A union is not a bound: `K: A | B` grants nothing a body could use, so it is **R2042**, as it is in a trait's `requires`; an optional value carries `null` where the parameter is used, not on its bound: `fn<T: Bump>(x: T | null)`, never `fn<T: Bump | null>(x: T)`.
 
-**Implementation**: monomorphization, with reference type arguments sharing one erased body (see *Instance flavor*).
+**Implementation**: see [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), *Monomorphization*.
 
 **Bound enforcement and trait-method dispatch on type parameters.** The typechecker:
 - Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` through the bound (*Method dispatch on trait values*). An operator on such a parameter goes the same way (`a + b` with `T: Add`, `a < b` with `T: Comparable`, `a == b` with `T: Equals`, `x in c` with `C: Contains<E>` — see *Operator overloading*).
@@ -1738,7 +1750,7 @@ report :: fn(e: Error) -> string {
 
 The call goes through a vtable filled by every impl of the trait the program materialises, primitive and enum impls included; each instance of a generic impl (`Foo<T> implements Trait { ... }`) has a row of its own. Trait args on the receiver are substituted into the method's signature, so `it: Iterator<i32>; it.next()` returns `[i32, Continuation]`, not the unsubstituted `[T, Continuation]`.
 
-Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves through the bound at typecheck. A generic function making such a call is monomorphised (*Instance flavor*), so each instance calls its type's impl member directly; in an impl member whose instances share one erased body, the call dispatches through the value's vtable.
+Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves through the bound at typecheck. A generic function making such a call gets one instance per type argument, so each instance calls its type's impl member directly; in an impl member whose instances share one erased body, the call dispatches through the value's vtable.
 
 #### Single-method trait sugar (SAM)
 
@@ -2830,51 +2842,95 @@ own rules are reported through `ctx.report`, which carries `H6004`.
 
 ## 12. Decorators
 
-Decorators are **compiler instructions** prefixed with `@`. They operate at compile time, never at runtime.
+Decorators are compiler instructions prefixed with `@`. They act at compile time, never at run time. A decorator in a place it does not apply to is `P1014` where its placement is checked: `@target`, `@singleton`, `@returns`, `@ensures`, the `@c_*` family, `@displayable` and `@assert`.
 
 | Decorator | Target | Purpose |
 |-----------|--------|---------|
-| `@comptime` | fn / value | Forces compile-time evaluation |
-| `@c_pointer` | a parameter of an `@extern` fn | The callee receives the parameter's ADDRESS, not its value. No argument — `@c_out` says whether C writes through it. `T3079` anywhere else. See §13 |
-| `@c_out` | a parameter of an `@extern` fn | C writes through the parameter — an array, or a `@c_struct` crossing with `@c_pointer`. No argument. `T3079` anywhere else, or on a type C cannot write into. See §13 |
-| `@c_type("size_t")` | a parameter of an `@extern` fn, or the fn itself for its result | The C type the callee declares for an integer, where it is not the Vader type's own spelling. One plain string. Must be an integer type as wide as the Vader one. `T3079` on a parameter, `T3050` on a declaration otherwise. See §13 |
-| `@c_header("<header.h>")` | an `@extern` fn | Includes the header and does NOT synthesise a prototype, so `cc` checks the call against the real declaration. Exclusive with the synthesised prototype for that symbol. See §13 |
-| `@c_struct` or `@c_struct("struct name")` | struct decl | Declares which C type the struct mirrors, so it may cross an `@extern` call: as an address with `@c_pointer`, by value otherwise. Bare, the C type has the struct's name. More than one argument is `P1032`, one that is not a plain string `P1033`. See §13 |
-| `@c_variadic(N)` | an `@extern` fn | The callee is variadic with `N` fixed parameters. See §13 |
-| `@extern`, `@extern("symbol")`, or `@extern(LIBRARY, "symbol")` | fn (no body) | Declares a user-supplied FFI symbol, see §13 |
-| `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C) wires each method by mangled name. **Required** on any bodyless free fn (`T3062`); the compiler also verifies each host import is actually wired at emit (see below) |
-| `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
-| `@test` | fn | Marks as a test, executed by `vader test` |
-| `@deprecated("reason")` | any decl | Emits a `W0001` warning at every reference — code still compiles |
-| `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
-| `@partial` | `match` expression | Opts out of exhaustiveness checking; missing variants no longer trigger `T3013`. Use with a deliberate `_` catch-all, which the decorator also exempts from `W0005`, for "everything else does X" |
-| `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur: handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
-| `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
-| `@internal` | struct field | Restricts a single struct field to its **declaring module**. Struct fields are **public by default** (the opposite polarity to top-level `export`, which is private-by-default); `@internal` opts one field out. Reading, writing, constructing-with, or pattern-binding the field from another module is rejected with `T3054`. An `@internal` field should usually carry a `default` so the type stays constructible across modules via `T {}` (otherwise the type is constructible only from inside its module — a deliberate "factory-only" pattern). |
-| `@target` or `@target(.Os, …)` | top-level fn | Selects which BODY of a function this build uses — see §17 *Target selection*. **Bare** names the declaration: it carries the signature, the `export` and the vaderdoc, and optionally the general body. **With a list** it names a body for those operating systems, and is *always* a body, never a declaration. Only the OS axis selects code: there is no `@architecture`, because an architecture parameterises values and never includes or excludes a declaration. Rejected anywhere but a top-level fn (`P1014`) — on a struct, a trait or an impl member it would parse and then do nothing, and a silent no-op is worse than either answer. |
-| `@displayable` | enum decl | Generates the enum's `Display`: each variant renders as its own name (`"${Direction.East}"` is `"East"`). The impl is an ordinary one, so an explicit `implements Display` beside it is `R2030`. Rejected anywhere else (`P1014`). |
-| `@singleton` | top-level fn with no parameter | Runs the body **once per program** and hands every call the instance it built: `@singleton log :: fn() -> string[] = []`, then `log().push("x")` from anywhere, and every later `log()` sees it. The instance is ordinary heap state, not a frozen value: writes through it stay, and one built from a module constant is a copy of it. This is how a module keeps state: a module holds constants and functions, no variable. A singleton takes no parameter, has no type parameter, and neither `await`s nor `yield`s (`T3103`): an argument would ask for one instance per value, and a body that suspends would let another call see it half built. A call that comes back into the singleton while its body runs traps. It cannot run at comptime (`C4018`): only the program's run builds the instance. Anywhere but a free function it is `P1014`. |
-| `@returns(cond)` | top-level fn returning `bool` | Declares that the predicate returns the value of `cond`, over its parameters: a call narrows its arguments as `cond` would, in every module, and the body is checked against it at each value it returns (`T3111` to `T3113`). See *A declared guard* under §Operator precedence. |
-| `@ensures(cond)` | top-level fn | Declares that `cond`, over its parameters, holds once the fn has returned: a call written as a statement or as a declaration's initializer narrows its arguments for the rest of the block, in every module, and the body is checked against it at each return and at its end (`T3112` to `T3114`). See *A declared postcondition* under §Operator precedence. |
-| `@allow_unused` | any top-level decl | Exempts the declaration from the `W0007` dead-code lint (an unused private fn / const / type / enum / trait / alias). Use for intentional dead code : an API not yet wired, a helper kept for symmetry, or a test fixture's deliberate decoy. The declaration is treated as a reachability root — never flagged, and anything it references stays live. |
+| `@comptime` | fn / value | Evaluates at compile time (§14) |
+| `@extern`, `@extern("symbol")`, `@extern(LIBRARY, "symbol")` | fn without body | Declares a foreign function (§13) |
+| `@c_pointer` | parameter of an `@extern` fn | Passes the parameter's address (§13) |
+| `@c_out` | parameter of an `@extern` fn | C writes through the parameter (§13) |
+| `@c_type("size_t")` | parameter or result of an `@extern` fn | The C spelling of an integer type (§13) |
+| `@c_header("<header.h>")` | `@extern` fn | Takes the prototype from a C header (§13) |
+| `@c_struct`, `@c_struct("struct name")` | struct | Mirrors a C struct (§13); more than one argument is `P1032`, one that is not a plain string `P1033` |
+| `@c_variadic(N)` | `@extern` fn | The C function is variadic after `N` fixed parameters (§13) |
+| `@intrinsic` | fn or impl without body | The host runtime provides the body (*`@intrinsic`*, below) |
+| `@export`, `@export("name")` | fn | Exposes the function under an unmangled name (§13) |
+| `@test` | fn | Marks a test, run by `vader test` (§18) |
+| `@deprecated("reason")` | any declaration | Warns at every use (`W0001`); the code still compiles |
+| `@assert(cond)`, `@assert(cond, "message")` | top level | Fails the build unless `cond` is true at compile time |
+| `@partial` | `match` | Lifts the exhaustiveness check (below) |
+| `@unreachable` | `match` | Lifts the exhaustiveness check and traps on the missing cases (below) |
+| `@no_return` | fn | The function never returns (below) |
+| `@internal` | struct field | The field is visible only in its module (below) |
+| `@target`, `@target(.Os, ...)` | top-level fn | Selects the body for the target OS (§17 *Target selection*) |
+| `@displayable` | enum | Generates `Display`: each variant renders as its name (§4 *Enums*); anywhere else `P1014` |
+| `@singleton` | top-level fn without parameters | Runs the body once and returns the same instance to every call (below) |
+| `@returns(cond)` | top-level fn returning `bool` | The function returns the value of `cond` (§3 *Declared guards*) |
+| `@ensures(cond)` | top-level fn | `cond` holds when the function returns (§3 *Declared postconditions*) |
+| `@allow_unused` | any top-level declaration | Exempts the declaration from the dead-code warning (below) |
 
-`@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `collect`, the methods of `string implements Equals / Hash / Comparable`). The decorator is **load-bearing**, not merely informational: a bodyless free fn *must* carry `@intrinsic` or `@extern` (`T3062`), so host-ness is always *declared* rather than implied by the missing body — a bodyless `Name :: fn(...)` is unambiguously a host, and a named function-*type* is spelled inline at its use sites (not as a bodyless declaration). The compiler then verifies, at bytecode emit, that every non-`@extern` host import is actually wired: its mangled name must be recognised by the intrinsic manifest (`intrinsic_id_for` — itself exhaustively dispatched by the VM and C backends, so `T3013` forces both to handle it) or map to a dedicated bytecode op; an unwired host fails the build rather than reaching runtime as an unbound `call.import`. This closes the chain bodyless ⟹ `@intrinsic` ⟹ recognised ⟹ served.
+### `@intrinsic`
 
-`@intrinsic` accepts two shapes:
+`@intrinsic` and `@extern` both mark a function whose body is not written in Vader. `@extern` is for user code that calls a foreign library. `@intrinsic` is for the standard library, whose body the host runtime provides (`collect`, the members of `string implements Hash`).
+
+A free function without a body must carry one of the two (`T3062`). A named function type is therefore written inline where it is used, never as a bodiless declaration. A build fails if an intrinsic has no host implementation.
+
+`@intrinsic` applies to a function or to a whole impl:
 
 ```vader
-// Standalone fn — used for free-function host imports (I/O, GC, builders…).
+// Standalone fn: a free-function host import (I/O, GC, builders...).
 @intrinsic
 export collect :: fn() -> void
 
-// Trait impl — used when every method of the impl is host-provided. The
-// compiler synthesises one body-less FnDecl per trait method, each marked
-// `@intrinsic`, mangled as `<module>$<type>$<trait>$<method>`.
+// Trait impl: every method of the impl is provided by the host.
 @intrinsic
 string implements Hash
 ```
 
-A handful of `@intrinsic` impl methods are also **op-level** intrinsics: the bytecode emitter recognises calls to specific mangled names (`std_core$i32$Add$add`) and emits a dedicated op (`i32.add`) instead of a regular call, so `a + b` and `a.add(b)` share a single path.
+### `@assert`
+
+The condition must evaluate to `true` at compile time; otherwise the build fails (`C4015`). The optional message must be a string literal without interpolation, and is added to the error.
+
+### `@partial` and `@unreachable`
+
+Both lift the exhaustiveness check on a `match`.
+
+- **`@partial`** is for "everything else does X". Pair it with a `_` arm; the compiler then does not warn about that wildcard.
+- **`@unreachable`** is for "the other cases cannot happen". The arms handle the possible cases explicitly, with no `_` arm, and a value that reaches no arm stops the program (`reached unreachable`).
+
+The two cannot be combined.
+
+### `@no_return`
+
+The function never returns to its caller: it stops the program or loops forever. A call to it has type `never`, so it fits any slot (`_ -> todo("x")` where a value is expected), ends control flow, and satisfies a non-`void` function's obligation to return. `panic`, `todo` and `unreachable` in `std/abort` use it.
+
+### `@internal`
+
+Struct fields are public by default. `@internal` restricts one field to the module that declares the struct: another module cannot read it, write it, set it in a literal or bind it in a pattern (`T3054`).
+
+Give an `@internal` field a default value, so that other modules can still build the struct with `T {}`. Without a default, only the declaring module can build it.
+
+### `@singleton`
+
+A module holds constants and functions, no variables. Its state lives in a `@singleton` function, which runs its body once per program and returns the same instance to every call:
+
+```vader
+@singleton
+log :: fn() -> string[] = []
+
+log().push("x")            // every later `log()` sees "x"
+```
+
+- The instance is ordinary heap state, not a frozen value: writes to it persist. One built from a module constant is a copy of it.
+- A singleton takes no parameters, has no type parameters, and cannot use `await` or `yield` (`T3103`).
+- A call that reaches the singleton again while its body is still running stops the program.
+- A singleton cannot run at compile time: only the running program builds it (`C4018`).
+- Only a free function can be a singleton (`P1014`).
+
+### `@allow_unused`
+
+Exempts a private declaration from the dead-code warning (`W0007`). Use it for deliberate dead code: an API not wired yet, a helper kept for symmetry, a decoy in a test fixture. The declaration counts as reachable, and so does everything it uses.
 
 ---
 
@@ -3329,7 +3385,7 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When it is an array of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
+`build_lookup_table()` runs during compilation, loops, local mutation and calls included. `TABLE` is a constant computed once. An array of primitive elements is stored in the binary's read-only data and read in place, never rebuilt at run time; any other value is inlined at each use.
 
 **Inline form.** `@comptime` also works as an expression prefix on a const's right-hand side, so the builder can be written at the const instead of as a separate fn:
 
@@ -3348,21 +3404,25 @@ SQUARES: u32[]: @comptime { … }
 
 `NAME :: @comptime <expr>` desugars to a synthetic nullary fn holding `<expr>` plus a `@comptime`-decorated `NAME` that calls it ; a trailing `return` inside a block behaves as the block's value.
 
-### Synergy with generics
-
-Each generic instance a program uses (`Box<i32>`) is discovered at compile time from the typed program and specialised by the monomorphizer (§2).
-
 ### Sandbox
 
-See section 2 (Compilation Model).
+A `@comptime` value can:
 
-### Implementation note (comptime engine)
+- compute, allocate and build data structures;
+- print with `println`. The output is not part of the value.
+- read the clock, the environment and the filesystem. The build is then no longer reproducible.
+- read a file relative to its own source. A `@comptime` value runs with the directory of the file that declares it as working directory: `read_file_bytes("sprite.png", ...)` reads the file next to that source, and `current_working_directory()` returns that directory.
 
-The comptime engine is a **tree-walk AST interpreter** (`vader/front/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/front/comptime/vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
+In a cross build, a `@comptime` value runs the `@target` bodies of the build machine, while `VADER_OS` and `VADER_ARCH` keep the target's values.
+
+A `@comptime` value cannot:
+
+- ask which machine the compiler runs on: `current_os`, `current_arch`, the scheduler's clock and the dynamic FFI (`ffi_open`, `ffi_symbol`, `ffi_call`) are rejected (`C4016`);
+- call a `@singleton` function, or anything that reaches one, such as spawning a process (`C4018`).
 
 ### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**, and compose freely with `@assert(...)` to drive comptime branching on type shape or layout. A file's contents are read by an ordinary function under `@comptime` (§2 *Compile-time sandbox*).
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**, and compose freely with `@assert(...)` to drive comptime branching on type shape or layout. A file's contents are read by an ordinary function under `@comptime` (§14 *Sandbox*).
 
 The "Signature" column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`); the other reflection intrinsics require the arg to fold to a static type at the call site.
 
@@ -4217,36 +4277,14 @@ Notable cross-pass placement rules:
 
 ## 19. Self-hosting Strategy
 
-### Vader 1.0 — the bootstrap edition
+The compiler is written in Vader and compiles itself. Its stages, and how it is rebuilt from a C seed, are described in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) and [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md).
 
-The **Vader 1.0 edition** is the set of features the Vader compiler needs to compile its own source code. The compiler is self-hosted, but 1.0 has not been declared: until it is, the language changes without deprecation paths. From 1.0 on:
-- v1.x: backwards-compatible changes (new features, optimizations)
-- v2.0: breaking changes (new edition, re-bootstrap required)
+### Vader 1.0, the bootstrap edition
 
-### Porting order
+The 1.0 edition is the set of features the compiler needs to compile itself. It has not been declared yet; until then, the language changes without deprecation. From 1.0 on:
 
-1. **Lexer** ✅ (`vader/front/lexer/`) — straightforward, table-driven.
-2. **Parser** ✅ (`vader/front/parser/`) — recursive-descent + Pratt expressions.
-3. **Resolver** ✅ (`vader/front/resolver/`) — body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the typechecker.
-4. **Formatter** ✅ (`vader/tools/fmt/`) — idempotent + parse round-trip on the stdlib.
-5. **LSP** ✅ (`vader/tools/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
-6. **VM** ✅ (`vader/vm/`) — runs the bytecode for the whole snippet corpus.
-7. **Type-checker** ✅ (`vader/front/typecheck/`).
-8. **Comptime** ✅ (`vader/front/comptime/`).
-9. **Lowerer** ✅ (`vader/lower/`).
-10. **Mid-IR (CFG / DCE / escape / scheduler)** ✅ (`vader/midir/`).
-11. **Bytecode-emit** ✅ (`vader/bytecode/`).
-12. **C-emit** ✅ (`vader/emit/c/`).
-13. **WASM-emit** ⏳.
-
-Legend: ✅ ported, ⏳ not yet (post-MVP).
-
-The full native pipeline is self-hosted. The only stage not yet ported is the WASM
-emitter, which is post-MVP.
-
-### Bootstrap
-
-The compiler is at a fixed point: built by itself, it emits the same C as the compiler that built it, byte for byte. A committed C seed (`bootstrap/seed/`) lets any machine with a C compiler rebuild the whole toolchain (`bootstrap/build.sh`, see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md)). CI checks the fixed point from the seed on every push to `main` and every pull request (`bootstrap/verify.sh`). The native Vader CLI is the only compiler; the snapshot tests use it as the oracle for every stage.
+- v1.x: backward-compatible changes (new features, optimisations);
+- v2.0: breaking changes, a new edition and a new bootstrap.
 
 ---
 
@@ -4443,8 +4481,8 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - **UFCS**: Uniform Function Call Syntax. `a.f(b)` ≡ `f(a, b)`.
 - **Comptime**: Compile-Time Execution. Vader code executed during compilation.
 - **Monomorphization**: generation of specialized versions of a generic function/struct for each concrete combination of type parameters.
-- **CFG**: Control Flow Graph. Nodes are basic blocks (linear instruction sequences); edges are control transitions (conditional / unconditional branches). Vader's Mid-IR materialises a CFG between the Lowered AST and the bytecode emitter so analyses (escape, liveness) can use def-use chains.
-- **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader has two IRs before the bytecode: the Lowered AST, and the Mid-IR CFG built from it, which the bytecode emitter consumes.
+- **CFG**: Control Flow Graph. Nodes are basic blocks (linear instruction sequences); edges are control transitions (conditional / unconditional branches). Vader's Mid-IR materialises a CFG between the Lowered AST and the bytecode emitter so analyses (escape, liveness) can use def-use chains ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
+- **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader has two IRs before the bytecode: the Lowered AST, and the Mid-IR CFG built from it, which the bytecode emitter consumes ([`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)).
 - **SAM**: Single Abstract Method. A trait with exactly one required method; impls may use a short body-only form (`Foo implements Trait -> expr`) instead of the full `name :: fn(...) { ... }` decl.
 - **VM**: the stack-based virtual machine that executes bytecode (interp + comptime modes).
 - **Bootstrap**: compilation of the Vader compiler with itself.

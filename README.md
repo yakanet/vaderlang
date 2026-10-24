@@ -64,7 +64,7 @@ vader run shapes.vader
 - **Compiles to fast native code.** A C backend (`vader build`) produces native binaries backed by a precise generational GC; a bytecode VM (`vader run`) executes without a build step. WASM is on the roadmap.
 - **Self-hosted, reproducibly.** The compiler is written in Vader and compiles itself to a *byte-for-byte* fixed point. A committed C seed lets any machine with a C compiler rebuild the whole toolchain from source.
 
-> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG → bytecode → C) are documented in [`SPEC.md` §2](./SPEC.md).
+> **Status: hobby project.** The backends run the examples end-to-end but are not battle-tested — treat Vader as an experiment, not a tool to build on yet. The compiler internals (frontend → midir CFG → bytecode → C) are documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ## Quick start
 
@@ -264,7 +264,7 @@ bin/vwin test tests/lsp             # …scoped to a path
 
 Measured: a full bootstrap in the guest runs in **~80 s** on an M-series Mac (6 vCPU), against ~4 min for the bootstrap step alone on a GitHub runner. It builds `aarch64` with clang, so it covers OS behaviour rather than the `x86_64-w64-mingw32` codegen CI uses — see the directory's README for that distinction and the rest of the setup.
 
-Snapshot tests live under `tests/snapshots/<phase>/<scenario>/` (an `input.vader` + a `*.snap`); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`SPEC.md` §2](./SPEC.md).
+Snapshot tests live under `tests/snippets/<name>/` (a `_main.vader` + one `*.snapshot` per stage); set `UPDATE_SNAPSHOTS=1` to regenerate, then `git diff` to review. Contributor conventions: the AST is never mutated (each phase produces side-tables keyed by node identity), every phase emits `Diagnostic`s rather than throwing (codes namespaced `L0`/`P1`/`R2`/`T3`/`C4`/`M5`/`H6`/`I7`/`W0`), and a single midir backbone feeds the VM, the C emitter, and the future WASM emitter. The architecture is documented in [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md).
 
 ---
 
@@ -281,11 +281,12 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 
 ## Further reading
 
-- [`SPEC.md`](./SPEC.md) — the language specification and compiler architecture
-- [`TODO.md`](./TODO.md) — the implementation roadmap, item by item
-- [`examples/`](./examples/) — working programs to play with
-- [`lib/std/`](./lib/std/) — the (in-progress) standard library, written in Vader. `lib/` is the module root: it hosts every namespace the toolchain ships, `std/` being the first
-- [`bench/`](./bench/README.md) — cross-language micro-benchmarks and methodology
+- [`SPEC.md`](./SPEC.md): the language specification
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md): how the compiler is built
+- [`TODO.md`](./TODO.md): the implementation roadmap, item by item
+- [`examples/`](./examples/): working programs to play with
+- [`lib/std/`](./lib/std/): the (in-progress) standard library, written in Vader. `lib/` is the module root: it hosts every namespace the toolchain ships, `std/` being the first
+- [`bench/`](./bench/README.md): cross-language micro-benchmarks and methodology
 
 ## License
 
