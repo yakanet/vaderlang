@@ -1,0 +1,190 @@
+// vader/front/effects/dump — the summary as `vader dump --stage=effects` prints it.
+//
+// One block per module in scope, one per function in source order: each access
+// on a line, `<effect> <parameter><path>`, or `none` for a function that only
+// reads what it is lent. A footer counts the functions, those whose component
+// did not settle, and the bodyless functions the compiler knows nothing of.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+import "vader/front/resolver"
+
+/// The summary of the functions of the modules `scope` selects, module by module.
+///
+/// @param summary  the project's summary.
+/// @param scope    the display paths to render, each with its submodules
+///                 (`module_in_scope`).
+export dump_effects :: fn(summary: EffectSummary, scope: string[]) -> string {
+    by_module :: MutableMap<string, i32[]> {}
+    for node in 0..<summary.index.functions.len() {
+        path :: summary.index.functions[node].typed.resolved.display_path
+        if !module_in_scope(path, scope) {
+            continue
+        }
+        by_module.get_or_put_with(path, () -> []).push(i32(node))
+    }
+    sb :: StringBuilder {}
+    sb.append("# effects\n")
+    for path in sort(by_module.keys(), (a, b) -> a < b) {
+        sb.append("\n## ${path}\n")
+        nodes :: by_module[path] ?? []
+        for node in sort(nodes, (a, b) -> comes_before(summary, a, b)) {
+            write_function(sb, summary, node)
+        }
+    }
+    write_frozen(sb, summary.frozen, scope)
+    write_widenings(sb, summary.widenings, summary.index.paths, scope)
+    functions :: summary.index.functions.len()
+    sb.append("\nfunctions: ${functions}, unsettled: ${summary.unsettled.len()}\n")
+    for name in sort(summary.index.unknown, (a, b) -> a < b) {
+        sb.append("unknown intrinsic: ${name}\n")
+    }
+    return sb.to_string()
+}
+
+// Source order, by the position of the function's name.
+comes_before :: fn(summary: EffectSummary, a: i32, b: i32) -> bool =
+    name_offset(summary, a) < name_offset(summary, b)
+
+name_offset :: fn(summary: EffectSummary, node: i32) -> i64 =
+    summary.index.functions[node].decl.name_span.start.offset
+
+write_function :: fn(sb: StringBuilder, summary: EffectSummary, node: i32) -> void {
+    decl :: summary.index.functions[node].decl
+    position :: decl.name_span.start
+    sb.append("fn ${decl.name} ${position.line}:${position.column}\n")
+    effects :: summary.facts[node]
+    paths :: summary.index.paths
+    written := false
+    for i in 0..<decl.params.len() {
+        name :: decl.params[i].name
+        for a in sorted_accesses(paths, effects[i]) {
+            sb.append("  ${access_label(paths, a, name)}\n")
+            written = true
+        }
+    }
+    if !written {
+        sb.append("  none\n")
+    }
+}
+
+// `<effect> <name><path>`: access `a` of the parameter called `name`.
+access_label :: fn(paths: PathTable, a: Access, name: string) -> string =
+    "${effect_label(a.effect)} ${paths.place_label(name, a.path)}"
+
+// The frozen sites of the modules in `scope`, by module then in source order, and
+// how many of each kind.
+write_frozen :: fn(sb: StringBuilder, frozen: FrozenSite[], scope: string[]) -> void {
+    sites :: frozen.filter((site) -> module_in_scope(site.module, scope)).collect()
+    sb.append("\n# frozen\n")
+    kinds :: [
+        FrozenKind.WriteFault,
+        FrozenKind.CallFault,
+        FrozenKind.UnknownCall,
+        FrozenKind.Copy,
+        FrozenKind.ElidedCopy,
+        FrozenKind.SharedBinding,
+        FrozenKind.UnreadCopy,
+        FrozenKind.KeptView,
+        FrozenKind.ReturnedView,
+    ]
+    counts :: kinds.len().filled(() -> 0)
+    for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
+        label :: frozen_label(site.kind)
+        sb.append("  ${position_of(site.module, site.span)} ${label} ${site.root}")
+        if site.mixed {
+            sb.append(" (mixed)")
+        }
+        sb.append("\n")
+        chain :: site.chain
+        if chain != null {
+            write_chain(sb, chain)
+        }
+        counts[i64(site.kind)] += 1
+    }
+    write_totals(sb, kinds.map(frozen_label).collect(), counts)
+}
+
+// A fault's chain under its site, one line per call, then the write.
+write_chain :: fn(sb: StringBuilder, chain: FaultChain) -> void {
+    for hop in chain.via {
+        sb.append("    via ${hop.callee} (`${hop.param}`) ${position_of(hop.module, hop.span)}\n")
+    }
+    write :: chain.write ?? return
+    sb.append("    ${effect_label(write.effect)} ${write.place}")
+    by :: write.by
+    if by != null {
+        sb.append(" by ${by}")
+    }
+    sb.append(" ${position_of(write.module, write.span)}\n")
+}
+
+// `module line:column`.
+position_of :: fn(module: string, span: Span) -> string =
+    "${module} ${span.start.line}:${span.start.column}"
+
+// Whether a site of module `a_module` at `a` comes before one of `b_module` at `b`:
+// by module, then in source order.
+in_source_order :: fn(a_module: string, a: Span, b_module: string, b: Span) -> bool {
+    if a_module != b_module {
+        return a_module < b_module
+    }
+    return a.start.offset < b.start.offset
+}
+
+// `<label>: <count>` for each label, on one line.
+write_totals :: fn(sb: StringBuilder, labels: string[], counts: i32[]) -> void {
+    totals: string[]: []
+    for i in 0..<labels.len() {
+        totals.push("${labels[i]}: ${counts[i]}")
+    }
+    sb.append("${totals.join(", ")}\n")
+}
+
+frozen_label :: fn(kind: FrozenKind) -> string = match kind {
+    .WriteFault    -> "write fault"
+    .CallFault     -> "call fault"
+    .UnknownCall   -> "unknown call"
+    .Copy          -> "copy"
+    .ElidedCopy    -> "copy elided"
+    .SharedBinding -> "binding shared"
+    .UnreadCopy    -> "copy unread"
+    .KeptView      -> "view kept"
+    .ReturnedView  -> "view returned"
+}
+
+// The widened arguments of the modules in `scope`, by module then in source order,
+// and how many of each verdict.
+write_widenings :: fn(
+    sb: StringBuilder,
+    widenings: WideningSite[],
+    paths: PathTable,
+    scope: string[],
+) -> void {
+    sites :: widenings.filter((site) -> module_in_scope(site.module, scope)).collect()
+    sb.append("\n# variance\n")
+    verdicts :: [WideningVerdict.Covariant, WideningVerdict.Breaks, WideningVerdict.UnknownCallee]
+    counts :: verdicts.len().filled(() -> 0)
+    for site in sort(sites, (a, b) -> in_source_order(a.module, a.span, b.module, b.span)) {
+        sb.append("  ${position_of(site.module, site.span)} depth ${site.depth}")
+        sb.append(" ${verdict_label(site.verdict)}")
+        if site.breaking != null {
+            sb.append(": ${access_label(paths, site.breaking, "argument")}")
+        }
+        sb.append("\n")
+        counts[i64(site.verdict)] += 1
+    }
+    write_totals(sb, verdicts.map(verdict_label).collect(), counts)
+}
+
+verdict_label :: fn(verdict: WideningVerdict) -> string = match verdict {
+    .Covariant     -> "covariant"
+    .Breaks        -> "breaks"
+    .UnknownCallee -> "unknown callee"
+}

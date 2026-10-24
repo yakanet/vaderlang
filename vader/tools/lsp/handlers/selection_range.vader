@@ -14,7 +14,7 @@ import "std/sort"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
-import "vader/parser"
+import "vader/front/parser"
 AST :: import "toolchain/ast"
 
 /// Resolve `textDocument/selectionRange`.

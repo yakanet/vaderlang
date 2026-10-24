@@ -4,7 +4,7 @@
 // (both 0-based). A hover on a declaration reads like an IDE's quick
 // documentation :
 //
-//     vader/parser › IntrinsicSpec          the module, and the owning type
+//     vader/front/parser › IntrinsicSpec    the module, and the owning type
 //     ```
 //     @intrinsic                            decorators, `export`, the head :
 //     export arg_kind :: fn(                a long parameter list one per line,
@@ -37,10 +37,10 @@ import "std/string"
 import "vader/tools/fmt"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 AST :: import "toolchain/ast"
-Parser :: import "vader/parser"
+Parser :: import "vader/front/parser"
 
 /// Column past which a hover breaks a fn's parameter list, one per line.
 DISPLAY_WIDTH: i64: 60

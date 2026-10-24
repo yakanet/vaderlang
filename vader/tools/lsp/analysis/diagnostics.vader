@@ -17,8 +17,8 @@ module "vader/tools/lsp/analysis"
 import "std/collections"
 import "json"
 import "vader/support/diagnostics"
-import "vader/resolver"
-import "vader/typecheck"
+import "vader/front/resolver"
+import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
 
 /// Type-check the file at `uri` and push the resulting diagnostics to

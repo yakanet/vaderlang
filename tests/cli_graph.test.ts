@@ -76,10 +76,10 @@ test("scope=project hides the compiler from a driven project", async () => {
 // rule reads the entry's module name, not the size of its closure, so the lexer
 // stands for the whole compiler at a fraction of the load.
 test("scope=project keeps vader/* when the entry is itself a compiler module", async () => {
-  const r = await runCli(["graph", "vader/lexer/lexer.vader"], undefined, MEDIUM_BUILD);
+  const r = await runCli(["graph", "vader/front/lexer/lexer.vader"], undefined, MEDIUM_BUILD);
   expect(r.exit).toBe(0);
   expect(r.stdout).toContain('vader_support_diagnostics["vader/support/diagnostics"]');
-  expect(r.stdout).toContain("vader_lexer --> vader_support_diagnostics");
+  expect(r.stdout).toContain("vader_front_lexer --> vader_support_diagnostics");
 });
 
 test("graph rejects an unknown format and names the alternatives", async () => {

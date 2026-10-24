@@ -297,7 +297,7 @@ the union of comptime atoms across the import graph at link time.
 Phase 0 publishes a fixed list :
 
 - `ATOM_EMPTY = 0` (the empty string)
-- All keywords from `vader/lexer/keywords.vader`
+- All keywords from `vader/front/lexer/keywords.vader`
   (~25 entries : `fn`, `struct`, `trait`, `enum`, `match`, `is`, `if`,
   `else`, `for`, `in`, `return`, `defer`, `break`, `continue`,
   `import`, `module`, `export`, `as`, `true`, `false`, `null`,

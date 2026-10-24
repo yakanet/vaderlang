@@ -1,0 +1,80 @@
+// vader/front/comptime/eval_types — shared types + helpers for the evaluator.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/front/parser"
+import "vader/front/typecheck"
+import "toolchain/span"
+
+/// Context threaded through the recursive evaluator.
+/// @field typed     owning typed program — gives the resolver lookup
+///                  (`resolved.idents` / `resolved.symbols`) plus the
+///                  decl type tables.
+/// @field bindings  `Symbol.id → ComptimeValue` for already-evaluated
+///                  `@comptime` decls in the current module ; built up
+///                  as `evaluate_module_decls` walks the topo-sorted
+///                  order.
+ComptimeContext :: struct {
+    typed:    TypedProgram
+    bindings: MutableMap<i32, ComptimeValue>
+    /// Current evaluator nesting depth. Bounds the tree-walk recursion so a
+    /// cyclic / non-terminating comptime expression reports C4001 instead of
+    /// overflowing the C stack (which silently corrupts memory). Mutated by
+    /// `evaluate_expr` ; shared across operand recursion so it tracks the live
+    /// level.
+    depth:    i64 = 0
+    /// The whole project, for an evaluation that reads constants of any module
+    /// and the aggregate forms (struct literals, enum variants, `match`); null
+    /// keeps it to the module's own `bindings` and to scalars. The passes that
+    /// bake constants for the lowerer leave it null: the lowerer inlines a baked
+    /// value at every use, and a struct table would be copied at each read.
+    project:  ProjectConstants | null = null
+}
+
+/// The module-level constants of the whole project, evaluated on demand.
+ProjectConstants :: struct {
+    typed:   TypedProject
+    /// The constants already evaluated, by symbol id.
+    values:  MutableMap<i32, ComptimeValue> = MutableMap<i32, ComptimeValue> {}
+    /// The constants being evaluated, to stop a constant that reads itself.
+    pending: MutableSet<i32> = MutableSet<i32> {}
+}
+
+/// Result of evaluating one expression. Three states :
+///   - `value=Some, diag=null`    : evaluated to a concrete value.
+///   - `value=null, diag=Some`    : an error fired (cycle / unsupported
+///                                  shape / type mismatch / sandbox).
+///   - `value=null, diag=null`    : intentional skip — caller drops
+///                                  the decl from `comptime_decls`.
+EvalResult :: struct {
+    value: ComptimeValue | null
+    diag:  Diagnostic | null
+    /// True when the tree-walk gave up on a shape the embedded VM can handle
+    /// (loop / mutation / statement-bodied callee). The decl-level driver in
+    /// `check.vader` records the decl for the `front/comptime/vm` VM pass and
+    /// suppresses `diag` rather than reporting C4001. Set only by `vm_required`.
+    vm_required: bool = false
+}
+
+/// Build an `EvalResult` carrying a value.
+ok :: fn(value: ComptimeValue) -> EvalResult {
+    return EvalResult { .value = value, .diag = null }
+}
+
+/// Build an `EvalResult` carrying a diagnostic.
+fail :: fn(diag: Diagnostic) -> EvalResult {
+    return EvalResult { .value = null, .diag = diag }
+}
+
+/// Build a `C4001 cannot-evaluate` diagnostic at `span` with `kind_label`
+/// describing the unsupported expression. Standardised helper so every
+/// "needs the VM" call site uses the same wording.
+vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
+    return EvalResult {
+        .value       = null,
+        .diag        = comptime_error(.CannotEvaluate, span, kind_label),
+        .vm_required = true,
+    }
+}

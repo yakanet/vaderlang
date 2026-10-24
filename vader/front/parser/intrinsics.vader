@@ -1,0 +1,181 @@
+// vader/front/parser/intrinsics — registry of compiler-built `@name(...)` calls.
+//
+// Used by the parser to decide whether `@name(...)` in expression
+// position lowers to an `IntrinsicCallExpr` or surfaces P1014 (unknown
+// decorator placement).
+
+module "vader/front/parser"
+
+import "toolchain/ast"
+
+/// What an intrinsic does with one of its arguments.
+export IntrinsicArgKind :: enum(u8) {
+    /// A type expression, parsed as one and never run.
+    Type,
+    /// A value, run as any argument is.
+    Value,
+    /// A value that must be a `type`, run: a `type` parameter, `@type_of(x)`, a
+    /// `Field.type`.
+    TypeValue,
+    /// A value whose static type is read and which never runs.
+    Unevaluated,
+}
+
+/// Whether an argument of `kind` runs, so that what it lends or writes counts.
+export is_evaluated :: fn(kind: IntrinsicArgKind) -> bool = match kind {
+    .Value | .TypeValue -> true
+    .Type | .Unevaluated -> false
+}
+
+export IntrinsicSpec :: struct {
+    name:      string
+    args:      IntrinsicArgKind[]
+    // Result kind is informative — the typechecker / lower passes have
+    // their own per-name dispatch and don't consult this. Stored here for
+    // completeness.
+    result:    string
+    /// How a call is written, typed as SPEC §14 writes it : `@size_of(T: type) -> i64`.
+    signature: string
+    /// What the intrinsic returns, in Markdown, as the LSP hover shows it.
+    doc:       string
+}
+
+/// The kind of argument `i` of `spec`. One past those it declares is a value, as
+/// the parser, the typecheck and the effect walk all read it.
+///
+/// @param i  the argument's position.
+export arg_kind :: fn(spec: IntrinsicSpec, i: i64) -> IntrinsicArgKind {
+    if i < spec.args.len() {
+        return spec.args[i]
+    }
+    return .Value
+}
+
+/// Full set of recognised intrinsics : what an editor offers after a `@`. Add
+/// new entries here.
+///
+/// A module constant, so it bakes once into `.rodata`. `intrinsic_spec` hands an
+/// entry out, and an entry carries an array a write could reach: that read builds
+/// a fresh table.
+export INTRINSICS: IntrinsicSpec[]: [
+    // `@size_of(t)`: the lowerer folds a written type to a literal and routes a
+    // run-time `type` value through the `size_of.type` intrinsic.
+    IntrinsicSpec {
+        .name      = "size_of",
+        .args      = [.TypeValue],
+        .result    = "i64",
+        .signature = "@size_of(T: type) -> i64",
+        .doc       = "Width in bytes of the slot that carries a `T` (a field, a local, a parameter), not of the object a reference points at. The only intrinsic that also takes a run-time `type` value.",
+    },
+    IntrinsicSpec {
+        .name      = "align_of",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@align_of(T: type) -> i64",
+        .doc       = "Alignment in bytes of the slot that carries a `T`.",
+    },
+    IntrinsicSpec {
+        .name      = "type_name",
+        .args      = [.Type],
+        .result    = "string",
+        .signature = "@type_name(T: type) -> string",
+        .doc       = "Printable name of `T`, rendered as diagnostics render it: `\"MutableMap<i32, string>\"`.",
+    },
+    IntrinsicSpec {
+        .name      = "type_kind",
+        .args      = [.Type],
+        .result    = "string",
+        .signature = "@type_kind(T: type) -> string",
+        .doc       = "The shape of `T`: `\"primitive\"`, `\"struct\"`, `\"enum\"`, `\"union\"`, `\"array\"`, `\"tuple\"`, `\"fn\"`, `\"trait\"`, `\"type\"`, `\"any\"` or `\"unknown\"`.",
+    },
+    IntrinsicSpec {
+        .name      = "field_count",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@field_count(T: type) -> i64",
+        .doc       = "Number of fields of a struct, or of elements of a tuple; 0 for any other shape.",
+    },
+    IntrinsicSpec {
+        .name      = "variant_count",
+        .args      = [.Type],
+        .result    = "i64",
+        .signature = "@variant_count(T: type) -> i64",
+        .doc       = "Number of variants of a union or an enum, a union of unions flattened first; 0 for any other shape.",
+    },
+    IntrinsicSpec {
+        .name      = "field_index",
+        .args      = [.Type, .Value],
+        .result    = "i64",
+        .signature = "@field_index(T: type, name: string) -> i64",
+        .doc       = "0-based position of the field `name` in the struct `T`. `name` must be a static string literal.",
+    },
+    IntrinsicSpec {
+        .name      = "satisfies",
+        .args      = [.Type, .Type],
+        .result    = "bool",
+        .signature = "@satisfies(T: type, Trait: type) -> bool",
+        .doc       = "True when `T` implements `Trait`, by an impl in scope or built in (an enum's `Equals`).",
+    },
+    // `@min(T)` / `@max(T)` — the least and the greatest value of an integer type,
+    // a value of `T` itself.
+    IntrinsicSpec {
+        .name      = "min",
+        .args      = [.Type],
+        .result    = "self",
+        .signature = "@min(T: type) -> T",
+        .doc       = "The least value of an integer type, a range or a type parameter bounded by `Int`; of an enum without data, its variant of the least value; of `char`, U+0000.",
+    },
+    IntrinsicSpec {
+        .name      = "max",
+        .args      = [.Type],
+        .result    = "self",
+        .signature = "@max(T: type) -> T",
+        .doc       = "The greatest value of an integer type, a range or a type parameter bounded by `Int`; of an enum without data, its variant of the greatest value; of `char`, U+10FFFF.",
+    },
+    // Reifies the static type of a value as a `type` runtime value.
+    IntrinsicSpec {
+        .name      = "type_of",
+        .args      = [.Unevaluated],
+        .result    = "type",
+        .signature = "@type_of(x) -> type",
+        .doc       = "The static type of `x`, as a `type` value. `x` never runs.",
+    },
+    // `@fields(T)` — struct's fields as a `Field[]` literal materialised
+    // at lower time. T must be a static struct-typed expression.
+    IntrinsicSpec {
+        .name      = "fields",
+        .args      = [.Type],
+        .result    = "field_array",
+        .signature = "@fields(T: type) -> Field[]",
+        .doc       = "The fields of the struct `T`, each a `Field` with a `name` and a `type`. Unrolled per field by `@comptime for f in @fields(T)`.",
+    },
+    // `@type_args(T)` — generic type-args of a struct / trait instance
+    // as a `type[]`. Non-generic types yield `[]`.
+    IntrinsicSpec {
+        .name      = "type_args",
+        .args      = [.Type],
+        .result    = "type_array",
+        .signature = "@type_args(T: type) -> type[]",
+        .doc       = "The type arguments of a generic struct or trait instance; `[]` for a non-generic type.",
+    },
+    // `@field(x, "name")` — dynamic-by-string field access. The second
+    // arg is a static string literal (or a `f.name` access that folds to
+    // one inside `@comptime for f in @fields(T)`). The result type is
+    // the field's declared type, resolved per-call.
+    IntrinsicSpec {
+        .name      = "field",
+        .args      = [.Value, .Value],
+        .result    = "i64",
+        .signature = "@field(x, name: string) -> <field type>",
+        .doc       = "The field `name` of `x`. `name` is a static string literal, or `f.name` inside `@comptime for f in @fields(T)`, where it folds to a direct field access.",
+    },
+]
+
+// Returns the spec for `name`, or `null` if `@name(...)` is not a
+// recognised intrinsic (the caller surfaces P1014 in that case).
+export intrinsic_spec :: fn(name: string) -> IntrinsicSpec | null {
+    for s in INTRINSICS {
+        if s.name == name { return s }
+    }
+    return null
+}

@@ -11,9 +11,9 @@ module "vader/lower"
 import "std/abort"
 import "std/collections"
 import "toolchain/ast"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "toolchain/span"
 
 /// Per-entry view over the typed program with substitution applied at
@@ -133,7 +133,7 @@ raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
 /// Per-local-binding type. Same fallback convention as `expr_type`.
 ///
 /// Keyed on `name_span`, NOT `span` — `assign_binding_types`
-/// (`vader/typecheck/stmt.vader`) writes a `SimpleBinding`'s type under
+/// (`vader/front/typecheck/stmt.vader`) writes a `SimpleBinding`'s type under
 /// `sb.name_span.hash()`, and the resolver mints the local Symbol on the same
 /// `name_span`. The two coincide for every parser-produced binding
 /// (`span == name_span == name_tok.span`), so this was invisible — until a
@@ -248,7 +248,7 @@ export declared_type :: fn(self: EntryTypes, name_span: Span) -> Type =
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 
 @test test_apply_is_identity_under_empty_subst :: fn() -> void {
     typed :: empty_typed_program()

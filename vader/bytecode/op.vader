@@ -225,7 +225,7 @@ export FnRef :: struct { function_index: i32, type_id: i32 }
 ///
 /// Built by `midir/build::build_extern_args` for a callback argument, and only
 /// for one that NAMES a function: a closure has no address of its own, which
-/// `typecheck/call::reject_indirect_callbacks` enforces.
+/// `front/typecheck/call::reject_indirect_callbacks` enforces.
 export FnAddr :: struct { function_index: i32 }
 
 /// Integer `+`, `-` or `*` that stops the run when the exact result leaves

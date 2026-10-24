@@ -2,7 +2,7 @@
 
 module "vader/tools/fmt"
 
-import "vader/parser"
+import "vader/front/parser"
 import "vader/support/diagnostics"
 
 /// Outcome of a `format_source` call : either the formatted output or the

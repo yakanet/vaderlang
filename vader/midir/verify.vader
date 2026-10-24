@@ -27,9 +27,9 @@ import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/lower"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/typecheck"
+import "vader/front/typecheck"
 
 // ---- resolution tables ----------------------------------------------------
 

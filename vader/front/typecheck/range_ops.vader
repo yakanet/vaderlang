@@ -1,0 +1,302 @@
+// vader/front/typecheck/range_ops — what an operator gives when a range takes part.
+//
+// An operation between ranges and integer literals is computed over the
+// integers : its result is the range of every value it can take (`h + 1` on
+// `0..=23` is `1..=24`), a literal standing for its own value (`n..=n`). Storing
+// that result in a narrower range takes a proof the type then carries
+// (`(h + 1) % 24` is `0..=23`). A primitive operand absorbs a range that fits it,
+// and the operation is the primitive's, checked as any ; beside a range holding it,
+// the primitive is read as the range of its values. A bitwise operation needs
+// a width, which a range of no machine integer's bounds does not have : it is
+// refused there (`bitwise_operand`). An operation on a range reaching past `i64`,
+// which no exact result is computed for, reads it as the integer it is held in
+// (`held_beyond_i64`).
+
+module "vader/front/typecheck"
+
+import "vader/support/diagnostics"
+import "vader/support/integer"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The type `e` gives when `left` or `right` is a range, both checked integers, `e`
+/// an arithmetic operation, a comparison or an equality. Settles each free operand
+/// (`free_range`).
+///
+/// @param e      the binary expression.
+/// @param left   its left operand's type.
+/// @param right  its right operand's type.
+/// @return       the result's type : a range over the integers, the absorbing
+///               primitive, `i64` for a range past 64 bits, `bool` for a test.
+/// @error        T3017 when a range neither fits nor holds the primitive beside it.
+range_result :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    settled_left :: held_beyond_i64(settle_range_operand(e.left, left, typed, diags))
+    settled_right :: held_beyond_i64(settle_range_operand(e.right, right, typed, diags))
+    if settled_left is UnresolvedType || settled_right is UnresolvedType {
+        return TY_UNRESOLVED
+    }
+    l :: read_beside(settled_left, settled_right)
+    r :: read_beside(settled_right, settled_left)
+    absorbing :: absorbing_primitive(l, r)
+    if absorbing != null {
+        return absorbed_result(e, l, r, absorbing, diags)
+    }
+    if l !is RangeType || r !is RangeType {
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    // A bitwise operation is refused on a range before it gets here
+    // (`bitwise_operand`), a shift's count read as its integer.
+    return @unreachable match classify(e.op) {
+        .Arith               -> range_or_i64(arith_interval(e.op, l.bounds, r.bounds))
+        .Compare | .Equality -> TY_BOOL
+    }
+}
+
+/// `t`, the type of `operand` of a bitwise operation (`&`, `|`, `^`, a shift, `~`,
+/// a wrapping operator), which computes at a width : a range of no machine
+/// integer's bounds has none of its own.
+///
+/// @param operand  the operand, for the diagnostic's span.
+/// @param t        its type.
+/// @return         `t`, unresolved for a range of no machine integer's bounds.
+/// @error          T3115 on such a range : `~h` would compute at the width it is
+///                 stored in. Converting it first names the width (`~i64(n)`).
+bitwise_operand :: fn(operand: AST.Expr, t: Type, diags: Diagnostic[]) -> Type {
+    refined :: refinement_of(t) ?? return t
+    diags.push(typecheck_error(.BitwiseOperationOnRange, operand.span,
+        "${display_range(refined)} has no width of its own; convert it first, as `i64(…)`"))
+    return TY_UNRESOLVED
+}
+
+/// `t`, the type of the right operand of the integral operation `e` : a shift's
+/// count, whose width changes no result, reads a range as the integer it is held
+/// in ; any other right operand is a `bitwise_operand`.
+///
+/// @param e  the integral operation.
+/// @param t  its right operand's type.
+integral_right_operand :: fn(e: AST.BinaryExpr, t: Type, diags: Diagnostic[]) -> Type {
+    if e.op != .Shl && e.op != .Shr {
+        return bitwise_operand(e.right, t, diags)
+    }
+    refined :: refinement_of(t) ?? return t
+    return range_representation(refined)
+}
+
+// `t` as an operation reads it : a range reaching past `i64` as the integer it is
+// held in, which the operation is then checked in, `i64` holding none of its values
+// past `i64.max` ; anything else as it is.
+held_beyond_i64 :: fn(t: Type) -> Type {
+    refined :: refinement_of(t) ?? return t
+    if !refined.bounds.hi_open {
+        return t
+    }
+    return range_representation(refined)
+}
+
+// The operand `t` of a range operation as the operation reads it : a free value
+// settled by `free_range`, anything else as checked.
+settle_range_operand :: fn(
+    operand: AST.Expr,
+    t: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if !is_free_numeric(t) {
+        return t
+    }
+    return free_range(operand, t, typed, diags)
+}
+
+// `t` as an operation beside `other` reads it : a machine integer that a range
+// beside it holds, without fitting it, as the range of its values (`b + r` with a
+// `u8` and an `r: 0..=300` is `0..=555`) ; anything else as it is.
+read_beside :: fn(t: Type, other: Type) -> Type {
+    refined :: refinement_of(other) ?? return t
+    if primitive_name(t) == "" || holds_integer(t, refined) {
+        return t
+    }
+    values :: integer_values(t) ?? return t
+    if !interval_within(values, refined.bounds) {
+        return t
+    }
+    return RangeType { .bounds = values }
+}
+
+// The operand of a range operation that absorbs the other, if any : a primitive,
+// a machine integer among them. Of two, the one holding the other.
+absorbing_primitive :: fn(left: Type, right: Type) -> Type | null {
+    left_closed :: primitive_name(left) != ""
+    right_closed :: primitive_name(right) != ""
+    if left_closed && right_closed && holds_integer(right, left) {
+        return right
+    }
+    if left_closed {
+        return left
+    }
+    if right_closed {
+        return right
+    }
+    return null
+}
+
+// `e` computed in the primitive `p`, each other operand held by it.
+absorbed_result :: fn(
+    e: AST.BinaryExpr,
+    left: Type,
+    right: Type,
+    p: Type,
+    diags: Diagnostic[],
+) -> Type {
+    for operand in [left, right] {
+        if equals_type(operand, p) || holds_integer(p, operand) {
+            continue
+        }
+        if operand is RangeType {
+            diags.push(typecheck_error(.OperatorNotDefined, e.span,
+                "${display_range(operand)} does not fit `${display_type(p)}`"))
+        } else {
+            push_op_undefined(e, left, right, diags)
+        }
+        return TY_UNRESOLVED
+    }
+    return p
+}
+
+// The range of every value of `exact` ; `i64` once it leaves 64 bits, where the
+// operation is checked as any.
+range_or_i64 :: fn(exact: Interval) -> Type {
+    if exact.lo_open || exact.hi_open {
+        return TY_I64
+    }
+    return RangeType { .bounds = exact }
+}
+
+// `op` over the integers.
+arith_interval :: fn(op: AST.BinaryOp, a: Interval, b: Interval) -> Interval =
+    @unreachable match op {
+        .Add -> interval_add(a, b)
+        .Sub -> interval_sub(a, b)
+        .Mul -> interval_mul(a, b)
+        .Div -> interval_div(a, b)
+        .Mod -> interval_rem(a, b)
+    }
+
+/// The type `-x` gives on an operand of type `t` : a range negated, `i64` past 64
+/// bits ; a range reaching past `i64` as the integer it is held in
+/// (`held_beyond_i64`) ; any other type as it is.
+///
+/// @param t  the negated operand's type.
+negated :: fn(t: Type) -> Type {
+    refined :: refinement_of(t)
+    if refined != null && !refined.bounds.hi_open {
+        return range_or_i64(interval_negate(refined.bounds))
+    }
+    return held_beyond_i64(t)
+}
+
+/// The type a free integer value `expr` takes in the range slot `expected` : a
+/// literal takes the slot, its bounds checked where it is pinned ; arithmetic on
+/// literals the range of what it computes, so that `20 + 10` is no `Hour` ; any
+/// other free value its default width.
+///
+/// @param got  `expr`'s type as inferred.
+/// @return     null when `expected` is no range or `got` no free integer.
+free_value_in_range :: fn(
+    expr: AST.Expr,
+    got: Type,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type | null {
+    if !is_refinement(expected) || got !is FreeIntType {
+        return null
+    }
+    if expr is AST.IntLitExpr {
+        return expected
+    }
+    return free_range(expr, got, typed, diags)
+}
+
+// The type of the free value `e`, of the free kind `free` : an integer literal the
+// range of its value, a `u64` past `i64`, a `char` literal the range of its code
+// point, arithmetic on literals the range of what it computes, any other free
+// value its default width.
+free_range :: fn(e: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    value :: int_literal_i64(e)
+    if value != null {
+        return check_expr(e, RangeType { .bounds = interval(value, value) }, typed, diags)
+    }
+    if e is AST.IntLitExpr && is_past_i64(e) {
+        held :: mk_primitive("u64")
+        settle_free_value(e, held, typed, diags)
+        return held
+    }
+    if e is AST.CharLitExpr {
+        code_point :: i64(e.value)
+        return recorded(e, RangeType { .bounds = interval(code_point, code_point) }, typed)
+    }
+    if e is AST.BinaryExpr && classify(e.op) == .Arith {
+        left :: free_range(e.left, free, typed, diags)
+        right :: free_range(e.right, free, typed, diags)
+        return recorded(e, range_result(e, left, right, typed, diags), typed)
+    }
+    if e is AST.UnaryExpr && e.op == .Neg {
+        return recorded(e, negated(free_range(e.operand, free, typed, diags)), typed)
+    }
+    // A block gives its last expression ; an `if` or a `match` what its branches
+    // give, joined as two branches are (`union_of_paths`).
+    if e is AST.BlockExpr && e.trailing != null {
+        return recorded(e, free_range(e.trailing, free, typed, diags), typed)
+    }
+    if e is AST.IfExpr | AST.MatchExpr {
+        reached: Type[]: []
+        for branch in branch_values(e) {
+            reached.push(branch_range(branch, free, typed, diags))
+        }
+        return recorded(e, union_of_paths(reached), typed)
+    }
+    width :: default_if_free(free)
+    settle_free_value(e, width, typed, diags)
+    return width
+}
+
+// The expression each branch of `e` gives : an `if`'s two, a `match`'s arms.
+branch_values :: fn(e: AST.IfExpr | AST.MatchExpr) -> AST.Expr[] {
+    values: AST.Expr[]: []
+    if e is AST.MatchExpr {
+        for arm in e.arms {
+            values.push(arm.body)
+        }
+        return values
+    }
+    values.push(e.then_block)
+    match eb :: e.else_branch {
+        is AST.IfElseBlock -> { values.push(eb.block) }
+        is AST.IfElseIf    -> { values.push(eb.branch) }
+        is null            -> {}
+    }
+    return values
+}
+
+// What the branch giving `value`, of the free kind `free`, gives : a free value the
+// range of its own (`free_range`), a diverging one its `never`.
+branch_range :: fn(value: AST.Expr, free: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    reached :: typed.expr_types[value.id] ?? return free_range(value, free, typed, diags)
+    if is_free_numeric(reached) {
+        return free_range(value, reached, typed, diags)
+    }
+    return reached
+}
+
+// `t`, recorded as `e`'s type.
+recorded :: fn(e: AST.Expr, t: Type, typed: TypedProgram) -> Type {
+    record_expr(typed, e, t)
+    return t
+}

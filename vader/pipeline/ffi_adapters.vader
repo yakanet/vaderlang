@@ -23,7 +23,7 @@ import "std/string"
 import "std/target"
 import "vader/bytecode"
 import "vader/c_emit"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// Why the adapter library could not be built.
 export AdapterBuildError :: struct {

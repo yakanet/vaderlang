@@ -34,8 +34,8 @@ module "vader/lower"
 
 import "std/collections"
 AST :: import "toolchain/ast"
-import "vader/resolver/symbol"
-import "vader/comptime"
+import "vader/front/resolver/symbol"
+import "vader/front/comptime"
 import "vader/types"
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting

@@ -1,0 +1,493 @@
+// vader/front/typecheck/expr_if — IfExpr inference.
+//
+// Type of `if cond { then } else { else }` is the union of branch
+// types. Surface T3019 when the condition isn't `bool`-assignable.
+//
+// Branch-condition narrowing (`if x is T { … }`, `x == null`,
+// `x.f != null`, including `&&` and `||` chains) is applied through
+// `narrow.vader` in the then/else branches ; free-numeric branch types repin via
+// `join_branch_types` ; divergent guards (`if … { return }`) narrow the
+// fall-through. See `detect_is_narrow` / `push_cond_narrows`.
+
+module "vader/front/typecheck"
+
+import "vader/support/diagnostics"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The type of a value one of several branches gives — an `if`'s two, a `match`'s
+/// arms: their union, each free-literal branch coerced to the first concrete
+/// sibling of its own family. `if c { x: i32 } else { 0 }` is `i32`, not
+/// `i32 | {integer}`, and a char literal takes the width of an integer sibling
+/// (`if c { byte } else { '(' }` is that byte's `u8`) or is the `char` of a char
+/// one — mirroring the binary-operator coercion (`binary.vader::numeric_result`).
+/// Without this, an unannotated `::` binding (`expected = null`) escapes as a
+/// union with no arithmetic defined on it (T3017). Ranges join into the one
+/// holding them all, and an integer type into another branch's holding it
+/// (`union_of_paths`). Unrelated branches fall back to the plain union. A union branch settles its free member the same way
+/// (`if b { 300 } else { null }` beside a `u8` is a `u8 | null`). The value of a
+/// coerced branch takes its new type too, so that its literals are built at it and
+/// must fit it (T3066): `k :: if flag { u8(7) } else { 300 }` is refused.
+///
+/// @param values  the expression each branch gives, in source order.
+/// @param types   the branches' types, in the same order.
+join_branch_types :: fn(
+    values: AST.Expr[],
+    types: Type[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    settled: Type[]: []
+    for i in 0..<types.len() {
+        settled.push(settle_branch(values[i], types[i], types, typed, diags))
+    }
+    return union_of_paths(settled)
+}
+
+// The type a branch giving `value` of type `t` takes among `siblings`, its value
+// settled with it: a free literal, or the free member of a union reached through a
+// block, an `if` or a `match` (`{integer} | null`), takes the type the first
+// sibling offers its family. Beside a range, a free integer is the range of its
+// own value (`free_range`), which the join then holds.
+settle_branch :: fn(
+    value: AST.Expr,
+    t: Type,
+    siblings: Type[],
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    free :: free_member(t) ?? return t
+    if t is UnionType && !settles_through(value) {
+        return t
+    }
+    for sibling in siblings {
+        if is_refinement(sibling) && t is FreeIntType {
+            return free_range(value, t, typed, diags)
+        }
+        to :: family_member(sibling, free) ?? continue
+        settle_free_value(value, to, typed, diags)
+        return settled_type(t, to) ?? t
+    }
+    return t
+}
+
+// The concrete type `sibling` offers the free literal `free`: itself when it is of
+// `free`'s family, or the member a union settles such a literal on
+// (`union_literal_member`: `u8 | null` offers its `u8`).
+family_member :: fn(sibling: Type, free: Type) -> Type | null {
+    if sibling is UnionType {
+        member :: union_literal_member(free, sibling) ?? return null
+        if literal_family_holds(free, member) {
+            return member
+        }
+        return null
+    }
+    if literal_family_holds(free, sibling) {
+        return sibling
+    }
+    return null
+}
+
+/// Type-check an `IfExpr`. `expected` flows into both branches so
+/// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
+infer_if :: fn(
+    e: AST.IfExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> Type {
+    cond_ty :: check_expr(e.cond, TY_BOOL, typed, diags)
+    if !is_assignable(cond_ty, TY_BOOL) {
+        diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
+            "if condition must be `bool`, got ${display_type(cond_ty)}"))
+    }
+    pushed :: push_cond_narrows(e.cond, true, typed, diags)
+    then_ty :: check_block(e.then_block, expected, typed, diags, ctx)
+    pop_narrows(pushed, typed)
+    match eb :: e.else_branch {
+        is null            -> {
+            return collapse_if_unresolved(union_of([then_ty, TY_VOID]), then_ty, TY_VOID)
+        }
+        is AST.IfElseBlock -> {
+            else_ty :: check_else_with_narrow(eb.block, e.cond, expected, typed, diags, ctx)
+            joined :: join_branch_types([e.then_block, eb.block], [then_ty, else_ty], typed, diags)
+            return collapse_if_unresolved(joined, then_ty, else_ty)
+        }
+        is AST.IfElseIf    -> {
+            inner: AST.Expr: eb.branch
+            else_ty :: check_else_branch_expr(inner, e.cond, expected, typed, diags)
+            joined :: join_branch_types([e.then_block, inner], [then_ty, else_ty], typed, diags)
+            return collapse_if_unresolved(joined, then_ty, else_ty)
+        }
+    }
+}
+
+// `if` whose then or else branch is `?` collapses the whole expression
+// to `?` — folding the Unresolved into a union (`? | i32`) would let
+// downstream `default_if_free` paper over a missing type instead of
+// surfacing T3034 (recursive expression-bodied fn).
+collapse_if_unresolved :: fn(joined: Type, a: Type, b: Type) -> Type {
+    if a is UnresolvedType { return TY_UNRESOLVED }
+    if b is UnresolvedType { return TY_UNRESOLVED }
+    return joined
+}
+
+check_else_with_narrow :: fn(
+    block: AST.BlockExpr, cond: AST.Expr,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> Type {
+    pushed :: push_cond_narrows(cond, false, typed, diag_sink())
+    result :: check_block(block, expected, typed, diags, ctx)
+    pop_narrows(pushed, typed)
+    return result
+}
+
+check_else_branch_expr :: fn(
+    inner: AST.Expr, cond: AST.Expr,
+    expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    pushed :: push_cond_narrows(cond, false, typed, diag_sink())
+    result :: check_expr(inner, expected, typed, diags)
+    pop_narrows(pushed, typed)
+    return result
+}
+
+// Minimal `if x is T { … }` narrowing : when the cond is a binary `is`
+// op whose LHS is an `IdentExpr` resolving to a local Symbol, narrow
+// that binding to `T` inside the then-branch.
+//
+// `field_key` is `""` for ident narrowings ; otherwise it carries the
+// `${sym_id}.${field}` slot used by `narrowed_fields` so chains like
+// `b.items != null` narrow `b.items` inside the matching branch.
+IsNarrow :: struct {
+    sym_id:    i32
+    static_ty: Type
+    then_ty:   Type
+    else_ty:   Type
+    field_key: string = ""
+}
+
+// One pushed narrowing, recorded so a scope (a `&&` right operand, a then-block,
+// the rest of a block after a divergent guard) can unwind it. `field_key` is `""`
+// for a binding, else the `${sym_id}.${field}` slot `narrowed_fields` keys on.
+PushedNarrow :: struct {
+    sym_id:    i32
+    field_key: string
+    prev:      NarrowSlot | null
+}
+
+// What a leaf leaves on the TRUE side, as a type the union can carry. Normally
+// its `then_ty` — but a trait test narrows to the TRAIT, and a trait is only ever
+// understood in isolation : `is_overlap_checkable` waves a bare `TraitType` through,
+// while a union holding one is compared variant-by-variant against shapes and
+// every later `is` on it reports T3040. Its complement is already impl-aware, so
+// the implementors within the slot are `static − else_ty`.
+positive_of :: fn(n: IsNarrow) -> Type {
+    if n.then_ty is TraitType { return subtract_type(n.static_ty, n.else_ty) }
+    return n.then_ty
+}
+
+// Two narrowings addressing the same slot — the same binding, and the same field
+// chain under it (`""` for a bare ident).
+same_slot :: fn(a: IsNarrow, b: IsNarrow) = a.sym_id == b.sym_id && a.field_key == b.field_key
+
+// The leaves of a `||` chain (nested `||` flattened), or null as soon as one
+// operand narrows nothing — a true disjunction then says nothing about any slot.
+// Detection only : the operands were type-checked by the caller.
+or_leaves :: fn(cond: AST.Expr, typed: TypedProgram, out: IsNarrow[]) -> bool {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Or {
+            return or_leaves(cond.left, typed, out) && or_leaves(cond.right, typed, out)
+        }
+    }
+    leaf :: detect_is_narrow(cond, typed, diag_sink()) ?? return false
+    out.push(leaf)
+    return true
+}
+
+/// Push the narrowings that hold where `cond` evaluated to `truth`, and return
+/// the records that unwind them (`pop_narrows`).
+///
+/// Composes through `!`, `&&` and `||` at any depth :
+/// - `!c` holds what `c` holds at the opposite truth ;
+/// - `a && b` true holds both sides ; false says nothing — which operand failed ;
+/// - `a || b` false holds both sides ; true holds only when ONE slot accounts for
+///   every operand (`x is A || x is B`), and then the union of their types.
+///
+/// Both-sides cases push left then right, each leaf detected against what the
+/// previous push left, so two subtractions on one slot compose — `(base − A) − B`
+/// — instead of the second overwriting the first.
+///
+/// @param cond   the condition, already type-checked by the caller.
+/// @param truth  which outcome the narrowed region sees : `true` for a then-block
+///               or a `&&` right operand, `false` for an else or a `||` right one.
+/// @param diags  receives what detecting a LONE leaf reports ; the leaves of a
+///               compound condition report to a sink, their operands having
+///               been checked already.
+push_cond_narrows :: fn(cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[]) -> PushedNarrow[] {
+    pushed: PushedNarrow[]: []
+    push_cond_narrows_into(cond, truth, typed, diags, pushed)
+    return pushed
+}
+
+push_cond_narrows_into :: fn(
+    cond: AST.Expr, truth: bool, typed: TypedProgram, diags: Diagnostic[], pushed: PushedNarrow[],
+) -> void {
+    if cond is AST.UnaryExpr {
+        if cond.op == .Not {
+            push_cond_narrows_into(cond.operand, !truth, typed, diags, pushed)
+            return
+        }
+    }
+    if cond is AST.BinaryExpr {
+        if cond.op == .And || cond.op == .Or {
+            if (cond.op == .And) == truth {
+                push_cond_narrows_into(cond.left, truth, typed, diag_sink(), pushed)
+                // The right operand runs after the left one's test : a call in
+                // it may falsify what that test established.
+                if cond.id in typed.narrow.calling_right_operands {
+                    retire_narrowings_across_call(typed)
+                }
+                push_cond_narrows_into(cond.right, truth, typed, diag_sink(), pushed)
+            } else if cond.op == .Or {
+                push_or_true(cond, typed, pushed)
+            }
+            return
+        }
+    }
+    // A call to a guard narrows every argument it proves something of.
+    if cond is AST.CallExpr {
+        push_guard_call(cond, truth, typed, pushed)
+        return
+    }
+    leaf :: detect_is_narrow(cond, typed, diags) ?? return
+    side_ty :: side_of(truth, leaf.then_ty, leaf.else_ty)
+    pushed.push(push_one_narrow(typed, leaf.sym_id, leaf.field_key, side_ty))
+}
+
+// A true `||` narrows only when every operand tests the SAME slot : then to the
+// union of what they matched (`union_of_paths`).
+push_or_true :: fn(cond: AST.Expr, typed: TypedProgram, pushed: PushedNarrow[]) -> void {
+    leaves: IsNarrow[]: []
+    if !or_leaves(cond, typed, leaves) {
+        return
+    }
+    tys: Type[]: []
+    for n in leaves {
+        if !same_slot(n, leaves[0]) {
+            return
+        }
+        tys.push(positive_of(n))
+    }
+    pushed.push(push_one_narrow(typed, leaves[0].sym_id, leaves[0].field_key, union_of_paths(tys)))
+}
+
+// Narrow one slot to `ty`, returning the record that unwinds it. A `field_key` of
+// `""` addresses the binding itself, anything else a field chain under it.
+push_one_narrow :: fn(
+    typed: TypedProgram, sym_id: i32, field_key: string, ty: Type,
+) -> PushedNarrow {
+    if field_key == "" {
+        return PushedNarrow {
+            .sym_id = sym_id, .field_key = "", .prev = push_narrow(typed, sym_id, ty),
+        }
+    }
+    return PushedNarrow {
+        .sym_id    = sym_id,
+        .field_key = field_key,
+        .prev      = push_field_narrow(typed, field_key, ty),
+    }
+}
+
+// Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.
+// Shared by the then and else sides — a pushed record carries everything needed.
+pop_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
+    for k in 0..<pushed.len() {
+        rec :: pushed[pushed.len() - 1 - k]
+        if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev) }
+        else { pop_field_narrow(typed, rec.field_key, rec.prev) }
+    }
+}
+
+detect_is_narrow :: fn(
+    cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
+) -> IsNarrow | null {
+    // A comparison narrowing a range (`h < 12`), a call to a guard ; under a `!`,
+    // reached by the swap below.
+    if cond is AST.BinaryExpr || cond is AST.CallExpr {
+        by_value :: detect_value_narrow(cond, typed)
+        if by_value != null {
+            return by_value
+        }
+    }
+    // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
+    // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
+    // FIELD in the then-block — without it the swap records a symbol narrowing
+    // (field_key "") and `b.opt.<sub>` in the then-block keeps the union type
+    // and degrades (the compiler's own `build_if` `e.else_block.span`).
+    if cond is AST.UnaryExpr {
+        if cond.op == .Not {
+            inner :: detect_is_narrow(cond.operand, typed, diags) ?? return null
+            return swapped(inner)
+        }
+    }
+    if !(cond is AST.BinaryExpr) { return null }
+    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // orderings flip the same way.
+    if cond.op == .Eq || cond.op == .Neq {
+        ident_side :: pick_ident_vs_null(cond.left, cond.right)
+        if !(ident_side is null) {
+            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
+            // Subtract from the binding's CURRENT flow-narrowed type, not its
+            // declared type, so nested / sequential guards compose : an outer
+            // `!(x is null)` must survive an inner `!(x is T)`. Falls back to
+            // the declared type when no narrowing is active for this binding.
+            base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
+            // Never narrow an unresolved binding — mirrors the field-chain
+            // guard in `resolve_field_chain_static` (narrow.vader). A
+            // premature imported-body walk (settle pass 0, before the
+            // module's imports are wired) resolves `m[k]`-bound locals to
+            // `?` ; recording a `?` narrowing here poisons every later
+            // reference (it survives into the authoritative re-walk).
+            if base is UnresolvedType { return null }
+            null_ty :: TY_NULL
+            non_null :: subtract_type(base, null_ty)
+            if cond.op == .Eq {
+                return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
+            }
+            return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
+        }
+        // `b.field == null` / `b.field != null` — field-level narrowing.
+        field_side :: pick_field_vs_null(cond.left, cond.right)
+        if !(field_side is null) {
+            field_info :: resolve_field_chain_static(field_side, typed)
+            if !(field_info is null) {
+                null_ty :: TY_NULL
+                // Compose against the field's current flow-narrowed type (like
+                // the ident path below and stmt.vader) so sequential field
+                // guards refine instead of resetting to the declared union.
+                base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+                non_null :: subtract_type(base, null_ty)
+                if cond.op == .Eq {
+                    return IsNarrow {
+                        .sym_id = 0, .static_ty = base,
+                        .then_ty = null_ty, .else_ty = non_null,
+                        .field_key = field_info.field_key,
+                    }
+                }
+                return IsNarrow {
+                    .sym_id = 0, .static_ty = base,
+                    .then_ty = non_null, .else_ty = null_ty,
+                    .field_key = field_info.field_key,
+                }
+            }
+        }
+        return null
+    }
+    if cond.op != .Is { return null }
+    narrowed :: type_from_expr(cond.right, typed.resolved, diags)
+    // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
+    if cond.left is AST.IdentExpr {
+        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
+        // Current flow-narrowed base (see the `== null` path) so nested guards
+        // compose instead of resetting to the declared union each time.
+        base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
+        // Same guard as the ident-vs-null path above: don't narrow an
+        // unresolved binding.
+        if base is UnresolvedType { return null }
+        return IsNarrow {
+            .sym_id    = sym.id,
+            .static_ty = base,
+            .then_ty   = narrowed,
+            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
+        }
+    }
+    // Scrutinee FIELD-CHAIN narrowing : `x.y is T` narrows the `x.y` slot,
+    // mirroring the `x.y == null` field path above. Without this, `is null` /
+    // `is T` on a field never narrows (only `== null` did), so a field read
+    // after a divergent `if x.y is null { return }` guard degrades — the
+    // `convert_function` `body :: d.body ; body.span` drop.
+    if cond.left is AST.FieldExpr {
+        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
+        // Compose against the field's current flow-narrowed type so chained
+        // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
+        // resetting to the declared type (mirrors the ident path / stmt.vader).
+        base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+        return IsNarrow {
+            .sym_id    = 0,
+            .static_ty = base,
+            .then_ty   = narrowed,
+            .else_ty   = subtract_type_with_impls(base, narrowed, typed),
+            .field_key = field_info.field_key,
+        }
+    }
+    return null
+}
+
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/parser"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
+import "toolchain/span"
+
+accept_if :: fn(e: AST.Expr) -> AST.Expr | null {
+    if e is AST.IfExpr { return e }
+    return null
+}
+
+first_if_in_last_fn :: fn(src: string) -> AST.IfExpr | null {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    last :: parsed.program.decls[parsed.program.decls.len() - 1]
+    match last {
+        is AST.FnDecl -> {
+            match b :: last.body {
+                is null          -> {}
+                is AST.BlockExpr -> {
+                    hit :: find_first_in_block(b, accept_if)
+                    if hit is AST.IfExpr { return hit }
+                }
+            }
+        }
+        _ -> {}
+    }
+    return null
+}
+
+
+@test
+test_if_both_branches_int_returns_int :: fn() -> void {
+    src :: "f :: fn(c: bool) -> i32 { return if c { 1 } else { 2 } }"
+    typed :: run_check(src).typed
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[]: []
+    ty :: infer_if(ifx, TY_I32, typed, diags, null)
+    assert_eq(display_type(ty), "i32")
+}
+
+@test
+test_if_without_else_yields_union_with_void :: fn() -> void {
+    src :: "f :: fn(c: bool) -> void { if c { 1 } }"
+    typed :: run_check(src).typed
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[]: []
+    ty :: infer_if(ifx, null, typed, diags, null)
+    assert_eq(display_type(ty), "void | {integer}")
+}
+
+@test
+test_if_cond_not_bool_emits_T3019 :: fn() -> void {
+    src :: "f :: fn() -> i32 { return if 1 { 1 } else { 2 } }"
+    typed :: run_check(src).typed
+    ifx :: first_if_in_last_fn(src)
+    if ifx is null { assert(false, "expected an if expr") return }
+    diags: Diagnostic[]: []
+    infer_if(ifx, null, typed, diags, null)
+    found := false
+    for d in diags { if d.code.id == "T3019" { found = true } }
+    assert(found, "expected T3019 on non-bool cond")
+}

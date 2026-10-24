@@ -1157,7 +1157,7 @@ emit_comptime_const :: fn(self: Printer, d: p.ConstDecl, body: p.Expr) -> void {
 // candidate for the multi-line layout in `emit_const_decl`.
 is_bitor_chain :: fn(e: p.Expr) -> bool = e is p.BinaryExpr && e.op == .BitOr
 
-// `collect_bitor_variants` now lives in `vader/parser/ast` so both the
+// `collect_bitor_variants` now lives in `toolchain/ast` so both the
 // formatter and the typechecker share one implementation.
 
 /// Render a single expression to a standalone string. `source` is the document
@@ -1916,7 +1916,7 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
 }
 
 // Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
-// `vader/parser/parser.vader::infix_for` (the only authority on what the
+// `vader/front/parser/parser.vader::infix_for` (the only authority on what the
 // parser accepts) : comparisons AND `is` / `in` / `!in` share one rank
 // (parser bp 20, non-associative). Rank 4 is reserved for ranges (parser bp
 // 30) and consulted by `range_operand_needs_parens`. Adding a `BinaryOp`

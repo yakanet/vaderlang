@@ -20,7 +20,7 @@
 // EVERY part form has to be handled here: these comparisons are emitted directly
 // and never go back through `lower_expr`, so a nested tuple or union that fell
 // through would compare two boxes, and a struct would reach `ref.eq`.
-// `typecheck/binary.vader` refuses the parts with no `==` (`part_without_equality`),
+// `front/typecheck/binary.vader` refuses the parts with no `==` (`part_without_equality`),
 // proves two tuple operands EQUAL — which lets the left type drive both sides —
 // and a union operand to share a variant with the other (`shares_variant`).
 
@@ -29,7 +29,7 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 
 try_lower_value_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {

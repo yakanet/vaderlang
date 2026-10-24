@@ -9,7 +9,7 @@ import "std/io"
 import "std/sort"
 import "std/string_builder"
 import "vader/lower"
-import "vader/resolver"
+import "vader/front/resolver"
 
 // ---- report ---------------------------------------------------------------
 

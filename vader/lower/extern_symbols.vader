@@ -15,7 +15,7 @@ import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/resolver"
+import "vader/front/resolver"
 
 // Report each C symbol a second `@extern` declaration of the project claims
 // (M5011), unless both declarations name a header. Every module is read, not

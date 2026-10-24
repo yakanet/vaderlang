@@ -55,7 +55,7 @@ export baked_module_source :: fn(t: Target) -> string {
         "import \"std/target\"",
         "",
         // The type ascription is LOAD-BEARING, and so is the type bridge in
-        // `typecheck/orchestrate.vader::populate_baked_symbols`. Measured both
+        // `front/typecheck/orchestrate.vader::populate_baked_symbols`. Measured both
         // ways: with only one of them, `VADER_OS` assigns to a `string` without
         // a diagnostic, `"${VADER_OS}"` renders the ordinal, and a `match` over
         // it lowers silently to `unreachable`. Seeding a symbol puts its NAME in

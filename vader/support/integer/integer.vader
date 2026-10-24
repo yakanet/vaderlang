@@ -2,7 +2,7 @@
 //
 // The one definition of when `+`, `-`, `*` and unary `-` overflow an integer
 // type: the VM's checked ops (`vader/bytecode/checked_arith.vader`) and the
-// comptime evaluator (`vader/comptime/eval_binary.vader`) both answer through it,
+// comptime evaluator (`vader/front/comptime/eval_binary.vader`) both answer through it,
 // and the native helpers in `runtime/c/vader.h` must agree with it.
 //
 // An integer type is its width in bits (8, 16, 32 or 64) and its signedness. A

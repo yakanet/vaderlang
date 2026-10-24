@@ -25,7 +25,7 @@ program compiled and printed nothing.
 ## Decision
 
 **A const read before its turn is typed at that read** (`settle_const_read`, in
-`vader/typecheck/const_walk.vader`).
+`vader/front/typecheck/const_walk.vader`).
 
 - Each walk tracks every const of its module (`TypedProgram.const_walk`). It is
   typed once per walk: at its turn, or at the first read before it, whichever

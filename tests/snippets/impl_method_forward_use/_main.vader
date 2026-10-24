@@ -7,7 +7,7 @@
 // `vader test` entry: `f2s.vader`'s `format_f32` calls `x.to_bits()` before
 // `primitives.vader`'s `@intrinsic f32 implements Float32Bits` (a sibling file
 // merged after the caller). Fixed by seeding ALL impl metadata in
-// `walk_bodies`' pre-pass (vader/typecheck/orchestrate.vader::register_impl_metadata),
+// `walk_bodies`' pre-pass (vader/front/typecheck/orchestrate.vader::register_impl_metadata),
 // so forward references resolve regardless of decl order.
 
 module "snippet"

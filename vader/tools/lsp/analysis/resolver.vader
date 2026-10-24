@@ -14,7 +14,7 @@ import "std/collections"
 import "std/io"
 import "std/string"
 import "vader/support/diagnostics"
-import "vader/resolver"
+import "vader/front/resolver"
 import "vader/tools/lsp/protocol"
 
 /// Where a cross-file goto-def landed : a file URI + the target's

@@ -30,7 +30,7 @@ import "std/process"
 import "std/string"
 import "std/string_builder"
 TTY :: import "std/tty"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// What describes a new project's build. Three exclusive shapes, not three
 /// layers: a driver supersedes the manifest as the build's description rather

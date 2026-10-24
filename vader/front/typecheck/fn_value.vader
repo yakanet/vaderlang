@@ -1,0 +1,252 @@
+// vader/front/typecheck/fn_value — a generic function named as a value.
+//
+// A name that designates a generic function outside a call (`apply(name_of, 5)`,
+// `xs.map(name_of)`, `h: fn(i32) -> i32: id`) instantiates it against the function
+// type of the slot it fills : each quantified parameter becomes a fresh variable,
+// bound by unifying the instance with the slot. The site is recorded as a
+// `.Reference`, with the type each parameter takes, which is what the lowering
+// names the instance by. Written arguments (`id<i32>`) fix the first parameters.
+//
+// Two uses keep the quantifier (`check_keeping_quantifier`) : the callee of a call,
+// which the call instantiates itself, and the value of a `::` binding with no
+// annotation (`g :: id`). Such a binding is an alias : every use of `g` names `id`,
+// instantiated where it is used.
+// docs/adr/0072-a-generic-function-as-a-value-is-instantiated-where-it-is-used.md
+//
+// A generic function taken as a method value (`g :: xs.first`) is instantiated
+// where it is taken, its receiver binding what its first parameter names : the
+// value is a closure over that receiver, no alias. The site is a `.MethodValue`.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/support/diagnostics"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The instance a generic function named by `expr` takes in the slot `expected`.
+///
+/// An expression naming no function comes back as `got`.
+///
+/// @param expr      the expression typed.
+/// @param got       its type, a quantified function type.
+/// @param expected  the slot the value flows into ; null for none.
+/// @param typed     the module ; receives the `.Reference` site.
+/// @param diags     receives T3069 when the slot is no function type.
+/// @return          the instance, its parameters solved as far as the slot says.
+instantiate_fn_value :: fn(
+    expr: AST.Expr,
+    got: FnType,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    decl :: lookup_callee_fn_decl(expr, typed) ?? return got
+    return instance_in_slot(expr, decl, got, [], expected, typed, diags)
+}
+
+/// Type `f<T1, …>` naming a generic function : the written arguments fix its first
+/// parameters, the slot binds the rest.
+///
+/// @param e         the written instance.
+/// @param fn_ty     the function's quantified type.
+/// @param expected  the slot the value flows into ; null for none.
+/// @param typed     the module ; receives the `.Reference` site.
+/// @param diags     receives T3105 for too many arguments, T3069 for a parameter
+///                  nothing binds.
+infer_fn_instance :: fn(
+    e: AST.GenericInstExpr,
+    fn_ty: FnType,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    decl :: lookup_callee_fn_decl(e.callee, typed) ?? return TY_UNRESOLVED
+    reject_extra_type_args(e.callee, e.type_args, fn_ty, typed, diags)
+    return instance_in_slot(e, decl, fn_ty, e.type_args, expected, typed, diags)
+}
+
+// The instance of `fn_ty` at `site` : a fresh variable for each parameter, the
+// written arguments fixing the first ones and the slot binding the others. Records
+// the site.
+instance_in_slot :: fn(
+    site: AST.Expr,
+    decl: AST.FnDecl,
+    fn_ty: FnType,
+    type_args: AST.TypeExpr[],
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    bindings :: MutableMap<i32, Type> {}
+    own: InferVar[]: []
+    for tp in fn_ty.type_params {
+        v :: fresh_infer_var(typed, tp)
+        bindings[tp.symbol.id] = v
+        own.push(v)
+    }
+    held :: seed_explicit_infer(type_args, own, typed, typed.infer_solutions, diags)
+    instance :: substitute_fn_map(fn_ty, bindings)
+    open :: type_args.len() < own.len()
+    return bound_by_slot(
+        site, .Reference, decl, instance, bindings, open, held, expected, typed, diags,
+    ) ?? fn_ty
+}
+
+/// The instance a generic free function takes as the method value `e` : the
+/// receiver binds what its first parameter names, as at a call, the slot the rest.
+///
+/// @param e         the field access taking the value.
+/// @param decl      the function UFCS chose for the receiver.
+/// @param fn_ty     its quantified type.
+/// @param receiver  the receiver's type.
+/// @param expected  the slot the value flows into ; null for none.
+/// @param typed     the module ; receives the `.MethodValue` site.
+/// @param diags     receives T3069 when the slot leaves a parameter unbound.
+/// @return          the instance without its receiver, and without a quantifier.
+method_value_instance :: fn(
+    e: AST.FieldExpr,
+    decl: AST.FnDecl,
+    fn_ty: FnType,
+    receiver: Type,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    bindings :: MutableMap<i32, Type> {}
+    for tp in fn_ty.type_params {
+        bindings[tp.symbol.id] = fresh_infer_var(typed, tp)
+    }
+    full :: substitute_fn_map(fn_ty, bindings)
+    solutions :: typed.infer_solutions
+    actual :: default_if_free(receiver)
+    unify_infer(full.params[0], actual, solutions)
+    unify_struct_to_trait_infer(full.params[0], actual, typed, solutions, null)
+    instance :: FnType { ...mk_fn_drop_self(full), .type_params = [] }
+    open :: type_contains_infer_var(zonk(instance, solutions))
+    return bound_by_slot(
+        e, .MethodValue, decl, instance, bindings, open, null, expected, typed, diags,
+    ) ?? TY_UNRESOLVED
+}
+
+// `instance`, the instance of `decl` at the site `role` plays at `site`, its
+// variables still `open` bound by the slot `expected`, the site recorded with
+// `bindings`. Null when they are open with no function-typed slot, reported.
+bound_by_slot :: fn(
+    site: AST.Expr,
+    role: CallRole,
+    decl: AST.FnDecl,
+    instance: FnType,
+    bindings: MutableMap<i32, Type>,
+    open: bool,
+    held: MutableSet<i32> | null,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type | null {
+    if open {
+        slot :: settled_slot(expected, typed)
+        if slot !is FnType {
+            report_unbound(role, site.span, decl, diags)
+            return null
+        }
+        unify_infer(instance, slot, typed.infer_solutions, held)
+    }
+    record_site(typed, site, role, DirectFn { .decl = decl, .bindings = bindings })
+    note_instantiation_site(typed, site.id, site.span)
+    solved :: zonk(instance, typed.infer_solutions)
+    // The slot of an enclosing call may still hold its variables : the tables are
+    // then swept once the module's bodies are walked.
+    if type_contains_infer_var(solved) {
+        typed.infer_leak_possible = true
+    }
+    return solved
+}
+
+// What `expected` stands for once the variables solved so far are replaced.
+settled_slot :: fn(expected: Type | null, typed: TypedProgram) -> Type | null {
+    if expected == null {
+        return null
+    }
+    return zonk(expected, typed.infer_solutions)
+}
+
+// T3069 for `decl`, instantiated as a value at the site `role` plays at `span`
+// with a parameter nothing binds.
+report_unbound :: fn(role: CallRole, span: Span, decl: AST.FnDecl, diags: Diagnostic[]) -> void =
+    diags.push(typecheck_error(.TypeArgumentNotInferable, span, unbound_hint(role, decl.name)))
+
+unbound_hint :: fn(role: CallRole, name: string) -> string {
+    if role == .MethodValue {
+        return "`${name}` is generic : taken as a value on its receiver, it needs a"
+            + " function-typed slot (`h: fn(i32) -> string: x.${name}`)"
+    }
+    return "`${name}` is generic : used as a value, it needs a function-typed slot"
+        + " (`h: fn(i32) -> i32: ${name}`) or its type arguments (`${name}<i32>`)"
+}
+
+/// Note a `::` binding with no annotation whose value names a generic function :
+/// each use of the binding names that function.
+///
+/// @param s      the binding.
+/// @param got    the type its value took, the quantifier kept.
+/// @param typed  the module ; receives the alias in `fn_aliases`.
+note_fn_alias :: fn(s: AST.LetStmt, got: Type, typed: TypedProgram) -> void {
+    if got !is FnType || got.type_params.len() == 0 {
+        return
+    }
+    binding :: s.binding
+    if binding !is AST.SimpleBinding {
+        return
+    }
+    decl :: lookup_callee_fn_decl(s.value, typed) ?? return
+    sym :: typed.resolved.idents[binding.name_span.hash()] ?? return
+    typed.fn_aliases[sym.id] = decl
+}
+
+/// Settle the instance each `.Reference` and `.MethodValue` site of the module
+/// names, once its bodies are walked : the variables solved, free literals at their
+/// default, the bounds checked. A parameter nothing bound is T3069, and recorded as
+/// unresolved.
+///
+/// @param typed  the module.
+/// @param diags  receives T3069 and T3006.
+settle_fn_references :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
+    roles: CallRole[]: [.Reference, .MethodValue]
+    for role in roles {
+        settle_instances(role, typed, diags)
+    }
+}
+
+// Settle the instance each site playing `role` names.
+settle_instances :: fn(role: CallRole, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for [id, callee] in sites_of(typed.call_sites, role) {
+        if callee !is DirectFn {
+            continue
+        }
+        bindings :: callee.bindings ?? continue
+        span :: typed.call_sites.instantiation_spans[id] ?? continue
+        zonk_table(bindings, typed.infer_solutions)
+        default_free_bindings(bindings)
+        if leaves_a_variable(bindings) {
+            report_unbound(role, span, callee.decl, diags)
+            continue
+        }
+        check_typeparam_bounds(span, callee.decl.name, bindings, typed, diags)
+    }
+}
+
+// Whether a binding still holds a variable nothing solved ; each such one is
+// recorded as unresolved.
+leaves_a_variable :: fn(bindings: MutableMap<i32, Type>) -> bool {
+    found := false
+    for k in bindings.keys() {
+        bound :: bindings[k] ?? continue
+        if type_contains_infer_var(bound) {
+            bindings[k] = TY_UNRESOLVED
+            found = true
+        }
+    }
+    return found
+}

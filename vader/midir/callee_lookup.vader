@@ -11,7 +11,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 
 /// The four indexes a direct call resolves through : positions in the caller's own
 /// lists of functions and of imports.

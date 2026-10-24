@@ -76,8 +76,8 @@ iterable. A user type whose `into` is a generator stepped its state machine.
   tree, and CJK text) does not move. The compiler binary keeps its size.
 - Each `yield` of an inlined generator inlines the loop body: a `for c in s` body
   appears twice in the emitted code.
-- The `for c in x.chars()` loops of `lib/` and `vader/parser/dump.vader` are
-  written `for c in x` and fuse. The one in `vader/parser/parser.vader` stays: a
+- The `for c in x.chars()` loops of `lib/` and `vader/front/parser/dump.vader` are
+  written `for c in x` and fuse. The one in `vader/front/parser/parser.vader` stays: a
   method call on the loop variable of `for c in s` panics at emit, before this
   change as after it (`TODO.md`).
 - `string`'s `into` is the first generator member of a non-generic impl in

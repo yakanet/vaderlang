@@ -12,7 +12,7 @@ module "vader/midir"
 import "std/collections"
 import "toolchain/span"
 import "vader/lower"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 
 // ---- the nullable struct case ---------------------------------------------

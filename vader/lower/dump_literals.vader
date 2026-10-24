@@ -11,7 +11,7 @@ import "std/numbers"
 import "std/string"
 import "std/string_builder"
 import "vader/support/text"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 
 // A value written into a slot of its own type : a literal prints bare, and a

@@ -10,7 +10,7 @@
 // so each span converts in O(characters-on-its-line). The per-byte ASCII branch
 // is the fast path: an ASCII byte counts as one unit in every encoding, so a
 // pure-ASCII line (the overwhelming common case) needs no real work, and utf-8
-// skips the scan entirely. Line breaks match the lexer (`vader/lexer/lexer.vader`
+// skips the scan entirely. Line breaks match the lexer (`vader/front/lexer/lexer.vader`
 // `advance`): LF, a lone CR, and CRLF each start exactly one new line.
 //
 // See `position.vader` for the JSON encoders that consume the results.

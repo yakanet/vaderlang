@@ -11,11 +11,11 @@ import "std/string_builder"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/resolver"
-import "vader/typecheck"
+import "vader/front/resolver"
+import "vader/front/typecheck"
 import "vader/types"
-import "vader/comptime"
-import "vader/resolver/symbol"
+import "vader/front/comptime"
+import "vader/front/resolver/symbol"
 import "toolchain/span"
 
 /// Build phase of generic-fn-instance materialisation. Drains the

@@ -12,7 +12,7 @@ import "std/abort"
 import "std/collections"
 import "std/string_builder"
 import "vader/support/integer"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 
 // ---- variants -------------------------------------------------------------
 
@@ -377,7 +377,7 @@ export Type ::
 /// Target-ABI metadata for one primitive other than the integers, which
 /// `vader/support/integer::MACHINE_INTEGERS` describes: the single source of truth every
 /// pass consults instead of re-listing names. Row order is load-bearing:
-/// `resolver/builtins` mints builtin symbol IDs in this order (embedded in
+/// `front/resolver/builtins` mints builtin symbol IDs in this order (embedded in
 /// snapshots), so new primitives append at the end. Consumer-owned mappings
 /// (bytecode `ValType`, c-emit C spellings) map a row onto their own enum rather
 /// than living here, so `vader/types` stays a near-leaf. `size` is bytes (align ==
@@ -500,7 +500,7 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// This is what `@size_of` reports, and the operational truth is
 /// `bytecode::val_type_of_type` composed with `c_emit::c_type_for_val_bare`:
 /// those two decide the C declaration, and any disagreement with this function
-/// is a bug here. It lives in `vader/types` because `vader/comptime` folds
+/// is a bug here. It lives in `vader/types` because `vader/front/comptime` folds
 /// `@size_of` and cannot reach `vader/bytecode` without inverting an import
 /// edge; the colocated tests below pin one case per class against the emitted C.
 ///
@@ -829,7 +829,7 @@ export display_type :: fn(t: Type) -> string {
 
 /// `t` rendered as `display_type` renders it, with every nominal type (struct,
 /// trait, enum, distinct) named by its declaring module as well:
-/// `std_collections_MutableMap<string, vader_lexer_Token>`. Two same-named types
+/// `std_collections_MutableMap<string, vader_front_lexer_Token>`. Two same-named types
 /// of different modules render apart, which an instance name needs.
 ///
 /// @param t  the type to render.

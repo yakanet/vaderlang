@@ -13,7 +13,7 @@ import "std/collections"
 import "std/env"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about

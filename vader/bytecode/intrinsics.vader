@@ -12,7 +12,7 @@
 
 module "vader/bytecode"
 
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 
 /// True when the call's mangled name resolves to a dedicated

@@ -29,7 +29,7 @@ export Message :: TypecheckedMessage | PhaseMessage | CompleteMessage
 /// generated declarations, never the ones already seen — so a rule applied here
 /// fires once however many generation rounds that entry takes.
 export TypecheckedMessage :: struct {
-    /// The module's declared name — `"std/io"`, `"vader/lexer"`. This is what a
+    /// The module's declared name — `"std/io"`, `"vader/front/lexer"`. This is what a
     /// driver filters on; the loader's own key is an absolute filesystem path,
     /// which no rule can usefully match against.
     module_name:  string

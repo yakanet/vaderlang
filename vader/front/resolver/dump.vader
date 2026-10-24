@@ -1,0 +1,44 @@
+// vader/front/resolver/dump — text formatter for ResolvedProject.
+//
+// Output is stable so the snapshot suite can diff it against the recorded
+// fixtures. Format spec :
+//
+//     # Modules
+//
+//     ## <displayPath>
+//       <kind:pad 16> <visibility:pad 8> <name>
+//       ...
+//
+// The CLI wrapper adds the trailing newline via `println`, so this
+// function returns text without one (matches `dump_program`).
+
+module "vader/front/resolver"
+
+import "std/string"
+import "std/string_builder"
+import "vader/front/resolver/symbol"
+import "toolchain/ast"
+
+export dump_project :: fn(p: ResolvedProject) -> string {
+    sb :: StringBuilder {}
+    sb.append("# Modules")
+    for m in p.modules {
+        sb.append("\n\n## ")
+        sb.append(m.path)
+        for s in sort_by_name(m.symbols + m.import_bindings) {
+            sb.append("\n  ")
+            sb.append(s.kind.label.pad_end(16, ' '))
+            sb.append_char(' ')
+            sb.append(visibility_name(s.visibility).pad_end(8, ' '))
+            sb.append_char(' ')
+            sb.append(s.name)
+        }
+    }
+    return sb.to_string()
+}
+
+visibility_name :: fn(v: Visibility) -> string = match v {
+    .Public  -> "public"
+    .Private -> "private"
+}
+

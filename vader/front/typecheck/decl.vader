@@ -1,0 +1,1443 @@
+// vader/front/typecheck/decl — top-level type collection.
+//
+// Walks every
+// top-level decl in source order, mints its declared `Type`, and stores
+// the result in `typed.decl_types` keyed by the decl's symbol id.
+// Later passes (body checking, ImplRegistry building) read this side
+// table without re-walking the AST.
+//
+// Handled here :
+//   - `@extern` ABI validation (T3050 / T3051) via `validate_extern`.
+//   - Const-as-type-alias detection : an un-annotated const
+//     whose value is in type position registers an alias / distinct type
+//     (`is_type_expr` → `alias_for`) ; an annotated const gets
+//     its annotated type ; an un-annotated value const stays un-typed at
+//     decl level (its literal type lands in `expr_types` at body time).
+//
+// Not handled here :
+//   - ImplDecls are registered into `ImplRegistry` (`impls.vader`), not here.
+//   - AssertDecl is a no-op (handled by comptime).
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/iter"
+import "vader/support/diagnostics"
+import "vader/support/integer"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
+AST :: import "toolchain/ast"
+import "vader/front/parser"
+import "vader/types"
+import "toolchain/span"
+
+/// Walk every top-level decl in `program.decls` and mint its `Type` into
+/// `typed.decl_types`. The pass is single-shot — re-running it is
+/// idempotent if `decl_types` is cleared first.
+declare_module :: fn(
+    program_decls: AST.Decl[],
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    for decl in program_decls {
+        record_type_param_symbols(decl, resolved, typed)
+    }
+    for decl in program_decls {
+        declare_decl(decl, resolved, typed, diags)
+        register_deprecated(decl, resolved)
+    }
+}
+
+register_deprecated :: fn(decl: AST.Decl, resolved: ResolvedModule) -> void {
+    msg :: deprecated_message(AST.decl_decorators(decl)) ?? return
+    sym :: decl_symbol(resolved, decl) ?? return
+    resolved.deprecated_messages[sym.id] = msg
+}
+
+deprecated_message :: fn(decs: AST.Decorator[]) -> string | null {
+    for d in decs {
+        if d.name != "deprecated" {
+            continue
+        }
+        if d.args.len() == 0 {
+            return ""
+        }
+        a :: d.args[0]
+        if a is AST.StringLitExpr && a.parts.len() == 1 {
+            p :: a.parts[0]
+            if p is AST.StringLitText {
+                return p.value
+            }
+        }
+        return ""
+    }
+    return null
+}
+
+declare_decl :: fn(
+    decl: AST.Decl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    match decl {
+        is AST.FnDecl     -> {
+            declare_fn(decl, resolved, typed, diags)
+            if guard_condition(decl) != null || ensured_condition(decl) != null {
+                typed.shared_guards.owners[decl.id] = typed
+                // A body is what a contract is held to ; a fn without one is never
+                // checked, so the shape is reported here.
+                if decl.body == null {
+                    diags.push(typecheck_error(.MisshapenGuard, decl.name_span,
+                        "`${decl.name}` has no body to hold to it"))
+                }
+            }
+            if is_guard_candidate(decl, typed) {
+                typed.guards.candidates.add(decl.id)
+            }
+        }
+        is AST.StructDecl -> {
+            sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+            declare_named_with_args(sym, decl.type_params, typed, mk_struct)
+            // Index the struct decl by symbol id so `field.vader` can
+            // walk fields without re-traversing the program AST.
+            typed.struct_decls[sym.id] = decl
+            // Pre-resolve every field's type using THIS module's
+            // resolved.idents. Cross-module field lookups (entry
+            // struct lives in `std/collections` but `entry.value`
+            // is read from main) consult these directly via the
+            // owner module's bindings.
+            fields_map :: MutableMap<string, Type> {}
+            // A private field (`@internal`) is invisible across the module
+            // boundary, so it never leaks: only public fields of an
+            // exported struct expose their type through the interface.
+            struct_public :: decl.visibility == .Public
+            for f in decl.fields {
+                fty :: type_from_expr(f.ty, resolved, diags)
+                fields_map[f.name] = fty
+                if struct_public && f.visibility == .Public {
+                    report_private_leak(fty, f.ty.span, decl.name, "exposes a field of type", diags)
+                }
+            }
+            typed.struct_field_types[sym.id] = fields_map
+        }
+        is AST.EnumDecl  -> { declare_enum(decl, resolved, typed, diags) }
+        is AST.TraitDecl -> {
+            sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+            declare_named_with_args(sym, decl.type_params, typed, mk_trait)
+            typed.trait_decls[sym.id] = decl
+            typed.trait_decl_owners[sym.id] = resolved
+        }
+        is AST.TypeAliasDecl -> { declare_type_alias(decl, resolved, typed, diags) }
+        is AST.ConstDecl     -> { declare_const(decl, resolved, typed, diags) }
+        is AST.ImplDecl      -> {}
+        is AST.AssertDecl    -> {}
+        is AST.ImportDecl    -> {}
+    }
+}
+// ImplDecl → ImplRegistry (impls.vader). AssertDecl → comptime only.
+// ImportDecl was wired by the resolver. No-op here for all three.
+
+// Index the symbol the resolver gave each type parameter `decl` declares, its
+// members' included, by the parameter's declaration site.
+record_type_param_symbols :: fn(
+    decl: AST.Decl, resolved: ResolvedModule, typed: TypedProgram,
+) -> void {
+    for tp in listed_type_params(decl) {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        typed.type_param_symbols[tp.span.hash()] = sym
+    }
+}
+
+listed_type_params :: fn(decl: AST.Decl) -> AST.TypeParam[] {
+    out: AST.TypeParam[]: []
+    match decl {
+        is AST.FnDecl        -> { out.push_all(decl.type_params) }
+        is AST.StructDecl    -> { out.push_all(decl.type_params) }
+        is AST.TypeAliasDecl -> { out.push_all(decl.type_params) }
+        is AST.TraitDecl     -> {
+            out.push_all(decl.type_params)
+            for m in decl.members {
+                out.push_all(m.type_params)
+            }
+        }
+        is AST.ImplDecl      -> {
+            out.push_all(decl.type_params)
+            for m in decl.members {
+                out.push_all(m.type_params)
+            }
+        }
+        is AST.EnumDecl | AST.ConstDecl | AST.AssertDecl | AST.ImportDecl -> {}
+    }
+    return out
+}
+
+/// Shared builder for Struct / Trait decls, which only differ in the `Type`
+/// constructor (`mk_struct` vs `mk_trait`). The declared type's arguments are the
+/// type parameters themselves (`declared_type_args`).
+declare_named_with_args :: fn(
+    sym: Symbol,
+    type_params: AST.TypeParam[],
+    typed: TypedProgram,
+    mk: fn(Symbol, Type[]) -> Type,
+) -> void {
+    args :: declared_type_args(type_params, typed) ?? return
+    typed.decl_types[sym.id] = mk(sym, args)
+}
+
+// `tps` as the declaration's own fields and members write them : each under the
+// symbol the resolver gave it. Null when one has none.
+declared_type_args :: fn(tps: AST.TypeParam[], typed: TypedProgram) -> Type[] | null {
+    out: Type[]: []
+    for tp in tps {
+        sym :: typed.type_param_symbols[tp.span.hash()] ?? return null
+        out.push(mk_type_param(sym))
+    }
+    return out
+}
+
+// ---- per-decl declarers ---------------------------------------------------
+
+declare_fn :: fn(
+    decl: AST.FnDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    params: Type[]: []
+    for p in decl.params {
+        params.push(declare_fn_param(p, resolved, typed, diags))
+    }
+    return_type :: declare_fn_return(decl, resolved, diags)
+    sym :: symbol_declared_at(resolved, decl.name_span)
+    if sym != null {
+        typed.decl_types[sym.id] = mk_fn(
+            params, return_type, quantifier_of(decl.type_params, resolved),
+        )
+        typed.fn_decls[sym.id] = decl
+    }
+    if decl.name == "main" {
+        check_main_signature(decl, params, return_type, diags)
+    }
+    if has_extern_decorator(decl.decorators) {
+        validate_extern(decl, params, return_type, typed, diags)
+    } else {
+        // `validate_extern` checks them for an `@extern`; every other fn has to
+        // be checked here, or `@c_pointer` would pass unnoticed on a Vader body
+        // where it means nothing.
+        validate_param_decorators(decl, false, diags)
+        validate_result_c_type(decl, return_type, false, diags)
+    }
+    // A bodyless top-level free fn becomes a host import (`lower/decl.vader`
+    // returns a null body → `call.import`). Host-ness must be *declared* :
+    // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
+    // Without either, the import is unbound and traps at runtime — so require
+    // the annotation here. Impl members (`impl_is_intrinsic`) and trait-method
+    // signatures go through other declarers and never reach `declare_fn`.
+    //
+    // A `@target` declaration is exempt: bodyless here means the group had no
+    // body for the target being built, which the resolver already reported as
+    // R2041 — naming the target and what the group DOES cover. Emitting this too
+    // would answer the same question a second time with the opposite advice
+    // ("make it `@intrinsic`"), which is the wrong fix for a coverage hole.
+    if decl.body == null && !has_intrinsic_decorator(decl.decorators) && !has_extern_decorator(
+        decl.decorators,
+    ) && !has_target_decorator(decl.decorators) {
+        diags.push(
+            typecheck_error(
+                .BodylessFnMustBeIntrinsic,
+                decl.name_span,
+                "`${decl.name}` is bodyless and otherwise unbound at runtime ; for a function-*type*, spell the `fn(...)` type inline at its use sites rather than as a named bodyless declaration",
+            ),
+        )
+    }
+    if AST.decorators_have(decl.decorators, "singleton") {
+        check_singleton_shape(decl, typed, diags)
+    }
+    check_public_fn_visibility(decl, params, return_type, diags)
+}
+
+/// The type parameters a `<…>` declares, as the parameters a signature
+/// quantifies over.
+///
+/// @param params    the written parameters.
+/// @param resolved  the module declaring them, whose `idents` bind the names.
+quantifier_of :: fn(params: AST.TypeParam[], resolved: ResolvedModule) -> TypeParamType[] {
+    out: TypeParamType[]: []
+    for tp in params {
+        sym :: resolved.idents[tp.span.hash()] ?? continue
+        out.push(TypeParamType { .symbol = sym })
+    }
+    return out
+}
+
+// A `@singleton` function builds one instance for the whole program: an argument or
+// a type argument would ask for one per value, and a body that suspends would let
+// another call see it half built.
+check_singleton_shape :: fn(decl: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    detail :: singleton_shape_fault(decl, typed) ?? return
+    diags.push(typecheck_error(.MisshapedSingleton, decl.name_span, "`${decl.name}` ${detail}"))
+}
+
+// What keeps `decl` from being a singleton, or null.
+singleton_shape_fault :: fn(decl: AST.FnDecl, typed: TypedProgram) -> string | null {
+    if decl.params.len() > 0 {
+        return "takes parameters"
+    }
+    if decl.type_params.len() > 0 {
+        return "is generic"
+    }
+    if fn_is_async(typed, decl) {
+        return "awaits"
+    }
+    if fn_is_generator(typed, decl) {
+        return "yields"
+    }
+    if decl.body == null {
+        return "has no body"
+    }
+    return null
+}
+
+has_target_decorator :: fn(decorators: AST.Decorator[]) -> bool {
+    for d in decorators {
+        if d.name == "target" {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- T3052 : private type in a public interface ---------------------------
+
+// Fire T3052 when a private user type leaks through the public interface of
+// `owner_name`. `role` completes the sentence : "returns", "takes a parameter
+// of type", "exposes a field of type". Mirrors Rust's E0446
+// (`private_interfaces`) — a caller in another module can neither name such a
+// type nor construct a value of it, so the export is unusable across the
+// boundary. No-op when the interface names only exported types.
+report_private_leak :: fn(
+    ty: Type,
+    span: Span,
+    owner_name: string,
+    role: string,
+    diags: Diagnostic[],
+) -> void {
+    leak :: first_unexported_type(ty) ?? return
+    diags.push(
+        typecheck_error(
+            .PrivateTypeInPublicInterface,
+            span,
+            "exported `${owner_name}` ${role} `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${owner_name}` private",
+        ),
+    )
+}
+
+// Check both halves of an exported fn's signature — its return type and every
+// parameter type. Params cover `@extern` / `@intrinsic` host bindings too : a
+// public foreign ABI over a private type is the same leak. `params[i]`
+// corresponds to `decl.params[i]` (built in the same order by `declare_fn`).
+check_public_fn_visibility :: fn(
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    diags: Diagnostic[],
+) -> void {
+    if decl.visibility != .Public {
+        return
+    }
+    report_private_leak(return_type, return_type_span(decl), decl.name, "returns", diags)
+    for i in 0..<decl.params.len() {
+        p :: decl.params[i]
+        span :: if p.ty != null { p.ty.span } else { p.span }
+        report_private_leak(params[i], span, decl.name, "takes a parameter of type", diags)
+    }
+}
+
+// First non-exported user type referenced anywhere in `t`, or null when the
+// whole type is nameable across the module boundary. Exhaustive over the
+// closed `Type` union (no `_` fall-through) so adding a new symbol-carrying
+// variant trips T3013 here and forces a conscious decision ; every type that
+// carries no nameable symbol (primitives, type-params, `Self`, the
+// erasure/inference synthetics) is a leaf that contributes nothing → null.
+first_unexported_type :: fn(t: Type) -> Symbol | null {
+    match t {
+        is StructType   -> {
+            if is_private_user_type(t.symbol) {
+                return t.symbol
+            }
+            return first_unexported_in(t.args)
+        }
+        is EnumType     -> {
+            // EnumType carries no generic args today ; if parametric enums land,
+            // recurse into them here like StructType / TraitType.
+            if is_private_user_type(t.symbol) {
+                return t.symbol
+            }
+            return null
+        }
+        is DistinctType -> {
+            // A private distinct leaking through an exported signature is an
+            // error just like a private struct ; the backing is a primitive
+            // (always public) but recurse for generality.
+            if is_private_user_type(t.symbol) {
+                return t.symbol
+            }
+            return first_unexported_type(t.backing)
+        }
+        is TraitType   -> {
+            if is_private_user_type(t.symbol) {
+                return t.symbol
+            }
+            return first_unexported_in(t.args)
+        }
+        is UnionType    -> {
+            return first_unexported_in(t.variants)
+        }
+        is ArrayType    -> {
+            return first_unexported_type(t.element)
+        }
+        is TupleType    -> {
+            return first_unexported_in(t.elements)
+        }
+        is FnType       -> {
+            in_params :: first_unexported_in(t.params)
+            if in_params != null {
+                return in_params
+            }
+            return first_unexported_type(t.return_type)
+        }
+        is PrimitiveType     -> { return null }
+        is RangeType         -> { return null }
+        is TypeParamType     -> { return null }
+        is InferVar          -> { return null }
+        is TypeMetaType      -> { return null }
+        is SelfType          -> { return null }
+        is UnresolvedType    -> { return null }
+        is FreeIntType       -> { return null }
+        is FreeCharType      -> { return null }
+        is FreeFloatType     -> { return null }
+        is NeverType         -> { return null }
+        is AnyType           -> { return null }
+    }
+}
+
+first_unexported_in :: fn(types: Type[]) -> Symbol | null {
+    for t in types {
+        r :: first_unexported_type(t)
+        if r != null {
+            return r
+        }
+    }
+    return null
+}
+
+is_private_user_type :: fn(sym: Symbol) -> bool {
+    if sym.visibility != .Private {
+        return false
+    }
+    return is_user_type_kind(sym.kind)
+}
+
+is_user_type_kind :: fn(k: SymbolKind) -> bool {
+    if k == .Struct    { return true }
+    if k == .Enum      { return true }
+    if k == .Trait     { return true }
+    if k == .TypeAlias { return true }
+    return false
+}
+
+// ---- @extern ABI validation -----------------------------------------------
+
+/// Whether `t` is a struct declaring the C type it mirrors (`@c_struct`).
+///
+/// @param t      the candidate parameter type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       whether the struct carries a C spelling.
+mirrors_a_c_struct :: fn(t: Type, typed: TypedProgram) -> bool = c_struct_spelling_of(t, typed) != ""
+
+/// The C type spelling a struct mirrors, or `""`.
+///
+/// @param t      the candidate type.
+/// @param typed  the module, for `struct_decls`.
+/// @return       e.g. `"struct timespec"`, or `""` for anything else.
+c_struct_spelling_of :: fn(t: Type, typed: TypedProgram) -> string {
+    if t !is StructType {
+        return ""
+    }
+    sd :: typed.struct_decls[t.symbol.id] ?? return ""
+    return AST.c_struct_spelling(sd.decorators, sd.name)
+}
+
+/// Whether the parameter carries `@c_pointer`.
+///
+/// @param pm  the parameter.
+/// @return    whether it crosses as an address.
+param_has_c_pointer :: fn(pm: AST.FnParam) -> bool = AST.decorators_have(pm.decorators, "c_pointer")
+
+/// Check the decorators written on each of `decl`'s parameters.
+///
+/// `@c_pointer`, `@c_out` and `@c_type` are the only ones a parameter may carry,
+/// and only on an `@extern` declaration. `@c_pointer` says the foreign callee
+/// receives the parameter's ADDRESS rather than its value ; `@c_out` says C writes
+/// through the parameter — without it, C only reads ; `@c_type` names the C type
+/// the callee declares for it. None means anything for a fn Vader compiles a body
+/// for.
+///
+/// @param decl       the fn whose parameters to check.
+/// @param is_extern  whether the declaration carries `@extern`.
+/// @param diags      accumulator for T3079.
+validate_param_decorators :: fn(decl: AST.FnDecl, is_extern: bool, diags: Diagnostic[]) -> void {
+    for pm in decl.params {
+        for d in pm.decorators {
+            if !is_parameter_decorator(d.name) {
+                diags.push(typecheck_error(
+                    .InvalidParameterDecorator, pm.span,
+                    "`@${d.name}` cannot decorate a parameter: only `@c_pointer`, `@c_out` "
+                        + "and `@c_type` can"))
+            } else if !is_extern {
+                diags.push(typecheck_error(
+                    .InvalidParameterDecorator, pm.span,
+                    "`@${d.name}` only means something on an `@extern` declaration"))
+            } else {
+                fault :: decorator_argument_fault(d)
+                if fault != null {
+                    diags.push(typecheck_error(.InvalidParameterDecorator, pm.span, fault))
+                }
+            }
+        }
+    }
+}
+
+// Whether a parameter may carry the decorator `name`.
+is_parameter_decorator :: fn(name: string) -> bool = decorator_on(name, .Parameter)
+
+// What is wrong with the arguments of the C decorator `d`, or null : `@c_type`
+// takes one plain string, the others none.
+decorator_argument_fault :: fn(d: AST.Decorator) -> string | null {
+    if d.name == "c_type" {
+        if AST.c_type_of([d]) == "" {
+            return "`@c_type` takes one plain string, the C type : `@c_type(\"size_t\")`"
+        }
+        return null
+    }
+    if d.args.len() != 0 {
+        return "`@${d.name}` takes no argument"
+    }
+    return null
+}
+
+/// Check the `@c_type` written on `decl` itself, which names the C type of its
+/// result : only an `@extern` declaration returning an integer may carry one.
+///
+/// @param decl         the fn declaration.
+/// @param return_type  its declared result type.
+/// @param is_extern    whether the declaration carries `@extern`.
+/// @param diags        accumulator for T3050.
+validate_result_c_type :: fn(
+    decl: AST.FnDecl,
+    return_type: Type,
+    is_extern: bool,
+    diags: Diagnostic[],
+) -> void {
+    d :: AST.find_decorator(decl.decorators, "c_type") ?? return
+    fault :: result_c_type_fault(decl, d, return_type, is_extern) ?? return
+    diags.push(typecheck_error(.InvalidExternDecl, d.span, fault))
+}
+
+// What is wrong with the `@c_type` `d` written on `decl` itself, or null.
+result_c_type_fault :: fn(
+    decl: AST.FnDecl,
+    d: AST.Decorator,
+    return_type: Type,
+    is_extern: bool,
+) -> string | null {
+    if !is_extern {
+        return "`@c_type` names the C type of an `@extern` result ; `${decl.name}` has no `@extern`"
+    }
+    argument :: decorator_argument_fault(d)
+    if argument != null {
+        return argument
+    }
+    if !is_c_integer(return_type) {
+        return "`@c_type` respells an integer for C, got a `${display_type(return_type)}` result"
+    }
+    return null
+}
+
+// Whether `t` is an integer C may declare under another name of its width, a
+// distinct type over one included. An unresolved type passes : its own
+// diagnostic is enough.
+is_c_integer :: fn(t: Type) -> bool = t is UnresolvedType || is_machine_integer(strip_distinct(t))
+
+/// Check the field types of a `@c_struct` mirror that is about to cross to C.
+///
+/// The shim copies a mirror one field at a time into a real C struct, so every
+/// field needs a C representation of its own: an unmarshalled scalar, an enum
+/// (which crosses as its repr), or another mirror. Nothing else has one, and
+/// nothing downstream notices — a `string` field hands C the atom ID and an
+/// array field the Vader array header, both through a cast `cc` accepts. The
+/// value is wrong at run time and no build ever says so, which is why this is
+/// a typecheck gate rather than something left to the C compiler.
+///
+/// The diagnostic points at the PARAMETER, not the field: the mirror may be
+/// declared in another module, and a span from there would be attributed to
+/// this file. The detail names the field instead.
+///
+/// @param t      the mirror type reached from the parameter; a non-struct is a
+///               no-op, so callers need not narrow first.
+/// @param span   the parameter — where the struct crosses.
+/// @param typed  the module, for `struct_decls` and `struct_field_types`.
+/// @param seen   struct symbol ids already walked, so a cycle terminates.
+/// @param diags  accumulator for T3050.
+validate_mirror_fields :: fn(
+    t: Type,
+    span: Span,
+    typed: TypedProgram,
+    seen: MutableSet<i32>,
+    diags: Diagnostic[],
+) -> void {
+    if t !is StructType {
+        return
+    }
+    if !seen.add(t.symbol.id) {
+        return
+    }
+    sd :: typed.struct_decls[t.symbol.id] ?? return
+    fmap :: typed.struct_field_types[t.symbol.id] ?? return
+    for f in sd.fields {
+        fty :: fmap[f.name] ?? continue
+        if fty is StructType {
+            if mirrors_a_c_struct(fty, typed) {
+                validate_mirror_fields(fty, span, typed, seen, diags)
+            } else {
+                diags.push(typecheck_error(
+                    .InvalidExternDecl, span,
+                    "field `${f.name}` of `@c_struct` `${sd.name}` is a plain struct — a struct member needs its own `@c_struct` naming the C type it mirrors",
+                ))
+            }
+            continue
+        }
+        // An enum crosses as its repr, which the shim assigns like any integer.
+        if fty is EnumType {
+            refusal :: mirror_enum_refusal(fty)
+            if refusal != null {
+                diags.push(typecheck_error(
+                    .InvalidExternDecl, span,
+                    "field `${f.name}` of `@c_struct` `${sd.name}`: ${refusal}",
+                ))
+            }
+            continue
+        }
+        if !is_unmarshalled_scalar(fty, false) {
+            diags.push(typecheck_error(
+                .InvalidExternDecl, span,
+                "field `${f.name}` of `@c_struct` `${sd.name}` has no C representation: `${display_type(fty)}` — a mirrored field must be a numeric scalar, `bool`, `char`, `CPointer`, an enum, or another `@c_struct`",
+            ))
+        }
+    }
+}
+
+// Why `e` cannot be a `@c_struct` field; null when it can. The shim copies the
+// integer the enum stores, and an enum with variant data stores a rank C knows
+// nothing of.
+mirror_enum_refusal :: fn(e: EnumType) -> string | null {
+    if e.data != null {
+        return "enum `${e.symbol.name}` carries variant data: it stores a rank, not the value C expects"
+    }
+    return extern_enum_refusal(e)
+}
+
+// Why `e` cannot be an `@extern` parameter; null when it can. It crosses at the
+// width its header writes, since an inferred one moves when a variant is added.
+// An enum with variant data crosses as its written value: the lowering converts
+// the rank it stores.
+extern_enum_refusal :: fn(e: EnumType) -> string | null {
+    if e.written_width != null {
+        return null
+    }
+    return "enum `${e.symbol.name}` has an inferred width, which moves when a variant is added: pin one in its declaration, e.g. `${pinned_header(e)}`"
+}
+
+// The header that pins `e` at the width it has now.
+pinned_header :: fn(e: EnumType) -> string {
+    data :: e.data ?? return "enum(${e.repr.name})"
+    return "enum(${data.symbol.name}, ${narrowest_width(e.values).name})"
+}
+
+// The callback among `params` when they also hold an enum with variant data
+// that may cross; null otherwise. Such an enum reaches C through a Vader
+// function that converts its rank, which would receive the callback as a value,
+// and C calls only a named function (T3080).
+callback_beside_enum_values :: fn(params: Type[]) -> i64 | null {
+    callback: i64 | null = null
+    values := false
+    for i in 0..<params.len() {
+        pt :: params[i]
+        if pt is EnumType && pt.data != null && pt.written_width != null {
+            values = true
+        }
+        if pt is FnType && callback == null {
+            callback = i
+        }
+    }
+    if !values {
+        return null
+    }
+    return callback
+}
+
+validate_extern :: fn(
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if decl.body !is null {
+        diags.push(
+            typecheck_error(
+                .ExternMustNotHaveBody,
+                decl.body.span,
+                "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`",
+            ),
+        )
+    }
+    validate_param_decorators(decl, true, diags)
+    validate_result_c_type(decl, return_type, true, diags)
+    args :: extern_decorator_args(decl.decorators)
+    if args.len() > 2 {
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                decl.span,
+                "`@extern` accepts 0, 1, or 2 arguments, got ${args.len()}",
+            ),
+        )
+        return
+    }
+    // The symbol is the last argument; a library before it is checked once the
+    // bodies are walked (`check_extern_library`).
+    if args.len() > 0 {
+        symbol :: args[args.len() - 1]
+        if AST.string_literal_text(symbol) == null {
+            detail :: "`@extern` names its symbol with a plain string literal (no interpolation)"
+            diags.push(typecheck_error(.InvalidExternDecl, symbol.span, detail))
+        }
+    }
+    for i in 0..<decl.params.len() {
+        pt :: params[i]
+        // A struct crosses only on a type that declares which C type it mirrors:
+        // the shim declares a real one and marshals field by field, so the C
+        // compiler computes the offsets from the real header. An undeclared
+        // struct has no C spelling to declare and would have to guess a layout.
+        // With `@c_pointer` C gets the struct's address, without it a copy.
+        if mirrors_a_c_struct(pt, typed) {
+            lent :: param_has_c_pointer(decl.params[i])
+            if !lent && AST.decorators_have(decl.params[i].decorators, "c_out") {
+                diags.push(
+                    typecheck_error(
+                        .InvalidParameterDecorator,
+                        decl.params[i].span,
+                        "`@c_out` on `${display_type(pt)}` passed by value: C receives a copy and writes nothing back; mark the parameter `@c_pointer` to lend the struct itself",
+                    ),
+                )
+                continue
+            }
+            validate_mirror_fields(pt, decl.params[i].span, typed, MutableSet<i32> {}, diags)
+            continue
+        }
+        if AST.decorators_have(decl.params[i].decorators, "c_type") && !is_c_integer(pt) {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_type` respells an integer for C, got `${display_type(pt)}`",
+                ),
+            )
+            continue
+        }
+        // C writes back through an array's buffer (a mirror is copied back, above) ;
+        // into a scalar's temporary it writes for nothing, the temporary dying at
+        // the return.
+        if AST.decorators_have(decl.params[i].decorators, "c_out") && array_backing(pt) == null {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_out` needs an array or a `@c_struct` for C to write into, got `${display_type(pt)}` — to read a scalar back, lend a one-element array",
+                ),
+            )
+            continue
+        }
+        // `@c_pointer` spills the argument to a stack temporary and hands over
+        // its address. That only means something for a value C can receive a
+        // pointer TO: a scalar, or a mirror (handled above). On anything else
+        // the shim takes the address of the Vader representation — a `string`
+        // parameter would pass a `const char**` aimed at an atom ID, an array
+        // one a pointer to the array header — and the `(void*)` cast the shim
+        // emits hides the mismatch from `cc`.
+        if param_has_c_pointer(decl.params[i]) && !is_unmarshalled_scalar(pt, false) {
+            diags.push(
+                typecheck_error(
+                    .InvalidParameterDecorator,
+                    decl.params[i].span,
+                    "`@c_pointer` needs a scalar or a `@c_struct` to take the address of, got `${display_type(pt)}` — a `string` and an array already cross as pointers, so drop the decorator",
+                ),
+            )
+            continue
+        }
+        if pt is EnumType {
+            refusal :: extern_enum_refusal(pt)
+            if refusal != null {
+                diags.push(typecheck_error(.InvalidExternDecl, decl.params[i].span, refusal))
+            }
+            continue
+        }
+        if !is_extern_abi_type(pt, false) {
+            diags.push(
+                typecheck_error(
+                    .InvalidExternDecl,
+                    decl.params[i].span,
+                    "`@extern` parameter type must be a primitive, `string`, an enum, a primitive-element array, or a `@c_struct`, got `${display_type(pt)}`",
+                ),
+            )
+        }
+    }
+    callback :: callback_beside_enum_values(params)
+    if callback != null {
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                decl.params[callback].span,
+                "`@extern` fn `${decl.name}` takes both an enum with variant data and a callback",
+            ),
+        )
+    }
+    result_span :: return_type_span(decl)
+    // A mirror comes back BY VALUE: the shim receives the C struct and copies it,
+    // field by field, into a fresh Vader one.
+    if mirrors_a_c_struct(return_type, typed) {
+        validate_mirror_fields(return_type, result_span, typed, MutableSet<i32> {}, diags)
+    } else if !is_extern_abi_type(return_type, true) {
+        diags.push(
+            typecheck_error(
+                .InvalidExternDecl,
+                result_span,
+                "`@extern` return type must be a primitive, `string`, `CPointer | null`, a `@c_struct`, or `void`, got `${display_type(return_type)}`",
+            ),
+        )
+    }
+}
+
+/// Check the library a 2-argument `@extern` names, and record the constant in
+/// `typed.extern_libraries` when it is a `CLibrary` one: T3050 for a library
+/// that is not a named constant, or one of another type.
+///
+/// Runs after the module's bodies are walked, so a constant declared without a
+/// type has the one its value gave it.
+///
+/// @param decl   a function declaration.
+/// @param typed  the module.
+/// @param diags  where a refusal goes.
+export check_extern_library :: fn(
+    decl: AST.FnDecl,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    args :: extern_decorator_args(decl.decorators)
+    if args.len() != 2 {
+        return
+    }
+    argument :: args[0]
+    if argument !is AST.IdentExpr {
+        detail :: "the library is a `CLibrary` constant, as in `@extern(RAYLIB, \"InitWindow\")`"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    // An unresolved name is the resolver's to report.
+    named :: typed.resolved.idents[argument.span.hash()] ?? return
+    symbol :: declared_symbol(named, typed)
+    if symbol.kind != .Const {
+        detail :: "`${argument.name}` is not a constant ; the library is a `CLibrary` constant"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    t :: type_of_symbol(symbol, typed)
+    // A constant whose value failed to type has been reported already.
+    if t is UnresolvedType {
+        return
+    }
+    if !is_c_library(t) {
+        detail :: "`${argument.name}` is a `${display_type(t)}`, not a `CLibrary`"
+        diags.push(typecheck_error(.InvalidExternDecl, argument.span, detail))
+        return
+    }
+    typed.extern_libraries[decl.id] = symbol
+}
+
+// The written result type, or the whole declaration when the type is inferred.
+return_type_span :: fn(decl: AST.FnDecl) -> Span {
+    if decl.return_type != null {
+        return decl.return_type.span
+    }
+    return decl.span
+}
+
+has_extern_decorator :: fn(decs: AST.Decorator[]) -> bool {
+    for d in decs {
+        if d.name == "extern" {
+            return true
+        }
+    }
+    return false
+}
+
+has_intrinsic_decorator :: fn(decs: AST.Decorator[]) -> bool {
+    for d in decs {
+        if d.name == "intrinsic" {
+            return true
+        }
+    }
+    return false
+}
+
+extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
+    for d in decs {
+        if d.name == "extern" {
+            return d.args
+        }
+    }
+    return []
+}
+
+/// C-ABI type whitelist. Primitives and `string`; a distinct type over one; two
+/// union shapes (a nullable foreign pointer anywhere, `string | null` as a
+/// result); a primitive-element array as an argument; and a FUNCTION TYPE as an
+/// argument — a callback. `void` is allowed in return position only, `null`
+/// nowhere. Each arm below states its own reason.
+is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
+    // @partial: primitives (`string` included, itself a PrimitiveType) and
+    // primitive-element arrays cross the C ABI; every other aggregate / ref /
+    // synthetic variant is rejected.
+    @partial match t {
+        is UnresolvedType -> { return true }
+        is PrimitiveType  -> {
+            if t.name == "void" { return is_return }
+            if t.name == "null" { return false }
+            return true
+        }
+        is RangeType     -> { return is_machine_range(t) }
+        is DistinctType  -> {
+            // A newtype is zero-cost and stripped at lowering, so its ABI is
+            // its backing's. `Handle :: CPointer` is the recommended idiom for
+            // a foreign handle — it must cross.
+            return is_extern_abi_type(t.backing, is_return)
+        }
+        is UnionType          -> {
+            // Two union shapes cross. A nullable foreign pointer, because C has
+            // no other nullable scalar. And `string | null` as a RESULT: a C
+            // function returning a `char*` says "absent" with NULL, and folding
+            // that onto `""` would lose the distinction `getenv` rests on.
+            return is_nullable_pointer(t) || (is_return && is_nullable_string(t))
+        }
+        is ArrayType     -> {
+            // A borrowed array crosses as ONE bare pointer; a length, when the
+            // callee wants one, is a parameter of its own. That shape only
+            // exists on the way IN — C cannot fabricate a `vader_array_t`, so
+            // an array return stays rejected.
+            if is_return {
+                return false
+            }
+            return is_extern_abi_element(t.element)
+        }
+        is FnType        -> {
+            // A CALLBACK, in parameter position only. What crosses is the
+            // function's ADDRESS (`bytecode/op::FnAddr`), so every part of its
+            // signature has to cross too — C will call it with those very types.
+            //
+            // A return is rejected: a C function handing back code Vader would
+            // call has no representation here.
+            if is_return {
+                return false
+            }
+            // A callback's own signature is NARROWER than an extern's. An
+            // `@extern` parameter gets a shim that marshals — `string` becomes a
+            // `const char*`, an array becomes its data pointer — but C calls a
+            // callback DIRECTLY, with no shim anywhere. So only the types that
+            // need no marshalling may appear in one; a `string` parameter would
+            // hand the Vader body a `const char*` where it expects an atom id.
+            if !is_unmarshalled_scalar(t.return_type, true) {
+                return false
+            }
+            for pt in t.params {
+                if !is_unmarshalled_scalar(pt, false) {
+                    return false
+                }
+            }
+            return true
+        }
+        _                     -> { return false }
+    }
+}
+
+/// Whether `t` crosses the C boundary with no marshalling at all.
+///
+/// The subset a CALLBACK signature may use: C calls it directly, so every type
+/// in it has to have the same representation on both sides. `string` and arrays
+/// are excluded — an `@extern` parameter gets them through a shim that converts,
+/// and a callback has no shim.
+///
+/// @param t          the candidate type.
+/// @param is_return  whether it sits in return position (`void` is allowed there).
+is_unmarshalled_scalar :: fn(t: Type, is_return: bool) -> bool {
+    if t is DistinctType {
+        return is_unmarshalled_scalar(t.backing, is_return)
+    }
+    if t is UnresolvedType {
+        return true
+    }
+    if t is RangeType {
+        return is_machine_range(t)
+    }
+    if t !is PrimitiveType {
+        return false
+    }
+    if t.name == "void"   { return is_return }
+    if t.name == "string" { return false }
+    if t.name == "null"   { return false }
+    return true
+}
+
+/// True when `t` is `string | null` — the shape a C function returning a
+/// `char*` needs to say "absent" rather than "empty".
+///
+/// @param t  the candidate type.
+/// @return   whether it is exactly `string | null`.
+is_nullable_string :: fn(t: Type) -> bool {
+    if t !is UnionType {
+        return false
+    }
+    if t.variants.len() != 2 {
+        return false
+    }
+    has_null := false
+    has_str := false
+    for v in t.variants {
+        bare :: strip_distinct(v)
+        if bare is PrimitiveType {
+            if bare.name == "null"   { has_null = true }
+            if bare.name == "string" { has_str = true }
+        }
+    }
+    return has_null && has_str
+}
+
+/// True when `t` is exactly `CPointer | null` — the ABI shape of a nullable
+/// foreign pointer, and the only union that crosses the C boundary.
+///
+/// The union keeps its ordinary in-Vader representation (a boxed `Any`); the
+/// shim converts it at the boundary, exactly as it already converts a
+/// `vader_string_t` atom id to a `const char*`. Nothing about how Vader
+/// represents unions changes.
+///
+/// @param t  the candidate slot type.
+/// @return   whether it is the nullable-pointer shape.
+is_nullable_pointer :: fn(t: Type) -> bool {
+    if t is UnionType {
+        if t.variants.len() != 2 {
+            return false
+        }
+        has_null := false
+        has_ptr := false
+        for v in t.variants {
+            // `Handle | null` with `Handle :: CPointer` is the same ABI shape as
+            // `CPointer | null` — see through the newtype.
+            bare :: strip_distinct(v)
+            if bare is PrimitiveType {
+                if bare.name == "null" {
+                    has_null = true
+                }
+                if bare.name == "CPointer" {
+                    has_ptr = true
+                }
+            }
+        }
+        return has_null && has_ptr
+    }
+    return false
+}
+
+/// True when `t` may be the element of an `@extern` array parameter — a
+/// numeric / `bool` / `char` primitive, i.e. one whose array storage is dense
+/// and whose slots the GC never scans.
+///
+/// `string` is excluded: its dense storage is a table of atom ids, which is
+/// meaningless to a C callee. `void` / `null` have no storage at all.
+///
+/// @param t  the array's element type.
+/// @return   whether a `T[]` of it can be lent across the C ABI.
+is_extern_abi_element :: fn(t: Type) -> bool {
+    // @partial: only a primitive can be lent, and an unresolved type was reported.
+    @partial match t {
+        is UnresolvedType -> { return true }
+        is PrimitiveType  -> {
+            return t.name != "void" && t.name != "null" && t.name != "string"
+        }
+        is RangeType      -> { return is_machine_range(t) }
+        _                     -> { return false }
+    }
+}
+
+// `main` must return i32 and either take no params or a single
+// `[string]` arg — emitters wire the entry point assuming both.
+check_main_signature :: fn(
+    decl: AST.FnDecl,
+    params: Type[],
+    return_type: Type,
+    diags: Diagnostic[],
+) -> void {
+    if primitive_name(return_type) != "i32" {
+        diags.push(typecheck_error(.InvalidMainSignature, decl.span, "main must return i32"))
+        return
+    }
+    if params.len() == 0 {
+        return
+    }
+    if params.len() == 1 {
+        a :: params[0]
+        if a is ArrayType {
+            if primitive_name(a.element) == "string" {
+                return
+            }
+        }
+    }
+    diags.push(
+        typecheck_error(
+            .InvalidMainSignature,
+            decl.span,
+            "main takes either no parameters or a single `[string]` argument",
+        ),
+    )
+}
+
+declare_fn_param :: fn(
+    p: AST.FnParam,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    ty :: p.ty
+    if ty == null {
+        // SPEC §4 : top-level fn signatures must be fully annotated, except
+        // `self` which carries the implicit `Self` type, bound at body time.
+        if p.name == "self" {
+            return TY_UNRESOLVED
+        }
+        diags.push(
+            typecheck_error(.FnSignatureMustBeAnnotated, p.span, "parameter ${p.name} lacks a type"),
+        )
+        return TY_UNRESOLVED
+    }
+    written :: type_from_expr(ty, resolved, diags)
+    typed.param_types[p.span.hash()] = written
+    return written
+}
+
+declare_fn_return :: fn(
+    decl: AST.FnDecl,
+    resolved: ResolvedModule,
+    diags: Diagnostic[],
+) -> Type {
+    rt :: decl.return_type
+    if rt == null {
+        // Expression-bodied without annotation : inference defers to body
+        // checking. Block-bodied without annotation : default to void.
+        if decl.is_expression_bodied {
+            return TY_UNRESOLVED
+        }
+        return TY_VOID
+    }
+    return type_from_expr(rt, resolved, diags)
+}
+
+declare_enum :: fn(
+    decl: AST.EnumDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    typed.enum_decls[sym.id] = decl
+    enum_type :: build_enum_type(sym, decl, resolved, diags)
+    typed.decl_types[sym.id] = enum_type
+    resolved.alias_types[sym.id] = enum_type
+}
+
+declare_type_alias :: fn(
+    decl: AST.TypeAliasDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    aliased :: type_from_expr(decl.aliased, resolved, diags)
+    // Index by alias symbol id ; `decl_types` and `alias_types` share
+    // the key so use sites get the expanded union.
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    typed.decl_types[sym.id] = aliased
+    resolved.alias_types[sym.id] = aliased
+    resolved.alias_params[sym.id] = quantifier_of(decl.type_params, resolved)
+}
+
+declare_const :: fn(
+    decl: AST.ConstDecl,
+    resolved: ResolvedModule,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    sym :: symbol_declared_at(resolved, decl.name_span) ?? return
+    typed.const_decls[sym.id] = decl
+    annotation :: decl.ty
+    if annotation != null {
+        typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags)
+    } else if is_type_expr(decl.value, resolved) {
+        alias_ty :: type_from_expr(decl.value, resolved, diags)
+        resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl)
+        typed.decl_types[sym.id] = TY_TYPE
+    }
+}
+
+/// Resolve the type a `Name :: <type-expr>` declaration registers. A primitive,
+/// array, struct or tuple RHS (`Name :: f64`, `BigInt :: u32[]`) becomes a
+/// `DistinctType` (nominal newtype, `distinct_backing`), and so does an integer
+/// type named alone (`Name :: i64`, `named_range`) ; a union or fn RHS stays a
+/// transparent alias, and so does a range written out (`Int in 0..=23`).
+///
+/// @param sym       the declared name's symbol.
+/// @param alias_ty  the RHS, resolved.
+/// @param decl      the declaration — its RHS as written, and its decorators.
+/// @return          the distinct type, or `alias_ty` itself for a transparent alias.
+alias_for :: fn(sym: Symbol, alias_ty: Type, decl: AST.ConstDecl) -> Type {
+    if distinct_backing(alias_ty, decl.decorators) {
+        return mk_distinct(sym, alias_ty)
+    }
+    if alias_ty is RangeType {
+        return named_range(sym, alias_ty, decl)
+    }
+    return alias_ty
+}
+
+// The range `Name :: <rhs>` declares : `Int in 0..=23` a transparent refinement
+// of the integer, shown under its name ; an integer type written alone
+// (`Meters :: i64`, `Heure :: Hour`) a type of its own, as any other type named
+// alone, but under `@comptime`, which declares a transparent alias of it.
+named_range :: fn(sym: Symbol, range: RangeType, decl: AST.ConstDecl) -> Type {
+    if decl.value !is AST.IdentExpr | AST.FieldExpr {
+        return RangeType { ...range, .name = sym.name }
+    }
+    if AST.decorators_have(decl.decorators, "comptime") {
+        return range
+    }
+    return mk_distinct(sym, range)
+}
+
+/// True when a `Name :: <type>` const should become a `DistinctType` rather
+/// than a transparent alias : iff the RHS is a real primitive (not void/null)
+/// AND the decl is not `@comptime`. `@comptime Name :: <type>` is the existing
+/// compile-time TYPE ALIAS (resolves through `constTypeAliases`, e.g. used by
+/// `@size_of`) — it stays transparent, never a newtype. Shared by the three
+/// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
+/// `check_const_value` (both in orchestrate.vader).
+distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
+    if AST.decorators_have(decorators, "comptime") {
+        return false
+    }
+    if alias_ty is PrimitiveType {
+        return alias_ty.name != "void" && alias_ty.name != "null"
+    }
+    // Composite-backed newtypes (`BigInt :: u32[]`, `Color :: Rgb`,
+    // `Coord :: [i32, i32]`) are nominal too, so they can carry their own trait
+    // impls (operator overloads) on the distinct's own key instead of colliding
+    // with the array blankets (`"[]"`) or aliasing the backing struct/tuple.
+    // Structural ops (index / field / `.N` / len / push / for-in / literal
+    // coercion / destructure) forward to the backing via `array_backing` /
+    // `struct_backing` / `tuple_backing`.
+    if alias_ty is ArrayType | StructType | TupleType {
+        return true
+    }
+    return false
+}
+
+// ---- helpers --------------------------------------------------------------
+
+/// Build the `EnumType` of `decl` : classify its header once the types
+/// resolve, settle the variant indices, then the backing width.
+///
+/// @param sym       the enum's symbol.
+/// @param decl      the declaration as parsed.
+/// @param resolved  the module's resolution, for the header's type names.
+/// @param diags     receives T3029, T3030, T3031 and T3084.
+/// @return          the enum type ; a malformed header still yields one,
+///                  backed by `i32`, so the rest of the module keeps checking.
+build_enum_type :: fn(
+    sym: Symbol, decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[],
+) -> Type {
+    header :: classify_enum_header(decl, resolved, diags)
+    indices :: resolve_enum_indices(decl, header.width, diags)
+    if header.data != null {
+        return build_data_enum_type(sym, decl, header, indices)
+    }
+    // Without a written width, the enum takes the narrowest one its values fit.
+    return EnumType {
+        .symbol        = sym,
+        .repr          = header.width ?? narrowest_width(indices.values()),
+        .indices       = indices,
+        .written_width = header.width,
+    }
+}
+
+// An enum with variant data stores its variant's RANK, which indexes the data
+// table directly, at the narrowest width holding the ranks; the written values
+// move to `values`, read by a conversion to an integer. A written width bounds
+// those values.
+build_data_enum_type :: fn(
+    sym: Symbol, decl: AST.EnumDecl, header: EnumHeader, written: MutableMap<string, i64>,
+) -> EnumType {
+    ranks :: MutableMap<string, i64> {}
+    values: i64[]: []
+    for variant in decl.variants {
+        rank :: values.len()
+        ranks[variant.name] = rank
+        values.push(written[variant.name] ?? rank)
+    }
+    last_rank :: if values.len() > 0 { values.len() - 1 } else { 0 }
+    return EnumType {
+        .symbol        = sym,
+        .repr          = narrowest_machine_integer(interval(0, last_rank)),
+        .indices       = ranks,
+        .data          = header.data,
+        .values        = values,
+        .written_width = header.width,
+    }
+}
+
+// The header's two roles once resolved ; null when the header leaves it out.
+EnumHeader :: struct {
+    width: MachineInteger | null = null
+    data:  StructType | null = null
+}
+
+// A lone argument is the data when it is a struct and the width otherwise ;
+// two arguments are `(data, width)`.
+classify_enum_header :: fn(decl: AST.EnumDecl, resolved: ResolvedModule, diags: Diagnostic[]) -> EnumHeader {
+    if decl.header.len() == 0 {
+        return EnumHeader {}
+    }
+    first :: type_from_expr(decl.header[0], resolved, diags)
+    if decl.header.len() == 1 {
+        if first is StructType {
+            return EnumHeader { .data = first }
+        }
+        return EnumHeader { .width = enum_width(first, decl.header[0], diags) }
+    }
+    data :: if first is StructType { first } else { null }
+    if data == null {
+        diags.push(typecheck_error(.EnumDataNotStruct, decl.header[0].span, "got ${display_type(first)}"))
+    }
+    width :: type_from_expr(decl.header[1], resolved, diags)
+    return EnumHeader { .width = enum_width(width, decl.header[1], diags), .data = data }
+}
+
+// The integer a width names — directly, or through a distinct over one.
+enum_width :: fn(ty: Type, written: AST.TypeExpr, diags: Diagnostic[]) -> MachineInteger {
+    found :: machine_integer_named(primitive_name(strip_distinct(ty)))
+    if found != null {
+        return found
+    }
+    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, written.span, "got ${display_type(ty)}"))
+    return storage_integer(TY_I32)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Resolve `src`, declare-types, then look up the type of the decl
+// named `name` by rendering its `display_type`. Returns `<missing>` if
+// the decl never landed in `decl_types`.
+declared_type :: fn(src: string, name: string) -> string {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    factory :: SymbolFactory {}
+    rm :: resolve_module(parsed.program, "t", factory)
+    typed :: new_typed_program(rm)
+    diags: Diagnostic[]: []
+    declare_module(parsed.program.decls, rm, typed, diags)
+    for s in rm.symbols {
+        if s.name != name {
+            continue
+        }
+        ty :: typed.decl_types[s.id] ?? return "<missing>"
+        return display_type(ty)
+    }
+    return "<unknown name>"
+}
+
+@test
+test_declare_fn_records_signature :: fn() -> void {
+    assert_eq(
+        declared_type("add :: fn(a: i32, b: i32) -> i32 { return a + b }", "add"),
+        "fn(i32, i32) -> i32",
+    )
+}
+
+@test
+test_declare_fn_void_return_when_no_annotation :: fn() -> void {
+    assert_eq(declared_type("greet :: fn(name: string) { }", "greet"), "fn(string) -> void")
+}
+
+@test
+test_declare_struct_records_struct_type :: fn() -> void {
+    src :: """
+Point :: struct {
+    x: i32
+    y: i32
+}
+"""
+    assert_eq(declared_type(src, "Point"), "Point")
+}
+
+@test
+test_declare_generic_struct_records_args :: fn() -> void {
+    src :: """
+Wrap :: struct<T> {
+    value: T
+}
+"""
+    assert_eq(declared_type(src, "Wrap"), "Wrap<T>")
+}
+
+@test
+test_declare_enum_records_enum_type :: fn() -> void {
+    src :: """
+Color :: enum {
+    Red
+    Green
+    Blue
+}
+"""
+    assert_eq(declared_type(src, "Color"), "Color")
+}
+
+@test
+test_declare_type_alias_records_aliased :: fn() -> void {
+    // Resolver binds the alias's `<T>` type-params before walking the
+    // body, so `T` resolves to its TypeParam symbol. The
+    // canonical-union sort puts `null` before `T` alphabetically.
+    assert_eq(declared_type("Maybe<T> :: T | null", "Maybe"), "null | T")
+}
+
+@test
+test_declare_const_with_annotation_records_type :: fn() -> void {
+    assert_eq(declared_type("PI: f64 :: 3.14", "PI"), "f64")
+}

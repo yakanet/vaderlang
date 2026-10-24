@@ -15,7 +15,7 @@ module "vader/lower"
 import "toolchain/ast"
 import "toolchain/span"
 import "vader/support/integer"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// The conversion `call`, `T(value)`, into the range `target`.

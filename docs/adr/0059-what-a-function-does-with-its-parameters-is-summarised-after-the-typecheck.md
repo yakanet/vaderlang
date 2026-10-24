@@ -30,7 +30,7 @@ callback.
 
 ## Decision
 
-- **A pass after the typecheck** (`vader/effects`), over every module's typed
+- **A pass after the typecheck** (`vader/front/effects`), over every module's typed
   bodies and call record (0056), on the fixed-point engine (0055). Every check
   runs it (`vader/pipeline/check`): the CLI, the LSP and the seed's driver.
 - **The fact is a set of accesses per parameter**: an effect (assigned, resized,

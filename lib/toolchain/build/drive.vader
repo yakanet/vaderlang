@@ -28,7 +28,7 @@ import "std/iter"
 import "std/path"
 import "std/string" { join as join_strings }
 import "vader/support/diagnostics"
-import "vader/resolver"
+import "vader/front/resolver"
 import "vader/pipeline"
 AST :: import "toolchain/ast"
 

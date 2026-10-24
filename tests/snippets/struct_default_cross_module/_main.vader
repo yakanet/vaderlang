@@ -4,7 +4,7 @@
 // construction site's context left `DEFAULT_ID` unresolved → the whole struct
 // literal degraded to a drop. This is the compiler's own `simple_placeholder`
 // building `SimpleBinding` (omitting `.id`, default `UNASSIGNED_NODE_ID` from
-// vader/parser) — which broke nested tuple destructuring. Guards the
+// vader/front/parser) — which broke nested tuple destructuring. Guards the
 // owning-module default lowering on the Vader self-emit path.
 
 module "snippet"

@@ -23,7 +23,7 @@ module "vader/tools/lsp/actions"
 
 import "vader/tools/fmt"
 AST :: import "toolchain/ast"
-Parse :: import "vader/parser"
+Parse :: import "vader/front/parser"
 
 /// The free-call → method-call action. Registered in `registry::all_actions`.
 ufcs_action :: fn() -> CodeAction = CodeAction {

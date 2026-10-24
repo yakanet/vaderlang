@@ -1,0 +1,127 @@
+// vader/front/comptime/eval — tree-walk expression dispatcher.
+//
+// Per-variant `match` over `AST.Expr` routing each kind to its
+// dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).
+// Handles the subset of comptime expressions the lowerer + bytecode
+// emitter port haven't unlocked yet. Anything outside that subset
+// surfaces `C4001`.
+
+module "vader/front/comptime"
+
+AST :: import "toolchain/ast"
+import "vader/support/diagnostics"
+import "vader/front/typecheck"
+
+/// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating
+/// comptime expression (e.g. a const whose value resolves back to itself) would
+/// otherwise recurse until the C stack overflows, silently corrupting memory.
+/// Well above any legitimate comptime expression, well below the native stack
+/// capacity (which overflows a few thousand evaluator frames in), so the bound
+/// trips on cycles before the C stack does.
+COMPTIME_MAX_EVAL_DEPTH: i64: 2000
+
+/// Tree-walk dispatcher. Returns whatever the per-variant helper
+/// reports ; unrecognised variants surface as C4001.
+/// @param expr     the expression to evaluate.
+/// @param context  the comptime evaluator context.
+/// @return         the evaluation result.
+evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
+    // Depth guard — `context` is shared across operand recursion
+    // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
+    // live nesting level. Check the ceiling BEFORE incrementing, so the
+    // rejecting path never touches `depth` ; the accepted path restores it by
+    // hand before its single return. This is deliberately not a `defer` : a
+    // `defer` here would capture `context` and lift to a fresh closure + env
+    // struct on every call, an allocation on the evaluator's hottest path.
+    if context.depth >= COMPTIME_MAX_EVAL_DEPTH {
+        return vm_required(expr.span,
+            "a cyclic or non-terminating comptime expression (exceeded ${COMPTIME_MAX_EVAL_DEPTH} nested levels)")
+    }
+    // A value converted through an `Into` holds what the conversion makes, which
+    // only running it gives.
+    if context.typed.into_coercions[expr.id] != null {
+        return vm_required(expr.span, "a value converted through an `Into`")
+    }
+    context.depth = context.depth + 1
+    // @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
+    // variant is intentionally routed to `vm_required`.
+    result :: @partial match expr {
+        is AST.IntLitExpr        -> evaluate_int_lit(expr, context)
+        is AST.FloatLitExpr      -> evaluate_float_lit(expr)
+        is AST.BoolLitExpr       -> evaluate_bool_lit(expr)
+        is AST.CharLitExpr       -> evaluate_char_lit(expr)
+        is AST.NullLitExpr       -> evaluate_null_lit(expr)
+        is AST.StringLitExpr     -> evaluate_string_lit(expr, context)
+        is AST.IdentExpr         -> evaluate_ident(expr, context)
+        is AST.BinaryExpr        -> evaluate_binary_expr(expr, context)
+        is AST.UnaryExpr         -> evaluate_unary_expr(expr, context)
+        is AST.IntrinsicCallExpr -> evaluate_intrinsic_call(expr, context)
+        is AST.CallExpr          -> evaluate_call_expr(expr, context)
+        is AST.SeqLitExpr        -> evaluate_seq_lit(expr, context)
+        is AST.StructLitExpr     -> evaluate_aggregate(expr, context)
+        is AST.DotVariantExpr    -> evaluate_aggregate(expr, context)
+        is AST.FieldExpr         -> evaluate_aggregate(expr, context)
+        is AST.MatchExpr         -> evaluate_aggregate(expr, context)
+        _                        -> vm_required(expr.span, expr_kind_name(expr))
+    }
+    context.depth = context.depth - 1
+    return result
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/collections"
+import "std/testing"
+import "toolchain/span"
+
+@test test_evaluate_int_literal :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 42 }
+    context :: empty_context()
+    result :: evaluate_expr(expr, context)
+    match result.value {
+        is null -> { assert_eq("expected a value", "got null") }
+        _       -> { assert_eq(display_value(result.value), "42_i32") }
+    }
+}
+
+@test test_evaluate_unsupported_emits_c4001 :: fn() -> void {
+    // `CallExpr` falls through to vm_required at this MVP.
+    callee :: AST.IdentExpr { .span = empty_span(), .id = 0, .name = "f", .implicit_dot = false, .is_type_param_intro = false }
+    expr :: AST.CallExpr { .span = empty_span(), .id = 0, .callee = callee, .args = [] }
+    context :: empty_context()
+    result :: evaluate_expr(expr, context)
+    if result.diag is null { assert_eq("expected C4001 diag", "got null") }
+}
+
+// Recursion guard : a cyclic / non-terminating comptime expression must report
+// C4001 instead of overflowing the C stack (which silently corrupts memory).
+// Pre-loading `depth` to the ceiling exercises the guard without a real
+// 2000-deep recursion (which could overflow the test runner's own stack).
+@test test_evaluate_recursion_guard_trips_at_ceiling :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 1 }
+    over :: empty_context()
+    over.depth = COMPTIME_MAX_EVAL_DEPTH
+    result :: evaluate_expr(expr, over)
+    match result.diag {
+        is null -> { assert_eq("expected recursion-guard C4001", "got null") }
+        _       -> {}
+    }
+}
+
+@test test_evaluate_below_ceiling_still_evaluates :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 7 }
+    under :: empty_context()
+    under.depth = COMPTIME_MAX_EVAL_DEPTH - 2
+    result :: evaluate_expr(expr, under)
+    match result.value {
+        is null -> { assert_eq("expected a value below the ceiling", "got null") }
+        _       -> { assert_eq(display_value(result.value), "7_i32") }
+    }
+}
+
+empty_context :: fn() -> ComptimeContext {
+    return ComptimeContext {
+        .typed    = empty_typed_program(),
+        .bindings = MutableMap<i32, ComptimeValue> {},
+    }
+}

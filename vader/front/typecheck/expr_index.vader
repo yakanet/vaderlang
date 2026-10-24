@@ -1,0 +1,382 @@
+// vader/front/typecheck/expr_index — IndexExpr inference (`x[i]`), and `index_route`, the
+// dispatch decision the typecheck and the lowerings share.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// Type-check the read `target[index]` : an array's element, a bound's or an impl's
+/// `Index` result, a slice for a `Range` index on an array.
+infer_index :: fn(e: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    target :: check_expr(e.target, null, typed, diags)
+    // Each route below files what it runs.
+    record_site(typed, e, .IndexRead, UNSETTLED_CALLEE)
+    index_trait :: core_trait_key(TRAIT_INDEX)
+    dispatched :: dispatched_index_args(e, target, index_trait, typed, diags)
+    // Pin a free-literal index key to the key type K so `m[9000000000]` on a
+    // `MutableMap<i64, _>` doesn't default to i32 and silently truncate. `null` for
+    // an array, whose index is just an integer.
+    key_ty :: if dispatched != null {
+        dispatched[0]
+    } else {
+        index_key_expected(e.index, target, index_trait, typed)
+    }
+    index :: check_expr(e.index, key_ty, typed, diags)
+    if target is UnresolvedType {
+        record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
+        return TY_UNRESOLVED
+    }
+    // A `Range` index on an array, or on an array-backed distinct, slices it : no
+    // impl of a distinct's own takes a `Range` key.
+    arr_view :: array_backing(target)
+    if arr_view != null && is_range_type(index) {
+        record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
+        return arr_view
+    }
+    if dispatched != null {
+        reject_index_key(e.index, index, key_ty, diags)
+        return dispatched[1]
+    }
+    picked :: pick_index_member(e, target, index_trait, index, typed, diags)
+    if picked is UnresolvedType {
+        return TY_UNRESOLVED
+    }
+    if picked != null {
+        reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
+        return picked.return_type
+    }
+    route :: index_route(target, index_trait, typed)
+    // Arrays — and array-backed distinct newtypes (`BigInt :: u32[]`) with no `Index`
+    // of their own — index by element.
+    if route == .Array && arr_view != null {
+        record_site(typed, e, .IndexRead, BUILTIN_CALLEE)
+        if !is_integer_index(index) {
+            diags.push(typecheck_error(.TypeMismatch, e.index.span,
+                "array index must be an integer, got ${display_type(index)}"))
+        }
+        return arr_view.element
+    }
+    // A struct or a distinct indexes by its own `Index` impl.
+    result_ty :: if route == .Impl {
+        index_param(target, typed.impl_tables.index_target_types, typed)
+    } else {
+        null
+    }
+    if result_ty == null {
+        diags.push(
+            typecheck_error(.NotIndexable, e.span, "${display_type(target)} is not indexable"),
+        )
+        record_site(typed, e, .IndexRead, ERRONEOUS_CALLEE)
+        return TY_UNRESOLVED
+    }
+    reject_unmet_impl_bounds(target, index_trait, .TraitNotSatisfied, e.span, typed, diags)
+    reject_index_key(e.index, index, key_ty, diags)
+    return result_ty
+}
+
+// T3001 when the key of `x[k]` is no `key`, the key type the receiver's `Index` /
+// `IndexSet` takes ; a null `key` (an array) asks nothing more.
+reject_index_key :: fn(
+    index: AST.Expr, index_ty: Type, key: Type | null, diags: Diagnostic[],
+) -> void {
+    if key == null || index_ty is UnresolvedType {
+        return
+    }
+    if is_assignable(index_ty, key) {
+        return
+    }
+    diags.push(typecheck_error(
+        .TypeMismatch, index.span,
+        "expected key `${display_type(key)}`, got `${display_type(index_ty)}`",
+    ))
+}
+
+/// The `trait_key` arguments (`Index<I, T>`, `IndexSet<I, V>`) of a receiver that
+/// dispatches `x[i]` through the trait at run time — a type parameter bounded by it,
+/// a value of the trait itself, a union every variant of which implements it —
+/// exactly like the method form (`c.at(i)`, `c.set_at(i, v)`). The trait's member
+/// is filed as the site, so the lowering emits a virtual call on the receiver. Null
+/// for any other receiver.
+///
+/// @param e          the index expression.
+/// @param target     its receiver's type.
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+/// @error            as `union_trait_member`, on a union.
+dispatched_index_args :: fn(
+    e: AST.IndexExpr,
+    target: Type,
+    trait_key: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type[] | null {
+    method :: index_method(trait_key)
+    args :: dispatched_trait_args(e, target, trait_key, method, typed, diags) ?? return null
+    record_site(typed, e, index_role(trait_key), dispatched_callee(target, trait_key, method, args))
+    if target is TypeParamType {
+        keep_instances_concrete(typed)
+    }
+    return args
+}
+
+// The arguments of `trait_key` `target` dispatches `method` through : those its
+// variants share on a union, else those of the bound or of the trait value.
+dispatched_trait_args :: fn(
+    e: AST.IndexExpr,
+    target: Type,
+    trait_key: string,
+    method: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type[] | null {
+    if target is UnionType {
+        span :: e.target.span
+        member :: union_trait_member(target, trait_key, method, span, typed, diags) ?? return null
+        // A refused dispatch is already reported : its key and element are unknown.
+        if member.refused {
+            return [TY_UNRESOLVED, TY_UNRESOLVED]
+        }
+        return member.trait_args
+    }
+    return trait_dispatch_args(target, trait_key, typed)
+}
+
+// The `<key, value>` arguments of `trait_key` when `target` dispatches through it.
+trait_dispatch_args :: fn(target: Type, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    if target is TypeParamType {
+        bound :: typed.resolved.type_param_bounds[target.symbol.id] ?? return null
+        args :: bounded_trait_args(bound, trait_key, typed) ?? return null
+        return if args.len() < 2 { null } else { args }
+    }
+    if target is TraitType && trait_key_of(target.symbol) == trait_key && target.args.len() >= 2 {
+        return target.args
+    }
+    if target is UnionType {
+        traits :: union_dispatch_traits(target, trait_key, index_method(trait_key), typed)
+        return if traits.len() == 0 { null } else { traits[0].args }
+    }
+    return null
+}
+
+/// Where `x[i]` goes for one of `Index` / `IndexSet`.
+export IndexRoute :: enum {
+    /// Through the type's own impl of the trait — a struct, a distinct, `string`.
+    Impl
+    /// Into an array, or the array backing a distinct with no impl of its own.
+    Array
+    /// Nowhere, for that trait.
+    None
+}
+
+/// The route `target[i]` takes for `trait_key` : `Index` for a read, `IndexSet` for
+/// a write. The one decision the typecheck and both lowerings read, so they never
+/// dispatch one `x[i]` two ways. A type's own impl of the trait wins over the array
+/// it may be backed by, trait by trait. A bounded type parameter, a trait value and a
+/// union of the trait's implementors are `None` here : they dispatch through the
+/// trait (`dispatched_index_args`).
+///
+/// @param target     the indexed value's type.
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+export index_route :: fn(target: Type, trait_key: string, typed: TypedProgram) -> IndexRoute {
+    // Indexing an array is built in : an `Index` impl written on `T[]` never takes
+    // it over, so a bare array needs no lookup.
+    if target is ArrayType {
+        return .Array
+    }
+    if base_implements_trait(target, trait_key, typed) {
+        return .Impl
+    }
+    return if array_backing(target) != null { .Array } else { .None }
+}
+
+/// The type args of a named trait carried by a TypeParam's bound (e.g.
+/// `Index<I, T>` / `IndexSet<I, V>` in `[C: Index<i64, T>]`), or null when the
+/// bound names no such trait. Walks `A & B` intersections the same way
+/// `bound_trait_declaring` (field.vader) does.
+bounded_trait_args :: fn(bound: AST.Expr, trait_key: string, typed: TypedProgram) -> Type[] | null {
+    if bound is AST.BinaryExpr {
+        if bound.op == .BitAnd {
+            l :: bounded_trait_args(bound.left, trait_key, typed)
+            if l != null {
+                return l
+            }
+            return bounded_trait_args(bound.right, trait_key, typed)
+        }
+    }
+    bound_ty :: type_from_expr(bound, typed.resolved, [])
+    if bound_ty is TraitType {
+        if trait_key_of(bound_ty.symbol) == trait_key {
+            return bound_ty.args
+        }
+    }
+    return null
+}
+
+/// The key type K `target[index]` takes through its own impl of `trait_key`, or null
+/// for an array, which takes an integer, and a receiver with none. A receiver
+/// dispatching through the trait takes the trait's key (`dispatched_index_args`).
+/// It pins a free-literal key and judges any other (`reject_index_key`).
+///
+/// @param index      the key expression.
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+/// @return           with several impls, whose key picks one (`pick_index_member`):
+///                   the `Range` key of the only impl taking one when `index` is a
+///                   range literal, so its bounds settle to that key's integer, and
+///                   null otherwise.
+index_key_expected :: fn(
+    index: AST.Expr, target: Type, trait_key: string, typed: TypedProgram,
+) -> Type | null {
+    members :: trait_members(typed, target, trait_key, index_method(trait_key))
+    if members.len() > 1 {
+        return range_literal_key(index, members, target, typed)
+    }
+    keys :: if trait_key == core_trait_key(TRAIT_INDEX_SET) {
+        typed.impl_tables.index_set_key_types
+    } else {
+        typed.impl_tables.index_key_types
+    }
+    return index_param(target, keys, typed)
+}
+
+// The `Range` key of the only member of `members` taking one, when `index` is a
+// range literal ; null otherwise.
+range_literal_key :: fn(
+    index: AST.Expr, members: ImplMethod[], target: Type, typed: TypedProgram,
+) -> Type | null {
+    if index !is AST.RangeExpr {
+        return null
+    }
+    ranges: Type[]: []
+    for m in members {
+        sig :: impl_member_type(m, target, typed)
+        if sig is FnType && sig.params.len() > 0 && is_range_type(sig.params[0]) {
+            ranges.push(sig.params[0])
+        }
+    }
+    if ranges.len() == 1 {
+        return ranges[0]
+    }
+    return null
+}
+
+// The member `x[i]` calls through `trait_key` : `at` for `Index`, `set_at` for
+// `IndexSet`.
+index_method :: fn(trait_key: string) -> string =
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) { METHOD_SET_AT } else { METHOD_AT }
+
+// The role `x[i]` plays through `trait_key`.
+index_role :: fn(trait_key: string) -> CallRole =
+    if trait_key == core_trait_key(TRAIT_INDEX_SET) { .IndexWrite } else { .IndexRead }
+
+/// The member several impls of `trait_key` on `receiver` offer that the key `key_ty`
+/// picks (`Index<i32, Row>` beside `Index<Point, Cell>`), its signature on
+/// `receiver` without the receiver. The member is filed as the site, which the
+/// lowering calls, the only one when one impl offers it. Null when at most one impl
+/// offers it ; unresolved, the diagnostic filed, when none takes the key (T3001) or
+/// two do (T3032).
+///
+/// @param trait_key  `Index` for a read, `IndexSet` for a write.
+pick_index_member :: fn(
+    e: AST.IndexExpr,
+    receiver: Type,
+    trait_key: string,
+    key_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> FnType | UnresolvedType | null {
+    members :: trait_members(typed, receiver, trait_key, index_method(trait_key))
+    role :: index_role(trait_key)
+    if members.len() == 1 {
+        record_site(typed, e, role, member_callee(members[0].decl, receiver))
+    }
+    if members.len() < 2 {
+        return null
+    }
+    sigs: Type[]: []
+    for m in members {
+        sigs.push(impl_member_type(m, receiver, typed))
+    }
+    pick :: pick_by_first_arg(sigs, key_ty, 1, typed)
+    index :: pick.best
+    if pick.rival != null || index == null {
+        impls :: "`${trait_key_name(trait_key)}` on ${display_type(receiver)}"
+        key :: "`${display_type(key_ty)}`"
+        diags.push(unpicked_index_error(pick.rival != null, e, impls, key))
+        record_site(typed, e, role, ERRONEOUS_CALLEE)
+        return TY_UNRESOLVED
+    }
+    record_site(typed, e, role, member_callee(members[index].decl, receiver))
+    sig :: sigs[index]
+    return if sig is FnType { sig } else { null }
+}
+
+// T3032 at the key of `e` when several impls take it, T3001 when none does.
+unpicked_index_error :: fn(
+    ambiguous: bool, e: AST.IndexExpr, impls: string, key: string,
+) -> Diagnostic {
+    if ambiguous {
+        return typecheck_error(
+            .AmbiguousOverload, e.index.span, "several impls of ${impls} take a key ${key}",
+        )
+    }
+    return typecheck_error(.TypeMismatch, e.index.span, "no impl of ${impls} takes a key ${key}")
+}
+
+/// Resolved write-value type V for an `m[k] = v` target, or null when
+/// the target isn't a struct or a distinct with a recorded `IndexSet` impl.
+index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null =
+    index_param(target, typed.impl_tables.index_set_value_types, typed)
+
+/// What `receiver[k] = v` stores — an array's element, else the `IndexSet` value
+/// of a receiver dispatching through the trait or of its own impl — or null when
+/// no write goes through.
+index_write_type :: fn(receiver: Type, typed: TypedProgram) -> Type | null {
+    arr :: stored_array(receiver, typed)
+    if arr != null {
+        return arr.element
+    }
+    dispatched :: trait_dispatch_args(receiver, core_trait_key(TRAIT_INDEX_SET), typed)
+    if dispatched != null {
+        return dispatched[1]
+    }
+    return index_set_value_expected(receiver, typed)
+}
+
+// The array an `a[i] = v` stores into : `a` itself, or the backing of an
+// array-backed distinct (`Ids :: i32[]`) that does not implement `IndexSet` of
+// its own (`index_route`). Null when the write goes through an `IndexSet` impl.
+stored_array :: fn(t: Type, typed: TypedProgram) -> ArrayType | null {
+    if index_route(t, core_trait_key(TRAIT_INDEX_SET), typed) != .Array {
+        return null
+    }
+    return array_backing(t)
+}
+
+// The `Index` / `IndexSet` parameter `table` records for `target` — the read
+// target, K or V — with a struct's concrete arguments substituted into the
+// template. A distinct takes no arguments, so its entry is the type. Null when
+// `target` is neither, or records no impl ; the template unchanged when the
+// struct decl is unavailable.
+index_param :: fn(target: Type, table: MutableMap<string, Type>, typed: TypedProgram) -> Type | null {
+    if target is DistinctType {
+        return impl_side(typed, table, target, "")
+    }
+    if target !is StructType {
+        return null
+    }
+    tmpl :: impl_side(typed, table, target, "") ?? return null
+    return substitute_struct_args(tmpl, target, typed)
+}
+
+// Whether `t` indexes an array : any integer type (`Hour`, a narrowed `0..=9`), or a
+// free literal.
+is_integer_index :: fn(t: Type) -> bool = t is FreeIntType || t is RangeType
+
+is_range_type :: fn(t: Type) -> bool {
+    if t is StructType {
+        return is_core_struct(t, STRUCT_RANGE)
+    }
+    return false
+}

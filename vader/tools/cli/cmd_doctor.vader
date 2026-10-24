@@ -27,7 +27,7 @@ import "std/process"
 import "std/string"
 TTY :: import "std/tty"
 import "vader/pipeline"
-import "vader/resolver"
+import "vader/front/resolver"
 import "std/collections"
 
 // ---- the report -----------------------------------------------------------

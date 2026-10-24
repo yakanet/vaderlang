@@ -11,9 +11,9 @@ module "vader/tools/cli"
 import "std/io"
 import "std/path"
 import "cli"
-import "vader/parser"
-import "vader/resolver"
-import "vader/typecheck"
+import "vader/front/parser"
+import "vader/front/resolver"
+import "vader/front/typecheck"
 import "vader/pipeline"
 import "vader/support/diagnostics"
 
@@ -21,7 +21,7 @@ import "vader/support/diagnostics"
 /// build (a plain `vader build` never runs any of these). v1 ships a single
 /// rule, `unused-export` (W0012) : every `export`-keyword fn unreachable from
 /// the project's roots across ALL modules — what the per-module W0007
-/// structurally can't see (`vader/typecheck/dead_code.vader::dead_exports`).
+/// structurally can't see (`vader/front/typecheck/dead_code.vader::dead_exports`).
 ///
 /// Runs on load + parse only (a name-reachability walk needs no types), so it
 /// is cheap and, unlike a lowered-project diff, immune to lazy lowering hiding

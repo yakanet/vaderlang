@@ -1,7 +1,7 @@
 // vader/lower/recorded_callee — what a call runs, read off the typecheck's record.
 //
 // The typecheck files what each call site invokes (`TypedProgram.call_sites`,
-// `vader/typecheck/call_sites.vader`). The lowering reads it here instead of
+// `vader/front/typecheck/call_sites.vader`). The lowering reads it here instead of
 // choosing the callee again ; a site the record leaves to the lowering (a value of
 // fn type, a member settled at each instance) keeps the lowering's own route.
 
@@ -10,8 +10,8 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// Index every free fn's symbol by its declaration's node id

@@ -22,9 +22,9 @@ module "vader/lower"
 import "std/collections"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/comptime"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/comptime"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// Route every `Equals` vtable slot whose receiver carries its own tag through a

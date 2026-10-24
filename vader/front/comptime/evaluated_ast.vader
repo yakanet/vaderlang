@@ -1,0 +1,141 @@
+// vader/front/comptime/evaluated_ast — output shapes of the comptime engine.
+//
+// The comptime pass reads a
+// `TypedProject` and produces an `EvaluatedProject` carrying one
+// `EvaluatedProgram` per module plus the generic instances it names
+// and the host-side side-tables (file contents). Downstream consumers (lowerer, bytecode emit) read
+// `EvaluatedProject` directly — never `TypedProject` for comptime data.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "std/ffi"
+import "vader/types"
+import "vader/front/typecheck"
+import "vader/support/diagnostics"
+import "toolchain/span"
+
+/// A `@comptime` decl the tree-walk evaluator deferred to the VM (it returned
+/// `vm_required` rather than a value). `evaluate_project` records these instead
+/// of erroring with C4001 ; the `vader/front/comptime/vm` pass (run from
+/// `pipeline/frontend` and `bootstrap` between `evaluate_project` and `lower_project`)
+/// stages the decl's callee to bytecode, executes it, bridges the result and
+/// injects it into the owning module's `comptime_decls`.
+///
+/// Scope (V1): the decl RHS must be a nullary call `f()` — `callee_name` is `f`.
+export VmRequiredDecl :: struct {
+    /// Symbol id of the comptime const — where the bridged value is injected.
+    symbol_id:   i32
+    /// Canonical module path owning the const (keys `EvaluatedProject.modules`
+    /// / `TypedProject.modules`). Used to mangle the callee + locate the program.
+    module_id:   string
+    /// Name of the nullary callee fn to execute (e.g. `build_md5_k`).
+    callee_name: string
+    /// Typechecker-resolved type of the const — drives the `Value`→`ComptimeValue`
+    /// bridge (scalar widths, array element name).
+    decl_type:   Type
+    /// The const decl's span, attached to any staging / evaluation diagnostic.
+    span:        Span
+}
+
+/// Per-module comptime output. Project-wide tables live on `EvaluatedProject`.
+export EvaluatedProgram :: struct {
+    /// Owning typed program ; the comptime engine never mutates it.
+    typed: TypedProgram
+
+    /// The const decls the comptime pass evaluated, `@comptime`-marked or
+    /// folded, keyed by the decl's Symbol id.
+    comptime_decls: MutableMap<i32, ComptimeValue>
+
+    /// How each value of `comptime_decls` was produced, under the same key.
+    routes: MutableMap<i32, ComptimeRoute> = MutableMap<i32, ComptimeRoute> {}
+
+    /// Each top-level `@assert` of the module and what its evaluation gave.
+    asserts: AssertCheck[] = []
+}
+
+/// How the comptime pass produced a const's value.
+export ComptimeRoute :: enum {
+    /// A `@comptime` decl the tree-walk evaluated.
+    Marked,
+    /// A `@comptime` decl the tree-walk deferred to the VM.
+    Vm,
+    /// A plain const the tree-walk folded, best effort.
+    Folded,
+}
+
+/// What evaluating an `@assert` condition gave.
+export AssertVerdict :: enum {
+    Holds,
+    Fails,
+    /// The tree-walk gave no bool (the condition needs the VM, or failed with a
+    /// reported error) ; the build does not check it.
+    NotEvaluated,
+}
+
+/// One top-level `@assert` and its verdict.
+export AssertCheck :: struct {
+    span: Span
+    verdict: AssertVerdict
+}
+
+/// Project-wide comptime output. Carries the per-module slices and the
+/// harvested generic-instance set.
+export EvaluatedProject :: struct {
+    /// Owning typed project — the source of every module the comptime
+    /// pass evaluated.
+    typed: TypedProject
+
+    /// Per-module `EvaluatedProgram`, keyed by canonical module path
+    /// (matches `TypedProject.modules` keying).
+    modules: MutableMap<string, EvaluatedProgram>
+
+    /// Sorted list of every generic instantiation seen in the typed AST
+    /// (Struct/Trait with non-empty args), from which `lower/mono_struct.vader`
+    /// materialises each concrete struct instance. Sorted by `display_key`
+    /// so ordering is deterministic across runs.
+    instances: GenericInstance[]
+
+    /// `@comptime` decls the tree-walk deferred to the VM. Populated by
+    /// `evaluate_project` ; consumed by the `front/comptime/vm` pass (run from
+    /// `pipeline/frontend` and `bootstrap`) which bakes each into the owning module's `comptime_decls`.
+    /// Empty for projects with no VM-required comptime decls.
+    vm_required: VmRequiredDecl[]
+
+    /// The library each `@extern` naming a `CLibrary` comes from, keyed by the
+    /// declaration's node id: the constant as evaluated for the build target,
+    /// its `include` and `archives` resolved against the folder of the module
+    /// declaring it.
+    libraries: MutableMap<i64, CLibrary> = MutableMap<i64, CLibrary> {}
+}
+
+/// Construct an empty `EvaluatedProgram` bound to `typed`.
+/// @param typed  the module's typed program.
+/// @return       a fresh evaluated program with no comptime decls.
+new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
+    return EvaluatedProgram {
+        .typed          = typed,
+        .comptime_decls = MutableMap<i32, ComptimeValue> {},
+    }
+}
+
+/// Construct an empty `EvaluatedProject` bound to `typed`.
+/// @param typed  the typed project to wrap.
+/// @return       a fresh evaluated project with empty side-tables.
+export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
+    return EvaluatedProject {
+        .typed       = typed,
+        .modules     = MutableMap<string, EvaluatedProgram> {},
+        .instances   = [],
+        .vm_required = [],
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_new_evaluated_project_is_empty :: fn() -> void {
+    project :: new_evaluated_project(new_typed_project(FreshReads {}))
+    assert_eq(project.modules.len(), 0)
+}

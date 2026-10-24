@@ -19,7 +19,7 @@ module "vader/tools/lsp/actions"
 
 import "vader/tools/fmt"
 AST :: import "toolchain/ast"
-Parse :: import "vader/parser"
+Parse :: import "vader/front/parser"
 
 /// The if→match code action. Registered in `registry.vader::all_actions`.
 if_to_match_action :: fn() -> CodeAction = CodeAction {

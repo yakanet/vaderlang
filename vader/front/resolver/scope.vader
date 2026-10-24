@@ -1,0 +1,169 @@
+// vader/front/resolver/scope — lexical scope stack.
+//
+// Extracted from `body.vader` so the body walker, future typechecker,
+// and any other pass that needs ident → symbol lookup share one
+// implementation. The stack is a LIFO of `MutableMap<string, Symbol>`
+// frames ; `bind` writes to the innermost frame, `lookup` walks
+// outward until it finds a hit or returns null.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/front/resolver/symbol"
+
+/// LIFO stack of binding frames — innermost at the end, root at index 0.
+export Scope :: struct {
+    frames: MutableMap<string, Symbol>[]
+}
+
+/// Build a scope whose root frame is `root`, kept by reference : a `bind` while no
+/// frame is pushed writes into it.
+export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
+    return Scope { .frames = [root] }
+}
+
+/// Replace the root frame, returning the one it replaces — the inner frames stay.
+///
+/// @param root  the new root frame.
+/// @return      the previous root frame, to put back.
+export swap_root :: fn(
+    self: Scope, root: MutableMap<string, Symbol>,
+) -> MutableMap<string, Symbol> {
+    previous :: self.frames[0]
+    self.frames[0] = root
+    return previous
+}
+
+/// Open a fresh inner scope. Subsequent `bind` calls land here until the
+/// matching `pop`.
+export push :: fn(self: Scope) -> void {
+    self.frames.push(MutableMap<string, Symbol> {})
+}
+
+/// Drop the innermost scope. No-op on an empty stack — the body walker
+/// over-pops on malformed AST rather than crashing.
+export pop :: fn(self: Scope) -> void {
+    self.frames.remove_last()
+}
+
+/// Bind `name` in the innermost frame. Silently shadows any outer
+/// binding of the same name ; lookup picks the innermost match.
+export bind :: fn(self: Scope, name: string, sym: Symbol) -> void {
+    n :: self.frames.len()
+    if n == 0 { return }
+    top :: self.frames[n - 1]
+    top[name] = sym
+}
+
+/// Walk frames innermost-out and return the first match, or null.
+export lookup :: fn(self: Scope, name: string) -> Symbol | null {
+    n :: self.frames.len()
+    i := n
+    for i > 0 {
+        i = i - 1
+        frame :: self.frames[i]
+        v :: frame[name]
+        match v {
+            is Symbol -> { return v }
+            is null   -> {}
+        }
+    }
+    return null
+}
+
+/// Number of live frames — frame 0 is the root (module top-level seed),
+/// `frame_count() - 1` is the innermost.
+export frame_count :: fn(self: Scope) -> i32 = i32(self.frames.len())
+
+/// Index of the innermost frame that binds `name`, or -1 when unbound.
+/// Lets a binding site tell apart a same-frame redeclaration (index ==
+/// innermost), a shadow of an outer local/param (0 < index < innermost),
+/// and a top-level name (index 0, the root seed).
+export lookup_frame_index :: fn(self: Scope, name: string) -> i32 {
+    n :: self.frames.len()
+    i := n
+    for i > 0 {
+        i = i - 1
+        frame :: self.frames[i]
+        if !(frame[name] is null) { return i32(i) }
+    }
+    return -1
+}
+
+
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/parser"
+import "toolchain/span"
+
+@test
+test_scope_lookup_finds_root_binding :: fn() -> void {
+    factory :: SymbolFactory {}
+    sym :: factory.make(.Local, "x", "test", "test", .Private, null)
+    root :: MutableMap<string, Symbol> {}
+    root["x"] = sym
+    scope :: new_scope(root)
+    hit :: scope.lookup("x")
+    match hit {
+        is Symbol -> { assert_eq(hit.name, "x") }
+        is null   -> { assert(false, "x should resolve in root scope") }
+    }
+}
+
+@test
+test_scope_push_pop_restores_outer :: fn() -> void {
+    factory :: SymbolFactory {}
+    outer :: factory.make(.Local, "x", "test", "test", .Private, null)
+    inner :: factory.make(.Local, "x", "test", "test", .Private, null)
+    root :: MutableMap<string, Symbol> {}
+    root["x"] = outer
+    scope :: new_scope(root)
+    scope.push()
+    scope.bind("x", inner)
+    // Inside the inner scope, shadowing wins.
+    inner_hit :: scope.lookup("x")
+    match inner_hit {
+        is Symbol -> { assert_eq(inner_hit.id, inner.id) }
+        is null   -> { assert(false, "inner shadow should be visible") }
+    }
+    scope.pop()
+    // After pop, the outer binding is back.
+    outer_hit :: scope.lookup("x")
+    match outer_hit {
+        is Symbol -> { assert_eq(outer_hit.id, outer.id) }
+        is null   -> { assert(false, "outer binding should resurface after pop") }
+    }
+}
+
+@test
+test_scope_lookup_misses_return_null :: fn() -> void {
+    root :: MutableMap<string, Symbol> {}
+    scope :: new_scope(root)
+    miss :: scope.lookup("nope")
+    match miss {
+        is Symbol -> { assert(false, "lookup of unbound name should be null") }
+        is null   -> {}
+    }
+}
+
+@test
+test_span_hash_is_file_aware :: fn() -> void {
+    at :: fn(file: string, line: i32, col: i32) -> Span {
+        p :: Position { .file = file, .offset = 0, .line = line, .column = col }
+        return Span { .start = p, .end = p }
+    }
+    // Same file + position → same hash (deterministic).
+    assert_eq(at("a", 3, 12).hash(), at("a", 3, 12).hash())
+    // Same (line, col) in DIFFERENT files → different hashes. This is
+    // the multi-file-module invariant : a per-module map keyed by
+    // span.hash() must not collide two distinct idents at the
+    // same line/column.
+    assert(at("a", 3, 12).hash() != at("b", 3, 12).hash(),
+        "Span.hash must disambiguate by file")
+    // Different positions in the same file → different hashes.
+    assert(at("a", 3, 12).hash() != at("a", 3, 13).hash(),
+        "Span.hash must disambiguate by column")
+}

@@ -15,7 +15,7 @@ module "vader/lower"
 
 import "std/string"
 import "vader/support/text"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 
 INDENT_STEP :: "    "

@@ -17,7 +17,7 @@ import "std/io"
 import "std/path"
 import "std/sort"
 import "std/string"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// `vader eject [--preserve-manifest] [<folder>]`: write the `build.vader` the
 /// folder's `vader.json` stands for, and remove the `vader.json`.

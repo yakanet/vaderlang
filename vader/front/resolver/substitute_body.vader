@@ -1,0 +1,775 @@
+// vader/front/resolver/substitute_body — full AST clone-with-substitution
+// walker for default-method body materialization.
+//
+// `substitute_type_expr` (substitute.vader) only walks type-position
+// variants. Body materialization needs full Expr/Stmt/Pattern coverage :
+// when an impl inherits a default method from its trait, the trait method's
+// body must be cloned and its `T` references rewritten to the impl's trait
+// arg (e.g. `i32` for an impl of `Trait<i32>`).
+//
+// SCOPE : sketch. Not all variants are handled — TODOs mark the gaps.
+// Calling `substitute_block` on a body that uses an unsupported variant
+// returns the original sub-tree unchanged (the walker is total but not
+// total-cloning, so partial coverage doesn't trap).
+//
+// WIRED VIA : `materialize_default_members` (materialize.vader), which
+// `vader/front/typecheck/orchestrate.vader` calls once per impl × default-bodied
+// trait method ; the cloned body is then walked by the normal impl-member
+// typecheck pass.
+
+module "vader/front/resolver"
+
+import "std/collections"
+import "vader/support/diagnostics"
+AST :: import "toolchain/ast"
+
+/// Clone a BlockExpr, recursively substituting TypeParam idents.
+export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
+    new_stmts: AST.Stmt[]: []
+    for s in b.stmts { new_stmts.push(substitute_stmt(s, subst)) }
+    new_trailing: AST.Expr | null = null
+    if b.trailing !is null {
+        new_trailing = substitute_expr_full(b.trailing, subst)
+    }
+    return AST.BlockExpr {
+        .span = b.span,
+        .id = AST.UNASSIGNED_NODE_ID,
+        .stmts = new_stmts,
+        .trailing = new_trailing,
+    }
+}
+
+// Substitute inside a `??` fallback, preserving its concrete shape : break /
+// continue carry no substitutable expression ; return substitutes its value.
+substitute_coalesce_fallback :: fn(f: AST.CoalesceFallback, subst: Subst) -> AST.CoalesceFallback = match f {
+    is AST.ReturnStmt -> AST.ReturnStmt { .span = f.span, .value = subst_opt_expr(f.value, subst) }
+    is AST.BreakStmt | AST.ContinueStmt -> f
+    is AST.Expr -> substitute_expr_full(f, subst)
+}
+
+subst_opt_expr :: fn(v: AST.Expr | null, subst: Subst) -> AST.Expr | null {
+    if v == null { return null }
+    return substitute_expr_full(v, subst)
+}
+
+/// Clone an Expr, dispatching to `substitute_type_expr` for type-position shapes
+/// and recursing into value-position children for the rest.
+///
+/// EXHAUSTIVE over the closed `Expr` union: every node is rebuilt with a fresh
+/// `UNASSIGNED_NODE_ID`, so the shared trait AST is never aliased — a
+/// passed-through node would later be mutated in place by `assign_block_ids`,
+/// corrupting the trait's own ids across every impl — and every nested `Self` /
+/// type-param is substituted. A new `Expr` variant trips T3013 here until it is
+/// handled; there is no silent pass-through. Each rebuild lists its fields
+/// rather than spreading the node for the same reason: a field added without a
+/// default breaks the build here instead of being copied unsubstituted.
+///
+/// @param e      the node to clone.
+/// @param subst  the type-param → trait-arg bindings to apply.
+/// @return       a fresh tree sharing no node with `e`.
+export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
+    match e {
+        // Leaves : reuse the original. No TypeParam refs possible.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
+
+        is AST.NullCoalesceExpr -> {
+            return AST.NullCoalesceExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .left = substitute_expr_full(e.left, subst),
+                .fallback = substitute_coalesce_fallback(e.fallback, subst),
+            }
+        }
+
+        // IdentExpr : the heart of TypeParam substitution. Delegated to
+        // substitute_type_expr which already handles the rebind.
+        is AST.IdentExpr -> { return substitute_type_expr(e, subst) }
+
+        // Type-position shapes already covered.
+        is AST.GenericInstExpr -> { return substitute_type_expr(e, subst) }
+        is AST.FnTypeExpr -> { return substitute_type_expr(e, subst) }
+        is AST.ArrayTypeExpr -> { return substitute_type_expr(e, subst) }
+
+        // Value-position composites : recurse children.
+        is AST.CallExpr -> {
+            new_args: AST.CallArg[]: []
+            for a in e.args {
+                new_args.push(AST.CallArg {
+                    .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
+                    .name = a.name, .value = substitute_expr_full(a.value, subst),
+                    .spread = a.spread,
+                })
+            }
+            new_type_args: AST.TypeExpr[]: []
+            for t in e.type_args {
+                new_type_args.push(substitute_type_expr(t, subst))
+            }
+            return AST.CallExpr {
+                .span = e.span,
+                .id = AST.UNASSIGNED_NODE_ID,
+                .callee = substitute_expr_full(e.callee, subst),
+                .type_args = new_type_args,
+                .args = new_args,
+            }
+        }
+        is AST.FieldExpr -> {
+            return AST.FieldExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_expr_full(e.target, subst),
+                .field = e.field, .field_span = e.field_span,
+                .is_numeric = e.is_numeric,
+            }
+        }
+        is AST.IndexExpr -> {
+            return AST.IndexExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_expr_full(e.target, subst),
+                .index = substitute_expr_full(e.index, subst),
+            }
+        }
+        is AST.UnaryExpr -> {
+            return AST.UnaryExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = e.op, .operand = substitute_expr_full(e.operand, subst),
+            }
+        }
+        is AST.BinaryExpr -> {
+            // Includes `is` op : RHS is type position — substitute_type_expr
+            // would catch the leaf, but here we keep the BinaryExpr shape
+            // since the value-position walker also needs to handle LHS.
+            return AST.BinaryExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = e.op,
+                .left = substitute_expr_full(e.left, subst),
+                .right = substitute_expr_full(e.right, subst),
+            }
+        }
+        is AST.IfExpr -> {
+            new_else: AST.IfElse | null = null
+            match eb :: e.else_branch {
+                is null            -> {}
+                is AST.IfElseBlock -> {
+                    new_else = AST.IfElseBlock { .block = substitute_block(eb.block, subst) }
+                }
+                is AST.IfElseIf    -> {
+                    // IfElseIf.branch is specifically AST.IfExpr — extract
+                    // via a narrow match since substitute_expr_full returns
+                    // the wider Expr union.
+                    sub :: substitute_expr_full(eb.branch, subst)
+                    match sub {
+                        is AST.IfExpr -> {
+                            new_else = AST.IfElseIf { .branch = sub }
+                        }
+                        _ -> {}     // shouldn't happen — IfExpr is closed
+                    }
+                }
+            }
+            return AST.IfExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .cond = substitute_expr_full(e.cond, subst),
+                .then_block = substitute_block(e.then_block, subst),
+                .else_branch = new_else,
+            }
+        }
+        is AST.MatchExpr -> {
+            new_arms: AST.MatchArm[]: []
+            for a in e.arms {
+                new_guard: AST.Expr | null = null
+                if a.guard !is null {
+                    new_guard = substitute_expr_full(a.guard, subst)
+                }
+                new_arms.push(AST.MatchArm {
+                    .span = a.span, .id = AST.UNASSIGNED_NODE_ID,
+                    .pattern = substitute_pattern(a.pattern, subst),
+                    .guard = new_guard,
+                    .body = substitute_expr_full(a.body, subst),
+                })
+            }
+            return AST.MatchExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .scrutinee = substitute_expr_full(e.scrutinee, subst),
+                .arms = new_arms,
+                .partial = e.partial,
+                .unreachable = e.unreachable,
+                .binding = clone_header_binding(e.binding),
+            }
+        }
+        is AST.BlockExpr -> { return substitute_block(e, subst) }
+
+        is AST.StructLitExpr -> {
+            new_items: (AST.StructLitField | AST.StructLitSpread)[]: []
+            for it in e.items {
+                match it {
+                    is AST.StructLitField -> {
+                        new_items.push(AST.StructLitField {
+                            .span = it.span, .id = AST.UNASSIGNED_NODE_ID,
+                            .name = it.name, .name_span = it.name_span,
+                            .value = substitute_expr_full(it.value, subst),
+                        })
+                    }
+                    is AST.StructLitSpread -> {
+                        new_items.push(AST.StructLitSpread {
+                            .span = it.span, .id = AST.UNASSIGNED_NODE_ID,
+                            .expr = substitute_expr_full(it.expr, subst),
+                        })
+                    }
+                }
+            }
+            return AST.StructLitExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .type_name = substitute_type_expr(e.type_name, subst),
+                .items = new_items,
+            }
+        }
+        is AST.SeqLitExpr -> {
+            new_elems: AST.Expr[]: []
+            for el in e.elements { new_elems.push(substitute_expr_full(el, subst)) }
+            return AST.SeqLitExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems,
+            }
+        }
+        is AST.RangeExpr -> {
+            return AST.RangeExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID, .inclusive = e.inclusive,
+                .lower = substitute_expr_full(e.lower, subst),
+                .upper = substitute_expr_full(e.upper, subst),
+            }
+        }
+        is AST.AwaitExpr -> {
+            return AST.AwaitExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .inner = substitute_expr_full(e.inner, subst),
+            }
+        }
+        is AST.CastExpr -> {
+            return AST.CastExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = substitute_type_expr(e.target, subst),
+                .value = substitute_expr_full(e.value, subst),
+            }
+        }
+        is AST.IntrinsicCallExpr -> {
+            new_args: AST.Expr[]: []
+            for a in e.args { new_args.push(substitute_expr_full(a, subst)) }
+            return AST.IntrinsicCallExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .name = e.name, .name_span = e.name_span, .args = new_args,
+            }
+        }
+        is AST.DotVariantExpr -> {
+            // Leaf (no child exprs / type refs) — still cloned so the trait
+            // node is never re-id'd in place.
+            return AST.DotVariantExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .variant = e.variant, .variant_span = e.variant_span,
+            }
+        }
+        is AST.StringLitExpr -> {
+            new_parts: AST.StringLitPart[]: []
+            for pt in e.parts {
+                match pt {
+                    is AST.StringLitText -> {
+                        new_parts.push(AST.StringLitText {
+                            .value = pt.value, .span = pt.span, .id = AST.UNASSIGNED_NODE_ID,
+                        })
+                    }
+                    is AST.StringLitInterp -> {
+                        new_parts.push(AST.StringLitInterp {
+                            .expr = substitute_expr_full(pt.expr, subst),
+                            .span = pt.span, .id = AST.UNASSIGNED_NODE_ID,
+                        })
+                    }
+                }
+            }
+            return AST.StringLitExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID, .parts = new_parts,
+            }
+        }
+        is AST.LambdaExpr -> {
+            new_params: AST.FnParam[]: []
+            for pm in e.params {
+                new_pty: AST.TypeExpr | null = null
+                if pm.ty !is null {
+                    new_pty = substitute_type_expr(pm.ty, subst)
+                }
+                new_default: AST.Expr | null = null
+                if pm.default_value !is null {
+                    new_default = substitute_expr_full(pm.default_value, subst)
+                }
+                new_params.push(AST.FnParam {
+                    .span = pm.span, .id = AST.UNASSIGNED_NODE_ID, .name = pm.name,
+                    .name_span = pm.name_span,
+                    .ty = new_pty, .default_value = new_default, .variadic = pm.variadic,
+                    // Carried over — see the field's own note on why it has no default.
+                    .decorators = pm.decorators,
+                })
+            }
+            new_ret: AST.TypeExpr | null = null
+            if e.return_type !is null {
+                new_ret = substitute_type_expr(e.return_type, subst)
+            }
+            return AST.LambdaExpr {
+                .span = e.span, .id = AST.UNASSIGNED_NODE_ID,
+                .params = new_params, .return_type = new_ret,
+                .body = substitute_block(e.body, subst),
+            }
+        }
+    }
+}
+
+/// Clone a Stmt, recursing into child Exprs. Fields are listed, not spread —
+/// see `substitute_expr_full`.
+// @partial: sketch coverage — the TODO'd DeferStmt passes through unchanged until
+// the walker is completed.
+export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
+    @partial match s {
+        is AST.LetStmt               -> {
+            new_ty: AST.TypeExpr | null = null
+            if s.ty !is null {
+                new_ty = substitute_type_expr(s.ty, subst)
+            }
+            return AST.LetStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .mutable = s.mutable,
+                // Clone the binding (don't reuse the trait node) so its
+                // span/name_span can be stamped per-clone — the resolver keys
+                // the local Symbol on `binding.name_span`, which must agree
+                // with the body's stamped use-site idents.
+                .binding = clone_let_binding(s.binding),
+                .ty = new_ty,
+                .value = substitute_expr_full(s.value, subst),
+            }
+        }
+        is AST.ExprStmt              -> {
+            return AST.ExprStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .expr = substitute_expr_full(s.expr, subst),
+            }
+        }
+        is AST.ReturnStmt            -> {
+            new_value: AST.Expr | null = null
+            if s.value !is null {
+                new_value = substitute_expr_full(s.value, subst)
+            }
+            return AST.ReturnStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .value = new_value,
+            }
+        }
+        is AST.AssignStmt            -> {
+            target :: substitute_expr_full(s.target, subst)
+            return AST.AssignStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .target = target,
+                .value = clone_assign_value(s, target, subst),
+            }
+        }
+        is AST.DestructureAssignStmt -> {
+            targets: AST.AssignTarget[]: []
+            for t in s.targets {
+                match t {
+                    is AST.PlaceTarget    -> {
+                        place :: substitute_expr_full(t.place, subst)
+                        targets.push(AST.PlaceTarget { .span = t.span, .place = place })
+                    }
+                    is AST.RestTarget     -> {
+                        place :: substitute_expr_full(t.place, subst)
+                        targets.push(AST.RestTarget { .span = t.span, .place = place })
+                    }
+                    is AST.WildcardTarget -> {
+                        targets.push(AST.WildcardTarget { .span = t.span })
+                    }
+                }
+            }
+            return AST.DestructureAssignStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .targets = targets,
+                .value = substitute_expr_full(s.value, subst),
+            }
+        }
+        is AST.ForStmt               -> {
+            new_form: AST.ForForm = s.form
+            match form :: s.form {
+                is AST.WhileFor    -> {
+                    new_form = AST.WhileFor { .cond = substitute_expr_full(form.cond, subst) }
+                }
+                is AST.InFor       -> {
+                    new_form = AST.InFor {
+                        .loop_var = form.loop_var,
+                        .iter = substitute_expr_full(form.iter, subst),
+                    }
+                }
+                is AST.InfiniteFor -> {} // no children
+            }
+            return AST.ForStmt {
+                .span = s.span, .id = AST.UNASSIGNED_NODE_ID,
+                .label = s.label,
+                .form = new_form,
+                .body = substitute_block(s.body, subst),
+                .is_comptime = s.is_comptime,
+            }
+        }
+        is AST.BreakStmt             -> { return s } // no children
+        is AST.ContinueStmt          -> { return s }
+        // TODO : DeferStmt. Falls through unchanged for the sketch.
+        _                            -> { return s }
+    }
+}
+
+// The clone of an assignment's value. A compound assignment's `value.left` IS its
+// target, so its clone is the cloned `target` : two copies would each get an id
+// and a stamped span of their own — no longer read as `op=`, and each lowered on
+// its own, evaluating the place's operands twice.
+clone_assign_value :: fn(s: AST.AssignStmt, target: AST.Expr, subst: Subst) -> AST.Expr {
+    if AST.compound_assign_op(s) != null {
+        value :: s.value
+        if value is AST.BinaryExpr {
+            return AST.BinaryExpr {
+                .span = value.span, .id = AST.UNASSIGNED_NODE_ID,
+                .op = value.op,
+                .left = target,
+                .right = substitute_expr_full(value.right, subst),
+            }
+        }
+    }
+    return substitute_expr_full(s.value, subst)
+}
+
+/// Clone a `let` binding so a materialised body owns it (the resolver keys
+/// the local Symbol on `binding.name_span` ; sharing the trait node would
+/// collide across impls/generations). Spans are carried over and re-stamped
+/// by `stamp_binding_spans`.
+// A `match` header's binding, cloned as a declaration's is.
+clone_header_binding :: fn(b: AST.SimpleBinding | null) -> AST.SimpleBinding | null {
+    present :: b ?? return null
+    return AST.SimpleBinding { ...present, .id = AST.UNASSIGNED_NODE_ID }
+}
+
+clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
+    match b {
+        is AST.SimpleBinding -> {
+            return AST.SimpleBinding { ...b, .id = AST.UNASSIGNED_NODE_ID }
+        }
+        is AST.TupleBinding -> {
+            new_elems: AST.LetBinding[]: []
+            for e in b.elements { new_elems.push(clone_let_binding(e)) }
+            return AST.TupleBinding { .span = b.span, .id = AST.UNASSIGNED_NODE_ID, .elements = new_elems }
+        }
+        is AST.WildcardBinding -> {
+            return AST.WildcardBinding { .span = b.span, .id = AST.UNASSIGNED_NODE_ID }
+        }
+        is AST.RestBinding -> {
+            return AST.RestBinding { ...b, .id = AST.UNASSIGNED_NODE_ID }
+        }
+    }
+}
+
+/// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
+// @partial: sketch coverage — the TODO'd patterns (StructPattern,
+// LiteralPattern, EnumVariantPattern) and the childless WildcardPattern pass
+// through unchanged.
+export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
+    @partial match p {
+        is AST.IsPattern -> {
+            new_inner: AST.Pattern | null = null
+            if p.inner !is null {
+                new_inner = substitute_pattern(p.inner, subst)
+            }
+            return AST.IsPattern {
+                .span = p.span, .id = AST.UNASSIGNED_NODE_ID,
+                .ty = substitute_type_expr(p.ty, subst),
+                .inner = new_inner,
+            }
+        }
+        // TODO : StructPattern, LiteralPattern, EnumVariantPattern.
+        // WildcardPattern has no children — pass through.
+        _ -> { return p }
+    }
+}
+
+// ---- materialised-body wrapper -------------------------------------------
+
+import "vader/front/parser"
+import "toolchain/span"
+
+/// Clone `b` via `substitute_block` and mint fresh node IDs on the
+/// result. Cloned bodies keep trait-source spans.
+/// Fresh IDs ensure id-keyed `expr_types` / `expr_kinds` entries
+/// don't collide with the trait module's own typing pass (which keys
+/// on the trait's original AST node IDs).
+export substitute_block_materialized :: fn(
+    b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp: StampCtx,
+) -> AST.BlockExpr {
+    cloned :: substitute_block(b, subst)
+    assign_block_ids(cloned, factory)
+    stamp_block_spans(cloned, stamp)
+    return cloned
+}
+
+// ---- span uniquification for materialised clones --------------------------
+//
+// Rewrite every cloned node's span to `<clone>:(base_line):(N)`. A clone that
+// keeps the trait method's spans collides with every sibling impl of that trait
+// in the span-keyed `idents` map, and the replacement span must be DETERMINISTIC
+// rather than merely unique — a node id will not do. Both constraints, and what
+// each ingredient of the span answers for, are recorded in
+// docs/adr/0012-materialised-clone-spans-are-deterministic-per-impl.md.
+//
+// Coverage mirrors `substitute_block` / `substitute_expr_full` : a node kind
+// missed here silently keeps its trait span.
+
+/// Deterministic span allocator for one impl's materialised clones — created once
+/// per impl, then threaded through every member clone.
+///
+/// `base_line` is the impl's source `line * 1024 + column`, `counter` a traversal
+/// counter accumulating across the impl's members, and `file` is
+/// `"<clone>:<src>"` — the impl's source file folded in, since `Span.hash` folds
+/// in `start.file`.
+export StampCtx :: struct { base_line: i32, counter: i32, file: string }
+
+/// Prefix marking a materialised clone's synthetic file path — the rest of the
+/// string is the impl's real source file. Read by anything that has to map a
+/// cloned node back to the file whose imports it resolves against
+/// (`front/typecheck/orchestrate.vader::file_overload_table`), so producer and
+/// consumer share this one definition rather than each spelling the literal.
+export CLONE_FILE_PREFIX :: "<clone>:"
+
+export next_clone_span :: fn(stamp: StampCtx) -> Span {
+    col :: stamp.counter
+    stamp.counter = stamp.counter + 1
+    pos :: Position { .file = stamp.file, .offset = 0, .line = stamp.base_line, .column = col }
+    return Span { .start = pos, .end = pos }
+}
+
+stamp_block_spans :: fn(b: AST.BlockExpr, stamp: StampCtx) -> void {
+    b.span = next_clone_span(stamp)
+    for s in b.stmts { stamp_stmt_spans(s, stamp) }
+    if b.trailing !is null {
+        stamp_expr_spans(b.trailing, stamp)
+    }
+}
+
+stamp_stmt_spans :: fn(s: AST.Stmt, stamp: StampCtx) -> void {
+    match s {
+        is AST.LetStmt               -> {
+            s.span = next_clone_span(stamp)
+            stamp_binding_spans(s.binding, stamp)
+            if s.ty !is null {
+                stamp_expr_spans(s.ty, stamp)
+            }
+            stamp_expr_spans(s.value, stamp)
+        }
+        is AST.ExprStmt              -> {
+            s.span = next_clone_span(stamp)
+            stamp_expr_spans(s.expr, stamp)
+        }
+        is AST.ReturnStmt            -> {
+            s.span = next_clone_span(stamp)
+            if s.value !is null {
+                stamp_expr_spans(s.value, stamp)
+            }
+        }
+        is AST.AssignStmt            -> {
+            s.span = next_clone_span(stamp)
+            stamp_expr_spans(s.target, stamp)
+            stamp_expr_spans(s.value, stamp)
+        }
+        is AST.DestructureAssignStmt -> {
+            s.span = next_clone_span(stamp)
+            // Only the places carry spans anything keys on ; a target's own span
+            // is never looked up.
+            for place in AST.assign_places(s) {
+                stamp_expr_spans(place, stamp)
+            }
+            stamp_expr_spans(s.value, stamp)
+        }
+        is AST.ForStmt               -> {
+            s.span = next_clone_span(stamp)
+            match form :: s.form {
+                is AST.WhileFor    -> { stamp_expr_spans(form.cond, stamp) }
+                is AST.InFor       -> {
+                    match nv :: form.loop_var {
+                        is AST.NamedVar -> { form.loop_var = AST.NamedVar { .name = nv.name, .span = next_clone_span(stamp) } }
+                        is AST.DestructureVar -> { stamp_binding_spans(nv.pattern, stamp) }
+                        is AST.DiscardVar     -> {}
+                    }
+                    stamp_expr_spans(form.iter, stamp)
+                }
+                is AST.InfiniteFor -> {}
+            }
+            stamp_block_spans(s.body, stamp)
+        }
+        _                            -> {}
+    }
+}
+
+stamp_expr_spans :: fn(e: AST.Expr, stamp: StampCtx) -> void {
+    match e {
+        is AST.IntLitExpr -> { e.span = next_clone_span(stamp) }
+        is AST.FloatLitExpr -> { e.span = next_clone_span(stamp) }
+        is AST.BoolLitExpr -> { e.span = next_clone_span(stamp) }
+        is AST.NullLitExpr -> { e.span = next_clone_span(stamp) }
+        is AST.CharLitExpr -> { e.span = next_clone_span(stamp) }
+        is AST.IdentExpr -> { e.span = next_clone_span(stamp) }
+        is AST.CallExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.callee, stamp)
+            for t in e.type_args {
+                stamp_expr_spans(t, stamp)
+            }
+            for a in e.args {
+                a.span = next_clone_span(stamp)
+                stamp_expr_spans(a.value, stamp)
+            }
+        }
+        is AST.FieldExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.target, stamp)
+        }
+        is AST.IndexExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.target, stamp)
+            stamp_expr_spans(e.index, stamp)
+        }
+        is AST.UnaryExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.operand, stamp)
+        }
+        is AST.BinaryExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.left, stamp)
+            stamp_expr_spans(e.right, stamp)
+        }
+        is AST.IfExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.cond, stamp)
+            stamp_block_spans(e.then_block, stamp)
+            match eb :: e.else_branch {
+                is null            -> {}
+                is AST.IfElseBlock -> { stamp_block_spans(eb.block, stamp) }
+                is AST.IfElseIf    -> { stamp_expr_spans(eb.branch, stamp) }
+            }
+        }
+        is AST.MatchExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.scrutinee, stamp)
+            binding :: e.binding
+            if binding != null {
+                stamp_binding_spans(binding, stamp)
+            }
+            for a in e.arms {
+                a.span = next_clone_span(stamp)
+                stamp_pattern_spans(a.pattern, stamp)
+                if a.guard !is null {
+                    stamp_expr_spans(a.guard, stamp)
+                }
+                stamp_expr_spans(a.body, stamp)
+            }
+        }
+        is AST.BlockExpr -> { stamp_block_spans(e, stamp) }
+        is AST.StructLitExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.type_name, stamp)
+            for it in e.items {
+                match it {
+                    is AST.StructLitField -> {
+                        it.span = next_clone_span(stamp)
+                        it.name_span = next_clone_span(stamp)
+                        stamp_expr_spans(it.value, stamp)
+                    }
+                    is AST.StructLitSpread -> {
+                        it.span = next_clone_span(stamp)
+                        stamp_expr_spans(it.expr, stamp)
+                    }
+                }
+            }
+        }
+        is AST.SeqLitExpr -> {
+            e.span = next_clone_span(stamp)
+            for el in e.elements { stamp_expr_spans(el, stamp) }
+        }
+        is AST.RangeExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.lower, stamp)
+            stamp_expr_spans(e.upper, stamp)
+        }
+        is AST.AwaitExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.inner, stamp)
+        }
+        is AST.CastExpr -> {
+            e.span = next_clone_span(stamp)
+            stamp_expr_spans(e.target, stamp)
+            stamp_expr_spans(e.value, stamp)
+        }
+        is AST.IntrinsicCallExpr -> {
+            e.span = next_clone_span(stamp)
+            e.name_span = next_clone_span(stamp)
+            for a in e.args { stamp_expr_spans(a, stamp) }
+        }
+        is AST.DotVariantExpr -> {
+            e.span = next_clone_span(stamp)
+            e.variant_span = next_clone_span(stamp)
+        }
+        is AST.StringLitExpr -> {
+            e.span = next_clone_span(stamp)
+            for pt in e.parts {
+                match pt {
+                    is AST.StringLitText -> { pt.span = next_clone_span(stamp) }
+                    is AST.StringLitInterp -> {
+                        pt.span = next_clone_span(stamp)
+                        stamp_expr_spans(pt.expr, stamp)
+                    }
+                }
+            }
+        }
+        is AST.LambdaExpr -> {
+            e.span = next_clone_span(stamp)
+            for pm in e.params {
+                pm.span = next_clone_span(stamp)
+                pm.name_span = empty_span()
+                if pm.ty !is null {
+                    stamp_expr_spans(pm.ty, stamp)
+                }
+                if pm.default_value !is null {
+                    stamp_expr_spans(pm.default_value, stamp)
+                }
+            }
+            if e.return_type !is null {
+                stamp_expr_spans(e.return_type, stamp)
+            }
+            stamp_block_spans(e.body, stamp)
+        }
+        _ -> {}
+    }
+}
+
+stamp_binding_spans :: fn(b: AST.LetBinding, stamp: StampCtx) -> void {
+    match b {
+        is AST.SimpleBinding -> {
+            b.span = next_clone_span(stamp)
+            b.name_span = next_clone_span(stamp)
+        }
+        is AST.TupleBinding -> {
+            b.span = next_clone_span(stamp)
+            for e in b.elements { stamp_binding_spans(e, stamp) }
+        }
+        is AST.WildcardBinding -> { b.span = next_clone_span(stamp) }
+        is AST.RestBinding -> {
+            b.span = next_clone_span(stamp)
+            b.name_span = next_clone_span(stamp)
+        }
+    }
+}
+
+stamp_pattern_spans :: fn(p: AST.Pattern, stamp: StampCtx) -> void {
+    match p {
+        is AST.IsPattern -> {
+            p.span = next_clone_span(stamp)
+            if p.inner !is null {
+                stamp_pattern_spans(p.inner, stamp)
+            }
+        }
+        _ -> {}
+    }
+}
+

@@ -22,7 +22,7 @@ module "vader/midir"
 
 import "std/collections"
 import "vader/support/fixpoint"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 
 /// The node an indirect call or a deferred block goes through.
 IndirectCalls :: struct {}

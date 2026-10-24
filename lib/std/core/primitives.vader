@@ -405,7 +405,7 @@ f64 implements One -> 1.0
 // bound work without `import "std/string"`. Its body interpolates the two
 // operands — which desugars to the Buffer-backed StringBuilder chain,
 // so no dedicated `StringConcat` op is needed. The `+` operator never reaches
-// this body : it is special-cased in the typechecker (`typecheck/binary.vader`
+// this body : it is special-cased in the typechecker (`front/typecheck/binary.vader`
 // — `string + string -> string`) and lowered to the same StringBuilder chain
 // directly (`lower/binary.vader`). `s[i]` and `s[lo..<hi]` are in
 // `utf8.vader`; strings are immutable, so there is no `IndexSet`. Number

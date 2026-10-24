@@ -4,8 +4,8 @@
 // `if shape is Circle && shape.radius > 0` failed with T3008 (`shape` stayed
 // `Circle | Square` in the `&&` right operand AND in the then-block ; only the
 // VM limped through at runtime). Fixed by flowing each operand's narrowing
-// into the conjunction's right operand (vader/typecheck/binary.vader) and into
-// the then-block (vader/typecheck/expr_if.vader).
+// into the conjunction's right operand (vader/front/typecheck/binary.vader) and into
+// the then-block (vader/front/typecheck/expr_if.vader).
 
 module "snippet"
 

@@ -17,7 +17,7 @@
 // the receiver's type — which is what made the bug look narrower than it was.
 //
 // Fixed by typing literal-valued consts in a pre-pass before the bodies
-// (`typecheck/orchestrate.vader`). A const whose value CALLS something keeps the
+// (`front/typecheck/orchestrate.vader`). A const whose value CALLS something keeps the
 // old ordering, because it genuinely depends on those bodies.
 //
 // Found by dogfooding the build driver: a `build.vader` with its lookup tables at

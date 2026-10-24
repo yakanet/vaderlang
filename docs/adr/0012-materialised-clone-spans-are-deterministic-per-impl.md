@@ -2,8 +2,8 @@
 
 ## Status
 
-Accepted (2026-09-01). Implemented across `vader/resolver/materialize.vader` and
-`vader/resolver/substitute_body.vader`.
+Accepted (2026-09-01). Implemented across `vader/front/resolver/materialize.vader` and
+`vader/front/resolver/substitute_body.vader`.
 
 ## Context
 
@@ -80,7 +80,7 @@ Each ingredient answers one of the collisions above:
   files of one module.
 - **The `<clone>:` prefix.** Keeps every synthetic span clear of real source
   spans. Exported as `CLONE_FILE_PREFIX` because the consumer side
-  (`typecheck/orchestrate.vader::file_overload_table`) has to map a cloned node
+  (`front/typecheck/orchestrate.vader::file_overload_table`) has to map a cloned node
   back to the file whose imports it resolves against, and one definition beats
   two spellings of the literal.
 

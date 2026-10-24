@@ -1,0 +1,324 @@
+// vader/front/typecheck/narrow_value — a comparison or a bounds test narrows a range.
+//
+// `h < 12` on an `Hour` holds `0..=11` where it is true and `12..=23` where it is
+// false. The narrowed side is a binding or a field chain whose current type is a
+// range ; the value compared with is a literal or a value of a range, read by its
+// bounds. A side no value reaches is `never`. `==` and `!=` remove a value at a
+// bound only : a range with a hole would be a union of intervals, which a range
+// does not carry. A machine integer (`i32`, `u8`) is not narrowed by a comparison :
+// its arithmetic stays closed.
+//
+// `x in T`, `T` an integer type or a range written with literal bounds, holds `x`
+// within `T` where it is true, a machine integer included, and outside it where it
+// is false, when that leaves a range and `x` is no machine integer.
+
+module "vader/front/typecheck"
+
+import "vader/support/integer"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The narrowing a comparison `cond` gives the range it tests, or a call to a guard
+/// the argument it narrows (`guard.vader`), `!` composed by swapping the sides.
+///
+/// @param cond  a condition, already type-checked.
+/// @return      null when `cond` compares no range with a literal or a range value.
+detect_value_narrow :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow | null {
+    if cond is AST.UnaryExpr && cond.op == .Not {
+        inner :: detect_value_narrow(cond.operand, typed) ?? return null
+        return swapped(inner)
+    }
+    if cond is AST.CallExpr {
+        return guard_narrowing(cond, typed)
+    }
+    if cond !is AST.BinaryExpr {
+        return null
+    }
+    kind :: classify(cond.op)
+    if kind == .In {
+        return membership_narrowing(cond, typed)
+    }
+    if kind != .Compare && kind != .Equality {
+        return null
+    }
+    on_left :: narrowing_of(cond.left, cond.op, cond.right, typed)
+    if on_left != null {
+        return on_left
+    }
+    return narrowing_of(cond.right, mirrored(cond.op), cond.left, typed)
+}
+
+// `subject op other` read as a narrowing of `subject`. The types recorded for both
+// operands already carry the narrowings in force, a literal's being the range of
+// its own value : reading them first keeps a comparison of no range from any
+// symbol lookup.
+narrowing_of :: fn(
+    subject: AST.Expr,
+    op: AST.BinaryOp,
+    other: AST.Expr,
+    typed: TypedProgram,
+) -> IsNarrow | null {
+    if !is_refinement(typed.expr_types[subject.id]) {
+        return null
+    }
+    bounds :: compared_bounds(other, typed) ?? return null
+    slot :: slot_of(subject, typed) ?? return null
+    current :: refinement_of(slot.current) ?? return null
+    return IsNarrow {
+        .sym_id = slot.sym_id,
+        .static_ty = current,
+        .then_ty = holding(current, op, bounds),
+        .else_ty = holding(current, opposite(op), bounds),
+        .field_key = slot.field_key,
+    }
+}
+
+// `x in T` or `x !in T` read as a narrowing of `x`.
+membership_narrowing :: fn(e: AST.BinaryExpr, typed: TypedProgram) -> IsNarrow | null {
+    subject :: typed.expr_types[e.left.id]
+    if subject !is RangeType && subject !is PrimitiveType {
+        return null
+    }
+    tested :: tested_type(e.right, typed) ?? return null
+    slot :: slot_of(e.left, typed) ?? return null
+    current :: slot.current
+    sides :: membership_sides(current, tested, typed) ?? return null
+    narrowing :: IsNarrow {
+        .sym_id = slot.sym_id,
+        .static_ty = current,
+        .then_ty = sides.0,
+        .else_ty = sides.1,
+        .field_key = slot.field_key,
+    }
+    if e.op == .NotIn {
+        return swapped(narrowing)
+    }
+    return narrowing
+}
+
+// What `x in tested` makes an integer of type `current` where it holds and where it
+// does not. A type parameter bounded by `Int` : that parameter, and `current` as it
+// is. An integer type or a range with literal bounds : the values within it, and
+// those past an end it covers.
+membership_sides :: fn(current: Type, tested: Type, typed: TypedProgram) -> [Type, Type] | null {
+    if tested !is RangeType {
+        return [tested, current]
+    }
+    inside :: inside_of(current, tested) ?? return null
+    return [inside, outside_of(current, tested.bounds)]
+}
+
+// The type `x in right` tests against : a range (`tested_range`), or a type
+// parameter bounded by `Int`. Null for anything else, a collection's `contains`.
+tested_type :: fn(right: AST.Expr, typed: TypedProgram) -> Type | null {
+    tested :: tested_range(right, typed)
+    if tested != null {
+        return tested
+    }
+    param :: typed.expr_types[right.id] ?? return null
+    if is_integer_param(param, typed) {
+        return param
+    }
+    return null
+}
+
+/// `n` with its two sides exchanged : what the negation of its test narrows.
+///
+/// @param n  a narrowing.
+swapped :: fn(n: IsNarrow) -> IsNarrow = IsNarrow {
+    ...n,
+    .then_ty = n.else_ty,
+    .else_ty = n.then_ty,
+}
+
+// The values `x in right` tests against, as a range : an integer type's (`in Hour`,
+// `in u8`), an enum's whose values follow one another (`in Weekday`), or a range
+// written with literal bounds (`in 0..=23`). An enum with a gap narrows nothing :
+// a value outside it may still lie between its values.
+tested_range :: fn(right: AST.Expr, typed: TypedProgram) -> RangeType | null {
+    if right is AST.RangeExpr {
+        if right.lower !is AST.IntLitExpr || right.upper !is AST.IntLitExpr {
+            return null
+        }
+        written :: range_type(right, diag_sink())
+        if written is RangeType {
+            return written
+        }
+        return null
+    }
+    recorded :: typed.expr_types[right.id] ?? return null
+    if recorded is RangeType {
+        return recorded
+    }
+    if recorded is EnumType && recorded.data == null {
+        runs :: enum_value_runs(recorded)
+        if runs.len() != 1 {
+            return null
+        }
+        return RangeType { .bounds = runs[0] }
+    }
+    values :: integer_values(recorded) ?? return null
+    return RangeType { .bounds = values }
+}
+
+// What an integer of type `current` is where it lies within `tested` : `tested`
+// itself when that is all it holds, else the range of the values both hold. Null
+// when `current` is no integer.
+inside_of :: fn(current: Type, tested: RangeType) -> Type | null {
+    values :: integer_values(current) ?? return null
+    met :: interval_meet(values, tested.bounds) ?? return TY_NEVER
+    if same_interval(met, values) {
+        return current
+    }
+    if same_interval(met, tested.bounds) {
+        return tested
+    }
+    return RangeType { .bounds = met }
+}
+
+// What `current` is where it lies outside `tested` : the part of a range past an
+// end `tested` covers, `never` when it covers the whole ; a machine integer, or a
+// range `tested` would split, as it is.
+outside_of :: fn(current: Type, tested: Interval) -> Type {
+    refined :: refinement_of(current) ?? return current
+    bounds :: refined.bounds
+    met :: interval_meet(bounds, tested) ?? return current
+    if same_interval(met, bounds) {
+        return TY_NEVER
+    }
+    if met.lo == bounds.lo {
+        // What lies past an end beyond `i64` would start beyond it : no range holds it.
+        if met.hi_open {
+            return current
+        }
+        return RangeType { .bounds = Interval { ...bounds, .lo = met.hi + 1 } }
+    }
+    if upper_at_most(bounds, met) {
+        return RangeType { .bounds = interval(bounds.lo, met.lo - 1) }
+    }
+    return current
+}
+
+// The values `other` may take : the one `@min(T)` or `@max(T)` stands for, else
+// those of its range, a literal's being its own.
+compared_bounds :: fn(other: AST.Expr, typed: TypedProgram) -> Interval | null {
+    bound :: integer_bound_value(other, typed)
+    if bound != null {
+        return bound
+    }
+    refined :: refinement_of(typed.expr_types[other.id]) ?? return null
+    return refined.bounds
+}
+
+// A binding or a field chain, and its type as narrowed so far.
+NarrowedSlot :: struct {
+    sym_id: i32
+    field_key: string
+    current: Type
+}
+
+// The slot `subject` names, null for an expression no narrowing addresses.
+slot_of :: fn(subject: AST.Expr, typed: TypedProgram) -> NarrowedSlot | null {
+    if subject is AST.IdentExpr {
+        sym :: typed.resolved.idents[subject.span.hash()] ?? return null
+        return NarrowedSlot {
+            .sym_id = sym.id,
+            .field_key = "",
+            .current = narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed)),
+        }
+    }
+    if subject is AST.FieldExpr {
+        chain :: resolve_field_chain_static(subject, typed) ?? return null
+        return NarrowedSlot {
+            .sym_id = 0,
+            .field_key = chain.field_key,
+            .current = narrow_for_field(typed, chain.field_key, chain.static_ty),
+        }
+    }
+    return null
+}
+
+// What `current` holds where `x op other` is true, `other` within `bounds`. `!=`
+// rules out a value only when `other` has no other.
+holding :: fn(current: RangeType, op: AST.BinaryOp, bounds: Interval) -> Type {
+    if op == .Neq {
+        if bounds.lo != bounds.hi || bounds.hi_open {
+            return current
+        }
+        return outside_of(current, bounds)
+    }
+    within :: within_for(op, bounds) ?? return TY_NEVER
+    met :: interval_meet(current.bounds, within) ?? return TY_NEVER
+    if same_interval(met, current.bounds) {
+        return current
+    }
+    return RangeType { .bounds = met }
+}
+
+// The integers `x` lies within where `x op other` is true, `other` within
+// `bounds` ; null for none. `x < other` holds below `other`'s greatest value.
+within_for :: fn(op: AST.BinaryOp, bounds: Interval) -> Interval | null = @unreachable match op {
+    .Lt  -> below_upper(bounds, true)
+    .Lte -> below_upper(bounds, false)
+    .Gt  -> above(bounds.lo)
+    .Gte -> interval_from_ends(bounds.lo, null)
+    .Eq  -> bounds
+}
+
+// The integers below the greatest value of `bounds`, or up to it unless `strict` ;
+// null for none. An upper end past `i64` reaches as far, one with no bound bounds
+// nothing.
+below_upper :: fn(bounds: Interval, strict: bool) -> Interval | null {
+    if !bounds.hi_open {
+        if strict {
+            return below(bounds.hi)
+        }
+        return interval_from_ends(null, bounds.hi)
+    }
+    if bounds.hi_past == 0 {
+        return ANY_INTEGER
+    }
+    top := upper_past_i64(bounds)
+    if strict {
+        top -= 1
+    }
+    return Interval { ...interval_up_to(I64_MIN, top), .lo_open = true }
+}
+
+// The integers below `x`, null for none.
+below :: fn(x: i64) -> Interval | null {
+    if x == I64_MIN {
+        return null
+    }
+    return interval_from_ends(null, x - 1)
+}
+
+// The integers above `x`.
+above :: fn(x: i64) -> Interval {
+    // Past `i64.max` lie the values only a range reaching past `i64` holds, from a
+    // least value no `i64` carries : the interval starts at `i64.max`, one value more.
+    if x == I64_MAX {
+        return interval_from_ends(I64_MAX, null)
+    }
+    return interval_from_ends(x + 1, null)
+}
+
+// `op` with its operands swapped : `a < b` is `b > a`.
+mirrored :: fn(op: AST.BinaryOp) -> AST.BinaryOp = @unreachable match op {
+    .Lt  -> .Gt
+    .Lte -> .Gte
+    .Gt  -> .Lt
+    .Gte -> .Lte
+    .Eq  -> .Eq
+    .Neq -> .Neq
+}
+
+// The comparison true exactly where `op` is false.
+opposite :: fn(op: AST.BinaryOp) -> AST.BinaryOp = @unreachable match op {
+    .Lt  -> .Gte
+    .Lte -> .Gt
+    .Gt  -> .Lte
+    .Gte -> .Lt
+    .Eq  -> .Neq
+    .Neq -> .Eq
+}

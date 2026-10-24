@@ -39,7 +39,7 @@ Already decoupled, as proof the layered approach works :
 - **`std/sort`, `std/utf8` are 100 % Vader** (zero `@intrinsic`) — pure logic
   over the op-backed primitives.
 - **Comptime intrinsics** — `@size_of` / `@align_of` / `@type_name` /
-  `@type_kind` (`vader/comptime/intrinsic.vader`) fold to constants at compile
+  `@type_kind` (`vader/front/comptime/intrinsic.vader`) fold to constants at compile
   time. No runtime, no per-target burden.
 
 ## The Target ABI — irreducible primitives
@@ -401,7 +401,7 @@ kept primitives + the syscall file) and gets the whole stdlib for free.
 - Op-backed intrinsics : `stdlib/std/core/core.vader`, mapping in
   `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`
 - Runtime-backed intrinsics : `stdlib/std/{io,abort,runtime,time,string_builder}`
-- Comptime intrinsics : `vader/comptime/intrinsic.vader`
+- Comptime intrinsics : `vader/front/comptime/intrinsic.vader`
 - Already-pure stdlib : `stdlib/std/sort`, `stdlib/std/utf8`
 - View model (slice aliasing) : `docs/ARRAY_STRING_VIEW_DESIGN.md`
 - Native perf POC : `poc/target-abi/` (`bench.c` + `run.sh` ; results +

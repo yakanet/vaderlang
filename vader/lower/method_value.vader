@@ -11,8 +11,8 @@
 module "vader/lower"
 
 import "toolchain/ast"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// The env field holding the receiver.

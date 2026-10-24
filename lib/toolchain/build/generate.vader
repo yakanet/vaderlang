@@ -34,8 +34,8 @@ import "std/path"
 import "std/string"
 import "std/string_builder"
 import "vader/support/diagnostics"
-Parse :: import "vader/parser"
-import "vader/resolver"
+Parse :: import "vader/front/parser"
+import "vader/front/resolver"
 
 // ---- the contract ---------------------------------------------------------
 

@@ -9,7 +9,7 @@
 // Lifted verbatim, along with the small helpers the chain reaches for
 // (`entry_main_name`, `gather_pipeline_diags`, `in_scope_diag_files`,
 // `dump_scope`, `scope_or_entry`, `canonicalise`, `module_name_from_file`) —
-// every other dependency was already exported by `vader/resolver` or
+// every other dependency was already exported by `vader/front/resolver` or
 // `vader/lower`.
 //
 // Sits below its callers in the import graph: `vader/tools/cli` and `toolchain/build`
@@ -19,9 +19,9 @@ module "vader/pipeline"
 
 import "std/path"
 import "vader/support/diagnostics"
-import "vader/resolver"
+import "vader/front/resolver"
 import "vader/support/target"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/types"
 import "vader/lower"
 import "vader/midir"

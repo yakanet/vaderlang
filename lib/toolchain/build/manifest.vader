@@ -9,7 +9,7 @@
 module "toolchain/build"
 
 import "vader/pipeline"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// Run the driver a `vader.json` stands for, as the CLI does for a project
 /// folder described by one: the counterpart of a `build.vader`'s `build`.

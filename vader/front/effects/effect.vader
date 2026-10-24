@@ -1,0 +1,630 @@
+// vader/front/effects/effect — what a function does below one of its parameters.
+//
+// The fact the summary computes for a parameter is a set of accesses: an effect
+// at a path below the parameter. A path is a few steps down from the value the
+// caller lends (a field by its name, an element), cut at `MAX_STEPS`: past that,
+// it stands for every path that extends it. That keeps the sets finite, which is
+// what lets the fixed point over the call graph settle (`effects.vader`).
+//
+// Paths are interned in a `PathTable`, one per summary: an access is a path id
+// and an effect, and a set of accesses a set of integers. The fixed point joins
+// and compares paths on every step, so it never builds a path twice.
+//
+// A narrowing (`is`) takes no step: it does not change the object, but for one
+// that rules out a byte array (`NARROWED`). An element of a tuple is an element
+// too, so that a path never depends on a type the walk does not always know.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/sort"
+import "std/string_builder"
+
+// ---- paths ----------------------------------------------------------------
+
+/// The step to an element of an array or of a tuple; any other step is a field,
+/// by its name.
+ELEMENT :: "[]"
+
+/// The step to a value narrowed by an `is` test to a type no byte array is: below
+/// it is no part of a view the value may otherwise be (`narrowed_read`).
+NARROWED :: "<narrowed>"
+
+/// The most steps a path keeps.
+MAX_STEPS: i32: 3
+
+/// The parameter itself, in every table.
+ROOT: i32: 0
+
+/// The parameter and everything reachable from it, in every table.
+EVERYWHERE: i32: 1
+
+/// One path of a table: `step` below `parent`, `length` steps from the parameter.
+/// A path cut at `MAX_STEPS` also stands for every path that extends it.
+PathNode :: struct {
+    parent: i32
+    step: i32
+    length: i32
+    deeper: bool = false
+    /// The same path standing for deeper ones too: null until `cut` makes it, but
+    /// `first_paths` gives `ROOT` its own.
+    cut: i32 | null = null
+}
+
+/// Every path a summary names, each by an id.
+export PathTable :: struct {
+    @internal
+    nodes: PathNode[] = first_paths()
+    @internal
+    step_names: string[] = []
+    @internal
+    step_ids: MutableMap<string, i32> = MutableMap<string, i32> {}
+    /// (parent, step) → the path one step below the parent.
+    @internal
+    children: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+    /// (p, q) → `p` then `q`.
+    @internal
+    joins: MutableMap<i64, i32> = MutableMap<i64, i32> {}
+}
+
+// `ROOT` and `EVERYWHERE`, the paths of every table: `EVERYWHERE` stands for `ROOT`
+// and everything below it.
+first_paths :: fn() -> PathNode[] = [
+    PathNode {
+        .parent = ROOT,
+        .step = 0,
+        .length = 0,
+        .cut = EVERYWHERE,
+    },
+    PathNode {
+        .parent = ROOT,
+        .step = 0,
+        .length = 0,
+        .deeper = true,
+    },
+]
+
+// The id of the step `name`.
+step_id :: fn(t: PathTable, name: string) -> i32 {
+    fresh :: i32(t.step_names.len())
+    id :: t.step_ids.get_or_put(name, fresh)
+    if id == fresh {
+        t.step_names.push(name)
+    }
+    return id
+}
+
+// The path one `step` below `p`.
+child :: fn(t: PathTable, p: i32, step: i32) -> i32 {
+    node :: t.nodes[p]
+    if node.deeper {
+        return p
+    }
+    if node.length == MAX_STEPS {
+        return t.cut(p)
+    }
+    fresh :: i32(t.nodes.len())
+    id :: t.children.get_or_put(pair_key(p, step), fresh)
+    if id == fresh {
+        t.nodes.push(PathNode { .parent = p, .step = step, .length = node.length + 1 })
+    }
+    return id
+}
+
+// The path one step below the parameter, by the step's name.
+path_to :: fn(t: PathTable, name: string) -> i32 = t.child(ROOT, t.step_id(name))
+
+// `p`, standing for every path that extends it too.
+cut :: fn(t: PathTable, p: i32) -> i32 {
+    node :: t.nodes[p]
+    if node.deeper {
+        return p
+    }
+    known :: node.cut
+    if known != null {
+        return known
+    }
+    id :: i32(t.nodes.len())
+    t.nodes.push(PathNode { ...node, .deeper = true })
+    node.cut = id
+    return id
+}
+
+// `p` then `q`, cut at `MAX_STEPS`.
+joined :: fn(t: PathTable, p: i32, q: i32) -> i32 {
+    if q == ROOT || t.nodes[p].deeper {
+        return p
+    }
+    // The steps of `q` from the parameter lead back to `q`: paths are interned.
+    if p == ROOT {
+        return q
+    }
+    key :: pair_key(p, q)
+    known :: t.joins[key]
+    if known != null {
+        return known
+    }
+    result := p
+    for step in t.steps_of(q) {
+        result = t.child(result, step)
+    }
+    if t.nodes[q].deeper {
+        result = t.cut(result)
+    }
+    t.joins[key] = result
+    return result
+}
+
+// The steps from the parameter down to `p`, in order.
+steps_of :: fn(t: PathTable, p: i32) -> i32[] {
+    reversed: i32[]: []
+    at := p
+    for t.nodes[at].length > 0 {
+        reversed.push(t.nodes[at].step)
+        at = t.nodes[at].parent
+    }
+    steps: i32[]: []
+    for i in 0..<reversed.len() {
+        steps.push(reversed[reversed.len() - 1 - i])
+    }
+    return steps
+}
+
+// Whether the first step of `p` is the step `name`. A cut path keeps the parent
+// and the step it was cut at.
+first_step_is :: fn(t: PathTable, p: i32, name: string) -> bool {
+    at := p
+    for t.nodes[at].length > 1 {
+        at = t.nodes[at].parent
+    }
+    return t.nodes[at].length == 1 && t.step_names[t.nodes[at].step] == name
+}
+
+pair_key :: fn(a: i32, b: i32) -> i64 = (i64(a) << 32) | i64(b)
+
+// Whether `p` is `c`'s path or one below it, `c` standing for deeper paths.
+extends :: fn(t: PathTable, p: i32, c: i32) -> bool {
+    length :: t.nodes[c].length
+    at := p
+    for t.nodes[at].length > length {
+        at = t.nodes[at].parent
+    }
+    if t.nodes[at].length != length {
+        return false
+    }
+    return at == c || t.nodes[at].cut == c
+}
+
+// Where `p` sits on the chain of arrays that leads to an element widened `depth`
+// arrays deep: its length, when every step of it is an element and there are at
+// most `depth` of them. Null when it leaves the chain through a field, or goes
+// below the widened element.
+chain_position :: fn(t: PathTable, p: i32, depth: i32) -> i32 | null {
+    length :: t.nodes[p].length
+    if length > depth {
+        return null
+    }
+    at := p
+    for t.nodes[at].length > 0 {
+        if t.step_names[t.nodes[at].step] != ELEMENT {
+            return null
+        }
+        at = t.nodes[at].parent
+    }
+    return length
+}
+
+/// Whether access `a` lets a callee put a value of the wider type into an argument
+/// whose element was widened `depth` arrays deep: an element or an inner array
+/// replaced, or an array on the way down grown, kept, returned or handed to code
+/// the summary cannot see. A shrink takes nothing in, and what happens to the
+/// widened element itself, or below it, stays inside a value of its own type.
+///
+/// @param a      an access of the callee's parameter.
+/// @param depth  how many arrays deep the element was widened (`widening_depth`).
+breaks_widening :: fn(t: PathTable, a: Access, depth: i32) -> bool {
+    k :: t.chain_position(a.path, depth) ?? return false
+    return match a.effect {
+        .Shrunk                                   -> false
+        .Assigned                                 -> k >= 1 || t.nodes[a.path].deeper
+        .Resized | .Stored | .Returned | .Unknown -> k < depth
+    }
+}
+
+// How the dump writes `p` after its parameter's name: `.f[]`, then `…` when it
+// stands for deeper paths too.
+display_path :: fn(t: PathTable, p: i32) -> string {
+    if t.nodes[p].deeper {
+        return "${t.display_steps(p)}…"
+    }
+    return t.display_steps(p)
+}
+
+// The value at `p` below the name `name`, as source writes it: `c.n`.
+place_label :: fn(t: PathTable, name: string, p: i32) -> string = "${name}${t.display_path(p)}"
+
+// The steps of `p` as source writes them after a name: `.f[]`.
+display_steps :: fn(t: PathTable, p: i32) -> string {
+    sb :: StringBuilder {}
+    for step in t.steps_of(p) {
+        name :: t.step_names[step]
+        if name == ELEMENT {
+            sb.append(ELEMENT)
+        } else if name != NARROWED {
+            sb.append(".${name}")
+        }
+    }
+    return sb.to_string()
+}
+
+// ---- effects --------------------------------------------------------------
+
+/// What a function does at the end of a path below one of its parameters.
+export Effect :: enum {
+    /// A slot is assigned: the path ends at the field or element written,
+    /// `p.f = v`, `xs[i] = v`.
+    Assigned,
+    /// The array at the end of the path gets longer: `push`, `push_all`.
+    Resized,
+    /// The array at the end of the path gets shorter: `remove_last`, `clear`.
+    Shrunk,
+    /// The value at the end of the path is kept past the call: put in a field or
+    /// an element, captured by a lambda, handed to a parameter its callee keeps.
+    Stored,
+    /// The value at the end of the path is returned: the caller holds it through
+    /// the call's result.
+    Returned,
+    /// Code the summary cannot see may change anything at the end of the path: a
+    /// function value, a site the record could not settle. A client that needs a
+    /// sound answer reads it as any change.
+    Unknown,
+}
+
+// Whether `a` changes what the caller lent, by code the summary sees.
+modifies :: fn(a: Access) -> bool = match a.effect {
+    .Assigned | .Resized | .Shrunk -> true
+    .Stored | .Returned | .Unknown -> false
+}
+
+// Whether access `a` keeps a value past the call: stored, or returned.
+is_kept :: fn(a: Access) -> bool = match a.effect {
+    .Stored | .Returned                       -> true
+    .Assigned | .Resized | .Shrunk | .Unknown -> false
+}
+
+// Whether access `a` hands a value to code the summary cannot see.
+is_unknown :: fn(a: Access) -> bool = a.effect == .Unknown
+
+// How the dump names `e`.
+effect_label :: fn(e: Effect) -> string = match e {
+    .Assigned -> "assigned"
+    .Resized  -> "resized"
+    .Shrunk   -> "shrunk"
+    .Stored   -> "stored"
+    .Returned -> "returned"
+    .Unknown  -> "unknown"
+}
+
+/// An effect at a path of the summary's `PathTable`.
+export Access :: struct {
+    path: i32
+    effect: Effect
+}
+
+/// What a function may do with everything a caller lends one parameter: the
+/// accesses, each once, and why each is there.
+export ParamEffects :: struct {
+    accesses: Access[] = []
+    /// Two words per access, in the order of `accesses`: the constraint that put it
+    /// there, and the access of the callee a call carries (`origin.vader`).
+    @internal
+    origins: i64[] = []
+    /// The keys of `accesses` once they outgrow a scan (`SCANNED_ACCESSES`) ; null
+    /// before.
+    @internal
+    keys: MutableSet<i64> | null = null
+}
+
+// The most accesses a set scans for a key ; past it, the set keeps their keys in a
+// hash set.
+SCANNED_ACCESSES: i64: 8
+
+access_key :: fn(a: Access) -> i64 = key_of(a.path, a.effect)
+
+// The key of an access at `path` doing `effect`, building no `Access`.
+key_of :: fn(path: i32, effect: Effect) -> i64 = i64(path) * 8 + i64(effect)
+
+// Add `a` to `effects`, which does not hold it, put there by the constraint `how`
+// carrying the callee's access `then` ; with no constraint, for a fixed set built
+// by hand.
+insert :: fn(effects: ParamEffects, a: Access, how: i64 = FIXED, then: i64 = NO_ACCESS) -> void {
+    effects.accesses.push(a)
+    effects.origins.push(how)
+    effects.origins.push(then)
+    if effects.keys != null {
+        effects.keys.add(access_key(a))
+        return
+    }
+    if effects.accesses.len() > SCANNED_ACCESSES {
+        effects.keys = key_set(effects.accesses)
+    }
+}
+
+// The keys of `accesses`.
+key_set :: fn(accesses: Access[]) -> MutableSet<i64> {
+    keys :: MutableSet<i64> {}
+    for x in accesses {
+        keys.add(access_key(x))
+    }
+    return keys
+}
+
+// Add to `effects` the access at `path` doing `effect`, put there by `how` carrying
+// `then` ; false when it held it already, or the same effect at a path that stands
+// for `path`: an access keeps the first origin it gets. A path that stands for
+// deeper ones drops the accesses it covers, which keeps a recursive walk of a tree
+// from naming every path below it, and takes the origin of the first it drops: that
+// one was there before it, so a chain of origins through it ends (`origin.vader`).
+include :: fn(
+    t: PathTable,
+    effects: ParamEffects,
+    path: i32,
+    effect: Effect,
+    how: i64 = FIXED,
+    then: i64 = NO_ACCESS,
+) -> bool {
+    if t.covered(effects, path, effect) {
+        return false
+    }
+    a :: Access { .path = path, .effect = effect }
+    if t.nodes[path].deeper {
+        dropped :: t.drop_covered(effects, a)
+        if dropped != null {
+            effects.insert(a, dropped.0, dropped.1)
+            return true
+        }
+    }
+    effects.insert(a, how, then)
+    return true
+}
+
+// Whether `effects` holds `effect` at `path`, or the same effect at a path
+// standing for one that `path` extends.
+covered :: fn(t: PathTable, effects: ParamEffects, path: i32, effect: Effect) -> bool {
+    key :: key_of(path, effect)
+    keys :: effects.keys ?? return t.find_access(effects, key) != null
+    if key in keys {
+        return true
+    }
+    at := path
+    for {
+        node :: t.nodes[at]
+        standing :: node.cut
+        if standing != null && key_of(standing, effect) in keys {
+            return true
+        }
+        if node.length == 0 {
+            return false
+        }
+        at = node.parent
+    }
+}
+
+// Drop from `effects` every access of `a`'s effect that `a.path` stands for ; the
+// origin of the first it drops, null when it drops none. The set is rebuilt only
+// when `a` covers one.
+drop_covered :: fn(t: PathTable, effects: ParamEffects, a: Access) -> [i64, i64] | null {
+    first :: t.first_covered(a, effects) ?? return null
+    origin: [i64, i64]: [effects.constraint_at(first), effects.carried_at(first)]
+    kept: Access[]: []
+    origins: i64[]: []
+    for i in 0..<effects.accesses.len() {
+        x :: effects.accesses[i]
+        if i >= first && t.covers(a, x) {
+            if effects.keys != null {
+                effects.keys.remove(access_key(x))
+            }
+        } else {
+            kept.push(x)
+            origins.push(effects.constraint_at(i))
+            origins.push(effects.carried_at(i))
+        }
+    }
+    effects.accesses = kept
+    effects.origins = origins
+    return origin
+}
+
+// The index of the first access of `effects` that `a` covers (`covers`) ; null when
+// it covers none.
+first_covered :: fn(t: PathTable, a: Access, effects: ParamEffects) -> i64 | null {
+    for i in 0..<effects.accesses.len() {
+        if t.covers(a, effects.accesses[i]) {
+            return i
+        }
+    }
+    return null
+}
+
+// The constraint that put the access at index `i` of `effects` there.
+constraint_at :: fn(effects: ParamEffects, i: i64) -> i64 = effects.origins[2 * i]
+
+// The callee's access the constraint of the access at index `i` carries.
+carried_at :: fn(effects: ParamEffects, i: i64) -> i64 = effects.origins[2 * i + 1]
+
+// Whether `x`, at a cut path, covers the access whose key is `key` (`covers`).
+covers_key :: fn(t: PathTable, x: Access, key: i64) -> bool {
+    path :: i32(key / 8)
+    if i64(x.effect) != key % 8 || x.path == path || !t.nodes[x.path].deeper {
+        return false
+    }
+    return t.extends(path, x.path)
+}
+
+// Whether `a`, at a path standing for deeper ones, covers another access `x`.
+covers :: fn(t: PathTable, a: Access, x: Access) -> bool =
+    x.effect == a.effect && x.path != a.path && t.extends(x.path, a.path)
+
+// The accesses of a parameter nothing is known of: changed by unseen code, and
+// kept, anywhere below it.
+any_effects :: fn() -> ParamEffects {
+    effects :: ParamEffects {}
+    effects.insert(Access { .path = EVERYWHERE, .effect = .Unknown })
+    effects.insert(Access { .path = EVERYWHERE, .effect = .Stored })
+    return effects
+}
+
+// The accesses of `effects` in a stable order: by effect, then as the dump writes
+// their paths.
+sorted_accesses :: fn(t: PathTable, effects: ParamEffects) -> Access[] {
+    keyed: KeyedAccess[]: []
+    for a in effects.accesses {
+        key :: "${i64(a.effect)} ${t.display_path(a.path)}"
+        keyed.push(KeyedAccess { .key = key, .access = a })
+    }
+    out: Access[]: []
+    for k in sort(keyed, (x, y) -> x.key < y.key) {
+        out.push(k.access)
+    }
+    return out
+}
+
+// An access and the key it sorts by.
+KeyedAccess :: struct {
+    key: string
+    access: Access
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The path down `steps` from the parameter.
+path_of :: fn(t: PathTable, steps: string[]) -> i32 {
+    p := ROOT
+    for step in steps {
+        p = t.child(p, t.step_id(step))
+    }
+    return p
+}
+
+@test
+test_joined_appends_the_steps :: fn() -> void {
+    t :: PathTable {}
+    p :: t.joined(path_of(t, ["a"]), path_of(t, [ELEMENT, "b"]))
+    assert_eq(t.display_path(p), ".a[].b")
+}
+
+@test
+test_joined_cuts_past_the_maximum :: fn() -> void {
+    t :: PathTable {}
+    p :: t.joined(path_of(t, ["a", "b"]), path_of(t, ["c", "d"]))
+    assert_eq(t.display_path(p), ".a.b.c…")
+}
+
+@test
+test_joined_below_a_cut_path_keeps_it :: fn() -> void {
+    t :: PathTable {}
+    cut_path :: t.cut(path_of(t, ["a", "b", "c"]))
+    assert_eq(t.joined(cut_path, path_of(t, ["d"])), cut_path)
+}
+
+@test
+test_joined_onto_everywhere_stays_everywhere :: fn() -> void {
+    t :: PathTable {}
+    assert_eq(t.joined(EVERYWHERE, path_of(t, ["a"])), EVERYWHERE)
+}
+
+@test
+test_a_path_is_interned_once :: fn() -> void {
+    t :: PathTable {}
+    assert_eq(path_of(t, ["a", ELEMENT]), path_of(t, ["a", ELEMENT]))
+}
+
+@test
+test_include_keeps_each_access_once :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    assert(t.include(effects, ROOT, .Stored), "first include")
+    assert(!t.include(effects, ROOT, .Stored), "second include")
+    assert_eq(effects.accesses.len(), 1)
+}
+
+@test
+test_include_skips_a_covered_path :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    t.include(effects, t.cut(path_of(t, ["a"])), .Assigned)
+    below :: path_of(t, ["a", "b"])
+    assert(!t.include(effects, below, .Assigned), "covered")
+    assert(t.include(effects, below, .Stored), "other effect")
+}
+
+@test
+test_include_of_a_cut_path_drops_what_it_covers :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    t.include(effects, path_of(t, ["a", "b"]), .Assigned)
+    t.include(effects, path_of(t, ["c"]), .Assigned)
+    t.include(effects, t.cut(path_of(t, ["a"])), .Assigned)
+    assert_eq(effects.accesses.len(), 2)
+}
+
+@test
+test_include_keeps_the_first_origin :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    t.include(effects, ROOT, .Stored, mark_origin(0))
+    t.include(effects, ROOT, .Stored, mark_origin(1))
+    assert_eq(effects.constraint_at(0), mark_origin(0))
+}
+
+@test
+test_drop_covered_keeps_each_origin_with_its_access :: fn() -> void {
+    t :: PathTable {}
+    effects :: ParamEffects {}
+    t.include(effects, path_of(t, ["a", "b"]), .Assigned, mark_origin(0))
+    t.include(effects, path_of(t, ["c"]), .Assigned, mark_origin(1))
+    t.include(effects, t.cut(path_of(t, ["a"])), .Assigned, mark_origin(2))
+    assert_eq(effects.origins.len(), 4)
+    assert_eq(effects.constraint_at(0), mark_origin(1))
+    // The cut path stands for `.a.b`, and takes its origin.
+    assert_eq(effects.constraint_at(1), mark_origin(0))
+}
+
+@test
+test_widening_survives_a_shrink_and_a_kept_element :: fn() -> void {
+    t :: PathTable {}
+    shrunk :: Access { .path = ROOT, .effect = .Shrunk }
+    kept :: Access { .path = path_of(t, [ELEMENT]), .effect = .Stored }
+    assert(!t.breaks_widening(shrunk, 1), "a pop takes nothing in")
+    assert(!t.breaks_widening(kept, 1), "the element escapes as what it is")
+}
+
+@test
+test_widening_breaks_on_a_grown_or_kept_array :: fn() -> void {
+    t :: PathTable {}
+    grown :: Access { .path = ROOT, .effect = .Resized }
+    inner_kept :: Access { .path = path_of(t, [ELEMENT]), .effect = .Stored }
+    assert(t.breaks_widening(grown, 1), "a push may add a wider value")
+    assert(t.breaks_widening(inner_kept, 2), "an inner array escapes under the wider type")
+}
+
+@test
+test_widening_breaks_on_a_replaced_element_only :: fn() -> void {
+    t :: PathTable {}
+    replaced :: Access { .path = path_of(t, [ELEMENT]), .effect = .Assigned }
+    field :: Access { .path = path_of(t, [ELEMENT, "r"]), .effect = .Assigned }
+    assert(t.breaks_widening(replaced, 1), "`xs[i] = wider` replaces an element")
+    assert(!t.breaks_widening(field, 1), "a field of the element keeps its own type")
+}
+
+@test
+test_widening_breaks_when_unknown_code_gets_the_array :: fn() -> void {
+    t :: PathTable {}
+    array :: Access { .path = EVERYWHERE, .effect = .Unknown }
+    element :: Access { .path = t.cut(path_of(t, [ELEMENT])), .effect = .Unknown }
+    assert(t.breaks_widening(array, 1), "unknown code may push into the array")
+    assert(!t.breaks_widening(element, 1), "unknown code handed an element cannot replace it")
+}

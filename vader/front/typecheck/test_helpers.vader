@@ -1,0 +1,118 @@
+// vader/front/typecheck/test_helpers — shared AST walker for inline @tests.
+//
+// `find_first_in_block` factors out the recursive descent every
+// `infer_*` test block needs to locate the first expression a
+// predicate accepts. Callers wrap with a tiny `accept_X` predicate
+// and narrow the returned `AST.Expr | null` via `match … is AST.XExpr`.
+
+module "vader/front/typecheck"
+
+import "std/string_builder"
+AST :: import "toolchain/ast"
+import "vader/support/integer"
+import "vader/types"
+
+/// Walk the first decl's body looking for the first expression that
+/// `pred` accepts (returns non-null). Descends through `BlockExpr`,
+/// `ReturnStmt`, `ExprStmt`, `BinaryExpr.{left, right}`,
+/// `CallExpr.{callee, args}`. Other variants are leaves for the walker.
+///
+/// `pred` receives every visited expression and returns either the
+/// expression itself (to stop the walk) or `null` to keep walking.
+/// Callers narrow the returned `AST.Expr | null` to the variant
+/// they're looking for.
+find_first_in_block :: fn(
+    b: AST.BlockExpr, pred: fn(AST.Expr) -> AST.Expr | null,
+) -> AST.Expr | null {
+    for stmt in b.stmts {
+        hit :: find_first_in_stmt(stmt, pred)
+        if hit !is null { return hit }
+    }
+    t :: b.trailing ?? return null
+    return find_first_in_expr(t, pred)
+}
+
+find_first_in_stmt :: fn(
+    s: AST.Stmt, pred: fn(AST.Expr) -> AST.Expr | null,
+) -> AST.Expr | null {
+    // @partial: the walker descends only into return / expr statements; every
+    // other statement kind carries no expression to search → null.
+    @partial match s {
+        is AST.ReturnStmt -> {
+            v :: s.value ?? return null
+            return find_first_in_expr(v, pred)
+        }
+        is AST.ExprStmt -> { return find_first_in_expr(s.expr, pred) }
+        _ -> { return null }
+    }
+}
+
+find_first_in_expr :: fn(
+    e: AST.Expr, pred: fn(AST.Expr) -> AST.Expr | null,
+) -> AST.Expr | null {
+    hit :: pred(e)
+    if hit !is null { return hit }
+    // @partial: the walker recurses only through the composite expr kinds with
+    // child expressions; every other (leaf) Expr kind is a dead end → null.
+    @partial match e {
+        is AST.BinaryExpr -> {
+            l :: find_first_in_expr(e.left, pred)
+            if l !is null { return l }
+            return find_first_in_expr(e.right, pred)
+        }
+        is AST.CallExpr -> {
+            callee :: find_first_in_expr(e.callee, pred)
+            if callee !is null { return callee }
+            for a in e.args {
+                arg :: find_first_in_expr(a.value, pred)
+                if arg !is null { return arg }
+            }
+            return null
+        }
+        is AST.FieldExpr -> { return find_first_in_expr(e.target, pred) }
+        is AST.BlockExpr -> { return find_first_in_block(e, pred) }
+        is AST.IfExpr -> {
+            cond :: find_first_in_expr(e.cond, pred)
+            if cond !is null { return cond }
+            then :: find_first_in_block(e.then_block, pred)
+            if then !is null { return then }
+            match eb :: e.else_branch {
+                is null            -> { return null }
+                is AST.IfElseBlock -> { return find_first_in_block(eb.block, pred) }
+                is AST.IfElseIf    -> {
+                    inner: AST.Expr: eb.branch
+                    return find_first_in_expr(inner, pred)
+                }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+// ---- a source without `std/core` ------------------------------------------
+
+/// `src` after the integers `std/core` declares, one line per machine integer, so
+/// that a test source checked without `std/core` can name them and its last
+/// declaration stays the test's.
+///
+/// @param src  a test source that names integer types.
+with_integers :: fn(src: string) -> string {
+    sb :: StringBuilder {}
+    for m in MACHINE_INTEGERS {
+        sb.append("${m.name} :: ${INT_BASE_NAME} in ${display_bounds(m.values)}\n")
+    }
+    sb.append(src)
+    return sb.to_string()
+}
+
+/// The first function among `decls`, past the integers `with_integers` declares.
+///
+/// @param decls  a parsed test program's declarations.
+first_fn_decl :: fn(decls: AST.Decl[]) -> AST.FnDecl | null {
+    for d in decls {
+        if d is AST.FnDecl {
+            return d
+        }
+    }
+    return null
+}

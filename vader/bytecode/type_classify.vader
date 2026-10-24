@@ -14,7 +14,7 @@ import "std/iter"
 import "std/string"
 import "vader/support/diagnostics"
 import "vader/support/integer"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 
 /// Cache key for `intern_type`. Primitives skip the `display_type`

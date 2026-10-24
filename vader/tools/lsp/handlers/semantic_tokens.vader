@@ -19,7 +19,7 @@ module "vader/tools/lsp/handlers"
 import "std/string"
 import "json"
 import "std/collections"
-import "vader/lexer"
+import "vader/front/lexer"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
@@ -114,7 +114,7 @@ raw_of_type :: fn(t: Token, tt: i32) -> RawToken {
 // particular — trips T3013 here instead of silently going uncoloured, the exact
 // drift that once left `yield` / `const` unhighlighted.
 classify_token :: fn(t: Token) -> i32 = match t.kind {
-    // Keywords — mirrors `lexer/keywords.vader::lookup_keyword`.
+    // Keywords — mirrors `front/lexer/keywords.vader::lookup_keyword`.
     .KwFn | .KwStruct | .KwTrait | .KwImplements | .KwEnum | .KwIf | .KwElse
         | .KwMatch | .KwIs | .KwFor | .KwIn | .KwReturn | .KwYield | .KwAwait | .KwDefer
         | .KwBreak | .KwContinue | .KwImport | .KwAs | .KwExport | .KwTrue

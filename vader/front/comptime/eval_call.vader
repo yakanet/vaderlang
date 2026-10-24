@@ -1,0 +1,152 @@
+// vader/front/comptime/eval_call — tree-walk interpreter for `simple_fn(args)`
+// calls at comptime.
+//
+// Covers `@comptime X :: simple_fn(...)` patterns. The interpreter looks
+// up the callee's `FnDecl` via `typed.fn_decls`, evaluates each arg in
+// the caller's context, binds args to the callee's param Symbols (made
+// addressable by `vader/front/resolver/body.vader::walk_fn_decl`'s
+// `idents[p.span.hash()] = sym` write), then evaluates the callee's
+// body in a fresh `ComptimeContext` carrying the bindings.
+//
+// Out of scope : side effects, `if` / `match` in the body. The body must be a
+// single `return <expr>` statement or a trailing-expr block ; anything else
+// falls back to C4001. Recursion IS bounded — the caller's depth is carried into
+// the callee context so the guard also covers cyclic comptime calls.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/types"
+import "vader/front/resolver/symbol"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+
+/// Evaluate `callee(args)` at comptime when both sides are simple
+/// enough : callee resolves to a top-level `FnDecl`, args reduce to
+/// concrete `ComptimeValue`s, and the body is a single trailing
+/// expression or `return <expr>`.
+evaluate_call_expr :: fn(
+    expr: AST.CallExpr, context: ComptimeContext,
+) -> EvalResult {
+    if !(expr.callee is AST.IdentExpr) {
+        return vm_required(expr.span, "CallExpr (non-ident callee)")
+    }
+    callee :: expr.callee
+    // Primitive integer cast written as a call (`i64(16)`, `i32(n)`): the
+    // "callee" is a primitive type name, not a fn, so the FnDecl lookup below
+    // would bail and the const never bakes (e.g. `BUCKET_COUNT :: i64(16)`
+    // → bucket_index's `h % BUCKET_COUNT` drops). Int→int casts preserve the
+    // comptime value, so fold by passing the argument's IntValue through.
+    if callee is AST.IdentExpr {
+        if expr.args.len() == 1 && is_primitive_int_name(callee.name) {
+            arg_result :: evaluate_expr(expr.args[0].value, context)
+            if arg_result.value is null { return arg_result }
+            av :: arg_result.value
+            if av is IntValue {
+                return ok(IntValue { .value = wrap_to_width(av.value, callee.name), .type_name = callee.name })
+            }
+        }
+    }
+    callee_sym :: context.typed.resolved.idents[callee.span.hash()]
+    if callee_sym is null {
+        return vm_required(expr.span, "CallExpr (callee unresolved)")
+    }
+    call_context :: declaring_context(callee_sym.module, context) ?? context
+    fn_decl :: call_context.typed.fn_decls[callee_sym.id]
+    if fn_decl is null {
+        return vm_required(expr.span, "CallExpr (no FnDecl for callee)")
+    }
+    // Its instance is built by the program's run, which has not started.
+    if AST.decorators_have(fn_decl.decorators, "singleton") {
+        return fail(comptime_error(.SingletonAtComptime, expr.span, "`${callee.name}`"))
+    }
+    if fn_decl.params.len() != expr.args.len() {
+        return vm_required(expr.span, "CallExpr (arity mismatch)")
+    }
+    bindings :: MutableMap<i32, ComptimeValue> {}
+    for [k, bound] in context.bindings {
+        bindings[k] = bound
+    }
+    arguments: ComptimeValue[]: []
+    for arg in expr.args {
+        arg_result :: evaluate_expr(arg.value, context)
+        value :: arg_result.value ?? return arg_result
+        arguments.push(value)
+    }
+    return evaluate_with_arguments(fn_decl, arguments, bindings, call_context, expr.span)
+}
+
+// The context that evaluates code declared in `module` (a function body, a
+// constant, a field default): that module, where its names are resolved, with
+// no local binding. Null when the evaluation does not reach the project or the
+// module is unknown.
+declaring_context :: fn(module: string, context: ComptimeContext) -> ComptimeContext | null {
+    project :: context.project ?? return null
+    owner :: project.typed.modules[module] ?? return null
+    return ComptimeContext {
+        ...context,
+        .typed = owner,
+        .bindings = MutableMap<i32, ComptimeValue> {},
+    }
+}
+
+/// Evaluate the body of `fn_decl` with its parameters bound to `arguments`, on
+/// top of `bindings`. The parameters are resolved in `context.typed`, the module
+/// declaring `fn_decl`; the depth budget is the caller's, so the recursion guard
+/// also bounds cyclic comptime calls.
+///
+/// @param fn_decl    the function, its arity that of `arguments`.
+/// @param arguments  the values of its parameters, in order.
+/// @param bindings   the constants already bound, extended in place.
+/// @param context    the evaluator context of the declaring module.
+/// @param span       the call, for a C4001.
+evaluate_with_arguments :: fn(
+    fn_decl: AST.FnDecl,
+    arguments: ComptimeValue[],
+    bindings: MutableMap<i32, ComptimeValue>,
+    context: ComptimeContext,
+    span: Span,
+) -> EvalResult {
+    for i in 0..<arguments.len() {
+        parameter :: context.typed.resolved.idents[fn_decl.params[i].span.hash()]
+            ?? return vm_required(span, "CallExpr (param sym unresolved)")
+        bindings[parameter.id] = arguments[i]
+    }
+    call_context :: ComptimeContext {
+        ...context,
+        .bindings = bindings,
+    }
+    return evaluate_fn_body(fn_decl, call_context, span)
+}
+
+// True for the 10 integer primitive type names — the ones that appear as a
+// cast callee (`i64(16)`) over an integer comptime value.
+is_primitive_int_name :: fn(name: string) -> bool = is_int_name(name)
+
+evaluate_fn_body :: fn(
+    fn_decl: AST.FnDecl, context: ComptimeContext, call_span: Span,
+) -> EvalResult {
+    body :: fn_decl.body ?? return vm_required(call_span, "CallExpr (callee has no body)")
+    trailing :: body.trailing
+    if trailing !is null {
+        // Sound ONLY with no preceding statements : earlier bindings and early
+        // `return`s would be silently dropped, and a self-contained trailing
+        // would bake a wrong value. `lift_trailing_return` (parser) puts the
+        // final `return <e>` here, so any other statement must route via the VM.
+        if body.stmts.len() == 0 {
+            return evaluate_expr(trailing, context)
+        }
+        return vm_required(call_span, "CallExpr (block has statements before trailing)")
+    }
+    // Block with statements only — accept a single `return <expr>`.
+    if body.stmts.len() == 1 {
+        s :: body.stmts[0]
+        if s is AST.ReturnStmt {
+            if !(s.value is null) {
+                return evaluate_expr(s.value, context)
+            }
+        }
+    }
+    return vm_required(call_span, "CallExpr (body too complex)")
+}

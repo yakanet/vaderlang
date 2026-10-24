@@ -60,7 +60,7 @@ both land on +3 %.
 | workload | before | after |
 |---|---|---|
 | bench hammering these opcodes ×400 000 | 505 ms | 521 ms (+3 %) |
-| `vader test vader/lexer` (realistic VM load) | 134 ms | 135 ms |
+| `vader test vader/front/lexer` (realistic VM load) | 134 ms | 135 ms |
 
 The second row is within resolution: no measurable difference, not a win.
 

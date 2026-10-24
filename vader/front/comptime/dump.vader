@@ -1,0 +1,123 @@
+// vader/front/comptime/dump — `# Comptime` dump, in Markdown: what the comptime pass
+// computed.
+//
+// Walks every in-scope `EvaluatedProgram`, module ids sorted alphabetically,
+// and renders one list per module :
+//
+//   ## <module folder>
+//
+//   - `@comptime <name> = <value>`, <tree-walk | vm>
+//   - `const <name> = <value>`, folded
+//   - `@assert <line:column>`, <holds | fails | not evaluated>
+//
+// `@comptime` items are sorted by name, `@assert` items keep the source order.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+import "vader/front/resolver"
+import "vader/support/text"
+import "vader/front/typecheck"
+
+/// Render the project's `# Comptime` dump as a single Markdown string. Only
+/// modules in `scope` are rendered (the entry's subtree by default, `--module` to
+/// widen), so dependencies stay out of the dump.
+/// @param project  the evaluated project, its VM-required decls baked.
+/// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
+/// @return         the formatted dump, no trailing newline.
+export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
+    sb :: StringBuilder {}
+    sb.append("# Comptime")
+    module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
+    for module_id in module_ids {
+        module_program :: project.modules[module_id] ?? continue
+        // The heading names the module's folder ; a scope lists declared module
+        // names (`resolved.display_path`, e.g. `snippet`), which the check reads.
+        if !module_in_scope(module_program.typed.resolved.display_path, scope) { continue }
+        sb.append("\n\n## ${module_program.typed.resolved.path}")
+        items :: module_items(module_program)
+        if items.len() > 0 {
+            sb.append_char('\n')
+        }
+        for item in items {
+            sb.append("\n- ${item}")
+        }
+    }
+    return sb.to_string()
+}
+
+// The module's list items : its evaluated consts sorted by name, so the dump is
+// stable whatever the MutableMap iteration order, then its `@assert`s in source
+// order.
+module_items :: fn(module_program: EvaluatedProgram) -> string[] {
+    out :: const_items(module_program)
+    for check in module_program.asserts {
+        assert_code :: code_span("@assert ${position_of(check.span)}")
+        out.push("${assert_code}, ${verdict_word(check.verdict)}")
+    }
+    return out
+}
+
+const_items :: fn(module_program: EvaluatedProgram) -> string[] {
+    entries: [string, string][]: []
+    typed :: module_program.typed
+    for [symbol_id, value] in module_program.comptime_decls {
+        name :: lookup_comptime_decl_name(typed, symbol_id)
+        if name == "" { continue }
+        route :: module_program.routes[symbol_id] ?? .Marked
+        decl :: code_span("${route_keyword(route)} ${name} = ${one_line(display_value(value))}")
+        entries.push([name, "${decl}, ${route_word(route)}"])
+    }
+    by_name :: sort(entries, (a: [string, string], b: [string, string]) -> compare_ascending(a.0, b.0))
+    out: string[]: []
+    for entry in by_name {
+        out.push(entry.1)
+    }
+    return out
+}
+
+// The declaration form a const's value came from.
+route_keyword :: fn(route: ComptimeRoute) -> string = match route {
+    .Marked | .Vm -> "@comptime"
+    .Folded       -> "const"
+}
+
+route_word :: fn(route: ComptimeRoute) -> string = match route {
+    .Marked -> "tree-walk"
+    .Vm     -> "vm"
+    .Folded -> "folded"
+}
+
+position_of :: fn(span: Span) -> string = "${span.start.line}:${span.start.column}"
+
+// A rendered value on one line : a code span cannot hold a line break.
+one_line :: fn(text: string) -> string = text.replace_all("\r", "\\r").replace_all("\n", "\\n")
+
+verdict_word :: fn(verdict: AssertVerdict) -> string = match verdict {
+    .Holds        -> "holds"
+    .Fails        -> "fails"
+    .NotEvaluated -> "not evaluated"
+}
+
+// Recover a `@comptime` decl's source name from its Symbol id by
+// walking `resolved.symbols`. Called once per evaluated decl during
+// dump emission — cold path, linear scan is fine.
+lookup_comptime_decl_name :: fn(typed: TypedProgram, symbol_id: i32) -> string {
+    for symbol in typed.resolved.symbols {
+        if symbol.id == symbol_id { return symbol.name }
+    }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_dump_empty_project_header_only :: fn() -> void {
+    project :: new_evaluated_project(new_typed_project(FreshReads {}))
+    assert_eq(dump_evaluated(project, []), "# Comptime")
+}

@@ -30,7 +30,7 @@
 module "vader/lower"
 
 import "std/collections"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 
 /// Rewrite calls through a fn-value local into direct calls to the concrete

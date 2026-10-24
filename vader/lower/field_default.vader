@@ -18,7 +18,7 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 
 /// Lower the default of `field` for a literal of the struct instance `st`.

@@ -24,7 +24,7 @@ import "std/process"
 import "std/string"
 import "vader/tools/lsp/protocol"
 import "vader/pipeline"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// What the server knows of one project its `build.vader` describes.
 export DrivenProject :: struct {

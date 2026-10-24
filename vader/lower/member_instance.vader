@@ -11,9 +11,9 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
-import "vader/comptime"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/comptime"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// The type each type parameter of the member `callee` names takes at the call, in

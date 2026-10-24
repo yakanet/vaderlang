@@ -8,7 +8,7 @@
 //   1. Positional walk : attribute a role by AST position (callee of
 //      CallExpr → Function, TypeExpr slot → Type, decl name → matching
 //      kind, …). Catches declaration sites + structural roles.
-//   2. Resolver refinement : run `vader/resolver/body` to map every
+//   2. Resolver refinement : run `vader/front/resolver/body` to map every
 //      IdentExpr to its bound Symbol, then override Phase-1 tokens
 //      whose span matches a resolved ident with the symbol's actual
 //      kind. This is what distinguishes a parameter use site from a
@@ -17,11 +17,11 @@
 module "vader/tools/lsp/handlers"
 
 import "std/collections"
-import "vader/parser"
+import "vader/front/parser"
 AST :: import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/resolver"
-import "vader/resolver/symbol"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
 import "vader/types"
 import "vader/tools/lsp/protocol"
 import "toolchain/span"

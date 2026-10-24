@@ -16,7 +16,7 @@
 module "vader/lower"
 
 import "toolchain/span"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 
 /// When the last statement of `stmts` is a counted loop, create each empty array

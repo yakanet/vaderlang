@@ -1,0 +1,221 @@
+// vader/front/comptime/eval_aggregate: struct literals, enum variants, `match`, and the
+// project's other constants, for an evaluation that reaches the project.
+//
+// The passes that bake constants evaluate without the project: the lowerer
+// inlines a baked value at every use, and a struct table copied at each read
+// would change what a constant means. The evaluation of a constant an `@extern`
+// names reaches it, since nothing lowers that value.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// Evaluate one of the forms only an evaluation reaching the project reads;
+/// C4001 otherwise.
+///
+/// @param expr     a struct literal, `.Variant`, a field access or a `match`.
+/// @param context  the evaluator context.
+evaluate_aggregate :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
+    if context.project == null {
+        return vm_required(expr.span, expr_kind_name(expr))
+    }
+    // @partial: the dispatch in `evaluate_expr` routes only these four kinds here.
+    @partial match expr {
+        is AST.StructLitExpr  -> { return evaluate_struct_lit(expr, context) }
+        is AST.DotVariantExpr -> { return evaluate_dot_variant(expr, context) }
+        is AST.FieldExpr      -> { return evaluate_field(expr, context) }
+        is AST.MatchExpr      -> { return evaluate_match(expr, context) }
+        _                     -> {}
+    }
+    return vm_required(expr.span, expr_kind_name(expr))
+}
+
+// A struct literal as a `StructValue` holding every field: the ones it writes,
+// and the defaults of the others, evaluated in the module declaring the struct.
+// A spread falls back to C4001.
+evaluate_struct_lit :: fn(expr: AST.StructLitExpr, context: ComptimeContext) -> EvalResult {
+    fields :: MutableMap<string, ComptimeValue> {}
+    for item in expr.items {
+        if item is AST.StructLitSpread {
+            return vm_required(item.span, "struct literal spread")
+        }
+        result :: evaluate_expr(item.value, context)
+        value :: result.value ?? return result
+        fields[item.name] = value
+    }
+    t :: context.typed.expr_types[expr.id]
+        ?? return vm_required(expr.span, "struct of no known type")
+    if t !is StructType {
+        return vm_required(expr.span, "struct literal of a type that is not a struct")
+    }
+    owner_context :: declaring_context(t.symbol.module, context)
+        ?? return vm_required(expr.span, "struct of no known module")
+    declaration :: owner_context.typed.struct_decls[t.symbol.id]
+        ?? return vm_required(expr.span, "struct of no known declaration")
+    for field in declaration.fields {
+        default :: field.default
+        if field.name in fields || default == null {
+            continue
+        }
+        result :: evaluate_expr(default, owner_context)
+        value :: result.value ?? return result
+        fields[field.name] = value
+    }
+    return ok(StructValue { .type_name = display_type(t), .fields = fields })
+}
+
+// `.Variant`, against the enum the typecheck gave it.
+evaluate_dot_variant :: fn(expr: AST.DotVariantExpr, context: ComptimeContext) -> EvalResult {
+    t :: context.typed.expr_types[expr.id]
+        ?? return vm_required(expr.span, "enum variant of no known type")
+    if t !is EnumType {
+        return vm_required(expr.span, "variant of a type that is not an enum")
+    }
+    return variant_value(t, expr.variant, expr.span)
+}
+
+// The value of `variant` of `enum_type`. An enum with variant data stores a rank,
+// not the value a `Display` or a comparison would read, so it falls back to C4001.
+variant_value :: fn(enum_type: EnumType, variant: string, span: Span) -> EvalResult {
+    if enum_type.data != null {
+        return vm_required(span, "variant of an enum with variant data")
+    }
+    value :: enum_type.indices[variant] ?? return vm_required(span, "unknown enum variant")
+    return ok(EnumValue {
+        .enum_type = enum_type,
+        .variant = variant,
+        .value = value,
+    })
+}
+
+// `Os.Darwin` names a variant through its type ; `s.name` reads a field of a
+// struct value.
+evaluate_field :: fn(expr: AST.FieldExpr, context: ComptimeContext) -> EvalResult {
+    target :: evaluate_expr(expr.target, context)
+    value :: target.value ?? return target
+    if value is TypeValue {
+        if value.value is EnumType {
+            return variant_value(value.value, expr.field, expr.span)
+        }
+        return vm_required(expr.span, "field of a type that is not an enum")
+    }
+    if value is StructValue {
+        field :: value.fields[expr.field] ?? return vm_required(expr.span, "unknown field")
+        return ok(field)
+    }
+    return vm_required(expr.span, "field of a value that is not a struct")
+}
+
+// The first arm whose pattern holds gives the value. A guard, a header name, or
+// a pattern other than a variant, `_` or an alternation of those falls back to
+// C4001.
+evaluate_match :: fn(expr: AST.MatchExpr, context: ComptimeContext) -> EvalResult {
+    if expr.binding != null {
+        return vm_required(expr.span, "match naming its scrutinee")
+    }
+    scrutinee_result :: evaluate_expr(expr.scrutinee, context)
+    scrutinee :: scrutinee_result.value ?? return scrutinee_result
+    for arm in expr.arms {
+        if arm.guard != null {
+            return vm_required(arm.span, "match arm guard")
+        }
+        holds :: pattern_holds(arm.pattern, scrutinee)
+            ?? return vm_required(arm.span, "match pattern")
+        if holds {
+            return evaluate_expr(arm.body, context)
+        }
+    }
+    return vm_required(expr.span, "match with no arm for the value")
+}
+
+// Whether `pattern` matches `value`, or null for a pattern the tree-walk does not
+// read.
+pattern_holds :: fn(pattern: AST.Pattern, value: ComptimeValue) -> bool | null {
+    // @partial: a literal, a range, a type test or a struct pattern needs the
+    // comparisons the lowered match makes ; the tree-walk leaves them to C4001.
+    @partial match pattern {
+        is AST.WildcardPattern    -> { return true }
+        is AST.EnumVariantPattern -> {
+            if value is EnumValue {
+                return value.variant == pattern.variant
+            }
+            return null
+        }
+        is AST.OrPattern          -> {
+            for alternative in pattern.patterns {
+                holds :: pattern_holds(alternative, value) ?? return null
+                if holds {
+                    return true
+                }
+            }
+            return false
+        }
+        _                         -> { return null }
+    }
+}
+
+/// The text an enum value interpolates as, from the `Display` member the
+/// typecheck chose for the interpolation, run when it is one expression over
+/// `self`.
+///
+/// The member is resolved in the module that declares the enum, so `self` is
+/// looked up there.
+///
+/// @param value    the enum value.
+/// @param part     the interpolated expression, whose recorded `Display` callee
+///                 renders it.
+/// @param context  the evaluator context of the interpolation.
+/// @return         a `StringValue`, or C4001.
+display_enum :: fn(value: EnumValue, part: AST.Expr, context: ComptimeContext) -> EvalResult {
+    if context.project == null {
+        return vm_required(part.span, "enum interpolated outside a project")
+    }
+    callee :: sites_of(context.typed.call_sites, .Display)[part.id]
+    if callee !is DirectFn {
+        return vm_required(part.span, "enum without a `Display` member")
+    }
+    impl_context :: declaring_context(value.enum_type.symbol.module, context)
+        ?? return vm_required(part.span, "enum of no known module")
+    bindings :: MutableMap<i32, ComptimeValue> {}
+    result :: evaluate_with_arguments(callee.decl, [value], bindings, impl_context, part.span)
+    text :: result.value ?? return result
+    if text !is StringValue {
+        return vm_required(part.span, "enum `Display` giving no string")
+    }
+    return result
+}
+
+/// A module-level constant of the project, evaluated in its own module on its
+/// first read and kept for the next ones; null when `symbol` is no such constant
+/// or the context reaches no project.
+///
+/// @param symbol   the constant read.
+/// @param context  the evaluator context of the reader.
+/// @param span     the read, for a C4001.
+evaluate_project_const :: fn(
+    symbol: Symbol,
+    context: ComptimeContext,
+    span: Span,
+) -> EvalResult | null {
+    project :: context.project ?? return null
+    known :: project.values[symbol.id]
+    if known != null {
+        return ok(known)
+    }
+    owner_context :: declaring_context(symbol.module, context) ?? return null
+    declaration :: owner_context.typed.const_decls[symbol.id] ?? return null
+    if !project.pending.add(symbol.id) {
+        return vm_required(span, "constant that reads itself")
+    }
+    result :: evaluate_expr(declaration.value, owner_context)
+    project.pending.remove(symbol.id)
+    if result.value != null {
+        project.values[symbol.id] = result.value
+    }
+    return result
+}

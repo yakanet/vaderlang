@@ -19,9 +19,9 @@ import "std/ffi"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/lower"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "std/abort"
 
 /// Project-level interning context — accumulates strings into a single
@@ -162,7 +162,7 @@ FnCtx :: struct {
     current:         BlockId | null
 }
 
-import "vader/comptime"
+import "vader/front/comptime"
 
 // ============================================================================
 // Project-level orchestration
@@ -968,7 +968,7 @@ end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) ->
 /// This is the AUTHORITY, and it refuses rather than degrading: falling back to
 /// a fn value here would hand C a `vader_fn_t` to jump into, which is a wild
 /// pointer no test distinguishes from a passing one.
-/// `typecheck/call::reject_indirect_callbacks` reports the same condition where
+/// `front/typecheck/call::reject_indirect_callbacks` reports the same condition where
 /// the user can read it; reaching the panic means it missed a shape.
 ///
 /// @param fn_ctx  the function being built.

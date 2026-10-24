@@ -1,0 +1,119 @@
+// vader/front/comptime/eval_lit — literal-expression evaluators.
+//
+// Per-variant `evaluate_<kind>_lit` for every AST literal expression.
+// Each returns an `EvalResult` carrying the canonicalised
+// `ComptimeValue` ; type-name suffixes round-trip through the value
+// (`42_i64` keeps its `i64` tag).
+
+module "vader/front/comptime"
+
+import "std/string_builder"
+AST :: import "toolchain/ast"
+import "vader/support/diagnostics"
+
+/// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`), at the
+/// width the typechecker gave it: `3` in `X: i64: 3` is an `i64`.
+/// @param literal  the literal node.
+/// @param context  the evaluation context, holding the typechecker's types.
+/// @return         the wrapped int value.
+evaluate_int_lit :: fn(literal: AST.IntLitExpr, context: ComptimeContext) -> EvalResult =
+    normalize_int_result(
+        ok(int_val(AST.int_literal_value(literal))),
+        resolved_int_name(context, literal.id),
+    )
+
+/// Evaluate a `FloatLitExpr` — always a free `f64` value (no suffix form).
+/// @param literal  the literal node.
+/// @return         the wrapped float value.
+evaluate_float_lit :: fn(literal: AST.FloatLitExpr) -> EvalResult = ok(float_val(literal.value))
+
+/// Evaluate a `BoolLitExpr` (`true` / `false`).
+evaluate_bool_lit :: fn(literal: AST.BoolLitExpr) -> EvalResult {
+    if literal.value { return ok(VAL_TRUE) }
+    return ok(VAL_FALSE)
+}
+
+/// Evaluate a `NullLitExpr` (`null` literal).
+evaluate_null_lit :: fn(_: AST.NullLitExpr) -> EvalResult {
+    return ok(VAL_NULL)
+}
+
+/// Evaluate a `CharLitExpr` ; carries the codepoint as `u32`.
+evaluate_char_lit :: fn(literal: AST.CharLitExpr) -> EvalResult {
+    return ok(CharValue { .value = literal.value })
+}
+
+/// Evaluate a `StringLitExpr`. Plain text segments concat directly ;
+/// interpolation segments recurse through `evaluate_expr` and render
+/// via `display_value`. Falls back to `C4001` when an interp segment
+/// itself doesn't reduce to a concrete value.
+/// @param literal  the literal node.
+/// @param context  the evaluator context.
+/// @return         the concatenated string value, or C4001 when an
+///                 interpolation segment can't be evaluated.
+evaluate_string_lit :: fn(
+    literal: AST.StringLitExpr, context: ComptimeContext,
+) -> EvalResult {
+    sb :: StringBuilder {}
+    for part in literal.parts {
+        match part {
+            is AST.StringLitText -> { sb.append(part.value) }
+            is AST.StringLitInterp -> {
+                inner :: evaluate_expr(part.expr, context)
+                value :: inner.value ?? return inner
+                if value is EnumValue {
+                    shown :: display_enum(value, part.expr, context)
+                    text :: shown.value ?? return shown
+                    sb.append(interp_value(text))
+                    continue
+                }
+                sb.append(interp_value(value))
+            }
+        }
+    }
+    return ok(string_val(sb.to_string()))
+}
+
+// Render a comptime value as the user-facing `Display` form would —
+// strings stay quote-less, integers drop the `_i32` suffix, and a char
+// renders as its glyph (not the codepoint number). Used by
+// string-interpolation segments so `"x=${42}"` resolves to `"x=42"` and
+// `"c=${'A'}"` to `"c=A"`, matching the runtime `Display` of the same code.
+interp_value :: fn(v: ComptimeValue) -> string = match v {
+    is IntValue    -> int_digits(v)
+    is FloatValue  -> "${v.value}"
+    is BoolValue   -> "${v.value}"
+    is StringValue -> v.value
+    // `char`'s Display is `utf8_encode(self).bytes_to_string()` — cast the
+    // stored codepoint back to `char` to borrow it (glyph, not `65`).
+    is CharValue   -> "${char(v.value)}"
+    is NullValue   -> "null"
+    is VoidValue   -> ""
+    is ArrayValue  -> display_value(v)
+    is StructValue -> display_value(v)
+    is TypeValue   -> display_value(v)
+    // `evaluate_string_lit` renders an enum through its `Display` impl before
+    // this; the arm completes the match.
+    is EnumValue   -> display_value(v)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_interp_value_char_renders_glyph :: fn() -> void {
+    // comptime-1 : a char in an interpolation renders its glyph, not the
+    // codepoint number (65 → "A"), matching runtime `Display`.
+    assert_eq(interp_value(CharValue { .value = 65 }), "A")
+}
+
+@test test_interp_value_char_multibyte :: fn() -> void {
+    // Non-ASCII codepoint round-trips through UTF-8 (U+00E9 → "é"), proving
+    // the fix encodes rather than printing `233`.
+    assert_eq(interp_value(CharValue { .value = 233 }), "é")
+}
+
+@test test_interp_value_int_no_suffix :: fn() -> void {
+    assert_eq(interp_value(int_val(42)), "42")
+}
+

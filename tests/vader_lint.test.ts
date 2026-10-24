@@ -1,7 +1,7 @@
 // tests/vader_lint — end-to-end coverage for `vader lint` (the unused-export
 // lint, W0012). The name-reachability engine (`dead_exports`) is exercised in
 // full here through the native CLI: `load_project` → merge non-stdlib module
-// decls → `dead_exports`. Colocated `vader/typecheck` @tests cover the W0007
+// decls → `dead_exports`. Colocated `vader/front/typecheck` @tests cover the W0007
 // half of the shared engine; this drives the W0012 half end to end.
 
 import { test, expect } from "bun:test";

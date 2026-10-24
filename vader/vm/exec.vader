@@ -879,7 +879,7 @@ primitive_impl_import :: fn(mangle: string, arity: i64) = bc.BcImport {
 }
 
 // Stable marker in the trap of a global slot reached at comptime, which
-// `comptime/vm/resolve.vader` routes to C4018 (`is_singleton_comptime_trap_message`).
+// `front/comptime/vm/resolve.vader` routes to C4018 (`is_singleton_comptime_trap_message`).
 SINGLETON_COMPTIME_MARKER :: "belongs to a `@singleton`, whose instance only a run builds"
 
 // The trap of global slot `index` reached during a comptime evaluation.

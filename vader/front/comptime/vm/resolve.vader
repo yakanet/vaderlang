@@ -1,0 +1,291 @@
+// vader/front/comptime/vm/resolve — VM-backed comptime fallback (two-pass).
+//
+// Runs BETWEEN `evaluate_project` and `lower_project`, where the
+// `EvaluatedProject` is complete (mono + instances built). For every `@comptime`
+// decl the tree-walk deferred (`evaluated.vm_required`), this pass:
+//
+//   1. stages the whole project to bytecode (pass-1 lower → cfg → emit). The
+//      deferred const is still un-baked, so `lower` inlines its RHS call
+//      `f()` at each use site — making the callee `f` reachable and lowered
+//      (see `lower/inline_consts.vader`).
+//   2. runs `f` via `exec_fn_value` and bridges the result `Value` into a
+//      `ComptimeValue` (`bridge.vader`).
+//   3. injects it into the owning module's `comptime_decls`.
+//
+// The normal `lower_project` (pass-2, run afterwards by `lower_to_entry`) then
+// sees the baked value and inlines the literal table at every use site.
+
+module "vader/front/comptime/vm"
+
+import "std/abort"
+import "std/collections"
+import "std/io"
+import "std/iter"
+import "std/string"
+import "vader/support/diagnostics"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+import "vader/lower"
+import "vader/midir"
+import "vader/bytecode"
+Ct :: import "vader/front/comptime"
+Vm :: import "vader/vm"
+
+/// Bake every VM-required `@comptime` decl into its module's `comptime_decls`.
+/// No-op when `evaluated.vm_required` is empty (the common case — most projects
+/// have no loop-bearing comptime const). Mutates `evaluated` in place.
+///
+/// The decls run in layers: a decl whose value reads another one still waiting
+/// runs once that one is baked, so each runs once, in the folder of its own
+/// source (`evaluate_layer`).
+///
+/// @param loaded     the loaded project (staging lower input).
+/// @param typed      the typed project (staging lower input).
+/// @param evaluated  the complete evaluated project ; its
+///                   `modules[...].comptime_decls` are mutated.
+/// @param diags      comptime diagnostics — a failed staging / VM run appends
+///                   C4002 (panic) here ; the decl is left un-baked.
+/// @error            C4002 when the staged callee traps in the VM ; C4001 when
+///                   its result `Value` can't be bridged (cf. `bridge.vader`).
+export resolve_vm_required_decls :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    home :: current_working_directory()
+    pending: Ct.VmRequiredDecl[] = evaluated.vm_required
+    for pending.len() > 0 {
+        pending = evaluate_layer(loaded, typed, evaluated, pending, home, diags)
+    }
+}
+
+/// A pending decl staged for one layer.
+StagedDecl :: struct {
+    decl:    Ct.VmRequiredDecl
+    /// The mangle of its callee in the staged module.
+    callee:  string
+    /// The mangles of the functions that callee may run, itself included.
+    reached: MutableSet<string>
+}
+
+// Stage the project with the `pending` decls still un-baked, run those whose
+// callee reaches no other pending callee, and bake them; the decls left for the
+// next layer are returned.
+//
+// A pending decl that another decl reads is not a value yet: lowering inlines
+// its callee at the read, so running the reader would run that callee again, in
+// the reader's folder. Once baked, the next staging inlines its literal instead.
+evaluate_layer :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    evaluated: Ct.EvaluatedProject,
+    pending: Ct.VmRequiredDecl[],
+    home: string,
+    diags: Diagnostic[],
+) -> Ct.VmRequiredDecl[] {
+    // Pass-1 staging : lower + emit the project with the pending consts still
+    // un-baked. Diagnostics are throwaway — the real pass-2 lower reports any
+    // genuine errors.
+    stage_diags: Diagnostic[]: []
+    cfg :: stage_to_cfg(loaded, typed, evaluated, pending, stage_diags)
+    module :: emit_bytecode_from_cfg(cfg, "comptime", default_emit_options())
+    state :: Vm.prepare(module)
+    if state is Vm.VerifyError {
+        // The staged bytecode is the compiler's own output, so this is an emitter
+        // bug ; every decl waiting on it is left un-baked, and says why.
+        for vr in pending {
+            diags.push(comptime_error(.EvaluationPanic, vr.span, Vm.display_verify_error(state)))
+        }
+        return []
+    }
+    // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so its
+    // value is genuinely unneeded — skip it silently.
+    lowered: Ct.VmRequiredDecl[]: []
+    callees: string[]: []
+    for vr in pending {
+        callee :: callee_mangle(module, vr.callee_name) ?? continue
+        lowered.push(vr)
+        callees.push(callee)
+    }
+    reached :: functions_run_from(cfg, callees)
+    staged: StagedDecl[]: []
+    for i in 0..<lowered.len() {
+        staged.push(StagedDecl {
+            .decl = lowered[i],
+            .callee = callees[i],
+            .reached = reached[i],
+        })
+    }
+    ready: StagedDecl[] = []
+    waiting: StagedDecl[] = []
+    for s in staged {
+        if staged.any_match((other) -> other.callee != s.callee && other.callee in s.reached) {
+            waiting.push(s)
+        } else {
+            ready.push(s)
+        }
+    }
+    // Decls that only read one another form a cycle no order breaks: they run as
+    // they are.
+    if ready.len() == 0 {
+        ready = waiting
+        waiting = []
+    }
+    failed: string[]: []
+    for s in ready {
+        if !bake_decl(state, s.callee, s.decl, home, evaluated, diags) {
+            failed.push(s.callee)
+        }
+    }
+    // A decl that reads one whose run failed is dropped, its error already
+    // reported.
+    next: Ct.VmRequiredDecl[]: []
+    for s in waiting {
+        if !failed.any_match((f) -> f in s.reached) {
+            next.push(s.decl)
+        }
+    }
+    return next
+}
+
+// Run the callee `mangle` of `vr` in the folder of the file declaring it, and
+// inject the value; false after reporting why there is none.
+bake_decl :: fn(
+    state: Vm.VmState,
+    mangle: string,
+    vr: Ct.VmRequiredDecl,
+    home: string,
+    evaluated: Ct.EvaluatedProject,
+    diags: Diagnostic[],
+) -> bool {
+    // A `@comptime` value is evaluated in the folder of the file declaring it,
+    // so a relative path it reads names a file beside that file, wherever the
+    // compiler was started.
+    switched :: enter_source_folder(home, vr.span.start.file)
+    outcome :: Vm.exec_fn_value(state, mangle)
+    if switched {
+        leave_source_folder(home)
+    }
+    if outcome is Vm.Trap {
+        // An impure host reached at comptime (clock / env / fs / stdin /
+        // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
+        // surfaces as C4016 rather than the generic C4002 panic.
+        if Vm.is_impure_comptime_trap_message(outcome.message) {
+            diags.push(comptime_error(.ImpureHostAtComptime, vr.span, outcome.message))
+        } else if Vm.is_singleton_comptime_trap_message(outcome.message) {
+            diags.push(comptime_error(.SingletonAtComptime, vr.span, outcome.message))
+        } else {
+            diags.push(comptime_error(.EvaluationPanic, vr.span, outcome.message))
+        }
+        return false
+    }
+    if outcome is Vm.ValueOk {
+        bridged :: value_to_comptime(outcome.value, vr.decl_type, vr.span)
+        if bridged is Diagnostic {
+            diags.push(bridged)
+            return false
+        }
+        inject(evaluated, vr, bridged)
+    }
+    return true
+}
+
+// Make the folder of `file` the working directory, and say whether it changed.
+// A file named without a folder sits in it already; a `home` of "." is a
+// working directory that could not be read, so nothing could come back to it.
+enter_source_folder :: fn(home: string, file: string) -> bool {
+    folder :: dir_of(file)
+    if home == "." || folder == "" {
+        return false
+    }
+    return set_current_working_directory(folder) == null
+}
+
+// Come back to `home`, where the compiler resolves its own relative paths
+// afterwards: failing to is fatal.
+leave_source_folder :: fn(home: string) -> void {
+    back :: set_current_working_directory(home)
+    if back is IOError {
+        panic("cannot return to `${home}`: ${back.message()}")
+    }
+}
+
+// Run the canonical lower → cfg → dce → escape tail over the (still un-baked)
+// project, up to the CFG the bytecode is emitted from. Mirror of
+// `bootstrap.vader::prepare_cfg_bytecode`'s tail.
+stage_to_cfg :: fn(
+    loaded: LoadedProject,
+    typed: TypedProject,
+    evaluated: Ct.EvaluatedProject,
+    pending: Ct.VmRequiredDecl[],
+    diags: Diagnostic[],
+) -> CFGProject {
+    // Stage only the modules owning pending consts (+ their harvested closure),
+    // not the whole entry-rooted project : each such module's un-baked const
+    // inlines its RHS call, pulling the nullary callee thunk into the harvest so
+    // `callee_index` locates it.
+    eager_modules: string[]: []
+    for vr in pending {
+        if !(vr.module_id in eager_modules) { eager_modules.push(vr.module_id) }
+    }
+    lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
+    pruned :: prune_unreachable_fns(lowered, false)
+    cfg :: build_cfg_project(pruned, diags)
+    dced :: eliminate_dead_cfg(cfg)
+    return annotate_escape(dced).project
+}
+
+// The lowered fn whose mangled name ends in `$<callee_name>`, null when absent
+// (the fn wasn't lowered → its const is unused). MVP: a bare suffix match ;
+// unambiguous for the nullary in-module helpers this path targets.
+callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string | null {
+    suffix :: "\$${callee_name}"
+    for f in module.functions {
+        if f.name.ends_with(suffix) {
+            return f.name
+        }
+    }
+    return null
+}
+
+/// Copy into `into` the values the VM baked for the deferred decls of `from`, a
+/// load of the same sources under another view (`HostBodies`). A decl is matched
+/// by its position in the source, which both loads share; its symbol id is not.
+///
+/// @param from   the evaluated project the VM ran on.
+/// @param into   the evaluated project the values belong to.
+/// @param diags  receives the decls of `into` that `from` did not defer.
+/// @error        C4001 for a decl `from` evaluated otherwise, which would
+///               otherwise be left to run in the built program.
+export copy_baked_values :: fn(
+    from: Ct.EvaluatedProject, into: Ct.EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    deferred :: MutableMap<u64, Ct.ComptimeValue | null> {}
+    for vr in from.vm_required {
+        deferred[vr.span.hash()] = baked_value(from, vr)
+    }
+    for vr in into.vm_required {
+        if vr.span.hash() !in deferred {
+            diags.push(comptime_error(.CannotEvaluate, vr.span,
+                "the build machine's `@target` bodies evaluate it another way"))
+            continue
+        }
+        value :: deferred[vr.span.hash()] ?? continue
+        inject(into, vr, value)
+    }
+}
+
+// What the VM baked for `vr` in `evaluated`, or null when it did not.
+baked_value :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl) -> Ct.ComptimeValue | null {
+    program :: evaluated.modules[vr.module_id] ?? return null
+    return program.comptime_decls[vr.symbol_id]
+}
+
+// Inject the bridged value into the owning module's `comptime_decls`, keyed by
+// the const's symbol id — exactly where the tree-walk would have put it. The
+// pass-2 lower's `lookup_const_baked_value` then inlines the literal.
+inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
+    program :: evaluated.modules[vr.module_id]
+    if program is Ct.EvaluatedProgram {
+        program.comptime_decls[vr.symbol_id] = value
+        program.routes[vr.symbol_id] = .Vm
+    }
+}

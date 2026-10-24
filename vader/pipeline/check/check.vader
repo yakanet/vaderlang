@@ -2,7 +2,7 @@
 // settled.
 //
 // Some checks read the whole typed program: the effect summary decides each array
-// argument the typecheck widened (T3102, `vader/effects`), and which uses of a
+// argument the typecheck widened (T3102, `vader/front/effects`), and which uses of a
 // constant read a fresh value of it for the lowering. The typecheck cannot
 // import the passes it feeds, so every client that checks a program, the CLI and
 // the LSP alike, comes through here and reports the same diagnostics. A module of
@@ -13,11 +13,11 @@ module "vader/pipeline/check"
 import "std/collections"
 import "std/iter"
 import "vader/support/diagnostics"
-import "vader/resolver"
+import "vader/front/resolver"
 import "vader/support/target"
-import "vader/typecheck"
+import "vader/front/typecheck"
 
-Fx :: import "vader/effects"
+Fx :: import "vader/front/effects"
 
 /// A typechecked project, with the effect summary the checks read.
 export CheckedProject :: struct {

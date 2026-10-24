@@ -1,7 +1,7 @@
 // vader/tools/fmt/comments — comment pre-scan.
 //
 // The lexer drops every `//` and `/* */` comment before the token stream
-// reaches the parser (cf. vader/lexer/lexer.vader::consume_block_comment).
+// reaches the parser (cf. vader/front/lexer/lexer.vader::consume_block_comment).
 // To preserve comments across format passes we re-scan the raw source in a
 // dedicated pass and build an offset-keyed map. The printer consults the
 // map at every AST-node boundary and interleaves matching comments at the

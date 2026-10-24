@@ -1,7 +1,7 @@
 // vader/lower/verify_callees — the lowering's callee choices against the typecheck's record.
 //
 // The typecheck files what each site invokes (`TypedProgram.call_sites`,
-// `vader/typecheck/call_sites.vader`), yet the lowering still chooses on its own at
+// `vader/front/typecheck/call_sites.vader`), yet the lowering still chooses on its own at
 // several places. Under `$VADER_VERIFY_CALLEES`, each of those places reports what
 // it chose, and a choice the record does not account for is listed at the end of
 // the run (`render_callee_report`). `agrees` holds the few rules under which a
@@ -21,8 +21,8 @@ import "std/string"
 import "std/string_builder"
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// Environment variable that turns the verification on.

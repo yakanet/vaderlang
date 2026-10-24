@@ -1,0 +1,29 @@
+// vader/front/resolver/imports — per-ImportBinding side-table.
+//
+// Captures `(path, imported_name)` for each ImportBinding symbol so
+// the wire pass can resolve each binding to its concrete target in
+// the referenced module. `imported_name = null` means the binding
+// names the module itself (the `name :: import "p"` namespace form) ;
+// non-null means a destructured name (`import "p" { foo }` or
+// `{ foo as bar }` — `imported_name` is always the *exported* name).
+
+module "vader/front/resolver"
+
+import "std/collections"
+
+export ImportInfo :: struct {
+    path:          string
+    imported_name: string | null
+    /// Local binding name this import introduces — the alias for a renamed
+    /// `import "p" { foo as bar }` (`bar`), else the imported name. Lets a
+    /// signature-collision check key by the LOCAL name (see
+    /// `orchestrate.vader::imported_fn_sigs`).
+    local:         string
+    /// Span of the imported name token (or the whole import decl when
+    /// it's a namespace form). Used as the primary span for R2003 /
+    /// R2008. Avoids re-walking the AST in the wire pass to recover it.
+    binding_span:  Span
+}
+
+import "vader/support/diagnostics"
+import "toolchain/span"

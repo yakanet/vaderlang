@@ -18,7 +18,7 @@
 // The `@test` half is what makes generated code provable in Vader instead of by
 // string-matching a binary's stdout from TypeScript: once `build/generated/`
 // exists it becomes a MERGE ROOT for the resolver
-// (`vader/resolver/module.vader::GENERATED_ROOT_DIR`), so a hand-written test
+// (`vader/front/resolver/module.vader::GENERATED_ROOT_DIR`), so a hand-written test
 // calls generated functions like any other — in both shapes, an imported
 // generated module and one that joined the entry module. Run `vader test src`
 // WITHOUT building first and the same test fails `R2006`, which is what makes the
@@ -231,7 +231,7 @@ function normalise(text: string, dir: string): string {
 const BINARIES = `build/debug-${HOST_TARGET}`;
 
 // Where a driven build writes its generated modules, relative to the project —
-// `vader/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
+// `vader/front/resolver/module.vader::GENERATED_ROOT_DIR`, which the resolver reads.
 const GENERATED = "build/generated";
 
 // A generated tree as one text blob: sorted `--- <relpath>` headers plus each
@@ -437,7 +437,7 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
   await withStagedLibraryRoot({
     r2034probe: {
       "r2034probe.vader":
-        'module "r2034probe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
+        'module "r2034probe"\n\nimport "vader/front/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
     },
   }, async (dir) => {
     writeFileSync(
@@ -447,7 +447,7 @@ test.concurrent("a shipped library cannot import the compiler (R2034)", async ()
     );
     // `cwd: dir` is what makes `<dir>/lib` the library root, and so what puts the
     // probe under it. R2034 is checked before the module-not-found lookup, so it
-    // fires whether or not `vader/lexer` resolves from here — the rule is about
+    // fires whether or not `vader/front/lexer` resolves from here — the rule is about
     // the attempt.
     const ran = await run(["run", "app.vader"], { cwd: dir });
     expect(ran.stderr).toContain("R2034");
@@ -473,7 +473,7 @@ test.concurrent("R2034 is deliberately silent on a library module compiled as th
   await withStagedLibraryRoot({
     entryprobe: {
       "entryprobe.vader":
-        'module "entryprobe"\n\nimport "vader/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
+        'module "entryprobe"\n\nimport "vader/front/lexer"\n\nexport peek :: fn() -> i32 = 1\n',
     },
   }, async (dir) => {
     const ran = await run(["build", "lib/entryprobe/entryprobe.vader"], { cwd: dir });

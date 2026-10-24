@@ -5,7 +5,7 @@
 // function's accesses as the dump writes them, `<effect> <parameter><path>`, or
 // `none`. Positions are left out, so that a change of layout in the fixture does
 // not read as a change of summary. The paths, the sets and the evaluation of a
-// body's constraints have their own `@test`s in `vader/effects/`; this pins what
+// body's constraints have their own `@test`s in `vader/front/effects/`; this pins what
 // the walk and the fixed point conclude on a typed program.
 
 import { test, expect } from "bun:test";
@@ -254,7 +254,7 @@ test("each widened array argument gets the verdict of its callee", async () => {
 // summary meets each of them.
 test("every intrinsic of the tree has an entry in the effect table", async () => {
   const r = await runCli(
-    ["dump", "--stage=effects", "--module=vader/effects", COMPILER_ENTRY],
+    ["dump", "--stage=effects", "--module=vader/front/effects", COMPILER_ENTRY],
     undefined,
     MEDIUM_BUILD,
   );

@@ -1,0 +1,96 @@
+// vader/front/typecheck/expr_dot_variant — `.Red` enum-variant shorthand.
+//
+// `.Variant` is contextual : the enum is inferred from `expected`. We
+// look up the variant in `EnumType.indices` and return the enum type.
+// T3027 when the variant doesn't exist on the expected enum, T3028
+// when `expected` isn't an enum-typed slot.
+
+module "vader/front/typecheck"
+
+import "vader/support/diagnostics"
+import "vader/front/resolver/symbol"
+import "vader/types"
+AST :: import "toolchain/ast"
+
+/// The enum a bare `.variant` would resolve to in this slot, or null.
+///
+/// Null covers every way the shorthand can't be used: no expectation at all,
+/// a slot that isn't enum-typed, or an enum without that variant. W0016 reads
+/// it to tell whether a written-out `Enum.Variant` prefix carries its weight,
+/// so the warning and the shorthand answer the same question by construction.
+///
+/// @param expected  the slot's type, as threaded through typecheck.
+/// @param variant   the variant name, without its leading dot.
+/// @return          the resolved `EnumType`, or null when the slot can't name one.
+enum_for_bare_variant :: fn(
+    expected: Type | null, variant: string, typed: TypedProgram,
+) -> Type | null {
+    slot :: expected ?? return null
+    lifted :: lift_enum_placeholder(slot, typed)
+    // Union expected — descend into variants and pick the first enum
+    // that carries `.variant`. Lets `fn() -> Direction | Error { return .North }`
+    // resolve `.North` to Direction.
+    if lifted is UnionType {
+        for v in lifted.variants {
+            cand :: lift_enum_placeholder(v, typed)
+            if cand is EnumType {
+                // MutableMap lookup returns i64 | null ; null = unknown variant.
+                if !(cand.indices[variant] is null) {
+                    return cand
+                }
+            }
+        }
+        return null
+    }
+    if lifted is EnumType {
+        if lifted.indices[variant] is null {
+            return null
+        }
+        return lifted
+    }
+    return null
+}
+
+/// Resolve a `.Variant` against the expected enum slot.
+infer_dot_variant :: fn(
+    e: AST.DotVariantExpr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if expected is null {
+        diags.push(typecheck_error(.CannotInferEnumType, e.span,
+            "cannot infer enum type for `.${e.variant}` without context"))
+        return TY_UNRESOLVED
+    }
+    found :: enum_for_bare_variant(expected, e.variant, typed)
+    if found !is null {
+        return found
+    }
+    // Nothing resolved — say which of the two reasons it was.
+    slot :: lift_enum_placeholder(expected, typed)
+    if slot is EnumType {
+        diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
+            "`${e.variant}` is not a variant of ${display_type(slot)}"))
+        return TY_UNRESOLVED
+    }
+    diags.push(typecheck_error(.CannotInferEnumType, e.span,
+        "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
+    return TY_UNRESOLVED
+}
+
+// `type_from_expr` returns a `StructType<EnumSym>` placeholder for enum
+// names — the proper `EnumType` (with `indices`) only lands in
+// `decl_types[name_span]` via `declare_enum`. This helper swaps the
+// placeholder back to the real EnumType when one is available, falling
+// back to the cross-module `external_types` cache so enums defined in
+// other modules (e.g. `FlagKind` from std/cli) still lift.
+export lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
+    if t is StructType {
+        if t.symbol.kind != .Enum { return t }
+        real :: typed.decl_types[t.symbol.id]
+        if real is EnumType { return real }
+        ext :: typed.external_types[t.symbol.id]
+        if ext is EnumType { return ext }
+        return t
+    }
+    return t
+}

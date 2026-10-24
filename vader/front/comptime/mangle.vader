@@ -1,0 +1,169 @@
+// vader/front/comptime/mangle — mangled-name + sanitisation helpers.
+//
+// Holds the shared helpers `mangle`, `mangle_type_arg`,
+// `sanitise_ident`, `uniq`, consumed across the lowerer and bytecode emit
+// to build stable concrete-instance names.
+//
+// Two design notes :
+//   - `ResolvedModule` keeps `path: string` flat, so the public entry
+//     `mangle` here takes `module_path` directly. Callers thread
+//     `module.path` (matches what the loader writes).
+//   - `sanitise_ident` is distinct from `vader/c_emit/body.sanitise` :
+//     the C-emit version also escapes C keywords (`int`, `static`, …),
+//     which would corrupt user identifiers in the mangled-name space.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "std/string_builder"
+import "vader/types"
+import "vader/support/text"
+
+/// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
+/// Format is fixed so the bytecode emitter, the C
+/// emitter, and the binary writer all read the same string :
+///
+///   - non-generic top-level decl, module name matches decl name :
+///       `mangle("main", "main", [])` → `"main"`
+///   - non-generic, distinct module :
+///       `mangle("hello", "tests/hello", [])` → `"tests_hello$hello"`
+///   - generic instance :
+///       `mangle("Vec", "stdlib/std/vec", [i32])` → `"stdlib_std_vec$Vec__i32"`
+///
+/// @param decl_name       the source-level decl name.
+/// @param module_path     the owning module's display path (`ResolvedModule.path`).
+/// @param type_arguments  concrete type-args ; empty for non-generic decls.
+/// @return                the mangled name.
+export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type[]) -> string {
+    module_stem :: sanitise_ident(module_path)
+    head: string = ""
+    if module_stem == "" || module_stem == decl_name {
+        head = decl_name
+    } else {
+        head = "${module_stem}\$${decl_name}"
+    }
+    if type_arguments.len() == 0 {
+        return head
+    }
+    sb :: StringBuilder {}
+    sb.append(head)
+    sb.append("__")
+    for i in 0..<type_arguments.len() {
+        if i > 0 { sb.append("__") }
+        sb.append(mangle_type_arg(type_arguments[i]))
+    }
+    return "${sb}"
+}
+
+/// Mangle segment for a single type argument : `sanitise_ident(qualified_
+/// display_type(t))`. Shared by `mangle` and the lowerer's fn-instance /
+/// struct-instance suffixes so erased args render `Any`, nested generics
+/// survive (`Box<Box<i32>>` → `snippet_Box_snippet_Box_i32__`), and two
+/// same-named types of different modules name two instances. A bare
+/// type-name fallback collapses `Any`/nested args and breaks dedup parity.
+// A distinct (newtype) has no backend identity — it mangles as its backing so
+// every instance name (call site, struct literal, allocation, dispatch) is
+// consistent with the source-stripped instance entries. `strip_distinct`
+// handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
+export mangle_type_arg :: fn(t: Type) -> string =
+    sanitise_ident(qualified_display_type(strip_distinct(t)))
+
+/// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
+/// `vader/c_emit/body.sanitise` — the C-emit variant additionally
+/// suffixes the result with `_v` on C-keyword collision. The mangled-
+/// name space here doesn't need that since `$` and `__` separators
+/// prevent collision with any single C keyword.
+///
+/// @param raw  the source identifier (decl name, module path, type display).
+/// @return     the sanitised form, safe to splice into a mangled name.
+export sanitise_ident :: fn(raw: string) -> string {
+    sb :: StringBuilder {}
+    n :: raw.byte_len()
+    for i in 0..<n {
+        b :: raw.byte_at(i)
+        if is_ident_byte(b) {
+            sb.append_char(char(u32(b)))
+        } else {
+            sb.append_char('_')
+        }
+    }
+    return "${sb}"
+}
+
+/// Return a candidate name that's not yet in `seen`, suffixing with
+/// `_1` / `_2` / ... until a fresh one is found. Adds the result to
+/// `seen` so subsequent calls don't reuse it.
+///
+/// @param seen        registry of names already taken.
+/// @param candidate   the preferred name ; returned as-is when free.
+/// @return            a fresh name (either `candidate` or `candidate_N`).
+export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
+    existing :: seen[candidate]
+    if existing == null {
+        seen[candidate] = true
+        return candidate
+    }
+    // collision — find the next free `candidate_N`.
+    i: i32 = 1
+    for i < 1_000_000 {     // hard-stop for malformed input
+        fresh :: "${candidate}_${i}"
+        taken :: seen[fresh]
+        if taken == null {
+            seen[fresh] = true
+            return fresh
+        }
+        i += 1
+    }
+    // unreachable in practice ; defensive fall-through.
+    return candidate
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test test_mangle_non_generic_same_name :: fn() -> void {
+    args: Type[]: []
+    assert_eq(mangle("main", "main", args), "main")
+}
+
+@test test_mangle_non_generic_distinct_module :: fn() -> void {
+    args: Type[]: []
+    assert_eq(mangle("hello", "tests/hello", args), "tests_hello\$hello")
+}
+
+@test test_mangle_generic_one_arg :: fn() -> void {
+    args: Type[]: [TY_I32]
+    assert_eq(mangle("Vec", "stdlib/std/vec", args), "stdlib_std_vec\$Vec__i32")
+}
+
+@test test_mangle_generic_two_args :: fn() -> void {
+    args: Type[]: [TY_STRING, TY_I32]
+    assert_eq(
+        mangle("Map", "stdlib/std/map", args),
+        "stdlib_std_map\$Map__string__i32",
+    )
+}
+
+@test test_sanitise_ident_passes_through_clean :: fn() -> void {
+    assert_eq(sanitise_ident("foo_bar"), "foo_bar")
+}
+
+@test test_sanitise_ident_replaces_slashes_and_dots :: fn() -> void {
+    assert_eq(sanitise_ident("tests/snippets/arith.vader"), "tests_snippets_arith_vader")
+}
+
+@test test_uniq_returns_candidate_when_free :: fn() -> void {
+    seen :: MutableMap<string, bool> {}
+    assert_eq(uniq(seen, "foo"), "foo")
+    // Subsequent registration should reflect the addition.
+    assert_eq(uniq(seen, "foo"), "foo_1")
+}
+
+@test test_uniq_skips_already_taken_suffixes :: fn() -> void {
+    seen :: MutableMap<string, bool> {}
+    seen["foo"] = true
+    seen["foo_1"] = true
+    assert_eq(uniq(seen, "foo"), "foo_2")
+}
+

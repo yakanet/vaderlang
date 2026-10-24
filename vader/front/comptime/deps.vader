@@ -1,0 +1,372 @@
+// vader/front/comptime/deps — dependency graph for `@comptime` const decls.
+//
+// Builds a per-module adjacency map
+// from each `@comptime const` decl to the other `@comptime const` decls
+// its RHS references, then DFS-topo-sorts so evaluation lands deps-first.
+// Cycles surface as C4009 ; decls inside a cycle drop out of the order.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+AST :: import "toolchain/ast"
+
+/// Result of dependency analysis : the `@comptime const` decls in
+/// evaluation order, plus the diagnostics emitted for any detected
+/// cycle. Decls participating in a cycle are dropped from `order` ;
+/// callers evaluate only what's left.
+/// @field order        decls in topological order (deps before users).
+/// @field cycle_diags  one diagnostic per detected cycle.
+ComptimeOrder :: struct {
+    order:       AST.ConstDecl[]
+    cycle_diags: Diagnostic[]
+}
+
+/// Build the evaluation order for the `@comptime const` decls in
+/// `program_decls`. Walks each decl's RHS to discover IdentExprs that
+/// resolve (via `resolved.idents`) to another `@comptime const` in the
+/// same module ; emits C4009 with the cycle path when DFS revisits a
+/// grey node.
+/// @param program_decls  top-level decls of the module.
+/// @param typed          owning typed program — used to resolve idents.
+/// @return               `ComptimeOrder` with sorted entries + any
+///                       cycle diagnostics.
+sort_comptime_decls :: fn(
+    program_decls: AST.Decl[], typed: TypedProgram,
+) -> ComptimeOrder {
+    nodes :: collect_nodes(program_decls)
+    populate_deps(nodes, typed)
+    return topo_sort(nodes)
+}
+
+// Per-decl adjacency record. `dependency_ids` holds the node-ids of decls this
+// one depends on ; cycle detection runs over the `nodes` map keyed by
+// `ConstDecl.id` (the AST node-id minted at parse time).
+NodeRecord :: struct {
+    decl:    AST.ConstDecl
+    dependency_ids: i64[]
+}
+
+Nodes :: struct {
+    // `ConstDecl.id -> NodeRecord`. Insertion order tracked separately
+    // because `MutableMap` iteration order is bucket-dependent and
+    // we want stable topo output for snapshot determinism.
+    by_id:   MutableMap<i64, NodeRecord>
+    order:   i64[]
+    // `Symbol.id -> ConstDecl.id` reverse lookup so the walker can map
+    // a resolved IdentExpr back to a participating decl in O(1).
+    by_symbol:  MutableMap<i32, i64>
+}
+
+collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
+    nodes :: Nodes {
+        .by_id  = MutableMap<i64, NodeRecord> {},
+        .order  = [],
+        .by_symbol = MutableMap<i32, i64> {},
+    }
+    for decl in program_decls {
+        if decl is AST.ConstDecl {
+            if !has_comptime_decorator(decl) {
+                continue
+            }
+            empty_deps: i64[]: []
+            nodes.by_id[decl.id] = NodeRecord { .decl = decl, .dependency_ids = empty_deps }
+            nodes.order.push(decl.id)
+        }
+    }
+    return nodes
+}
+
+has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
+    for d in decl.decorators {
+        if d.name == "comptime" { return true }
+    }
+    return false
+}
+
+// Second pass : fill `by_symbol` once every node is registered, then walk
+// each decl's RHS and record dependencies on other registered decls.
+// Done after collection so forward refs (`@comptime A :: B` where B is
+// later in source order) still wire correctly.
+populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
+    for id in nodes.order {
+        record :: nodes.by_id[id] ?? continue
+        symbol :: symbol_declared_at(typed.resolved, record.decl.name_span) ?? continue
+        nodes.by_symbol[symbol.id] = id
+    }
+    for id in nodes.order {
+        record :: nodes.by_id[id] ?? continue
+        deps_seen :: MutableMap<i64, bool> {}
+        collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
+        nodes.by_id[id] = record
+    }
+}
+
+// DFS topological sort with three-colour marking. Grey hit → cycle.
+// The path is tracked by a fixed-capacity `path` array + a `depth`
+// cursor — recursion-safe "push / pop" without an `Array.truncate` helper
+// (stdlib lacks one). `path[0..depth]` is the active DFS stack at any
+// point ; positions beyond `depth` are stale but never read.
+topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
+    order: AST.ConstDecl[]: []
+    diags: Diagnostic[]: []
+    color :: MutableMap<i64, i32> {}
+    cyclic :: MutableMap<i64, bool> {}
+    for id in nodes.order { color[id] = 0 }
+    path: i64[]: []
+    for id in nodes.order { visit(id, nodes, color, cyclic, path, 0, order, diags) }
+    return ComptimeOrder { .order = order, .cycle_diags = diags }
+}
+
+// `depth` is the logical top of `path` — index where the current
+// frame's id lives once written. `path` is grown on first use and
+// reused across siblings. Colour : 0 white, 1 grey, 2 black.
+visit :: fn(
+    id: i64, nodes: Nodes,
+    color: MutableMap<i64, i32>,
+    cyclic: MutableMap<i64, bool>,
+    path: i64[], depth: i64,
+    order: AST.ConstDecl[],
+    diags: Diagnostic[],
+) -> void {
+    c :: color[id] ?? return
+    if c == 2 { return }
+    if c == 1 {
+        emit_cycle(id, path, depth, nodes, cyclic, diags)
+        return
+    }
+    color[id] = 1
+    if depth < path.len() { path[depth] = id } else { path.push(id) }
+    record :: nodes.by_id[id]
+    if !(record is null) {
+        for dependency_id in record.dependency_ids {
+            visit(dependency_id, nodes, color, cyclic, path, depth + 1, order, diags)
+        }
+    }
+    color[id] = 2
+    if cyclic[id] is null {
+        rec_again :: nodes.by_id[id]
+        if !(rec_again is null) { order.push(rec_again.decl) }
+    }
+}
+
+emit_cycle :: fn(
+    id: i64, path: i64[], depth: i64, nodes: Nodes,
+    cyclic: MutableMap<i64, bool>, diags: Diagnostic[],
+) -> void {
+    // `path[0..depth]` is the current DFS path. Find `id`'s first
+    // occurrence in that prefix — every node from there onward is part
+    // of the cycle, plus `id` itself closing the loop.
+    start: i64 = depth
+    for i in 0..<depth {
+        if path[i] == id {
+            start = i
+            break
+        }
+    }
+    names :: cycle_names(start, depth, path, id, nodes)
+    record :: nodes.by_id[id]
+    if !(record is null) {
+        diags.push(comptime_error(.DependencyCycle, record.decl.span, names))
+    }
+    for i in start..<depth { cyclic[path[i]] = true }
+    cyclic[id] = true
+}
+
+cycle_names :: fn(start: i64, depth: i64, path: i64[], id: i64, nodes: Nodes) -> string {
+    parts: string[]: []
+    for i in start..<depth {
+        record :: nodes.by_id[path[i]] ?? continue
+        parts.push(record.decl.name)
+    }
+    rec_tail :: nodes.by_id[id]
+    if !(rec_tail is null) { parts.push(rec_tail.decl.name) }
+    sb := ""
+    for i in 0..<parts.len() {
+        if i > 0 { sb = "${sb} → " }
+        sb = "${sb}${parts[i]}"
+    }
+    return sb
+}
+
+// ---- expression walker ---------------------------------------------------
+
+// Visit every IdentExpr in `e` ; record a dep edge from `record.decl` to
+// any registered `@comptime const` the ident resolves to. `seen` keeps
+// the dep list duplicate-free (same dep encountered twice in different
+// subtrees counts once).
+collect_expr_deps :: fn(
+    e: AST.Expr, typed: TypedProgram, nodes: Nodes,
+    seen: MutableMap<i64, bool>, record: NodeRecord,
+) -> void {
+    match e {
+        is AST.IdentExpr -> {
+            symbol :: typed.resolved.idents[e.span.hash()] ?? return
+            if symbol.kind != .Const { return }
+            dependency_id :: nodes.by_symbol[symbol.id] ?? return
+            if seen[dependency_id] is bool { return }
+            seen[dependency_id] = true
+            record.dependency_ids.push(dependency_id)
+        }
+        is AST.CallExpr -> {
+            collect_expr_deps(e.callee, typed, nodes, seen, record)
+            for a in e.args { collect_expr_deps(a.value, typed, nodes, seen, record) }
+        }
+        is AST.FieldExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) }
+        is AST.IndexExpr  -> { collect_expr_deps(e.target, typed, nodes, seen, record) collect_expr_deps(e.index, typed, nodes, seen, record) }
+        is AST.UnaryExpr  -> { collect_expr_deps(e.operand, typed, nodes, seen, record) }
+        is AST.BinaryExpr -> { collect_expr_deps(e.left, typed, nodes, seen, record) collect_expr_deps(e.right, typed, nodes, seen, record) }
+        is AST.IfExpr     -> {
+            collect_expr_deps(e.cond, typed, nodes, seen, record)
+            collect_block_deps(e.then_block, typed, nodes, seen, record)
+            match else_if :: e.else_branch {
+                is null            -> {}
+                is AST.IfElseIf -> { collect_expr_deps(else_if.branch, typed, nodes, seen, record) }
+                is AST.IfElseBlock -> { collect_block_deps(else_if.block, typed, nodes, seen, record) }
+            }
+        }
+        is AST.MatchExpr  -> {
+            collect_expr_deps(e.scrutinee, typed, nodes, seen, record)
+            for arm in e.arms {
+                if arm.guard !is null {
+                    collect_expr_deps(arm.guard, typed, nodes, seen, record)
+                }
+                collect_expr_deps(arm.body, typed, nodes, seen, record)
+            }
+        }
+        is AST.BlockExpr     -> { collect_block_deps(e, typed, nodes, seen, record) }
+        is AST.StructLitExpr -> {
+            collect_expr_deps(e.type_name, typed, nodes, seen, record)
+            for item in e.items {
+                match item {
+                    is AST.StructLitField  -> { collect_expr_deps(item.value, typed, nodes, seen, record) }
+                    is AST.StructLitSpread -> { collect_expr_deps(item.expr, typed, nodes, seen, record) }
+                }
+            }
+        }
+        is AST.SeqLitExpr        -> { for el in e.elements { collect_expr_deps(el, typed, nodes, seen, record) } }
+        is AST.RangeExpr         -> { collect_expr_deps(e.lower, typed, nodes, seen, record) collect_expr_deps(e.upper, typed, nodes, seen, record) }
+        is AST.AwaitExpr         -> { collect_expr_deps(e.inner, typed, nodes, seen, record) }
+        is AST.CastExpr          -> { collect_expr_deps(e.value, typed, nodes, seen, record) }
+        is AST.LambdaExpr        -> { collect_block_deps(e.body, typed, nodes, seen, record) }
+        is AST.IntrinsicCallExpr -> { for a in e.args { collect_expr_deps(a, typed, nodes, seen, record) } }
+        is AST.GenericInstExpr   -> { collect_expr_deps(e.callee, typed, nodes, seen, record) }
+        is AST.StringLitExpr     -> {
+            for p in e.parts {
+                match p {
+                    is AST.StringLitInterp -> { collect_expr_deps(p.expr, typed, nodes, seen, record) }
+                    is AST.StringLitText   -> {}
+                }
+            }
+        }
+        is AST.NullCoalesceExpr -> {
+            collect_expr_deps(e.left, typed, nodes, seen, record)
+            // A `return` / `break` / `continue` fallback carries no expression to
+            // descend into — `coalesce_fallback_expr` yields null for those.
+            fallback :: AST.coalesce_fallback_expr(e.fallback)
+            if fallback != null {
+                collect_expr_deps(fallback, typed, nodes, seen, record)
+            }
+        }
+        // Leaves: no sub-expression can name a `@comptime const`.
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr
+         | AST.CharLitExpr | AST.DotVariantExpr -> {}
+        // Type expressions. A type mentions a const only through a generic
+        // argument, and `GenericInstExpr` above already descends into those; the
+        // written form itself contributes no dependency.
+        is AST.FnTypeExpr | AST.ArrayTypeExpr -> {}
+    }
+}
+
+collect_block_deps :: fn(
+    b: AST.BlockExpr, typed: TypedProgram, nodes: Nodes,
+    seen: MutableMap<i64, bool>, record: NodeRecord,
+) -> void {
+    for s in b.stmts { collect_stmt_deps(s, typed, nodes, seen, record) }
+    if b.trailing !is null {
+        collect_expr_deps(b.trailing, typed, nodes, seen, record)
+    }
+}
+
+collect_stmt_deps :: fn(
+    s: AST.Stmt, typed: TypedProgram, nodes: Nodes,
+    seen: MutableMap<i64, bool>, record: NodeRecord,
+) -> void {
+    match s {
+        is AST.LetStmt    -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.ExprStmt   -> { collect_expr_deps(s.expr, typed, nodes, seen, record) }
+        is AST.ReturnStmt -> {
+            if s.value !is null {
+                collect_expr_deps(s.value, typed, nodes, seen, record)
+            }
+        }
+        is AST.AssignStmt -> { collect_expr_deps(s.target, typed, nodes, seen, record) collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.DestructureAssignStmt -> {
+            for place in AST.assign_places(s) {
+                collect_expr_deps(place, typed, nodes, seen, record)
+            }
+            collect_expr_deps(s.value, typed, nodes, seen, record)
+        }
+        is AST.ForStmt    -> {
+            match while_for :: s.form {
+                is AST.WhileFor -> { collect_expr_deps(while_for.cond, typed, nodes, seen, record) }
+                is AST.InFor -> { collect_expr_deps(while_for.iter, typed, nodes, seen, record) }
+                // `for { ... }` — no header expression, only the body below.
+                is AST.InfiniteFor -> {}
+            }
+            collect_block_deps(s.body, typed, nodes, seen, record)
+        }
+        is AST.YieldStmt -> { collect_expr_deps(s.value, typed, nodes, seen, record) }
+        is AST.DeferStmt -> {
+            match dsb :: s.body {
+                is AST.DeferStmtBody  -> { collect_stmt_deps(dsb.stmt, typed, nodes, seen, record) }
+                is AST.DeferBlockBody -> { collect_block_deps(dsb.block, typed, nodes, seen, record) }
+            }
+        }
+        // Control transfers carry no expression.
+        is AST.BreakStmt | AST.ContinueStmt -> {}
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/parser"
+import "vader/front/resolver/symbol"
+
+build_order :: fn(src: string) -> ComptimeOrder {
+    parsed :: parse_source(src, "t.vader")
+    factory :: SymbolFactory {}
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[]: []
+    result :: check_module(parsed.program, rm, diags)
+    return sort_comptime_decls(parsed.program.decls, result.typed)
+}
+
+@test test_sort_chain_evaluates_deps_first :: fn() -> void {
+    src :: """
+@comptime A :: B + 1
+@comptime B :: C + 1
+@comptime C :: 1
+"""
+    out :: build_order(src)
+    assert_eq(out.cycle_diags.len(), 0)
+    assert_eq(out.order.len(), 3)
+    assert_eq(out.order[0].name, "C")
+    assert_eq(out.order[1].name, "B")
+    assert_eq(out.order[2].name, "A")
+}
+
+@test test_sort_detects_cycle :: fn() -> void {
+    src :: """
+@comptime A :: B
+@comptime B :: A
+"""
+    out :: build_order(src)
+    assert(out.cycle_diags.len() > 0, "cycle should surface as a diagnostic")
+    // Decls inside the cycle drop out of `order` ; the order list is
+    // empty in this two-cycle case.
+    assert_eq(out.order.len(), 0)
+}

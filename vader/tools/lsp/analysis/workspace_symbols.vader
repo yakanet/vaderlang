@@ -13,8 +13,8 @@ import "std/io"
 import "std/sort"
 import "std/string"
 import "vader/tools/lsp/protocol"
-import "vader/parser"
-import "vader/resolver"
+import "vader/front/parser"
+import "vader/front/resolver"
 
 /// A declaration of the workspace : a top-level one, or a member of a type.
 export WorkspaceSymbol :: struct {

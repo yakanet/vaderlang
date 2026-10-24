@@ -18,12 +18,12 @@ export SEP_STR :: "/"
 
 /// Rewrite OS-native path separators to the canonical `/`. The compiler keeps
 /// `/` as its single internal separator — module discovery, the module index,
-/// and `vader/resolver::join_path` are all `/`-based — so a path entering from
+/// and `vader/front/resolver::join_path` are all `/`-based — so a path entering from
 /// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
 /// funnelled through here first, otherwise `parent` / `filename` (which split
 /// on `SEP`) silently return empty. POSIX paths pass through unchanged.
 /// Takes and returns a raw `string`, not a `Path`: the compiler internals it
-/// serves (`vader/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
+/// serves (`vader/front/resolver::loader`, `vader/tools/lsp/protocol::uri`) are string-based,
 /// and the CLI-side `Path` conversion stops at their boundary. Nothing technical
 /// forces this any more — a `Path -> Path` signature used to panic in midir on the
 /// chained cast inside, which is fixed — it is scope.

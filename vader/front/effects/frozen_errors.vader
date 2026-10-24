@@ -1,0 +1,127 @@
+// vader/front/effects/frozen_errors — the errors of the frozen sites.
+//
+// A frozen value written through is T3070, lent to a callee that modifies it
+// T3072, and a view of a string's bytes kept somewhere T3071. The detail names the
+// value, what modifies it down the calls it is lent through (`origin.vader`), and
+// the way out: a copy, which a name bound to a constant holds and `.clone()` makes
+// of a view. A write into such a copy that the body never reads is W0019, at the
+// write.
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "std/string"
+import "toolchain/span"
+import "vader/support/diagnostics"
+
+/// The T3070, T3071 and T3072 errors of a checked project: each frozen value
+/// written through or lent to a callee that modifies it, and each view of a
+/// string's bytes kept or handed to code the summary cannot see ; and the W0019
+/// warnings, each write into a copy of a frozen value that the body never reads
+/// nor keeps.
+///
+/// @param summary  the effect summary of the project.
+export frozen_diagnostics :: fn(summary: EffectSummary) -> Diagnostic[] {
+    out: Diagnostic[]: []
+    warned :: MutableSet<Span> {}
+    for site in summary.frozen {
+        match site.kind {
+            .WriteFault -> {
+                out.push(typecheck_error(.FrozenValueWritten, site.span, fault_detail(site)))
+            }
+            .CallFault  -> {
+                out.push(typecheck_error(.FrozenValueLentToWriter, site.span, fault_detail(site)))
+            }
+            .KeptView   -> {
+                detail :: "${frozen_what(site)} ; ${copy_hint(site, "keep")}"
+                out.push(typecheck_error(.ViewKept, site.span, detail))
+            }
+            .UnreadCopy -> {
+                // Each name bound to the value is a site of its own: one warning per
+                // write.
+                at :: lost_write(site)
+                if warned.add(at) {
+                    detail :: "${frozen_what(site)} ; a name bound to it holds a copy"
+                    out.push(warning(.WriteToUnreadCopy, at, detail))
+                }
+            }
+            .UnknownCall | .Copy | .ElidedCopy | .SharedBinding | .ReturnedView -> {}
+        }
+    }
+    return out
+}
+
+// Where the write into the copy of `site` lands ; the binding when no write was
+// traced.
+lost_write :: fn(site: FrozenSite) -> Span {
+    chain :: site.chain ?? return site.span
+    write :: chain.write ?? return site.span
+    return write.span
+}
+
+// What the frozen value of `site` is.
+frozen_what :: fn(site: FrozenSite) -> string = match site.origin {
+    .Constant    -> "`${site.root}` is a module constant"
+    .View        -> "`${site.root}` returns a view of a string's bytes"
+    .VariantData -> "`${site.root}` reads the data of a variant, which every read shares"
+}
+
+// What a fault is: the frozen value, what modifies it, and the way out.
+fault_detail :: fn(site: FrozenSite) -> string =
+    "${frozen_what(site)}, and ${modified_how(site)} ; ${copy_hint(site, "modify")}"
+
+// The way out of the site: a copy. A name bound to a constant or to variant data
+// holds one ; a view is copied by `.clone()`.
+copy_hint :: fn(site: FrozenSite, purpose: string) -> string = match site.origin {
+    .Constant | .VariantData -> "a name bound to it holds a copy to ${purpose}"
+    .View                    -> "`.clone()` makes a copy to ${purpose}"
+}
+
+// What modifies the value of a fault: the place the body writes, or the function
+// it is lent to, the calls it goes on through, and the place written at the end.
+modified_how :: fn(site: FrozenSite) -> string {
+    chain :: site.chain ?? return "a function it is lent to modifies it"
+    callees: string[]: chain.via.map((hop) -> hop.callee).collect()
+    write :: chain.write
+    if write != null {
+        by :: write.by
+        if by != null {
+            callees.push(by)
+        }
+    }
+    if callees.is_empty() {
+        return write_phrase(write)
+    }
+    head :: "${callees[0]} modifies it${through(callees)}"
+    if write == null {
+        return head
+    }
+    return "${head} (${write_phrase(write)})"
+}
+
+// The calls after the first, ` through `b`, `c``, or nothing.
+through :: fn(callees: string[]) -> string {
+    if callees.len() < 2 {
+        return ""
+    }
+    return " through ${callees[1..<callees.len()].join(", ")}"
+}
+
+// How a write changes its place: `c.n` is assigned, `xs` grows.
+write_phrase :: fn(write: FaultWrite | null) -> string {
+    if write == null {
+        return "it is modified"
+    }
+    place :: "`${write.place}`"
+    return match write.effect {
+        .Assigned -> "${place} is assigned"
+        .Resized  -> "${place} grows"
+        .Shrunk   -> "${place} shrinks"
+        // Only an access that modifies ends a chain (`fault_chain`): the arms keep
+        // the match exhaustive.
+        .Stored   -> "${place} is kept"
+        .Returned -> "${place} is returned"
+        .Unknown  -> "${place} is handed to code the compiler cannot see"
+    }
+}

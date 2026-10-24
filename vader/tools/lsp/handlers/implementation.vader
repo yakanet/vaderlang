@@ -29,7 +29,7 @@ import "toolchain/span"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 AST :: import "toolchain/ast"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// Resolve `textDocument/implementation` for the position in `params`.
 ///

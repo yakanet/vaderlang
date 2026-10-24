@@ -10,8 +10,8 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// Resolve a `std/core` symbol by name from the project's cache.
@@ -130,8 +130,8 @@ has_impl_for :: fn(ctx: LowerProjectCtx, for_type: Type, trait_sym: Symbol) -> b
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/comptime"
-import "vader/resolver"
+import "vader/front/comptime"
+import "vader/front/resolver"
 
 @test test_lookup_core_symbol_missing_returns_null :: fn() -> void {
     typed :: new_typed_project(FreshReads {})

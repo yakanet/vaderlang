@@ -20,10 +20,10 @@ module "vader/lower"
 import "std/collections"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/typecheck"
-import "vader/resolver"
+import "vader/front/typecheck"
+import "vader/front/resolver"
 import "toolchain/span"
 
 /// Record in `project.closures` each lambda's and `defer`'s capture list, and the
@@ -328,7 +328,7 @@ walk_expr :: fn(
         is AST.MatchExpr -> {
             walk_expr(expr.scrutinee, scope, out_captures, out_seen, ctx)
             // `match x :: e` binds ONE name around every arm, minted at the `x`
-            // token (`resolver/body.vader::walk_match`). Without this the name
+            // token (`front/resolver/body.vader::walk_match`). Without this the name
             // reads as a free variable and a lambda around it captures a symbol
             // the enclosing fn has no local for.
             match_added: i32[]: []

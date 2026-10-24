@@ -26,7 +26,7 @@ import "toolchain/span"
 
 /// Sentinel `id` on a node the parser has just minted.
 ///
-/// Node ids are assigned in a later pass (`vader/parser::assign_program_ids`), which
+/// Node ids are assigned in a later pass (`vader/front/parser::assign_program_ids`), which
 /// replaces this with a fresh unique value (≥ 1), so a freshly parsed tree carries
 /// the sentinel everywhere. A generator reading a typechecked tree sees real ids;
 /// one building nodes by hand leaves them at the default — it is every node's
@@ -170,7 +170,7 @@ export TypeParam :: struct {
     /// Default type for this parameter, from `<T = Default>`. Honored when an
     /// impl supplies fewer trait-args than the trait declares — the trailing
     /// params fill from their defaults at impl materialization
-    /// (`resolver/materialize.vader::build_subst`). Defaults on struct / fn /
+    /// (`front/resolver/materialize.vader::build_subst`). Defaults on struct / fn /
     /// alias params parse but are not yet filled at their use sites (those
     /// instantiations error rather than default). `null` = no default.
     default:            TypeExpr | null = null
@@ -414,7 +414,7 @@ export FnParam :: struct {
     variadic:      bool
     /// Decorators written before the parameter (`@c_pointer tv: TimeVal`).
     ///
-    /// REQUIRED, with no default, deliberately: `resolver/substitute_body.vader`
+    /// REQUIRED, with no default, deliberately: `front/resolver/substitute_body.vader`
     /// rebuilds a `FnParam` field by field, and a defaulted field is dropped
     /// there in silence.
     decorators:    Decorator[]
@@ -1246,7 +1246,7 @@ export GenericInstExpr :: struct {
 /// A call to a compiler intrinsic: `@size_of(T)`, `@type_name(T)`.
 ///
 /// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
-/// in `vader/parser/intrinsics.vader`, and the parser mints this node only for a
+/// in `vader/front/parser/intrinsics.vader`, and the parser mints this node only for a
 /// known name — an unknown `@name(...)` in expression position raises P1014.
 export IntrinsicCallExpr :: struct {
     span:      Span
@@ -1376,7 +1376,7 @@ export ArrayTypeExpr :: struct {
 
 /// Flatten a `T | U | V | …` `BitOr` BinaryExpr chain into its variant
 /// list, in source order. Non-`BitOr` expressions are returned as a
-/// single-element list. Used by `vader/tools/fmt` and `vader/typecheck` to
+/// single-element list. Used by `vader/tools/fmt` and `vader/front/typecheck` to
 /// avoid hand-rolling the same recursion on each side.
 export collect_bitor_variants :: fn(e: Expr) -> Expr[] {
     out: Expr[]: []

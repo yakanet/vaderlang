@@ -29,7 +29,7 @@ import "std/sort"
 import "std/iter"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
-Parse :: import "vader/parser"
+Parse :: import "vader/front/parser"
 import "toolchain/span"
 
 /// The organize-imports source action. Registered in `registry::all_source_actions`.
@@ -335,7 +335,7 @@ test_organize_declines_scattered :: fn() -> void {
 test_organize_keeps_namespace_alias :: fn() -> void {
     // Out of order on purpose: sorted input now DECLINES (there is no group break
     // left to insert), so an in-order fixture would assert nothing about rendering.
-    src :: "module \"t\"\n\nP :: import \"vader/parser\"\nimport \"std/string\" { split as cut }\n"
+    src :: "module \"t\"\n\nG :: import \"vader/grid\"\nimport \"std/string\" { split as cut }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)
@@ -343,7 +343,7 @@ test_organize_keeps_namespace_alias :: fn() -> void {
         assert(false, "expected an edit")
         return
     }
-    assert("P :: import \"vader/parser\"" in r.new_text, "namespace-alias import preserved: got [${r.new_text}]")
+    assert("G :: import \"vader/grid\"" in r.new_text, "namespace-alias import preserved: got [${r.new_text}]")
 }
 
 @test

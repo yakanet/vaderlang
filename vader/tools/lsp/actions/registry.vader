@@ -21,7 +21,7 @@ import "vader/support/diagnostics"
 import "vader/tools/fmt"
 import "vader/tools/lsp/protocol"
 AST :: import "toolchain/ast"
-Parse :: import "vader/parser"
+Parse :: import "vader/front/parser"
 import "toolchain/span"
 
 /// What an action needs to produce its edit. Carries the document source so

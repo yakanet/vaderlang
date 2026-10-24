@@ -20,14 +20,14 @@ import "json"
 import "std/collections"
 import "vader/support/diagnostics"
 import "vader/types"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 import "toolchain/span"
 AST :: import "toolchain/ast"
 import "std/io"
 import "std/string"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// Resolve goto-def for the position carried in `params`. Returns
 /// `LocationLink[]` (when `linkSupport`) or a bare `Location`, or

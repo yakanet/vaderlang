@@ -24,10 +24,10 @@ module "vader/lower"
 import "std/collections"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/typecheck"
-import "vader/comptime"
+import "vader/front/typecheck"
+import "vader/front/comptime"
 import "toolchain/span"
 
 /// Lower a `LambdaExpr`. A capture-free one becomes its lifted fn and a

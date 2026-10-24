@@ -1,0 +1,503 @@
+// vader/front/typecheck/expr — bidirectional expression inference orchestrator.
+//
+// The entry point
+// is `check_expr(expr, expected, t, diags) -> Type` :
+//   - bottom-up : compute the natural type of `expr`. Literals are answered
+//     inline in `infer_expr` below (a free int / float / char carries no work
+//     beyond its `TY_FREE_*`) ; every heavier variant has its own file
+//     (`expr_ident`, `call`, `field`, `binary`, `expr_index`, …) and a block
+//     goes to `stmt.vader::check_block`.
+//   - top-down : when `expected` is non-null, narrow FreeInt/FreeFloat
+//     to the concrete primitive so `let x: i64 = 5` works without an
+//     explicit cast.
+//   - records the final type into `typed.expr_types` keyed by the
+//     expression's span.
+//
+// Every Expr variant has a dedicated per-variant handler (literals, ident,
+// call, field, binary, …) and the dispatch match in `infer_expr` is
+// exhaustive — a newly-added Expr variant trips T3013 here.
+
+module "vader/front/typecheck"
+
+import "std/iter"
+import "std/string"
+import "vader/support/diagnostics"
+AST :: import "toolchain/ast"
+import "vader/front/resolver/symbol"
+import "vader/types"
+import "toolchain/span"
+
+/// Type-check `expr`. `expected` provides bidirectional context — pass
+/// `null` for fresh-position uses. The returned `Type` is the post-
+/// narrowing type ; it's also written into `typed.expr_types`.
+check_expr :: fn(
+    expr: AST.Expr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    inferred :: infer_expr(expr, expected, typed, diags)
+    got := inferred
+    if inferred is FnType && inferred.type_params.len() > 0 {
+        got = instantiate_fn_value(expr, inferred, expected, typed, diags)
+    }
+    return finish_check(expr, got, expected, typed, diags)
+}
+
+/// Type-check `expr` with no slot, keeping the quantifier of a generic function it
+/// names : the callee of a call, the value of an alias (`g :: id`), `f` in `f<T>`.
+/// Anywhere else, such a function is instantiated against its slot (`check_expr`).
+///
+/// @param expr   the expression.
+/// @param typed  the module.
+/// @param diags  the diagnostics.
+check_keeping_quantifier :: fn(expr: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type =
+    finish_check(expr, infer_expr(expr, null, typed, diags), null, typed, diags)
+
+// Settle `got` against `expected` and record it as `expr`'s type. An empty-array
+// local takes the array type of the slot it flows into.
+finish_check :: fn(
+    expr: AST.Expr, got: Type, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if expected is ArrayType && widen_empty_array_local(typed, expr, got, expected) {
+        record_expr(typed, expr, expected)
+        return expected
+    }
+    narrowed :: free_value_in_range(expr, got, expected, typed, diags)
+        ?? narrow_for_expected(got, expected)
+    // Still free against a union : no member settled it alone.
+    final :: if expected is UnionType && is_free_numeric(narrowed) {
+        settle_ambiguous_literal(expr, got, expected, diags)
+    } else {
+        narrowed
+    }
+    check_literal_bounds(expr, final, typed, diags)
+    record_expr(typed, expr, final)
+    return final
+}
+
+// The bounds a literal settled to `final` must hold, where both its value and its
+// type are known. A char literal that coerced to a concrete integer must fit it
+// (`b == '💩'` on a `u8`), and so must an integer literal (`x: i32 = 9000000000`,
+// `x: u8 = 300`, `z: u32 = -1`). One left free lowers at its default unless a
+// later context repins it: past that default it waits for the end of the walk.
+check_literal_bounds :: fn(
+    expr: AST.Expr,
+    final: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if final is RangeType {
+        if expr is AST.CharLitExpr && !literal_fits(u64(expr.value), false, final.bounds) {
+            diags.push(typecheck_error(.CharLiteralOutOfRange, expr.span,
+                "character literal (codepoint ${expr.value}) is not in ${display_range(final)}"))
+        }
+        if expr is AST.IntLitExpr && !literal_fits(expr.value, expr.negative, final.bounds) {
+            diags.push(typecheck_error(.IntegerLiteralOutOfRange, expr.span,
+                "`${AST.int_literal_text(expr)}` is not in ${display_range(final)}"))
+        }
+    }
+    if expr is AST.IntLitExpr && final is FreeIntType {
+        defaulted :: integer_values(default_if_free(final)) ?? return
+        if !literal_fits(expr.value, expr.negative, defaulted) {
+            typed.literals_past_default[expr.id] = expr
+        }
+    }
+}
+
+// Settle the checked free value `e` at `t`, a slot type known only once `e` was
+// typed: record `t` along what gives the value, down to the literals that make it
+// (a block's tail, an `if`'s branches, a `match`'s arms, the operands of a
+// negation or of arithmetic), each literal then bound to fit `t`. Nothing is
+// inferred again: a node already concrete, a nested condition or a diverging arm
+// among them, is left alone. Both operands of a free arithmetic or bitwise
+// operator take `t`, a shift's amount included, as they would from a typed slot
+// (`binary.vader::op_expected_ctx`). A block, an `if` or a `match` typed as a union
+// holding a free literal (`{integer} | null`) records the union with `t` in place
+// of that member, and its branches are settled in turn.
+settle_free_value :: fn(e: AST.Expr, t: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    recorded :: typed.expr_types[e.id] ?? return
+    if primitive_name(t) == "" {
+        return
+    }
+    if recorded is UnionType && !settles_through(e) {
+        return
+    }
+    settled :: settled_type(recorded, t) ?? return
+    record_expr(typed, e, settled)
+    // @partial: every other free node is a literal, whose bounds are checked, or a
+    // node with no operand to follow.
+    @partial match e {
+        is AST.BlockExpr        -> {
+            tail :: e.trailing ?? return
+            settle_free_value(tail, t, typed, diags)
+        }
+        is AST.IfExpr           -> {
+            settle_free_value(e.then_block, t, typed, diags)
+            match eb :: e.else_branch {
+                is AST.IfElseBlock -> { settle_free_value(eb.block, t, typed, diags) }
+                is AST.IfElseIf    -> { settle_free_value(eb.branch, t, typed, diags) }
+                is null            -> {}
+            }
+        }
+        is AST.MatchExpr        -> {
+            for arm in e.arms {
+                settle_free_value(arm.body, t, typed, diags)
+            }
+        }
+        is AST.UnaryExpr        -> { settle_free_value(e.operand, t, typed, diags) }
+        is AST.NullCoalesceExpr -> {
+            settle_free_value(e.left, t, typed, diags)
+            fallback :: AST.coalesce_fallback_expr(e.fallback) ?? return
+            settle_free_value(fallback, t, typed, diags)
+        }
+        is AST.BinaryExpr       -> {
+            settle_free_value(e.left, t, typed, diags)
+            settle_free_value(e.right, t, typed, diags)
+        }
+        _                       -> { check_literal_bounds(e, t, typed, diags) }
+    }
+}
+
+// Whether settling a union that holds a free literal reaches the literal through
+// `e`: a block, an `if`, a `match` or a `??`, which the walk descends. A name keeps
+// the type its storage was given.
+settles_through :: fn(e: AST.Expr) -> bool =
+    e is AST.BlockExpr || e is AST.IfExpr || e is AST.MatchExpr || e is AST.NullCoalesceExpr
+
+// `recorded` with its free literal of `t`'s family read as `t`: the type itself, or
+// the member of a union (`{integer} | null` is `u8 | null`) ; null when it holds no
+// such literal.
+settled_type :: fn(recorded: Type, t: Type) -> Type | null {
+    variants: Type[]: []
+    found := false
+    for v in union_variants(recorded) ?? [recorded] {
+        if literal_family_holds(v, t) {
+            variants.push(t)
+            found = true
+        } else {
+            variants.push(v)
+        }
+    }
+    if !found {
+        return null
+    }
+    return union_of(variants)
+}
+
+// T3066 for each literal past its default still free once the module's bodies are
+// typed: no context pinned it, so it lowers at the `i32` it defaults to, wherever
+// it sits (`big :: 9_000_000_000`, `[9_000_000_000]`, `9_000_000_000 + 1`). A
+// literal a later context repinned has its concrete type recorded by then.
+report_literals_past_default :: fn(typed: TypedProgram, diags: Diagnostic[]) -> void {
+    for [id, literal] in typed.literals_past_default {
+        recorded :: typed.expr_types[id] ?? continue
+        if recorded !is FreeIntType {
+            continue
+        }
+        text :: AST.int_literal_text(literal)
+        name :: display_type(default_if_free(recorded))
+        detail :: "`${text}` does not fit in `${name}`, the type it defaults to"
+        diags.push(typecheck_error(.IntegerLiteralOutOfRange, literal.span, detail))
+    }
+}
+
+// A free literal against a union with several candidate members and no default
+// among them is T3089. It recovers as the first candidate, so the error does not
+// cascade into a mismatch against the literal's `i32` default.
+settle_ambiguous_literal :: fn(
+    expr: AST.Expr, got: Type, u: UnionType, diags: Diagnostic[],
+) -> Type {
+    candidates :: union_literal_candidates(got, u)
+    if candidates.len() < 2 {
+        return got
+    }
+    names :: candidates.map((c) -> "`${display_type(c)}`").collect()
+    example :: "`${display_type(candidates[0])}(…)`"
+    diags.push(typecheck_error(.AmbiguousLiteralInUnion, expr.span,
+        "could be ${names.join(", ")} — convert it explicitly, e.g. ${example}"))
+    return candidates[0]
+}
+
+/// Write the final type of `expr` into `expr_types`, plus its kind + span
+/// into the dump-only side-tables. Centralised so every writer keeps the
+/// three in lockstep. `expr_kinds` / `node_spans` are populated only when
+/// `typed.dump_types` is set (the typed-ast dump) — they feed nothing else,
+/// so build / run / LSP skip those two inserts per expression.
+record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
+    typed.expr_types[expr.id] = ty
+    if typed.dump_types {
+        typed.expr_kinds[expr.id] = expr_kind_name(expr)
+        typed.node_spans[expr.id] = expr.span
+    }
+}
+
+/// Map an `AST.Expr` to its variant name as a string. Read by the typed-ast dump
+/// and by `vader/front/comptime`'s C4001 detail, which names the variant the comptime
+/// evaluator gave up on.
+export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
+    is AST.IntLitExpr        -> "IntLitExpr"
+    is AST.FloatLitExpr      -> "FloatLitExpr"
+    is AST.BoolLitExpr       -> "BoolLitExpr"
+    is AST.NullLitExpr       -> "NullLitExpr"
+    is AST.CharLitExpr       -> "CharLitExpr"
+    is AST.StringLitExpr     -> "StringLitExpr"
+    is AST.IdentExpr         -> "IdentExpr"
+    is AST.BlockExpr         -> "BlockExpr"
+    is AST.IfExpr            -> "IfExpr"
+    is AST.MatchExpr         -> "MatchExpr"
+    is AST.CallExpr          -> "CallExpr"
+    is AST.BinaryExpr        -> "BinaryExpr"
+    is AST.NullCoalesceExpr  -> "NullCoalesceExpr"
+    is AST.UnaryExpr         -> "UnaryExpr"
+    is AST.FieldExpr         -> "FieldExpr"
+    is AST.IndexExpr         -> "IndexExpr"
+    is AST.StructLitExpr     -> "StructLitExpr"
+    is AST.SeqLitExpr        -> "SeqLitExpr"
+    is AST.RangeExpr         -> "RangeExpr"
+    is AST.DotVariantExpr    -> "DotVariantExpr"
+    is AST.LambdaExpr        -> "LambdaExpr"
+    is AST.AwaitExpr         -> "AwaitExpr"
+    is AST.CastExpr          -> "CastExpr"
+    is AST.GenericInstExpr   -> "GenericInstExpr"
+    is AST.IntrinsicCallExpr -> "IntrinsicCallExpr"
+    is AST.ArrayTypeExpr     -> "ArrayTypeExpr"
+    is AST.FnTypeExpr        -> "FnTypeExpr"
+}
+
+infer_expr :: fn(
+    expr: AST.Expr, expected: Type | null,
+    typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    // Every Expr variant has a dedicated arm — the match is exhaustive, so
+    // T3013 now guards it: a new Expr variant trips the check here.
+    match expr {
+        is AST.IntLitExpr    -> { return TY_FREE_INT }
+        is AST.FloatLitExpr  -> { return TY_FREE_FLOAT }
+        is AST.BoolLitExpr   -> { return TY_BOOL }
+        is AST.NullLitExpr   -> { return TY_NULL }
+        is AST.CharLitExpr   -> { return TY_FREE_CHAR }
+        is AST.StringLitExpr -> {
+            for part in expr.parts {
+                if part is AST.StringLitInterp {
+                    part_type :: check_expr(part.expr, null, typed, diags)
+                    renders :: check_interpolated_part(part_type, part.expr, typed, diags)
+                    record_site(typed, part.expr, .Display, renders)
+                    mark_display_dispatch(part_type, typed)
+                }
+            }
+            return TY_STRING
+        }
+        is AST.IdentExpr -> {
+            sym :: typed.resolved.idents[expr.span.hash()]
+            if !(sym is null) {
+                if sym.kind == .Const {
+                    settle_const_read(sym, expr.span, typed)
+                }
+                // W0001 : reference to a `@deprecated` decl.
+                msg :: typed.resolved.deprecated_messages[sym.id]
+                if !(msg is null) {
+                    detail: string = "`${expr.name}`"
+                    if msg != "" { detail = "`${expr.name}`: ${msg}" }
+                    diags.push(warning(.UseOfDeprecated, expr.span, detail))
+                }
+            }
+            // A namespace alias is reached through (`L.name`), never a value itself.
+            if namespace_base_mod_id(expr, typed) != null {
+                diags.push(typecheck_error(.ModuleAliasIsNoValue, expr.span,
+                    "`${expr.name}` ; reach one of its members, `${expr.name}.name`"))
+                return TY_UNRESOLVED
+            }
+            return infer_ident(expr, typed)
+        }
+        is AST.BlockExpr -> { return check_block(expr, expected, typed, diags, null) }
+        is AST.IfExpr -> { return infer_if(expr, expected, typed, diags, null) }
+        is AST.MatchExpr -> { return infer_match(expr, expected, typed, diags, null) }
+        is AST.CallExpr -> {
+            called :: infer_call(expr, expected, typed, diags)
+            if !is_checked_conversion(expr, typed) {
+                retire_narrowings_across_call(typed)
+            }
+            return called
+        }
+        is AST.BinaryExpr -> { return infer_binary(expr, expected, typed, diags) }
+        is AST.NullCoalesceExpr -> { return infer_null_coalesce(expr, expected, typed, diags) }
+        is AST.FieldExpr -> { return infer_field(expr, expected, typed, diags) }
+        is AST.StructLitExpr -> { return infer_struct_lit(expr, typed, diags) }
+        is AST.SeqLitExpr -> { return infer_seq_lit(expr, expected, typed, diags) }
+        is AST.UnaryExpr -> { return infer_unary(expr, expected, typed, diags) }
+        is AST.IndexExpr -> { return infer_index(expr, typed, diags) }
+        is AST.CastExpr -> { return infer_cast(expr, typed, diags) }
+        is AST.RangeExpr -> { return infer_range(expr, expected, typed, diags) }
+        is AST.DotVariantExpr -> { return infer_dot_variant(expr, expected, typed, diags) }
+        is AST.LambdaExpr -> { return infer_lambda(expr, expected, typed, diags) }
+        is AST.AwaitExpr -> {
+            awaited :: infer_await(expr, typed, diags)
+            retire_narrowings_across_call(typed)
+            return awaited
+        }
+        is AST.IntrinsicCallExpr -> { return infer_intrinsic(expr, typed, diags) }
+        is AST.GenericInstExpr -> { return infer_generic_inst(expr, expected, typed, diags) }
+        is AST.ArrayTypeExpr -> { return infer_array_type_value(expr, typed, diags) }
+        is AST.FnTypeExpr -> { return infer_fn_type_value(expr, typed, diags) }
+    }
+}
+
+// Attribute to the enclosing fn the `Display` an interpolated value dispatches on
+// a type-param — see `fn_display_dispatches`.
+mark_display_dispatch :: fn(type: Type, typed: TypedProgram) -> void {
+    if !type_contains_type_param(type) {
+        return
+    }
+    fn_ctx :: typed.current_fn_ctx ?? return
+    if fn_ctx.fn_id != 0 {
+        typed.fn_display_dispatches[fn_ctx.fn_id] = true
+    }
+}
+
+// T3018 : an interpolated value renders through its `Display`, so a type with
+// none is refused here — past this check it would compile and fail at run time,
+// a dispatch finding no impl.
+//
+// T3086 : a boxed enum or distinct carries its representation's runtime type, not
+// its own, so one reached through a union — the value itself, or an array's
+// elements — would render through its representation's `Display`. Refused until a
+// boxed value keeps its identity ; a narrowed value renders through its own. Only
+// worth reporting on a type that would otherwise render.
+//
+// Returns what renders the value (`display_callee`), `ErroneousCallee` once refused.
+check_interpolated_part :: fn(
+    type: Type, part: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
+) -> Callee {
+    if has_display(type, typed) {
+        boxed :: boxed_without_identity(type, typed) ?? return display_callee(typed, type)
+        diags.push(typecheck_error(.UnionLosesVariantIdentity, part.span,
+            "narrow it to `${boxed.name}` first"))
+        return ERRONEOUS_CALLEE
+    }
+    // @partial: only a type parameter and an enum have a remedy worth naming.
+    detail :: @partial match type {
+        is TypeParamType -> "type parameter `${type.symbol.name}` has no `Display` bound"
+        is EnumType      -> ("`${type.symbol.name}` does not implement it ; add `@displayable` to "
+            + "render its variant names, or implement `Display`")
+        _                -> ("`${display_type(type)}` does not implement it"
+            + unmet_impl_bound_note(type, core_trait_key(TRAIT_DISPLAY), typed))
+    }
+    diags.push(typecheck_error(.InterpolationRequiresDisplay, part.span, detail))
+    return ERRONEOUS_CALLEE
+}
+
+// Whether a value of type `t` renders through `Display`: its own impl, a
+// distinct's backing, the elements of an array, every variant of a union, a
+// type parameter's bound.
+has_display :: fn(t: Type, typed: TypedProgram) -> bool = match t {
+    is PrimitiveType | StructType | EnumType -> struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
+    is DistinctType  -> (struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed)
+        || has_display(t.backing, typed))
+    is ArrayType     -> has_display(t.element, typed)
+    is UnionType     -> all_display(t.variants, typed)
+    // A range renders as its integer.
+    is RangeType     -> true
+    is TypeParamType -> bound_names_display(typed.resolved.type_param_bounds[t.symbol.id], typed)
+    is TraitType     -> is_core_trait(t, TRAIT_DISPLAY)
+    is FreeIntType | FreeFloatType | FreeCharType | NeverType -> true
+    // A trait's own body is checked once per implementor, with `Self` resolved.
+    is SelfType -> true
+    // Already reported where the type failed to resolve.
+    is UnresolvedType | AnyType | InferVar -> true
+    is TupleType | FnType | TypeMetaType -> false
+}
+
+all_display :: fn(types: Type[], typed: TypedProgram) -> bool {
+    for t in types {
+        if !has_display(t, typed) {
+            return false
+        }
+    }
+    return true
+}
+
+bound_names_display :: fn(bound: AST.Expr | null, typed: TypedProgram) -> bool {
+    if bound == null {
+        return false
+    }
+    return bounded_trait_args(bound, core_trait_key(TRAIT_DISPLAY), typed) != null
+}
+
+// The first enum or distinct `t` holds as a union variant, looking through array
+// elements : boxed, it loses its identity (`variant_without_identity`).
+boxed_without_identity :: fn(t: Type, typed: TypedProgram) -> Symbol | null {
+    if t is ArrayType {
+        return boxed_without_identity(t.element, typed)
+    }
+    if t !is UnionType {
+        return null
+    }
+    return variant_without_identity(t, core_trait_key(TRAIT_DISPLAY), typed)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_check_expr_writes_into_expr_types :: fn() -> void {
+    typed :: empty_typed_program()
+    e :: AST.IntLitExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42,
+    }
+    diags: Diagnostic[]: []
+    check_expr(e, null, typed, diags)
+    hit :: typed.expr_types[e.id]
+    match hit {
+        is null -> { assert(false, "expr_types should have an entry") }
+        is FreeIntType -> {}
+        is FreeCharType -> {}
+        _ -> { assert(false, "expected FreeInt") }
+    }
+}
+
+@test
+test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
+    typed :: empty_typed_program()
+    e :: AST.IntLitExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42,
+    }
+    diags: Diagnostic[]: []
+    expected: Type: TY_I64
+    result :: check_expr(e, expected, typed, diags)
+    assert_eq(display_type(result), "i64")
+}
+
+@test
+test_check_expr_keeps_free_float_when_no_expected :: fn() -> void {
+    typed :: empty_typed_program()
+    e :: AST.FloatLitExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 1.5,
+    }
+    diags: Diagnostic[]: []
+    result :: check_expr(e, null, typed, diags)
+    assert(result is FreeFloatType, "unconstrained float stays FreeFloat")
+}
+
+@test
+test_check_expr_narrows_through_block :: fn() -> void {
+    // `{ 42 }` with expected = i64 narrows the inner literal end-to-end :
+    // outer `check_expr` calls `infer_block`, `infer_block` recurses via
+    // `check_expr` on the trailing, the recursive call narrows FreeInt to
+    // i64. The outer wrapper writes the final i64 into expr_types for
+    // the block too.
+    typed :: empty_typed_program()
+    inner :: AST.IntLitExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .value = 42,
+    }
+    block :: AST.BlockExpr {
+        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
+        .stmts = [], .trailing = inner,
+    }
+    diags: Diagnostic[]: []
+    expected: Type: TY_I64
+    assert_eq(display_type(check_expr(block, expected, typed, diags)), "i64")
+}

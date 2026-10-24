@@ -109,7 +109,7 @@ hosted_frame_call :: fn(
 ///                  import, malformed arg, host-level failure, or an impure host
 ///                  reached at comptime.
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
-///                  `is_comptime` and the host is impure — `comptime/vm` routes
+///                  `is_comptime` and the host is impure — `front/comptime/vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
 export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId, adapter: i64) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
@@ -872,7 +872,7 @@ mirror_field_value :: fn(val: bc.ValType, raw: i64) -> Value = match val {
     .I8 | .I16 | .I32 | .U8 | .U16 | .U32  -> I32Val(i32(raw))
     .I64 | .U64 | .Pointer                 -> I64Val(raw)
     // A float field is read by `read_float`; the rest is no mirror field
-    // (`typecheck/decl::validate_mirror_fields`).
+    // (`front/typecheck/decl::validate_mirror_fields`).
     .F32 | .F64 | .String | .Null | .Void | .Ref | .Any -> I64Val(raw)
 }
 
@@ -1070,7 +1070,7 @@ retyped_int :: fn(old: Value, n: i64) -> Value {
     if old is I64Val {
         return I64Val(n)
     }
-    // A mirror field may be `bool` or `char` — `typecheck/decl::validate_mirror_fields`
+    // A mirror field may be `bool` or `char` — `front/typecheck/decl::validate_mirror_fields`
     // admits both. Handing back an `I32Val` would silently retype the field, so
     // it stops answering `is bool` after the call even though the byte is right.
     if old is BoolVal {
@@ -1085,7 +1085,7 @@ retyped_int :: fn(old: Value, n: i64) -> Value {
 /// Read a mirror field as the machine word the block stores.
 ///
 /// Wider than `read_i64` on purpose: a `bool` and a `char` are admitted mirror
-/// field types (`typecheck/decl::validate_mirror_fields`) and the native shim
+/// field types (`front/typecheck/decl::validate_mirror_fields`) and the native shim
 /// copies them with a plain C assignment, so the interpreter has to serialise
 /// them too rather than trapping on a shape the front end allowed.
 ///
@@ -1161,7 +1161,7 @@ is_profiler_bracket :: fn(symbol: string) = symbol == "vader_prof_begin"
 // ---- comptime impurity gate -----------------------------------------------
 
 // Stable marker embedded in the Trap message the comptime impurity gate
-// produces. `comptime/vm/resolve.vader` matches it (via
+// produces. `front/comptime/vm/resolve.vader` matches it (via
 // `is_impure_comptime_trap_message`) to route the error to C4016 instead of the
 // generic C4002 panic — the two modules share this one string so they can't
 // drift.
@@ -1173,7 +1173,7 @@ impure_comptime_trap :: fn(mangled: string) -> HostCallResult =
     Trap { .message = "host `${mangled}` ${IMPURE_COMPTIME_MARKER} — it answers for the machine the compiler runs on, so baking it would make the same source emit differently per builder" }
 
 /// Report whether a Trap message came from the comptime impurity gate.
-/// Used by `comptime/vm/resolve.vader` to pick C4016 over C4002.
+/// Used by `front/comptime/vm/resolve.vader` to pick C4016 over C4002.
 /// @param message  the `Trap.message` surfaced by a comptime VM run.
 /// @return         true when the trap is an impure-host-at-comptime refusal.
 export is_impure_comptime_trap_message :: fn(message: string) -> bool =

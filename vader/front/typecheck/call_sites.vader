@@ -1,0 +1,792 @@
+// vader/front/typecheck/call_sites — what each call invokes, as the typecheck settled it.
+//
+// The typecheck decides a call's callee in several places: `field.vader` for a
+// member (an impl member, a bound's, a trait value's, a free fn by UFCS),
+// `call.vader` for an overload, the resolver for a plain name. Each decision is
+// noted on the callee node as it is taken (`note_callee`, into `callees`), and
+// `infer_call` files it under the call (`call_sites`), so one table answers what
+// a call runs. A plain name, and a namespace member, are the fn the resolver
+// bound.
+//
+// A node also calls without a call expression: an operator through its trait, an
+// index through `Index` / `IndexSet`. Each such site is filed under its node and
+// the role it plays there (`CallSites`). Its check files `UnsettledCallee` on
+// entry and each route then files what it decided, `Builtin` when nothing is
+// called: a route that decides nothing shows as unsettled instead of passing for a
+// built-in operation.
+//
+// A call to a generic fn keeps the types its arguments bound the fn's type
+// parameters to (`DirectFn.bindings`), and the calls written in each function are
+// listed under it (`CallSites.calls_in_fn`) : together, the edges of the call
+// graph a property over the functions follows.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "std/path"
+import "std/sort"
+import "std/string"
+import "std/string_builder"
+import "toolchain/span"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
+import "vader/types"
+
+AST :: import "toolchain/ast"
+
+/// A known declaration: a free fn, an impl member (a materialised one included),
+/// a namespace member. Its node id names the function.
+export DirectFn :: struct {
+    decl: AST.FnDecl
+    /// An impl member chosen against a type parameter of the enclosing body: an impl
+    /// on the instance's own type wins over it there (impl specialization).
+    per_instance: bool = false
+    /// The type each type parameter of a generic fn takes where it is instantiated
+    /// (a call, a reference, an array receiver), by the parameter's symbol id ; null
+    /// for a fn that takes none, and on any other site.
+    bindings: MutableMap<i32, Type> | null = null
+}
+
+/// A member reached through the bound of a type parameter, settled at each
+/// instance.
+export BoundMember :: struct {
+    trait_key: string
+    member: string
+    /// The trait's arguments as the bound names them (`T: Mul<f64>` → `[f64]`) :
+    /// what picks among several impls of the trait on the instance.
+    trait_args: Type[] = []
+    /// The type each type parameter of the member's own takes at a call, in the
+    /// order the trait declares them (`conv<U>` called on `1.5` → `[f64]`).
+    own_args: Type[] = []
+}
+
+/// A member of a trait value, or of a union whose every variant implements the
+/// trait: dispatched at run time on the value's tag.
+export TraitMember :: struct {
+    trait_key: string
+    member: string
+}
+
+/// A call through a value of function type: a parameter, a local, a field, the
+/// result of an expression.
+export FnValue :: struct {}
+
+/// No call at all: a cast `T(x)` that runs no `into`, a numeric operator.
+export Builtin :: struct {}
+
+/// A callee that is not a function: the error is reported.
+export ErroneousCallee :: struct {}
+
+/// A valid call the typecheck reached by a form this record does not cover.
+export UnsettledCallee :: struct {}
+
+/// Several calls at one site, each run: the `equals` of every part a structural
+/// `==` compares (a tuple's elements, a union's variants).
+export EachOf :: struct {
+    callees: Callee[]
+}
+
+/// What a call invokes.
+export Callee :: DirectFn
+        | BoundMember
+        | TraitMember
+        | FnValue
+        | Builtin
+        | ErroneousCallee
+        | UnsettledCallee
+        | EachOf
+
+/// The part a site plays at its node.
+export CallRole :: enum {
+    /// A call expression `f(x)`, `x.m()`.
+    Call,
+    /// A binary operator, `in` included.
+    Operator,
+    /// `x[i]` read.
+    IndexRead,
+    /// `x[i] = v`, and the write-back of `x[i] op= v`.
+    IndexWrite,
+    /// The `into` an implicit conversion runs, at the converted value.
+    Into,
+    /// The `into` a `for` makes an iterator of its iterable with, at the iterable.
+    IterInto,
+    /// The `next` each step of a `for` calls, at the iterable.
+    IterNext,
+    /// What renders an interpolated `${value}`, at the value.
+    Display,
+    /// A generic function named as a value, at the name : the instance it takes.
+    Reference,
+    /// A member, or a free function by UFCS, taken as a value on its receiver
+    /// (`g :: p.label`), at the field access : what the closure calls.
+    MethodValue,
+}
+
+/// The sites of a module, one table per role, each keyed by the node's id. A node
+/// may play several roles (`m[k] += v` reads, applies the operator, writes back).
+export CallSites :: struct {
+    /// The calls written in each function, by its declaration's id. A lambda's are
+    /// its enclosing function's, whose instances it shares.
+    calls_in_fn: MutableMap<i64, i64[]> = MutableMap<i64, i64[]> {}
+    calls: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    /// Where each instantiation of a generic fn sits, by its node id : the calls
+    /// `calls` records with bindings, every site `references` records, each generic
+    /// fn `method_values` records, and every member access `receiver_instances`
+    /// records.
+    instantiation_spans: MutableMap<i64, Span> = MutableMap<i64, Span> {}
+    /// The function each of those sites sits in, by its declaration's id ; none at
+    /// module level.
+    instantiation_callers: MutableMap<i64, i64> = MutableMap<i64, i64> {}
+    operators: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    index_reads: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    index_writes: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    iterator_conversions: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    iterator_steps: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    displays: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    references: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    method_values: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+    /// The member accesses on an array receiver whose element names a type
+    /// parameter, by node id : the member, with what the receiver gives the impl's
+    /// parameters (`[self]` binds `T[] implements<T>`'s `T` to `T[]`).
+    receiver_instances: MutableMap<i64, Callee> = MutableMap<i64, Callee> {}
+}
+
+/// Note that the site `id`, at `span`, instantiates a generic : the growing-recursion
+/// check reads it as an edge from the function it sits in.
+///
+/// @param typed  the module.
+/// @param id     the site's node id.
+/// @param span   where it is written.
+note_instantiation_site :: fn(typed: TypedProgram, id: i64, span: Span) -> void {
+    typed.call_sites.instantiation_spans[id] = span
+    caller :: current_fn_id(typed) ?? return
+    typed.call_sites.instantiation_callers[id] = caller
+}
+
+// The declaration id of the function being checked ; null at module level.
+current_fn_id :: fn(typed: TypedProgram) -> i64 | null {
+    ctx :: typed.current_fn_ctx ?? return null
+    if ctx.fn_id == 0 {
+        return null
+    }
+    return ctx.fn_id
+}
+
+/// The table of the sites playing `role`.
+///
+/// @param sites  a module's sites (`TypedProgram.call_sites`).
+/// @param role   the part the sites play.
+export sites_of :: fn(sites: CallSites, role: CallRole) -> MutableMap<i64, Callee> = match role {
+    .Call        -> sites.calls
+    .Operator    -> sites.operators
+    .IndexRead   -> sites.index_reads
+    .IndexWrite  -> sites.index_writes
+    .Into        -> sites.conversions
+    .IterInto    -> sites.iterator_conversions
+    .IterNext    -> sites.iterator_steps
+    .Display     -> sites.displays
+    .Reference   -> sites.references
+    .MethodValue -> sites.method_values
+}
+
+/// Every role, for a reader that walks them all : a role added to `CallRole` is
+/// added here.
+export all_roles :: fn() -> CallRole[] = [
+    .Call,
+    .Operator,
+    .IndexRead,
+    .IndexWrite,
+    .Into,
+    .IterInto,
+    .IterNext,
+    .Display,
+    .Reference,
+    .MethodValue,
+]
+
+/// The declarations `callee` runs by name: a known fn's, each of a structural
+/// `==`'s ; none for a member dispatched per instance or at run time, a value, a
+/// built-in operation or an unsettled site.
+///
+/// @param callee  what a site invokes.
+export named_decls :: fn(callee: Callee) -> AST.FnDecl[] = match callee {
+    is DirectFn -> [callee.decl]
+    is EachOf   -> each_named_decls(callee)
+    is BoundMember | TraitMember | FnValue | Builtin | ErroneousCallee | UnsettledCallee -> []
+}
+
+each_named_decls :: fn(callee: EachOf) -> AST.FnDecl[] {
+    out: AST.FnDecl[]: []
+    for part in callee.callees {
+        out.push_all(named_decls(part))
+    }
+    return out
+}
+
+FN_VALUE_CALLEE  :: FnValue {}
+BUILTIN_CALLEE   :: Builtin {}
+ERRONEOUS_CALLEE :: ErroneousCallee {}
+UNSETTLED_CALLEE :: UnsettledCallee {}
+
+// Note what the member access `e` invokes : as the callee being typed, or as the
+// method value it takes outside a call (`g :: p.label`). A field holds its value
+// and invokes nothing.
+note_callee :: fn(typed: TypedProgram, e: AST.FieldExpr, callee: Callee) -> void {
+    if typed.callee_field_id == e.id {
+        typed.callees[e.id] = callee
+        return
+    }
+    if callee !is FnValue {
+        record_site(typed, e, .MethodValue, callee)
+    }
+}
+
+// The impl member `decl` chosen against `receiver` : chosen again at each instance
+// when `receiver` mentions a type parameter, where an impl on the instance's own
+// type wins over it.
+member_callee :: fn(decl: AST.FnDecl | null, receiver: Type) -> Callee =
+    direct_callee(decl, type_contains_type_param(receiver))
+
+// The declaration a decision settled on ; a candidate without one (an imported
+// overload) is a form the record does not cover.
+direct_callee :: fn(decl: AST.FnDecl | null, per_instance: bool) -> Callee {
+    if decl == null {
+        return UNSETTLED_CALLEE
+    }
+    return DirectFn { .decl = decl, .per_instance = per_instance }
+}
+
+/// The declaration the typecheck recorded for the call `c`, when it names one: a
+/// known fn, by whatever dispatch ; null for a member reached through a bound or
+/// dispatched at run time, a value of function type, or a call not typed yet.
+///
+/// @param typed  the module `c` was checked in.
+/// @param c      the call.
+export recorded_decl :: fn(typed: TypedProgram, c: AST.CallExpr) -> AST.FnDecl | null =
+    direct_decl(sites_of(typed.call_sites, .Call)[c.id])
+
+// The declaration `callee` names when it is a known fn.
+direct_decl :: fn(callee: Callee | null) -> AST.FnDecl | null {
+    if callee is DirectFn {
+        return callee.decl
+    }
+    return null
+}
+
+/// How many of `decl`'s parameters the method-form call `c` fills with its receiver:
+/// 1 for a member that takes `self` and for a free function called by UFCS, 0 for a
+/// static member, a namespace member and a call that is not in method form.
+///
+/// @param c      the call.
+/// @param decl   the declaration the record names for it.
+/// @param typed  the module that checked the call.
+export receiver_offset :: fn(c: AST.CallExpr, decl: AST.FnDecl, typed: TypedProgram) -> i64 {
+    if c.callee !is AST.FieldExpr {
+        return 0
+    }
+    if typed.ufcs_receiver_types[c.callee.id] != null {
+        return 1
+    }
+    if chosen_impl_decl(typed, c.callee.id) == null {
+        return 0
+    }
+    return receiver_count(decl)
+}
+
+record_call_site :: fn(typed: TypedProgram, c: AST.CallExpr, callee: Callee) -> void =
+    record_site(typed, c, .Call, callee)
+
+// File what the site `role` plays at `node` invokes. A node built after the
+// numbering (the comparison of a `match` literal pattern) has no id of its own and
+// is not filed.
+record_site :: fn(typed: TypedProgram, node: AST.Expr, role: CallRole, callee: Callee) -> void {
+    if node.id == AST.UNASSIGNED_NODE_ID {
+        return
+    }
+    table :: sites_of(typed.call_sites, role)
+    filed :: table.len()
+    table[node.id] = callee
+    // A node checked twice (an overload's first argument, a lambda's rounds) is
+    // listed once.
+    if role == .Call && table.len() > filed {
+        file_in_fn(typed, node.id)
+    }
+    if typed.dump_types {
+        typed.node_spans[node.id] = node.span
+    }
+}
+
+// List the call `node` under the function being checked ; a module-level
+// initialiser is in none.
+file_in_fn :: fn(typed: TypedProgram, node: i64) -> void {
+    fn_id :: current_fn_id(typed) ?? return
+    nodes :: typed.call_sites.calls_in_fn[fn_id]
+    if nodes == null {
+        typed.call_sites.calls_in_fn[fn_id] = [node]
+        return
+    }
+    nodes.push(node)
+}
+
+// Note the type each type parameter of `c`'s callee takes at the call, once its
+// arguments bound them, each free literal first pinned to its default in place : the
+// record holds no free type, and the caller substitutes the same map. `bindings` is
+// kept as is : the caller must not change it afterwards.
+note_call_bindings :: fn(
+    typed: TypedProgram,
+    c: AST.CallExpr,
+    quantifier: TypeParamType[],
+    bindings: MutableMap<i32, Type>,
+) -> void {
+    default_free_bindings(bindings)
+    callee :: typed.call_sites.calls[c.id] ?? return
+    if bindings.len() == 0 {
+        return
+    }
+    if callee is BoundMember {
+        own_args :: in_order(quantifier, bindings)
+        typed.call_sites.calls[c.id] = BoundMember { ...callee, .own_args = own_args }
+        return
+    }
+    if callee !is DirectFn {
+        return
+    }
+    typed.call_sites.calls[c.id] = DirectFn { ...callee, .bindings = bindings }
+    note_instantiation_site(typed, c.id, c.span)
+    if typed.enclosing_impl != 0 && names_impl_param(bindings, typed.enclosing_impl_params) {
+        typed.impl_param_forwards[c.id] = c.span
+    }
+}
+
+// Whether a binding names one of `impl_params`.
+names_impl_param :: fn(bindings: MutableMap<i32, Type>, impl_params: MutableSet<i32>) -> bool {
+    if impl_params.is_empty() {
+        return false
+    }
+    for [_, bound] in bindings {
+        for tp in type_params_in(bound) {
+            if tp.id in impl_params {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// The type `bindings` gives each of `quantifier`, in order ; unresolved for one it
+// leaves unbound.
+in_order :: fn(quantifier: TypeParamType[], bindings: MutableMap<i32, Type>) -> Type[] {
+    out: Type[]: []
+    for tp in quantifier {
+        out.push(bindings[tp.symbol.id] ?? TY_UNRESOLVED)
+    }
+    return out
+}
+
+// Pin every free literal type `bindings` holds to its default (`{integer}` → `i32`).
+default_free_bindings :: fn(bindings: MutableMap<i32, Type>) -> void {
+    for k in bindings.keys() {
+        v :: bindings[k] ?? continue
+        bindings[k] = default_if_free(v)
+    }
+}
+
+// What the call `c` invokes : the decision noted on its callee, else the fn the
+// callee names (`named`, `lookup_callee_fn_decl`).
+callee_of_call :: fn(
+    typed: TypedProgram,
+    c: AST.CallExpr,
+    callee_ty: Type,
+    named: AST.FnDecl | null,
+) -> Callee {
+    if callee_ty !is FnType {
+        return ERRONEOUS_CALLEE
+    }
+    return typed.callees[c.callee.id] ?? named_callee(typed, c.callee, named)
+}
+
+named_callee :: fn(typed: TypedProgram, callee: AST.Expr, named: AST.FnDecl | null) -> Callee {
+    if named != null {
+        return DirectFn { .decl = named }
+    }
+    if calls_a_value(typed, callee) {
+        return FN_VALUE_CALLEE
+    }
+    return UNSETTLED_CALLEE
+}
+
+// A callee that is no name (`make()(1)`, `fs[0](1)`), or a name bound to a value :
+// a parameter, a local, a pattern binding, a constant.
+calls_a_value :: fn(typed: TypedProgram, callee: AST.Expr) -> bool {
+    if callee is AST.FieldExpr {
+        return false
+    }
+    if callee !is AST.IdentExpr {
+        return true
+    }
+    sym :: typed.resolved.idents[callee.span.hash()] ?? return false
+    return match sym.kind {
+        .Param | .Local | .Binding | .Const -> true
+        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias -> false
+        .ImportBinding | .TypeParam | .BuiltinType | .BuiltinFn -> false
+        .Synthetic -> false
+    }
+}
+
+// ---- implicit sites -------------------------------------------------------
+
+// The member a bounded type parameter (or `Self`) dispatches to is settled at each
+// instance, among the impls of the trait at `trait_args` ; one of a trait value, of
+// a union or of an erased value, at run time on its tag.
+dispatched_callee :: fn(
+    receiver: Type,
+    trait_key: string,
+    member: string,
+    trait_args: Type[] = [],
+) -> Callee {
+    if receiver is TypeParamType | SelfType {
+        return BoundMember {
+            .trait_key = trait_key,
+            .member = member,
+            .trait_args = trait_args,
+        }
+    }
+    return TraitMember { .trait_key = trait_key, .member = member }
+}
+
+// The callee of the first impl of `trait_key` that offers `member` on `receiver`,
+// for a receiver with one ; looked at again at each instance when `receiver`
+// mentions a type parameter.
+first_member_callee :: fn(
+    typed: TypedProgram,
+    receiver: Type,
+    trait_key: string,
+    member: string,
+) -> Callee {
+    members :: trait_members(typed, receiver, trait_key, member)
+    if members.len() == 0 {
+        return UNSETTLED_CALLEE
+    }
+    return member_callee(members[0].decl, receiver)
+}
+
+/// Whether the lowering converts `source` into `target` as an array into an
+/// `Iterator`: any array into any `Iterator`, the element settled by the slot that
+/// accepted it.
+///
+/// @param source  the converted value's type.
+/// @param target  the slot's type.
+converts_array_to_iterator :: fn(source: Type, target: Type) -> bool =
+    source is ArrayType && core_trait_arg(target, TRAIT_ITERATOR) != null
+
+/// The `into` a conversion of `source` into `target` runs: an array into an
+/// `Iterator` through the impl toward the target's base, nothing for the same type
+/// or for a distinct handing out its own backing, else the one the typecheck
+/// accepted (`into_converting`). A source that mentions a type parameter is looked
+/// at again at each instance.
+///
+/// @param typed   the module the conversion is written in.
+/// @param source  the converted value's type.
+/// @param target  the type it converts into.
+/// @return        null when the conversion runs no `into`.
+conversion_callee :: fn(typed: TypedProgram, source: Type, target: Type) -> Callee | null {
+    if converts_array_to_iterator(source, target) {
+        array_into :: into_impl_method(typed, source, target) ?? return UNSETTLED_CALLEE
+        return member_callee(array_into.decl, source)
+    }
+    if equals_type(source, target) {
+        return null
+    }
+    if source is DistinctType && equals_type(source.backing, target) {
+        return null
+    }
+    method :: into_converting(typed, source, target) ?? return null
+    return member_callee(method.decl, source)
+}
+
+/// File what `for x in iter` runs at `iter`: the `next` each step calls, and first
+/// the `into` that makes an iterator of it, for a type that only converts into one.
+///
+/// @param typed    the module being checked.
+/// @param iter     the iterable.
+/// @param iter_ty  its type.
+record_for_sites :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> void =
+    record_site(typed, iter, .IterNext, step_callee(typed, iter, iter_ty))
+
+// What each step of a `for` over `iter_ty` calls ; a type that only converts into
+// an iterator files that `into` as it goes.
+step_callee :: fn(typed: TypedProgram, iter: AST.Expr, iter_ty: Type) -> Callee {
+    // Walking an array, or counting through a range written in place, is the
+    // language's own.
+    if array_backing(iter_ty) != null || counts_in_place(typed, iter) {
+        return BUILTIN_CALLEE
+    }
+    iterator :: core_trait_key(TRAIT_ITERATOR)
+    if iter_ty is TypeParamType | SelfType | TraitType {
+        return dispatched_callee(iter_ty, iterator, METHOD_NEXT)
+    }
+    if iter_ty is StructType && is_gen_state_struct(iter_ty) {
+        return direct_callee(generator_of_state(iter_ty, typed), false)
+    }
+    // A type that is an iterator itself is walked through its own `next`, whatever
+    // it converts into.
+    if struct_implements_trait(iter_ty, iterator, typed) {
+        return first_member_callee(typed, iter_ty, iterator, METHOD_NEXT)
+    }
+    for m in trait_members(typed, iter_ty, core_trait_key(TRAIT_INTO), METHOD_INTO) {
+        if m.trait_args.len() == 1 && core_trait_arg(m.trait_args[0], TRAIT_ITERATOR) != null {
+            record_site(typed, iter, .IterInto, member_callee(m.decl, iter_ty))
+            // The `Iterator` trait value the conversion hands back steps at run time.
+            return TraitMember { .trait_key = iterator, .member = METHOD_NEXT }
+        }
+    }
+    // A distinct with no iterator of its own walks its backing.
+    if iter_ty is DistinctType {
+        return step_callee(typed, iter, iter_ty.backing)
+    }
+    if iter_ty is UnresolvedType {
+        return ERRONEOUS_CALLEE
+    }
+    return UNSETTLED_CALLEE
+}
+
+// Whether `iter` is a range written in place whose lower bound counts
+// (`is_counting_type`) : the lowering walks it with a counter.
+counts_in_place :: fn(typed: TypedProgram, iter: AST.Expr) -> bool {
+    if iter !is AST.RangeExpr {
+        return false
+    }
+    lower :: typed.expr_types[iter.lower.id] ?? return false
+    return is_counting_type(lower)
+}
+
+/// What `${value}` runs to render a value of type `t`: an integer, a `bool` or a
+/// `string` is written by the interpolation itself, any other type through the
+/// `to_string` of its `Display`, chosen per instance on a type parameter and at run
+/// time on a trait value or a union. A free literal renders as the type it
+/// defaults to, and a distinct with no `Display` of its own as its backing does.
+///
+/// @param typed  the module being checked.
+/// @param t      the interpolated value's type, known to implement `Display`.
+display_callee :: fn(typed: TypedProgram, t: Type) -> Callee = match t {
+    is PrimitiveType -> primitive_display(typed, t)
+    is RangeType -> BUILTIN_CALLEE
+    is FreeIntType | FreeFloatType | FreeCharType -> display_callee(typed, default_if_free(t))
+    is TypeParamType | InferVar | SelfType | TraitType
+     | UnionType | AnyType -> dispatched_display(t)
+    is StructType | EnumType | ArrayType -> display_member(typed, t)
+    is DistinctType -> distinct_display(typed, t)
+    // A value that never exists is never rendered.
+    is NeverType -> BUILTIN_CALLEE
+    is TupleType | FnType | UnresolvedType | TypeMetaType -> ERRONEOUS_CALLEE
+}
+
+dispatched_display :: fn(t: Type) -> Callee =
+    dispatched_callee(t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+
+display_member :: fn(typed: TypedProgram, t: Type) -> Callee =
+    first_member_callee(typed, t, core_trait_key(TRAIT_DISPLAY), METHOD_TO_STRING)
+
+// The interpolation writes a `bool` or a `string` itself ; any other primitive
+// renders through its `Display`.
+primitive_display :: fn(typed: TypedProgram, t: PrimitiveType) -> Callee {
+    if t.name == "bool" || t.name == "string" {
+        return BUILTIN_CALLEE
+    }
+    return display_member(typed, t)
+}
+
+// A distinct renders through its own `Display`, else as its backing does.
+distinct_display :: fn(typed: TypedProgram, t: DistinctType) -> Callee {
+    if struct_implements_trait(t, core_trait_key(TRAIT_DISPLAY), typed) {
+        return display_member(typed, t)
+    }
+    return display_callee(typed, t.backing)
+}
+
+/// What `left == right` runs, once the two are known to compare: the `Equals` of
+/// each part a structural compare reaches. Follows the lowering's `value_eq` arm
+/// for arm, exhaustive over `Type` as `part_without_equality` is.
+///
+/// @param left   the left operand's type.
+/// @param right  the right operand's type.
+/// @param typed  the module being checked, for the impls.
+equality_callee :: fn(left: Type, right: Type, typed: TypedProgram) -> Callee {
+    if right is UnionType {
+        return parts_equality(shared_variants(left, right), typed)
+    }
+    // `Equals` is symmetric : a distinct on the right compares as one on the left.
+    if right is DistinctType && left !is DistinctType | UnionType {
+        return equality_callee(right, left, typed)
+    }
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    return match left {
+        is UnionType -> parts_equality(shared_variants(left, right), typed)
+        is TupleType -> parts_equality(left.elements, typed)
+        is StructType | ArrayType -> first_member_callee(typed, left, equals_key, METHOD_EQUALS)
+        is DistinctType -> distinct_equality(left, typed)
+        is TypeParamType | InferVar
+         | SelfType | AnyType -> dispatched_callee(left, equals_key, METHOD_EQUALS)
+        is PrimitiveType | EnumType | RangeType | FreeIntType | FreeFloatType | FreeCharType ->
+            BUILTIN_CALLEE
+        is TraitType | FnType -> ERRONEOUS_CALLEE
+        is TypeMetaType | NeverType | UnresolvedType -> ERRONEOUS_CALLEE
+    }
+}
+
+// A distinct compares through its own `Equals`, else through its backing's rule.
+distinct_equality :: fn(t: DistinctType, typed: TypedProgram) -> Callee {
+    equals_key :: core_trait_key(TRAIT_EQUALS)
+    if struct_implements_trait(t, equals_key, typed) {
+        return first_member_callee(typed, t, equals_key, METHOD_EQUALS)
+    }
+    return equality_callee(t.backing, t.backing, typed)
+}
+
+// The variants of `left` that `right` holds too : those a union `==` compares.
+shared_variants :: fn(left: Type, right: Type) -> Type[] {
+    shared: Type[]: []
+    for variant in union_variants(left) ?? [left] {
+        if counterpart(right, variant) != null {
+            shared.push(variant)
+        }
+    }
+    return shared
+}
+
+// What comparing each of `parts` with itself runs : `Builtin` when none calls, every
+// call otherwise — a list even of one, which names the `equals` of a part and no
+// dispatch of the compared value.
+parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
+    calls: Callee[]: []
+    for part in parts {
+        callee :: equality_callee(part, part, typed)
+        if callee is EachOf {
+            calls.push_all(callee.callees)
+        } else if callee !is Builtin {
+            calls.push(callee)
+        }
+    }
+    if calls.len() == 0 {
+        return BUILTIN_CALLEE
+    }
+    return EachOf { .callees = calls }
+}
+
+// ---- dump -----------------------------------------------------------------
+
+/// The calls of the modules of `scope`, module by module: `vader dump
+/// --stage=callees`.
+///
+/// @param typed   the entry module.
+/// @param others  every other module of the project.
+/// @param scope   the modules to render (`module_in_scope`).
+export dump_call_sites_project :: fn(
+    typed: TypedProgram,
+    others: TypedProgram[],
+    scope: string[],
+) -> string {
+    sb :: StringBuilder {}
+    sb.append("# callees\n")
+    for m in modules_in_scope(typed, others, scope) {
+        sb.append("\n## ${m.resolved.display_path}\n")
+        sb.append(dump_call_sites(m))
+    }
+    return sb.to_string()
+}
+
+// Every site of `typed`, one line each in source order, then the count of sites
+// the record could not settle. A site's position is its node's span, filed when
+// the typecheck ran with `dump_types`.
+dump_call_sites :: fn(typed: TypedProgram) -> string {
+    sites: DumpedSite[]: []
+    for role in all_roles() {
+        for [id, callee] in sites_of(typed.call_sites, role) {
+            span :: typed.node_spans[id] ?? empty_span()
+            sites.push(DumpedSite { .span = span, .role = role, .callee = callee })
+        }
+    }
+    sb :: StringBuilder {}
+    unsettled := 0
+    for site in sort(sites, comes_first) {
+        if site.callee is UnsettledCallee {
+            unsettled += 1
+        }
+        position :: site_position(site.span)
+        sb.append("  ${position} ${role_label(site.role)} ${callee_label(site.callee)}\n")
+    }
+    sb.append("  sites: ${sites.len()}, unsettled: ${unsettled}\n")
+    return sb.to_string()
+}
+
+DumpedSite :: struct {
+    span: Span
+    role: CallRole
+    callee: Callee
+}
+
+// Source order ; among nodes that start together the inner one, and at one node the
+// roles in their declared order.
+comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
+    if a.span.start.offset != b.span.start.offset {
+        return a.span.start.offset < b.span.start.offset
+    }
+    if a.span.end.offset != b.span.end.offset {
+        return a.span.end.offset < b.span.end.offset
+    }
+    return i64(a.role) < i64(b.role)
+}
+
+/// How the dump and the lowering's verifier name `role`.
+///
+/// @param role  a site's role.
+export role_label :: fn(role: CallRole) -> string = match role {
+    .Call        -> "call"
+    .Operator    -> "operator"
+    .IndexRead   -> "index"
+    .IndexWrite  -> "index-write"
+    .Into        -> "into"
+    .IterInto    -> "iter-into"
+    .IterNext    -> "iter-next"
+    .Display     -> "display"
+    .Reference   -> "reference"
+    .MethodValue -> "method-value"
+}
+
+// A call inside a materialised default method sits at a synthetic span, the same
+// for every run but meaningless to a reader: it shows as `clone`.
+site_position :: fn(span: Span) -> string {
+    if span.start.file.starts_with(CLONE_FILE_PREFIX) {
+        return "clone"
+    }
+    return "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
+}
+
+/// How the dump and the lowering's verifier name `callee`.
+///
+/// @param callee  what a site invokes.
+export callee_label :: fn(callee: Callee) -> string = match callee {
+    is DirectFn        -> direct_label(callee)
+    is BoundMember     -> "bound ${callee.trait_key}.${callee.member}"
+    is TraitMember     -> "virtual ${callee.trait_key}.${callee.member}"
+    is FnValue         -> "value"
+    is Builtin         -> "builtin"
+    is ErroneousCallee -> "error"
+    is UnsettledCallee -> "unsettled"
+    is EachOf          -> each_label(callee)
+}
+
+each_label :: fn(callee: EachOf) -> string {
+    labels: string[]: []
+    for part in callee.callees {
+        labels.push(callee_label(part))
+    }
+    return "each(${labels.join(", ")})"
+}
+
+direct_label :: fn(callee: DirectFn) -> string {
+    if callee.per_instance {
+        return "fn ${callee.decl.name} (per instance)"
+    }
+    return "fn ${callee.decl.name}"
+}

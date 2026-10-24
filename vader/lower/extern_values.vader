@@ -12,9 +12,9 @@ module "vader/lower"
 
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/comptime"
-import "vader/resolver/symbol"
-import "vader/typecheck"
+import "vader/front/comptime"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
 import "vader/types"
 
 /// Whether `fn_decl` is an `@extern` that has to lower through

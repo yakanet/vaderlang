@@ -18,7 +18,7 @@ module "vader/tools/lsp/handlers"
 
 import "json"
 import "vader/types"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 

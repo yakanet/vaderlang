@@ -1,0 +1,148 @@
+// vader/front/comptime/libraries: the `CLibrary` constants that `@extern` declarations
+// name, evaluated for the build target.
+//
+// `@extern(RAYLIB, "InitWindow")` names a constant of `std/ffi`'s `CLibrary`.
+// What it lists (the default header, the archives, the platform libraries)
+// reaches the native build and the interpreter, so it is evaluated here, once
+// per constant, reaching the whole project: a library is a struct literal that
+// often chooses its fields with a `match` on `VADER_OS`.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "std/ffi"
+import "vader/support/diagnostics"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
+
+/// Evaluate the library of every `@extern` the typecheck accepted a `CLibrary`
+/// for (`TypedProgram.extern_libraries`), into `project.libraries`.
+///
+/// A constant that does not reduce reports why, once, where the evaluation
+/// stopped inside it.
+///
+/// @param typed    the typed project.
+/// @param project  the evaluated project, whose `libraries` this fills.
+/// @param diags    where a failed evaluation is reported.
+evaluate_extern_libraries :: fn(
+    typed: TypedProject,
+    project: EvaluatedProject,
+    diags: Diagnostic[],
+) -> void {
+    constants :: ProjectConstants { .typed = typed }
+    // One library per constant, shared by every declaration naming it.
+    evaluated :: MutableMap<i32, CLibrary> {}
+    failed :: MutableSet<i32> {}
+    for [_, module_typed] in typed.modules {
+        for [decl_id, symbol] in module_typed.extern_libraries {
+            known :: evaluated[symbol.id]
+            if known != null {
+                project.libraries[decl_id] = known
+                continue
+            }
+            if symbol.id in failed {
+                continue
+            }
+            library :: evaluate_library(symbol, constants, diags)
+            if library == null {
+                failed.add(symbol.id)
+                continue
+            }
+            evaluated[symbol.id] = library
+            project.libraries[decl_id] = library
+        }
+    }
+}
+
+// The library the constant `symbol` holds, or null after reporting why it does
+// not reduce.
+evaluate_library :: fn(
+    symbol: Symbol,
+    constants: ProjectConstants,
+    diags: Diagnostic[],
+) -> CLibrary | null {
+    owner :: constants.typed.modules[symbol.module] ?? return null
+    declaration :: owner.const_decls[symbol.id] ?? return null
+    context :: ComptimeContext {
+        .typed = owner,
+        .bindings = MutableMap<i32, ComptimeValue> {},
+        .project = constants,
+    }
+    result :: evaluate_project_const(symbol, context, declaration.span) ?? return null
+    value :: result.value
+    if value == null {
+        if result.diag != null {
+            diags.push(result.diag)
+        }
+        return null
+    }
+    library :: resolved_library(value, symbol.module)
+    if library == null {
+        detail :: "`${symbol.name}` holds no `CLibrary`"
+        diags.push(comptime_error(.CannotEvaluate, declaration.span, detail))
+    }
+    return library
+}
+
+/// The `CLibrary` a value describes, its `include` and `archives` resolved in
+/// `folder`, or null when `value` is not one: the evaluation fills every field,
+/// the defaults included, so one that is missing means the struct changed.
+///
+/// @param value   the evaluated constant.
+/// @param folder  the folder of the module declaring it.
+resolved_library :: fn(value: ComptimeValue, folder: string) -> CLibrary | null {
+    if value !is StructValue {
+        return null
+    }
+    name :: string_field(value, "name") ?? return null
+    header :: string_field(value, "header") ?? return null
+    include :: string_field(value, "include") ?? return null
+    archives :: strings_field(value, "archives") ?? return null
+    system :: strings_field(value, "system") ?? return null
+    resolved: string[]: []
+    for archive in archives {
+        resolved.push(join_path(folder, archive))
+    }
+    return CLibrary {
+        .name = name,
+        .header = header,
+        .include = folder_beside(folder, include),
+        .archives = resolved,
+        .system = system,
+    }
+}
+
+// `relative` resolved in `folder`, or `""` when there is none.
+folder_beside :: fn(folder: string, relative: string) -> string {
+    if relative == "" {
+        return ""
+    }
+    return join_path(folder, relative)
+}
+
+// The string field `name` of `value`, or null when it is absent or not a string.
+string_field :: fn(value: StructValue, name: string) -> string | null {
+    field :: value.fields[name] ?? return null
+    if field is StringValue {
+        return field.value
+    }
+    return null
+}
+
+// The strings of the array field `name` of `value`, or null when it is absent or
+// not an array of strings.
+strings_field :: fn(value: StructValue, name: string) -> string[] | null {
+    field :: value.fields[name] ?? return null
+    if field !is ArrayValue {
+        return null
+    }
+    out: string[]: []
+    for element in field.elements {
+        if element !is StringValue {
+            return null
+        }
+        out.push(element.value)
+    }
+    return out
+}

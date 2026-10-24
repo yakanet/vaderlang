@@ -21,7 +21,7 @@ module "vader/lower"
 
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "std/abort"
 
 // ---- frames -----------------------------------------------------------------
@@ -241,7 +241,7 @@ worse_placement :: fn(a: YieldPlacement, b: YieldPlacement) -> YieldPlacement {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/parser"
+import "vader/front/parser"
 
 // The body of the loop the first fn of `source` opens on.
 first_loop_body :: fn(source: string) -> AST.BlockExpr {

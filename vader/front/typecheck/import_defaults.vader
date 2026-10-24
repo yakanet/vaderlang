@@ -1,0 +1,140 @@
+// vader/front/typecheck/import_defaults — carry a default value's name resolutions
+// across a module boundary.
+//
+// `normalize_call_args` fills an omitted argument by splicing the CALLEE's
+// `default_value` AST node into the caller's argument list, so that node is
+// lowered in the CALLER's context. `lower_ident` resolves through
+// `resolved.idents[span.hash()]` — the caller's table — while the node's span
+// belongs to the declaring file. Every identifier inside a cross-module default
+// therefore missed, and a miss used to lower to `LoweredUnreachable`, which
+// makes `midir` replace the whole entry block: the call, and often the function
+// around it, silently did nothing. A literal default worked precisely because it
+// has no identifier to resolve.
+//
+// The fix is to publish the declaring module's resolutions for those spans into
+// the importing module's table, next to where its types and declarations are
+// already published: `orchestrate::push_module_exported_fns` for a wildcard
+// import, `orchestrate::populate_from` for a namespace one. `Span`'s hash
+// folds in the file path, so an entry copied from another file cannot collide
+// with one of the importing module's own.
+//
+// A resolution the walk below fails to copy is not silent: `lower_ident` reports
+// M5007.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "toolchain/span"
+import "vader/front/resolver"
+import "vader/types"
+
+/// Publish the resolutions for every identifier inside `fd`'s default values.
+///
+/// @param from  the module that declared `fd` — the resolutions come from here.
+/// @param into  the module importing it — the resolutions are copied here.
+/// @param fd    the exported declaration whose defaults may name something.
+publish_default_resolutions :: fn(
+    from: TypedProgram,
+    into: TypedProgram,
+    fd: AST.FnDecl,
+) -> void {
+    for pm in fd.params {
+        copy_maybe_resolutions(pm.default_value, from, into)
+    }
+}
+
+// ---- the walk -------------------------------------------------------------
+
+copy_maybe_resolutions :: fn(e: AST.Expr | null, from: TypedProgram, into: TypedProgram) -> void {
+    present :: e ?? return
+    AST.inspect(present, (n) -> copy_node_resolutions(n, from, into))
+}
+
+// `inspect` reaches every node, so every identifier is copied ; what the visitor
+// adds is the span of each binding a node introduces, since a default holding a
+// lambda takes the resolutions of its params and locals too, which the resolver
+// keyed at their binding spans. Exhaustive, so a new node kind that binds a name
+// gets an arm.
+copy_node_resolutions :: fn(n: AST.Node, from: TypedProgram, into: TypedProgram) -> AST.Walk {
+    match n {
+        is AST.IdentExpr -> { copy_span(n.span, from, into) }
+        is AST.LetStmt -> { copy_binding_resolutions(n.binding, from, into) }
+        is AST.ForStmt -> { copy_loop_var_resolutions(n.form, from, into) }
+        is AST.MatchExpr -> {
+            if n.binding != null {
+                copy_binding_resolutions(n.binding, from, into)
+            }
+        }
+        is AST.LambdaExpr -> {
+            for p in n.params {
+                copy_span(p.span, from, into)
+            }
+        }
+        is AST.StructPattern -> {
+            for f in n.fields {
+                if f.value is AST.PatternBinding {
+                    copy_span(f.name_span, from, into)
+                }
+            }
+        }
+        // Binds nothing: what it names is an identifier among its children.
+        is AST.FieldExpr | AST.CallExpr | AST.StringLitExpr | AST.IntLitExpr | AST.BoolLitExpr
+            | AST.NullLitExpr | AST.CharLitExpr | AST.FloatLitExpr | AST.ExprStmt | AST.BlockExpr
+            | AST.ReturnStmt | AST.IfExpr | AST.DotVariantExpr | AST.StructLitExpr | AST.UnaryExpr
+            | AST.AssignStmt | AST.IndexExpr | AST.NullCoalesceExpr | AST.GenericInstExpr
+            | AST.SeqLitExpr | AST.RangeExpr | AST.IntrinsicCallExpr | AST.ArrayTypeExpr
+            | AST.FnTypeExpr | AST.AwaitExpr | AST.CastExpr | AST.BreakStmt | AST.ContinueStmt
+            | AST.YieldStmt | AST.DeferStmt | AST.DestructureAssignStmt | AST.IsPattern
+            | AST.EnumVariantPattern | AST.WildcardPattern | AST.RangePattern | AST.LiteralPattern
+            | AST.OrPattern | AST.BinaryExpr -> {}
+        // A default value holds no declaration.
+        is AST.Decl -> {}
+    }
+    return .Descend
+}
+
+copy_loop_var_resolutions :: fn(form: AST.ForForm, from: TypedProgram, into: TypedProgram) -> void {
+    if form !is AST.InFor {
+        return
+    }
+    var :: form.loop_var
+    if var is AST.NamedVar {
+        copy_span(var.span, from, into)
+    } else if var is AST.DestructureVar {
+        copy_binding_resolutions(var.pattern, from, into)
+    }
+}
+
+copy_binding_resolutions :: fn(b: AST.LetBinding, from: TypedProgram, into: TypedProgram) -> void {
+    match b {
+        is AST.SimpleBinding   -> { copy_span(b.name_span, from, into) }
+        is AST.RestBinding     -> { copy_span(b.span, from, into) }
+        is AST.WildcardBinding -> {}
+        is AST.TupleBinding    -> {
+            for element in b.elements {
+                copy_binding_resolutions(element, from, into)
+            }
+        }
+    }
+}
+
+// One span the resolver keyed: a use, or a binding it introduced. A declaration
+// it names travels with its type, which the importing module may not see: a
+// private one, or one `from` imported from a module the importer does not.
+// Re-published each round, as an export's is, so a return inferred later
+// replaces the first. A local nothing rebinds is published as such: a closure
+// the default makes copies it rather than keep it in a cell, which a loop
+// variable cannot be given (its counter is a bare `let`).
+copy_span :: fn(span: Span, from: TypedProgram, into: TypedProgram) -> void {
+    key :: span.hash()
+    sym :: from.resolved.idents[key] ?? return
+    into.resolved.idents[key] = sym
+    if sym.id in from.resolved.rebind_free {
+        into.resolved.rebind_free.add(sym.id)
+    }
+    ty :: lookup_decl(sym, from)
+    if ty !is UnresolvedType {
+        into.external_types[sym.id] = ty
+    }
+}

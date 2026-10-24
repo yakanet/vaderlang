@@ -1,0 +1,665 @@
+// Assignability dispatch + per-variant fns. The dispatcher does the
+// symmetric pre-checks (Unresolved, Never, equals, opaque TypeParam),
+// then routes to one of the per-variant fns via a single `match from`.
+//
+// All variants pass through `check_common` last : `to is Union` element-wise
+// widening. Several "no implicit widening" variants (Enum, TypeMeta, Self, …)
+// have no logic beyond the common path and skip the dedicated fn entirely.
+//
+// Keep one fn per `from` variant : a single fn matching every `from`
+// against every `to` compiles to one C function too large for cc's
+// per-function passes.
+
+module "vader/front/typecheck"
+
+import "std/collections"
+import "toolchain/span"
+import "vader/support/diagnostics"
+import "vader/support/integer"
+import "vader/types"
+
+/// Whether `from` can flow into a slot expecting `to` without explicit coercion.
+///
+/// Answers NO for a `to` that is a trait, even when `from` implements it: this
+/// module sees types only, never the impl registry. Trait widening is therefore
+/// somebody else's question — `field.vader::receiver_fits_first_param` asks it
+/// through `try_trait_widen`, which does have the registry.
+is_assignable :: fn(from: Type, to: Type) -> bool {
+    if from is UnresolvedType { return true }
+    if to   is UnresolvedType { return true }
+    if from is NeverType      { return true }
+    if equals_type(from, to) { return true }
+
+    // A type parameter is opaque : the body must hold for every instance, so only
+    // the same parameter fits it (`y: i64` returned as a `T` is a `T = string`
+    // instance returning an integer), and it fits nothing but a union naming it
+    // (`check_common` below). Matching an argument against a signature nothing has
+    // instantiated yet is another question, asked on `erase_type_params(param)`.
+    if to is TypeParamType | InferVar { return false }
+
+    // @partial: variants with a bespoke rule are listed; everything else shares check_common.
+    return @partial match from {
+        is StructType    -> is_assignable_struct(from, from, to)
+        is TraitType     -> is_assignable_trait_from(from, from, to)
+        is TupleType     -> is_assignable_tuple(from, from, to)
+        is ArrayType     -> is_assignable_array(from, from, to)
+        is FnType        -> is_assignable_fn(from, from, to)
+        is UnionType     -> is_assignable_union(from, from, to)
+        is FreeIntType | FreeCharType | FreeFloatType -> is_assignable_free_literal(from, to)
+        // An integer widens into an integer type holding it (never into a distinct,
+        // which only its own values enter), or into a union through one.
+        is RangeType     -> holds_integer(to, from) || check_common(from, to)
+        _                -> check_common(from, to)
+    }
+}
+
+/// The widening every variant falls through to when its own dispatch found
+/// nothing : `to is Union`, walked element-wise. A `to` that is a TRAIT is not
+/// handled — see `is_assignable`'s note on why that answer lives elsewhere.
+check_common :: fn(from: Type, to: Type) -> bool {
+    match to {
+        is UnionType -> {
+            for v in to.variants {
+                if is_assignable(from, v) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return false
+}
+
+/// `from is StructType`. Nominal match with TypeParam-bearing args.
+is_assignable_struct :: fn(from: Type, self: StructType, to: Type) -> bool {
+    match to {
+        is StructType -> {
+            if self.symbol.id == to.symbol.id {
+                if struct_args_compatible(self.args, to.args) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return check_common(from, to)
+}
+
+/// `from is TraitType`. Same nominal-with-args shape as StructType.
+is_assignable_trait_from :: fn(from: Type, self: TraitType, to: Type) -> bool {
+    match to {
+        is TraitType -> {
+            if self.symbol.id == to.symbol.id {
+                if struct_args_compatible(self.args, to.args) { return true }
+            }
+        }
+        _ -> {}
+    }
+    return check_common(from, to)
+}
+
+/// `from is TupleType`. Element-wise and **invariant** : a tuple's fields are
+/// laid out by their types and read with no test, so `[i32, i32]` read as
+/// `[i32 | string, i32]` would take a raw word for a box. A fresh literal adopts
+/// the target's element types instead. No Array ↔ Tuple by design.
+is_assignable_tuple :: fn(from: Type, self: TupleType, to: Type) -> bool {
+    match to {
+        is TupleType -> {
+            if self.elements.len() != to.elements.len() { return false }
+            for i in 0..<self.elements.len() {
+                if !fits_tuple_field(self.elements[i], to.elements[i]) {
+                    return false
+                }
+            }
+            return true
+        }
+        _ -> {}
+    }
+    return check_common(from, to)
+}
+
+/// `from is ArrayType`. The element is **invariant** : arrays are reference-aliased
+/// (SPEC §Arrays), so a write through a widened alias would violate the source
+/// element type. Only an argument may widen its element, which `widening_depth`
+/// decides and the effect summary checks against the callee. Unresolved elements
+/// stay wildcards (accepted both ways by `is_assignable`).
+is_assignable_array :: fn(from: Type, self: ArrayType, to: Type) -> bool {
+    if to is ArrayType {
+        // Bidirectional assignability = invariance for concrete types, while the
+        // Unresolved wildcard (true both ways in `is_assignable`) survives. Fresh
+        // literals adopt the target element type in `infer_against_array`, so the
+        // init is reflexive. Fast-path the dominant equal-element case (`equals_type`
+        // ⟹ assignable both ways) so `T[] → T[]` skips the two `is_assignable` passes.
+        if equals_type(self.element, to.element) { return true }
+        return fn_param_compatible(self.element, to.element)
+            && fn_param_compatible(to.element, self.element)
+    }
+    return check_common(from, to)
+}
+
+/// How many arrays deep `from` fits `to` only by widening an element: 1 for
+/// `Circle[]` into `(Circle | null)[]`, or into `Shape[]` when `Circle implements
+/// Shape` ; 2 for `Circle[][]` into `(Circle | null)[][]`. The wider element must
+/// read the slots the narrower one is laid out in (`reads_slots_of`). Null when
+/// `from` does not widen into `to`, or fits it as it is.
+///
+/// An array is shared, not copied: the widening is sound only if no callee puts
+/// a wider element into it. The typecheck accepts the argument and notes the
+/// depth ; the effect summary checks the callee.
+///
+/// @param from   the argument's type.
+/// @param to     the parameter's type: an array, or a union holding one.
+/// @param typed  the module checking the call, whose impls a trait element needs.
+widening_depth :: fn(from: Type, to: Type, typed: TypedProgram) -> i32 | null {
+    if from !is ArrayType {
+        return null
+    }
+    if to is ArrayType {
+        return array_widening_depth(from, to, typed)
+    }
+    variants :: union_variants(to) ?? return null
+    for slot in variants {
+        if slot is ArrayType {
+            depth :: array_widening_depth(from, slot, typed)
+            if depth != null {
+                return depth
+            }
+        }
+    }
+    return null
+}
+
+/// Whether an argument of type `from` may fill a parameter of type `to`: as it
+/// is, or by widening an array (`widening_depth`). What picks a callee among
+/// overloads and candidate methods ; the check of the chosen call records the
+/// widening.
+///
+/// @param from   the argument's type.
+/// @param to     the parameter's type.
+/// @param typed  the module checking the call.
+accepts_argument :: fn(from: Type, to: Type, typed: TypedProgram) -> bool =
+    is_assignable(from, to) || widening_depth(from, to, typed) != null
+
+// `widening_depth` into the array `slot`.
+array_widening_depth :: fn(from: ArrayType, slot: ArrayType, typed: TypedProgram) -> i32 | null {
+    narrow :: from.element
+    wide :: slot.element
+    if same_element(narrow, wide) {
+        return null
+    }
+    deeper :: widening_depth(narrow, wide, typed)
+    if deeper != null {
+        return deeper + 1
+    }
+    if reads_slots_of(wide, narrow) && fits_or_implements(narrow, wide, typed) {
+        return 1
+    }
+    return null
+}
+
+// Whether an element `narrow` is `wide`. A wildcard and a literal that takes any
+// layout are any element.
+same_element :: fn(narrow: Type, wide: Type) -> bool =
+    adopts_any_layout(narrow) || wide is UnresolvedType || equals_type(narrow, wide)
+
+/// `from is FnType`. Params contravariant, return covariant, an integer held
+/// alike on both sides (`fn_signature_compatible`).
+is_assignable_fn :: fn(from: Type, self: FnType, to: Type) -> bool {
+    match to {
+        is FnType -> {
+            if self.params.len() != to.params.len() { return false }
+            for i in 0..<self.params.len() {
+                if !fn_signature_compatible(to.params[i], self.params[i]) { return false }
+            }
+            return fn_signature_compatible(self.return_type, to.return_type)
+        }
+        _ -> {}
+    }
+    return check_common(from, to)
+}
+
+// A function is called through another function type as it is, no value
+// converted on the way : an integer it takes or gives back must be laid out
+// alike on both sides (`fn() -> u8` is no `fn() -> i32`, `fn() -> Hour` is a
+// `fn() -> u8`).
+fn_signature_compatible :: fn(from: Type, to: Type) -> bool =
+    is_assignable(from, to) && laid_out_alike(from, to)
+
+// Whether `a` and `b` are laid out alike where both are integer types, each range
+// held in its integer (`erase_ranges`) ; true when either is another type, whose
+// own check is somebody else's.
+laid_out_alike :: fn(a: Type, b: Type) -> bool {
+    if integer_values(a) == null || integer_values(b) == null {
+        return true
+    }
+    return equals_type(erase_ranges(a), erase_ranges(b))
+}
+
+/// T3097 : `t` implements `trait_key` more than once, and `what` reaches the trait
+/// without naming its arguments.
+///
+/// @param what  the use, as the detail names it (`` `for` ``).
+several_impls_error :: fn(
+    t: Type,
+    trait_key: string,
+    what: string,
+    span: Span,
+) -> Diagnostic {
+    shown :: display_type(t)
+    implemented :: "`${shown}` implements `${trait_key_name(trait_key)}` more than once"
+    return typecheck_error(
+        .TraitImplementedSeveralTimes,
+        span,
+        "${implemented} ; ${what} cannot tell its impls apart",
+    )
+}
+
+/// Diagnostic for a value of type `got` that does not fit a slot of type
+/// `expected`, picking the message that explains the actual cause.
+///
+/// @param got       the value's type.
+/// @param expected  the slot's type.
+/// @param span      where to anchor the diagnostic.
+/// @param fallback  the code to use when the cause is an ordinary mismatch.
+/// @param typed     reads the impls a trait value dispatches through.
+mismatch_diagnostic :: fn(
+    got: Type, expected: Type, span: Span, fallback: TypecheckCode, typed: TypedProgram,
+) -> Diagnostic {
+    // A trait value of a trait `got` implements several times : nothing it dispatches
+    // through can tell the impls apart (`try_trait_widen` refuses it).
+    if expected is TraitType {
+        trait_key :: trait_key_of(expected.symbol)
+        if implements_more_than_once(got, trait_key, typed) {
+            what :: "a `${display_type(expected)}` value, which dispatches by the trait alone,"
+            return several_impls_error(got, trait_key, what, span)
+        }
+    }
+    return typecheck_error(
+        fallback,
+        span,
+        "expected ${display_type(expected)}, got ${display_type(got)}",
+    )
+}
+
+/// `from is UnionType`. Every variant must be assignable to `to`.
+is_assignable_union :: fn(from: Type, self: UnionType, to: Type) -> bool {
+    match to {
+        is UnionType -> {
+            for v in self.variants {
+                if !variant_keeps_tag(v, to) { return false }
+            }
+            return true
+        }
+        _ -> {}
+    }
+    return check_common(from, to)
+}
+
+// A union's value keeps its tag going into another union, nothing converts it : an
+// integer variant goes only into a variant laid out alike (`Hour | null` into
+// `u8 | null`), never one holding it wider (`u8 | null` is no `i32 | null`).
+variant_keeps_tag :: fn(v: Type, to: UnionType) -> bool {
+    if integer_values(v) == null {
+        return is_assignable(v, to)
+    }
+    for w in to.variants {
+        if is_assignable(v, w) && laid_out_alike(v, w) {
+            return true
+        }
+    }
+    return false
+}
+
+// `from` is a free literal : it widens to a type it can be a value of
+// (`literal_takes`), its value checked where it is pinned (T3066), or to a union
+// holding one.
+is_assignable_free_literal :: fn(from: Type, to: Type) -> bool {
+    if literal_takes(from, to) {
+        return true
+    }
+    return check_common(from, to)
+}
+
+/// Whether `wide` is an integer type holding every value of the integer type
+/// `narrow` (`u8` in an `i32`, `0..=9` in a `u8`), and more when both are machine
+/// integers : `i32` does not hold `i32`.
+///
+/// @param wide    the type a value of `narrow` would go into.
+/// @param narrow  any type : only a range or an integer primitive is held.
+holds_integer :: fn(wide: Type, narrow: Type) -> bool {
+    outer :: integer_values(wide) ?? return false
+    values :: integer_values(narrow) ?? return false
+    if !interval_within(values, outer) {
+        return false
+    }
+    if !same_interval(values, outer) {
+        return true
+    }
+    return primitive_name(narrow) == "" && primitive_name(wide) == ""
+}
+
+/// The values of `t` a `match` covers arm by arm : an integer's, the Unicode
+/// scalar values of `char`, those of a distinct over one.
+///
+/// @return  null for any other type, and for one reaching past `i64` (`u64`,
+///          `i64`), whose patterns are read within `i64`.
+integer_set :: fn(t: Type) -> Interval[] | null {
+    if t !is PrimitiveType | RangeType | DistinctType {
+        return null
+    }
+    backing :: strip_distinct(t)
+    if backing is PrimitiveType && backing.name == "char" {
+        return CHAR_VALUES
+    }
+    values :: integer_values(backing) ?? return null
+    if values.lo_open || values.hi_open {
+        return null
+    }
+    return [values]
+}
+
+/// The values of `char`, the Unicode scalar values : every code point but the
+/// surrogates, in two runs.
+export CHAR_VALUES: Interval[]: [
+    Interval { .lo = 0, .hi = 0xD7FF },
+    Interval { .lo = 0xE000, .hi = 0x10FFFF },
+]
+
+/// The values of the integer type `t`, the bounds of its range.
+///
+/// @return  null for any other type, a distinct over an integer included.
+export integer_values :: fn(t: Type) -> Interval | null {
+    if t is RangeType {
+        return t.bounds
+    }
+    return null
+}
+
+// ---- helpers shared by struct/fn/array variants ---------------------------
+
+/// Single-arg compatibility used by Array → Array and a struct's type arguments.
+/// An alias of `is_assignable` that documents the variance intent at the call
+/// site.
+fn_param_compatible :: fn(a: Type, b: Type) -> bool {
+    return is_assignable(a, b)
+}
+
+/// Element-wise compatibility for the args list carried by StructType /
+/// TraitType. Length must match ; then each type arg must be **invariant**.
+///
+/// Invariance (bidirectional `fn_param_compatible`) is the sound default until a
+/// declaration-site variance model exists : covariance is unsound for a *mutable*
+/// generic container — `MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`
+/// would let a write through the widened alias corrupt the shared `i32` backing,
+/// the exact reference-aliasing hole `is_assignable_array` closes for an array
+/// element. Unresolved args stay wildcards (true both ways in
+/// `is_assignable`) ; a type parameter matches only itself. The equal-arg fast
+/// path keeps the dominant `Foo<T>` → `Foo<T>` case single-pass.
+struct_args_compatible :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if equals_type(a[i], b[i]) { continue }
+        if !fn_param_compatible(a[i], b[i]) { return false }
+        if !fn_param_compatible(b[i], a[i]) { return false }
+    }
+    return true
+}
+
+// Whether a tuple field of type `from` reads as one of type `to` : a literal
+// that takes `to`, or the same type both ways.
+fits_tuple_field :: fn(from: Type, to: Type) -> bool {
+    if adopts_any_layout(from) {
+        return is_assignable(from, to)
+    }
+    return equals_type(from, to) || (is_assignable(from, to) && is_assignable(to, from))
+}
+
+// ---- array slot layout ----------------------------------------------------
+
+// How an array of a given element type lays out its slots, as far as a read
+// through a widened element can tell. Must agree with `array_kind_of`
+// (`vader/bytecode/types.vader`), which fixes the layout once types are
+// lowered, and with `ref_carrying_element` (`vader/c_emit/walker.vader`), which
+// picks the reads that test it : a callee whose reads expect another layout
+// reads garbage natively.
+SlotLayout :: enum {
+    // A raw value of the element's own width, or a layout this module cannot
+    // tell (a type parameter) : only an array of the same type reads it.
+    Raw
+    // A heap reference or a box : the reader tests the buffer's kind on every
+    // access, so it takes either.
+    Dispatched
+    // Always a box : the reader takes every slot as one.
+    Boxed
+}
+
+// Whether reads of a `wide` element take the slots of a `narrow[]` buffer, `narrow`
+// being another element (`same_element` is false).
+reads_slots_of :: fn(wide: Type, narrow: Type) -> bool = match slot_layout(wide) {
+    .Dispatched -> slot_layout(narrow) != .Raw
+    .Boxed      -> slot_layout(narrow) == .Boxed
+    .Raw        -> false
+}
+
+// An element with no layout of its own yet : the wildcard, a literal that takes
+// the target's type, or `never`.
+adopts_any_layout :: fn(t: Type) -> bool = t is UnresolvedType || t is NeverType || is_free_numeric(t)
+
+slot_layout :: fn(t: Type) -> SlotLayout = match t {
+    is PrimitiveType -> primitive_slot_layout(t)
+    is StructType | ArrayType | FnType | TupleType | TraitType | AnyType -> .Dispatched
+    is UnionType -> union_slot_layout(t)
+    is DistinctType -> slot_layout(t.backing)
+    is RangeType | EnumType | TypeParamType | InferVar | SelfType | TypeMetaType -> .Raw
+    is NeverType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType -> .Raw
+}
+
+// An array boxes `string` (an atom id), `null` and `void` ; it stores every other
+// primitive raw.
+primitive_slot_layout :: fn(t: PrimitiveType) -> SlotLayout = match t.name {
+    "string" | "null" | "void" -> .Boxed
+    _                          -> .Raw
+}
+
+// A union of heap references and `null` is stored as raw references ; any other
+// union is boxed. A variant whose layout depends on the instance (a type
+// parameter) leaves the union's undecided.
+union_slot_layout :: fn(t: UnionType) -> SlotLayout {
+    layout: SlotLayout = .Dispatched
+    for v in t.variants {
+        variant :: strip_distinct(v)
+        if variant is TypeParamType || variant is SelfType {
+            return .Raw
+        }
+        if !is_heap_reference(variant) && !is_null_type(variant) {
+            layout = .Boxed
+        }
+    }
+    return layout
+}
+
+// A tuple is a heap object like a struct.
+is_heap_reference :: fn(t: Type) = t is StructType || t is ArrayType || t is FnType || t is TupleType
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/front/resolver/symbol"
+
+@test
+test_assignable_identity :: fn() -> void {
+    assert(is_assignable(TY_I32, TY_I32), "i32 → i32")
+}
+
+@test
+test_assignable_free_int_to_primitive :: fn() -> void {
+    assert(is_assignable(TY_FREE_INT, TY_I64), "FreeInt → i64")
+    assert(!is_assignable(TY_FREE_INT, TY_STRING), "FreeInt → string forbidden")
+}
+
+@test
+test_assignable_never_to_anything :: fn() -> void {
+    assert(is_assignable(TY_NEVER, TY_I32), "Never → i32")
+    assert(is_assignable(TY_NEVER, TY_STRING), "Never → string")
+}
+
+@test
+test_assignable_into_union :: fn() -> void {
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
+    u :: mk_union([i32_t, str_t])
+    assert(is_assignable(TY_I32, u), "i32 → i32 | string")
+    assert(!is_assignable(TY_BOOL, u), "bool → i32 | string forbidden")
+}
+
+@test
+test_array_element_invariant :: fn() -> void {
+    // Covariance of an array is unsound (reference aliasing) — reject both
+    // directions ; only an exact element type flows.
+    i32_arr:    Type: mk_array(TY_I32)
+    union_arr:  Type: mk_array(mk_union([TY_I32, TY_STRING]))
+    union_arr2: Type: mk_array(mk_union([TY_I32, TY_STRING]))
+    assert(!is_assignable(i32_arr, union_arr), "i32[] ↛ (i32 | string)[] (invariant)")
+    assert(!is_assignable(union_arr, i32_arr), "(i32 | string)[] ↛ i32[] (invariant)")
+    assert(is_assignable(union_arr, union_arr2),
+        "(i32 | string)[] → (i32 | string)[] (equal element)")
+}
+
+@test
+test_struct_args_invariant :: fn() -> void {
+    // Generic container type-args are invariant : the covariant widen of a
+    // mutable container (`MutableMap<i32, i32>` → `MutableMap<i32, i32 | string>`)
+    // is the reference-aliasing hole rejected here, as for an array.
+    i32_t: Type: TY_I32
+    wide:  Type: mk_union([TY_I32, TY_STRING])
+    assert(struct_args_compatible([i32_t], [i32_t]), "[i32] → [i32] (equal args)")
+    assert(!struct_args_compatible([i32_t], [wide]), "[i32] ↛ [i32 | string] (invariant)")
+    assert(!struct_args_compatible([wide], [i32_t]), "[i32 | string] ↛ [i32] (invariant)")
+}
+
+@test
+test_array_widening_raw_into_boxed :: fn() -> void {
+    // An `i32[]` stores raw words ; a `(i32 | string)[]` reads boxes.
+    i32_arr: Type: mk_array(TY_I32)
+    union_arr: Type: mk_array(mk_union([TY_I32, TY_STRING]))
+    typed :: empty_typed_program()
+    assert(widening_depth(i32_arr, union_arr, typed) == null, "i32[] ↛ (i32 | string)[]")
+}
+
+@test
+test_array_widening_boxed_into_boxed :: fn() -> void {
+    string_arr: Type: mk_array(TY_STRING)
+    nullable_arr: Type: mk_array(mk_union([TY_STRING, TY_NULL]))
+    typed :: empty_typed_program()
+    assert(widening_depth(string_arr, nullable_arr, typed) == 1, "string[] → (string | null)[]")
+}
+
+circle_type :: fn() -> Type {
+    factory :: SymbolFactory {}
+    return mk_struct(factory.make(.Struct, "Circle", "test", "test", .Private, null), [])
+}
+
+@test
+test_array_reference_element_invariant :: fn() -> void {
+    // Only an argument widens an element, under the effect summary's check.
+    circles: Type: mk_array(circle_type())
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
+    assert(!is_assignable(circles, nullable), "Circle[] ↛ (Circle | null)[]")
+}
+
+@test
+test_array_widening_reference_into_reference_union :: fn() -> void {
+    // A union of references and `null` reads the source's references as they are.
+    circles: Type: mk_array(circle_type())
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, nullable, typed) == 1, "Circle[] → (Circle | null)[]")
+}
+
+@test
+test_array_widening_reference_into_boxed_union :: fn() -> void {
+    circles: Type: mk_array(circle_type())
+    mixed: Type: mk_array(mk_union([circle_type(), TY_STRING]))
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, mixed, typed) == null, "Circle[] ↛ (Circle | string)[]")
+}
+
+@test
+test_array_widening_tuple_is_a_reference :: fn() -> void {
+    pair: Type: mk_tuple([TY_I32, TY_I32])
+    nullable: Type: mk_array(mk_union([pair, TY_NULL]))
+    mixed: Type: mk_array(mk_union([pair, TY_NULL, TY_STRING]))
+    typed :: empty_typed_program()
+    assert(widening_depth(nullable, mixed, typed) == null, "a tuple union ↛ a boxed union")
+}
+
+@test
+test_tuple_elements_invariant :: fn() -> void {
+    pair: Type: mk_tuple([TY_I32, TY_I32])
+    wide: Type: mk_tuple([mk_union([TY_I32, TY_STRING]), TY_I32])
+    assert(!is_assignable(pair, wide), "[i32, i32] ↛ [i32 | string, i32]")
+}
+
+@test
+test_array_unresolved_element_wildcard :: fn() -> void {
+    // An Unresolved element (what an empty `[]` literal carries) stays a
+    // wildcard both ways, so invariance never rejects it.
+    unresolved_arr: Type: mk_array(TY_UNRESOLVED)
+    i32_arr:        Type: mk_array(TY_I32)
+    assert(is_assignable(unresolved_arr, i32_arr), "?[] → i32[] (wildcard)")
+    assert(is_assignable(i32_arr, unresolved_arr), "i32[] → ?[] (wildcard)")
+}
+
+type_param_named :: fn(name: string) -> Type {
+    factory :: SymbolFactory {}
+    return mk_type_param(factory.make(.TypeParam, name, "test", "test", .Private, null))
+}
+
+@test
+test_type_param_is_opaque :: fn() -> void {
+    // A generic body holds for every instance at once : only `T` fits a `T`, and a
+    // `T` fits only a slot that names it.
+    t :: type_param_named("T")
+    i64_t: Type: TY_I64
+    assert(is_assignable(t, t), "T → T")
+    assert(!is_assignable(i64_t, t), "i64 ↛ T")
+    assert(!is_assignable(t, i64_t), "T ↛ i64")
+    assert(!is_assignable(TY_FREE_INT, t), "{integer} ↛ T")
+    assert(is_assignable(t, mk_union([t, TY_NULL])), "T → T | null")
+}
+
+@test
+test_erased_type_param_fits_any_argument :: fn() -> void {
+    // Matching against a signature nothing has instantiated yet erases its
+    // parameters first.
+    t :: type_param_named("T")
+    i32_arr: Type: mk_array(TY_I32)
+    assert(!is_assignable(i32_arr, mk_array(t)), "i32[] ↛ T[]")
+    assert(is_assignable(i32_arr, erase_type_params(mk_array(t))), "i32[] → erased T[]")
+}
+
+@test
+test_widening_depth_of_an_element_into_a_union :: fn() -> void {
+    circles: Type: mk_array(circle_type())
+    nullable: Type: mk_array(mk_union([circle_type(), TY_NULL]))
+    assert(widening_depth(circles, nullable, empty_typed_program()) == 1, "Circle[] widens 1 deep")
+}
+
+@test
+test_widening_depth_of_rows :: fn() -> void {
+    rows: Type: mk_array(mk_array(circle_type()))
+    nullable_rows: Type: mk_array(mk_array(mk_union([circle_type(), TY_NULL])))
+    typed :: empty_typed_program()
+    assert(widening_depth(rows, nullable_rows, typed) == 2, "Circle[][] widens 2 deep")
+}
+
+@test
+test_widening_depth_of_the_same_array :: fn() -> void {
+    ints: Type: mk_array(TY_I32)
+    typed :: empty_typed_program()
+    assert(widening_depth(ints, ints, typed) == null, "i32[] → i32[] widens nothing")
+}
+
+@test
+test_widening_depth_through_a_nullable_parameter :: fn() -> void {
+    circles: Type: mk_array(circle_type())
+    slot :: mk_union([mk_array(mk_union([circle_type(), TY_NULL])), TY_NULL])
+    typed :: empty_typed_program()
+    assert(widening_depth(circles, slot, typed) == 1, "a nullable slot widens 1 deep")
+}

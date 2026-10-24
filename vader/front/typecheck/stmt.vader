@@ -1,0 +1,2028 @@
+// vader/front/typecheck/stmt — statement + block + fn-body checking.
+//
+// Walks every statement of a fn body, types each one, tracks loop
+// depth + return type via `FnContext`, and writes results into
+// `local_types` / `expr_types`. Reports the code a divergent statement
+// leaves unreachable (W0002).
+
+module "vader/front/typecheck"
+
+import "std/collections"
+AST :: import "toolchain/ast"
+import "vader/support/diagnostics"
+import "vader/front/resolver"
+import "vader/front/resolver/symbol"
+import "vader/types"
+
+/// Check every statement in `block`, then type the trailing expression
+/// (or `void` when none). Writes the block's type into `expr_types`.
+/// `ctx` carries the surrounding fn's return type + loop depth ;
+/// pass `null` for stand-alone block exprs.
+check_block :: fn(
+    block: AST.BlockExpr,
+    expected: Type | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> Type {
+    // Track flow-narrowing pushed by divergent guards (`if x is T
+    // { return … }`) so subsequent stmts see the complement type ; each
+    // entry holds what to restore on block exit.
+    divergent_narrows: PushedNarrow[]: []
+    // W0002 — track the first stmt past a divergent guard so we can
+    // warn once per block.
+    first_unreachable_span: Span | null = null
+    diverged := false
+    for stmt in block.stmts {
+        if diverged && first_unreachable_span is null {
+            first_unreachable_span = stmt.span
+        }
+        check_stmt(stmt, typed, diags, ctx)
+        if !diverged && is_divergent_stmt(stmt, typed) {
+            diverged = true
+        }
+        push_statement_narrows(stmt, typed, divergent_narrows)
+    }
+    if diverged && first_unreachable_span is null {
+        if block.trailing !is null {
+            first_unreachable_span = block.trailing.span
+        }
+    }
+    if first_unreachable_span !is null {
+        diags.push(
+            warning(.UnreachableCode, first_unreachable_span, "code after a divergent statement"),
+        )
+    }
+    result: Type = TY_VOID
+    match block.trailing {
+        is null -> {
+            // Diverged block (last stmt is `return` / `break` /
+            // `continue`) carries `Never` so callers (`infer_if`,
+            // `infer_match`) collapse the union arm cleanly.
+            if block.stmts.len() > 0 {
+                last :: block.stmts[block.stmts.len() - 1]
+                if is_divergent_stmt(last, typed) { result = TY_NEVER }
+            }
+        }
+        _       -> { result = check_expr(block.trailing, expected, typed, diags) }
+    }
+    check_body_value(block, result, ctx, typed, diags)
+    // Restore the binding's static type on block exit so outer scopes don't see
+    // the narrowed shape. In reverse: a binding several guards narrowed gets back
+    // what it had before the first, not what a later guard found.
+    pop_narrows(divergent_narrows, typed)
+    // Don't clobber the trailing expression's `expr_kinds` entry —
+    // expression-bodied fns synthesise a BlockExpr around the trailing
+    // with overlapping spans, and the trailing's true kind (BinaryExpr
+    // / CallExpr / …) is what callers want to see in the dump.
+    // The block and its trailing expression have distinct AST ids ; storing
+    // only when absent remains a defence in depth.
+    if typed.dump_types {
+        typed.expr_kinds.get_or_put(block.id, "BlockExpr")
+    }
+    before :: typed.expr_types.len()
+    typed.expr_types.get_or_put(block.id, result)
+    if typed.dump_types && typed.expr_types.len() > before {
+        typed.node_spans[block.id] = block.span
+    }
+    return result
+}
+
+/// Type-check a single statement. Reads `ctx` for `return` / `break` /
+/// `continue` validation ; writes `local_types` for let-bindings.
+check_stmt :: fn(
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    match stmt {
+        is AST.LetStmt               -> { check_let(stmt, typed, diags) }
+        is AST.AssignStmt            -> { check_assign(stmt, typed, diags) }
+        is AST.DestructureAssignStmt -> {
+            check_destructuring_assign(stmt, typed, diags)
+        }
+        is AST.ExprStmt              -> { check_expr(stmt.expr, null, typed, diags) }
+        is AST.ReturnStmt            -> { check_return(stmt, typed, diags, ctx) }
+        is AST.YieldStmt             -> {
+            check_yield(stmt, typed, diags, ctx)
+            retire_narrowings_across_call(typed)
+        }
+        is AST.ForStmt               -> { check_for(stmt, typed, diags, ctx) }
+        is AST.BreakStmt             -> {
+            check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
+        }
+        is AST.ContinueStmt          -> {
+            check_loop_jump(stmt.span, stmt.id, stmt.label, typed, ctx, diags)
+        }
+        is AST.DeferStmt             -> { check_defer(stmt, typed, diags, ctx) }
+    }
+    return
+}
+
+/// Element type `T` of a generator's `-> Iterator<T>` return, or `null`
+/// (plus a T3056 diagnostic) when the return type isn't a valid
+/// `Iterator<T>`. A function that `yield`s must honour it with an
+/// `Iterator<T>` return.
+generator_element_type :: fn(fn_decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> Type | null {
+    element :: core_trait_arg(return_type, TRAIT_ITERATOR)
+    if element != null {
+        return element
+    }
+    diags.push(
+        typecheck_error(
+            .GeneratorReturnMustBeIterator,
+            fn_decl.name_span,
+            "`${fn_decl.name}` yields but returns ${display_type(return_type)}",
+        ),
+    )
+    return null
+}
+
+/// Type-check a fn body. Reads the fn's declared return type from
+/// `decl_types`, builds an initial `FnContext`, then walks the body.
+/// Final-expression / implicit-return type-checking happens through
+/// the trailing-expr arm of `check_block`.
+check_fn_body :: fn(
+    fn_decl: AST.FnDecl,
+    body: AST.BlockExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    return_type :: lookup_return_type(fn_decl, typed)
+    is_generator :: fn_is_generator(typed, fn_decl)
+    is_async :: fn_is_async(typed, fn_decl)
+    // Generators are inferred from a body `yield` (`is_generator`), so the
+    // signature must honour it with an `Iterator<T>` return : extract that
+    // element type (T3056 if the return isn't `Iterator<T>`). The body yields
+    // rather than returning the iterator, so the missing-return / trailing-return
+    // check below is suppressed.
+    yield_type: Type | null = null
+    if is_generator {
+        yield_type = generator_element_type(fn_decl, return_type, diags)
+    }
+    // Expression-bodied without explicit return type : infer from
+    // the trailing expression. `declare_fn_return` leaves this as
+    // TY_UNRESOLVED ; we resolve it here and patch `decl_types` so
+    // call sites see the inferred type.
+    inferred_return :: fn_decl.is_expression_bodied && return_type is UnresolvedType
+    // An async coroutine's body produces the inner `T` of `Async<T>` (the frame
+    // wraps it), so check its returns / trailing against `T`, not the erased
+    // return. Transitional `async fn -> T` has inner == T (no-op) ; generators
+    // keep the raw return (they yield, never return the stream).
+    effective_return :: if is_async && !is_generator { async_inner_type(return_type) } else { return_type }
+    // A body that returns nothing checks its last expression against no expected
+    // type: the value is discarded.
+    expected: Type | null = effective_return
+    if inferred_return || is_void(effective_return) {
+        expected = null
+    }
+    ctx :: FnContext {
+        .return_type = effective_return,
+        .self_type = null,
+        .loop_depth = 0,
+        .fn_id = fn_decl.id,
+        .is_generator = is_generator,
+        .yield_type = yield_type,
+        .is_async = is_async,
+    }
+    prev :: typed.current_fn_ctx
+    typed.current_fn_ctx = ctx
+    guard :: fn_decl.id in typed.guards.candidates
+    if guard {
+        // A call inside the body reads nothing of the guard yet.
+        typed.guards.facts[fn_decl.id] = []
+    }
+    outer_contract :: typed.guards.verifying
+    typed.guards.verifying = null
+    hold_to_contract(fn_decl, ctx, typed, diags)
+    hold_to_ensures(fn_decl, ctx, typed, diags)
+    got :: check_block(body, expected, typed, diags, ctx)
+    typed.guards.verifying = outer_contract
+    if guard {
+        typed.guards.facts[fn_decl.id] = proved_facts(fn_decl, body, typed)
+    }
+    if is_generator {
+        // A generator returns its stream via `yield`, not the trailing
+        // expression — skip the implicit-return obligation entirely.
+    } else if inferred_return {
+        // Recursive fns leave their return as `?` — the body's
+        // inferred type contains an Unresolved leaf (the recursive
+        // call) so substituting would just amplify the unresolved-
+        // ness. Surface T3034 instead.
+        if contains_unresolved(got) {
+            diags.push(
+                typecheck_error(.RecursiveExprBodiedFn, fn_decl.name_span, "`${fn_decl.name}`"),
+            )
+        } else {
+            defaulted :: default_free_members(got)
+            patch_fn_return_type(fn_decl, defaulted, typed)
+        }
+    } else if is_void(effective_return) {
+        // A body returning nothing discards its trailing value, and has nothing
+        // to hand back at its closing brace.
+    } else if body.trailing !is null {
+        // Implicit-return : a trailing expression substitutes for an
+        // explicit `return`. Surface T3020 against the trailing's span.
+        emit_return_mismatch_if(
+            got,
+            effective_return,
+            body.trailing.span,
+            body.trailing,
+            typed,
+            diags,
+        )
+    } else if got !is NeverType {
+        // T3083: no trailing expression, and the body does not diverge, so
+        // control reaches the closing brace with nothing to hand back. The
+        // sibling case (a value of the WRONG type) is T3020 just above;
+        // without this arm the two halves disagreed, since `if c { return 7 }`
+        // was already an error while a body with no `return` at all was not.
+        //
+        // `got` is `never` exactly when `check_block` saw the last statement
+        // diverge: a `return` / `break` / `continue`, a `@no_return` call, or
+        // a loop nothing can leave.
+        if effective_return !is UnresolvedType {
+            diags.push(
+                typecheck_error(
+                    .BodyFallsOffEnd, fn_decl.name_span,
+                    "`${fn_decl.name}` promises ${display_type(effective_return)}",
+                ),
+            )
+        }
+    }
+    typed.current_fn_ctx = prev
+}
+
+patch_fn_return_type :: fn(fn_decl: AST.FnDecl, ret: Type, typed: TypedProgram) -> void {
+    sym :: symbol_declared_at(typed.resolved, fn_decl.name_span)
+    if sym == null {
+        // An impl member has no symbol: its type is keyed by its name span.
+        sp_key :: fn_decl.name_span.hash()
+        cur :: typed.impl_method_decl_types[sp_key]
+        if cur is FnType {
+            typed.impl_method_decl_types[sp_key] = FnType { ...cur, .return_type = ret }
+        }
+        return
+    }
+    cur :: typed.decl_types[sym.id]
+    if cur is FnType {
+        typed.decl_types[sym.id] = FnType { ...cur, .return_type = ret }
+    }
+}
+
+// @partial: a union, an array, a fn, a tuple or a struct's arguments are searched ;
+// every other variant, a trait's arguments and a distinct's backing included,
+// answers false.
+contains_unresolved :: fn(t: Type) -> bool = @partial match t {
+    is UnresolvedType -> { return true }
+    is UnionType      -> {
+        for v in t.variants {
+            if contains_unresolved(v) {
+                return true
+            }
+        }
+        return false
+    }
+    is ArrayType -> { return contains_unresolved(t.element) }
+    is FnType    -> {
+        for p in t.params {
+            if contains_unresolved(p) {
+                return true
+            }
+        }
+        return contains_unresolved(t.return_type)
+    }
+    is TupleType  -> {
+        for el in t.elements {
+            if contains_unresolved(el) {
+                return true
+            }
+        }
+        return false
+    }
+    is StructType -> {
+        for a in t.args {
+            if contains_unresolved(a) {
+                return true
+            }
+        }
+        return false
+    }
+    _                  -> { return false }
+}
+
+// Push T3020 when `got` doesn't flow into `expected`. Shared between
+// `check_return` and the implicit-return check in `check_fn_body` so
+// wording / arity stay in sync.
+emit_return_mismatch_if :: fn(
+    got: Type,
+    expected: Type,
+    span: Span,
+    value: AST.Expr | null,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void = emit_mismatch_if(got, expected, span, value, .BodyReturnIncompatible, typed, diags)
+
+// The one coercion gate shared by let / return / yield / assign : `got` flows
+// into `expected` when it is assignable, or `Into`-coercible. `is_assignable`
+// runs first so `try_into`'s LSP into-hint side effect stays off the already-
+// assignable path. `value` is the value expr, where that hint and the `into` site
+// are recorded.
+//
+// Kept brace-bodied on purpose: the equivalent single-expr form
+// (`= is_assignable(...) || try_into(...)`) is inlined by the single-expr
+// inliner, and the committed bootstrap seed mis-interns a type through that
+// inline (an unrelated array element collapses to `?` in
+// `check_block`, tripping the emit-time field-access panic). The current
+// compiler handles the single-expr form fine; the seed does not. Leave it
+// brace-bodied until the seed is advanced past that inliner/interning bug.
+flows_into :: fn(got: Type, expected: Type, value: AST.Expr, typed: TypedProgram) -> bool {
+    if is_assignable(got, expected) {
+        return true
+    }
+    return try_into(got, expected, typed, value)
+}
+
+// Push `code` when `got` doesn't flow into `expected` — neither assignable nor
+// `Into`-coercible. Shared by the return / yield mismatch checks and by field
+// defaults so wording stays in sync ; only the diagnostic code differs. `value` is the coerced
+// expression, whose id feeds `try_into`'s LSP into-hint table. Null for a bare `return`.
+emit_mismatch_if :: fn(
+    got: Type,
+    expected: Type,
+    span: Span,
+    value: AST.Expr | null,
+    code: TypecheckCode,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if !fits_slot(got, expected, value, typed) {
+        diags.push(mismatch_diagnostic(got, expected, span, code, typed))
+    }
+}
+
+// Whether `got` fills `expected`: as it is for a bare `return`, through `value`'s
+// conversions otherwise.
+fits_slot :: fn(got: Type, expected: Type, value: AST.Expr | null, typed: TypedProgram) -> bool {
+    if value == null {
+        return is_assignable(got, expected)
+    }
+    return flows_into(got, expected, value, typed)
+}
+
+// Resolve the effective fn-context: the arg-side `ctx` when present, else the
+// walk-global `current_fn_ctx` (the recursive `infer_if` / `infer_match` paths
+// pass `ctx = null`, so the body's return / yield targets need this fallback).
+resolve_ctx :: fn(ctx: FnContext | null, typed: TypedProgram) -> FnContext | null {
+    if ctx != null {
+        return ctx
+    }
+    return typed.current_fn_ctx
+}
+
+// ---- per-stmt helpers -----------------------------------------------------
+
+check_let :: fn(s: AST.LetStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    ann: Type | null = null
+    written_ty :: s.ty
+    if written_ty !is null {
+        ann = type_from_expr(written_ty, typed.resolved, diags)
+    }
+    got :: check_let_value(s, ann, typed, diags)
+    declared: Type = TY_UNRESOLVED
+    if ann == null {
+        declared = default_free_members(got)
+        if s.binding is AST.SimpleBinding {
+            typed.unwritten_locals.add(s.binding.name_span.hash())
+        }
+    } else {
+        declared = ann
+        emit_mismatch_if(got, ann, s.span, s.value, .TypeMismatch, typed, diags)
+    }
+    // Layer 5b — `t :: <type-expr>` inside a fn body is an in-fn type
+    // alias : pre-resolve the underlying Type and stash it in
+    // `typed.let_type_aliases` keyed by the binding's Symbol.id.
+    // Downstream type-position references (e.g. `@size_of(t)`) read
+    // through this map at lower time. Detection mirrors the
+    // top-level `register_alias_const` path.
+    is_let_type_alias := false
+    if !s.mutable && declared is TypeMetaType {
+        sb :: s.binding
+        if sb is AST.SimpleBinding {
+            if is_type_expr(s.value, typed.resolved) {
+                sym_or_null :: typed.resolved.idents[sb.name_span.hash()]
+                if sym_or_null is Symbol {
+                    resolved_type :: type_from_expr(s.value, typed.resolved, diag_sink_stmt())
+                    typed.let_type_aliases[sym_or_null.id] = resolved_type
+                    is_let_type_alias = true
+                }
+            }
+        }
+    }
+    // T3035 : reject `type`-valued slots that aren't in-fn type aliases.
+    // The mutable form (`name := <type-expr>`) always fails since
+    // it implies a runtime Type value, which a local cannot hold. The immutable
+    // form fails only when the RHS isn't a structural type expression (e.g. a
+    // fn call returning type), since we can't pre-resolve it without VM
+    // execution.
+    if declared is TypeMetaType && !is_let_type_alias {
+        diags.push(
+            typecheck_error(
+                .TypeValuedSlotNotYetSupported,
+                s.span,
+                "a local can hold only a type written out, as an alias: `name :: <type-expr>`",
+            ),
+        )
+    }
+    assign_binding_types(s.binding, declared, typed, diags)
+    record_empty_array_init(s, declared, typed)
+}
+
+// The type of `s`'s value. A `::` binding with no annotation keeps the quantifier of
+// a generic function its value names : it aliases the function.
+check_let_value :: fn(
+    s: AST.LetStmt, ann: Type | null, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if s.mutable || ann != null {
+        return check_expr(s.value, ann, typed, diags)
+    }
+    got :: check_keeping_quantifier(s.value, typed, diags)
+    note_fn_alias(s, got, typed)
+    return got
+}
+
+// `x := []` : remember which expression the `?[]` came from, so the first
+// `x.push(elem)`, or the first parameter `x` is passed to, can widen the LITERAL
+// as well as the local (see `TypedProgram.empty_array_inits`).
+record_empty_array_init :: fn(s: AST.LetStmt, declared: Type, typed: TypedProgram) -> void {
+    if declared !is ArrayType {
+        return
+    }
+    if declared.element !is UnresolvedType {
+        return
+    }
+    if s.binding !is AST.SimpleBinding {
+        return
+    }
+    typed.empty_array_inits[s.binding.name_span.hash()] = s.value.id
+}
+
+check_assign :: fn(s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    // T3041 : bare-ident assignment to a `::`-bound local, a `for … in` variable or
+    // a module constant.
+    // Surface the diag and skip the value-side typing so the dump doesn't carry
+    // extra expr_types for a rejected write.
+    target :: s.target
+    if target is AST.IdentExpr {
+        if reject_const_reassign(target, typed, diags)
+            || reject_guard_param_write(target, typed, diags) {
+            return
+        }
+    }
+    // T3082 : a name, a field or an element is a place ; a call, a literal or what
+    // an operator computes is not (`get() = 3`, `xs.len() = 5`, `1 = 2`).
+    if target !is AST.IdentExpr && target !is AST.FieldExpr && target !is AST.IndexExpr {
+        diags.push(typecheck_error(.InvalidAssignTarget, target.span,
+            "an assignment writes to a name, a field or an element, not to this"))
+        return
+    }
+    fe :: s.target
+    if fe is AST.FieldExpr {
+        if reject_field_write(fe, typed, diags) {
+            return
+        }
+    }
+    if target is AST.IndexExpr {
+        // Pin a free-literal write value to the slot (`m[k] = 9000000000`) and check
+        // the write fits it.
+        slot :: index_write_slot(target, typed, diags) ?? return
+        value_ty :: check_expr(s.value, slot, typed, diags)
+        emit_assign_mismatch_if(value_ty, slot, s.span, s.value, "", typed, diags)
+        // Past an array, the write runs a user `IndexSet`'s `set_at` : a call.
+        if typed.expr_types[target.target.id] !is ArrayType {
+            retire_narrowings_across_call(typed)
+        }
+        return
+    }
+    target_ty :: check_expr(s.target, null, typed, diags)
+    // The value is checked against the slot's *declared* type, not `target_ty`,
+    // which may be a flow-narrowing. `x: A|B = a ; if x is A { x = b_value }` is
+    // legal, and so is `x = 0` where `x == 23` holds (the write retires the
+    // narrowing, per `invalidate_narrow_on_assign`).
+    declared :: declared_lvalue_type(s.target, target_ty, typed)
+    value_hint: Type | null = null
+    if declared !is UnresolvedType {
+        value_hint = declared
+    }
+    value_ty :: check_expr(s.value, value_hint, typed, diags)
+    emit_assign_mismatch_if(
+        value_ty, declared, s.span, s.value, unwritten_local_hint(s.target, declared, typed),
+        typed, diags,
+    )
+    // A write to a narrowed binding / field chain retires its stale
+    // narrowings — see `narrow.vader::invalidate_narrow_on_assign`.
+    invalidate_narrow_on_assign(s.target, value_ty, typed)
+    return
+}
+
+// Declared (pre-narrow) type of an assignment LHS — the slot type a write
+// must be assignable to. `type_of_symbol` skips the narrowing that
+// `infer_ident` layers on ; `declared_struct_field_type` skips
+// `narrow_field_if_active`. Any other lvalue shape (or an unresolved
+// lookup) falls back to `fallback` — the checked target type — which
+// already equals the declared type whenever no narrowing is active.
+//
+// Narrowing attaches to *only* `IdentExpr` and `FieldExpr` — the exact two
+// shapes handled explicitly — so `fallback` diverges from the declaration
+// only for those, and only while a narrowing is live. When the relevant
+// table is empty the fast path returns `fallback` and dodges the re-resolve
+// (and, for fields, the `declared_struct_field_type` sink allocation)
+// entirely. This must stay in lockstep with `invalidate_narrow_on_assign`
+// (`narrow.vader`) — a new narrowable lvalue shape has to be added to both.
+declared_lvalue_type :: fn(target: AST.Expr, fallback: Type, typed: TypedProgram) -> Type {
+    if target is AST.IdentExpr {
+        if typed.narrow.bindings.is_empty() {
+            return fallback
+        }
+        sym :: typed.resolved.idents[target.span.hash()] ?? return fallback
+        return type_of_symbol(sym, typed)
+    }
+    if target is AST.FieldExpr {
+        if typed.narrow.fields.is_empty() {
+            return fallback
+        }
+        recv :: typed.expr_types[target.target.id] ?? return fallback
+        d :: declared_struct_field_type(recv, target.field, typed) ?? return fallback
+        return d
+    }
+    return fallback
+}
+
+// Push T3063 when `got` doesn't flow into the declared slot type `expected`.
+// Same gate as `emit_mismatch_if` (via `flows_into`), only the wording and the
+// dedicated code differ, `hint` closing the detail. A `null` `expected` — e.g. a
+// receiver with no recorded `IndexSet` impl — has no declared slot to enforce (the
+// read side already surfaced any error), so it no-ops.
+emit_assign_mismatch_if :: fn(
+    got: Type,
+    expected: Type | null,
+    span: Span,
+    value: AST.Expr,
+    hint: string,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if expected == null || flows_into(got, expected, value, typed) {
+        return
+    }
+    detail :: "cannot assign a value of type ${display_type(got)} to a slot of type "
+        + "${display_type(expected)}${hint}"
+    diags.push(typecheck_error(.AssignTypeMismatch, span, detail))
+}
+
+// What a T3063 on a write to `target`, a slot of type `declared`, adds when the
+// target is a local of an integer type nobody wrote : it took its first value's
+// type, a range included. "" for any other target.
+unwritten_local_hint :: fn(target: AST.Expr, declared: Type, typed: TypedProgram) -> string {
+    if target !is AST.IdentExpr || declared !is RangeType {
+        return ""
+    }
+    sym :: typed.resolved.idents[target.span.hash()] ?? return ""
+    at :: sym.defined_at ?? return ""
+    if at.hash() !in typed.unwritten_locals {
+        return ""
+    }
+    return "; a local takes the type of its first value: "
+        + "write the type it may hold, as `${target.name}: i64 = …`"
+}
+
+/// Check `[t0, _, ...rest] = value` — one assignment per place, against the
+/// element types of a tuple or array `value`.
+///
+/// Arity is fixed for a tuple and unknown for an array, so only the tuple case
+/// can be counted here ; an array too short for its places is a runtime trap on
+/// the element read, exactly as `arr[i]` is elsewhere. A `...rest` target
+/// receives a fresh array, so it asks for an array source.
+check_destructuring_assign :: fn(
+    s: AST.DestructureAssignStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    // `[] = v` — P1023 already reported it.
+    if s.targets.len() == 0 {
+        return
+    }
+    // The places are typed FIRST so their slots can be handed to the source as
+    // the expected shape : without it a free literal defaults to `i32` and
+    // `[u, v] = [1, 2]` over two `i64` slots fails on both elements, where
+    // `u = 1` passes. With a rest, the rest's own array type is that shape.
+    rest_slot: Type | null = null
+    for t in s.targets {
+        if t is AST.RestTarget {
+            rest_slot = check_expr(t.place, null, typed, diags)
+        }
+    }
+    if rest_slot != null {
+        for t in s.targets {
+            if t is AST.PlaceTarget {
+                place_slot(t.place, typed, diags)
+            }
+        }
+        value_ty :: check_expr(s.value, rest_slot, typed, diags)
+        arr :: array_backing(value_ty)
+        if arr == null {
+            if value_ty !is UnresolvedType {
+                got :: display_type(default_if_free(value_ty))
+                diags.push(typecheck_error(
+                    .TypeMismatch, s.value.span,
+                    "a `...rest` target collects from an array, got `${got}`"))
+            }
+            return
+        }
+        for t in s.targets {
+            match t {
+                is AST.PlaceTarget    -> {
+                    check_destructure_target(t.place, arr.element, typed, diags)
+                }
+                is AST.RestTarget     -> {
+                    check_destructure_target(t.place, arr, typed, diags)
+                }
+                is AST.WildcardTarget -> {}
+            }
+        }
+        return
+    }
+    slot_types: Type[]: []
+    for t in s.targets {
+        match t {
+            is AST.PlaceTarget    -> {
+                slot_types.push(place_slot(t.place, typed, diags))
+            }
+            is AST.WildcardTarget -> {
+                slot_types.push(TY_UNRESOLVED)
+            }
+            is AST.RestTarget     -> {}
+        }
+    }
+    // A literal of the wrong length is refused on its count alone : checked
+    // against the targets' shape it would fail once per element, and read as
+    // an array it would lose its arity.
+    lit :: s.value
+    if lit is AST.SeqLitExpr {
+        if lit.elements.len() != s.targets.len() {
+            check_expr(s.value, null, typed, diags)
+            diags.push(typecheck_error(
+                .CannotDestructure, s.value.span,
+                "a literal of ${lit.elements.len()} elements into ${s.targets.len()} targets"))
+            return
+        }
+    }
+    value_ty :: check_expr(s.value, mk_tuple(slot_types), typed, diags)
+    elem_types :: destructure_element_types(value_ty, s.targets.len())
+    if elem_types == null {
+        diags.push(typecheck_error(
+            .CannotDestructure, s.value.span,
+            "cannot destructure `${display_type(value_ty)}` into ${s.targets.len()} elements"))
+        return
+    }
+    for i in 0..<s.targets.len() {
+        t :: s.targets[i]
+        if t is AST.PlaceTarget {
+            check_destructure_target(t.place, elem_types[i], typed, diags)
+        }
+    }
+}
+
+// The slot a destructuring place offers, typed before the source so the source
+// takes its shape. An index place is a write : it offers what its receiver stores,
+// never what an `Index` read gives back — `check_destructure_target` judges it.
+place_slot :: fn(place: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    if place !is AST.IndexExpr {
+        return declared_lvalue_type(place, check_expr(place, null, typed, diags), typed)
+    }
+    receiver :: check_expr(place.target, null, typed, diags)
+    return index_write_type(receiver, typed) ?? TY_UNRESOLVED
+}
+
+/// Element types a destructuring target of `count` elements would read, or null
+/// when `value_ty` cannot be destructured that way. A tuple answers per position
+/// and must match `count` exactly ; an array answers its element type for every
+/// position.
+destructure_element_types :: fn(value_ty: Type, count: i64) -> Type[] | null {
+    backing :: tuple_backing(value_ty)
+    if backing is TupleType {
+        if backing.elements.len() != count {
+            return null
+        }
+        return backing.elements
+    }
+    arr :: array_backing(value_ty)
+    if arr is ArrayType {
+        out: Type[]: []
+        for _ in 0..<count {
+            out.push(arr.element)
+        }
+        return out
+    }
+    return null
+}
+
+// What a write into `ix` must fit, for every write form : its receiver judged
+// (`reject_index_write_receiver`) and its key too (`reject_index_key`), an array's
+// element, else the `IndexSet` value of a receiver dispatching through the trait
+// (`dispatched_index_args`) or of its own impl. Null when the receiver is
+// unresolved or the write is refused — reported.
+index_write_slot :: fn(ix: AST.IndexExpr, typed: TypedProgram, diags: Diagnostic[]) -> Type | null {
+    set_trait :: core_trait_key(TRAIT_INDEX_SET)
+    receiver_ty :: check_expr(ix.target, null, typed, diags)
+    // Each route below files what it runs.
+    record_site(typed, ix, .IndexWrite, UNSETTLED_CALLEE)
+    dispatched :: dispatched_index_args(ix, receiver_ty, set_trait, typed, diags)
+    key_ty :: if dispatched != null {
+        dispatched[0]
+    } else {
+        index_key_expected(ix.index, receiver_ty, set_trait, typed)
+    }
+    index_ty :: check_expr(ix.index, key_ty, typed, diags)
+    arr :: stored_array(receiver_ty, typed)
+    if arr != null {
+        record_site(typed, ix, .IndexWrite, BUILTIN_CALLEE)
+        // Array elements are never flow-narrowed, so it is the declared slot type
+        // the write must fit.
+        return array_write_slot(ix, arr, index_ty, typed, diags)
+    }
+    if dispatched != null {
+        reject_index_key(ix.index, index_ty, key_ty, diags)
+        return dispatched[1]
+    }
+    if receiver_ty is UnresolvedType {
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
+        return null
+    }
+    // Nothing stores into a receiver with no `IndexSet` and no array to fall back
+    // on : the write would reach its `Index` read, a call.
+    if index_route(receiver_ty, set_trait, typed) != .Impl {
+        diags.push(
+            typecheck_error(
+                .NotIndexable, ix.target.span,
+                "`${display_type(receiver_ty)}` has no `IndexSet` to write through",
+            ),
+        )
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
+        return null
+    }
+    if reject_unmet_impl_bounds(
+        receiver_ty, set_trait, .TraitNotSatisfied, ix.target.span, typed, diags,
+    ) {
+        record_site(typed, ix, .IndexWrite, ERRONEOUS_CALLEE)
+        return null
+    }
+    // Files the member, the only one or the one the key picks.
+    picked :: pick_index_member(ix, receiver_ty, set_trait, index_ty, typed, diags)
+    if picked is UnresolvedType {
+        return null
+    }
+    if picked != null && picked.params.len() > 1 {
+        return picked.params[1]
+    }
+    reject_index_key(ix.index, index_ty, key_ty, diags)
+    return index_set_value_expected(receiver_ty, typed) ?? TY_UNRESOLVED
+}
+
+// The slot an element write into an array fills : the backing's element, recorded
+// on `ix` — never what a distinct's own `Index` would read there (`index_route`).
+array_write_slot :: fn(
+    ix: AST.IndexExpr, arr: ArrayType, index_ty: Type, typed: TypedProgram, diags: Diagnostic[],
+) -> Type {
+    if !is_integer_index(index_ty) && index_ty !is UnresolvedType {
+        diags.push(typecheck_error(.TypeMismatch, ix.index.span,
+            "array index must be an integer, got ${display_type(index_ty)}"))
+    }
+    record_expr(typed, ix, arr.element)
+    return arr.element
+}
+
+/// What every write to a field is held to before its value is: T3082 for what a
+/// type names, T3041 for a module's member, T3101 for a tuple's element. Checking
+/// the CONTAINER first records its type, which the checks read.
+///
+/// @return  whether one reported, the write then going no further.
+reject_field_write :: fn(field: AST.FieldExpr, typed: TypedProgram, diags: Diagnostic[]) -> bool {
+    // `M.NAME = v` would rebind a declaration of the module `M` names: T3041. The
+    // alias is no value to check (T3116), and types as `?`.
+    if namespace_base_mod_id(field.target, typed) != null {
+        record_expr(typed, field.target, TY_UNRESOLVED)
+        diags.push(typecheck_error(.CannotReassignConst, field.span,
+            "`${field.field}` is declared in an imported module"))
+        return true
+    }
+    check_expr(field.target, null, typed, diags)
+    // `Color.Red = v`, `Point.x = v` : what a type names is no place (T3082).
+    base :: bare_name_symbol(field.target, typed)
+    if base != null && names_a_type(base, typed.resolved) {
+        diags.push(typecheck_error(.InvalidAssignTarget, field.span,
+            "`${field.field}` is reached through the type `${base.name}`, not a value"))
+        return true
+    }
+    if report_variant_data_write(field, typed, diags) {
+        return true
+    }
+    return report_tuple_element_write(field, typed, diags)
+}
+
+/// T3070 : a field of an enum value is a field of its variant's data, a table every
+/// read of the variant shares, frozen as a module constant is.
+///
+/// @return  whether it reported.
+report_variant_data_write :: fn(
+    field: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    owner :: typed.expr_types[field.target.id]
+    if owner !is EnumType {
+        return false
+    }
+    data :: owner.data ?? return false
+    // A field the data has not is T3009's business, reported where it is read.
+    if declared_struct_field_type(data, field.field, typed) == null {
+        return false
+    }
+    shared :: "`${field.field}` is read from the data of a variant, which every read shares"
+    copy :: "a name bound to `${display_type(data)}(…)` holds a copy to modify"
+    diags.push(typecheck_error(.FrozenValueWritten, field.span, "${shared} ; ${copy}"))
+    return true
+}
+
+/// T3101 : a tuple's element is never written, whatever the path to the tuple.
+/// A field no position names is left to T3009.
+///
+/// @return  whether it reported.
+report_tuple_element_write :: fn(
+    field: AST.FieldExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    owner :: typed.expr_types[field.target.id] ?? return false
+    tuple :: tuple_backing(owner) ?? return false
+    position :: parse_tuple_index(field.field)
+    if position < 0 || position >= i32(tuple.elements.len()) {
+        return false
+    }
+    detail :: "build a new `${display_type(owner)}` instead"
+    diags.push(typecheck_error(.CannotWriteTupleElement, field.span, detail))
+    return true
+}
+
+/// One element of a destructuring target. Holds it to the same rules a bare
+/// assignment would: a `::` local is still frozen, and the element type must fit
+/// the slot.
+check_destructure_target :: fn(
+    target: AST.Expr,
+    elem_ty: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    if target is AST.IdentExpr {
+        if reject_const_reassign(target, typed, diags)
+            || reject_guard_param_write(target, typed, diags) {
+            return
+        }
+    } else if target is AST.FieldExpr {
+        // The same rules a bare `p.x = v` is held to.
+        if reject_field_write(target, typed, diags) {
+            return
+        }
+    } else if target is AST.IndexExpr {
+        // Judged as `m[k] = v` is.
+        slot :: index_write_slot(target, typed, diags) ?? return
+        // The lowering types the element it writes by the target's own type.
+        record_expr(typed, target, slot)
+        emit_assign_mismatch_if(elem_ty, slot, target.span, target, "", typed, diags)
+        return
+    } else {
+        diags.push(typecheck_error(
+            .InvalidAssignTarget, target.span,
+            "a destructuring assignment writes to names, fields and indices — not to this"))
+        return
+    }
+    // Judged against the declaration, as `x = v` is, and retiring the narrowings
+    // the write makes stale.
+    declared :: declared_lvalue_type(target, check_expr(target, elem_ty, typed, diags), typed)
+    emit_assign_mismatch_if(elem_ty, declared, target.span, target, "", typed, diags)
+    invalidate_narrow_on_assign(target, elem_ty, typed)
+}
+
+// T3041 when `ident` names a binding nothing may rebind ; whether it was reported.
+reject_const_reassign :: fn(
+    ident: AST.IdentExpr,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> bool {
+    detail :: const_reassign_detail(ident, typed) ?? return false
+    diags.push(typecheck_error(.CannotReassignConst, ident.span, detail))
+    return true
+}
+
+// T3041's detail for `ident`, null when it may be rebound: a parameter, a binding a
+// pattern makes, a local declared with `:=`. A `::` local gets the `:=` hint, a loop
+// variable or a `match` header's name the hint to copy it. Any other name is a
+// declaration.
+const_reassign_detail :: fn(ident: AST.IdentExpr, typed: TypedProgram) -> string | null {
+    sym :: bare_name_symbol(ident, typed) ?? return null
+    return match sym.kind {
+        .Param | .Binding -> null
+        .Local            -> local_rebind_detail(ident, sym, typed)
+        .Const            -> module_constant_detail(ident, sym, typed)
+        .ImportBinding    -> "`${ident.name}` names an imported module"
+        .Fn | .Struct | .Enum | .Trait | .Impl | .TypeAlias | .TypeParam | .BuiltinType
+            | .BuiltinFn | .Synthetic -> "`${ident.name}` names a ${sym.kind.label}"
+    }
+}
+
+// T3041's detail for the module constant `sym`, which may name a type (`i32`).
+module_constant_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string {
+    if names_a_type(sym, typed.resolved) {
+        return "`${ident.name}` names a type"
+    }
+    return "`${ident.name}` is a module constant"
+}
+
+// T3041's detail for the local `sym`, null when `:=` declared it.
+local_rebind_detail :: fn(ident: AST.IdentExpr, sym: Symbol, typed: TypedProgram) -> string | null {
+    why :: typed.resolved.immutable_locals[sym.id] ?? return null
+    return match why {
+        .Declared     -> "`${ident.name}` is declared with `::` ; `:=` allows rebinding"
+        .LoopVariable -> "`${ident.name}` is the variable of a `for … in`, bound anew each turn ; "
+            + "copy it into a `:=` local to change it"
+        .MatchHeader  -> "`${ident.name}` names the scrutinee of its `match` ; "
+            + "copy it into a `:=` local to change it"
+    }
+}
+
+// An access path rendered back to source, for a diagnostic that wants to name
+// the value the user wrote. Only ident + field chains are reproducible from the
+// AST ; anything else takes `fallback`, which each caller phrases for its own
+// sentence ("the collection", a placeholder in a suggested rewrite, …).
+path_name :: fn(e: AST.Expr, fallback: string) -> string {
+    if e is AST.FieldExpr { return "${path_name(e.target, fallback)}.${e.field}" }
+    if e is AST.IdentExpr { return e.name }
+    return fallback
+}
+
+where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
+
+check_return :: fn(
+    s: AST.ReturnStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.in_defer {
+        if s.value != null {
+            check_expr(s.value, null, typed, diags)
+        }
+        diags.push(typecheck_error(.ReturnInDefer, s.span, ""))
+        return
+    }
+    // Generator: `return <value>` is a mistake (produce via `yield` — T3058);
+    // a bare `return` stops the stream and needs no return-type check.
+    if effective != null && effective.is_generator {
+        if s.value !is null {
+            check_expr(s.value, null, typed, diags)
+            diags.push(typecheck_error(.ReturnValueInGenerator, s.span, ""))
+        }
+        return
+    }
+    v :: s.value
+    if v is null {
+        match effective {
+            is null -> {}
+            _       -> {
+                emit_return_mismatch_if(
+                    TY_VOID,
+                    effective.return_type,
+                    s.span,
+                    null,
+                    typed,
+                    diags,
+                )
+                check_ensured_exit(effective.ensures, null, s.span, "returns", typed, diags)
+            }
+        }
+        // Empty `return` : no value expr, so no coercion / hint site.
+
+        return
+    }
+    expected: Type | null = null
+    if effective !is null {
+        expected = effective.return_type
+    }
+    got :: check_expr(v, expected, typed, diags)
+    if effective !is null {
+        // Accumulate the returned value's type so a divergent block-body
+        // lambda can recover its real return type (see `pick_final_return`).
+        prev :: effective.inferred_return
+        if prev == null {
+            effective.inferred_return = got
+        } else {
+            effective.inferred_return = union_of_paths([prev, got])
+        }
+        emit_return_mismatch_if(got, effective.return_type, s.span, v, typed, diags)
+        contract :: effective.guard
+        if contract != null {
+            check_guard_return(contract, v, typed, diags)
+        }
+        check_ensured_exit(effective.ensures, v, s.span, "returns", typed, diags)
+    }
+}
+
+check_yield :: fn(
+    s: AST.YieldStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        // `yield e` must coerce to the generator's element type `T` (T3061).
+        yt :: effective.yield_type
+        got :: check_expr(s.value, yt, typed, diags)
+        if yt != null {
+            emit_mismatch_if(
+                got,
+                yt,
+                s.value.span,
+                s.value,
+                .GeneratorYieldIncompatible,
+                typed,
+                diags,
+            )
+        }
+        return
+    }
+    // A `yield` in the body makes a fn a generator by inference, so the only
+    // illegal positions left are a nested lambda and a `defer` body: their ctx is
+    // never a generator, and `fn_is_generator` does not descend them. T3059.
+    // Still type the value so downstream passes see its type.
+    check_expr(s.value, null, typed, diags)
+    diags.push(typecheck_error(.YieldOutsideGenerator, s.span, ""))
+}
+
+check_for :: fn(
+    s: AST.ForStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    binding: string | null = null
+    // The body runs only once the condition holds, as an `if`'s then-block does.
+    body_narrows: PushedNarrow[]: []
+    // What the loop repeats (a condition, the body) runs after the body's own
+    // writes, so the narrowings they may falsify retire first ; an `in`
+    // iterable runs once, before them.
+    match w :: s.form {
+        is AST.InfiniteFor -> { retire_narrowings_entering_loop(s, typed) }
+        is AST.WhileFor    -> {
+            retire_narrowings_entering_loop(s, typed)
+            got :: check_expr(w.cond, null, typed, diags)
+            // `for X { ... }` desugars to `for _ in X { ... }` when X
+            // is iterable (array today ; custom Iterator impls land
+            // with coerce.vader). Skip T3019 in that case.
+            if got is ArrayType {
+                record_site(typed, w.cond, .IterNext, BUILTIN_CALLEE)
+            } else if is_assignable(got, TY_BOOL) {
+                push_cond_narrows_into(w.cond, true, typed, diags, body_narrows)
+            } else {
+                diags.push(
+                    typecheck_error(
+                        .ConditionMustBeBool,
+                        w.cond.span,
+                        "while condition must be `bool`, got ${display_type(got)}",
+                    ),
+                )
+            }
+        }
+        is AST.InFor       -> {
+            elem :: in_for_element(s, w, typed, diags)
+            match nv :: w.loop_var {
+                is AST.NamedVar       -> {
+                    typed.local_types[nv.span.hash()] = elem
+                    // A real user name is var-targetable ; the `_` wildcard is not.
+                    if nv.name != "_" { binding = nv.name }
+                }
+                // `for [k, v] in …` : type each pattern leaf against the element
+                // (a tuple / array, or a struct that implements `Into<[...]>`),
+                // reusing the destructuring-let machinery. Not var-targetable.
+                is AST.DestructureVar -> {
+                    assign_binding_types(
+                        nv.pattern,
+                        elem,
+                        typed,
+                        diags,
+                    )
+                }
+                // `for <range>` : no binding, no target variable (label only).
+                is AST.DiscardVar     -> {}
+            }
+        }
+    }
+    // W0010 — a label on a for-in loop is redundant : it already has an iteration
+    // variable to target it by (`break <var>`). A label is only needed for a
+    // `while` / infinite loop, which has no variable.
+    if s.label != null && binding != null {
+        diags.push(
+            warning(
+                .PreferLoopVariableOverLabel,
+                s.span,
+                "target this loop by its variable `${binding}` instead of a label",
+            ),
+        )
+    }
+    // Push this loop onto the walk-global stack (survives `if`/`match` nesting)
+    // so a `break <name>` / `continue <name>` in the body resolves against its
+    // iteration variable (or label). Balanced push / remove_last.
+    typed.loop_stack.push(EnclosingLoop { .for_id = s.id, .binding = binding, .label = s.label })
+    inner_ctx :: bump_loop_depth(ctx)
+    check_block(s.body, null, typed, diags, inner_ctx)
+    pop_narrows(body_narrows, typed)
+    typed.loop_stack.remove_last()
+    return
+}
+
+// The element `for x in <iter>` binds `x` to, its iterable checked : a type's values
+// (`walked_type`), or what an array, a string or an `Iterator` yields.
+in_for_element :: fn(
+    s: AST.ForStmt,
+    w: AST.InFor,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> Type {
+    if is_type_expr(w.iter, typed.resolved) {
+        retire_narrowings_entering_loop(s, typed)
+        return walked_type(w.iter, typed, diags)
+    }
+    iter_ty :: check_expr(w.iter, null, typed, diags)
+    retire_narrowings_entering_loop(s, typed)
+    elem :: for_in_element(iter_ty, typed)
+    // A `for` reaches `Iterator`, or the `Into` toward one, without its
+    // argument (T3097).
+    several :: several_iterators_trait(iter_ty, typed)
+    if several != null {
+        diags.push(several_impls_error(iter_ty, several, "`for`", w.iter.span))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    } else {
+        record_for_sites(typed, w.iter, iter_ty)
+    }
+    reject_unmet_impl_bounds(
+        iter_ty, core_trait_key(TRAIT_ITERATOR), .TraitNotSatisfied, w.iter.span,
+        typed, diags,
+    )
+    if elem is UnresolvedType && is_known_non_iterable(iter_ty) {
+        got :: display_type(iter_ty)
+        diags.push(typecheck_error(
+            .NotIterable, w.iter.span,
+            "a `for` walks an array, a string or an `Iterator`, got `${got}`"))
+        record_site(typed, w.iter, .IterNext, ERRONEOUS_CALLEE)
+    }
+    return elem
+}
+
+/// The type `for x in T` walks the values of, `T` a type : `T` itself when it is a
+/// range, an integer type within `i64`, a type parameter bounded by `Int` or an enum
+/// without variant data. The walk is noted on `iter` (`TypedProgram.walked_types`).
+///
+/// @param iter  the type expression the loop walks.
+/// @error       T3088 for any other type, `u64` and `i64` included, whose values
+///              reach past `i64`.
+walked_type :: fn(iter: AST.Expr, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    t :: type_operand(iter, typed, diags)
+    if t is UnresolvedType {
+        return t
+    }
+    if walks_values(t, typed) {
+        record_site(typed, iter, .IterNext, BUILTIN_CALLEE)
+        typed.walked_types[iter.id] = true
+        return t
+    }
+    detail :: "a `for` over a type walks an integer type within `i64` or an enum"
+    diags.push(typecheck_error(.NotIterable, iter.span, "${detail}, got `${display_type(t)}`"))
+    record_site(typed, iter, .IterNext, ERRONEOUS_CALLEE)
+    return TY_UNRESOLVED
+}
+
+// Whether `for x in t` walks the values of the type `t` (`walked_type`).
+walks_values :: fn(t: Type, typed: TypedProgram) -> bool {
+    if is_valued_enum(t) || is_integer_param(t, typed) {
+        return true
+    }
+    values :: integer_values(t) ?? return false
+    return !values.hi_open
+}
+
+check_loop_jump :: fn(
+    span: Span,
+    jump_id: i64,
+    label: string | null,
+    typed: TypedProgram,
+    ctx: FnContext | null,
+    diags: Diagnostic[],
+) -> void {
+    // A bare `break`/`continue` targets the innermost loop (no diagnostic — reader
+    // clarity is served by the LSP go-to-loop). A `break <name>` must resolve to an
+    // enclosing loop by its iteration variable (preferred) or its label ; the walk-
+    // global `loop_stack` survives `if`/`match` nesting, mirroring `loop_depth`.
+    if label == null {
+        if typed.loop_stack.len() > 0 {
+            typed.jump_targets[jump_id] = typed.loop_stack[typed.loop_stack.len() - 1].for_id
+        }
+    } else {
+        name :: label
+        target :: resolve_loop_target(typed.loop_stack, name)
+        if target == null {
+            // A local, an unknown name, or a jump outside any loop — never a valid
+            // target. `break`ing a non-loop makes no sense → hard error (T3067).
+            diags.push(
+                typecheck_error(
+                    .LoopTargetNotLoopVariable,
+                    span,
+                    "`${name}` is not an enclosing loop's iteration variable or label",
+                ),
+            )
+        } else {
+            typed.jump_targets[jump_id] = target.for_id
+            // A VARIABLE match records the resolution for the lowerer: an unlabelled
+            // loop is lowered under the variable's name (`LoweredLoop.label`), a
+            // labelled one keeps its label and the jump takes it instead. A label
+            // match already carries the name its loop is lowered under.
+            tb :: target.binding
+            if tb != null && tb == name {
+                target_label :: target.label
+                if target_label == null {
+                    typed.loop_target_labels[target.for_id] = name
+                } else {
+                    typed.jump_labels[jump_id] = target_label
+                }
+            }
+        }
+    }
+    // T3015 — `break`/`continue` outside any loop. Kept on `ctx.loop_depth`. A null
+    // ctx is an expression-nested block (`x ?? break`), where the walk-global loop
+    // stack answers instead ; lambdas do not reset that stack, so it can miss a
+    // jump written in a lambda inside a loop.
+    if ctx is null {
+        if label == null && typed.loop_stack.len() == 0 {
+            diags.push(
+                typecheck_error(
+                    .BreakContinueOutsideLoop,
+                    span,
+                    "`break` / `continue` only allowed inside a loop",
+                ),
+            )
+        }
+        return
+    }
+    if ctx.loop_depth == 0 {
+        diags.push(
+            typecheck_error(
+                .BreakContinueOutsideLoop,
+                span,
+                "`break` / `continue` only allowed inside a loop",
+            ),
+        )
+    }
+}
+
+// The nearest enclosing loop whose iteration variable OR label is `name`
+// (innermost-first), or null. Mirrors the backward loop-stack scan of
+// `resolve_loop_frame` (midir) / `gb_resolve_loop_frame` (lower/coroutine.vader).
+resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop | null {
+    i := stack.len()
+    for i > 0 {
+        i = i - 1
+        frame :: stack[i]
+        fb :: frame.binding
+        if fb != null && fb == name {
+            return frame
+        }
+        fl :: frame.label
+        if fl != null && fl == name {
+            return frame
+        }
+    }
+    return null
+}
+
+check_defer :: fn(
+    s: AST.DeferStmt,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+    ctx: FnContext | null,
+) -> void {
+    // `defer` inside a generator is still forbidden in v1 — a generator can be
+    // abandoned mid-iteration, and the runtime has no drop hook to fire pending
+    // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
+    // inside an async coroutine IS supported : the coroutine always runs to
+    // completion in v1, and its pending defers live in the per-frame `__defers`
+    // stack, drained LIFO at each structured exit (`lower/coroutine.vader`).
+    effective :: resolve_ctx(ctx, typed)
+    if effective != null && effective.is_generator {
+        diags.push(typecheck_error(.DeferInGenerator, s.span, ""))
+    }
+    // The body runs at scope exit, lowered as a fn of its own: no enclosing loop
+    // is one its jumps can reach, and it neither suspends a coroutine (T3064) nor
+    // yields for a generator (T3059).
+    body_ctx :: defer_body_context(effective)
+    later :: enter_later_body(typed, body_ctx, true)
+    match b :: s.body {
+        is AST.DeferStmtBody  -> { check_stmt(b.stmt, typed, diags, body_ctx) }
+        is AST.DeferBlockBody -> { check_block(b.block, null, typed, diags, body_ctx) }
+    }
+    leave_later_body(typed, later)
+    return
+}
+
+defer_body_context :: fn(ctx: FnContext | null) -> FnContext | null {
+    if ctx is null {
+        return null
+    }
+    return FnContext {
+        ...ctx,
+        .loop_depth = 0,
+        .is_async = false,
+        .is_generator = false,
+        .yield_type = null,
+        .in_defer = true,
+    }
+}
+
+// ---- support --------------------------------------------------------------
+
+bump_loop_depth :: fn(ctx: FnContext | null) -> FnContext | null {
+    if ctx is null {
+        return null
+    }
+    return FnContext { ...ctx, .loop_depth = ctx.loop_depth + 1 }
+}
+
+// Push what `stmt` leaves narrowed for the rest of its block : past a call to an
+// `@ensures` fn, what it ensures (`push_ensured_call`) ; past an `if` whose branch
+// diverges, what its condition leaves (`push_past_divergent_if`).
+push_statement_narrows :: fn(
+    stmt: AST.Stmt,
+    typed: TypedProgram,
+    stack: PushedNarrow[],
+) -> void {
+    called :: statement_call(stmt)
+    if called != null {
+        push_ensured_call(called, typed, stack)
+        return
+    }
+    if stmt is AST.ExprStmt && stmt.expr is AST.IfExpr {
+        push_past_divergent_if(stmt.expr, typed, stack)
+    }
+}
+
+// Push the complement of the condition of `e`, an `if` with no `else` whose branch
+// diverges (`return`, `break`, `continue`, a call that never returns), for what
+// follows it ; whether `e` is one.
+push_past_divergent_if :: fn(e: AST.IfExpr, typed: TypedProgram, stack: PushedNarrow[]) -> bool {
+    if e.else_branch !is null || !then_is_divergent(e.then_block, typed) {
+        return false
+    }
+    push_guard_narrows(e.cond, typed, stack)
+    return true
+}
+
+// The call `stmt` makes as a whole, an expression statement or the value a `let`
+// binds : what its callee `@ensures` holds past it.
+statement_call :: fn(stmt: AST.Stmt) -> AST.CallExpr | null {
+    if stmt is AST.ExprStmt && stmt.expr is AST.CallExpr {
+        return stmt.expr
+    }
+    if stmt is AST.LetStmt && stmt.value is AST.CallExpr {
+        return stmt.value
+    }
+    return null
+}
+
+// Push the complement narrowing(s) a guard condition leaves for the rest of the
+// block. A `||` contributes one per operand : reaching the fall-through means
+// EVERY operand was false. Subtraction composes — pushing them in sequence, each
+// detected against the narrowing the previous one left, lands on the same type as
+// subtracting their union at once — so no grouping is needed.
+push_guard_narrows :: fn(cond: AST.Expr, typed: TypedProgram, stack: PushedNarrow[]) -> void {
+    if cond is AST.BinaryExpr {
+        if cond.op == .Or {
+            push_guard_narrows(cond.left, typed, stack)
+            push_guard_narrows(cond.right, typed, stack)
+            return
+        }
+    }
+    // A call to a guard narrows every argument it proves something of.
+    if cond is AST.CallExpr {
+        push_guard_call(cond, false, typed, stack)
+        return
+    }
+    // `!(a && b)` false is `a && b` true : both operands hold ; `!f(x)` false is
+    // `f(x)` true.
+    if cond is AST.UnaryExpr && cond.op == .Not {
+        inner :: cond.operand
+        if inner is AST.BinaryExpr && inner.op == .And || inner is AST.CallExpr {
+            push_cond_narrows_into(inner, true, typed, diag_sink(), stack)
+            return
+        }
+    }
+    narrowing :: detect_is_narrow_for_block(cond, typed) ?? return
+    stack.push(push_one_narrow(typed, narrowing.sym_id, narrowing.field_key, narrowing.else_ty))
+}
+
+then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
+    // A guard block whose sole (or final) content is a `@no_return` call —
+    // `{ panic(...) }` — parses that call as the block's trailing expression,
+    // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
+    // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
+    // otherwise the complement narrowing is dropped and the guarded binding
+    // keeps its union type (T3008 on the post-guard use).
+    if b.trailing !is null {
+        if typed.expr_types[b.trailing.id] is NeverType {
+            return true
+        }
+    }
+    if b.stmts.len() == 0 {
+        return false
+    }
+    return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
+}
+
+is_divergent_stmt :: fn(s: AST.Stmt, typed: TypedProgram) -> bool {
+    if s is AST.ReturnStmt   { return true }
+    if s is AST.BreakStmt    { return true }
+    if s is AST.ContinueStmt { return true }
+    // An expression statement that evaluates to `never` (a call to a
+    // `@no_return` fn — `panic` / `todo` / `unreachable`) terminates the
+    // flow : code after it is unreachable, and it discharges a non-`void`
+    // fn's return obligation.
+    if s is AST.ExprStmt {
+        if typed.expr_types[s.expr.id] is NeverType {
+            return true
+        }
+    }
+    // A `for { … }` no `break` can leave has no exit edge, so whatever follows
+    // it cannot run. A `return` in the body doesn't reopen one — it leaves the
+    // fn, not the loop.
+    if s is AST.ForStmt {
+        return loop_never_exits(s)
+    }
+    return false
+}
+
+BlockNarrow :: struct {
+    sym_id: i32
+    static_ty: Type
+    else_ty: Type
+    field_key: string = ""
+}
+
+detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNarrow | null {
+    // Mirrors `expr_if.vader::detect_is_narrow` at a narrower result shape —
+    // the divergent-guard case only needs the else-type.
+    by_value :: detect_value_narrow(cond, typed)
+    if by_value != null {
+        return BlockNarrow {
+            .sym_id = by_value.sym_id,
+            .static_ty = by_value.static_ty,
+            .else_ty = by_value.else_ty,
+            .field_key = by_value.field_key,
+        }
+    }
+    if cond is AST.UnaryExpr {
+        if cond.op == .Not {
+            inner :: detect_is_narrow_for_block(cond.operand, typed) ?? return null
+            // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
+            // (after prior guards), not `inner.static_ty` (declared) — which
+            // would RE-WIDEN and undo earlier guards, leaving a chain
+            // `if x is A{return} if !(x is B){return}` as `A | B` not `B`, so a
+            // later `x.<B-field>` drops (infer_call's `callee_ty.params` after
+            // its TypeMetaType / UnresolvedType / !FnType guards). Carry field_key.
+            current :: if inner.field_key == "" {
+                narrow_for_binding(typed, inner.sym_id, inner.static_ty)
+            } else {
+                narrow_for_field(typed, inner.field_key, inner.static_ty)
+            }
+            return BlockNarrow { ...inner, .else_ty = subtract_type(current, inner.else_ty) }
+        }
+    }
+    if cond !is AST.BinaryExpr {
+        return null
+    }
+    // `x == null` / `x != null` / `null == x` / `null != x` — both
+    // orderings flip the same way ; divergent guard pushes the
+    // complement narrowing for the rest of the block.
+    if cond.op == .Eq || cond.op == .Neq {
+        ident_side :: pick_ident_vs_null(cond.left, cond.right)
+        if ident_side !is null {
+            sym :: typed.resolved.idents[ident_side.span.hash()] ?? return null
+            base :: type_of_symbol(sym, typed)
+            // Don't record a narrowing off an unresolved base — mirrors
+            // `detect_is_narrow` (expr_if.vader). The premature imported-body
+            // walk in `settle_external_expr_bodied_returns` runs before the
+            // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
+            // is `?` there ; a `?`-based divergent narrow persists (divergent
+            // narrows aren't popped) and poisons the authoritative re-walk.
+            if base is UnresolvedType {
+                return null
+            }
+            current :: narrow_for_binding(typed, sym.id, base)
+            null_ty :: TY_NULL
+            if cond.op == .Eq {
+                return BlockNarrow {
+                    .sym_id = sym.id,
+                    .static_ty = base,
+                    .else_ty = subtract_type(current, null_ty),
+                }
+            }
+            return BlockNarrow { .sym_id = sym.id, .static_ty = base, .else_ty = null_ty }
+        }
+        field_side :: pick_field_vs_null(cond.left, cond.right)
+        if field_side !is null {
+            target :: resolve_field_chain_static(field_side, typed)
+            if target !is null {
+                null_ty :: TY_NULL
+                current :: narrow_for_field(typed, target.field_key, target.static_ty)
+                if cond.op == .Eq {
+                    return BlockNarrow {
+                        .sym_id = 0,
+                        .static_ty = target.static_ty,
+                        .else_ty = subtract_type(current, null_ty),
+                        .field_key = target.field_key,
+                    }
+                }
+                return BlockNarrow {
+                    .sym_id = 0,
+                    .static_ty = target.static_ty,
+                    .else_ty = null_ty,
+                    .field_key = target.field_key,
+                }
+            }
+        }
+        return null
+    }
+    if cond.op != .Is {
+        return null
+    }
+    // Bare-ident scrutinee : narrow the symbol slot for the complement.
+    if cond.left is AST.IdentExpr {
+        sym :: typed.resolved.idents[cond.left.span.hash()] ?? return null
+        base :: type_of_symbol(sym, typed)
+        // Same `?`-base guard as the `== null` path above : the settle
+        // pre-walk sees an `m[k]`-bound scrutinee as `?` and would persist a
+        // poisoned divergent narrow into the authoritative walk.
+        if base is UnresolvedType {
+            return null
+        }
+        current :: narrow_for_binding(typed, sym.id, base)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id = sym.id,
+            .static_ty = base,
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
+        }
+    }
+    // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
+    // mirroring the `x.y == null` field path above. The divergent guard
+    // `if d.body is null { return }` then flows `Block` (not `Block | null`)
+    // to `body :: d.body` — the `convert_function` drop this closes.
+    if cond.left is AST.FieldExpr {
+        field_info :: resolve_field_chain_static(cond.left, typed) ?? return null
+        current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+        narrowed :: pattern_type_of(cond.right, typed, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id = 0,
+            .static_ty = field_info.static_ty,
+            .else_ty = subtract_type_with_impls(current, narrowed, typed),
+            .field_key = field_info.field_key,
+        }
+    }
+    return null
+}
+
+diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
+
+/// The element a `for` loop over `iter_ty` binds : an array's element, else the
+/// element of the iterable's `Iterator` impl (or of its `Into` toward one), else
+/// a generic struct's first type argument.
+///
+/// The lowerer applies the same rule to the instance's concrete iterable, so
+/// the loop it builds and the variable the typer bound agree.
+///
+/// @param iter_ty  the iterable, as the loop's `in` expression types.
+/// @param typed    the module whose impl tables are read.
+/// @return         `TY_UNRESOLVED` when the iterable yields nothing the tables know.
+export for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
+    // Arrays — and array-backed distinct newtypes — yield their element type.
+    ab :: array_backing(iter_ty)
+    if ab != null {
+        return ab.element
+    }
+    // @partial: `array_backing` already returned for every array; a type no arm
+    // names has no element.
+    @partial match iter_ty {
+        is StructType -> {
+            // A `generator`'s `<fn>$State<E>` carries the concrete element as its
+            // sole type arg (`<fn>$State<E> implements Iterator<E>`) — the synthetic
+            // struct has no `struct_decl` for the generic-substitution path below, so
+            // read the arg directly (else a captured loop var over a generator chain
+            // erases to the impl's generic `E`).
+            if is_gen_state_struct(iter_ty) {
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
+                }
+                return TY_UNRESOLVED
+            }
+            elem :: impl_side(typed, typed.impl_tables.iter_element_types, iter_ty, "")
+            if elem == null {
+                if iter_ty.args.len() >= 1 {
+                    return iter_ty.args[0]
+                }
+                return TY_UNRESOLVED
+            }
+            // The element is recorded in the struct's own parameters
+            // (`Range<T> implements Iterator<T>` records Range's `T`) : the
+            // receiver's arguments take their place.
+            return substitute_struct_args(elem, iter_ty, typed)
+        }
+        // A distinct keeps its own `Iterator` impl, recorded under its declaration ;
+        // a distinct without one iterates through its backing.
+        is DistinctType -> {
+            own :: impl_side(typed, typed.impl_tables.iter_element_types, iter_ty, "")
+            if own != null {
+                return own
+            }
+            return for_in_element(iter_ty.backing, typed)
+        }
+        // An enum or a primitive finds its element under its own `Iterator` impl,
+        // or its `Into` toward one (`string`) ; a range, under its integer's.
+        is EnumType | PrimitiveType | RangeType -> {
+            elements :: typed.impl_tables.iter_element_types
+            return impl_side(typed, elements, iter_ty, "") ?? TY_UNRESOLVED
+        }
+        is TraitType  -> {
+            // An erased `Iterator<E>` trait value (a boxed generator / a `.into()`
+            // result stored as the trait) carries its element as the sole type arg.
+            // Without this a `for x in it` over such a value leaves the loop var
+            // unresolved → it defaults to `i32`, which happens to match an i32
+            // element but mis-types every other (e.g. `Iterator<string>` → `i32.add`).
+            //
+            // A type-param-bearing element — a bare `T` inside a generic combinator
+            // (`my_map<T, U>(self: Iterator<T>, …)`), or a composite like `[K, V]` /
+            // `T[]` — is returned AS WRITTEN. It is the honest type of the loop var
+            // in that body, and it is what LSP hover and the typecheck snapshots
+            // read. Concretising it is the LOWERER's job, per instance: the entry's
+            // `Substitution` binds `T`, and `resolve_element_type` applies it.
+            return core_trait_arg(iter_ty, TRAIT_ITERATOR) ?? TY_UNRESOLVED
+        }
+        _                   -> { return TY_UNRESOLVED }
+    }
+}
+
+// A receiver `for_in_element` found no element for, that is not merely a type
+// still to be decided (an unresolved one carries its own diagnostic, a type
+// parameter or `Self` is iterated per instance, an erased `Any` is not ours to
+// judge, `never` is dead code), nor a string, whose element comes from the
+// `into` of `std/string`: without that module, the lowering reports it (M5001).
+is_known_non_iterable :: fn(t: Type) -> bool {
+    if t is UnresolvedType | TypeParamType | InferVar | SelfType | AnyType | NeverType {
+        return false
+    }
+    if t is PrimitiveType {
+        return t.name != "string"
+    }
+    return true
+}
+
+lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
+    decl_ty :: declared_type_at(typed, fn_decl.name_span)
+    if decl_ty is FnType {
+        return decl_ty.return_type
+    }
+    return TY_UNRESOLVED
+}
+
+/// Walk a let-binding tree and write the inferred / declared type into
+/// `typed.local_types` keyed by the binding span (the same span the
+/// resolver passed to `mint_local`). Wildcards are skipped — they
+/// don't introduce a Symbol.
+assign_binding_types :: fn(
+    b: AST.LetBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    match b {
+        is AST.SimpleBinding   -> { typed.local_types[b.name_span.hash()] = declared }
+        is AST.RestBinding     -> { typed.local_types[b.span.hash()] = declared }
+        is AST.WildcardBinding -> {}
+        is AST.TupleBinding    -> { assign_tuple(b, declared, typed, diags) }
+    }
+}
+
+assign_tuple :: fn(
+    tb: AST.TupleBinding,
+    declared: Type,
+    typed: TypedProgram,
+    diags: Diagnostic[],
+) -> void {
+    // A tuple- or array-backed distinct newtype (`Coord :: [i32, i32]`,
+    // `BigInt :: u32[]`) destructures through its backing composite — the
+    // shape checks are identical, only the nominal wrapper is stripped.
+    tup :: tuple_backing(declared)
+    if tup != null {
+        for leaf in tb.elements {
+            if leaf is AST.RestBinding {
+                diags.push(typecheck_error(
+                    .TypeMismatch, leaf.span,
+                    "a `...rest` binding collects from an array, got `${display_type(declared)}`"))
+                for each in tb.elements {
+                    assign_binding_types(each, TY_UNRESOLVED, typed, diags)
+                }
+                return
+            }
+        }
+        if tup.elements.len() != tb.elements.len() {
+            // Best-effort : Unresolved on each leaf, the resolver-
+            // emitted shape error already surfaces upstream.
+            for leaf in tb.elements {
+                assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+            }
+            return
+        }
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+        }
+        return
+    }
+    // Array destructuring : `[first, …rest] := arr` binds every simple/wildcard
+    // slot to the element type and the `RestBinding` to a fresh backing array
+    // (the raw slice, not the nominal newtype).
+    arr :: array_backing(declared)
+    if arr != null {
+        for leaf in tb.elements {
+            if leaf is AST.RestBinding {
+                assign_binding_types(leaf, arr, typed, diags)
+            } else {
+                assign_binding_types(leaf, arr.element, typed, diags)
+            }
+        }
+        return
+    }
+    // A `[...]` pattern against a value that is neither a tuple nor an
+    // array — a struct that implements `Into<[...]>` of the same arity.
+    // The value destructures by binding each leaf to the coerced tuple's
+    // element type. (Maps no longer take this path : they yield `[K, V]`
+    // tuples, an ordinary tuple destructure.)
+    coerced :: into_tuple_target(declared, tb.elements.len(), typed)
+    if coerced is TupleType {
+        for i in 0..<tb.elements.len() {
+            assign_binding_types(tb.elements[i], coerced.elements[i], typed, diags)
+        }
+        return
+    }
+    // Skip the diagnostic when the value type is unresolved (upstream
+    // error already fired).
+    if declared !is UnresolvedType {
+        diags.push(
+            typecheck_error(
+                .TypeMismatch,
+                tb.span,
+                "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array",
+            ),
+        )
+    }
+    for leaf in tb.elements {
+        assign_binding_types(leaf, TY_UNRESOLVED, typed, diags)
+    }
+}
+
+// The trait a `for` over `iter_ty` would reach through several impls : `Iterator`,
+// or, for a struct that is no `Iterator` itself, the `Into` toward one
+// (`Into<Iterator<i32>>` beside `Into<Iterator<string>>`). Null when one serves.
+several_iterators_trait :: fn(iter_ty: Type, typed: TypedProgram) -> string | null {
+    iterator :: core_trait_key(TRAIT_ITERATOR)
+    if implements_more_than_once(iter_ty, iterator, typed) {
+        return iterator
+    }
+    if iter_ty !is StructType || struct_implements_trait(iter_ty, iterator, typed) {
+        return null
+    }
+    into :: core_trait_key(TRAIT_INTO)
+    n := 0
+    for args in struct_trait_arg_lists(iter_ty, into, typed) {
+        if args.len() == 1 && core_trait_arg(args[0], TRAIT_ITERATOR) != null {
+            n += 1
+        }
+    }
+    return if n > 1 { into } else { null }
+}
+
+// Resolve the `[...]` destructure coercion for a non-tuple / non-array
+// value : when `declared` is a struct implementing `Into<[...]>` of
+// `arity` elements, return that target tuple with the impl's type params
+// substituted by the concrete instance args (so a `Pair<string, i32>`
+// implementing `Into<[string, i32]>` yields `[string, i32]`). Returns null
+// when no such coercion applies.
+// The lowerer resolves the matching `into` member's field names from the
+// impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
+into_tuple_target :: fn(declared: Type, arity: i64, typed: TypedProgram) -> Type | null {
+    if declared !is StructType {
+        return null
+    }
+    // Among its `Into` impls (`Into<[string, i32]>` beside `Into<Label>`), the one
+    // toward a tuple of that arity.
+    for into_args in struct_trait_arg_lists(declared, core_trait_key(TRAIT_INTO), typed) {
+        if into_args.len() != 1 {
+            continue
+        }
+        target :: substitute_struct_args(into_args[0], declared, typed)
+        if target is TupleType {
+            if target.elements.len() == arity {
+                return target
+            }
+        }
+    }
+    return null
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+import "vader/front/parser"
+
+// A source checked as the pipeline checks a module : its declarations, then
+// every body. Both `typed` and `diags`, so a test can assert on either.
+CheckedSource :: struct {
+    typed: TypedProgram
+    diags: Diagnostic[]
+}
+
+check_source_bodies :: fn(src: string) -> CheckedSource {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    factory :: SymbolFactory {}
+    rm :: resolve_module(parsed.program, "t", factory)
+    diags: Diagnostic[]: []
+    result :: check_module(parsed.program, rm, diags)
+    walk_bodies(parsed.program.decls, result.typed, diags, .Full)
+    return CheckedSource { .typed = result.typed, .diags = diags }
+}
+
+has_code :: fn(diags: Diagnostic[], code: string) -> bool {
+    for d in diags {
+        if d.code.id == code {
+            return true
+        }
+    }
+    return false
+}
+
+@test
+test_let_simple_binding_records_local_type :: fn() -> void {
+    src :: "f :: fn() -> i32 { x :: 42 }"
+    out :: check_source_bodies(src)
+    sb :: first_simple_binding(src)
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
+    ty :: out.typed.local_types[sb.name_span.hash()]
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
+    // Bare `42` defaults to i32 via `default_if_free`.
+    assert_eq(display_type(ty), "i32")
+}
+
+@test
+test_let_with_annotation_narrows_free_int :: fn() -> void {
+    src :: "f :: fn() -> i64 { x: i64 = 5 }"
+    out :: check_source_bodies(src)
+    sb :: first_simple_binding(src)
+    if sb is null {
+        assert(false, "expected SimpleBinding")
+        return
+    }
+    ty :: out.typed.local_types[sb.name_span.hash()]
+    if ty is null {
+        assert(false, "binding should have a type")
+        return
+    }
+    assert_eq(display_type(ty), "i64")
+}
+
+@test
+test_let_annotation_mismatch_emits_T3001 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { x: i32 = \"hello\" }")
+    assert(has_code(out.diags, "T3001"), "expected T3001 on annotation mismatch")
+}
+
+@test
+test_assign_incompatible_emits_T3063 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = \"nope\" }")
+    assert(has_code(out.diags, "T3063"), "expected T3063 on incompatible reassignment")
+}
+
+@test
+test_assign_outside_a_locals_first_range_emits_T3063 :: fn() -> void {
+    src :: """
+Hour :: Int in 0..=23
+f :: fn(h: Hour) -> void {
+    next := h + 1
+    next = next % 24
+}
+"""
+    out :: check_source_bodies(src)
+    hinted := false
+    for d in out.diags {
+        if d.code.id == "T3063" && "write the type it may hold" in d.detail {
+            hinted = true
+        }
+    }
+    assert(hinted, "T3063 says to write the local's type")
+}
+
+@test
+test_assign_compatible_no_T3063 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> void { y := 5\n    y = 6 }")
+    assert(!has_code(out.diags, "T3063"), "compatible reassignment must not emit T3063")
+}
+
+@test
+test_return_value_mismatch_emits_T3020 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> i32 { return \"hello\" }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on return-type mismatch")
+}
+
+@test
+test_return_bare_in_non_void_emits_T3020 :: fn() -> void {
+    out :: check_source_bodies("f :: fn() -> i32 { return }")
+    assert(has_code(out.diags, "T3020"), "expected T3020 on bare return in non-void fn")
+}
+
+@test
+test_for_in_array_narrows_binding :: fn() -> void {
+    src :: "f :: fn(xs: i32[]) -> void { for x in xs { } }"
+    out :: check_source_bodies(src)
+    sp :: first_for_in_binding_span(src)
+    if sp is null {
+        assert(false, "expected a for-in")
+        return
+    }
+    ty :: out.typed.local_types[sp.hash()]
+    if ty is null {
+        assert(false, "for-in binding should have a type")
+        return
+    }
+    assert_eq(display_type(ty), "i32")
+}
+
+// ---- test walkers ---------------------------------------------------------
+
+first_simple_binding :: fn(src: string) -> AST.SimpleBinding | null {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    b :: f.body
+    if b is AST.BlockExpr {
+        for s in b.stmts {
+            if s is AST.LetStmt {
+                if s.binding is AST.SimpleBinding {
+                    return s.binding
+                }
+            }
+        }
+    }
+    return null
+}
+
+first_for_in_binding_span :: fn(src: string) -> Span | null {
+    parsed :: parse_source(with_integers(src), "t.vader")
+    f :: first_fn_decl(parsed.program.decls) ?? return null
+    b :: f.body
+    if b is AST.BlockExpr {
+        for s in b.stmts {
+            if s !is AST.ForStmt {
+                continue
+            }
+            inf :: s.form
+            if inf is AST.InFor {
+                nv :: inf.loop_var
+                if nv is AST.NamedVar {
+                    return nv.span
+                }
+            }
+        }
+    }
+    return null
+}

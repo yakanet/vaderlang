@@ -19,10 +19,10 @@ import "std/string"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/typecheck"
-import "vader/resolver/symbol"
+import "vader/front/typecheck"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/comptime"
+import "vader/front/comptime"
 import "toolchain/span"
 
 // A char literal pinned to an integer (free-char coercion) lowers like a byte

@@ -1,0 +1,661 @@
+// vader/front/effects/frozen — the frozen checks of ADR 0053.
+//
+// A module constant is frozen, deeply, and so is a view of a string's bytes
+// (`s.bytes()`): nothing modifies them in place. Each use of a frozen value is a
+// root of its function's skeleton, followed like a parameter through fields,
+// elements, branches, aliases and calls. A name bound to a frozen value holds a
+// copy of it (E1): the binding is a root of its own, which takes the place of the
+// frozen one. Once the summary is settled, each root has one outcome:
+//
+// - a use written through: a fault ; handed to a callee that modifies it: a fault ;
+//   handed to code the summary cannot see: an unknown call ;
+// - a use stored or returned: a copy ;
+// - a binding written, stored, returned or handed to unseen code: a copy ; one
+//   only read shares the frozen value ; one written that the body never reads nor
+//   keeps, and that holds nothing but frozen values, a copy whose write is lost.
+//
+// A view is never copied: what holds one, a use or a binding, comes to the
+// outcomes of `views.vader`. A copy is left out when nothing in the program writes
+// a value of a type it can reach. A use that needs its copy reads a fresh value of
+// its constant (`FreshReads`, for the lowering). A fault carries the calls its
+// value is lent down and the write they end at (`origin.vader`), and is an error
+// (`frozen_diagnostics`).
+
+module "vader/front/effects"
+
+import "std/collections"
+import "std/iter"
+import "toolchain/span"
+import "vader/front/resolver/symbol"
+import "vader/front/typecheck"
+import "vader/types"
+
+AST :: import "toolchain/ast"
+
+/// What a site does with a frozen value.
+export FrozenKind :: enum {
+    /// A write through a use of it.
+    WriteFault,
+    /// A use of it is handed to a callee that modifies it.
+    CallFault,
+    /// A use of it is handed to code the summary cannot see: a function value
+    /// somewhere down the call.
+    UnknownCall,
+    /// It is kept somewhere a write could reach: a copy of it is.
+    Copy,
+    /// It is kept, but nothing in the program writes a value its copy could reach.
+    ElidedCopy,
+    /// A name bound to it that nothing writes, keeps or returns: the name shares the
+    /// frozen value instead of copying it.
+    SharedBinding,
+    /// A name bound to it, which holds nothing but copies of frozen values, is
+    /// written, and the body never reads it nor keeps what it holds: the write is
+    /// lost.
+    UnreadCopy,
+    /// A view is kept somewhere, or handed to code the summary cannot see.
+    KeptView,
+    /// A view is returned: its function hands views out (`views.vader`).
+    ReturnedView,
+}
+
+/// What a frozen value is.
+export FrozenOrigin :: enum {
+    /// The value of a module constant.
+    Constant,
+    /// A view of a string's bytes, which is never copied.
+    View,
+    /// The data of an enum's variant, a table every read of it shares.
+    VariantData,
+}
+
+/// A site that hands a frozen value on.
+export FrozenSite :: struct {
+    span: Span
+    /// The display path of the module that holds the site.
+    module: string
+    kind: FrozenKind
+    /// The constant the value is rooted at, the call that made a view, or the
+    /// conversion that read variant data (`Info(…)`).
+    root: string
+    origin: FrozenOrigin
+    /// A binding that takes a frozen value or another one, `x :: f() ?? CONST`: its
+    /// copy belongs where the frozen value is chosen, not at the binding.
+    mixed: bool = false
+    /// For a fault, the calls from the site down to the write, and the write.
+    chain: FaultChain | null = null
+}
+
+/// The frozen sites of a project, and what deciding them waits for.
+FrozenSites :: struct {
+    sites: FrozenSite[] = []
+    /// The bodies that use a frozen value, decided once the summary is settled.
+    bodies: FrozenBody[] = []
+    /// The kinds of value some site of the program writes (`written_keys`).
+    written: MutableSet<string> = MutableSet<string> {}
+    /// The uses that read a fresh value of their constant, decided with the sites.
+    fresh: FreshReads = FreshReads {}
+    /// Constant symbol id → the uses of other constants its value keeps, which a
+    /// fresh value of it reads fresh too (`spread_fresh`).
+    kept_by_constants: MutableMap<i32, ConstantUse[]> = MutableMap<i32, ConstantUse[]> {}
+}
+
+/// A root of a skeleton that the frozen checks decide: a use of a frozen value, or
+/// a binding that would copy one. The records of a body are its extra roots in
+/// order: record `i` is root `params + i` (`root_record`).
+FrozenRoot :: struct {
+    /// Its number in the skeleton (`Skeleton.add_root`, `Skeleton.add_copy`).
+    root: i64
+    span: Span
+    /// The constant a use names, the call that makes a view (`bytes()`), the
+    /// conversion that reads variant data (`Info(…)`), or the name of a binding.
+    label: string
+    /// The symbol id of the name a binding binds ; null for a use.
+    binding: i32 | null = null
+    /// What a use reads ; meaningless for a binding.
+    origin: FrozenOrigin = .Constant
+    /// The use, which may read a fresh value of what it reads ; null for a view of
+    /// a string's bytes and for a binding.
+    constant: ConstantUse | null = null
+    /// The type of a use ; null for a binding, which is judged by what it took.
+    type: Type | null = null
+}
+
+/// A use of a module constant, or of variant data: its node, and the symbol id of
+/// the constant or of the struct the data is kept in.
+ConstantUse :: struct {
+    node: i64
+    symbol: i32
+}
+
+/// What deciding one root reads: its body, the uses of frozen values it holds, and
+/// what the body (`marked`) and its calls (`lent`) do to it.
+RootCase :: struct {
+    body: FrozenBody
+    paths: PathTable
+    /// Each use the root holds, by its root in the skeleton, at the path the root
+    /// holds below it.
+    held: Root[]
+    marked: Access[]
+    lent: Access[]
+}
+
+/// A body that uses a frozen value, with the roots its walk gave it.
+FrozenBody :: struct {
+    skeleton: Skeleton
+    roots: FrozenRoot[]
+    typed: TypedProgram
+    /// Its node in the call graph ; -1 for a constant's initialiser or a default.
+    node: i32
+    /// For a constant's initialiser, the constant's symbol id: its value keeps
+    /// nothing that is not frozen as well.
+    initialises: i32 | null
+    /// The locals and parameters a write into may be seen through
+    /// (`WalkCtx.seen_names`).
+    seen_names: MutableSet<i32>
+}
+
+// ---- roots ----------------------------------------------------------------
+
+// The slot of a use of the frozen constant `sym`, which `e` names ; null when `sym`
+// is no frozen constant, names a type (`i32`), or its value holds no reference. An
+// import binding that renames the constant stands for it.
+frozen_use :: fn(ctx: WalkCtx, e: AST.Expr, sym: Symbol) -> i64 | null {
+    constant :: declared_symbol(sym, ctx.typed)
+    if !is_frozen_const(constant) || names_a_type(constant, ctx.typed.resolved) {
+        return null
+    }
+    if !holds_references(ctx.typed.expr_types[e.id]) {
+        return null
+    }
+    use :: ConstantUse { .node = e.id, .symbol = constant.id }
+    return ctx.pure_source(ctx.frozen_source(e, sym.name, .Constant, use))
+}
+
+// `slot`, noted as holding nothing but its frozen value.
+pure_source :: fn(ctx: WalkCtx, slot: i64) -> i64 {
+    ctx.pure.add(slot)
+    return slot
+}
+
+// The slot of a use of a frozen value at `e`, labelled `label` for the dump ;
+// `constant` is the use, when it may read a fresh value.
+frozen_source :: fn(
+    ctx: WalkCtx,
+    e: AST.Expr,
+    label: string,
+    origin: FrozenOrigin,
+    constant: ConstantUse | null,
+) -> i64 {
+    slot :: ctx.s.fresh_slot()
+    use :: FrozenRoot {
+        .root = ctx.s.add_root(slot),
+        .span = e.span,
+        .label = label,
+        .origin = origin,
+        .type = ctx.typed.expr_types[e.id],
+        .constant = constant,
+    }
+    ctx.roots.push(use)
+    return slot
+}
+
+// The slot of the view of a string's bytes the call `c` returns ; null when `c`
+// returns none.
+frozen_view :: fn(ctx: WalkCtx, c: AST.CallExpr, callee: Callee) -> i64 | null {
+    if !ctx.index.makes_view(callee) {
+        return null
+    }
+    return ctx.frozen_source(c, view_label(callee), .View, null)
+}
+
+// The slot of the variant data the conversion `c` reads, `Info(v)` ; null when `c`
+// is no such conversion. The data holds only values, so a copy of it is a copy of
+// its fields. A type parameter converted to a struct some enum keeps its data in
+// may stand for that enum at an instance, and for the struct itself at another,
+// where the conversion hands its argument on.
+frozen_variant_data :: fn(ctx: WalkCtx, c: AST.CallExpr) -> i64 | null {
+    if c.args.len() != 1 {
+        return null
+    }
+    source :: ctx.typed.expr_types[c.args[0].value.id]
+    target :: ctx.typed.expr_types[c.id] ?? return null
+    if source is EnumType {
+        data :: enum_data_of(source, target) ?? return null
+        return ctx.pure_source(ctx.variant_data_use(c, data))
+    }
+    if (source is TypeParamType || source is AnyType) && target is StructType
+        && target.symbol.id in ctx.index.variant_data {
+        return ctx.variant_data_use(c, target)
+    }
+    return null
+}
+
+// The slot of the use `c` of variant data kept in the struct `data`.
+variant_data_use :: fn(ctx: WalkCtx, c: AST.CallExpr, data: StructType) -> i64 {
+    use :: ConstantUse { .node = c.id, .symbol = data.symbol.id }
+    return ctx.frozen_source(c, "${data.symbol.name}(…)", .VariantData, use)
+}
+
+// The binding of `sym`, at `span`, to what `value` holds: a copy of what it holds
+// of a frozen value, an alias of the rest. A name bound to anything but frozen
+// values is seen: a write into it may be read through what else it holds.
+bind_copy :: fn(ctx: WalkCtx, slot: i64, value: i64 | null, span: Span, sym: Symbol) -> void {
+    if value == null || value !in ctx.pure {
+        ctx.seen_names.add(sym.id)
+    }
+    from :: value ?? return
+    binding :: FrozenRoot {
+        .root = ctx.s.add_copy(slot, from),
+        .span = span,
+        .label = sym.name,
+        .binding = sym.id,
+    }
+    ctx.roots.push(binding)
+}
+
+// Keep the walked body when it uses a frozen value, to decide its roots once the
+// summary is settled ; `initialises` is the constant it initialises, if any.
+note_frozen_body :: fn(ctx: WalkCtx, node: i32, initialises: i32 | null) -> void {
+    if ctx.s.seeds == null {
+        return
+    }
+    body :: FrozenBody {
+        .skeleton = ctx.s,
+        .roots = ctx.roots,
+        .typed = ctx.typed,
+        .node = node,
+        .initialises = initialises,
+        .seen_names = ctx.seen_names,
+    }
+    ctx.frozen.bodies.push(body)
+}
+
+// ---- written kinds --------------------------------------------------------
+
+// A write the type does not describe may reach any value.
+ANYTHING :: "anything"
+ARRAYS :: "array"
+TUPLES :: "tuple"
+
+struct_key :: fn(t: StructType) -> string = "s${t.symbol.id}"
+
+// A callee the compiler knows without a body writes what it is lent at the call:
+// record the type of `arg` when it fills a parameter one of `targets` writes.
+note_known_writes :: fn(ctx: WalkCtx, targets: CallTarget[], param: i64, arg: AST.Expr) -> void {
+    for target in targets {
+        if target is KnownEffects && param < target.params.len() {
+            if target.params[param].accesses.any_match(modifies) {
+                ctx.note_written(ctx.typed.expr_types[arg.id])
+            }
+        }
+    }
+}
+
+// A slot of `container` is written: record the kind of value written.
+note_write :: fn(ctx: WalkCtx, container: AST.Expr) -> void =
+    ctx.note_written(ctx.typed.expr_types[container.id])
+
+// Record that a value of type `t` is written somewhere.
+note_written :: fn(ctx: WalkCtx, t: Type | null) -> void {
+    for key in written_keys(t) {
+        ctx.frozen.written.add(key)
+    }
+}
+
+// The kinds a write to a value of type `t` may reach: a struct by its symbol, an
+// array, a tuple ; anything when the type does not say.
+written_keys :: fn(t: Type | null) -> string[] = match t {
+    is StructType   -> [struct_key(t)]
+    is ArrayType    -> [ARRAYS]
+    is TupleType    -> [TUPLES]
+    is UnionType    -> t.variants.flat_map(written_keys).collect()
+    is DistinctType -> written_keys(t.backing)
+    is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> [ANYTHING]
+    is InferVar -> leaked_infer_var(t)
+    is PrimitiveType | EnumType | RangeType | FnType | TypeMetaType | FreeIntType
+     | FreeFloatType | FreeCharType | NeverType -> []
+}
+
+// Whether some write of the program may reach a value of type `t`, or a value it
+// holds ; `seen` keeps a recursive struct from looping.
+may_be_written :: fn(
+    written: MutableSet<string>, t: Type | null, typed: TypedProgram, seen: MutableSet<i32>,
+) -> bool {
+    if ANYTHING in written {
+        return true
+    }
+    reaches :: (inner: Type) -> may_be_written(written, inner, typed, seen)
+    return match t {
+        is StructType   -> struct_key(t) in written ||
+            fields_may_be_written(written, t, typed, seen)
+        is ArrayType    -> ARRAYS in written || reaches(t.element)
+        is TupleType    -> TUPLES in written || t.elements.any_match(reaches)
+        is UnionType    -> t.variants.any_match(reaches)
+        is DistinctType -> reaches(t.backing)
+        is TraitType | TypeParamType | SelfType | AnyType | UnresolvedType | null -> true
+        is InferVar -> leaked_infer_var(t)
+        is PrimitiveType | EnumType | RangeType | FnType | TypeMetaType | FreeIntType
+         | FreeFloatType | FreeCharType | NeverType -> false
+    }
+}
+
+fields_may_be_written :: fn(
+    written: MutableSet<string>, t: StructType, typed: TypedProgram, seen: MutableSet<i32>,
+) -> bool {
+    if !seen.add(t.symbol.id) {
+        return false
+    }
+    fields :: typed.struct_field_types[t.symbol.id] ?? return true
+    for [_, field] in fields {
+        if may_be_written(written, field, typed, seen) {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- deciding -------------------------------------------------------------
+
+/// Decide every root of the bodies that use a frozen value, the summary settled.
+///
+/// @param frozen      the bodies and the program's writes.
+/// @param settled     the functions, their skeletons and what each does with its
+///                    parameters, to follow a fault to its write.
+/// @param components  per node, its strongly connected component.
+settle_frozen :: fn(frozen: FrozenSites, settled: TraceCtx, components: i32[]) -> void {
+    for body in frozen.bodies {
+        ctx :: body_ctx(body, settled.facts, settled.index, components)
+        effects :: evaluate_roots(body.skeleton, ctx)
+        for r in body.roots {
+            frozen.decide(body, r, effects, settled)
+        }
+    }
+    frozen.spread_fresh()
+}
+
+// A fresh value of a constant is a fresh value of what its initialiser keeps: the
+// uses of other constants it keeps read fresh too, and so on down.
+spread_fresh :: fn(frozen: FrozenSites) -> void {
+    pending: i32[]: []
+    for constant in frozen.fresh.constants {
+        pending.push(constant)
+    }
+    for pending.len() > 0 {
+        constant :: pending.remove_last() ?? break
+        for use in frozen.kept_by_constants[constant] ?? [] {
+            if frozen.mark_fresh(use) {
+                pending.push(use.symbol)
+            }
+        }
+    }
+}
+
+// The use `use` reads a fresh value of its constant ; true when the constant had no
+// such use yet.
+mark_fresh :: fn(frozen: FrozenSites, use: ConstantUse) -> bool {
+    frozen.fresh.uses.add(use.node)
+    return frozen.fresh.constants.add(use.symbol)
+}
+
+// What evaluating `body` reads: its node's component for a function, none for an
+// initialiser.
+body_ctx :: fn(
+    body: FrozenBody,
+    facts: ParamEffects[][],
+    index: CalleeIndex,
+    components: i32[],
+) -> EvalCtx {
+    if body.node < 0 {
+        return node_ctx(facts, index, [], 0)
+    }
+    return node_ctx(facts, index, components, body.node)
+}
+
+// Record the outcome of root `r` of `body`, if it has one, and which uses read a
+// fresh value of their constant.
+decide :: fn(
+    frozen: FrozenSites,
+    body: FrozenBody,
+    r: FrozenRoot,
+    effects: RootEffects,
+    settled: TraceCtx,
+) -> void {
+    c :: root_case(body, r, effects, settled.index.paths) ?? return
+    frozen.note_kept_by_constant(c, r)
+    named :: c.named_use()
+    view :: named.is_view()
+    kind :: frozen.outcome(c, r, view) ?? return
+    site :: FrozenSite {
+        .span = r.span,
+        .module = body.typed.resolved.display_path,
+        .kind = kind,
+        .root = named.label,
+        .origin = named.origin,
+        .mixed = r.root in effects.mixed,
+        .chain = fault_chain(settled, body, r, effects, kind, view),
+    }
+    frozen.sites.push(site)
+    if frozen.reads_fresh(c, kind) {
+        for h in c.held {
+            frozen.read_fresh(body.root_record(h.param))
+        }
+    }
+}
+
+// The use a site names: a view when one is held, which no copy can take the place
+// of ; else the first use held.
+named_use :: fn(c: RootCase) -> FrozenRoot {
+    for h in c.held {
+        use :: c.body.root_record(h.param)
+        if use.is_view() {
+            return use
+        }
+    }
+    return c.body.root_record(c.held[0].param)
+}
+
+// What deciding root `r` of `body` reads ; null for a binding that took no frozen
+// value.
+root_case :: fn(
+    body: FrozenBody, r: FrozenRoot, effects: RootEffects, paths: PathTable,
+) -> RootCase | null {
+    took :: held_by(r, effects) ?? return null
+    // A binding narrowed away from a byte array holds no view it took.
+    held :: took.filter((h) -> !body.root_record(h.param).is_view() || reaches(paths, h)).collect()
+    if held.is_empty() {
+        return null
+    }
+    return RootCase {
+        .body = body,
+        .paths = paths,
+        .held = held,
+        .marked = effects.marked[r.root].accesses,
+        .lent = effects.lent[r.root].accesses,
+    }
+}
+
+// The uses of frozen values root `r` holds: a use holds itself, a binding what it
+// took ; null for a binding that took none.
+held_by :: fn(r: FrozenRoot, effects: RootEffects) -> Root[] | null {
+    if r.binding != null {
+        return effects.took[r.root]
+    }
+    return [Root { .param = r.root, .path = ROOT }]
+}
+
+// What root `r` comes to, if anything ; `view` when it holds a view.
+outcome :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot, view: bool) -> FrozenKind | null {
+    if view {
+        return view_outcome(c)
+    }
+    if r.binding != null {
+        return frozen.binding_outcome(c, r.binding !in c.body.seen_names)
+    }
+    return frozen.use_outcome(c)
+}
+
+// A use in a constant's initialiser that the constant's value keeps, with a type
+// some write reaches: a fresh value of that constant reads it fresh too.
+note_kept_by_constant :: fn(frozen: FrozenSites, c: RootCase, r: FrozenRoot) -> void {
+    constant :: c.body.initialises ?? return
+    use :: r.constant ?? return
+    if !frozen.hands_on_written(c, is_kept) {
+        return
+    }
+    frozen.kept_by_constants.get_or_put_with(constant, () -> []).push(use)
+}
+
+// Whether the uses a root decided `kind` holds read a fresh value: copied, or
+// handed to unseen code with a type some write of the program reaches.
+reads_fresh :: fn(frozen: FrozenSites, c: RootCase, kind: FrozenKind) -> bool = match kind {
+    .Copy | .UnreadCopy -> true
+    .UnknownCall -> frozen.hands_on_written(c, is_unknown)
+    .WriteFault | .CallFault | .ElidedCopy | .SharedBinding | .KeptView | .ReturnedView -> false
+}
+
+// The use `use` reads a fresh value of its constant: the copy is made where the
+// frozen value is chosen, which also serves a binding that takes it or another
+// value.
+read_fresh :: fn(frozen: FrozenSites, use: FrozenRoot) -> void {
+    constant :: use.constant ?? return
+    frozen.mark_fresh(constant)
+}
+
+// What a use of a frozen value comes to: a fault, an unknown call, a copy, or
+// nothing when it is only read. A constant's initialiser keeps nothing that is not
+// frozen as well.
+use_outcome :: fn(frozen: FrozenSites, c: RootCase) -> FrozenKind | null {
+    fault :: c.fault_of(modifies)
+    if fault != null {
+        return fault
+    }
+    if c.either(is_unknown) {
+        return .UnknownCall
+    }
+    if c.body.initialises == null && c.either(is_kept) {
+        return frozen.copy_or_elided(c, is_kept)
+    }
+    return null
+}
+
+// A fault when an access satisfying `writes` modifies what the root holds: the
+// body's own write, or that of a callee it is lent to.
+fault_of :: fn(c: RootCase, writes: fn(Access) -> bool) -> FrozenKind | null {
+    if c.marked.any_match(writes) {
+        return .WriteFault
+    }
+    if c.lent.any_match(writes) {
+        return .CallFault
+    }
+    return null
+}
+
+// What a binding of frozen values comes to: written, it needs its copy, whose
+// write the body makes itself is lost when the body never sees the name, `unseen`,
+// nor keeps the copy ; kept, returned or handed to unseen code, a copy the types of
+// what escapes may make needless ; only read, it shares the frozen value.
+binding_outcome :: fn(frozen: FrozenSites, c: RootCase, unseen: bool) -> FrozenKind {
+    if c.either(modifies) {
+        if unseen && c.marked.any_match(modifies) && !c.either(escapes) {
+            return .UnreadCopy
+        }
+        return .Copy
+    }
+    if c.either(escapes) {
+        return frozen.copy_or_elided(c, escapes)
+    }
+    return .SharedBinding
+}
+
+// A copy of what the root holds, left out when no write of the program reaches a
+// value of the type that an access satisfying `p` hands on: an element kept out of
+// a table copies nothing when nothing writes a value of the element's type.
+copy_or_elided :: fn(frozen: FrozenSites, c: RootCase, p: fn(Access) -> bool) -> FrozenKind {
+    if frozen.hands_on_written(c, p) {
+        return .Copy
+    }
+    return .ElidedCopy
+}
+
+// Whether an access that satisfies `p` hands on, below a frozen value `c` holds, a
+// value of a type some write of the program reaches.
+hands_on_written :: fn(frozen: FrozenSites, c: RootCase, p: fn(Access) -> bool) -> bool =
+    c.either((a) -> p(a) && c.held.any_match((h) -> frozen.written_at(c, h, a)))
+
+// Whether some write of the program reaches a value found where `a` acts, below the
+// use `h` holds.
+written_at :: fn(frozen: FrozenSites, c: RootCase, h: Root, a: Access) -> bool {
+    use :: c.body.root_record(h.param)
+    t :: type_below(c.paths, c.body.typed, use.type, c.paths.joined(h.path, a.path))
+    seen :: MutableSet<i32> {}
+    return may_be_written(frozen.written, t, c.body.typed, seen)
+}
+
+// The type found `path` below a value of type `t`, as far as the steps can be
+// followed. A step the walk cannot follow stops it at the type above, which
+// reaches everything the step would.
+type_below :: fn(paths: PathTable, typed: TypedProgram, t: Type | null, path: i32) -> Type | null {
+    at := t
+    for step in paths.steps_of(path) {
+        at = step_type(typed, at, paths.step_names[step]) ?? return at
+    }
+    return at
+}
+
+// The type one step `name` below a value of type `t`: an array's element, or a
+// struct's field ; null for any other step.
+step_type :: fn(typed: TypedProgram, t: Type | null, name: string) -> Type | null {
+    if t == null {
+        return null
+    }
+    if name == ELEMENT {
+        arr :: array_backing(t) ?? return null
+        return arr.element
+    }
+    return declared_struct_field_type(t, name, typed)
+}
+
+// The chain of a fault of root `r` of `body`, from its first access that modifies
+// the value: one the body marks for a write fault or a copy nothing reads, one a
+// call lends it for a call fault ; null for any other outcome.
+fault_chain :: fn(
+    settled: TraceCtx,
+    body: FrozenBody,
+    r: FrozenRoot,
+    effects: RootEffects,
+    kind: FrozenKind,
+    view: bool,
+) -> FaultChain | null {
+    set :: fault_set(effects, r.root, kind) ?? return null
+    paths :: settled.index.paths
+    for i in 0..<set.accesses.len() {
+        a :: set.accesses[i]
+        if (!view && modifies(a)) || (view && writes_view(paths, a)) {
+            start :: Link {
+                .s = body.skeleton,
+                .module = body.typed.resolved.display_path,
+                .effects = set,
+                .name = r.label,
+            }
+            return trace(settled, start, i)
+        }
+    }
+    return null
+}
+
+// The set a fault of `kind` on root `root` comes from.
+fault_set :: fn(effects: RootEffects, root: i64, kind: FrozenKind) -> ParamEffects | null =
+    match kind {
+        .WriteFault | .UnreadCopy -> effects.marked[root]
+        .CallFault                -> effects.lent[root]
+        .UnknownCall | .Copy | .ElidedCopy | .SharedBinding | .KeptView | .ReturnedView -> null
+    }
+
+// The record of extra root `root` of `body`.
+root_record :: fn(body: FrozenBody, root: i64) -> FrozenRoot =
+    body.roots[root - body.skeleton.params]
+
+either :: fn(c: RootCase, p: fn(Access) -> bool) -> bool =
+    c.marked.any_match(p) || c.lent.any_match(p)
+
+escapes :: fn(a: Access) -> bool = !modifies(a)

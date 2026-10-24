@@ -1844,8 +1844,8 @@ test("lsp: implementation lists every @target body, including a foreign one", as
 // The reference index is project-wide and FLAT, so a lookup by position alone
 // matches the first site anywhere covering that line and column — in a real tree
 // almost always another file. Measured on this repo before the fix: find-usages
-// on `push_all` at `resolver/loader.vader:650:20` answered with three sites in
-// `parser/dump.vader`, on `label`. Rename shared the lookup, so it would have
+// on `push_all` at `front/resolver/loader.vader:650:20` answered with three sites in
+// `front/parser/dump.vader`, on `label`. Rename shared the lookup, so it would have
 // rewritten that unrelated symbol across the project.
 //
 // The query position is BLANK in the open file and holds `bravo` in the sibling.

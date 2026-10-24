@@ -3,8 +3,8 @@
 
 module "vader/lower"
 
-import "vader/resolver"
-import "vader/typecheck"
+import "vader/front/resolver"
+import "vader/front/typecheck"
 
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
 // resolve `Range`, `Continuation`, `Iterator`, `Display`, `Error`,

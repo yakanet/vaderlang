@@ -27,7 +27,7 @@ module "vader/lower"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
 import "toolchain/span"
 

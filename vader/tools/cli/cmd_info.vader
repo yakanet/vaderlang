@@ -18,7 +18,7 @@ import "std/path"
 import "std/string"
 import "std/string_builder"
 import "vader/pipeline"
-import "vader/resolver"
+import "vader/front/resolver"
 
 /// `vader info [--json] [<folder>]`: print what a project folder describes.
 ///

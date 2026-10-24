@@ -115,7 +115,7 @@ internal class VaderRunConfiguration(
 
 // The nearest folder at or above `file` holding a `vader.json` or a build
 // driver: the Vader project the file belongs to, as the language server's
-// `find_project_root` (`vader/resolver/module.vader`) finds it. Null for a file
+// `find_project_root` (`vader/front/resolver/module.vader`) finds it. Null for a file
 // on its own.
 internal fun vaderProjectOf(file: String?): String? {
     var dir = file?.let { java.io.File(it).absoluteFile.parentFile }

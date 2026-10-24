@@ -8,10 +8,10 @@ import "std/iter"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
-import "vader/typecheck"
-import "vader/resolver/symbol"
+import "vader/front/typecheck"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/comptime"
+import "vader/front/comptime"
 import "toolchain/span"
 
 UfcsMember :: struct {
@@ -376,7 +376,7 @@ member_or_instance :: fn(
 }
 
 /// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
-/// `find_impl_member_for`. (Mirrors `vader/resolver/materialize.vader::is_intrinsic`,
+/// `find_impl_member_for`. (Mirrors `vader/front/resolver/materialize.vader::is_intrinsic`,
 /// kept local to avoid a resolver→lower import.)
 impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
     for d in decl.decorators {

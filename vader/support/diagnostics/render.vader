@@ -6,9 +6,9 @@
 //   - `dump_diagnostics_with_file` user-facing build  : file prefix, sorted,
 //                                  deduped, capped, TTY-coloured.
 //
-// Lives here rather than in `vader/lexer/dump` (its historical home — the lexer
+// Lives here rather than in `vader/front/lexer/dump` (its historical home — the lexer
 // dump was the first diagnostic consumer): rendering diagnostics is a
-// diagnostics concern, and `vader/lexer` already depends on this module, so the
+// diagnostics concern, and `vader/front/lexer` already depends on this module, so the
 // renderer belongs below it. `Diagnostic` / `Position` / `Span` / `Severity` /
 // `CodeInfo` / `is_empty` are module-local (diagnostic.vader) — no import here.
 

@@ -23,10 +23,10 @@ import "std/string_builder"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
-import "vader/resolver"
-import "vader/typecheck"
-import "vader/comptime"
-import "vader/resolver/symbol"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+import "vader/front/comptime"
+import "vader/front/resolver/symbol"
 
 /// Lower every module's top-level decls into a `LoweredProject`.
 /// @param loaded     the loaded project (for source decls per module).
@@ -44,7 +44,7 @@ export lower_project :: fn(
 /// materialization. The eager modules' un-baked consts inline their RHS call at
 /// each use site (the standard staging trick), so the nullary callee thunks land
 /// in the harvest and are lowered. The result is a throwaway bytecode module used
-/// only to VM-execute those callees — see `comptime/vm/resolve.vader`.
+/// only to VM-execute those callees — see `front/comptime/vm/resolve.vader`.
 ///
 /// @param eager_modules  module ids to lower eagerly (with bodies) ; every other
 ///                       module surfaces bodyless signatures only. Must be

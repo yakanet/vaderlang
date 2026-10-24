@@ -2604,7 +2604,7 @@ module-name ::= segment ('/' segment)*
 segment     ::= [a-z] [a-z0-9_]*
 ```
 
-Examples accepted: `main`, `std/string`, `std/string/utf8`, `vader/lexer`, `my_app/util_2`.
+Examples accepted: `main`, `std/string`, `std/string/utf8`, `vader/front/lexer`, `my_app/util_2`.
 
 Examples rejected: `Std/String` (uppercase), `std/1string` (segment starts with digit), `std//string` (empty segment), `std/string/` (trailing slash), `./relative` (special chars).
 
@@ -2707,7 +2707,7 @@ A folder with a `build.vader` follows the same rules, over the entries and asset
 
 An import is resolved against an ordered list of roots. The first root whose folder at the module's location declares that module wins, and a later folder declaring the same name is ignored. The roots, in order:
 
-1. the entry's namespace, the first segment of its declared name, rooted at the folder that segment names: an entry declaring `module "vader/tools/cli"` in `<X>/vader/tools/cli/` finds `import "vader/parser"` in `<X>/vader/parser` and `import "vader/tools/cli/util"` in its own `util`, and nothing else of `<X>`. An entry whose folder does not end with its name, or whose name has one segment, roots that name at its own folder: `module "app"` finds `import "app/util"` in `<entry folder>/util`;
+1. the entry's namespace, the first segment of its declared name, rooted at the folder that segment names: an entry declaring `module "vader/tools/cli"` in `<X>/vader/tools/cli/` finds `import "vader/front/parser"` in `<X>/vader/front/parser` and `import "vader/tools/cli/util"` in its own `util`, and nothing else of `<X>`. An entry whose folder does not end with its name, or whose name has one segment, roots that name at its own folder: `module "app"` finds `import "app/util"` in `<entry folder>/util`;
 2. each root named by `--include-paths`;
 3. the toolchain's library root, when `$VADER_HOME` or the binary's own folder provides one (below);
 4. the project folder, then each `includePaths` entry of its `vader.json`, or each root its `build.vader` puts in `ctx.include_paths`, joined onto it (4 exists only for a project). An entry that starts with `$VADER_HOME` is joined onto the toolchain's folder instead, the one holding the library root, whether or not the variable is set: `"$VADER_HOME/third_party"` reaches the libraries shipped beside the compiler from a project that lives anywhere. Without a library root from step 3, the toolchain's folder is the working directory, where step 5 looks for `lib/`;
@@ -3358,7 +3358,7 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-The comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime/vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
+The comptime engine is a **tree-walk AST interpreter** (`vader/front/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/front/comptime/vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
 
 ### Reflection / comptime intrinsics
 
@@ -4225,14 +4225,14 @@ The **Vader 1.0 edition** is the set of features the Vader compiler needs to com
 
 ### Porting order
 
-1. **Lexer** ✅ (`vader/lexer/`) — straightforward, table-driven.
-2. **Parser** ✅ (`vader/parser/`) — recursive-descent + Pratt expressions.
-3. **Resolver** ✅ (`vader/resolver/`) — body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the typechecker.
+1. **Lexer** ✅ (`vader/front/lexer/`) — straightforward, table-driven.
+2. **Parser** ✅ (`vader/front/parser/`) — recursive-descent + Pratt expressions.
+3. **Resolver** ✅ (`vader/front/resolver/`) — body-walking + top-level minting + import collection + trait method synthesis (intrinsic / default / SAM). Shared by the LSP and the typechecker.
 4. **Formatter** ✅ (`vader/tools/fmt/`) — idempotent + parse round-trip on the stdlib.
 5. **LSP** ✅ (`vader/tools/lsp/`) — hover, definition, completion, semantic tokens (consumes the resolver).
 6. **VM** ✅ (`vader/vm/`) — runs the bytecode for the whole snippet corpus.
-7. **Type-checker** ✅ (`vader/typecheck/`).
-8. **Comptime** ✅ (`vader/comptime/`).
+7. **Type-checker** ✅ (`vader/front/typecheck/`).
+8. **Comptime** ✅ (`vader/front/comptime/`).
 9. **Lowerer** ✅ (`vader/lower/`).
 10. **Mid-IR (CFG / DCE / escape / scheduler)** ✅ (`vader/midir/`).
 11. **Bytecode-emit** ✅ (`vader/bytecode/`).

@@ -15,7 +15,7 @@ module "vader/tools/lsp/handlers"
 
 import "std/collections"
 import "json"
-import "vader/typecheck"
+import "vader/front/typecheck"
 import "vader/tools/lsp/protocol"
 import "vader/tools/lsp/analysis"
 AST :: import "toolchain/ast"

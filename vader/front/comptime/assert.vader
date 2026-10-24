@@ -1,0 +1,55 @@
+// vader/front/comptime/assert — `@assert(cond)` decl evaluation.
+//
+// Each top-level `@assert` has its `condition` evaluated through the same
+// tree-walker the `@comptime const` decls use ; a `Bool(false)` result fires
+// `C4015`. A condition the tree-walk cannot evaluate (it needs the VM) is not
+// checked: its verdict, `NotEvaluated`, is what the comptime dump shows of it.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/front/typecheck"
+AST :: import "toolchain/ast"
+
+/// Evaluate each `AssertDecl` of `decls` through the tree-walker, emit `C4015`
+/// when a condition is statically `false`, and record every verdict. Runs after
+/// the module's consts are baked, so a condition can reference them.
+/// @param decls     the module's top-level decls.
+/// @param program   the module's evaluated program: the baked consts a condition
+///                  may reference, and where each verdict goes.
+/// @param diags     diagnostics emitted by the walker.
+evaluate_assert_decls :: fn(
+    decls: AST.Decl[], program: EvaluatedProgram, diags: Diagnostic[],
+) -> void {
+    context :: ComptimeContext {
+        .typed    = program.typed,
+        .bindings = program.comptime_decls,
+    }
+    for decl in decls {
+        if decl is AST.AssertDecl {
+            result :: evaluate_expr(decl.condition, context)
+            diag :: result.diag
+            if diag != null && diag.code.id != "C4001" {
+                diags.push(diag)
+            }
+            verdict :: assert_verdict(result.value)
+            if verdict == .Fails {
+                diags.push(comptime_error(.AssertFailed, decl.span, decl.message ?? ""))
+            }
+            program.asserts.push(AssertCheck { .span = decl.span, .verdict = verdict })
+        }
+    }
+}
+
+// What an `@assert` condition's evaluation gave: a bool, or nothing the
+// tree-walk could compute.
+assert_verdict :: fn(value: ComptimeValue | null) -> AssertVerdict {
+    if value !is BoolValue {
+        return .NotEvaluated
+    }
+    if value.value {
+        return .Holds
+    }
+    return .Fails
+}

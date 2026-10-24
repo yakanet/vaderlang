@@ -1,0 +1,196 @@
+// vader/front/comptime/check — comptime orchestrator entry point.
+//
+// Drives the tree-walk evaluator over every module's `@comptime const`
+// decls in topological order, accumulating values into
+// `EvaluatedProgram.comptime_decls` keyed by Symbol id, and harvests the
+// concrete generic-instance set (`instances`) the lowerer materialises.
+
+module "vader/front/comptime"
+
+import "std/collections"
+import "vader/support/diagnostics"
+import "vader/types"
+import "vader/front/resolver/symbol"
+import "vader/front/resolver"
+import "vader/front/typecheck"
+AST :: import "toolchain/ast"
+
+/// Evaluate every `@comptime` decl across the project's typed view,
+/// harvest the generic-instance set, and return the cross-module evaluated AST.
+/// Takes both `LoadedProject` (for the source decls) and `TypedProject`
+/// (for the typed view) because the resolver doesn't carry decls onto
+/// `ResolvedModule` ; later passes always re-derive from the loaded
+/// program. Mirrors how `check_project_with_bodies` works.
+/// @param loaded  the loaded project (for source decls per module).
+/// @param typed   the typed project (for typecheck side-tables).
+/// @param diags   diagnostics emitted during evaluation (cycle, assert,
+///                type-mismatch, vm-required).
+/// @return        the evaluated project, ready to feed the dumper.
+export evaluate_project :: fn(
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> EvaluatedProject {
+    project :: new_evaluated_project(typed)
+    for [module_id, module_typed] in typed.modules {
+        program :: new_evaluated_program(module_typed)
+        decls :: lookup_module_decls(loaded, module_id)
+        if decls !is null {
+            evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
+            // After the consts are baked : an `@assert` may reference one, and an
+            // unresolved ident would leave it unevaluated.
+            evaluate_assert_decls(decls, program, diags)
+        }
+        project.modules[module_id] = program
+    }
+    evaluate_extern_libraries(typed, project, diags)
+    // `instances` is the concrete generic-instance set the lowerer's
+    // struct path materialises (`lower/mono_struct.vader`). The lowerer is the
+    // authoritative monomorphizer — there is no separate comptime mono pass.
+    project.instances = harvest_instances(typed, loaded.entry)
+    return project
+}
+
+// Walk every typed module's expr / decl / param / local type tables
+// and register each generic instance. The for-in / Into / fn-call passes
+// are not handled yet (those land alongside the
+// lowerer port when their downstream consumers exist).
+harvest_instances :: fn(typed: TypedProject, entry: string) -> GenericInstance[] {
+    registry :: InstanceRegistry {}
+    for [_, module_typed] in typed.modules {
+        for [_, t] in module_typed.decl_types {
+            observe(registry, t)
+        }
+        for [_, t] in module_typed.expr_types {
+            observe(registry, t)
+        }
+        for [_, t] in module_typed.local_types {
+            observe(registry, t)
+        }
+        for [_, t] in module_typed.param_types {
+            observe(registry, t)
+        }
+        for [_, t] in module_typed.type_expr_types {
+            observe(registry, t)
+        }
+        // Impl-method types live in `impl_methods` (mangled-name keyed, read
+        // below) and `impl_method_decl_types` (span-keyed), not `decl_types`
+        // (Symbol.id-keyed — impl methods aren't in `resolved.symbols`).
+        for [_, t] in module_typed.impl_method_decl_types {
+            observe(registry, t)
+        }
+    }
+    // Every module reads the same impl tables : their members are observed once,
+    // through the entry's.
+    entry_typed :: typed.modules[entry]
+    if entry_typed != null {
+        for [_, members] in entry_typed.impl_tables.impl_methods {
+            for im in members {
+                observe(registry, im.ty)
+            }
+        }
+    }
+    return sorted_instances(registry)
+}
+
+// Concatenate the decls of EVERY file in the module (a module may span several
+// files of one folder — `discover.vader` merges them). A `files[0]`-only read
+// drops a 2nd file's decls, so the comptime const-bake never folds a const
+// living there (e.g. a std/core formatter table moved to a sibling file) and its
+// readers emit an unreachable. Mirrors `lower.vader::module_decls`.
+lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
+    module_loaded :: loaded.modules[module_id] ?? return null
+    files :: module_loaded.module.files
+    if files.len() == 0 { return null }
+    return concat_file_decls(files)
+}
+
+evaluate_module_decls :: fn(
+    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram,
+    project: EvaluatedProject, module_id: string, diags: Diagnostic[],
+) -> void {
+    order :: sort_comptime_decls(decls, typed)
+    for diagnostic in order.cycle_diags { diags.push(diagnostic) }
+    context :: ComptimeContext {
+        .typed    = typed,
+        .bindings = program.comptime_decls,
+    }
+    for decl in order.order {
+        result :: evaluate_expr(decl.value, context)
+        // The tree-walk gave up on a VM-evaluable shape (loop / mutation /
+        // statement-bodied callee). Record the decl for the `front/comptime/vm` VM
+        // pass (run from bootstrap, where `evaluated` is complete) and suppress
+        // the C4001 — unless the RHS isn't a stageable nullary call, in which
+        // case the diagnostic stands.
+        if result.vm_required {
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
+            if symbol != null {
+                record :: build_vm_required(decl, symbol, typed, module_id)
+                if record is VmRequiredDecl {
+                    project.vm_required.push(record)
+                    continue
+                }
+            }
+            if !(result.diag is null) { diags.push(result.diag) }
+            continue
+        }
+        value :: result.value
+        if value !is null {
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span)
+            if symbol != null {
+                program.comptime_decls[symbol.id] = value
+                program.routes[symbol.id] = .Marked
+            }
+        }
+        if result.diag !is null {
+            diags.push(result.diag)
+        }
+    }
+    // Second pass : best-effort fold of plain consts (no `@comptime`
+    // decorator). Successful folds populate `comptime_decls` so the
+    // lowerer can inline scalar use sites. Failures are silently
+    // swallowed — these decls don't promise comptime evaluability.
+    for decl in decls {
+        if decl is AST.ConstDecl {
+            if has_comptime_decorator(decl) {
+                continue
+            }
+            symbol :: symbol_declared_at(typed.resolved, decl.name_span) ?? continue
+            if program.comptime_decls[symbol.id] !is null {
+                continue
+            }
+            result :: evaluate_expr(decl.value, context)
+            if result.value !is null {
+                program.comptime_decls[symbol.id] = result.value
+                program.routes[symbol.id] = .Folded
+            }
+        }
+    }
+}
+
+// Build a `VmRequiredDecl` when a deferred `@comptime` decl's RHS is a stageable
+// nullary call `f()` ; returns null for any other shape (the caller keeps the
+// C4001). The callee `f` is staged + executed by the `front/comptime/vm` pass.
+build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram, module_id: string) -> VmRequiredDecl | null {
+    call :: decl.value
+    if call is AST.CallExpr {
+        callee_id :: call.callee
+        if callee_id is AST.IdentExpr {
+            if call.args.len() == 0 {
+                decl_type :: typed.decl_types[symbol.id]
+                if decl_type != null {
+                    return VmRequiredDecl {
+                        .symbol_id   = symbol.id,
+                        .module_id   = module_id,
+                        .callee_name = callee_id.name,
+                        .decl_type   = decl_type,
+                        .span        = decl.span,
+                    }
+                }
+            }
+        }
+    }
+    return null
+}
+
+// Per-evaluator @tests live in `eval_lit.vader` / `eval_binary.vader`
+// / `eval_ident.vader` ; the orchestrator's behaviour is covered by
+// the end-to-end snippet snapshots.

@@ -8,7 +8,7 @@
 // narrowing was never pushed — leaving `b` typed `Box | null`, so the post-guard
 // `b.v` failed with T3008. A plain `return`/`break`/`continue` guard narrowed
 // fine because those are always statements. Fixed in
-// `vader/typecheck/stmt.vader::then_is_divergent` (honor a `never`-typed
+// `vader/front/typecheck/stmt.vader::then_is_divergent` (honor a `never`-typed
 // trailing expr, mirroring the `is_divergent_stmt` ExprStmt arm).
 
 module "snippet"

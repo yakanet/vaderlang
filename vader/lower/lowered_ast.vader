@@ -12,9 +12,9 @@ module "vader/lower"
 import "std/collections"
 import "std/ffi"
 import "vader/support/diagnostics"
-import "vader/resolver/symbol"
+import "vader/front/resolver/symbol"
 import "vader/types"
-import "vader/comptime"
+import "vader/front/comptime"
 import "toolchain/span"
 
 // ============================================================================

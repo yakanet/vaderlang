@@ -22,7 +22,7 @@ import "std/collections"
 import "toolchain/span"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
-import "vader/parser"
+import "vader/front/parser"
 AST :: import "toolchain/ast"
 
 /// Resolve `textDocument/prepareTypeHierarchy` : the type under the cursor.
