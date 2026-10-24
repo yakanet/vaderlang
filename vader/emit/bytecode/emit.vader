@@ -22,7 +22,7 @@ import "vader/core/types"
 import "vader/lower"
 import "toolchain/ast"
 import "vader/front/comptime"
-import "vader/bytecode"
+import "vader/midir/select"
 import "vader/core/bytecode" {
     VtableEntry as BcVtableEntry,
     ImplEntry as BcImplEntry,

@@ -1,4 +1,4 @@
-// vader/bytecode/intrinsics — mangled name → dedicated bytecode op.
+// vader/midir/select/intrinsics — mangled name → dedicated bytecode op.
 //
 // Stdlib `@intrinsic` impl members, and a few free fns, map to a dedicated
 // bytecode op rather than a host-provided import — e.g. `a + b` on `i32` and
@@ -10,7 +10,7 @@
 // syntax and a per-startup `MutableMap` fill costs the same lookup
 // with extra heap traffic.
 
-module "vader/bytecode"
+module "vader/midir/select"
 
 import "std/abort"
 import "vader/core/bytecode"

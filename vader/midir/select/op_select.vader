@@ -1,4 +1,4 @@
-// vader/bytecode/op_select — `LoweredBinaryOp` / `LoweredUnaryOp`
+// vader/midir/select/op_select — `LoweredBinaryOp` / `LoweredUnaryOp`
 // → concrete `Op` variant.
 //
 // The bytecode emitter (`emit/bytecode/emit.vader`) calls `binary_op_for` /
@@ -8,7 +8,7 @@
 // Width-aliasing : narrow integer widths (`i8`, `i16`, `i32`, `u8`,
 // `u16`, `u32`) collapse onto the `I32X` op family ; the 64-bit
 // widths (`i64`, `u64`) use `I64X`. The VM aliases every integer width
-// to `I32Val` / `I64Val` accordingly (see `op.vader` comments on the
+// to `I32Val` / `I64Val` accordingly (see `core/bytecode/op.vader` comments on the
 // I32 / I64 op blocks). The checked
 // ops (`CheckedArith`, `CheckedNeg`) keep the exact type instead: it
 // is the range they check.
@@ -24,7 +24,7 @@
 // eager-eval safety net (no short-circuit guarantee here — diagnose
 // at the lower-side if a non-exploded And/Or reaches this fn).
 
-module "vader/bytecode"
+module "vader/midir/select"
 
 import "vader/core/bytecode"
 import "vader/lower"

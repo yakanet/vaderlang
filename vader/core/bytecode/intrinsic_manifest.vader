@@ -16,7 +16,7 @@
 //      on, so the two can't drift and a new host trips T3013 at both sites.
 //
 // The arith / buffer bytecode-op table is the selection module's
-// (`vader/bytecode/intrinsics.vader`): which op a host lowers to is a choice of
+// (`vader/midir/select/intrinsics.vader`): which op a host lowers to is a choice of
 // the emitter, not part of the format.
 
 module "vader/core/bytecode"

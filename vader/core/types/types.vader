@@ -498,10 +498,10 @@ export primitive_align :: fn(name: string) -> i64 = primitive_size(name)
 /// parameter. Not the size of the object a reference points at.
 ///
 /// This is what `@size_of` reports, and the operational truth is
-/// `bytecode::val_type_of_type` composed with `emit/c::c_type_for_val_bare`:
+/// `midir/select::val_type_of_type` composed with `emit/c::c_type_for_val_bare`:
 /// those two decide the C declaration, and any disagreement with this function
 /// is a bug here. It lives in `vader/core/types` because `vader/front/comptime` folds
-/// `@size_of` and cannot reach `vader/bytecode` without inverting an import
+/// `@size_of` and cannot reach `vader/midir/select` without inverting an import
 /// edge; the colocated tests below pin one case per class against the emitted C.
 ///
 /// A concrete reference is EIGHT bytes, not sixteen: a struct, array,

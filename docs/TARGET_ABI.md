@@ -399,7 +399,7 @@ kept primitives + the syscall file) and gets the whole stdlib for free.
 - Opcode set : `vader/core/bytecode/op.vader`
 - C runtime surface : `runtime/c/vader.h`
 - Op-backed intrinsics : `stdlib/std/core/core.vader`, mapping in
-  `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`
+  `vader/midir/select/intrinsics.vader::intrinsic_op_for_mangled`
 - Runtime-backed intrinsics : `stdlib/std/{io,abort,runtime,time,string_builder}`
 - Comptime intrinsics : `vader/front/comptime/intrinsic.vader`
 - Already-pure stdlib : `stdlib/std/sort`, `stdlib/std/utf8`

@@ -5,7 +5,7 @@
 // today ; Array and String later) are written against — none of them touch raw
 // pointers. The handful of `@intrinsic` methods here lower directly to the
 // generic memory opcodes (`object_new` / `load_*` / `store_*` / `memory_copy`,
-// see `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`), exactly the
+// see `vader/midir/select/intrinsics.vader::intrinsic_op_for_mangled`), exactly the
 // way `a.add(b)` on an `i32` lowers to a checked add. Each opcode carries a `(GC-handle,
 // byte-offset)` pair, never a machine address — the frontend stays pointer-free.
 //

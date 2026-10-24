@@ -8,9 +8,9 @@ module "vader/emit/bytecode"
 
 import "std/abort"
 import "std/collections"
-import "vader/bytecode"
 import "vader/core/bytecode"
 import "vader/core/types"
+import "vader/midir/select"
 
 /// Knobs threaded through the emit. `optimize` gates the peephole / DCE
 /// passes ; `want_debug` gates whether each op carries its source position.

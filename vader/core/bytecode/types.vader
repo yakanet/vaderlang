@@ -175,7 +175,7 @@ export is_64_bit_int_val :: fn(v: ValType) -> bool = match v {
 }
 
 /// True when the val-type is one of the 64-bit-wide unsigned integer
-/// widths. Consumed by the bytecode emit's `op_select` to route `div`
+/// widths. Consumed by `midir/select/op_select.vader` to route `div`
 /// / `mod` / comparison ops onto the `U64X` op family instead of the
 /// sign-aware `I64X` family — sign-aware ops would mis-handle u64
 /// values with the high bit set (e.g. SHA-256 round constants).

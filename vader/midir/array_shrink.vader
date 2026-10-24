@@ -19,8 +19,8 @@ module "vader/midir"
 import "std/iter"
 import "vader/support/fixpoint"
 
-import "vader/bytecode"
 Bc :: import "vader/core/bytecode"
+import "vader/midir/select"
 
 /// Per node of a project's call graph, whether running it may shorten an array.
 ShrinkSummary :: struct {

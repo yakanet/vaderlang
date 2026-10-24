@@ -23,10 +23,10 @@ module "vader/midir"
 
 import "std/collections"
 import "toolchain/span"
-import "vader/bytecode"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/comptime"
+import "vader/midir/select"
 import "vader/support/integer"
 
 /// The integer a value of type `value` is converted to as a slot of type `slot`

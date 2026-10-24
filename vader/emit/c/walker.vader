@@ -703,7 +703,7 @@ push_const :: fn(s: FnState, c: Bc.ConstOp) -> void = push_lit(
 
 /// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
 /// `NullConst` boxes to `.Any` on the C stack — a deliberate divergence
-/// from `bytecode::const_val_type`, which wants `.Null` for its
+/// from `emit/bytecode::const_val_type`, which wants `.Null` for its
 /// const-propagation slot typing.
 const_val :: fn(c: Bc.ConstOp) -> ValType = match c {
     is Bc.I32Const    -> .I32
