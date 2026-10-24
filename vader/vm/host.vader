@@ -860,10 +860,23 @@ read_back_mirror :: fn(
             target.fields[j] = F64Val(read_float(frame, base + layout.offsets[j], width))
             continue
         }
-        signed :: !bc.is_unsigned_val(field_val_type(types, fields[j]))
-        written :: read_little_endian(frame, base + layout.offsets[j], width, signed)
-        target.fields[j] = retyped_int(target.fields[j], written)
+        val :: field_val_type(types, fields[j])
+        written :: read_little_endian(frame, base + layout.offsets[j], width, !bc.is_unsigned_val(val))
+        target.fields[j] = mirror_field_value(val, written)
     }
+}
+
+// What a mirror field of class `val` holds once C wrote `raw` into it, in the
+// carrier the interpreter keeps for that class (`extern_result` picks the same
+// for a result): the declared class decides, not the value the field held.
+mirror_field_value :: fn(val: bc.ValType, raw: i64) -> Value = match val {
+    .Bool                                  -> BoolVal(raw != 0)
+    .Char                                  -> CharVal(char(u32(raw & 0xFFFF_FFFF)))
+    .I8 | .I16 | .I32 | .U8 | .U16 | .U32  -> I32Val(i32(raw))
+    .I64 | .U64 | .Pointer                 -> I64Val(raw)
+    // A float field is read by `read_float`; the rest is no mirror field
+    // (`typecheck/decl::validate_mirror_fields`).
+    .F32 | .F64 | .String | .Null | .Void | .Ref | .Any -> I64Val(raw)
 }
 
 // A fresh value of the mirror `mirror`, of type `type_index`, read from the

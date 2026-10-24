@@ -64,6 +64,17 @@ export Texture2D :: struct {
     format: i32
 }
 
+/// An image in CPU memory, decoded and not yet on the GPU. raylib owns its
+/// pixels until `UnloadImage`.
+@c_struct
+Image :: struct {
+    data: CPointer
+    width: i32
+    height: i32
+    mipmaps: i32
+    format: i32
+}
+
 /// The keys this binding names, by their GLFW key codes, which raylib reuses.
 export KeyboardKey :: enum(i32) {
     Escape = 256,
@@ -121,11 +132,6 @@ export set_target_fps :: fn(fps: i32) -> void
 @extern(RAYLIB, "GetFrameTime")
 export get_frame_time :: fn() -> f32
 
-/// The folder holding the running executable, with a trailing separator: where
-/// a program finds the files it ships beside itself.
-@extern(RAYLIB, "GetApplicationDirectory")
-export get_application_directory :: fn() -> string
-
 // ---- drawing --------------------------------------------------------------
 
 /// Start a frame. Every draw call sits between this and `end_drawing`.
@@ -150,17 +156,36 @@ export draw_fps :: fn(x: i32, y: i32) -> void
 
 // ---- textures -------------------------------------------------------------
 
-@extern(RAYLIB, "LoadTexture")
-load_texture_or_empty :: fn(path: string) -> Texture2D
+@extern(RAYLIB, "LoadImageFromMemory")
+load_image_from_memory :: fn(file_type: string, data: u8[], size: i32) -> Image
 
-/// Load an image file into GPU memory.
+@extern(RAYLIB, "LoadTextureFromImage")
+load_texture_from_image :: fn(image: Image) -> Texture2D
+
+@extern(RAYLIB, "UnloadImage")
+unload_image :: fn(image: Image) -> void
+
+@extern(RAYLIB, "IsImageValid")
+is_image_valid :: fn(image: Image) -> bool
+
+@extern(RAYLIB, "IsTextureValid")
+is_texture_valid :: fn(texture: Texture2D) -> bool
+
+/// Load an image file held in memory into GPU memory: one `@file` baked into
+/// the program, which then needs no file beside it.
 ///
-/// @param path  read from the working directory.
-/// @return      the texture, or `null` when the file cannot be read or decoded
-///              (raylib logs why).
-export load_texture :: fn(path: string) -> Texture2D | null {
-    texture :: load_texture_or_empty(path)
-    if texture.id == 0 {
+/// @param file_type  the file's extension, dot included: `".png"`.
+/// @param data       the file's bytes.
+/// @return           the texture, or `null` when the bytes do not decode
+///                   (raylib logs why).
+export load_texture_from_memory :: fn(file_type: string, data: u8[]) -> Texture2D | null {
+    image :: load_image_from_memory(file_type, data, i32(data.len()))
+    if !is_image_valid(image) {
+        return null
+    }
+    texture :: load_texture_from_image(image)
+    unload_image(image)
+    if !is_texture_valid(texture) {
         return null
     }
     return texture

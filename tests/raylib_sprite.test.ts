@@ -1,6 +1,6 @@
 // tests/raylib_sprite: the raylib example builds natively, as the project its
 // `vader.json` describes, against the archive `third_party/raylib` ships for
-// this machine, and its sprite is copied beside the binary.
+// this machine.
 //
 // It is not run: it opens a window. A machine with no archive in
 // `third_party/raylib/lib/` for its target is skipped.
@@ -28,7 +28,6 @@ test.skipIf(!existsSync(ARCHIVE))(
     );
     expect(build.stderr).not.toContain("error");
     expect(build.exit).toBe(0);
-    expect(existsSync(join(out, "sprite.png"))).toBe(true);
   },
   LONG_BUILD,
 );

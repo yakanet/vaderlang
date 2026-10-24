@@ -20,7 +20,7 @@ const FIXTURE = resolve(import.meta.dir, "fixtures/clibrary");
 const CC = process.env.CC || "cc";
 
 // What the fixture prints, natively and on the interpreter alike.
-const GREETED = "hello from C: 42\nscaled: 3.0 -4.0\n";
+const GREETED = "hello from C: 42\nscaled: 3.0 -4.0\nunboxed: 7\n";
 
 const staged: string[] = [];
 

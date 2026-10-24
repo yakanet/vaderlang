@@ -38,3 +38,19 @@ export Point :: struct {
 /// beside an `f32`.
 @extern(GREETER, "greeter_scale")
 export scale :: fn(p: Point, k: f32) -> Point
+
+/// A value C keeps behind a pointer, which crosses back and forth inside a
+/// struct.
+@c_struct("GreeterBox")
+export Box :: struct {
+    data: CPointer
+    size: i32
+}
+
+/// `value`, boxed by C.
+@extern(GREETER, "greeter_box")
+export box :: fn(value: i32) -> Box
+
+/// The value `b` holds, its box freed.
+@extern(GREETER, "greeter_unbox")
+export unbox :: fn(b: Box) -> i32

@@ -4,20 +4,19 @@
 //   vader build examples/raylib_sprite
 //   ./examples/raylib_sprite/build/debug-<os>-<arch>/raylib_sprite
 //
-// The executable loads `sprite.png` from its own folder, where the build copies
-// it (`assets` in `vader.json`). raylib comes from the toolchain's
-// `third_party/` folder, which `vader.json` names too. `vader run
-// examples/raylib_sprite` runs it on the interpreter, through adapters it
-// compiles with `cc`; the executable is then `vader`, whose folder holds no
-// sprite.
+// `sprite.png` is baked into the program (`@file`), so the executable needs no
+// file beside it, and `vader run examples/raylib_sprite` runs it on the
+// interpreter, through adapters it compiles with `cc`. raylib comes from the
+// toolchain's `third_party/` folder, which `vader.json` names.
 
 module "main"
 
 import "raylib"
 import "std/io"
 import "std/math"
-import "std/path"
 
+/// The sprite's PNG, read when the program is compiled.
+SPRITE :: @file("sprite.png")
 SCREEN_WIDTH: i32: 800
 SCREEN_HEIGHT: i32: 450
 /// Sprite speed, in pixels per second.
@@ -27,11 +26,10 @@ main :: fn() -> i32 {
     init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Vader + raylib")
     defer close_window()
     set_target_fps(60)
-    sprite_path :: Path(get_application_directory()).join("sprite.png").as_string()
-    sprite :: load_texture(sprite_path)
+    sprite :: load_texture_from_memory(".png", SPRITE.bytes())
     // raylib only logs the failure among its own lines.
     if sprite == null {
-        eprintln("cannot load `${sprite_path}`: keep the executable beside sprite.png")
+        eprintln("cannot decode sprite.png")
         return 1
     }
     defer unload_texture(sprite)
