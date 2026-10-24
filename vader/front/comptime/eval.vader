@@ -2,9 +2,9 @@
 //
 // Per-variant `match` over `AST.Expr` routing each kind to its
 // dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).
-// Handles the subset of comptime expressions the lowerer + bytecode
-// emitter port haven't unlocked yet. Anything outside that subset
-// surfaces `C4001`.
+// A shape the tree-walk cannot evaluate is deferred to the VM stage
+// (`vader/pipeline/comptime_vm`, recorded by `check.vader`), or surfaces
+// `C4001` when it cannot be staged.
 
 module "vader/front/comptime"
 

@@ -13,7 +13,7 @@
 // imports `vader/tools/` (the CLI, formatter, language server and debugger), so
 // growing them never re-bumps the seed. Only a pipeline change does.
 //
-// It pull `vader/vm` in, transitively — `vader/front/comptime/vm` (imported
+// It pull `vader/vm` in, transitively — `vader/pipeline/comptime_vm` (imported
 // below) embeds the VM to bake loop-bearing `@comptime` decls, and `std/core`
 // (the implicit prelude, hence always loaded) has nine of them in
 // `dtoa_tables.vader` / `parse_float_tables.vader`. That is load-bearing, not an
@@ -37,7 +37,7 @@ import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "vader/front/comptime"
-import "vader/front/comptime/vm"
+import "vader/pipeline/comptime_vm"
 import "vader/lower"
 import "vader/emit/bytecode"
 import "vader/midir"
@@ -259,7 +259,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     comptime_diags: Diagnostic[]: []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
     // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
-    // deferred (two-pass, see vader/front/comptime/vm). No-op when none deferred.
+    // deferred (see vader/pipeline/comptime_vm). No-op when none deferred.
     resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     return EvaluatedPipeline {
         .loaded          = loaded,

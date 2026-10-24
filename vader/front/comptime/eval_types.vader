@@ -53,7 +53,7 @@ EvalResult :: struct {
     diag:  Diagnostic | null
     /// True when the tree-walk gave up on a shape the embedded VM can handle
     /// (loop / mutation / statement-bodied callee). The decl-level driver in
-    /// `check.vader` records the decl for the `front/comptime/vm` VM pass and
+    /// `check.vader` records the decl for the `pipeline/comptime_vm` VM pass and
     /// suppresses `diag` rather than reporting C4001. Set only by `vm_required`.
     vm_required: bool = false
 }

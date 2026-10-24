@@ -1,21 +1,25 @@
-// vader/front/comptime/vm/resolve — VM-backed comptime fallback (two-pass).
+// vader/pipeline/comptime_vm/resolve: run on the embedded VM the `@comptime` decls
+// the tree-walking evaluator defers.
 //
-// Runs BETWEEN `evaluate_project` and `lower_project`, where the
-// `EvaluatedProject` is complete (mono + instances built). For every `@comptime`
-// decl the tree-walk deferred (`evaluated.vm_required`), this pass:
+// The tree-walk (`vader/front/comptime`) cannot run a loop or a statement body: it
+// records such a decl in `evaluated.vm_required` instead. Running it takes lower,
+// midir, the bytecode emitter and the VM, all above the front end, so this stage
+// sits in the pipeline, between `evaluate_project` and `lower_project`, once the
+// `EvaluatedProject` is complete (mono + instances built). Layer by layer, until
+// no decl is pending (`evaluate_layer`), it:
 //
-//   1. stages the whole project to bytecode (pass-1 lower → cfg → emit). The
-//      deferred const is still un-baked, so `lower` inlines its RHS call
-//      `f()` at each use site — making the callee `f` reachable and lowered
-//      (see `lower/inline_consts.vader`).
+//   1. stages the modules owning the pending decls to bytecode (a throwaway
+//      lower → cfg → emit). A pending const is still un-baked, so `lower` inlines
+//      its RHS call `f()` at each use site, which makes the callee `f` reachable
+//      and lowered (see `lower/inline_consts.vader`);
 //   2. runs `f` via `exec_fn_value` and bridges the result `Value` into a
-//      `ComptimeValue` (`bridge.vader`).
+//      `ComptimeValue` (`bridge.vader`);
 //   3. injects it into the owning module's `comptime_decls`.
 //
-// The normal `lower_project` (pass-2, run afterwards by `lower_to_entry`) then
-// sees the baked value and inlines the literal table at every use site.
+// The real `lower_project`, run afterwards by `lower_to_entry`, then sees the
+// baked value and inlines the literal table at every use site.
 
-module "vader/front/comptime/vm"
+module "vader/pipeline/comptime_vm"
 
 import "std/abort"
 import "std/collections"

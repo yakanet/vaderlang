@@ -1,10 +1,8 @@
-// vader/front/comptime/vm/bridge — convert a VM `Value` back into a `ComptimeValue`.
+// vader/pipeline/comptime_vm/bridge — convert a VM `Value` back into a `ComptimeValue`.
 //
-// `vader/front/comptime` cannot import `vader/vm`: `vm → bytecode → lower → comptime`
-// would close a cycle, so `vader/front/comptime/vm` imports both (the comptime IR and
-// the embedded VM). The VM-backed comptime fallback stages a comptime decl to bytecode, runs it via
-// `exec_fn_value`, and this module bridges the resulting runtime `Value` into a
-// `ComptimeValue` for injection into `EvaluatedProgram.comptime_decls`.
+// A deferred `@comptime` decl runs on the VM (`resolve.vader`); this file bridges
+// the resulting runtime `Value` into a `ComptimeValue` for injection into
+// `EvaluatedProgram.comptime_decls`.
 //
 // The VM collapses width-suffixed integers (`u32`, `i64`, …) into `I32Val` /
 // `I64Val`, so the runtime tag alone cannot recover the source width. Every
@@ -16,7 +14,7 @@
 // like `std/crypto`'s `MD5_K`. Struct / tuple / fn / type / heap-object results
 // surface C4001 ; widen this when a real comptime use case for them appears.
 
-module "vader/front/comptime/vm"
+module "vader/pipeline/comptime_vm"
 
 import "vader/support/diagnostics"
 import "vader/core/types"

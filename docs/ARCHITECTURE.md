@@ -29,7 +29,7 @@ flowchart TD
 | Parser | `vader/front/parser/` | AST, never mutated afterwards |
 | Resolver | `vader/front/resolver/` | names bound to declarations, imports collected |
 | Type checker | `vader/front/typecheck/` | types, narrowing, trait resolution |
-| Comptime | `vader/front/comptime/` | `@comptime` values, generic struct instances |
+| Comptime | `vader/front/comptime/`, `vader/pipeline/comptime_vm/` | `@comptime` values, generic struct instances |
 | Lowerer | `vader/lower/` | lowered AST, generic instances materialised |
 | Dead-code elimination | `vader/lower/` | functions unreachable from the roots removed |
 | Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
@@ -65,8 +65,8 @@ The lexer drops comments. Tools that need doc blocks re-scan the source.
 (`vader/front/comptime/`) for the common case: expressions, and calls to functions
 whose body is a single `return <expr>` or trailing expression. A declaration it
 cannot evaluate (a loop, a statement body, local mutation) is compiled to bytecode
-and run by the embedded VM (`vader/front/comptime/vm`). The result is converted back
-to a comptime value.
+and run by the embedded VM (`vader/pipeline/comptime_vm`). The result is converted
+back to a comptime value.
 
 A step budget stops loops that do not terminate. Running out of it, like any VM
 trap, is reported as a comptime evaluation error (`C4002`). A shape neither engine

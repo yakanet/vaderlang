@@ -44,7 +44,7 @@ export lower_project :: fn(
 /// materialization. The eager modules' un-baked consts inline their RHS call at
 /// each use site (the standard staging trick), so the nullary callee thunks land
 /// in the harvest and are lowered. The result is a throwaway bytecode module used
-/// only to VM-execute those callees — see `front/comptime/vm/resolve.vader`.
+/// only to VM-execute those callees — see `pipeline/comptime_vm/resolve.vader`.
 ///
 /// @param eager_modules  module ids to lower eagerly (with bodies) ; every other
 ///                       module surfaces bodyless signatures only. Must be

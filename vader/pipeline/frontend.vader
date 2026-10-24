@@ -18,7 +18,7 @@ import "vader/front/resolver"
 import "vader/support/target"
 import "vader/front/typecheck"
 import "vader/front/comptime"
-import "vader/front/comptime/vm"
+import "vader/pipeline/comptime_vm"
 import "vader/pipeline/check"
 Prof :: import "vader/support/profile"
 
@@ -100,9 +100,9 @@ export prepare_evaluated_project_with :: fn(
     }
 }
 
-// Bake the `@comptime` decls the tree-walk deferred to the VM (two-pass, see
-// vader/front/comptime/vm). The VM executes them on the machine the compiler runs on,
-// so they need that machine's `@target` bodies: in a build for another OS, they
+// Bake the `@comptime` decls the tree-walk deferred to the VM
+// (`vader/pipeline/comptime_vm`). The VM executes them on the machine the compiler
+// runs on, so they need that machine's `@target` bodies: in a build for another OS, they
 // run in a second front end that keeps the host's bodies and bakes the target's
 // constants (`HostBodies`), whose values are copied into this build. Its own
 // profile brackets sit beside this one's, never inside: the profiler pairs them.
