@@ -681,7 +681,7 @@ vader_string_t __lambda_vader_lower_12(void* l0) {
     vader_gc_top = &gc_frame;
     l2 = (void*) vader_buffer_new((size_t) INT64_C(21));
     l3 = INT64_C(0);
-    l3 = std_core_write_string_at(l2, l3, 2435u);
+    l3 = std_core_write_string_at(l2, l3, 2437u);
     l4 = ((vader_array_t*) ((vader_struct_vader_lower_GenBuild_t*) ((vader_struct___lambda_env_vader_lower_13_t*) l0)->f_cap_0)->f_fields)->length;
     l3 = std_core_write_int(l2, l3, l4);
     l1 = std_core_finish_buffer(l2, l3);
@@ -841,7 +841,7 @@ void __lambda_vader_lower_3(void* l0, vader_string_t l1, vader_string_t l2) {
         vader_gc_top, 1u, 1u, gc_roots, gc_raw_roots, 0u, NULL, 3u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    l3 = concat_3(l1, 2955u, l2);
+    l3 = concat_3(l1, 2957u, l2);
     t0 = std_collections_MutableMap_std_core_Index_at__string__bool(((vader_struct___lambda_env_vader_lower_4_t*) l0)->f_cap_0, l3);
     if (t0.tag == 0u) {
         std_collections_MutableMap_std_core_IndexSet_set_at__string__bool(((vader_struct___lambda_env_vader_lower_4_t*) l0)->f_cap_0, l3, true);
@@ -1101,13 +1101,13 @@ vader_string_t __lambda_vader_parser_2(void* l0, vader_string_t l1) {
 
 vader_string_t __lambda_vader_parser_4(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2277u, l0, 49u);
+    t0 = concat_3(2279u, l0, 49u);
     return t0;
 }
 
 vader_string_t __lambda_vader_parser_5(vader_string_t l0) {
     vader_string_t t0;
-    t0 = concat_3(2278u, l0, 49u);
+    t0 = concat_3(2280u, l0, 49u);
     return t0;
 }
 
@@ -1139,7 +1139,7 @@ bool __lambda_vader_resolver_2(void* l0, void* l1) {
 bool __lambda_vader_resolver_3(void* l0) {
     vader_string_t t0;
     t0 = ((vader_struct_toolchain_ast_Decorator_t*) l0)->f_name;
-    return t0 == 1762u;
+    return t0 == 1764u;
 }
 
 void* __lambda_vader_resolver_4(void) {

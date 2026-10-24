@@ -146,6 +146,13 @@ static inline vader_box_t vader_host_system_posix_sys_getcwd(void* a0, int64_t a
     return r == NULL ? vader_box_null() : vader_box_i64(319u, (int64_t) (intptr_t) r);
 }
 
+static inline int32_t vader_host_system_posix_sys_chdir(vader_string_t a0) {
+    const char* c0 = vader_string_to_cstr(a0);
+    int32_t r = chdir(c0);
+    vader_cstr_free_for(a0, c0);
+    return r;
+}
+
 static inline int32_t vader_host_system_posix_sys_access(vader_string_t a0, int32_t a1) {
     const char* c0 = vader_string_to_cstr(a0);
     int32_t r = access(c0, a1);

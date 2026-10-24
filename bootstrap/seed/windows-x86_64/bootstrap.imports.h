@@ -95,6 +95,7 @@ static inline vader_string_t vader_host_vader_vm_ffi_call_frame(int64_t a0, void
 extern void* vader_host_system_windows_get_std_handle(uint32_t a0);
 extern uint32_t vader_host_system_windows_get_module_file_name(vader_box_t a0, void* a1, uint32_t a2);
 extern uint32_t vader_host_system_windows_get_current_directory(uint32_t a0, void* a1);
+extern int32_t vader_host_system_windows_set_current_directory(void* a0);
 extern uint32_t vader_host_system_windows_get_file_attributes(void* a0);
 extern uint32_t vader_host_system_windows_get_last_error(void);
 extern bool vader_host_system_windows_write_file(void* a0, void* a1, uint32_t a2, void* a3, vader_box_t a4);

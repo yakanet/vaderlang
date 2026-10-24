@@ -7815,6 +7815,7 @@ void* std_core_filled_indexed__i32__(int64_t l0, void* l1);
 bool std_core_content_equals__string(void* l0, void* l1);
 vader_box_t std_io_write_file_string(vader_string_t l0, vader_string_t l1);
 vader_string_t std_io_current_working_directory(void);
+vader_box_t std_io_set_current_working_directory(vader_string_t l0);
 bool std_io_is_dir(vader_string_t l0);
 bool std_io_exists(vader_string_t l0);
 vader_box_t std_io_read_dir(vader_string_t l0);
@@ -8013,6 +8014,7 @@ void* vader_resolver_build_core_seed(void* l0);
 void* vader_resolver_module_index_by_name(void* l0);
 void* vader_resolver_concat_file_decls(void* l0);
 vader_box_t vader_resolver_symbol_declared_at(void* l0, void* l1);
+vader_string_t vader_resolver_dir_of(vader_string_t l0);
 bool __lambda_vader_resolver_0(vader_string_t l0, vader_string_t l1);
 vader_box_t vader_resolver_find_core_module_id(void* l0);
 void* vader_resolver_resolve_module_files(void* l0, vader_string_t l1, vader_string_t l2, void* l3, void* l4, void* l5, void* l6);
@@ -8438,6 +8440,7 @@ int64_t std_math_abs_2(int64_t l0);
 uint64_t toolchain_span_Span_std_core_Hash_hash(void* l0);
 bool toolchain_span_Span_std_core_Equals_equals(void* l0, void* l1);
 void* toolchain_span_empty_span(void);
+void* toolchain_span_file_head_span(vader_string_t l0);
 bool toolchain_span_has_source_position(void* l0);
 void* std_sort_sort__i32(void* l0, void* l1);
 void* std_sort_sort__i64(void* l0, void* l1);
@@ -8827,7 +8830,7 @@ vader_box_t vader_fn_lift___lambda_vader_c_emit_c_ast_0(void* env, vader_box_t a
 
 #include "bootstrap.imports.h"
 
-#define VADER_COMPTIME_ATOM_COUNT 2965u
+#define VADER_COMPTIME_ATOM_COUNT 2967u
 
 extern const vader_array_t vader_data_0;
 extern const vader_array_t vader_data_1;

@@ -22,6 +22,11 @@ uint32_t vader_host_system_windows_get_current_directory(uint32_t a0, void* a1) 
     return GetCurrentDirectoryW(a0, (void*) s1.ptr);
 }
 
+int32_t vader_host_system_windows_set_current_directory(void* a0) {
+    vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
+    return SetCurrentDirectoryW(s0.ptr);
+}
+
 uint32_t vader_host_system_windows_get_file_attributes(void* a0) {
     vader_slice_t s0 = vader_array_bytes((vader_array_t*) a0);
     return GetFileAttributesW(s0.ptr);

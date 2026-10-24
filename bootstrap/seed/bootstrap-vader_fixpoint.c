@@ -298,7 +298,7 @@ static void* vader_fixpoint_pop_component(void* l0, int32_t l1) {
         }
         break;
     }
-    vader_host_std_abort_panic(2603u);
+    vader_host_std_abort_panic(2605u);
     vader_unreachable("a no-return call returned");
     vader_gc_top = gc_frame.prev;
 }

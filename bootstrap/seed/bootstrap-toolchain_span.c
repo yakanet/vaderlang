@@ -100,6 +100,30 @@ void* toolchain_span_empty_span(void) {
     { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
 }
 
+void* toolchain_span_file_head_span(vader_string_t l0) {
+    void* l1 = NULL;
+    void* t0 = NULL;
+    void** gc_raw_roots[2] = { &l1, &t0 };
+    vader_string_t* gc_atom_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = {
+        vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
+    };
+    vader_gc_top = &gc_frame;
+    vader_struct_toolchain_span_Position_t* _a0_obj = (vader_struct_toolchain_span_Position_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Position_t));
+    vader_obj_header_init(_a0_obj, 666u);
+    _a0_obj->f_file = l0;
+    _a0_obj->f_offset = INT64_C(0);
+    _a0_obj->f_line = INT32_C(1);
+    _a0_obj->f_column = INT32_C(1);
+    l1 = (void*) _a0_obj;
+    vader_struct_toolchain_span_Span_t* _a1_obj = (vader_struct_toolchain_span_Span_t*) vader_gc_alloc(sizeof(vader_struct_toolchain_span_Span_t));
+    vader_obj_header_init(_a1_obj, 667u);
+    _a1_obj->f_start = l1;
+    _a1_obj->f_end = l1;
+    t0 = (void*) _a1_obj;
+    { void* __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+}
+
 bool toolchain_span_has_source_position(void* l0) {
     vader_string_t t0;
     int32_t t1;
