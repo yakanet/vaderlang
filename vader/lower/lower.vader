@@ -21,6 +21,7 @@ import "std/io"
 import "std/sort"
 import "std/string_builder"
 import "vader/lower/ir"
+import "vader/lower/optimise"
 
 import "vader/support/diagnostics"
 import "toolchain/ast"
@@ -246,11 +247,11 @@ lower_project_impl :: fn(
     // `concat_N`). See `inline_consts.vader`.
     inline_consts(project, project_ctx)
     // Mark the pushes whose loop can keep the array's state in locals. See
-    // `push_cache.vader`.
+    // `vader/lower/optimise/push_cache.vader`.
     push_cache_tag(project)
     // `$VADER_OPT_REPORT` — what handed over to the general path
     // (`opt_report.vader`), then what a value ABI would reach
-    // (`value_abi.vader`) ; `$VADER_VERIFY_CALLEES`, where the lowering chose
+    // (`value_abi_report.vader`) ; `$VADER_VERIFY_CALLEES`, where the lowering chose
     // another callee than the typecheck's record (`verify_callees.vader`). Each
     // reads the FINISHED project, so they run after every pass that can still add
     // a decl, and each returns "" when its report is off.

@@ -119,6 +119,10 @@ The lowerer reads the typed AST and builds a separate, smaller AST of primitive
 operations. The typed AST is never mutated. That lowered AST, its walks and its
 self-check are `vader/lower/ir/`, which DCE, the CFG core and the emitters read
 without the lowerer; its `vader dump --stage=lowered-ast` text is `vader/lower/dump/`.
+The passes the lowerer runs over its own output are `vader/lower/optimise/`: arrays
+created at the size a counted loop fills them to, pushes marked when their loop can
+keep the array's state in locals (with the purity analysis that proves it safe),
+and calls through a fn-value local made direct.
 
 - **`match`**: each arm becomes a guarded `if` on the pattern's discriminator (type
   tag, struct shape, literal equality) and its optional guard. The `match x :: e`

@@ -1,6 +1,6 @@
 // vader/emit/c/push_cache_emit — emit a push loop with the array state in locals.
 //
-// `push_cache_tag` (`vader/lower`) proved which pushes sit in a loop that can
+// `push_cache_tag` (`vader/lower/optimise`) proved which pushes sit in a loop that can
 // keep the array's `length` / `capacity` / slots out of memory, and passed the
 // array's bytecode slot along on `ArrayPush.cache_slot`. The region a C loop
 // covers exists only on the op stream, though — a loop with no back edge has no

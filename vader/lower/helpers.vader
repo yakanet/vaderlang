@@ -1,19 +1,18 @@
 // vader/lower/helpers — AST construction helpers shared across passes.
 //
-// Synthetic-symbol minting, call and block construction, AND / OR-chain
-// assembly, cell and closure-env initialisation. Kept on the lower side rather
+// Synthetic-symbol minting, AND / OR-chain assembly, cell and closure-env
+// initialisation. The IR's own constructors (`mk_lowered_call`, `mk_void_block`,
+// `wrap_as_block`) are `vader/lower/ir`. Kept on the lower side rather
 // than the typecheck side since every consumer lives in `vader/lower/`.
 
 module "vader/lower"
 
 import "std/collections"
-import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
 import "toolchain/span"
-import "std/string_builder"
 import "vader/lower/ir"
 
 /// `expr`, the value of `node`, through the `into` the typecheck recorded for it
@@ -236,28 +235,6 @@ wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
     block :: mk_void_block(stmts, span)
     return LoweredExprStmt { .span = span, .expr = block }
 }
-
-/// Wrap a single expression as a block whose value is that expression.
-/// Used by passes that need a `LoweredBlock` slot but produce a single
-/// trailing expression.
-/// @param expr  the trailing expression.
-/// @param span  span of the wrapping block.
-/// @return      a fresh block carrying `expr` as its trailing value.
-wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock = LoweredBlock {
-    .span = span,
-    .type = expr.type,
-    .stmts = [],
-    .trailing = expr,
-}
-
-/// A direct call to `sym` typed `ret`, its callee ident carrying the same span and type.
-mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
-    LoweredCall {
-        .span = span,
-        .type = ret,
-        .callee = LoweredIdent { .span = span, .type = ret, .symbol = sym },
-        .args = args,
-    }
 
 /// Flatten a block's trailing expression into its `stmts` list. Useful
 /// when a block needs to be re-typed to `void` (no-else `if`, for-in

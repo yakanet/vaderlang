@@ -4,7 +4,7 @@
 // A tuple, or a distinct over one, qualifies when every leaf is a non-reference
 // primitive, an enum or a range, and their sizes, summed without padding, stay
 // within `VALUE_ABI_MAX_BYTES`. A struct needs its field types, which only its
-// lowered decl carries: `vader/lower/value_abi.vader` judges it on top of this
+// lowered decl carries: `vader/lower/value_abi_report.vader` judges it on top of this
 // file. `vader/midir/value_return` scalarises what these answers admit.
 
 module "vader/core/types"

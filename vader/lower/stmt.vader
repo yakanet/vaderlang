@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/collections"
 import "vader/lower/ir"
+import "vader/lower/optimise"
 
 import "toolchain/ast"
 import "vader/support/diagnostics"
@@ -54,7 +55,7 @@ lower_block :: fn(
             // statements this would be merging across.
             fuse_concat_tail(ctx, stmts)
             // `out := []` then a counted loop pushing onto it once per turn:
-            // create `out` at the trip count. See `push_reserve.vader`.
+            // create `out` at the trip count. See `vader/lower/optimise/push_reserve.vader`.
             reserve_push_tail(stmts)
         }
     }

@@ -5,7 +5,6 @@ module "vader/lower"
 
 import "std/collections"
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/core/types"
@@ -382,29 +381,16 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> Low
 }
 
 adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span: Span) -> LoweredExpr {
+    one :: LoweredIntLit { .span = span, .type = TY_I64, .value = 1 }
+    zero :: LoweredIntLit { .span = span, .type = TY_I64, .value = 0 }
     delta :: LoweredIf {
         .span = span, .type = TY_I64, .cond = inclusive,
-        .then_block = LoweredBlock {
-            .span = span, .type = TY_I64, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
-        },
-        .else_block = LoweredBlock {
-            .span = span, .type = TY_I64, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = TY_I64, .value = 0 },
-        },
+        .then_block = wrap_as_block(one, span),
+        .else_block = wrap_as_block(zero, span),
     }
     return LoweredBinary {
         .span = span, .type = TY_I64, .op = .Add,
         .left = hi, .right = delta,
-    }
-}
-
-adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
-    if !inclusive { return hi }
-    return LoweredBinary {
-        .span = span, .type = TY_I64, .op = .Add,
-        .left = hi,
-        .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
     }
 }
 

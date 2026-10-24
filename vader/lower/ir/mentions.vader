@@ -1,0 +1,241 @@
+// vader/lower/ir/mentions: whether a piece of the lowered IR mentions a symbol.
+//
+// The question a pass asks before it moves or fuses code around a local: the
+// concat fusion (`vader/lower/concat_fusion.vader`) before it merges two
+// appends, the push cache (`vader/lower/optimise/push_cache.vader`) before it
+// lifts an array's state into locals. They disagree on two positions only, which
+// `MentionKinds` gates; each caller names the combination it asks.
+
+module "vader/lower/ir"
+
+/// Which positions of a mention count as an observation.
+///
+/// Two orthogonal gates, because three callers want three combinations of them.
+export MentionKinds :: struct {
+    /// Count a `LoweredArrayPush` whose TARGET is the symbol. The concat fusion
+    /// says yes — `s = s + f(a)` where `f` pushes to `s` observes it. The push
+    /// cache says no: that target is exactly the use it is replacing.
+    push_target: bool
+    /// Count an `array.len()` whose object is the BARE symbol. Reading the
+    /// length goes through no second reference, so the escape question says no ;
+    /// every other caller says yes, because a stale length is what it fears.
+    array_len: bool
+}
+
+// `a.len()` on a BARE ident reads the length through no second reference, so the
+// escape question answers "no" for it. Anything else in the object position may
+// hold the symbol deeper, so it is walked.
+len_mentions :: fn(target: LoweredExpr, symbol_id: i32, kinds: MentionKinds) -> bool {
+    if !kinds.array_len && target is LoweredIdent && target.symbol.id == symbol_id {
+        return false
+    }
+    return expr_mentions(target, symbol_id, kinds)
+}
+
+// Does `e` mention `symbol_id`? Exhaustive by design — a `_ ->` arm would answer
+// "no" for a variant nobody taught it about, and a wrong "no" fuses away a read
+// that mattered.
+//
+// `kinds` gates the two positions the three callers disagree about. Everything
+// else is the same question for all of them.
+expr_mentions :: fn(e: LoweredExpr, symbol_id: i32, kinds: MentionKinds) -> bool = match e {
+    is LoweredIdent -> e.symbol.id == symbol_id
+    is LoweredArrayLen -> len_mentions(e.target, symbol_id, kinds)
+    is LoweredFieldAccess | LoweredUnionField | LoweredCellGet ->
+        expr_mentions(e.target, symbol_id, kinds)
+    is LoweredCast | LoweredTypeCheck | LoweredCellNew ->
+        expr_mentions(e.value, symbol_id, kinds)
+    is LoweredUnary       -> expr_mentions(e.operand, symbol_id, kinds)
+    is LoweredMakeClosure -> expr_mentions(e.env, symbol_id, kinds)
+    is LoweredBlock       -> block_mentions(e, symbol_id, kinds)
+    is LoweredIndex       ->
+        expr_mentions(e.target, symbol_id, kinds) || expr_mentions(e.index, symbol_id, kinds)
+    is LoweredBinary      ->
+        expr_mentions(e.left, symbol_id, kinds) || expr_mentions(e.right, symbol_id, kinds)
+    is LoweredArrayPush   ->
+        (kinds.push_target && expr_mentions(e.target, symbol_id, kinds))
+            || expr_mentions(e.value, symbol_id, kinds)
+    is LoweredArraySlice ->
+        expr_mentions(e.target, symbol_id, kinds)
+            || expr_mentions(e.lo, symbol_id, kinds)
+            || expr_mentions(e.hi, symbol_id, kinds)
+    is LoweredCall        ->
+        expr_mentions(e.callee, symbol_id, kinds) || exprs_mention_symbol(e.args, symbol_id, kinds)
+    is LoweredVirtualCall ->
+        expr_mentions(e.receiver, symbol_id, kinds)
+            || exprs_mention_symbol(e.args, symbol_id, kinds)
+    is LoweredIntrinsicCall -> exprs_mention_symbol(e.args, symbol_id, kinds)
+    is LoweredArrayLit      -> exprs_mention_symbol(e.elements, symbol_id, kinds)
+    is LoweredStructLit     -> fields_mention(e.fields, symbol_id, kinds)
+    is LoweredIf            ->
+        expr_mentions(e.cond, symbol_id, kinds)
+            || block_mentions(e.then_block, symbol_id, kinds)
+            || opt_block_mentions(e.else_block, symbol_id, kinds)
+    is LoweredIntLit | LoweredFloatLit | LoweredBoolLit | LoweredNullLit
+        | LoweredCharLit | LoweredStringLit | LoweredDataConst | LoweredTypeConst
+        | LoweredUnreachable | LoweredGlobalGet -> false
+}
+
+/// Whether any of `items` mentions `symbol_id`.
+///
+/// @param items      the expressions.
+/// @param symbol_id  the symbol looked for.
+/// @param kinds      which positions count.
+export exprs_mention_symbol :: fn(
+    items: LoweredExpr[], symbol_id: i32, kinds: MentionKinds,
+) -> bool {
+    for it in items {
+        if expr_mentions(it, symbol_id, kinds) {
+            return true
+        }
+    }
+    return false
+}
+
+fields_mention :: fn(fields: LoweredStructLitField[], symbol_id: i32, kinds: MentionKinds) -> bool {
+    for f in fields {
+        if expr_mentions(f.value, symbol_id, kinds) {
+            return true
+        }
+    }
+    return false
+}
+
+opt_expr_mentions :: fn(e: LoweredExpr | null, symbol_id: i32, kinds: MentionKinds) -> bool {
+    if e == null {
+        return false
+    }
+    return expr_mentions(e, symbol_id, kinds)
+}
+
+opt_block_mentions :: fn(b: LoweredBlock | null, symbol_id: i32, kinds: MentionKinds) -> bool {
+    if b == null {
+        return false
+    }
+    return block_mentions(b, symbol_id, kinds)
+}
+
+block_mentions :: fn(b: LoweredBlock, symbol_id: i32, kinds: MentionKinds) -> bool {
+    for st in b.stmts {
+        if stmt_mentions_symbol(st, symbol_id, kinds) {
+            return true
+        }
+    }
+    return opt_expr_mentions(b.trailing, symbol_id, kinds)
+}
+
+/// Whether `st`, or anything nested in it, mentions `symbol_id`.
+///
+/// @param st         the statement.
+/// @param symbol_id  the symbol looked for.
+/// @param kinds      which positions count.
+export stmt_mentions_symbol :: fn(st: LoweredStmt, symbol_id: i32, kinds: MentionKinds) -> bool =
+    match st {
+        is LoweredLet                  -> expr_mentions(st.value, symbol_id, kinds)
+        is LoweredAssign | LoweredCellSet ->
+            expr_mentions(st.target, symbol_id, kinds) || expr_mentions(st.value, symbol_id, kinds)
+        is LoweredGlobalSet            -> expr_mentions(st.value, symbol_id, kinds)
+        is LoweredExprStmt             -> expr_mentions(st.expr, symbol_id, kinds)
+        is LoweredReturn               -> opt_expr_mentions(st.value, symbol_id, kinds)
+        is LoweredYield                -> expr_mentions(st.value, symbol_id, kinds)
+        is LoweredAwait                -> expr_mentions(st.awaited, symbol_id, kinds)
+        is LoweredDeferPush            -> expr_mentions(st.thunk, symbol_id, kinds)
+        is LoweredLabelledBlock        -> block_mentions(st.body, symbol_id, kinds)
+        is LoweredLoop                 ->
+            opt_expr_mentions(st.cond, symbol_id, kinds)
+                || block_mentions(st.body, symbol_id, kinds)
+                || block_mentions(loop_step_block(st), symbol_id, kinds)
+        is LoweredBreak | LoweredContinue | LoweredDeferPopExec -> false
+    }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "toolchain/span"
+import "vader/core/types"
+
+// The walk is the safety argument of the passes that ask it, so the fixtures
+// below drive it directly.
+
+MENTION_TEST_ID: i32: 7
+
+TEST_ANY_MENTION :: MentionKinds { .push_target = true, .array_len = true }
+
+// Whether `e` mentions the local `s`, any mention counting.
+mentions_s :: fn(e: LoweredExpr) -> bool = expr_mentions(e, MENTION_TEST_ID, TEST_ANY_MENTION)
+
+mention_test_ident :: fn(name: string, id: i32) -> LoweredExpr = LoweredIdent {
+    .span = empty_span(),
+    .type = TY_STRING,
+    .symbol = synthetic_symbol(id, .Local, name),
+}
+
+mention_test_lit :: fn(value: string) -> LoweredExpr = LoweredStringLit {
+    .span = empty_span(),
+    .type = TY_STRING,
+    .value = value,
+}
+
+mention_test_target :: fn() -> LoweredExpr = mention_test_ident("s", MENTION_TEST_ID)
+mention_test_other :: fn() -> LoweredExpr = mention_test_ident("other", MENTION_TEST_ID + 1)
+
+mention_test_call :: fn(args: LoweredExpr[]) -> LoweredExpr = mk_lowered_call(
+    synthetic_symbol(MENTION_TEST_ID + 1, .Fn, "other"), args, TY_STRING, empty_span(),
+)
+
+mention_test_block :: fn(stmts: LoweredStmt[], trailing: LoweredExpr | null) -> LoweredBlock =
+    LoweredBlock { .span = empty_span(), .type = TY_STRING, .stmts = stmts, .trailing = trailing }
+
+@test test_mentions_the_target_ident :: fn() -> void {
+    assert(mentions_s(mention_test_target()), "a bare `s` is a read")
+}
+
+@test test_mentions_ignores_another_ident :: fn() -> void {
+    assert(!mentions_s(mention_test_other()), "a different local is not `s`")
+}
+
+@test test_mentions_ignores_a_literal :: fn() -> void {
+    assert(!mentions_s(mention_test_lit("x")), "a literal reads nothing")
+}
+
+// The operand that matters in practice: `s = s + f(s)`.
+@test test_mentions_through_call_args :: fn() -> void {
+    args: LoweredExpr[]: [mention_test_lit("a"), mention_test_target()]
+    assert(mentions_s(mention_test_call(args)), "`s` buried in an argument is a read")
+}
+
+@test test_mentions_through_binary_operands :: fn() -> void {
+    e :: LoweredBinary {
+        .span = empty_span(), .type = TY_STRING, .op = .Add,
+        .left = mention_test_lit("a"), .right = mention_test_target(),
+    }
+    assert(mentions_s(e), "`s` on either side of a binary is a read")
+}
+
+// A block reaches the walker as an expression ; its trailing value is the part
+// a naive walk forgets.
+@test test_mentions_a_block_trailing :: fn() -> void {
+    empty: LoweredStmt[]: []
+    assert(
+        mentions_s(mention_test_block(empty, mention_test_target())),
+        "`s` as a block's trailing value is a read",
+    )
+}
+
+@test test_mentions_inside_a_loop_body :: fn() -> void {
+    inner: LoweredStmt[]: [LoweredExprStmt { .span = empty_span(), .expr = mention_test_target() }]
+    outer: LoweredStmt[]: [LoweredLoop {
+        .span = empty_span(), .cond = null, .body = mention_test_block(inner, null), .label = "",
+        .step = [],
+    }]
+    body :: mention_test_block(outer, null)
+    assert(mentions_s(body), "`s` inside a loop body is a read")
+}
+
+@test test_mentions_a_nested_block_without_the_target :: fn() -> void {
+    inner: LoweredStmt[]: [LoweredExprStmt { .span = empty_span(), .expr = mention_test_other() }]
+    assert(
+        !mentions_s(mention_test_block(inner, mention_test_lit("z"))),
+        "a block mentioning neither `s` nor anything holding it reads nothing",
+    )
+}

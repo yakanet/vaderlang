@@ -1,4 +1,5 @@
-// vader/lower/purity — whether lowered code may run a collection or change an array's length.
+// vader/lower/optimise/purity — whether lowered code may run a collection or change
+// an array's length.
 //
 // The push cache (`push_cache.vader`) keeps an array's state in locals across a
 // loop only when nothing in the loop can move the array's buffer or change its
@@ -6,9 +7,11 @@
 // `*_may_disturb` below for everything else. A call disturbs unless its callee is
 // pure in that sense (`is_pure_fn`, memoised per project).
 
-module "vader/lower"
+module "vader/lower/optimise"
 
 import "std/collections"
+import "vader/core/symbol"
+import "vader/core/types"
 import "vader/lower/ir"
 
 /// Project-wide purity memo. A callee is resolved to its decl the same two ways
@@ -212,8 +215,6 @@ indexed_decl :: fn(ctx: PurityCtx, symbol: Symbol) -> LoweredFnDecl | null {
 
 import "std/testing"
 import "vader/support/diagnostics"
-import "vader/core/types"
-import "vader/core/symbol"
 import "vader/front/typecheck"
 import "vader/front/comptime"
 AST :: import "toolchain/ast"
@@ -274,6 +275,9 @@ purity_test_alloc_return :: fn() -> LoweredStmt = LoweredReturn {
     },
 }
 
+// A block of `stmts` that yields nothing.
+purity_test_body :: fn(stmts: LoweredStmt[]) -> LoweredBlock = mk_void_block(stmts, empty_span())
+
 // `return callee()` — a bare call to `callee`.
 purity_test_call_return :: fn(callee: Symbol) -> LoweredStmt = LoweredReturn {
     .span = empty_span(),
@@ -290,14 +294,14 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
 }
 
 @test test_is_pure_fn_pure_body :: fn() -> void {
-    fd :: test_fn_decl(test_fn_symbol(1, "pure"), fresh_test_body([purity_test_pure_return()]))
+    fd :: test_fn_decl(test_fn_symbol(1, "pure"), purity_test_body([purity_test_pure_return()]))
     assert(is_pure_fn(purity_test_ctx(), fd), "a non-allocating body is pure")
 }
 
 @test test_is_pure_fn_allocating_body :: fn() -> void {
     fd :: test_fn_decl(
         test_fn_symbol(2, "alloc"),
-        fresh_test_body([purity_test_alloc_return()]),
+        purity_test_body([purity_test_alloc_return()]),
     )
     assert(!is_pure_fn(purity_test_ctx(), fd), "an allocating body is impure")
 }
@@ -308,7 +312,7 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
 }
 
 @test test_is_pure_fn_memoises_verdict :: fn() -> void {
-    fd :: test_fn_decl(test_fn_symbol(4, "memo"), fresh_test_body([purity_test_pure_return()]))
+    fd :: test_fn_decl(test_fn_symbol(4, "memo"), purity_test_body([purity_test_pure_return()]))
     ctx :: purity_test_ctx()
     assert(is_pure_fn(ctx, fd), "first call computes the verdict")
     assert(is_pure_fn(ctx, fd), "second call returns the same verdict via the memo")
@@ -322,10 +326,10 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
 
 @test test_is_pure_fn_call_to_pure_callee :: fn() -> void {
     leaf_sym :: test_fn_symbol(10, "leaf")
-    leaf :: test_fn_decl(leaf_sym, fresh_test_body([purity_test_pure_return()]))
+    leaf :: test_fn_decl(leaf_sym, purity_test_body([purity_test_pure_return()]))
     caller :: test_fn_decl(
         test_fn_symbol(11, "caller"),
-        fresh_test_body([purity_test_call_return(leaf_sym)]),
+        purity_test_body([purity_test_call_return(leaf_sym)]),
     )
     ctx :: purity_test_ctx()
     purity_test_register(ctx, leaf)
@@ -334,10 +338,10 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
 
 @test test_is_pure_fn_call_to_impure_callee :: fn() -> void {
     leaf_sym :: test_fn_symbol(20, "leaf_alloc")
-    leaf :: test_fn_decl(leaf_sym, fresh_test_body([purity_test_alloc_return()]))
+    leaf :: test_fn_decl(leaf_sym, purity_test_body([purity_test_alloc_return()]))
     caller :: test_fn_decl(
         test_fn_symbol(21, "caller_impure"),
-        fresh_test_body([purity_test_call_return(leaf_sym)]),
+        purity_test_body([purity_test_call_return(leaf_sym)]),
     )
     ctx :: purity_test_ctx()
     purity_test_register(ctx, leaf)
@@ -349,7 +353,7 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
     ghost_sym :: test_fn_symbol(30, "ghost")
     caller :: test_fn_decl(
         test_fn_symbol(31, "caller_ghost"),
-        fresh_test_body([purity_test_call_return(ghost_sym)]),
+        purity_test_body([purity_test_call_return(ghost_sym)]),
     )
     assert(!is_pure_fn(purity_test_ctx(), caller), "an unresolved callee is treated as impure")
 }
@@ -358,7 +362,7 @@ purity_test_register :: fn(ctx: PurityCtx, fd: LoweredFnDecl) -> void {
     // `rec` calls itself : the memo sentinel (impure-on-entry) breaks the cycle and
     // reports it impure rather than recursing forever.
     rec_sym :: test_fn_symbol(40, "rec")
-    rec :: test_fn_decl(rec_sym, fresh_test_body([purity_test_call_return(rec_sym)]))
+    rec :: test_fn_decl(rec_sym, purity_test_body([purity_test_call_return(rec_sym)]))
     ctx :: purity_test_ctx()
     purity_test_register(ctx, rec)
     assert(!is_pure_fn(ctx, rec), "a recursion cycle is conservatively impure")

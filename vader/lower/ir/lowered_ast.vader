@@ -339,7 +339,7 @@ export LoweredLoop :: struct {
 /// it — any expression, a call included: evaluating either one again, or
 /// earlier, is the reader's to prove safe.
 ///
-/// Valid only while the block holding the loop lowers (`vader/lower/push_reserve.vader`):
+/// Valid only while the block holding the loop lowers (`vader/lower/optimise/push_reserve.vader`):
 /// no later pass rewrites these expressions, and no backend reads them.
 export LoopTurns :: struct {
     counter:   Symbol
@@ -695,7 +695,7 @@ export LoweredArrayPush :: struct {
     /// array's length / capacity / slots in locals instead of memory — nothing
     /// in the body observes the array, and nothing but this push's own grow can
     /// move its buffer. A backend may honour it or ignore it; ignoring it is the
-    /// current shape and stays correct. See `vader/lower/push_cache.vader`.
+    /// current shape and stays correct. See `vader/lower/optimise/push_cache.vader`.
     cached: bool = false
 }
 
@@ -832,6 +832,60 @@ export mk_array_repeat :: fn(source: LoweredExpr, count: LoweredExpr, type: Type
 /// @param span   the source construct.
 export mk_void_block :: fn(stmts: LoweredStmt[], span: Span) -> LoweredBlock =
     LoweredBlock { .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+
+/// A direct call to `sym` typed `ret`, its callee ident carrying the same span and
+/// type.
+///
+/// @param sym   the callee.
+/// @param args  the arguments.
+/// @param ret   the call's result type.
+/// @param span  the call's span.
+export mk_lowered_call :: fn(
+    sym: Symbol, args: LoweredExpr[], ret: Type, span: Span,
+) -> LoweredExpr = LoweredCall {
+    .span = span,
+    .type = ret,
+    .callee = LoweredIdent { .span = span, .type = ret, .symbol = sym },
+    .args = args,
+}
+
+/// `e + 1`, an `i64` sum: the next index of a loop, the end past an included
+/// bound.
+///
+/// @param e     the `i64` operand.
+/// @param span  the source construct.
+export mk_i64_plus_one :: fn(e: LoweredExpr, span: Span) -> LoweredExpr = LoweredBinary {
+    .span = span,
+    .type = TY_I64,
+    .op = .Add,
+    .left = e,
+    .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
+}
+
+/// The exclusive end of a range ending at `hi`: `hi` itself, or `hi + 1` when the
+/// range includes it.
+///
+/// @param hi         the range's end, an `i64`.
+/// @param inclusive  whether the range includes `hi`.
+/// @param span       the source construct.
+export adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> LoweredExpr {
+    if !inclusive {
+        return hi
+    }
+    return mk_i64_plus_one(hi, span)
+}
+
+/// A block whose value is `expr`, for a slot that takes a `LoweredBlock` where
+/// there is only one expression to put.
+///
+/// @param expr  the trailing expression.
+/// @param span  span of the wrapping block.
+export wrap_as_block :: fn(expr: LoweredExpr, span: Span) -> LoweredBlock = LoweredBlock {
+    .span = span,
+    .type = expr.type,
+    .stmts = [],
+    .trailing = expr,
+}
 
 /// The step of `lp` as a block, for a predicate that folds over blocks.
 ///

@@ -450,11 +450,7 @@ try_lower_for_in_raw_array :: fn(
     bind_stmts :: bind_loop_var(ctx, lb.symbol, lb.name, lb.pattern, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
-        .value = LoweredBinary {
-            .span = span, .type = TY_I64, .op = .Add,
-            .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = TY_I64, .value = 1 },
-        },
+        .value = mk_i64_plus_one(idx_ref, span),
     }
 
     loop_stmt :: LoweredLoop {

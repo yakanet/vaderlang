@@ -99,12 +99,7 @@ default_thunk :: fn(
         .mangled     = name,
         .params      = [],
         .return_type = thunk.type,
-        .body        = LoweredBlock {
-            .span = field.span,
-            .type = thunk.type,
-            .stmts = [],
-            .trailing = value,
-        },
+        .body        = wrap_as_block(value, field.span),
         .origin      = thunk_ctx.entry,
     })
     return thunk

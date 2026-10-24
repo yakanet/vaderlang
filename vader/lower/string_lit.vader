@@ -13,12 +13,10 @@
 
 module "vader/lower"
 
-import "std/collections"
 import "std/abort"
 import "vader/lower/ir"
 
 import "toolchain/ast"
-import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/core/symbol"
 import "vader/front/typecheck"
@@ -441,14 +439,11 @@ fold_test_lit_at :: fn(value: string, line: i32) -> LoweredExpr = LoweredStringL
     .type = TY_STRING, .value = value,
 }
 
-// An opaque (non-literal) leaf — what a variable operand lowers to.
-fold_test_opaque :: fn(name: string) -> LoweredExpr = fold_test_opaque_at(name, 1)
-
-// The same, on a chosen symbol id — what a test distinguishing two locals needs.
-fold_test_opaque_at :: fn(name: string, id: i32) -> LoweredExpr = LoweredIdent {
+// An opaque (non-literal) leaf: what a variable operand lowers to.
+fold_test_opaque :: fn(name: string) -> LoweredExpr = LoweredIdent {
     .span = empty_span(), .type = TY_STRING,
     .symbol = Symbol {
-        .id = id, .kind = .Local, .name = name, .module = "test",
+        .id = 1, .kind = .Local, .name = name, .module = "test",
         .module_name = "test",
         .visibility = .Private, .defined_at = null,
     },

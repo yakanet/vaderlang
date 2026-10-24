@@ -2,7 +2,7 @@
 //
 // `a.filter(is_odd).map(square).collect()` fuses to one loop over `a[i]` that
 // pushes into the result the lowering minted. That push runs with the array's
-// length / capacity / slots held in locals (`vader/lower/push_cache.vader`),
+// length / capacity / slots held in locals (`vader/lower/optimise/push_cache.vader`),
 // like a hand-written push loop. Sibling of arr_map (the same chain consumed by
 // a `for`, nothing built) and arr_push (the push loop written by hand).
 

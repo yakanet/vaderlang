@@ -1,4 +1,4 @@
-// vader/lower/devirt_fn_ref — devirtualize calls through a fn-value local.
+// vader/lower/optimise/devirtualize_fn_refs — devirtualize calls through a fn-value local.
 //
 // A local bound to a CONCRETE callable and used ONLY as a call callee is an alias
 // for that callable. Calling it (`f(x)`) otherwise lowers to an INDIRECT call
@@ -27,7 +27,7 @@
 // …) disqualifies it, as does a symbol bound more than once (`bound`). The dead
 // named-fn `let f` is left for DCE.
 
-module "vader/lower"
+module "vader/lower/optimise"
 
 import "std/collections"
 import "vader/core/symbol"
@@ -36,7 +36,9 @@ import "vader/lower/ir"
 
 /// Rewrite calls through a fn-value local into direct calls to the concrete
 /// callable, in place, across every fn body in `project`.
-devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
+///
+/// @param project  the lowered project ; its bodies are rewritten in place.
+export devirtualize_fn_refs :: fn(project: LoweredProject) -> void {
     for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl {
@@ -83,7 +85,7 @@ AnalyzeCtx :: struct {
     /// DIFFERENT callables. A symbol-id-keyed alias then collides (last write wins)
     /// and one chain's call devirtualizes to another chain's fn. Any re-bound
     /// symbol is escaped so it is never devirtualized. This guard is defensive
-    /// insurance : the deeper defect is that `generator_fusion.vader` emits
+    /// insurance : the deeper defect is that `vader/lower/generator_fusion.vader` emits
     /// non-unique local `symbol.id`s (it should freshen the per-site binding symbol)
     /// — that violates the "unique local id per body" invariant every whole-body
     /// pass relies on, and should be fixed at the source too.
@@ -261,7 +263,7 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
                 } else if clo != null && devirtable {
                     // Lambda : direct call to the lifted fn with the env (now held by
                     // the retyped local) prepended as the FIRST arg — matches the
-                    // lifted-fn ABI (`lambda.vader::lower_lambda` gives a
+                    // lifted-fn ABI (`vader/lower/lambda.vader::lower_lambda` gives a
                     // capturing lambda's lifted fn the env as param 0).
                     env_arg: LoweredExpr: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
                     new_args: LoweredExpr[]: [env_arg]

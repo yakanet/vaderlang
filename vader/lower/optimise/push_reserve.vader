@@ -1,4 +1,4 @@
-// vader/lower/push_reserve — create an array at the size a counted loop fills it to.
+// vader/lower/optimise/push_reserve — create an array at the size a counted loop fills it to.
 //
 // `out := []` followed by a loop that runs a known number of times, pushing onto
 // `out` once per turn, grows `out` by doubling: each growth allocates a buffer,
@@ -13,7 +13,7 @@
 // leaves slots unused. So the rule asks for what keeps the hint tight — a push at
 // the top of the body, no jump in it — not for what keeps the program correct.
 
-module "vader/lower"
+module "vader/lower/optimise"
 
 import "toolchain/span"
 import "vader/core/symbol"
@@ -30,7 +30,7 @@ import "vader/lower/ir"
 /// sees a reserved array as the fresh array it is.
 ///
 /// @param stmts  the block's statements so far ; the `let`s are rewritten in place.
-reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
+export reserve_push_tail :: fn(stmts: LoweredStmt[]) -> void {
     n :: stmts.len()
     if n < 2 || stmts[n - 2] !is LoweredLet {
         return
