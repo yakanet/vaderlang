@@ -99,14 +99,14 @@ lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> Lowere
     for cursor > 0 {
         cursor = cursor - 1
         arm :: expr.arms[cursor]
-        mk_void_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
+        arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
         predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type)
         match predicate {
-            is null -> { chain = mk_void_block }
+            is null -> { chain = arm_block }
             _ -> {
                 if_node :: LoweredIf {
                     .span = arm.span, .type = result_type,
-                    .cond = predicate, .then_block = mk_void_block, .else_block = chain,
+                    .cond = predicate, .then_block = arm_block, .else_block = chain,
                 }
                 chain = wrap_as_block(if_node, arm.span)
             }

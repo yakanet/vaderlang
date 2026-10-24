@@ -131,6 +131,12 @@ export has_source_position :: fn(s: Span) -> bool {
     return s.start.line > 0
 }
 
+/// Where `span` starts, as a report names a site: `file:line:column`.
+///
+/// @param span  the site.
+export source_position :: fn(span: Span) -> string =
+    "${span.start.file}:${span.start.line}:${span.start.column}"
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"

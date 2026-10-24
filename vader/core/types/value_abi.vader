@@ -1,0 +1,170 @@
+// vader/core/types/value_abi: which composites a bare `Type` lets cross a call in
+// registers rather than as a heap object.
+//
+// A tuple, or a distinct over one, qualifies when every leaf is a non-reference
+// primitive, an enum or a range, and their sizes, summed without padding, stay
+// within `VALUE_ABI_MAX_BYTES`. A struct needs its field types, which only its
+// lowered decl carries: `vader/lower/value_abi.vader` judges it on top of this
+// file. `vader/midir/value_return` scalarises what these answers admit.
+
+module "vader/core/types"
+
+/// Widest payload that crosses in registers rather than through memory.
+///
+/// arm64 AAPCS and x86-64 SysV both pass a composite of at most 16 bytes in two
+/// registers ; past that the C compiler inserts the hidden pointer itself, and
+/// the two forms converge. At 8 the bound would leave `[char, i64]` (12 bytes)
+/// behind, and that pair is what `for c in s` decodes with.
+export VALUE_ABI_MAX_BYTES: i64: 16
+
+/// Size of a composite a bare `Type` can judge on its own (a tuple, or a
+/// distinct over one), or -1 when it does not qualify.
+///
+/// A struct is not here: only a lowered decl carries its field types.
+///
+/// @param t  the type at the crossing.
+export value_abi_type_size :: fn(t: Type) -> i64 {
+    // @partial: the two composites below are the only ones a `Type` can size.
+    // Every other variant answers "not a candidate", which is one answer for all
+    // of them, not a degraded placeholder.
+    @partial match t {
+        is TupleType    -> { return value_abi_sum_leaves(t.elements) }
+        is DistinctType -> { return value_abi_type_size(t.backing) }
+        _               -> { return -1 }
+    }
+}
+
+/// The elements a tuple return can be handed back as, or null when it cannot.
+///
+/// The gate `vader/midir/value_return` asks before it scalarises a tuple return.
+///
+/// ONE element is refused: it already crosses in a register, and the object
+/// exists only because the tuple type does. Splitting it buys nothing, and the
+/// caller would rebuild it anyway.
+///
+/// @param t  a function's return type.
+export value_abi_tuple_elements :: fn(t: Type) -> Type[] | null {
+    if t is DistinctType {
+        return value_abi_tuple_elements(t.backing)
+    }
+    if t !is TupleType {
+        return null
+    }
+    if t.elements.len() < 2 {
+        return null
+    }
+    if value_abi_sum_leaves(t.elements) < 0 {
+        return null
+    }
+    return t.elements
+}
+
+/// Summed size of `members` as leaves, or -1 when one disqualifies the whole or
+/// the total passes the bound.
+///
+/// A tuple's elements, a struct's fields and a scalarised return's results are
+/// the same question asked of three carriers. `vader/midir/value_return` asks it
+/// of the third, so that no second answer to "does this fit in registers" exists to
+/// drift from this one.
+///
+/// @param members  the leaves to sum, in the order they cross.
+/// @return         the total byte size, or -1.
+export value_abi_sum_leaves :: fn(members: Type[]) -> i64 {
+    if members.len() == 0 {
+        return -1
+    }
+    total: i64 = 0
+    for m in members {
+        leaf :: value_abi_leaf_size(m)
+        // Bail inside the loop: past the bound no later member brings the total
+        // back down, and each one costs a recursive walk.
+        if leaf < 0 || total + leaf > VALUE_ABI_MAX_BYTES {
+            return -1
+        }
+        total = total + leaf
+    }
+    return total
+}
+
+/// Size of one LEAF of a candidate composite, or -1 when the leaf disqualifies
+/// it.
+///
+/// A leaf must cross in ONE register, so it is a non-reference primitive, an
+/// enum (which rides its `repr`) or a range (which rides its integer), and
+/// nothing else. A nested composite is NOT a leaf: it is a heap object of its
+/// own, and returning it as a "value" would hand back a reference under a name
+/// that promises otherwise. Flattening it recursively is a different ABI, and
+/// nothing implements it.
+///
+/// @param t  one leaf of the composite.
+export value_abi_leaf_size :: fn(t: Type) -> i64 = @partial match t {
+    // @partial: the shapes below are what a composite can hold and still
+    // qualify. Every other variant is a reference or names no storage: one
+    // answer for all of them, not a degraded placeholder.
+    is PrimitiveType        -> if is_reference_name(t.name) || primitive_size(t.name) == 0 {
+        -1
+    } else {
+        primitive_size(t.name)
+    }
+    is EnumType | RangeType -> slot_byte_size(t)
+    _                       -> -1
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+@test
+test_value_abi_takes_two_words :: fn() -> void {
+    assert_eq(value_abi_type_size(mk_tuple([TY_I32, TY_I32])), 8)
+}
+
+@test
+test_value_abi_takes_twelve_bytes :: fn() -> void {
+    // `codepoint_at_byte`'s shape: the one an 8-byte bound would have missed.
+    decoded :: mk_tuple([TY_CHAR, TY_I64])
+    assert_eq(value_abi_type_size(decoded), 12)
+}
+
+@test
+test_value_abi_rejects_past_sixteen :: fn() -> void {
+    u64_t :: mk_primitive("u64")
+    assert_eq(value_abi_type_size(mk_tuple([u64_t, u64_t, u64_t])), -1)
+}
+
+@test
+test_value_abi_rejects_a_string_leaf :: fn() -> void {
+    // An interned atom is a GC root : taking a local's address means rooting it
+    // before the call, which the all-primitive first cut avoids.
+    named :: mk_tuple([TY_I32, TY_STRING])
+    assert_eq(value_abi_type_size(named), -1)
+}
+
+@test
+test_value_abi_rejects_a_c_pointer_leaf :: fn() -> void {
+    // Eight bytes like a `u64`, and the size is exactly what must not decide it.
+    holder :: mk_tuple([TY_I32, TY_CPOINTER])
+    assert_eq(value_abi_type_size(holder), -1)
+}
+
+@test
+test_value_abi_rejects_an_array_leaf :: fn() -> void {
+    holder :: mk_tuple([TY_I32, mk_array(TY_I32)])
+    assert_eq(value_abi_type_size(holder), -1)
+}
+
+@test
+test_value_abi_rejects_a_bare_primitive :: fn() -> void {
+    assert_eq(value_abi_type_size(TY_I32), -1)
+}
+
+@test
+test_value_abi_rejects_an_empty_tuple :: fn() -> void {
+    assert_eq(value_abi_type_size(mk_tuple([])), -1)
+}
+
+@test
+test_value_abi_sees_through_a_distinct :: fn() -> void {
+    coord :: mk_distinct(slot_size_test_sym(), mk_tuple([TY_I32, TY_I32]))
+    assert_eq(value_abi_type_size(coord), 8)
+}

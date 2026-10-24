@@ -429,10 +429,10 @@ gb_result_is_void :: fn(gb: GenBuild) = is_void(gb.result_ty)
 
 // Wrap an expr as a single-stmt block.
 gb_wrap :: fn(gb: GenBuild, e: LoweredExpr) -> LoweredBlock =
-    LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = [LoweredExprStmt { .span = gb.span, .expr = e }], .trailing = null }
+    mk_void_block([LoweredExprStmt { .span = gb.span, .expr = e }], gb.span)
 
 gb_block :: fn(gb: GenBuild, stmts: LoweredStmt[]) -> LoweredBlock =
-    LoweredBlock { .span = gb.span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+    mk_void_block(stmts, gb.span)
 
 // Build `if state==i { states[i] } else if state==i+1 { … } else { return null }`.
 gb_dispatch :: fn(gb: GenBuild, i: i64) -> LoweredExpr {

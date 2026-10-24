@@ -594,10 +594,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
     }
     return LoweredExprStmt {
         .span = span,
-        .expr = LoweredBlock {
-            .span = span, .type = TY_VOID,
-            .stmts = exit_block(frame, span, unrolled), .trailing = null,
-        },
+        .expr = mk_void_block(exit_block(frame, span, unrolled), span),
     }
 }
 

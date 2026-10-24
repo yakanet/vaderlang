@@ -863,12 +863,8 @@ lower_unlifted :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr = @partial matc
     _            -> lower_expr(ctx, expr)
 }
 
-voidify_block :: fn(block: LoweredBlock) -> LoweredBlock {
-    return LoweredBlock {
-        .span = block.span, .type = TY_VOID,
-        .stmts = block_stmts_with_trailing(block), .trailing = null,
-    }
-}
+voidify_block :: fn(block: LoweredBlock) -> LoweredBlock =
+    mk_void_block(block_stmts_with_trailing(block), block.span)
 
 lower_if_else :: fn(ctx: FnLowerCtx, branch: IfElse | null) -> LoweredBlock | null {
     match branch {

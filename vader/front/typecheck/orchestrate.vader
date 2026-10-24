@@ -595,7 +595,7 @@ reject_overlapping_impl :: fn(
     for other in seen {
         if may_coincide(for_ty, other.for_ty) && may_coincide_each(args, other.args) {
             diags.push(resolver_error(.ConflictingImpl, decl.span,
-                "this impl and the one at ${where_of(other.span)} may both cover an " +
+                "this impl and the one at ${source_position(other.span)} may both cover an " +
                     "instance of `${display_type(for_ty)}` — two generic " +
                     "impls of one trait cannot overlap"))
             return true

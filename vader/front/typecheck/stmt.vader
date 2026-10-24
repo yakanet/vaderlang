@@ -971,8 +971,6 @@ path_name :: fn(e: AST.Expr, fallback: string) -> string {
     return fallback
 }
 
-where_of :: fn(s: Span) -> string = "${s.start.file}:${s.start.line}:${s.start.column}"
-
 check_return :: fn(
     s: AST.ReturnStmt,
     typed: TypedProgram,

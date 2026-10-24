@@ -101,7 +101,7 @@ async_fold_trailing :: fn(body: LoweredBlock, result_is_void: bool) -> LoweredBl
     } else {
         stmts.push(LoweredReturn { .span = body.span, .value = t })
     }
-    return LoweredBlock { .span = body.span, .type = TY_VOID, .stmts = stmts, .trailing = null }
+    return mk_void_block(stmts, body.span)
 }
 
 // ---- entry ----------------------------------------------------------------
@@ -224,11 +224,7 @@ lower_async_fn :: fn(
     if is_main {
         return async_main_driver(fn_ctx, construct, async_sym, suspended_ty, resume_ty, result_type, span)
     }
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredReturn { .span = span, .value = construct }],
-        .trailing = null,
-    }
+    return mk_void_block([LoweredReturn { .span = span, .value = construct }], span)
 }
 
 // The run-driver for an async `main`. When `std/async` is loaded (the program
@@ -254,11 +250,7 @@ async_main_driver :: fn(
             .value = construct,
         }
         call :: mk_lowered_call(run_sym, [frame], result_type, span)
-        return LoweredBlock {
-            .span = span, .type = TY_VOID,
-            .stmts = [LoweredReturn { .span = span, .value = call }],
-            .trailing = null,
-        }
+        return mk_void_block([LoweredReturn { .span = span, .value = call }], span)
     }
     r_sym :: fresh_synthetic_symbol(fn_ctx, "root")
     r_ref :: LoweredIdent { .span = span, .type = resume_ty, .symbol = r_sym }
@@ -272,27 +264,21 @@ async_main_driver :: fn(
         },
     }
     // if r is Suspended { trap } : without the scheduler, a parked root cannot progress.
+    trap :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredUnreachable {
+            .span = span,
+            .type = TY_VOID,
+            .reason = "async `main` suspended, and no `std/async` scheduler resumes it",
+        },
+    }
     guard :: LoweredIf {
         .span = span, .type = TY_VOID,
         .cond = LoweredTypeCheck { .span = span, .type = TY_BOOL, .value = r_ref, .check_type = suspended_ty },
-        .then_block = LoweredBlock {
-            .span = span, .type = TY_VOID,
-            .stmts = [LoweredExprStmt {
-                .span = span,
-                .expr = LoweredUnreachable {
-                    .span = span, .type = TY_VOID,
-                    .reason = "async `main` suspended, and no `std/async` scheduler resumes it",
-                },
-            }],
-            .trailing = null,
-        },
+        .then_block = mk_void_block([trap], span),
         .else_block = null,
     }
     // return cast(r, T)   — r is the completed value once past the guard.
     ret :: LoweredReturn { .span = span, .value = LoweredCast { .span = span, .type = result_type, .value = r_ref } }
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [let_r, LoweredExprStmt { .span = span, .expr = guard }, ret],
-        .trailing = null,
-    }
+    return mk_void_block([let_r, LoweredExprStmt { .span = span, .expr = guard }, ret], span)
 }

@@ -25,6 +25,7 @@ import "vader/core/symbol"
 import "vader/core/types"
 import "vader/front/typecheck"
 import "vader/lower/ir"
+import "vader/support/opt_report"
 
 /// Environment variable that turns the verification on.
 VERIFY_CALLEES_VAR :: "VADER_VERIFY_CALLEES"

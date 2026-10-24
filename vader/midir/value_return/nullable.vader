@@ -9,11 +9,9 @@
 
 module "vader/midir/value_return"
 
-import "std/collections"
 import "toolchain/span"
 import "vader/core/types"
 import "vader/front/typecheck"
-import "vader/lower"
 import "vader/midir"
 
 // ---- the nullable struct case ---------------------------------------------

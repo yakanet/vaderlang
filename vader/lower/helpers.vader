@@ -233,9 +233,7 @@ fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
 /// @return       a single stmt that runs every input stmt in order.
 wrap_stmts :: fn(span: Span, stmts: LoweredStmt[]) -> LoweredStmt {
     if stmts.len() == 1 { return stmts[0] }
-    block :: LoweredBlock {
-        .span = span, .type = TY_VOID, .stmts = stmts, .trailing = null,
-    }
+    block :: mk_void_block(stmts, span)
     return LoweredExprStmt { .span = span, .expr = block }
 }
 

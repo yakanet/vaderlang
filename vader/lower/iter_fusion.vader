@@ -131,10 +131,7 @@ try_lower_chain_fusion :: fn(
     stmts.push_all(exit_block(frame, for_stmt.span, emitted))
     return LoweredExprStmt {
         .span = for_stmt.span,
-        .expr = LoweredBlock {
-            .span = for_stmt.span, .type = TY_VOID,
-            .stmts = stmts, .trailing = null,
-        },
+        .expr = mk_void_block(stmts, for_stmt.span),
     }
 }
 
@@ -502,20 +499,14 @@ emit_fused_opaque_iter :: fn(
         .span = span,
         .expr = LoweredIf {
             .span = span, .type = TY_VOID, .cond = is_done,
-            .then_block = LoweredBlock {
-                .span = span, .type = TY_VOID, .stmts = build_break_stmts(span), .trailing = null,
-            },
-            .else_block = LoweredBlock {
-                .span = span, .type = TY_VOID, .stmts = body_stmts, .trailing = null,
-            },
+            .then_block = mk_void_block(build_break_stmts(span), span),
+            .else_block = mk_void_block(body_stmts, span),
         },
     }
 
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = null, .cond = null,
-        .body = LoweredBlock {
-            .span = span, .type = TY_VOID, .stmts = [step_let, branch_if], .trailing = null,
-        },
+        .body = mk_void_block([step_let, branch_if], span),
         .step = [],
     }
     out: LoweredStmt[]: [loop_stmt]

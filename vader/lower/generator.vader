@@ -197,9 +197,5 @@ lower_generator_fn :: fn(
         .name = "state", .value = LoweredIntLit { .span = span, .type = TY_I32, .value = entry_state },
     })
     construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
-    return LoweredBlock {
-        .span = span, .type = TY_VOID,
-        .stmts = [LoweredReturn { .span = span, .value = construct }],
-        .trailing = null,
-    }
+    return mk_void_block([LoweredReturn { .span = span, .value = construct }], span)
 }

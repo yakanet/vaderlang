@@ -22,9 +22,9 @@ import "std/io"
 import "std/string_builder"
 import "vader/midir"
 import "vader/midir/select"
-import "vader/lower"
 import "vader/core/types"
 import "toolchain/span"
+import "vader/support/opt_report"
 
 export EscapeStats :: struct {
     total_allocs: i32
@@ -32,7 +32,7 @@ export EscapeStats :: struct {
     /// Allocation sites left on the heap, for `$VADER_OPT_REPORT`. The STATE, not
     /// an attempt: whatever route left `stack` false, this allocation costs a
     /// `vader_gc_alloc` and a shadow-stack root. Only filled when the report is
-    /// on — see `vader/lower/opt_report.vader`.
+    /// on (`vader/support/opt_report`).
     heap_sites: EscapeSite[] = []
 }
 

@@ -1,0 +1,29 @@
+// vader/support/opt_report/opt_report: the `$VADER_OPT_REPORT` switch, and what
+// every stage that reports to it shares.
+//
+// The report says where an optimisation gave up and on what (the lowering's
+// misses in `vader/lower/opt_report.vader`, the heap allocations escape analysis
+// keeps, the range analysis's verdicts). Each stage asks the switch itself, and
+// names a site by its `source_position` (`toolchain/span`). `$VADER_VERIFY_BOUNDS`
+// and `$VADER_VERIFY_CALLEES` read their flag as the switch does.
+
+module "vader/support/opt_report"
+
+import "std/env"
+
+/// Environment variable that turns the report on.
+OPT_REPORT_VAR :: "VADER_OPT_REPORT"
+
+/// Whether `$VADER_OPT_REPORT` is set to something other than `0`.
+///
+/// The lowering reads it once per run and caches it (`LowerProjectCtx.opt_report`),
+/// so a site costs a bool test when the report is off.
+export opt_report_enabled :: fn() -> bool = env_flag_set(OPT_REPORT_VAR)
+
+/// Whether the environment variable `name` is set to something other than `0`.
+///
+/// @param name  the variable.
+export env_flag_set :: fn(name: string) -> bool {
+    raw :: get_env(name) ?? return false
+    return raw != "" && raw != "0"
+}

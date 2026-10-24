@@ -33,6 +33,7 @@ import "vader/midir/ranges"
 import "vader/midir/value_return"
 import "vader/core/bytecode"
 Prof :: import "vader/support/profile"
+import "vader/support/opt_report"
 
 /// Normalise a path to `/` separators.
 ///

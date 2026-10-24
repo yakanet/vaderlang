@@ -4,12 +4,11 @@
 
 module "vader/midir/ranges"
 
-import "std/collections"
 import "std/io"
 import "std/sort"
 import "std/string_builder"
+import "toolchain/span"
 import "vader/front/resolver"
-import "vader/lower"
 import "vader/midir"
 
 // ---- report ---------------------------------------------------------------

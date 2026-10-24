@@ -200,9 +200,7 @@ emit_tail_copy :: fn(
     loop_stmts: LoweredStmt[]: []
     loop_stmts.push(push_stmt)
     loop_stmts.push(inc_stmt)
-    loop_body :: LoweredBlock {
-        .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
-    }
+    loop_body :: mk_void_block(loop_stmts, span)
     out.push(LoweredLoop {
         .span = span, .label = null,
         .cond = LoweredBinary {

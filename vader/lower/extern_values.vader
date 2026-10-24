@@ -128,12 +128,7 @@ crossing_type :: fn(e: EnumType) =
 // `return call`, or `call` alone when nothing comes back.
 forwarding_block :: fn(call: LoweredExpr, return_type: Type, span: Span) -> LoweredBlock {
     if is_void(return_type) {
-        return LoweredBlock {
-            .span = span,
-            .type = TY_VOID,
-            .stmts = [LoweredExprStmt { .span = span, .expr = call }],
-            .trailing = null,
-        }
+        return mk_void_block([LoweredExprStmt { .span = span, .expr = call }], span)
     }
     return wrap_as_block(call, span)
 }

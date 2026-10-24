@@ -19,6 +19,7 @@ import "vader/front/typecheck"
 import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/lower/ir"
+import "vader/support/opt_report"
 
 // ============================================================================
 // Closure analysis output
@@ -108,7 +109,7 @@ LowerProjectCtx :: struct {
     fn_symbols:          MutableMap<i64, Symbol> = MutableMap<i64, Symbol> {}
 
     /// `$VADER_OPT_REPORT` is on — read once at construction so each fall site
-    /// costs a bool test rather than an environment lookup. See `opt_report.vader`.
+    /// costs a bool test rather than an environment lookup (`record_miss`).
     opt_report:          bool = false
     /// Where an optimisation pass handed over to its general path. Only filled
     /// when `opt_report` is on ; never a diagnostic, never gates a build.

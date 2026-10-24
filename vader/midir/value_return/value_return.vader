@@ -25,7 +25,6 @@ module "vader/midir/value_return"
 import "std/collections"
 import "std/string"
 import "vader/core/types"
-import "vader/lower"
 import "vader/midir"
 
 /// Rewrite every eligible function to return its tuple's elements, and fix its

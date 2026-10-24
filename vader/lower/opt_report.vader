@@ -29,8 +29,6 @@
 module "vader/lower"
 
 import "std/collections"
-import "std/env"
-import "std/string"
 import "std/string_builder"
 import "toolchain/span"
 
@@ -46,29 +44,6 @@ OptMiss :: struct {
     /// the pass.
     note: string
 }
-
-/// Environment variable that turns the report on.
-OPT_REPORT_VAR :: "VADER_OPT_REPORT"
-
-/// Whether `$VADER_OPT_REPORT` is set to something other than `0`.
-///
-/// Read once per lowering run — `record_miss` consults the cached flag, so the
-/// per-site cost when off is a bool test rather than an environment lookup.
-export opt_report_enabled :: fn() -> bool = env_flag_set(OPT_REPORT_VAR)
-
-/// Whether the environment variable `name` is set to something other than `0`.
-///
-/// @param name  the variable.
-export env_flag_set :: fn(name: string) -> bool {
-    raw :: get_env(name) ?? return false
-    return raw != "" && raw != "0"
-}
-
-/// Where `span` starts, as a report names a site: `file:line:column`.
-///
-/// @param span  the site.
-export source_position :: fn(span: Span) -> string =
-    "${span.start.file}:${span.start.line}:${span.start.column}"
 
 /// Note that `pass` fell back to its general path at `span`.
 ///
