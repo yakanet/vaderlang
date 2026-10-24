@@ -3,7 +3,7 @@
 //
 // Covers what the examples use. Each function keeps raylib's behaviour under a
 // snake_case name. raylib's colours are macros, with no symbol to bind, so the
-// constants below restate their values.
+// constants below restate their values. Vector arithmetic is in `math.vader`.
 //
 // raylib passes its structs by value and ships as a static archive, neither of
 // which the VM's trampolines reach: under `vader run` every call goes through an
@@ -52,6 +52,14 @@ export Color :: struct {
 export Vector2 :: struct {
     x: f32
     y: f32
+}
+
+/// A point or a vector in 3D space.
+@c_struct
+export Vector3 :: struct {
+    x: f32
+    y: f32
+    z: f32
 }
 
 /// A texture in GPU memory. Read `width` and `height`; the rest is raylib's.

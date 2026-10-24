@@ -1,0 +1,328 @@
+// third_party/raylib/math: arithmetic on `Vector2` and `Vector3`, the operators
+// and the vector functions of raylib's `raymath.h`.
+//
+// raylib's archive exports these functions too, but each is a few float
+// operations: bound by `@extern`, every `+` would cross the FFI, through a shim
+// in a native build and an adapter compiled with `cc` under `vader run`. Written
+// in Vader, they compile as any other arithmetic. `*` and `/` take a vector,
+// component by component, or an `f32` that scales; `==` is exact, as on two
+// `f32`; `Zero` lets `vectors.sum()` add them up. No trait dispatches unary
+// minus, hence `negate`. The names avoid those `std/math` exports (`lerp`,
+// `clamp`, `min`, `max`, `abs`) and `std/path`'s `normalize`: a program that
+// imports one of them beside `raylib` would find the call ambiguous (R2031).
+
+module "raylib"
+
+import "std/math"
+
+// ---- Vector2 operators ----------------------------------------------------
+
+Vector2 implements Add -> Vector2 { .x = self.x + other.x, .y = self.y + other.y }
+
+Vector2 implements Sub -> Vector2 { .x = self.x - other.x, .y = self.y - other.y }
+
+Vector2 implements Mul -> Vector2 { .x = self.x * other.x, .y = self.y * other.y }
+
+Vector2 implements Mul<f32> -> Vector2 { .x = self.x * other, .y = self.y * other }
+
+Vector2 implements Div -> Vector2 { .x = self.x / other.x, .y = self.y / other.y }
+
+Vector2 implements Div<f32> -> Vector2 { .x = self.x / other, .y = self.y / other }
+
+Vector2 implements Equals -> self.x == other.x && self.y == other.y
+
+Vector2 implements Display -> "(${self.x}, ${self.y})"
+
+Vector2 implements Zero -> Vector2 { .x = 0.0, .y = 0.0 }
+
+// ---- Vector2 functions ----------------------------------------------------
+
+/// The length of `v`.
+export length :: fn(v: Vector2) -> f32 = f32(sqrt(f64(v.length_squared())))
+
+/// The squared length of `v`: no square root, and enough to compare lengths.
+export length_squared :: fn(v: Vector2) -> f32 = v.x * v.x + v.y * v.y
+
+/// The dot product of `a` and `b`.
+export dot :: fn(a: Vector2, b: Vector2) -> f32 = a.x * b.x + a.y * b.y
+
+/// The distance between the points `a` and `b`.
+export distance :: fn(a: Vector2, b: Vector2) -> f32 = (b - a).length()
+
+/// `v` pointing the other way.
+export negate :: fn(v: Vector2) -> Vector2 = Vector2 { .x = -v.x, .y = -v.y }
+
+/// `v` scaled to length 1. The zero vector, which has no direction, stays zero.
+export normalized :: fn(v: Vector2) -> Vector2 {
+    length :: v.length()
+    if length == 0.0 {
+        return v
+    }
+    return v / length
+}
+
+/// `v` turned by `angle` radians: clockwise on the screen, where y grows
+/// downward.
+///
+/// @param v      the vector to turn.
+/// @param angle  in radians; a negative angle turns the other way.
+export rotated :: fn(v: Vector2, angle: f32) -> Vector2 {
+    cosine :: f32(cos(f64(angle)))
+    sine :: f32(sin(f64(angle)))
+    return Vector2 { .x = v.x * cosine - v.y * sine, .y = v.x * sine + v.y * cosine }
+}
+
+/// The point `from` moved toward `to` by at most `max_distance`.
+///
+/// @param from          where the move starts.
+/// @param to            where it heads; reached when nearer than `max_distance`.
+/// @param max_distance  the longest step, typically a speed times the frame time.
+export move_towards :: fn(from: Vector2, to: Vector2, max_distance: f32) -> Vector2 {
+    gap :: to - from
+    distance :: gap.length()
+    if distance <= max_distance {
+        return to
+    }
+    return from + gap * (max_distance / distance)
+}
+
+// ---- Vector3 operators ----------------------------------------------------
+
+Vector3 implements Add -> Vector3 {
+    .x = self.x + other.x,
+    .y = self.y + other.y,
+    .z = self.z + other.z,
+}
+
+Vector3 implements Sub -> Vector3 {
+    .x = self.x - other.x,
+    .y = self.y - other.y,
+    .z = self.z - other.z,
+}
+
+Vector3 implements Mul -> Vector3 {
+    .x = self.x * other.x,
+    .y = self.y * other.y,
+    .z = self.z * other.z,
+}
+
+Vector3 implements Mul<f32> -> Vector3 {
+    .x = self.x * other,
+    .y = self.y * other,
+    .z = self.z * other,
+}
+
+Vector3 implements Div -> Vector3 {
+    .x = self.x / other.x,
+    .y = self.y / other.y,
+    .z = self.z / other.z,
+}
+
+Vector3 implements Div<f32> -> Vector3 {
+    .x = self.x / other,
+    .y = self.y / other,
+    .z = self.z / other,
+}
+
+Vector3 implements Equals -> self.x == other.x && self.y == other.y && self.z == other.z
+
+Vector3 implements Display -> "(${self.x}, ${self.y}, ${self.z})"
+
+Vector3 implements Zero -> Vector3 {
+    .x = 0.0,
+    .y = 0.0,
+    .z = 0.0,
+}
+
+// ---- Vector3 functions ----------------------------------------------------
+
+/// The length of `v`.
+export length :: fn(v: Vector3) -> f32 = f32(sqrt(f64(v.length_squared())))
+
+/// The squared length of `v`: no square root, and enough to compare lengths.
+export length_squared :: fn(v: Vector3) -> f32 = v.x * v.x + v.y * v.y + v.z * v.z
+
+/// The dot product of `a` and `b`.
+export dot :: fn(a: Vector3, b: Vector3) -> f32 = a.x * b.x + a.y * b.y + a.z * b.z
+
+/// The cross product of `a` and `b`: perpendicular to both, as long as the area
+/// of the parallelogram they span.
+export cross :: fn(a: Vector3, b: Vector3) -> Vector3 = Vector3 {
+    .x = a.y * b.z - a.z * b.y,
+    .y = a.z * b.x - a.x * b.z,
+    .z = a.x * b.y - a.y * b.x,
+}
+
+/// The distance between the points `a` and `b`.
+export distance :: fn(a: Vector3, b: Vector3) -> f32 = (b - a).length()
+
+/// `v` pointing the other way.
+export negate :: fn(v: Vector3) -> Vector3 = Vector3 {
+    .x = -v.x,
+    .y = -v.y,
+    .z = -v.z,
+}
+
+/// `v` scaled to length 1. The zero vector, which has no direction, stays zero.
+export normalized :: fn(v: Vector3) -> Vector3 {
+    length :: v.length()
+    if length == 0.0 {
+        return v
+    }
+    return v / length
+}
+
+/// The point `from` moved toward `to` by at most `max_distance`.
+///
+/// @param from          where the move starts.
+/// @param to            where it heads; reached when nearer than `max_distance`.
+/// @param max_distance  the longest step, typically a speed times the frame time.
+export move_towards :: fn(from: Vector3, to: Vector3, max_distance: f32) -> Vector3 {
+    gap :: to - from
+    distance :: gap.length()
+    if distance <= max_distance {
+        return to
+    }
+    return from + gap * (max_distance / distance)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/iter"
+import "std/testing"
+
+@test
+test_vector2_operators :: fn() -> void {
+    a :: Vector2 { .x = 1.0, .y = 2.0 }
+    b :: Vector2 { .x = 3.0, .y = 5.0 }
+    assert_eq(a + b, Vector2 { .x = 4.0, .y = 7.0 })
+    assert_eq(b - a, Vector2 { .x = 2.0, .y = 3.0 })
+    assert_eq(a * b, Vector2 { .x = 3.0, .y = 10.0 })
+    assert_eq(b / a, Vector2 { .x = 3.0, .y = 2.5 })
+}
+
+@test
+test_vector2_scaled :: fn() -> void {
+    v :: Vector2 { .x = 1.0, .y = -2.0 }
+    assert_eq(v * 3.0, Vector2 { .x = 3.0, .y = -6.0 })
+    assert_eq(v / 2.0, Vector2 { .x = 0.5, .y = -1.0 })
+}
+
+@test
+test_vector2_compound_assignment :: fn() -> void {
+    position := Vector2 { .x = 0.0, .y = 0.0 }
+    position += Vector2 { .x = 2.0, .y = 1.0 }
+    position *= 2.0
+    assert_eq(position, Vector2 { .x = 4.0, .y = 2.0 })
+}
+
+@test
+test_vector2_sum :: fn() -> void {
+    vectors: Vector2[]: [Vector2 { .x = 1.0, .y = 2.0 }, Vector2 { .x = 3.0, .y = 4.0 }]
+    assert_eq(vectors.sum(), Vector2 { .x = 4.0, .y = 6.0 })
+}
+
+@test
+test_vector2_display :: fn() -> void {
+    assert_eq("${Vector2 { .x = 1.5, .y = -2.0 }}", "(1.5, -2.0)")
+}
+
+@test
+test_vector2_length_and_distance :: fn() -> void {
+    v :: Vector2 { .x = 3.0, .y = 4.0 }
+    assert_eq(v.length(), 5.0)
+    assert_eq(v.length_squared(), 25.0)
+    assert_eq(Vector2 { .x = 1.0, .y = 1.0 }.distance(Vector2 { .x = 4.0, .y = 5.0 }), 5.0)
+    assert_eq(v.dot(Vector2 { .x = 2.0, .y = -1.0 }), 2.0)
+}
+
+@test
+test_vector2_negate :: fn() -> void {
+    assert_eq(Vector2 { .x = 1.0, .y = -2.0 }.negate(), Vector2 { .x = -1.0, .y = 2.0 })
+}
+
+@test
+test_vector2_normalized :: fn() -> void {
+    assert_eq(Vector2 { .x = 0.0, .y = 4.0 }.normalized(), Vector2 { .x = 0.0, .y = 1.0 })
+    zero :: Vector2 { .x = 0.0, .y = 0.0 }
+    assert_eq(zero.normalized(), zero)
+}
+
+@test
+test_vector2_rotated_quarter_turn :: fn() -> void {
+    turned :: Vector2 { .x = 1.0, .y = 0.0 }.rotated(f32(pi / 2.0))
+    assert_close(f64(turned.x), 0.0, 1.0e-6)
+    assert_close(f64(turned.y), 1.0, 1.0e-6)
+}
+
+@test
+test_vector2_move_towards_stops_at_the_target :: fn() -> void {
+    from :: Vector2 { .x = 0.0, .y = 0.0 }
+    to :: Vector2 { .x = 3.0, .y = 4.0 }
+    assert_eq(from.move_towards(to, 2.5), Vector2 { .x = 1.5, .y = 2.0 })
+    assert_eq(from.move_towards(to, 10.0), to)
+}
+
+@test
+test_vector3_operators :: fn() -> void {
+    a :: Vector3 {
+        .x = 1.0,
+        .y = 2.0,
+        .z = 3.0,
+    }
+    b :: Vector3 {
+        .x = 4.0,
+        .y = 6.0,
+        .z = 9.0,
+    }
+    assert_eq(a + b, Vector3 {
+        .x = 5.0,
+        .y = 8.0,
+        .z = 12.0,
+    })
+    assert_eq(b - a, Vector3 {
+        .x = 3.0,
+        .y = 4.0,
+        .z = 6.0,
+    })
+    assert_eq(b / a, Vector3 {
+        .x = 4.0,
+        .y = 3.0,
+        .z = 3.0,
+    })
+    assert_eq(a * 2.0, Vector3 {
+        .x = 2.0,
+        .y = 4.0,
+        .z = 6.0,
+    })
+}
+
+@test
+test_vector3_cross_is_perpendicular :: fn() -> void {
+    x_axis :: Vector3 {
+        .x = 1.0,
+        .y = 0.0,
+        .z = 0.0,
+    }
+    y_axis :: Vector3 {
+        .x = 0.0,
+        .y = 1.0,
+        .z = 0.0,
+    }
+    assert_eq(x_axis.cross(y_axis), Vector3 {
+        .x = 0.0,
+        .y = 0.0,
+        .z = 1.0,
+    })
+}
+
+@test
+test_vector3_length_and_normalized :: fn() -> void {
+    v :: Vector3 {
+        .x = 2.0,
+        .y = 3.0,
+        .z = 6.0,
+    }
+    assert_eq(v.length(), 7.0)
+    assert_close(f64(v.normalized().length()), 1.0, 1.0e-6)
+}
