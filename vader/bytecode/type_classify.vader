@@ -12,6 +12,7 @@ module "vader/bytecode"
 
 import "std/iter"
 import "std/string"
+import "vader/core/bytecode"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/support/diagnostics"

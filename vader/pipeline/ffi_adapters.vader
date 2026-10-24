@@ -21,7 +21,7 @@ import "std/path"
 import "std/process"
 import "std/string"
 import "std/target"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c"
 import "vader/front/resolver"
 

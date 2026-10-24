@@ -15,7 +15,7 @@ module "vader/emit/c"
 
 import "std/abort"
 import "std/collections"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
 // ---- StackVal -------------------------------------------------------------

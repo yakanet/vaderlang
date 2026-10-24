@@ -47,7 +47,7 @@
 module "vader/emit/c/ast"
 
 import "std/sort"
-import "vader/bytecode"
+import "vader/core/bytecode"
 
 /// Elide temp-to-local copies, then pack the surviving temps into shared slots.
 ///

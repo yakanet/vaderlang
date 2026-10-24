@@ -22,7 +22,7 @@ module "vader/emit/c"
 import "std/collections"
 import "std/sort"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
 /// The C units of a program's adapters, compiled together into one library.

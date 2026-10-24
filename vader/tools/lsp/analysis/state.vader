@@ -17,7 +17,7 @@ import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "std/io"
 
-Vm :: import "vader/vm"
+Virt :: import "vader/core/bytecode/text"
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,
@@ -154,7 +154,7 @@ export ServerState :: struct {
     /// the first request that needs it, dropped on every didOpen / didChange /
     /// didClose of that document : a large dump takes a noticeable fraction of a
     /// second to read, and the editor asks for hints on every scroll.
-    virt_listings:              MutableMap<string, Vm.VirtListing | Vm.VirtParseError>
+    virt_listings:              MutableMap<string, Virt.VirtListing | Virt.VirtParseError>
     /// uri → the line index of an open `.virt` document, rebuilt on every didOpen
     /// / didChange : each request on it converts a position, and indexing a large
     /// dump costs milliseconds.
@@ -181,7 +181,7 @@ export new_state :: fn(library_root: string) -> ServerState {
         .inlay_refresh_support   = false,
         .watched_files_support   = false,
         .next_request_id         = 1,
-        .virt_listings           = MutableMap<string, Vm.VirtListing | Vm.VirtParseError> {},
+        .virt_listings           = MutableMap<string, Virt.VirtListing | Virt.VirtParseError> {},
         .virt_line_indices       = MutableMap<string, LineIndex> {},
         .driven                  = MutableMap<string, DrivenProject> {},
     }
@@ -206,13 +206,13 @@ export virt_line_index_for :: fn(self: ServerState, uri: string) -> LineIndex | 
 /// version of the document — a refusal is cached too.
 ///
 /// @param uri  a `.virt` document uri.
-export virt_listing_for :: fn(self: ServerState, uri: string) -> Vm.VirtListing | null {
+export virt_listing_for :: fn(self: ServerState, uri: string) -> Virt.VirtListing | null {
     if self.virt_listings[uri] == null {
         li :: self.virt_line_indices[uri] ?? return null
-        self.virt_listings[uri] = Vm.parse_virt_listing(li.source)
+        self.virt_listings[uri] = Virt.parse_virt_listing(li.source)
     }
     listing :: self.virt_listings[uri]
-    return if listing is Vm.VirtListing { listing } else { null }
+    return if listing is Virt.VirtListing { listing } else { null }
 }
 
 /// Look up the current text of `uri`, or `null` if the client never

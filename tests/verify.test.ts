@@ -44,7 +44,7 @@ test("verify finds nothing in the examples", async () => {
   try {
     for (const entry of exampleNames().map(exampleInput)) {
       // LONG_BUILD, matching this test's own declared budget rather than the
-      // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/bytecode`,
+      // 30 s one: `examples/brainfuck` imports `vader/vm` + `vader/core/bytecode`,
       // so it type-checks 40 modules where the other seven load 12. That is
       // ~2 s locally against ~85 ms, and on a 4-core runner with the suite at
       // 4× parallel it reached the 30 s spawn kill and came back as exit 137.

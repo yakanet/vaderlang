@@ -1,20 +1,18 @@
 // vader/vm/module — the VM's runtime state wrapper over a `BytecodeModule`.
 //
-// The VM executes a `vader/bytecode::BytecodeModule` directly. `VmState`
+// The VM executes a `vader/core/bytecode::BytecodeModule` directly. `VmState`
 // pairs the module with the run-time state the executor needs in a ready-to-use
 // shape, built once here rather than per `exec_entry` — the data pool
 // materialised, the entry index, per-function tables. Each field's doc says what
 // it caches and why.
 //
-// Same `vader/vm` module as the sibling `value.vader` (runtime values) and
-// `virt_reader_bc.vader` (the `.virt` → `BytecodeModule` reader + the
-// `reduce_*` projections `prepare` reuses).
+// The data pool's projection to runtime values lives in `data_pool.vader`.
 
 module "vader/vm"
 
 import "std/collections"
 import "std/iter"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 /// Runtime state the executor threads through its call chain. `bc` is the
 /// parsed module (read-only) ; `data_pool` is its data pool materialised to
@@ -126,7 +124,7 @@ prepare_module :: fn(bc_mod: bc.BytecodeModule, debug: bool) -> VmState | Verify
         .bc                   = bc_mod,
         .data_pool            = data_pool,
         .globals              = initial_globals(bc_mod),
-        .main_index           = reduce_main_index(bc_mod.functions),
+        .main_index           = bc.main_function_index(bc_mod.functions),
         .string_array_type_id = find_string_array_type_id(bc_mod.types),
         .u8_array_type_id     = find_u8_array_type_id(bc_mod.types),
         .io_error_type_id     = find_io_error_type_id(bc_mod.types),
@@ -151,4 +149,72 @@ global_zero :: fn(val: bc.ValType) -> Value = match val {
     .Char                                  -> CharVal(char(u32(0)))
     .String                                -> StringVal("")
     .Null | .Void | .Pointer | .Ref | .Any -> NullVal {}
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/core/bytecode/builder"
+import "vader/core/bytecode/text"
+
+// Round-trip a builder-constructed module through `write_virt` → `parse_virt_bc`
+// and assert the parsed copy execs to the same value : the writer/reader pair is
+// a behavioural identity. Doubles as the coverage for `FunctionBuilder.push` (the
+// op-emission entry point) and the `ModuleBuilder` assembler — the sole consumers
+// of `vader/core/bytecode/builder`.
+@test
+test_virt_roundtrip :: fn() -> void {
+    builder :: new_module_builder()
+    builder.add_type(bc.BcScalar { .val = .I32 })
+
+    // compute(a, b) -> i32 = (a + b) * 2
+    compute :: new_function_builder("compute", [.I32, .I32], 0)
+    compute.push(bc.LocalGet { .slot = 0 })
+    compute.push(bc.LocalGet { .slot = 1 })
+    compute.push(bc.I32Add {})
+    compute.push(bc.I32Const { .value = 2 })
+    compute.push(bc.I32Mul {})
+    compute.push(bc.Return {})
+    compute_index :: builder.add_function(compute)
+
+    // main() -> i32 = compute(40, 1)   // → 82
+    entry :: new_function_builder("main", [], 0)
+    entry.push(bc.I32Const { .value = 40 })
+    entry.push(bc.I32Const { .value = 1 })
+    entry.push(bc.Call { .function_index = compute_index })
+    entry.push(bc.Return {})
+    builder.set_main(builder.add_function(entry))
+
+    original :: builder.finish()
+    assert(exec_value(original) == 82, "freshly built module should exec to 82")
+
+    // write_virt → parse_virt_bc must preserve behaviour.
+    round_tripped :: parse_virt_bc(write_virt(original))
+    if round_tripped is VirtParseError {
+        assert(false, "own dump should parse back: line "
+            + "${round_tripped.line_number}: ${round_tripped.reason}")
+        return
+    }
+    assert(exec_value(round_tripped) == 82, "round-tripped module should exec to 82")
+}
+
+// `module` prepared for a run, failing the test when the verifier rejects it.
+prepared :: fn(module: bc.BytecodeModule) -> VmState | null {
+    state :: prepare(module)
+    if state is VerifyError {
+        assert(false, "rejected by the verifier: ${display_verify_error(state)}")
+        return null
+    }
+    return state
+}
+
+// Exec `module` and return its exit value, failing the test on a trap.
+exec_value :: fn(module: bc.BytecodeModule) -> i32 {
+    state :: prepared(module) ?? return -1
+    result :: exec(state, [])
+    if result is Trap {
+        assert(false, "unexpected VM trap: ${result.message}")
+        return -1
+    }
+    return result.value
 }

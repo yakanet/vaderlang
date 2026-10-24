@@ -14,8 +14,7 @@ import "json"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
-Bc :: import "vader/bytecode"
-Vm :: import "vader/vm"
+Virt :: import "vader/core/bytecode/text"
 
 /// The declaration the operand under the cursor names, or null when the cursor
 /// is on anything else.
@@ -52,7 +51,7 @@ export handle_virt_definition :: fn(state: ServerState, params: JsonValue) -> Js
 }
 
 // The function whose `fn` header is the last one at or above `line`.
-function_at :: fn(listing: Vm.VirtListing, line: i64) -> i64 | null {
+function_at :: fn(listing: Virt.VirtListing, line: i64) -> i64 | null {
     found: i64 | null = null
     for f in 0..<listing.functions.len() {
         if listing.functions[f].header > line {
@@ -64,10 +63,10 @@ function_at :: fn(listing: Vm.VirtListing, line: i64) -> i64 | null {
 }
 
 // The line declaring what operand `operand` of op `k` of `function` names.
-operand_line :: fn(listing: Vm.VirtListing, function: i64, k: i64, operand: i64) -> i64 | null {
+operand_line :: fn(listing: Virt.VirtListing, function: i64, k: i64, operand: i64) -> i64 | null {
     lines :: listing.functions[function]
     body :: listing.module.functions[function]
-    refs :: Bc.operand_refs(body.body[k])
+    refs :: Virt.operand_refs(body.body[k])
     if operand >= refs.len() {
         return null
     }
@@ -92,7 +91,7 @@ operand_line :: fn(listing: Vm.VirtListing, function: i64, k: i64, operand: i64)
 pool_line :: fn(lines: i64[], index: i64) -> i64 | null = if index < lines.len() { lines[index] } else { null }
 
 // A parameter is declared by the `fn` header ; a local by its `local` line.
-local_line :: fn(lines: Vm.VirtFunctionLines, param_count: i64, slot: i64) -> i64 | null {
+local_line :: fn(lines: Virt.VirtFunctionLines, param_count: i64, slot: i64) -> i64 | null {
     if slot < param_count {
         return lines.header
     }

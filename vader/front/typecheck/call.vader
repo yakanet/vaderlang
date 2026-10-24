@@ -1271,7 +1271,7 @@ export lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST
 // assignable into any slot and flow-terminating (see `is_divergent_stmt`).
 /// Reject a callback argument that is not a direct reference to a named fn.
 ///
-/// What crosses to C is the function's ADDRESS (`bytecode/op::FnAddr`), and only
+/// What crosses to C is the function's ADDRESS (`core/bytecode/op::FnAddr`), and only
 /// a named fn has one: a lambda or a closure is a `vader_fn_t` whose `code` takes
 /// a leading `env` and boxed arguments, so the foreign callee would jump into the
 /// wrong ABI. The TYPE is fine in both cases — this is a shape rule, which is why

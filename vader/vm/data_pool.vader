@@ -1,0 +1,86 @@
+// vader/vm/data_pool — a module's data pool, as the VM runs it.
+//
+// `prepare` (module.vader) wraps a `BytecodeModule` in a `VmState`: it
+// materialises the data pool to runtime `ArrayVal`s up front, through the
+// helpers below.
+
+module "vader/vm"
+
+import "vader/core/bytecode"
+
+// One header per pool entry, stamped with the type_id its `data.const` sites read
+// it at (`type_ids`, from `data_pool_type_ids`).
+reduce_data_pool :: fn(entries: BcDataEntry[], types: BcType[], type_ids: i32[]) -> ArrayVal[] {
+    out: ArrayVal[]: []
+    for i in 0..<entries.len() {
+        e :: entries[i]
+        elements: Value[]: []
+        if e is BcStrData {
+            for v in e.values { elements.push(StringVal(v)) }
+        } else if e is BcPrimData {
+            for item in e.items { elements.push(value_from_bits(e.kind, item)) }
+        } else if e is BcAggregateData {
+            for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
+        }
+        out.push(ArrayVal {
+            .type_id  = type_ids[i],
+            .elements = elements,
+            .offset   = 0,
+            .length   = elements.len(),
+        })
+    }
+    return out
+}
+
+// Materialise one recursive baked value into a VM `Value`. Struct identity is
+// resolved from `symbol_id` against the module type table ; nested arrays carry
+// type_id 0 (the VM is loosely typed — field access reads positionally).
+bc_value_to_vm :: fn(v: BcDataValue, types: BcType[]) -> Value {
+    if v is BcValStr { return StringVal(v.value) }
+    if v is BcValPrim { return value_from_bits(v.kind, v.bits) }
+    if v is BcValStruct {
+        fields: Value[]: []
+        for f in v.fields { fields.push(bc_value_to_vm(f, types)) }
+        return StructVal { .type_id = type_id_for_symbol(types, v.symbol_id), .fields = fields }
+    }
+    if v is BcValArray {
+        elems: Value[]: []
+        for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
+        return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
+    }
+    return I32Val(0)
+}
+
+// Type-table index of the `BcStruct` declared by `symbol_id`, or 0 when absent.
+// The `type_id` IS load-bearing: `type_check` compares it, so a baked struct with
+// the wrong one fails every `is` test. A `.virt`-parsed table resolves because each
+// struct's `symbol_id` is its own index (`parse_type_decl_bc`).
+type_id_for_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
+    index :: struct_symbol_type_index(types, symbol_id)
+    return if index < 0 { 0 } else { index }
+}
+
+// Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`, as the
+// `.virt` reader decodes a hex byte slice (`read_le`). f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
+// elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
+value_from_bits :: fn(kind: ArrayKind, bits: u64) -> Value {
+    if kind == .U8   { return I32Val(i32(bits & 0xff)) }
+    if kind == .I8   {
+        b :: bits & 0xff
+        return I32Val(if b >= 0x80 { i32(b) - 256 } else { i32(b) })
+    }
+    if kind == .Bool { return BoolVal(bits != 0) }
+    if kind == .U16  { return I32Val(i32(bits & 0xffff)) }
+    if kind == .I16  {
+        v :: bits & 0xffff
+        return I32Val(if v >= 0x8000 { i32(v) - 0x1_0000 } else { i32(v) })
+    }
+    if kind == .U32  { return I32Val(i32(u32(bits))) }
+    if kind == .I32  { return I32Val(i32(u32(bits))) }
+    if kind == .Char { return CharVal(char(u32(bits))) }
+    if kind == .U64  { return I64Val(i64(bits)) }
+    if kind == .I64  { return I64Val(i64(bits)) }
+    if kind == .F32  { return F64Val(f64(u32(bits).from_bits())) }
+    if kind == .F64  { return F64Val(bits.from_bits()) }
+    return I32Val(0)
+}

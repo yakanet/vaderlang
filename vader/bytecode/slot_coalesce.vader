@@ -13,16 +13,7 @@
 
 module "vader/bytecode"
 
-
-/// Slot touched by `op` (read OR write), or -1 when the op doesn't
-/// touch a local slot.
-slot_touched :: fn(op: Op) -> i32 {
-    if op is LocalGet    { return op.slot }
-    if op is LocalSet    { return op.slot }
-    if op is LocalTee    { return op.slot }
-    if op is LocalField { return op.slot }
-    return -1
-}
+import "vader/core/bytecode"
 
 /// Rewrite `ArrayPush.cache_slot` through a slot renumbering, leaving every
 /// other op alone. The hint is a SLOT NUMBER, so every pass that renumbers slots
@@ -38,23 +29,6 @@ export remap_push_cache_slot :: fn(op: Op, remap: i32[]) -> Op {
         return op
     }
     return ArrayPush { .type_id = op.type_id, .cache_slot = remap[op.cache_slot] }
-}
-
-/// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
-/// when it carries no slot.
-///
-/// @param op        any op.
-/// @param new_slot  the slot it names instead.
-export with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
-    if op is LocalGet           { return LocalGet { .slot = new_slot } }
-    if op is LocalSet           { return LocalSet { .slot = new_slot } }
-    if op is LocalTee           { return LocalTee { .slot = new_slot } }
-    if op is LocalField {
-        return LocalField {
-            .slot = new_slot, .type_id = op.type_id, .field_index = op.field_index,
-        }
-    }
-    return op
 }
 
 /// Per-slot live range over the body's linear PC order. `first = -1`

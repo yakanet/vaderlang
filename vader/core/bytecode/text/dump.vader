@@ -1,10 +1,9 @@
-// vader/bytecode/dump — `BytecodeModule` → text dump.
+// vader/core/bytecode/text/dump — `BytecodeModule` → `.virt` text.
 //
-// A readable summary — every fn's name + signature + body op list. This is the
-// DEBUG rendering, deliberately not the round-trippable one : the reload-safe
-// `.virt` serialiser is `vader/vm/virt_writer.vader::write_virt`, paired with
-// `parse_virt_bc`. This dump drops the data pool, so never feed its output back
-// through the reader (`vader/tools/cli/main.vader` says the same at its call site).
+// `dump_bytecode` writes the `.virt` form `parse_virt_bc` reads back, data pool
+// included ; `write_virt` is the same with the entry named from the module's
+// `is_main` function. `dump_bytecode_annotated` adds `;` comments naming what
+// each index points at, which the reader strips.
 //
 // Output shape (per fn) :
 //
@@ -19,8 +18,9 @@
 // pool + vtables + impl table are summarised when non-empty,
 // elided otherwise.
 
-module "vader/bytecode"
+module "vader/core/bytecode/text"
 
+import "vader/core/bytecode"
 import "std/ffi"
 import "std/string_builder"
 import "std/numbers"
@@ -779,9 +779,9 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
     write_op_refs(out, refs, op)
 }
 
-// The single canonical op→text table, shared by `dump_bytecode` and
-// `vader/vm/virt_writer` (through `write_op`). A STATEMENT match, not a
-// value-returning one : a value match desugars to nested if-expressions whose
+// The single canonical op→text table, behind `dump_bytecode` and `write_op`.
+// A STATEMENT match, not a value-returning one : a value match desugars to
+// nested if-expressions whose
 // per-arm result is teed up through an `if_res` chain, which makes a 128-arm
 // exhaustive match compile ~3.5x larger. Appending in place sidesteps that
 // entirely while staying exhaustive (a new op with no arm trips T3013 — no `_`
@@ -1098,6 +1098,14 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
     }
 }
 
+/// Render a `BytecodeModule` as `.virt` text. Resolves the entry directive from
+/// the module's `is_main` fn so the dump is self-contained (round-trips through
+/// `parse_virt_bc`), then defers to `dump_bytecode`.
+///
+/// @param module  the bytecode module to serialise.
+/// @return        the `.virt` text dump (canonical form, trailing newline).
+export write_virt :: fn(module: BytecodeModule) -> string = dump_bytecode(module, main_function_name(module))
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -1144,8 +1152,7 @@ import "std/testing"
 
 /// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
 /// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
-/// copied verbatim so the round-trip is byte-exact. Shared by `dump_bytecode`
-/// and `vader/vm/virt_writer` (which imports this). The escape set matches
+/// copied verbatim so the round-trip is byte-exact. The escape set matches
 /// `std/string::decode_escapes` (the decoder `virt_reader.parse_string_decl`
 /// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
 /// byte-transparent for the rest — it has no `\u` / `\x` form.

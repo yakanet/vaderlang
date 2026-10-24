@@ -2,7 +2,7 @@
 // calls it.
 //
 // What crosses is `&snippet_double_it`, the function's own emitted symbol, and
-// not the `vader_fn_t` a fn VALUE would be (see `vader/bytecode/op::FnAddr`).
+// not the `vader_fn_t` a fn VALUE would be (see `vader/core/bytecode/op::FnAddr`).
 //
 // A callback that is NOT the only argument (`apply_twice`) has its address land
 // in a local SLOT rather than a C expression temp. That slot is a GC root: a

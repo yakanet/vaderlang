@@ -35,7 +35,7 @@ import "std/abort"
 import "std/collections"
 import "std/sort"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 import "vader/support/text"
 

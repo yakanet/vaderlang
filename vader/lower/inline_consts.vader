@@ -336,7 +336,7 @@ render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | n
 
 // Raw `i64` bit pattern of a poolable primitive literal, or null otherwise.
 // Floats are reinterpreted via `to_bits()` at the element's natural width
-// (`f32` keeps the low 32 bits), matching `vm/virt_reader_bc::value_from_bits`.
+// (`f32` keeps the low 32 bits), matching `vm/data_pool::value_from_bits`.
 data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
     if el is LoweredIntLit  { return el.value }
     if el is LoweredCharLit { return i64(el.value) }

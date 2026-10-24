@@ -22,6 +22,7 @@ module "vader/bytecode"
 
 import "std/collections"
 import "std/iter"
+import "vader/core/bytecode"
 
 // ============================================================================
 // pruneUnusedImports — drop import entries no `call.import` op references

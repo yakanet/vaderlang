@@ -1,7 +1,7 @@
 // Brainfuck → Vader VM compiler.
 //
 // Reads a `.bf` source file, builds an in-memory `bc.BytecodeModule` via the
-// `vader/vm/builder` API, and runs it through `exec_fn_value()` — no .virt
+// `vader/core/bytecode/builder/builder` API, and runs it through `exec_fn_value()` — no .virt
 // text intermediate, no subprocess.
 //
 // Memory model :
@@ -27,7 +27,7 @@
 //   vader build --out=bf examples/brainfuck   # then ./bf path/to.bf
 //
 // The folder is a project: its `vader.json` reaches the compiler's own modules
-// (`vader/vm`, `vader/bytecode`) at the root of the checkout.
+// (`vader/vm`, `vader/core/bytecode`) at the root of the checkout.
 //
 // Built natively or run by `vader run`, this program embeds the VM : the
 // Brainfuck module always runs on it.
@@ -38,7 +38,8 @@ import "std/io"
 import "std/iter"
 import "std/string"
 import "std/testing"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
+import "vader/core/bytecode/builder"
 import "vader/vm"
 
 DEFAULT_PATH :: "examples/brainfuck/hello.bf"

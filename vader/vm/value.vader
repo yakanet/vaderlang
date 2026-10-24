@@ -15,9 +15,9 @@ module "vader/vm"
 
 import "std/string"
 import "std/string_builder"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/core/types"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host

@@ -1,19 +1,20 @@
-// vader/vm/builder — programmatic construction of a `BytecodeModule` without
-// going through the `.virt` text intermediate.
+// vader/core/bytecode/builder/builder — programmatic construction of a
+// `BytecodeModule` without going through the `.virt` text intermediate.
 //
-// The reader in `vader/vm/virt_reader_bc.vader` consumes a `.virt` text dump
-// and produces a `vader/bytecode::BytecodeModule` (type table, string pool,
+// The reader in `vader/core/bytecode/text/virt_reader_bc.vader` consumes a
+// `.virt` text dump and produces a `vader/core/bytecode::BytecodeModule` (type
+// table, string pool,
 // function bodies + pre-computed jump tables, imports, impl table, data pool).
 // This file exposes the same target shape via a builder API so consumers can
 // assemble a module by emitting `Op` values directly :
 //
 //   builder :: new_module_builder()
 //   string_pool_index :: builder.intern_string("hello")
-//   type_id_i32 :: builder.add_type(bc.BcScalar { .val = bc.ValType.I32 })
+//   type_id_i32 :: builder.add_type(BcScalar { .val = ValType.I32 })
 //
 //   function :: new_function_builder("main", [], 0)
-//   function.push(bc.I32Const { .value = 42 })
-//   function.push(bc.Return {})
+//   function.push(I32Const { .value = 42 })
+//   function.push(Return {})
 //   main_index :: builder.add_function(function)
 //   builder.set_main(main_index)
 //
@@ -25,17 +26,17 @@
 // that wants compile-time type-safety on op construction rather than
 // hand-formatted `.virt` strings.
 //
-// Straight-line ops are appended by pushing the `bc.Op` value itself —
-// `function.push(bc.I32Add {})` — so there is no per-op wrapper surface to
+// Straight-line ops are appended by pushing the `Op` value itself —
+// `function.push(I32Add {})` — so there is no per-op wrapper surface to
 // keep in sync with the opcode set. Control-flow ops (`block` / `loop` / `if`
 // / `else` / `end` / `br` / `br_if`) instead go through labelled methods on
 // `FunctionBuilder` ; the
 // builder maintains an internal scope stack and resolves each branch's
 // target pc into the jump table as ops are appended, mirroring the
-// online resolution that `virt_reader.vader::wire_control_flow` performs at
+// online resolution that `text/virt_reader.vader::wire_control_flow` performs at
 // parse time.
 
-module "vader/vm"
+module "vader/core/bytecode/builder"
 
 // Several methods here carry `@allow_unused`. The builder is an ASSEMBLER: its
 // value is a complete surface for constructing a module programmatically, and its
@@ -46,10 +47,9 @@ module "vader/vm"
 // evidence would break the example; the marker records that the omission is
 // deliberate rather than an oversight.
 
-bc :: import "vader/bytecode"
-
 import "std/collections"
 import "std/string"
+import "vader/core/bytecode"
 
 // ----------------------------------------------------------------- module
 
@@ -66,11 +66,11 @@ export ModuleBuilder :: struct {
     /// with the pool index. Avoids O(n) lookups when interning the
     /// same string twice from caller code.
     string_index: MutableMap<string, i32>
-    types: bc.BcType[]
-    imports: bc.BcImport[]
-    functions: bc.BcFunction[]
-    impl_table: bc.ImplEntry[]
-    data_pool: bc.BcDataEntry[]
+    types: BcType[]
+    imports: BcImport[]
+    functions: BcFunction[]
+    impl_table: ImplEntry[]
+    data_pool: BcDataEntry[]
     main_index: i32[]
 }
 
@@ -114,7 +114,7 @@ export intern_string :: fn(self: ModuleBuilder, value: string) -> i32 {
 /// @param self  the builder.
 /// @param type_decl  the type declaration to append.
 /// @return      the index into `self.types` where the entry lives.
-export add_type :: fn(self: ModuleBuilder, type_decl: bc.BcType) -> i32 {
+export add_type :: fn(self: ModuleBuilder, type_decl: BcType) -> i32 {
     index :: i32(self.types.len())
     self.types.push(type_decl)
     return index
@@ -125,8 +125,8 @@ export add_type :: fn(self: ModuleBuilder, type_decl: bc.BcType) -> i32 {
 /// `param_types` / `result_type` `BcType` indices are left at `0` — the VM
 /// reads the `ValType`s only, and a `.virt` round-trip reconstructs the indices
 /// from the type table.
-synth_signature :: fn(params: bc.ValType[], has_return: bool) -> bc.BcSignature {
-    return bc.BcSignature {
+synth_signature :: fn(params: ValType[], has_return: bool) -> BcSignature {
+    return BcSignature {
         .params      = params,
         .results     = [if has_return { .Any } else { .Void }],
         .param_types = [],
@@ -149,7 +149,7 @@ synth_signature :: fn(params: bc.ValType[], has_return: bool) -> bc.BcSignature 
 @allow_unused
 export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, parameter_count: i64, has_return: bool) -> i32 {
     index :: i32(self.imports.len())
-    self.imports.push(bc.BcImport {
+    self.imports.push(BcImport {
         .extern_name  = name,
         .mangled_name = mangled,
         .signature    = synth_signature([.Any] * parameter_count, has_return),
@@ -166,7 +166,7 @@ export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, para
 /// @param entry       the pre-built `BcDataEntry` (kind + raw `u64` bits).
 /// @return            the index into `self.data_pool`.
 @allow_unused
-export add_data_entry :: fn(self: ModuleBuilder, entry: bc.BcDataEntry) -> i32 {
+export add_data_entry :: fn(self: ModuleBuilder, entry: BcDataEntry) -> i32 {
     index :: i32(self.data_pool.len())
     self.data_pool.push(entry)
     return index
@@ -181,7 +181,7 @@ export add_data_entry :: fn(self: ModuleBuilder, entry: bc.BcDataEntry) -> i32 {
 /// @param trait_name  the trait identifier.
 @allow_unused
 export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> void {
-    self.impl_table.push(bc.ImplEntry { .struct_type_index = type_id, .trait_name = trait_name })
+    self.impl_table.push(ImplEntry { .struct_type_index = type_id, .trait_name = trait_name })
 }
 
 /// Bake a `FunctionBuilder` into the module : reads the accumulated
@@ -200,12 +200,12 @@ export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> 
 /// @return          the index into `self.functions`.
 export add_function :: fn(self: ModuleBuilder, function: FunctionBuilder) -> i32 {
     index :: i32(self.functions.len())
-    locals: bc.BcLocal[]: []
+    locals: BcLocal[]: []
     for _ in 0..<function.local_count {
-        locals.push(bc.BcLocal { .name = "_", .val = .Any })
+        locals.push(BcLocal { .name = "_", .val = .Any })
     }
-    debug: (bc.DebugPos | null)[]: [null] * function.ops.len()
-    self.functions.push(bc.BcFunction {
+    debug: (DebugPos | null)[]: [null] * function.ops.len()
+    self.functions.push(BcFunction {
         .name       = function.name,
         .is_main    = false,
         .signature  = synth_signature(function.params, true),
@@ -239,17 +239,11 @@ export set_main :: fn(self: ModuleBuilder, function_index: i32) -> void {
 ///
 /// @param self  the builder.
 /// @return      a module ready for `prepare` + `exec`.
-export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
-    main_index: i32 = self.main_index[0]
-    if main_index < 0 {
-        main_index = find_main_by_suffix_bc(self.functions)
-    }
-    if main_index >= 0 && i64(main_index) < self.functions.len() {
-        self.functions[main_index].is_main = true
-    }
-    no_vtables: bc.VtableRow[]: []
-    no_exports: bc.BcExport[]: []
-    return bc.BytecodeModule {
+export finish :: fn(self: ModuleBuilder) -> BytecodeModule {
+    mark_main_function(self.functions, self.main_index[0])
+    no_vtables: VtableRow[]: []
+    no_exports: BcExport[]: []
+    return BytecodeModule {
         .name       = "",
         .types      = self.types,
         .strings    = self.strings,
@@ -268,7 +262,7 @@ export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
 /// caller-supplied tag used to match `br <label>` against the scope ;
 /// `is_loop` distinguishes back-edges (loop) from forward-edges (block /
 /// if / else) ; `opener_pc` is the pc of the op that opened the scope.
-ScopeEntry :: struct {
+export ScopeEntry :: struct {
     label:     string
     is_loop:   bool
     opener_pc: i32
@@ -276,7 +270,7 @@ ScopeEntry :: struct {
 
 /// One `br` / `br_if` whose target scope hasn't closed yet. Drained on
 /// the matching `end()` call.
-PendingBranch :: struct {
+export PendingBranch :: struct {
     branch_pc:    i32
     target_label: string
 }
@@ -292,9 +286,9 @@ PendingBranch :: struct {
 export FunctionBuilder :: struct {
     name: string
     /// Class of each parameter, in slot order.
-    params: bc.ValType[]
+    params: ValType[]
     local_count: i64
-    ops: bc.Op[]
+    ops: Op[]
     table: i32[]
     @internal
     scopes: ScopeEntry[]
@@ -315,7 +309,7 @@ export FunctionBuilder :: struct {
 /// @param local_count      number of additional locals declared in the body.
 /// @return                 a FunctionBuilder ready to receive ops.
 export new_function_builder :: fn(
-    name: string, params: bc.ValType[], local_count: i64,
+    name: string, params: ValType[], local_count: i64,
 ) -> FunctionBuilder {
     return FunctionBuilder {
         .name            = name,
@@ -332,13 +326,13 @@ export new_function_builder :: fn(
 
 /// Append a straight-line (non-control-flow) op : push it onto `ops` and push
 /// a matching `-1` jump-table sentinel. This is the public op-emission entry
-/// point — callers construct the `bc.Op` value directly. Control-flow ops go
+/// point — callers construct the `Op` value directly. Control-flow ops go
 /// through the labelled `block` / `loop_` / `if_` / `else_` / `end` / `br` /
 /// `br_if` methods instead, which additionally wire the branch targets.
 ///
 /// @param op_value  the op to append ; must not be a control-flow op (those
 ///                  carry no label here and would leave the jump table unwired).
-export push :: fn(self: FunctionBuilder, op_value: bc.Op) -> void {
+export push :: fn(self: FunctionBuilder, op_value: Op) -> void {
     self.ops.push(op_value)
     self.table.push(-1)
 }
@@ -354,7 +348,7 @@ export push :: fn(self: FunctionBuilder, op_value: bc.Op) -> void {
 /// `table[opener_pc]` to the pc just past the `end`.
 export block :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.Block {})
+    self.push(Block {})
     push_scope(self.scopes, self.scope_sp, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
 }
 
@@ -363,7 +357,7 @@ export block :: fn(self: FunctionBuilder, label: string) -> void {
 @allow_unused
 export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.Loop {})
+    self.push(Loop {})
     push_scope(self.scopes, self.scope_sp, ScopeEntry { .label = label, .is_loop = true, .opener_pc = pc })
     self.table[pc] = pc + 1
 }
@@ -374,7 +368,7 @@ export loop_ :: fn(self: FunctionBuilder, label: string) -> void {
 @allow_unused
 export if_ :: fn(self: FunctionBuilder, label: string) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.If {})
+    self.push(If {})
     push_scope(self.scopes, self.scope_sp, ScopeEntry { .label = label, .is_loop = false, .opener_pc = pc })
 }
 
@@ -384,7 +378,7 @@ export if_ :: fn(self: FunctionBuilder, label: string) -> void {
 @allow_unused
 export else_ :: fn(self: FunctionBuilder) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.Else {})
+    self.push(Else {})
     sp :: self.scope_sp[0]
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
@@ -397,7 +391,7 @@ export else_ :: fn(self: FunctionBuilder) -> void {
 /// any pending branches that named this scope's label.
 export end :: fn(self: FunctionBuilder) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.End {})
+    self.push(End {})
     sp :: self.scope_sp[0]
     if sp == 0 { return }
     top :: self.scopes[sp - 1]
@@ -413,7 +407,7 @@ export end :: fn(self: FunctionBuilder) -> void {
 /// matching `end()`.
 export br :: fn(self: FunctionBuilder, target_label: string) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.Branch {})
+    self.push(Branch {})
     defer_or_resolve_branch(self.scopes, self.scope_sp, self.table, self.pending, self.pending_sp,
                             target_label, pc)
 }
@@ -422,7 +416,7 @@ export br :: fn(self: FunctionBuilder, target_label: string) -> void {
 @allow_unused
 export br_if :: fn(self: FunctionBuilder, target_label: string) -> void {
     pc :: i32(self.ops.len())
-    self.push(bc.BranchIf {})
+    self.push(BranchIf {})
     defer_or_resolve_branch(self.scopes, self.scope_sp, self.table, self.pending, self.pending_sp,
                             target_label, pc)
 }

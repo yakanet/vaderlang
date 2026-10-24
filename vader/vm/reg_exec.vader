@@ -16,7 +16,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 // The register file and frame stack of one run.
 RegMachine :: struct {
@@ -1289,6 +1289,7 @@ set_bool :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: bool)
 
 import "std/string"
 import "std/testing"
+import "vader/core/bytecode/text"
 
 // A module whose `main` runs `ops`, its local 0 an `i32[]` holding `[1, 2, 3]`.
 array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {

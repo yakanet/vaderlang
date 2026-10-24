@@ -1,0 +1,88 @@
+// vader/core/bytecode/rewrite — rewriting a function's op stream: the jump
+// table through a PC renumbering, a slot operand through a slot renumbering,
+// and the slot an op touches.
+// Shared by the emitter's peepholes and the VM's inlining and register
+// translation.
+
+module "vader/core/bytecode"
+
+/// Remap a jump_table from old PC space to new PC space using a
+/// per-old-PC `old_to_new` map (entries < 0 mark removed ops).
+/// New entries default to -1.
+///
+/// @param old_jt      the jump table in old PC space.
+/// @param old_to_new  the new PC of each old one, `< 0` for a removed op.
+/// @param new_len     the rewritten body's length.
+export remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: i64) -> i32[] {
+    new_jt: i32[]: []
+    for p in 0..<new_len { new_jt.push(-1) }
+    old_n :: old_jt.len()
+    i: i64 = 0
+    for i < old_n {
+        target :: old_jt[i]
+        if target < 0 { i = i + 1  continue }
+        if i64(target) >= old_to_new.len() { i = i + 1  continue }
+        new_pc_branch :: old_to_new[i]
+        if new_pc_branch < 0 { i = i + 1  continue }
+        // Resolve target : the op at `old PC target` may have been
+        // deleted (old_to_new[target] = -1). In that case the branch's
+        // semantic destination is the NEXT surviving op — scan forward
+        // until we find one (or the end of the body).
+        new_pc_target: i32 = -1
+        for t in i64(target)..<old_to_new.len() {
+            cand :: old_to_new[t]
+            if cand >= 0 { new_pc_target = cand  break }
+        }
+        if new_pc_target < 0 { new_pc_target = i32(new_len) }
+        if i64(new_pc_branch) in 0..<new_len {
+            new_jt[new_pc_branch] = new_pc_target
+        }
+        i = i + 1
+    }
+    return new_jt
+}
+
+/// Bitmap over body PCs : `true` at every PC that is a jump TARGET (a
+/// non-negative `jump_table` entry). A peephole must never fold an op that a
+/// branch lands on. Shared by `run_bc_peephole`, `strip_self_copies` and the
+/// VM's translation to register code (`vader/vm/reg_translate.vader`).
+///
+/// @param jump_table  the function's PC→target table.
+/// @param n           body length (bitmap size).
+/// @return            length-`n` bool array, `true` at each branch target.
+export mark_jump_targets :: fn(jump_table: i32[], n: i64) -> bool[] {
+    is_target: bool[]: [false] * n
+    for k in 0..<jump_table.len() {
+        t :: jump_table[k]
+        if t >= 0 && i64(t) < n { is_target[t] = true }
+    }
+    return is_target
+}
+
+/// The local slot `op` reads or writes, or -1 when it touches none.
+///
+/// @param op  any op.
+export slot_touched :: fn(op: Op) -> i32 {
+    if op is LocalGet   { return op.slot }
+    if op is LocalSet   { return op.slot }
+    if op is LocalTee   { return op.slot }
+    if op is LocalField { return op.slot }
+    return -1
+}
+
+/// Rewrite `op`'s slot reference to `new_slot`. Returns `op` unchanged
+/// when it carries no slot.
+///
+/// @param op        any op.
+/// @param new_slot  the slot it names instead.
+export with_remapped_slot :: fn(op: Op, new_slot: i32) -> Op {
+    if op is LocalGet           { return LocalGet { .slot = new_slot } }
+    if op is LocalSet           { return LocalSet { .slot = new_slot } }
+    if op is LocalTee           { return LocalTee { .slot = new_slot } }
+    if op is LocalField {
+        return LocalField {
+            .slot = new_slot, .type_id = op.type_id, .field_index = op.field_index,
+        }
+    }
+    return op
+}

@@ -23,7 +23,7 @@ module "vader/vm"
 
 import "std/collections"
 import "std/string_builder"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 // A tag set is a `u8` with one bit per `StackTag`, in declaration order ;
 // `TAG_NAMES` spells them in the same order.
@@ -550,6 +550,7 @@ display_tags :: fn(tags: u8) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/bytecode/text"
 
 // The tag check of a one-function module whose `-> i32` body is `body` and whose
 // locals are `locals` ; "" when accepted.

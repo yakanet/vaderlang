@@ -1,4 +1,4 @@
-// vader/bytecode/types — bytecode-level type primitives.
+// vader/core/bytecode/types — bytecode-level type primitives.
 //
 // This is the single type-table shape :
 // the self-host VM consumes it directly (the former runtime-only
@@ -18,7 +18,7 @@
 /// in a local or on the operand stack lands in exactly one of these
 /// classes. Closed enum so `match` arms stay exhaustive across the
 /// pipeline.
-module "vader/bytecode"
+module "vader/core/bytecode"
 
 import "std/string"
 import "vader/core/types"
@@ -339,7 +339,7 @@ export array_kind_element_size :: fn(k: ArrayKind) -> i32 = match k {
 
 /// Canonical `.virt` name for a data-pool `ArrayKind`. Inverse of
 /// `array_kind_from_name`. The single source for the `data N <kind> …` decl
-/// emitted by `bytecode/dump.vader` and parsed by `vm/virt_reader_bc.vader`.
+/// emitted by `text/dump.vader` and parsed by `text/virt_reader_bc.vader`.
 /// @param k  the storage discriminator (never `Boxed` in a data pool).
 /// @return   the lowercase primitive name (`"u8"` … `"f64"`, `"char"`, `"bool"`).
 export array_kind_name :: fn(k: ArrayKind) -> string = match k {

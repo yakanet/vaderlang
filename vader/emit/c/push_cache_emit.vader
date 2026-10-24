@@ -24,8 +24,8 @@
 module "vader/emit/c"
 
 import "vader/emit/c/ast"
-import "vader/bytecode"
-vm :: import "vader/bytecode"
+import "vader/core/bytecode"
+Bc :: import "vader/core/bytecode"
 
 /// One loop's lifted array state. `opener_pc` names the locals, so nested
 /// regions cannot collide.
@@ -60,10 +60,10 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         // SAME array each get a plan, and the outer one's cached length then
         // goes stale the moment the inner one runs — so rather than reason about
         // which nestings are safe, none are.
-        if op is vm.Loop {
+        if op is Bc.Loop {
             return null
         }
-        if op is vm.ArrayPush {
+        if op is Bc.ArrayPush {
             if op.cache_slot < 0 {
                 // An UNCACHED push allocates like any other and is not one this
                 // region refreshes across.
@@ -90,10 +90,10 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         // lowered AST but lets a `break` of the loop through, since midir
         // compiles one as a fall-through to this `End` ; this is the check that
         // holds the op stream to that.
-        if op is vm.Return | vm.ReturnLit {
+        if op is Bc.Return | Bc.ReturnLit {
             return null
         }
-        if op is vm.Branch | vm.BranchIf {
+        if op is Bc.Branch | Bc.BranchIf {
             target :: s.function.jump_table[i]
             // A loop back-edge lands on the opener and stays inside.
             if target < pc || target > sc.end_pc {
@@ -109,7 +109,7 @@ pc_plan_for_loop :: fn(s: FnState, pc: i32) -> PushCache | null {
         if op_may_collect(op, s.ctx.import_may_collect) {
             return null
         }
-        if op is vm.Call && s.ctx.may_alloc[op.function_index] {
+        if op is Bc.Call && s.ctx.may_alloc[op.function_index] {
             return null
         }
         i += 1
@@ -266,10 +266,10 @@ pc_slot_used_outside_push :: fn(s: FnState, from: i32, to: i32, slot: i32, pushe
     reads := 0
     for i in from..<to {
         op :: s.function.body[i]
-        if op is vm.LocalSet && op.slot == slot   { return true }
-        if op is vm.LocalTee && op.slot == slot   { return true }
-        if op is vm.LocalGet && op.slot == slot   { reads += 1 }
-        if op is vm.LocalField && op.slot == slot { reads += 1 }
+        if op is Bc.LocalSet && op.slot == slot   { return true }
+        if op is Bc.LocalTee && op.slot == slot   { return true }
+        if op is Bc.LocalGet && op.slot == slot   { reads += 1 }
+        if op is Bc.LocalField && op.slot == slot { reads += 1 }
     }
     return reads != pushes
 }

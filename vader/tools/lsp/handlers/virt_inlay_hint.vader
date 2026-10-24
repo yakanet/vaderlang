@@ -14,7 +14,7 @@ import "std/string_builder"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
-Bc :: import "vader/bytecode"
+Virt :: import "vader/core/bytecode/text"
 
 /// The hints for the lines of `params.range` in a `.virt` document — one per op
 /// whose table indices resolve to a name — as the JSON text of the response's
@@ -43,7 +43,7 @@ export handle_virt_inlay_hint :: fn(state: ServerState, params: JsonValue) -> st
             if line < first || line > last {
                 continue
             }
-            label :: Bc.annotate_op(module, function, function.body[k])
+            label :: Virt.annotate_op(module, function, function.body[k])
             if label == "" {
                 continue
             }

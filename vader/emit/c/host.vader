@@ -22,7 +22,7 @@ import "std/collections"
 import "std/iter"
 import "std/sort"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
 // ---- driver ---------------------------------------------------------------
@@ -810,7 +810,7 @@ library_open_shim :: fn(opener: string, name: CExpression) -> CStatement[] = [
 
 // The body of the `vader_host_*` shim for `imp`. A host `@intrinsic` routes to
 // its `vader_*` runtime helper by its IntrinsicId (classified from the mangled
-// name by `bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the VM's
+// name by `core/bytecode/intrinsic_manifest::intrinsic_id_for`, shared with the VM's
 // `dispatch_import`). Hosts the
 // VM serves but c-emit doesn't — string index_of/last_index_of, the primitive
 // Equals/Display (materialised as pure Vader natively), the extra std/math

@@ -48,7 +48,7 @@ A backend is complete once it provides these. Group by concern; anchors point
 at the current C realization in `runtime/c/vader.h`.
 
 ### 1. Execution primitives (the opcode set)
-`vader/bytecode/op.vader`. Arithmetic (`I32Add`…`F64Div`), comparison, bool,
+`vader/core/bytecode/op.vader`. Arithmetic (`I32Add`…`F64Div`), comparison, bool,
 char, conversions (`Convert`), refs (`RefEq`, `RefCast`), locals/consts, control
 flow (`Block`/`Loop`/`If`/`Branch`/`Return`/`Drop`), and calls (`Call`,
 `CallImport`, `FnRef`, `MakeClosure`, `CallIndirect`, `VirtualCall`). Each
@@ -78,7 +78,7 @@ string equality — don't.
 
 ### 5. Memory opcodes — `(object, offset)`  ← the pivot (NEW)
 There is currently **no generic memory primitive and no pointer opcodes at all**
-— `vader/bytecode/op.vader` has no `Load` / `Store` / `Deref` / `Addr` op, the
+— `vader/core/bytecode/op.vader` has no `Load` / `Store` / `Deref` / `Addr` op, the
 `rawptr` primitive type is declared but **entirely unused**, and all memory
 access goes through the high-level data-structure ops (`Array*`, `Struct*`,
 `String*`, `Builder*`). That's not an oversight : the GC is a **generational
@@ -396,7 +396,7 @@ kept primitives + the syscall file) and gets the whole stdlib for free.
 
 ## Anchors
 
-- Opcode set : `vader/bytecode/op.vader`
+- Opcode set : `vader/core/bytecode/op.vader`
 - C runtime surface : `runtime/c/vader.h`
 - Op-backed intrinsics : `stdlib/std/core/core.vader`, mapping in
   `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`

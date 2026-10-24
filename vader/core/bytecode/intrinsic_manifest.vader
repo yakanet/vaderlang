@@ -1,4 +1,4 @@
-// vader/bytecode/intrinsic_manifest — single authority on the `@intrinsic`
+// vader/core/bytecode/intrinsic_manifest — single authority on the `@intrinsic`
 // host-mangle grammar and host-intrinsic identity.
 //
 // Two related jobs, both so the host-mangle grammar lives in ONE place:
@@ -15,12 +15,12 @@
 //      backends (`vm/host::dispatch_import`, `emit/c/host::import_shim`) dispatch
 //      on, so the two can't drift and a new host trips T3013 at both sites.
 //
-// Still inlined elsewhere (folding through here is a follow-up): the arith /
-// buffer bytecode-op table in `intrinsics.vader` (already verify-pinned).
+// The arith / buffer bytecode-op table is the selection module's
+// (`vader/bytecode/intrinsics.vader`): which op a host lowers to is a choice of
+// the emitter, not part of the format.
 
-module "vader/bytecode"
+module "vader/core/bytecode"
 
-import "std/abort"
 import "std/string"
 import "vader/core/types"
 
@@ -73,11 +73,14 @@ export is_unsigned_display :: fn(mangled: string) -> bool {
     return is_unsigned_int_name(kind)
 }
 
-// Return the `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when
-// the prefix / suffix don't match. Lengths come from the constant strings — no
-// hand-counted byte offsets, no per-call string build (both `CORE_PREFIX` and
-// `suffix` are module-level literals). Only the returned kind slice allocates.
-strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
+/// The `<kind>` slice of a `std_core$<kind><suffix>` mangle, or null when the
+/// prefix / suffix don't match. Lengths come from the constant strings — no
+/// hand-counted byte offsets, no per-call string build (both `CORE_PREFIX` and
+/// `suffix` are module-level literals). Only the returned kind slice allocates.
+///
+/// @param mangled  the host import's mangled name.
+/// @param suffix   the `$<Trait>$<method>` tail to strip.
+export strip_core_member :: fn(mangled: string, suffix: string) -> string | null {
     if !mangled.starts_with(CORE_PREFIX) || !mangled.ends_with(suffix) { return null }
     return mangled.byte_slice(CORE_PREFIX.byte_len(), mangled.byte_len() - suffix.byte_len())
 }
@@ -211,31 +214,9 @@ export intrinsic_may_shorten_array :: fn(id: IntrinsicId) -> bool = match id {
     .NotIntrinsic -> true
 }
 
-/// Fail loud when a bodyless `@intrinsic` host import is not wired into the
-/// manifest. Called per-import at emit (`midir/emit.vader::reserve_cfg_extern`).
-///
-/// A non-`@extern` import whose mangle is served by NEITHER a dedicated
-/// bytecode op (`intrinsic_op_for_mangled`) NOR a recognised `IntrinsicId`
-/// (`intrinsic_id_for`) would lower to an unbound `call.import` and trap at
-/// runtime — exactly the cos/tan gap the intrinsic audit surfaced. This closes
-/// the host-wiring chain at compile time : bodyless ⟹ `@intrinsic` (T3062) ⟹
-/// recognised here ⟹ served by the VM + c_emit dispatch (T3013 on both matchs).
-/// `@extern` imports resolve at link time and are exempt.
-///
-/// @param mangled    the import's mangled host name.
-/// @param is_extern  true for `@extern` foreign symbols (exempt) ; false for
-///                   `@intrinsic`-style stdlib host bindings (must be wired).
-export assert_host_import_wired :: fn(mangled: string, is_extern: bool) -> void {
-    if is_extern { return }
-    if intrinsic_op_for_mangled(mangled) != null { return }
-    if intrinsic_id_for(mangled) != .NotIntrinsic { return }
-    panic("bytecode emit: bodyless `@intrinsic` host `${mangled}` is not wired into intrinsic_manifest — add it to `intrinsic_id_for` (+ its `vm/host.vader::dispatch_import` and `emit/c/host.vader::import_shim` arms), or give it a dedicated op in `intrinsic_op_for_mangled`")
-}
-
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/lower"
 
 @test test_core_module_matches_mangler :: fn() -> void {
     // Pins the manifest's grammar against the real producer — if the module

@@ -16,6 +16,7 @@ module "vader/bytecode"
 import "std/collections"
 import "std/sort"
 import "std/string"
+import "vader/core/bytecode"
 
 /// Every type's canonical key, indexed like the table itself.
 ///

@@ -954,7 +954,7 @@ is_extern_abi_type :: fn(t: Type, is_return: bool) -> bool {
         }
         is FnType        -> {
             // A CALLBACK, in parameter position only. What crosses is the
-            // function's ADDRESS (`bytecode/op::FnAddr`), so every part of its
+            // function's ADDRESS (`core/bytecode/op::FnAddr`), so every part of its
             // signature has to cross too — C will call it with those very types.
             //
             // A return is rejected: a C function handing back code Vader would

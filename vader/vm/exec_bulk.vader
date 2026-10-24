@@ -9,7 +9,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 /// Clamp a signed operand to a non-negative index. A negative count or offset is
 /// not an error for these ops — it saturates to an empty range.

@@ -216,11 +216,10 @@ export build_cfg_project :: fn(lp: LoweredProject, diags: Diagnostic[]) -> CFGPr
     }
 }
 
-import "vader/bytecode"
+import "vader/core/bytecode"
 
 // Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
-// variant. Done here, at the lower→CFG boundary, because `vader/lower` can't
-// import `vader/bytecode` (it would close the bytecode→lower import cycle).
+// variant, at the lower→CFG boundary.
 // Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)` — the
 // runtime reads each element at its natural width, low bits) ; string arrays
 // carry their values through to `midir::emit`, which interns them ; aggregate
@@ -963,7 +962,7 @@ end_after_no_return :: fn(fn_ctx: FnCtx, e: LoweredCall, dst: LocalId | null) ->
 /// Arguments of an `@extern` call, where a fn-typed parameter is a CALLBACK.
 ///
 /// A foreign callee receives the function's ADDRESS, not a Vader fn value — see
-/// `bytecode/op::FnAddr`. Only a direct reference to a named fn can supply one.
+/// `core/bytecode/op::FnAddr`. Only a direct reference to a named fn can supply one.
 ///
 /// This is the AUTHORITY, and it refuses rather than degrading: falling back to
 /// a fn value here would hand C a `vader_fn_t` to jump into, which is a wild

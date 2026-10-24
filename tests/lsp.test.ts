@@ -2602,7 +2602,7 @@ test("lsp: signature help before the first argument", async () => {
 });
 
 // A `.virt` dump gets a hover over the first word of each line — every op and
-// directive must have an entry in `vader/bytecode/ops.md` — and nothing else
+// directive must have an entry in `vader/core/bytecode/text/ops.md` — and nothing else
 // from the server. The heads come from the committed bytecode snapshots and
 // from the printer's arms, so an op no snippet uses is covered too.
 test("lsp: hover documents every op of the text bytecode", async () => {
@@ -2616,7 +2616,7 @@ test("lsp: hover documents every op of the text bytecode", async () => {
       if (head && /^[a-z_][a-z0-9_.]*$/.test(head)) heads.add(head);
     }
   }
-  const printer = readFileSync("vader/bytecode/dump.vader", "utf8");
+  const printer = readFileSync("vader/core/bytecode/text/dump.vader", "utf8");
   const printed = [...printer.matchAll(/-> out\.append\("([a-z_][a-z0-9_.]*)/g)].map((m) => m[1]!);
   expect(printed.length).toBeGreaterThan(100);
   for (const head of printed) heads.add(head);

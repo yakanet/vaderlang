@@ -1,17 +1,17 @@
-// vader/bytecode/op — the bytecode op set (the instruction format).
+// vader/core/bytecode/op — the bytecode op set (the instruction format).
 //
 // One variant per supported op kind, plus the `ConstOp` sub-union and the
 // `ConvertTarget` enum. The union grows sprint by sprint in lock-step with the
 // acceptance snippets (docs/SELFHOST_VM.md). Control-flow ops (`If`, `Else`,
 // `End`, `Branch`, `BranchIf`) carry no operand here — their target pc lives in
-// `BytecodeFunction.jump_table[pc]` (`vader/vm/module.vader`).
+// `BcFunction.jump_table[pc]` (`module.vader`).
 //
-// The instruction format lives in `vader/bytecode` (the emitter's home) ; the
-// VM's runtime values (`vader/vm/value.vader`) and parsed-module shape
-// (`vader/vm/module.vader`) import these opcodes — the one-way `vm -> bytecode`
-// dependency edge. Nothing in `vader/bytecode` imports `vader/vm`.
+// The instruction format lives in `vader/core/bytecode` ; the emitter, the VM's
+// runtime values (`vader/vm/value.vader`) and parsed-module shape
+// (`vader/vm/module.vader`) import these opcodes — the one-way `vm -> core/bytecode`
+// dependency edge. Nothing in `vader/core/bytecode` imports `vader/vm`.
 
-module "vader/bytecode"
+module "vader/core/bytecode"
 
 /// The full op set understood by the Vader-side VM. Each variant is
 /// pure data — the executor's `match` arms in `exec.vader` carry the
@@ -428,7 +428,7 @@ export ConvertTarget :: enum(u8) {
 /// Map a `ValType` to the matching `ConvertTarget`. Returns `null` for
 /// non-numeric / non-char targets — callers skip the `Convert` emit since the
 /// runtime tag is unchanged. Used by the midir bytecode emitter and the `.virt`
-/// reader. (Both `ValType` and `ConvertTarget` live in `vader/bytecode`, so this
+/// reader. (Both `ValType` and `ConvertTarget` live in `vader/core/bytecode`, so this
 /// needs no imports.)
 export convert_target_of :: fn(v: ValType) -> ConvertTarget | null = match v {
     .I8    -> .I32
@@ -583,7 +583,7 @@ export F64Ge :: struct {}
 // The seven ops below are width-aliased : every integer-width sibling
 // (`i8.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
 // because the VM aliases every integer width to `I32Val`. See
-// `is_int_op` in `vader/vm/virt_reader.vader` for the parser-side collapse.
+// `is_int_op` in `vader/core/bytecode/text/virt_reader.vader` for the parser-side collapse.
 /// Pop one i32 ; push `-value`.
 export I32Neg :: struct {}
 /// Pop one i32 ; push `~value`.
@@ -727,7 +727,7 @@ export BufferNew :: struct {}
 // `write_string`. So nothing user-writable reaches them. They are an ABI landed
 // ahead of its surface, NOT dead weight — do not prune them as unreachable.
 //
-// Their intended consumer is named in `vm/byte_codec.vader`'s header: a future
+// Their intended consumer is named in `core/bytecode/byte_codec.vader`'s header: a future
 // `std/encoding` built over `Buffer`. Two constraints to settle there first:
 //
 //   - ENDIANNESS must be explicit in the name (`load_i32_le` / `_be`), not left

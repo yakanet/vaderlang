@@ -8,7 +8,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 import "std/io"
 import "std/env"
@@ -505,7 +505,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
         v :: stack[arg_base + i]
         // Unreachable in practice — `exec` traps on `fn.addr` before the value
         // could reach here — but a `.virt` read from elsewhere need not have
-        // come through that path. See `bytecode/op::FnAddr`.
+        // come through that path. See `core/bytecode/op::FnAddr`.
         if v is FnVal {
             return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} is a callback, and the interpreter has no address for a Vader function" }
         }
@@ -901,7 +901,7 @@ zeroed_mirror :: fn(type_index: i32, mirror: bc.BcStruct, types: bc.BcType[], de
 
 // The C float of `width` bytes at `at` in `buf`.
 read_float :: fn(buf: u8[], at: i64, width: i64) -> f64 {
-    bits :: read_le(buf, at, width)
+    bits :: bc.read_le(buf, at, width)
     if width == 4 {
         return f64(u32(bits).from_bits())
     }
@@ -910,7 +910,7 @@ read_float :: fn(buf: u8[], at: i64, width: i64) -> f64 {
 
 // Write `value` into `buf` at `at` as the C float of `width` bytes.
 write_float :: fn(buf: u8[], at: i64, value: f64, width: i64) -> void =
-    write_le(buf, at, width, float_bits(value, width))
+    bc.write_le(buf, at, width, float_bits(value, width))
 
 // The bits of `value` as a C float of `width` bytes.
 float_bits :: fn(value: f64, width: i64) -> u64 {

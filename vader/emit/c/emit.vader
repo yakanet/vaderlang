@@ -30,7 +30,7 @@ import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
 /// Options threaded through the emit.

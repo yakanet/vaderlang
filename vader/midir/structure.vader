@@ -33,7 +33,7 @@ module "vader/midir"
 import "std/abort"
 import "std/collections"
 import "toolchain/span"
-import "vader/bytecode" {
+import "vader/core/bytecode" {
     VtableEntry as _,
     ImplEntry as _,
 }

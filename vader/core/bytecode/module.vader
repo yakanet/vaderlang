@@ -1,4 +1,4 @@
-// vader/bytecode/module — in-memory bytecode module shape, the lingua
+// vader/core/bytecode/module — in-memory bytecode module shape, the lingua
 // franca shared by the bytecode emitter, the VM, and the C emitter.
 //
 // This is the single in-memory module
@@ -11,16 +11,17 @@
 // Construction sites :
 //   - the bytecode emitter (`emit_bytecode_from_cfg`, `vader/midir/emit`)
 //     builds a fresh `BytecodeModule` per project ;
-//   - the .virt readers (`vader/vm/virt_reader_bc` for C-emit ; `virt_reader`
+//   - the .virt readers (`vader/core/bytecode/text/virt_reader_bc` for C-emit ; `virt_reader`
 //     → `bc_to_vm` for the VM) build one from a text dump.
 //
 // Consumers : `vader/emit/c/emit` lowers it to a single C source file ;
 // `vader/vm/exec` runs it directly.
 
-module "vader/bytecode"
+module "vader/core/bytecode"
 
 import "std/abort"
 import "std/ffi"
+import "std/string"
 
 
 /// One Vader function body, post-lowering.
@@ -359,4 +360,51 @@ export data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
         }
     }
     return out
+}
+
+/// Index of the entry function, the one flagged `is_main`, or `-1` when none is:
+/// the VM then refuses to run rather than pick an arbitrary function.
+///
+/// @param functions  the module's function table.
+export main_function_index :: fn(functions: BcFunction[]) -> i32 {
+    for i in 0..<functions.len() {
+        if functions[i].is_main { return i32(i) }
+    }
+    return -1
+}
+
+/// Name of the entry function, the one flagged `is_main`, or `""` when none is.
+///
+/// @param module  the module whose entry to name.
+export main_function_name :: fn(module: BytecodeModule) -> string {
+    index :: main_function_index(module.functions)
+    if index < 0 {
+        return ""
+    }
+    return module.functions[index].name
+}
+
+/// Flag the entry function `is_main`: the one at `declared`, or, when nothing
+/// declared one (`-1`), the first whose name ends with `$main`. A module with
+/// neither keeps no entry.
+///
+/// @param functions  the module's function table.
+/// @param declared   the entry index the source named, `-1` when it named none.
+export mark_main_function :: fn(functions: BcFunction[], declared: i32) -> void {
+    index :: entry_or_main_suffix(functions, declared)
+    if index >= 0 && i64(index) < functions.len() {
+        functions[index].is_main = true
+    }
+}
+
+// `declared` when it names a function, else the first `$main`-suffixed one,
+// else -1.
+entry_or_main_suffix :: fn(functions: BcFunction[], declared: i32) -> i32 {
+    if declared >= 0 {
+        return declared
+    }
+    for i in 0..<functions.len() {
+        if functions[i].name.ends_with(r"$main") { return i32(i) }
+    }
+    return -1
 }

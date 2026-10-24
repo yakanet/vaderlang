@@ -16,7 +16,7 @@ import "vader/support/diagnostics"
 import "vader/core/types"
 import "vader/core/symbol"
 import "vader/front/comptime"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/lower"
 import "toolchain/span"
 import "std/collections"
@@ -305,7 +305,7 @@ export InstrFnRef :: struct {
 /// A function's ADDRESS, for a C callback. Lowers to bytecode `fn.addr`.
 ///
 /// Distinct from `InstrFnRef`, which builds a callable Vader value; see
-/// `bytecode/op::FnAddr` for why the two cannot be the same thing. Built only
+/// `core/bytecode/op::FnAddr` for why the two cannot be the same thing. Built only
 /// by `build_call` for an argument in a callback position of an `@extern`.
 export InstrFnAddr :: struct {
     span:      Span

@@ -28,6 +28,7 @@ import "vader/front/typecheck"
 import "vader/lower"
 import "vader/midir"
 import "vader/bytecode"
+import "vader/core/bytecode"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
 

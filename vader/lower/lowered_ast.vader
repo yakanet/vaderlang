@@ -74,8 +74,7 @@ export ConstRoute :: struct {
 /// array, or an aggregate (struct elements, and a lone struct as the single
 /// element of one). References become `LoweredDataConst` nodes carrying the pool
 /// index. `midir::convert_data_pool` lowers each into the matching `BcDataEntry`
-/// variant at the CFG boundary (lower can't import `vader/bytecode`: it would
-/// close the bytecode→lower import cycle). Produced by
+/// variant at the CFG boundary. Produced by
 /// `inline_consts::try_data_pool` and `try_pool_struct`.
 export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPoolEntry
 

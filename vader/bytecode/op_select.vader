@@ -26,6 +26,7 @@
 
 module "vader/bytecode"
 
+import "vader/core/bytecode"
 import "vader/lower"
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class

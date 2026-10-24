@@ -1,4 +1,4 @@
-// vader/bytecode/checked_arith — what a checked integer op computes on VM cells.
+// vader/core/bytecode/checked_arith — what a checked integer op computes on VM cells.
 //
 // `CheckedArith` and `CheckedNeg` (`op.vader`) stop the run when the exact
 // result leaves the operand's integer class. The VM runs them through these
@@ -10,7 +10,7 @@
 // sign-extended from its low 32 bits (a `u32` included), a 64-bit one is its
 // bits.
 
-module "vader/bytecode"
+module "vader/core/bytecode"
 
 import "vader/support/integer"
 

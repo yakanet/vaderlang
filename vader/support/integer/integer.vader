@@ -1,7 +1,7 @@
 // vader/support/integer — fixed-width integer arithmetic, exact or refused.
 //
 // The one definition of when `+`, `-`, `*` and unary `-` overflow an integer
-// type: the VM's checked ops (`vader/bytecode/checked_arith.vader`) and the
+// type: the VM's checked ops (`vader/core/bytecode/checked_arith.vader`) and the
 // comptime evaluator (`vader/front/comptime/eval_binary.vader`) both answer through it,
 // and the native helpers in `runtime/c/vader.h` must agree with it.
 //

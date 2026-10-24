@@ -24,7 +24,7 @@ module "vader/emit/c"
 import "std/collections"
 import "std/sort"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 
 // ---- per-key dispatcher metadata ------------------------------------------

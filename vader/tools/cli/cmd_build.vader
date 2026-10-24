@@ -20,6 +20,8 @@ import "cli"
 import "vader/support/target"
 import "vader/front/resolver"
 import "vader/bytecode"
+import "vader/core/bytecode"
+import "vader/core/bytecode/text"
 import "vader/vm"
 import "vader/pipeline"
 Build :: import "toolchain/build"
@@ -285,7 +287,7 @@ build_file :: fn(file: Path, request: BuildRequest) -> i32 {
 build_virt :: fn(file: Path, stem: Path, request: BuildRequest) -> i32 {
     module :: virt_module(file) ?? return 1
     b :: CfgBytecode {
-        .entry = virt_entry_mangled(module),
+        .entry = main_function_name(module),
         .pre_diags = [],
         .lower_diags = [],
         .in_scope_files = [],
@@ -343,16 +345,6 @@ virt_module :: fn(file: Path) -> BytecodeModule | null {
         return null
     }
     return module
-}
-
-// Mangled name of the entry fn (the `is_main` function), or `""` when none.
-virt_entry_mangled :: fn(module: BytecodeModule) -> string {
-    for f in module.functions {
-        if f.is_main {
-            return f.name
-        }
-    }
-    return ""
 }
 
 /// Emit the split C for SEVERAL targets against one shared atom universe.

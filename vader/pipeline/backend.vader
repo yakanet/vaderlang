@@ -26,6 +26,7 @@ import "vader/core/types"
 import "vader/lower"
 import "vader/midir"
 import "vader/bytecode"
+import "vader/core/bytecode"
 Prof :: import "vader/support/profile"
 
 /// Normalise a path to `/` separators.

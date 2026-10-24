@@ -14,7 +14,7 @@
 module "vader/emit/c"
 
 import "std/numbers"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 import "vader/support/text"
 

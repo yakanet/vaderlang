@@ -1,4 +1,4 @@
-// vader/bytecode/operands — what the printed operands of an op point at.
+// vader/core/bytecode/text/operands — what the printed operands of an op point at.
 //
 // `write_op_refs` (dump.vader) prints an op as its name then its operands ; an
 // operand that is a table index is printed from an `OperandRef` saying what it
@@ -7,9 +7,10 @@
 // reading a `.virt` line can follow an operand to the entry it names ;
 // `annotate_op` renders them.
 
-module "vader/bytecode"
+module "vader/core/bytecode/text"
 
 import "std/string_builder"
+import "vader/core/bytecode"
 
 /// What a table-index operand names.
 export OperandKind :: enum {

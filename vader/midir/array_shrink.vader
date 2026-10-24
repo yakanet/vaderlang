@@ -19,7 +19,8 @@ module "vader/midir"
 import "std/iter"
 import "vader/support/fixpoint"
 
-Bc :: import "vader/bytecode"
+import "vader/bytecode"
+Bc :: import "vader/core/bytecode"
 
 /// Per node of a project's call graph, whether running it may shorten an array.
 ShrinkSummary :: struct {
@@ -104,7 +105,7 @@ extern_shrinks_by_itself :: fn(e: CFGExternDecl) -> bool {
     if e.is_extern {
         return false
     }
-    op :: Bc.intrinsic_op_for_mangled(e.mangled)
+    op :: intrinsic_op_for_mangled(e.mangled)
     if op != null {
         return Bc.op_shortens_array(op)
     }

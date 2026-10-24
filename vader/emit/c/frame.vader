@@ -9,8 +9,8 @@
 
 module "vader/emit/c"
 
-import "vader/bytecode"
-vm :: import "vader/bytecode"
+Bc :: import "vader/core/bytecode"
+import "vader/core/bytecode"
 
 /// Whether `function` pushes a GC shadow-stack frame at its entry.
 ///
@@ -55,21 +55,21 @@ needs_frame :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> bool {
 ///
 /// @param functions  the module's functions, where a `call` finds its callee.
 /// @param body       the op stream to classify.
-is_tail_forwarder :: fn(functions: BcFunction[], body: vm.Op[]) -> bool {
+is_tail_forwarder :: fn(functions: BcFunction[], body: Bc.Op[]) -> bool {
     reads :: leading_pure_reads(body)
     if reads == body.len() {
         return false
     }
     arity :: safepoint_result_arity(functions, body[reads], reads) ?? return false
     after_safepoint :: reads + 1
-    if arity == 1 && after_safepoint < body.len() && body[after_safepoint] is vm.Drop {
+    if arity == 1 && after_safepoint < body.len() && body[after_safepoint] is Bc.Drop {
         return returns_at(body, after_safepoint + 1)
     }
     return returns_at(body, after_safepoint)
 }
 
 // How many pure reads open `body`.
-leading_pure_reads :: fn(body: vm.Op[]) -> i64 {
+leading_pure_reads :: fn(body: Bc.Op[]) -> i64 {
     for i in 0..<body.len() {
         if !is_pure_read(body[i]) {
             return i
@@ -80,18 +80,18 @@ leading_pure_reads :: fn(body: vm.Op[]) -> i64 {
 
 // An op that pushes one value, and can neither collect nor write : a slot or
 // field read, or a constant.
-is_pure_read :: fn(op: vm.Op) -> bool = op is vm.LocalGet | vm.LocalField || const_op_of(op) != null
+is_pure_read :: fn(op: Bc.Op) -> bool = op is Bc.LocalGet | Bc.LocalField || const_op_of(op) != null
 
 // How many values `op` leaves when it is a safepoint a forwarder may end on and
 // takes exactly `operands` values, `null` otherwise.
-safepoint_result_arity :: fn(functions: BcFunction[], op: vm.Op, operands: i64) -> i64 | null {
-    if op is vm.ArrayPush {
+safepoint_result_arity :: fn(functions: BcFunction[], op: Bc.Op, operands: i64) -> i64 | null {
+    if op is Bc.ArrayPush {
         if operands != 2 {
             return null
         }
         return 0
     }
-    if op is vm.Call {
+    if op is Bc.Call {
         signature :: functions[op.function_index].signature
         arity :: bc_result_arity(signature)
         if signature.params.len() != operands || arity > 1 {
@@ -103,11 +103,11 @@ safepoint_result_arity :: fn(functions: BcFunction[], op: vm.Op, operands: i64) 
 }
 
 // Whether the body ends at `at`, or with a `return` / `return.lit` there.
-returns_at :: fn(body: vm.Op[], at: i64) -> bool {
+returns_at :: fn(body: Bc.Op[], at: i64) -> bool {
     if at == body.len() {
         return true
     }
-    return at == body.len() - 1 && body[at] is vm.Return | vm.ReturnLit
+    return at == body.len() - 1 && body[at] is Bc.Return | Bc.ReturnLit
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -140,184 +140,184 @@ forwarded_callees :: fn() -> BcFunction[] = [
     callee([.Ref, .I64], [.Ref]),
 ]
 
-forwards :: fn(body: vm.Op[]) -> bool = is_tail_forwarder(forwarded_callees(), body)
+forwards :: fn(body: Bc.Op[]) -> bool = is_tail_forwarder(forwarded_callees(), body)
 
 @test
 test_tail_forwarder_relays_a_dropped_result :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.LocalGet { .slot = 2 },
-        vm.Call { .function_index = 0 },
-        vm.Drop {},
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.LocalGet { .slot = 2 },
+        Bc.Call { .function_index = 0 },
+        Bc.Drop {},
+        Bc.Return {},
     ]
     assert(forwards(body), "a `set_at` handing its parameters to `put`")
 }
 
 @test
 test_tail_forwarder_returns_the_callee_value :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.Call { .function_index = 3 },
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.Call { .function_index = 3 },
+        Bc.Return {},
     ]
     assert(forwards(body), "a relay returning what `get` returns")
 }
 
 @test
 test_tail_forwarder_pushes_a_field_array :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalField {
+    body: Bc.Op[]: [
+        Bc.LocalField {
             .slot = 0,
             .type_id = 5,
             .field_index = 1,
         },
-        vm.LocalGet { .slot = 1 },
-        vm.ArrayPush { .type_id = 7 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.ArrayPush { .type_id = 7 },
     ]
     assert(forwards(body), "a push into a field array, ending the body")
 }
 
 @test
 test_tail_forwarder_takes_constant_arguments :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.I64Const { .value = 7 },
-        vm.I32Const { .value = 1 },
-        vm.Call { .function_index = 0 },
-        vm.Drop {},
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.I64Const { .value = 7 },
+        Bc.I32Const { .value = 1 },
+        Bc.Call { .function_index = 0 },
+        Bc.Drop {},
+        Bc.Return {},
     ]
     assert(forwards(body), "constants among the operands")
 }
 
 @test
 test_tail_forwarder_returns_a_literal :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.LocalGet { .slot = 2 },
-        vm.Call { .function_index = 0 },
-        vm.Drop {},
-        vm.ReturnLit { .value = vm.BoolConst { .value = true } },
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.LocalGet { .slot = 2 },
+        Bc.Call { .function_index = 0 },
+        Bc.Drop {},
+        Bc.ReturnLit { .value = Bc.BoolConst { .value = true } },
     ]
     assert(forwards(body), "`drop` then `return.lit`")
 }
 
 @test
 test_tail_forwarder_refuses_a_value_under_the_operands :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.Call { .function_index = 3 },
-        vm.Drop {},
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.Call { .function_index = 3 },
+        Bc.Drop {},
+        Bc.Return {},
     ]
     assert(!forwards(body), "a slot read before the call and returned after it")
 }
 
 @test
 test_tail_forwarder_refuses_two_calls :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.Call { .function_index = 1 },
-        vm.LocalGet { .slot = 0 },
-        vm.Call { .function_index = 1 },
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.Call { .function_index = 1 },
+        Bc.LocalGet { .slot = 0 },
+        Bc.Call { .function_index = 1 },
+        Bc.Return {},
     ]
     assert(!forwards(body), "a slot read after a first safepoint")
 }
 
 @test
 test_tail_forwarder_refuses_a_host_call :: fn() -> void {
-    body: vm.Op[]: [vm.LocalGet { .slot = 0 }, vm.CallImport { .index = 0 }, vm.Return {}]
+    body: Bc.Op[]: [Bc.LocalGet { .slot = 0 }, Bc.CallImport { .index = 0 }, Bc.Return {}]
     assert(!forwards(body), "`call.import`")
 }
 
 @test
 test_tail_forwarder_refuses_an_indirect_call :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.CallIndirect { .type_id = 4 },
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.CallIndirect { .type_id = 4 },
+        Bc.Return {},
     ]
     assert(!forwards(body), "`call.indirect`")
 }
 
 @test
 test_tail_forwarder_refuses_a_struct_new :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.StructNew { .type_id = 5, .stack = false },
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.StructNew { .type_id = 5, .stack = false },
+        Bc.Return {},
     ]
     assert(!forwards(body), "`struct.new` reads its operands after it allocates")
 }
 
 @test
 test_tail_forwarder_refuses_a_read_after_the_call :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.LocalGet { .slot = 1 },
-        vm.LocalGet { .slot = 2 },
-        vm.Call { .function_index = 0 },
-        vm.Drop {},
-        vm.LocalGet { .slot = 0 },
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.LocalGet { .slot = 1 },
+        Bc.LocalGet { .slot = 2 },
+        Bc.Call { .function_index = 0 },
+        Bc.Drop {},
+        Bc.LocalGet { .slot = 0 },
+        Bc.Return {},
     ]
     assert(!forwards(body), "`local.get` after the call")
 }
 
 @test
 test_tail_forwarder_refuses_two_results :: fn() -> void {
-    body: vm.Op[]: [vm.LocalGet { .slot = 0 }, vm.Call { .function_index = 2 }, vm.Return {}]
+    body: Bc.Op[]: [Bc.LocalGet { .slot = 0 }, Bc.Call { .function_index = 2 }, Bc.Return {}]
     assert(!forwards(body), "a callee leaving two values")
 }
 
 @test
 test_tail_forwarder_refuses_a_drop_after_a_void_call :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.Call { .function_index = 1 },
-        vm.Drop {},
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.Call { .function_index = 1 },
+        Bc.Drop {},
+        Bc.Return {},
     ]
     assert(!forwards(body), "a `drop` with nothing to drop")
 }
 
 @test
 test_tail_forwarder_refuses_ops_after_the_return :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.Call { .function_index = 1 },
-        vm.Return {},
-        vm.Return {},
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.Call { .function_index = 1 },
+        Bc.Return {},
+        Bc.Return {},
     ]
     assert(!forwards(body), "an op past the `return`")
 }
 
 @test
 test_tail_forwarder_refuses_a_body_of_reads :: fn() -> void {
-    body: vm.Op[]: [vm.LocalGet { .slot = 0 }]
+    body: Bc.Op[]: [Bc.LocalGet { .slot = 0 }]
     assert(!forwards(body), "reads with nothing to hand them to")
 }
 
 @test
 test_tail_forwarder_refuses_a_last_op_other_than_return :: fn() -> void {
-    body: vm.Op[]: [
-        vm.LocalGet { .slot = 0 },
-        vm.Call { .function_index = 1 },
-        vm.Unreachable { .reason = "end" },
+    body: Bc.Op[]: [
+        Bc.LocalGet { .slot = 0 },
+        Bc.Call { .function_index = 1 },
+        Bc.Unreachable { .reason = "end" },
     ]
     assert(!forwards(body), "a body ending on `unreachable`")
 }
 
 @test
 test_tail_forwarder_refuses_a_body_without_safepoint :: fn() -> void {
-    body: vm.Op[]: [vm.LocalGet { .slot = 0 }, vm.Return {}]
+    body: Bc.Op[]: [Bc.LocalGet { .slot = 0 }, Bc.Return {}]
     assert(!forwards(body), "no safepoint at all")
 }

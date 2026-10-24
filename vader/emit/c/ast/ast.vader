@@ -12,7 +12,7 @@
 
 module "vader/emit/c/ast"
 
-import "vader/bytecode"
+import "vader/core/bytecode"
 
 /// One statement of a C function body.
 export CStatement :: CDirective

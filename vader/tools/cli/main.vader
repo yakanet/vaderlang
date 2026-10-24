@@ -11,7 +11,7 @@ import "std/path"
 import "std/string"
 import "cli"
 import "vader/lower"
-import "vader/bytecode"
+import "vader/core/bytecode"
 TTY :: import "std/tty"
 import "toolchain/ast"
 import "vader/pipeline"
@@ -148,7 +148,7 @@ reject_extra_positionals :: fn(name: string, parsed: ParsedArgs) -> bool {
 // behaviour the VM corpus is validated against.
 
 // Resolve the VM entry index for `vader run <file>`. The default entry is the
-// first `is_main` fn (`reduce_main_index`), which is blind to which file was
+// first `is_main` fn (`main_function_index`), which is blind to which file was
 // named — so with two sibling programs `a.vader` / `b.vader` in one folder,
 // `vader run b.vader` would silently run `a.vader`'s `main`. Prefer the `main`
 // DECLARED in the named file instead. Match by file basename : sibling files of

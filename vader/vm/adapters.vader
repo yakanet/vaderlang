@@ -11,7 +11,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 /// Why no trampoline can call `imp`, or null when one can.
 ///

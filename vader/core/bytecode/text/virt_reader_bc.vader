@@ -1,8 +1,8 @@
-// vader/vm/virt_reader_bc — read a `.virt` text dump into a `BytecodeModule`.
+// vader/core/bytecode/text/virt_reader_bc — read a `.virt` text dump into a `BytecodeModule`.
 //
 // Sibling of `virt_reader.vader`, which parses the same `.virt` text into the
 // runtime-only VM `Module`. This reader instead reconstructs the richer
-// `vader/bytecode::BytecodeModule` that `emit/c::emit_c` consumes — so a
+// `vader/core/bytecode::BytecodeModule` that `emit/c::emit_c` consumes — so a
 // hand-authored or dumped `.virt` can be compiled to C (`vader build x.virt
 // --target=c`). Both readers share the hard part — the structured control-flow
 // → linear op-stream + jump-table wiring (`ParserState`, `parse_op_line`,
@@ -15,18 +15,18 @@
 // type table via `class_tag_of` (exact for scalar slots ; `0` for
 // ref/any slots, which `emit/c::box_expr` ignores anyway — Ref/Any box to a
 // bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
-// identity the data section names it by (`bytecode/dump`) — and `debug` all-null
+// identity the data section names it by (`core/bytecode/text/dump`) — and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
 // upholds is *emitted-C equivalence* (`source → C` == `source → .virt → C`,
 // modulo `#line`), not byte-identical module round-trip.
 
-module "vader/vm"
-
-bc :: import "vader/bytecode"
+module "vader/core/bytecode/text"
 
 import "std/ffi"
-import "std/string"
 import "std/numbers"
+import "std/string"
+import "vader/core/bytecode"
+import "vader/core/bytecode/builder"
 
 /// A `.virt` line the reader could not interpret. The parse stops there.
 ///
@@ -100,7 +100,7 @@ export VirtFunctionLines :: struct {
 /// A `.virt` dump read back, with the 0-based line every indexed entry came
 /// from — what a tool pointing back into the text needs.
 export VirtListing :: struct {
-    module:    bc.BytecodeModule
+    module:    BytecodeModule
     /// One per function, by function index.
     functions: VirtFunctionLines[]
     /// The `type N` line of each type, by type index.
@@ -121,7 +121,7 @@ export VirtListing :: struct {
 /// @return        the reconstructed module, or the first line that defeated the
 ///                reader — never a partial module.
 /// @error         `VirtParseError` as `parse_virt_listing` reports it.
-export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError {
+export parse_virt_bc :: fn(source: string) -> BytecodeModule | VirtParseError {
     listing :: parse_virt_listing(source)
     if listing is VirtParseError {
         return listing
@@ -151,25 +151,25 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule | VirtParseError
 export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError {
     module_name := ""
     strings: string[]: []
-    types: bc.BcType[]: []
-    imports: bc.BcImport[]: []
-    exports: bc.BcExport[]: []
-    impl_table: bc.ImplEntry[]: []
-    vtables: bc.VtableRow[]: []
-    data_pool: bc.BcDataEntry[]: []
-    globals: bc.BcGlobal[]: []
-    functions: bc.BcFunction[]: []
+    types: BcType[]: []
+    imports: BcImport[]: []
+    exports: BcExport[]: []
+    impl_table: ImplEntry[]: []
+    vtables: VtableRow[]: []
+    data_pool: BcDataEntry[]: []
+    globals: BcGlobal[]: []
+    functions: BcFunction[]: []
     main_index := -1
 
     current_name := ""
-    current_sig := bc.BcSignature {
+    current_sig := BcSignature {
         .params = [],
         .results = [.Void],
         .param_types = [],
         .result_types = [0],
         .param_names = [],
     }
-    current_locals: bc.BcLocal[] = []
+    current_locals: BcLocal[] = []
     current_header: i64 = 0
     current_local_lines: i64[] = []
     current_lines: i64[] = []
@@ -317,9 +317,9 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
             continue
         }
         if cleaned == "end" && state.scope_sp[0] == 0 {
-            debug: (bc.DebugPos | null)[]: []
+            debug: (DebugPos | null)[]: []
             for _ in 0..<state.ops.len() { debug.push(null) }
-            functions.push(bc.BcFunction {
+            functions.push(BcFunction {
                 .name       = current_name,
                 .is_main    = false,
                 .signature  = current_sig,
@@ -354,12 +354,9 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
         wire_control_flow(state, cleaned, head, pc)
     }
 
-    if main_index < 0 { main_index = find_main_by_suffix_bc(functions) }
-    if main_index >= 0 && i64(main_index) < functions.len() {
-        functions[main_index].is_main = true
-    }
+    mark_main_function(functions, main_index)
 
-    module :: bc.BytecodeModule {
+    module :: BytecodeModule {
         .name       = module_name,
         .types      = types,
         .strings    = strings,
@@ -385,7 +382,7 @@ export parse_virt_listing :: fn(source: string) -> VirtListing | VirtParseError 
 // ---- module-level directive parsers ---------------------------------------
 
 // Parse `global N <type> <name>` into `globals`, in slot order.
-parse_global_decl_bc :: fn(cleaned: string, globals: bc.BcGlobal[]) -> DirectiveError | null {
+parse_global_decl_bc :: fn(cleaned: string, globals: BcGlobal[]) -> DirectiveError | null {
     words :: cleaned.split(" ")
     if words.len() != 4 {
         return DirectiveError { .reason = "expected `global <index> <type> <name>`" }
@@ -394,7 +391,7 @@ parse_global_decl_bc :: fn(cleaned: string, globals: bc.BcGlobal[]) -> Directive
     if type_id is ParseError {
         return DirectiveError { .reason = "global type index \"${words[2]}\" is not a number" }
     }
-    globals.push(bc.BcGlobal { .name = words[3], .type_id = i32(type_id) })
+    globals.push(BcGlobal { .name = words[3], .type_id = i32(type_id) })
     return null
 }
 
@@ -416,7 +413,7 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// @param cleaned  the `type …` line, comment already stripped.
 /// @param types    the type table, appended to in ordinal order.
 /// @return         `null` when a type was appended, else why it could not be.
-parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError | null {
+parse_type_decl_bc :: fn(cleaned: string, types: BcType[]) -> DirectiveError | null {
     after_type :: cleaned.trim_prefix("type ").trim()
     first_space :: after_type.index_of(' ', 0)
     if first_space < 0 {
@@ -433,7 +430,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
         }
         // Its index is its identity here: the data section names a baked struct
         // by type index, and `type_id_for_symbol` resolves it against this field.
-        types.push(bc.BcStruct {
+        types.push(BcStruct {
             .name      = parsed.name,
             .fields    = parsed.fields,
             .c_name    = parsed.c_name,
@@ -443,7 +440,7 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
     }
     if rest.starts_with("scalar ") {
         kind :: rest.trim_prefix("scalar ").trim()
-        types.push(bc.BcScalar { .val = vt_or_void(kind) })
+        types.push(BcScalar { .val = vt_or_void(kind) })
         return null
     }
     if rest.starts_with("array ") {
@@ -454,13 +451,13 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> DirectiveError 
                 .reason = "array type: element index \"${element_text}\" is not a number",
             }
         }
-        types.push(bc.BcArray { .element = i32(parsed) })
+        types.push(BcArray { .element = i32(parsed) })
         return null
     }
     if rest.starts_with("ref ") {
         name :: unquote_name(rest.trim_prefix("ref ").trim())
         normalised :: if name == "_" { "" } else { name }
-        types.push(bc.BcRef { .trait_name = normalised })
+        types.push(BcRef { .trait_name = normalised })
         return null
     }
     if rest.starts_with("fn ") { types.push(parse_fn_type_bc(rest)) return null }
@@ -494,7 +491,7 @@ find_mirror_marker :: fn(s: string) -> i64 {
 ///
 /// @param rest  the text after `type N `, starting at `struct `.
 /// @return      the parsed struct, or why the line could not be read.
-parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
+parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     after_struct :: rest.trim_prefix("struct ")
     open :: after_struct.index_of('{', 0)
     raw_name :: before_first(after_struct, '{').trim()
@@ -518,7 +515,7 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
         raw_name.byte_slice(0, marker)
     }
     name :: unquote_name(bare)
-    fields: bc.BcField[]: []
+    fields: BcField[]: []
     if open >= 0 {
         close :: after_struct.index_of('}', 0)
         if close < 0 || close <= open + 1 {
@@ -541,16 +538,16 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct | DirectiveError {
                     detail :: "field `${fname}` type index \"${tidtext}\" is not a number"
                     return DirectiveError { .reason = "struct `${name}`: ${detail}" }
                 }
-                fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
+                fields.push(BcField { .name = fname, .type_index = i32(tid) })
             }
         }
     }
-    return bc.BcStruct { .name = name, .fields = fields, .c_name = c_name, .symbol_id = -1 }
+    return BcStruct { .name = name, .fields = fields, .c_name = c_name, .symbol_id = -1 }
 }
 
 /// Parse `fn (tid,tid) -> tid` (a fn-VALUE type — its slots are type indices,
 /// not ValType names) into a `BcFn`.
-parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
+parse_fn_type_bc :: fn(rest: string) -> BcFn {
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     params: i32[]: if open >= 0 && close >= 0 && close > open + 1 {
@@ -565,18 +562,18 @@ parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type = i32(parsed) }
     }
-    return bc.BcFn { .params = params, .return_type = return_type }
+    return BcFn { .params = params, .return_type = return_type }
 }
 
-parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
+parse_union_type_bc :: fn(rest: string) -> BcUnion {
     after :: rest.trim_prefix("union ").trim()
-    return bc.BcUnion { .variants = parse_int_list(after) }
+    return BcUnion { .variants = parse_int_list(after) }
 }
 
 /// Parse `import N [extern ]EXTERN_NAME MANGLED (sig) -> ret`. The `extern`
 /// keyword (when present) shifts the name/mangled tokens by one.
 parse_import_decl_bc :: fn(
-    cleaned: string, imports: bc.BcImport[], types: bc.BcType[],
+    cleaned: string, imports: BcImport[], types: BcType[],
 ) -> DirectiveError | null {
     after :: cleaned.trim_prefix("import ")
     open :: after.index_of('(', 0)
@@ -595,8 +592,8 @@ parse_import_decl_bc :: fn(
     raw_name :: parts[name_i]
     extern_name :: raw_name.byte_slice(raw_name.index_of(':', 0) + 1, raw_name.byte_len())
     mangled :: parts[name_i + 1]
-    sig: bc.BcSignature: if open < 0 {
-        bc.BcSignature {
+    sig: BcSignature: if open < 0 {
+        BcSignature {
             .params = [],
             .results = [.Void],
             .param_types = [],
@@ -655,17 +652,17 @@ parse_import_decl_bc :: fn(
             }
         }
         if attr.starts_with("param_c_types=") {
-            param_c_types = bc.c_type_from_token(attr.trim_prefix("param_c_types=")).split(",")
+            param_c_types = c_type_from_token(attr.trim_prefix("param_c_types=")).split(",")
         }
         if attr.starts_with("result_c_type=") {
-            result_c_type = bc.c_type_from_token(attr.trim_prefix("result_c_type="))
+            result_c_type = c_type_from_token(attr.trim_prefix("result_c_type="))
         }
     }
     // The result's type index is carried as an attribute rather than by
     // `write_signature`, which renders a union as `any` — so it is stitched back
     // in here. Without it a `string | null` result reads as a plain word and the
     // FFI hands the atom back as an integer.
-    final_sig :: bc.BcSignature {
+    final_sig :: BcSignature {
         .params = sig.params,
         .results = sig.results,
         // Only trust the attribute when it describes every parameter: a partial
@@ -697,7 +694,7 @@ parse_import_decl_bc :: fn(
             sig.param_by_address
         },
     }
-    imports.push(bc.BcImport {
+    imports.push(BcImport {
         .extern_name  = extern_name,
         .mangled_name = mangled,
         .signature    = final_sig,
@@ -730,17 +727,17 @@ read_library :: fn(raw_name: string) -> CLibrary | null {
 // Fill the field of `library` that `attr` carries, when it is a `library_*` one.
 read_library_attribute :: fn(library: CLibrary, attr: string) -> void {
     if attr.starts_with("library_include=") {
-        library.include = bc.path_from_token(attr.trim_prefix("library_include="))
+        library.include = path_from_token(attr.trim_prefix("library_include="))
     }
     if attr.starts_with("library_archives=") {
-        library.archives = bc.paths_from_tokens(attr.trim_prefix("library_archives="))
+        library.archives = paths_from_tokens(attr.trim_prefix("library_archives="))
     }
     if attr.starts_with("library_system=") {
-        library.system = bc.paths_from_tokens(attr.trim_prefix("library_system="))
+        library.system = paths_from_tokens(attr.trim_prefix("library_system="))
     }
 }
 
-parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> DirectiveError | null {
+parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("impl ").trim()
     space :: after.index_of(' ', 0)
     if space < 0 {
@@ -752,11 +749,11 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> Directi
         return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
     }
     trait_name :: after.byte_slice(space + 1, after.byte_len()).trim()
-    impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
+    impl_table.push(ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
     return null
 }
 
-parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> DirectiveError | null {
+parse_vtable_decl_bc :: fn(cleaned: string, vtables: VtableRow[]) -> DirectiveError | null {
     after :: cleaned.trim_prefix("vtable ").trim()
     last_space :: last_index_of_space(after)
     if last_space < 0 {
@@ -784,31 +781,31 @@ parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> Directiv
         }
     }
     key :: head.byte_slice(0, i64(second_space)).trim()
-    register_vtable_row(vtables, key, bc.VtableEntry {
+    register_vtable_row(vtables, key, VtableEntry {
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
     })
     return null
 }
 
-register_vtable_row :: fn(vtables: bc.VtableRow[], key: string, entry: bc.VtableEntry) -> void {
+register_vtable_row :: fn(vtables: VtableRow[], key: string, entry: VtableEntry) -> void {
     for i in 0..<vtables.len() {
         if vtables[i].key == key { vtables[i].entries.push(entry) return }
     }
-    fresh: bc.VtableEntry[]: [entry]
-    vtables.push(bc.VtableRow { .key = key, .entries = fresh })
+    fresh: VtableEntry[]: [entry]
+    vtables.push(VtableRow { .key = key, .entries = fresh })
 }
 
 /// Parse `export NAME N`. Returns the fn index when `NAME == "main"` (the
 /// entry directive), otherwise records a `BcExport` row and returns `-1`.
-parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
+parse_export_decl_bc :: fn(cleaned: string, exports: BcExport[]) -> i32 {
     after :: cleaned.trim_prefix("export ").trim()
     parts :: after.split(" ")
     if parts.len() < 2 { return -1 }
     parsed :: parse_int_in_base(parts[1], 10)
     if parsed is ParseError { return -1 }
     if parts[0] == "main" { return i32(parsed) }
-    exports.push(bc.BcExport { .extern_name = parts[0], .fn_index = i32(parsed) })
+    exports.push(BcExport { .extern_name = parts[0], .fn_index = i32(parsed) })
     return -1
 }
 
@@ -818,7 +815,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(
-    cleaned: string, data_pool: bc.BcDataEntry[], strings: string[],
+    cleaned: string, data_pool: BcDataEntry[], strings: string[],
 ) -> DirectiveError | null {
     after :: cleaned.trim_prefix("data ")
     sp1 :: after.index_of(' ', 0)
@@ -831,7 +828,7 @@ parse_data_decl_bc :: fn(
     kind_name :: before_first(kind_payload, ' ')
     payload :: after_first(kind_payload, ' ')
     if kind_name == "str" {
-        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload) })
+        data_pool.push(BcStrData { .values = parse_quoted_strings(payload) })
         return null
     }
     if kind_name == "agg" {
@@ -855,14 +852,14 @@ parse_data_decl_bc :: fn(
         }
     }
     hex_body :: payload.byte_slice(4, payload.byte_len() - 1)
-    kind :: bc.array_kind_from_name(kind_name)
-    esz :: i64(bc.array_kind_element_size(kind))
+    kind :: array_kind_from_name(kind_name)
+    esz :: i64(array_kind_element_size(kind))
     items: u64[] = []
     if esz > 0 {
         bytes_arr :: hex_to_bytes(hex_body)
         items = filled_indexed(bytes_arr.len() / esz, (i) -> read_le(bytes_arr, i * esz, esz))
     }
-    data_pool.push(bc.BcPrimData { .kind = kind, .items = items })
+    data_pool.push(BcPrimData { .kind = kind, .items = items })
     return null
 }
 
@@ -899,17 +896,17 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
 // Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
-parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
+parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 2 {
-        return bc.BcAggregateData { .element_type_name = "", .elements = [] }
+        return BcAggregateData { .element_type_name = "", .elements = [] }
     }
     element_type_name :: tokens[0]
     count :: token_to_int(tokens[1])
     pos: i32[]: [2]
-    elements: bc.BcDataValue[]: []
+    elements: BcDataValue[]: []
     for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
-    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
+    return BcAggregateData { .element_type_name = element_type_name, .elements = elements }
 }
 
 // Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
@@ -919,59 +916,59 @@ parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
 // informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
 // identity from each element's `symbol_id`, never the aggregate name ; only a
 // nested `BcValArray.element_type_name` is read).
-parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
+parse_structs_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 3 {
-        return bc.BcAggregateData { .element_type_name = "", .elements = [] }
+        return BcAggregateData { .element_type_name = "", .elements = [] }
     }
     symbol_id :: token_to_int(tokens[0])
     nfields :: token_to_int(tokens[1])
     count :: token_to_int(tokens[2])
     pos: i32[]: [3]
-    elements: bc.BcDataValue[]: []
+    elements: BcDataValue[]: []
     for _ in 0..<count {
-        fields: bc.BcDataValue[]: []
+        fields: BcDataValue[]: []
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
-        elements.push(bc.BcValStruct { .symbol_id = symbol_id, .fields = fields })
+        elements.push(BcValStruct { .symbol_id = symbol_id, .fields = fields })
     }
-    return bc.BcAggregateData { .element_type_name = "", .elements = elements }
+    return BcAggregateData { .element_type_name = "", .elements = elements }
 }
 
 // Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
 // `strings` resolves a `strref <i>` leaf to the `string N` pool value.
-parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.BcDataValue {
+parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> BcDataValue {
     tag :: take_token(tokens, pos)
-    if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
+    if tag == "str" { return BcValStr { .value = take_token(tokens, pos) } }
     if tag == "strref" {
         idx :: token_to_int(take_token(tokens, pos))
         value :: if idx >= 0 && i64(idx) < strings.len() { strings[idx] } else { "" }
-        return bc.BcValStr { .value = value }
+        return BcValStr { .value = value }
     }
     if tag == "struct" {
         symbol_id :: token_to_int(take_token(tokens, pos))
         nfields :: token_to_int(take_token(tokens, pos))
-        fields: bc.BcDataValue[]: []
+        fields: BcDataValue[]: []
         for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
-        return bc.BcValStruct { .symbol_id = symbol_id, .fields = fields }
+        return BcValStruct { .symbol_id = symbol_id, .fields = fields }
     }
     if tag == "array" {
         element_type_name :: take_token(tokens, pos)
         n :: token_to_int(take_token(tokens, pos))
-        elems: bc.BcDataValue[]: []
+        elems: BcDataValue[]: []
         for _ in 0..<n { elems.push(parse_data_value(tokens, pos, strings)) }
-        return bc.BcValArray { .element_type_name = element_type_name, .elements = elems }
+        return BcValArray { .element_type_name = element_type_name, .elements = elems }
     }
     // Fall-through : a primitive leaf `<kind> <hex>` ; `tag` is the kind name.
-    kind :: bc.array_kind_from_name(tag)
-    esz :: i64(bc.array_kind_element_size(kind))
+    kind :: array_kind_from_name(tag)
+    esz :: i64(array_kind_element_size(kind))
     bytes_arr :: hex_to_bytes(take_token(tokens, pos))
     bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
-    return bc.BcValPrim { .kind = kind, .bits = bits }
+    return BcValPrim { .kind = kind, .bits = bits }
 }
 
 // Read the token at the cursor and advance it ; "" past the end.
 take_token :: fn(tokens: string[], pos: i32[]) -> string {
-    if !in_range(pos[0], tokens.len()) { return "" }
+    if !(i64(pos[0]) in 0..<tokens.len()) { return "" }
     t :: tokens[pos[0]]
     pos[0] = pos[0] + 1
     return t
@@ -1025,10 +1022,10 @@ tokenize_agg :: fn(s: string) -> string[] {
 /// The `.virt` carries only ValType names ; `param_types` / `result_type`
 /// (BcType indices) are reconstructed via `class_tag_of` : exact for
 /// scalar slots, `0` for ref/any (which `c_emit` doesn't tag).
-parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
+parse_signature_bc :: fn(line: string, types: BcType[]) -> BcSignature {
     open :: line.index_of('(', 0)
     close :: line.index_of(')', 0)
-    params: bc.ValType[]: []
+    params: ValType[]: []
     param_types: i32[]: []
     if open >= 0 && close >= 0 && close > open + 1 {
         inner :: line.byte_slice(open + 1, close)
@@ -1038,9 +1035,9 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
             param_types.push(class_tag_of(types, v))
         }
     }
-    result := bc.ValType.Void
+    result := ValType.Void
     arrow :: line.index_of('>', 0)
-    results: bc.ValType[]: []
+    results: ValType[]: []
     result_types: i32[]: []
     if arrow >= 0 {
         rtext :: line.byte_slice(arrow + 1, line.byte_len()).trim()
@@ -1064,7 +1061,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
         results.push(result)
         result_types.push(class_tag_of(types, result))
     }
-    return bc.BcSignature {
+    return BcSignature {
         .params      = params,
         .results     = results,
         .param_types = param_types,
@@ -1073,13 +1070,13 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     }
 }
 
-parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
+parse_local_decl_bc :: fn(cleaned: string) -> BcLocal {
     after :: cleaned.trim_prefix("local ").trim()
     sp :: after.index_of(' ', 0)
-    if sp < 0 { return bc.BcLocal { .name = after, .val = .Void } }
+    if sp < 0 { return BcLocal { .name = after, .val = .Void } }
     nm :: after.byte_slice(0, sp)
     vtn :: after.byte_slice(sp + 1, after.byte_len()).trim()
-    return bc.BcLocal { .name = nm, .val = vt_or_void(vtn) }
+    return BcLocal { .name = nm, .val = vt_or_void(vtn) }
 }
 
 // ---- small reconstruction helpers -----------------------------------------
@@ -1088,10 +1085,10 @@ parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
 /// none is materialised. Local mirror of `emit/c::class_tag_of` (the VM does
 /// not import `vader/emit/c`). Ref/Any return `0`, harmless since
 /// `box_expr` boxes Ref/Any as bare values without a tag.
-class_tag_of :: fn(types: bc.BcType[], val: bc.ValType) -> i32 {
+class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     for i in 0..<types.len() {
         t :: types[i]
-        if t is bc.BcScalar {
+        if t is BcScalar {
             if t.val == val { return i32(i) }
         }
     }
@@ -1111,113 +1108,9 @@ unquote_name :: fn(s: string) -> string {
 }
 
 /// `parse_val_type` with a `Void` fallback for unrecognised spellings.
-vt_or_void :: fn(name: string) -> bc.ValType {
-    v :: bc.parse_val_type(name) ?? return .Void
+vt_or_void :: fn(name: string) -> ValType {
+    v :: parse_val_type(name) ?? return .Void
     return v
-}
-
-/// Entry-point fallback when the `.virt` carried no `export main N` — the
-/// first `$main`-suffixed fn, or `-1` when none.
-find_main_by_suffix_bc :: fn(functions: bc.BcFunction[]) -> i32 {
-    for i in 0..<functions.len() {
-        if functions[i].name.ends_with(r"$main") { return i32(i) }
-    }
-    return -1
-}
-
-// ---- runtime projections (`prepare` reuses these) --------------------------
-//
-// `prepare` (module.vader) wraps a parsed `BytecodeModule` in a `VmState`,
-// materialising the data pool to runtime `ArrayVal`s and resolving the entry
-// index up front. Both helpers below back that wrapper ; `value_from_bits` is
-// the per-element bit-pattern decoder they share.
-
-// The entry is the `is_main` fn (set by `parse_virt_bc` from `export main N` or
-// the `$main`-suffix fallback) ; -1 when there is none, which `exec_entry` refuses
-// rather than run an arbitrary function.
-reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
-    for i in 0..<funcs.len() {
-        if funcs[i].is_main { return i32(i) }
-    }
-    return -1
-}
-
-// One header per pool entry, stamped with the type_id its `data.const` sites read
-// it at (`type_ids`, from `bc.data_pool_type_ids`).
-reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[], type_ids: i32[]) -> ArrayVal[] {
-    out: ArrayVal[]: []
-    for i in 0..<entries.len() {
-        e :: entries[i]
-        elements: Value[]: []
-        if e is bc.BcStrData {
-            for v in e.values { elements.push(StringVal(v)) }
-        } else if e is bc.BcPrimData {
-            for item in e.items { elements.push(value_from_bits(e.kind, item)) }
-        } else if e is bc.BcAggregateData {
-            for v in e.elements { elements.push(bc_value_to_vm(v, types)) }
-        }
-        out.push(ArrayVal {
-            .type_id  = type_ids[i],
-            .elements = elements,
-            .offset   = 0,
-            .length   = elements.len(),
-        })
-    }
-    return out
-}
-
-// Materialise one recursive baked value into a VM `Value`. Struct identity is
-// resolved from `symbol_id` against the module type table ; nested arrays carry
-// type_id 0 (the VM is loosely typed — field access reads positionally).
-bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
-    if v is bc.BcValStr { return StringVal(v.value) }
-    if v is bc.BcValPrim { return value_from_bits(v.kind, v.bits) }
-    if v is bc.BcValStruct {
-        fields: Value[]: []
-        for f in v.fields { fields.push(bc_value_to_vm(f, types)) }
-        return StructVal { .type_id = type_id_for_symbol(types, v.symbol_id), .fields = fields }
-    }
-    if v is bc.BcValArray {
-        elems: Value[]: []
-        for e in v.elements { elems.push(bc_value_to_vm(e, types)) }
-        return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
-    }
-    return I32Val(0)
-}
-
-// Type-table index of the `BcStruct` declared by `symbol_id`, or 0 when absent.
-// The `type_id` IS load-bearing: `type_check` compares it, so a baked struct with
-// the wrong one fails every `is` test. A `.virt`-parsed table resolves because each
-// struct's `symbol_id` is its own index (`parse_type_decl_bc`).
-type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
-    index :: bc.struct_symbol_type_index(types, symbol_id)
-    return if index < 0 { 0 } else { index }
-}
-
-// Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`. Mirrors
-// `virt_reader::read_data_item`, reading from the materialised `u64` rather than
-// a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
-// elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
-value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
-    if kind == .U8   { return I32Val(i32(bits & 0xff)) }
-    if kind == .I8   {
-        b :: bits & 0xff
-        return I32Val(if b >= 0x80 { i32(b) - 256 } else { i32(b) })
-    }
-    if kind == .Bool { return BoolVal(bits != 0) }
-    if kind == .U16  { return I32Val(i32(bits & 0xffff)) }
-    if kind == .I16  {
-        v :: bits & 0xffff
-        return I32Val(if v >= 0x8000 { i32(v) - 0x1_0000 } else { i32(v) })
-    }
-    if kind == .U32  { return I32Val(i32(u32(bits))) }
-    if kind == .I32  { return I32Val(i32(u32(bits))) }
-    if kind == .Char { return CharVal(char(u32(bits))) }
-    if kind == .U64  { return I64Val(i64(bits)) }
-    if kind == .I64  { return I64Val(i64(bits)) }
-    if kind == .F32  { return F64Val(f64(u32(bits).from_bits())) }
-    if kind == .F64  { return F64Val(bits.from_bits()) }
-    return I32Val(0)
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -1238,7 +1131,7 @@ import "std/testing"
     assert_eq(m.types.len(), 3)
     // struct fields recovered (the VM reader keeps only a count)
     s :: m.types[2]
-    if s is bc.BcStruct {
+    if s is BcStruct {
         assert_eq(s.name, "Pair")
         assert_eq(s.fields.len(), 2)
         assert_eq(s.fields[0].name, "lhs")
@@ -1256,8 +1149,8 @@ import "std/testing"
     assert_eq(f.signature.params.len(), 2)
     assert(f.signature.params[0] == .I32, "param 0 should be i32")
     assert_eq(f.signature.param_types[0], 0)
-    assert(bc.bc_single_result(f.signature) == .I32, "result should be i32")
-    assert_eq(bc.bc_single_result_type(f.signature), 0)
+    assert(bc_single_result(f.signature) == .I32, "result should be i32")
+    assert_eq(bc_single_result_type(f.signature), 0)
     // local ValType recovered
     assert_eq(f.locals.len(), 1)
     assert_eq(f.locals[0].name, "acc")

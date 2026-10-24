@@ -11,7 +11,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 // One register op. `a` / `b` / `c` name its three operands (`RegFunction.words`);
 // the comment gives their meaning, registers written `r`. `i32`-wide: an array of

@@ -19,7 +19,8 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+Virt :: import "vader/core/bytecode/text"
+bc :: import "vader/core/bytecode"
 import "std/string_builder"
 
 /// Why a module was refused at load time — the first defect found.
@@ -257,7 +258,7 @@ indexed_effect :: fn(index: i32, len: i64, pops: i64, pushes: i64) -> StackEffec
 
 op_text :: fn(op: bc.Op) -> string {
     sb :: StringBuilder {}
-    bc.write_op(sb, op)
+    Virt.write_op(sb, op)
     return "${sb}"
 }
 
@@ -324,8 +325,8 @@ VIRT_HEAD :: r"module t" + "\n" + r"type 0 scalar null" + "\n" + r"type 1 scalar
 
 // Verify a one-function module whose `-> i32` body is `body` ; "" when accepted.
 rejection :: fn(body: string) -> string {
-    module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
-    if module is VirtParseError {
+    module :: Virt.parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
+    if module is Virt.VirtParseError {
         return "fixture does not parse"
     }
     found :: verify_module(module)

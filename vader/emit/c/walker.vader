@@ -15,12 +15,12 @@ import "std/abort"
 import "std/collections"
 import "std/iter"
 import "std/string"
-import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c/ast"
 import "vader/support/fixpoint"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
-// import to one line and tags every op site as `vm.<Op>` at the match.
-vm :: import "vader/bytecode"
+// import to one line and tags every op site as `Bc.<Op>` at the match.
+Bc :: import "vader/core/bytecode"
 
 /// Per-fn body emit — one C function definition per `BcFunction`, printed as
 /// soon as it is built. Delegates to `function_definition`, which
@@ -60,7 +60,7 @@ compute_may_alloc :: fn(fns: BcFunction[], import_may_collect: bool[]) -> bool[]
 direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
     callees: i32[]: []
     for op in fn_decl.body {
-        if op is vm.Call {
+        if op is Bc.Call {
             callees.push(op.function_index)
         }
     }
@@ -74,7 +74,7 @@ direct_callees :: fn(fn_decl: BcFunction) -> i32[] {
 /// separate from `op_may_collect` — a stack `struct.new` does NOT allocate, and
 /// folding it in would wrongly mark its callers as collectors too.
 fn_builds_stack_object :: fn(fn_decl: BcFunction) -> bool =
-    fn_decl.body.any_match((op) -> op is vm.StructNew && op.stack)
+    fn_decl.body.any_match((op) -> op is Bc.StructNew && op.stack)
 
 /// True when `fn_decl` contains an op that can trigger a collection.
 fn_has_direct_alloc :: fn(fn_decl: BcFunction, import_may_collect: bool[]) -> bool =
@@ -89,12 +89,12 @@ imports_may_collect :: fn(imports: BcImport[]) -> bool[] =
 
 // Drop the header-cache entries this op invalidates — see
 // `FnState.bound_arrays`. Called before every op is emitted.
-invalidate_header_cache :: fn(s: FnState, op: vm.Op) -> void {
-    if op is vm.LocalSet {
+invalidate_header_cache :: fn(s: FnState, op: Bc.Op) -> void {
+    if op is Bc.LocalSet {
         drop_bound_for_local(s, op.slot)
         return
     }
-    if op is vm.LocalTee {
+    if op is Bc.LocalTee {
         drop_bound_for_local(s, op.slot)
         return
     }
@@ -132,7 +132,7 @@ invalidate_header_cache :: fn(s: FnState, op: vm.Op) -> void {
 // Structured control-flow ops that OPEN a nested scope (push a C block) rather
 // than closing one : only these keep a cached header dominating — and in C
 // scope — for the code they admit.
-is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
+is_scope_opening :: fn(op: Bc.Op) -> bool = op is Bc.Block | Bc.Loop | Bc.If
 
 // True when the op provably cannot trigger a GC (which moves headers) or end the
 // straight-line region the cached `_slotarr` C temps are scoped to — so the
@@ -142,31 +142,31 @@ is_scope_opening :: fn(op: vm.Op) -> bool = op is vm.Block | vm.Loop | vm.If
 // GC-moving `array.slice`) into a stale-pointer use-after-free. New pure value ops
 // just get added here. `LocalSet` / `LocalTee` never reach this — they invalidate
 // precisely upstream. Slot stores stay safe : every access re-reads `->buf`.
-is_cache_safe :: fn(op: vm.Op) -> bool {
-    if op is vm.LocalGet | vm.LocalField | vm.StructGet | vm.UnionFieldGet                                                     { return true }
-    if op is vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64                                    { return true }
-    if op is vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64                               { return true }
-    if op is vm.ArrayGet | vm.ArraySet | vm.ArrayLen                                                                           { return true }
-    if op is vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.LoadU8                                                                  { return true }
-    if op is vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.StoreU8                                                              { return true }
-    if op is vm.I32Const | vm.I64Const | vm.F64Const | vm.BoolConst | vm.CharConst                                             { return true }
-    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef                             { return true }
-    if op is vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Neg                                             { return true }
-    if op is vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg                                             { return true }
-    if op is vm.CheckedArith | vm.CheckedNeg                                                                                   { return true }
-    if op is vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg                                                         { return true }
-    if op is vm.U32Div | vm.U32Mod | vm.U64Div | vm.U64Mod                                                                     { return true }
-    if op is vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32BitNot | vm.I32Shl | vm.I32Shr | vm.I32ShrU                     { return true }
-    if op is vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.I64Shl | vm.I64Shr | vm.I64ShrU                     { return true }
-    if op is vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge                                                   { return true }
-    if op is vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge                                                   { return true }
-    if op is vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge                                                   { return true }
-    if op is vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge                             { return true }
-    if op is vm.BoolEq | vm.BoolNe                     { return true }
-    if op is vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe                                                { return true }
-    if op is vm.BoolAnd | vm.BoolOr | vm.BoolNot                                                                               { return true }
-    if op is vm.Convert | vm.BitsToF32 | vm.BitsToF64 | vm.F32ToBits | vm.F64ToBits | vm.RefCast | vm.Retag { return true }
-    if op is vm.Drop                                                                                                           { return true }
+is_cache_safe :: fn(op: Bc.Op) -> bool {
+    if op is Bc.LocalGet | Bc.LocalField | Bc.StructGet | Bc.UnionFieldGet                                                     { return true }
+    if op is Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64                                    { return true }
+    if op is Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64                               { return true }
+    if op is Bc.ArrayGet | Bc.ArraySet | Bc.ArrayLen                                                                           { return true }
+    if op is Bc.LoadI32 | Bc.LoadI64 | Bc.LoadF64 | Bc.LoadU8                                                                  { return true }
+    if op is Bc.StoreI32 | Bc.StoreI64 | Bc.StoreF64 | Bc.StoreU8                                                              { return true }
+    if op is Bc.I32Const | Bc.I64Const | Bc.F64Const | Bc.BoolConst | Bc.CharConst                                             { return true }
+    if op is Bc.NullConst | Bc.StringConst | Bc.DataConst | Bc.TypeConst | Bc.SizeOfType | Bc.FnRef                             { return true }
+    if op is Bc.I32Add | Bc.I32Sub | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Neg                                             { return true }
+    if op is Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg                                             { return true }
+    if op is Bc.CheckedArith | Bc.CheckedNeg                                                                                   { return true }
+    if op is Bc.F64Add | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg                                                         { return true }
+    if op is Bc.U32Div | Bc.U32Mod | Bc.U64Div | Bc.U64Mod                                                                     { return true }
+    if op is Bc.I32BitAnd | Bc.I32BitOr | Bc.I32BitXor | Bc.I32BitNot | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU                     { return true }
+    if op is Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64BitNot | Bc.I64Shl | Bc.I64Shr | Bc.I64ShrU                     { return true }
+    if op is Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le | Bc.I32Gt | Bc.I32Ge                                                   { return true }
+    if op is Bc.I64Eq | Bc.I64Ne | Bc.I64Lt | Bc.I64Le | Bc.I64Gt | Bc.I64Ge                                                   { return true }
+    if op is Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge                                                   { return true }
+    if op is Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge                             { return true }
+    if op is Bc.BoolEq | Bc.BoolNe                     { return true }
+    if op is Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe                                                { return true }
+    if op is Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot                                                                               { return true }
+    if op is Bc.Convert | Bc.BitsToF32 | Bc.BitsToF64 | Bc.F32ToBits | Bc.F64ToBits | Bc.RefCast | Bc.Retag { return true }
+    if op is Bc.Drop                                                                                                           { return true }
     return false
 }
 
@@ -186,17 +186,17 @@ drop_bound_for_local :: fn(s: FnState, slot: i32) -> void {
 // gets a shadow-stack frame and its ref params / locals are rooted. A missing
 // allocating op means a GC inside it moves live refs the fn never re-roots →
 // stale pointer (the `array.slice` CR-b bug). This is an EXHAUSTIVE `match` over
-// the closed `vm.Op` union precisely so a new op can't be silently omitted :
+// the closed `Bc.Op` union precisely so a new op can't be silently omitted :
 // T3013 forces every future variant to be classified here. Keep the arms in sync
 // with the runtime — an op belongs in the `true` arm iff its emitted C reaches
 // `vader_gc_alloc` (directly or transitively). A host call answers for its host:
 // `import_may_collect` holds `intrinsic_may_collect` per import.
-op_may_collect :: fn(op: vm.Op, import_may_collect: bool[]) -> bool = match op {
-    is vm.StructNew -> !op.stack
-    is vm.CallImport -> import_may_collect[op.index]
-    is vm.BufferNew | vm.ArrayNew | vm.ArrayPush | vm.ArrayRepeat | vm.ArrayPushAll | vm.ArraySlice | vm.BufferToString | vm.MakeClosure | vm.CallIndirect | vm.VirtualCall | vm.FnAddr -> true
-    is vm.GlobalGet | vm.GlobalSet -> false
-    is vm.Unreachable | vm.I32Const | vm.LocalGet | vm.LocalSet | vm.LocalTee | vm.StringConst | vm.NullConst | vm.BoolConst | vm.CharConst | vm.F64Const | vm.I64Const | vm.Call | vm.FnRef | vm.StructGet | vm.StructSet | vm.LocalField | vm.UnionFieldGet | vm.UnionFieldSet | vm.ArrayGet | vm.ArraySet | vm.ArrayLen | vm.DataConst | vm.RefCast | vm.Retag | vm.Convert | vm.TypeCheck | vm.TypeConst | vm.DeferPush | vm.DeferPopExec | vm.SizeOfType | vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge | vm.I32Neg | vm.I32BitNot | vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32Shl | vm.I32Shr | vm.I32ShrU | vm.U32Div | vm.U32Mod | vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg | vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge | vm.U64Div | vm.U64Mod | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge | vm.I64Shl | vm.I64Shr | vm.I64ShrU | vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg | vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge | vm.BoolEq | vm.BoolNe | vm.BoolAnd | vm.BoolOr | vm.BoolNot | vm.StringEq | vm.StringNe | vm.StringCompare | vm.RefEq | vm.RefNe | vm.Drop | vm.Block | vm.Loop | vm.If | vm.Else | vm.End | vm.Branch | vm.BranchIf | vm.Return | vm.ReturnLit | vm.LoadU8 | vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.StoreU8 | vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 | vm.MemoryCopy | vm.BufferWriteString | vm.F64ToBits | vm.BitsToF64 | vm.F32ToBits | vm.BitsToF32 | vm.ArrayCopy | vm.ArrayRemoveLast | vm.ArrayClear | vm.CheckedArith | vm.CheckedNeg -> false
+op_may_collect :: fn(op: Bc.Op, import_may_collect: bool[]) -> bool = match op {
+    is Bc.StructNew -> !op.stack
+    is Bc.CallImport -> import_may_collect[op.index]
+    is Bc.BufferNew | Bc.ArrayNew | Bc.ArrayPush | Bc.ArrayRepeat | Bc.ArrayPushAll | Bc.ArraySlice | Bc.BufferToString | Bc.MakeClosure | Bc.CallIndirect | Bc.VirtualCall | Bc.FnAddr -> true
+    is Bc.GlobalGet | Bc.GlobalSet -> false
+    is Bc.Unreachable | Bc.I32Const | Bc.LocalGet | Bc.LocalSet | Bc.LocalTee | Bc.StringConst | Bc.NullConst | Bc.BoolConst | Bc.CharConst | Bc.F64Const | Bc.I64Const | Bc.Call | Bc.FnRef | Bc.StructGet | Bc.StructSet | Bc.LocalField | Bc.UnionFieldGet | Bc.UnionFieldSet | Bc.ArrayGet | Bc.ArraySet | Bc.ArrayLen | Bc.DataConst | Bc.RefCast | Bc.Retag | Bc.Convert | Bc.TypeCheck | Bc.TypeConst | Bc.DeferPush | Bc.DeferPopExec | Bc.SizeOfType | Bc.I32Add | Bc.I32Sub | Bc.I32Mul | Bc.I32Div | Bc.I32Mod | Bc.I32Eq | Bc.I32Ne | Bc.I32Lt | Bc.I32Le | Bc.I32Gt | Bc.I32Ge | Bc.I32Neg | Bc.I32BitNot | Bc.I32BitAnd | Bc.I32BitOr | Bc.I32BitXor | Bc.I32Shl | Bc.I32Shr | Bc.I32ShrU | Bc.U32Div | Bc.U32Mod | Bc.U32Lt | Bc.U32Le | Bc.U32Gt | Bc.U32Ge | Bc.I64Add | Bc.I64Sub | Bc.I64Mul | Bc.I64Div | Bc.I64Mod | Bc.I64Neg | Bc.I64Eq | Bc.I64Ne | Bc.I64Lt | Bc.I64Le | Bc.I64Gt | Bc.I64Ge | Bc.U64Div | Bc.U64Mod | Bc.U64Lt | Bc.U64Le | Bc.U64Gt | Bc.U64Ge | Bc.I64Shl | Bc.I64Shr | Bc.I64ShrU | Bc.I64BitAnd | Bc.I64BitOr | Bc.I64BitXor | Bc.I64BitNot | Bc.F64Add | Bc.F64Sub | Bc.F64Mul | Bc.F64Div | Bc.F64Neg | Bc.F64Eq | Bc.F64Ne | Bc.F64Lt | Bc.F64Le | Bc.F64Gt | Bc.F64Ge | Bc.BoolEq | Bc.BoolNe | Bc.BoolAnd | Bc.BoolOr | Bc.BoolNot | Bc.StringEq | Bc.StringNe | Bc.StringCompare | Bc.RefEq | Bc.RefNe | Bc.Drop | Bc.Block | Bc.Loop | Bc.If | Bc.Else | Bc.End | Bc.Branch | Bc.BranchIf | Bc.Return | Bc.ReturnLit | Bc.LoadU8 | Bc.LoadI32 | Bc.LoadI64 | Bc.LoadF64 | Bc.StoreU8 | Bc.StoreI32 | Bc.StoreI64 | Bc.StoreF64 | Bc.LoadSlotI32 | Bc.LoadSlotI64 | Bc.LoadSlotF64 | Bc.StoreSlotI32 | Bc.StoreSlotI64 | Bc.StoreSlotF64 | Bc.MemoryCopy | Bc.BufferWriteString | Bc.F64ToBits | Bc.BitsToF64 | Bc.F32ToBits | Bc.BitsToF32 | Bc.ArrayCopy | Bc.ArrayRemoveLast | Bc.ArrayClear | Bc.CheckedArith | Bc.CheckedNeg -> false
 }
 
 /// One C function definition. Walks the bytecode body op by op into `s.root`,
@@ -221,7 +221,7 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         // was emitted as a bare statement (see `emit_call_result`) — the result
         // was never pushed, so skip the paired `drop` rather than pop a live
         // value. The preceding call already invalidated the header cache.
-        if s.drop_call_result && op is vm.Drop {
+        if s.drop_call_result && op is Bc.Drop {
             s.drop_call_result = false
             continue
         }
@@ -242,8 +242,8 @@ function_definition :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction) -> 
         // ONE of them and the rest are live, so skipping it would leave them on
         // the stack. That is what `assert_stack_empty` catches at the next scope
         // boundary, and the pairing has to see the arity to stay right.
-        if op is vm.Call || op is vm.CallImport {
-            if i + 1 < function.body.len() && function.body[i + 1] is vm.Drop {
+        if op is Bc.Call || op is Bc.CallImport {
+            if i + 1 < function.body.len() && function.body[i + 1] is Bc.Drop {
                 if callee_result_arity(ctx, op) <= 1 {
                     s.drop_call_result = true
                 }
@@ -488,164 +488,164 @@ emit_slot_decls :: fn(
 /// Per-op C emit — the function-body walker's dispatch. Exhaustive over
 /// every `Op` variant (no `_`), each with a real emit, so adding an
 /// opcode trips T3013 here and forces a conscious decision — mirroring
-/// `vader/bytecode/dump.vader::write_op_refs`. The arm order tracks it so the
+/// `vader/core/bytecode/text/dump.vader::write_op_refs`. The arm order tracks it so the
 /// two stay diffable. The only `todo(...)` calls are malformed-
 /// bytecode guards inside a handler (e.g. `struct.new` on a non-struct
 /// type), never a not-yet-ported placeholder.
-emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
+emit_op :: fn(s: FnState, pc: i32, op: Bc.Op) -> void {
     invalidate_header_cache(s, op)
     match op {
-        is vm.I32Const              -> push_const(s, op)
-        is vm.I64Const              -> push_const(s, op)
-        is vm.F64Const              -> push_const(s, op)
-        is vm.BoolConst             -> push_const(s, op)
-        is vm.CharConst             -> push_const(s, op)
-        is vm.NullConst             -> push_const(s, op)
-        is vm.StringConst           -> push_const(s, op)
-        is vm.LocalGet              -> emit_local_get(s, op)
-        is vm.LocalSet              -> emit_local_set(s, op.slot, false)
-        is vm.LocalTee              -> emit_local_set(s, op.slot, true)
-        is vm.LocalField            -> emit_local_field(s, op)
-        is vm.Return                -> emit_return(s)
-        is vm.ReturnLit             -> emit_return_lit(s, op.value)
-        is vm.Drop                  -> drop_top(s)
-        is vm.Call                  -> emit_call(s, op)
-        is vm.CallImport            -> emit_call_import(s, op)
-        is vm.CallIndirect          -> emit_call_indirect(s, op)
-        is vm.VirtualCall           -> emit_virtual_call(s, op)
-        is vm.FnRef                 -> emit_fn_ref(s, op)
-        is vm.FnAddr                -> emit_fn_addr(s, op)
-        is vm.MakeClosure           -> emit_make_closure(s, op)
-        is vm.If                    -> emit_if_open(s)
-        is vm.Else                  -> emit_else(s)
-        is vm.End                   -> emit_end(s, pc)
-        is vm.Block                 -> emit_open_scope(s, pc, .Block)
-        is vm.Loop                  -> emit_open_scope(s, pc, .Loop)
-        is vm.Branch                -> emit_branch(s, pc, false)
-        is vm.BranchIf              -> emit_branch(s, pc, true)
-        is vm.BoolNot               -> push_unop(s, "!", .Bool)
-        is vm.StructNew             -> emit_struct_new(s, op)
-        is vm.StructGet             -> emit_struct_get(s, op)
-        is vm.StructSet             -> emit_struct_set(s, op)
-        is vm.UnionFieldGet         -> emit_union_field_get(s, op)
-        is vm.UnionFieldSet         -> emit_union_field_set(s, op)
-        is vm.ArrayNew              -> emit_array_new(s, op)
-        is vm.ArrayLen              -> emit_array_len(s)
-        is vm.ArrayPush             -> emit_array_push(s, op)
-        is vm.ArrayGet              -> emit_array_get(s, op)
-        is vm.ArraySet              -> emit_array_set(s, op)
-        is vm.ArraySlice            -> emit_array_slice(s, op)
-        is vm.ArrayRepeat           -> emit_array_repeat(s)
-        is vm.ArrayPushAll          -> emit_array_push_all(s)
-        is vm.ArrayCopy             -> emit_array_copy(s)
-        is vm.ArrayRemoveLast       -> emit_array_remove_last(s)
-        is vm.ArrayClear            -> emit_array_clear(s)
-        is vm.DataConst             -> emit_data_const_op(s, op)
-        is vm.GlobalGet             -> emit_global_get(s, op)
-        is vm.GlobalSet             -> emit_global_set(s, op)
-        is vm.TypeConst             -> emit_type_const(s, op)
-        is vm.TypeCheck             -> emit_type_check(s, op)
-        is vm.RefCast               -> emit_ref_cast(s, op)
-        is vm.Retag                 -> emit_retag_op(s, op)
-        is vm.Unreachable           -> unreachable(s, op.reason)
-        is vm.Convert               -> emit_convert(s, convert_target_val(op.target), op.from_name)
-        is vm.SizeOfType            -> emit_size_of_type(s)
-        is vm.CheckedArith          -> emit_checked_arith(s, op)
-        is vm.CheckedNeg            -> emit_checked_neg(s, op)
-        is vm.I32Add                -> push_binop(s, .Add, .I32)
-        is vm.I32Sub                -> push_binop(s, .Subtract, .I32)
-        is vm.I32Mul                -> push_binop(s, .Multiply, .I32)
-        is vm.I32Div                -> push_eager(s, .Divide, .I32)
-        is vm.I32Mod                -> push_eager(s, .Remainder, .I32)
-        is vm.I32Neg                -> push_unop(s, "-", .I32)
-        is vm.I32BitNot             -> push_unop(s, "~", .I32)
-        is vm.I32BitAnd             -> push_binop(s, .BitAnd, .I32)
-        is vm.I32BitOr              -> push_binop(s, .BitOr, .I32)
-        is vm.I32BitXor             -> push_binop(s, .BitXor, .I32)
-        is vm.I32Shl                -> push_shift(s, .ShiftLeft, .I32)
-        is vm.I32Shr                -> push_shift(s, .ShiftRight, .I32)
-        is vm.I32ShrU               -> push_shift(s, .ShiftRight, .U32)
-        is vm.I32Eq                 -> push_cmp(s, .Equal, .I32)
-        is vm.I32Ne                 -> push_cmp(s, .NotEqual, .I32)
-        is vm.I32Lt                 -> push_cmp(s, .Less, .I32)
-        is vm.I32Le                 -> push_cmp(s, .LessOrEqual, .I32)
-        is vm.I32Gt                 -> push_cmp(s, .Greater, .I32)
-        is vm.I32Ge                 -> push_cmp(s, .GreaterOrEqual, .I32)
-        is vm.I64Add                -> push_binop(s, .Add, .I64)
-        is vm.I64Sub                -> push_binop(s, .Subtract, .I64)
-        is vm.I64Mul                -> push_binop(s, .Multiply, .I64)
-        is vm.I64Div                -> push_eager(s, .Divide, .I64)
-        is vm.I64Mod                -> push_eager(s, .Remainder, .I64)
-        is vm.I64Neg                -> push_i64_neg(s)
-        is vm.I64BitAnd             -> push_binop(s, .BitAnd, .I64)
-        is vm.I64BitOr              -> push_binop(s, .BitOr, .I64)
-        is vm.I64BitXor             -> push_binop(s, .BitXor, .I64)
-        is vm.I64BitNot             -> push_unop(s, "~", .I64)
-        is vm.I64Shl                -> push_shift(s, .ShiftLeft, .I64)
-        is vm.I64Shr                -> push_shift(s, .ShiftRight, .I64)
-        is vm.I64ShrU               -> push_shift(s, .ShiftRight, .U64)
-        is vm.I64Eq                 -> push_cmp(s, .Equal, .I64)
-        is vm.I64Ne                 -> push_cmp(s, .NotEqual, .I64)
-        is vm.I64Lt                 -> push_cmp(s, .Less, .I64)
-        is vm.I64Le                 -> push_cmp(s, .LessOrEqual, .I64)
-        is vm.I64Gt                 -> push_cmp(s, .Greater, .I64)
-        is vm.I64Ge                 -> push_cmp(s, .GreaterOrEqual, .I64)
-        is vm.U32Div                -> push_eager(s, .Divide, .U32)
-        is vm.U32Mod                -> push_eager(s, .Remainder, .U32)
-        is vm.U32Lt                 -> push_cmp(s, .Less, .U32)
-        is vm.U32Le                 -> push_cmp(s, .LessOrEqual, .U32)
-        is vm.U32Gt                 -> push_cmp(s, .Greater, .U32)
-        is vm.U32Ge                 -> push_cmp(s, .GreaterOrEqual, .U32)
-        is vm.U64Div                -> push_eager(s, .Divide, .U64)
-        is vm.U64Mod                -> push_eager(s, .Remainder, .U64)
-        is vm.U64Lt                 -> push_cmp(s, .Less, .U64)
-        is vm.U64Le                 -> push_cmp(s, .LessOrEqual, .U64)
-        is vm.U64Gt                 -> push_cmp(s, .Greater, .U64)
-        is vm.U64Ge                 -> push_cmp(s, .GreaterOrEqual, .U64)
-        is vm.F64Add                -> push_binop(s, .Add, .F64)
-        is vm.F64Sub                -> push_binop(s, .Subtract, .F64)
-        is vm.F64Mul                -> push_binop(s, .Multiply, .F64)
-        is vm.F64Div                -> push_eager(s, .Divide, .F64)
-        is vm.F64Neg                -> push_unop(s, "-", .F64)
-        is vm.F64Eq                 -> push_cmp(s, .Equal, .F64)
-        is vm.F64Ne                 -> push_cmp(s, .NotEqual, .F64)
-        is vm.F64Lt                 -> push_cmp(s, .Less, .F64)
-        is vm.F64Le                 -> push_cmp(s, .LessOrEqual, .F64)
-        is vm.F64Gt                 -> push_cmp(s, .Greater, .F64)
-        is vm.F64Ge                 -> push_cmp(s, .GreaterOrEqual, .F64)
-        is vm.BoolEq                -> push_binop(s, .Equal, .Bool)
-        is vm.BoolNe                -> push_binop(s, .NotEqual, .Bool)
-        is vm.BoolAnd               -> push_binop(s, .LogicalAnd, .Bool)
-        is vm.BoolOr                -> push_binop(s, .LogicalOr, .Bool)
-        is vm.StringEq              -> push_cmp(s, .Equal, .String)
-        is vm.StringNe              -> push_cmp(s, .NotEqual, .String)
-        is vm.StringCompare         -> emit_string_compare(s)
-        is vm.RefEq                 -> push_binop_any(s, .Equal, .Bool)
-        is vm.RefNe                 -> push_binop_any(s, .NotEqual, .Bool)
-        is vm.DeferPush             -> emit_defer_push(s)
-        is vm.DeferPopExec          -> emit_defer_pop_exec(s, op)
-        is vm.BufferNew             -> emit_buffer_new(s)
-        is vm.LoadU8                -> emit_buffer_load(s, "vader_buffer_load_u8", .I32)
-        is vm.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
-        is vm.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
-        is vm.LoadF64               -> emit_buffer_load(s, "vader_buffer_load_f64", .F64)
-        is vm.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "uint8_t")
-        is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "int32_t")
-        is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "int64_t")
-        is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "double")
-        is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32, op.bounds_safe)
-        is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64, op.bounds_safe)
-        is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64, op.bounds_safe)
-        is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32, op.bounds_safe)
-        is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64, op.bounds_safe)
-        is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64, op.bounds_safe)
-        is vm.MemoryCopy            -> emit_memory_copy(s)
-        is vm.BufferToString        -> emit_buffer_to_string(s)
-        is vm.BufferWriteString     -> emit_buffer_write_string(s)
-        is vm.F64ToBits             -> emit_f64_to_bits(s)
-        is vm.BitsToF64             -> emit_bits_to_f64(s)
-        is vm.F32ToBits             -> emit_f32_to_bits(s)
-        is vm.BitsToF32             -> emit_bits_to_f32(s)
+        is Bc.I32Const              -> push_const(s, op)
+        is Bc.I64Const              -> push_const(s, op)
+        is Bc.F64Const              -> push_const(s, op)
+        is Bc.BoolConst             -> push_const(s, op)
+        is Bc.CharConst             -> push_const(s, op)
+        is Bc.NullConst             -> push_const(s, op)
+        is Bc.StringConst           -> push_const(s, op)
+        is Bc.LocalGet              -> emit_local_get(s, op)
+        is Bc.LocalSet              -> emit_local_set(s, op.slot, false)
+        is Bc.LocalTee              -> emit_local_set(s, op.slot, true)
+        is Bc.LocalField            -> emit_local_field(s, op)
+        is Bc.Return                -> emit_return(s)
+        is Bc.ReturnLit             -> emit_return_lit(s, op.value)
+        is Bc.Drop                  -> drop_top(s)
+        is Bc.Call                  -> emit_call(s, op)
+        is Bc.CallImport            -> emit_call_import(s, op)
+        is Bc.CallIndirect          -> emit_call_indirect(s, op)
+        is Bc.VirtualCall           -> emit_virtual_call(s, op)
+        is Bc.FnRef                 -> emit_fn_ref(s, op)
+        is Bc.FnAddr                -> emit_fn_addr(s, op)
+        is Bc.MakeClosure           -> emit_make_closure(s, op)
+        is Bc.If                    -> emit_if_open(s)
+        is Bc.Else                  -> emit_else(s)
+        is Bc.End                   -> emit_end(s, pc)
+        is Bc.Block                 -> emit_open_scope(s, pc, .Block)
+        is Bc.Loop                  -> emit_open_scope(s, pc, .Loop)
+        is Bc.Branch                -> emit_branch(s, pc, false)
+        is Bc.BranchIf              -> emit_branch(s, pc, true)
+        is Bc.BoolNot               -> push_unop(s, "!", .Bool)
+        is Bc.StructNew             -> emit_struct_new(s, op)
+        is Bc.StructGet             -> emit_struct_get(s, op)
+        is Bc.StructSet             -> emit_struct_set(s, op)
+        is Bc.UnionFieldGet         -> emit_union_field_get(s, op)
+        is Bc.UnionFieldSet         -> emit_union_field_set(s, op)
+        is Bc.ArrayNew              -> emit_array_new(s, op)
+        is Bc.ArrayLen              -> emit_array_len(s)
+        is Bc.ArrayPush             -> emit_array_push(s, op)
+        is Bc.ArrayGet              -> emit_array_get(s, op)
+        is Bc.ArraySet              -> emit_array_set(s, op)
+        is Bc.ArraySlice            -> emit_array_slice(s, op)
+        is Bc.ArrayRepeat           -> emit_array_repeat(s)
+        is Bc.ArrayPushAll          -> emit_array_push_all(s)
+        is Bc.ArrayCopy             -> emit_array_copy(s)
+        is Bc.ArrayRemoveLast       -> emit_array_remove_last(s)
+        is Bc.ArrayClear            -> emit_array_clear(s)
+        is Bc.DataConst             -> emit_data_const_op(s, op)
+        is Bc.GlobalGet             -> emit_global_get(s, op)
+        is Bc.GlobalSet             -> emit_global_set(s, op)
+        is Bc.TypeConst             -> emit_type_const(s, op)
+        is Bc.TypeCheck             -> emit_type_check(s, op)
+        is Bc.RefCast               -> emit_ref_cast(s, op)
+        is Bc.Retag                 -> emit_retag_op(s, op)
+        is Bc.Unreachable           -> unreachable(s, op.reason)
+        is Bc.Convert               -> emit_convert(s, convert_target_val(op.target), op.from_name)
+        is Bc.SizeOfType            -> emit_size_of_type(s)
+        is Bc.CheckedArith          -> emit_checked_arith(s, op)
+        is Bc.CheckedNeg            -> emit_checked_neg(s, op)
+        is Bc.I32Add                -> push_binop(s, .Add, .I32)
+        is Bc.I32Sub                -> push_binop(s, .Subtract, .I32)
+        is Bc.I32Mul                -> push_binop(s, .Multiply, .I32)
+        is Bc.I32Div                -> push_eager(s, .Divide, .I32)
+        is Bc.I32Mod                -> push_eager(s, .Remainder, .I32)
+        is Bc.I32Neg                -> push_unop(s, "-", .I32)
+        is Bc.I32BitNot             -> push_unop(s, "~", .I32)
+        is Bc.I32BitAnd             -> push_binop(s, .BitAnd, .I32)
+        is Bc.I32BitOr              -> push_binop(s, .BitOr, .I32)
+        is Bc.I32BitXor             -> push_binop(s, .BitXor, .I32)
+        is Bc.I32Shl                -> push_shift(s, .ShiftLeft, .I32)
+        is Bc.I32Shr                -> push_shift(s, .ShiftRight, .I32)
+        is Bc.I32ShrU               -> push_shift(s, .ShiftRight, .U32)
+        is Bc.I32Eq                 -> push_cmp(s, .Equal, .I32)
+        is Bc.I32Ne                 -> push_cmp(s, .NotEqual, .I32)
+        is Bc.I32Lt                 -> push_cmp(s, .Less, .I32)
+        is Bc.I32Le                 -> push_cmp(s, .LessOrEqual, .I32)
+        is Bc.I32Gt                 -> push_cmp(s, .Greater, .I32)
+        is Bc.I32Ge                 -> push_cmp(s, .GreaterOrEqual, .I32)
+        is Bc.I64Add                -> push_binop(s, .Add, .I64)
+        is Bc.I64Sub                -> push_binop(s, .Subtract, .I64)
+        is Bc.I64Mul                -> push_binop(s, .Multiply, .I64)
+        is Bc.I64Div                -> push_eager(s, .Divide, .I64)
+        is Bc.I64Mod                -> push_eager(s, .Remainder, .I64)
+        is Bc.I64Neg                -> push_i64_neg(s)
+        is Bc.I64BitAnd             -> push_binop(s, .BitAnd, .I64)
+        is Bc.I64BitOr              -> push_binop(s, .BitOr, .I64)
+        is Bc.I64BitXor             -> push_binop(s, .BitXor, .I64)
+        is Bc.I64BitNot             -> push_unop(s, "~", .I64)
+        is Bc.I64Shl                -> push_shift(s, .ShiftLeft, .I64)
+        is Bc.I64Shr                -> push_shift(s, .ShiftRight, .I64)
+        is Bc.I64ShrU               -> push_shift(s, .ShiftRight, .U64)
+        is Bc.I64Eq                 -> push_cmp(s, .Equal, .I64)
+        is Bc.I64Ne                 -> push_cmp(s, .NotEqual, .I64)
+        is Bc.I64Lt                 -> push_cmp(s, .Less, .I64)
+        is Bc.I64Le                 -> push_cmp(s, .LessOrEqual, .I64)
+        is Bc.I64Gt                 -> push_cmp(s, .Greater, .I64)
+        is Bc.I64Ge                 -> push_cmp(s, .GreaterOrEqual, .I64)
+        is Bc.U32Div                -> push_eager(s, .Divide, .U32)
+        is Bc.U32Mod                -> push_eager(s, .Remainder, .U32)
+        is Bc.U32Lt                 -> push_cmp(s, .Less, .U32)
+        is Bc.U32Le                 -> push_cmp(s, .LessOrEqual, .U32)
+        is Bc.U32Gt                 -> push_cmp(s, .Greater, .U32)
+        is Bc.U32Ge                 -> push_cmp(s, .GreaterOrEqual, .U32)
+        is Bc.U64Div                -> push_eager(s, .Divide, .U64)
+        is Bc.U64Mod                -> push_eager(s, .Remainder, .U64)
+        is Bc.U64Lt                 -> push_cmp(s, .Less, .U64)
+        is Bc.U64Le                 -> push_cmp(s, .LessOrEqual, .U64)
+        is Bc.U64Gt                 -> push_cmp(s, .Greater, .U64)
+        is Bc.U64Ge                 -> push_cmp(s, .GreaterOrEqual, .U64)
+        is Bc.F64Add                -> push_binop(s, .Add, .F64)
+        is Bc.F64Sub                -> push_binop(s, .Subtract, .F64)
+        is Bc.F64Mul                -> push_binop(s, .Multiply, .F64)
+        is Bc.F64Div                -> push_eager(s, .Divide, .F64)
+        is Bc.F64Neg                -> push_unop(s, "-", .F64)
+        is Bc.F64Eq                 -> push_cmp(s, .Equal, .F64)
+        is Bc.F64Ne                 -> push_cmp(s, .NotEqual, .F64)
+        is Bc.F64Lt                 -> push_cmp(s, .Less, .F64)
+        is Bc.F64Le                 -> push_cmp(s, .LessOrEqual, .F64)
+        is Bc.F64Gt                 -> push_cmp(s, .Greater, .F64)
+        is Bc.F64Ge                 -> push_cmp(s, .GreaterOrEqual, .F64)
+        is Bc.BoolEq                -> push_binop(s, .Equal, .Bool)
+        is Bc.BoolNe                -> push_binop(s, .NotEqual, .Bool)
+        is Bc.BoolAnd               -> push_binop(s, .LogicalAnd, .Bool)
+        is Bc.BoolOr                -> push_binop(s, .LogicalOr, .Bool)
+        is Bc.StringEq              -> push_cmp(s, .Equal, .String)
+        is Bc.StringNe              -> push_cmp(s, .NotEqual, .String)
+        is Bc.StringCompare         -> emit_string_compare(s)
+        is Bc.RefEq                 -> push_binop_any(s, .Equal, .Bool)
+        is Bc.RefNe                 -> push_binop_any(s, .NotEqual, .Bool)
+        is Bc.DeferPush             -> emit_defer_push(s)
+        is Bc.DeferPopExec          -> emit_defer_pop_exec(s, op)
+        is Bc.BufferNew             -> emit_buffer_new(s)
+        is Bc.LoadU8                -> emit_buffer_load(s, "vader_buffer_load_u8", .I32)
+        is Bc.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
+        is Bc.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
+        is Bc.LoadF64               -> emit_buffer_load(s, "vader_buffer_load_f64", .F64)
+        is Bc.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "uint8_t")
+        is Bc.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "int32_t")
+        is Bc.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "int64_t")
+        is Bc.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "double")
+        is Bc.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32, op.bounds_safe)
+        is Bc.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64, op.bounds_safe)
+        is Bc.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64, op.bounds_safe)
+        is Bc.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32, op.bounds_safe)
+        is Bc.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64, op.bounds_safe)
+        is Bc.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64, op.bounds_safe)
+        is Bc.MemoryCopy            -> emit_memory_copy(s)
+        is Bc.BufferToString        -> emit_buffer_to_string(s)
+        is Bc.BufferWriteString     -> emit_buffer_write_string(s)
+        is Bc.F64ToBits             -> emit_f64_to_bits(s)
+        is Bc.BitsToF64             -> emit_bits_to_f64(s)
+        is Bc.F32ToBits             -> emit_f32_to_bits(s)
+        is Bc.BitsToF32             -> emit_bits_to_f32(s)
     }    // ---- memory opcodes -------------------------------------------------
     // Bytes-only Buffer. `buffer.new` allocates a `vader_buffer_t`; the
     // typed load/store + memory_copy go through the `static inline
@@ -665,14 +665,14 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
 ///             string-literal atom ids.
 /// @param c    the constant op to render.
 /// @return     a C expression (no trailing `;`).
-const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> CExpression = match c {
-    is vm.I32Const    -> CIntegerLiteral { .class = .I32, .value = i64(c.value) }
-    is vm.I64Const    -> CIntegerLiteral { .class = .I64, .value = c.value }
-    is vm.F64Const    -> verbatim(float_lit(c.value))
-    is vm.BoolConst   -> verbatim(if c.value { "true" } else { "false" })
-    is vm.CharConst   -> verbatim("${u32(c.value)}u")
-    is vm.NullConst   -> verbatim("vader_box_obj(${ctx.null_tag}u, NULL)")
-    is vm.StringConst -> verbatim("${ctx.atom_ids[c.index]}u")
+const_lit_c :: fn(ctx: EmitCtx, c: Bc.ConstOp) -> CExpression = match c {
+    is Bc.I32Const    -> CIntegerLiteral { .class = .I32, .value = i64(c.value) }
+    is Bc.I64Const    -> CIntegerLiteral { .class = .I64, .value = c.value }
+    is Bc.F64Const    -> verbatim(float_lit(c.value))
+    is Bc.BoolConst   -> verbatim(if c.value { "true" } else { "false" })
+    is Bc.CharConst   -> verbatim("${u32(c.value)}u")
+    is Bc.NullConst   -> verbatim("vader_box_obj(${ctx.null_tag}u, NULL)")
+    is Bc.StringConst -> verbatim("${ctx.atom_ids[c.index]}u")
 }
 
 /// C literal for an f64 value. A `.0` suffix is appended when the rendered
@@ -695,7 +695,7 @@ float_lit :: fn(value: f64) -> string {
 
 /// Push a constant op as a `StackLit` — `const_val` gives the stack
 /// ValType, `const_lit_c` the C literal.
-push_const :: fn(s: FnState, c: vm.ConstOp) -> void = push_lit(
+push_const :: fn(s: FnState, c: Bc.ConstOp) -> void = push_lit(
     s,
     const_val(c),
     const_lit_c(s.ctx, c),
@@ -705,19 +705,19 @@ push_const :: fn(s: FnState, c: vm.ConstOp) -> void = push_lit(
 /// `NullConst` boxes to `.Any` on the C stack — a deliberate divergence
 /// from `bytecode::const_val_type`, which wants `.Null` for its
 /// const-propagation slot typing.
-const_val :: fn(c: vm.ConstOp) -> ValType = match c {
-    is vm.I32Const    -> .I32
-    is vm.I64Const    -> .I64
-    is vm.F64Const    -> .F64
-    is vm.BoolConst   -> .Bool
-    is vm.CharConst   -> .Char
-    is vm.NullConst   -> .Any
-    is vm.StringConst -> .String
+const_val :: fn(c: Bc.ConstOp) -> ValType = match c {
+    is Bc.I32Const    -> .I32
+    is Bc.I64Const    -> .I64
+    is Bc.F64Const    -> .F64
+    is Bc.BoolConst   -> .Bool
+    is Bc.CharConst   -> .Char
+    is Bc.NullConst   -> .Any
+    is Bc.StringConst -> .String
 }
 
 /// `local.get` — push a snapshot of slot `l.slot` (spelled `lN`). A
 /// `void` slot carries nothing on the stack, so it is a no-op.
-emit_local_get :: fn(s: FnState, l: vm.LocalGet) -> void {
+emit_local_get :: fn(s: FnState, l: Bc.LocalGet) -> void {
     val :: slot_val_type(s.function, l.slot)
     if val == .Void {
         return
@@ -906,30 +906,30 @@ push_eager :: fn(s: FnState, op: CBinaryOperator, val: ValType) -> void {
 /// and wraps in it. Materialised into a temp like `push_eager`, so the check runs
 /// at its op whether or not the result is read. Operands and result ride in the
 /// stack class of `kind`.
-emit_checked_arith :: fn(s: FnState, op: vm.CheckedArith) -> void {
+emit_checked_arith :: fn(s: FnState, op: Bc.CheckedArith) -> void {
     class :: stack_class_of(op.kind)
     right :: pop(s)
     left :: pop(s)
     arguments :: [
-        verbatim(vm.val_type_name(op.kind)),
+        verbatim(Bc.val_type_name(op.kind)),
         operand_as(s, left, class),
         operand_as(s, right, class),
     ]
-    push_into_temporary(s, call("vader_chk_${vm.checked_op_name(op.op)}", arguments), class)
+    push_into_temporary(s, call("vader_chk_${Bc.checked_op_name(op.op)}", arguments), class)
 }
 
 /// A checked negation (`CheckedNeg`) : `vader_chk_neg(<kind>, v)`, as
 /// `emit_checked_arith`.
-emit_checked_neg :: fn(s: FnState, op: vm.CheckedNeg) -> void {
+emit_checked_neg :: fn(s: FnState, op: Bc.CheckedNeg) -> void {
     class :: stack_class_of(op.kind)
     v :: pop(s)
-    arguments :: [verbatim(vm.val_type_name(op.kind)), operand_as(s, v, class)]
+    arguments :: [verbatim(Bc.val_type_name(op.kind)), operand_as(s, v, class)]
     push_into_temporary(s, call("vader_chk_neg", arguments), class)
 }
 
 // The stack class an integer of class `kind` rides in.
 stack_class_of :: fn(kind: ValType) -> ValType {
-    if vm.is_64_bit_int_val(kind) {
+    if Bc.is_64_bit_int_val(kind) {
         return .I64
     }
     return .I32
@@ -945,7 +945,7 @@ stack_class_of :: fn(kind: ValType) -> ValType {
 div_mod_helper :: fn(op: CBinaryOperator, val: ValType) -> string | null = @partial match val {
     .I32 | .I64 | .U32 | .U64 -> {
         verb :: if op == .Divide { "div" } else { "mod" }
-        "vader_${verb}_${vm.val_type_name(val)}"
+        "vader_${verb}_${Bc.val_type_name(val)}"
     }
     _                         -> null
 }
@@ -1000,7 +1000,7 @@ emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
 }
 
 /// `ConvertTarget` enum → its `ValType`.
-convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
+convert_target_val :: fn(t: Bc.ConvertTarget) -> ValType = match t {
     .I32  -> .I32
     .I64  -> .I64
     .F64  -> .F64
@@ -1065,7 +1065,7 @@ emit_multi_return :: fn(s: FnState) -> void {
 /// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
 /// frame-pinned local, so the framed form pops the frame inline (no
 /// `__vret` snapshot needed).
-emit_return_lit :: fn(s: FnState, value: vm.ConstOp) -> void {
+emit_return_lit :: fn(s: FnState, value: Bc.ConstOp) -> void {
     // Coerce the literal to the fn's result class : a boxed-result fn (e.g. an
     // enum / union returned as `any`) needs the const boxed, not returned raw.
     rv :: coerce_expr(
@@ -1129,16 +1129,16 @@ precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
     body :: function.body
     for pc in 0..<body.len() {
         op :: body[pc]
-        if op is vm.Block {
+        if op is Bc.Block {
             open_pc.push(i32(pc))
             open_kind.push(.Block)
-        } else if op is vm.Loop {
+        } else if op is Bc.Loop {
             open_pc.push(i32(pc))
             open_kind.push(.Loop)
-        } else if op is vm.If {
+        } else if op is Bc.If {
             open_pc.push(i32(pc))
             open_kind.push(.If)
-        } else if op is vm.End {
+        } else if op is Bc.End {
             n :: open_pc.len()
             if n > 0 {
                 scopes.push(
@@ -1175,7 +1175,7 @@ precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> Br
     jump_table :: function.jump_table
     for pc in 0..<body.len() {
         op :: body[pc]
-        if op is vm.Branch || op is vm.BranchIf {
+        if op is Bc.Branch || op is Bc.BranchIf {
             target :: jump_table[pc]
             found :: branch_target(scopes, target)
             if found is ScopeInfo {
@@ -1245,14 +1245,14 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
 // One for anything this does not recognise: the caller only uses it to decide
 // whether a lookahead optimisation is safe, and "one" is the shape every call
 // had before multi-value.
-callee_result_arity :: fn(ctx: EmitCtx, op: vm.Op) -> i64 {
-    if op is vm.Call {
+callee_result_arity :: fn(ctx: EmitCtx, op: Bc.Op) -> i64 {
+    if op is Bc.Call {
         if i64(op.function_index) !in 0..<ctx.module.functions.len() {
             return 1
         }
         return bc_result_arity(ctx.module.functions[op.function_index].signature)
     }
-    if op is vm.CallImport {
+    if op is Bc.CallImport {
         if i64(op.index) !in 0..<ctx.module.imports.len() {
             return 1
         }
@@ -1353,7 +1353,7 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
 /// in `module.functions`, derives its C name the same way the forward decl
 /// / definition do (`sanitise(name)`, see `signature_for`), and delegates
 /// to the shared `emit_call_to`.
-emit_call :: fn(s: FnState, op: vm.Call) -> void {
+emit_call :: fn(s: FnState, op: Bc.Call) -> void {
     callee :: s.ctx.module.functions[op.function_index]
     emit_call_to(s, sanitise(callee.name), callee.signature)
 }
@@ -1361,7 +1361,7 @@ emit_call :: fn(s: FnState, op: vm.Call) -> void {
 /// `call.import` — call a host fn through its generated `vader_host_*`
 /// shim (see `host.vader`). Reuses the shared `emit_call_to` with
 /// the import's signature.
-emit_call_import :: fn(s: FnState, op: vm.CallImport) -> void {
+emit_call_import :: fn(s: FnState, op: Bc.CallImport) -> void {
     imp :: s.ctx.module.imports[op.index]
     emit_call_to(s, host_shim_name(imp), imp.signature)
 }
@@ -1472,7 +1472,7 @@ fn_symbol_name :: fn(fns: BcFunction[], index: i32) -> string {
 
 /// `fn.ref` — push a raw pointer to the fn's static trampoline value. The
 /// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
-emit_fn_ref :: fn(s: FnState, op: vm.FnRef) -> void {
+emit_fn_ref :: fn(s: FnState, op: Bc.FnRef) -> void {
     push_object(
         s,
         address_of(
@@ -1484,8 +1484,8 @@ emit_fn_ref :: fn(s: FnState, op: vm.FnRef) -> void {
 }
 
 /// `fn.addr` — the function's own symbol, not `&vader_fn_static_N`. See
-/// `bytecode/op::FnAddr` for why the two differ.
-emit_fn_addr :: fn(s: FnState, op: vm.FnAddr) -> void {
+/// `core/bytecode/op::FnAddr` for why the two differ.
+emit_fn_addr :: fn(s: FnState, op: Bc.FnAddr) -> void {
     // `.Pointer`, NOT `.Ref` — the difference is a GC root. A `.Ref` temp lands
     // in the frame's `raw[]`, and `vader_gc_scan_raw` reads its pointee's header
     // without checking the pointee is on the heap. A function's address is in
@@ -1516,7 +1516,7 @@ emit_fn_addr :: fn(s: FnState, op: vm.FnAddr) -> void {
 /// `env_type_id` carries the closure's own BcFn type — the field name says
 /// `env_type` but the id is the closure's, a misnomer inherited from the
 /// lowered node.
-emit_make_closure :: fn(s: FnState, op: vm.MakeClosure) -> void {
+emit_make_closure :: fn(s: FnState, op: Bc.MakeClosure) -> void {
     env :: pop(s)
     fn_obj :: aux(s, "closure")
     declare(s, "vader_fn_t*", fn_obj, gc_allocation("vader_fn_t"))
@@ -1543,7 +1543,7 @@ emit_make_closure :: fn(s: FnState, op: vm.MakeClosure) -> void {
 /// erased call site without a calling-convention mismatch ; the wrapper unboxes
 /// per the underlying fn's concrete sig. The wrapper returns the erased box —
 /// coerce it back to the static return class for direct readers.
-emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
+emit_call_indirect :: fn(s: FnState, op: Bc.CallIndirect) -> void {
     types :: s.ctx.module.types
     t :: types[op.type_id]
     if t is BcFn {
@@ -1581,7 +1581,7 @@ emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
 /// `dispatch.vader`) which switches on `recv.tag`. The Vader op carries no
 /// result-type index, so there is no erasure-boundary repack here — a
 /// following `ref.cast` / `convert` handles any per-tag reshape.
-emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
+emit_virtual_call :: fn(s: FnState, op: Bc.VirtualCall) -> void {
     row :: find_vtable_row(s.ctx, op.vtable_key)
     if row == null {
         unreachable(s, "no vtable for ${op.vtable_key}")
@@ -1656,10 +1656,10 @@ scan_fn_value_usage :: fn(fns: BcFunction[]) -> FnValueUsage {
     any := false
     for f in fns {
         for op in f.body {
-            if op is vm.FnRef {
+            if op is Bc.FnRef {
                 fn_ref_type[op.function_index] = op.type_id
                 any = true
-            } else if op is vm.MakeClosure {
+            } else if op is Bc.MakeClosure {
                 is_closure[op.function_index] = true
                 any = true
             }
@@ -1821,7 +1821,7 @@ forward_boxed :: fn(cname: string, arguments: CExpression[], sig: BcSignature) -
 /// `emit_size_of_type`). Tagged `null` keeps GC + display off the synthetic
 /// pointer. A pure literal — push as a lit so a direct `size_of.type` reader
 /// inlines it.
-emit_type_const :: fn(s: FnState, op: vm.TypeConst) -> void = push_lit(
+emit_type_const :: fn(s: FnState, op: Bc.TypeConst) -> void = push_lit(
     s,
     .Any,
     verbatim("vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)"),
@@ -1843,7 +1843,7 @@ emit_size_of_type :: fn(s: FnState) -> void {
 /// ref type itself) ; a primitively-typed value resolves at compile time
 /// (`class_matches_type`). Pushed as an expression so a downstream `if` /
 /// `br_if` / boolean combinator inlines it.
-emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
+emit_type_check :: fn(s: FnState, op: Bc.TypeCheck) -> void {
     v :: pop(s)
     val :: val_of(v)
     if is_ref_val(val) {
@@ -1936,7 +1936,7 @@ emit_defer_push :: fn(s: FnState) -> void {
 
 /// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
 /// exit.
-emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void =
+emit_defer_pop_exec :: fn(s: FnState, op: Bc.DeferPopExec) -> void =
     evaluate(s, call("vader_defer_pop_exec", [verbatim("${op.count}u")]))
 
 // ---- structs --------------------------------------------------------------
@@ -1954,7 +1954,7 @@ emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void =
 /// allocates via `vader_gc_alloc`. Fields pop right-to-left then store in
 /// declaration order ; an incoming value whose ValType differs from the
 /// field's is reconciled by `coerce_expr`.
-emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
+emit_struct_new :: fn(s: FnState, op: Bc.StructNew) -> void {
     t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
         cname :: s.ctx.struct_c_names[op.type_id]
@@ -2016,14 +2016,14 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
 
 /// `struct.get` — pop the receiver (a raw `void*`, or a box when erased), push
 /// field `field_index` as an inlined dereference expression.
-emit_struct_get :: fn(s: FnState, op: vm.StructGet) -> void {
+emit_struct_get :: fn(s: FnState, op: Bc.StructGet) -> void {
     obj :: pop(s)
     push_struct_field(s, op.type_id, op.field_index, expression_of(obj), val_of(obj))
 }
 
 /// `local.field` — the fused `local.get N ; struct.get`. Push field
 /// `field_index` of the struct in slot `slot`.
-emit_local_field :: fn(s: FnState, op: vm.LocalField) -> void {
+emit_local_field :: fn(s: FnState, op: Bc.LocalField) -> void {
     push_struct_field(
         s,
         op.type_id,
@@ -2192,7 +2192,7 @@ field_of :: fn(c_name: string, pointer: CExpression, field: string) -> CExpressi
 /// moves it. `struct.set_stack` opts out — the lowerer's escape analysis proved
 /// the receiver is stack-allocated, so the macro's `in old?` test would always
 /// be false anyway.
-emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
+emit_struct_set :: fn(s: FnState, op: Bc.StructSet) -> void {
     t :: s.ctx.module.types[op.type_id]
     if t is BcStruct {
         cname :: s.ctx.struct_c_names[op.type_id]
@@ -2210,7 +2210,7 @@ emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
 
 // What `struct.set` fires the write barrier on : nothing for a stack struct.
 struct_set_barrier :: fn(
-    op: vm.StructSet,
+    op: Bc.StructSet,
     c_name: string,
     pointer: CExpression,
 ) -> CExpression | null {
@@ -2240,7 +2240,7 @@ store_field :: fn(
 }
 
 /// `union.get`: pop a value of a union of structs, push field `field_index`.
-emit_union_field_get :: fn(s: FnState, op: vm.UnionFieldGet) -> void {
+emit_union_field_get :: fn(s: FnState, op: Bc.UnionFieldGet) -> void {
     obj :: pop(s)
     field :: union_field_place(s, op.type_id, op.field_index, object_pointer_of(obj))
     push_expr(s, val_type_of_field(s.ctx.module.types, field.type_index), field.place)
@@ -2248,7 +2248,7 @@ emit_union_field_get :: fn(s: FnState, op: vm.UnionFieldGet) -> void {
 
 /// `union.set`: pop the field value, then a value of a union of structs ; write
 /// field `field_index`.
-emit_union_field_set :: fn(s: FnState, op: vm.UnionFieldSet) -> void {
+emit_union_field_set :: fn(s: FnState, op: Bc.UnionFieldSet) -> void {
     value :: pop(s)
     obj :: pop(s)
     obj_ptr :: object_pointer_of(obj)
@@ -2291,7 +2291,7 @@ union_field_place :: fn(
 /// box or unbox across the erasure boundary, else a plain C cast.
 /// Materialised into a fresh temp (the lowerer emits it after `local.field`
 /// to pin a field's type).
-emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
+emit_ref_cast :: fn(s: FnState, op: Bc.RefCast) -> void {
     v :: pop(s)
     target_val :: val_type_of_bc_type(s.ctx.module.types[op.type_id])
     // A ref.cast is a representation-preserving reinterpret, so it must honour the
@@ -2307,7 +2307,7 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
 /// tag + payload value of a union or an erased slot, with no allocation, tagged
 /// with the op's SEMANTIC `type_id` rather than the `class_tag_of` its coarse
 /// `ValType` would give. A value that is already a ref keeps its header's tag.
-emit_retag_op :: fn(s: FnState, op: vm.Retag) -> void {
+emit_retag_op :: fn(s: FnState, op: Bc.Retag) -> void {
     v :: pop(s)
     if val_of(v) == .Any {
         push_into_temporary(s, expression_of(v), .Any)
@@ -2630,20 +2630,20 @@ ref_carrying_element :: fn(element: BcType, types: BcType[]) -> bool {
 // `data.const N` — push a zero-copy box over the immortal `.rodata` array
 // `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
 // onto the box, mirroring the VM's `DataConst` arm + the static-fn-ref box.
-emit_data_const_op :: fn(s: FnState, op: vm.DataConst) -> void {
+emit_data_const_op :: fn(s: FnState, op: Bc.DataConst) -> void {
     push_object(s, address_of(verbatim("vader_data_${op.pool_index}")))
 }
 
 // `global.get N`: the value of `vader_global_N`, read into a temporary: a later
 // `global.set` must not change what was read.
-emit_global_get :: fn(s: FnState, op: vm.GlobalGet) -> void {
+emit_global_get :: fn(s: FnState, op: Bc.GlobalGet) -> void {
     val :: global_slot_val(s.ctx.module, op.index)
     push_into_temporary(s, verbatim("vader_global_${op.index}"), val)
 }
 
 // `global.set N`: the popped value into `vader_global_N`. The global is a root of
 // the permanent frame, scanned at every collection, so no write barrier.
-emit_global_set :: fn(s: FnState, op: vm.GlobalSet) -> void {
+emit_global_set :: fn(s: FnState, op: Bc.GlobalSet) -> void {
     v :: pop(s)
     target :: verbatim("vader_global_${op.index}")
     assign(s, target, coerced_as(s, v, global_slot_val(s.ctx.module, op.index)))
@@ -2653,7 +2653,7 @@ emit_global_set :: fn(s: FnState, op: vm.GlobalSet) -> void {
 /// in its slot kind (raw primitive, raw `void*`, or a box carrying the value's
 /// tag), push the raw array pointer. Pops elements right-to-left into source
 /// order.
-emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
+emit_array_new :: fn(s: FnState, op: Bc.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
     kind :: array_kind_of(types[elem_tag], types)
@@ -2719,7 +2719,7 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
 /// branch — borrowed-safe (its guard tests `buf != NULL` and the bounds check
 /// reads the header). Flippable widths never reach here (midir
 /// routes them to `LoadSlot*`).
-emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
+emit_array_get :: fn(s: FnState, op: Bc.ArrayGet) -> void {
     idx :: pop(s)
     arr :: pop(s)
     types :: s.ctx.module.types
@@ -2779,7 +2779,7 @@ reboxes_to_own_tag :: fn(types: BcType[], elem_tag: i32, val: ValType) -> bool =
 /// width raw (no barrier — primitives hold no refs). Flippable widths never
 /// reach here (midir routes them to `StoreSlot*`). A view of a string's bytes is
 /// never written (T3070, T3072), so `a->buf` is never NULL on this path.
-emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
+emit_array_set :: fn(s: FnState, op: Bc.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)
     arr :: pop(s)
@@ -2838,7 +2838,7 @@ emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
 /// inline` fast paths whose grow / view case goes to `vader_array_push_slow`, so
 /// GC-rooting is unchanged. A boxed push tags the value with its own type, never
 /// `op.type_id` : that is the union for an `(i32 | string)[]`.
-emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
+emit_array_push :: fn(s: FnState, op: Bc.ArrayPush) -> void {
     value :: pop(s)
     arr :: pop(s)
     types :: s.ctx.module.types
@@ -2898,7 +2898,7 @@ emit_array_len :: fn(s: FnState) -> void {
 
 /// `array.slice` — pop array + lo + hi, push a fresh array header over the
 /// `[lo, hi)` range (the C runtime views ; the VM copies).
-emit_array_slice :: fn(s: FnState, op: vm.ArraySlice) -> void {
+emit_array_slice :: fn(s: FnState, op: Bc.ArraySlice) -> void {
     hi :: pop(s)
     lo :: pop(s)
     arr :: pop(s)

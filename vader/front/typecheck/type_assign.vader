@@ -414,7 +414,7 @@ fits_tuple_field :: fn(from: Type, to: Type) -> bool {
 
 // How an array of a given element type lays out its slots, as far as a read
 // through a widened element can tell. Must agree with `array_kind_of`
-// (`vader/bytecode/types.vader`), which fixes the layout once types are
+// (`vader/core/bytecode/types.vader`), which fixes the layout once types are
 // lowered, and with `ref_carrying_element` (`vader/emit/c/walker.vader`), which
 // picks the reads that test it : a callee whose reads expect another layout
 // reads garbage natively.

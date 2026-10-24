@@ -13,7 +13,7 @@
 module "vader/vm"
 
 import "std/abort"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 // Where a pending stack value is.
 PendingKind :: enum { Register, Slot, Constant }

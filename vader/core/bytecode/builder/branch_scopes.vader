@@ -1,15 +1,18 @@
-// vader/vm/branch_scopes — label-keyed scope stack and branch wiring.
+// vader/core/bytecode/builder/branch_scopes — label-keyed scope stack and branch
+// wiring.
 //
 // Two producers fill a function's jump table from a labelled scope stack:
-// `builder.vader` building a body op by op, and `virt_reader.vader` replaying a
-// `.virt` dump. The shared state is three arrays plus two cursors, so these take
+// `builder.vader` building a body op by op, and `text/virt_reader.vader`
+// replaying a `.virt` dump. The shared state is three arrays plus two cursors, so these take
 // those directly rather than a carrier struct — `FunctionBuilder` and
 // `ParserState` each keep their own fields and pass them in.
 //
 // `midir/emit.vader` has a sibling that resolves by `BlockId` and prefers loop
 // scopes on a tie: a different rule, not a copy of this one.
 
-module "vader/vm"
+module "vader/core/bytecode/builder"
+
+import "vader/core/bytecode"
 
 /// Append `entry` to the grow-only `scopes` array at `sp_box[0]` and advance
 /// the cursor. Reuses an already-allocated slot when one is available
@@ -19,7 +22,7 @@ module "vader/vm"
 /// @param scopes  the grow-only scope stack (shared across functions).
 /// @param sp_box  1-element cursor — `[0]` is the logical top index.
 /// @param entry   the scope to push.
-push_scope :: fn(scopes: ScopeEntry[], sp_box: i64[], entry: ScopeEntry) -> void {
+export push_scope :: fn(scopes: ScopeEntry[], sp_box: i64[], entry: ScopeEntry) -> void {
     sp :: sp_box[0]
     if sp == scopes.len() {
         scopes.push(entry)
@@ -35,9 +38,17 @@ push_scope :: fn(scopes: ScopeEntry[], sp_box: i64[], entry: ScopeEntry) -> void
 /// / `else` label targets a pc that does not exist yet, so the branch is
 /// deferred to `drain_pending`. An unmatched label is left unwired: the caller
 /// has already reported the malformed input.
-defer_or_resolve_branch :: fn(scopes: ScopeEntry[], scope_sp: i64[], table: i32[],
-                             pending: PendingBranch[], pending_sp: i64[],
-                             label: string, pc: i32) -> void {
+///
+/// @param scopes      the scope stack.
+/// @param scope_sp    1-element scope cursor.
+/// @param table       the jump table being filled.
+/// @param pending     the pending-branch list.
+/// @param pending_sp  1-element pending cursor.
+/// @param label       the label the branch names.
+/// @param pc          pc of the branch op.
+export defer_or_resolve_branch :: fn(scopes: ScopeEntry[], scope_sp: i64[], table: i32[],
+                                    pending: PendingBranch[], pending_sp: i64[],
+                                    label: string, pc: i32) -> void {
     // Innermost match wins — walk down from the top of the stack.
     i := scope_sp[0] - 1
     for i >= 0 {
@@ -75,8 +86,8 @@ defer_or_resolve_branch :: fn(scopes: ScopeEntry[], scope_sp: i64[], table: i32[
 /// @param is_loop     `true` for loops (back-edge target = opener + 1).
 /// @param opener_pc   pc of the scope's opener (block / loop / if / else).
 /// @param end_pc      pc of the matching `end` op.
-drain_pending :: fn(table: i32[], pending: PendingBranch[], pending_sp: i64[],
-                    label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
+export drain_pending :: fn(table: i32[], pending: PendingBranch[], pending_sp: i64[],
+                           label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     psp :: pending_sp[0]
     new_sp: i64 = 0
     for i in 0..<psp {

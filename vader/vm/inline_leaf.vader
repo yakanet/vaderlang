@@ -20,7 +20,7 @@ module "vader/vm"
 
 import "std/collections"
 import "std/iter"
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 // The longest body inlined, its `return` aside.
 MAX_INLINED_OPS: i64: 16
@@ -59,7 +59,7 @@ is_inline_leaf :: fn(f: bc.BcFunction) -> bool {
         if !inlinable_op(op) {
             return false
         }
-        slot :: slot_touched_by(op)
+        slot :: bc.slot_touched(op)
         if slot >= i32(params) {
             if op is bc.LocalGet && !written[slot] {
                 return false
@@ -96,7 +96,7 @@ inlinable_op :: fn(op: bc.Op) -> bool {
 
 // `op` with the local slot it names, if any, moved up by `base`.
 relocated :: fn(op: bc.Op, base: i32) -> bc.Op {
-    slot :: slot_touched_by(op)
+    slot :: bc.slot_touched(op)
     return if slot < 0 { op } else { bc.with_remapped_slot(op, slot + base) }
 }
 
@@ -169,6 +169,7 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.Bc
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/core/bytecode/text"
 
 // `fn 0 square`, a straight-line leaf whose multiply is checked, `fn 1 halve`, which
 // divides, `fn 2 stale`, which reads a local before writing it, and a `main` running

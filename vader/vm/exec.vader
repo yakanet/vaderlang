@@ -18,7 +18,7 @@
 
 module "vader/vm"
 
-bc :: import "vader/bytecode"
+bc :: import "vader/core/bytecode"
 
 import "std/io"
 import "std/string"
@@ -252,7 +252,7 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
     first: i32[]: [-1] * total_slots
     last:  i32[]: [-1] * total_slots
     for pc in 0..<fn_body.body.len() {
-        s :: slot_touched_by(fn_body.body[pc])
+        s :: bc.slot_touched(fn_body.body[pc])
         if s >= 0 && i64(s) < total_slots {
             if first[s] < 0 { first[s] = i32(pc) }
             last[s] = i32(pc)
@@ -277,15 +277,6 @@ project_locals :: fn(slots: Value[], at_pc: i32, fn_body: bc.BcFunction, bc_mod:
         }
     }
     return out
-}
-
-// The local slot an op reads or writes, or -1 when it touches none.
-slot_touched_by :: fn(op: bc.Op) -> i32 {
-    if op is bc.LocalGet  { return op.slot }
-    if op is bc.LocalSet  { return op.slot }
-    if op is bc.LocalTee  { return op.slot }
-    if op is bc.LocalField { return op.slot }
-    return -1
 }
 
 // True when `slot`'s live window (`[first, last]` touch pc) contains `pc`.
@@ -410,7 +401,7 @@ primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
 /// Build the host import mangle for an `@intrinsic` primitive impl member from
 /// the receiver kind + a `"<trait_key>.method"` vtable key — e.g.
 /// `("string", "std/core.Hash.hash")` → `"std_core$string$Hash$hash"`. The mangle
-/// grammar itself lives in `bytecode/intrinsic_manifest::primitive_member_mangle` ;
+/// grammar itself lives in `core/bytecode/intrinsic_manifest::primitive_member_mangle` ;
 /// this only splits the vtable key. Returns "" when the kind is empty or the
 /// key has no `.`.
 intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
@@ -765,7 +756,7 @@ load_bytes_op :: fn(frame: Frame, width: i64, label: string) -> u64 | Trap {
     if obj_unwrap is Trap { return obj_unwrap }
     off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
-    return read_le(obj_unwrap.bytes, off, width)
+    return bc.read_le(obj_unwrap.bytes, off, width)
 }
 
 /// Shared body of the typed/byte stores (`store_u8` / `store_i32` /
@@ -787,7 +778,7 @@ store_bytes_op :: fn(frame: Frame, width: i64, value: u64, label: string) -> Tra
     if obj_unwrap is Trap { return obj_unwrap }
     off :: check_byte_range(off_unwrap, width, obj_unwrap.bytes.len(), label, frame.pc)
     if off is Trap { return off }
-    write_le(obj_unwrap.bytes, off, width, value)
+    bc.write_le(obj_unwrap.bytes, off, width, value)
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
     return null

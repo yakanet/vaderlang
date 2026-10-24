@@ -42,6 +42,7 @@ import "vader/lower"
 import "vader/midir"
 import "vader/pipeline/check"
 import "vader/bytecode"
+import "vader/core/bytecode"
 import "vader/emit/c" { EmitOptions as CEmitOptions }
 
 /// Build-only entrypoint : compile `<input.vader>` to a multi-unit C program.
