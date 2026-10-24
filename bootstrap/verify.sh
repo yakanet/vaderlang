@@ -21,10 +21,10 @@ cd "$(dirname "$0")/.."
 #
 # `diff -r` and not `cmp`: the emission is a TREE of one unit per module, and a
 # unit present on one side only is exactly what a comparison of concatenated
-# output would miss. The .o files live beside the sources because that is where
-# the CLI writes them, so they are excluded rather than moved.
-if [ ! -d build/work/stage2 ]; then
-  echo "verify.sh: build/work/stage2 is missing — build.sh did not produce step 3" >&2
+# output would miss. A native build writes its C under `c/` beside the binary,
+# and its objects under `obj/`: the C is what is compared.
+if [ ! -d build/work/stage2/c ]; then
+  echo "verify.sh: build/work/stage2/c is missing — build.sh did not produce step 3" >&2
   exit 2
 fi
 rm -rf build/work/verify
@@ -44,7 +44,7 @@ fi
 # Folding them together reports a structural problem as a fixed-point failure,
 # which sends the reader looking for a compiler bug that is not there.
 set +e
-diff -r -q --exclude='*.o' build/work/stage2 build/work/verify >/dev/null
+diff -r -q build/work/stage2/c build/work/verify >/dev/null
 fp_rc=$?
 set -e
 if [ "$fp_rc" = 2 ]; then
@@ -54,7 +54,7 @@ fi
 if [ "$fp_rc" != 0 ]; then
   echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
   echo "  stage1's codegen is the seed's; if the seed carries a bug the tree has fixed, reseed: bootstrap/seed.sh regenerate" >&2
-  diff -r --exclude='*.o' build/work/stage2 build/work/verify | head -80 >&2
+  diff -r build/work/stage2/c build/work/verify | head -80 >&2
   exit 1
 fi
 
