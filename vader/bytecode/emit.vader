@@ -21,7 +21,7 @@
 module "vader/bytecode"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/types"
 import "vader/resolver/symbol"
 import "vader/parser"

@@ -13,7 +13,7 @@ module "vader/lsp/analysis"
 import "std/collections"
 import "std/io"
 import "std/string"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/lsp/protocol"
 

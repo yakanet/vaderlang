@@ -1,4 +1,4 @@
-// vader/integer/interval — intervals of integers, computed without wrapping.
+// vader/support/integer/interval — intervals of integers, computed without wrapping.
 //
 // An interval end may be open: below every `i64` for a lower end, past every
 // `i64` for an upper one. Arithmetic on the ends opens them rather than
@@ -6,7 +6,7 @@
 // stands for. An open upper end may still be exact, up to `u64.max` : `hi_past`
 // says how far past `i64.max` it lies, so that `u64` is `0..=u64.max` exactly.
 
-module "vader/integer"
+module "vader/support/integer"
 
 import "std/math"
 

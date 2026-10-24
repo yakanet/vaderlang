@@ -25,5 +25,5 @@ export ImportInfo :: struct {
     binding_span:  Span
 }
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/span"

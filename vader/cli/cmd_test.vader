@@ -24,7 +24,7 @@ import "vader/lower"
 import "vader/bytecode"
 import "vader/midir"
 import "vader/pipeline"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/vm"
 TTY :: import "std/tty"
 

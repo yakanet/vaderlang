@@ -121,19 +121,16 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     // own bytecode it traps as an unbound import. Serve the ones `vader/`
     // declares.
     //
-    // Kept keyed on the mangled name rather than given `IntrinsicId`s : the
+    // Kept keyed on the C symbol rather than given `IntrinsicId`s : the
     // manifest is shared with `emit_c`, which already resolves these by linking,
-    // so a new id there would force a redundant C-side arm. Raw strings — a bare
-    // `$` in a literal opens an interpolation.
+    // so a new id there would force a redundant C-side arm.
     //
     // Guarded by `tests/extern_vm_handlers.test.ts` : any new `@extern` under
     // `vader/` must gain a handler here or that test fails.
-    if info.mangled_name == r"vader_profile$prof_begin" { return HostOk { .value = zero_value() } }
-    if info.mangled_name == r"vader_profile$prof_end"   { return HostOk { .value = zero_value() } }
-    if info.mangled_name == r"vader_profile$prof_dump"  { return HostOk { .value = zero_value() } }
-    // Placed after the `vader_profile$*` arms above, which ARE `@extern` and
-    // must still be served.
     if info.is_extern {
+        if is_profiler_bracket(info.extern_name) {
+            return HostOk { .value = zero_value() }
+        }
         return dispatch_extern(info, stack, arg_base, at_pc, types, debug, adapter)
     }
     // Comptime gate. It is NARROW on purpose, and narrower than it once was.
@@ -1154,6 +1151,12 @@ drop_due_timers :: fn(state: i64[]) -> void {
         }
     }
 }
+
+// The C symbols of the profiler's brackets (`vader/support/profile`). The VM has
+// no profiler, so they do nothing.
+is_profiler_bracket :: fn(symbol: string) = symbol == "vader_prof_begin"
+    || symbol == "vader_prof_end"
+    || symbol == "vader_prof_dump"
 
 // ---- comptime impurity gate -----------------------------------------------
 

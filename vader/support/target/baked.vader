@@ -1,4 +1,4 @@
-// vader/target/baked — the target constants, as a module the compiler writes.
+// vader/support/target/baked — the target constants, as a module the compiler writes.
 //
 // `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
 // per build. But they must behave like any other module-level constant — visible
@@ -15,7 +15,7 @@
 // hand, documented and tested. Only the two values are baked, which keeps the
 // generated text small enough to be obviously correct.
 
-module "vader/target"
+module "vader/support/target"
 
 import "std/string"
 import "std/target"
@@ -46,7 +46,7 @@ export BAKED_FOLDER :: "<baked>/std/target/baked"
 /// @return   the module source, ending in a newline.
 export baked_module_source :: fn(t: Target) -> string {
     lines: string[]: [
-        "// Generated per build by `vader/target/baked` — never on disk, never edited.",
+        "// Generated per build by `vader/support/target/baked` — never on disk, never edited.",
         "// The compilation target, baked. See `std/target::current_os` for the OTHER",
         "// question: the platform this program is RUNNING on.",
         "",

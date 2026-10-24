@@ -1,4 +1,4 @@
-// vader/diagnostics/render — the single diagnostic renderer.
+// vader/support/diagnostics/render — the single diagnostic renderer.
 //
 // The one place a `Diagnostic[]` becomes human-readable text, shared by every
 // command (build / run / dump / fmt / dap / bootstrap). Two channels:
@@ -12,7 +12,7 @@
 // renderer belongs below it. `Diagnostic` / `Position` / `Span` / `Severity` /
 // `CodeInfo` / `is_empty` are module-local (diagnostic.vader) — no import here.
 
-module "vader/diagnostics"
+module "vader/support/diagnostics"
 
 import "std/io"
 import "std/string" { compare_ascending as string_less }
@@ -20,7 +20,7 @@ import "std/string_builder"
 import "std/sort"
 import "std/math"
 import "std/collections"
-import "vader/text"
+import "vader/support/text"
 TTY :: import "std/tty"
 
 /// Render `diags` as a `# Diagnostics` block, ordered by (offset, code). The

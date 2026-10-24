@@ -12,8 +12,8 @@ import "std/io"
 import "std/path"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions }
-Prof :: import "vader/profile"
-import "vader/target"
+Prof :: import "vader/support/profile"
+import "vader/support/target"
 
 /// What a build asks for, read once from the `vader build` flags or from the
 /// request a driver received.

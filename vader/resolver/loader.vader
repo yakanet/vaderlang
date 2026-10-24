@@ -21,11 +21,11 @@ import "std/io"
 import "std/iter"
 import "std/path"
 import "std/string"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver/symbol"
-import "vader/target"
+import "vader/support/target"
 import "toolchain/span"
 
 /// Synthetic 1:1 span anchored on a file path. Used by R2001 when the
@@ -33,11 +33,11 @@ import "toolchain/span"
 /// level token to point at, so the span just records the file.
 ///
 /// TODO consolidate with `vader/lexer/token::empty_span(file)` and
-/// `vader/diagnostics::empty_span()` (no-arg, synthetic file). Same
+/// `vader/support/diagnostics::empty_span()` (no-arg, synthetic file). Same
 /// shape, three callers, no shared definition — Vader's overload
 /// resolution picks the no-arg variant when both are in scope which
 /// blocks naive reuse. Land a single `empty_span(file: string)` in
-/// `vader/diagnostics/` and migrate every caller.
+/// `vader/support/diagnostics/` and migrate every caller.
 zero_span :: fn(path: string) = Span {
     .start = Position { .file = path, .offset = 0, .line = 1, .column = 1 },
     .end   = Position { .file = path, .offset = 0, .line = 1, .column = 1 },

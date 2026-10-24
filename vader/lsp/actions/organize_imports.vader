@@ -4,9 +4,9 @@
 // alphabetical by path, and same-path modifier lists (`import "p" { x as y }`)
 // merged into one brace block with their entries de-duplicated and sorted.
 //
-//   import "vader/diagnostics" { Span as S }      import "std/string" { join as _, split as cut }
+//   import "vader/geometry" { Span as S }         import "std/string" { join as _, split as cut }
 //   import "std/string" { split as cut }      →
-//   import "std/string" { join as _ }             import "vader/diagnostics" { Span as S }
+//   import "std/string" { join as _ }             import "vader/geometry" { Span as S }
 //
 // Conservative by design (lossy = refuse, like the rewrite actions). The action
 // DECLINES — contributing nothing — when it can't transform safely :
@@ -27,7 +27,7 @@ import "std/collections"
 import "std/string"
 import "std/sort"
 import "std/iter"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 Parse :: import "vader/parser"
 import "toolchain/span"
@@ -247,7 +247,7 @@ parsed_decls :: fn(src: string) -> AST.Decl[] {
 
 @test
 test_organize_sorts_alphabetically :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span as S }\nimport \"std/string\" { split as cut }\n\nx :: fn() -> i32 = 0\n"
+    src :: "module \"t\"\n\nimport \"vader/geometry\" { Span as S }\nimport \"std/string\" { split as cut }\n\nx :: fn() -> i32 = 0\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(organize_imports_applicable(decls, ctx), "two contiguous imports organise")
@@ -259,7 +259,7 @@ test_organize_sorts_alphabetically :: fn() -> void {
     // One list, alphabetical, no blank line: `std/…` < `vader/…` here by path, not
     // by origin — which is the point. A `json` or `toolchain/…` import sorts among
     // them rather than into a nameless "other" bucket.
-    expected :: "import \"std/string\" { split as cut }\nimport \"vader/diagnostics\" { Span as S }"
+    expected :: "import \"std/string\" { split as cut }\nimport \"vader/geometry\" { Span as S }"
     assert(r.new_text == expected, "sorts by path with no group break: got [${r.new_text}]")
 }
 
@@ -308,7 +308,7 @@ test_organize_dedups_names :: fn() -> void {
 
 @test
 test_organize_declines_already_sorted :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"std/string\" { join as _, split as cut }\nimport \"vader/diagnostics\" { Span as S }\n"
+    src :: "module \"t\"\n\nimport \"std/string\" { join as _, split as cut }\nimport \"vader/geometry\" { Span as S }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     assert(organize_imports_applicable(decls, ctx), "still a valid import block")
@@ -348,7 +348,7 @@ test_organize_keeps_namespace_alias :: fn() -> void {
 
 @test
 test_organize_roundtrip_reparses :: fn() -> void {
-    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span as S }\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
+    src :: "module \"t\"\n\nimport \"vader/geometry\" { Span as S }\nimport \"std/string\" { split as cut }\nimport \"std/string\" { join as _ }\n"
     decls :: parsed_decls(src)
     ctx :: ActionCtx { .source = src }
     r :: organize_imports_apply(decls, ctx)

@@ -1,4 +1,4 @@
-// vader/diagnostics/diagnostic — structured diagnostic shape consumed by the
+// vader/support/diagnostics/diagnostic — structured diagnostic shape consumed by the
 // terminal renderer and (eventually) the LSP. Carries the Severity /
 // Diagnostic shapes the LSP serialises to JSON.
 //
@@ -6,7 +6,7 @@
 // `Span` and nothing else from this module, and a library shipping a build-time
 // generator must be able to depend on that without depending on the compiler.
 
-module "vader/diagnostics"
+module "vader/support/diagnostics"
 
 import "std/string"
 import "toolchain/span"

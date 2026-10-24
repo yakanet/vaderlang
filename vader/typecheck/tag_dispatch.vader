@@ -13,7 +13,7 @@ module "vader/typecheck"
 import "std/iter"
 import "std/string"
 import "toolchain/span"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver/symbol"
 import "vader/types"
 

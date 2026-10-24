@@ -15,7 +15,7 @@ module "vader/lsp/protocol"
 
 import "json"
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/span"
 
 // ---- range geometry -------------------------------------------------------

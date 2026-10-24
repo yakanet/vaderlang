@@ -16,7 +16,7 @@ module "vader/c_emit"
 import "std/numbers"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
-import "vader/text"
+import "vader/support/text"
 
 // =========================================================================
 // C identifier sanitation

@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections"
 import "std/iter"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/resolver"
 import "vader/typecheck"

@@ -4,7 +4,7 @@
 // result leaves the operand's integer class. The VM runs them through these
 // functions (`vader/vm`), and the bytecode folder folds a constant pair only when
 // they give a result (`emit.vader::try_fold_arith`). When an op overflows is
-// `vader/integer`'s answer ; this file maps the classes and the cells onto it.
+// `vader/support/integer`'s answer ; this file maps the classes and the cells onto it.
 //
 // A cell is how the VM holds a value: a class narrower than 64 bits sits
 // sign-extended from its low 32 bits (a `u32` included), a 64-bit one is its
@@ -12,7 +12,7 @@
 
 module "vader/bytecode"
 
-import "vader/integer"
+import "vader/support/integer"
 
 /// The result of `op` on `a` and `b`, two cells of the integer class `kind`, or
 /// `null` when the exact result leaves `kind`.

@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "std/string_builder"
 AST :: import "toolchain/ast"
-import "vader/integer"
+import "vader/support/integer"
 import "vader/types"
 
 /// Walk the first decl's body looking for the first expression that

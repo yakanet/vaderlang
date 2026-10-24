@@ -48,14 +48,14 @@ the snapshot all move in the same commit.
 
 ## Coverage
 
-The codes defined in `vader/diagnostics/codes.vader` that have no fixture
+The codes defined in `vader/support/diagnostics/codes.vader` that have no fixture
 here:
 
 ```sh
 python3 - <<'PY'
 import re, pathlib
 defined = set(re.findall(r'"([A-Z][0-9]{4})"',
-    pathlib.Path('vader/diagnostics/codes.vader').read_text()))
+    pathlib.Path('vader/support/diagnostics/codes.vader').read_text()))
 seen = set()
 for f in pathlib.Path('tests/diag_corpus').rglob('diagnostics.snapshot'):
     seen |= set(re.findall(r'\[([A-Z][0-9]{4})\]', f.read_text()))

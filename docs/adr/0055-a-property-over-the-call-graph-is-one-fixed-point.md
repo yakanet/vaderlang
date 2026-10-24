@@ -21,7 +21,7 @@ sound, proved about 1890.
 
 ## Decision
 
-- **`vader/fixpoint`**, a module of its own that depends on `std` only, so the
+- **`vader/support/fixpoint`**, a module of its own that depends on `std` only, so the
   typecheck can import it as well as midir. A `Graph` over dense node indices,
   its strongly connected components callees first (Tarjan with an explicit stack,
   so a long call chain does not depend on the host's recursion depth), and

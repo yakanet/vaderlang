@@ -15,7 +15,7 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 /// One `T implements Trait { ... }` block, indexed by the registry.
 export ImplEntry :: struct {

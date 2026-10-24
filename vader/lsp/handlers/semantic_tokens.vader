@@ -23,7 +23,7 @@ import "vader/lexer"
 import "vader/fmt"
 import "vader/lsp/protocol"
 import "vader/lsp/analysis"
-import "vader/text"
+import "vader/support/text"
 
 // ---- handler --------------------------------------------------------------
 

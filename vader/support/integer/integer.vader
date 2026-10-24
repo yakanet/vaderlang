@@ -1,4 +1,4 @@
-// vader/integer — fixed-width integer arithmetic, exact or refused.
+// vader/support/integer — fixed-width integer arithmetic, exact or refused.
 //
 // The one definition of when `+`, `-`, `*` and unary `-` overflow an integer
 // type: the VM's checked ops (`vader/bytecode/checked_arith.vader`) and the
@@ -8,7 +8,7 @@
 // An integer type is its width in bits (8, 16, 32 or 64) and its signedness. A
 // value sits in an `i64` as itself, a `u64` past `i64` as its bits.
 
-module "vader/integer"
+module "vader/support/integer"
 
 /// The least `i64`.
 export I64_MIN: i64: -0x8000_0000_0000_0000

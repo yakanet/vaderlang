@@ -12,7 +12,7 @@
 
 module "vader/lower"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/types"

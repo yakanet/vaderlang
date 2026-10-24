@@ -5,7 +5,7 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/resolver"

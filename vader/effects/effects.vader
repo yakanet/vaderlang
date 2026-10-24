@@ -3,7 +3,7 @@
 // The summary of a function says, per parameter, what the function may do below
 // the value a caller lends it (`effect.vader`): assign a slot, resize an array,
 // keep the value past the call, return it. It is computed once, after the
-// typecheck, as the smallest fixed point over the call graph (`vader/fixpoint`):
+// typecheck, as the smallest fixed point over the call graph (`vader/support/fixpoint`):
 // each function's body is read once into constraints (`walk.vader`), evaluated
 // against its callees' summaries until none moves.
 
@@ -11,7 +11,7 @@ module "vader/effects"
 
 import "std/collections"
 import "std/iter"
-import "vader/fixpoint"
+import "vader/support/fixpoint"
 import "vader/resolver"
 import "vader/typecheck"
 

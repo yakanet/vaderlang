@@ -527,7 +527,7 @@ becomes stable.
 | `vader/resolver/discover.vader` | Header-only scanner using `parse_module_header` | 8 |
 | `vader/resolver/loader.vader` | Strict-mode BFS with lazy `parse_source` (decision #44) | 8 |
 | `vader/parser/parse_module_header` | Header-only byte scanner | 8 |
-| `vader/diagnostics/codes.vader` | New R2020-R2028 + P1028-P1030 entries (mirror) | 8 |
+| `vader/support/diagnostics/codes.vader` | New R2020-R2028 + P1028-P1030 entries (mirror) | 8 |
 | `vader/lsp/`, `vader/fmt/` | Keyword recognition + diagnostic | 9 |
 | `tests/parity-broad.test.ts` | Byte-diff TS vs Vader on real modules | 10 |
 
@@ -709,7 +709,7 @@ generational GC.
 Estimated effort : ~2-3 h for the header-only parse infra +
 re-port of `load_project`. Until then, Phase 8 ships with the
 additive infrastructure committed (codes R2020-R2028 in
-`vader/diagnostics/codes.vader`, `vader/resolver/discover.vader`
+`vader/support/diagnostics/codes.vader`, `vader/resolver/discover.vader`
 ready to wire), and the legacy depth-1 BFS continues to drive the
 compiled Vader CLI.
 

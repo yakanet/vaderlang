@@ -4204,7 +4204,7 @@ Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering 
 - `I7xxx` IR self-checks: a malformed IR, always a compiler bug, reported under `vader build --verify`
 - `W0xxx` warnings (non-fatal)
 
-A registry of codes lives in `vader/diagnostics/codes.vader` — the single source of truth for IDs, wording, and enum order.
+A registry of codes lives in `vader/support/diagnostics/codes.vader` — the single source of truth for IDs, wording, and enum order.
 
 Notable cross-pass placement rules:
 - **`R2006`** (unresolved identifier) and **`R2009`** (trait name does not refer to a trait) are emitted at the resolver stage by the body-walker / project pre-resolve pass, not by the typechecker.

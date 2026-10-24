@@ -24,9 +24,9 @@ module "vader/resolver"
 import "std/collections"
 import "std/string"
 import "toolchain/span"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "std/target"
-import "vader/target"
+import "vader/support/target"
 AST :: import "toolchain/ast"
 
 // Whether THIS body's code is still present anywhere in the selected files. The

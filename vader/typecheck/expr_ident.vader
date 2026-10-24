@@ -114,7 +114,7 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/parser"
 
 // Test harness — bundles parse + resolve + check. Returns the parsed

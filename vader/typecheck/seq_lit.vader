@@ -15,7 +15,7 @@ module "vader/typecheck"
 
 import "std/math"
 import "std/iter"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/types"
 AST :: import "toolchain/ast"
 

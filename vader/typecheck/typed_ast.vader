@@ -14,7 +14,7 @@ module "vader/typecheck"
 import "std/collections"
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"
@@ -324,7 +324,7 @@ export TypedProgram :: struct {
     /// Type of every `:=` / `::` local binding, keyed by binding span
     /// (the span on `SimpleBinding` / `RestBinding`, not the LetStmt)
     /// via `Span.hash()` — the file's string hash folded with the start
-    /// line/column (`diagnostics/diagnostic.vader`).
+    /// line/column (`lib/toolchain/span/span.vader`).
     local_types: MutableMap<u64, Type>
 
     /// The `:=` / `::` locals whose type is not written, keyed as `local_types` :

@@ -18,10 +18,10 @@
 // through `dlsym` on the running process, so there is nothing to register.
 //
 // IF THIS FAILS, add a handler in `vader/vm/host.vader`, keyed on the import's
-// mangled name. A no-op return is fine when the VM has no equivalent: that is
-// what the profiler brackets get.
+// C symbol. A no-op return is fine when the VM has no equivalent: that is what
+// the profiler brackets get.
 //
-// This is a guard, not a proof: it checks the mangled name is *mentioned* in
+// This is a guard, not a proof: it checks the C symbol is *mentioned*, quoted, in
 // host.vader. `@extern` is still a draft surface — a real design pass over it is
 // tracked separately.
 
@@ -45,17 +45,14 @@ test("every @extern under vader/ has a VM host handler", () => {
 
   for (const file of vaderFiles("vader")) {
     const lines = readFileSync(file, "utf8").split("\n");
-    // A mangle is the module path with `/` written `_`, then `$`, then the name.
-    const module = lines.map((l) => l.match(/^module "([^"]+)"/)?.[1]).find((m) => m !== undefined);
     for (let i = 0; i < lines.length; i++) {
-      if (!lines[i]!  .startsWith("@extern")) continue;
-      // The decorator sits directly above its bodyless declaration, exported
-      // or not.
-      const decl = lines[i + 1] ?? "";
-      const name = decl.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*::/)?.[1];
-      if (!name || !module) continue;
-      const mangled = `${module.replaceAll("/", "_")}$${name}`;
-      if (!host.includes(mangled)) missing.push(`${file}:${i + 1} -> ${mangled}`);
+      if (!lines[i]!.startsWith("@extern")) continue;
+      // The C symbol is the decorator's last string argument, else the name the
+      // bodyless declaration directly below declares, exported or not.
+      const symbol = lines[i]!.match(/"([^"]+)"\s*\)\s*$/)?.[1]
+        ?? lines[i + 1]?.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*::/)?.[1];
+      if (!symbol) continue;
+      if (!host.includes(`"${symbol}"`)) missing.push(`${file}:${i + 1} -> ${symbol}`);
     }
   }
 

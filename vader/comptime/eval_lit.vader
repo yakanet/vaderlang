@@ -9,7 +9,7 @@ module "vader/comptime"
 
 import "std/string_builder"
 AST :: import "toolchain/ast"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 /// Evaluate an `IntLitExpr`, signed as written (`AST.int_literal_value`), at the
 /// width the typechecker gave it: `3` in `X: i64: 3` is an `i64`.

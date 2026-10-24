@@ -21,7 +21,7 @@ module "vader/typecheck"
 
 import "std/iter"
 import "std/string"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/types"

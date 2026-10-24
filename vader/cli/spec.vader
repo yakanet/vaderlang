@@ -138,7 +138,7 @@ BUILD_FLAGS: FlagSpec[]: [
     },
     // No `.values`: the target is a `<os>-<arch>` PAIR, not an enumeration —
     // spelling out five OSes times three architectures would be a worse help
-    // text than the form itself. `vader/target::parse_target` validates it and
+    // text than the form itself. `vader/support/target::parse_target` validates it and
     // names the offending fragment.
     FlagSpec {
         .name = "target",

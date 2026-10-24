@@ -24,8 +24,8 @@
 module "vader/lower"
 
 import "std/collections"
-import "vader/diagnostics"
-import "vader/integer"
+import "vader/support/diagnostics"
+import "vader/support/integer"
 AST :: import "toolchain/ast"
 import "vader/resolver/symbol"
 import "vader/typecheck"

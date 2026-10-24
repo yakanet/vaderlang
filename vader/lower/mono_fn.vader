@@ -9,7 +9,7 @@ import "std/sort"
 import "std/string"
 import "std/string_builder"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "vader/resolver"
 import "vader/typecheck"

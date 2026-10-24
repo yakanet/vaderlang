@@ -14,7 +14,7 @@ import "std/collections"
 import "std/iter"
 import "std/string"
 import "std/sort"
-import "vader/integer"
+import "vader/support/integer"
 AST :: import "toolchain/ast"
 
 /// True when `t` is the `void` primitive — by name, so a `void` built anywhere

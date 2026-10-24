@@ -36,7 +36,7 @@ the comptime evaluator, which wrapped on purpose to fold constants.
 turns `+` into `LoweredBinaryOp.AddChecked`; the plain `.Add` keeps wrapping, so
 arithmetic a later pass synthesises wraps by default. Negation has one lowered
 form, which nothing synthesises. The bytecode op is a `CheckedArith` carrying
-the operation and the exact integer type, or a `CheckedNeg`. `vader/integer` is the one definition of when an operation
+the operation and the exact integer type, or a `CheckedNeg`. `vader/support/integer` is the one definition of when an operation
 overflows; the VM, the bytecode folder and the comptime evaluator answer through
 it.
 

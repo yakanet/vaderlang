@@ -20,7 +20,7 @@ import "std/string"
 import "std/string_builder"
 import "toolchain/span"
 import "vader/resolver"
-import "vader/text"
+import "vader/support/text"
 import "vader/typecheck"
 
 /// Render the project's `# Comptime` dump as a single Markdown string. Only

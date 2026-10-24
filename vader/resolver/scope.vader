@@ -9,7 +9,7 @@
 module "vader/resolver"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver/symbol"
 
 /// LIFO stack of binding frames — innermost at the end, root at index 0.

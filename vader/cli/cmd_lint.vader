@@ -15,7 +15,7 @@ import "vader/parser"
 import "vader/resolver"
 import "vader/typecheck"
 import "vader/pipeline"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 /// `vader lint <file>` — project-wide hygiene lints kept OUT of the default
 /// build (a plain `vader build` never runs any of these). v1 ships a single

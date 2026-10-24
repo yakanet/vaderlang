@@ -12,7 +12,7 @@
 
 module "vader/midir"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/types"
 import "vader/resolver/symbol"
 import "vader/comptime"

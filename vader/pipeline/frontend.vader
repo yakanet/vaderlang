@@ -13,14 +13,14 @@ module "vader/pipeline"
 
 import "std/collections"
 import "std/path"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
-import "vader/target"
+import "vader/support/target"
 import "vader/typecheck"
 import "vader/comptime"
 import "vader/comptime/vm"
 import "vader/pipeline/check"
-Prof :: import "vader/profile"
+Prof :: import "vader/support/profile"
 
 // Pipeline state shared by the comptime + lowerer dump stages : both
 // run load → typecheck → comptime and only diverge on the final dump.
@@ -55,7 +55,7 @@ export prepare_evaluated_project_with :: fn(
     // table dumped at the end of the compile. Kept in the pipeline so the
     // self-compile profile (`bun run bench:profile`) stays one flag away ; they
     // never read the clock when off and never touch the emitted output. See
-    // vader/profile.
+    // vader/support/profile.
     Prof.prof_begin(.Load)
     loaded :: load_project(file.as_string(), include_path_flags, project_root, view)
     Prof.prof_end(.Load)

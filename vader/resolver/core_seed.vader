@@ -16,7 +16,7 @@ import "std/collections"
 import "std/string"
 import "vader/resolver/symbol"
 import "vader/parser"
-import "vader/target"
+import "vader/support/target"
 
 /// Build the std/core symbol seed once per project. Returns an empty map
 /// when std/core isn't part of the load (single-file snippets without

@@ -9,7 +9,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/integer"
+import "vader/support/integer"
 
 /// What holds at one program point.
 RangeState :: struct {

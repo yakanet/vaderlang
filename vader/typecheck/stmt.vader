@@ -9,7 +9,7 @@ module "vader/typecheck"
 
 import "std/collections"
 AST :: import "toolchain/ast"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/types"

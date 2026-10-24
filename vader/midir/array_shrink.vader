@@ -17,7 +17,7 @@
 module "vader/midir"
 
 import "std/iter"
-import "vader/fixpoint"
+import "vader/support/fixpoint"
 
 Bc :: import "vader/bytecode"
 

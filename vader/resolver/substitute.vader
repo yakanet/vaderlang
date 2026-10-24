@@ -15,7 +15,7 @@
 module "vader/resolver"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 

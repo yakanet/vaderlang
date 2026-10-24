@@ -18,7 +18,7 @@ import "std/sort"
 import "std/string"
 
 import "toolchain/ast"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/typecheck"
 import "vader/resolver/symbol"
 import "vader/types"

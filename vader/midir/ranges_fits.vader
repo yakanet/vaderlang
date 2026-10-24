@@ -9,7 +9,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/integer"
+import "vader/support/integer"
 
 /// Whether `x + y` stays within `t`, for `x` and `y` two values of `t`, `x`
 /// held by `x_local` and `y` by `y_local` when a local holds it (a negated

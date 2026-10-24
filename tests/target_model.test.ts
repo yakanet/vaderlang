@@ -191,7 +191,7 @@ function renderSections(stdout: string, stderr: string, fixtureDir: string): str
   // Snapshots have to be portable, so the fixture directory is stripped here
   // rather than having the stage lie about what it read. The compiler names a
   // file relative to the working directory when it lies under it, absolute
-  // otherwise, always with `/` (`vader/diagnostics/render.vader`), while `join()`
+  // otherwise, always with `/` (`vader/support/diagnostics/render.vader`), while `join()`
   // yields `C:\vader\tests\…` on Windows: strip whichever form it printed. The
   // absolute form goes first, since stripping the relative one inside it would
   // leave a prefix the absolute one no longer matches.

@@ -9,7 +9,7 @@
 module "vader/comptime"
 
 AST :: import "toolchain/ast"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/typecheck"
 
 /// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating

@@ -1,4 +1,4 @@
-// vader/diagnostics/codes — typed diagnostic codes shared by every compiler
+// vader/support/diagnostics/codes — typed diagnostic codes shared by every compiler
 // phase (lexer, parser, resolver, typecheck, comptime, lower), the build driver
 // and the IR verifiers.
 //
@@ -19,7 +19,7 @@
 // retired code leaves nothing behind, and its gap may be reused rather than
 // growing the space. This flips to append-only once there are users.
 
-module "vader/diagnostics"
+module "vader/support/diagnostics"
 
 /// The wire identity of a diagnostic code — the data every code enum carries.
 export CodeInfo :: struct {

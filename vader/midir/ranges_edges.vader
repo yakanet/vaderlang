@@ -8,7 +8,7 @@
 
 module "vader/midir"
 
-import "vader/integer"
+import "vader/support/integer"
 
 /// The instruction whose result `cond`, the condition of `block`'s branch,
 /// holds, when it reads two integer locals that keep their values up to the

@@ -11,7 +11,7 @@ module "vader/comptime"
 
 import "std/collections"
 import "std/ffi"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
 import "vader/typecheck"

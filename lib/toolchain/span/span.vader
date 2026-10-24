@@ -2,10 +2,10 @@
 //
 // The leaf of the toolchain's public API: a compiler-free module that anything
 // reading Vader source needs and that nothing needs a compiler to understand.
-// `toolchain/ast` is built on it, `vader/diagnostics` anchors its diagnostics on
+// `toolchain/ast` is built on it, `vader/support/diagnostics` anchors its diagnostics on
 // it, and a build-time generator shipped by a library reports through it.
 //
-// It lives HERE rather than in `vader/diagnostics` because of what depends on it.
+// It lives HERE rather than in `vader/support/diagnostics` because of what depends on it.
 // A library that ships a generator must not depend on the compiler, and the whole
 // of `toolchain/ast` needs exactly one thing from the diagnostics module — `Span`.
 // Splitting that one thing out is what makes the AST extractable at all; the rest

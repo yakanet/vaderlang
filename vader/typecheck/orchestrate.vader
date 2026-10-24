@@ -14,10 +14,10 @@ import "std/iter"
 import "std/string"
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/resolver/symbol"
-import "vader/target"
+import "vader/support/target"
 import "vader/types"
 
 // Concatenate every file of a (possibly multi-file) module into one

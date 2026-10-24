@@ -14,8 +14,8 @@ module "vader/typecheck"
 
 import "std/collections"
 import "toolchain/span"
-import "vader/diagnostics"
-import "vader/integer"
+import "vader/support/diagnostics"
+import "vader/support/integer"
 import "vader/types"
 
 /// Whether `from` can flow into a slot expecting `to` without explicit coercion.

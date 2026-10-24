@@ -11,8 +11,8 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics"
-import "vader/integer"
+import "vader/support/diagnostics"
+import "vader/support/integer"
 import "vader/types"
 AST :: import "toolchain/ast"
 

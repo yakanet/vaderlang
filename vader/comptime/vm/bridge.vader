@@ -18,7 +18,7 @@
 
 module "vader/comptime/vm"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/types"
 Ct :: import "vader/comptime"
 Vm :: import "vader/vm"

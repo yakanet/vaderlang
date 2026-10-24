@@ -19,7 +19,7 @@ import "toolchain/span"
 import "vader/lsp/protocol"
 import "vader/parser"
 import "vader/resolver"
-import "vader/text"
+import "vader/support/text"
 import "vader/typecheck"
 
 /// How deep under a root a walk looks for module folders.

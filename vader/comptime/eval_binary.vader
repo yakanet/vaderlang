@@ -9,8 +9,8 @@ module "vader/comptime"
 
 AST :: import "toolchain/ast"
 import "toolchain/span"
-import "vader/diagnostics"
-import "vader/integer"
+import "vader/support/diagnostics"
+import "vader/support/integer"
 import "vader/types"
 
 /// Evaluate a `BinaryExpr`. Recurses into both operands ; combines

@@ -18,15 +18,15 @@
 module "vader/pipeline"
 
 import "std/path"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
-import "vader/target"
+import "vader/support/target"
 import "vader/typecheck"
 import "vader/types"
 import "vader/lower"
 import "vader/midir"
 import "vader/bytecode"
-Prof :: import "vader/profile"
+Prof :: import "vader/support/profile"
 
 /// Normalise a path to `/` separators.
 ///

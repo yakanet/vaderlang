@@ -10,7 +10,7 @@ keeping the primitive as its canonical form). Builds on 0075 and 0091.
 typecheck or after it. The equality bridge of the last decision is gone; a machine
 integer still keys by its name (`canonical_key`, the impl tables), as the primitive
 did. What a value of an integer type is stored in is a machine integer of
-`vader/integer` (`integer_representation`), not a type.
+`vader/support/integer` (`integer_representation`), not a type.
 
 ## Context
 

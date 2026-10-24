@@ -14,7 +14,7 @@ module "vader/lower"
 import "std/collections"
 import "std/ffi"
 import "toolchain/ast"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 
 // Report each C symbol a second `@extern` declaration of the project claims

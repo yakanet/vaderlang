@@ -28,7 +28,7 @@ import "std/path"
 import "std/string"
 import "cli"
 import "vader/pipeline"
-import "vader/target"
+import "vader/support/target"
 
 /// `vader check [--target=<os>-<arch>] <path>`: run the front end and report.
 ///

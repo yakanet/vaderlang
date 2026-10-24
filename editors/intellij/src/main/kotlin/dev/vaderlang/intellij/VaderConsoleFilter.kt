@@ -57,7 +57,7 @@ private class VaderDiagnosticFilter(private val project: Project) : Filter {
 
     private companion object {
         // `[<path>:<line>:<col>]` — the shape `format_diagnostic` emits
-        // (`vader/diagnostics/render.vader`). Anchored on the brackets so a
+        // (`vader/support/diagnostics/render.vader`). Anchored on the brackets so a
         // colon-separated fragment inside a message cannot masquerade as one.
         val PATTERN = Regex("\\[([^\\[\\]:]+\\.vader):(\\d+):(\\d+)]")
     }

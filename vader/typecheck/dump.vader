@@ -188,7 +188,7 @@ lookup_decl_type :: fn(typed: TypedProgram, s: Symbol) -> string {
 import "std/testing"
 import "toolchain/ast"
 import "vader/parser"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 // A single typed module, always in scope (its own display path).
 dump_typed_program :: fn(typed: TypedProgram, with_banner: bool) -> string {

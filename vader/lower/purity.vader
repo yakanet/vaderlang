@@ -210,7 +210,7 @@ indexed_decl :: fn(ctx: PurityCtx, symbol: Symbol) -> LoweredFnDecl | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/types"
 import "vader/resolver/symbol"
 import "vader/typecheck"

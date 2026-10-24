@@ -17,7 +17,7 @@
 module "vader/lower"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 // ---- entry point ----------------------------------------------------------
 

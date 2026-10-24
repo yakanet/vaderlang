@@ -54,7 +54,7 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     return out
 }
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 
 wire_module :: fn(

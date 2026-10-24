@@ -17,7 +17,7 @@ import "std/iter"
 import "std/string"
 import "vader/bytecode"
 import "vader/c_emit/c_ast"
-import "vader/fixpoint"
+import "vader/support/fixpoint"
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"

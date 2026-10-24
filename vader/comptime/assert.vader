@@ -8,7 +8,7 @@
 module "vader/comptime"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/typecheck"
 AST :: import "toolchain/ast"
 

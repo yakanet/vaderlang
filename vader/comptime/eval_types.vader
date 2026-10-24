@@ -3,7 +3,7 @@
 module "vader/comptime"
 
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/parser"
 import "vader/typecheck"
 import "toolchain/span"

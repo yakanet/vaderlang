@@ -18,7 +18,7 @@
 //
 // What is NOT here: `Target`, the pair, and the `<os>-<arch>` parsing the CLI
 // does. Those are compilation vocabulary — a program computing numbers has no
-// reason to parse `"darwin-arm64"` — and they live in `vader/target` until a
+// reason to parse `"darwin-arm64"` — and they live in `vader/support/target` until a
 // build driver asks for them.
 
 module "std/target"
@@ -52,7 +52,7 @@ export Arch :: enum(u8) {
 
 // Canonical spelling, and the one the `<os>-<arch>` command-line form uses.
 // Drives `"${os}"` interpolation, `println(os)`, and the parsing in
-// `vader/target`, which round-trips against it.
+// `vader/support/target`, which round-trips against it.
 Os implements Display -> match self {
     .Windows -> "windows"
     .Linux   -> "linux"

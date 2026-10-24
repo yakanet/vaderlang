@@ -11,7 +11,7 @@ module "vader/types"
 import "std/abort"
 import "std/collections"
 import "std/string_builder"
-import "vader/integer"
+import "vader/support/integer"
 import "vader/resolver/symbol"
 
 // ---- variants -------------------------------------------------------------
@@ -375,7 +375,7 @@ export Type ::
 // ---- name registries ------------------------------------------------------
 
 /// Target-ABI metadata for one primitive other than the integers, which
-/// `vader/integer::MACHINE_INTEGERS` describes: the single source of truth every
+/// `vader/support/integer::MACHINE_INTEGERS` describes: the single source of truth every
 /// pass consults instead of re-listing names. Row order is load-bearing:
 /// `resolver/builtins` mints builtin symbol IDs in this order (embedded in
 /// snapshots), so new primitives append at the end. Consumer-owned mappings

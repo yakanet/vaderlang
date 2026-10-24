@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "std/collections"
 import "toolchain/span"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver/symbol"
 AST :: import "toolchain/ast"
 

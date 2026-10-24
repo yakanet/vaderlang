@@ -14,7 +14,7 @@
 module "vader/lower"
 
 import "std/string"
-import "vader/text"
+import "vader/support/text"
 import "vader/typecheck"
 import "vader/types"
 

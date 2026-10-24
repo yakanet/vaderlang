@@ -21,7 +21,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/integer"
+import "vader/support/integer"
 import "vader/lower"
 import "vader/types"
 

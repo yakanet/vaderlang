@@ -14,7 +14,7 @@ module "vader/lower"
 
 import "toolchain/ast"
 import "toolchain/span"
-import "vader/integer"
+import "vader/support/integer"
 import "vader/typecheck"
 import "vader/types"
 

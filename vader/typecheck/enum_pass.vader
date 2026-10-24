@@ -13,8 +13,8 @@
 module "vader/typecheck"
 
 import "std/collections"
-import "vader/diagnostics"
-import "vader/integer"
+import "vader/support/diagnostics"
+import "vader/support/integer"
 import "toolchain/ast"
 import "vader/parser"
 import "vader/types"

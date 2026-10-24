@@ -15,7 +15,7 @@ import "std/path"
 import "std/string"
 import "std/process"
 import "std/target"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
 import "vader/bytecode"
 import "vader/c_emit" { EmitOptions as CEmitOptions }

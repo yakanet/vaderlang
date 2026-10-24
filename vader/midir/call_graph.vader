@@ -21,7 +21,7 @@
 module "vader/midir"
 
 import "std/collections"
-import "vader/fixpoint"
+import "vader/support/fixpoint"
 import "vader/resolver/symbol"
 
 /// The node an indirect call or a deferred block goes through.

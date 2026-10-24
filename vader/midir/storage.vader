@@ -25,7 +25,7 @@ import "std/collections"
 import "toolchain/span"
 import "vader/bytecode"
 import "vader/comptime"
-import "vader/integer"
+import "vader/support/integer"
 import "vader/resolver/symbol"
 import "vader/types"
 

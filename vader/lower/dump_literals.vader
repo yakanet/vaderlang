@@ -10,7 +10,7 @@ module "vader/lower"
 import "std/numbers"
 import "std/string"
 import "std/string_builder"
-import "vader/text"
+import "vader/support/text"
 import "vader/typecheck"
 import "vader/types"
 

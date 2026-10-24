@@ -18,12 +18,12 @@ module "vader/resolver"
 
 import "std/abort"
 import "std/collections"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/parser"
 import "std/string"
 import "vader/resolver/symbol"
-import "vader/target"
+import "vader/support/target"
 import "toolchain/span"
 
 /// What one file of a module sees at its top level : its root scope, and the

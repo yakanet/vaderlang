@@ -1,4 +1,4 @@
-// vader/profile/profile.vader — per-pass profiler for the self-compile.
+// vader/support/profile/profile.vader — per-pass profiler for the self-compile.
 //
 // Bindings to the runtime profiler (runtime/c/vader_runtime.c). The compiler
 // brackets each pipeline pass with `prof_begin(phase)` / `prof_end(phase)`; the
@@ -6,7 +6,7 @@
 // dumps a table to stderr when `$VADER_PROFILE` is set. Every call is a cheap
 // no-op otherwise, so the brackets stay in the hot path unconditionally.
 
-module "vader/profile"
+module "vader/support/profile"
 
 /// A pipeline pass the profiler times. Its value indexes `g_prof_names[]` in
 /// `runtime/c/vader_runtime.c`, so the two lists move together, and the width

@@ -17,7 +17,7 @@ module "vader/comptime"
 import "std/collections"
 import "std/string_builder"
 import "vader/types"
-import "vader/text"
+import "vader/support/text"
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
 /// Format is fixed so the bytecode emitter, the C

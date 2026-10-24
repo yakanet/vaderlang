@@ -1,5 +1,5 @@
 // SPEC.md names diagnostic codes in its prose. Retiring or renumbering a code
-// in `vader/diagnostics/codes.vader` leaves those citations pointing at nothing,
+// in `vader/support/diagnostics/codes.vader` leaves those citations pointing at nothing,
 // and nothing else notices: the compiler does not read SPEC. This scan is what
 // notices, and it also holds each registry enum to its own family letter.
 
@@ -27,7 +27,7 @@ const CODE_ID = /\.id = "([A-Z]\d{4})"/;
 function registryIds(): Map<string, string> {
   const enumOf = new Map<string, string>();
   let current: string | null = null;
-  for (const line of readFileSync(join(ROOT, "vader", "diagnostics", "codes.vader"), "utf8").split("\n")) {
+  for (const line of readFileSync(join(ROOT, "vader", "support", "diagnostics", "codes.vader"), "utf8").split("\n")) {
     const header = ENUM_HEADER.exec(line);
     if (header) {
       current = header[1]!;

@@ -753,7 +753,7 @@ static inline uint64_t vader_mod_u64(uint64_t a, uint64_t b) {
 /* Checked integer arithmetic. The C-emit backend routes every `+`, `-`, `*` and
  * unary `-` the program wrote on an integer through these (`CheckedArith` /
  * `CheckedNeg`), as `vader_chk_add(<type>, a, b)`, so a result that leaves its
- * type stops the run with the VM's message (`vader/integer/integer.vader` is the
+ * type stops the run with the VM's message (`vader/support/integer/integer.vader` is the
  * reference). `--release` passes -DNDEBUG: they then wrap at the type's width, as
  * `+%` does. Operands and result ride in the stack class: `int32_t` for a type up
  * to 32 bits (a `u32` as its bits), `int64_t` beyond. The release forms must stay
@@ -1258,11 +1258,11 @@ vader_i32_t vader_sched_park(void);
 
 /* ---- self-compile profiler (VADER_PROFILE) --------------------------------
  * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes.
- * The compiler (vader/profile) brackets each pass via vader_prof_begin/end
+ * The compiler (vader/support/profile) brackets each pass via vader_prof_begin/end
  * with an integer phase id; the phase names + all query helpers (RSS, GC
  * stats) live in vader_runtime.c. Everything is a no-op unless $VADER_PROFILE
  * is set, and the per-phase table is dumped to stderr at exit (atexit). Only
- * begin/end/dump cross the FFI boundary (called from vader/profile via @extern). */
+ * begin/end/dump cross the FFI boundary (called from vader/support/profile via @extern). */
 void vader_prof_begin(int32_t phase_id);
 void vader_prof_end(int32_t phase_id);
 void vader_prof_dump(void);

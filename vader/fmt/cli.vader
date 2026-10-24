@@ -17,7 +17,7 @@ module "vader/fmt"
 import "std/io"
 import "std/string"
 import "std/path"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 
 // Per-file outcome. Typed so call sites can pattern-match instead of
 // chaining magic-number comparisons. Discriminants ARE the OS exit codes —

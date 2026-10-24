@@ -9,7 +9,7 @@ import "std/string"
 import "std/char"
 import "std/string_builder"
 import "vader/lexer"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"
 

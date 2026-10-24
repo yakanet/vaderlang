@@ -12,9 +12,9 @@ module "vader/pipeline/check"
 
 import "std/collections"
 import "std/iter"
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/resolver"
-import "vader/target"
+import "vader/support/target"
 import "vader/typecheck"
 
 Fx :: import "vader/effects"

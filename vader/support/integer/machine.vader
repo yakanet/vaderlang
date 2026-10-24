@@ -1,4 +1,4 @@
-// vader/integer/machine: the eight machine integers.
+// vader/support/integer/machine: the eight machine integers.
 //
 // A machine integer is a storage width, 8, 16, 32 or 64 bits, signed or not, with
 // the values that width holds. `lib/std/core/integers.vader` declares them as
@@ -8,7 +8,7 @@
 // this table does (`i32.add`), and so do the compiler's messages and mangled
 // names.
 
-module "vader/integer"
+module "vader/support/integer"
 
 // ---- machine integers -----------------------------------------------------
 

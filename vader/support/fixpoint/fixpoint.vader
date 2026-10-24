@@ -1,4 +1,4 @@
-// vader/fixpoint — the fixed point of a property over a call graph.
+// vader/support/fixpoint — the fixed point of a property over a call graph.
 //
 // A client holds one fact per node of a graph whose edges go from a caller to the
 // functions it calls, and a step that recomputes one node's fact from what its
@@ -15,7 +15,7 @@
 // maps its key (a mangle, a declaration) to an index once and the engine needs
 // no generic parameter.
 
-module "vader/fixpoint"
+module "vader/support/fixpoint"
 
 import "std/abort"
 import "std/iter"

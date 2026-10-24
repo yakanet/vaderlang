@@ -21,7 +21,7 @@ import "toolchain/span"
 import "vader/resolver/symbol"
 import "vader/types"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "vader/parser"
 
 /// One resolver output entry per source module.

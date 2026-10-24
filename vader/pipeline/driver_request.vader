@@ -16,7 +16,7 @@ import "std/collections"
 import "std/io"
 import "std/string"
 import "vader/resolver"
-import "vader/target"
+import "vader/support/target"
 
 /// What a driver run does once its entries are added.
 export DriverMode :: enum {

@@ -14,8 +14,8 @@ module "vader/lexer"
 import "std/string"
 import "std/numbers"
 import "std/string_builder"
-import "vader/text"
-// Diagnostic info is now resolved at construction time — see vader/diagnostics.
+import "vader/support/text"
+// Diagnostic info is now resolved at construction time — see vader/support/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
     sb :: StringBuilder {}
@@ -29,7 +29,7 @@ export dump_tokens :: fn(l: Lexer) -> string {
 
 // The diagnostic renderer (`dump_diagnostics` / `dump_diagnostics_with_file` /
 // `render_diagnostics` / `format_diagnostic` + dedup/sort helpers) moved to
-// `vader/diagnostics/render` — rendering a `Diagnostic[]` is a diagnostics
+// `vader/support/diagnostics/render` — rendering a `Diagnostic[]` is a diagnostics
 // concern, not a lexer one. This module keeps only the token dump below.
 
 format_token :: fn(sb: StringBuilder, t: Token) -> void {

@@ -29,7 +29,7 @@ bound.
   set aside: a reader that ignores them takes `Hour` for a `u8` and accepts
   `h += 30` in silence, where a reader that does not know the new variant refuses it.
 - **One interval domain.** The bounds are the interval domain the range analysis of
-  midir already computed with (0058), moved to `vader/integer` so the typecheck shares
+  midir already computed with (0058), moved to `vader/support/integer` so the typecheck shares
   it: `i64` ends, an end past them open. A declared bound is a literal within `i64`;
   the open end serves `u64`'s values and a result past 64 bits.
 - **Held in the narrowest integer.** A range is stored in the narrowest of `u8`,

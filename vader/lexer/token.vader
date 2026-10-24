@@ -2,12 +2,12 @@
 //
 // One enum variant per kind so downstream
 // passes get exhaustive `match` checking. `Position` and `Span` live in
-// `vader/diagnostics/diagnostic` so tokens and diagnostics share the same
+// `vader/support/diagnostics/diagnostic` so tokens and diagnostics share the same
 // canonical source-location types.
 
 module "vader/lexer"
 
-import "vader/diagnostics"
+import "vader/support/diagnostics"
 import "toolchain/span"
 
 export TokenKind :: enum(u8) {

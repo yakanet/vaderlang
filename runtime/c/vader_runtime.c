@@ -2562,11 +2562,11 @@ vader_gc_stats_t vader_gc_get_stats(void) {
 /* ----------------------------------------------------------------- profiler
  *
  * Per-pass self-compile profiler, gated by $VADER_PROFILE. The compiler
- * (vader/profile) brackets each pass with vader_prof_begin/end(phase_id);
+ * (vader/support/profile) brackets each pass with vader_prof_begin/end(phase_id);
  * we accumulate wall time, peak-RSS growth, and GC churn per phase, then
  * dump a table to stderr at exit. Phase ids index g_prof_names[] — that
  * table is the single source of truth and is mirrored by the `ProfPhase`
- * enum in vader/profile/profile.vader. Keep the two in lockstep. */
+ * enum in vader/support/profile/profile.vader. Keep the two in lockstep. */
 
 /* The profiler's own clock. Internal on purpose: `std/time` reads the OS
  * clocks itself through `@target` + `@extern`, so nothing outside this file
@@ -2595,7 +2595,7 @@ static vader_i64_t prof_monotonic_ns(void) {
 
 #define VADER_PROF_MAX_PHASES 16
 
-/* Phase names — index = phase id. Mirror in vader/profile/profile.vader. */
+/* Phase names — index = phase id. Mirror in vader/support/profile/profile.vader. */
 static const char* g_prof_names[VADER_PROF_MAX_PHASES] = {
     "load",       /* 0  */
     "typecheck",  /* 1  */
