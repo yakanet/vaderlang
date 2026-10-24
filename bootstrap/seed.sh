@@ -265,7 +265,7 @@ cmd_regenerate() {
 
     cat > bootstrap/VERSION <<META
 vader_source_sha: $(git rev-parse HEAD)
-vader_version:    $(grep -E '^export CLI_VERSION' vader/version/version.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
+vader_version:    $(grep -E '^export CLI_VERSION' vader/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
 regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER
 META

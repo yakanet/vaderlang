@@ -1297,7 +1297,7 @@ check_loop_jump :: fn(
 
 // The nearest enclosing loop whose iteration variable OR label is `name`
 // (innermost-first), or null. Mirrors the backward loop-stack scan of
-// `resolve_loop_frame` (midir) / `gb_resolve_loop_frame` (lower_coroutine).
+// `resolve_loop_frame` (midir) / `gb_resolve_loop_frame` (lower/coroutine.vader).
 resolve_loop_target :: fn(stack: EnclosingLoop[], name: string) -> EnclosingLoop | null {
     i := stack.len()
     for i > 0 {
@@ -1326,7 +1326,7 @@ check_defer :: fn(
     // defers on teardown (T3060 ; lifted with async cancellation, 4c). `defer`
     // inside an async coroutine IS supported : the coroutine always runs to
     // completion in v1, and its pending defers live in the per-frame `__defers`
-    // stack, drained LIFO at each structured exit (`lower_coroutine`).
+    // stack, drained LIFO at each structured exit (`lower/coroutine.vader`).
     effective :: resolve_ctx(ctx, typed)
     if effective != null && effective.is_generator {
         diags.push(typecheck_error(.DeferInGenerator, s.span, ""))

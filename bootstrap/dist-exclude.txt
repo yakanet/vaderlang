@@ -1,7 +1,7 @@
 # Subdirectories of vader/ a dist bundle does NOT ship — one per line.
 #
 # The bundle carries the compiler's sources so a project's `build.vader` can be
-# compiled against them. These six are outside that closure: they are the HUMAN
+# compiled against them. These five are outside that closure: they are the HUMAN
 # front-ends, reached through the binary rather than imported by a driver, and
 # nothing in the driver's closure imports them. Measured on the real import
 # graph: 622 KB of 3 966, 16 % of the shipped sources.
@@ -24,4 +24,3 @@ fmt
 cli
 dap
 bootstrap
-version

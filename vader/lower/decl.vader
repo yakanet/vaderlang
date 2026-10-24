@@ -1,0 +1,465 @@
+// vader/lower/decl — per-declaration lowering: fn / struct / const / impl-member.
+//
+
+module "vader/lower"
+
+import "std/abort"
+import "std/collections"
+
+import "vader/diagnostics"
+import "toolchain/ast"
+import "vader/typecheck"
+import "vader/types"
+import "vader/comptime"
+import "vader/resolver"
+import "vader/resolver/symbol"
+import "toolchain/span"
+
+// Each `T implements Trait { method ... }` member surfaces as a fn
+// decl with mangled name `<module>$<for-type>$<trait-segment>$<method>`.
+// `self` is the first parameter ; its type comes from the impl's
+// `for_type`. The lifted fns are appended to `project_ctx.synth_decls`
+// so the module driver drains them in the right order.
+lower_impl_members :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> void {
+    // Back-compat shape : keep the void-returning entry but route
+    // through the inline emit + push results to `synth_decls` so any
+    // caller still relying on the old "drains at module end" path
+    // keeps working. Modern call sites prefer `lower_impl_member_list`.
+    members :: lower_impl_member_list(impl_decl, typed, project_ctx, diags)
+    for m in members { project_ctx.synth_decls.push(m) }
+}
+
+// Claim the single emission of the impl member `mangled`, or of an instance of one
+// (`member_instance`); false when another path already lowered it. Every path that lowers such a member claims it
+// here first, or the function ends up with two bodies in one slot downstream.
+claim_impl_member :: fn(project_ctx: LowerProjectCtx, mangled: string) -> bool =
+    project_ctx.materialized_impl_keys.add("impl_member::${mangled}")
+
+/// Return the lowered fn-decl for each member of `impl_decl`, in
+/// source order. Yielding the list (instead of pushing to
+/// `project_ctx.synth_decls`) lets the caller interleave the members
+/// right after the impl's source position, emitting each member
+/// individually.
+lower_impl_member_list :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl[] {
+    out: LoweredDecl[]: []
+    // Skip generic impls entirely — the mono pass binds them via a
+    // separate path — and array impls, materialised per element
+    // (`surface_array_impl_members`).
+    if impl_decl.type_params.len() > 0 { return out }
+    if impl_decl.for_type is GenericInstExpr { return out }
+    if impl_decl.for_type is ArrayTypeExpr { return out }
+    // An impl whose trait does not resolve has no entry ; resolution reported it.
+    impl_entry :: project_ctx.impls.entry_of(impl_decl) ?? return out
+    self_type :: impl_self_type(impl_entry)
+    for member in impl_decl.members {
+        // A member with type parameters of its own is lowered per call
+        // (`member_instance`).
+        if member.type_params.len() > 0 { continue }
+        mangled :: impl_member_mangled(impl_entry, member, self_type)
+        if !claim_impl_member(project_ctx, mangled) {
+            continue
+        }
+        subst :: new_substitution()
+        types :: make_entry_types(typed, subst)
+        params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
+        return_type :: return_type_of(member, types)
+        entry :: synth_impl_entry(member, typed, mangled, impl_entry.trait_key)
+        out.push(lowered_fn_of(member, typed, project_ctx, entry, subst, params, return_type))
+    }
+    return out
+}
+
+build_impl_member_params :: fn(
+    member: FnDecl, self_type: Type, types: EntryTypes,
+    typed: TypedProgram, project_ctx: LowerProjectCtx,
+) -> LoweredParam[] {
+    params: LoweredParam[]: []
+    for ast_param in member.params {
+        // `self` may have no use-sites inside the body (`-> "point"`),
+        // in which case `resolved.idents` doesn't surface the symbol.
+        // Fall back to a synthesised symbol carrying the param's name
+        // so the dump renders the signature correctly.
+        symbol_or_null :: lookup_local_symbol(project_ctx, typed.resolved, ast_param.span)
+        symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
+        // The lone `self` param carries an absent TypeExpr ; substitute the
+        // impl's `for_type` so downstream phases see the concrete receiver
+        // type rather than `Self`.
+        param_type :: if ast_param.name == "self" {
+            self_type
+        } else {
+            impl_member_param_type(ast_param, types, typed)
+        }
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = symbol, .type = param_type,
+        })
+    }
+    return params
+}
+
+// Resolve a surfaced impl member's non-self param type. `@intrinsic`
+// synthetic members (e.g. primitive `Equals::equals`'s `other: Self`) bake
+// the impl substitution into the param's AST type expr but inherit the
+// TRAIT method's param span ; every primitive implementor shares it, so the
+// span-keyed `param_types` table collapses to a single last-writer-wins
+// entry (all primitive `equals` wrappers came out `(prim, string)`). When
+// the substituted type expr resolves structurally to a PRIMITIVE, a machine
+// integer included, that is authoritative : take it. Every other param keeps
+// the span/subst-keyed `EntryTypes` path (generic-impl members still carry a
+// type-param at the AST level and need the entry substitution), so this
+// narrows strictly to the primitive-intrinsic collision.
+impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
+    pty :: ast_param.ty ?? return types.param_type(ast_param)
+    scratch: Diagnostic[]: []
+    direct :: type_from_expr(pty, typed.resolved, scratch)
+    if primitive_name(direct) != "" {
+        return direct
+    }
+    return types.param_type(ast_param)
+}
+
+
+synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedProgram) -> Symbol {
+    match symbol_or_null {
+        is Symbol -> { return symbol_or_null }
+        is null -> {
+            return Symbol {
+                .id         = 0,
+                .kind       = .Param,
+                .name       = name,
+                .module     = typed.resolved.path,
+                .module_name = typed.resolved.path,
+                .visibility = .Private,
+                .defined_at = null,
+            }
+        }
+    }
+}
+
+impl_member_mangled :: fn(entry: ImplEntry, member: FnDecl, self_type: Type) -> string {
+    suffix :: entry.overload_suffix
+    return impl_member_name(entry.module, self_type, entry.trait_symbol, member.name, suffix)
+}
+
+// The entry of an impl member and the vtable slot it fills in the trait
+// `trait_key`. An impl member has no resolver symbol, so downstream phases route
+// it by its mangle ; a lookup by name would lend it the symbol of a free function
+// of the same name, and the backend, which indexes by symbol first, would then
+// put both in one slot.
+synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, trait_key: string) -> MonoEntry {
+    return MonoEntry {
+        .id             = 0,
+        .is_main        = false,
+        .mangled        = mangled,
+        .decl           = member,
+        .symbol         = null,
+        .subst          = new_substitution(),
+        .type_arguments = [],
+        .module         = typed,
+        .vtable_slot    = member_vtable_slot(trait_key, member),
+    }
+}
+
+// FnDecl → `LoweredFnDecl`. Lowers the body via the shared `lower_block`
+// driver (`lower_fn_body`). Generic fns (`type_params.len() > 0`) are
+// skipped here — they're materialised per concrete instance by the mono
+// pass (`mono_fn.vader`) ; this path handles non-generic decls only.
+lower_fn_decl :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    if fn_decl.type_params.len() > 0 { return null }
+    subst :: new_substitution()
+    types :: make_entry_types(typed, subst)
+    params: LoweredParam[]: []
+    for ast_param in fn_decl.params {
+        // Param symbols live behind `resolved.idents` use-sites — recover
+        // by matching `defined_at` against the param's source span.
+        // `@extern` decls have no body and params with no use-sites in the
+        // declared body fall through the same gap. Synthesise a Param
+        // symbol carrying the source name so the signature renders.
+        symbol_or_null :: lookup_local_symbol(project_ctx, typed.resolved, ast_param.span)
+        symbol :: synth_param_or(symbol_or_null, ast_param.name, typed)
+        param_type_val :: types.param_type(ast_param)
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = symbol, .type = param_type_val,
+        })
+    }
+    return_type :: return_type_of(fn_decl, types)
+    entry :: stub_entry(fn_decl, typed)
+    if takes_enum_values(fn_decl, params, typed) {
+        return lower_extern_through_values(
+            project_ctx,
+            entry,
+            typed,
+            subst,
+            fn_decl,
+            params,
+            return_type,
+        )
+    }
+    if decorators_have(fn_decl.decorators, "singleton") {
+        return lower_singleton(project_ctx, entry, typed, subst, fn_decl, return_type)
+    }
+    return lowered_fn_of(fn_decl, typed, project_ctx, entry, subst, params, return_type)
+}
+
+/// A fn or an impl member, lowered: its state machine when it is a generator or
+/// awaits, its plain body otherwise, with the type that body hands back ; no body
+/// for one that has none (`@extern`, `@intrinsic`). Every site that materialises
+/// one goes through here, so the body and its return type are decided together.
+/// A body that both yields and awaits is a generator, as the typecheck reads it ;
+/// lowered as a plain body, a generator would drop every `yield` and return no
+/// value.
+///
+/// @param fn_decl      the fn or member.
+/// @param typed        its module.
+/// @param entry        its instance : its name, and whether it is `main`.
+/// @param subst        the instance's substitution.
+/// @param params       its lowered parameters.
+/// @param return_type  its declared return, substituted at the instance.
+/// @return             the lowered declaration.
+lowered_fn_of :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    entry: MonoEntry, subst: Substitution, params: LoweredParam[], return_type: Type,
+) -> LoweredFnDecl {
+    bodyless :: LoweredFnDecl {
+        .mangled     = entry.mangled,
+        .params      = params,
+        .return_type = return_type,
+        .body        = null,
+        .origin      = entry,
+    }
+    body :: fn_decl.body ?? return bodyless
+    if fn_is_generator(typed, fn_decl) {
+        return LoweredFnDecl {
+            ...bodyless,
+            .body = lower_generator_body(
+                project_ctx, entry, typed, subst, fn_decl, body, params, return_type,
+            ),
+        }
+    }
+    if fn_is_async(typed, fn_decl) {
+        inner :: async_inner_type(return_type)
+        return LoweredFnDecl {
+            ...bodyless,
+            .return_type = async_return_type(project_ctx, entry, return_type, inner),
+            .body        = lower_async_body(
+                project_ctx, entry, typed, subst, fn_decl, body, params, inner, entry.is_main,
+            ),
+        }
+    }
+    return LoweredFnDecl {
+        ...bodyless,
+        .body = lower_fn_body(fn_decl, typed, project_ctx, entry, subst, return_type),
+    }
+}
+
+// What an `async` body hands back: the erased `Async<T>` its frame is, or for
+// `async main` the raw `inner`, the exit code the driver inlined into its body
+// returns (the program entry cannot return a frame).
+async_return_type :: fn(project_ctx: LowerProjectCtx, entry: MonoEntry, declared: Type, inner: Type) -> Type {
+    if entry.is_main {
+        return inner
+    }
+    async_sym :: find_core_trait(project_ctx, TRAIT_ASYNC) ?? return inner
+    return erased_async_type(async_sym, declared)
+}
+
+// Build the fn-body context and invoke the block lowerer. Returns
+// `null` for `@extern` / signature-only fns (`body is null`).
+lower_fn_body :: fn(
+    fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    entry: MonoEntry, subst: Substitution, return_type: Type,
+) -> LoweredBlock | null {
+    body :: fn_decl.body ?? return null
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type)
+    block :: lower_block(fn_ctx, body, true, null)
+    return promote_cell_params(fn_ctx, fn_decl.params, block)
+}
+
+/// Prepend a fn-entry prologue that cell-promotes every captured parameter
+/// something rebinds.
+///
+/// When such a parameter is captured by an inner lambda or a `defer` body, the
+/// closure reads it through a heap cell (`LoweredCellGet` off the param's slot)
+/// and the env materialisation stores that cell — but a parameter, unlike a
+/// `let` local (which routes through `lower_cell_init`), arrives in its slot as
+/// the raw ABI value, never wrapped. The prologue rebinds each such param's
+/// slot to a fresh cell over the incoming value, so the slot holds a cell from
+/// the first capture onward. The inner read is a RAW `LoweredIdent` (built here,
+/// not via `lower_expr`) so it loads the ABI value rather than re-entering the
+/// cell path. An env holding the raw scalar instead is read back as a struct by
+/// the lifted body (`struct.get … expected struct, got i64`).
+///
+/// Shared by every fn-root body : `lower_fn_body` (top-level fns + generic
+/// instances + impl members) and `lower_lambda` (a lambda's own param can be
+/// captured by a further-nested lambda).
+///
+/// @param fn_ctx  the fn-body lower context (carries the closure analysis).
+/// @param params  the source param list ; the env param of a lifted lambda is
+///                not in it, so it's never promoted.
+/// @param block   the already-lowered fn-root body.
+/// @return        `block` unchanged when no param is captured, else a new block
+///                with the cell-promoting prologue prepended.
+promote_cell_params :: fn(
+    fn_ctx: FnLowerCtx, params: FnParam[], block: LoweredBlock,
+) -> LoweredBlock {
+    // Common case — a closure-free project never promotes anything, so skip the
+    // per-param symbol lookups entirely.
+    if fn_ctx.project.closures.cell_symbols.len() == 0 { return block }
+    prologue: LoweredStmt[]: []
+    for ast_param in params {
+        sym :: lookup_local_symbol(fn_ctx.project, fn_ctx.typed.resolved, ast_param.span)
+        if sym is null { continue }
+        if !lives_in_cell(fn_ctx, sym.id) { continue }
+        param_type :: fn_ctx.types.param_type(ast_param)
+        raw_read :: LoweredIdent { .span = ast_param.span, .type = param_type, .symbol = sym }
+        // The gate above means it always wraps here.
+        prologue.push(cell_aware_let(fn_ctx, sym, sym.name, raw_read, param_type, ast_param.span))
+    }
+    return prepend_stmts_to_block(prologue, block)
+}
+
+// StructDecl → `LoweredStructDecl` with resolved field types (the dump
+// format includes the field list, so they're resolved eagerly here).
+lower_struct_decl :: fn(
+    struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    if struct_decl.type_params.len() > 0 { return null }
+    sym :: decl_symbol(typed.resolved, struct_decl)
+        ?? panic("lower: struct `${struct_decl.name}` has no declaration symbol")
+    fields: LoweredStructField[]: []
+    for field in struct_decl.fields {
+        fields.push(LoweredStructField {
+            .name = field.name,
+            .type = declared_field_type(typed, sym, field.name),
+        })
+    }
+    entry :: stub_entry(struct_decl, typed)
+    return LoweredStructDecl {
+        .mangled = entry.mangled,
+        .fields  = fields,
+        .origin  = entry,
+    }
+}
+
+// ConstDecl → `LoweredConstDecl`. Lowers the value into the const's type, through
+// the `Into` the typecheck accepted on it, preferring the `@comptime`-baked value
+// when the evaluator folded the const (`lower_const_value` /
+// `lookup_comptime_value`) so downstream phases see the materialised literal.
+// Type-alias / metatype consts have no runtime slot and are skipped.
+lower_const_decl :: fn(
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> LoweredDecl | null {
+    subst :: new_substitution()
+    types :: make_entry_types(typed, subst)
+    type_val :: types.declared_type(const_decl.name_span)
+    // Implicit / explicit type-alias consts (`const T: type = i32 | string`,
+    // or `Mixed :: i32 | string` with the alias detected during decl typing)
+    // have no runtime slot — use sites resolve via `alias_types`. Skip
+    // emit.
+    if type_val is TypeMetaType { return null }
+    entry :: stub_entry(const_decl, typed)
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, type_val)
+    // Prefer the comptime-baked value when the evaluator was able to fold
+    // the const expression, so downstream phases see the materialised
+    // literal rather than the source AST.
+    value :: lower_const_value(const_decl, typed, project_ctx, fn_ctx, type_val)
+    return LoweredConstDecl {
+        .mangled = entry.mangled,
+        .type    = type_val,
+        .value   = value,
+        .origin  = entry,
+    }
+}
+
+lower_const_value :: fn(
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+    fn_ctx: FnLowerCtx, type_val: Type,
+) -> LoweredExpr {
+    baked :: lookup_comptime_value(const_decl, typed, project_ctx)
+    if baked == null {
+        return lower_for_slot(fn_ctx, const_decl.value, type_val, const_decl.span)
+    }
+    return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
+}
+
+lookup_comptime_value :: fn(
+    const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+) -> ComptimeValue | null {
+    program :: project_ctx.evaluated.modules[typed.resolved.path] ?? return null
+    symbol :: symbol_declared_at(typed.resolved, const_decl.name_span) ?? return null
+    return program.comptime_decls[symbol.id]
+}
+
+
+// Recover a fn-decl's resolved return type from `decl_types`. Falls
+// back to `void` when the decl-type lookup misses (the fn was rejected
+// upstream — cascading diagnostics already surfaced).
+return_type_of :: fn(fn_decl: FnDecl, types: EntryTypes) -> Type {
+    decl_type :: types.declared_type(fn_decl.name_span)
+    if decl_type is FnType {
+        return decl_type.return_type
+    }
+    return TY_VOID
+}
+
+// Build a stub `MonoEntry` for a decl. `mangled` follows the
+// `<module-id-with-slashes-and-dots-replaced-by-underscores>$<name>`
+// convention so downstream phases + the snapshot harness see a
+// stable identifier. `is_main` stays the routing
+// identity ; the bytecode emit reads that flag (not the mangled
+// name) to pick the entry point.
+stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
+    name :: decl_name(decl)
+    suffix :: overload_suffix_for(decl, typed)
+    mangled :: "${mangle_module_id(typed.resolved.display_path)}$${name}${suffix}"
+    // Propagate the resolver-side `Symbol` so downstream phases (notably
+    // the bytecode emit's `function_index_by_symbol_id` index) can route
+    // call sites — `LoweredIdent.symbol` holds the same id, so the two
+    // ends meet at the resolver symbol rather than the (null) mono one.
+    resolved_symbol :: decl_symbol(typed.resolved, decl)
+    return MonoEntry {
+        .id             = 0,
+        .is_main        = is_main_decl(decl),
+        .mangled        = mangled,
+        .decl           = decl,
+        .symbol         = resolved_symbol,
+        .subst          = new_substitution(),
+        .type_arguments = [],
+        .module         = typed,
+    }
+}
+
+// The overload suffix of `decl` in its module (`overload_suffix`) ; `""` for a
+// declaration that is not a fn.
+overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
+    if decl is FnDecl {
+        return overload_suffix(typed.resolved, decl.name, decl.name_span)
+    }
+    return ""
+}
+
+// Recover the source name from any top-level decl. Feeds `stub_entry`'s
+// module-qualified `mangled` field (`<module>$<name>` + overload suffix) —
+// the final mangle for non-generic decls ; generic instances are mangled
+// separately by the mono pass (`mono_fn.vader`).
+decl_name :: fn(decl: Decl) -> string = match decl {
+    is FnDecl        -> decl.name
+    is StructDecl    -> decl.name
+    is ConstDecl     -> decl.name
+    is ImportDecl    -> ""
+    is EnumDecl      -> ""
+    is TraitDecl     -> ""
+    is ImplDecl      -> ""
+    is TypeAliasDecl -> ""
+    is AssertDecl    -> ""
+}
+
+is_main_decl :: fn(decl: Decl) -> bool {
+    if decl is FnDecl { return decl.name == "main" }
+    return false
+}

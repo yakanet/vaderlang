@@ -85,7 +85,7 @@ Cloning *every* instance in full would blow up code size — a `List<T>` used at
 - **Mixed** — at least one type argument is a primitive. Primitive parameters stay **concrete and raw** — a `Box<i64>` field is laid out as a raw `i64` (not a boxed slot), and `msg.to_string()` on a primitive resolves to the one impl statically — while reference parameters are erased to the uniform pointer. Mangling keeps one body per distinct primitive shape (`Box__i64`, `Box__f32`, …).
 - **Erased** — every type argument is a reference type. All type parameters erase to a single uniform-pointer representation (spelled `Any`), so identical erased instances **deduplicate to one emitted body**, and a trait-method call on an erased receiver dispatches at runtime on the boxed tag. A reference is a reference regardless of what it points to, so one body serves them all.
 
-The classifier is `fn_instance_flavor` in `vader/lower/lower_mono_fn.vader` for free functions, with the matching struct-layout and impl-materialisation logic in `vader/lower/lower_mono_struct.vader` and `vader/lower/lower_subst.vader`. The payoff is the **box-vs-raw partition**: a primitive instance is fully concrete (its representation is known statically, primitive ops inline, no vtable), while a reference instance stays erased and uniform (small code, one shared body). Because the split is derived structurally from the type arguments, generics need no per-declaration "always specialise" annotation — the compiler already keeps every primitive instance concrete on its own.
+The classifier is `fn_instance_flavor` in `vader/lower/mono_fn.vader` for free functions, with the matching struct-layout and impl-materialisation logic in `vader/lower/mono_struct.vader` and `vader/lower/subst.vader`. The payoff is the **box-vs-raw partition**: a primitive instance is fully concrete (its representation is known statically, primitive ops inline, no vtable), while a reference instance stays erased and uniform (small code, one shared body). Because the split is derived structurally from the type arguments, generics need no per-declaration "always specialise" annotation — the compiler already keeps every primitive instance concrete on its own.
 
 ### Lowered AST
 
@@ -3358,7 +3358,7 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-The comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime_vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
+The comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime/vm`). The VM result is bridged back to a comptime value and injected. Guards bound this: a step budget bounds non-terminating loops and, like any VM trap, surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`.
 
 ### Reflection / comptime intrinsics
 

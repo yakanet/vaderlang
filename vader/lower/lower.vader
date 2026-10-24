@@ -1,17 +1,18 @@
 // vader/lower/lower — project-level lowerer orchestrator.
 //
-// Walks every top-level
-// decl across the project's typed modules, builds a stub `MonoEntry`
-// per non-generic decl, and dispatches to the per-decl-kind lowerer.
+// Walks every top-level decl across the project's typed modules, builds a
+// stub `MonoEntry` per non-generic decl, and dispatches to the per-decl-kind
+// lowerer.
 //
 // The orchestrator takes `LoadedProject` (for source decls) +
 // `TypedProject` (for typed side-tables) + `EvaluatedProject` (for
 // comptime values + mono entries). The heavy lifting lives in sibling
 // files of this same `vader/lower` module : table population
-// (lower_populate), per-decl lowering (lower_decl), generic instance
-// materialization (lower_mono), substitutions & mangling (lower_subst),
-// stdlib/intrinsic extern surfacing (lower_stdlib), the DCE reference
-// walker (lower_ref), and vtable / output assembly (lower_finish).
+// (populate.vader), per-decl lowering (decl.vader), generic instance
+// materialization (mono_fn.vader, mono_struct.vader), substitutions and
+// mangling (subst.vader), stdlib/intrinsic extern surfacing (stdlib.vader),
+// the DCE reference walker (ref.vader), and vtable / output assembly
+// (finish.vader).
 
 module "vader/lower"
 
@@ -43,7 +44,7 @@ export lower_project :: fn(
 /// materialization. The eager modules' un-baked consts inline their RHS call at
 /// each use site (the standard staging trick), so the nullary callee thunks land
 /// in the harvest and are lowered. The result is a throwaway bytecode module used
-/// only to VM-execute those callees — see `comptime_vm/resolve.vader`.
+/// only to VM-execute those callees — see `comptime/vm/resolve.vader`.
 ///
 /// @param eager_modules  module ids to lower eagerly (with bodies) ; every other
 ///                       module surfaces bodyless signatures only. Must be

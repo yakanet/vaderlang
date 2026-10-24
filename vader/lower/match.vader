@@ -1,0 +1,409 @@
+// vader/lower/match — match-expression lowerer.
+//
+// Flattens `match scrutinee { arm... }` to a let-bind on the scrutinee + a chain
+// of `if (predicate) <arm-body>` blocks. Struct-destructure bindings are
+// introduced inside the arm block so they're scoped per-arm; the header binding
+// (`match x :: e`) is bound once, ahead of the arms.
+
+module "vader/lower"
+
+import "std/collections"
+import "toolchain/ast"
+import "toolchain/span"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "vader/types"
+
+/// Lower a `MatchExpr` to a block containing the scrutinee binding
+/// + an if-chain over the arms.
+/// @param ctx          the fn-body context.
+/// @param expr         the source match.
+/// @param result_type  the result type the surrounding context expects.
+/// @return             the lowered block.
+lower_match :: fn(ctx: FnLowerCtx, expr: MatchExpr, result_type: Type) -> LoweredExpr {
+    scrut_type :: default_free_members(ctx.types.expr_type(expr.scrutinee))
+    scrut_value :: lower_expr(ctx, expr.scrutinee)
+
+    stmts: LoweredStmt[]: []
+    // Scrutinee-temp elision : when the scrutinee already lowers to a direct
+    // local/param read AND no arm carries a guard, reuse that slot instead of
+    // spilling to a synthetic `__scrut` temp. Pattern predicates are pure, so
+    // re-reading the slot once per predicate sees the same value — UNLESS an
+    // earlier arm's guard runs between predicates and mutates the scrutinee
+    // local (a guard can be a block expression with an assignment). The spill
+    // snapshots the value once, matching "scrutinee evaluated once", so a
+    // guarded match keeps it. A non-trivial scrutinee (`match f(x)`, a
+    // field/index access, a captured-cell / env read — none of which lower to
+    // `LoweredIdent`) also still spills, evaluated exactly once.
+    elide_symbol :: if any_arm_guarded(expr.arms) {
+        null
+    } else {
+        scrut_ident_symbol(scrut_value)
+    }
+    scrut_symbol :: if elide_symbol is Symbol {
+        elide_symbol
+    } else {
+        spilled :: fresh_synthetic_symbol(ctx, "scrut")
+        stmts.push(LoweredLet {
+            .span = scrut_value.span, .name = spilled.name, .symbol = spilled,
+            .type = scrut_type, .value = scrut_value,
+        })
+        spilled
+    }
+    // `match x :: e { … }` binds `x` to the ONE evaluation above — a binding of
+    // its own, not the match's own slot, because a lambda in an arm may capture
+    // it and a captured binding is heap-promoted to a `Cell` while the pattern
+    // predicates need the bare value.
+    binding :: expr.binding
+    if binding != null {
+        bound :: resolve_ident(ctx, binding.name_span)
+        if bound is Symbol {
+            read :: LoweredIdent {
+                .span   = scrut_value.span,
+                .type   = scrut_type,
+                .symbol = scrut_symbol,
+            }
+            stmts.push(cell_aware_let(ctx, bound, bound.name, read, scrut_type, scrut_value.span))
+        }
+    }
+
+    // `@unreachable` asserts the uncovered variants can't occur, so its
+    // fall-through trap carries an intent-revealing reason ; a plain match is
+    // exhaustive-by-T3013, so reaching its fallback is a compiler bug.
+    fallback_reason :: if expr.unreachable {
+        "@unreachable match — a variant the arms assert cannot occur was reached"
+    } else {
+        "non-exhaustive match (T3013 should have caught this)"
+    }
+    fallback: LoweredBlock: wrap_as_block(
+        LoweredUnreachable {
+            .span = expr.span,
+            .type = result_type,
+            .reason = fallback_reason,
+        },
+        expr.span,
+    )
+
+    arm_count :: expr.arms.len()
+    if arm_count == 0 {
+        for stmt in fallback.stmts { stmts.push(stmt) }
+        return LoweredBlock {
+            .span = expr.span, .type = result_type,
+            .stmts = stmts, .trailing = fallback.trailing,
+        }
+    }
+
+    chain: LoweredBlock = fallback
+    cursor := arm_count
+    for cursor > 0 {
+        cursor = cursor - 1
+        arm :: expr.arms[cursor]
+        arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type)
+        predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type)
+        match predicate {
+            is null -> { chain = arm_block }
+            _ -> {
+                if_node :: LoweredIf {
+                    .span = arm.span, .type = result_type,
+                    .cond = predicate, .then_block = arm_block, .else_block = chain,
+                }
+                chain = wrap_as_block(if_node, arm.span)
+            }
+        }
+    }
+
+    for stmt in chain.stmts { stmts.push(stmt) }
+    return LoweredBlock {
+        .span = expr.span, .type = result_type,
+        .stmts = stmts, .trailing = chain.trailing,
+    }
+}
+
+// True when any arm carries an `if <guard>`. A guard is the only user code that
+// runs between two arms' predicates, so it's the only thing that can mutate the
+// scrutinee mid-match — the gate for scrutinee-temp elision.
+any_arm_guarded :: fn(arms: MatchArm[]) -> bool {
+    for arm in arms {
+        if arm.guard != null {
+            return true
+        }
+    }
+    return false
+}
+
+// The symbol behind a scrutinee that lowered to a direct local/param read, or
+// null for anything else — the read the elision can safely reuse in place.
+scrut_ident_symbol :: fn(e: LoweredExpr) -> Symbol | null = if e is LoweredIdent { e.symbol } else { null }
+
+lower_arm :: fn(
+    ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+) -> LoweredBlock {
+    stmts: LoweredStmt[]: []
+    introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, stmts, arm.span)
+    // The body runs only once its pattern matched: the awaits of an expression
+    // body open the arm instead of preceding the whole `match`.
+    base :: ctx.pending_awaits.len()
+    body :: lower_unlifted(ctx, arm.body)
+    drain_pending_from(ctx, stmts, base)
+    return LoweredBlock {
+        .span = arm.span, .type = body.type,
+        .stmts = stmts, .trailing = body,
+    }
+}
+
+arm_predicate :: fn(
+    ctx: FnLowerCtx, arm: MatchArm, scrut_symbol: Symbol, scrut_type: Type,
+) -> LoweredExpr | null {
+    span :: arm.pattern.span
+    scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
+    core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span)
+    arm_guard :: arm.guard ?? return core
+    // The guard may read the pattern's bindings (`is P { x } if x > 0`),
+    // which `lower_arm` only introduces inside the arm body — evaluated
+    // AFTER the predicate. Materialise the bindings in a block wrapping
+    // the guard so it reads defined slots. The block sits on the right of
+    // a short-circuit `&&`, so its unbox/cast of the scrutinee only runs
+    // once the pattern predicate has confirmed the type. (`lower_arm`
+    // re-introduces the same bindings in the arm body ; the second write
+    // to the same slots is idempotent.)
+    binding_stmts: LoweredStmt[]: []
+    introduce_pattern_bindings(ctx, arm.pattern, scrut_symbol, scrut_type, binding_stmts, arm.span)
+    // The guard is the right operand of the `&&` below: same rule (M5009).
+    guard_base :: ctx.pending_awaits.len()
+    guard := lower_expr(ctx, arm_guard)
+    guard_no_pending_await(ctx, guard_base, arm_guard.span)
+    if binding_stmts.len() > 0 {
+        guard = LoweredBlock {
+            .span = arm_guard.span, .type = TY_BOOL,
+            .stmts = binding_stmts, .trailing = guard,
+        }
+    }
+    if core == null { return guard }
+    return LoweredBinary {
+        .span = arm.span, .type = TY_BOOL, .op = .And,
+        .left = core, .right = guard,
+    }
+}
+
+pattern_predicate :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type, span: Span,
+) -> LoweredExpr | null {
+    match pattern {
+        is WildcardPattern -> { return null }
+        is IsPattern       -> {
+            check_type :: ctx.types.recorded_type_expr(pattern.ty)
+            type_test :: LoweredTypeCheck {
+                .span = span, .type = TY_BOOL,
+                .value = target,
+                .check_type = check_type,
+            }
+            // `is P { x: 10 }` — the field tests run on the narrowed target, on
+            // the right of a short-circuit `&&` : a field is only read once the
+            // type test has confirmed the variant that carries it.
+            inner :: pattern.inner
+            if inner is StructPattern {
+                narrowed :: narrow_target(target, target_type, check_type, span)
+                fields :: struct_pattern_predicate(ctx, inner, narrowed, span)
+                if fields == null {
+                    return type_test
+                }
+                return and_all(span, [type_test, fields])
+            }
+            return type_test
+        }
+        is StructPattern -> {
+            return struct_pattern_predicate(ctx, pattern, target, span)
+        }
+        is EnumVariantPattern -> {
+            variant_lit :: enum_variant_literal(target_type, pattern.variant, span, ctx)
+            return LoweredBinary {
+                .span = span, .type = TY_BOOL, .op = .Eq,
+                .left = target, .right = variant_lit,
+            }
+        }
+        is LiteralPattern -> {
+            return literal_eq(ctx, target, lower_expr(ctx, pattern.value), span)
+        }
+        is RangePattern -> {
+            // `target >= lower && target <(=) upper`. `target` is the pre-bound
+            // scrutinee temp — reusing it twice is the same shape the tuple /
+            // struct predicates already rely on. Over a union the bounds carry
+            // the variant they order, tested first : `target is i32 &&
+            // i32(target) >= lower && …`.
+            lo :: lower_expr(ctx, pattern.lower)
+            hi :: lower_expr(ctx, pattern.upper)
+            ordered :: lo.type
+            value :: narrow_target(target, target_type, ordered, span)
+            hi_op :: if pattern.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
+            parts: LoweredExpr[]: []
+            holds_test(target, target_type, ordered, span, parts)
+            parts.push(
+                LoweredBinary {
+                    .span = span,
+                    .type = TY_BOOL,
+                    .op = .Gte,
+                    .left = value,
+                    .right = lo,
+                },
+            )
+            parts.push(
+                LoweredBinary {
+                    .span = span,
+                    .type = TY_BOOL,
+                    .op = hi_op,
+                    .left = value,
+                    .right = hi,
+                },
+            )
+            return and_all(span, parts)
+        }
+        is OrPattern -> {
+            // Disjunction of the alternatives' predicates : `p1 || p2 || …`.
+            // A null sub-predicate (an always-true alternative) collapses the
+            // whole or-pattern to always-true.
+            parts: LoweredExpr[]: []
+            for sub in pattern.patterns {
+                sub_pred :: pattern_predicate(ctx, sub, target, target_type, span)
+                if sub_pred == null { return null }
+                parts.push(sub_pred)
+            }
+            return or_all(span, parts)
+        }
+    }
+}
+
+// `field == literal` for every literal field of `pattern`, joined by `&&` ; null
+// when the pattern only binds, so it constrains nothing.
+struct_pattern_predicate :: fn(
+    ctx: FnLowerCtx, pattern: StructPattern, target: LoweredExpr, span: Span,
+) -> LoweredExpr | null {
+    tests: LoweredExpr[]: []
+    for field in pattern.fields {
+        literal :: field.value
+        if literal is PatternLiteral {
+            value :: lower_expr(ctx, literal.value)
+            field_type :: struct_field_type(ctx, target.type, field.name)
+            access :: field_of(target, field_type, field.name, field.span)
+            tests.push(literal_eq(ctx, access, value, field.span))
+        }
+    }
+    if tests.len() == 0 {
+        return null
+    }
+    return and_all(span, tests)
+}
+
+enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnLowerCtx) -> LoweredExpr {
+    // `type_expr.vader::type_from_symbol` currently returns a placeholder
+    // `StructType` for enum decls (the comment in that file calls it out
+    // explicitly). Unwrap the real `EnumType` from `decl_types` here so
+    // the variant index lookup works regardless of which entry point
+    // resolved the target's type.
+    resolved :: unwrap_enum_type(target_type, ctx)
+    // @partial: only EnumType carries variant indices; every other Type is
+    // unresolved here (earlier diagnostics apply) → unreachable.
+    @partial match resolved {
+        is EnumType -> {
+            index :: resolved.indices[name] ?? return LoweredUnreachable {
+                .span = span,
+                .type = TY_UNRESOLVED,
+                .reason = "unknown variant `${name}` on `${resolved.symbol.name}`",
+            }
+            return LoweredIntLit { .span = span, .type = resolved, .value = index }
+        }
+        _ -> {
+            return LoweredUnreachable {
+                .span = span, .type = TY_UNRESOLVED,
+                .reason = "`.${name}` against unresolved type",
+            }
+        }
+    }
+}
+
+
+unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
+    // @partial: only an EnumType or an enum-kind StructType placeholder needs
+    // unwrapping; every other Type is returned verbatim.
+    @partial match target_type {
+        is EnumType -> { return target_type }
+        is StructType -> {
+            if target_type.symbol.kind != .Enum { return target_type }
+            real :: ctx.typed.decl_types[target_type.symbol.id]
+            if real is EnumType { return real }
+            return target_type
+        }
+        _ -> { return target_type }
+    }
+}
+
+// ============================================================================
+// Pattern bindings (let-stmts introduced inside the arm)
+// ============================================================================
+
+introduce_pattern_bindings :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, scrut_symbol: Symbol, scrut_type: Type,
+    out: LoweredStmt[], span: Span,
+) -> void {
+    scrut_ref :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
+    walk_pattern_bindings(ctx, pattern, scrut_ref, scrut_type, out, span)
+}
+
+walk_pattern_bindings :: fn(
+    ctx: FnLowerCtx, pattern: Pattern, target: LoweredExpr, target_type: Type,
+    out: LoweredStmt[], span: Span,
+) -> void {
+    match pattern {
+        is IsPattern -> {
+            inner_type :: ctx.types.recorded_type_expr(pattern.ty)
+            narrowed_target :: narrow_target(target, target_type, inner_type, span)
+            if pattern.inner !is null {
+                walk_pattern_bindings(ctx, pattern.inner, narrowed_target, inner_type, out, span)
+            }
+        }
+        is StructPattern -> {
+            for field in pattern.fields {
+                match binding :: field.value {
+                    is PatternBinding -> {
+                        field_type :: struct_field_type(ctx, target_type, field.name)
+                        field_access :: LoweredFieldAccess {
+                            .span = field.span, .type = field_type,
+                            .target = target, .field = field.name,
+                        }
+                        symbol :: resolve_pattern_symbol(ctx, binding.span, binding.name)
+                        out.push(cell_aware_let(
+                            ctx, symbol, binding.name, field_access, field_type, field.span,
+                        ))
+                    }
+                    _                 -> {}
+                }
+            }
+        }
+        is WildcardPattern -> {}
+        is EnumVariantPattern -> {}
+        is LiteralPattern -> {}
+        is RangePattern -> {}
+        is OrPattern -> {}
+    }
+}
+
+// Only a union target needs the narrowing cast ; any other shape is already
+// its concrete self and passes through. Single-case `if`, not `match` + `_`.
+narrow_target :: fn(target: LoweredExpr, target_type: Type, inner_type: Type, span: Span) -> LoweredExpr {
+    if target_type is UnionType { return LoweredCast { .span = span, .type = inner_type, .value = target } }
+    return target
+}
+
+// Field type of `target_type.field_name`, its type arguments applied, or
+// `unresolved` when the target isn't a struct (a non-struct in a struct-field
+// pattern is an upstream typecheck error) or the field/decl is missing.
+struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) -> Type =
+    laid_out_unions(declared_struct_field_type(target_type, field_name, ctx.typed) ?? TY_UNRESOLVED)
+
+// Resolve a pattern binding's Symbol via the shared per-module
+// `defined_span -> Symbol` index (`lookup_local_symbol`); mint a fresh
+// synthetic only when the resolver wrote none — defensive against
+// cascading diagnostics.
+resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
+    found :: resolve_binding(ctx, name_span) ?? return fresh_synthetic_symbol(ctx, name)
+    return found
+}

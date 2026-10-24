@@ -327,7 +327,7 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     if fn_decl is FnDecl {
         extern_name = extern_symbol_of(fn_decl)
         // A body is the Vader function an `@extern` taking an enum with variant
-        // data lowers to (`lower_extern_values.vader`), not the import.
+        // data lowers to (`lower/extern_values.vader`), not the import.
         is_extern = d.body == null && decorators_have(fn_decl.decorators, "extern")
         c_variadic_fixed = c_variadic_fixed_of(fn_decl.decorators)
     }
@@ -610,11 +610,12 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
             build_back_edge(fn_ctx, resolve_loop_frame(fn_ctx, s.label), s.span)
         }
         is LoweredYield | LoweredAwait -> {
-            // Transient coroutine-suspension markers. `lower_coroutine` rewrites
-            // them into the resumable state machine BEFORE midir ; reaching one
-            // here means that pass missed it. Panic loudly rather than silently
-            // drop it (which miscompiled the async / generator path — midir-1).
-            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt — lower_coroutine should have consumed it")
+            // Transient coroutine-suspension markers. The coroutine transform
+            // (`lower/coroutine.vader`) rewrites them into the resumable state
+            // machine BEFORE midir ; reaching one here means that pass missed it.
+            // Panic loudly rather than silently drop it (which miscompiled the
+            // async / generator path — midir-1).
+            panic("midir: coroutine marker (LoweredYield/LoweredAwait) reached build_stmt — the coroutine transform missed it")
         }
     }
 }

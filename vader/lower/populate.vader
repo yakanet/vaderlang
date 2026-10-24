@@ -1,0 +1,41 @@
+// vader/lower/populate — populate the LowerProjectCtx side-tables.
+//
+
+module "vader/lower"
+
+import "vader/resolver"
+import "vader/typecheck"
+
+// Populate `core_symbols` from std/core's resolved view so the lowerer can
+// resolve `Range`, `Continuation`, `Iterator`, `Display`, `Error`,
+// … without re-walking the project per call.
+populate_core_symbols :: fn(loaded: LoadedProject, project_ctx: LowerProjectCtx) -> void {
+    // Source std/core's exports directly from the core module (one seed) rather
+    // than from per-module `resolved.core_symbols` copies (removed). This is the
+    // lowerer's single core-symbol cache — `find_core_type`, `find_core_trait`
+    // and `range.vader` read it.
+    for [name, sym] in build_core_seed(loaded) {
+        project_ctx.core_symbols[name] = sym
+    }
+}
+
+populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
+    // Flatten every loaded module's `comptime_decls` into one global
+    // `symbol_id -> ComptimeValue` map. Const symbol ids are project-
+    // unique (resolver mints from a single counter), so no module can
+    // collide with another — direct assignment is safe.
+    for [_, ep] in project_ctx.evaluated.modules {
+        for [symbol_id, v] in ep.comptime_decls {
+            project_ctx.comptime_value_by_symbol_id[symbol_id] = v
+        }
+    }
+}
+
+// Aggregate every loaded module's impl decls into the project ctx's
+// registry, each impl resolved in the module that declares it.
+populate_impls :: fn(loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
+    for [module_id, module_typed] in typed.modules {
+        module_loaded :: loaded.modules[module_id] ?? continue
+        project_ctx.impls.collect_impls(module_decls(module_loaded), module_typed.resolved)
+    }
+}

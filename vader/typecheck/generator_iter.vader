@@ -9,7 +9,7 @@
 // receiver that mis-resolves to a virtual dispatch.
 // Each generator DECLARATION has its own state struct — two overloads of a name
 // are two generators — recorded in `generator_states`, which the lowerer
-// (`lower_generator.vader`) reads to build that same struct.
+// (`lower/generator.vader`) reads to build that same struct.
 
 module "vader/typecheck"
 

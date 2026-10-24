@@ -668,14 +668,14 @@ try_free_fn_ufcs_dispatch :: fn(
     first_param :: free_ufcs.winner.ty.params[0]
     typed.ufcs_receiver_types[e.id] = first_param
     // The chosen fn is instantiated at the receiver's own type at each instance
-    // (`harvest_ufcs_fn_instance`, lower_ufcs.vader) ; erased to `Any` the receiver
+    // (`harvest_ufcs_fn_instance`, lower/ufcs.vader) ; erased to `Any` the receiver
     // names none, so the enclosing fn's instances stay concrete.
     if type_contains_type_param(target_ty) {
         keep_instances_concrete(typed)
     }
     typed.chosen_fns[e.id] = free_ufcs.winner
     // A `T[]` receiver fitting an `Iterator` first param coerces through the very
-    // `.into()` the lowerer synthesizes at `lower_ufcs`, whatever the element : the
+    // `.into()` the lowerer synthesizes at `lower/ufcs.vader`, whatever the element : the
     // dispatch already accepted the receiver. Record it on the receiver expr so the
     // LSP surfaces the `.into()` hint here too. The receiver decision goes through
     // `receiver_fits_first_param`, not `try_into`, so without this `arr.method()`

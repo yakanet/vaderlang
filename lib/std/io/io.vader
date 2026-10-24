@@ -221,7 +221,7 @@ write :: fn(out: Stream, msg: string) -> void {
 // The four print wrappers are `Display`-generic. Monomorphisation keeps each
 // concrete instance separate — a `string` / primitive `msg` stays concrete
 // under the mixed-flavor path (`fn_instance_flavor` in
-// `vader/lower/lower_mono_fn.vader`), so `msg.to_string()` resolves to the one
+// `vader/lower/mono_fn.vader`), so `msg.to_string()` resolves to the one
 // impl actually used : no `virtual.call Display.to_string`, no vtable, and the
 // DCE prunes every unused `Display` impl. A trivial `println("hello")` stays at
 // ~42 bytecode lines / 4 fns instead of dragging in every `to_string`.

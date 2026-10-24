@@ -1,6 +1,6 @@
 // vader/lower/coroutine_jumps — a jump through the coroutine block-split.
 //
-// `lower_coroutine.vader` dissolves a coroutine body into numbered states and
+// `coroutine.vader` dissolves a coroutine body into numbered states and
 // compiles a `break` / `continue` / `return` written as a statement into the
 // state transition it means. A jump can also sit inside an expression —
 // `v :: x ?? continue` lowers to a `let` whose value is a block holding the

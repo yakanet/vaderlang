@@ -3,7 +3,7 @@
 // heap cell the coroutine frame carries and `step` shares ; nothing reassigns
 // `base`, so `step`'s env holds its value.
 // This cross-suspension cell survival is exactly what the retired M5008 guard
-// used to forbid — see `vader/lower/lower_coroutine.vader::gb_add_field`.
+// used to forbid — see `vader/lower/coroutine.vader::gb_add_field`.
 module "snippet"
 
 import "std/io"

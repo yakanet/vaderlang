@@ -14,7 +14,7 @@ it allocates a 40-byte array header, and since `bytes` may collect, the function
 calling it keeps a GC frame; on the VM it builds an `ArrayVal` that reads the bytes
 in place (0029). Two lowering steps saved that cost for the shapes the tree used:
 
-- `fold_bytes_len` (`lower_call.vader`) turned `s.bytes().len()` into
+- `fold_bytes_len` (`lower/call.vader`) turned `s.bytes().len()` into
   `byte_len(s)`;
 - `bytes_view_elision.vader` turned a local view used only for `.len()`
   and `[i]` into `byte_len` / `byte_at` reads of its string. That local was often

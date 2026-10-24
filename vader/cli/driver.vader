@@ -9,7 +9,7 @@
 // import closure.
 //
 // Why a GENERATED entry rather than teaching the lowerer a second entry name:
-// `is_main_decl` (`lower/lower_decl.vader:572`) recognises the entry by the
+// `is_main_decl` (`lower/decl.vader`) recognises the entry by the
 // literal name `main`, and widening it would make every project's `build` fn an
 // entry point. Worse, a driver compiled directly would be silently ELIMINATED —
 // `lower/dce.vader:238` roots only `is_main` and `@export` decls, so `build`

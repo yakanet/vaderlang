@@ -2,7 +2,7 @@
 //
 // `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
 // pass that mints them and the state-machine transform that consumes them
-// (`lower_generator.vader`, `lower_coroutine.vader`), and never reach a
+// (`generator.vader`, `coroutine.vader`), and never reach a
 // backend. No type says so — they are ordinary `LoweredStmt` variants — and
 // `midir/build.vader:594` panics when one survives, naming `build_stmt`, the
 // consumer, rather than the pass that failed to consume it.

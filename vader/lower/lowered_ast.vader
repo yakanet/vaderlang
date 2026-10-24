@@ -285,9 +285,9 @@ export LoweredReturn :: struct {
 }
 
 /// TRANSIENT generator marker — one `yield e` inside a `generator` body.
-/// Emitted by `lower_stmt` ONLY when `FnLowerCtx.in_generator` is set, and
+/// Emitted by `stmt.vader` ONLY when `FnLowerCtx.in_generator` is set, and
 /// wholly consumed by the generator state-machine transform
-/// (`lower_generator.vader`) — it never reaches the backend. Backend / midir
+/// (`generator.vader`) — it never reaches the backend. Backend / midir
 /// consumers arm it as `unreachable`: a `LoweredYield` surviving past the
 /// generator transform is a compiler bug.
 export LoweredYield :: struct {
@@ -297,7 +297,7 @@ export LoweredYield :: struct {
 
 /// TRANSIENT async marker — one `await e` inside an `async` body, produced by
 /// the ANF pass when `FnLowerCtx.in_async` is set, and wholly consumed by the
-/// coroutine state-machine transform (`lower_coroutine.vader`). Like
+/// coroutine state-machine transform (`coroutine.vader`). Like
 /// `LoweredYield` it never reaches the backend (armed `unreachable`). Binds the
 /// resolved value of `awaited` (an `Async<target_type>`) to the local `target`.
 export LoweredAwait :: struct {

@@ -377,7 +377,7 @@ bootstrap/
 
 ```
 vader_source_sha: <git rev-parse HEAD when regenerated>
-vader_version:    <contents of vader/version.vader at regen time>
+vader_version:    <`CLI_VERSION` in vader/cli/spec.vader at regen time>
 regenerated_at:   <ISO date>
 generator:        <vader binary path + --version output>
 ```
@@ -481,7 +481,7 @@ VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
 cat > bootstrap/VERSION <<EOF
 vader_source_sha: $(git rev-parse HEAD)
-vader_version:    $(grep -E '^[[:space:]]*VERSION' vader/version.vader | head -1)
+vader_version:    $(grep -E '^export CLI_VERSION' vader/cli/spec.vader | head -1 | sed -E 's/.*"([^"]*)".*/\1/')
 regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER ($("$VADER" --version))
 EOF

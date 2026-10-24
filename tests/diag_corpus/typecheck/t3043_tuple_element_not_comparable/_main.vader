@@ -1,6 +1,6 @@
 // T3043 / T3001 — what a tuple `==` refuses.
 //
-// The rewrite is unconditional (`lower/lower_value_eq.vader`), so anything this
+// The rewrite is unconditional (`lower/value_eq.vader`), so anything this
 // gate lets through must have a working `==` at every position. What cannot: an
 // array, a struct with no `Equals`, a fn value, and a type parameter whose bound
 // does not name `Equals`.

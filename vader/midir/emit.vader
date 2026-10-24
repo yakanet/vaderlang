@@ -985,7 +985,7 @@ emit_operands_into :: fn(
 }
 
 // A bare compare against a union compares two boxes — `===`, or a `==` whose
-// variants all compare by their bits (`lower/lower_value_eq.vader`) — so a scalar
+// variants all compare by their bits (`lower/value_eq.vader`) — so a scalar
 // on the other side is tagged as it would be entering that union.
 compares_boxes :: fn(op: LoweredBinaryOp, other: Type) -> bool =
     (op == .Eq || op == .Neq) && is_union_slot(other)

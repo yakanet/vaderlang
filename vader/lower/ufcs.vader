@@ -1,0 +1,360 @@
+// vader/lower/ufcs: method-form calls (`recv.m(args)`, and a method taken as
+// a value), and the harvest of the fns they reach.
+//
+// The receiver is lowered once, before anything is decided : lowering is not pure
+// (a lambda lifts a fn, an `await` is hoisted ahead of the statement), so a tree
+// built and thrown away would leave both behind.
+
+module "vader/lower"
+
+import "std/abort"
+import "std/collections"
+
+import "toolchain/ast"
+import "vader/typecheck"
+import "vader/resolver/symbol"
+import "vader/types"
+import "vader/comptime"
+import "toolchain/span"
+
+as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
+    if expr is FieldExpr { return expr }
+    return null
+}
+
+/// `recv.m(args)`, a method-form call : the receiver lowered once, what the call
+/// runs decided from the typecheck's record (`method_target`), then the arguments
+/// lowered for its parameters. A call no form covers goes the general way, reading
+/// the receiver back. Null for a field holding a function value, which the general
+/// call path calls.
+///
+/// @param call  the call ; its callee is the member access.
+/// @param type  the call's result type.
+try_lower_method_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    field :: as_field_expr(call.callee) ?? return null
+    callee :: recorded_callee(ctx, call, .Call)
+    if callee is FnValue {
+        return null
+    }
+    receiver :: lower_expr(ctx, field.target)
+    target :: method_target(ctx, callee, field, receiver, call.args.len())
+    if target == null {
+        ctx.bound_operands[field.target.id] = receiver
+        plain :: lower_plain_call(ctx, call, type)
+        ctx.bound_operands.remove(field.target.id)
+        return plain
+    }
+    operands :: call_operands(ctx, call, field, receiver, target)
+    made :: build_method_call(ctx, call, .Call, target, field, operands, type)
+    return observed(ctx, call, .Call, made)
+}
+
+/// A free fn called by UFCS.
+FreeFnTarget :: struct {
+    /// The fn, as its declaring module names it.
+    symbol: Symbol
+    /// Its declared parameters, the receiver's first.
+    params: Type[]
+}
+
+/// An array member an operation serves.
+ArrayOpTarget :: struct {
+    op: ArrayOp
+    element: Type
+}
+
+/// A member called through its trait's vtable, the value's tag picking the impl.
+VirtualTarget :: struct {
+    trait_key: string
+    /// The member's parameters, without its receiver.
+    params: Type[]
+}
+
+/// The `equals` the comparison primop answers.
+EqualsTarget :: struct {}
+
+EQUALS_TARGET :: EqualsTarget {}
+
+/// What a method-form site calls : a free fn by UFCS, an array's operation, a member
+/// through its trait's vtable, a built-in `equals`, or an impl member.
+MethodTarget :: FreeFnTarget | ArrayOpTarget | VirtualTarget | EqualsTarget | UfcsMember
+
+/// What a method-form site recorded as `callee` calls on `receiver`, the lowered
+/// target of `field` ; null for a site no form covers. A call and a method value
+/// decide here alike.
+///
+/// @param callee    the site's record ; null for a site with none.
+/// @param field     the member access.
+/// @param receiver  the receiver, lowered once.
+/// @param arity     the arguments the member takes besides its receiver.
+method_target :: fn(
+    ctx: FnLowerCtx,
+    callee: Callee | null,
+    field: FieldExpr,
+    receiver: LoweredExpr,
+    arity: i64,
+) -> MethodTarget | null {
+    // A free fn typecheck chose is the call : it ranked the candidates the site's
+    // file can see. In a generic body it chose against the type parameters, and
+    // every instance holds to that choice.
+    if callee is DirectFn {
+        free :: ctx.project.fn_symbols[callee.decl.id]
+        if free != null {
+            return FreeFnTarget { .symbol = free, .params = ufcs_param_types(ctx, free) }
+        }
+    }
+    surface :: ctx.types.expr_type(field.target)
+    array_op :: array_target(surface, field.field, arity)
+    if array_op != null {
+        return array_op
+    }
+    // A trait value dispatches on its tag ; a combinator its trait does not declare
+    // (`it.map(f)` on an `Iterator<T>`) is a free fn by UFCS, taken above. A union of
+    // the trait's implementors, or a bound the instance leaves erased, dispatches the
+    // trait the record names.
+    receiver_type :: receiver.type
+    trait_key :: virtual_trait(ctx, callee, field, receiver_type)
+    if trait_key != null {
+        return VirtualTarget { .trait_key = trait_key, .params = member_params(ctx, field) }
+    }
+    // `equals` on a primitive (`@intrinsic`) or an enum (built in) is the comparison
+    // itself : the native build has no host binding for an integer `equals`.
+    if arity > 0 && kept_type_argument(receiver_type) != null && runs_builtin_equals(callee) {
+        return EQUALS_TARGET
+    }
+    member :: callee_target(ctx, callee, impl_lookup_type(surface, receiver_type))
+    if member is UfcsMember {
+        return member
+    }
+    return null
+}
+
+// The array operation `name` names on a receiver of type `surface` taken with
+// `arity` arguments ; null when the receiver is no array, or a call runs it. An
+// array-backed distinct newtype carries them too : its value is the backing array.
+array_target :: fn(surface: Type, name: string, arity: i64) -> ArrayOpTarget | null {
+    array :: array_backing(surface) ?? return null
+    op :: array_op_of(name, arity) ?? return null
+    return ArrayOpTarget { .op = op, .element = array.element }
+}
+
+// The trait a receiver of type `receiver` dispatches `field` through at run time :
+// a trait value's own, unless the member is a free fn by UFCS ; a union's or an
+// erased bound's, as recorded.
+virtual_trait :: fn(
+    ctx: FnLowerCtx,
+    callee: Callee | null,
+    field: FieldExpr,
+    receiver: Type,
+) -> string | null {
+    if receiver is TraitType && ctx.typed.ufcs_receiver_types[field.id] == null {
+        return trait_key_of(receiver.symbol)
+    }
+    return dispatch_trait(callee, receiver)
+}
+
+// The operands of `call` for `target` : its receiver, then its arguments, each
+// lowered for the slot it fills.
+call_operands :: fn(
+    ctx: FnLowerCtx,
+    call: CallExpr,
+    field: FieldExpr,
+    receiver: LoweredExpr,
+    target: MethodTarget,
+) -> LoweredExpr[] = match target {
+    is FreeFnTarget  -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 1)
+    is UfcsMember    -> build_ufcs_args(ctx, field.target, receiver, call, target.arg_types, 0)
+    is VirtualTarget -> build_ufcs_args(ctx, field.target, receiver, call, target.params, 0)
+    is ArrayOpTarget -> build_ufcs_args(ctx, field.target, receiver, call, value_slot(target), 0)
+    is EqualsTarget  -> build_ufcs_args(ctx, field.target, receiver, call, [], 0)
+}
+
+// The slot an array operation's argument fills : `push`'s value is an element.
+value_slot :: fn(target: ArrayOpTarget) -> Type[] {
+    if target.op == .Push {
+        return [target.element]
+    }
+    return []
+}
+
+/// The call `target` makes on `operands`, the receiver first, at the site `role`
+/// plays at `node`. A free fn is harvested here, after the operands.
+///
+/// @param node      the call, or the field access taking a method value.
+/// @param role      `.Call` or `.MethodValue`.
+/// @param field     the member access.
+/// @param operands  the receiver, then the member's arguments, lowered.
+/// @param ret       the call's result type.
+build_method_call :: fn(
+    ctx: FnLowerCtx,
+    node: Expr,
+    role: CallRole,
+    target: MethodTarget,
+    field: FieldExpr,
+    operands: LoweredExpr[],
+    ret: Type,
+) -> LoweredExpr {
+    span :: node.span
+    return match target {
+        is FreeFnTarget  -> mk_lowered_call(
+            ufcs_callee_symbol(ctx, node, role, target.symbol),
+            operands,
+            ret,
+            span,
+        )
+        is UfcsMember    -> mk_lowered_call(target.symbol, operands, ret, span)
+        is VirtualTarget -> virtual_call(
+            ctx,
+            target.trait_key,
+            field.field,
+            operands[0],
+            operands[1..<operands.len()],
+            ret,
+            span,
+            target.params,
+        )
+        is EqualsTarget  -> equals_primop(operands[0], operands[1], span)
+        is ArrayOpTarget -> array_op(
+            target.op,
+            operands,
+            ret,
+            span,
+            array_operand_types(ctx, target.op, field),
+        )
+    }
+}
+
+// The parameters of the member `field` names, without its receiver.
+member_params :: fn(ctx: FnLowerCtx, field: FieldExpr) -> Type[] =
+    param_types_of(ctx.types.expr_type(field))
+
+// The type the impl member a method-form site reaches is looked up for : an enum's
+// own, `surface`, which its integer lowering loses (`Direction.East.to_string()` is
+// not `i32`'s) ; the lowered `receiver` otherwise, concrete at a generic body's
+// instance where the surface one is `T`.
+impl_lookup_type :: fn(surface: Type, receiver: Type) -> Type {
+    if surface is EnumType {
+        return surface
+    }
+    return receiver
+}
+
+// Declared param types of a UFCS-resolved free fn, receiver slot first. Empty
+// when the symbol carries no fn type — arg preparation then leaves the call alone.
+ufcs_param_types :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type[] {
+    ft :: lookup_fn_type_anywhere(ctx, sym)
+    if ft is FnType { return ft.params }
+    return []
+}
+
+// Assemble a UFCS call's argument list, every element prepared for the slot it
+// lands in (`helpers::prepare_value_for_slot`). Both UFCS branches — impl member
+// and free fn — build their args here so a method call and its equivalent free
+// call lower identically ; they used to diverge, and only the receiver was ever
+// coerced, so an array argument reached an `Iterator<T>` param unwrapped.
+//
+// `first_slot` says where the call's own args start in `params` : 1 for a free fn,
+// whose `params[0]` is the receiver slot (and whose receiver is prepared for it
+// here) ; 0 for an impl member, whose recorded signature already dropped the
+// receiver (there is no slot to prepare it against — it is the impl's for-type).
+// `target` is the receiver's node, where the typecheck filed its conversion.
+build_ufcs_args :: fn(
+    ctx: FnLowerCtx,
+    target: Expr,
+    receiver: LoweredExpr,
+    call: CallExpr,
+    params: Type[],
+    first_slot: i64,
+) -> LoweredExpr[] {
+    args: LoweredExpr[]: []
+    if first_slot == 1 && params.len() > 0 {
+        args.push(prepare_into(ctx, target, receiver, params[0], call.span))
+    } else {
+        args.push(receiver)
+    }
+    mark :: ctx.pending_awaits.len()
+    rest :: lower_call_args(ctx, call.args, params, first_slot)
+    args[0] = bind_one_before_hoisted(ctx, args[0], mark)
+    args.push_all(rest)
+    return args
+}
+
+/// Record a referenced non-generic free fn for end-of-project
+/// materialization. Every non-entry module is lowered lazily, so a referenced
+/// non-generic free fn is harvested here regardless of origin (stdlib or user).
+/// The entry module's own fns are seeded into `nongeneric_imported_fns` up front
+/// (`lower_project`) so they short-circuit on the seen-set check below — they
+/// are already lowered eagerly and must not be harvested a second time. Dedup
+/// by `fn_symbol.id`.
+register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
+    if fn_sym.kind != .Fn { return }
+    if ctx.project.nongeneric_imported_fns[fn_sym.id] != null { return }
+    // Generic fns route through the GenericFnInstance harvest instead.
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
+    if fn_ty is FnType {
+        if type_contains_type_param(fn_ty) { return }
+    }
+    ctx.project.nongeneric_imported_fns[fn_sym.id] = true
+    ctx.project.nongeneric_imported_order.push(fn_sym)
+}
+
+/// A reference to the fn `symbol` : harvested first
+/// (`register_nongeneric_imported_fn`), so a fn of a module lowered lazily has its
+/// body emitted, in the order its references are lowered.
+///
+/// @param symbol  the fn, as the module declaring it names it.
+/// @param span    the reference's span.
+/// @param type    the reference's type.
+fn_reference :: fn(ctx: FnLowerCtx, symbol: Symbol, span: Span, type: Type) -> LoweredIdent {
+    register_nongeneric_imported_fn(ctx, symbol)
+    return LoweredIdent { .span = span, .type = type, .symbol = symbol }
+}
+
+/// Record a referenced module-level `const` for end-of-project
+/// materialization. Every non-entry module is lowered lazily, so a referenced
+/// const is harvested here regardless of origin (stdlib or user) ; the entry's
+/// own consts are seeded up front (`lower_project`) and lowered eagerly, so
+/// they short-circuit on the seen-set check below. No-op for non-const symbols
+/// and consts already harvested. Dedup by `const_sym.id`. The reference itself
+/// keeps its `LoweredIdent` ; `materialize_nongeneric_imported_consts` lowers the
+/// decl so `inline_consts` can route the read site (`build_ident` would
+/// otherwise emit `unreachable`).
+register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
+    if const_sym.kind != .Const { return }
+    if ctx.project.nongeneric_imported_consts[const_sym.id] != null { return }
+    ctx.project.nongeneric_imported_consts[const_sym.id] = true
+    ctx.project.nongeneric_imported_const_order.push(const_sym)
+}
+
+// The symbol the free fn `fn_sym` a UFCS site calls is named by : its instance at
+// the type arguments the typecheck recorded for the site `role` plays at `node`
+// for a generic fn, the fn itself otherwise. A fn of a module lowered lazily is
+// harvested either way, so its body is emitted.
+ufcs_callee_symbol :: fn(ctx: FnLowerCtx, node: Expr, role: CallRole, fn_sym: Symbol) -> Symbol {
+    mangled :: recorded_instance_mangle(ctx, node, role, fn_sym)
+    if mangled == null {
+        register_nongeneric_imported_fn(ctx, fn_sym)
+        return fn_sym
+    }
+    return instance_symbol(fn_sym, mangled)
+}
+
+// Look up an evaluated module's `display_path` (the declared
+// `module "..."` name) from its module id. Returns null when the
+// module isn't in the evaluated project — callers default to the
+// raw module id in that case.
+lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string | null {
+    program :: ctx.project.evaluated.modules[module_id]
+    if program is EvaluatedProgram { return program.typed.resolved.display_path }
+    return null
+}
+
+lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
+    // `Symbol.module` carries the owning module id — direct lookup
+    // beats walking every evaluated module per UFCS call site.
+    program :: ctx.project.evaluated.modules[sym.module] ?? return null
+    if program is EvaluatedProgram {
+        return fn_signature(program.typed, sym)
+    }
+    return null
+}

@@ -1086,7 +1086,7 @@ export contains_distinct :: fn(t: Type) -> bool {
 /// A distinct (newtype) has no runtime identity (Axe E) — it monomorphises,
 /// boxes and lays out exactly as its backing primitive, so the backend must
 /// never see one inside a monomorphisation instance key. Applied to type-args
-/// at every instance-registration source (`lower_generic_call`, `lower_ufcs`,
+/// at every instance-registration source (`lower/generic_call.vader`, `lower/ufcs.vader`,
 /// `instances.add`, the direct `GenericInstance` builders) so `MutableMap<BlockId>`
 /// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline — one
 /// raw instance, no separate erased instance to collide with the genuine one.

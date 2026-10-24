@@ -23,7 +23,7 @@
 //   - inline  : everything else (scalars, small lists, a struct literal that is
 //     not bakeable). The value is recorded verbatim and `build_ident` re-builds
 //     it at each read site. Scalars normally fold earlier in
-//     `lower_expr.vader::lower_ident` ; recording them here is a safety net for
+//     `expr.vader::lower_ident` ; recording them here is a safety net for
 //     any reference that didn't fold.
 //
 // A module const is frozen at every level, so the data pool is the default route

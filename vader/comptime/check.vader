@@ -43,7 +43,7 @@ export evaluate_project :: fn(
     }
     evaluate_extern_libraries(typed, project, diags)
     // `instances` is the concrete generic-instance set the lowerer's
-    // struct path materialises (`lower_mono_struct`). The lowerer is the
+    // struct path materialises (`lower/mono_struct.vader`). The lowerer is the
     // authoritative monomorphizer — there is no separate comptime mono pass.
     project.instances = harvest_instances(typed, loaded.entry)
     return project
@@ -116,7 +116,7 @@ evaluate_module_decls :: fn(
     for decl in order.order {
         result :: evaluate_expr(decl.value, context)
         // The tree-walk gave up on a VM-evaluable shape (loop / mutation /
-        // statement-bodied callee). Record the decl for the `comptime_vm` VM
+        // statement-bodied callee). Record the decl for the `comptime/vm` VM
         // pass (run from bootstrap, where `evaluated` is complete) and suppress
         // the C4001 — unless the RHS isn't a stageable nullary call, in which
         // case the diagnostic stands.
@@ -168,7 +168,7 @@ evaluate_module_decls :: fn(
 
 // Build a `VmRequiredDecl` when a deferred `@comptime` decl's RHS is a stageable
 // nullary call `f()` ; returns null for any other shape (the caller keeps the
-// C4001). The callee `f` is staged + executed by the `comptime_vm` pass.
+// C4001). The callee `f` is staged + executed by the `comptime/vm` pass.
 build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram, module_id: string) -> VmRequiredDecl | null {
     call :: decl.value
     if call is AST.CallExpr {

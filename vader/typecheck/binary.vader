@@ -746,7 +746,7 @@ fits_through_backing :: fn(e: AST.BinaryExpr, left: Type, want: Type) -> bool =
 ///     elements of its tuple — must compare (`part_without_equality`, T3043).
 ///   - a union operand : the other side must share a variant (T3001), and a
 ///     variant with no tag of its own may sit only beside `null` (T3087) ; it
-///     compares by variant (`lower/lower_value_eq.vader`).
+///     compares by variant (`lower/value_eq.vader`).
 ///   - two distinct types neither of which is the other's backing : T3001.
 ///   - two numerics : the shared numeric gate (`numeric_result`, T3017) ; free
 ///     literals fold, so `x == 0` still type-checks.
@@ -842,7 +842,7 @@ check_equality :: fn(
         return TY_BOOL
     }
     // The lowerer drives both sides of a tuple from the left type, at every depth
-    // (`lower/lower_value_eq.vader`), so the two must be one type. A distinct over a
+    // (`lower/value_eq.vader`), so the two must be one type. A distinct over a
     // tuple compares through its backing.
     if tuple_backing(left) != null && tuple_backing(right) != null {
         if !equals_type(left, right) {

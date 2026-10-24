@@ -1,0 +1,204 @@
+// vader/lower/generator — the `generator` state-machine desugar.
+//
+// Called from `decl.vader::lowered_fn_of` for every `generator` fn,
+// generic instance and impl member. Takes the generator body lowered in
+// generator mode (so every `yield e` is a transient `LoweredYield` marker) and
+// produces, per generator `g`:
+//
+//   1. a synthesized `g$State` struct — every param + every spilled local
+//      (v1: spill-all) + a `state: i32` resume discriminant;
+//   2. a synthesized `<module>$<State>$Iterator$next` fn whose body is the
+//      resumable state machine `loop { if self.state == 0 { … } else if … }`
+//      (no `LoweredMatch` node → an `i32` if-chain), returning `[T, Continuation]`;
+//   3. the rewritten `g` body: `return g$State { <params>, .state = 0 }`.
+//
+// The state struct + next fn are pushed to `project.synth_decls`, drained by
+// `lower_module`, and auto-wired into the `Iterator::next` vtable by
+// `collect_vtable_entries`. The reusable block-split engine (`GenBuild`, the
+// state-split, spill + routing) now lives in `coroutine.vader`; this file
+// keeps the generator-specific entry that drives it.
+
+module "vader/lower"
+
+import "toolchain/ast"
+import "vader/types"
+import "vader/resolver/symbol"
+import "vader/typecheck"
+import "std/collections"
+import "vader/diagnostics"
+import "toolchain/span"
+import "std/abort"
+import "vader/comptime"
+
+// ---- element type ---------------------------------------------------------
+
+/// Extract `T` from a `generator`'s `-> Iterator<T>` return type. The
+/// typechecker (T3056) already guaranteed the shape ; fall back to `TY_VOID`
+/// defensively if something slipped through.
+generator_element_of :: fn(return_type: Type) -> Type =
+    core_trait_arg(return_type, TRAIT_ITERATOR) ?? TY_VOID
+
+// A zero value of `ty` for a local `g$State` field's initial slot — overwritten
+// in `next()` before its first read, but `struct.new` needs every field set.
+// Primitives get their typed zero ; every ref type gets a typed `null`.
+zero_value_lit :: fn(span: Span, ty: Type) -> LoweredExpr {
+    if ty is RangeType {
+        return LoweredIntLit { .span = span, .type = ty, .value = 0 }
+    }
+    if ty is PrimitiveType {
+        if ty.name == "bool" { return LoweredBoolLit { .span = span, .type = ty, .value = false } }
+        if is_float_name(ty.name) { return LoweredFloatLit { .span = span, .type = ty, .value = 0.0 } }
+        if ty.name == "string" { return LoweredStringLit { .span = span, .type = ty, .value = "" } }
+        // `null` is a boxed slot, not an integer width — its zero value is `null`
+        // (a void `async` await binds a `null`-typed target). Falling through to
+        // the integer arm would emit `(vader_box_t)(int32_t)0`, invalid C.
+        if ty.name == "null" { return LoweredNullLit { .span = span, .type = ty } }
+        // `char`, `CPointer` : a zero of their width
+        return LoweredIntLit { .span = span, .type = ty, .value = 0 }
+    }
+    return LoweredNullLit { .span = span, .type = ty }
+}
+
+// ---- state-struct synthesis + entry ---------------------------------------
+
+// Synthesize + register the `g$State` struct and its `$Iterator$next` fn, which
+// carries its `Iterator` vtable slot — what `collect_vtable_entries` reads.
+push_generator_decls :: fn(
+    fn_ctx: FnLowerCtx, state_sym: Symbol, self_sym: Symbol, state_ty: Type,
+    step_type: Type, next_body: LoweredBlock, state_fields: LoweredStructField[],
+) -> void {
+    module :: fn_ctx.typed.resolved.display_path
+    next_mangled :: impl_member_segment_name(
+        module, state_sym.name, TRAIT_ITERATOR, METHOD_NEXT, "",
+    )
+    next_sym :: Symbol {
+        .id = next_synthetic_id(fn_ctx), .kind = .Fn, .name = next_mangled,
+        .module = fn_ctx.typed.resolved.path, .module_name = fn_ctx.typed.resolved.path, .visibility = .Private, .defined_at = null,
+    }
+    next_decl :: LoweredFnDecl {
+        .mangled = next_mangled,
+        .params = [LoweredParam { .name = "self", .symbol = self_sym, .type = state_ty }],
+        .return_type = step_type, .body = next_body,
+        .origin = MonoEntry {
+            ...synth_mono_entry(fn_ctx, next_sym),
+            .vtable_slot = VtableSlot { .trait_key = core_trait_key(TRAIT_ITERATOR), .method = METHOD_NEXT },
+        },
+    }
+    state_decl :: LoweredStructDecl {
+        .mangled = "${mangle_module_id(module)}$${state_sym.name}",
+        .fields = state_fields,
+        .origin = synth_mono_entry(fn_ctx, state_sym),
+    }
+    fn_ctx.project.synth_decls.push(state_decl)
+    fn_ctx.project.synth_decls.push(next_decl)
+}
+
+// ---- entry ----------------------------------------------------------------
+
+/// Lower a `generator` fn to the state-machine form. Synthesizes `g$State`
+/// and `<module>$<State>$Iterator$next` into `project.synth_decls`, and returns
+/// the rewritten `g` body (`return g$State { <args>, .state = entry }`).
+///
+/// Handles straight-line yields, single + nested loops, if / match / break /
+/// continue, and struct element types. v1 spills every param + local (no
+/// liveness pass) ; a generic generator lowers once per instance, each with a
+/// state struct of its own.
+///
+/// @param fn_ctx        the generator's fn-lowering context.
+/// @param fn_decl       the generator FnDecl (for its span).
+/// @param params        the generator's lowered params (become `g$State` fields).
+/// @param lowered_body  the body lowered in generator mode (yields → markers).
+/// @param return_type   the declared `Iterator<T>` return type (source of `T`).
+/// @return              the rewritten `g` body.
+lower_generator_fn :: fn(
+    fn_ctx: FnLowerCtx, fn_decl: FnDecl, params: LoweredParam[],
+    lowered_body: LoweredBlock, return_type: Type,
+) -> LoweredBlock {
+    span :: fn_decl.span
+    element_ty :: generator_element_of(return_type)
+
+    // Direction A : build the state struct under the symbol typecheck recorded for
+    // this declaration, so an escaping generator — typed as that concrete struct —
+    // has its `Iterator::next` mangle resolve at the consumer's devirtualized call.
+    // A generic instance with no symbol of its own — one per key — has fields of
+    // its own, so a struct of its own.
+    state :: generator_state_of(fn_decl, fn_ctx.typed)
+    state_sym :: if fn_ctx.entry.symbol != null && state != null {
+        state.symbol
+    } else {
+        fresh_lifted_symbol_with_prefix(fn_ctx, true, "__gen_", "__gen_state_")
+    }
+    // The lowered state struct stays NO-ARG (`__genstate_<fn>`) — its `next()` body
+    // accesses concrete fields (`self.state`, `self.s0`), so a parameterised type
+    // would break field resolution at emit. Typecheck's parameterised
+    // `__genstate_<fn><element>` only exists to concretise chain terminals; the boxed
+    // consumer erases it to `Iterator<element>` (name-based) before dispatch, so the
+    // runtime tag (this no-arg struct) still matches the vtable row.
+    state_ty :: mk_struct(state_sym, [])
+    self_sym :: fresh_synthetic_symbol(fn_ctx, "self")
+
+    shape :: resolve_step_shape(fn_ctx, element_ty)
+    if shape == null {
+        panic("generator lowering: no `Iterator` step type in std/core")
+    }
+
+    gb :: GenBuild {
+        .self_sym = self_sym, .state_ty = state_ty,
+        .step = shape, .span = span,
+        .states = [], .field_map = MutableMap<i32, string> {}, .fields = [], .loop_stack = [],
+        .fn_ctx = fn_ctx,
+    }
+    // Spill: params first, then every local (v1: spill-all) → `g$State` fields.
+    for p in params { gb_add_field(gb, p.symbol, p.type) }
+    gb_collect_block(gb, lowered_body)
+
+    // Route local/param refs to `self.<field>`, then split at yields into states.
+    routed :: gb_route_block(gb, lowered_body)
+    entry_state :: gb_build(gb, routed)
+
+    // Synthesize the `g$State` struct (spilled fields + optional `__defers` +
+    // `state: i32` resume discriminant) and its `$Iterator$next` fn. `__defers`
+    // is materialized only if the body has a `defer` — which T3060 currently
+    // rejects, so it never fires today ; mirroring the async driver keeps the
+    // shared engine's defer rewrite (`gb_route_stmt`) self-consistent instead of
+    // emitting `self.__defers` against a field only async provides (4c lifts T3060).
+    state_fields: LoweredStructField[]: []
+    for f in gb.fields { state_fields.push(f) }
+    if gb.has_defers {
+        state_fields.push(LoweredStructField { .name = GB_DEFERS_FIELD, .type = gb_defers_ty() })
+    }
+    state_fields.push(LoweredStructField { .name = "state", .type = TY_I32 })
+    push_generator_decls(fn_ctx, state_sym, self_sym, state_ty, shape.type, gb_next_body(gb), state_fields)
+
+    // Rewrite `g`'s body: `return g$State { <all fields>, .state = entry }`.
+    // Param fields carry the incoming args (a param in a cell is cell-wrapped here
+    // — `gb_param_construct_value`) ; local fields get a zero value (assigned in
+    // `next()` before first read, but `struct.new` needs every field). Field
+    // order matches the struct decl (params, locals, state).
+    nparams :: params.len()
+    construct_fields: LoweredStructLitField[]: []
+    for idx in 0..<gb.fields.len() {
+        f :: gb.fields[idx]
+        value :: if idx < nparams {
+            gb_param_construct_value(gb, params[idx])
+        } else {
+            zero_value_lit(span, f.type)
+        }
+        construct_fields.push(LoweredStructLitField { .name = f.name, .value = value })
+    }
+    if gb.has_defers {
+        construct_fields.push(LoweredStructLitField {
+            .name = GB_DEFERS_FIELD,
+            .value = LoweredArrayLit { .span = span, .type = gb_defers_ty(), .elements = [] },
+        })
+    }
+    construct_fields.push(LoweredStructLitField {
+        .name = "state", .value = LoweredIntLit { .span = span, .type = TY_I32, .value = entry_state },
+    })
+    construct :: LoweredStructLit { .span = span, .type = state_ty, .fields = construct_fields }
+    return LoweredBlock {
+        .span = span, .type = TY_VOID,
+        .stmts = [LoweredReturn { .span = span, .value = construct }],
+        .trailing = null,
+    }
+}

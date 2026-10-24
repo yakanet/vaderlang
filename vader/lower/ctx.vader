@@ -97,7 +97,7 @@ LowerProjectCtx :: struct {
     /// Every module's typed program, keyed by module path. Threaded onto the
     /// ctx so a generic-call lowering site (`emit_generic_fn_call`) can read the
     /// callee's `fn_needs_concrete_instances` to pick the instance-mangle FLAVOR (Mono /
-    /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
+    /// Mixed / Erased) consistently with the materialiser (`mono_fn.vader`). Same
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
     impls:               ImplRegistry
@@ -147,7 +147,7 @@ LowerProjectCtx :: struct {
     /// Global `symbol_id -> ComptimeValue` index over every loaded
     /// module's `evaluated.modules[*].comptime_decls`. Populated once
     /// at the start of `lower_project` so per-ident const-baked lookups
-    /// in `lower_expr.vader::lower_ident` run in O(1) instead of
+    /// in `expr.vader::lower_ident` run in O(1) instead of
     /// walking every module's map per call.
     comptime_value_by_symbol_id: MutableMap<i32, ComptimeValue>
 
@@ -169,10 +169,10 @@ LowerProjectCtx :: struct {
     /// top-level fns and their env structs spawned by lambda lifting.
     /// Drained into the module being lowered at the time they were spawned —
     /// `lower.vader::lower_module` brackets each module's walk with a window and
-    /// `lower_finish.vader::drain_synth_window` pushes the window's decls into
+    /// `finish.vader::drain_synth_window` pushes the window's decls into
     /// that module, so the emit picks them up alongside user decls.
     synth_decls:         LoweredDecl[]
-    /// The global slots the lowering mints (`lower_singleton.vader`), carried to
+    /// The global slots the lowering mints (`singleton.vader`), carried to
     /// `LoweredProject.globals`.
     globals:             GlobalSlot[] = []
 
@@ -192,7 +192,7 @@ LowerProjectCtx :: struct {
     /// and drained ONCE, unconditionally, into the entry module after the lowering
     /// fixpoint (`drain_entry_decls`).
     entry_decls:         LoweredDecl[]
-    /// Field-default thunks, by name (`lower_field_default.vader`).
+    /// Field-default thunks, by name (`field_default.vader`).
     default_thunks:      MutableMap<string, DefaultThunk> = MutableMap<string, DefaultThunk> {}
     /// The defaults being lowered in place right now, by their field's span hash :
     /// a literal reaching one of them again calls its thunk.
@@ -327,7 +327,7 @@ LowerProjectCtx :: struct {
 
     /// Symbol ids of struct types a value of which can be INHABITED at runtime :
     /// constructed by a `lower_struct_lit`, OR produced by a callee's return type
-    /// (`lower_call.vader::mark_produced_structs` — which also covers host-
+    /// (`call.vader::mark_produced_structs` — which also covers host-
     /// fabricated structs like `std_io$IOError` that no bytecode literal builds).
     /// `surface_stdlib_impl_externs` gates a NON-generic stdlib struct's vtable
     /// surfacing on this : an implementor of a virtually-dispatched trait
@@ -561,7 +561,7 @@ FnLowerCtx :: struct {
     /// removes its entries once the statement is lowered.
     bound_operands:     MutableMap<i64, LoweredExpr> = MutableMap<i64, LoweredExpr> {}
 
-    /// True while lowering a `generator` body: `lower_stmt` emits a
+    /// True while lowering a `generator` body: `stmt.vader` emits a
     /// transient `LoweredYield` marker for `yield e` (consumed by the
     /// generator transform) instead of the not-implemented trap.
     in_generator:       bool = false
@@ -569,7 +569,7 @@ FnLowerCtx :: struct {
     /// True while lowering an `async` body: `lower_expr` hoists each `await e`
     /// to a transient `LoweredAwait` statement (via `pending_awaits`) instead of
     /// the not-implemented trap. Consumed by the async state-machine transform
-    /// (`lower_async.vader`). A nested lambda's fresh ctx sees `false`, so
+    /// (`async.vader`). A nested lambda's fresh ctx sees `false`, so
     /// `await`-in-lambda never reaches lowering (typecheck rejects it first).
     in_async:           bool = false
 
@@ -582,7 +582,7 @@ FnLowerCtx :: struct {
     pending_awaits:     LoweredStmt[] = []
 
     /// Non-null while INLINING a generator body into the chain that consumes it
-    /// (a chain source or layer, `lower_generator_fusion.vader`): `lower_stmt`
+    /// (a chain source or layer, `generator_fusion.vader`): `stmt.vader`
     /// redirects each `yield e` to bind the consumer's loop var + run its body.
     /// Transient (save/restore, like `comptime_bindings`).
     /// Takes priority over `in_generator` — the two legitimately coexist when a
@@ -616,7 +616,7 @@ GenInlineSink :: struct {
     element_type:   Type
     /// The consumer body the sink splices per yield. A `for [k, v] in <gen>`
     /// destructure is pre-lowered into the FRONT of this block (in the consumer's
-    /// ctx, where the pattern leaves resolve — see `lower_generator_fusion`), with
+    /// ctx, where the pattern leaves resolve — see `generator_fusion.vader`), with
     /// `binding_symbol` bound to the element temp it destructures. So the sink
     /// itself always binds a single element ; no pattern field is needed here.
     body:           LoweredBlock

@@ -3,7 +3,7 @@
 // `__genstate` head. `it.map(f)` must lower to the free-fn combinator, NOT a
 // `virtual.call Iterator.map` (the trait has no `map` method → runtime miss).
 // Regression guard for the lowering rule: when the typer resolved free-fn UFCS,
-// the call runs the free fn it chose (`method_target` in vader/lower/lower_ufcs).
+// the call runs the free fn it chose (`method_target` in vader/lower/ufcs).
 
 module "snippet"
 

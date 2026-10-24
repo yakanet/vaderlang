@@ -6,7 +6,7 @@
 //     a pipeline and dispatch via UFCS ; consumed by a `for` loop or a terminal
 //     (`collect` / `count` / `any_match` / ...), the chain fuses to a single flat
 //     loop — no intermediate arrays, no iterator struct, no `next()` dispatch
-//     (`vader/lower/lower_iter_fusion.vader`). `chain` fuses two source loops ;
+//     (`vader/lower/iter_fusion.vader`). `chain` fuses two source loops ;
 //     `zip` stays `T[]`/`U[]` (its lockstep pull needs indexed access, unlike the
 //     source-driven combinators). Their tuple elements destructure in `for [x, y]
 //     in`. The generator's state machine only materialises when the value escapes.

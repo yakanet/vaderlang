@@ -82,7 +82,7 @@ AnalyzeCtx :: struct {
     /// DIFFERENT callables. A symbol-id-keyed alias then collides (last write wins)
     /// and one chain's call devirtualizes to another chain's fn. Any re-bound
     /// symbol is escaped so it is never devirtualized. This guard is defensive
-    /// insurance : the deeper defect is that `lower_generator_fusion` emits
+    /// insurance : the deeper defect is that `generator_fusion.vader` emits
     /// non-unique local `symbol.id`s (it should freshen the per-site binding symbol)
     /// — that violates the "unique local id per body" invariant every whole-body
     /// pass relies on, and should be fixed at the source too.
@@ -260,7 +260,7 @@ rewrite_expr :: fn(e: LoweredExpr, ctx: AnalyzeCtx) -> void {
                 } else if clo != null && devirtable {
                     // Lambda : direct call to the lifted fn with the env (now held by
                     // the retyped local) prepended as the FIRST arg — matches the
-                    // lifted-fn ABI (`lower_lambda.vader::lower_lambda` gives a
+                    // lifted-fn ABI (`lambda.vader::lower_lambda` gives a
                     // capturing lambda's lifted fn the env as param 0).
                     env_arg: LoweredExpr: LoweredIdent { .span = old.span, .type = clo.env_type, .symbol = old.symbol }
                     new_args: LoweredExpr[]: [env_arg]

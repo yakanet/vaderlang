@@ -2,7 +2,7 @@
 // is captured by the nested `addbase`. Nothing reassigns it, so the closure's
 // env holds its value and the frame carries the closure across suspension (a
 // reassigned one keeps a cell — `closure_sees_rebound_capture`). This used to be rejected
-// with M5007 — now lifted; see `vader/lower/lower_coroutine.vader::gb_add_field`.
+// with M5007 — now lifted; see `vader/lower/coroutine.vader::gb_add_field`.
 module "snippet"
 
 import "std/io"

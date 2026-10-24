@@ -238,7 +238,7 @@ test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {
 }
 
 test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
-    // MonoEntry shape mirrors `synth_mono_entry` (lower_lambda.vader) — kept inline
+    // MonoEntry shape mirrors `synth_mono_entry` (lambda.vader) — kept inline
     // because that helper needs a FnLowerCtx the fixture deliberately doesn't build.
     return LoweredFnDecl {
         .mangled = sym.name,

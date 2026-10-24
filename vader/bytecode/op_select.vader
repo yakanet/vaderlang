@@ -34,7 +34,7 @@ import "vader/lower"
 /// `.Ref` is a raw `void*`, so an i32 compare would mix a raw pointer with a
 /// 32-bit-truncated box payload). (String `+` never reaches
 /// here — the lowerer rewrites it to a StringBuilder chain,
-/// `lower/lower_binary.vader`.)
+/// `lower/binary.vader`.)
 ///
 /// @param op   the source-level binary operator.
 /// @param lhs  the operand stack class (both operands share it after

@@ -1,0 +1,143 @@
+// vader/comptime/vm/bridge — convert a VM `Value` back into a `ComptimeValue`.
+//
+// `vader/comptime` cannot import `vader/vm`: `vm → bytecode → lower → comptime`
+// would close a cycle, so `vader/comptime/vm` imports both (the comptime IR and
+// the embedded VM). The VM-backed comptime fallback stages a comptime decl to bytecode, runs it via
+// `exec_fn_value`, and this module bridges the resulting runtime `Value` into a
+// `ComptimeValue` for injection into `EvaluatedProgram.comptime_decls`.
+//
+// The VM collapses width-suffixed integers (`u32`, `i64`, …) into `I32Val` /
+// `I64Val`, so the runtime tag alone cannot recover the source width. Every
+// scalar therefore takes its primitive name from the typechecker-resolved
+// `Type` of the decl, NOT from the `Value` tag — `IntValue.type_name` is
+// load-bearing for downstream typing and the comptime dump.
+//
+// Scope (V1): scalars + arrays are bridged fully — enough for computed tables
+// like `std/crypto`'s `MD5_K`. Struct / tuple / fn / type / heap-object results
+// surface C4001 ; widen this when a real comptime use case for them appears.
+
+module "vader/comptime/vm"
+
+import "vader/diagnostics"
+import "vader/types"
+Ct :: import "vader/comptime"
+Vm :: import "vader/vm"
+import "toolchain/span"
+
+/// Convert a VM `Value` into a `ComptimeValue`, naming scalars from the
+/// typechecker-resolved `ty` rather than the runtime tag.
+///
+/// @param value  the VM runtime value produced by `exec_fn_value`.
+/// @param ty     the typechecker-resolved type of the comptime decl — drives
+///               every scalar's `type_name` and the array element name.
+/// @param span   the comptime decl's span, attached to any failure diagnostic.
+/// @return       the bridged `ComptimeValue` on success.
+/// @error        C4001 when the value carries a representation not yet
+///               bridgeable at comptime (struct / tuple / fn / type / error /
+///               heap object).
+export value_to_comptime :: fn(value: Vm.Value, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic = match value {
+    is Vm.I32Val    -> int_scalar(i64(value), prim_name(ty, "i32"))
+    is Vm.I64Val    -> int_scalar(i64(value), prim_name(ty, "i64"))
+    is Vm.F64Val    -> Ct.float_val_typed(f64(value), prim_name(ty, "f64"))
+    is Vm.BoolVal   -> Ct.BoolValue { .value = bool(value) }
+    is Vm.CharVal   -> Ct.CharValue { .value = u32(value) }
+    is Vm.StringVal -> Ct.string_val(string(value))
+    is Vm.NullVal   -> Ct.VAL_NULL
+    is Vm.ArrayVal  -> array_to_comptime(value, ty, span)
+    is Vm.StructVal -> unsupported(span, "struct")
+    is Vm.FnVal     -> unsupported(span, "function reference")
+    is Vm.TypeVal   -> unsupported(span, "type value")
+    is Vm.ErrorVal  -> unsupported(span, "error value")
+    is Vm.ObjVal    -> unsupported(span, "heap object (set / map)")
+}
+
+// Build an `IntValue` of the integer type `type_name`, wrapped to its width : the
+// VM carries a `u32` as a signed `I32Val` bit pattern, so a high-bit-set `u32`
+// (e.g. MD5_K's `0xd76aa478`) arrives as a negative `i64`, and is read back as the
+// 32 bits it is, so the baked literal and the dump show the true magnitude
+// (mirrors the VM's own `convert_value` u-prefix normalisation, `vm/value.vader`).
+int_scalar :: fn(raw: i64, type_name: string) -> Ct.ComptimeValue =
+    Ct.int_val_typed(Ct.wrap_to_width(raw, type_name), type_name)
+
+// Primitive name of `ty` (resolving a distinct type to its backing), or
+// `fallback` when `ty` isn't a primitive — the scalar arms then keep the VM
+// tag's natural width.
+prim_name :: fn(ty: Type, fallback: string) -> string {
+    name :: primitive_name(strip_distinct(ty))
+    if name == "" {
+        return fallback
+    }
+    return name
+}
+
+// Recurse a VM array into an `ArrayValue`, naming each element from the
+// resolved element type. Honours the array's view bounds (`offset` / `length`).
+array_to_comptime :: fn(array: Vm.ArrayVal, ty: Type, span: Span) -> Ct.ComptimeValue | Diagnostic {
+    elem_ty :: array_element_type(ty)
+    elements: Ct.ComptimeValue[]: []
+    for i in 0..<array.length {
+        bridged :: value_to_comptime(Vm.element_at(array, array.offset + i), elem_ty, span)
+        if bridged is Diagnostic { return bridged }
+        elements.push(bridged)
+    }
+    return Ct.ArrayValue { .elements = elements, .element_type_name = display_type(elem_ty) }
+}
+
+// Element type of an array type ; falls back to `ty` itself for a non-array
+// (defensive — a well-typed array result always carries an `ArrayType`).
+array_element_type :: fn(ty: Type) -> Type {
+    if ty is ArrayType { return ty.element }
+    return ty
+}
+
+unsupported :: fn(span: Span, what: string) -> Diagnostic =
+    comptime_error(.CannotEvaluate, span, "comptime VM produced a ${what} value, which cannot yet be baked into a comptime constant")
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// Bridge then render — narrows the result union for the happy-path asserts.
+display_bridged :: fn(value: Vm.Value, ty: Type, span: Span) -> string {
+    bridged :: value_to_comptime(value, ty, span)
+    if bridged is Diagnostic { return "<diag>" }
+    return Ct.display_value(bridged)
+}
+
+@test test_bridge_scalars :: fn() -> void {
+    s :: empty_span()
+    assert_eq(display_bridged(Vm.I32Val(42), TY_I32, s), "42_i32")
+    // u32 collapses to I64Val in the VM ; the resolved type re-labels it.
+    assert_eq(display_bridged(Vm.I64Val(4000000000), mk_primitive("u32"), s), "4000000000_u32")
+    assert_eq(display_bridged(Vm.F64Val(1.5), TY_F64, s), "1.5_f64")
+    assert_eq(display_bridged(Vm.BoolVal(true), TY_BOOL, s), "true")
+    assert_eq(display_bridged(Vm.StringVal("hi"), TY_STRING, s), "\"hi\"")
+}
+
+@test test_bridge_u32_high_bit :: fn() -> void {
+    s :: empty_span()
+    // 0xd76aa478 (MD5_K[0]) rides in I32Val as the signed pattern -680876936 ;
+    // the bridge re-reads it as the unsigned magnitude 3614090360.
+    assert_eq(display_bridged(Vm.I32Val(-680876936), mk_primitive("u32"), s), "3614090360_u32")
+}
+
+@test test_bridge_u32_array :: fn() -> void {
+    s :: empty_span()
+    elems: Vm.Value[]: [
+        Vm.I32Val(1),
+        Vm.I32Val(2),
+        Vm.I32Val(3),
+    ]
+    array :: Vm.ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = 3 }
+    ty :: mk_array(mk_primitive("u32"))
+    assert_eq(display_bridged(array, ty, s), "[1_u32, 2_u32, 3_u32]")
+}
+
+@test test_bridge_unsupported_obj :: fn() -> void {
+    s :: empty_span()
+    bytes: u8[]: []
+    slots: Vm.Value[]: []
+    obj :: Vm.ObjVal { .handle = 0, .type_id = 0, .bytes = bytes, .slots = slots }
+    result :: value_to_comptime(obj, TY_I32, s)
+    assert(result is Diagnostic, "obj value must be unsupported at comptime")
+}

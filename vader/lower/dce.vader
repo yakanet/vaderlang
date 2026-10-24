@@ -15,7 +15,7 @@
 // DCE-survival ⟺ emit-resolvable : the emitter
 // (`midir/emit.vader::emit_bytecode_from_cfg`) reserves every fn under BOTH keys
 // and resolves symbol-id-then-mangle, and a generic instance necessarily comes
-// in through the mangle — `lower_mono_fn.vader::build_fn_instance_decl` leaves
+// in through the mangle — `mono_fn.vader::build_fn_instance_decl` leaves
 // its `origin.symbol` null on purpose. So a fn the emitter can resolve at a call
 // site is exactly a fn this pass marks reachable.
 
@@ -57,7 +57,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                 //
                 // A non-dispatching (Erased) generic instance KEEPS its symbol, and
                 // the materialiser then collapses every sibling instance of that
-                // symbol onto ONE emitted decl (erasure dedupe, `lower_mono_fn`).
+                // symbol onto ONE emitted decl (erasure dedupe, `mono_fn.vader`).
                 // The surviving decl carries whichever suffix sorted first, while
                 // the call sites each name their own — so the emitter resolves them
                 // through `function_index_by_symbol_id`. Indexing such a decl here

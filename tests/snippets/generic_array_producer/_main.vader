@@ -1,5 +1,5 @@
 // A generic array constructor's return is seen by
-// `lower_mono_fn::returns_typeparam_array`, the gate that force-concretes
+// `lower/mono_fn.vader::returns_typeparam_array`, the gate that force-concretes
 // `clone`/`collect`/`map`/`sort`-shaped fns: a `T = i32` instance builds an
 // I32-kind buffer instead of the erased BOXED one. A blind gate leaves the instance
 // erased, its buffer built at BOXED width, and its reads come back null: a SIGSEGV

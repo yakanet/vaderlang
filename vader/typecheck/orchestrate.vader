@@ -2117,7 +2117,7 @@ push_module_exported_fns :: fn(
         }
     }
     // Same for wildcard-exposed CONSTS : without their type in `external_types`,
-    // a wildcard `println(CLI_VERSION)` const or `EnumName.Variant` types the const as `?`, so the generic
+    // a wildcard `println(SOME_CONST)` const or `EnumName.Variant` types the const as `?`, so the generic
     // `println<T>` instance can't be pinned and its materialisation drops
     // (unresolved at emit), and a wildcard enum-variant access mis-resolves. A struct's
     // name in value position needs it too (`Info(v)` converts). Traits flow

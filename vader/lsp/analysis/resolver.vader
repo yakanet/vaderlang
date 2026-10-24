@@ -41,7 +41,7 @@ export ExternalHit :: struct {
 ///                      `decls` jumped to `DocIndex.decls` — a field it has
 ///                      nothing to do with. It also costs a full re-read of
 ///                      every wildcard module plus `std/core` (79 files, 1.2 MB
-///                      for `lower_expr.vader`), which a miss should not pay.
+///                      for `lower/expr.vader`), which a miss should not pay.
 export resolve :: fn(
     state: ServerState, idx: DocIndex, name: string, allow_member: bool = false,
 ) -> ExternalHit | null {

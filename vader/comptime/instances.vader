@@ -4,7 +4,7 @@
 // represents `List<i32>` as `Struct { symbol, args }` ; this pass
 // scans every typed-AST type-expression, normalises each instance,
 // and registers it under a canonical key. Sorted output goes into
-// `EvaluatedProject.instances`, from which `lower_mono_struct` materialises
+// `EvaluatedProject.instances`, from which `lower/mono_struct.vader` materialises
 // each concrete struct instance.
 
 module "vader/comptime"

@@ -229,7 +229,7 @@ declare_fn :: fn(
         validate_param_decorators(decl, false, diags)
         validate_result_c_type(decl, return_type, false, diags)
     }
-    // A bodyless top-level free fn becomes a host import (`lower_decl.vader`
+    // A bodyless top-level free fn becomes a host import (`lower/decl.vader`
     // returns a null body → `call.import`). Host-ness must be *declared* :
     // `@intrinsic` for a stdlib host binding, `@extern` for a foreign C symbol.
     // Without either, the import is unbound and traps at runtime — so require

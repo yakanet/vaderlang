@@ -4,7 +4,7 @@
 // Two related jobs, both so the host-mangle grammar lives in ONE place:
 //
 //   1. Primitive-member grammar. The lowerer PRODUCES impl-member mangles
-//      (`<module>$<Type>$<Trait>$<method>`, `lower_impl_member.vader`); this is
+//      (`<module>$<Type>$<Trait>$<method>`, `lower/impl_member.vader`); this is
 //      the consumer-side authority the VM re-derivations (`vm/host`, `vm/exec`)
 //      route through instead of re-encoding the `std_core$` prefix / `$`
 //      separator inline. `primitive_member_mangle` + the strip helpers, pinned

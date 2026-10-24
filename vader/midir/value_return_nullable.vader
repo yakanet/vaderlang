@@ -209,7 +209,7 @@ zero_of :: fn(instrs: Instruction[], locals: CFGLocal[], t: Type, span: Span) ->
 // The zero of a leaf. `value_abi_leaf_size` already refused everything but a
 // primitive and an enum, and an enum rides its integer `repr`, so the integer
 // zero is the answer for every shape that is not spelled out here. Keep aligned
-// with `lower_generator::zero_value_lit`, which answers the same question for
+// with `lower/generator.vader::zero_value_lit`, which answers the same question for
 // the generator state machine.
 zero_const_for :: fn(t: Type) -> ConstValue {
     if t !is PrimitiveType {
