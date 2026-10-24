@@ -6,7 +6,7 @@ void* std_iter_clone__i32(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 7u, 319u);
+    vader_array_t* _a0_arr = vader_array_new(22u, 0u, 7u, 320u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -21,7 +21,7 @@ void* std_iter_clone__i64(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 8u, 320u);
+    vader_array_t* _a0_arr = vader_array_new(23u, 0u, 8u, 321u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -36,7 +36,7 @@ void* std_iter_clone__string(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(21u, 0u, 0u, 316u);
+    vader_array_t* _a0_arr = vader_array_new(21u, 0u, 0u, 317u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -51,7 +51,7 @@ void* std_iter_clone__vader_comptime_GenericInstance(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(87u, 0u, 13u, 935u);
+    vader_array_t* _a0_arr = vader_array_new(87u, 0u, 13u, 939u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -66,7 +66,7 @@ void* std_iter_clone__vader_diagnostics_Diagnostic(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(91u, 0u, 13u, 951u);
+    vader_array_t* _a0_arr = vader_array_new(91u, 0u, 13u, 954u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -81,7 +81,7 @@ void* std_iter_clone__vader_lower_PendingFnInstance(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(141u, 0u, 13u, 1104u);
+    vader_array_t* _a0_arr = vader_array_new(141u, 0u, 13u, 1107u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -96,7 +96,7 @@ void* std_iter_clone__vader_resolver_symbol_Symbol(void* l0) {
     void** gc_raw_roots[2] = { &l0, &l1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 2u, NULL, gc_raw_roots, 0u, NULL };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(167u, 0u, 13u, 1228u);
+    vader_array_t* _a0_arr = vader_array_new(168u, 0u, 13u, 1233u);
     l1 = (void*) _a0_arr;
     l2 = ((vader_array_t*) l0)->length;
     vader_array_t* _a1_arr = vader_array_repeat((vader_array_t*) l1, (int64_t) l2);
@@ -133,7 +133,7 @@ vader_box_t std_iter_last__i32(void* l0) {
         VADER_ARRAY_RESOLVE_BUF(_a0_slotarr)
         VADER_ARRAY_CHECK_INDEX(_a0_slotarr, l1)
         t0 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) l1];
-        return vader_box_i32(319u, t0);
+        return vader_box_i32(320u, t0);
     }
     return vader_box_obj(0u, NULL);
 }
