@@ -1,0 +1,456 @@
+// vader/core/types/union: unions in their canonical form.
+//
+// A union is built flattened, deduplicated and sorted (`union_of`), so that two
+// spellings of one union compare equal (`equals_type`, `types.vader`); a union of
+// ranges lays out as the integer that holds them (`laid_out_unions`). Narrowing
+// subtracts a variant from a union (`subtract_type`).
+
+module "vader/core/types"
+
+import "std/iter"
+import "std/sort"
+import "std/string"
+import "vader/support/integer"
+
+// ---- canonical union ------------------------------------------------------
+
+/// Build a union from `variants`. Flattens nested unions, drops `Never`
+/// (absorbed — a value of that type doesn't exist), dedups, sorts by
+/// `display_type` output, then, for two that print alike, by their
+/// module-qualified name, then by `canonical_key`. Empty / all-Never input
+/// collapses to `Never`.
+export union_of :: fn(variants: Type[]) -> Type {
+    dedup: Type[]: []
+    for v in variants {
+        v.collect_variant(dedup)
+    }
+    if dedup.len() == 0 { return TY_NEVER }
+    if dedup.len() == 1 { return dedup[0] }
+    return mk_union(sort_by_display_key(dedup))
+}
+
+/// The type of a value one of several paths gave, of the types `reached` : their
+/// union, the ranges among them joined into the one range holding them all, since
+/// a range has no hole (`if h < 12 { h } else { h }` is an `Hour`, not two halves
+/// on which no arithmetic is defined), and each integer type a path gives bare into
+/// another among the paths holding it (`0..=9` or a `u8` beside an `i32` or an
+/// `i32 | null` is an `i32`, an `i32 | null`). A union written in the source keeps
+/// its ranges apart (`union_of`).
+///
+/// @param reached  the type of the value on each path.
+export union_of_paths :: fn(reached: Type[]) -> Type {
+    hull: RangeType | null = null
+    rest: Type[]: []
+    for t in reached {
+        refined :: refinement_of(t)
+        if refined != null {
+            hull = joined_ranges(hull, refined)
+        } else {
+            rest.push(t)
+        }
+    }
+    // Flattened and deduplicated : a `match` of many arms gives one type many times.
+    variants: Type[]: []
+    for t in rest {
+        t.collect_variant(variants)
+    }
+    if hull != null && !held_by_another(variants, hull) {
+        variants.push(hull)
+    }
+    kept: Type[]: []
+    for v in variants {
+        if !absorbed(v, variants, rest) {
+            kept.push(v)
+        }
+    }
+    return union_of(kept)
+}
+
+// Whether the integer primitive `v`, one of `variants`, goes into another of them
+// holding it. Only a value a path gives bare does : one inside a union keeps its
+// tag, which nothing converts (`u8 | null` is no `i32 | null`).
+absorbed :: fn(v: Type, variants: Type[], paths: Type[]) -> bool {
+    if primitive_name(v) == "" || !held_by_another(variants, v) {
+        return false
+    }
+    for path in paths {
+        if path is UnionType && path.variants.any_match((inner) -> equals_type(inner, v)) {
+            return false
+        }
+    }
+    return true
+}
+
+// Whether one of `types` holds every value of the integer type `t` (`holds_integer`) :
+// `t` goes into it there, as an operand into the integer beside it.
+held_by_another :: fn(types: Type[], t: Type) -> bool {
+    for other in types {
+        if holds_integer(other, t) {
+            return true
+        }
+    }
+    return false
+}
+
+// The one range holding `a` and `b`, `b` alone when `a` is null ; either of them,
+// named, when it holds the other.
+joined_ranges :: fn(a: RangeType | null, b: RangeType) -> RangeType {
+    if a == null {
+        return b
+    }
+    joined :: interval_join(a.bounds, b.bounds)
+    if same_interval(joined, a.bounds) {
+        return a
+    }
+    if same_interval(joined, b.bounds) {
+        return b
+    }
+    return RangeType { .bounds = joined }
+}
+
+// Order `types` by their `display_type`, rendering each key ONCE: the
+// comparator reads a key already in hand rather than rendering its operands. Two
+// types that print alike (same-named types of two modules) are ordered by their
+// module-qualified name, then by `canonical_key` : a union's order never depends
+// on the order its variants arrived in, and on symbol ids, which an unrelated edit
+// shifts, only between two that qualify alike.
+sort_by_display_key :: fn(types: Type[]) -> Type[] {
+    // `T | null` and its kind are most of the unions built here ; at two
+    // variants the index detour buys nothing.
+    //
+    // The no-swap branch may ALIAS `types`, which `mk_union` keeps. Sound
+    // because `union_of` builds `dedup` fresh and never writes to it again ; a
+    // second caller would have to honour that. Both paths hand `mk_union` an
+    // array grown by `push`, so it carries up to twice its used slots — a few
+    // bytes here, more as arity grows.
+    if types.len() == 2 {
+        if comes_before(types[1], display_type(types[1]), types[0], display_type(types[0])) {
+            return [types[1], types[0]]
+        }
+        return types
+    }
+    keys: string[]: []
+    order: i64[]: []
+    for i in 0..<types.len() {
+        keys.push(display_type(types[i]))
+        order.push(i)
+    }
+    out: Type[]: []
+    in_union_order :: (a: i64, b: i64) -> comes_before(types[a], keys[a], types[b], keys[b])
+    for i in sort(order, in_union_order) {
+        out.push(types[i])
+    }
+    return out
+}
+
+// Whether `a`, printed `a_key`, goes before `b`, printed `b_key`, in a union.
+comes_before :: fn(a: Type, a_key: string, b: Type, b_key: string) -> bool {
+    if a_key != b_key {
+        return compare_ascending_ci(a_key, b_key)
+    }
+    a_qualified :: qualified_display_type(a)
+    b_qualified :: qualified_display_type(b)
+    if a_qualified != b_qualified {
+        return a_qualified < b_qualified
+    }
+    return canonical_key(a) < canonical_key(b)
+}
+
+collect_variant :: fn(v: Type, into: Type[]) -> void {
+    if v is NeverType { return }
+    match v {
+        is UnionType -> {
+            for inner in v.variants { inner.collect_variant(into) }
+        }
+        _ -> {
+            for existing in into {
+                if equals_type(existing, v) {
+                    return
+                }
+            }
+            into.push(v)
+        }
+    }
+}
+
+// ---- unions as laid out ---------------------------------------------------
+
+/// `t` with every range in it replaced by its representation (`Hour` by `u8`,
+/// `Hour[]` by `u8[]`) : `t` as it is laid out, each range the integer it is held
+/// in, for the variants of a union (`laid_out_unions`) and for two integer types
+/// compared by their layout. A union is rebuilt canonical, so `Hour | u8` is `u8`.
+///
+/// @param t  a type the typecheck recorded.
+erase_ranges :: fn(t: Type) -> Type {
+    if t is PrimitiveType || !contains_range(t) {
+        return t
+    }
+    return match t {
+        is RangeType    -> range_representation(t)
+        is DistinctType -> mk_distinct(t.symbol, erase_ranges(t.backing))
+        is StructType   -> mk_struct(t.symbol, erase_ranges_each(t.args))
+        is TraitType    -> TraitType { ...t, .args = erase_ranges_each(t.args) }
+        is ArrayType    -> mk_array(erase_ranges(t.element))
+        is TupleType    -> mk_tuple(erase_ranges_each(t.elements))
+        is FnType       -> FnType {
+            ...t,
+            .params = erase_ranges_each(t.params),
+            .return_type = erase_ranges(t.return_type),
+        }
+        is UnionType    -> erase_union(t)
+        is PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType | SelfType
+         | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType
+         | AnyType -> t
+    }
+}
+
+// `u` erased : variant by variant where its only ranges are machine integers, each
+// then under its integer's name, in the same place ; else rebuilt canonical, two
+// ranges erasing to one integer (`Hour | u8`).
+erase_union :: fn(u: UnionType) -> Type {
+    if contains_range(u, true) {
+        return union_of(erase_ranges_each(u.variants))
+    }
+    return UnionType { .variants = erase_ranges_each(u.variants) }
+}
+
+erase_ranges_each :: fn(types: Type[]) -> Type[] {
+    out: Type[]: []
+    for t in types {
+        out.push(erase_ranges(t))
+    }
+    return out
+}
+
+/// `t` with every union holding a range of no machine integer's bounds laid out as
+/// the union of the integers its ranges are held in (`erase_ranges`), canonical :
+/// `Hour | null` is `u8 | null`, `Hour | u8` is `u8`. A union's variants are the
+/// tags a value of it carries at run time, one per integer, and whether it is a
+/// union at all decides if its values are boxed. Any other range stays a range.
+///
+/// @param t  a type the typecheck recorded.
+export laid_out_unions :: fn(t: Type) -> Type {
+    if !holds_refinement_union(t) {
+        return t
+    }
+    return match t {
+        is UnionType    -> union_of(erase_ranges_each(t.variants))
+        is DistinctType -> mk_distinct(t.symbol, laid_out_unions(t.backing))
+        is StructType   -> mk_struct(t.symbol, laid_out_unions_each(t.args))
+        is TraitType    -> TraitType { ...t, .args = laid_out_unions_each(t.args) }
+        is ArrayType    -> mk_array(laid_out_unions(t.element))
+        is TupleType    -> mk_tuple(laid_out_unions_each(t.elements))
+        is FnType       -> FnType {
+            ...t,
+            .params = laid_out_unions_each(t.params),
+            .return_type = laid_out_unions(t.return_type),
+        }
+        is RangeType | PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType
+         | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+         | NeverType | AnyType -> t
+    }
+}
+
+laid_out_unions_each :: fn(types: Type[]) -> Type[] {
+    out: Type[]: []
+    for t in types {
+        out.push(laid_out_unions(t))
+    }
+    return out
+}
+
+// Whether `t` holds a union holding a range of no machine integer's bounds. Read
+// on every type the lowering reads : a plain walk, as `contains_range` is.
+holds_refinement_union :: fn(t: Type) -> bool = match t {
+    is UnionType    -> contains_range(t, true)
+    is DistinctType -> holds_refinement_union(t.backing)
+    is StructType | TraitType -> any_holds_refinement_union(t.args)
+    is ArrayType    -> holds_refinement_union(t.element)
+    is TupleType    -> any_holds_refinement_union(t.elements)
+    is FnType       -> any_holds_refinement_union(t.params)
+        || holds_refinement_union(t.return_type)
+    is RangeType | PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType
+     | SelfType | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType
+     | NeverType | AnyType -> false
+}
+
+any_holds_refinement_union :: fn(types: Type[]) -> bool {
+    for t in types {
+        if holds_refinement_union(t) {
+            return true
+        }
+    }
+    return false
+}
+
+/// Whether a range sits anywhere in `t`, or with `refinements` a range of exact
+/// arithmetic (`is_refinement`). Read on every type the lowering reads
+/// (`laid_out_unions`) : a plain walk, no iterator.
+///
+/// @param t            a type the typecheck recorded.
+/// @param refinements  whether a machine integer goes unseen.
+export contains_range :: fn(t: Type, refinements: bool = false) -> bool = match t {
+    is RangeType    -> !refinements || !is_machine_range(t)
+    is DistinctType -> contains_range(t.backing, refinements)
+    is StructType | TraitType -> any_contains_range(t.args, refinements)
+    is ArrayType    -> contains_range(t.element, refinements)
+    is TupleType    -> any_contains_range(t.elements, refinements)
+    is FnType       -> (any_contains_range(t.params, refinements)
+        || contains_range(t.return_type, refinements))
+    is UnionType    -> any_contains_range(t.variants, refinements)
+    is PrimitiveType | EnumType | TypeParamType | InferVar | TypeMetaType | SelfType
+     | UnresolvedType | FreeIntType | FreeFloatType | FreeCharType | NeverType | AnyType -> false
+}
+
+any_contains_range :: fn(types: Type[], refinements: bool) -> bool {
+    for t in types {
+        if contains_range(t, refinements) {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- overlap and subtraction ----------------------------------------------
+
+/// Do `a` and `b` share any concrete runtime value ? Powers T3040
+/// ("test can never match") and the match-arm overlap check.
+/// UnionType on either side recurses into its variants.
+///
+/// @param a  one type.
+/// @param b  the other.
+export types_overlap :: fn(a: Type, b: Type) -> bool {
+    av :: union_variants(a)
+    if !(av is null) {
+        for v in av { if types_overlap(v, b) { return true } }
+        return false
+    }
+    bv :: union_variants(b)
+    if !(bv is null) {
+        for v in bv { if types_overlap(a, v) { return true } }
+        return false
+    }
+    return equals_type(a, b)
+}
+
+/// Whether a value of `a` and one of `b` are the same variant to `==` : one type,
+/// or a free literal the other type takes. A union compares a
+/// variant only with its counterpart on the other side.
+///
+/// @param a  a variant of one operand, or the operand itself.
+/// @param b  a variant of the other operand, or the operand itself.
+same_variant :: fn(a: Type, b: Type) -> bool =
+    equals_type(a, b)
+        || (is_free_numeric(a) && is_assignable(a, b))
+        || (is_free_numeric(b) && is_assignable(b, a))
+
+/// The variant of `t` that is the same as `variant` (`same_variant`) — `t` itself
+/// when it is no union and matches. Null when none is.
+///
+/// @param t        an operand's type.
+/// @param variant  a variant of the other operand.
+export counterpart :: fn(t: Type, variant: Type) -> Type | null {
+    for v in union_variants(t) ?? [t] {
+        if same_variant(v, variant) {
+            return v
+        }
+    }
+    return null
+}
+
+/// Subtract a single variant from a type. Returns the remaining type
+/// (or `Never` if nothing remains). For non-union sources subtracting
+/// the same shape yields `Never` ; subtracting a different shape is a
+/// no-op. Used by flow narrowing — `if x is T` widens to "not T" on
+/// the false side / in code after a divergent guard.
+export subtract_type :: fn(from: Type, removed: Type) -> Type {
+    if from is UnionType {
+        kept: Type[]: []
+        for v in from.variants {
+            if !removed_covers(removed, v) { kept.push(v) }
+        }
+        if kept.len() == 0 { return TY_NEVER }
+        if kept.len() == 1 { return kept[0] }
+        return mk_union(kept)
+    }
+    if removed_covers(removed, from) { return TY_NEVER }
+    return from
+}
+
+// True when `removed` covers `t` — either `removed` IS `t`, or `removed`
+// is a union that lists `t` among its variants. Without the union case,
+// subtracting a union (e.g. the `!(x is T)` divergent-guard's inner
+// complement) removes nothing — the double-complement `subtract(NU,
+// (N-1)U)` then yields the full union instead of the single `T`, so the
+// negated guard fails to narrow and downstream field-gets degrade.
+removed_covers :: fn(removed: Type, t: Type) -> bool {
+    if removed is UnionType {
+        for v in removed.variants { if equals_type(v, t) { return true } }
+        return false
+    }
+    return equals_type(removed, t)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+import "vader/core/symbol"
+
+@test
+test_equals_integer :: fn() -> void {
+    assert(equals_type(TY_I32, TY_I32), "i32 == i32")
+    assert(!equals_type(TY_I32, TY_I64), "i32 != i64")
+}
+
+@test
+test_equals_array :: fn() -> void {
+    a1: Type: mk_array(TY_I32)
+    a2: Type: mk_array(TY_I32)
+    a3: Type: mk_array(TY_STRING)
+    assert(equals_type(a1, a2), "i32[] == i32[]")
+    assert(!equals_type(a1, a3), "i32[] != string[]")
+}
+
+@test
+test_union_of_dedup :: fn() -> void {
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
+    // A | B | A should collapse to A | B
+    u :: union_of([i32_t, str_t, i32_t])
+    match u {
+        is UnionType -> { assert_eq(u.variants.len(), 2) }
+        _ -> { assert(false, "expected a Union after dedup") }
+    }
+}
+
+@test
+test_union_of_drops_never :: fn() -> void {
+    i32_t: Type: TY_I32
+    never_t: Type: TY_NEVER
+    // i32 | Never should collapse to i32
+    u :: union_of([i32_t, never_t])
+    assert(equals_type(u, TY_I32), "Never should be absorbed")
+}
+
+@test
+test_union_of_flattens :: fn() -> void {
+    i32_t: Type: TY_I32
+    str_t: Type: TY_STRING
+    bool_t: Type: TY_BOOL
+    inner :: mk_union([i32_t, str_t])
+    u :: union_of([inner, bool_t])
+    match u {
+        is UnionType -> { assert_eq(u.variants.len(), 3) }
+        _ -> { assert(false, "flattened union should have 3 variants") }
+    }
+}
+
+@test
+test_union_of_orders_same_named_types_by_identity :: fn() -> void {
+    factory :: SymbolFactory {}
+    first: Type: mk_struct(factory.make(.Struct, "Point", "pa", "pa", .Public, null), [])
+    second: Type: mk_struct(factory.make(.Struct, "Point", "pb", "pb", .Public, null), [])
+    one_way :: union_of([first, second])
+    other_way :: union_of([second, first])
+    assert(equals_type(one_way, other_way), "the order the variants arrive in does not matter")
+}

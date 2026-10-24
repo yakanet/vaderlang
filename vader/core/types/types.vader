@@ -1,10 +1,12 @@
 // vader/core/types/types — the Type IR.
 //
-// Every Vader value gets exactly one
-// Type. The discriminated union has 20 variants ; constructors are
-// plain factories (no hash-consing for MVP — `equals_type` in
-// `type_ops.vader` walks structurally instead of relying on reference
-// identity). Interning lands when a downstream hot path needs it.
+// Every Vader value gets exactly one Type. The discriminated union has 20
+// variants ; constructors are plain factories, with no hash-consing: `equals_type`
+// (`union.vader`) walks structurally instead of relying on reference identity.
+//
+// The rest of the module answers questions from types alone: equality and
+// canonical unions (`union.vader`), assignability and free literals
+// (`assignable.vader`), the value ABI (`value_abi.vader`).
 
 module "vader/core/types"
 
@@ -123,6 +125,44 @@ export held_values :: fn(t: Type) -> Interval | null {
     held :: held_integer(t) ?? return null
     return held.values
 }
+
+/// The values of the integer type `t`, the bounds of its range.
+///
+/// @return  null for any other type, a distinct over an integer included.
+export integer_values :: fn(t: Type) -> Interval | null {
+    if t is RangeType {
+        return t.bounds
+    }
+    return null
+}
+
+/// The values of `t` a `match` covers arm by arm : an integer's, the Unicode
+/// scalar values of `char`, those of a distinct over one.
+///
+/// @param t  the scrutinee's type.
+/// @return   null for any other type, and for one reaching past `i64` (`u64`,
+///           `i64`), whose patterns are read within `i64`.
+export integer_set :: fn(t: Type) -> Interval[] | null {
+    if t !is PrimitiveType | RangeType | DistinctType {
+        return null
+    }
+    backing :: strip_distinct(t)
+    if backing is PrimitiveType && backing.name == "char" {
+        return CHAR_VALUES
+    }
+    values :: integer_values(backing) ?? return null
+    if values.lo_open || values.hi_open {
+        return null
+    }
+    return [values]
+}
+
+/// The values of `char`, the Unicode scalar values : every code point but the
+/// surrogates, in two runs.
+export CHAR_VALUES: Interval[]: [
+    Interval { .lo = 0, .hi = 0xD7FF },
+    Interval { .lo = 0xE000, .hi = 0x10FFFF },
+]
 
 /// The machine integer a value of `t` is held in, through any distinct ; null for a
 /// type that is no integer.
@@ -760,7 +800,7 @@ export param_types_of :: fn(callee_type: Type | null) -> Type[] {
 }
 
 /// Raw union constructor. Callers that need flattening + dedup must go
-/// through `union_of` in `type_ops.vader`.
+/// through `union_of` (`union.vader`).
 export mk_union :: fn(variants: Type[]) -> Type = UnionType { .variants = variants }
 
 export mk_type_param :: fn(symbol: Symbol) -> Type = TypeParamType { .symbol = symbol }
@@ -771,6 +811,35 @@ export TY_UNRESOLVED :: UnresolvedType {}
 export TY_FREE_INT   :: FreeIntType {}
 export TY_FREE_FLOAT :: FreeFloatType {}
 export TY_FREE_CHAR  :: FreeCharType {}
+
+/// Whether `t` is the type of a free literal : an integer, a float or a `char` one,
+/// which takes the type of the slot it fills.
+///
+/// @param t  any type.
+export is_free_numeric :: fn(t: Type) -> bool {
+    // @partial: only the three Free* literal variants are free numerics; every
+    // other type (concrete or composite) is not.
+    @partial match t {
+        is FreeIntType -> { return true }
+        is FreeCharType -> { return true }
+        is FreeFloatType -> { return true }
+        _ -> { return false }
+    }
+}
+
+/// Replace FreeInt with `i32`, FreeFloat with `f64`, FreeChar with `char`.
+/// Used when a free literal escapes its bidirectional context and needs a
+/// concrete type to flow into downstream phases.
+export default_if_free :: fn(t: Type) -> Type {
+    // @partial: only the three Free* literal variants default to a concrete
+    // primitive; every other type is already concrete → returned unchanged.
+    @partial match t {
+        is FreeIntType   -> { return TY_I32 }
+        is FreeFloatType -> { return TY_F64 }
+        is FreeCharType  -> { return TY_CHAR }
+        _ -> { return t }
+    }
+}
 export TY_NEVER      :: NeverType {}
 export TY_ANY        :: AnyType {}
 export TY_VOID       :: PrimitiveType { .name = "void" }
@@ -794,6 +863,13 @@ export TY_I64 :: RangeType { .bounds = Interval { .lo = I64_MIN, .hi = I64_MAX }
 ///
 /// @param t  the type to test.
 export is_null_type :: fn(t: Type) -> bool = t is PrimitiveType && t.name == "null"
+
+/// True when `t` is the `void` primitive — by name, so a `void` built anywhere
+/// passes, not only the `TY_VOID` singleton.
+export is_void :: fn(t: Type) -> bool {
+    if t is PrimitiveType { return t.name == "void" }
+    return false
+}
 
 /// Whether `t` is `char`, not a distinct over it.
 ///
@@ -967,6 +1043,90 @@ write_type_list :: fn(sb: StringBuilder, items: Type[], sep: string, qualified: 
         first = false
         sb.write_type(it, qualified)
     }
+}
+
+// ---- equality -------------------------------------------------------------
+
+/// Structural equality. Recursive on unions / fns / arrays / tuples ; for
+/// nominal types (Struct / Trait / Enum / TypeParam) we compare symbol ids.
+export equals_type :: fn(a: Type, b: Type) -> bool = match a {
+    is TypeMetaType   -> b is TypeMetaType
+    is SelfType       -> b is SelfType
+    is UnresolvedType -> b is UnresolvedType
+    is NeverType      -> b is NeverType
+    is FreeIntType    -> b is FreeIntType
+    is FreeFloatType  -> b is FreeFloatType
+    is FreeCharType   -> b is FreeCharType
+    is AnyType        -> b is AnyType
+    is PrimitiveType  -> b is PrimitiveType && a.name == b.name
+    // Two ranges are equal by their bounds, whatever their names.
+    is RangeType      -> b is RangeType && same_interval(a.bounds, b.bounds)
+    is TypeParamType  -> b is TypeParamType && a.symbol.id == b.symbol.id
+    is InferVar       -> b is InferVar && a.id == b.id
+    // `StructType<EnumSym>` is the placeholder `type_from_expr` returns
+    // for enum names ; treat it as equivalent to the real `EnumType` so
+    // body-time assignability (annotation vs inferred) doesn't fight the
+    // placeholder/proper distinction.
+    is EnumType  -> if b is EnumType {
+        a.symbol.id == b.symbol.id
+    } else if b is StructType {
+        b.symbol.id == a.symbol.id
+    } else { false }
+    is StructType  -> if b is StructType {
+        nominal_eq(a.symbol.id, a.args, b.symbol.id, b.args)
+    } else if b is EnumType {
+        a.symbol.id == b.symbol.id
+    } else { false }
+    is TraitType -> b is TraitType && nominal_eq(a.symbol.id, a.args, b.symbol.id, b.args)
+    is ArrayType -> b is ArrayType && equals_type(a.element, b.element)
+    is TupleType -> b is TupleType && type_list_equals(a.elements, b.elements)
+    is FnType    -> b is FnType && type_list_equals(a.params, b.params)
+        && equals_type(a.return_type, b.return_type)
+    is UnionType -> b is UnionType && type_list_equals(a.variants, b.variants)
+    // Distinct (newtype) types : nominal identity by symbol id. A distinct
+    // type equals only itself, never its backing primitive nor another
+    // distinct over the same backing — that's the whole point.
+    is DistinctType  -> b is DistinctType && a.symbol.id == b.symbol.id
+}
+
+nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
+    if a_id != b_id { return false }
+    return type_list_equals(a_args, b_args)
+}
+
+/// Element-wise structural equality of two type lists (params, tuple
+/// elements, union variants). Companion to `equals_type` — same per-element
+/// `equals_type` comparison, length-checked first.
+export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
+    if a.len() != b.len() { return false }
+    for i in 0..<a.len() {
+        if !equals_type(a[i], b[i]) { return false }
+    }
+    return true
+}
+
+/// The variants of `t` when it is a union, `null` otherwise —
+/// `union_variants(t) ?? [t]` reads any type as its list of variants.
+///
+/// @param t  the type to read.
+export union_variants :: fn(t: Type) -> Type[] | null {
+    if t is UnionType { return t.variants }
+    return null
+}
+
+/// The type arguments a generic impl's bounds speak of : a struct's arguments,
+/// an array's element. Empty for any other type.
+///
+/// @param t  the implementing type.
+export type_arguments :: fn(t: Type) -> Type[] {
+    if t is StructType {
+        return t.args
+    }
+    if t is ArrayType {
+        return [t.element]
+    }
+    no_arguments: Type[]: []
+    return no_arguments
 }
 
 // ---- canonical key + walk -------------------------------------------------
@@ -1259,6 +1419,16 @@ export strip_distinct_each :: fn(args: Type[]) -> Type[] {
 
 import "std/testing"
 import "toolchain/ast"
+
+
+@test
+test_default_if_free :: fn() -> void {
+    assert_eq(display_type(default_if_free(TY_FREE_INT)), "i32")
+    assert(default_if_free(TY_FREE_INT) is RangeType, "FreeInt defaults to the range `i32`")
+    assert(equals_type(default_if_free(TY_FREE_FLOAT), TY_F64), "FreeFloat defaults to f64")
+    // Non-free types pass through.
+    assert(equals_type(default_if_free(TY_I32), TY_I32), "i32 should pass through")
+}
 
 @test
 test_display_primitive :: fn() -> void {

@@ -17,21 +17,6 @@ import "std/iter"
 import "std/math"
 import "vader/core/types"
 
-/// Whether `t` is the type of a free literal : an integer, a float or a `char` one,
-/// which takes the type of the slot it fills.
-///
-/// @param t  any type.
-is_free_numeric :: fn(t: Type) -> bool {
-    // @partial: only the three Free* literal variants are free numerics; every
-    // other type (concrete or composite) is not.
-    @partial match t {
-        is FreeIntType -> { return true }
-        is FreeCharType -> { return true }
-        is FreeFloatType -> { return true }
-        _ -> { return false }
-    }
-}
-
 /// Walk `param_type` against `arg_type` and record any TypeParam
 /// binding into `out`. The first binding wins. Matches a declaration's own
 /// pattern (an impl's target, a UFCS first parameter) ; a call binds through
