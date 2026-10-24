@@ -38,8 +38,7 @@ export VmRequiredDecl :: struct {
     span:        Span
 }
 
-/// Per-module comptime output. Project-wide tables (`file_exprs`,
-/// `file_baked_consts`, `instances`) live on `EvaluatedProject`.
+/// Per-module comptime output. Project-wide tables live on `EvaluatedProject`.
 export EvaluatedProgram :: struct {
     /// Owning typed program ; the comptime engine never mutates it.
     typed: TypedProgram
@@ -50,9 +49,6 @@ export EvaluatedProgram :: struct {
 
     /// How each value of `comptime_decls` was produced, under the same key.
     routes: MutableMap<i32, ComptimeRoute> = MutableMap<i32, ComptimeRoute> {}
-
-    /// Each `@file` the module reads, in source order.
-    file_reads: FileRead[] = []
 
     /// Each top-level `@assert` of the module and what its evaluation gave.
     asserts: AssertCheck[] = []
@@ -66,18 +62,6 @@ export ComptimeRoute :: enum {
     Vm,
     /// A plain const the tree-walk folded, best effort.
     Folded,
-}
-
-/// One `@file("path")` the comptime pass read.
-export FileRead :: struct {
-    /// The `@file` call.
-    span: Span
-    /// The path as the program wrote it.
-    path: string
-    /// The size of what was read, in bytes.
-    bytes: i64
-    /// The constant the read initialises when it is the whole of a const's value.
-    name: string | null = null
 }
 
 /// What evaluating an `@assert` condition gave.
@@ -95,8 +79,8 @@ export AssertCheck :: struct {
     verdict: AssertVerdict
 }
 
-/// Project-wide comptime output. Carries the per-module slices, the
-/// host-baked `@file` contents, and the harvested generic-instance set.
+/// Project-wide comptime output. Carries the per-module slices and the
+/// harvested generic-instance set.
 export EvaluatedProject :: struct {
     /// Owning typed project — the source of every module the comptime
     /// pass evaluated.
@@ -105,18 +89,6 @@ export EvaluatedProject :: struct {
     /// Per-module `EvaluatedProgram`, keyed by canonical module path
     /// (matches `TypedProject.modules` keying).
     modules: MutableMap<string, EvaluatedProgram>
-
-    /// `@file`-baked const values keyed by the const's Symbol id.
-    /// Populated alongside `file_exprs` ; the lower merges these
-    /// into `comptime_value_by_symbol_id` so use sites inline the
-    /// literal. Kept apart from `comptime_decls`, which the dump lists :
-    /// a read is listed once, as a `@file` item.
-    file_baked_consts: MutableMap<i32, ComptimeValue>
-
-    /// Every `@file("path")` call baked at comptime, keyed by the
-    /// IntrinsicCallExpr's AST node id. Lower reads this
-    /// to emit a `LoweredStringLit` of the file contents.
-    file_exprs: MutableMap<i64, string>
 
     /// Sorted list of every generic instantiation seen in the typed AST
     /// (Struct/Trait with non-empty args), from which `lower_mono_struct`
@@ -152,12 +124,10 @@ new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 /// @return       a fresh evaluated project with empty side-tables.
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
-        .typed             = typed,
-        .modules           = MutableMap<string, EvaluatedProgram> {},
-        .file_exprs        = MutableMap<i64, string> {},
-        .file_baked_consts = MutableMap<i32, ComptimeValue> {},
-        .instances         = [],
-        .vm_required       = [],
+        .typed       = typed,
+        .modules     = MutableMap<string, EvaluatedProgram> {},
+        .instances   = [],
+        .vm_required = [],
     }
 }
 
@@ -168,5 +138,4 @@ import "std/testing"
 @test test_new_evaluated_project_is_empty :: fn() -> void {
     project :: new_evaluated_project(new_typed_project(FreshReads {}))
     assert_eq(project.modules.len(), 0)
-    assert_eq(project.file_exprs.len(), 0)
 }

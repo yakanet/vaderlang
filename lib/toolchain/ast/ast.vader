@@ -1243,7 +1243,7 @@ export GenericInstExpr :: struct {
     type_args: TypeExpr[]
 }
 
-/// A call to a compiler intrinsic — `@size_of(T)`, `@type_name(T)`, `@file("path")`.
+/// A call to a compiler intrinsic: `@size_of(T)`, `@type_name(T)`.
 ///
 /// `name` is the intrinsic ident WITHOUT the leading `@`. The recognised set lives
 /// in `vader/parser/intrinsics.vader`, and the parser mints this node only for a
@@ -1254,7 +1254,6 @@ export IntrinsicCallExpr :: struct {
     name:      string
     name_span: Span
     args:      Expr[]
-    /// Source wrote a trailing comma before `)` — formatter keeps it exploded.
     trailing_comma: bool = false
 }
 

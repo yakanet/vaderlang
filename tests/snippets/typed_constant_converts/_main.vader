@@ -5,6 +5,7 @@
 
 module "snippet"
 
+import "std/abort"
 import "std/io"
 
 Label :: struct {
@@ -25,7 +26,15 @@ string implements Into<Label> {
 
 ROOM: Label: Celsius { .degrees = 21 }
 
-NOTE: Label: @file("note.txt")
+NOTE_TEXT :: @comptime {
+    read :: read_file_string("note.txt")
+    if read is IOError {
+        panic("cannot read `note.txt`: ${read.message()}")
+    }
+    return read
+}
+
+NOTE: Label: NOTE_TEXT
 
 main :: fn() -> i32 {
     println(ROOM.text)

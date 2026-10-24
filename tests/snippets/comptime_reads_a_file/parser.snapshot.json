@@ -1,0 +1,237 @@
+{
+  "ast": {
+    "kind": "Program",
+    "module": {
+      "kind": "ModuleDecl",
+      "name": "snippet"
+    },
+    "decls": [
+      {
+        "kind": "ImportDecl",
+        "path": "std/abort",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
+        "path": "std/io",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "FILENAME",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "StringLitExpr",
+          "parts": [
+            {
+              "kind": "text",
+              "value": "data"
+            }
+          ]
+        },
+        "decorators": []
+      },
+      {
+        "kind": "FnDecl",
+        "name": "__comptime_GREETING",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "read"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "read_file_string"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "interp",
+                          "expr": {
+                            "kind": "IdentExpr",
+                            "name": "FILENAME"
+                          }
+                        },
+                        {
+                          "kind": "text",
+                          "value": ".txt"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "is",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "read"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "IOError"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "panic"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "cannot read `"
+                            },
+                            {
+                              "kind": "interp",
+                              "expr": {
+                                "kind": "IdentExpr",
+                                "name": "FILENAME"
+                              }
+                            },
+                            {
+                              "kind": "text",
+                              "value": ".txt`: "
+                            },
+                            {
+                              "kind": "interp",
+                              "expr": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "read"
+                                  },
+                                  "field": "message"
+                                },
+                                "args": []
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": null
+              }
+            }
+          ],
+          "trailing": {
+            "kind": "IdentExpr",
+            "name": "read"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "GREETING",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_GREETING"
+          },
+          "args": []
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
+        "kind": "FnDecl",
+        "name": "main",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "i32"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "IdentExpr",
+                      "name": "GREETING"
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ReturnStmt",
+              "value": {
+                "kind": "IntLitExpr",
+                "value": "0n"
+              }
+            }
+          ],
+          "trailing": null
+        },
+        "decorators": []
+      }
+    ]
+  },
+  "diagnostics": []
+}

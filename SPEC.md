@@ -47,7 +47,7 @@ Source (.vader)
   ↓ Parser           → AST
   ↓ Resolver         → AST with resolved names (modules, imports)
   ↓ Type-checker     → Typed AST (with narrowing, traits, bidirectional inference)
-  ↓ Comptime engine  → Typed AST (@comptime values evaluated, @file read, @assert checked)
+  ↓ Comptime engine  → Typed AST (@comptime values evaluated, @assert checked)
   ↓ Lowerer          → Lowered AST (generic instances materialised, pattern match → if/else chains, trait calls → direct or vtable dispatch)
   ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
   ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators; substrate for escape / liveness analyses
@@ -69,7 +69,7 @@ The canonical IR is a **stack-based bytecode**. This IR is the pivot of the ecos
 
 ### Comptime
 
-The comptime pass evaluates `@comptime` values, reads `@file` and checks `@assert`; a value its tree-walk cannot compute runs on the VM (§14 *Implementation note*).
+The comptime pass evaluates `@comptime` values and checks `@assert`; a value its tree-walk cannot compute runs on the VM (§14 *Implementation note*).
 
 ### Monomorphization
 
@@ -125,7 +125,6 @@ Code in `@comptime` context can:
 
 - ✅ compute (pure functions)
 - ✅ allocate memory and manipulate structures
-- ✅ read project files (via `@file(path)` — see §14)
 - ✅ write debug output to `stdout` (`println`) — a side effect that never enters
   the baked value, so it cannot affect reproducibility
 - ✅ read the clock, the environment or the filesystem. Baking
@@ -3363,7 +3362,7 @@ The comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for t
 
 ### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` to drive comptime branching on type shape, layout, or external content.
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**, and compose freely with `@assert(...)` to drive comptime branching on type shape or layout. A file's contents are read by an ordinary function under `@comptime` (§2 *Compile-time sandbox*).
 
 The "Signature" column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`); the other reflection intrinsics require the arg to fold to a static type at the call site.
 
@@ -3378,7 +3377,6 @@ The "Signature" column below uses `T: type` for arguments that name a type. A ba
 | `@variant_count(T)` | `(T: type) -> i64` | Number of variants on a Union or Enum. | Returns 0 for any other shape. A union of unions is flattened before counting. |
 | `@field_index(T, "name")` | `(T: type, name: string-literal) -> i64` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope, or has it built in (an enum's `Equals`). | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. `@satisfies(i32, Add)` is `true`. |
-| `@file(path)` | `(path: string) -> string` | Contents of the file at `path`, baked at compile time, byte for byte: a binary file (an image) is read through `.bytes()`. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable: a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The path may name any file the compiler can read (§2 *Compile-time sandbox*). A missing file is `C4006` (reserved: not reported yet). |
 | `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated at runtime** — only its static type is read at the call site. Useful as input to `@size_of` or to a `type` parameter (`@size_of(@type_of(point))`). |
 | `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string` and `type: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
 | `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
@@ -4140,7 +4138,7 @@ to the program like any other argument.
 | `typed-ast` | Per-decl + per-expression types |
 | `callees` | What each call invokes, as the type-checker settled it |
 | `effects` | What each function does with what it is lent |
-| `evaluated-ast` | `@comptime` values, `@file` reads and `@assert` verdicts, in Markdown |
+| `evaluated-ast` | `@comptime` values and `@assert` verdicts, in Markdown |
 | `lowered-ast` | Desugared program printed as Vader under qualified names, with where each constant and global slot lives, the vtable rows, and what the lowering materialised in the dependencies |
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `targets` | The target constants and which body each `@target` group selected |

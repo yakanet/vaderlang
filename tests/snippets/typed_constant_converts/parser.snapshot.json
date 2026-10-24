@@ -8,6 +8,14 @@
     "decls": [
       {
         "kind": "ImportDecl",
+        "path": "std/abort",
+        "binding": {
+          "kind": "wildcard"
+        },
+        "decorators": []
+      },
+      {
+        "kind": "ImportDecl",
         "path": "std/io",
         "binding": {
           "kind": "wildcard"
@@ -228,6 +236,136 @@
         "decorators": []
       },
       {
+        "kind": "FnDecl",
+        "name": "__comptime_NOTE_TEXT",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [],
+        "returnType": null,
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [
+            {
+              "kind": "LetStmt",
+              "mutable": false,
+              "binding": {
+                "kind": "SimpleBinding",
+                "name": "read"
+              },
+              "type": null,
+              "value": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "read_file_string"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "StringLitExpr",
+                      "parts": [
+                        {
+                          "kind": "text",
+                          "value": "note.txt"
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "IfExpr",
+                "cond": {
+                  "kind": "BinaryExpr",
+                  "op": "is",
+                  "left": {
+                    "kind": "IdentExpr",
+                    "name": "read"
+                  },
+                  "right": {
+                    "kind": "IdentExpr",
+                    "name": "IOError"
+                  }
+                },
+                "then": {
+                  "kind": "BlockExpr",
+                  "stmts": [],
+                  "trailing": {
+                    "kind": "CallExpr",
+                    "callee": {
+                      "kind": "IdentExpr",
+                      "name": "panic"
+                    },
+                    "args": [
+                      {
+                        "name": null,
+                        "value": {
+                          "kind": "StringLitExpr",
+                          "parts": [
+                            {
+                              "kind": "text",
+                              "value": "cannot read `note.txt`: "
+                            },
+                            {
+                              "kind": "interp",
+                              "expr": {
+                                "kind": "CallExpr",
+                                "callee": {
+                                  "kind": "FieldExpr",
+                                  "target": {
+                                    "kind": "IdentExpr",
+                                    "name": "read"
+                                  },
+                                  "field": "message"
+                                },
+                                "args": []
+                              }
+                            }
+                          ]
+                        },
+                        "spread": false
+                      }
+                    ]
+                  }
+                },
+                "else": null
+              }
+            }
+          ],
+          "trailing": {
+            "kind": "IdentExpr",
+            "name": "read"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "ConstDecl",
+        "name": "NOTE_TEXT",
+        "visibility": "private",
+        "type": null,
+        "value": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "__comptime_NOTE_TEXT"
+          },
+          "args": []
+        },
+        "decorators": [
+          {
+            "name": "comptime",
+            "args": []
+          }
+        ]
+      },
+      {
         "kind": "ConstDecl",
         "name": "NOTE",
         "visibility": "private",
@@ -236,19 +374,8 @@
           "name": "Label"
         },
         "value": {
-          "kind": "IntrinsicCallExpr",
-          "name": "file",
-          "args": [
-            {
-              "kind": "StringLitExpr",
-              "parts": [
-                {
-                  "kind": "text",
-                  "value": "note.txt"
-                }
-              ]
-            }
-          ]
+          "kind": "IdentExpr",
+          "name": "NOTE_TEXT"
         },
         "decorators": []
       },

@@ -220,15 +220,9 @@ export ComptimeCode :: enum(CodeInfo) {
     EvaluationPanic { .id = "C4002", .message = "comptime evaluation panicked" },
     NotCallable     { .id = "C4003", .message = "function is not callable in comptime context" },
     DivisionByZero  { .id = "C4005", .message = "comptime division by zero" },
-    /// Reserved: a missing `@file` path is `C4001` at comptime and reaches the emitter
-    /// in a function body.
-    FileNotReadable     { .id = "C4006", .message = "@file path could not be read" },
     TypeMismatch        { .id = "C4007", .message = "comptime value has incompatible type" },
     DependencyCycle     { .id = "C4009", .message = "comptime evaluation depends on itself" },
     FeatureNotSupported { .id = "C4011", .message = "comptime feature not yet supported" },
-    /// Reserved: a `@file` with other than one argument is skipped by the comptime
-    /// pass, and the reflection intrinsics report their arity as `C4011`.
-    FileSingleArg        { .id = "C4012", .message = "@file expects a single string-literal argument" },
     AssertFailed         { .id = "C4015", .message = "compile-time assertion failed" },
     ImpureHostAtComptime { .id = "C4016", .message = "impure host call at comptime" },
     IntegerOverflow      { .id = "C4017", .message = "integer overflow in a constant expression" },

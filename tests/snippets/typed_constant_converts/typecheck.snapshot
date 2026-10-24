@@ -1,26 +1,44 @@
 # Typecheck
 
 ## tests/snippets/typed_constant_converts
+  FnDecl         __comptime_NOTE_TEXT :: fn() -> string
   StructDecl     Celsius              :: Celsius
   StructDecl     Label                :: Label
   FnDecl         main                 :: fn() -> i32
   ConstDecl      NOTE                 :: Label
+  ConstDecl      NOTE_TEXT            :: string
   ConstDecl      ROOM                 :: Label
-  expr 19:33    StructLitExpr  :: Label
-  expr 19:49    StringLitExpr  :: string
-  expr 19:52    FieldExpr      :: i32
-  expr 19:52    IdentExpr      :: Celsius
-  expr 23:33    StructLitExpr  :: Label
-  expr 23:49    StringLitExpr  :: string
-  expr 23:53    IdentExpr      :: string
-  expr 26:14    StructLitExpr  :: Celsius
-  expr 28:14    IntrinsicCallExpr :: string
-  expr 28:20    StringLitExpr  :: string
-  expr 31:13    FieldExpr      :: string
-  expr 31:13    IdentExpr      :: Label
-  expr 31:5     CallExpr       :: void
-  expr 31:5     IdentExpr      :: fn(T) -> void
-  expr 32:13    FieldExpr      :: string
-  expr 32:13    IdentExpr      :: Label
-  expr 32:5     CallExpr       :: void
-  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 20:33    StructLitExpr  :: Label
+  expr 20:49    StringLitExpr  :: string
+  expr 20:52    FieldExpr      :: i32
+  expr 20:52    IdentExpr      :: Celsius
+  expr 24:33    StructLitExpr  :: Label
+  expr 24:49    StringLitExpr  :: string
+  expr 24:53    IdentExpr      :: string
+  expr 27:14    StructLitExpr  :: Celsius
+  expr 29:1     IdentExpr      :: fn() -> string
+  expr 29:14    CallExpr       :: string
+  expr 30:13    CallExpr       :: IOError | string
+  expr 30:13    IdentExpr      :: fn(string, i64) -> IOError | string
+  expr 30:30    StringLitExpr  :: string
+  expr 31:16    IdentExpr      :: IOError
+  expr 31:5     IfExpr         :: void
+  expr 31:8     BinaryExpr     :: bool
+  expr 31:8     IdentExpr      :: IOError | string
+  expr 32:15    StringLitExpr  :: string
+  expr 32:42    CallExpr       :: string
+  expr 32:42    FieldExpr      :: fn() -> string
+  expr 32:42    IdentExpr      :: IOError
+  expr 32:9     CallExpr       :: never
+  expr 32:9     IdentExpr      :: fn(string) -> void
+  expr 34:12    IdentExpr      :: string
+  expr 37:14    IdentExpr      :: string
+  expr 40:13    FieldExpr      :: string
+  expr 40:13    IdentExpr      :: Label
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    FieldExpr      :: string
+  expr 41:13    IdentExpr      :: Label
+  expr 41:5     CallExpr       :: void
+  expr 41:5     IdentExpr      :: fn(T) -> void
+  expr 695:62   IdentExpr      :: i64

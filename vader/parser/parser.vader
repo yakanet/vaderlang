@@ -3188,7 +3188,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     // Two expression-position `@` forms :
     //   `@partial match x { ... }`  — opt-out of exhaustiveness for a match
     //   `@<intrinsic>(args)`        — compiler reflection / introspection call
-    //                                 (`@size_of`, `@type_name`, `@file`, …).
+    //                                 (`@size_of`, `@type_name`, …).
     //                                 The set of recognised names lives in
     //                                 `vader/parser/intrinsics.vader`.
     // Anything else is P1014.

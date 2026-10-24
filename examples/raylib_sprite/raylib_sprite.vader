@@ -4,7 +4,7 @@
 //   vader build examples/raylib_sprite
 //   ./examples/raylib_sprite/build/debug-<os>-<arch>/raylib_sprite
 //
-// `sprite.png` is baked into the program (`@file`), so the executable needs no
+// `sprite.png` is baked into the program (`@comptime`), so the executable needs no
 // file beside it, and `vader run examples/raylib_sprite` runs it on the
 // interpreter, through adapters it compiles with `cc`. raylib comes from the
 // toolchain's `third_party/` folder, which `vader.json` names.
@@ -12,11 +12,19 @@
 module "main"
 
 import "raylib"
+import "std/abort"
 import "std/io"
 import "std/math"
 
 /// The sprite's PNG, read when the program is compiled.
-SPRITE :: @file("sprite.png")
+SPRITE :: @comptime {
+    read :: read_file_bytes("sprite.png")
+    if read is IOError {
+        panic("cannot read `sprite.png`: ${read.message()}")
+    }
+    return read
+}
+
 SCREEN_WIDTH: i32: 800
 SCREEN_HEIGHT: i32: 450
 /// Sprite speed, in pixels per second.
@@ -26,7 +34,7 @@ main :: fn() -> i32 {
     init_window(SCREEN_WIDTH, SCREEN_HEIGHT, "Vader + raylib")
     defer close_window()
     set_target_fps(60)
-    sprite :: load_texture_from_memory(".png", SPRITE.bytes())
+    sprite :: load_texture_from_memory(".png", SPRITE)
     // raylib only logs the failure among its own lines.
     if sprite == null {
         eprintln("cannot decode sprite.png")

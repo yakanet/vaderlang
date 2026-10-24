@@ -417,12 +417,11 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 /// binary — the bytes are taken verbatim, no UTF-8 reinterpretation. This is
 /// the canonical file-read primitive ; `read_file_string` decodes on top.
 ///
-/// `max_bytes` is the caller's ceiling, and it is REQUIRED. The size cannot be
-/// taken up front and trusted — `fseek(SEEK_END)` reports 0 for a character
-/// device and a pipe has no size at all — so the read is a loop, and a loop
-/// over a stream that never ends has to be bounded by something. Making the
-/// bound the caller's says whose policy it is: the one place that knows what it
-/// is reading. Pass `READ_LIMIT_DEFAULT` when there is no better figure.
+/// `max_bytes` bounds the read. The size cannot be taken up front and trusted:
+/// `fseek(SEEK_END)` reports 0 for a character device and a pipe has no size at
+/// all, so the read is a loop, and a loop over a stream that never ends has to
+/// stop somewhere. `READ_LIMIT_DEFAULT` by default; name your own when you know
+/// what you are reading, a larger file included.
 ///
 /// @param path       filesystem path (absolute or cwd-relative).
 /// @param max_bytes  refuse once this many bytes have accumulated.
@@ -430,7 +429,7 @@ poll_stdin :: fn(timeout_ms: i32) -> bool {
 /// @error            `IOError` if the file can't be opened or read, or if it
 ///                   passes `max_bytes` — `"file too large"`.
 @target
-export read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError
+export read_file_bytes :: fn(path: string, max_bytes: i64 = READ_LIMIT_DEFAULT) -> u8[] | IOError
 
 @target(.Linux, .Darwin)
 read_file_bytes :: fn(path: string, max_bytes: i64) -> u8[] | IOError {

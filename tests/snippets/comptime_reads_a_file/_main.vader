@@ -1,0 +1,21 @@
+// A `@comptime` block reads a file beside this source when the program is
+// compiled, whatever folder the compiler runs from, and its text is baked in.
+
+module "snippet"
+
+import "std/abort"
+import "std/io"
+
+FILENAME :: "data"
+GREETING :: @comptime {
+    read :: read_file_string("${FILENAME}.txt")
+    if read is IOError {
+        panic("cannot read `${FILENAME}.txt`: ${read.message()}")
+    }
+    return read
+}
+
+main :: fn() -> i32 {
+    println(GREETING)
+    return 0
+}

@@ -6,19 +6,26 @@
 //   - trait impl on both struct and enum (`Mower`/`Direction` implements Display)
 //   - tuple destructuring of a function result
 //   - explicit error unions (`T | ParseError`) propagated through `?`
-//   - top-level `@file` baking the canonical test input at compile time
+//   - a top-level `@comptime` block baking the canonical test input at compile time
 //   - argv handling so the same binary accepts an external file at runtime
 //   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.turn_left()`)
 
 module "main"
 
+import "std/abort"
 import "std/io"
 import "std/string"
 import "std/char"
 import "std/string_builder"
 
 // Compile-time bake: the canonical test input is embedded next to the source.
-DEFAULT_INPUT :: @file("mowitnow_input.txt")
+DEFAULT_INPUT :: @comptime {
+    read :: read_file_string("mowitnow_input.txt")
+    if read is IOError {
+        panic("cannot read `mowitnow_input.txt`: ${read.message()}")
+    }
+    return read
+}
 
 // --- Domain types ---------------------------------------------------------
 

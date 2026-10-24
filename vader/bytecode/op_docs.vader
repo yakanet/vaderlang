@@ -7,10 +7,18 @@
 
 module "vader/bytecode"
 
+import "std/abort"
+import "std/io"
 import "std/iter"
 import "std/string"
 
-OPS_REFERENCE :: @file("ops.md")
+OPS_REFERENCE :: @comptime {
+    read :: read_file_string("ops.md")
+    if read is IOError {
+        panic("cannot read `ops.md`: ${read.message()}")
+    }
+    return read
+}
 
 // The one entry every conversion shares : `u64.to_i32`, `i64.to_f64`, …
 CONVERSION_KEY :: "<from>.to_<to>"

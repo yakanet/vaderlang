@@ -132,16 +132,6 @@ export INTRINSICS: IntrinsicSpec[]: [
         .signature = "@max(T: type) -> T",
         .doc       = "The greatest value of an integer type, a range or a type parameter bounded by `Int`; of an enum without data, its variant of the greatest value; of `char`, U+10FFFF.",
     },
-    // `@file("path")` reads the file at compile time and bakes its UTF-8
-    // contents as a string literal. The path resolves against the file that
-    // writes the call.
-    IntrinsicSpec {
-        .name      = "file",
-        .args      = [.Value],
-        .result    = "string",
-        .signature = "@file(path: string) -> string",
-        .doc       = "UTF-8 contents of the file at `path`, read at compile time and baked as a string literal. The path resolves against the file that writes the call.",
-    },
     // Reifies the static type of a value as a `type` runtime value.
     IntrinsicSpec {
         .name      = "type_of",

@@ -181,8 +181,8 @@ is_image_valid :: fn(image: Image) -> bool
 @extern(RAYLIB, "IsTextureValid")
 is_texture_valid :: fn(texture: Texture2D) -> bool
 
-/// Load an image file held in memory into GPU memory: one `@file` baked into
-/// the program, which then needs no file beside it.
+/// Load an image file held in memory into GPU memory: one baked into the program
+/// by `@comptime`, which then needs no file beside it.
 ///
 /// @param file_type  the file's extension, dot included: `".png"`.
 /// @param data       the file's bytes.

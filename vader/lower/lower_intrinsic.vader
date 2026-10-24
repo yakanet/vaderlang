@@ -16,20 +16,6 @@ import "toolchain/span"
 // the lowerer as bound `@comptime const` references ; what remains is
 // the runtime-bound shape, which the bytecode emit consumes.
 lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
-    // `@file("path")` was baked at comptime — substitute the file's
-    // contents as a `LoweredStringLit` so downstream phases see the
-    // materialised constant rather than re-running the AST.
-    if intrinsic.name == "file" {
-        baked :: lookup_file_baked(ctx, intrinsic)
-        match baked {
-            is null -> {}
-            is string -> {
-                return LoweredStringLit {
-                    .span = intrinsic.span, .type = TY_STRING, .value = baked,
-                }
-            }
-        }
-    }
     // `@field(target, "name")` folds to `target.name` when the name
     // arg is a static string literal. Comptime-for unrolling can
     // substitute the name slot with a LoweredStringLit
@@ -116,10 +102,6 @@ runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
         return INTRINSIC_SIZE_OF_TYPE
     }
     return name
-}
-
-lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string | null {
-    return ctx.project.evaluated.file_exprs[intrinsic.id]
 }
 
 /// Fold `@size_of` / `@align_of` / `@type_name` / `@type_kind` to a

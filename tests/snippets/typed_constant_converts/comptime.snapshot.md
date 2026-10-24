@@ -2,4 +2,4 @@
 
 ## tests/snippets/typed_constant_converts
 
-- `@file NOTE = "note.txt"`, 11 bytes
+- `@comptime NOTE_TEXT = "from a file"`, vm
