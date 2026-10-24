@@ -1,4 +1,4 @@
-// vader/front/typecheck/dead_code — name-reachability lints : W0007 (dead private
+// vader/front/dead_code/dead_code — name-reachability lints : W0007 (dead private
 // decls, per-module, on every build) and W0012 (dead exported fns, project-wide,
 // `vader lint` only).
 //
@@ -26,7 +26,7 @@
 // dead-code needs : `FieldExpr.field` (UFCS `recv.foo()`) and string-interpolation
 // parts (`"${foo()}"`).
 
-module "vader/front/typecheck"
+module "vader/front/dead_code"
 
 import "std/collections"
 import "std/iter"
@@ -483,7 +483,7 @@ bfs_reachable :: fn(
 
 /// Flag every private top-level declaration of `decls` that is never reached
 /// from the module's public surface — W0007. Runs on the entry module after its
-/// bodies are typed (`orchestrate.vader`), so the lint applies to the module
+/// bodies are typed (`vader/front/typecheck/orchestrate.vader`), so the lint applies to the module
 /// currently being compiled (like `@internal`).
 ///
 /// @param decls        the module's merged top-level declarations (all files).
@@ -495,7 +495,7 @@ bfs_reachable :: fn(
 ///                     platform's body is live source, not dead code, and saying
 ///                     otherwise is a false positive on every multi-platform
 ///                     module (see `resolver::discarded_bodies`).
-check_dead_code :: fn(
+export check_dead_code :: fn(
     decls: AST.Decl[],
     module_name: string,
     diags: Diagnostic[],

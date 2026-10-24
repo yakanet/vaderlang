@@ -669,7 +669,7 @@ const_kind :: fn(d: ConstDecl) -> DeclKind {
 
 // Whether `e`, the value of a module constant, reads as a type (`Celsius :: f64`,
 // `Mixed :: i32 | string`, `Coord :: [i32, i32]`). The shapes are those of
-// `is_type_expr` in `vader/front/typecheck/orchestrate.vader` ; with no resolution at
+// `is_type_expr` in `vader/front/typecheck/type_expr.vader` ; with no resolution at
 // hand, a name counts when it is a scalar type or spelled as a type is (`Rgb`),
 // not as a constant is (`MAX_LINE`).
 // @partial: every other expression computes a value.

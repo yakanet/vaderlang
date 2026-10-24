@@ -1247,8 +1247,8 @@ named_range :: fn(sym: Symbol, range: RangeType, decl: AST.ConstDecl) -> Type {
 /// AND the decl is not `@comptime`. `@comptime Name :: <type>` is the existing
 /// compile-time TYPE ALIAS (resolves through `constTypeAliases`, e.g. used by
 /// `@size_of`) — it stays transparent, never a newtype. Shared by the three
-/// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
-/// `check_const_value` (both in orchestrate.vader).
+/// `alias_types` writers — `declare_const` (here), `register_alias_const`
+/// (orchestrate.vader) and `check_const_value` (const_walk.vader).
 distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
     if AST.decorators_have(decorators, "comptime") {
         return false

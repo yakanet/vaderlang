@@ -23,10 +23,7 @@
 module "vader/front/typecheck"
 
 import "std/collections"
-import "std/path"
-import "std/sort"
 import "std/string"
-import "std/string_builder"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
@@ -673,69 +670,7 @@ parts_equality :: fn(parts: Type[], typed: TypedProgram) -> Callee {
     return EachOf { .callees = calls }
 }
 
-// ---- dump -----------------------------------------------------------------
-
-/// The calls of the modules of `scope`, module by module: `vader dump
-/// --stage=callees`.
-///
-/// @param typed   the entry module.
-/// @param others  every other module of the project.
-/// @param scope   the modules to render (`module_in_scope`).
-export dump_call_sites_project :: fn(
-    typed: TypedProgram,
-    others: TypedProgram[],
-    scope: string[],
-) -> string {
-    sb :: StringBuilder {}
-    sb.append("# callees\n")
-    for m in modules_in_scope(typed, others, scope) {
-        sb.append("\n## ${m.resolved.display_path}\n")
-        sb.append(dump_call_sites(m))
-    }
-    return sb.to_string()
-}
-
-// Every site of `typed`, one line each in source order, then the count of sites
-// the record could not settle. A site's position is its node's span, filed when
-// the typecheck ran with `dump_types`.
-dump_call_sites :: fn(typed: TypedProgram) -> string {
-    sites: DumpedSite[]: []
-    for role in all_roles() {
-        for [id, callee] in sites_of(typed.call_sites, role) {
-            span :: typed.node_spans[id] ?? empty_span()
-            sites.push(DumpedSite { .span = span, .role = role, .callee = callee })
-        }
-    }
-    sb :: StringBuilder {}
-    unsettled := 0
-    for site in sort(sites, comes_first) {
-        if site.callee is UnsettledCallee {
-            unsettled += 1
-        }
-        position :: site_position(site.span)
-        sb.append("  ${position} ${role_label(site.role)} ${callee_label(site.callee)}\n")
-    }
-    sb.append("  sites: ${sites.len()}, unsettled: ${unsettled}\n")
-    return sb.to_string()
-}
-
-DumpedSite :: struct {
-    span: Span
-    role: CallRole
-    callee: Callee
-}
-
-// Source order ; among nodes that start together the inner one, and at one node the
-// roles in their declared order.
-comes_first :: fn(a: DumpedSite, b: DumpedSite) -> bool {
-    if a.span.start.offset != b.span.start.offset {
-        return a.span.start.offset < b.span.start.offset
-    }
-    if a.span.end.offset != b.span.end.offset {
-        return a.span.end.offset < b.span.end.offset
-    }
-    return i64(a.role) < i64(b.role)
-}
+// ---- how a site is named ------------------------------------------------
 
 /// How the dump and the lowering's verifier name `role`.
 ///
@@ -751,15 +686,6 @@ export role_label :: fn(role: CallRole) -> string = match role {
     .Display     -> "display"
     .Reference   -> "reference"
     .MethodValue -> "method-value"
-}
-
-// A call inside a materialised default method sits at a synthetic span, the same
-// for every run but meaningless to a reader: it shows as `clone`.
-site_position :: fn(span: Span) -> string {
-    if span.start.file.starts_with(CLONE_FILE_PREFIX) {
-        return "clone"
-    }
-    return "${to_path(span.start.file).filename()}:${span.start.line}:${span.start.column}"
 }
 
 /// How the dump and the lowering's verifier name `callee`.

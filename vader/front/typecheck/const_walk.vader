@@ -13,7 +13,9 @@ import "std/collections"
 import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/core/symbol"
+import "vader/core/types"
 AST :: import "toolchain/ast"
+import "vader/front/resolver"
 
 /// Start the const bookkeeping of a walk over `decls` (`TypedProgram.const_walk`).
 ///
@@ -282,4 +284,35 @@ value_reads :: fn(e: AST.Expr, typed: TypedProgram) -> ValueReads {
         }
     }
     return out
+}
+
+// Type the value of the module const `cd`: a type expression makes it a type
+// alias, anything else is checked against its written type, or gives the const
+// its inferred one.
+check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
+    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return
+    // Only a written type is the expected type. An unannotated const's entry is what
+    // an earlier walk inferred — a return-only walk types it before the expression-
+    // bodied fns it calls have their return, and would pin it to `?`.
+    annot :: if cd.ty == null { null } else { typed.decl_types[sym.id] }
+    if is_type_expr(cd.value, typed.resolved) {
+        if annot is null {
+            typed.decl_types[sym.id] = TY_TYPE
+        }
+        alias_ty :: type_from_expr(cd.value, typed.resolved, diags)
+        // Same promotion as `register_alias_const`, via `alias_for` — this
+        // body-typing pass ALSO writes `alias_types`, so without it the
+        // transparent backing would clobber the DistinctType earlier passes
+        // registered.
+        typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd)
+        return
+    }
+    got :: check_expr(cd.value, annot, typed, diags)
+    if annot == null {
+        typed.decl_types[sym.id] = default_if_free(got)
+        return
+    }
+    // Held to its written type as a typed local is, through an `Into` the
+    // lowering then runs.
+    emit_mismatch_if(got, annot, cd.span, cd.value, .TypeMismatch, typed, diags)
 }

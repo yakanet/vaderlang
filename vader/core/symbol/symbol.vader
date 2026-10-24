@@ -64,6 +64,16 @@ export is_frozen_const :: fn(sym: Symbol) -> bool = sym.kind == .Const
 export is_local_binding :: fn(kind: SymbolKind) -> bool =
     kind == .Param || kind == .Local || kind == .Binding
 
+/// Whether a symbol of this kind declares a type: a struct, a trait, an enum, a
+/// type alias, a type parameter, a builtin type.
+///
+/// @param k  the symbol's kind.
+// @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.
+export is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
+    .Struct | .Trait | .Enum | .TypeAlias | .TypeParam | .BuiltinType -> true
+    _ -> false
+}
+
 // IDs start at 1 so dumps keyed on the id stay stable.
 export SymbolFactory :: struct {
     next: i32 = 1

@@ -18,7 +18,7 @@ import "std/collections"
 import "json"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
-import "vader/front/typecheck"
+import "vader/front/dead_code"
 import "vader/tools/lsp/protocol"
 
 /// Type-check the file at `uri` and push the resulting diagnostics to

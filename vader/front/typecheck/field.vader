@@ -956,19 +956,6 @@ names_symbol_of_kind :: fn(target: AST.Expr, kind: SymbolKind, typed: TypedProgr
     return sym.kind == kind
 }
 
-/// The type a namespace's member names (`L.Info`), when `e` reaches one.
-///
-/// @param e         a field access, its target a namespace import's name.
-/// @param resolved  the module `e` is in.
-namespace_member_type :: fn(e: AST.FieldExpr, resolved: ResolvedModule) -> Type | null {
-    if e.target !is AST.IdentExpr {
-        return null
-    }
-    namespace :: resolved.idents[e.target.span.hash()] ?? return null
-    members :: resolved.namespace_member_types[namespace.id] ?? return null
-    return members[e.field]
-}
-
 // True when `name` has UFCS free-fn candidates visible in `file` (declared by
 // the module, or imported by that file) — i.e. a method by that name exists, so
 // a failed dispatch is "no overload fit the receiver", not "unknown method".

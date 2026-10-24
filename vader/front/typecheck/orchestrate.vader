@@ -11,11 +11,11 @@ module "vader/front/typecheck"
 
 import "std/collections"
 import "std/iter"
-import "std/string"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
+import "vader/front/dead_code"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/support/target"
@@ -293,7 +293,7 @@ check_project_modules :: fn(
     walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags, .Full)
     // W0007 dead-code lint : private top-level decls never reached from the
     // module's public surface. Entry-module-only, so it lints the
-    // module being compiled. Name-based reachability — see dead_code.vader.
+    // module being compiled. Name-based reachability: see `vader/front/dead_code`.
     check_dead_code(merge_module_program(entry_loaded.module.files).decls,
         entry_loaded.module.module_name, diags, entry_loaded.discarded_bodies)
     // Body-check every imported module too, so the lowerer sees the
@@ -1726,85 +1726,6 @@ register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     return true
 }
 
-/// Whether `sym` names a type : a declaration of one, or a const holding one
-/// (`Hour :: Int in 0..=23`, the integers `std/core` declares).
-///
-/// @param sym       the symbol a name resolved to.
-/// @param resolved  the module the name is read in.
-export names_a_type :: fn(sym: Symbol, resolved: ResolvedModule) -> bool =
-    is_type_kind(sym.kind) || resolved.alias_types[sym.id] !is null
-
-/// True when `e` is a TYPE expression — the trigger to promote a `Name :: <...>`
-/// const to a type alias / distinct newtype instead of a value binding. The one
-/// predicate behind every alias-registration site: `register_alias_const` +
-/// `declare_const` + `check_const_value` (const RHS) and the in-fn `let`-alias
-/// detection (`stmt.vader`).
-///
-/// An IdentExpr names a type when it is a primitive (incl. `type` / `Self`), a
-/// real type declaration (`is_type_kind` — struct / trait / enum / type-alias /
-/// type-param / builtin), OR a `Name :: <type>` const/distinct already registered in `alias_types`.
-/// That last case is what lets a newtype be used as an alias RHS
-/// (`Distance :: Meters`) or a tuple-alias element (`Pair :: [Meters, i32]`) —
-/// such a decl is a plain `ConstDecl` (SymbolKind.Const), so it is invisible to
-/// the kind check but resolves to a type through `alias_types`, which
-/// `register_aliases` fills to a fixed point within a module — a chain of any
-/// depth, in any declaration order. A member imported from another module is only
-/// seen by the later writers, which walk in source order.
-///
-/// `Ns.Member` names a type when `Ns` is a namespace import whose target exports a
-/// type by that name (`namespace_member_types`). Those tables are filled after
-/// `register_aliases`; `settle_namespace_member_aliases` retries the consts left
-/// pending once they are.
-is_type_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
-    if e is AST.IdentExpr {
-        if primitive_from_name(e.name) !is null {
-            return true
-        }
-        named :: resolved.idents[e.span.hash()] ?? return false
-        // A renamed import (`{ Weekday as Day }`) names its target.
-        sym :: resolved.imports_to[named.id] ?? named
-        return names_a_type(sym, resolved) || resolved.alias_types[named.id] !is null
-    }
-    if e is AST.FieldExpr {
-        return namespace_member_type(e, resolved) != null
-    }
-    if e is AST.BinaryExpr {
-        // `Int in 0..=23` : a range type, its base a type. A range alone (`0..=23`)
-        // stays a value.
-        if e.op == .In {
-            return is_type_expr(e.left, resolved)
-        }
-        if e.op == .BitOr {
-            // Treat `T | U` chains as types, `null` among them : the literal
-            // spells the type there (`Point | null`), as it does in a type slot.
-            return is_type_operand(e.left, resolved) && is_type_operand(e.right, resolved)
-        }
-    }
-    if e is AST.GenericInstExpr { return true }
-    if e is AST.FnTypeExpr      { return true }
-    if e is AST.ArrayTypeExpr   { return true }
-    // `Coord :: [i32, i32]` — a ≥ 2-element all-type bracketed list is a tuple
-    // type alias (1-tuples are forbidden).
-    if e is AST.SeqLitExpr {
-        if e.elements.len() < 2 {
-            return false
-        }
-        for el in e.elements {
-            if !is_type_expr(el, resolved) {
-                return false
-            }
-        }
-        return true
-    }
-    return false
-}
-
-// Whether `e` names a type as an operand of a `|` chain or a reflection
-// intrinsic's argument : a type expression, or the `null` literal, which spells
-// the type `null` there, as it does in a type slot.
-is_type_operand :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool =
-    e is AST.NullLitExpr || is_type_expr(e, resolved)
-
 /// Give every typed program the project-wide `trait_decls` (+ owner), so
 /// default-method dispatch from any body can find the trait declaration
 /// regardless of which module the trait lives in. Nothing writes these tables
@@ -2526,21 +2447,6 @@ impl_param_ids :: fn(decl: AST.ImplDecl, typed: TypedProgram) -> MutableSet<i32>
     return out
 }
 
-// Type each field's default against the field's declared type (`delta: i64 = -1`
-// types the `-1` as `i64`, not `{integer}`) and check that it fits. Runs after
-// the bodies, so a const declared below the struct has its type.
-check_field_defaults :: fn(
-    decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
-) -> void {
-    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
-    for f in decl.fields {
-        dv :: f.default ?? continue
-        field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
-        got :: check_expr(dv, field_ty, typed, diags)
-        emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
-    }
-}
-
 // Every array type shares the impls `T[] implements<T> …` writes, and a concrete
 // array (`i32[]`, `MonType[]`) adds its own, which win for it. An element built
 // from a type parameter without being one (`T[][]`, `[T, i32][]`) would be a second
@@ -2889,36 +2795,3 @@ param_type :: fn(
     return type_with_self(p.ty, for_ty, typed.resolved, diags)
 }
 
-check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
-    sym :: symbol_declared_at(typed.resolved, cd.name_span) ?? return
-    // Only a written type is the expected type. An unannotated const's entry is what
-    // an earlier walk inferred — a return-only walk types it before the expression-
-    // bodied fns it calls have their return, and would pin it to `?`.
-    annot :: if cd.ty == null { null } else { typed.decl_types[sym.id] }
-    if is_type_expr(cd.value, typed.resolved) {
-        if annot is null {
-            typed.decl_types[sym.id] = TY_TYPE
-        }
-        alias_ty :: type_from_expr(cd.value, typed.resolved, diags)
-        // Same promotion as `register_alias_const`, via `alias_for` — this
-        // body-typing pass ALSO writes `alias_types`, so without it the
-        // transparent backing would clobber the DistinctType earlier passes
-        // registered.
-        typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd)
-        return
-    }
-    got :: check_expr(cd.value, annot, typed, diags)
-    if annot == null {
-        typed.decl_types[sym.id] = default_if_free(got)
-        return
-    }
-    // Held to its written type as a typed local is, through an `Into` the
-    // lowering then runs.
-    emit_mismatch_if(got, annot, cd.span, cd.value, .TypeMismatch, typed, diags)
-}
-
-// @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.
-is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
-    .Struct | .Trait | .Enum | .TypeAlias | .TypeParam | .BuiltinType -> true
-    _ -> false
-}

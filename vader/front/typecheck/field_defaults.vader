@@ -15,6 +15,7 @@ import "toolchain/span"
 import "vader/support/diagnostics"
 import "vader/core/types"
 AST :: import "toolchain/ast"
+import "vader/front/resolver"
 
 // A walk over the defaults literals fill in.
 DefaultFill :: struct {
@@ -138,4 +139,19 @@ written_fields :: fn(lit: AST.StructLitExpr) -> string[] | null {
         out.push(item.name)
     }
     return out
+}
+
+// Type each field's default against the field's declared type (`delta: i64 = -1`
+// types the `-1` as `i64`, not `{integer}`) and check that it fits. Runs after
+// the bodies, so a const declared below the struct has its type.
+check_field_defaults :: fn(
+    decl: AST.StructDecl, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    sym :: symbol_declared_at(typed.resolved, decl.name_span) ?? return
+    for f in decl.fields {
+        dv :: f.default ?? continue
+        field_ty :: resolved_field_type(sym.id, decl, f.name, typed, diags) ?? continue
+        got :: check_expr(dv, field_ty, typed, diags)
+        emit_mismatch_if(got, field_ty, f.span, dv, .TypeMismatch, typed, diags)
+    }
 }
