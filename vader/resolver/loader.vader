@@ -18,6 +18,7 @@ module "vader/resolver"
 
 import "std/collections"
 import "std/io"
+import "std/iter"
 import "std/path"
 import "std/string"
 import "vader/diagnostics"
@@ -275,7 +276,8 @@ export SearchRoots :: struct {
 ///
 /// The project is named by the caller, never searched for: a folder handed to
 /// the CLI is one, a file is not, and the language server walks up to the
-/// `vader.json` above the file it opened (`find_manifest_root`).
+/// folder holding a `vader.json` or a build driver above the file it opened
+/// (`find_project_root`).
 ///
 /// @param entry               the entry file's path, `/`-separated.
 /// @param include_path_flags  roots the caller names, searched before the
@@ -330,8 +332,10 @@ declared_roots :: fn() -> MutableMap<string, string[]> = MutableMap<string, stri
 /// @param roots         the roots, each relative to the project or under
 ///                      `$VADER_HOME`.
 export register_project_roots :: fn(project_root: string, roots: string[]) -> void {
-    // Keyed as the loader looks it up: it normalises the project folder.
-    declared_roots()[project_root.to_posix()] = roots
+    // Keyed as the loader looks it up: it normalises the project folder. A
+    // copy: what a caller does with its array afterwards must not move the
+    // roots of loads to come.
+    declared_roots()[project_root.to_posix()] = roots.clone()
 }
 
 // `path` with `/` separators, null kept.

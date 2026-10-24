@@ -170,7 +170,8 @@ export BuildTarget :: enum(u8) {
 
 // The roots the front end takes as flags: the CLI's `--include-paths`, then the
 // compiler's own `lib/`. What the driver configured reaches the loader at the
-// rank of a manifest's `includePaths` instead (`register_project_roots`).
+// rank of a manifest's `includePaths` (`register_project_roots`), or, with no
+// project to register it under, follows `lib/` here as they would.
 //
 // The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
 // so that a driver which replaces that list keeps the stdlib instead of getting
@@ -181,6 +182,13 @@ search_roots :: fn(ctx: BuildContext) -> string[] {
     library :: library_root_of(ctx)
     if library != null {
         roots.push(library)
+    }
+    // Without a project there is nowhere to register the driver's roots: they
+    // are searched relative to the working directory.
+    if project_of(ctx) == null {
+        for p in ctx.include_paths {
+            roots.push(manifest_root("", p, library))
+        }
     }
     return roots
 }

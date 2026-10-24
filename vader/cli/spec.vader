@@ -327,9 +327,6 @@ NEW_FLAGS: FlagSpec[]: [
     },
 ]
 
-// `doctor` probes the `cc` a build would invoke, so it takes the same override
-// `build` does — checking a compiler other than the one you would pass is a
-// check of nothing.
 EJECT_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "preserve-manifest",
@@ -346,6 +343,9 @@ INFO_FLAGS: FlagSpec[]: [
     },
 ]
 
+// `doctor` probes the `cc` a build would invoke, so it takes the same override
+// `build` does: checking a compiler other than the one you would pass is a
+// check of nothing.
 DOCTOR_FLAGS: FlagSpec[]: [
     FlagSpec {
         .name = "json",

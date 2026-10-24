@@ -9,10 +9,12 @@
 // first answer, the project's diagnostics are held back: every import of a root
 // the driver declares would read as unresolved. Later runs, when `build.vader`
 // changes, leave the known roots in place until they answer. The answer goes to
-// the loader (`register_project_roots`).
+// the loader (`register_project_roots`). A run left in flight when the server
+// exits finishes on its own: killing it would orphan the compilers it started.
 
 module "vader/lsp/analysis"
 
+import "json"
 import "std/collections"
 import "std/io"
 import "std/path"
@@ -50,7 +52,7 @@ export ensure_described :: fn(self: ServerState, root: string) -> bool {
         known.described_at = stamp
         handle :: spawn_start([current_executable_location(), "info", "--json", root])
         if handle < 0 {
-            show_warning("vader: cannot run `vader info` to describe the project `${root}`")
+            warn_undescribed(root, "`vader info` could not be started")
             settle(self, root, known, known.roots ?? [])
         } else {
             known.job = handle
@@ -77,24 +79,18 @@ export poll_descriptions :: fn(self: ServerState) -> void {
         job :: known.job ?? continue
         finished :: spawn_finished(job, "vader info") ?? continue
         known.job = null
-        if finished is ProcessResult && finished.exit == 0 {
-            settle(self, root, known, parse_manifest(finished.stdout).include_paths)
-        } else {
-            show_warning("vader: cannot describe the project `${root}`: ${failure_of(finished)}")
+        answer :: description_of(finished)
+        if answer is string {
+            warn_undescribed(root, answer)
             // The roots known before stay: a `build.vader` being edited fails
             // often, and its last good answer serves better. A first failure
             // settles on none, so that diagnostics flow again.
             settle(self, root, known, known.roots ?? [])
+        } else {
+            settle(self, root, known, answer)
         }
-    }
-}
-
-/// Stop every `vader info` run in flight, as the server exits.
-export cancel_descriptions :: fn(self: ServerState) -> void {
-    for [_, known] in self.driven {
-        job :: known.job ?? continue
-        spawn_kill(job)
-        known.job = null
+        // A save that came during the run asks for another.
+        _ :: ensure_described(self, root)
     }
 }
 
@@ -108,12 +104,28 @@ driver_stamp :: fn(root: string) -> i64 {
     return stamp
 }
 
-// Why a `vader info` run gave no description.
-failure_of :: fn(finished: ProcessResult | ProcessError) -> string {
+// The search roots a finished `vader info --json` run reports, or why it
+// reports none.
+description_of :: fn(finished: ProcessResult | ProcessError) -> string[] | string {
     if finished is ProcessError {
         return finished.msg
     }
-    return finished.stderr.trim()
+    if finished.exit != 0 {
+        return finished.stderr.trim()
+    }
+    if parse(finished.stdout) !is JsonObject {
+        return "`vader info --json` printed no report"
+    }
+    return parse_manifest(finished.stdout).include_paths
+}
+
+// Tell the user the project `root` could not be described: the first line of
+// `why` in the editor, all of it (a whole driver build's diagnostics, maybe) in
+// the server's log.
+warn_undescribed :: fn(root: string, why: string) -> void {
+    log_warn("vader: cannot describe the project `${root}`:\n${why}")
+    show_warning("vader: cannot describe the project `${root}`: ${why.split("\n")[0]} "
+        + "(the server log has the rest)")
 }
 
 // Take `roots` as the project's. When they differ from the ones its documents

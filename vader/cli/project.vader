@@ -141,7 +141,7 @@ single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProj
 
 // The project the `build.vader` of the folder `dir` describes, its driver run
 // in `mode` with `selected` as `--entry`. The driver writes the description to
-// a temporary file, read back and removed at once, so that its own output never
+// a file beside it, read back and removed at once, so that its own output never
 // mixes with it. Null after the driver, or this function, said why there is
 // none.
 described_project :: fn(
@@ -150,9 +150,14 @@ described_project :: fn(
     mode: DriverMode,
     selected: string,
 ) -> Manifest | null {
-    // Unique to this run: the language server may describe the project while a
+    // Beside the driver, in a folder only this project's commands write, and
+    // unique to this run: the language server may describe the project while a
     // command in a terminal prepares it.
-    path :: join_path(temp_dir(), "vader-project-${i64(Time.monotonic())}.json")
+    artefacts :: join_path(dir, DRIVER_ARTEFACT_DIR)
+    path :: join_path(artefacts, "description-${i64(Time.monotonic())}.json")
+    // Even when the driver fails: one that failed after describing itself (a
+    // generation round, its own reports) has written it all the same.
+    defer remove_file(path)
     request :: DriverRequest {
         .mode = mode,
         .selected = selected,
@@ -162,7 +167,6 @@ described_project :: fn(
         return null
     }
     project :: read_driver_description(path)
-    remove_file(path)
     if project is IOError {
         eprintln("vader ${command}: the `${DRIVER_FILENAME}` of `${dir}` described no project; "
             + "does it drain `ctx.messages()`?")

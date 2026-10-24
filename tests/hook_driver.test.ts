@@ -647,7 +647,7 @@ function lspSession(cwd: string) {
     env: { ...process.env, ...TOOLCHAIN_ENV },
     stdin: "pipe",
     stdout: "pipe",
-    stderr: "pipe",
+    stderr: "ignore",
   });
   const reader = proc.stdout.getReader();
   const encoder = new TextEncoder();
@@ -709,40 +709,45 @@ test.concurrent("the language server reads the search roots a driver declares", 
     writeFileSync(join(dir, "vendor/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
 
     const lsp = lspSession(dir);
-    const uri = pathToUri(join(dir, "src/main.vader"));
-    lsp.send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { rootUri: pathToUri(dir), capabilities: {} } });
-    lsp.send({ jsonrpc: "2.0", method: "initialized", params: {} });
-    lsp.send({
-      jsonrpc: "2.0", method: "textDocument/didOpen",
-      params: { textDocument: { uri, languageId: "vader", version: 1, text: main } },
-    });
-    // The next diagnostics the server publishes for the document.
-    const nextPublished = async (): Promise<string | null> => {
-      for (;;) {
-        const message = await lsp.next();
-        if (message === null) return null;
-        if (message.method === "textDocument/publishDiagnostics" && message.params.uri === uri) {
-          return JSON.stringify(message.params.diagnostics);
+    try {
+      const uri = pathToUri(join(dir, "src/main.vader"));
+      lsp.send({ jsonrpc: "2.0", id: 1, method: "initialize", params: { rootUri: pathToUri(dir), capabilities: {} } });
+      lsp.send({ jsonrpc: "2.0", method: "initialized", params: {} });
+      lsp.send({
+        jsonrpc: "2.0", method: "textDocument/didOpen",
+        params: { textDocument: { uri, languageId: "vader", version: 1, text: main } },
+      });
+      // The next diagnostics the server publishes for the document.
+      const nextPublished = async (): Promise<string | null> => {
+        for (;;) {
+          const message = await lsp.next();
+          if (message === null) return null;
+          if (message.method === "textDocument/publishDiagnostics" && message.params.uri === uri) {
+            return JSON.stringify(message.params.diagnostics);
+          }
         }
-      }
-    };
-    const first = await nextPublished();
+      };
+      const first = await nextPublished();
 
-    // A saved `build.vader` that no longer declares the root: the project
-    // describes itself again, and the import no longer resolves.
-    const driver = join(dir, "build.vader");
-    writeFileSync(driver, readFileSync(driver, "utf8").replace('    ctx.include_paths.push("vendor")\n', ""));
-    lsp.send({ jsonrpc: "2.0", method: "textDocument/didSave", params: { textDocument: { uri: pathToUri(driver) } } });
-    const second = await nextPublished();
+      // A saved `build.vader` that no longer declares the root: the project
+      // describes itself again, and the import no longer resolves.
+      const driver = join(dir, "build.vader");
+      writeFileSync(driver, readFileSync(driver, "utf8").replace('    ctx.include_paths.push("vendor")\n', ""));
+      lsp.send({ jsonrpc: "2.0", method: "textDocument/didSave", params: { textDocument: { uri: pathToUri(driver) } } });
+      const second = await nextPublished();
 
-    lsp.send({ jsonrpc: "2.0", id: 2, method: "shutdown", params: null });
-    lsp.send({ jsonrpc: "2.0", method: "exit", params: null });
-    await lsp.proc.exited;
+      lsp.send({ jsonrpc: "2.0", id: 2, method: "shutdown", params: null });
+      lsp.send({ jsonrpc: "2.0", method: "exit", params: null });
+      await lsp.proc.exited;
 
-    expect(first).not.toBeNull();
-    expect(first).not.toContain("R2001");
-    expect(first).not.toContain("R2006");
-    expect(second).toContain("R2001");
+      expect(first).not.toBeNull();
+      expect(first).not.toContain("R2001");
+      expect(first).not.toContain("R2006");
+      expect(second).toContain("R2001");
+    } finally {
+      // A failed assertion or a hang must not leave the server running.
+      lsp.proc.kill();
+    }
   });
 }, HEAVY_BUILD);
 
