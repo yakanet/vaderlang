@@ -1,5 +1,5 @@
 # stderr
 vader build: wrote <project>/build/driver/driver
-vader build: wrote <project>/build/debug-<host>/app (split: 12 objects compiled in parallel)
+vader build: wrote <project>/build/debug-<host>/app (split: <n> objects compiled in parallel)
 # exit
 0

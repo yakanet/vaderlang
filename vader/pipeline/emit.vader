@@ -219,8 +219,7 @@ push_library_flags :: fn(flags: NativeFlags, library: CLibrary) -> void {
     }
 }
 
-// The link flag of a `CLibrary.system` entry: `-framework Cocoa` for
-// `"Cocoa.framework"`, `-lGL` for `"GL"`.
+// The link flag of a `CLibrary.system` entry
 system_link :: fn(entry: string) -> string[] {
     framework :: entry.trim_suffix(".framework")
     if framework != entry {

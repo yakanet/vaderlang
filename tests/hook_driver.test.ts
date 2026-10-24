@@ -220,7 +220,10 @@ function normalise(text: string, dir: string): string {
     // How the driver's own binary got linked is machine-dependent: the split
     // count follows the core count, and a single-unit build words the line
     // differently. What the expectation is about is that it was written at all.
-    .replace(/^(vader build: wrote <project>\/build\/driver\/driver).*$/gm, "$1");
+    .replace(/^(vader build: wrote <project>\/build\/driver\/driver).*$/gm, "$1")
+    // A program's split count depends on the host too: Windows adds a unit for
+    // the standard library's `KERNEL32` shims.
+    .replace(/\(split: \d+ objects/g, "(split: <n> objects");
 }
 
 // Where a driven debug build writes a project's binaries.
