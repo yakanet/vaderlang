@@ -343,15 +343,6 @@ emit_c_for_targets :: fn(file: Path, out: Path, request: BuildRequest) -> i32 {
 // out of 39, 28 KB against 11.3 MB.
 write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32 {
     first :: progs[0]
-    for i in 1..<progs.len() {
-        // The targets must agree on WHICH modules exist, name by name — a
-        // count alone would pass when one module replaced another.
-        if !progs[i].unit_names.content_equals(first.unit_names) {
-            eprintln("vader build --seed-targets: `${display_target(targets[i])}` and "
-                + "`${display_target(targets[0])}` emitted different module sets")
-            return 1
-        }
-    }
     // The shared header USUALLY matches across targets, because the `@extern`
     // declarations and their shims — the part a target changes most — live in
     // their own header. It does not have to: the synthetic type names
@@ -419,24 +410,51 @@ write_deduplicated :: fn(out: Path, targets: Target[], progs: CProgram[]) -> i32
             }
         }
     }
-    for k in 0..<first.units.len() {
-        name :: first.unit_names[k]
-        if progs.all_match((pr) -> pr.units[k] == first.units[k]) {
-            if write_out(unit_path(out, "", name), first.units[k]) != 0 {
+    // Units match by name: a target may hold one another lacks, as the unit of
+    // a `CLibrary` only Windows reaches (`KERNEL32`). It goes in the directory
+    // of each target that has it.
+    for name in every_unit_name(progs) {
+        shared :: unit_named(first, name)
+        if shared != null && progs.all_match((pr) -> unit_named(pr, name) == shared) {
+            if write_out(unit_path(out, "", name), shared) != 0 {
                 return 1
             }
-        } else {
-            for i in 0..<targets.len() {
-                if ensure_target_dir(out, display_target(targets[i])) != 0 {
-                    return 1
-                }
-                if write_out(unit_path(out, display_target(targets[i]), name), progs[i].units[k]) != 0 {
-                    return 1
-                }
+            continue
+        }
+        for i in 0..<targets.len() {
+            text :: unit_named(progs[i], name) ?? continue
+            if ensure_target_dir(out, display_target(targets[i])) != 0 {
+                return 1
+            }
+            if write_out(unit_path(out, display_target(targets[i]), name), text) != 0 {
+                return 1
             }
         }
     }
     return 0
+}
+
+// The names of the units any of `progs` holds, each once, in first-seen order.
+every_unit_name :: fn(progs: CProgram[]) -> string[] {
+    names: string[]: []
+    for prog in progs {
+        for name in prog.unit_names {
+            if !(name in names) {
+                names.push(name)
+            }
+        }
+    }
+    return names
+}
+
+// The unit `prog` names `name`, null when it holds none.
+unit_named :: fn(prog: CProgram, name: string) -> string | null {
+    for k in 0..<prog.unit_names.len() {
+        if prog.unit_names[k] == name {
+            return prog.units[k]
+        }
+    }
+    return null
 }
 
 // `<os>-<arch>,<os>-<arch>,…`, or null after naming what is wrong: a fragment that

@@ -3,8 +3,7 @@
 // this machine, and its sprite is copied beside the binary.
 //
 // It is not run: it opens a window. A machine with no archive in
-// `third_party/raylib/lib/` is skipped, which Windows is for now (see
-// `third_party/raylib/README.md`).
+// `third_party/raylib/lib/` for its target is skipped.
 
 import { afterAll, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";

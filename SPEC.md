@@ -2916,7 +2916,7 @@ A `CLibrary` names a C library once; each `@extern` that comes from it names the
 | `archives` | Static archives shipped with the binding, relative to the module declaring the constant. One that does not exist stops the build before `cc`, naming the path |
 | `system` | What the platform provides: a library by name (`"GL"` links `-lGL`), or an Apple framework by its bundle name (`"Cocoa.framework"` links `-framework Cocoa`) |
 
-A native build adds a library's flags only when one of its functions survives to the program: a binding imported for one call costs nothing else.
+A native build adds a library's flags only when one of its functions survives to the program: a binding imported for one call costs nothing else. Each library's calls compile in a C translation unit of their own, with its header and no other library's, so two libraries whose headers declare the same names (`raylib.h` and `<windows.h>`: `Rectangle`, `CloseWindow`) bind in one program. `vader build --emit=c` writes that unit beside the program's, as `<out>-_ffi_<name>.c`. C written to standard output (`--out=-`, `vader dump --stage=c`) is a single unit, every library's calls in it.
 
 `@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
 

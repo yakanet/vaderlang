@@ -350,7 +350,7 @@ export push_include_flags :: fn(argv: string[], rt: string, quote_dir: string) -
 /// @param quote_dir     where a quoted `@c_header` resolves (`quote_include_dir`).
 export cc_argv :: fn(
     cc: string,
-    c_file: string,
+    c_files: string[],
     out: Path,
     release: bool,
     ldflags: string,
@@ -363,7 +363,7 @@ export cc_argv :: fn(
     rt :: runtime_or_probe(runtime_root)
     push_include_flags(argv, rt, quote_dir)
     argv.push_all(native.includes)
-    argv.push(c_file)
+    argv.push_all(c_files)
     argv.push("${rt}/vader_runtime.c")
     argv.push_all(native.links)
     push_ldflags(argv, ldflags)
@@ -420,9 +420,10 @@ export cc_or_default :: fn(cc: string) -> string {
 /// runtime include, `ldflags`, `-lm`. The generated `.c` is KEPT on failure and
 /// named in the message, so the user can inspect what was actually produced.
 ///
-/// @param c             the emitted C source.
+/// @param c             the emitted C (`emit_c_units`).
 /// @param out           binary to produce ; the C lands at `c/<name>.c` beside
-///                      it (`intermediate_stem`).
+///                      it (`intermediate_stem`), and each library unit at
+///                      `c/<name>-<unit>.c`.
 /// @param cc            C compiler to invoke.
 /// @param release       passed to the opt flags.
 /// @param ldflags       raw linker flags, appended verbatim.
@@ -432,7 +433,7 @@ export cc_or_default :: fn(cc: string) -> string {
 /// @return              0 on success, 1 when the C could not be written or `cc`
 ///                      failed. `cc`'s own stderr is forwarded as-is.
 export link_native :: fn(
-    c: string,
+    c: CUnits,
     out: Path,
     cc: string,
     release: bool,
@@ -446,10 +447,8 @@ export link_native :: fn(
     }
     stem :: intermediate_stem(out) ?? return 1
     c_file :: "${stem}.c".to_path()
-    if write_out(c_file, c) != 0 {
-        return 1
-    }
-    argv :: cc_argv(cc, c_file.as_string(), out, release, ldflags, runtime_root, quote_dir, native)
+    c_files :: write_c_units(c_file, c) ?? return 1
+    argv :: cc_argv(cc, c_files, out, release, ldflags, runtime_root, quote_dir, native)
     res :: spawn(argv)
     if res is ProcessError {
         eprintln("vader build: ${res.message()}")
@@ -505,6 +504,36 @@ export linked_binary :: fn(base: string) -> string | null {
 ///             something that links but is wrong.
 export c_source_of :: fn(cfg: CfgBytecode) -> string =
     emit_c(cfg.module, native_c_options(cfg.entry))
+
+/// Emit C from an already-built bytecode module as a build that does not split
+/// it by module compiles it: one unit, plus one per `CLibrary` binding.
+///
+/// @param cfg  bytecode plus the entry mangle it was built with.
+export c_units_of :: fn(cfg: CfgBytecode) -> CUnits =
+    emit_c_units(cfg.module, native_c_options(cfg.entry))
+
+/// Write `c` at `c_file` and each of its library units beside it, named as a
+/// split build names its units (`unit_path`).
+///
+/// @param c_file  where the main unit goes; a `.c` path.
+/// @param c       the units.
+/// @return        the files written, the main unit first; null when one could
+///                not be (`write_out` said why).
+export write_c_units :: fn(c_file: Path, c: CUnits) -> string[] | null {
+    if write_out(c_file, c.main) != 0 {
+        return null
+    }
+    files :: [c_file.as_string()]
+    base :: c_file.as_string().trim_suffix(".c").to_path()
+    for k in 0..<c.units.len() {
+        unit :: unit_path(base, "", c.names[k])
+        if write_out(unit, c.units[k]) != 0 {
+            return null
+        }
+        files.push(unit.as_string())
+    }
+    return files
+}
 
 /// Whether a native build marks the accesses the range analysis proves in
 /// bounds: a `--release` build drops their check, and `$VADER_VERIFY_BOUNDS`

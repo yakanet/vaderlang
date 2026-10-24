@@ -24,6 +24,8 @@ against the sha256 GitHub publishes for it.
 |---|---|---|
 | `darwin-arm64` | `raylib-6.2_macos.tar.gz`, `lib/libraylib.a`, thinned to its arm64 half (`lipo -thin arm64`) | `e8f22c20c1667fb69d381c7dec53094acd9bf837daab7faec7fcb82ce51c9380` |
 | `linux-x86_64` | `raylib-6.2_linux_amd64.tar.gz`, `lib/libraylib.a` | `f0ac4cc3e9c1ceadae4ef6ead1f41a235ec333c5af21aa64aebd173c3b9dbcb1` |
+| `windows-x86_64` | `raylib-6.2_win64_mingw-w64.zip`, `lib/libraylib.a` | `ad05e94109e7690a07f8b8d9baa11025f809c3429e0d4252b36382db7f35dbe9` |
+| `windows-arm64` | built from the 6.2 source (below) | `7304122ce75bd8893675ceb874dd617dceec19848cacc00d8b510b989bc6fa3a` |
 
 | release archive | sha256 |
 |---|---|
@@ -37,9 +39,9 @@ every release archive ships, the Windows one with CRLF line endings.
 
 ## Windows
 
-Not shipped yet: on Windows, `raylib.h` and `<windows.h>` cannot share a C
-translation unit, and the C that `vader build` emits includes both, so a raylib
-program does not build there. The archives join the others once it does:
+`raylib.h` and `<windows.h>` cannot share a C translation unit (`Rectangle`,
+`CloseWindow`, `DrawText`). `vader build` compiles the shims of each `CLibrary`
+in a unit of its own, so the two never meet.
 
 - `windows-x86_64`: `raylib-6.2_win64_mingw-w64.zip`, `lib/libraylib.a`. It links
   against the UCRT (`__acrt_iob_func`), as llvm-mingw and recent MinGW

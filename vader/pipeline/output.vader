@@ -11,6 +11,7 @@ module "vader/pipeline"
 import "std/io"
 import "std/path"
 import "vader/bytecode"
+import "vader/c_emit" { EmitOptions as CEmitOptions }
 Prof :: import "vader/profile"
 import "vader/target"
 
@@ -138,12 +139,14 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
             work :: output_path(resolved.out, stem)
             return write_split_files(work, split_program(b, work))
         }
-        c :: emit_c_of(b)
         if resolved.out == "-" {
-            print(c)
+            print(emit_c_stream_of(b))
             return 0
         }
-        return write_out(output_path(resolved.out, "${stem}.c".to_path()), c)
+        if write_c_units(output_path(resolved.out, "${stem}.c".to_path()), emit_c_of(b)) == null {
+            return 1
+        }
+        return 0
     }
     out :: output_path(resolved.out, "${stem}.virt".to_path())
     if write_out(out, dump_bytecode(b.module, b.entry)) != 0 {
@@ -165,15 +168,28 @@ export output_path :: fn(out_flag: string, derived: Path) -> Path {
     return derived
 }
 
-// The single-TU C of a prepared program. The entry is designated by mangled
-// name, so the `main()` shim resolves the entry module's `main` even when
-// several modules of the input declare one.
-emit_c_of :: fn(b: CfgBytecode) -> string {
+// The C of a prepared program, for a build that does not split it by module.
+// The entry is designated by mangled name, so the `main()` shim resolves the
+// entry module's `main` even when several modules of the input declare one.
+emit_c_of :: fn(b: CfgBytecode) -> CUnits {
+    Prof.prof_begin(.CEmit)
+    c :: c_units_of(b)
+    end_c_emit()
+    return c
+}
+
+// The C of a prepared program as the one unit a single stream holds, every
+// shim in it.
+emit_c_stream_of :: fn(b: CfgBytecode) -> string {
     Prof.prof_begin(.CEmit)
     c :: c_source_of(b)
-    Prof.prof_end(.CEmit)
-    // End of the compile pipeline: the per-pass profile, a no-op unless
-    // $VADER_PROFILE is set, idempotent if the atexit fallback also fires.
-    Prof.prof_dump()
+    end_c_emit()
     return c
+}
+
+// End of the compile pipeline: the per-pass profile, a no-op unless
+// $VADER_PROFILE is set, idempotent if the atexit fallback also fires.
+end_c_emit :: fn() -> void {
+    Prof.prof_end(.CEmit)
+    Prof.prof_dump()
 }

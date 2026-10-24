@@ -10,7 +10,7 @@
 // needs a native build.
 
 import { afterAll, expect, test } from "bun:test";
-import { cpSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EXE_SUFFIX, HOST_TARGET, LONG_BUILD, spawnCapture, TOOLCHAIN_ENV } from "./cli-bin.ts";
@@ -64,6 +64,41 @@ for (const split of [true, false]) {
     expect(run.exit).toBe(0);
   }, LONG_BUILD);
 }
+
+test("a CLibrary's calls compile in a unit of their own", async () => {
+  // Two libraries' headers need not agree (`raylib.h` and `<windows.h>` do
+  // not), so a library's header is included by its unit alone; every other
+  // unit reaches its shims through prototypes.
+  const dir = await stage(false);
+  const split = join(dir, "split", "main");
+  const emitted = await spawnCapture(
+    ["build", "--emit=c", `--out=${split}`, dir],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(emitted.exit).toBe(0);
+  const unit = readFileSync(`${split}-_ffi_greeter.c`, "utf8");
+  expect(unit).toContain('#include "greeter.h"');
+  const imports = readFileSync(`${split}.imports.h`, "utf8");
+  expect(imports).not.toContain("greeter.h");
+  expect(imports).toContain("extern");
+
+  const single = join(dir, "single", "main.c");
+  const mono = await spawnCapture(
+    ["build", "--emit=c", "--no-split", `--out=${single}`, dir],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(mono.exit).toBe(0);
+  expect(readFileSync(single, "utf8")).not.toContain("greeter.h");
+  expect(readFileSync(join(dir, "single", "main-_ffi_greeter.c"), "utf8")).toContain('#include "greeter.h"');
+
+  // One stream holds one unit, every shim in it.
+  const stream = await spawnCapture(
+    ["build", "--emit=c", "--out=-", dir],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(stream.exit).toBe(0);
+  expect(stream.stdout).toContain('#include "greeter.h"');
+}, LONG_BUILD);
 
 test("a `.virt` carries the library to a native build", async () => {
   const dir = await stage(true);
