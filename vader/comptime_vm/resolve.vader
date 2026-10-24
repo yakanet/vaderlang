@@ -17,6 +17,8 @@
 
 module "vader/comptime_vm"
 
+import "std/abort"
+import "std/io"
 import "std/string"
 import "vader/diagnostics"
 import "vader/resolver"
@@ -59,13 +61,21 @@ export resolve_vm_required_decls :: fn(
         return
     }
 
+    // A `@comptime` value is evaluated in the folder of the file declaring it,
+    // so a relative path it reads names a file beside that file, wherever the
+    // compiler was started.
+    home :: current_working_directory()
     for vr in evaluated.vm_required {
         mangle :: find_callee_mangle(module, vr.callee_name)
         // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so
         // its value is genuinely unneeded — skip silently.
         if mangle == "" { continue }
 
+        switched :: enter_source_folder(home, vr.span.start.file)
         outcome :: Vm.exec_fn_value(state, mangle)
+        if switched {
+            leave_source_folder(home)
+        }
         if outcome is Vm.Trap {
             // An impure host reached at comptime (clock / env / fs / stdin /
             // subprocess) is refused by `vm/host.vader`'s gate and tagged so it
@@ -87,6 +97,26 @@ export resolve_vm_required_decls :: fn(
             }
             inject(evaluated, vr, bridged)
         }
+    }
+}
+
+// Make the folder of `file` the working directory, and say whether it changed.
+// A file named without a folder sits in it already; a `home` of "." is a
+// working directory that could not be read, so nothing could come back to it.
+enter_source_folder :: fn(home: string, file: string) -> bool {
+    folder :: dir_of(file)
+    if home == "." || folder == "" {
+        return false
+    }
+    return set_current_working_directory(folder) == null
+}
+
+// Come back to `home`, where the compiler resolves its own relative paths
+// afterwards: failing to is fatal.
+leave_source_folder :: fn(home: string) -> void {
+    back :: set_current_working_directory(home)
+    if back is IOError {
+        panic("cannot return to `${home}`: ${back.message()}")
     }
 }
 

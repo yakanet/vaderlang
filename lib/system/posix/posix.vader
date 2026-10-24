@@ -493,6 +493,13 @@ export sys_fwrite :: fn(buf: u8[], size: i64, count: i64, stream: CPointer) -> i
 @extern("getcwd")
 export sys_getcwd :: fn(@c_out buf: u8[], size: i64) -> CPointer | null
 
+/// `chdir(2)`. 0 on success, -1 with `errno` set.
+///
+/// @param path  the new working directory.
+@c_header("<unistd.h>")
+@extern("chdir")
+export sys_chdir :: fn(path: string) -> i32
+
 /// `mkdir(2)`. 0 on success, -1 with `errno` set — `EEXIST` included, which is
 /// why the caller re-tests the path rather than reading `errno`.
 ///

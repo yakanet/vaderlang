@@ -897,8 +897,9 @@ current_executable_location :: fn() -> string {
     return to_slash(from_wide(buf, i32(n)))
 }
 
-/// Directory the process was invoked from, `/`-separated and WITHOUT a trailing
-/// separator — join with `"/name"` to build a path. Distinct from
+/// The directory the process resolves relative paths against, `/`-separated and
+/// WITHOUT a trailing separator: where it was started, unless
+/// `set_current_working_directory` moved it. Join with `"/name"` to build a path. Distinct from
 /// `current_executable_location`, which answers where the *binary* lives: use
 /// this one to resolve a path the user typed, that one for resources shipped
 /// beside the executable. Falls back to `"."` if the OS query fails.
@@ -924,6 +925,30 @@ current_working_directory :: fn() -> string {
         return "."
     }
     return without_trailing_sep(to_slash(from_wide(buf, i32(n))))
+}
+
+/// Make `path` the directory the process resolves relative paths against.
+/// Process-wide: every thread, and every child spawned afterwards, sees it.
+///
+/// @param path  the new working directory, absolute or relative to the current one.
+/// @error       `IOError` when `path` is not a directory the process may enter.
+@target
+export set_current_working_directory :: fn(path: string) -> null | IOError
+
+@target(.Linux, .Darwin)
+set_current_working_directory :: fn(path: string) -> null | IOError {
+    if sys_chdir(path) != 0 {
+        return last_io_error("cannot change directory")
+    }
+    return null
+}
+
+@target(.Windows)
+set_current_working_directory :: fn(path: string) -> null | IOError {
+    if set_current_directory(to_wide(path)) == 0 {
+        return last_io_error("cannot change directory")
+    }
+    return null
 }
 
 // The bytes before the first NUL. A C call that fills a buffer reports its
