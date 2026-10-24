@@ -95,7 +95,10 @@ internal class VaderRunConfiguration(
                 // factories use. Run from the project root so `std/*` imports resolve.
                 val configured = VaderSettings.getInstance().lspPath.trim()
                 val binary = if (configured.isNotEmpty()) configured else "vader"
-                val commandLine = GeneralCommandLine(binary, "run", file)
+                // `vader run <file>` compiles the file on its own: the Vader project
+                // it belongs to is named, found as the language server finds it.
+                val project = vaderProjectOf(file)?.let { "--project=$it" }
+                val commandLine = GeneralCommandLine(listOfNotNull(binary, "run", project, file))
                 environment.project.basePath?.let { commandLine.withWorkDirectory(it) }
                 val handler = ProcessHandlerFactory.getInstance().createColoredProcessHandler(commandLine)
                 ProcessTerminatedListener.attach(handler)
@@ -109,6 +112,32 @@ internal class VaderRunConfiguration(
     override fun canRun(executorId: String): Boolean =
         executorId != DefaultRunExecutor.EXECUTOR_ID && super.canRun(executorId)
 }
+
+// The nearest folder at or above `file` holding a `vader.json` or a build
+// driver: the Vader project the file belongs to, as the language server's
+// `find_project_root` (`vader/resolver/module.vader`) finds it. Null for a file
+// on its own.
+internal fun vaderProjectOf(file: String?): String? {
+    var dir = file?.let { java.io.File(it).absoluteFile.parentFile }
+    while (dir != null) {
+        if (java.io.File(dir, "vader.json").isFile || holdsBuildDriver(dir)) {
+            return dir.path
+        }
+        dir = dir.parentFile
+    }
+    return null
+}
+
+// Whether `dir` holds a build driver: a `build.vader` declaring `module "build"`.
+// A file of that name in another module (the compiler's `vader/midir/build.vader`)
+// is an ordinary source of its folder.
+private fun holdsBuildDriver(dir: java.io.File): Boolean {
+    val driver = java.io.File(dir, "build.vader")
+    if (!driver.isFile) return false
+    return MODULE_HEADER.find(driver.readText())?.groupValues?.get(1) == "build"
+}
+
+private val MODULE_HEADER = Regex("""^\s*module\s+"([^"]*)"""", RegexOption.MULTILINE)
 
 internal const val SERVER_ID = "dev.vaderlang.vader-dap"
 internal const val SERVER_NAME = "Vader Debug Adapter"

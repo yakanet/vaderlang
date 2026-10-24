@@ -43,7 +43,7 @@ cmd_lint :: fn(args: string[]) -> i32 {
         eprintln("vader lint: expected a file or a project folder")
         return 1
     }
-    entry :: single_entry("lint", file, parsed.string_flag("entry", ""))
+    entry :: single_entry("lint", file, parsed)
     if entry is i32 {
         return entry
     }

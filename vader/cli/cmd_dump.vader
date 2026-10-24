@@ -73,7 +73,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         eprintln("vader dump --target=${target_arg}: ${target.reason} `${target.fragment}`")
         return 2
     }
-    resolved :: single_entry("dump", file, parsed.string_flag("entry", ""))
+    resolved :: single_entry("dump", file, parsed)
     if resolved is i32 {
         return resolved
     }

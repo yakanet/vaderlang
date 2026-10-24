@@ -41,7 +41,7 @@ cmd_run :: fn(args: string[]) -> i32 {
     }
     // argv[0] is the program path, which the program itself skips.
     forward :: parsed.positionals
-    entry :: single_entry("run", path, parsed.string_flag("entry", ""))
+    entry :: single_entry("run", path, parsed)
     if entry is i32 {
         return entry
     }

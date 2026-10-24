@@ -1,4 +1,5 @@
-// tests/cli_project_build: `vader build`, `run` and `check` given a project folder.
+// tests/cli_project_build: `vader build`, `run` and `check` given a project folder,
+// and `vader run` given a file within the project `--project` names.
 //
 // A folder is described by its `build.vader` or by the `entries` of its
 // `vader.json`, never by both, and a project's binaries go to
@@ -90,6 +91,33 @@ test("run takes one entry, and check takes them all", async () => {
 
   const checked = await vader(["check", dir]);
   expect(checked.exit).toBe(0);
+}, MEDIUM_BUILD);
+
+test("--project runs one file of a project with the project's search roots", async () => {
+  const dir = stage(JSON.stringify({ includePaths: ["libs"], entries: { app: "src/main.vader" } }));
+  mkdirSync(join(dir, "libs/greet"), { recursive: true });
+  writeFileSync(
+    join(dir, "libs/greet/greet.vader"),
+    `module "greet"\n\n/// The word the program prints.\nexport word :: fn() -> string = "greeted"\n`,
+  );
+  const file = join(dir, "src/main.vader");
+  writeFileSync(
+    file,
+    `module "src"\n\nimport "greet"\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println(word())\n    return 0\n}\n`,
+  );
+
+  const alone = await vader(["run", file]);
+  expect(alone.exit).toBe(1);
+  expect(alone.stdout + alone.stderr).toContain("module not found: `greet`");
+
+  const within = await vader(["run", `--project=${dir}`, file]);
+  expect(within.stderr).toBe("");
+  expect(within.exit).toBe(0);
+  expect(within.stdout).toBe("greeted\n");
+
+  const folder = await vader(["run", `--project=${dir}`, dir]);
+  expect(folder.exit).toBe(2);
+  expect(folder.stderr).toContain("`--project` names the project of a file");
 }, MEDIUM_BUILD);
 
 test("info describes a project folder and builds nothing", async () => {

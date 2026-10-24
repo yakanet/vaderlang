@@ -54,7 +54,7 @@ cmd_graph :: fn(args: string[]) -> i32 {
         eprintln("vader graph: expected a file or a project folder")
         return 1
     }
-    entry :: single_entry("graph", file, parsed.string_flag("entry", ""))
+    entry :: single_entry("graph", file, parsed)
     if entry is i32 {
         return entry
     }

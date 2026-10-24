@@ -85,10 +85,18 @@ ENTRY_FLAG :: FlagSpec {
     .value_name = "name",
 }
 
-// The flags of an action that takes a project's entry and nothing else: `run`,
-// where every other flag before the path would be one the program never sees,
-// and `lint`.
-ENTRY_FLAGS: FlagSpec[]: [ENTRY_FLAG]
+// The project a file belongs to, named by whoever runs one of its files (an
+// editor): the file is the entry, the project gives its search roots.
+PROJECT_FLAG :: FlagSpec {
+    .name = "project",
+    .help = "File only: the project folder the file belongs to, whose search roots it is compiled with",
+    .value_name = "folder",
+}
+
+// The flags of an action that takes one program and nothing else: `run`, where
+// every other flag before the path would be one the program never sees, and
+// `lint`.
+ENTRY_FLAGS: FlagSpec[]: [ENTRY_FLAG, PROJECT_FLAG]
 
 // `check` takes the platform axis and the search roots, and nothing else: it
 // produces no artefact, so every flag about HOW to emit would be noise.
@@ -213,6 +221,7 @@ GRAPH_SCOPES: ValueSpec[]: [
 
 GRAPH_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
+    PROJECT_FLAG,
     // Same spelling and meaning as `build`'s — a graph that cannot see the roots
     // a build sees is not drawing the same project.
     FlagSpec {
@@ -239,6 +248,7 @@ GRAPH_FLAGS: FlagSpec[]: [
 
 DUMP_FLAGS: FlagSpec[]: [
     ENTRY_FLAG,
+    PROJECT_FLAG,
     // Same spelling and meaning as `build`'s: a dump that cannot see the roots a
     // build sees is not dumping the same program. Reaching for a dump is the one
     // way to observe an order-sensitive materialisation bug WITHOUT perturbing

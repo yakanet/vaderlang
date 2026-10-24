@@ -10,6 +10,7 @@
 
 module "vader/cli"
 
+import "cli"
 import "std/io"
 import "std/iter"
 import "std/path"
@@ -113,10 +114,16 @@ EntryInProject :: struct {
     project_root: string | null
 }
 
-// The one file `command` works on: the file `path` names, or the only entry of
-// the project folder it names (the one `selected` names among several). The
-// exit code after saying why there is none.
-single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProject | i32 {
+// The one file `command` works on: the file `path` names, within the project
+// folder `--project` names when it names one, or the only entry of the project
+// folder `path` names (the one `--entry` names among several). The exit code
+// after saying why there is none.
+single_entry :: fn(command: string, path: Path, parsed: ParsedArgs) -> EntryInProject | i32 {
+    selected :: parsed.string_flag("entry", "")
+    project_dir :: parsed.string_flag("project", "")
+    if project_dir != "" {
+        return file_in_project(command, path, project_dir, selected)
+    }
     input :: resolve_input(command, path, selected)
     if input is i32 {
         return input
@@ -130,13 +137,48 @@ single_entry :: fn(command: string, path: Path, selected: string) -> EntryInProj
         is DrivenProject -> {
             // The driver chooses the entry and generates first, so that
             // `command` reads fresh generated code.
-            project :: described_project(command, input.dir, .Prepare, selected) ?? return 1
-            register_project_roots(input.dir, project.include_paths)
+            project :: prepared_project(command, input.dir, selected) ?? return 1
             entries :: project_entries(input.dir, project.entries)
             entry :: sole_entry(command, input.dir, entries) ?? return 2
             return EntryInProject { .file = entry.file, .project_root = input.dir }
         }
     }
+}
+
+// The file `path`, compiled within the project folder `project`: how an editor
+// runs one file of a project. The project is named, as a folder argument names
+// one, never found by walking up from the file. The exit code after saying why
+// not: 2 for a flag that does not apply.
+file_in_project :: fn(command: string, path: Path, project: string, selected: string) -> EntryInProject | i32 {
+    if is_dir(path.as_string()) {
+        eprintln("vader ${command}: `--project` names the project of a file, and `${path}` is a folder")
+        return 2
+    }
+    if selected != "" {
+        eprintln("vader ${command}: `--entry` chooses among a project's entries, and `--project` runs the file named")
+        return 2
+    }
+    if !is_dir(project) {
+        eprintln(not_a_folder(command, project))
+        return 1
+    }
+    described_by :: project_description(command, project, "") ?? return 1
+    if described_by == DRIVER_FILENAME {
+        // Prepared, not only described: the file reads the modules it generates.
+        _ :: prepared_project(command, project, "") ?? return 1
+    } else if checked_manifest(command, project) == null {
+        return 1
+    }
+    return EntryInProject { .file = path, .project_root = project }
+}
+
+// The project the `build.vader` of the folder `dir` describes, its driver run
+// up to its last generation round with `selected` as `--entry`, and its search
+// roots handed to the loader. Null after saying why there is none.
+prepared_project :: fn(command: string, dir: string, selected: string) -> Manifest | null {
+    project :: described_project(command, dir, .Prepare, selected) ?? return null
+    register_project_roots(dir, project.include_paths)
+    return project
 }
 
 // The project the `build.vader` of the folder `dir` describes, its driver run
