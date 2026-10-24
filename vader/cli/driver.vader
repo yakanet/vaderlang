@@ -66,9 +66,6 @@ export BUNDLED_SOURCE_DIR :: "src"
 /// unusable rather than merely incomplete.
 export COMPILER_SOURCE_MARKER :: "vader/pipeline"
 
-/// Stamp recording what the cached driver binary was built from, beside it.
-export DRIVER_STAMP_FILENAME :: "driver.stamp"
-
 /// Locate the project's build driver.
 ///
 /// Looked up in `root` only — no walk up the tree. A driver governs the project
@@ -288,6 +285,9 @@ render_driver :: fn(manifest: Manifest) -> string {
     out.append("// shortcut that drains it: walk the messages yourself to lint or generate,\n")
     out.append("// calling `ctx.report(span, msg)` and then `ctx.flush_reports()`.\n")
     out.append("//\n")
+    out.append("// `vader check`, `run` and `info` run this file without building: a step after\n")
+    out.append("// the build (install, package) checks `ctx.mode() == .Build` first.\n")
+    out.append("//\n")
     out.append("// The project folder is a module search root. Add another source directory\n")
     out.append("// through `ctx.include_paths` when you need one.\n")
     out.append("\n")
@@ -432,7 +432,7 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
     // rather than requiring it to exist.
     artefacts :: join_path(root, DRIVER_ARTEFACT_DIR)
     binary :: join_path(artefacts, "driver")
-    stamp  :: join_path(artefacts, DRIVER_STAMP_FILENAME)
+    stamp  :: driver_stamp_path(root)
     key    :: driver_input_key(driver)
 
     // Compiling a driver compiles the WHOLE compiler — 274k lines of C, 8.2 s —
@@ -497,6 +497,17 @@ export run_build_driver :: fn(command: string, root: string, request: DriverRequ
         return outcome.exit
     }
     return 1
+}
+
+/// Whether the project `root`'s driver is compiled as it stands, from its
+/// `build.vader` and this compiler: what `run_build_driver` would run without
+/// compiling first.
+///
+/// @param root  the project folder, holding a `build.vader`.
+export driver_is_compiled :: fn(root: string) -> bool {
+    driver :: find_build_driver(root) ?? return false
+    binary :: join_path(join_path(root, DRIVER_ARTEFACT_DIR), "driver")
+    return driver_is_fresh(binary, driver_stamp_path(root), driver_input_key(driver))
 }
 
 // Write the entry shim, compile the driver, record what it was built from.
@@ -681,6 +692,7 @@ test_ejected_driver_declares_what_the_manifest_does :: fn() -> void {
     assert("ctx.add_entry(\"app\", \"src/main.vader\")" in src, "the entry is added")
     assert("ctx.add_asset(\"data\")" in src, "and the asset")
     assert("module \"build\"" in src, "the driver declares `module \"build\"`")
+    assert("ctx.mode() == .Build" in src, "and teaches when a step after the build runs")
 }
 
 @test

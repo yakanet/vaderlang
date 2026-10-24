@@ -341,6 +341,11 @@ INFO_FLAGS: FlagSpec[]: [
         .kind = .Bool,
         .help = "Report as JSON, for tools",
     },
+    FlagSpec {
+        .name = "no-driver-build",
+        .kind = .Bool,
+        .help = "Describe a driven project only if its driver is compiled; exit 3 otherwise",
+    },
 ]
 
 // `doctor` probes the `cc` a build would invoke, so it takes the same override

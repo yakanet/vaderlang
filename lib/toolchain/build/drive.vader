@@ -328,14 +328,13 @@ emit_one :: fn(
 }
 
 // What the outputs of this run are: the CLI's build options, with the driver's
-// C toolchain and the runtime beside the compiler that started it. The project
-// is the driver's, whatever the options name.
+// C toolchain. The project is the driver's, whatever the options name; the C
+// runtime is found beside the toolchain the CLI named.
 output_request :: fn(ctx: BuildContext) -> BuildRequest = BuildRequest {
     ...ctx.request.build,
     .cc = ctx.cc,
     .ldflags = ctx.ldflags,
     .project_root = project_of(ctx),
-    .runtime_root = runtime_root_of(ctx),
 }
 
 // ---- producing output -----------------------------------------------------

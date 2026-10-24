@@ -18,6 +18,22 @@ import "vader/target"
 /// binaries covers its driver too.
 export DRIVER_ARTEFACT_DIR :: "build/driver"
 
+/// Stamp recording what the cached driver binary was built from, beside it in
+/// `DRIVER_ARTEFACT_DIR`: rewritten each time the driver is compiled.
+export DRIVER_STAMP_FILENAME :: "driver.stamp"
+
+/// Where the stamp of the project `dir`'s driver sits.
+///
+/// @param dir  the project folder.
+export driver_stamp_path :: fn(dir: string) -> string =
+    dir.join_path(DRIVER_ARTEFACT_DIR).join_path(DRIVER_STAMP_FILENAME)
+
+/// The exit code of `vader info --no-driver-build` for a project whose driver
+/// is not compiled, or compiled from another `build.vader` or compiler: nothing
+/// is described, and nothing is wrong with the project. Never a driver's own
+/// exit code: `vader info` reports any failure of the driver as 1.
+export DRIVER_NOT_COMPILED_EXIT: i32: 3
+
 /// The folder a project build writes its binaries to by default.
 ///
 /// @param dir      the project folder.
@@ -25,7 +41,7 @@ export DRIVER_ARTEFACT_DIR :: "build/driver"
 /// @param target   the platform built for, the host when null.
 /// @return         `<dir>/build/<debug|release>-<os>-<arch>`.
 export project_output_dir :: fn(dir: string, release: bool, target: Target | null) -> string =
-    join_path(dir, "build/${profile_name(release)}-${display_target(target ?? host_target())}")
+    dir.join_path("build/${profile_name(release)}-${display_target(target ?? host_target())}")
 
 // The profile a build is made with, as the output folder spells it.
 profile_name :: fn(release: bool) -> string {

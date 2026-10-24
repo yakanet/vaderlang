@@ -275,8 +275,10 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string = sidecar
     marker,
 ) ?? subdir
 
-/// The executable-adjacent `<base>/subdir`, or null when it does not hold
-/// `marker` — i.e. when the running binary is not part of a bundle.
+/// The toolchain's `<base>/subdir`, or null when it does not hold `marker`,
+/// i.e. when the running binary is not part of a bundle. `<base>` is
+/// `$VADER_HOME`, else the folder the process was told
+/// (`register_toolchain_root`), else the executable's own.
 ///
 /// Separate from `resolve_sidecar` because the distinction is load-bearing for
 /// namespace reservation: a bundle's library root is AUTHORITATIVE (the toolchain
@@ -289,11 +291,39 @@ export sidecar_root :: fn(subdir: string, marker: string) -> string | null {
     if home != null {
         return home
     }
-    exe_root :: join_path(current_executable_location().dir_of(), subdir)
-    if exists(join_path(exe_root, marker)) {
-        return exe_root
+    candidate :: join_path(toolchain_base(), subdir)
+    if exists(join_path(candidate, marker)) {
+        return candidate
     }
     return null
+}
+
+// Where the toolchain sits when `$VADER_HOME` does not say: the folder the
+// process was told, else the executable's own.
+toolchain_base :: fn() -> string {
+    told :: registered_toolchain().path
+    if told != "" {
+        return told
+    }
+    return current_executable_location().dir_of()
+}
+
+// The toolchain folder a process was told it belongs to; empty when none was.
+ToolchainFolder :: struct {
+    path: string = ""
+}
+
+@singleton
+registered_toolchain :: fn() -> ToolchainFolder = ToolchainFolder {}
+
+/// Declare the folder holding the toolchain (its `lib/` and `runtime/`), for a
+/// process that does not run from it: a build driver, compiled into its
+/// project's `build/driver/`, is told it by the CLI that runs it. `sidecar_root`
+/// probes it after `$VADER_HOME`, in place of the executable's own folder.
+///
+/// @param dir  the toolchain folder; empty leaves the executable's folder.
+export register_toolchain_root :: fn(dir: string) -> void {
+    registered_toolchain().path = dir
 }
 
 /// Environment variable naming the toolchain's own directory — the one holding
@@ -522,6 +552,19 @@ leaves_project :: fn(path: string) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+
+@test
+test_a_registered_toolchain_root_provides_its_sidecars :: fn() -> void {
+    toolchain :: join_path(temp_dir(), "vader_registered_toolchain_probe")
+    create_dir(join_path(toolchain, "kit"))
+    write_file_string(join_path(toolchain, "kit/marker"), "")
+    register_toolchain_root(toolchain)
+    found :: sidecar_root("kit", "marker")
+    register_toolchain_root("")
+    if get_env(TOOLCHAIN_HOME_VAR) == null {
+        assert_eq(found ?? "", join_path(toolchain, "kit"))
+    }
+}
 
 @test
 test_a_build_vader_of_another_module_is_no_driver :: fn() -> void {

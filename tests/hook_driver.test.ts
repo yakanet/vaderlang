@@ -597,6 +597,11 @@ test.concurrent("info, check, run and the build flags take a driven project too"
   mkdirSync(join(dir, "extra/greet"), { recursive: true });
   writeFileSync(join(dir, "extra/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
 
+  // Asked not to compile the driver, `info` describes nothing until it is.
+  const uncompiled = await run(["info", "--json", "--no-driver-build", "."], { cwd: dir, env: TOOLCHAIN_ENV });
+  expect(uncompiled.exit).toBe(3);
+  expect(uncompiled.stderr).toContain("is not compiled as it stands");
+
   // The fixture's driver prints its own counters: they go to stderr, leaving
   // stdout to the JSON a tool parses.
   const info = await run(["info", "--json", "."], { cwd: dir, env: TOOLCHAIN_ENV });
@@ -684,22 +689,25 @@ function lspSession(cwd: string) {
 
 test.concurrent("the language server reads the search roots a driver declares", async () => {
   // REASON: a whole language-server session over a driven project. The server
-  // has the driver describe itself through `vader info --json`, which compiles
-  // it first, without waiting on it, and holds the document's diagnostics back
-  // until the roots are known: the import of a module under a root the driver
-  // declares never shows as unresolved, not even while the driver builds.
+  // has the driver describe itself through `vader info --json`, without waiting
+  // on it and without ever compiling it, and holds the document's diagnostics
+  // back until the roots are known: the import of a module under a root the
+  // driver declares never shows as unresolved.
   await gated(async () => {
     const dir = mkdtempSync(`${tmpdir()}/vader-lsp-driven-`);
     staged.push(dir);
     mkdirSync(join(dir, "src"));
     mkdirSync(join(dir, "vendor/greet"), { recursive: true });
     writeFileSync(join(dir, "build.vader"), [
-      'module "build"', "", 'import "toolchain/build"', "",
+      'module "build"', "", 'import "std/io"', 'import "toolchain/build"', "",
       "build :: fn(args: string[]) -> i32 {",
       "    ctx :: new_build_context(args)",
       '    ctx.include_paths.push("vendor")',
       '    ctx.add_entry("app", "src/main.vader")',
       "    code :: ctx.emit_native()",
+      "    if code == 0 && ctx.mode() == .Build {",
+      '        println("packaged")',
+      "    }",
       "    _ :: ctx.flush_reports()",
       "    return code",
       "}", "",
@@ -707,6 +715,12 @@ test.concurrent("the language server reads the search roots a driver declares", 
     const main = 'module "src"\n\nimport "greet"\nimport "std/io"\n\nmain :: fn() -> i32 {\n    println(greeting())\n    return 0\n}\n';
     writeFileSync(join(dir, "src/main.vader"), main);
     writeFileSync(join(dir, "vendor/greet/greet.vader"), 'module "greet"\n\nexport greeting :: fn() -> string = "hi"\n');
+
+    // The server never compiles the driver: a build typed in a terminal does,
+    // as this `info` does here. Run to describe, the driver skips its packaging.
+    const compiled = await spawnCapture(["info", "."], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD });
+    expect(compiled.exit).toBe(0);
+    expect(compiled.stderr).not.toContain("packaged");
 
     const lsp = lspSession(dir);
     try {
@@ -729,10 +743,13 @@ test.concurrent("the language server reads the search roots a driver declares", 
       };
       const first = await nextPublished();
 
-      // A saved `build.vader` that no longer declares the root: the project
-      // describes itself again, and the import no longer resolves.
+      // A saved `build.vader` that no longer declares the root, compiled again
+      // from a terminal: the project describes itself again, and the import no
+      // longer resolves.
       const driver = join(dir, "build.vader");
       writeFileSync(driver, readFileSync(driver, "utf8").replace('    ctx.include_paths.push("vendor")\n', ""));
+      const recompiled = await spawnCapture(["info", "."], { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: HEAVY_BUILD });
+      expect(recompiled.exit).toBe(0);
       lsp.send({ jsonrpc: "2.0", method: "textDocument/didSave", params: { textDocument: { uri: pathToUri(driver) } } });
       const second = await nextPublished();
 

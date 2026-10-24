@@ -56,16 +56,6 @@ export BuildContext :: struct {
     /// folder when it starts with `$VADER_HOME`, searched after the project
     /// folder. Left empty by `new_build_context`.
     include_paths:  string[]
-    /// Folder holding the `vader` executable that started this build, and
-    /// therefore its `lib/` and `runtime/c/`, as the request carries it.
-    ///
-    /// `@internal`: a driver has no use for it, and it is not the driver's to
-    /// choose. It exists because a driver runs as `<project>/build/driver/driver`,
-    /// so the sidecar probe that finds the stdlib beside the compiler would look
-    /// inside the project instead. Empty when the driver was invoked by hand, in
-    /// which case every lookup falls back to that probe — today's behaviour.
-    @internal
-    toolchain_root: string = ""
     /// Where generated modules land, relative to `project_root`.
     ///
     /// `@internal`, and deliberately not part of the configuration surface: the
@@ -142,14 +132,20 @@ export DEFAULT_GENERATED_ROOT :: GENERATED_ROOT_DIR
 /// @return      a context with `project_root` set (empty when `args` carried
 ///              none), no entry and no include paths. Returned MUTABLE: the whole
 ///              contract is that the driver fills it in.
-export new_build_context :: fn(args: string[]) -> BuildContext =
-    new_build_context_from(parse_driver_request(args))
+export new_build_context :: fn(args: string[]) -> BuildContext {
+    request :: parse_driver_request(args)
+    // The driver runs from its project's `build/driver/`: probing beside
+    // itself, the loader would miss the toolchain the CLI names, its `lib/`,
+    // its C runtime and a `$VADER_HOME/…` root included. Empty when the driver
+    // was run by hand, which leaves that probe as it is.
+    register_toolchain_root(request.toolchain_root)
+    return new_build_context_from(request)
+}
 
 // A context for a request already in hand: `new_build_context` reads it from
 // `args`, `build_from_manifest` receives it from the CLI.
 new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildContext {
     .project_root   = request.build.project_root ?? "",
-    .toolchain_root = request.toolchain_root,
     .include_paths  = [],
     .generated_root = DEFAULT_GENERATED_ROOT,
     .request        = request,
@@ -157,6 +153,15 @@ new_build_context_from :: fn(request: DriverRequest) -> BuildContext = BuildCont
     .ldflags        = request.build.ldflags,
     .target         = .Native,
 }
+
+/// What the command running the driver asks of it. Only `.Build` writes
+/// outputs: `vader check` (`.Check`), `run`, `dump`, `lint` and `graph`
+/// (`.Prepare`) and `vader info` or the language server (`.Describe`) run the
+/// driver and link nothing, `emit_native` returning 0 all the same. A step
+/// after the build, installing or packaging, checks `ctx.mode() == .Build`.
+///
+/// @param ctx  the context the driver configured.
+export mode :: fn(ctx: BuildContext) -> DriverMode = ctx.request.mode
 
 /// What a drained `messages()` leaves behind.
 export BuildTarget :: enum(u8) {
@@ -168,24 +173,17 @@ export BuildTarget :: enum(u8) {
     None,
 }
 
-// The roots the front end takes as flags: the CLI's `--include-paths`, then the
-// compiler's own `lib/`. What the driver configured reaches the loader at the
-// rank of a manifest's `includePaths` (`register_project_roots`), or, with no
-// project to register it under, follows `lib/` here as they would.
-//
-// The stdlib root is appended HERE rather than seeded into `ctx.include_paths`,
-// so that a driver which replaces that list keeps the stdlib instead of getting
-// `R2001 module not found: std/io`.
+// The roots the front end takes as flags: the CLI's `--include-paths`. The
+// compiler's own `lib/` is the loader's to find, through the toolchain the CLI
+// named (`register_toolchain_root`). What the driver configured reaches the
+// loader at the rank of a manifest's `includePaths` (`register_project_roots`),
+// or, with no project to register it under, follows here, relative to the
+// working directory.
 search_roots :: fn(ctx: BuildContext) -> string[] {
     roots: string[]: []
     roots.push_all(ctx.request.build.include_paths)
-    library :: library_root_of(ctx)
-    if library != null {
-        roots.push(library)
-    }
-    // Without a project there is nowhere to register the driver's roots: they
-    // are searched relative to the working directory.
     if project_of(ctx) == null {
+        library :: sidecar_root(LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
         for p in ctx.include_paths {
             roots.push(manifest_root("", p, library))
         }
@@ -200,38 +198,6 @@ project_of :: fn(ctx: BuildContext) -> string | null {
         return null
     }
     return ctx.project_root
-}
-
-// The compiler's own `lib/`, or null when the driver was not told where it is.
-library_root_of :: fn(ctx: BuildContext) -> string | null {
-    library :: toolchain_sidecar(ctx, LIBRARY_ROOT_DIR, LIBRARY_ROOT_MARKER)
-    if library == "" {
-        return null
-    }
-    return library
-}
-
-// The compiler's own C runtime, or "" to let the link step probe for itself.
-runtime_root_of :: fn(ctx: BuildContext) -> string =
-    toolchain_sidecar(ctx, "runtime/c", "vader.h")
-
-// A sidecar of the compiler that started this build, VERIFIED to be there, or ""
-// to fall back to the probe the CLI uses.
-//
-// The check is the whole point. A bundle has `lib/` and `runtime/c/` beside
-// its binary; a CHECKOUT has the binary in `build/` with neither beside it, and
-// handing the link step a `<repo>/build/runtime/c` that does not exist made `cc`
-// fail where the old relative fallback had worked. Same marker-probe shape as
-// `resolver::resolve_sidecar`, for the same reason: a path is not a layout.
-toolchain_sidecar :: fn(ctx: BuildContext, subdir: string, marker: string) -> string {
-    if ctx.toolchain_root == "" {
-        return ""
-    }
-    candidate :: join_path(ctx.toolchain_root, subdir)
-    if !exists(join_path(candidate, marker)) {
-        return ""
-    }
-    return candidate
 }
 
 // Where to anchor a diagnostic about the DRIVER's behaviour: no entry added, two

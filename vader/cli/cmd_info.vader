@@ -32,7 +32,10 @@ cmd_info :: fn(args: string[]) -> i32 {
     if reject_extra_positionals("info", parsed) {
         return 1
     }
-    info :: project_info(action_input(parsed).as_string()) ?? return 1
+    info :: project_info(action_input(parsed).as_string(), !parsed.bool_flag("no-driver-build"))
+    if info is i32 {
+        return info
+    }
     if parsed.bool_flag("json") {
         println(render_info_json(info))
     } else {
@@ -50,16 +53,20 @@ ProjectInfo :: struct {
     manifest:     Manifest
 }
 
-// What the project folder `dir` describes, or null after saying it describes
-// none. A project with no entry is described all the same: saying so is the
-// report's job.
-project_info :: fn(dir: string) -> ProjectInfo | null {
+// What the project folder `dir` describes, or the exit code after saying it
+// describes none. A project with no entry is described all the same: saying so
+// is the report's job. A driver not compiled as it stands is compiled first
+// when `may_compile`.
+project_info :: fn(dir: string, may_compile: bool) -> ProjectInfo | i32 {
     if !is_dir(dir) {
         eprintln(not_a_folder("info", dir))
-        return null
+        return 1
     }
-    described_by :: project_description("info", dir, ", so it describes no project") ?? return null
-    manifest :: declared_project(dir, described_by) ?? return null
+    described_by :: project_description("info", dir, ", so it describes no project") ?? return 1
+    manifest :: declared_project(dir, described_by, may_compile)
+    if manifest is i32 {
+        return manifest
+    }
     return ProjectInfo {
         .described_by = described_by,
         .root = dir,
@@ -67,13 +74,21 @@ project_info :: fn(dir: string) -> ProjectInfo | null {
     }
 }
 
-// What the project `dir` declares in `described_by`, or null after saying why
-// it could not be read.
-declared_project :: fn(dir: string, described_by: string) -> Manifest | null {
-    if described_by == DRIVER_FILENAME {
-        return described_project("info", dir, .Describe, "")
+// What the project `dir` declares in `described_by`, or the exit code after
+// saying why it could not be read: `DRIVER_NOT_COMPILED_EXIT` for a driver not
+// compiled as it stands, unless `may_compile`.
+declared_project :: fn(dir: string, described_by: string, may_compile: bool) -> Manifest | i32 {
+    if described_by == MANIFEST_FILENAME {
+        manifest :: checked_manifest("info", dir) ?? return 1
+        return manifest
     }
-    return checked_manifest("info", dir)
+    if !may_compile && !driver_is_compiled(dir) {
+        eprintln("vader info: the `${DRIVER_FILENAME}` of `${dir}` is not compiled as it stands; "
+            + "`vader build` compiles it")
+        return DRIVER_NOT_COMPILED_EXIT
+    }
+    described :: described_project("info", dir, .Describe, "") ?? return 1
+    return described
 }
 
 // The report a reader takes in: one labelled line per fact, each search root

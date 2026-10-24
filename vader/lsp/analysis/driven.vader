@@ -2,15 +2,17 @@
 // server learns them.
 //
 // A driver is a program: only running it says which module search roots it
-// declares. The server asks `vader info --json`, its own executable, which
-// compiles the driver when it is stale (seconds) and then describes it
-// (milliseconds). The run is started without waiting and polled from the event
-// loop (vader/lsp/main.vader), so the editor never freezes on it. Until the
-// first answer, the project's diagnostics are held back: every import of a root
-// the driver declares would read as unresolved. Later runs, when `build.vader`
-// changes, leave the known roots in place until they answer. The answer goes to
-// the loader (`register_project_roots`). A run left in flight when the server
-// exits finishes on its own: killing it would orphan the compilers it started.
+// declares. The server asks `vader info --json --no-driver-build`, its own
+// executable, which describes a driver only if it is compiled as it stands: the
+// server never starts a compile, which would race a `vader build` typed
+// meanwhile over the same files in `build/driver/`. A driver not compiled yet
+// waits for the user's own build: it rewrites the driver's stamp, and the next
+// analysis of the project describes it again. The run is started without
+// waiting and polled from the event loop (vader/lsp/main.vader). Until its first
+// answer, the project's diagnostics are held back: every import of a root the
+// driver declares would read as unresolved. Later runs leave the known roots in
+// place until they answer. The answer goes to the loader
+// (`register_project_roots`).
 
 module "vader/lsp/analysis"
 
@@ -21,17 +23,20 @@ import "std/path"
 import "std/process"
 import "std/string"
 import "vader/lsp/protocol"
+import "vader/pipeline"
 import "vader/resolver"
 
 /// What the server knows of one project its `build.vader` describes.
 export DrivenProject :: struct {
-    /// The modification time of the `build.vader` last described, or being
-    /// described; -1 before the first run.
-    described_at: i64 = -1
+    /// What the last run described (`description_key`); empty before the first.
+    described_key: string = ""
+    /// Whether the user was told the driver needs a build, since its last
+    /// description: a save of `build.vader` does not tell them again.
+    warned:        bool = false
     /// The roots the last answer registered; null until the first one.
-    roots:        string[] | null = null
+    roots:         string[] | null = null
     /// The `vader info` run in flight, its `spawn_start` handle.
-    job:          i64 | null = null
+    job:           i64 | null = null
 }
 
 /// Make sure the registered roots of the project `root` describe its
@@ -47,10 +52,16 @@ export ensure_described :: fn(self: ServerState, root: string) -> bool {
         return true
     }
     known :: self.driven.get_or_put_with(root, () -> DrivenProject {})
-    stamp :: driver_stamp(root)
-    if known.job == null && known.described_at != stamp {
-        known.described_at = stamp
-        handle :: spawn_start([current_executable_location(), "info", "--json", root])
+    key :: description_key(root)
+    if known.job == null && known.described_key != key {
+        known.described_key = key
+        handle :: spawn_start([
+            current_executable_location(),
+            "info",
+            "--json",
+            "--no-driver-build",
+            root,
+        ])
         if handle < 0 {
             warn_undescribed(root, "`vader info` could not be started")
             settle(self, root, known, known.roots ?? [])
@@ -80,13 +91,16 @@ export poll_descriptions :: fn(self: ServerState) -> void {
         finished :: spawn_finished(job, "vader info") ?? continue
         known.job = null
         answer :: description_of(finished)
-        if answer is string {
+        if finished is ProcessResult && finished.exit == DRIVER_NOT_COMPILED_EXIT {
+            await_build(self, root, known)
+        } else if answer is string {
             warn_undescribed(root, answer)
             // The roots known before stay: a `build.vader` being edited fails
             // often, and its last good answer serves better. A first failure
             // settles on none, so that diagnostics flow again.
             settle(self, root, known, known.roots ?? [])
         } else {
+            known.warned = false
             settle(self, root, known, answer)
         }
         // A save that came during the run asks for another.
@@ -94,14 +108,34 @@ export poll_descriptions :: fn(self: ServerState) -> void {
     }
 }
 
-// The modification time of the project's `build.vader`, 0 when it cannot be
-// read.
-driver_stamp :: fn(root: string) -> i64 {
-    stamp :: modification_time(join_path(root, DRIVER_FILENAME))
+// What a description of the project `root` depends on: its `build.vader`, and
+// the stamp a compile of its driver rewrites. Either changing asks for another.
+description_key :: fn(root: string) -> string {
+    driver :: modified_at(join_path(root, DRIVER_FILENAME))
+    compiled :: modified_at(driver_stamp_path(root))
+    return "${driver}:${compiled}"
+}
+
+// The modification time of `path`, 0 when it cannot be read.
+modified_at :: fn(path: string) -> i64 {
+    stamp :: modification_time(path)
     if stamp is IOError {
         return 0
     }
     return stamp
+}
+
+// The driver of the project `root` is not compiled as it stands: the roots known
+// stay, or none for a first run, so that diagnostics flow, and the user is told
+// once that a build lets the editor see the driver's roots.
+await_build :: fn(self: ServerState, root: string, known: DrivenProject) -> void {
+    settle(self, root, known, known.roots ?? [])
+    if known.warned {
+        return
+    }
+    known.warned = true
+    show_warning("vader: the editor reads the search roots of `${root}/${DRIVER_FILENAME}` once its "
+        + "driver is compiled; `vader build` compiles it")
 }
 
 // The search roots a finished `vader info --json` run reports, or why it
