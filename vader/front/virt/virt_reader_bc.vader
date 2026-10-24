@@ -1,13 +1,11 @@
-// vader/core/bytecode/text/virt_reader_bc — read a `.virt` text dump into a `BytecodeModule`.
+// vader/front/virt/virt_reader_bc — read a `.virt` text dump into a `BytecodeModule`.
 //
-// Sibling of `virt_reader.vader`, which parses the same `.virt` text into the
-// runtime-only VM `Module`. This reader instead reconstructs the richer
-// `vader/core/bytecode::BytecodeModule` that `emit/c::emit_c` consumes — so a
-// hand-authored or dumped `.virt` can be compiled to C (`vader build x.virt
-// --target=c`). Both readers share the hard part — the structured control-flow
-// → linear op-stream + jump-table wiring (`ParserState`, `parse_op_line`,
-// `wire_control_flow`) — via same-module visibility, and only diverge in the
-// metadata they keep.
+// Reads the module directives around each function body and reconstructs the
+// `vader/core/bytecode::BytecodeModule` that `vader run` executes and
+// `emit/c::emit_c` compiles, so a hand-authored or dumped `.virt` can be run or
+// built to C (`vader build x.virt`). The bodies go through `virt_reader.vader`:
+// the structured control flow → linear op-stream + jump-table wiring
+// (`ParserState`, `parse_op_line`, `wire_control_flow`).
 //
 // Lossy-by-design vs the emitter's in-memory module: the `.virt` text carries
 // no signature `BcType` indices (`param_types` / `result_type`), no struct
@@ -15,12 +13,12 @@
 // type table via `class_tag_of` (exact for scalar slots ; `0` for
 // ref/any slots, which `emit/c::box_expr` ignores anyway — Ref/Any box to a
 // bare value, no tag). A struct's `symbol_id` becomes its TYPE INDEX — the
-// identity the data section names it by (`core/bytecode/text/dump`) — and `debug` all-null
+// identity the data section names it by (`emit/virt/dump`) — and `debug` all-null
 // (`#line` directives are dropped from `.virt`-sourced C). The contract this
 // upholds is *emitted-C equivalence* (`source → C` == `source → .virt → C`,
 // modulo `#line`), not byte-identical module round-trip.
 
-module "vader/core/bytecode/text"
+module "vader/front/virt"
 
 import "std/ffi"
 import "std/numbers"
@@ -495,9 +493,9 @@ parse_struct_type_bc :: fn(rest: string) -> BcStruct | DirectiveError {
     after_struct :: rest.trim_prefix("struct ")
     open :: after_struct.index_of('{', 0)
     raw_name :: before_first(after_struct, '{').trim()
-    // The dump `quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
+    // The dump `emit/virt::quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` by
-    // `quote_string` ; unquote so `sanitise` derives the same C identifier as the
+    // `emit/virt::quote_string` ; unquote so `sanitise` derives the same C identifier as the
     // direct-source build.
     // `Name as "struct timespec"` — the mirrored C type, absent on an ordinary
     // struct. Split before unquoting: both halves are quoted independently.
@@ -588,7 +586,7 @@ parse_import_decl_bc :: fn(
         }
     }
     // `<lib>:<symbol>` when the symbol comes from a named library — see
-    // `write_imports`. A bare name means the default resolution scope.
+    // `emit/virt::write_imports`. A bare name means the default resolution scope.
     raw_name :: parts[name_i]
     extern_name :: raw_name.byte_slice(raw_name.index_of(':', 0) + 1, raw_name.byte_len())
     mangled :: parts[name_i + 1]
@@ -659,7 +657,7 @@ parse_import_decl_bc :: fn(
         }
     }
     // The result's type index is carried as an attribute rather than by
-    // `write_signature`, which renders a union as `any` — so it is stitched back
+    // `emit/virt::write_signature`, which renders a union as `any` — so it is stitched back
     // in here. Without it a `string | null` result reads as a plain word and the
     // FFI hands the atom back as an integer.
     final_sig :: BcSignature {
@@ -811,7 +809,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: BcExport[]) -> i32 {
 
 /// Parse a data-pool line into a `BcDataEntry`. Primitive arrays take the form
 /// `data N <kind> hex"…"` (raw `u64` bits per element) ; string arrays take
-/// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
+/// `data N str "v0" "v1" …` (each value `emit/virt::quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(
@@ -864,7 +862,7 @@ parse_data_decl_bc :: fn(
 }
 
 /// Tokenise a `"v0" "v1" …` sequence into the decoded string values. Each token
-/// is `quote_string`-escaped ; `\"` / `\\` / `\n` … are honoured via the same
+/// is `emit/virt::quote_string`-escaped ; `\"` / `\\` / `\n` … are honoured via the same
 /// `decode_escapes` the `string N "…"` section uses, so a value containing a
 /// quote round-trips. Whitespace between tokens is skipped.
 parse_quoted_strings :: fn(s: string) -> string[] {
@@ -894,7 +892,7 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 }
 
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
-// Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
+// Values are count-prefixed (no paren balancing) — see `emit/virt::write_data_value`.
 // `strings` resolves any `strref <i>` leaf back to its pooled value.
 parse_agg_decl :: fn(payload: string, strings: string[]) -> BcAggregateData {
     tokens :: tokenize_agg(payload)
@@ -1095,9 +1093,9 @@ class_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
     return 0
 }
 
-/// Strip the dump's `quote_ident` wrapping from a struct or trait name: a
+/// Strip the dump's `emit/virt::quote_ident` wrapping from a struct or trait name: a
 /// `"..."`-quoted name (`"std/core.Error"`) is unquoted, its escapes read back by
-/// `decode_escapes` (the dump writes it with `quote_string`). A bare name passes
+/// `decode_escapes` (the dump writes it with `emit/virt::quote_string`). A bare name passes
 /// through unchanged.
 unquote_name :: fn(s: string) -> string {
     n :: s.byte_len()

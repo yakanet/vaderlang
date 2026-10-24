@@ -17,7 +17,7 @@ import "vader/support/diagnostics"
 import "vader/tools/lsp/protocol"
 import "std/io"
 
-Virt :: import "vader/core/bytecode/text"
+Virt :: import "vader/front/virt"
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,

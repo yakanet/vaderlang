@@ -2,7 +2,7 @@
 // wiring.
 //
 // Two producers fill a function's jump table from a labelled scope stack:
-// `builder.vader` building a body op by op, and `text/virt_reader.vader`
+// `builder.vader` building a body op by op, and `front/virt/virt_reader.vader`
 // replaying a `.virt` dump. The shared state is three arrays plus two cursors, so these take
 // those directly rather than a carrier struct — `FunctionBuilder` and
 // `ParserState` each keep their own fields and pass them in.

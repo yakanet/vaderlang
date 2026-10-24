@@ -2,7 +2,7 @@
 //
 // The reference implementation of the Target ABI memory opcodes' byte
 // semantics (`load_i32` / `store_u8` / … in `vader/vm/exec.vader`) AND the
-// decoder for the `.virt` data-pool hex blobs (`text/virt_reader_bc.vader`).
+// decoder for the `.virt` data-pool hex blobs (`front/virt/virt_reader_bc.vader`).
 // Deliberately NOT stdlib : once the memory opcodes land, native-endian typed
 // access IS the opcode (a single per-target typed load), so a pure-Vader
 // shift-loop codec is exactly what they replace — it lives here only because

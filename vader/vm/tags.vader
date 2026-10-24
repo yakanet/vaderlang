@@ -550,7 +550,7 @@ display_tags :: fn(tags: u8) -> string {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/core/bytecode/text"
+import "vader/front/virt"
 
 // The tag check of a one-function module whose `-> i32` body is `body` and whose
 // locals are `locals` ; "" when accepted.

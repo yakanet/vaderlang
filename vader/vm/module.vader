@@ -155,7 +155,8 @@ global_zero :: fn(val: bc.ValType) -> Value = match val {
 
 import "std/testing"
 import "vader/core/bytecode/builder"
-import "vader/core/bytecode/text"
+import "vader/emit/virt"
+import "vader/front/virt"
 
 // Round-trip a builder-constructed module through `write_virt` → `parse_virt_bc`
 // and assert the parsed copy execs to the same value : the writer/reader pair is

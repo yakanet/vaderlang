@@ -1,7 +1,7 @@
 // vader/core/bytecode/builder/builder — programmatic construction of a
 // `BytecodeModule` without going through the `.virt` text intermediate.
 //
-// The reader in `vader/core/bytecode/text/virt_reader_bc.vader` consumes a
+// The reader in `vader/front/virt/virt_reader_bc.vader` consumes a
 // `.virt` text dump and produces a `vader/core/bytecode::BytecodeModule` (type
 // table, string pool,
 // function bodies + pre-computed jump tables, imports, impl table, data pool).
@@ -33,7 +33,7 @@
 // `FunctionBuilder` ; the
 // builder maintains an internal scope stack and resolves each branch's
 // target pc into the jump table as ops are appended, mirroring the
-// online resolution that `text/virt_reader.vader::wire_control_flow` performs at
+// online resolution that `front/virt/virt_reader.vader::wire_control_flow` performs at
 // parse time.
 
 module "vader/core/bytecode/builder"

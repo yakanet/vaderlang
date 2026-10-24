@@ -34,6 +34,7 @@ flowchart TD
 | Dead-code elimination | `vader/lower/` | functions unreachable from the roots removed |
 | Mid-IR | `vader/midir/` | CFG, escape analysis, range analysis |
 | Bytecode emitter | `vader/emit/bytecode/` | stack-based bytecode, whose format is `vader/core/bytecode/` |
+| `.virt` text | `vader/emit/virt/`, `vader/front/virt/` | the bytecode written as text, and read back |
 | VM | `vader/vm/` | runs the bytecode |
 | C emitter | `vader/emit/c/` | one C file per module (`--split`) or one for the program |
 

@@ -1,4 +1,4 @@
-// vader/core/bytecode/text/dump — `BytecodeModule` → `.virt` text.
+// vader/emit/virt/dump — `BytecodeModule` → `.virt` text.
 //
 // `dump_bytecode` writes the `.virt` form `parse_virt_bc` reads back, data pool
 // included ; `write_virt` is the same with the entry named from the module's
@@ -18,7 +18,7 @@
 // pool + vtables + impl table are summarised when non-empty,
 // elided otherwise.
 
-module "vader/core/bytecode/text"
+module "vader/emit/virt"
 
 import "vader/core/bytecode"
 import "std/ffi"
@@ -30,7 +30,7 @@ import "std/iter"
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
-/// canonical `.virt` form `parse_virt` consumes and the parity snapshots
+/// canonical `.virt` form `parse_virt_bc` consumes and the parity snapshots
 /// compare — byte-for-byte stable.
 ///
 /// @param module         the bytecode module to render.
@@ -46,7 +46,7 @@ export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> str
 /// receiver + field name, the type name behind `ref.cast`, …).
 ///
 /// A human/AI-facing disassembly view — **not** round-trippable through
-/// `parse_virt` (the comments aren't part of the grammar), so it's gated
+/// `parse_virt_bc` (the comments aren't part of the grammar), so it's gated
 /// behind `dump --stage=bytecode --annotate` and never feeds the VM or the
 /// parity snapshots. Every index lookup is bounds-guarded : an out-of-range
 /// operand renders `<… #N out of range>` instead of trapping, so the view
@@ -94,7 +94,7 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
 // Data pool — one line per pre-materialised read-only `T[]`. Primitive arrays dump
 // as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" …`
 // (each value `quote_string`-escaped, mirroring the `string N "…"` section).
-// Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
+// Round-trips through `front/virt/virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
 // the pool ; without this the `.virt` carries `data.const N` ops with no backing
 // entry (pool_index out of range).
 write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: string[], types: BcType[]) -> void {
@@ -306,7 +306,7 @@ write_imports :: fn(sb: StringBuilder, imports: BcImport[]) -> void {
         // The header, when one owns the prototype. Same reason as the library:
         // without it a `.virt` re-read SYNTHESISES a prototype, which is the
         // conflicting declaration `@c_header` exists to avoid. Written BEFORE
-        // the signature — `parse_signature_bc` reads the return type to the end
+        // the signature — `front/virt::parse_signature_bc` reads the return type to the end
         // of the line, so a trailing field lands inside it.
         header :: if imp.c_header == "" { "" } else { "header=${imp.c_header} " }
         // The fixed-argument count of a VARIADIC callee. Read back without it, a
@@ -393,13 +393,6 @@ join_indices :: fn(xs: i32[]) -> string {
     return sb.to_string()
 }
 
-/// C type spellings as one token of an import line, whose attributes are
-/// separated by spaces : each space is written `+`, which no C type contains.
-/// `c_type_from_token` reads it back.
-///
-/// @param spelling  the C type, as `@c_type` names it, or several joined by `,`.
-export c_type_token :: fn(spelling: string) -> string = spelling.replace_all(" ", "+")
-
 // `<lib>:` before the symbol of an import that names a library, `""` otherwise.
 // The colon marks the library, its name may be empty.
 library_prefix :: fn(imp: BcImport) -> string {
@@ -426,31 +419,6 @@ library_attributes :: fn(library: CLibrary | null) -> string {
     }
     return sb.to_string()
 }
-
-// A path as one attribute token, losslessly: an attribute ends at a space and a
-// list item at a comma, so both are percent-encoded, and `%` with them.
-path_token :: fn(text: string) -> string =
-    text.replace_all("%", "%25").replace_all(" ", "%20").replace_all(",", "%2C")
-
-/// The path a `path_token` stands for.
-///
-/// @param token  the token read from an import line.
-export path_from_token :: fn(token: string) -> string =
-    token.replace_all("%2C", ",").replace_all("%20", " ").replace_all("%25", "%")
-
-// A list of paths as one attribute value, comma-separated.
-path_tokens :: fn(texts: string[]) -> string = texts.map(path_token).collect().join(",")
-
-/// The paths a `path_tokens` value lists.
-///
-/// @param value  the attribute value read from an import line.
-export paths_from_tokens :: fn(value: string) -> string[] =
-    value.split(",").map(path_from_token).collect()
-
-/// The C type spelling a `c_type_token` stands for.
-///
-/// @param token  the token read from an import line.
-export c_type_from_token :: fn(token: string) -> string = token.replace_all("+", " ")
 
 /// Render per-parameter flags as a comma-separated run of `0` / `1`.
 ///
@@ -483,7 +451,7 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
 
 // Emit `export main <index>` for the entry function, identified by its
 // mangled name (`<entry-module>$main`). The textual `.virt` carries no
-// `is_main` flag, so the VM's `parse_virt` recovers the entry from this
+// `is_main` flag, so `parse_virt_bc` recovers the entry from this
 // directive — without it, it falls back to "first `$main`-suffixed fn",
 // which is emission-order-dependent and picks the wrong module's `main`
 // when several modules declare one (e.g. `vader_tools_lsp$main` before
@@ -1106,6 +1074,34 @@ type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string 
 /// @return        the `.virt` text dump (canonical form, trailing newline).
 export write_virt :: fn(module: BytecodeModule) -> string = dump_bytecode(module, main_function_name(module))
 
+/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
+/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
+/// copied verbatim so the round-trip is byte-exact. The escape set matches
+/// `std/string::decode_escapes` (the decoder `front/virt/virt_reader::parse_string_decl`
+/// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
+/// byte-transparent for the rest — it has no `\u` / `\x` form.
+quote_string :: fn(value: string) -> string {
+    out :: StringBuilder {}
+    out.append("\"")
+    n :: value.byte_len()
+    for i in 0..<n {
+        b :: value.byte_at(i)
+        if      b == '\\' { out.append("\\\\") }
+        else if b == '"'  { out.append("\\\"") }
+        else if b == '\n' { out.append("\\n") }
+        else if b == '\r' { out.append("\\r") }
+        else if b == '\t' { out.append("\\t") }
+        else if b == 0     { out.append("\\0") }
+        else {
+            // Copy the raw byte verbatim — `char(u32(b))` would re-encode it
+            // as UTF-8 and double-encode any byte >= 0x80.
+            out.append(value.byte_slice(i, i + 1))
+        }
+    }
+    out.append("\"")
+    return "${out}"
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -1148,32 +1144,4 @@ import "std/testing"
 
     finite: f64: 1.5
     assert_eq(f64_const_operands(finite), "${finite} ${finite.to_bits()}")
-}
-
-/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
-/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
-/// copied verbatim so the round-trip is byte-exact. The escape set matches
-/// `std/string::decode_escapes` (the decoder `virt_reader.parse_string_decl`
-/// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
-/// byte-transparent for the rest — it has no `\u` / `\x` form.
-export quote_string :: fn(value: string) -> string {
-    out :: StringBuilder {}
-    out.append("\"")
-    n :: value.byte_len()
-    for i in 0..<n {
-        b :: value.byte_at(i)
-        if      b == '\\' { out.append("\\\\") }
-        else if b == '"'  { out.append("\\\"") }
-        else if b == '\n' { out.append("\\n") }
-        else if b == '\r' { out.append("\\r") }
-        else if b == '\t' { out.append("\\t") }
-        else if b == 0     { out.append("\\0") }
-        else {
-            // Copy the raw byte verbatim — `char(u32(b))` would re-encode it
-            // as UTF-8 and double-encode any byte >= 0x80.
-            out.append(value.byte_slice(i, i + 1))
-        }
-    }
-    out.append("\"")
-    return "${out}"
 }

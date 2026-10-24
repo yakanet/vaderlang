@@ -19,7 +19,7 @@
 
 module "vader/vm"
 
-Virt :: import "vader/core/bytecode/text"
+VirtOut :: import "vader/emit/virt"
 bc :: import "vader/core/bytecode"
 import "std/string_builder"
 
@@ -258,7 +258,7 @@ indexed_effect :: fn(index: i32, len: i64, pops: i64, pushes: i64) -> StackEffec
 
 op_text :: fn(op: bc.Op) -> string {
     sb :: StringBuilder {}
-    Virt.write_op(sb, op)
+    VirtOut.write_op(sb, op)
     return "${sb}"
 }
 
@@ -320,13 +320,14 @@ struct_new_effect :: fn(module: bc.BytecodeModule, type_id: i32) -> StackEffect 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
+import "vader/front/virt"
 
 VIRT_HEAD :: r"module t" + "\n" + r"type 0 scalar null" + "\n" + r"type 1 scalar i32" + "\n" + r"export main 0" + "\n\n"
 
 // Verify a one-function module whose `-> i32` body is `body` ; "" when accepted.
 rejection :: fn(body: string) -> string {
-    module :: Virt.parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
-    if module is Virt.VirtParseError {
+    module :: parse_virt_bc(VIRT_HEAD + r"fn 0 t$main () -> i32" + "\n" + body + "end\n")
+    if module is VirtParseError {
         return "fixture does not parse"
     }
     found :: verify_module(module)

@@ -14,7 +14,8 @@ import "json"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
-Virt :: import "vader/core/bytecode/text"
+VirtOut :: import "vader/emit/virt"
+Virt :: import "vader/front/virt"
 
 /// The declaration the operand under the cursor names, or null when the cursor
 /// is on anything else.
@@ -66,7 +67,7 @@ function_at :: fn(listing: Virt.VirtListing, line: i64) -> i64 | null {
 operand_line :: fn(listing: Virt.VirtListing, function: i64, k: i64, operand: i64) -> i64 | null {
     lines :: listing.functions[function]
     body :: listing.module.functions[function]
-    refs :: Virt.operand_refs(body.body[k])
+    refs :: VirtOut.operand_refs(body.body[k])
     if operand >= refs.len() {
         return null
     }

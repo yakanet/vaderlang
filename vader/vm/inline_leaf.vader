@@ -169,7 +169,7 @@ inline_into :: fn(functions: bc.BcFunction[], leaf: bool[], index: i64) -> bc.Bc
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
-import "vader/core/bytecode/text"
+import "vader/front/virt"
 
 // `fn 0 square`, a straight-line leaf whose multiply is checked, `fn 1 halve`, which
 // divides, `fn 2 stale`, which reads a local before writing it, and a `main` running

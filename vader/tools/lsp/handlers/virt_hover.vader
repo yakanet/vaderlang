@@ -1,7 +1,7 @@
 // vader/tools/lsp/handlers/virt_hover — `textDocument/hover` over a `.virt` document.
 //
 // Hovering the first word of a line — an op or a directive — shows its entry in
-// the text bytecode's reference (`vader/core/bytecode/text/ops.md`, read by `op_doc`).
+// the text bytecode's reference (`vader/front/virt/ops.md`, read by `op_doc`).
 
 module "vader/tools/lsp/handlers"
 
@@ -10,7 +10,7 @@ import "std/string"
 import "vader/tools/lsp/analysis"
 import "vader/tools/lsp/protocol"
 
-Virt :: import "vader/core/bytecode/text"
+Virt :: import "vader/front/virt"
 
 /// The hover for `params` in a `.virt` document : the reference entry of the
 /// line's first word when the cursor is on it, null anywhere else.

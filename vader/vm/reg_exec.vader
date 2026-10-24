@@ -1289,7 +1289,7 @@ set_bool :: fn(bits: i64[], tags: StackTag[], base: i64, register: i32, v: bool)
 
 import "std/string"
 import "std/testing"
-import "vader/core/bytecode/text"
+import "vader/front/virt"
 
 // A module whose `main` runs `ops`, its local 0 an `i32[]` holding `[1, 2, 3]`.
 array_module :: fn(ops: string[]) -> bc.BytecodeModule | null {

@@ -252,7 +252,7 @@ Self-hosting is done: the native compiler re-emits its own C byte-identically
 - [ ] **The checked arithmetic ops should take the plain names** (noted 2026-10-14). What
       source `+`, `-`, `*` and unary `-` lower to is `<type>.checked_add`, `checked_sub`,
       `checked_mul`, `checked_neg`, while the plain `i32.add` / `i64.add` (`sub`, `mul`) wrap
-      and serve `+%`, `-%`, `*%` and synthesised arithmetic (`vader/core/bytecode/text/ops.md`,
+      and serve `+%`, `-%`, `*%` and synthesised arithmetic (`vader/front/virt/ops.md`,
       "Integers"). The safe op, the one almost every site uses, should be the short name
       (`u32.add`) and the wrapping one should say what it gives up (`unsafe_add`, or
       `wrapping_add`, since the result is defined). The two families differ in shape too: the

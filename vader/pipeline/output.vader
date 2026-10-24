@@ -10,8 +10,8 @@ module "vader/pipeline"
 
 import "std/io"
 import "std/path"
-import "vader/core/bytecode/text"
 import "vader/emit/c"
+import "vader/emit/virt"
 Prof :: import "vader/support/profile"
 import "vader/support/target"
 

@@ -583,7 +583,7 @@ export F64Ge :: struct {}
 // The seven ops below are width-aliased : every integer-width sibling
 // (`i8.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
 // because the VM aliases every integer width to `I32Val`. See
-// `is_int_op` in `vader/core/bytecode/text/virt_reader.vader` for the parser-side collapse.
+// `is_int_op` in `vader/front/virt/virt_reader.vader` for the parser-side collapse.
 /// Pop one i32 ; push `-value`.
 export I32Neg :: struct {}
 /// Pop one i32 ; push `~value`.

@@ -1,11 +1,11 @@
-// vader/core/bytecode/text/op_docs — the reference of the text bytecode, for tools.
+// vader/front/virt/op_docs — the reference of the text bytecode, for tools.
 //
 // `ops.md` beside this file documents every op and directive a `.virt` line can
 // start with. It is baked into the compiler, so an editor hovering an op reads it
 // from the binary. Each `###` heading names the forms its entry documents, every
 // form in backticks ; the first word of a form is the key `op_doc` looks up.
 
-module "vader/core/bytecode/text"
+module "vader/front/virt"
 
 import "std/abort"
 import "std/io"

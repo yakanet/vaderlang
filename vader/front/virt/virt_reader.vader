@@ -1,4 +1,4 @@
-// vader/core/bytecode/text/virt_reader — shared `.virt` op-stream parsing.
+// vader/front/virt/virt_reader — shared `.virt` op-stream parsing.
 //
 // Holds the per-op line parsers + structured control-flow → linear op-stream
 // wiring (`ParserState`, `wire_control_flow`, `parse_op_line`, every
@@ -10,7 +10,7 @@
 // Every branching op's target pc is resolved in a single pass via a
 // label-keyed scope stack that resets at each fn boundary.
 
-module "vader/core/bytecode/text"
+module "vader/front/virt"
 
 import "std/numbers"
 import "std/string"
@@ -36,7 +36,7 @@ import "vader/core/types"
 /// holds the same six fields under its own names and has no `ParserState` to
 /// hand over.
 ///
-/// `ops` and `table` are reset at every `fn ...` header in `parse_virt` ;
+/// `ops` and `table` are reset at every `fn ...` header in `parse_virt_bc` ;
 /// `scopes` and `pending` are reused across functions (only their
 /// cursors reset to 0).
 ParserState :: struct {
@@ -246,7 +246,7 @@ wire_control_flow :: fn(state: ParserState, cleaned: string, head: string, pc: i
 /// The dotted width families (`i32.*` / `i64.*` / `u32.*` / `u64.*` / `f64.*`
 /// and every `<from>.to_<to>`) are decoded by the block up front ; the literal
 /// `head == "…"` chain below covers the rest. Between them the two arms must
-/// cover every op `dump.vader::write_op` can emit — a gap there reaches
+/// cover every op `emit/virt/dump.vader::write_op` can emit — a gap there reaches
 /// `parse_virt_bc` as a `VirtParseError` on a dump the compiler itself produced.
 ///
 /// @param cleaned  the .virt line (comment-stripped).
@@ -599,12 +599,8 @@ parse_convert :: fn(cleaned: string) -> Op {
 /// @param width  the target width literal (`i32`, `f64`, `char`, ...).
 /// @return       the matching `ConvertTarget`.
 convert_target_named :: fn(width: string) -> ConvertTarget {
-    if width == "i64"   { return .I64 }
-    if width == "u64"   { return .I64 }
-    if width == "f32"   { return .F64 }
-    if width == "f64"   { return .F64 }
-    if width == "char"  { return .Char }
-    return .I32
+    v :: parse_val_type(width) ?? return .I32
+    return convert_target_of(v) ?? .I32
 }
 
 parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
@@ -620,7 +616,7 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// parser alone cannot (it overflows past ~1e308 and can't reach subnormals).
 ///
 /// Non-finite values dump with NO bit column — a bare abstract word `inf` /
-/// `-inf` / `nan` (see `dump::f64_const_operands`) — because ±inf are unique,
+/// `-inf` / `nan` (see `emit/virt::f64_const_operands`) — because ±inf are unique,
 /// every NaN is one value, and a NaN's raw bits aren't architecturally stable.
 /// Each word maps straight back to its canonical bit pattern here. Legacy
 /// single-token `f64.const N.M` finite lines fall back to the decimal parser.
@@ -918,11 +914,12 @@ parse_global_set :: fn(line: string) -> Op | null {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing"
 import "std/string_builder"
+import "std/testing"
+import "vader/emit/virt"
 
 /// Round-trip an op through `write_op` (the canonical mnemonic writer,
-/// dump.vader) and `parse_op_line`, returning the re-serialised text. A parse
+/// `emit/virt/dump.vader`) and `parse_op_line`, returning the re-serialised text. A parse
 /// miss returns a sentinel so the asserting test fails with the offending
 /// mnemonic rather than a bare `null`.
 roundtrip_op_text :: fn(op: Op) -> string {
