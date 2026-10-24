@@ -17,10 +17,10 @@ import { exampleInput, exampleNames } from "./vader-sources.ts";
 ensureCliBuilt();
 
 const SNAPSHOTS = join(import.meta.dir, "fixtures", "examples");
-// Examples the interpreter cannot run: raylib is native only (and opens a
-// window). `raylib_sprite.test.ts` builds this one natively instead.
-const NATIVE_ONLY = new Set(["raylib_sprite"]);
-const examples = exampleNames().filter((name) => !NATIVE_ONLY.has(name));
+// Examples no test runs: raylib opens a window. `raylib_sprite.test.ts` builds
+// this one natively instead.
+const WINDOWED = new Set(["raylib_sprite"]);
+const examples = exampleNames().filter((name) => !WINDOWED.has(name));
 
 test("examples: at least one discovered", () => {
   expect(examples.length).toBeGreaterThan(0);

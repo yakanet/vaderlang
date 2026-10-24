@@ -246,11 +246,14 @@ push_once :: fn(flags: NativeFlags, argv: string[], flag: string[]) -> bool {
 /// @return        whether any archive is missing.
 export report_missing_archives :: fn(native: NativeFlags) -> bool {
     for missing in native.missing {
-        what :: "library `${missing.library}` has no archive for this target"
-        eprintln("vader build: ${what}: `${missing.path}` does not exist")
+        eprintln("vader build: ${missing_archive_message(missing)}")
     }
     return native.missing.len() > 0
 }
+
+// What is wrong with an archive a library lists and this target lacks.
+missing_archive_message :: fn(missing: MissingArchive) -> string =
+    "library `${missing.library}` has no archive for this target: `${missing.path}` does not exist"
 
 /// Split a user `--ldflags` string on spaces and append each token.
 ///

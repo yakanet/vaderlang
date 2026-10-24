@@ -967,7 +967,7 @@ resolve_virtual :: fn(
     outcome :: dispatch_import(
         info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
         state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, debug_controller(m),
-        bc.intrinsic_id_for(mangle),
+        bc.intrinsic_id_for(mangle), 0,
     )
     if outcome is Trap {
         return outcome
@@ -1030,7 +1030,7 @@ call_import :: fn(state: VmState, m: RegMachine, index: i32, at: i64, origin: i3
     outcome :: dispatch_import(
         info, args, 0, m.run.gc_state, m.run.sched_state, origin, state.string_array_type_id,
         state.u8_array_type_id, state.io_error_type_id, state.bc.types, is_comptime, debug_controller(m),
-        state.import_ids[index],
+        state.import_ids[index], adapter_of(state, index),
     )
     if outcome is Trap {
         return outcome

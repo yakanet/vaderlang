@@ -5,8 +5,9 @@
 // snake_case name. raylib's colours are macros, with no symbol to bind, so the
 // constants below restate their values.
 //
-// Native only: raylib passes its structs by value, which the VM cannot do, and
-// it ships as a static archive, which the VM cannot open. Where each archive
+// raylib passes its structs by value and ships as a static archive, neither of
+// which the VM's trampolines reach: under `vader run` every call goes through an
+// adapter compiled with `cc` (`vader/vm/adapters.vader`). Where each archive
 // comes from is in README.md.
 
 module "raylib"

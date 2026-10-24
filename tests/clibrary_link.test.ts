@@ -5,9 +5,9 @@
 // `lib/<os>-<arch>/` and a platform library. The test compiles the archive for
 // this machine, then checks that `vader build` adds the `-I`, links the archive
 // and evaluates the paths for the target, in both the split and the single-TU
-// builds, and through a `.virt`. A missing archive is reported by the build,
-// before `cc`, and the interpreter, which opens no archive, says the program
-// needs a native build.
+// builds, and through a `.virt`. The interpreter, which opens no archive,
+// calls the library through adapters it compiles with the archive. A missing
+// archive is reported by the build, before `cc`, and by the interpreter's run.
 
 import { afterAll, expect, test } from "bun:test";
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -18,6 +18,9 @@ import { EXE_SUFFIX, HOST_TARGET, LONG_BUILD, spawnCapture, TOOLCHAIN_ENV } from
 const FIXTURE = resolve(import.meta.dir, "fixtures/clibrary");
 // `$CC` first, as `vader build` reads it.
 const CC = process.env.CC || "cc";
+
+// What the fixture prints, natively and on the interpreter alike.
+const GREETED = "hello from C: 42\nscaled: 3.0 -4.0\n";
 
 const staged: string[] = [];
 
@@ -60,7 +63,7 @@ for (const split of [true, false]) {
     expect(build.stderr).not.toContain("error");
     expect(build.exit).toBe(0);
     const run = await spawnCapture([], { bin: out + EXE_SUFFIX, cwd: dir });
-    expect(run.stdout).toBe("hello from C: 42\n");
+    expect(run.stdout).toBe(GREETED);
     expect(run.exit).toBe(0);
   }, LONG_BUILD);
 }
@@ -116,7 +119,7 @@ test("a `.virt` carries the library to a native build", async () => {
   expect(build.stderr).not.toContain("error");
   expect(build.exit).toBe(0);
   const run = await spawnCapture([], { bin: out + EXE_SUFFIX, cwd: dir });
-  expect(run.stdout).toBe("hello from C: 42\n");
+  expect(run.stdout).toBe(GREETED);
 }, LONG_BUILD);
 
 test("a missing archive stops the build and names the path", async () => {
@@ -130,13 +133,24 @@ test("a missing archive stops the build and names the path", async () => {
   expect(build.stderr).toContain(`lib/${HOST_TARGET}/libgreeter.a`);
 }, LONG_BUILD);
 
-test("the interpreter says a library shipped as archives needs a native build", async () => {
+test("the interpreter calls a library shipped as archives through adapters", async () => {
+  const dir = await stage(true);
+  const run = await spawnCapture(
+    ["run", dir],
+    { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
+  );
+  expect(run.stderr).toBe("");
+  expect(run.exit).toBe(0);
+  expect(run.stdout).toBe(GREETED);
+}, LONG_BUILD);
+
+test("the interpreter reports a missing archive and names the extern", async () => {
   const dir = await stage(false);
   const run = await spawnCapture(
     ["run", dir],
     { cwd: dir, env: TOOLCHAIN_ENV, timeoutMs: LONG_BUILD },
   );
   expect(run.exit).toBe(1);
-  expect(run.stderr).toContain("cannot open `greeter`: its binding ships static archives");
-  expect(run.stderr).toContain("build the program with `vader build`");
+  expect(run.stderr).toContain("is called through an adapter (its binding `greeter` ships static archives");
+  expect(run.stderr).toContain("library `greeter` has no archive for this target");
 }, LONG_BUILD);

@@ -1,0 +1,177 @@
+// vader/pipeline/ffi_adapters: the library of adapters an interpreted program
+// calls C through, built once and kept.
+//
+// `vader/vm/adapters.vader` names the `@extern`s no trampoline of the
+// interpreter covers, and `vader/c_emit/adapters.vader` writes an adapter for
+// each. This compiles them into one shared library under
+// `<project>/build/ffi/<fingerprint>/`, linked the way the interpreter would
+// reach each symbol: a library's archives and `system` libraries, and the
+// library the VM would open by `name` when it ships no archive. The fingerprint
+// covers what the library is made of (the generated C, the command line, the
+// archives, the headers, the compiler that wrote the C), so an unchanged
+// program reuses its library, and a changed one never overwrites a library a
+// running program holds: Windows refuses to replace a loaded DLL.
+
+module "vader/pipeline"
+
+import "crypto"
+import "std/io"
+import "std/iter"
+import "std/path"
+import "std/process"
+import "std/string"
+import "std/target"
+import "vader/bytecode"
+import "vader/c_emit"
+import "vader/resolver"
+
+/// Why the adapter library could not be built.
+export AdapterBuildError :: struct {
+    /// Worded to follow "the adapters", lowercase, no trailing period.
+    message: string
+}
+
+/// Build the adapter library of the imports `adapted` of `module`, or find it
+/// built.
+///
+/// @param module     the program.
+/// @param adapted    the imports to adapt, not empty
+///                   (`vader/vm/adapters.vader::adapted_imports`).
+/// @param root       the project folder; the library goes under its `build/ffi/`.
+/// @param cc         the C compiler (`cc_or_default`).
+/// @param quote_dir  where a quoted `@c_header` resolves (`quote_include_dir`).
+/// @return           the library's path.
+/// @error            `AdapterBuildError` when an archive is missing, a file
+///                   cannot be written, or `cc` cannot be started or fails.
+export build_ffi_adapters :: fn(
+    module: BytecodeModule, adapted: i64[], root: string, cc: string, quote_dir: string,
+) -> string | AdapterBuildError {
+    native :: native_flags(module)
+    if native.missing.len() > 0 {
+        return AdapterBuildError { .message = "cannot be built: ${missing_archive_message(native.missing[0])}" }
+    }
+    units :: emit_adapter_units(module, adapted)
+    rt :: runtime_or_probe("")
+    flags :: adapter_flags(cc, native, rt, quote_dir)
+    links :: adapter_links(module, adapted, native)
+    dir :: root.join_path(FFI_ADAPTER_DIR).join_path(fingerprint(units, flags, links, rt, quote_dir))
+    library :: dir.join_path("vader_adapters.${shared_library_extension()}")
+    built :: dir.join_path("built")
+    if exists(built) {
+        return library
+    }
+    made :: create_dir(dir)
+    if made is IOError {
+        return AdapterBuildError { .message = "cannot be written to `${dir}`: ${made.message()}" }
+    }
+    argv :: flags.clone()
+    for k in 0..<units.units.len() {
+        source :: dir.join_path("${units.names[k]}.c")
+        written :: write_file_string(source, units.units[k])
+        if written is IOError {
+            return AdapterBuildError { .message = "cannot be written to `${source}`: ${written.message()}" }
+        }
+        argv.push(source)
+    }
+    argv.push_all(links)
+    argv.push("-o")
+    argv.push(library)
+    compiled :: spawn(argv)
+    if compiled is ProcessError {
+        return AdapterBuildError { .message = "need a C compiler, and `${cc}` cannot be started: ${compiled.message()}" }
+    }
+    if compiled.exit != 0 {
+        _ :: remove_file(library)
+        return AdapterBuildError { .message = "do not compile (`${cc}` exit ${compiled.exit}, sources in `${dir}`):\n${compiled.stderr}" }
+    }
+    // Written last: a run cut short leaves a library that is not to be trusted.
+    marked :: write_file_string(built, "")
+    if marked is IOError {
+        return AdapterBuildError { .message = "cannot be written to `${built}`: ${marked.message()}" }
+    }
+    return library
+}
+
+// The command line of the adapter library, up to its sources.
+adapter_flags :: fn(cc: string, native: NativeFlags, rt: string, quote_dir: string) -> string[] {
+    argv: string[]: [cc, "-shared", "-O1"]
+    if current_os() != .Windows {
+        argv.push("-fPIC")
+    }
+    // An ELF linker leaves a symbol it cannot resolve to the loader; Mach-O and
+    // PE refuse it. So does this, rather than cache a library that cannot open.
+    if current_os() == .Linux {
+        argv.push("-Wl,-z,defs")
+    }
+    push_include_flags(argv, rt, quote_dir)
+    argv.push_all(native.includes)
+    return argv
+}
+
+// What the adapter library links: the archives and `system` libraries of every
+// binding, and, for an adapted import of a library that ships no archive, the
+// library the interpreter would open by its name.
+adapter_links :: fn(module: BytecodeModule, adapted: i64[], native: NativeFlags) -> string[] {
+    links :: native.links.clone()
+    for i in adapted {
+        library :: module.imports[i].library ?? continue
+        if library.archives.len() == 0 && library.name != "" && !("-l${library.name}" in links) {
+            links.push("-l${library.name}")
+        }
+    }
+    return links
+}
+
+// What the library is made of, hashed: its C and its command line, and the
+// time of change of each archive it links, of each header it may include, and
+// of the compiler that wrote the C.
+fingerprint :: fn(units: AdapterUnits, flags: string[], links: string[], rt: string, quote_dir: string) -> string {
+    parts: string[]: []
+    parts.push_all(flags)
+    parts.push_all(links)
+    for k in 0..<units.units.len() {
+        parts.push(units.names[k])
+        parts.push(units.units[k])
+    }
+    stamped: string[]: [current_executable_location()]
+    stamped.push_all(links.filter((link) -> !link.starts_with("-")).collect())
+    dirs: string[]: [rt, quote_dir]
+    dirs.push_all(include_dirs(flags))
+    for dir in dirs {
+        stamped.push_all(headers_in(dir))
+    }
+    for file in stamped {
+        changed :: modification_time(file)
+        if changed is i64 {
+            parts.push("${file}@${changed}")
+        }
+    }
+    return sha256(parts.join("\n"))[0..<16]
+}
+
+// The folders the `-I` flags of `flags` name.
+include_dirs :: fn(flags: string[]) -> string[] {
+    dirs: string[]: []
+    for k in 1..<flags.len() {
+        if flags[k - 1] == "-I" {
+            dirs.push(flags[k])
+        }
+    }
+    return dirs
+}
+
+// The headers directly inside the folder `dir`.
+headers_in :: fn(dir: string) -> string[] {
+    entries :: read_dir(dir)
+    if entries is IOError {
+        return []
+    }
+    return entries.filter((name) -> name.ends_with(".h")).map((name) -> dir.join_path(name)).collect()
+}
+
+// The extension the platform's loader expects of a shared library.
+shared_library_extension :: fn() -> string = match current_os() {
+    .Windows                  -> "dll"
+    .Darwin                   -> "dylib"
+    .Linux | .Wasi | .Browser -> "so"
+}

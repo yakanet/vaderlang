@@ -32,6 +32,41 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: i64) -> I64Val |
     return read_i64(v, at_pc, "extern `${extern_name}` arg ${i}")
 }
 
+// Serve `ffi_call` or, `through_adapter`, `ffi_call_frame` to code the VM runs:
+// an address, a descriptor and a frame, passed on as real byte arrays.
+hosted_frame_call :: fn(
+    stack: Value[], arg_base: i64, at_pc: i32, label: string, through_adapter: bool,
+) -> string | Trap {
+    ptr :: read_i64(stack[arg_base], at_pc, "${label} fn_ptr")
+    if ptr is Trap { return ptr }
+    desc_arr :: read_array(stack[arg_base + 1], at_pc, "${label} desc")
+    if desc_arr is Trap { return desc_arr }
+    frame_arr :: read_array(stack[arg_base + 2], at_pc, "${label} frame")
+    if frame_arr is Trap { return frame_arr }
+    // A VM array holds boxed `Value`s, not contiguous bytes, so both are
+    // materialised into real `u8[]`. The host takes their address right
+    // before the call, and nothing runs in between.
+    desc :: array_bytes(desc_arr, desc_arr.length, at_pc, "${label} desc byte")
+    if desc is Trap {
+        return desc
+    }
+    own_bytes(frame_arr)
+    frame: u8[]: []
+    for i in 0..<frame_arr.length {
+        b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "${label} frame byte")
+        if b is Trap { return b }
+        frame.push(u8(b))
+    }
+    returned :: call_foreign(i64(ptr), through_adapter, desc, frame, -1)
+    // `frame` is a COPY, and it carries BOTH what the callee wrote into a
+    // lent area and the result itself, so it has to travel back whole.
+    for i in 0..<frame_arr.length {
+        at :: frame_arr.offset + i
+        frame_arr.elements[at] = retyped_int(frame_arr.elements[at], i64(frame[i]))
+    }
+    return returned
+}
+
 
 /// Dispatch a host import. Matches on `id`, the import's manifest
 /// classification — every arm pops the args from
@@ -68,13 +103,15 @@ extern_word :: fn(v: Value, at_pc: i32, extern_name: string, i: i64) -> I64Val |
 /// @param id        `intrinsic_id_for(info.mangled_name)`, classified by the
 ///                  caller — `prepare` does it once per import (`VmState.import_ids`),
 ///                  since the classification rebuilds and interns mangled names.
+/// @param adapter   the address of the adapter an `@extern` is called through,
+///                  `0` for none (`VmState.adapters`).
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, host-level failure, or an impure host
 ///                  reached at comptime.
 /// @error           traps with an `is_impure_comptime_trap_message` marker when
 ///                  `is_comptime` and the host is impure — `comptime_vm` routes
 ///                  it to `C4016` rather than the generic `C4002`.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId) -> HostCallResult {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, gc_state: i64[], sched_state: i64[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, io_error_type_id: i32, types: bc.BcType[], is_comptime: bool, debug: DebugController | null, id: bc.IntrinsicId, adapter: i64) -> HostCallResult {
     // ---- compiler-internal `@extern` hosts ---------------------------------
     //
     // `@extern` is EXEMPT from the emit-time wiring check (`midir/emit.vader` :
@@ -97,7 +134,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
     // Placed after the `vader_profile$*` arms above, which ARE `@extern` and
     // must still be served.
     if info.is_extern {
-        return dispatch_extern(info, stack, arg_base, at_pc, types, debug)
+        return dispatch_extern(info, stack, arg_base, at_pc, types, debug, adapter)
     }
     // Comptime gate. It is NARROW on purpose, and narrower than it once was.
     //
@@ -253,35 +290,20 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, g
         if sym is Trap { return sym }
         return HostOk { .value = I64Val(ffi_symbol(i64(lib), string(sym))) }
     }
+    .FfiOpenPath -> {
+        path :: read_string(stack[arg_base], at_pc, "ffi_open_path path")
+        if path is Trap { return path }
+        return HostOk { .value = I64Val(ffi_open_path(string(path))) }
+    }
     .FfiCall -> {
-        ptr :: read_i64(stack[arg_base], at_pc, "ffi_call fn_ptr")
-        if ptr is Trap { return ptr }
-        desc_arr :: read_array(stack[arg_base + 1], at_pc, "ffi_call desc")
-        if desc_arr is Trap { return desc_arr }
-        frame_arr :: read_array(stack[arg_base + 2], at_pc, "ffi_call frame")
-        if frame_arr is Trap { return frame_arr }
-        // A VM array holds boxed `Value`s, not contiguous bytes, so both are
-        // materialised into real `u8[]`. The host takes their address right
-        // before the call, and nothing runs in between.
-        desc :: array_bytes(desc_arr, desc_arr.length, at_pc, "ffi_call desc byte")
-        if desc is Trap {
-            return desc
-        }
-        own_bytes(frame_arr)
-        frame: u8[]: []
-        for i in 0..<frame_arr.length {
-            b :: read_i64(frame_arr.elements[frame_arr.offset + i], at_pc, "ffi_call frame byte")
-            if b is Trap { return b }
-            frame.push(u8(b))
-        }
-        ffi_call(i64(ptr), desc, frame, -1)
-        // `frame` is a COPY, and it carries BOTH what the callee wrote into a
-        // lent area and the result itself — so it has to travel back whole.
-        for i in 0..<frame_arr.length {
-            at :: frame_arr.offset + i
-            frame_arr.elements[at] = retyped_int(frame_arr.elements[at], i64(frame[i]))
-        }
+        returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call", false)
+        if returned is Trap { return returned }
         return HostOk { .value = zero_value() }
+    }
+    .FfiCallFrame -> {
+        returned :: hosted_frame_call(stack, arg_base, at_pc, "ffi_call_frame", true)
+        if returned is Trap { return returned }
+        return HostOk { .value = StringVal(returned) }
     }
     .TargetCurrentOs -> {
         return HostOk { .value = I32Val(i32(current_os())) }
@@ -387,27 +409,51 @@ debug_write :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, 
 // What a trap says when only a native build can make the call.
 BUILD_NATIVELY :: "build the program with `vader build`"
 
-// Why the library of `info` did not open. A binding that ships its library as
-// static archives has nothing the interpreter can open.
+// Why the library of `info` did not open. One that ships static archives never
+// gets here: `adapter_reason` sends it through an adapter.
 unopened_reason :: fn(info: bc.BcImport) -> string {
     library :: info.library ?? return "cannot open the running process"
-    if library.archives.len() > 0 {
-        return "cannot open `${library.name}`: its binding ships static archives, which only a native build links; ${BUILD_NATIVELY}"
-    }
     return "cannot open `${library.name}`"
 }
 
+// The address `info` is called at: its adapter, or the symbol its library
+// exports. The declared library, or the default scope: `GetStdHandle` lives in
+// `kernel32.dll`, which the running process exports nothing of.
+callee_of :: fn(info: bc.BcImport, adapter: i64, at_pc: i32) -> I64Val | Trap {
+    if adapter != 0 {
+        return I64Val(adapter)
+    }
+    lib :: ffi_open(bc.library_name(info))
+    if lib == 0 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
+    }
+    sym :: ffi_symbol(lib, info.extern_name)
+    if sym == 0 {
+        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
+    }
+    return I64Val(sym)
+}
+
+// Call `callee` on `frame`: an adapter takes the frame alone, a trampoline the
+// slots `desc` classes.
+call_foreign :: fn(callee: i64, through_adapter: bool, desc: u8[], frame: u8[], nfixed: i64) -> string {
+    if through_adapter {
+        return ffi_call_frame(callee, desc, frame)
+    }
+    return ffi_call(callee, desc, frame, nfixed)
+}
+
 /// Serve an `@extern` the VM meets at a `call.import`, by resolving its symbol
-/// and calling through a trampoline.
+/// and calling through a trampoline, or through its adapter.
 ///
-/// What is covered: integer, `bool` and pointer-width parameters, `f64`,
+/// A trampoline covers integer, `bool` and pointer-width parameters, `f64`,
 /// `string`, any number of lent arrays of integer elements of any width the
-/// target spells, and `@c_struct` mirrors — up to eight arguments. Everything
-/// else traps naming the reason, because calling with a mis-marshalled frame
-/// would corrupt the stack instead of failing: a `char` or `f32` parameter, a
-/// call mixing floating and integer arguments, more than two floating ones, an
-/// `f32` or `string` result, a `@c_struct` passed or returned by value, and a
-/// callback (the interpreter has no address for a Vader function).
+/// target spells, and `@c_struct` mirrors lent by address, up to eight
+/// arguments. What it does not (`adapter_reason`) goes through the adapter the
+/// driver built, which `cc` compiled against the real prototype; without one,
+/// the call traps naming the reason, because calling with a mis-marshalled
+/// frame would corrupt the stack instead of failing. A callback traps either
+/// way: the interpreter has no address for a Vader function.
 ///
 /// The library is `BcImport.library` when the declaration names one, else the
 /// running process — which covers libc and anything linked into the binary.
@@ -418,26 +464,18 @@ unopened_reason :: fn(info: bc.BcImport) -> string {
 /// @param at_pc        program counter, for trap messages.
 /// @param types        the module type table, for a lent array's element width.
 /// @param debug        the DAP controller when one is attached, else null.
+/// @param adapter      the address of the import's adapter, `0` for none.
 /// @return             the callee's result, or a `Trap` naming what stopped it.
-dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, types: bc.BcType[], debug: DebugController | null) -> HostCallResult {
+dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i32, types: bc.BcType[], debug: DebugController | null, adapter: i64) -> HostCallResult {
     // A foreign call at comptime is allowed — SPEC §"Comptime". What the compiler
     // owes ITSELF is checked by `bootstrap/verify.sh` (stage1 == stage2), not
     // here.
     params :: info.signature.params
-    if params.len() > 8 {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: more than 8 arguments" }
-    }
-    // Where a struct copied by value travels depends on the ABI: split across
-    // integer and vector registers, or copied to the stack. The trampolines
-    // pass words and addresses only.
-    for i in 0..<info.signature.param_types.len() {
-        lent :: bc.param_is_by_address(info.signature, i)
-        if !lent && bc.mirror_at(types, info.signature.param_types[i]) != null {
-            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: argument ${i} passes a struct by value, which only a native build can do; ${BUILD_NATIVELY}" }
+    if adapter == 0 {
+        reason :: adapter_reason(info, types)
+        if reason != null {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${reason}; ${BUILD_NATIVELY}" }
         }
-    }
-    if bc.mirror_at(types, bc.bc_single_result_type(info.signature)) != null {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: returns a struct by value, which only a native build can do; ${BUILD_NATIVELY}" }
     }
     // Under the DAP debugger, program output must NOT reach fd 1/2 directly —
     // in stdio transport that would corrupt the protocol stream. This is the
@@ -452,15 +490,9 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     if debug != null && is_write_symbol(info.extern_name) {
         return debug_write(info, stack, arg_base, at_pc, debug)
     }
-    // The declared library, or the default scope. `GetStdHandle` lives in
-    // `kernel32.dll`, which the running process exports nothing of.
-    lib :: ffi_open(bc.library_name(info))
-    if lib == 0 {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: ${unopened_reason(info)}" }
-    }
-    sym :: ffi_symbol(lib, info.extern_name)
-    if sym == 0 {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: symbol not found" }
+    callee :: callee_of(info, adapter, at_pc)
+    if callee is Trap {
+        return callee
     }
 
     // The call is described by DATA, not by its shape: one class per slot, then
@@ -583,6 +615,10 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
             // native shim passes for a `CPointer | null`.
             desc.push(u8(FFI_WORD))
             slot_words.push(0)
+        } else if v is CharVal {
+            // Only an adapter takes one (`adapter_reason`), as the codepoint.
+            desc.push(u8(FFI_WORD))
+            slot_words.push(i64(u32(v)))
         } else {
             w :: extern_word(v, at_pc, info.extern_name, i)
             if w is Trap { return w }
@@ -591,16 +627,29 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
         }
     }
 
+    // A struct result comes back in a block of the frame, which the slot after
+    // the arguments addresses (`runtime/c/vader_adapter.h`). Only an adapter
+    // returns one.
+    result_type :: bc.bc_single_result_type(info.signature)
+    result_mirror :: bc.mirror_at(types, result_type)
+    result_at :: data.len()
+    if result_mirror != null {
+        layout :: bc.c_struct_layout(result_mirror.fields, types)
+        if layout.unknown_field != null {
+            return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: its result mirrors a C struct whose field `${layout.unknown_field}` is not a C scalar and cannot be laid out" }
+        }
+        for _pad in 0..<layout.size {
+            data.push(0)
+        }
+        desc.push(u8(FFI_ADDR))
+        addr_slots.push(slot_words.len())
+        slot_words.push(result_at)
+    }
+
     // Bound once: an `@extern` returns one value or none, and re-asking costs a
     // call with two length tests where reading a field used to be free.
     result :: bc.bc_single_result(info.signature)
-    // `vader_ffi.h` has a `double` trampoline and no `float` one: a callee
-    // returning `float` leaves only the low half of the result register
-    // meaningful, so reading 64 bits of it would give an arbitrary value.
-    if result == .F32 {
-        return Trap { .message = "extern `${info.extern_name}` at pc=${at_pc}: a `f32` result is not covered" }
-    }
-    desc[0] = if ffi_result_is_opt(types, bc.bc_single_result_type(info.signature), .String) {
+    desc[0] = if ffi_result_is_opt(types, result_type, .String) {
         u8(FFI_STR_OPT)
     } else {
         u8(ffi_result_class(result))
@@ -622,11 +671,11 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     // frame is empty, `vader_array_bytes` reports a NULL pointer, and the
     // runtime's `fview.len < nargs * 8` guard reads `0 < 0` — so `getpid()`
     // wrote its result to address 0 and the interpreter took SIGSEGV.
-    if frame.len() == 0 && bc.bc_single_result(info.signature) != .Void {
+    if frame.len() == 0 && result != .Void {
         push_little_endian(frame, 0, 8)
     }
 
-    returned :: ffi_call(sym, desc, frame, i64(info.c_variadic_fixed))
+    returned :: call_foreign(i64(callee), adapter != 0, desc, frame, i64(info.c_variadic_fixed))
 
     // What C wrote into a lent array has to travel back: the frame is a FLAT
     // COPY of the boxed elements, so without this a mutable lend —
@@ -649,10 +698,14 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     for ls in lent_structs {
         read_back_mirror(frame, base + ls.at, ls.target, ls.fields, types, 0)
     }
+    if result_mirror != null {
+        return HostOk { .value = mirror_value(frame, base + result_at, result_type, result_mirror, types) }
+    }
     if result == .Void {
         return HostOk { .value = zero_value() }
     }
-    if result == .F64 {
+    // An `f32` result too: its adapter writes it back as a `double`.
+    if result == .F64 || result == .F32 {
         return HostOk { .value = F64Val(u64(read_little_endian(frame, 0, 8, false)).from_bits()) }
     }
     // A `string` result comes back as the call's RETURN value, not through the
@@ -668,7 +721,7 @@ dispatch_extern :: fn(info: bc.BcImport, stack: Value[], arg_base: i64, at_pc: i
     }
     // `<pointer> | null`: NULL is C's "absent", and nothing downstream can tell
     // a null pointer from a pointer whose value is 0.
-    if ffi_result_is_opt(types, bc.bc_single_result_type(info.signature), .Pointer)
+    if ffi_result_is_opt(types, result_type, .Pointer)
         && read_little_endian(frame, 0, 8, false) == 0 {
         return HostOk { .value = NullVal {} }
     }
@@ -692,7 +745,8 @@ ffi_result_class :: fn(result: bc.ValType) -> i32 {
     if result == .Void {
         return FFI_VOID
     }
-    if result == .F64 {
+    // Only an adapter returns an `f32`, as a `double` (`adapter_reason`).
+    if result == .F64 || result == .F32 {
         return FFI_F64
     }
     if result == .String {
@@ -802,10 +856,58 @@ read_back_mirror :: fn(
             continue
         }
         width :: bc.c_field_width(fields[j], types) ?? continue
+        if target.fields[j] is F64Val {
+            target.fields[j] = F64Val(read_float(frame, base + layout.offsets[j], width))
+            continue
+        }
         signed :: !bc.is_unsigned_val(field_val_type(types, fields[j]))
         written :: read_little_endian(frame, base + layout.offsets[j], width, signed)
         target.fields[j] = retyped_int(target.fields[j], written)
     }
+}
+
+// A fresh value of the mirror `mirror`, of type `type_index`, read from the
+// block at `base`: what C returned by value.
+mirror_value :: fn(frame: u8[], base: i64, type_index: i32, mirror: bc.BcStruct, types: bc.BcType[]) -> StructVal {
+    value :: zeroed_mirror(type_index, mirror, types, 0)
+    read_back_mirror(frame, base, value, mirror.fields, types, 0)
+    return value
+}
+
+// A value of the mirror `mirror`, of type `type_index`, whose fields are all
+// zero, nested mirrors included.
+zeroed_mirror :: fn(type_index: i32, mirror: bc.BcStruct, types: bc.BcType[], depth: i32) -> StructVal {
+    fields: Value[]: []
+    for f in mirror.fields {
+        nested :: bc.nested_mirror(f, types)
+        if nested != null && depth < bc.NEST_CAP {
+            fields.push(zeroed_mirror(f.type_index, nested, types, depth + 1))
+        } else {
+            fields.push(global_zero(field_valtype(types, f.type_index)))
+        }
+    }
+    return StructVal { .type_id = type_index, .fields = fields }
+}
+
+// The C float of `width` bytes at `at` in `buf`.
+read_float :: fn(buf: u8[], at: i64, width: i64) -> f64 {
+    bits :: read_le(buf, at, width)
+    if width == 4 {
+        return f64(u32(bits).from_bits())
+    }
+    return bits.from_bits()
+}
+
+// Write `value` into `buf` at `at` as the C float of `width` bytes.
+write_float :: fn(buf: u8[], at: i64, value: f64, width: i64) -> void =
+    write_le(buf, at, width, float_bits(value, width))
+
+// The bits of `value` as a C float of `width` bytes.
+float_bits :: fn(value: f64, width: i64) -> u64 {
+    if width == 4 {
+        return u64(f32(value).to_bits())
+    }
+    return value.to_bits()
 }
 
 /// Write a mirrored struct into the frame block at `base`, descending into a
@@ -845,6 +947,10 @@ serialise_mirror :: fn(
         }
         width :: bc.c_field_width(fields[j], types) ?? continue
         field :: sv.fields[j]
+        if field is F64Val {
+            write_float(data, base + layout.offsets[j], f64(field), width)
+            continue
+        }
         cell :: if field is I64Val || field is I32Val || field is BoolVal || field is CharVal {
             read_scalar_word(field, at_pc, "")
         } else {
@@ -1083,7 +1189,7 @@ is_impure_host :: fn(id: bc.IntrinsicId) -> bool = match id {
     // machine, the same reason as `current_os` below. A DECLARED `@extern` is
     // not refused and never reached this gate: it is checked against a real
     // prototype and names what it calls.
-    .FfiOpen | .FfiSymbol | .FfiCall -> true
+    .FfiOpen | .FfiOpenPath | .FfiSymbol | .FfiCall | .FfiCallFrame -> true
     // `current_os` answers for the machine the COMPILER is running on, so baking
     // it would make the output depend on who built it: a macOS emit and a Linux
     // emit of the same source would differ. That is exactly what `seed.sh check`

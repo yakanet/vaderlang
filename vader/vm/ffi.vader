@@ -5,7 +5,7 @@
 // bytecode, and C wants one at compile time. So it loads the library, resolves
 // the symbol, and calls through a trampoline chosen by arity.
 //
-// Declared here rather than in `std/` on purpose. These five hosts amount to
+// Declared here rather than in `std/` on purpose. These hosts amount to
 // "run arbitrary native code", and putting them in the standard library would
 // hand that to every program — a surface decision of its own. The compiler is
 // the only caller today.
@@ -23,6 +23,13 @@ module "vader/vm"
 /// @param name  the library's bare name, or `""` for the current process.
 /// @return      an opaque handle, or `0` when the library is not found.
 @intrinsic export ffi_open :: fn(name: string) -> i64
+
+/// Open a shared library by its PATH, as the platform's loader takes it: the
+/// adapters `vader run` builds for the `@extern`s no trampoline covers.
+///
+/// @param path  the library file.
+/// @return      an opaque handle, or `0` when it cannot be opened.
+@intrinsic export ffi_open_path :: fn(path: string) -> i64
 
 /// Resolve `symbol` in `lib`.
 ///
@@ -55,6 +62,20 @@ module "vader/vm"
 ///                `string`.
 @intrinsic export ffi_call :: fn(fn_ptr: i64, desc: u8[], frame: u8[], nfixed: i64) -> string
 
+/// One call to a generated ADAPTER, a C function of the frame alone that reads
+/// each argument from its slot and writes the result back
+/// (`runtime/c/vader_adapter.h`). `cc` compiled it against the real prototype,
+/// so any signature crosses: a struct by value, an `f32`, mixed classes. The
+/// slots are laid out as for `ffi_call`, and each address slot is resolved
+/// before the call.
+///
+/// @param fn_ptr  the adapter's address, from `ffi_symbol`.
+/// @param desc    the class of the result, then of each slot.
+/// @param frame   the slots plus their data; receives the result.
+/// @return        the interned string for a `string` result, the empty string
+///                otherwise.
+@intrinsic export ffi_call_frame :: fn(fn_ptr: i64, desc: u8[], frame: u8[]) -> string
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing"
@@ -77,6 +98,10 @@ import "std/testing"
 
 @test test_ffi_missing_library_reports_zero :: fn() -> void {
     assert_eq(ffi_open("vader_library_that_cannot_exist"), 0)
+}
+
+@test test_ffi_missing_library_path_reports_zero :: fn() -> void {
+    assert_eq(ffi_open_path("/vader/no/such/adapters.library"), 0)
 }
 
 // The descriptor is one byte per slot: `desc[0]` the result, `desc[1+i]` each

@@ -1,6 +1,6 @@
 // vader/vm/exec — the VM's entry points and the ops it runs on boxed values.
 //
-// `exec_entry` (and `exec` / `exec_fn` / `exec_fn_value` / `run_virt` over it)
+// `exec_entry` (and `exec` / `exec_fn` / `exec_fn_value` over it)
 // hands a `VmState` to the register engine (`reg_exec.vader`). The engine runs
 // the ops it has no register form for through `apply_boxed`, on a scratch
 // `Frame` holding their operands as a small operand stack — the SoA columns and
@@ -426,7 +426,7 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
 
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
 /// `host_argv` carries the forwarded CLI args (argv[0] = program path, then the
-/// program's own args) — set by `run_virt` from the `--` separator so the
+/// program's own args), set by `vader run` (`vader/cli/cmd_run.vader`) so the
 /// compiler can run itself through the VM. When empty, falls back to a single
 /// synthetic path element. Returns an empty arg list when `main` takes no
 /// parameters.
@@ -1276,41 +1276,4 @@ apply_boxed :: fn(
         _ -> {}
     }
     return null
-}
-
-// ---- entry --------------------------------------------------------------
-
-/// CLI entry — read a `.virt` text dump from `path`, parse it, run it,
-/// and return an exit code. Diagnostics go to stderr.
-///
-/// @param path  filesystem path to the `.virt` file.
-/// @return      the i32 the program's `main` returned (or `0` if it
-///              fell through without an explicit `return`) ; `1` when
-///              the file can't be read, doesn't parse, or the VM trapped —
-///              the error message goes to stderr in all three cases.
-/// @error       missing file ; a line the `.virt` reader can't interpret ;
-///              any VM trap surfaced by `exec`.
-export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
-    source :: read_file_string(path)
-    if source is IOError {
-        eprintln("vader run: cannot read ${path}")
-        return 1
-    }
-    module :: parse_virt_bc(source)
-    if module is VirtParseError {
-        eprintln(module.display_virt_parse_error("vader run", path))
-        return 1
-    }
-    state :: prepare(module)
-    if state is VerifyError {
-        eprintln("vader run: ${display_verify_error(state)}")
-        return 1
-    }
-    return match o :: exec(state, host_argv) {
-        is Ok   -> o.value
-        is Trap -> {
-            eprintln("vader vm: ${o.message}")
-            1
-        }
-    }
 }

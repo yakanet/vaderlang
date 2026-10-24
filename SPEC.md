@@ -2910,7 +2910,7 @@ A `CLibrary` names a C library once; each `@extern` that comes from it names the
 
 | field | meaning |
 |---|---|
-| `name` | What the VM opens (`lib<name>.dylib`, `lib<name>.so`, `<name>.dll`). A native build links only what `archives` and `system` list |
+| `name` | What the VM opens (`lib<name>.dylib`, `lib<name>.so`, `<name>.dll`) when the library lists no `archives`; one that does is reached through adapters (VM behaviour, below). A native build links only what `archives` and `system` list |
 | `header` | The header declaring its functions, written as `@c_header` writes it. It serves every `@extern` naming the library without a `@c_header` of its own |
 | `include` | A folder of headers, relative to the module declaring the constant, searched by every compilation (`-I`). A quoted header (`"raylib.h"`) is found there |
 | `archives` | Static archives shipped with the binding, relative to the module declaring the constant. One that does not exist stops the build before `cc`, naming the path |
@@ -3051,9 +3051,10 @@ and `cc` passes it as the platform's ABI wants, in registers or on the stack.
 result is the reverse copy, into a fresh Vader struct, and a nested mirror into
 fresh Vader structs of its own.
 
-**A mirror crossing by value is native only.** Where a struct travels depends on
-the ABI, which the interpreter's trampolines do not model: `vader run` traps at
-the call, naming `vader build`.
+**A mirror crossing by value takes an adapter under the interpreter.** Where a
+struct travels depends on the ABI, which the interpreter's trampolines do not
+model, so `vader run` calls such an `@extern` through an adapter it compiles
+(VM behaviour, below).
 
 The emitted C also carries `_Static_assert` lines: each mirrored field's width
 against the C field of that name, each field's signedness, each field's OFFSET
@@ -3268,9 +3269,11 @@ A library a binding declares with `CLibrary` (above) needs no flag: the build ad
 
 ### VM behaviour
 
-The VM resolves an `@extern` user import at the call: it `dlopen`s the library a 2-argument `@extern` names (its `CLibrary`'s `name`; the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline: one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``. A library it cannot open traps naming the library; when its `CLibrary` lists `archives`, the trap says the binding is native only and names `vader build`, since the VM opens no static archive.
+The VM resolves an `@extern` user import at the call: it `dlopen`s the library a 2-argument `@extern` names (its `CLibrary`'s `name`; the running process's own scope when there is none), `dlsym`s the symbol, and calls it through a data-described trampoline: one class per argument slot, then a flat frame of 8-byte slots. Nothing has to be registered; whatever the process already links is reachable. A symbol the loader cannot find traps naming the symbol: ``extern `X` at pc=N: symbol not found``. A library it cannot open traps naming the library.
 
-The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors, up to 8 arguments. Outside that it TRAPS naming the reason rather than guessing: a `char` or `f32` parameter, a lent array whose elements are not integers, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result, a `@c_struct` passed or returned by value. A `string` result is covered, not trapped: `getenv` returning `string | null` works under `vader run`. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
+The trampoline covers less than the native shim: integer, `bool` and pointer-width arguments, `f64`, `string`, lent arrays and `@c_struct` mirrors lent by address, up to 8 arguments. A `string` result is covered: `getenv` returning `string | null` works under `vader run`.
+
+What the trampoline does not cover goes through an **adapter**: a `char` or `f32` parameter, a call mixing floating and integer arguments, more than two floating ones, more than eight arguments, an `f32` result, a `@c_struct` passed or returned by value, and every `@extern` of a `CLibrary` that lists `archives`, since the VM opens no static archive. Before the program's first instruction, `vader run`, `vader test` and the debugger write one C function per such `@extern`, which reads its arguments from the call's frame and calls the real symbol, and compile them with the libraries' archives and `system` libraries into one shared library, kept under the project's `build/ffi/<fingerprint>/` (the entry's folder outside a project) and reused while nothing it is made of changes. `cc` applies the ABI there, as in a native build. The C compiler is `$CC`, else `cc` (`gcc` on Windows); a program that needs adapters and has none stops before it starts, naming the `@extern` and `vader build`. A call at compile time and a `.virt` module run on its own get no adapter: such a call TRAPS naming the reason. A lent array whose elements are not integers traps either way. A **callback** is the one shape that cannot work here at all: the interpreter has no address for a Vader function. A variadic C function also needs `@c_variadic(N)`, `N` being its count of fixed parameters, so the interpreter calls it through a variadic prototype: on some ABIs (darwin-arm64) the variadic arguments travel on the stack.
 
 The C emitter resolves `@extern` against the system linker; the same `@extern` decl compiles for both backends, only the binding mechanism differs.
 

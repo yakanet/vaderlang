@@ -48,6 +48,9 @@ export VmState :: struct {
     /// interns mangled names). A user `@extern` names a linker symbol, never a
     /// manifest entry, so it is recorded `NotIntrinsic` without classifying.
     import_ids: bc.IntrinsicId[]
+    /// The adapter of each import, index-aligned with `bc.imports`, `0` for one
+    /// called without (`attach_adapters`). Empty until adapters are attached.
+    adapters: i64[] = []
     /// The code the VM runs (`reg_translate.vader`), index-aligned with
     /// `bc.functions`.
     @internal

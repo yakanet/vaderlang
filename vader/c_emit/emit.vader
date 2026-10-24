@@ -126,13 +126,7 @@ export EmitCtx :: struct {
 }
 
 new_ctx :: fn(m: BytecodeModule, opts: EmitOptions, internal_fns: bool[] = []) -> EmitCtx {
-    names: string[]: []
-    for i in 0..<m.types.len() {
-        match s :: m.types[i] {
-            is BcStruct -> names.push(struct_c_name(s.name))
-            _           -> names.push("")
-        }
-    }
+    names :: struct_c_names_of(m.types)
     string_tag :: string_primitive_tag(m.types)
     import_may_collect :: imports_may_collect(m.imports)
     layout_siblings :: m.types.len().filled_indexed((i) -> find_layout_siblings(m.types, i32(i)))
@@ -152,6 +146,20 @@ new_ctx :: fn(m: BytecodeModule, opts: EmitOptions, internal_fns: bool[] = []) -
         .library_units = opts.library_units,
         .layout_siblings = layout_siblings,
     }
+}
+
+/// `vader_struct_<sanitised>_t` per `BcStruct` slot of `types`, `""` elsewhere.
+///
+/// @param types  a module type table.
+struct_c_names_of :: fn(types: BcType[]) -> string[] {
+    names: string[]: []
+    for t in types {
+        match t {
+            is BcStruct -> names.push(struct_c_name(t.name))
+            _           -> names.push("")
+        }
+    }
+    return names
 }
 
 /// Storage of a function the emitter defines outside `module.functions` — a
@@ -339,17 +347,18 @@ emit_type_decls :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// `_Static_assert`s that check it — all of which already live per target —
 /// rather than in the header every target shares.
 ///
-/// @param ctx      the emit context.
+/// @param types    the module type table.
+/// @param names    its struct C names (`struct_c_names_of`).
 /// @param printer  receives the typedefs and definitions.
-emit_mirrored_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
+emit_mirrored_struct_typedefs :: fn(types: BcType[], names: string[], printer: CPrinter) -> void {
     forwards: CTopLevel[]: []
     definitions: CTopLevel[]: []
-    for i in 0..<ctx.module.types.len() {
-        s :: ctx.module.types[i]
+    for i in 0..<types.len() {
+        s :: types[i]
         if s is BcStruct {
             if s.c_name != "" {
-                forwards.push(CStructForward { .name = ctx.struct_c_names[i] })
-                definitions.push(struct_definition(ctx, s, i))
+                forwards.push(CStructForward { .name = names[i] })
+                definitions.push(struct_definition(types, names, s, i))
             }
         }
     }
@@ -375,7 +384,7 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
         if s is BcStruct {
             if s.c_name == "" || !ctx.split {
                 forwards.push(CStructForward { .name = ctx.struct_c_names[i] })
-                definitions.push(struct_definition(ctx, s, i))
+                definitions.push(struct_definition(ctx.module.types, ctx.struct_c_names, s, i))
             }
         }
     }
@@ -494,17 +503,16 @@ external :: fn(
 
 /// One struct body : the object header, then one member per field.
 ///
-/// @param ctx         the emit context (used for the cached struct C name).
+/// @param types       the module type table.
+/// @param names       its struct C names (`struct_c_names_of`).
 /// @param s           the struct decl to render.
-/// @param type_index  index of `s` in `ctx.module.types` ; used to look
-///                    up the cached C identifier in `struct_c_names`.
-struct_definition :: fn(ctx: EmitCtx, s: BcStruct, type_index: i64) -> CStructDefinition {
+/// @param type_index  index of `s` in `types`.
+struct_definition :: fn(types: BcType[], names: string[], s: BcStruct, type_index: i64) -> CStructDefinition {
     fields: CField[]: [CField { .type = "vader_obj_header_t", .name = "header" }]
     for f in s.fields {
-        ftype :: ctx.module.types[f.type_index]
-        fields.push(CField { .type = c_type_for(ftype), .name = field_c_name(f.name) })
+        fields.push(CField { .type = c_type_for(types[f.type_index]), .name = field_c_name(f.name) })
     }
-    return CStructDefinition { .name = ctx.struct_c_names[type_index], .fields = fields }
+    return CStructDefinition { .name = names[type_index], .fields = fields }
 }
 
 /// Data pool — module-level read-only `T[]` literals emitted as `.rodata` statics.

@@ -14,6 +14,11 @@ A project reaches it by naming the toolchain's `third_party/` folder in its
 
 then `import "raylib"`. `examples/raylib_sprite` is a complete program.
 
+`vader build` links the archive into the program. `vader run` reaches it too:
+the interpreter opens no static archive, so the run first compiles, with `cc`,
+a small adapter per raylib function the program calls, and links them with the
+archive into a shared library kept under the project's `build/ffi/`.
+
 ## Where each file comes from
 
 The release archives are those of

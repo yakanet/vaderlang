@@ -8,5 +8,7 @@ import "std/io"
 
 main :: fn() -> i32 {
     println("${name()}: ${add(40, 2)}")
+    scaled :: scale(Point { .x = 1.5, .y = -2.0 }, 2.0)
+    println("scaled: ${scaled.x} ${scaled.y}")
     return 0
 }

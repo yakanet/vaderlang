@@ -18,6 +18,10 @@ import "vader/target"
 /// binaries covers its driver too.
 export DRIVER_ARTEFACT_DIR :: "build/driver"
 
+// Where a project keeps the adapter libraries of its interpreted runs
+// (`ffi_adapters.vader`), relative to its root.
+FFI_ADAPTER_DIR :: "build/ffi"
+
 /// Stamp recording what the cached driver binary was built from, beside it in
 /// `DRIVER_ARTEFACT_DIR`: rewritten each time the driver is compiled.
 export DRIVER_STAMP_FILENAME :: "driver.stamp"

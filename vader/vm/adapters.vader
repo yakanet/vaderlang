@@ -1,0 +1,224 @@
+// vader/vm/adapters: the `@extern`s the interpreter calls through an adapter.
+//
+// `dispatch_extern` (host.vader) calls a foreign function through a trampoline
+// of `runtime/c/vader_ffi.h`, written ahead of time for one SHAPE of signature:
+// words, or one or two doubles. A call no shape covers, and a symbol a static
+// archive holds, goes through an ADAPTER instead: a C function of the call's
+// frame, written by `vader/c_emit/adapters.vader` and compiled against the real
+// prototype into a shared library (`vader/pipeline/ffi_adapters.vader`), so that
+// `cc` applies the ABI. `adapter_reason` is the one rule both sides read: the
+// interpreter refuses exactly what the driver did not adapt.
+
+module "vader/vm"
+
+bc :: import "vader/bytecode"
+
+/// Why no trampoline can call `imp`, or null when one can.
+///
+/// It mirrors what `vader_ffi_call_n` covers: up to eight arguments, all words,
+/// or one or two doubles returning a double; a variadic callee with one to three
+/// fixed words and up to three more.
+///
+/// @param imp    an `@extern` import.
+/// @param types  the module type table, which says what a parameter mirrors.
+/// @return       the reason, worded to follow "extern `name`:".
+export adapter_reason :: fn(imp: bc.BcImport, types: bc.BcType[]) -> string | null {
+    library :: imp.library
+    if library != null && library.archives.len() > 0 {
+        return "its binding `${library.name}` ships static archives, which no library the interpreter opens holds"
+    }
+    sig :: imp.signature
+    if sig.params.len() > 8 {
+        return "it takes more than 8 arguments"
+    }
+    words: i64 = 0
+    reals: i64 = 0
+    for j in 0..<sig.params.len() {
+        by_address :: bc.param_is_by_address(sig, j)
+        if !by_address && bc.mirror_at(types, sig.param_types[j]) != null {
+            return "argument ${j} passes a struct by value"
+        }
+        if sig.params[j] == .F32 {
+            return "argument ${j} is an `f32`"
+        }
+        if sig.params[j] == .Char {
+            return "argument ${j} is a `char`"
+        }
+        if sig.params[j] == .F64 && !by_address {
+            reals += 1
+        } else {
+            words += 1
+        }
+    }
+    result :: bc.bc_single_result(sig)
+    if bc.mirror_at(types, bc.bc_single_result_type(sig)) != null {
+        return "it returns a struct by value"
+    }
+    if result == .F32 {
+        return "it returns an `f32`"
+    }
+    if reals > 0 && words > 0 {
+        return "it mixes floating and integer arguments"
+    }
+    if reals > 2 {
+        return "it takes more than two floating arguments"
+    }
+    if reals == 0 && result == .F64 {
+        return "it returns an `f64` from integer arguments"
+    }
+    if reals > 0 && result != .F64 {
+        return "its floating arguments return no `f64`"
+    }
+    if imp.c_variadic_fixed >= 0 && !is_covered_variadic(i64(imp.c_variadic_fixed), sig.params.len(), reals) {
+        return "its variadic arguments are not a shape the interpreter calls"
+    }
+    return null
+}
+
+/// The indices of the imports of `module` that go through an adapter: the
+/// `@extern`s some function calls and `adapter_reason` names a reason for. An
+/// unoptimised module (the debugger's) still declares every `@extern` it loaded,
+/// another system's included, which no adapter could compile here. One that
+/// takes a callback is left out: the interpreter stops before such a call
+/// (`FnAddr` has no address to give), so no adapter would ever run.
+///
+/// @param module  the program.
+export adapted_imports :: fn(module: bc.BytecodeModule) -> i64[] {
+    candidates: i64[]: []
+    for i in 0..<module.imports.len() {
+        imp :: module.imports[i]
+        if imp.is_extern && !takes_callback(imp, module.types) && adapter_reason(imp, module.types) != null {
+            candidates.push(i)
+        }
+    }
+    // The walk over every op is for the rare program that has a candidate.
+    if candidates.len() == 0 {
+        return candidates
+    }
+    called :: called_imports(module)
+    return candidates.filter((i) -> called[i]).collect()
+}
+
+/// Bind each adapted import of `state` to its adapter in the library at `path`.
+///
+/// @param state    the prepared program.
+/// @param path     a library holding `adapter_symbol` of each adapted import.
+/// @param adapted  the adapted imports (`adapted_imports`).
+/// @return         null, or why the library does not serve them all.
+export attach_adapters :: fn(state: VmState, path: string, adapted: i64[]) -> string | null {
+    library :: ffi_open_path(path)
+    if library == 0 {
+        return "cannot open `${path}`"
+    }
+    adapters :: state.bc.imports.len().filled(() -> i64(0))
+    for i in adapted {
+        adapter :: ffi_symbol(library, bc.adapter_symbol(state.bc.imports[i]))
+        if adapter == 0 {
+            return "`${path}` holds no adapter for `${state.bc.imports[i].extern_name}`"
+        }
+        adapters[i] = adapter
+    }
+    state.adapters = adapters
+    return null
+}
+
+// The adapter bound to import `index` of `state`, 0 for none.
+adapter_of :: fn(state: VmState, index: i32) -> i64 {
+    if i64(index) >= state.adapters.len() {
+        return 0
+    }
+    return state.adapters[index]
+}
+
+// Per import of `module`, whether one of its functions calls it.
+called_imports :: fn(module: bc.BytecodeModule) -> bool[] {
+    called :: module.imports.len().filled(() -> false)
+    for f in module.functions {
+        for op in f.body {
+            if op is bc.CallImport {
+                called[op.index] = true
+            }
+        }
+    }
+    return called
+}
+
+// Whether `vader_ffi_call_va` covers a variadic call of `count` arguments, the
+// first `fixed` of them fixed, `reals` of them doubles.
+is_covered_variadic :: fn(fixed: i64, count: i64, reals: i64) -> bool =
+    reals == 0 && fixed >= 1 && fixed <= 3 && count - fixed <= 3
+
+// Whether a parameter of `imp` takes a function.
+takes_callback :: fn(imp: bc.BcImport, types: bc.BcType[]) -> bool {
+    for t in imp.signature.param_types {
+        if t >= 0 && i64(t) < types.len() && types[t] is bc.BcFn {
+            return true
+        }
+    }
+    return false
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/ffi"
+import "std/iter"
+import "std/string"
+import "std/testing"
+
+// An `@extern` taking `params` and returning `results`, none of them a type the
+// table describes.
+extern_of :: fn(params: bc.ValType[], results: bc.ValType[]) -> bc.BcImport = bc.BcImport {
+    .extern_name = "f",
+    .mangled_name = r"m$f",
+    .signature = bc.BcSignature {
+        .params = params,
+        .results = results,
+        .param_types = params.map((_) -> i32(-1)).collect(),
+        .result_types = results.map((_) -> i32(-1)).collect(),
+        .param_names = params.map((_) -> "p").collect(),
+    },
+    .is_extern = true,
+}
+
+@test
+test_adapter_reason_none_for_word_arguments :: fn() -> void {
+    assert(adapter_reason(extern_of([.I32, .I64], [.I32]), []) == null, "words in, a word out")
+}
+
+@test
+test_adapter_reason_none_for_two_doubles :: fn() -> void {
+    assert(adapter_reason(extern_of([.F64, .F64], [.F64]), []) == null, "two doubles, a double out")
+}
+
+@test
+test_adapter_reason_for_an_f32_argument :: fn() -> void {
+    assert_eq(adapter_reason(extern_of([.F32], []), []) ?? "", "argument 0 is an `f32`")
+}
+
+@test
+test_adapter_reason_for_mixed_arguments :: fn() -> void {
+    assert_eq(adapter_reason(extern_of([.I32, .F64], [.F64]), []) ?? "", "it mixes floating and integer arguments")
+}
+
+@test
+test_adapter_reason_for_a_double_from_words :: fn() -> void {
+    assert_eq(adapter_reason(extern_of([], [.F64]), []) ?? "", "it returns an `f64` from integer arguments")
+}
+
+@test
+test_adapter_symbol_escapes_the_mangle :: fn() -> void {
+    assert_eq(bc.adapter_symbol(extern_of([], [])), "vader_adapt_m_24f")
+}
+
+@test
+test_adapter_symbol_doubles_an_underscore :: fn() -> void {
+    imp :: bc.BcImport { ...extern_of([], []), .mangled_name = r"a_b$c" }
+    assert_eq(bc.adapter_symbol(imp), "vader_adapt_a__b_24c")
+}
+
+@test
+test_adapter_reason_for_a_library_of_archives :: fn() -> void {
+    imp :: bc.BcImport { ...extern_of([], []), .library = CLibrary { .name = "g", .archives = ["libg.a"] } }
+    reason :: adapter_reason(imp, []) ?? ""
+    assert(reason.starts_with("its binding `g` ships static archives"), "an archive is not opened")
+}

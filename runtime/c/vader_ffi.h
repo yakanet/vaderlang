@@ -54,6 +54,12 @@
  * point at which it can prove none remain. */
 void* vader_ffi_open(const char* name);
 
+/* Open a shared library by PATH, as the platform's loader takes it: the
+ * adapters `vader run` builds for the `@extern`s no trampoline covers. NULL
+ * when it cannot be opened. Never closed, for the reason `vader_ffi_open`
+ * gives. */
+void* vader_ffi_open_path(const char* path);
+
 /* Resolve `symbol` in `lib`. NULL when absent. */
 void* vader_ffi_symbol(void* lib, const char* symbol);
 static void* vader_ffi_resolve(void* lib, const char* symbol);
@@ -65,6 +71,18 @@ static void* vader_ffi_resolve(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 
 /* ---- implementation ---------------------------------------------------- */
+
+void* vader_ffi_open_path(const char* path) {
+#ifdef _WIN32
+    /* Wide, so a path outside the ANSI code page still opens. */
+    wchar_t wide[1024];
+    int     n = MultiByteToWideChar(CP_UTF8, 0, path, -1, wide, (int) (sizeof wide / sizeof wide[0]));
+    if (n == 0) { return NULL; }
+    return (void*) LoadLibraryW(wide);
+#else
+    return dlopen(path, RTLD_NOW | RTLD_LOCAL);
+#endif
+}
 
 /* Handle onto the process's own C runtime. Memoised because `dispatch_extern`
  * asks for it on EVERY foreign call — a `println` on the VM would otherwise pay
@@ -287,6 +305,50 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
     return 0;
 }
 
+/* The classes of a call's descriptor, one for the result then one per slot,
+ * their count in `nslots`. Traps on an empty descriptor. */
+static const unsigned char* vader_ffi_classes(vader_array_t* desc, size_t* nslots) {
+    vader_slice_t dview = vader_array_bytes(desc);
+    if (dview.len == 0) {
+        vader_trap("vader_ffi: empty call descriptor");
+    }
+    *nslots = dview.len - 1;
+    return (const unsigned char*) dview.ptr;
+}
+
+/* The bytes of a call's frame, checked against `nslots` slots and the result
+ * class `cls[0]`. Nothing may allocate between this and the call: the address
+ * is the one the callee reads.
+ *
+ * A value-returning call writes its result into the frame's first slot, so the
+ * slot count alone does not size it: with no arguments the first check is
+ * `0 < 0`, and the result would land on the NULL pointer an empty array
+ * reports. Trapping names the contract instead of crashing. */
+static vader_slice_t vader_ffi_frame(vader_array_t* frame, const unsigned char* cls, size_t nslots) {
+    vader_slice_t fview = vader_array_bytes(frame);
+    if (fview.len < nslots * sizeof(int64_t)) {
+        vader_trap("vader_ffi: frame smaller than its argument list");
+    }
+    if (cls[0] != VADER_FFI_VOID && fview.len < sizeof(int64_t)) {
+        vader_trap("vader_ffi: frame has no slot for the result");
+    }
+    return fview;
+}
+
+/* A `string` result `p` of class `cls`, interned. Borrowed: never freed. The
+ * worst case of that default is a leak on the C side, never a corruption, and
+ * it is right for the library-owned pointers (`getenv`, `strerror`) it serves.
+ * `char*` says "absent" with NULL, which `string` alone cannot carry: a
+ * `VADER_FFI_STR_OPT` result leaves the presence flag in `first_slot`, and a
+ * `VADER_FFI_STR` one turns NULL into the empty string. */
+static vader_string_t vader_ffi_string_result(unsigned char cls, const char* p, void* first_slot) {
+    if (cls == VADER_FFI_STR_OPT) {
+        int64_t present = p == NULL ? 0 : 1;
+        memcpy(first_slot, &present, sizeof present);
+    }
+    return p == NULL ? VADER_ATOM_EMPTY : vader_atom_intern(p, strlen(p));
+}
+
 /* One foreign call, described by DATA rather than by its shape.
  *
  * `desc` is one byte per slot: `desc[0]` classifies the RESULT, `desc[1+i]` the
@@ -304,35 +366,17 @@ int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs) {
  * returns `VADER_ATOM_EMPTY`, which callers ignore. */
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
                                 int64_t nfixed) {
-    vader_slice_t        dview = vader_array_bytes(desc);
     vader_slice_t        fview;
     const unsigned char* cls;
     int64_t              words[VADER_FFI_MAX_ARGS];
     double               reals[VADER_FFI_MAX_ARGS];
     size_t               nargs, i, nreal = 0, nword = 0;
 
-    if (dview.len == 0) {
-        vader_trap("vader_ffi: empty call descriptor");
-    }
-    cls   = (const unsigned char*) dview.ptr;
-    nargs = dview.len - 1;
+    cls = vader_ffi_classes(desc, &nargs);
     if (nargs > VADER_FFI_MAX_ARGS) {
         vader_trap("vader_ffi: more than 8 arguments in a foreign call");
     }
-
-    /* Last resolution before the call: nothing below allocates, so this address
-     * is the one the callee reads. */
-    fview = vader_array_bytes(frame);
-    if (fview.len < nargs * sizeof(int64_t)) {
-        vader_trap("vader_ffi: frame smaller than its argument list");
-    }
-    /* A value-returning call writes its result into the frame's first slot, so
-     * the argument count alone does not size it: with no arguments the check
-     * above is `0 < 0` and the store below would land on the NULL pointer an
-     * empty array reports. Trapping names the contract instead of crashing. */
-    if (cls[0] != VADER_FFI_VOID && fview.len < sizeof(int64_t)) {
-        vader_trap("vader_ffi: frame has no slot for the result");
-    }
+    fview = vader_ffi_frame(frame, cls, nargs);
 
     for (i = 0; i < nargs; i++) {
         int64_t raw = ((const int64_t*) fview.ptr)[i];
@@ -367,22 +411,8 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
         int64_t r = nfixed >= 0
             ? vader_ffi_call_va(fn, words, nargs, (size_t) nfixed)
             : vader_ffi_call_int(fn, words, nargs);
-        if (cls[0] == VADER_FFI_STR_OPT) {
-            /* `char*` says "absent" with NULL, which `string` alone cannot carry.
-             * The frame's first slot takes the presence flag; the atom is
-             * returned like any other string. */
-            const char* p = (const char*) (intptr_t) r;
-            int64_t     present = p == NULL ? 0 : 1;
-            memcpy((void*) fview.ptr, &present, sizeof present);
-            return p == NULL ? VADER_ATOM_EMPTY : vader_atom_intern(p, strlen(p));
-        }
-        if (cls[0] == VADER_FFI_STR) {
-            /* Borrowed: interned, never freed. The worst case of that default is
-             * a leak on the C side, never a corruption — and it is right for the
-             * library-owned pointers (`getenv`, `strerror`) it serves. NULL
-             * becomes the empty string, `string` having no null variant. */
-            const char* p = (const char*) (intptr_t) r;
-            return p == NULL ? VADER_ATOM_EMPTY : vader_atom_intern(p, strlen(p));
+        if (cls[0] == VADER_FFI_STR || cls[0] == VADER_FFI_STR_OPT) {
+            return vader_ffi_string_result(cls[0], (const char*) (intptr_t) r, (void*) fview.ptr);
         }
         if (cls[0] != VADER_FFI_VOID) {
             memcpy((void*) fview.ptr, &r, sizeof r);
@@ -406,6 +436,43 @@ vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* fr
             return VADER_ATOM_EMPTY;
         }
         memcpy((void*) fview.ptr, &r, sizeof r);
+    }
+    return VADER_ATOM_EMPTY;
+}
+
+/* Call an ADAPTER: a function of the frame alone, written and compiled for one
+ * `@extern` no shape above covers (`vader/c_emit/adapters.vader`), so that `cc`
+ * applies the ABI rather than this file. `desc` classes the slots as for
+ * `vader_ffi_call_n`, and each ADDR slot is turned into the address it names
+ * before the call: the adapter reads every slot as a value
+ * (`runtime/c/vader_adapter.h`). It writes its result over the first slot; a
+ * `string` result is interned from the `const char*` it leaves there. */
+vader_string_t vader_ffi_call_frame(void* fn, vader_array_t* desc, vader_array_t* frame) {
+    vader_slice_t        fview;
+    const unsigned char* cls;
+    unsigned char*       slots;
+    size_t               nslots, i;
+
+    cls   = vader_ffi_classes(desc, &nslots);
+    fview = vader_ffi_frame(frame, cls, nslots);
+    slots = (unsigned char*) fview.ptr;
+    for (i = 0; i < nslots; i++) {
+        int64_t raw;
+        if (cls[i + 1] != VADER_FFI_ADDR) {
+            continue;
+        }
+        memcpy(&raw, slots + i * sizeof raw, sizeof raw);
+        if (raw < 0 || (size_t) raw > fview.len) {
+            vader_trap("vader_ffi: lent offset outside the frame");
+        }
+        raw = (int64_t) (intptr_t) (slots + raw);
+        memcpy(slots + i * sizeof raw, &raw, sizeof raw);
+    }
+    ((void (*)(unsigned char*)) fn)(slots);
+    if (cls[0] == VADER_FFI_STR || cls[0] == VADER_FFI_STR_OPT) {
+        int64_t raw;
+        memcpy(&raw, slots, sizeof raw);
+        return vader_ffi_string_result(cls[0], (const char*) (intptr_t) raw, slots);
     }
     return VADER_ATOM_EMPTY;
 }

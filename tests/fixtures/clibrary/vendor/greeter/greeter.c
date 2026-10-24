@@ -8,3 +8,8 @@ int greeter_add(int a, int b) {
 const char* greeter_name(void) {
     return "hello from C";
 }
+
+GreeterPoint greeter_scale(GreeterPoint p, float k) {
+    GreeterPoint scaled = { p.x * k, p.y * k };
+    return scaled;
+}

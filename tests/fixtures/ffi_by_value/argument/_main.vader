@@ -1,8 +1,6 @@
-// A struct PASSED by value stops `vader run` at the call, with a message that
-// names `vader build`.
-//
-// Nothing defines `takes_div`: the interpreter stops before it looks the symbol
-// up, and the program is never built natively.
+// A struct PASSED by value, to a function nothing defines: the adapter `vader
+// run` compiles for it does not link, and the run stops naming the extern and
+// `vader build`. The program is never built natively.
 
 module "main"
 

@@ -287,6 +287,7 @@ intrinsic_effects :: fn(paths: PathTable, key: string) -> ParamEffects[] | null 
     if key == "${byte_access}.write_string"  { return writes_bytes(elements) }
     if key == "std/core.bytes_to_string"     { return [none()] }
     if key == "vader/vm.ffi_call"            { return ffi_call_effects(elements) }
+    if key == "vader/vm.ffi_call_frame"      { return ffi_call_frame_effects(elements) }
     return null
 }
 
@@ -324,6 +325,11 @@ memory_copy_effects :: fn(elements: i32) -> ParamEffects[] =
 // into `frame`.
 ffi_call_effects :: fn(elements: i32) -> ParamEffects[] =
     [none(), none(), effects_of(.Assigned, elements), none()]
+
+// `ffi_call_frame(fn_ptr, desc, frame)`: the adapter writes its result into
+// `frame`, as the runtime does the addresses it resolves.
+ffi_call_frame_effects :: fn(elements: i32) -> ParamEffects[] =
+    [none(), none(), effects_of(.Assigned, elements)]
 
 none :: fn() -> ParamEffects = ParamEffects {}
 

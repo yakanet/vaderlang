@@ -11,10 +11,12 @@ module "std/ffi"
 ///
 /// A native build adds what it lists to the compilation and the link, and only
 /// when one of the library's functions is reached. The interpreter opens it by
-/// `name`.
+/// `name`, or, when it ships `archives`, calls it through adapters compiled with
+/// them.
 export CLibrary :: struct {
     /// What the interpreter opens: `lib<name>.dylib`, `lib<name>.so` or
-    /// `<name>.dll`. A native build links what `archives` and `system` list.
+    /// `<name>.dll`, and what its adapters link when there are no `archives`. A
+    /// native build links what `archives` and `system` list.
     name: string
     /// The header declaring the library's functions, written as `@c_header`
     /// writes it. It serves every `@extern` naming the library without a

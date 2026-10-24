@@ -46,7 +46,8 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     path :: program.to_path()
     // The debugger is handed a file by the editor, which knows no project: like
     // the language server, it takes the `vader.json` above the file.
-    le :: lower_to_entry(path, find_manifest_root(program))
+    project_root :: find_manifest_root(program)
+    le :: lower_to_entry(path, project_root)
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg_diags: Diagnostic[]: []
     opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true }
@@ -59,6 +60,10 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     state :: prepare_debug(module)
     if state is VerifyError {
         return DapProgram { .state = null, .entry_index = -1, .error = display_verify_error(state) }
+    }
+    problem :: attach_ffi_adapters(state, project_root, path)
+    if problem != null {
+        return DapProgram { .state = null, .entry_index = -1, .error = problem }
     }
     entry :: entry_index_for_file(module, le.lowered, path, state.main_index)
     return DapProgram { .state = state, .entry_index = entry, .error = "" }

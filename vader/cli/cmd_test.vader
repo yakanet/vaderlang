@@ -102,6 +102,12 @@ cmd_test :: fn(args: string[]) -> i32 {
             total_fail += 1
             continue
         }
+        problem :: attach_ffi_adapters(state, project_root, rep)
+        if problem != null {
+            eprintln("vader test: ${problem}")
+            total_fail += 1
+            continue
+        }
         for t in fresh {
             ran.add(t.mangled)
             match tr :: exec_fn(state, t.mangled) {

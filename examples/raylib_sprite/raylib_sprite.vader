@@ -6,8 +6,10 @@
 //
 // The executable loads `sprite.png` from its own folder, where the build copies
 // it (`assets` in `vader.json`). raylib comes from the toolchain's
-// `third_party/` folder, which `vader.json` names too. A native build only:
-// `vader run` cannot call raylib.
+// `third_party/` folder, which `vader.json` names too. `vader run
+// examples/raylib_sprite` runs it on the interpreter, through adapters it
+// compiles with `cc`; the executable is then `vader`, whose folder holds no
+// sprite.
 
 module "main"
 

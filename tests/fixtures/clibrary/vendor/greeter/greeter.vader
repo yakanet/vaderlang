@@ -26,3 +26,15 @@ export add :: fn(a: i32, b: i32) -> i32
 /// The greeting the library holds.
 @extern(GREETER, "greeter_name")
 export name :: fn() -> string
+
+/// A point, as the library declares it.
+@c_struct("GreeterPoint")
+export Point :: struct {
+    x: f32
+    y: f32
+}
+
+/// `p` scaled by `k`, computed in C: a struct crosses by value both ways,
+/// beside an `f32`.
+@extern(GREETER, "greeter_scale")
+export scale :: fn(p: Point, k: f32) -> Point

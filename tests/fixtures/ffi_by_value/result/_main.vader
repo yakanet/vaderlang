@@ -1,5 +1,5 @@
-// A struct RETURNED by value stops `vader run` at the call, with a message that
-// names `vader build`.
+// A struct RETURNED by value: `vader run` calls `div` through an adapter it
+// compiles, where `cc` applies the ABI.
 
 module "main"
 

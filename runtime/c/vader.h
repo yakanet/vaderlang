@@ -515,11 +515,14 @@ static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
  * contract and the ABI restrictions. Declared here because the emitted C calls
  * them through the `vader/vm/ffi.vader` intrinsics. */
 void*   vader_ffi_open(const char* name);
+void*   vader_ffi_open_path(const char* path);
 void*   vader_ffi_symbol(void* lib, const char* symbol);
 int64_t vader_ffi_call_int(void* fn, const int64_t* args, size_t nargs);
 /* One call, described by data — see vader_ffi.h. */
 vader_string_t vader_ffi_call_n(void* fn, vader_array_t* desc, vader_array_t* frame,
                                 int64_t nfixed);
+/* One call to a generated adapter, described the same way: see vader_ffi.h. */
+vader_string_t vader_ffi_call_frame(void* fn, vader_array_t* desc, vader_array_t* frame);
 
 /* Contiguous read view over an array's raw element bytes — what an `@extern`
  * parameter lends to a C callee. `ptr` is valid ONLY for the duration of the
