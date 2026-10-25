@@ -74,6 +74,7 @@ impl 16 snippet$Scale
 impl 16 snippet$Show
 impl 17 std_core$Add
 impl 21 std_core$ByteAccess
+impl 19 std_core$Into
 impl 1 snippet$Make
 export main 20
 

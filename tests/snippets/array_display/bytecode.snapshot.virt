@@ -65,6 +65,13 @@ import 3 extern write system_posix$sys_write header=<unistd.h> result_type=12 pa
 impl 1 std_core$Display
 impl 4 std_core$Display
 impl 13 std_core$ByteAccess
+impl 15 std_core$Display
+impl 8 std_core$Display
+impl 16 std_core$Display
+impl 17 std_core$Display
+impl 18 std_core$Display
+impl 19 std_core$Display
+impl 6 std_core$Display
 vtable std_core$Display.to_string 1 0
 vtable std_core$Display.to_string 4 2
 vtable std_core$Display.to_string 15 13

@@ -181,7 +181,7 @@ export add_data_entry :: fn(self: ModuleBuilder, entry: BcDataEntry) -> i32 {
 /// @param trait_name  the trait identifier.
 @allow_unused
 export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> void {
-    self.impl_table.push(ImplEntry { .struct_type_index = type_id, .trait_name = trait_name })
+    self.impl_table.push(ImplEntry { .type_index = type_id, .trait_name = trait_name })
 }
 
 /// Bake a `FunctionBuilder` into the module : reads the accumulated

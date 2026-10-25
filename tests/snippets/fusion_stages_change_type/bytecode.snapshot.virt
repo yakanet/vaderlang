@@ -65,6 +65,7 @@ impl 4 std_core$Iterator
 impl 8 std_core$Contains
 impl 8 std_core$Iterator
 impl 10 std_core$ByteAccess
+impl 11 std_core$Into
 impl 13 std_core$Iterator
 impl 18 std_core$Iterator
 impl 22 std_core$Iterator

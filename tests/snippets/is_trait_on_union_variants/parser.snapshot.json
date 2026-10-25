@@ -1019,6 +1019,40 @@
       },
       {
         "kind": "FnDecl",
+        "name": "numbers_as_display",
+        "visibility": "private",
+        "typeParams": [],
+        "params": [
+          {
+            "name": "numbers",
+            "type": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              }
+            },
+            "defaultValue": null,
+            "variadic": false
+          }
+        ],
+        "returnType": {
+          "kind": "IdentExpr",
+          "name": "Display"
+        },
+        "body": {
+          "kind": "BlockExpr",
+          "stmts": [],
+          "trailing": {
+            "kind": "IdentExpr",
+            "name": "numbers"
+          }
+        },
+        "decorators": [],
+        "isExpressionBodied": true
+      },
+      {
+        "kind": "FnDecl",
         "name": "main",
         "visibility": "private",
         "typeParams": [],
@@ -1824,6 +1858,61 @@
                               }
                             ]
                           }
+                        }
+                      ]
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "ExprStmt",
+              "expr": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "displayed"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "CallExpr",
+                            "callee": {
+                              "kind": "IdentExpr",
+                              "name": "numbers_as_display"
+                            },
+                            "args": [
+                              {
+                                "name": null,
+                                "value": {
+                                  "kind": "SeqLitExpr",
+                                  "elements": [
+                                    {
+                                      "kind": "IntLitExpr",
+                                      "value": "3n"
+                                    },
+                                    {
+                                      "kind": "IntLitExpr",
+                                      "value": "4n"
+                                    }
+                                  ]
+                                },
+                                "spread": false
+                              }
+                            ]
+                          },
+                          "spread": false
                         }
                       ]
                     },

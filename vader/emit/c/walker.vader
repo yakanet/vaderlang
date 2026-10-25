@@ -1912,13 +1912,13 @@ float_tag_check_expr :: fn(types: BcType[], tag_expr: CExpression) -> CExpressio
 
 /// The C boolean expression testing whether `tag_expr` matches the trait
 /// `trait_name` — an OR over the ref type index itself (built-in trait refs
-/// like `Error` carry their own tag) plus every struct implementing the trait
-/// (the module's `impl_table`).
+/// like `Error` carry their own tag) plus every struct or array type implementing
+/// the trait (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, tag_expr: CExpression, trait_name: string, ref_type_index: i32) -> CExpression {
     parts: CExpression[]: [CParenthesized { .inner = tag_equals(tag_expr, ref_type_index) }]
     for entry in ctx.module.impl_table {
         if entry.trait_name == trait_name {
-            parts.push(CParenthesized { .inner = tag_equals(tag_expr, entry.struct_type_index) })
+            parts.push(CParenthesized { .inner = tag_equals(tag_expr, entry.type_index) })
         }
     }
     return any_of(parts)

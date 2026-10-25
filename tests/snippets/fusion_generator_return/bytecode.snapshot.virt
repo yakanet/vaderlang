@@ -83,6 +83,7 @@ impl 13 std_core$Iterator
 impl 15 std_core$Contains
 impl 15 std_core$Iterator
 impl 18 std_core$ByteAccess
+impl 19 std_core$Into
 impl 20 std_core$Iterator
 impl 23 std_core$Index
 impl 23 std_core$IndexSet

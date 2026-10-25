@@ -136,6 +136,8 @@ import 4 bytes_to_string std_core$bytes_to_string result_type=1 param_types=12 p
 import 5 bytes std_core$bytes result_type=12 param_types=1 param_c_out= param_by_address= (string) -> ref
 import 6 hash std_core$string$Hash$hash result_type=4 param_types=1 param_c_out= param_by_address= (string) -> u64
 import 7 extern write system_posix$sys_write header=<unistd.h> result_type=8 param_types=3,12,8 param_c_out= param_by_address= (i32,ref,i64) -> i64
+impl 16 std_core$Mul
+impl 16 std_core$Div
 impl 11 std_core$ByteAccess
 impl 32 std_core$Display
 impl 48 std_core$Index

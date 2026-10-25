@@ -865,6 +865,7 @@ static vader_string_t snippet_shown_points(vader_box_t l0);
 static vader_string_t snippet_open(vader_box_t l0);
 static vader_string_t snippet_displayed(vader_box_t l0);
 static vader_box_t snippet_as_display(int32_t l0);
+static vader_box_t snippet_numbers_as_display(void* l0);
 static int32_t snippet_main(void);
 static vader_string_t concat_5(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_string_t l3, vader_string_t l4);
 static vader_string_t concat_3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
@@ -1136,7 +1137,7 @@ static vader_string_t snippet_shown(vader_box_t l0) {
         vader_gc_top, 1u, 0u, gc_roots, NULL, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!(((l0.tag == 18u) || l0.tag == 14u))) {
+    if (!(((l0.tag == 18u) || (l0.tag == 14u) || l0.tag == 14u))) {
         { vader_gc_top = gc_frame.prev; return 2u; }
     }
     t0 = vader_vt_std_core_Display__to_string(l0);
@@ -1170,7 +1171,7 @@ static vader_string_t snippet_displayed(vader_box_t l0) {
         vader_gc_top, 1u, 2u, gc_roots, gc_raw_roots, 0u, NULL, 1u, gc_atom_roots,
     };
     vader_gc_top = &gc_frame;
-    if (!((l0.tag == 2u || l0.tag == 25u || (l0.tag == 18u) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 19u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
+    if (!((l0.tag == 2u || l0.tag == 25u || ((l0.tag == 18u) || (l0.tag == 14u)) || (l0.tag == 26u || l0.tag == 27u) || (l0.tag == 26u || l0.tag == 27u) || l0.tag == 22u || l0.tag == 7u || l0.tag == 19u || l0.tag == 21u || l0.tag == 9u || l0.tag == 23u || l0.tag == 24u || l0.tag == 4u || l0.tag == 6u))) {
         l1 = (void*) vader_buffer_new((size_t) INT64_C(26));
         l2 = INT64_C(0);
         l2 = std_core_write_string_at(l1, l2, 3u);
@@ -1187,6 +1188,10 @@ static vader_string_t snippet_displayed(vader_box_t l0) {
 
 static vader_box_t snippet_as_display(int32_t l0) {
     return vader_box_i32(7u, l0);
+}
+
+static vader_box_t snippet_numbers_as_display(void* l0) {
+    return vader_ref_box(l0);
 }
 
 static int32_t snippet_main(void) {
@@ -1287,6 +1292,13 @@ static int32_t snippet_main(void) {
     t1 = (void*) _a11_obj;
     l1 = snippet_displayed(vader_ref_box(t1));
     t0 = concat_3(l0, 9u, l1);
+    std_io_println__string(t0);
+    vader_array_t* _a12_arr = vader_array_new(14u, 2u, 7u, 7u);
+    ((int32_t*) _a12_arr->buf->slots)[_a12_arr->offset + 1u] = (int32_t) INT32_C(4);
+    ((int32_t*) _a12_arr->buf->slots)[_a12_arr->offset + 0u] = (int32_t) INT32_C(3);
+    t1 = (void*) _a12_arr;
+    t2 = snippet_numbers_as_display(t1);
+    t0 = snippet_displayed(t2);
     std_io_println__string(t0);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
 }

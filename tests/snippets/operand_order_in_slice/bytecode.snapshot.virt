@@ -32,6 +32,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=8 par
 impl 4 std_core$Contains
 impl 4 std_core$Iterator
 impl 9 std_core$ByteAccess
+impl 3 std_core$Contains
 impl 12 std_core$Index
 impl 12 std_core$IndexSet
 impl 12 std_core$Contains

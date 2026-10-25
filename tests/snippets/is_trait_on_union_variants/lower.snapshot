@@ -98,6 +98,9 @@
   snippet.as_display :: fn(n: i32) -> Display {  // snippet$as_display
       n
   }
+  snippet.numbers_as_display :: fn(numbers: i32[]) -> Display {  // snippet$numbers_as_display
+      numbers
+  }
   snippet.main :: fn() -> i32 {  // snippet$main
       std.io.println<string>(concat_5(snippet.kind(Color(0)), " ", snippet.kind(1), " ", snippet.kind("s")))
       std.io.println<string>(concat_5(snippet.kind(Meters { .value = 1 }), " ", snippet.kind(true), " ", snippet.kind(Point { .x = 0 })))
@@ -108,6 +111,7 @@
       std.io.println<string>(concat_3(snippet.shown_points([Point { .x = 1 }] :Point[]), " ", snippet.shown_points("s")))
       std.io.println<string>(snippet.open(Point { .x = 2 }))
       std.io.println<string>(concat_3(snippet.displayed(snippet.as_display(5)), " ", snippet.displayed(Point { .x = 6 })))
+      std.io.println<string>(snippet.displayed(snippet.numbers_as_display([3, 4] :i32[])))
       return 0
   }
   concat_5 :: fn(p0: string, p1: string, p2: string, p3: string, p4: string) -> string {

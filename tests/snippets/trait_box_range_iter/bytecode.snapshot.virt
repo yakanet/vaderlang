@@ -21,6 +21,7 @@ impl 6 std_core$Contains
 impl 6 std_core$Iterator
 impl 10 std_core$Contains
 impl 10 std_core$Iterator
+impl 13 std_core$Into
 impl 14 std_core$Iterator
 vtable snippet$Greeter.greet 1 0
 vtable snippet$Doubler.doubled 2 1

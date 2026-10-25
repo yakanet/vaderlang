@@ -3,6 +3,7 @@ type 0 scalar null
 type 1 scalar i32
 type 2 scalar bool
 type 3 array 1
+impl 3 std_core$Contains
 export main 0
 
 fn 0 snippet$main () -> i32

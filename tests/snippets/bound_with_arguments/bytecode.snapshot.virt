@@ -47,6 +47,7 @@ impl 1 std_core$Add
 impl 2 std_core$Add
 impl 3 std_core$Add
 impl 4 snippet$Sink
+impl 6 snippet$Count
 impl 14 std_core$ByteAccess
 vtable std_core$Add.add 1 0
 vtable std_core$Add.add 2 1

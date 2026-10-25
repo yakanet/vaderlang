@@ -124,6 +124,7 @@ impl 28 std_core$Iterator
 impl 29 std_core$Contains
 impl 29 std_core$Iterator
 impl 31 std_core$ByteAccess
+impl 4 std_core$Into
 impl 33 std_core$Iterator
 impl 36 std_core$Async
 impl 38 std_core$Iterator

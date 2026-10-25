@@ -45,6 +45,8 @@ impl 4 std_core$Hash
 impl 1 std_core$Equals
 impl 4 std_core$Equals
 impl 10 std_core$ByteAccess
+impl 11 std_core$Contains
+impl 13 std_core$Contains
 impl 24 std_core$Index
 impl 24 std_core$IndexSet
 impl 24 std_core$Contains

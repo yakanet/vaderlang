@@ -66,7 +66,14 @@ import 1 bytes_to_string std_core$bytes_to_string result_type=2 param_types=27 p
 import 2 bytes std_core$bytes result_type=27 param_types=2 param_c_out= param_by_address= (string) -> ref
 import 3 extern write system_posix$sys_write header=<unistd.h> result_type=19 param_types=7,27,19 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 1 snippet$Poke
+impl 8 snippet$Poke
+impl 6 snippet$Poke
+impl 10 snippet$Poke
+impl 11 snippet$Poke
+impl 13 snippet$Poke
+impl 15 snippet$Poke
 impl 20 std_core$ByteAccess
+impl 6 std_core$Display
 vtable snippet$Poke.poke 1 0
 vtable snippet$Poke.poke 8 5
 vtable snippet$Poke.poke 6 6

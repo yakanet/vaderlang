@@ -106,6 +106,7 @@ impl 14 std_core$Iterator
 impl 15 std_core$Contains
 impl 15 std_core$Iterator
 impl 18 std_core$ByteAccess
+impl 19 std_core$Into
 impl 21 std_core$Iterator
 impl 23 std_core$Iterator
 impl 26 std_core$Iterator

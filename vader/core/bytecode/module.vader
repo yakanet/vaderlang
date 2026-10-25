@@ -268,14 +268,15 @@ export BcExport :: struct {
     fn_index: i32
 }
 
-/// One row of the impl table — `struct_type_index implements trait_name`.
+/// One row of the impl table : the struct or array type `type_index` implements
+/// `trait_name`.
 /// Materialised side-by-side with the per-(trait, method) vtable so
 /// `is Trait` patterns can be answered without walking every fn name.
 /// We use an explicit-row representation (rather than a map keyed by
-/// struct type-index) to keep the shape data-only (no map encoding into
+/// type-index) to keep the shape data-only (no map encoding into
 /// Vader maps).
 export ImplEntry :: struct {
-    struct_type_index: i32
+    type_index: i32
     trait_name: string
 }
 

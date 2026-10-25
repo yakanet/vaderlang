@@ -437,7 +437,7 @@ join_flags :: fn(xs: bool[]) -> string {
 write_impl_table :: fn(sb: StringBuilder, impls: ImplEntry[]) -> void {
     for i in 0..<impls.len() {
         row :: impls[i]
-        sb.append("impl ${row.struct_type_index} ${row.trait_name}\n")
+        sb.append("impl ${row.type_index} ${row.trait_name}\n")
     }
 }
 

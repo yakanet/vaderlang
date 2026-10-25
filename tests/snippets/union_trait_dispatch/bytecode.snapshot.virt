@@ -94,11 +94,13 @@ impl 14 std_core$IndexSet
 impl 16 std_core$Contains
 impl 22 std_core$Add
 impl 22 std_core$Display
+impl 5 snippet$Shape
 impl 28 std_core$Contains
 impl 28 std_core$Iterator
 impl 30 std_core$Contains
 impl 30 std_core$Iterator
 impl 31 std_core$ByteAccess
+impl 20 std_core$Contains
 impl 42 std_core$Index
 impl 42 std_core$IndexSet
 impl 42 std_core$Contains

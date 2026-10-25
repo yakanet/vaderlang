@@ -29,6 +29,7 @@ import 0 byte_len std_core$byte_len result_type=10 param_types=4 param_c_out= pa
 import 1 bytes std_core$bytes result_type=19 param_types=4 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=10 param_types=2,19,10 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 5 std_core$Iterator
+impl 8 std_core$Into
 impl 11 std_core$Contains
 impl 11 std_core$Iterator
 impl 14 std_core$Contains

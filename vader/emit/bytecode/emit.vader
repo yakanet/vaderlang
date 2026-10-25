@@ -568,7 +568,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
         receiver_key :: type_intern_key(ve.struct_type)
         receiver_slot :: ctx.type_key[receiver_key]
         if receiver_slot !is i32 { continue }
-        // NO `is BcStruct` guard here, unlike the impl table: a vtable dispatches
+        // No receiver-shape guard here, unlike the impl table: a vtable dispatches
         // on any receiver shape : `i32 implements Display` pins a `BcScalar`
         // slot — and requiring a struct drops those rows into a runtime
         // "vtable miss in std/core.Display.to_string".
@@ -598,14 +598,15 @@ has_receiver :: fn(row: VtableRow, type_index: i32) -> bool {
     return false
 }
 
-// Builds the module's impl table : one BcImplEntry per (struct_type_index,
-// trait_name) seen in the vtable entries. Sole builder — the CFG emit path is
-// the only bytecode emit path there is.
+// Builds the module's impl table : one BcImplEntry per (type_index,
+// trait_name) seen in the vtable entries, for a struct or an array receiver, the
+// shapes whose run-time tag names their own type. Sole builder — the CFG emit path
+// is the only bytecode emit path there is.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: MutableMap<i32, string[]>, ctx: EmitterCtx) -> BcImplEntry[] {
     out: BcImplEntry[]: []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
-        // Only honour vtable entries whose receiver struct is *already*
+        // Only honour vtable entries whose receiver is *already*
         // interned (i.e. some real call site referenced it). intern_type
         // here would otherwise mint a fresh `ref` placeholder for a
         // struct that's been DCE'd everywhere else (`Foo implements
@@ -615,19 +616,19 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
         if existing !is i32 { continue }
         type_index :: existing
         if i64(type_index) in 0..<ctx.types.len() {
-            if ctx.types[type_index] !is BcStruct { continue }
+            if ctx.types[type_index] !is BcStruct | BcArray { continue }
         }
         key :: "${type_index}|${entry.trait_name}"
         if seen[key] is bool { continue }
         seen[key] = true
-        out.push(BcImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
+        out.push(BcImplEntry { .type_index = type_index, .trait_name = entry.trait_name })
     }
     // Frontend-sourced membership : every interned struct tag gets a row for
     // each trait its source symbol implements — independent of whether any
     // impl method was materialised. Covers is-only structs AND generic
     // instances (all instances share `symbol_id`), which the vtable-sourced
-    // rows above miss. Struct-only by construction — enums/primitives never
-    // carry `impl_table` rows (their `is Trait` resolves at compile time).
+    // rows above miss. This loop is struct-only ; enums and primitives carry no
+    // `impl_table` row, their `is Trait` resolving at compile time.
     for i in 0..<ctx.types.len() {
         st :: ctx.types[i]
         if st is BcStruct {
@@ -636,7 +637,7 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], membership: Mu
                 key :: "${i}|${tr}"
                 if seen[key] is bool { continue }
                 seen[key] = true
-                out.push(BcImplEntry { .struct_type_index = i32(i), .trait_name = tr })
+                out.push(BcImplEntry { .type_index = i32(i), .trait_name = tr })
             }
         }
     }

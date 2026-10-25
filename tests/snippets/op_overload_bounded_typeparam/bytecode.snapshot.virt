@@ -40,6 +40,7 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=6 par
 impl 1 std_core$Add
 impl 1 std_core$Comparable
 impl 14 std_core$ByteAccess
+impl 10 std_core$Contains
 export main 2
 
 fn 0 snippet$V$std_core_Add$add (ref,ref) -> ref

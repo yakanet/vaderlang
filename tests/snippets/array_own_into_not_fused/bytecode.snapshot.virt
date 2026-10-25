@@ -67,6 +67,8 @@ import 2 extern write system_posix$sys_write header=<unistd.h> result_type=18 pa
 impl 10 std_core$Iterator
 impl 13 std_core$Iterator
 impl 16 std_core$Iterator
+impl 1 std_core$Into
+impl 5 std_core$Into
 impl 19 std_core$Contains
 impl 19 std_core$Iterator
 impl 22 std_core$Contains

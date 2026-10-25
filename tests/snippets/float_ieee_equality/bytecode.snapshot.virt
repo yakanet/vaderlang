@@ -38,6 +38,7 @@ import 0 byte_len std_core$byte_len result_type=9 param_types=3 param_c_out= par
 import 1 bytes std_core$bytes result_type=20 param_types=3 param_c_out= param_by_address= (string) -> ref
 import 2 extern write system_posix$sys_write header=<unistd.h> result_type=9 param_types=4,20,9 param_c_out= param_by_address= (i32,ref,i64) -> i64
 impl 10 std_core$ByteAccess
+impl 11 std_core$Contains
 vtable std_core$Equals.equals 12 10
 vtable std_core$Equals.equals 14 11
 vtable std_core$Equals.equals 4 12

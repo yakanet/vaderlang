@@ -52,6 +52,9 @@ impl 13 std_core$Iterator
 impl 14 std_core$Contains
 impl 14 std_core$Iterator
 impl 15 std_core$ByteAccess
+impl 16 std_core$Contains
+impl 10 std_core$Contains
+impl 17 std_core$Contains
 vtable std_core$Contains.contains 5 6
 vtable std_core$Contains.contains 6 7
 vtable std_core$Contains.contains 11 13

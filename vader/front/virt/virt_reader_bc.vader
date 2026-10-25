@@ -747,7 +747,7 @@ parse_impl_decl_bc :: fn(cleaned: string, impl_table: ImplEntry[]) -> DirectiveE
         return DirectiveError { .reason = "impl: type index \"${type_id_text}\" is not a number" }
     }
     trait_name :: after.byte_slice(space + 1, after.byte_len()).trim()
-    impl_table.push(ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
+    impl_table.push(ImplEntry { .type_index = i32(parsed), .trait_name = trait_name })
     return null
 }
 
