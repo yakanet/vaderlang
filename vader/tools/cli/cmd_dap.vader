@@ -60,7 +60,7 @@ compile_for_dap :: fn(program: string) -> DapProgram {
     cfg_diags: Diagnostic[]: []
     opts :: EmitOptions { .optimize = false, .keep_mangles = [], .want_debug = true }
     module :: cfg_to_bytecode(pruned, module_name_from_file(path), opts, cfg_diags)
-    diags :: merge_diagnostics(le.pre_diags, le.lower_diags + cfg_diags)
+    diags :: le.pre_diags + le.lower_diags + cfg_diags
     if any_error_diag(diags) {
         rendered :: diags.dump_diagnostics_with_file()
         return DapProgram { .state = null, .entry_index = -1, .error = rendered }

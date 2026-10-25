@@ -26,6 +26,7 @@ import "vader/lower/dump"
 import "vader/lower/dce"
 import "vader/emit/virt"
 import "vader/midir"
+import "vader/midir/pipeline"
 import "vader/midir/ranges"
 import "vader/pipeline"
 import "vader/pipeline/check"
@@ -344,7 +345,7 @@ run_ranges_stage :: fn(
     cfg_diags: Diagnostic[]: []
     if !any_error_diag(le.pre_diags) {
         pruned :: prune_unreachable_fns(le.lowered, false)
-        cfg :: build_optimised_cfg(pruned, false, false, cfg_diags)
+        cfg :: build_optimised_cfg(pruned, CfgPassOptions {}, cfg_diags)
         print(dump_ranges_project(cfg, scope))
     }
     print_pipeline_diags(pipeline, le.lower_diags + cfg_diags, scope)
@@ -596,7 +597,7 @@ print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], sco
 pipeline_diags_in_scope :: fn(
     pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[],
 ) -> Diagnostic[] {
-    all :: merge_diagnostics(gather_pipeline_diags(pipeline), extra)
+    all :: gather_pipeline_diags(pipeline) + extra
     return filter_diags_in_scope(all, in_scope_diag_files(pipeline.loaded, scope))
 }
 
@@ -609,28 +610,10 @@ print_dump_diags :: fn(b: CfgBytecode) -> void {
     )
 }
 
-// Flatten the loader + resolver + typecheck + comptime diagnostic bags into one
-// list, in the canonical order the dump stages expect. Pulled out so
-// `lower_to_entry` can snapshot the diags before releasing the pipeline.
-
-// Concatenate two diagnostic bags into one list, preserving order (`head`
-// then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
-// stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
-merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
-    all: Diagnostic[]: []
-    for d in head {
-        all.push(d)
-    }
-    for d in extra {
-        all.push(d)
-    }
-    return all
-}
-
 // Print `head` then `extra` as a single `# Diagnostics` block (nothing when
 // both are empty).
 print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
-    all_diags :: merge_diagnostics(head, extra)
+    all_diags :: head + extra
     if all_diags.len() > 0 {
         println(all_diags.dump_diagnostics())
     }
@@ -639,10 +622,8 @@ print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
 // Same rendering as `print_dump_diags`, on stderr — for the C stage, whose stdout
 // must stay valid C.
 eprint_dump_diags :: fn(b: CfgBytecode) -> void {
-    all_diags :: merge_diagnostics(
-        filter_diags_in_scope(b.pre_diags, b.in_scope_files),
-        filter_diags_in_scope(b.lower_diags, b.in_scope_files),
-    )
+    all_diags :: filter_diags_in_scope(b.pre_diags, b.in_scope_files)
+        + filter_diags_in_scope(b.lower_diags, b.in_scope_files)
     if all_diags.len() > 0 {
         eprintln(all_diags.dump_diagnostics())
     }

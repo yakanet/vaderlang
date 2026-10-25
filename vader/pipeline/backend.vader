@@ -1,22 +1,19 @@
-// vader/pipeline/backend — lower → bytecode, as a callable unit.
+// vader/pipeline/backend: lower → bytecode, as a callable unit.
 //
-// The tail of the pipeline: `lower_to_entry` runs the front end and lowers,
-// `prepare_cfg_bytecode` carries that through prune → CFG → bytecode. Both were
-// private to `vader/tools/cli/main.vader`, which was their only caller; a build driver
-// needs the same chain to produce output, and duplicating it is the one thing
-// guaranteed to drift.
-//
-// Lifted verbatim, along with the small helpers the chain reaches for
+// `lower_to_entry` runs the front end and lowers; `prepare_cfg_bytecode` carries
+// that through prune, the CFG passes (`vader/midir/pipeline`) and the bytecode
+// emitter; `flush_build_diags` prints what they reported and says whether the
+// result may be emitted. With them, the small helpers the chain reaches for
 // (`entry_main_name`, `gather_pipeline_diags`, `in_scope_diag_files`,
-// `dump_scope`, `scope_or_entry`, `canonicalise`, `module_name_from_file`) —
-// every other dependency was already exported by `vader/front/resolver` or
-// `vader/lower`.
+// `dump_scope`, `scope_or_entry`, `canonicalise`, `module_name_from_file`).
 //
-// Sits below its callers in the import graph: `vader/tools/cli` and `toolchain/build`
-// import this; it imports neither.
+// Every driver runs this one chain: the CLI (`vader/tools/cli`), a project's build
+// driver (`toolchain/build`) and the bootstrap entry (`vader/bootstrap`). It
+// imports none of them.
 
 module "vader/pipeline"
 
+import "std/io"
 import "std/path"
 import "vader/support/diagnostics"
 import "vader/front/resolver"
@@ -27,10 +24,7 @@ import "vader/lower"
 import "vader/lower/dce"
 import "vader/lower/ir"
 import "vader/emit/bytecode"
-import "vader/midir"
-import "vader/midir/optimise"
-import "vader/midir/ranges"
-import "vader/midir/value_return"
+import "vader/midir/pipeline"
 import "vader/core/bytecode"
 Prof :: import "vader/support/profile"
 import "vader/support/opt_report"
@@ -129,6 +123,19 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
     return out
 }
 
+/// Print the diagnostics of a prepared program to stderr and say whether it may be
+/// emitted: an error stops it, a warning or a note prints and lets it through.
+///
+/// @param pre    the front end's diagnostics (`CfgBytecode.pre_diags`).
+/// @param lower  the lowering's and the back end's (`CfgBytecode.lower_diags`).
+export flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
+    all :: pre + lower
+    if all.len() > 0 {
+        eprintln(all.dump_diagnostics_with_file())
+    }
+    return !any_error_diag(all)
+}
+
 /// CFG → `BytecodeModule`: the optimise-and-emit tail every real emit path runs.
 ///
 /// Build the CFG and run the midir passes (`build_optimised_cfg`), then
@@ -138,85 +145,22 @@ export gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] 
 /// @param name    bytecode module name (see `module_name_from_file`).
 /// @param opts    emit options — `want_debug` gates the per-op debug table.
 /// @param diags   accumulator for what the CFG build reports (an identifier it
-///                cannot place, M5007) and, under `opts.verify`, the verifier
+///                cannot place, M5007) and, under `passes.verify`, the verifier
 ///                findings. Required: a caller that dropped it would run a
 ///                program whose broken function was silently cut short.
+/// @param passes  the CFG verifier and the bounds proof (`build_optimised_cfg`).
 export cfg_to_bytecode :: fn(
-    pruned: LoweredProject, name: string, opts: EmitOptions, diags: Diagnostic[],
+    pruned: LoweredProject,
+    name: string,
+    opts: EmitOptions,
+    diags: Diagnostic[],
+    passes: CfgPassOptions = CfgPassOptions {},
 ) -> BytecodeModule {
-    forwarded :: build_optimised_cfg(pruned, opts.verify, opts.prove_bounds, diags)
+    forwarded :: build_optimised_cfg(pruned, passes, diags)
     Prof.prof_begin(.Bytecode)
     module :: emit_bytecode_from_cfg(forwarded, name, opts)
     Prof.prof_end(.Bytecode)
     return module
-}
-
-/// The CFG of `pruned` as the bytecode emitter receives it: built, then through
-/// every midir pass in order, DCE, escape annotation and the array-load-forward
-/// opt among them. A new CFG optimisation is wired in here, once, and not at
-/// each call site.
-///
-/// @param pruned        lowered project, already pruned of unreachable fns.
-/// @param verify        run the CFG verifier after each pass (`--verify`).
-/// @param prove_bounds  mark `bounds_safe` every array access the range analysis
-///                      proves in bounds (`mark_proven_accesses`).
-/// @param diags         accumulator for what the CFG build reports (an
-///                      identifier it cannot place, M5007) and, under `verify`,
-///                      the verifier findings.
-export build_optimised_cfg :: fn(
-    pruned: LoweredProject,
-    verify: bool,
-    prove_bounds: bool,
-    diags: Diagnostic[],
-) -> CFGProject {
-    Prof.prof_begin(.CfgBuild)
-    cfg :: build_cfg_project(pruned, diags)
-    Prof.prof_end(.CfgBuild)
-    // One check per pass, each naming the pass it follows.
-    if verify { verify_cfg(cfg, "build_cfg_project", diags) }
-    // Return a small tuple in registers instead of a heap object. BEFORE DCE:
-    // the `struct.new` that built the tuple becomes unread once the terminator
-    // names its fields, and DCE is what removes it — running after would leave
-    // the allocation and the pass would buy nothing. See `vader/midir/value_return`.
-    Prof.prof_begin(.ValueReturn)
-    scalarised :: scalarise_value_returns(cfg)
-    Prof.prof_end(.ValueReturn)
-    if verify { verify_cfg(scalarised, "scalarise_value_returns", diags) }
-    // Undoes the rebuilds the pass above planted, wherever the fields are still
-    // in hand. Before DCE, which is what collects the objects left readerless.
-    unrebuilt :: struct_field_forward_project(scalarised)
-    if verify { verify_cfg(unrebuilt, "struct_field_forward_project", diags) }
-    Prof.prof_begin(.CfgDce)
-    dced :: eliminate_dead_cfg(unrebuilt)
-    Prof.prof_end(.CfgDce)
-    if verify { verify_cfg(dced, "eliminate_dead_cfg", diags) }
-    Prof.prof_begin(.Escape)
-    annotated :: annotate_escape(dced)
-    escaped :: annotated.project
-    Prof.prof_end(.Escape)
-    // `$VADER_OPT_REPORT` — the allocations that stayed on the heap. Reported
-    // here rather than with the lowering ones because escape analysis runs after
-    // the lowering context is gone. Empty unless the env is set.
-    report_heap_allocations(annotated.stats)
-    if verify { verify_cfg(escaped, "annotate_escape", diags) }
-    forwarded :: array_load_forward_project(escaped)
-    if verify { verify_cfg(forwarded, "array_load_forward_project", diags) }
-    // `$VADER_OPT_REPORT`: what the range analysis proves, before the pass below
-    // marks it, so an access it proves is counted as proven.
-    if opt_report_enabled() {
-        Prof.prof_begin(.Ranges)
-        report_ranges(forwarded)
-        Prof.prof_end(.Ranges)
-    }
-    if !prove_bounds {
-        return forwarded
-    }
-    // Last: the analysis judges the instructions the emitter receives.
-    Prof.prof_begin(.Ranges)
-    marked :: mark_proven_accesses(forwarded)
-    Prof.prof_end(.Ranges)
-    if verify { verify_cfg(marked, "mark_proven_accesses", diags) }
-    return marked
 }
 
 // The environment variable of the bounds verification mode (`proves_bounds`).
@@ -386,10 +330,9 @@ export prepare_cfg_bytecode_from :: fn(
         .optimize = true,
         .keep_mangles = [],
         .want_debug = want_debug,
-        .verify = verify,
-        .prove_bounds = prove_bounds,
     }
-    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, back_end_diags)
+    passes :: CfgPassOptions { .verify = verify, .prove_bounds = prove_bounds }
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), opts, back_end_diags, passes)
     lower_diags :: le.lower_diags + back_end_diags
     return CfgBytecode {
         .entry       = le.entry,

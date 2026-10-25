@@ -155,6 +155,17 @@ export split_globals_path :: fn(out: Path) -> Path = "${out}.split.g.c".to_path(
 /// @param out  the split output stem.
 export imports_header_path :: fn(out: Path) -> Path = "${out}${IMPORTS_HEADER_SUFFIX}".to_path()
 
+/// Write the split C of a prepared program beside `out`: its header, its imports
+/// header, its globals unit and one unit per module, each including the header by
+/// its basename. stage0 writes this layout too (`vader/bootstrap`), for the build
+/// scripts of an older committed seed: renaming a file forces a reseed.
+///
+/// @param b    the prepared program.
+/// @param out  the output stem ; its directory must exist.
+/// @return     0, or 1 after printing which file could not be written.
+export write_split_c :: fn(b: CfgBytecode, out: Path) -> i32 =
+    write_split_files(out, split_program(b, out))
+
 // Write the split program: its header, its imports header, its globals unit,
 // and `<out>-<unit>.c` for each function unit. All co-located so each TU's
 // `#include "<base>.split.h"` resolves relative to its own directory.

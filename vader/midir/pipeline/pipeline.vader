@@ -1,0 +1,145 @@
+// vader/midir/pipeline/pipeline: the CFG passes, in the order the bytecode emitter
+// needs.
+//
+// Every path from a lowered project to bytecode runs its CFG through here: the
+// build, `vader run`, the dumps and the bootstrap entry (through
+// `vader/pipeline/backend.vader`), and the comptime VM
+// (`vader/pipeline/comptime_vm`). A pass wired in here reaches all of them; one
+// wired in at a single call site would leave the others running another
+// compiler.
+//
+// The sequence cannot live in `vader/pipeline`: the comptime VM needs it, and
+// `vader/pipeline` imports the comptime VM.
+
+module "vader/midir/pipeline"
+
+import "vader/lower/ir"
+import "vader/midir"
+import "vader/midir/optimise"
+import "vader/midir/ranges"
+import "vader/midir/value_return"
+import "vader/support/diagnostics"
+import "vader/support/opt_report"
+Prof :: import "vader/support/profile"
+
+/// How `build_optimised_cfg` runs the passes.
+export CfgPassOptions :: struct {
+    /// Run the CFG verifier after each pass (`--verify`).
+    verify: bool = false
+    /// Mark `bounds_safe` every array access the range analysis proves in bounds
+    /// (`mark_proven_accesses`).
+    prove_bounds: bool = false
+    /// Bracket each pass for `$VADER_PROFILE` and print what `$VADER_OPT_REPORT`
+    /// asks for. Off for the comptime VM: it runs inside the comptime's own
+    /// bracket, in which the profiler cannot open another, and the project it
+    /// stages is not the program being built.
+    instrumented: bool = true
+    /// Keep every function's return in the plain convention: skip the passes
+    /// that hand a small tuple or an `S | null` back as separate values. On for
+    /// the comptime VM, which calls a staged function as the outermost frame,
+    /// where a multi-value return cannot land (the reason `main` is exempt from
+    /// them in every build).
+    plain_returns: bool = false
+}
+
+/// The CFG of `pruned` as the bytecode emitter receives it: built, then through
+/// every midir pass in order, DCE, escape annotation and the array-load-forward
+/// opt among them.
+///
+/// @param pruned  lowered project, already pruned of unreachable fns.
+/// @param opts    the verifier, the bounds proof, the instrumentation and the
+///                return convention.
+/// @param diags   accumulator for what the CFG build reports (an identifier it
+///                cannot place, M5007) and, under `opts.verify`, the verifier
+///                findings.
+export build_optimised_cfg :: fn(
+    pruned: LoweredProject,
+    opts: CfgPassOptions,
+    diags: Diagnostic[],
+) -> CFGProject {
+    measure_begin(opts, .CfgBuild)
+    cfg :: build_cfg_project(pruned, diags)
+    measure_end(opts, .CfgBuild)
+    verify_after(opts, cfg, "build_cfg_project", diags)
+    // BEFORE DCE: the `struct.new` that built a returned tuple becomes unread once
+    // the terminator names its fields, and DCE is what removes it: running after
+    // would leave the allocation and the passes would buy nothing.
+    unrebuilt :: through_value_returns(opts, cfg, diags)
+    measure_begin(opts, .CfgDce)
+    dced :: eliminate_dead_cfg(unrebuilt)
+    measure_end(opts, .CfgDce)
+    verify_after(opts, dced, "eliminate_dead_cfg", diags)
+    measure_begin(opts, .Escape)
+    annotated :: annotate_escape(dced)
+    escaped :: annotated.project
+    measure_end(opts, .Escape)
+    // `$VADER_OPT_REPORT`: the allocations that stayed on the heap. Reported
+    // here rather than with the lowering ones because escape analysis runs after
+    // the lowering context is gone. Empty unless the env is set.
+    if opts.instrumented {
+        report_heap_allocations(annotated.stats)
+    }
+    verify_after(opts, escaped, "annotate_escape", diags)
+    forwarded :: array_load_forward_project(escaped)
+    verify_after(opts, forwarded, "array_load_forward_project", diags)
+    // `$VADER_OPT_REPORT`: what the range analysis proves, before the pass below
+    // marks it, so an access it proves is counted as proven.
+    if opts.instrumented && opt_report_enabled() {
+        Prof.prof_begin(.Ranges)
+        report_ranges(forwarded)
+        Prof.prof_end(.Ranges)
+    }
+    if !opts.prove_bounds {
+        return forwarded
+    }
+    // Last: the analysis judges the instructions the emitter receives.
+    measure_begin(opts, .Ranges)
+    marked :: mark_proven_accesses(forwarded)
+    measure_end(opts, .Ranges)
+    verify_after(opts, marked, "mark_proven_accesses", diags)
+    return marked
+}
+
+// `cfg` with a small tuple returned in registers instead of a heap object, and the
+// rebuilds that plants undone wherever the fields are still in hand (see
+// `vader/midir/value_return`); `cfg` itself under `opts.plain_returns`.
+through_value_returns :: fn(
+    opts: CfgPassOptions,
+    cfg: CFGProject,
+    diags: Diagnostic[],
+) -> CFGProject {
+    if opts.plain_returns {
+        return cfg
+    }
+    measure_begin(opts, .ValueReturn)
+    scalarised :: scalarise_value_returns(cfg)
+    measure_end(opts, .ValueReturn)
+    verify_after(opts, scalarised, "scalarise_value_returns", diags)
+    unrebuilt :: struct_field_forward_project(scalarised)
+    verify_after(opts, unrebuilt, "struct_field_forward_project", diags)
+    return unrebuilt
+}
+
+// `verify_cfg` on the CFG `pass` produced, when the options ask for it.
+verify_after :: fn(
+    opts: CfgPassOptions,
+    cfg: CFGProject,
+    pass: string,
+    diags: Diagnostic[],
+) -> void {
+    if opts.verify {
+        verify_cfg(cfg, pass, diags)
+    }
+}
+
+measure_begin :: fn(opts: CfgPassOptions, phase: Prof.ProfPhase) -> void {
+    if opts.instrumented {
+        Prof.prof_begin(phase)
+    }
+}
+
+measure_end :: fn(opts: CfgPassOptions, phase: Prof.ProfPhase) -> void {
+    if opts.instrumented {
+        Prof.prof_end(phase)
+    }
+}

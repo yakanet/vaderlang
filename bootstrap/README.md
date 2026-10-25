@@ -3,7 +3,8 @@
 Full design: [docs/BOOTSTRAP.md](../docs/BOOTSTRAP.md).
 
 `bootstrap.c` is the C of `vader/bootstrap/bootstrap.vader` — a build-only
-`<input.vader> → <output.c>` compiler — produced by `vader build --emit=c`.
+compiler from `<input.vader>` to one C unit per module — produced by
+`vader build --emit=c`.
 Any C compiler turns it into **stage0**, which carries the full compilation
 pipeline; the build then bootstraps in three stages to the shipped compiler. No
 pre-existing `vader` toolchain needed — only a C compiler.
@@ -76,5 +77,6 @@ The hook runs `seed.sh check` and blocks the push on `1` (`--no-verify` bypasses
 it); `bootstrap/seed.sh regenerate` then reseeds from the last `build/vader`,
 even when `build.sh` can no longer produce one from the old seed.
 
-The lsp / formatter / interpreter are outside `bootstrap.vader`'s closure by
-design, so growing them never breaks the seed.
+The CLI, the language server, the formatter and the debugger are outside
+`bootstrap.vader`'s closure by design, so growing them never breaks the seed. The
+VM is inside it: the comptime engine runs loop-bearing `@comptime` decls on it.

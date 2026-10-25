@@ -31,7 +31,6 @@ import "std/sort"
 
 // ----------------------------------------------------------- build
 
-
 // Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
 // for an absent/empty flag). These prepend the module search order (GCC `-I`).
 parse_include_path_flag :: fn(raw: string) -> string[] =
@@ -319,17 +318,6 @@ ready_to_emit :: fn(b: CfgBytecode, command: string, file: Path) -> bool {
         return false
     }
     return true
-}
-
-// Render the merged pipeline diagnostics to stderr and report whether the
-// build may proceed : any error-severity diagnostic aborts the build
-// (return false) ; warnings / info still print.
-flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
-    all :: merge_diagnostics(pre, lower)
-    if all.len() > 0 {
-        eprintln(all.dump_diagnostics_with_file())
-    }
-    return !any_error_diag(all)
 }
 
 // Read a `.virt` text dump and reconstruct its `BytecodeModule`, or say why not.

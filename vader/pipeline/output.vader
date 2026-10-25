@@ -136,8 +136,7 @@ export emit_program :: fn(b: CfgBytecode, file: Path, stem: Path, request: Build
     }
     if resolved.emit == "c" {
         if split {
-            work :: output_path(resolved.out, stem)
-            return write_split_files(work, split_program(b, work))
+            return write_split_c(b, output_path(resolved.out, stem))
         }
         if resolved.out == "-" {
             print(emit_c_stream_of(b))

@@ -1,0 +1,31 @@
+// A `@comptime` value whose function holds a loop is baked on the comptime VM,
+// which calls that function as its outermost frame. The function returns an
+// `S | null` built at one of its returns, the shape the build hands back as
+// separate values; the comptime VM must still receive a plain `null`.
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+first_beyond_ten :: fn() -> Point | null {
+    i := 0
+    for i < 5 {
+        if i > 10 {
+            return Point { .x = i, .y = i * 2 }
+        }
+        i += 1
+    }
+    return null
+}
+
+@comptime
+BEYOND :: first_beyond_ten()
+
+main :: fn() -> i32 {
+    println("nothing beyond ten: ${BEYOND == null}")
+    return 0
+}

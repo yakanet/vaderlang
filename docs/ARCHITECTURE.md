@@ -172,7 +172,12 @@ this order, and `vader build --verify` checks the CFG after each:
    release native build marks the index checks it proves useless, which the C
    emitter drops.
 
-Below it, `select/` maps a type to the value type the bytecode holds it as, and an
+`vader/midir/pipeline/` runs them in that order, for every path that emits bytecode:
+the build, `vader run`, the dumps, the bootstrap entry and the comptime VM. The
+comptime VM skips `value_return/`: it calls a staged function as the outermost
+frame, where a multi-value return cannot land.
+
+Below the passes, `select/` maps a type to the value type the bytecode holds it as, and an
 operation to its op.
 
 The bytecode emitter reads the CFG and recovers structured nesting, placing each

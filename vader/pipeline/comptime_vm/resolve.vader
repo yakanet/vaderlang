@@ -33,7 +33,7 @@ import "vader/lower"
 import "vader/lower/dce"
 import "vader/emit/bytecode"
 import "vader/midir"
-import "vader/midir/optimise"
+import "vader/midir/pipeline"
 import "vader/core/bytecode"
 Ct :: import "vader/front/comptime"
 Vm :: import "vader/vm"
@@ -215,9 +215,9 @@ leave_source_folder :: fn(home: string) -> void {
     }
 }
 
-// Run the canonical lower → cfg → dce → escape tail over the (still un-baked)
-// project, up to the CFG the bytecode is emitted from. Mirror of
-// `bootstrap.vader::prepare_cfg_bytecode`'s tail.
+// Lower the (still un-baked) project and run its CFG through the passes every
+// emit path runs (`build_optimised_cfg`), up to the CFG the bytecode is emitted
+// from. Unmeasured: the comptime phase that calls this is already bracketed.
 stage_to_cfg :: fn(
     loaded: LoadedProject,
     typed: TypedProject,
@@ -235,9 +235,8 @@ stage_to_cfg :: fn(
     }
     lowered :: lower_project_staged(loaded, typed, evaluated, eager_modules, diags)
     pruned :: prune_unreachable_fns(lowered, false)
-    cfg :: build_cfg_project(pruned, diags)
-    dced :: eliminate_dead_cfg(cfg)
-    return annotate_escape(dced).project
+    passes :: CfgPassOptions { .instrumented = false, .plain_returns = true }
+    return build_optimised_cfg(pruned, passes, diags)
 }
 
 // The lowered fn whose mangled name ends in `$<callee_name>`, null when absent

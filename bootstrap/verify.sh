@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Fixed-point check : build the 3-stage toolchain, then confirm stage1 and
-# stage2 (vader) emit identical C for main.vader and that the build reproduces.
+# stage2 (vader) emit identical C for main.vader, that the build reproduces, and
+# that the tree's bootstrap entry writes that same C.
 # Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. It is also the seed's
 # viability gate: `bootstrap/seed.sh check` (the pre-push hook) and the CI
 # `fixed-point` job both run it. Honours $CC.
@@ -102,6 +103,28 @@ mkdir -p build/work/repro
 if ! cmp -s build/work/repro/vader build/vader; then
   echo "NOT REPRODUCIBLE — two split builds of the same input differ" >&2
   ls -l build/work/repro/vader build/vader >&2
+  exit 1
+fi
+
+# (c) the tree's bootstrap entry, which nothing else compiles between reseeds, must
+# write the C (a) re-emitted (docs/BOOTSTRAP.md, Phase 4). Same basename as (a):
+# every unit includes its header by it.
+rm -rf build/work/tree-bootstrap
+mkdir -p build/work/tree-bootstrap/bin build/work/tree-bootstrap/emit
+./build/vader build --release --emit=executable \
+  --out=build/work/tree-bootstrap/bin/bootstrap --cc="$CC_ABS" vader/bootstrap/bootstrap.vader >/dev/null
+build/work/tree-bootstrap/bin/bootstrap vader/tools/cli/main.vader build/work/tree-bootstrap/emit/vader
+set +e
+diff -r -q build/work/verify build/work/tree-bootstrap/emit >/dev/null
+tb_rc=$?
+set -e
+if [ "$tb_rc" = 2 ]; then
+  echo "verify.sh: diff failed structurally comparing the bootstrap entry's emission" >&2
+  exit 2
+fi
+if [ "$tb_rc" != 0 ]; then
+  echo "BOOTSTRAP ENTRY DIVERGES: vader/bootstrap/bootstrap.vader does not write the C the CLI writes" >&2
+  diff -r build/work/verify build/work/tree-bootstrap/emit | head -40 >&2
   exit 1
 fi
 

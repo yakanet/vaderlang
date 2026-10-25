@@ -210,43 +210,25 @@ for escape hatches if growth pressure ever flips that decision).
 The seed compiles from a **dedicated build-only entrypoint**, not from
 `vader/tools/cli/main.vader`. This is the central piece of the new design.
 
-**Role** — a minimal compiler (~30-50 LoC) whose only job is
-`<input.vader> → <output.c>`. It reuses the exact pipeline of the full compiler
-(`prepare_cfg_bytecode` + `emit_c`, duplicated from `main.vader` since the project
-keeps the two entrypoints separate rather than extracting a shared module).
+**Role**: a minimal compiler whose only job is `<input.vader>` to one C unit per
+module. It drives `vader/pipeline` the way `vader build --release --emit=c` does
+(`prepare_program`, then `write_split_c`), so it writes the C the CLI writes for the
+same input.
 
-**Imports** — pipeline only :
-`front/resolver`, `front/typecheck`, `front/comptime`, `lower`, `midir`, `bytecode`,
-`emit/c`, `support/diagnostics`. It **must not** import `vader/vm`, `vader/tools/fmt`, or `vader/tools/lsp` —
-that exclusion is the whole point (it is what decouples the seed from the CLI and
-keeps it stable as those modules grow).
+**Imports**: `vader/pipeline` only. It **must not** import `vader/tools/` (the CLI,
+the formatter, the language server, the debugger): that exclusion is what decouples
+the seed from them as they grow. It does pull `vader/vm` in, through the comptime VM
+that bakes loop-bearing `@comptime` decls.
 
 **Capability** — because it carries the full pipeline, `stage1` (compiled from it)
 can compile *any* `.vader`, including `main.vader` → the full compiler. "Mini"
 refers to its CLI surface, not its compilation capability.
 
-Skeleton :
+The whole entrypoint is `main` in `vader/bootstrap/bootstrap.vader`.
 
-```vader
-module "vader/bootstrap"
-
-import "vader/midir"
-import "vader/emit/c"
-// pipeline imports only — NOT vader/vm, vader/tools/fmt, vader/tools/lsp
-
-main :: fn(args: string[]) -> i32 {
-    // args : <input.vader> <output.c>
-    b :: prepare_cfg_bytecode(args[0])   // pipeline duplicated from main.vader
-    write_file(args[1], emit_c(b.module, EmitOptions { .entry_mangled = b.entry }))
-    return 0
-}
-```
-
-Note : the pipeline helpers (`lower_to_entry`, `prepare_cfg_bytecode`,
-`prepare_evaluated_project`, `entry_main_name`, `gather_pipeline_diags`,
-`module_name_from_file`) currently live in `vader/tools/cli/main.vader`. The duplication
-they require is a deliberate trade-off (no shared `driver` module) ; `verify.sh`
-(self-reproduction) catches a stale `bootstrap.vader`.
+stage0 is compiled from the committed seed, so between reseeds nothing compiles the
+tree's `bootstrap.vader` but `verify.sh` step (c), which builds it with stage2 and
+checks that it writes the C step (a) re-emitted.
 
 ---
 
@@ -595,6 +577,9 @@ runs before a push. It builds the three stages with `build.sh`, then checks:
   which covers `#line` and the per-op debug table.
 - **(b) reproducibility** — stage1 builds stage2 a second time, to another path;
   the two binaries must be byte-identical.
+- **(c) bootstrap entry**: stage2 builds the tree's `vader/bootstrap/bootstrap.vader`,
+  which must write for `main.vader` the C (a) re-emitted, unit for unit. Nothing
+  else compiles that file between reseeds.
 
 Exit `0` pass, `1` a real failure, `2` could not conclude (a structural `diff`
 error, a missing C compiler). A fixed point says nothing about correctness: a
