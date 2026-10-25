@@ -9,6 +9,7 @@ import "vader/lower/ir"
 import "toolchain/ast"
 import "vader/front/typecheck"
 import "vader/core/types"
+import "vader/support/integer"
 import "toolchain/span"
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
@@ -42,11 +43,13 @@ maybe_negate :: fn(cond: LoweredExpr, negate: bool, span: Span) -> LoweredExpr {
 // unless it is a trait, which the run-time lookup finds through a struct's impls
 // alone. The other types the value may hold are resolved here, by the predicate
 // the narrowing reads (`trait_test_admits`) : `x is Equals` on an `i32 | Point`
-// checks `i32 | Equals`, the trait test left to the struct. A struct, and a type
-// still open at run time (a trait value, `any`, a type parameter), keep the trait
-// test ; an instance of a generic struct could not be told apart by its tag. An
-// admitted array gets its members for the trait's vtable, which the branch where
-// the test holds dispatches through (`surface_array_into_trait`).
+// checks `i32 | Equals`, the trait test left to the struct. A struct keeps the
+// trait test ; an instance of a generic struct could not be told apart by its tag.
+// A type still open at run time (a trait value, `any`, a type parameter) may hold a
+// struct or a scalar : it keeps the trait test, and the tag of every scalar the
+// trait admits is tested too. An admitted array gets its members for the trait's
+// vtable, which the branch where the test holds dispatches through
+// (`surface_array_into_trait`).
 trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
     if check !is TraitType {
         return check
@@ -54,8 +57,15 @@ trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
     admitted: Type[]: []
     needs_trait_lookup := false
     for variant in union_variants(scrutinee) ?? [scrutinee] {
-        if variant is StructType | TraitType | AnyType | TypeParamType {
+        if variant is StructType {
             needs_trait_lookup = true
+        } else if variant is TraitType | AnyType | TypeParamType {
+            needs_trait_lookup = true
+            for scalar in held_scalars() {
+                if trait_test_admits(scalar, check, ctx.typed) {
+                    admitted.push(scalar)
+                }
+            }
         } else if trait_test_admits(variant, check, ctx.typed) {
             admitted.push(variant)
             surface_array_into_trait(ctx, variant, check)
@@ -65,6 +75,21 @@ trait_test_type :: fn(ctx: FnLowerCtx, scrutinee: Type, check: Type) -> Type {
         admitted.push(check)
     }
     return union_of(admitted)
+}
+
+// The scalar types a value held as a trait or as `any` may have : the machine
+// integers and every primitive with a value (`void` and `null` hold none).
+held_scalars :: fn() -> Type[] {
+    scalars: Type[]: []
+    for m in MACHINE_INTEGERS {
+        scalars.push(machine_integer_type(m))
+    }
+    for meta in PRIMITIVE_META {
+        if meta.size > 0 {
+            scalars.push(mk_primitive(meta.name))
+        }
+    }
+    return scalars
 }
 
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {

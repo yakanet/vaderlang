@@ -1,9 +1,11 @@
 # Typecheck
 
 ## tests/snippets/is_trait_on_union_variants
+  FnDecl         as_display           :: fn(i32) -> Display
   EnumDecl       Color                :: Color
   FnDecl         colour_or_point      :: fn(Color | Point) -> string
   FnDecl         describe             :: fn(i32 | Point) -> string
+  FnDecl         displayed            :: fn(Display | Point) -> string
   FnDecl         hashable             :: fn(Point | string | Tagged) -> string
   FnDecl         kind                 :: fn(bool | Color | i32 | Meters | Point | string) -> string
   FnDecl         main                 :: fn() -> i32
@@ -13,135 +15,156 @@
   FnDecl         shown                :: fn(i32[] | Point) -> string
   FnDecl         shown_points         :: fn(Point[] | string) -> string
   StructDecl     Tagged               :: Tagged
-  expr 21:29    BinaryExpr     :: bool
-  expr 21:29    FieldExpr      :: i32
-  expr 21:29    IdentExpr      :: Meters
-  expr 21:43    FieldExpr      :: i32
-  expr 21:43    IdentExpr      :: Meters
-  expr 29:29    BinaryExpr     :: bool
-  expr 29:29    FieldExpr      :: string
-  expr 29:29    IdentExpr      :: Tagged
-  expr 29:41    FieldExpr      :: string
-  expr 29:41    IdentExpr      :: Tagged
-  expr 31:73    MatchExpr      :: string
-  expr 31:79    IdentExpr      :: bool | Color | i32 | Meters | Point | string
-  expr 32:18    StringLitExpr  :: string
+  expr 22:29    BinaryExpr     :: bool
+  expr 22:29    FieldExpr      :: i32
+  expr 22:29    IdentExpr      :: Meters
+  expr 22:43    FieldExpr      :: i32
+  expr 22:43    IdentExpr      :: Meters
+  expr 30:29    BinaryExpr     :: bool
+  expr 30:29    FieldExpr      :: string
+  expr 30:29    IdentExpr      :: Tagged
+  expr 30:41    FieldExpr      :: string
+  expr 30:41    IdentExpr      :: Tagged
+  expr 32:73    MatchExpr      :: string
+  expr 32:79    IdentExpr      :: bool | Color | i32 | Meters | Point | string
   expr 33:18    StringLitExpr  :: string
-  expr 37:13    IdentExpr      :: Equals
-  expr 37:5     IfExpr         :: void
-  expr 37:8     BinaryExpr     :: bool
-  expr 37:8     IdentExpr      :: i32 | Point
-  expr 38:16    StringLitExpr  :: string
-  expr 40:12    StringLitExpr  :: string
-  expr 40:21    FieldExpr      :: i32
-  expr 40:21    IdentExpr      :: Point
-  expr 44:13    IdentExpr      :: Equals
-  expr 44:5     IfExpr         :: void
-  expr 44:8     BinaryExpr     :: bool
-  expr 44:8     IdentExpr      :: Color | Point
-  expr 45:16    StringLitExpr  :: string
-  expr 47:12    StringLitExpr  :: string
-  expr 47:21    FieldExpr      :: i32
-  expr 47:21    IdentExpr      :: Point
-  expr 50:56    MatchExpr      :: string
-  expr 50:62    IdentExpr      :: Point | string | Tagged
-  expr 51:17    StringLitExpr  :: string
+  expr 34:18    StringLitExpr  :: string
+  expr 38:13    IdentExpr      :: Equals
+  expr 38:5     IfExpr         :: void
+  expr 38:8     BinaryExpr     :: bool
+  expr 38:8     IdentExpr      :: i32 | Point
+  expr 39:16    StringLitExpr  :: string
+  expr 41:12    StringLitExpr  :: string
+  expr 41:21    FieldExpr      :: i32
+  expr 41:21    IdentExpr      :: Point
+  expr 45:13    IdentExpr      :: Equals
+  expr 45:5     IfExpr         :: void
+  expr 45:8     BinaryExpr     :: bool
+  expr 45:8     IdentExpr      :: Color | Point
+  expr 46:16    StringLitExpr  :: string
+  expr 48:12    StringLitExpr  :: string
+  expr 48:21    FieldExpr      :: i32
+  expr 48:21    IdentExpr      :: Point
+  expr 51:56    MatchExpr      :: string
+  expr 51:62    IdentExpr      :: Point | string | Tagged
   expr 52:17    StringLitExpr  :: string
-  expr 52:26    FieldExpr      :: i32
-  expr 52:26    IdentExpr      :: Point
-  expr 56:13    IdentExpr      :: Display
-  expr 56:5     IfExpr         :: void
-  expr 56:8     BinaryExpr     :: bool
-  expr 56:8     IdentExpr      :: i32[] | Point
-  expr 57:16    CallExpr       :: string
-  expr 57:16    FieldExpr      :: fn() -> string
-  expr 57:16    IdentExpr      :: Display
-  expr 59:12    StringLitExpr  :: string
-  expr 63:13    IdentExpr      :: Display
-  expr 63:5     IfExpr         :: void
-  expr 63:8     BinaryExpr     :: bool
-  expr 63:8     IdentExpr      :: Point[] | string
-  expr 64:16    StringLitExpr  :: string
-  expr 66:12    StringLitExpr  :: string
-  expr 70:13    IdentExpr      :: Equals
-  expr 70:5     IfExpr         :: void
-  expr 70:8     BinaryExpr     :: bool
-  expr 70:8     IdentExpr      :: Display | Point
-  expr 71:16    StringLitExpr  :: string
-  expr 73:12    StringLitExpr  :: string
-  expr 77:13    StringLitExpr  :: string
-  expr 77:16    CallExpr       :: string
-  expr 77:16    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 77:21    DotVariantExpr :: Color
-  expr 77:30    CallExpr       :: string
-  expr 77:30    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 77:41    CallExpr       :: string
-  expr 77:41    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 77:46    StringLitExpr  :: string
-  expr 77:5     CallExpr       :: void
-  expr 77:5     IdentExpr      :: fn(T) -> void
-  expr 78:13    StringLitExpr  :: string
-  expr 78:16    CallExpr       :: string
-  expr 78:16    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 78:21    StructLitExpr  :: Meters
-  expr 78:47    CallExpr       :: string
-  expr 78:47    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 78:5     CallExpr       :: void
-  expr 78:5     IdentExpr      :: fn(T) -> void
-  expr 78:61    CallExpr       :: string
-  expr 78:61    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
-  expr 78:66    StructLitExpr  :: Point
-  expr 79:13    StringLitExpr  :: string
+  expr 53:17    StringLitExpr  :: string
+  expr 53:26    FieldExpr      :: i32
+  expr 53:26    IdentExpr      :: Point
+  expr 57:13    IdentExpr      :: Display
+  expr 57:5     IfExpr         :: void
+  expr 57:8     BinaryExpr     :: bool
+  expr 57:8     IdentExpr      :: i32[] | Point
+  expr 58:16    CallExpr       :: string
+  expr 58:16    FieldExpr      :: fn() -> string
+  expr 58:16    IdentExpr      :: Display
+  expr 60:12    StringLitExpr  :: string
+  expr 64:13    IdentExpr      :: Display
+  expr 64:5     IfExpr         :: void
+  expr 64:8     BinaryExpr     :: bool
+  expr 64:8     IdentExpr      :: Point[] | string
+  expr 65:16    StringLitExpr  :: string
+  expr 67:12    StringLitExpr  :: string
+  expr 71:13    IdentExpr      :: Equals
+  expr 71:5     IfExpr         :: void
+  expr 71:8     BinaryExpr     :: bool
+  expr 71:8     IdentExpr      :: Display | Point
+  expr 72:16    StringLitExpr  :: string
+  expr 74:12    StringLitExpr  :: string
+  expr 78:13    IdentExpr      :: Display
+  expr 78:5     IfExpr         :: void
+  expr 78:8     BinaryExpr     :: bool
+  expr 78:8     IdentExpr      :: Display | Point
   expr 79:16    CallExpr       :: string
-  expr 79:16    IdentExpr      :: fn(i32 | Point) -> string
-  expr 79:31    CallExpr       :: string
-  expr 79:31    IdentExpr      :: fn(i32 | Point) -> string
-  expr 79:40    StructLitExpr  :: Point
-  expr 79:5     CallExpr       :: void
-  expr 79:5     IdentExpr      :: fn(T) -> void
-  expr 80:13    StringLitExpr  :: string
-  expr 80:16    CallExpr       :: string
-  expr 80:16    IdentExpr      :: fn(Color | Point) -> string
-  expr 80:32    DotVariantExpr :: Color
-  expr 80:43    CallExpr       :: string
-  expr 80:43    IdentExpr      :: fn(Color | Point) -> string
-  expr 80:5     CallExpr       :: void
-  expr 80:5     IdentExpr      :: fn(T) -> void
-  expr 80:59    StructLitExpr  :: Point
-  expr 81:13    StringLitExpr  :: string
-  expr 81:16    CallExpr       :: string
-  expr 81:16    IdentExpr      :: fn(Point | string | Tagged) -> string
-  expr 81:25    StringLitExpr  :: string
-  expr 81:33    CallExpr       :: string
-  expr 81:33    IdentExpr      :: fn(Point | string | Tagged) -> string
-  expr 81:42    StructLitExpr  :: Point
-  expr 81:5     CallExpr       :: void
-  expr 81:5     IdentExpr      :: fn(T) -> void
-  expr 81:63    CallExpr       :: string
-  expr 81:63    IdentExpr      :: fn(Point | string | Tagged) -> string
-  expr 81:72    StructLitExpr  :: Tagged
-  expr 81:88    StringLitExpr  :: string
-  expr 82:13    StringLitExpr  :: string
-  expr 82:16    CallExpr       :: string
-  expr 82:16    IdentExpr      :: fn(i32[] | Point) -> string
-  expr 82:22    SeqLitExpr     :: i32[]
-  expr 82:33    CallExpr       :: string
-  expr 82:33    IdentExpr      :: fn(i32[] | Point) -> string
-  expr 82:39    StructLitExpr  :: Point
-  expr 82:5     CallExpr       :: void
-  expr 82:5     IdentExpr      :: fn(T) -> void
-  expr 83:13    StringLitExpr  :: string
-  expr 83:16    CallExpr       :: string
-  expr 83:16    IdentExpr      :: fn(Point[] | string) -> string
-  expr 83:29    SeqLitExpr     :: Point[]
-  expr 83:30    StructLitExpr  :: Point
-  expr 83:5     CallExpr       :: void
-  expr 83:5     IdentExpr      :: fn(T) -> void
-  expr 83:52    CallExpr       :: string
-  expr 83:52    IdentExpr      :: fn(Point[] | string) -> string
-  expr 83:65    StringLitExpr  :: string
-  expr 84:13    CallExpr       :: string
-  expr 84:13    IdentExpr      :: fn(Display | Point) -> string
-  expr 84:18    StructLitExpr  :: Point
-  expr 84:5     CallExpr       :: void
-  expr 84:5     IdentExpr      :: fn(T) -> void
+  expr 79:16    FieldExpr      :: fn() -> string
+  expr 79:16    IdentExpr      :: Display
+  expr 81:12    StringLitExpr  :: string
+  expr 81:21    FieldExpr      :: i32
+  expr 81:21    IdentExpr      :: Point
+  expr 84:39    IdentExpr      :: i32
+  expr 87:13    StringLitExpr  :: string
+  expr 87:16    CallExpr       :: string
+  expr 87:16    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 87:21    DotVariantExpr :: Color
+  expr 87:30    CallExpr       :: string
+  expr 87:30    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 87:41    CallExpr       :: string
+  expr 87:41    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 87:46    StringLitExpr  :: string
+  expr 87:5     CallExpr       :: void
+  expr 87:5     IdentExpr      :: fn(T) -> void
+  expr 88:13    StringLitExpr  :: string
+  expr 88:16    CallExpr       :: string
+  expr 88:16    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 88:21    StructLitExpr  :: Meters
+  expr 88:47    CallExpr       :: string
+  expr 88:47    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 88:5     CallExpr       :: void
+  expr 88:5     IdentExpr      :: fn(T) -> void
+  expr 88:61    CallExpr       :: string
+  expr 88:61    IdentExpr      :: fn(bool | Color | i32 | Meters | Point | string) -> string
+  expr 88:66    StructLitExpr  :: Point
+  expr 89:13    StringLitExpr  :: string
+  expr 89:16    CallExpr       :: string
+  expr 89:16    IdentExpr      :: fn(i32 | Point) -> string
+  expr 89:31    CallExpr       :: string
+  expr 89:31    IdentExpr      :: fn(i32 | Point) -> string
+  expr 89:40    StructLitExpr  :: Point
+  expr 89:5     CallExpr       :: void
+  expr 89:5     IdentExpr      :: fn(T) -> void
+  expr 90:13    StringLitExpr  :: string
+  expr 90:16    CallExpr       :: string
+  expr 90:16    IdentExpr      :: fn(Color | Point) -> string
+  expr 90:32    DotVariantExpr :: Color
+  expr 90:43    CallExpr       :: string
+  expr 90:43    IdentExpr      :: fn(Color | Point) -> string
+  expr 90:5     CallExpr       :: void
+  expr 90:5     IdentExpr      :: fn(T) -> void
+  expr 90:59    StructLitExpr  :: Point
+  expr 91:13    StringLitExpr  :: string
+  expr 91:16    CallExpr       :: string
+  expr 91:16    IdentExpr      :: fn(Point | string | Tagged) -> string
+  expr 91:25    StringLitExpr  :: string
+  expr 91:33    CallExpr       :: string
+  expr 91:33    IdentExpr      :: fn(Point | string | Tagged) -> string
+  expr 91:42    StructLitExpr  :: Point
+  expr 91:5     CallExpr       :: void
+  expr 91:5     IdentExpr      :: fn(T) -> void
+  expr 91:63    CallExpr       :: string
+  expr 91:63    IdentExpr      :: fn(Point | string | Tagged) -> string
+  expr 91:72    StructLitExpr  :: Tagged
+  expr 91:88    StringLitExpr  :: string
+  expr 92:13    StringLitExpr  :: string
+  expr 92:16    CallExpr       :: string
+  expr 92:16    IdentExpr      :: fn(i32[] | Point) -> string
+  expr 92:22    SeqLitExpr     :: i32[]
+  expr 92:33    CallExpr       :: string
+  expr 92:33    IdentExpr      :: fn(i32[] | Point) -> string
+  expr 92:39    StructLitExpr  :: Point
+  expr 92:5     CallExpr       :: void
+  expr 92:5     IdentExpr      :: fn(T) -> void
+  expr 93:13    StringLitExpr  :: string
+  expr 93:16    CallExpr       :: string
+  expr 93:16    IdentExpr      :: fn(Point[] | string) -> string
+  expr 93:29    SeqLitExpr     :: Point[]
+  expr 93:30    StructLitExpr  :: Point
+  expr 93:5     CallExpr       :: void
+  expr 93:5     IdentExpr      :: fn(T) -> void
+  expr 93:52    CallExpr       :: string
+  expr 93:52    IdentExpr      :: fn(Point[] | string) -> string
+  expr 93:65    StringLitExpr  :: string
+  expr 94:13    CallExpr       :: string
+  expr 94:13    IdentExpr      :: fn(Display | Point) -> string
+  expr 94:18    StructLitExpr  :: Point
+  expr 94:5     CallExpr       :: void
+  expr 94:5     IdentExpr      :: fn(T) -> void
+  expr 95:13    StringLitExpr  :: string
+  expr 95:16    CallExpr       :: string
+  expr 95:16    IdentExpr      :: fn(Display | Point) -> string
+  expr 95:26    CallExpr       :: Display
+  expr 95:26    IdentExpr      :: fn(i32) -> Display
+  expr 95:44    CallExpr       :: string
+  expr 95:44    IdentExpr      :: fn(Display | Point) -> string
+  expr 95:5     CallExpr       :: void
+  expr 95:5     IdentExpr      :: fn(T) -> void
+  expr 95:54    StructLitExpr  :: Point
