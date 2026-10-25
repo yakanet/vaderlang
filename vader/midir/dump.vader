@@ -11,7 +11,7 @@ module "vader/midir"
 import "std/string_builder"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/resolver"
+import "vader/support/text"
 
 /// Optional filter / shape controls for `dump_cfg_project`.
 export DumpCfgOptions :: struct {

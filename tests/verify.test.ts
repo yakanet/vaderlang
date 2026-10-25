@@ -6,13 +6,12 @@
 //
 // `build` is the only action carrying `--verify`, and that is deliberate:
 // `dump` renders diagnostics through `filter_diags_in_scope`
-// (`cmd_dump.vader:535`), which drops everything outside the entry module's
+// (`cmd_dump.vader`), which drops everything outside the entry module's
 // subtree, so a dump-based assertion reports clean whatever the verifiers
 // found. `flush_build_diags` shows the full set.
 //
 // These pin the outer contract only. Asserting that a broken CFG is CAUGHT
-// needs a hand-built `CFGFunction`, and `MonoEntry.module` is a `TypedProgram`
-// with no cheap constructor; until that fixture factory exists, detection is
+// needs a hand-built `CFGFunction`; until that fixture exists, detection is
 // exercised only by the corpus below.
 
 import { test, expect } from "bun:test";

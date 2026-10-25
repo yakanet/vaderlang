@@ -10,6 +10,7 @@
 module "vader/lower/optimise"
 
 import "std/collections"
+import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
 import "vader/lower/ir"
@@ -215,7 +216,6 @@ indexed_decl :: fn(ctx: PurityCtx, symbol: Symbol) -> LoweredFnDecl | null {
 
 import "std/testing"
 import "vader/support/diagnostics"
-import "vader/front/comptime"
 AST :: import "toolchain/ast"
 import "toolchain/span"
 
@@ -254,7 +254,7 @@ test_fn_decl :: fn(sym: Symbol, body: LoweredBlock | null) -> LoweredFnDecl {
             .symbol = sym,
             .subst = new_substitution(),
             .type_arguments = [],
-            .module = null,
+            .module = "",
         },
     }
 }

@@ -28,6 +28,7 @@ import "vader/midir/pipeline"
 import "vader/core/bytecode"
 Prof :: import "vader/support/profile"
 import "vader/support/opt_report"
+import "vader/support/text"
 
 /// Normalise a path to `/` separators.
 ///

@@ -177,7 +177,7 @@ export BcImport :: struct {
     signature: BcSignature
     is_extern: bool
     /// Header to `#include` instead of synthesising a prototype, or `""`.
-    /// See `extern_header` (`vader/front/comptime`).
+    /// See `extern_header` (`toolchain/ast`).
     c_header: string = ""
     /// The `CLibrary` the declaration names, as evaluated for the build target
     /// (`include` and `archives` resolved) ; null for none. What a native build

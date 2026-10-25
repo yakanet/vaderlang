@@ -22,11 +22,11 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/core/mono"
 import "vader/support/diagnostics"
 AST :: import "toolchain/ast"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "toolchain/span"
 import "vader/lower/ir"
 
@@ -226,7 +226,7 @@ fresh_lifted_symbol_with_prefix :: fn(ctx: FnLowerCtx, is_env: bool, fn_prefix: 
 /// Shared MonoEntry constructor for lambda + defer lifts. Each pass
 /// passes its own `symbol` (already minted via `next_synthetic_id`).
 synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
-    return MonoEntry { .id = next_mono_entry_id(ctx), .is_main = false, .mangled = symbol.name, .decl = stub_decl_for(symbol), .symbol = symbol, .subst = new_substitution(), .type_arguments = [], .module = ctx.typed }    // Use a private counter (not the project-wide synthetic id pool)
+    return MonoEntry { .id = next_mono_entry_id(ctx), .is_main = false, .mangled = symbol.name, .decl = stub_decl_for(symbol), .symbol = symbol, .subst = new_substitution(), .type_arguments = [], .module = ctx.typed.resolved.path }    // Use a private counter (not the project-wide synthetic id pool)
     // so MonoEntry minting doesn't bump the symbol-id counter the
     // lambda-naming uses.
 

@@ -13,9 +13,9 @@ module "vader/lower/dump"
 import "std/collections"
 import "std/string"
 import "toolchain/ast"
+import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/lower/ir"
@@ -36,11 +36,11 @@ NamedDecl :: struct {
     qualified: string
 }
 
-new_dump_names :: fn(project: LoweredProject) -> DumpNames {
+new_dump_names :: fn(project: LoweredProject, typed: TypedProject) -> DumpNames {
     named: NamedDecl[]: []
     for module in project.modules.values() {
         for decl in module.decls {
-            named.push(named_decl(decl))
+            named.push(named_decl(decl, typed))
         }
     }
     claimed :: MutableMap<string, string> {}
@@ -50,7 +50,7 @@ new_dump_names :: fn(project: LoweredProject) -> DumpNames {
             shared.add(n.qualified)
         }
     }
-    names :: DumpNames { .traits = trait_names(named) }
+    names :: DumpNames { .traits = trait_names(named, typed) }
     for n in named {
         printed :: printed_name(n, shared)
         names.by_mangle[n.mangled] = printed
@@ -67,28 +67,30 @@ printed_name :: fn(n: NamedDecl, shared: MutableSet<string>) -> string {
     return n.qualified
 }
 
-named_decl :: fn(decl: LoweredDecl) -> NamedDecl = match decl {
-    is LoweredFnDecl     -> named(decl.mangled, decl.origin, decl.params)
-    is LoweredStructDecl -> named(decl.mangled, decl.origin, [])
-    is LoweredConstDecl  -> named(decl.mangled, decl.origin, [])
+named_decl :: fn(decl: LoweredDecl, typed: TypedProject) -> NamedDecl = match decl {
+    is LoweredFnDecl     -> named(decl.mangled, decl.origin, decl.params, typed)
+    is LoweredStructDecl -> named(decl.mangled, decl.origin, [], typed)
+    is LoweredConstDecl  -> named(decl.mangled, decl.origin, [], typed)
 }
 
-named :: fn(mangled: string, origin: MonoEntry, params: LoweredParam[]) -> NamedDecl = NamedDecl {
+named :: fn(
+    mangled: string, origin: MonoEntry, params: LoweredParam[], typed: TypedProject,
+) -> NamedDecl = NamedDecl {
     .mangled = mangled,
     .origin = origin,
-    .qualified = qualified_name(origin, mangled, params),
+    .qualified = qualified_name(origin, mangled, params, typed),
 }
 
 // A trait's key (`trait_key_of`) to its qualified name, for every trait of a
 // module some declaration was lowered from.
-trait_names :: fn(named: NamedDecl[]) -> MutableMap<string, string> {
+trait_names :: fn(named: NamedDecl[], typed: TypedProject) -> MutableMap<string, string> {
     seen :: MutableSet<string> {}
     traits :: MutableMap<string, string> {}
     for n in named {
-        module :: n.origin.module ?? continue
-        if !seen.add(module.resolved.path) {
+        if !seen.add(n.origin.module) {
             continue
         }
+        module :: typed.modules[n.origin.module] ?? continue
         for symbol in module.resolved.symbols {
             if symbol.kind == .Trait {
                 traits[trait_key_of(symbol)] = "${dotted(symbol.module_name)}.${symbol.name}"
@@ -101,12 +103,14 @@ trait_names :: fn(named: NamedDecl[]) -> MutableMap<string, string> {
 // A free function prints as `module.name<args>`, an impl member as
 // `module.Receiver.name`. A static impl member names no receiver, so it keeps its
 // mangled name, as does what the lowering made up.
-qualified_name :: fn(origin: MonoEntry, mangled: string, params: LoweredParam[]) -> string {
+qualified_name :: fn(
+    origin: MonoEntry, mangled: string, params: LoweredParam[], typed: TypedProject,
+) -> string {
     symbol :: origin.symbol
     if symbol != null && is_made_up(symbol) {
         return mangled
     }
-    module :: origin.module ?? return mangled
+    module :: typed.modules[origin.module] ?? return mangled
     path :: dotted(module.resolved.display_path)
     decl :: origin.decl
     if decl is FnDecl {

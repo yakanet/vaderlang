@@ -1,4 +1,4 @@
-// vader/front/comptime/mono_ast — the specialised-decl entry shape.
+// vader/core/mono/mono_entry — the specialised-decl entry shape.
 //
 // Defines `MonoEntry` : one concrete fn / struct / const / impl-member
 // decl the lowerer is about to emit, carrying its source decl, owning
@@ -6,13 +6,12 @@
 // lowerer (`lower_decl`, `lower_lambda`, `lower_mono_*`) builds these and
 // the bytecode emit / c emitter route on `id` / `mangled` / `is_main`.
 
-module "vader/front/comptime"
+module "vader/core/mono"
 
 import "toolchain/ast"
-import "vader/core/types"
-import "vader/front/typecheck"
-import "vader/core/symbol"
 import "toolchain/span"
+import "vader/core/symbol"
+import "vader/core/types"
 
 /// One specialised decl. Carries every field downstream phases need to
 /// emit a concrete function / struct / const : the source decl, its
@@ -52,9 +51,10 @@ export MonoEntry :: struct {
     /// generic instantiation ; empty otherwise.
     type_arguments: Type[]
 
-    /// Module the origin decl lives in — needed for resolver-table
-    /// lookups (TypedProgram side-tables are per-module).
-    module: TypedProgram | null
+    /// Path of the module the origin decl lives in (`ResolvedModule.path`, the key
+    /// of `TypedProject.modules`), where its resolver tables are looked up ; empty
+    /// for an entry no module declares.
+    module: string
 
     /// The vtable slot this fn fills when it is an impl member, or the guard that
     /// stands in for one (`vader/lower/guard_equals.vader`) ; null for every other

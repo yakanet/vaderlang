@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/collections"
 import "std/iter"
+import "vader/core/mono"
 import "vader/lower/ir"
 
 import "vader/support/diagnostics"
@@ -84,7 +85,7 @@ materialize_representative :: fn(
         .symbol         = sym,
         .subst          = erase,
         .type_arguments = any_args,
-        .module         = owner_typed,
+        .module         = owner_typed.resolved.path,
     }
     push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
         .mangled = rep_mangled,
@@ -228,7 +229,7 @@ materialize_struct_instance :: fn(
         .symbol         = inst.symbol,
         .subst          = subst,
         .type_arguments = inst.args,
-        .module         = owner_typed,
+        .module         = owner_typed.resolved.path,
     }
     if fresh {
         push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
@@ -516,7 +517,7 @@ materialize_impl_for_instance :: fn(
             .symbol         = null,
             .subst          = subst,
             .type_arguments = inst.args,
-            .module         = impl_typed,
+            .module         = impl_typed.resolved.path,
             .vtable_slot    = member_vtable_slot(impl_trait, member),
         }
         synth_start :: project_ctx.synth_decls.len()

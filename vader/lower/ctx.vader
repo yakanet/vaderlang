@@ -10,6 +10,7 @@
 module "vader/lower"
 
 import "std/collections"
+import "vader/core/mono"
 import "vader/support/diagnostics"
 import "toolchain/ast"
 import "toolchain/span"

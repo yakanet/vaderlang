@@ -17,6 +17,7 @@
 module "vader/lower/ir"
 
 import "std/collections"
+import "vader/core/mono"
 import "vader/support/diagnostics"
 
 // ---- entry point ----------------------------------------------------------
@@ -152,7 +153,6 @@ import "std/testing"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 
 // A function symbol of the module `test`.
 test_fn_symbol :: fn(id: i32, name: string) -> Symbol = Symbol {
@@ -179,7 +179,7 @@ test_fn_decl :: fn(sym: Symbol, body: LoweredBlock) -> LoweredFnDecl = LoweredFn
         .symbol = sym,
         .subst = new_substitution(),
         .type_arguments = [],
-        .module = null,
+        .module = "",
     },
 }
 

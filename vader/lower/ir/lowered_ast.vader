@@ -10,10 +10,10 @@ module "vader/lower/ir"
 
 import "std/collections"
 import "std/ffi"
+import "vader/core/mono"
 import "vader/support/diagnostics"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "toolchain/span"
 
 // ============================================================================

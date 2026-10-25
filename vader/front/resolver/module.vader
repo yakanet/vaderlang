@@ -62,27 +62,6 @@ export DRIVER_ENTRY :: "build"
 /// Under `build/` so a checkout's existing ignore rules already cover it.
 export GENERATED_ROOT_DIR :: "build/generated"
 
-/// True when `display_path` falls within the dump scope `scope` — it equals a
-/// scope entry or is a submodule of one (`M` or `M/...`). The IR dumps
-/// (`dump --stage=…`) render only in-scope modules ; the scope defaults to the
-/// entry module's subtree and is overridable with `--module`. This replaced the
-/// stdlib-vs-user heuristic : a dump now shows the modules under inspection,
-/// treating stdlib and any other dependency uniformly (out of scope by default).
-///
-/// @param display_path  the module's user-declared name (`module "..."`).
-/// @param scope         the in-scope module ids / prefixes.
-export module_in_scope :: fn(display_path: string, scope: string[]) -> bool {
-    for m in scope {
-        if display_path == m {
-            return true
-        }
-        if display_path.starts_with("${m}/") {
-            return true
-        }
-    }
-    return false
-}
-
 /// A loaded source file in a module — raw text plus its parsed AST.
 /// `id_factory` is the post-parse factory state for this file, threaded
 /// to `LoadedModule` so cloned default-method bodies inserted by

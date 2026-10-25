@@ -19,9 +19,9 @@
 module "vader/lower"
 
 import "toolchain/span"
+import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "vader/front/typecheck"
 import "vader/lower/ir"
 

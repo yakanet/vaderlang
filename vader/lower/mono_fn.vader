@@ -8,6 +8,7 @@ import "std/iter"
 import "std/sort"
 import "std/string"
 import "std/string_builder"
+import "vader/core/mono"
 import "vader/lower/ir"
 
 import "vader/support/diagnostics"
@@ -15,7 +16,6 @@ import "toolchain/ast"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/core/types"
-import "vader/front/comptime"
 import "vader/core/symbol"
 import "toolchain/span"
 
@@ -272,7 +272,7 @@ build_fn_instance_decl :: fn(
         .symbol         = entry_symbol,
         .subst          = subst,
         .type_arguments = inst.type_args,
-        .module         = owner_typed,
+        .module         = owner_typed.resolved.path,
     }
     decl :: lowered_fn_of(fn_decl, owner_typed, project_ctx, entry, subst, params, return_type)
     return PendingFnInstance {

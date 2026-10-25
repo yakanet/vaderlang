@@ -16,6 +16,7 @@ module "vader/midir"
 
 import "std/collections"
 import "std/ffi"
+import "vader/core/mono"
 import "vader/support/diagnostics"
 import "vader/support/integer"
 import "vader/lower/ir"
@@ -161,7 +162,6 @@ FnCtx :: struct {
     current:         BlockId | null
 }
 
-import "vader/front/comptime"
 
 // ============================================================================
 // Project-level orchestration

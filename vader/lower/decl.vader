@@ -5,6 +5,7 @@ module "vader/lower"
 
 import "std/abort"
 import "std/collections"
+import "vader/core/mono"
 import "vader/lower/ir"
 
 import "vader/support/diagnostics"
@@ -159,7 +160,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string, tra
         .symbol         = null,
         .subst          = new_substitution(),
         .type_arguments = [],
-        .module         = typed,
+        .module         = typed.resolved.path,
         .vtable_slot    = member_vtable_slot(trait_key, member),
     }
 }
@@ -431,7 +432,7 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
         .symbol         = resolved_symbol,
         .subst          = new_substitution(),
         .type_arguments = [],
-        .module         = typed,
+        .module         = typed.resolved.path,
     }
 }
 

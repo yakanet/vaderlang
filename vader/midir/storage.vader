@@ -23,9 +23,9 @@ module "vader/midir"
 
 import "std/collections"
 import "toolchain/span"
+import "vader/core/mono"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/comptime"
 import "vader/midir/select"
 import "vader/support/integer"
 

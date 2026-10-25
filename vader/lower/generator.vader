@@ -21,6 +21,7 @@
 module "vader/lower"
 
 import "toolchain/ast"
+import "vader/core/mono"
 import "vader/core/types"
 import "vader/core/symbol"
 import "vader/front/typecheck"
@@ -28,7 +29,6 @@ import "std/collections"
 import "vader/support/diagnostics"
 import "toolchain/span"
 import "std/abort"
-import "vader/front/comptime"
 import "vader/lower/ir"
 
 // ---- element type ---------------------------------------------------------

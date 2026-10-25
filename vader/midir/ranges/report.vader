@@ -8,8 +8,8 @@ import "std/io"
 import "std/sort"
 import "std/string_builder"
 import "toolchain/span"
-import "vader/front/resolver"
 import "vader/midir"
+import "vader/support/text"
 
 // ---- report ---------------------------------------------------------------
 

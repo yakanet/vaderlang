@@ -35,6 +35,7 @@ import "vader/front/effects"
 import "std/collections"
 import "toolchain/ast"
 import "vader/emit/c"
+import "vader/support/text"
 
 // ----------------------------------------------------------- dump
 
@@ -444,7 +445,7 @@ run_lower_stage :: fn(
     // A front-end-rejected program is never lowered : print its diagnostics alone.
     le :: lower_to_entry_from(pipeline)
     if !any_error_diag(le.pre_diags) {
-        println(dump_lowered(le.lowered, dump_scope(module_filter, pipeline.loaded)))
+        println(dump_lowered(le.lowered, pipeline.typed, dump_scope(module_filter, pipeline.loaded)))
     }
     print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
@@ -561,7 +562,7 @@ run_dced_stage :: fn(
     le :: lower_to_entry_from(pipeline)
     if !any_error_diag(le.pre_diags) {
         pruned :: prune_unreachable_fns(le.lowered, false)
-        println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
+        println(dump_lowered(pruned, pipeline.typed, dump_scope(module_filter, pipeline.loaded)))
     }
     print_pipeline_diags(pipeline, le.lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
