@@ -15,7 +15,6 @@ AST :: import "toolchain/ast"
 import "toolchain/span"
 import "vader/core/symbol"
 import "vader/core/types"
-import "vader/front/dead_code"
 import "vader/front/resolver"
 import "vader/support/diagnostics"
 import "vader/support/target"
@@ -278,11 +277,6 @@ check_project_modules :: fn(
         reset_expr_tables(entry_typed)
     }
     walk_bodies(concat_file_decls(entry_loaded.module.files), entry_typed, diags, .Full)
-    // W0007 dead-code lint : private top-level decls never reached from the
-    // module's public surface. Entry-module-only, so it lints the
-    // module being compiled. Name-based reachability: see `vader/front/dead_code`.
-    check_dead_code(concat_file_decls(entry_loaded.module.files),
-        entry_loaded.module.module_name, diags, entry_loaded.discarded_bodies)
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
     // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
@@ -317,10 +311,8 @@ check_project_modules :: fn(
         walk_bodies(other_decls, other_typed, other_typed.resolved.diags, .Full)
         // Imported-module body-check diagnostics are forwarded (not dropped) :
         // library W0005 etc. are real lines to fix, worth surfacing
-        // project-wide rather than only in the entry module. Likewise W0007
-        // (dead private code) below. Spans point at each module's own file, so
-        // the LSP still filters to the open document.
-        check_dead_code(other_decls, other.module.module_name, diags, other.discarded_bodies)
+        // project-wide rather than only in the entry module. Spans point at each
+        // module's own file, so the LSP still filters to the open document.
     }
     // Once every body is typed : the cycles run through any module.
     reject_growing_recursion(per_module, diags)

@@ -2,7 +2,7 @@
 //
 // Whole-project name reachability: the unused-export lint (W0012), which only
 // exists at project scale and so cannot live in a colocated `@test`. The dead-
-// code half (W0007) is the typechecker's, reached by any build.
+// code half (W0007) runs with the checks of every build (`vader/pipeline/check`).
 //
 // Same module as `main.vader`: imports are file-scoped, declarations are not.
 

@@ -12,6 +12,7 @@ module "vader/pipeline/check"
 
 import "std/collections"
 import "std/iter"
+import "vader/front/dead_code"
 import "vader/front/resolver"
 import "vader/front/typecheck"
 import "vader/support/diagnostics"
@@ -27,8 +28,8 @@ export CheckedProject :: struct {
     effects: Fx.EffectSummary
 }
 
-/// Typecheck every module of `project`, bodies included, then run the checks that
-/// need the whole program typed.
+/// Typecheck every module of `project`, bodies included, then run the dead-code
+/// lint and the checks that need the whole program typed.
 ///
 /// @param project     the loaded project.
 /// @param diags       where the diagnostics go, the typecheck's first.
@@ -41,11 +42,33 @@ export check_project :: fn(
     dump_types: bool,
 ) -> CheckedProject {
     result :: check_project_with_bodies(project, diags, dump_types)
+    lint_dead_code(project, diags)
     effects :: Fx.summarise_effects(project, result)
     diags.push_all(Fx.widening_diagnostics(effects, result))
     diags.push_all(Fx.frozen_diagnostics(effects))
     return CheckedProject { .result = result, .effects = effects }
 }
+
+// W0007 on every module of `project`, the entry's first: a private top-level
+// declaration nothing in its module reaches (`vader/front/dead_code`). It reads
+// names, not types, so it runs beside the checker rather than inside it. Spans
+// point at each module's own file, so the LSP still filters to the open document.
+lint_dead_code :: fn(project: LoadedProject, diags: Diagnostic[]) -> void {
+    entry :: project.modules[project.entry] ?? return
+    lint_module(entry, diags)
+    for [id, loaded] in project.modules {
+        if id != project.entry {
+            lint_module(loaded, diags)
+        }
+    }
+}
+
+lint_module :: fn(loaded: LoadedModule, diags: Diagnostic[]) -> void = check_dead_code(
+    concat_file_decls(loaded.module.files),
+    loaded.module.module_name,
+    diags,
+    loaded.discarded_bodies,
+)
 
 /// The typed project the comptime engine and the lowering read: every typed
 /// module, and the uses of constants the lowering must not share.
