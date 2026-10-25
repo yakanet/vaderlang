@@ -1,0 +1,15 @@
+# stdout
+block $grow_3 void
+  local.get 1
+end $grow_3
+[    kept four
+][	x 
+y
+]7 first
+
+last
+C:\dir\${x}
+[  a
+      b]
+# exit
+0

@@ -1,0 +1,53 @@
+// A `"""` whose opening delimiter ends its line is a text block: its lines lose
+// the indentation they all share, the closing delimiter's line included, and
+// their trailing spaces and tabs.
+
+module "snippet"
+
+import "std/io"
+
+label :: fn(name: string, idx: i32) -> string = "${name}_${idx}"
+
+grow :: fn(idx: i32) -> string = """
+    block \$${label("grow", idx)} void
+      local.get 1
+    end \$${label("grow", idx)}
+    """
+
+main :: fn() -> i32 {
+    print(grow(3))
+
+    // The closing delimiter left of the text keeps the difference.
+    indented :: """
+            kept four
+        """
+    print("[${indented}]")
+
+    // An escape is text: `\s` keeps a trailing space, `\t` a leading tab.
+    escapes :: """
+        \tx\s
+        y
+        """
+    print("[${escapes}]")
+
+    // A blank line ends up empty, and an interpolation may open a line.
+    n :: 7
+    blank :: """
+        ${n} first
+
+        last
+        """
+    print(blank)
+
+    // A raw text block drops the indentation too, and keeps `\` and `$`.
+    raw :: r"""
+        C:\dir\${x}
+        """
+    print(raw)
+
+    // Text right after the opening delimiter keeps every character.
+    inline :: """  a
+      b"""
+    println("[${inline}]")
+    return 0
+}

@@ -99,7 +99,7 @@
         },
         {
           "name": "constant.character.escape.vader",
-          "match": "\\\\[ntr\\\\\"'$0]"
+          "match": "\\\\[ntrs\\\\\"'$0]"
         }
       ]
     },

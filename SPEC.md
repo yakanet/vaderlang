@@ -199,9 +199,23 @@ multi-line
 r"""raw multi-line"""          // raw and triple-quoted: may contain `"`, no interpolation, no escapes
 ```
 
-- Escapes in `"..."` and `"""..."""`: `\n`, `\t`, `\r`, `\\`, `\"`, `\$` (a dollar sign), `\0`, `\u{H...}`.
+- Escapes in `"..."` and `"""..."""`: `\n`, `\t`, `\r`, `\\`, `\"`, `\$` (a dollar sign), `\s` (a space), `\0`, `\u{H...}`.
 - In a raw string, a backslash is an ordinary character (`\n` stays two characters) and `${...}` is plain text.
-- A newline right after the opening `"""` is not part of the string, so the text can start on its own line.
+- A `"""` or `r"""` whose opening delimiter ends its line is a **text block**. That line break is not part of the text, and neither is the indentation that only lays the text out in the source:
+  - every line loses the indentation all its lines share. The least indented line holding more than spaces and tabs sets it, and so does the closing `"""` when it stands alone on its line, so moving it left keeps that much indentation;
+  - every line loses its trailing spaces and tabs, and a line of spaces and tabs only ends up empty;
+  - a space and a tab count as one character each. An escape is text, never indentation: `\s` keeps a trailing space, `\t` a leading tab;
+  - a line break inside `${...}` is no line of the text, and an interpolated value is never cut;
+  - every line break in the text, CRLF or a lone CR, reads as `\n`.
+- A `"""` with text after its opening delimiter, on the same line, keeps every character.
+
+```vader
+body :: fn(name: string) -> string = """
+    fn ${name}
+      return
+    end
+    """                        // "fn f\n  return\nend\n" for name = "f"
+```
 
 #### String interpolation
 
@@ -2518,7 +2532,7 @@ line 2 with ${var}
 
 ### Escapes
 
-`\n`, `\t`, `\r`, `\\`, `\"`, `\$` (literal dollar), `\0`, `\u{1F600}` (codepoint).
+`\n`, `\t`, `\r`, `\\`, `\"`, `\$` (literal dollar), `\s` (space), `\0`, `\u{1F600}` (codepoint).
 
 ### Compile-time verification
 

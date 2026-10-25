@@ -1,0 +1,248 @@
+// vader/front/lexer/text_block: the indentation a `"""` text block drops.
+//
+// A `"""` whose opening delimiter ends its line is a text block. Its lines lose
+// the indentation they all share, the closing delimiter's line included when the
+// `"""` stands alone on it, and every line loses its trailing spaces and tabs.
+// A line of spaces and tabs only counts for neither and ends up empty. The rule
+// reads the source: an escape (`\t`, `\s`) is text, never indentation, and a
+// line break inside a `${...}` is no line of the literal.
+//
+// The shared indentation is known only at the closing delimiter, once the body
+// is lexed into parts that interpolations may split. So `lex_string_body`
+// (`lexer.vader`) holds spaces and tabs back until the line shows what they are,
+// writes them out when the line goes on, and records where each counted line
+// starts in its part ; `strip_indentation` cuts the shared width from those
+// parts when the literal closes.
+
+module "vader/front/lexer"
+
+import "std/string"
+import "std/string_builder"
+
+/// A text block's state while its body is lexed, kept across the
+/// interpolations that suspend it (`InterpFrame.block`).
+export TextBlock :: struct {
+    /// Where every line that holds more than spaces and tabs starts.
+    lines: TextBlockLine[] = []
+    /// The indentation every counted line shares ; -1 until one counts.
+    common: i64 = -1
+    /// True from a line break until the line's first character other than a
+    /// space or a tab.
+    at_line_start: bool = true
+    /// Source offset of the spaces and tabs held back ; -1 when none are.
+    pending_from: i64 = -1
+    /// Decoded bytes the part being built holds.
+    part_len: i64 = 0
+    /// Decoded offsets, in the part being built, of the lines starting in it.
+    part_lines: i64[] = []
+}
+
+/// Where a counted line of a text block starts.
+export TextBlockLine :: struct {
+    /// Index in `Lexer.tokens` of the `StringPart` the line starts in.
+    part: i64
+    /// Byte offset of the line's start in that part's decoded text.
+    offset: i64
+}
+
+// Hold back the space or tab under the cursor.
+hold_blank :: fn(block: TextBlock, l: Lexer) -> void {
+    if block.pending_from < 0 {
+        block.pending_from = l.pos
+    }
+}
+
+// Write out the spaces and tabs held back, since the line goes on, and count
+// them as its indentation when they open it. True when anything was written.
+settle :: fn(block: TextBlock, l: Lexer, sb: StringBuilder) -> bool {
+    held :: block.held_width(l)
+    if block.at_line_start {
+        block.part_lines.push(block.part_len)
+        block.count_indentation(held)
+        block.at_line_start = false
+    }
+    if held == 0 {
+        return false
+    }
+    sb.append(l.src.byte_slice(block.pending_from, l.pos))
+    block.part_len += held
+    block.pending_from = -1
+    return true
+}
+
+// Drop the spaces and tabs held back at a line break: they end the line.
+end_line :: fn(block: TextBlock) -> void {
+    block.pending_from = -1
+    block.at_line_start = true
+}
+
+// Bind the lines that started in the part just flushed to its token: the last
+// one of `l.tokens` when the part held anything.
+end_part :: fn(block: TextBlock, l: Lexer, emitted: bool) -> void {
+    if emitted {
+        for offset in block.part_lines {
+            block.lines.push(TextBlockLine { .part = l.tokens.len() - 1, .offset = offset })
+        }
+    }
+    block.part_lines.clear()
+    block.part_len = 0
+}
+
+held_width :: fn(block: TextBlock, l: Lexer) -> i64 {
+    if block.pending_from < 0 {
+        return 0
+    }
+    return l.pos - block.pending_from
+}
+
+count_indentation :: fn(block: TextBlock, width: i64) -> void {
+    if block.common < 0 || width < block.common {
+        block.common = width
+    }
+}
+
+// At the closing delimiter, cut the indentation every line of `block` shares
+// from the parts it was lexed into. The spaces and tabs held back before the
+// delimiter count when it stands alone on its line. Each counted line is
+// indented at least that much, by spaces and tabs written out verbatim, so the
+// cut removes exactly `common` bytes at each line start.
+strip_indentation :: fn(l: Lexer, block: TextBlock) -> void {
+    if block.at_line_start {
+        block.count_indentation(block.held_width(l))
+    }
+    if block.common <= 0 {
+        return
+    }
+    first_emptied: i64 = -1
+    i: i64 = 0
+    for i < block.lines.len() {
+        part :: block.lines[i].part
+        token :: l.tokens[part]
+        text :: token.text
+        sb :: StringBuilder {}
+        cursor: i64 = 0
+        for i < block.lines.len() && block.lines[i].part == part {
+            offset :: block.lines[i].offset
+            sb.append(text.byte_slice(cursor, offset))
+            cursor = offset + block.common
+            i += 1
+        }
+        sb.append(text.byte_slice(cursor, text.byte_len()))
+        stripped :: sb.to_string()
+        token.text = stripped
+        token.value = stripped
+        if stripped == "" && first_emptied < 0 {
+            first_emptied = part
+        }
+    }
+    if first_emptied >= 0 {
+        l.drop_empty_parts(first_emptied)
+    }
+}
+
+// Drop the part the cut emptied, since the lexer emits no empty part: only the
+// first one can be, when the text opens on an interpolation. Every token from
+// `first` on belongs to the literal being closed.
+drop_empty_parts :: fn(l: Lexer, first: i64) -> void {
+    kept := first
+    for read in first..<l.tokens.len() {
+        token :: l.tokens[read]
+        if token.kind != .StringPart || token.text != "" {
+            l.tokens[kept] = token
+            kept += 1
+        }
+    }
+    for l.tokens.len() > kept {
+        l.tokens.remove_last()
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing"
+
+// The decoded parts of the string literal `source` opens with, joined by `|`.
+literal_parts :: fn(source: string) -> string {
+    l :: tokenize(source, "test.vader")
+    parts: string[]: []
+    for t in l.tokens {
+        if t.kind == .StringEnd {
+            break
+        }
+        if t.kind == .StringPart {
+            parts.push(t.text)
+        }
+    }
+    return parts.join("|")
+}
+
+@test
+test_text_block_drops_the_closing_line_indentation :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n        a\n          b\n        \"\"\""), "a\n  b\n")
+}
+
+@test
+test_text_block_closing_line_keeps_deeper_text_indented :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n        a\n    \"\"\""), "    a\n")
+}
+
+@test
+test_text_block_least_indented_line_wins :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n      a\n    b\n      c\"\"\""), "  a\nb\n  c")
+}
+
+@test
+test_text_block_trailing_blanks_dropped :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n    a  \t\n    b \"\"\""), "a\nb")
+}
+
+@test
+test_text_block_blank_line_ends_up_empty :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n    a\n  \n\n    b\n    \"\"\""), "a\n\n\nb\n")
+}
+
+@test
+test_text_block_escape_is_text_not_indentation :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n    \\ta\\s\n    b\n    \"\"\""), "\ta \nb\n")
+}
+
+@test
+test_text_block_tab_counts_as_one :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n\t\ta\n\t\"\"\""), "\ta\n")
+}
+
+@test
+test_text_block_interpolation_at_line_start :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n    \${x} a\n      b\n    \"\"\""), " a\n  b\n")
+}
+
+@test
+test_text_block_part_emptied_by_the_cut_goes :: fn() -> void {
+    l :: tokenize("\"\"\"\n    \${x} a\n    \"\"\"", "test.vader")
+    assert(l.tokens[1].kind == .InterpOpen, "no empty part before the interpolation")
+}
+
+@test
+test_text_block_line_break_inside_interpolation_is_no_line :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\n    a \${f(\n1)} b\n    \"\"\""), "a | b\n")
+}
+
+@test
+test_text_block_raw :: fn() -> void {
+    assert_eq(literal_parts("r\"\"\"\n    a\\n \${b}\n    \"\"\""), "a\\n \${b}\n")
+}
+
+@test
+test_text_block_crlf_reads_as_lf :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\r\n    a\r\n    \"\"\""), "a\n")
+}
+
+@test
+test_text_block_lone_cr_reads_as_lf :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"\r    a\r    \"\"\""), "a\n")
+}
+
+@test
+test_triple_string_on_its_opening_line_keeps_every_character :: fn() -> void {
+    assert_eq(literal_parts("\"\"\"  a\n    b  \"\"\""), "  a\n    b  ")
+}

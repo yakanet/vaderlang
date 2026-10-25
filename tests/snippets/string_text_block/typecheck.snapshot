@@ -1,0 +1,46 @@
+# Typecheck
+
+## tests/snippets/string_text_block
+  FnDecl         grow                 :: fn(i32) -> string
+  FnDecl         label                :: fn(string, i32) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 11:34    StringLitExpr  :: string
+  expr 12:15    CallExpr       :: string
+  expr 12:15    IdentExpr      :: fn(string, i32) -> string
+  expr 12:21    StringLitExpr  :: string
+  expr 12:29    IdentExpr      :: i32
+  expr 14:13    CallExpr       :: string
+  expr 14:13    IdentExpr      :: fn(string, i32) -> string
+  expr 14:19    StringLitExpr  :: string
+  expr 14:27    IdentExpr      :: i32
+  expr 18:11    CallExpr       :: string
+  expr 18:11    IdentExpr      :: fn(i32) -> string
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void
+  expr 21:17    StringLitExpr  :: string
+  expr 24:11    StringLitExpr  :: string
+  expr 24:15    IdentExpr      :: string
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 27:16    StringLitExpr  :: string
+  expr 31:11    StringLitExpr  :: string
+  expr 31:15    IdentExpr      :: string
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 35:14    StringLitExpr  :: string
+  expr 36:11    IdentExpr      :: i32
+  expr 40:11    IdentExpr      :: string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 43:12    StringLitExpr  :: string
+  expr 46:11    IdentExpr      :: string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 49:15    StringLitExpr  :: string
+  expr 51:13    StringLitExpr  :: string
+  expr 51:17    IdentExpr      :: string
+  expr 51:5     CallExpr       :: void
+  expr 51:5     IdentExpr      :: fn(T) -> void
+  expr 9:49     StringLitExpr  :: string
+  expr 9:52     IdentExpr      :: string
+  expr 9:60     IdentExpr      :: i32

@@ -102,40 +102,69 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 //   0 = mem  (the lazily-grown cell tape)
 //   1 = ptr  (the current data pointer / cell index)
 //   2 = out  (the bytes `.` produced, returned at the end)
+//
+// Each instruction's text block closes two columns left of its lines, which
+// keeps them indented as the body of `bf_main`.
 
 // Append the `.virt` lines of one Brainfuck instruction, the `idx`-th of the
 // program, to `sb`. `partner` pairs each bracket with its match.
 emit_bf_char :: fn(sb: StringBuilder, c: char, idx: i64, partner: i32[]) -> void {
     match c {
-        '>' -> { // move right ; grow the tape lazily if we step past the end.
+        // Move right, and grow the tape when the pointer steps past its end. The
+        // pointer moves one cell at a time, so it reaches the end exactly when a
+        // new cell is due : while ptr < the tape length the cell exists already.
+        '>' -> {
             sb.append(move_pointer(1))
-            // The pointer only moves one cell at a time, so it reaches the
-            // tape end exactly when a new cell is due : if ptr < the tape
-            // length the cell already exists, otherwise append a fresh zero.
-            sb.append("  block \$grow_${idx} void\n")
-            sb.append("  local.get 1\n  local.get 0\n  array.len\n  i32.lt\n")
-            sb.append("  br_if \$grow_${idx}\n")
-            sb.append("  local.get 0\n  i32.const 0\n  array.push 1\n")
-            sb.append("  end \$grow_${idx}\n")
+            sb.append("""
+                  block \$grow_${idx} void
+                  local.get 1
+                  local.get 0
+                  array.len
+                  i32.lt
+                  br_if \$grow_${idx}
+                  local.get 0
+                  i32.const 0
+                  array.push 1
+                  end \$grow_${idx}
+                """)
         }
         '<' -> sb.append(move_pointer(-1))
         '+' -> sb.append(add_to_cell(1))
         '-' -> sb.append(add_to_cell(-1))
-        '.' -> { // append the cell under the pointer to the output.
-            sb.append("  local.get 2\n  local.get 0\n  local.get 1\n")
-            sb.append("  array.get 1\n  array.push 1\n")
-        }
+        // Append the cell under the pointer to the output.
+        '.' -> sb.append("""
+                  local.get 2
+                  local.get 0
+                  local.get 1
+                  array.get 1
+                  array.push 1
+                """)
         // Read a byte : no input is wired, so the cell reads end-of-stream, 0.
-        ',' -> sb.append("  local.get 0\n  local.get 1\n  i32.const 0\n  array.set 1\n")
-        '[' -> { // open a loop, left at once when the cell is zero.
-            sb.append("  block \$exit_${idx} void\n  loop \$back_${idx} void\n")
-            sb.append("  local.get 0\n  local.get 1\n  array.get 1\n")
-            sb.append("  i32.const 0\n  i32.eq\n  br_if \$exit_${idx}\n")
-        }
-        ']' -> { // jump back to the matching `[`
+        ',' -> sb.append("""
+                  local.get 0
+                  local.get 1
+                  i32.const 0
+                  array.set 1
+                """)
+        // Open a loop, left at once when the cell is zero.
+        '[' -> sb.append("""
+                  block \$exit_${idx} void
+                  loop \$back_${idx} void
+                  local.get 0
+                  local.get 1
+                  array.get 1
+                  i32.const 0
+                  i32.eq
+                  br_if \$exit_${idx}
+                """)
+        // Jump back to the matching `[`.
+        ']' -> {
             open_idx :: partner[idx]
-            sb.append("  br \$back_${open_idx}\n")
-            sb.append("  end \$back_${open_idx}\n  end \$exit_${open_idx}\n")
+            sb.append("""
+                  br \$back_${open_idx}
+                  end \$back_${open_idx}
+                  end \$exit_${open_idx}
+                """)
         }
         // Any other char : not a BF instruction (tokenize_bf already filters
         // these out, so reaching this arm signals a contract violation).
@@ -144,13 +173,24 @@ emit_bf_char :: fn(sb: StringBuilder, c: char, idx: i64, partner: i32[]) -> void
 }
 
 // The lines that move the data pointer by `delta` cells.
-move_pointer :: fn(delta: i32) -> string =
-    "  local.get 1\n  i32.const ${delta}\n  i32.add\n  local.set 1\n"
+move_pointer :: fn(delta: i32) -> string = """
+      local.get 1
+      i32.const ${delta}
+      i32.add
+      local.set 1
+    """
 
 // The lines that add `delta` to the cell under the pointer.
-add_to_cell :: fn(delta: i32) -> string =
-    "  local.get 0\n  local.get 1\n  local.get 0\n  local.get 1\n  array.get 1\n"
-        + "  i32.const ${delta}\n  i32.add\n  array.set 1\n"
+add_to_cell :: fn(delta: i32) -> string = """
+      local.get 0
+      local.get 1
+      local.get 0
+      local.get 1
+      array.get 1
+      i32.const ${delta}
+      i32.add
+      array.set 1
+    """
 
 // Compile a Brainfuck program into the `.virt` text of a runnable module.
 //
@@ -158,17 +198,37 @@ add_to_cell :: fn(delta: i32) -> string =
 // (`match_brackets`), which must be complete.
 compile_brainfuck :: fn(tokens: char[], partner: i32[]) -> string {
     sb :: StringBuilder {}
-    sb.append("module brainfuck\ntype 0 scalar i32\ntype 1 array 0\nexport main 0\n\n")
-    sb.append("fn 0 bf_main () -> ref\n  local mem ref\n  local ptr i32\n  local out ref\n")
     // mem = [0] : the tape starts as a single zero cell and grows on demand as
     // `>` walks past its end (see emit_bf_char), so only the cells a program
     // touches are ever allocated. ptr = 0, out = [].
-    sb.append("  array.new 1 0\n  local.set 0\n  local.get 0\n  i32.const 0\n  array.push 1\n")
-    sb.append("  i32.const 0\n  local.set 1\n  array.new 1 0\n  local.set 2\n")
+    sb.append("""
+        module brainfuck
+        type 0 scalar i32
+        type 1 array 0
+        export main 0
+
+        fn 0 bf_main () -> ref
+          local mem ref
+          local ptr i32
+          local out ref
+          array.new 1 0
+          local.set 0
+          local.get 0
+          i32.const 0
+          array.push 1
+          i32.const 0
+          local.set 1
+          array.new 1 0
+          local.set 2
+        """)
     for idx in 0..<tokens.len() {
         emit_bf_char(sb, tokens[idx], idx, partner)
     }
-    sb.append("  local.get 2\n  return\nend\n")
+    sb.append("""
+          local.get 2
+          return
+        end
+        """)
     return sb.to_string()
 }
 
