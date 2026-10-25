@@ -1,4 +1,4 @@
-// tests/cli_graph — `vader graph`, the module import graph.
+// tests/cli_graph: `vader graph`, the module import graph.
 //
 // The graph is read off the loader, so what it draws is what a build loads. The
 // fixture is a three-module chain with one transitive edge (`main` imports both

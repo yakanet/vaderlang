@@ -1,4 +1,4 @@
-// std/string — string operations.
+// std/string: string operations.
 //
 // All string operations treat strings as immutable UTF-8 byte sequences.
 

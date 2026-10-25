@@ -1,4 +1,4 @@
-// tests/lib-probe — stage a throwaway LIBRARY ROOT in a temp directory.
+// tests/lib-probe: stage a throwaway LIBRARY ROOT in a temp directory.
 //
 // Two properties can only be observed from a module that really came from a
 // library root, because both are decided by PROVENANCE rather than by a module's

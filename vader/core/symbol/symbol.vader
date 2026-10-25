@@ -1,4 +1,4 @@
-// vader/core/symbol — symbol table primitives.
+// vader/core/symbol: symbol table primitives.
 //
 // Symbols are minted by the resolver as
 // it walks the AST and consumed by every later phase. The MVP carries the

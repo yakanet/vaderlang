@@ -1,4 +1,4 @@
-// tests/fixtures/effect/imported/vars — a constant and a singleton,
+// tests/fixtures/effect/imported/vars: a constant and a singleton,
 // wildcard-imported by `app`, which renames both.
 
 module "vars"

@@ -1,4 +1,4 @@
-// vader/support/text/text — low-level byte/text helpers shared across the compiler.
+// vader/support/text/text: low-level byte/text helpers shared across the compiler.
 //
 // Byte-level ASCII predicates over raw `bytes()` views — name mangling
 // (`c_emit`, `comptime`) and identifier-boundary scans (`lsp`) — plus small

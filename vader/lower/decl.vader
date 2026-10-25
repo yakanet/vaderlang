@@ -1,4 +1,4 @@
-// vader/lower/decl — per-declaration lowering: fn / struct / const / impl-member.
+// vader/lower/decl: per-declaration lowering (fn / struct / const / impl-member).
 //
 
 module "vader/lower"

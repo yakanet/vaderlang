@@ -1,4 +1,4 @@
-// vader/midir/cfg — CFG / Instruction / Terminator data types.
+// vader/midir/cfg: CFG / Instruction / Terminator data types.
 //
 // The types, and the few accessors every pass shares (`fn_span`, `pos_key`).
 // The Lowered ↔ CFG ↔ bytecode pipeline keeps the two IRs distinct :

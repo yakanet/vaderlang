@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/references — `textDocument/references` handler.
+// vader/tools/lsp/handlers/references: `textDocument/references` handler.
 //
 // Find-usages across the workspace. Builds the reference index of the document's
 // project (`analysis/reference_index`), locates the target under the cursor, then

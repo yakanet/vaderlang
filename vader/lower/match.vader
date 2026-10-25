@@ -1,4 +1,4 @@
-// vader/lower/match — match-expression lowerer.
+// vader/lower/match: match-expression lowerer.
 //
 // Flattens `match scrutinee { arm... }` to a let-bind on the scrutinee + a chain
 // of `if (predicate) <arm-body>` blocks. Struct-destructure bindings are

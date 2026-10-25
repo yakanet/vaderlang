@@ -1,4 +1,4 @@
-// tests/snippets/default_type_param — `<T = Default>` type-param defaults.
+// tests/snippets/default_type_param: `<T = Default>` type-param defaults.
 //
 // When an impl supplies fewer trait-args than the trait has params, the
 // trailing params fill from their `= Default`. Covers a `Self` default

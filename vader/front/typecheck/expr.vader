@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr — bidirectional expression inference orchestrator.
+// vader/front/typecheck/expr: bidirectional expression inference orchestrator.
 //
 // The entry point
 // is `check_expr(expr, expected, t, diags) -> Type` :

@@ -1,4 +1,4 @@
-// vader/emit/c/walker — bytecode function-body → C walker.
+// vader/emit/c/walker: bytecode function-body → C walker.
 //
 // The per-op emission core of the C emitter : `emit_functions` drives one
 // C definition per `BcFunction` ; `function_definition` walks the op stream

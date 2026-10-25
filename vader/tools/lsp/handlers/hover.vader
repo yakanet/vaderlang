@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/hover — `textDocument/hover` handler.
+// vader/tools/lsp/handlers/hover: `textDocument/hover` handler.
 //
 // The client sends `{ textDocument: { uri }, position: { line, character } }`
 // (both 0-based). A hover on a declaration reads like an IDE's quick

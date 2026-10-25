@@ -1,4 +1,4 @@
-// bench/vm/vm_loop/vm_loop.vader — A tight integer loop: arithmetic and local traffic, nothing else.
+// bench/vm/vm_loop/vm_loop.vader: A tight integer loop (arithmetic and local traffic, nothing else).
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

@@ -1,4 +1,4 @@
-// vader/vm/module — the VM's runtime state wrapper over a `BytecodeModule`.
+// vader/vm/module: the VM's runtime state wrapper over a `BytecodeModule`.
 //
 // The VM executes a `vader/core/bytecode::BytecodeModule` directly. `VmState`
 // pairs the module with the run-time state the executor needs in a ready-to-use

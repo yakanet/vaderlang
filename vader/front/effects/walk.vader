@@ -1,4 +1,4 @@
-// vader/front/effects/walk — a function's body read into its skeleton.
+// vader/front/effects/walk: a function's body read into its skeleton.
 //
 // One pass over the typed body, writing down what it does with the values it is
 // lent (`skeleton.vader`). A value's slot holds the parameters it may be reached

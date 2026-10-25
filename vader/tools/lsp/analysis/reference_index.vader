@@ -1,4 +1,4 @@
-// vader/tools/lsp/analysis/reference_index — project-wide target → reference-spans index.
+// vader/tools/lsp/analysis/reference_index: project-wide target → reference-spans index.
 //
 // Shared infrastructure behind find-references (`handlers/references`) and rename
 // (`handlers/rename`). A target is a function, keyed by its declaration so each

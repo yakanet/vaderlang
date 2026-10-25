@@ -1,4 +1,4 @@
-// vader/tools/lsp/lifecycle — `initialize` request handler.
+// vader/tools/lsp/lifecycle: `initialize` request handler.
 //
 // The client sends `initialize` once at startup ; the server answers
 // with its capabilities and the legend used by semantic-tokens (so the

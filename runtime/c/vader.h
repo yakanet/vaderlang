@@ -1,4 +1,4 @@
-/* Vader native runtime — public API consumed by the C emitter.
+/* Vader native runtime: public API consumed by the C emitter.
  *
  * Memory: a generational GC — a copying (Cheney) young generation plus a
  * non-moving mark-sweep old generation — backs structs, arrays, fn closures.

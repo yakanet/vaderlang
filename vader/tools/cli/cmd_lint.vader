@@ -1,4 +1,4 @@
-// vader/tools/cli/lint — the `vader lint` command.
+// vader/tools/cli/lint: the `vader lint` command.
 //
 // Whole-project name reachability: the unused-export lint (W0012), which only
 // exists at project scale and so cannot live in a colocated `@test`. The dead-

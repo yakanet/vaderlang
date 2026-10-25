@@ -1,4 +1,4 @@
-// vader/lower/expr — expression dispatch + leaf-expression lowering.
+// vader/lower/expr: expression dispatch + leaf-expression lowering.
 //
 // Central `lower_expr` dispatcher plus the leaf-expression families that
 // stay with it: ident / const folding, comptime-value materialization,

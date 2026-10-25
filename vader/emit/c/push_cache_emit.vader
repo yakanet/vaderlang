@@ -1,4 +1,4 @@
-// vader/emit/c/push_cache_emit — emit a push loop with the array state in locals.
+// vader/emit/c/push_cache_emit: emit a push loop with the array state in locals.
 //
 // `push_cache_tag` (`vader/lower/optimise`) proved which pushes sit in a loop that can
 // keep the array's `length` / `capacity` / slots out of memory, and passed the

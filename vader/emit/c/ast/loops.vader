@@ -1,4 +1,4 @@
-// vader/emit/c/ast/loops — C loops in place of labels and `goto`.
+// vader/emit/c/ast/loops: C loops in place of labels and `goto`.
 //
 // The walker lowers a bytecode `loop` to a labelled scope, `loop_N: { … }`,
 // and every `br` to a `goto` : to `loop_N` to continue, to the `end_N` label

@@ -1,4 +1,4 @@
-// vader/tools/fmt/cli — the `vader fmt` driver + file walk.
+// vader/tools/fmt/cli: the `vader fmt` driver + file walk.
 //
 // Surface mirrors `gofmt`/`prettier --write`/`rustfmt` :
 //   vader fmt              format every .vader under cwd, in place

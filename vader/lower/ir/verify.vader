@@ -1,4 +1,4 @@
-// vader/lower/ir/verify — structural self-check of a `LoweredProject`.
+// vader/lower/ir/verify: structural self-check of a `LoweredProject`.
 //
 // `LoweredYield` / `LoweredAwait` are TRANSIENT: they exist between the ANF
 // pass that mints them and the state-machine transform that consumes them

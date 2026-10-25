@@ -1,4 +1,4 @@
-// vader/lower/verify_callees — the lowering's callee choices against the typecheck's record.
+// vader/lower/verify_callees: the lowering's callee choices against the typecheck's record.
 //
 // The typecheck files what each site invokes (`TypedProgram.call_sites`,
 // `vader/front/typecheck/call_sites.vader`), yet the lowering still chooses on its own at

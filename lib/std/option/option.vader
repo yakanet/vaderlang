@@ -1,4 +1,4 @@
-// std/option — value-level combinators over `T | null` and `T | Error`.
+// std/option: value-level combinators over `T | null` and `T | Error`.
 //
 // Vader has no nominal `Option` / `Result` types : nullability is the structural
 // union `T | null` and fallibility is `T | Error` (an error is any value whose

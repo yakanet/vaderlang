@@ -1,4 +1,4 @@
-// vader/emit/bytecode/emit — CFG → bytecode emitter.
+// vader/emit/bytecode/emit: CFG → bytecode emitter.
 //
 // The project context (`EmitterCtx`, `emit_ctx.vader`) holds everything
 // *outside* the function body. Function bodies come from the CFG : the structurer

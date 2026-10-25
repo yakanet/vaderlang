@@ -1,4 +1,4 @@
-// toolchain/ast/ast.vader — the shape of written Vader, as data.
+// toolchain/ast/ast.vader: the shape of written Vader, as data.
 //
 // The public contract a build-time metaprogram reads. It lives outside `vader/`
 // because of what depends on it: a library shipping a generator must be able to

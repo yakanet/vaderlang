@@ -1,4 +1,4 @@
-// generator_inline_arg_slots — a generator inlined into a fused `for` binds each
+// generator_inline_arg_slots: a generator inlined into a fused `for` binds each
 // parameter as a call would pass it: prepared for the parameter's declared slot,
 // under the instance's substitution.
 //   - a source generator (a `yield` after its loop) whose `Iterator<i32>`

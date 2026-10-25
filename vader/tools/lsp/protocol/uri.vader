@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/uri — `file://` URI ↔ filesystem path conversion.
+// vader/tools/lsp/protocol/uri: `file://` URI ↔ filesystem path conversion.
 //
 // LSP identifies documents by URI (`file:///abs/path.vader`) ; the compiler
 // loader, resolver and overlay all work in plain filesystem paths. This one

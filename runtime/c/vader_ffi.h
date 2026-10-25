@@ -1,4 +1,4 @@
-/* vader_ffi — dynamic foreign calls for the VM.
+/* vader_ffi: dynamic foreign calls for the VM.
  *
  * The native backend never needs this: `@extern` there becomes a real C call
  * that the linker resolves, and `c_emit` writes the cast itself. The VM cannot,

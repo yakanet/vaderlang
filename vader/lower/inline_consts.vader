@@ -1,4 +1,4 @@
-// vader/lower/inline_consts — route module-level const decls to their read sites.
+// vader/lower/inline_consts: route module-level const decls to their read sites.
 //
 // A non-scalar const reference can't be emitted as a bare ident: `build_ident`
 // has no const-load case (the CFG design inlines consts out). This pass classifies

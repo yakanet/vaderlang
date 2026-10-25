@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/position — LSP position geometry + params extraction.
+// vader/tools/lsp/protocol/position: LSP position geometry + params extraction.
 //
 // The JSON encoders for the LSP `Position` / `Range` / `Location` shapes, plus
 // the params-object readers every position-bearing request shares. The byte ↔

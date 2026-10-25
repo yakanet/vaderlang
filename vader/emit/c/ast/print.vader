@@ -1,4 +1,4 @@
-// vader/emit/c/ast/print — writes a statement tree (`ast.vader`) as C text.
+// vader/emit/c/ast/print: writes a statement tree (`ast.vader`) as C text.
 //
 // Every layout decision lives here : indentation (4 spaces per level), braces,
 // `else if` chains, `end_N: ;` labels, `#line` directives at column 0, and the

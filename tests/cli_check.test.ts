@@ -1,4 +1,4 @@
-// tests/cli_check — `vader check`, the compensation for compile-time target
+// tests/cli_check: `vader check`, the compensation for compile-time target
 // selection.
 //
 // A body whose `@target` does not match is never resolved or typed, so on any

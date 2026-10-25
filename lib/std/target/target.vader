@@ -1,4 +1,4 @@
-// std/target — the two axes a Vader build is parameterised by.
+// std/target: the two axes a Vader build is parameterised by.
 //
 // This module holds ONLY the vocabulary, because two very different things need
 // to speak it and they live in different layers:

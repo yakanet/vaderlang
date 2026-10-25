@@ -1,4 +1,4 @@
-// tests/snippets/dimensional_units — operator overloading on distinct newtypes.
+// tests/snippets/dimensional_units: operator overloading on distinct newtypes.
 //
 // A distinct type (`Name :: <primitive>`) is nominal but can overload operators
 // via trait impls. Covers: homogeneous arithmetic (`Money + Money`), HETEROGENEOUS

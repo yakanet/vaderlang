@@ -1,5 +1,5 @@
-// tests/target_model — coverage for the `@target` mechanism: one declaration,
-// several bodies, one chosen per compilation target.
+// tests/target_model: coverage for the `@target` mechanism (one declaration,
+// several bodies, one chosen per compilation target).
 //
 // The fixtures ran skipped while the mechanism was being built, guarded by a test
 // that FAILED the day `dump --stage=targets` started working — which is how they

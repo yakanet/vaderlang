@@ -1,4 +1,4 @@
-// vader/bootstrap/bootstrap — build-only compiler entrypoint (the seed source).
+// vader/bootstrap/bootstrap: build-only compiler entrypoint (the seed source).
 //
 // A minimal compiler whose only job is `<input.vader> -> one C TU per module`.
 // It is the source the committed C seed (`bootstrap/seed/`) is generated from —

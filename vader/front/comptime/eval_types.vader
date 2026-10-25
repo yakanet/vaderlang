@@ -1,4 +1,4 @@
-// vader/front/comptime/eval_types — shared types + helpers for the evaluator.
+// vader/front/comptime/eval_types: shared types + helpers for the evaluator.
 
 module "vader/front/comptime"
 

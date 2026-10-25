@@ -1,4 +1,4 @@
-// Broad-corpus parity — stress the Vader self-host typechecker against
+// Broad-corpus parity: stress the Vader self-host typechecker against
 // the real `vader/` and `lib/` source tree. The 251 snippet-based
 // tests give isolated coverage ; this suite ensures the typechecker
 // survives the codebase it's meant to self-compile.

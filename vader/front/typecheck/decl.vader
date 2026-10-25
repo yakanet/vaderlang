@@ -1,4 +1,4 @@
-// vader/front/typecheck/decl — top-level type collection.
+// vader/front/typecheck/decl: top-level type collection.
 //
 // Walks every
 // top-level decl in source order, mints its declared `Type`, and stores

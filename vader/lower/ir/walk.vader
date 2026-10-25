@@ -1,4 +1,4 @@
-// vader/lower/ir/walk — walks over the lowered IR: every type a declaration
+// vader/lower/ir/walk: walks over the lowered IR, visiting every type a declaration
 // names, every function it references (what DCE follows), every statement node.
 
 module "vader/lower/ir"

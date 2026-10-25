@@ -1,4 +1,4 @@
-// vader/lower/inline_consumer — inline a function that consumes an iterator
+// vader/lower/inline_consumer: inline a function that consumes an iterator
 // argument with one loop.
 //
 // A call whose callee iterates an `Iterator<T>` parameter with a single `for`

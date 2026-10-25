@@ -1,4 +1,4 @@
-// vader/lower/value_eq — `==` / `!=` on a tuple, a union, a distinct over a
+// vader/lower/value_eq: `==` / `!=` on a tuple, a union, a distinct over a
 // reference type or a distinct whose own `Equals` sits on the right, compared by
 // value.
 //

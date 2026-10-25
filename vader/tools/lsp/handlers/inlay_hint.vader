@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/inlay_hint — `textDocument/inlayHint` handler.
+// vader/tools/lsp/handlers/inlay_hint: `textDocument/inlayHint` handler.
 //
 // For each `let x := expr` (or `name :: expr`) without an explicit type
 // annotation, emit a hint carrying the inferred type rendered *between*

@@ -1,4 +1,4 @@
-// vader/lower/dump/body — a lowered body, printed as Vader.
+// vader/lower/dump/body: a lowered body, printed as Vader.
 //
 // One statement per line, in the syntax of the source wherever the language has
 // one. `+` is the checked addition and `+%` the one the lowering leaves

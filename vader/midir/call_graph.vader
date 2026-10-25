@@ -1,4 +1,4 @@
-// vader/midir/call_graph — who calls whom across a CFG project.
+// vader/midir/call_graph: who calls whom across a CFG project.
 //
 // One node per function with a body, one per bodyless function (`CFGExternDecl`),
 // and three more:

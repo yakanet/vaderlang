@@ -1,4 +1,4 @@
-// tests/snippets/struct_heap — heap-struct + GC-frame coverage.
+// tests/snippets/struct_heap: heap-struct + GC-frame coverage.
 //
 // `make` returns a Point, so escape analysis heap-allocates it
 // (struct.new, not struct.new_stack). That makes `make` may-alloc → it

@@ -1,4 +1,4 @@
-// vader/front/lexer/token — token shapes for the self-hosted lexer.
+// vader/front/lexer/token: token shapes for the self-hosted lexer.
 //
 // One enum variant per kind so downstream
 // passes get exhaustive `match` checking. `Position` and `Span` live in

@@ -1,4 +1,4 @@
-// vader/front/typecheck/call_sites — what each call invokes, as the typecheck settled it.
+// vader/front/typecheck/call_sites: what each call invokes, as the typecheck settled it.
 //
 // The typecheck decides a call's callee in several places: `field.vader` for a
 // member (an impl member, a bound's, a trait value's, a free fn by UFCS),

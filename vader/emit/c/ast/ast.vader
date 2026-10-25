@@ -1,4 +1,4 @@
-// vader/emit/c/ast/ast — the tree a C function is built as.
+// vader/emit/c/ast/ast: the tree a C function is built as.
 //
 // The walker (`vader/emit/c/walker.vader`, through `stack.vader`) appends
 // statements to the block it is in, and `print.vader` writes the whole tree

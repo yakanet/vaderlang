@@ -1,4 +1,4 @@
-// vader/front/typecheck/narrow_value — a comparison or a bounds test narrows a range.
+// vader/front/typecheck/narrow_value: a comparison or a bounds test narrows a range.
 //
 // `h < 12` on an `Hour` holds `0..=11` where it is true and `12..=23` where it is
 // false. The narrowed side is a binding or a field chain whose current type is a

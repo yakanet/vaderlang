@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_generic_inst — a generic written with its arguments in value
+// vader/front/typecheck/expr_generic_inst: a generic written with its arguments in value
 // position.
 //
 // Two such expressions : the owner of a static member, `Bag<f64>.make(1)`, and a

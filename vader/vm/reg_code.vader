@@ -1,4 +1,4 @@
-// vader/vm/reg_code — the private code the register engine runs.
+// vader/vm/reg_code: the private code the register engine runs.
 //
 // `reg_translate.vader` turns each verified function into a `RegFunction` once, at
 // `prepare`; `reg_exec.vader` runs it. A function's registers are a window of one

@@ -1,4 +1,4 @@
-// vader/tools/lsp/actions/registry — the code-action framework.
+// vader/tools/lsp/actions/registry: the code-action framework.
 //
 // A code action is a cursor-driven source refactoring (`textDocument/codeAction`
 // → the editor lightbulb). Each action is a plain record carrying a predicate

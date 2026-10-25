@@ -1,4 +1,4 @@
-// vader/midir/ranges/transfer — how one instruction moves what the range analysis knows.
+// vader/midir/ranges/transfer: how one instruction moves what the range analysis knows.
 //
 // Constants, copies and `+` / `-` of a single value carry intervals and facts
 // along. What a branch edge learns is in `edges.vader`, when a sum provably fits

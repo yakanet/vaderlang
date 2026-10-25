@@ -1,4 +1,4 @@
-// vader/front/comptime/eval_ident — IdentExpr lookup + type-value short-circuit.
+// vader/front/comptime/eval_ident: IdentExpr lookup + type-value short-circuit.
 //
 // An `IdentExpr` at comptime resolves through three paths :
 //   1. The typed program's resolved-symbol table — if the symbol is a

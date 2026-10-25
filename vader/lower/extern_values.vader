@@ -1,4 +1,4 @@
-// vader/lower/extern_values — an `@extern` taking an enum with variant data.
+// vader/lower/extern_values: an `@extern` taking an enum with variant data.
 //
 // Such an enum stores its variant's rank, and C expects the value the source
 // writes after `=`. The declaration lowers to two functions: a Vader one under

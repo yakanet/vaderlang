@@ -1,4 +1,4 @@
-// vader/front/typecheck/growing_recursion — a generic recursion may not grow its type argument.
+// vader/front/typecheck/growing_recursion: a generic recursion may not grow its type argument.
 //
 // Every instantiation of a generic records the type each parameter of the callee
 // takes there : a call (`DirectFn.bindings`), a generic function named as a value,

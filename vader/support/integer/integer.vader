@@ -1,4 +1,4 @@
-// vader/support/integer — fixed-width integer arithmetic, exact or refused.
+// vader/support/integer: fixed-width integer arithmetic, exact or refused.
 //
 // The one definition of when `+`, `-`, `*` and unary `-` overflow an integer
 // type: the VM's checked ops (`vader/core/bytecode/checked_arith.vader`) and the

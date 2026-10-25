@@ -1,4 +1,4 @@
-// vader/emit/bytecode/scheduler — stack-pass-through hints.
+// vader/emit/bytecode/scheduler: stack-pass-through hints.
 //
 // Recognises CFG patterns where an
 // instruction's result is consumed immediately by its single successor's

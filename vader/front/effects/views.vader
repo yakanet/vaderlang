@@ -1,4 +1,4 @@
-// vader/front/effects/views — the views of a string's bytes, which nothing copies.
+// vader/front/effects/views: the views of a string's bytes, which nothing copies.
 //
 // `s.bytes()` hands out a view of the string's own bytes. A string is never
 // modified, so neither is the view, and no copy is made of it as one is of a

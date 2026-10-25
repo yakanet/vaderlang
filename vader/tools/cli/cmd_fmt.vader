@@ -1,4 +1,4 @@
-// vader/tools/cli/fmt — the `vader fmt` command.
+// vader/tools/cli/fmt: the `vader fmt` command.
 //
 // Formats in place, or checks. The formatter itself is `vader/tools/fmt`; this is the
 // CLI surface over it, kept separate so the two are versioned independently.

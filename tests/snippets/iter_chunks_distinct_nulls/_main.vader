@@ -1,4 +1,4 @@
-// iter_chunks_distinct_nulls — `indexed`, `chunked`, `distinct` and
+// iter_chunks_distinct_nulls: `indexed`, `chunked`, `distinct` and
 // `filter_not_null`, each consumed by a fused `for` and bound to a local first
 // (the state-machine path). `filter_not_null` is a 0-arg combinator over
 // `Iterator<T | null>`: its `T` binds to the element minus `null`, so the value

@@ -1,4 +1,4 @@
-// tests/callee_sites — `vader dump --stage=callees`, what the typecheck settled
+// tests/callee_sites: `vader dump --stage=callees`, what the typecheck settled
 // each call of a fixture to invoke.
 //
 // The fixture holds one call per shape: a plain fn, an overload, a free fn by

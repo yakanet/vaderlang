@@ -1,4 +1,4 @@
-// vader/vm/data_pool — a module's data pool, as the VM runs it.
+// vader/vm/data_pool: a module's data pool, as the VM runs it.
 //
 // `prepare` (module.vader) wraps a `BytecodeModule` in a `VmState`: it
 // materialises the data pool to runtime `ArrayVal`s up front, through the

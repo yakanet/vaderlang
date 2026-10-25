@@ -1,4 +1,4 @@
-// vader/core/bytecode/types — bytecode-level type primitives.
+// vader/core/bytecode/types: bytecode-level type primitives.
 //
 // This is the single type-table shape :
 // the self-host VM consumes it directly (the former runtime-only

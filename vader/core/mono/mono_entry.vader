@@ -1,4 +1,4 @@
-// vader/core/mono/mono_entry — the specialised-decl entry shape.
+// vader/core/mono/mono_entry: the specialised-decl entry shape.
 //
 // Defines `MonoEntry` : one concrete fn / struct / const / impl-member
 // decl the lowerer is about to emit, carrying its source decl, owning

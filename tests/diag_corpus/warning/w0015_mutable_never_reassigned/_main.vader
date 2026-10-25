@@ -1,4 +1,4 @@
-// W0015 — a local declared mutable that nothing ever reassigns.
+// W0015: a local declared mutable that nothing ever reassigns.
 //
 // The distinction the check rests on: `:=` grants REBINDING, and only a bare
 // name as the whole assignment target uses it. Writing through a field or an

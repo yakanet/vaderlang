@@ -1,4 +1,4 @@
-// vader/front/virt/virt_reader_bc — read a `.virt` text dump into a `BytecodeModule`.
+// vader/front/virt/virt_reader_bc: read a `.virt` text dump into a `BytecodeModule`.
 //
 // Reads the module directives around each function body and reconstructs the
 // `vader/core/bytecode::BytecodeModule` that `vader run` executes and

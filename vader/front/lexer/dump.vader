@@ -1,4 +1,4 @@
-// vader/front/lexer/dump — render a Lexer's tokens / diagnostics as text.
+// vader/front/lexer/dump: render a Lexer's tokens / diagnostics as text.
 //
 // This is the sole producer of the `lexer.snapshot` fixtures ; the output
 // format is stable so the snapshot suite can diff it against them.

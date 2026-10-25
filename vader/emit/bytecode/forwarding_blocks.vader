@@ -1,4 +1,4 @@
-// vader/emit/bytecode/forwarding_blocks — send edges past the blocks that only forward them.
+// vader/emit/bytecode/forwarding_blocks: send edges past the blocks that only forward them.
 //
 // The builder gives each arm of an `if` its block before it knows what the arm
 // holds, so a lone `break` or `continue` is a block with nothing in it but a

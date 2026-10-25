@@ -1,4 +1,4 @@
-// vader/lower/helpers — AST construction helpers shared across passes.
+// vader/lower/helpers: AST construction helpers shared across passes.
 //
 // Synthetic-symbol minting, AND / OR-chain assembly, cell and closure-env
 // initialisation. The IR's own constructors (`mk_lowered_call`, `mk_void_block`,

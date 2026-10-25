@@ -1,4 +1,4 @@
-// toolchain/span/span.vader — where a piece of source is, and nothing else.
+// toolchain/span/span.vader: where a piece of source is, and nothing else.
 //
 // The leaf of the toolchain's public API: a compiler-free module that anything
 // reading Vader source needs and that nothing needs a compiler to understand.

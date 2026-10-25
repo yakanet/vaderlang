@@ -1,4 +1,4 @@
-// vader/lower/member_instance — an impl member with type parameters of its own.
+// vader/lower/member_instance: an impl member with type parameters of its own.
 //
 // Such a member (`conv :: fn<U>(self, x: U)`) runs one instance per call, at the
 // types the call gives its parameters and, on a generic impl, those the receiver

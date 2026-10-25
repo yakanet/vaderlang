@@ -1,4 +1,4 @@
-// vader/midir/optimise/escape — intra-procedural escape analysis.
+// vader/midir/optimise/escape: intra-procedural escape analysis.
 //
 // For each StructNew / ArrayNew
 // allocation, decides whether the value can escape its fn. Escapes :

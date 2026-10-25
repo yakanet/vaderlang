@@ -1,4 +1,4 @@
-// vader/lower/binary — binary / unary operators and operator-overload routing.
+// vader/lower/binary: binary / unary operators and operator-overload routing.
 //
 
 module "vader/lower"

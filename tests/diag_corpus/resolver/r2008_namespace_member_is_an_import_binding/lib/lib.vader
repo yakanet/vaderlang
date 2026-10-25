@@ -1,4 +1,4 @@
-// snippet/lib — renames an import for its own use, exports one fn.
+// snippet/lib: renames an import for its own use, exports one fn.
 
 module "snippet/lib"
 

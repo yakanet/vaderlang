@@ -1,4 +1,4 @@
-// match_then_nested_for_continue — a CFG shape that once sent the structurer
+// match_then_nested_for_continue: a CFG shape that once sent the structurer
 // into unbounded recursion (SIGSEGV while the native compiler emitted its
 // bytecode).
 //

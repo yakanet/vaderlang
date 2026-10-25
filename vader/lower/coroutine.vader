@@ -1,4 +1,4 @@
-// vader/lower/coroutine — the reusable coroutine state-machine engine.
+// vader/lower/coroutine: the reusable coroutine state-machine engine.
 //
 // Both `generator` and `async` lowering share this block-split: the
 // structured-lowered-CFG → numbered-states transform, spill collection,

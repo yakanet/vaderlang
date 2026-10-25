@@ -1,4 +1,4 @@
-// vader/lower/iter_fusion — stream-fusion of lazy iterator chains.
+// vader/lower/iter_fusion: stream-fusion of lazy iterator chains.
 //
 // Turns `for x in (0..<n).map(f).filter(p)` into a single flat counter loop (no
 // iterator struct, no `next()`, no step pair). The entry `try_lower_chain_fusion`

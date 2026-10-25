@@ -1,4 +1,4 @@
-// std/sort — comparator-based sort on `[T]` arrays.
+// std/sort: comparator-based sort on `[T]` arrays.
 //
 // Stable, O(n log n). Returns a freshly-allocated sorted copy ; the input
 // array is never mutated. Internally a top-down merge sort with an

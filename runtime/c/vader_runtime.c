@@ -1,4 +1,4 @@
-/* Vader native runtime — implementation. See `vader.h` for the public API.
+/* Vader native runtime: implementation. See `vader.h` for the public API.
  *
  * Memory model: generational GC — a copying (Cheney) young generation and a
  * NON-MOVING mark-sweep old generation. Young is a pair of semi-spaces;

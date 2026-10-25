@@ -1,4 +1,4 @@
-// vader/lower/ctx — shared context threaded through every lowering pass.
+// vader/lower/ctx: shared context threaded through every lowering pass.
 //
 // `LowerProjectCtx` is built once per
 // `lower_project` call and holds the inputs every pass reads — mono

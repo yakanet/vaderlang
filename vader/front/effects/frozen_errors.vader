@@ -1,4 +1,4 @@
-// vader/front/effects/frozen_errors — the errors of the frozen sites.
+// vader/front/effects/frozen_errors: the errors of the frozen sites.
 //
 // A frozen value written through is T3070, lent to a callee that modifies it
 // T3072, and a view of a string's bytes kept somewhere T3071. The detail names the

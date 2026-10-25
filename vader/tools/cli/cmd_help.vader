@@ -1,4 +1,4 @@
-// vader/tools/cli/cmd_help — the `help` action, and `--help` on any action.
+// vader/tools/cli/cmd_help: the `help` action, and `--help` on any action.
 //
 // Renders from `spec.vader` rather than from prose, so a flag cannot exist
 // without appearing here — the CLI tests assert exactly that.

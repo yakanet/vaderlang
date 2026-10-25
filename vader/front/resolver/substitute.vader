@@ -1,4 +1,4 @@
-// vader/front/resolver/substitute — type-level substitution walker.
+// vader/front/resolver/substitute: type-level substitution walker.
 //
 // Walks a TypeExpr (== Expr — since Vader doesn't separate type-level
 // from value-level expression syntax) and replaces every `IdentExpr`

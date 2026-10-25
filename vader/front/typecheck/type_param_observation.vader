@@ -1,4 +1,4 @@
-// vader/front/typecheck/type_param_observation — which generic fns observe their type parameters.
+// vader/front/typecheck/type_param_observation: which generic fns observe their type parameters.
 //
 // A generic fn whose body tests one of its type parameters at run time (`x is U`)
 // observes it (`observe_type_param_test`), and its instances stay concrete

@@ -1,4 +1,4 @@
-// vader/front/virt/op_docs — the reference of the text bytecode, for tools.
+// vader/front/virt/op_docs: the reference of the text bytecode, for tools.
 //
 // `ops.md` beside this file documents every op and directive a `.virt` line can
 // start with. It is baked into the compiler, so an editor hovering an op reads it

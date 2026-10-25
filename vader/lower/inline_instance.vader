@@ -1,4 +1,4 @@
-// vader/lower/inline_instance — the names one inlined body lowers under.
+// vader/lower/inline_instance: the names one inlined body lowers under.
 //
 // The fusion splices a callee's body into its caller: a generator's into the
 // chain that consumes it, an iterator consumer's at its call. Lowered under the

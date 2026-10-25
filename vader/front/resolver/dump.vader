@@ -1,4 +1,4 @@
-// vader/front/resolver/dump — text formatter for ResolvedProject.
+// vader/front/resolver/dump: text formatter for ResolvedProject.
 //
 // Output is stable so the snapshot suite can diff it against the recorded
 // fixtures. Format spec :

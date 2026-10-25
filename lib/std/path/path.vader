@@ -1,4 +1,4 @@
-// std/path — filesystem path manipulation.
+// std/path: filesystem path manipulation.
 //
 // Paths are immutable string-backed values. Every operation returns a fresh
 // Path rather than mutating. POSIX-style `/` separator only in MVP — Windows

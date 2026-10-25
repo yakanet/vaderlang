@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_cast — CastExpr inference (`T(x)`).
+// vader/front/typecheck/expr_cast: CastExpr inference (`T(x)`).
 //
 // A cast `T(x)` resolves to the target type `T`, but the (value → target) pair
 // must be a conversion the backends actually implement, else the cast lowers to

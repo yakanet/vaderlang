@@ -1,4 +1,4 @@
-// tests/diagnostics-corpus — native diagnostic-code corpus (no TS parity).
+// tests/diagnostics-corpus: native diagnostic-code corpus (no TS parity).
 //
 // Negative fixtures under tests/diag_corpus/<bucket>/<name>/ each provoke a
 // specific compiler diagnostic. This suite dumps the native Vader compiler at

@@ -1,4 +1,4 @@
-// noreturn_guard_narrow — a `@no_return` guard narrows the guarded binding.
+// noreturn_guard_narrow: a `@no_return` guard narrows the guarded binding.
 //
 // Regression guard for the divergent-guard narrowing that ignored a block's
 // trailing expression. A guard whose sole content is a `@no_return` call —

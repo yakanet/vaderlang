@@ -1,4 +1,4 @@
-// vader/front/typecheck/narrow — flow-sensitive type narrowing.
+// vader/front/typecheck/narrow: flow-sensitive type narrowing.
 //
 // API for pushing / popping narrowed types into per-binding and per-field
 // stacks. Consumers (`infer_ident`, `infer_field`) call `narrow_for_binding`

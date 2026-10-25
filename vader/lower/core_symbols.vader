@@ -1,4 +1,4 @@
-// vader/lower/core_symbols — stdlib symbol cache lookups.
+// vader/lower/core_symbols: stdlib symbol cache lookups.
 //
 // The for-in / try / display
 // passes need to resolve `std/core` traits + structs by name without

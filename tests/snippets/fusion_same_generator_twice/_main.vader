@@ -1,4 +1,4 @@
-// fusion_same_generator_twice — two inlined instances of one generator keep
+// fusion_same_generator_twice: two inlined instances of one generator keep
 // their own variables: `map.map`, `filter.filter`, `take.take`, `skip.skip`, a
 // user stage twice, a generator nested in itself, `@comptime` on a fused chain,
 // and a consumer `break i` past a generator loop also named `i`.

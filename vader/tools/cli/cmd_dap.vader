@@ -1,4 +1,4 @@
-// vader/tools/cli/dap — the `vader dap` command.
+// vader/tools/cli/dap: the `vader dap` command.
 //
 // Serves the Debug Adapter Protocol over stdio, driving the embedded VM as a
 // step debugger. Compiles with `want_debug` so the bytecode carries per-op

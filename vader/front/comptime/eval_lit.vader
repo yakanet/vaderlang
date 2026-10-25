@@ -1,4 +1,4 @@
-// vader/front/comptime/eval_lit — literal-expression evaluators.
+// vader/front/comptime/eval_lit: literal-expression evaluators.
 //
 // Per-variant `evaluate_<kind>_lit` for every AST literal expression.
 // Each returns an `EvalResult` carrying the canonicalised

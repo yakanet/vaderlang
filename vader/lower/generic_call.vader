@@ -1,4 +1,4 @@
-// vader/lower/generic_call — generic function calls: the instance a call names, and its emit.
+// vader/lower/generic_call: generic function calls, the instance a call names and its emit.
 //
 
 module "vader/lower"

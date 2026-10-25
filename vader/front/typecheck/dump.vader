@@ -1,4 +1,4 @@
-// vader/front/typecheck/dump — text formatter for the typecheck stage.
+// vader/front/typecheck/dump: text formatter for the typecheck stage.
 //
 // Output is stable so the snapshot suite can diff it against the recorded
 // `# Typecheck` fixtures.

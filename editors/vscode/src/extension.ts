@@ -1,4 +1,4 @@
-// Vader VSCode extension — spawns the Vader Language Server and routes
+// Vader VSCode extension: spawns the Vader Language Server and routes
 // every `.vader` document through it. The server itself is implemented
 // in Vader (`vader/tools/lsp/main_entry.vader`) and shipped with the Vader CLI
 // binary ; this extension is a thin client.

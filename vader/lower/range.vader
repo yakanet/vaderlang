@@ -1,4 +1,4 @@
-// vader/lower/range — `a..<b` / `a..=b` range lowering.
+// vader/lower/range: `a..<b` / `a..=b` range lowering.
 //
 // Desugars an
 // `AST.RangeExpr` into a `Range { .start, .end, .inclusive, .cursor }`

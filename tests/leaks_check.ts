@@ -1,4 +1,4 @@
-// Memory-leak audit for native snippets — Vader-emitted C variant.
+// Memory-leak audit for native snippets: Vader-emitted C variant.
 //
 // For each snippet under tests/snippets/, emit C with the Vader self-compiled
 // compiler (`./build/vader dump --stage=c`), build a native binary the same

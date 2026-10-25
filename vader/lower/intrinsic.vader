@@ -1,4 +1,4 @@
-// vader/lower/intrinsic — @intrinsic lowering and compile-time type introspection.
+// vader/lower/intrinsic: @intrinsic lowering and compile-time type introspection.
 //
 
 module "vader/lower"

@@ -1,4 +1,4 @@
-// vader/tools/lsp/analysis/state — open-document tracking.
+// vader/tools/lsp/analysis/state: open-document tracking.
 //
 // The client pushes the file content via `didOpen` / `didChange` /
 // `didClose` notifications. Semantic tokens read from the doc table ;

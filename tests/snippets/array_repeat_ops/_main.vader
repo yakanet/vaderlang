@@ -1,4 +1,4 @@
-// tests/snippets/array_repeat_ops — array construction + bulk-mutation ops.
+// tests/snippets/array_repeat_ops: array construction + bulk-mutation ops.
 //
 // Exercises the five new array primitives end to end (typer + lowering →
 // `array.repeat` / `array.push_all` / `array.copy` / `array.remove_last` /

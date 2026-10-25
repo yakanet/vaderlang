@@ -1,4 +1,4 @@
-// vader/tools/cli/cmd_new — the `vader new` command.
+// vader/tools/cli/cmd_new: the `vader new` command.
 //
 // Scaffolds a project, so the first one does not have to be reverse-engineered
 // from the test fixtures. What a project actually needs is small, and none of it
@@ -343,7 +343,7 @@ render_manifest :: fn(name: string) -> string {
 /// the folder — the one rule about the layout that nothing else states.
 render_entry :: fn(name: string) -> string {
     out :: StringBuilder {}
-    out.append("// ${SOURCE_DIR}/${ENTRY_FILENAME} — entry point of ${name}.\n")
+    out.append("// ${SOURCE_DIR}/${ENTRY_FILENAME}: entry point of ${name}.\n")
     out.append("\n")
     out.append("module \"${SOURCE_DIR}\"\n")
     out.append("\n")

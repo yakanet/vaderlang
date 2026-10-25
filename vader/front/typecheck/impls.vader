@@ -1,4 +1,4 @@
-// vader/front/typecheck/impls — registry of `T implements Trait { ... }` blocks.
+// vader/front/typecheck/impls: registry of `T implements Trait { ... }` blocks.
 //
 // One entry per impl, its trait and target resolved through the names the impl
 // writes — an import followed to the declaration it names — so an entry is keyed

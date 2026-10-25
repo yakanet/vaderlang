@@ -1,4 +1,4 @@
-// vader/lower/call — call dispatch: virtual, namespace, static, array ops.
+// vader/lower/call: call dispatch (virtual, namespace, static, array ops).
 //
 
 module "vader/lower"

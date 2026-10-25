@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/virt_lines — the text of one `.virt` line.
+// vader/tools/lsp/handlers/virt_lines: the text of one `.virt` line.
 //
 // A line is its code — a head word then its operands, separated by blanks —
 // then an optional `;` comment. No operand of an op contains a `;` or a blank,

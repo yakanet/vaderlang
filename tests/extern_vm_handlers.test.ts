@@ -1,4 +1,4 @@
-// tests/extern_vm_handlers.test.ts — every `@extern` in the compiler tree must
+// tests/extern_vm_handlers.test.ts: every `@extern` in the compiler tree must
 // be servable by the VM's host dispatcher.
 //
 // WHY: `@extern` is EXEMPT from the emit-time wiring check that guarantees a

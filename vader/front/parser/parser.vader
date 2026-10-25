@@ -1,4 +1,4 @@
-// vader/front/parser/parser — recursive-descent parser + Pratt expression parser.
+// vader/front/parser/parser: recursive-descent parser + Pratt expression parser.
 // Public entry : parse_source(source, file) -> ParsedSource { program, errors }.
 // Errors flow into the parser's `errors` array ; after an error the parser
 // synchronises on `}` / top-level keywords / NEWLINE so it can keep going.

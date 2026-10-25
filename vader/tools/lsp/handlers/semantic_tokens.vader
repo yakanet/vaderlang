@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/semantic_tokens — `textDocument/semanticTokens/full` handler.
+// vader/tools/lsp/handlers/semantic_tokens: `textDocument/semanticTokens/full` handler.
 //
 // LSP encodes semantic tokens as a flat `i32[]` array of 5-tuples :
 //

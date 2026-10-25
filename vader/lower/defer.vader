@@ -1,4 +1,4 @@
-// vader/lower/defer — defer-thunk lifting.
+// vader/lower/defer: defer-thunk lifting.
 //
 // Each `DeferStmt` becomes :
 //   1. A synthesised top-level fn (the "lifted defer fn") whose only

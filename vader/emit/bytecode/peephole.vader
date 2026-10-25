@@ -1,4 +1,4 @@
-// vader/emit/bytecode/peephole — bytecode-level peepholes over an emitted
+// vader/emit/bytecode/peephole: bytecode-level peepholes over an emitted
 // `BcFunction`.
 //
 // The `CFGProject` → `BytecodeModule` walk is `emit.vader`

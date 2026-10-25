@@ -1,4 +1,4 @@
-// vader/lower/ir/lowered_ast — output shape of the lowering pass.
+// vader/lower/ir/lowered_ast: output shape of the lowering pass.
 //
 // The lowerer reads an `EvaluatedProject` (typed AST + comptime values + mono
 // entries) and emits a `LoweredProject`, a flatter IR that DCE

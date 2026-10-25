@@ -1,4 +1,4 @@
-// vader/front/resolver/materialize — synthetic trait method injection.
+// vader/front/resolver/materialize: synthetic trait method injection.
 //
 // Each entry point expands an `ImplDecl.members` array with synthesised method
 // declarations drawn from the trait :

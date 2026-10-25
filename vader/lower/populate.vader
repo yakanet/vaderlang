@@ -1,4 +1,4 @@
-// vader/lower/populate — populate the LowerProjectCtx side-tables.
+// vader/lower/populate: populate the LowerProjectCtx side-tables.
 //
 
 module "vader/lower"

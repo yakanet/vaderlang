@@ -1,4 +1,4 @@
-// T3085 — a variant carries a `{ .f = v }` block, but the enum's header names
+// T3085: a variant carries a `{ .f = v }` block, but the enum's header names
 // no data struct for it to build.
 
 module "snippet"

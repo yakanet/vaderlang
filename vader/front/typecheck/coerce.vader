@@ -1,4 +1,4 @@
-// vader/front/typecheck/coerce — `Into` trait dispatch.
+// vader/front/typecheck/coerce: `Into` trait dispatch.
 //
 // Consults `impl_methods` (the impl tables, populated by `orchestrate.vader`
 // per impl) for an `into` method registered on `got` whose return

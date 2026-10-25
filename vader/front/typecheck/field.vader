@@ -1,4 +1,4 @@
-// vader/front/typecheck/field — FieldExpr inference (`obj.f`).
+// vader/front/typecheck/field: FieldExpr inference (`obj.f`).
 //
 // `infer_field` recursively checks the target, then runs a priority-ordered
 // chain of `try_*` dispatchers and returns the first non-null result :

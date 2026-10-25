@@ -1,4 +1,4 @@
-// tests/verify — `--verify`, the cross-pass IR self-check.
+// tests/verify: `--verify`, the cross-pass IR self-check.
 //
 // `I7xxx` reports a malformed IR, which is a compiler bug and not something a
 // program can provoke — so the family takes the same no-fixture exception

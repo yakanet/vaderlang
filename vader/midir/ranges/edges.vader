@@ -1,4 +1,4 @@
-// vader/midir/ranges/edges — what a conditional branch on a comparison teaches
+// vader/midir/ranges/edges: what a conditional branch on a comparison teaches
 // each of its edges.
 //
 // The edge on which `x < y` holds learns the fact `x - y <= -1`, `x` below the

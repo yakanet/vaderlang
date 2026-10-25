@@ -1,4 +1,4 @@
-// vader/front/resolver/module — module discovery + path resolution.
+// vader/front/resolver/module: module discovery + path resolution.
 //
 // A `Module` represents one resolved-on-disk unit. Imports resolve by
 // *name* against an ordered set of include-path roots (GCC `-I` style),

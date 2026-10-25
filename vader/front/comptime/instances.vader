@@ -1,4 +1,4 @@
-// vader/front/comptime/instances — passive registry of generic instantiations.
+// vader/front/comptime/instances: passive registry of generic instantiations.
 //
 // The typechecker already
 // represents `List<i32>` as `Struct { symbol, args }` ; this pass

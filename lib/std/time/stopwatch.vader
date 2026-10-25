@@ -1,4 +1,4 @@
-// std/time/stopwatch — a monotonic stopwatch for measuring elapsed time.
+// std/time/stopwatch: a monotonic stopwatch for measuring elapsed time.
 //
 // Wraps a `Monotonic` start instant ; `stop()` reads the monotonic clock
 // again and returns the elapsed `Duration`. Built on the monotonic clock,

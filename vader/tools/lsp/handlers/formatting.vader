@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/formatting — `textDocument/formatting` handler.
+// vader/tools/lsp/handlers/formatting: `textDocument/formatting` handler.
 //
 // Whole-document formatting through the existing `vader/tools/fmt` formatter. Pulls
 // the open document's current text from the server's `docs` overlay, runs

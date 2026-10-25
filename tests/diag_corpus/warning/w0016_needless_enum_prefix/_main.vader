@@ -1,4 +1,4 @@
-// W0016 — the slot already pins the enum, so naming it before the dot adds
+// W0016: the slot already pins the enum, so naming it before the dot adds
 // nothing. The quiet cases are here on purpose: each is a slot that CANNOT
 // resolve the bare form, so a regression shows up as a new snapshot line.
 

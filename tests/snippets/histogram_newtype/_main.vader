@@ -1,4 +1,4 @@
-// tests/snippets/histogram_newtype — array-backed distinct newtypes.
+// tests/snippets/histogram_newtype: array-backed distinct newtypes.
 //
 // Regression guard for "distinct newtypes over arrays" : a `Name :: T[]` decl is
 // a distinct nominal type, so its structural array ops (index, `len`/`push`,

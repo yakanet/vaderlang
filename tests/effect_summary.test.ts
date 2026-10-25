@@ -1,4 +1,4 @@
-// tests/effect_summary — `vader dump --stage=effects`, what each function does
+// tests/effect_summary: `vader dump --stage=effects`, what each function does
 // with what it is lent.
 //
 // The fixture holds one function per case; each expectation lists that

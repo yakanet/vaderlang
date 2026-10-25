@@ -1,4 +1,4 @@
-// vader/front/dead_code/dead_code — name-reachability lints : W0007 (dead private
+// vader/front/dead_code/dead_code: name-reachability lints, W0007 (dead private
 // decls, per-module, on every build) and W0012 (dead exported fns, project-wide,
 // `vader lint` only).
 //

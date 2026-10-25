@@ -1,4 +1,4 @@
-// impl_method_forward_use — a trait method called before its impl block.
+// impl_method_forward_use: a trait method called before its impl block.
 //
 // Regression guard for B.6: `walk_bodies` registered impl-member metadata
 // lazily in its main pass, in file (merge) order — so a fn body that called a

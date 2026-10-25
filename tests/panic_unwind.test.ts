@@ -1,4 +1,4 @@
-// Panic-unwind — a `panic()` runs the pending `defer`s of every frame it
+// Panic-unwind: a `panic()` runs the pending `defer`s of every frame it
 // unwinds through (LIFO, innermost frame first) before the process aborts, on
 // BOTH backends. The `panic_runs_defers` snippet's cleanup lines must appear on
 // stdout even though the program aborts.

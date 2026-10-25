@@ -1,4 +1,4 @@
-// vader/midir/ranges/intervals — the intervals of the integer types, and the
+// vader/midir/ranges/intervals: the intervals of the integer types, and the
 // widening that settles a loop.
 //
 // The interval domain itself is `vader/support/integer/interval.vader`. The interval of a

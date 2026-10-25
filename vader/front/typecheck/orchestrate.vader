@@ -1,4 +1,4 @@
-// vader/front/typecheck/orchestrate — full-pipeline typecheck.
+// vader/front/typecheck/orchestrate: full-pipeline typecheck.
 //
 // Adds body-walking on top of `check.vader::check_module` so CLI / dump
 // callers get a fully-typed program in one call.

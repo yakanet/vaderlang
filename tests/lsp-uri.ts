@@ -1,4 +1,4 @@
-// tests/lsp-uri — build a `file://` URI the way the SERVER does.
+// tests/lsp-uri: build a `file://` URI the way the SERVER does.
 //
 // Mirrors `vader/tools/lsp/protocol/uri.vader::path_to_uri`: forward-slash the path, and
 // give a Windows drive path (`C:\…`) the extra leading slash so it becomes

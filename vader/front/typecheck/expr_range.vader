@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_range — RangeExpr inference (`a..<b`, `a..=b`).
+// vader/front/typecheck/expr_range: RangeExpr inference (`a..<b`, `a..=b`).
 //
 // A range types as `Range<T>`, the `std/core` struct. `T` comes from the slot
 // when it expects a `Range<T>` (`r: Range<i64>: …`, `x in lo..=hi`), from the

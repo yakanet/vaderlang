@@ -1,4 +1,4 @@
-// tests/fixtures/callee/sites — one function per shape of site `vader dump
+// tests/fixtures/callee/sites: one function per shape of site `vader dump
 // --stage=callees` must settle, a call expression or an operator or index that
 // calls through a trait; `tests/callee_sites.test.ts` holds what each one invokes.
 

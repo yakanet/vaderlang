@@ -1,4 +1,4 @@
-// toolchain/build/message — the pipeline events a build driver observes.
+// toolchain/build/message: the pipeline events a build driver observes.
 //
 // A project's `build.vader` pulls these from `BuildContext.messages()`
 // (`context.vader`) and reacts to them. `Message` is a closed union, so a

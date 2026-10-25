@@ -1,4 +1,4 @@
-// vader/lower/generator_fusion — inline a consumed `generator` body into the
+// vader/lower/generator_fusion: inline a consumed `generator` body into the
 // chain that consumes it.
 //
 // A generator call fuses one of two ways, decided by the shape of its body, never

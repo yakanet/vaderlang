@@ -1,4 +1,4 @@
-// vader/front/resolver/builtins — primitive type symbols + builtin module id.
+// vader/front/resolver/builtins: primitive type symbols + builtin module id.
 //
 // Primitive type names, but the integers `std/core` declares, are minted as
 // `.BuiltinType` symbols in a synthetic `<builtin>` module so the resolver can

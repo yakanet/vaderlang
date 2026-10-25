@@ -1,4 +1,4 @@
-// std/tty — terminal detection and ANSI coloring.
+// std/tty: terminal detection and ANSI coloring.
 //
 // A small, terminal-aware coloring API. The color/style helpers return a string
 // that carries ANSI SGR codes only when coloring is enabled; otherwise they

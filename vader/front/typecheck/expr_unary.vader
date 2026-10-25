@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_unary — UnaryExpr inference (`-x`, `!x`, `~x`).
+// vader/front/typecheck/expr_unary: UnaryExpr inference (`-x`, `!x`, `~x`).
 //
 // `-x` requires a numeric operand and returns the same primitive shape.
 // `!x` requires bool and returns bool. `~x` requires an integer and

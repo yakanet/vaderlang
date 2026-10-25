@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/type_definition — `textDocument/typeDefinition` handler.
+// vader/tools/lsp/handlers/type_definition: `textDocument/typeDefinition` handler.
 //
 // Where goto-`definition` jumps to a name's *binding*, typeDefinition jumps to
 // the declaration of the value's *type*. Cursor over a local, field or call

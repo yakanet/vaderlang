@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/rename — `textDocument/prepareRename` + `textDocument/rename`.
+// vader/tools/lsp/handlers/rename: `textDocument/prepareRename` + `textDocument/rename`.
 //
 // Rename a target across the workspace. Reuses find-usages
 // (`analysis/workspace::reference_sites`) : the cursor resolves to a target, and

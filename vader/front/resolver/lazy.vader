@@ -1,4 +1,4 @@
-// vader/front/resolver/lazy — import-driven (lazy) module resolution.
+// vader/front/resolver/lazy: import-driven (lazy) module resolution.
 //
 // The Go `go/packages` model : instead of eagerly walking every scoped root
 // (which, for a project-less entry whose folder is the filesystem root, walks

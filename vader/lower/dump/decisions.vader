@@ -1,4 +1,4 @@
-// vader/lower/dump/decisions — what the lowering decided, for the `# Lower` dump.
+// vader/lower/dump/decisions: what the lowering decided, for the `# Lower` dump.
 //
 // Where each module constant and global slot lives, the vtable rows a module
 // fills, and what the lowering materialised in a module outside the dump's scope.

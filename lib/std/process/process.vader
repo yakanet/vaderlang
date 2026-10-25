@@ -1,4 +1,4 @@
-// std/process — external-process invocation, async-first.
+// std/process: external-process invocation, async-first.
 //
 // `spawn_async` is the primitive: a non-blocking awaitable over a child
 // process. `spawn_start` launches the child, the awaitable polls

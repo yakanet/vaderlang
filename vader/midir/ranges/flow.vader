@@ -1,4 +1,4 @@
-// vader/midir/ranges/flow — the range analysis's fixed point over one function.
+// vader/midir/ranges/flow: the range analysis's fixed point over one function.
 //
 // Forward, in reverse postorder (`transfer.vader` for one step): each block's
 // entry state joins what its predecessors' edges carry, and a loop header

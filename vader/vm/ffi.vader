@@ -1,4 +1,4 @@
-// vader/vm/ffi — the VM's window onto `runtime/c/vader_ffi.h`.
+// vader/vm/ffi: the VM's window onto `runtime/c/vader_ffi.h`.
 //
 // The native backend resolves an `@extern` through the linker and `c_emit`
 // writes the call itself. The VM cannot: it learns a signature by reading

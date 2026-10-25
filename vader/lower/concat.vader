@@ -1,4 +1,4 @@
-// vader/lower/concat — monomorphized `concat_N` synthesis for string `+`.
+// vader/lower/concat: monomorphized `concat_N` synthesis for string `+`.
 //
 // String `+` (and all-string `${}`) lowers to a call to a shared
 // `concat_N(p0..p<n-1>: string) -> string`, one fn per arity actually used. Each

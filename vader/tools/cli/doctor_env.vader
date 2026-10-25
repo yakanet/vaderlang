@@ -1,4 +1,4 @@
-// vader/tools/cli/doctor_env — what `vader doctor` reads from the environment.
+// vader/tools/cli/doctor_env: what `vader doctor` reads from the environment.
 //
 // Split from `cmd_doctor.vader` because it answers a different question: not
 // "is the toolchain present" but "is what the RUNTIME will read what the user

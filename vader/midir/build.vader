@@ -1,4 +1,4 @@
-// vader/midir/build — LoweredAST → CFG converter.
+// vader/midir/build: LoweredAST → CFG converter.
 //
 // Walks each `LoweredFnDecl` in the
 // project and produces a `CFGFunction` : expressions become

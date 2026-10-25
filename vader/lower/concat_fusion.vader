@@ -1,4 +1,4 @@
-// vader/lower/concat_fusion — fuse a run of `s = s + …` appends into ONE concat.
+// vader/lower/concat_fusion: fuse a run of `s = s + …` appends into ONE concat.
 //
 // `s = s + a` then `s = s + b` lowers to two `concat_N` calls, and each one is a
 // whole string construction: a right-sized byte buffer, one write per part, and

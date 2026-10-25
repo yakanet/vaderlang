@@ -1,4 +1,4 @@
-// vader/front/resolver/target_select — choosing one body per `@target` group.
+// vader/front/resolver/target_select: choosing one body per `@target` group.
 //
 // The surface `@target` presents is SPEC.md §17 *Target selection*; this file
 // implements the choice. Three invariants govern it.

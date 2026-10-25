@@ -1,4 +1,4 @@
-// vader/vm/verify — load-time verification of the bytecode the VM will run.
+// vader/vm/verify: load-time verification of the bytecode the VM will run.
 //
 // Every property checked here depends on the bytecode alone, so it has one answer
 // for every execution: the operand-stack depth at each pc, that no op pops below

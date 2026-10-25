@@ -1,4 +1,4 @@
-// vader/front/comptime/eval — tree-walk expression dispatcher.
+// vader/front/comptime/eval: tree-walk expression dispatcher.
 //
 // Per-variant `match` over `AST.Expr` routing each kind to its
 // dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).

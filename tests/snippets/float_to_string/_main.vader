@@ -1,4 +1,4 @@
-// tests/snippets/float_to_string — pure-Vader shortest-double formatter (Ryu).
+// tests/snippets/float_to_string: pure-Vader shortest-double formatter (Ryu).
 //
 // Exercises `f64.to_string()` / `${f64}` through the normal build/run path,
 // which is the only float-formatting path with no caveats (the bytecode VM's

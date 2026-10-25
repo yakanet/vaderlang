@@ -1,4 +1,4 @@
-// vader/tools/fmt/comments — comment pre-scan.
+// vader/tools/fmt/comments: comment pre-scan.
 //
 // The lexer drops every `//` and `/* */` comment before the token stream
 // reaches the parser (cf. vader/front/lexer/lexer.vader::consume_block_comment).

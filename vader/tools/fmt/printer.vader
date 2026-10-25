@@ -1,4 +1,4 @@
-// vader/tools/fmt/printer — AST → source emitter.
+// vader/tools/fmt/printer: AST → source emitter.
 //
 // `emit_expr` / `emit_type_expr` accept `Expr | null` directly (with `null`
 // being a no-op) — the Vader typechecker flattens the union-alias `Expr` into

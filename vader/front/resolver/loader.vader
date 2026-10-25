@@ -1,4 +1,4 @@
-// vader/front/resolver/loader — module graph loader.
+// vader/front/resolver/loader: module graph loader.
 //
 // Seeds the entry module from its own folder, then BFS-walks the import graph,
 // resolving each import lazily by path-mapping against the include-paths

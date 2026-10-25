@@ -1,4 +1,4 @@
-// vader/front/lexer/lexer — the Vader-in-Vader lexer.
+// vader/front/lexer/lexer: the Vader-in-Vader lexer.
 //
 // Produces the token stream the parser consumes:
 //   - whitespace, // line comments, /* block comments */ (nested)

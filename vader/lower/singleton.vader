@@ -1,4 +1,4 @@
-// vader/lower/singleton — a `@singleton` function as its init and its accessor.
+// vader/lower/singleton: a `@singleton` function as its init and its accessor.
 //
 // `@singleton f :: fn() -> T { body }` runs `body` once per program and hands every
 // call the instance it built. The body is lowered as a function of its own, the

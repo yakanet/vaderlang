@@ -1,4 +1,4 @@
-// Bench harness — drives every Vader / Bun-TS / Go implementation of each
+// Bench harness: drives every Vader / Bun-TS / Go implementation of each
 // workload through `spawnSync`, captures wall-clock time, and prints a
 // comparison table. Exits non-zero if any (workload, implementation) time
 // regresses by more than `THRESHOLD` against the baseline committed at

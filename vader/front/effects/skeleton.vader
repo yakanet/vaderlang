@@ -1,4 +1,4 @@
-// vader/front/effects/skeleton — a function's body as constraints over slots.
+// vader/front/effects/skeleton: a function's body as constraints over slots.
 //
 // The walk (`walk.vader`) reads a body once and writes down what it does with the
 // values it is lent, as constraints between slots. A slot holds the roots of a

@@ -1,4 +1,4 @@
-// cli/help — render `--help` text from the spec tables.
+// cli/help: render `--help` text from the spec tables.
 //
 // Sibling of `cli.vader`, which owns the specs and the parser. Keeping the
 // renderer here rather than in each CLI's own source is what makes the spec

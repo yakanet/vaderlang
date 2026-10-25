@@ -1,4 +1,4 @@
-// vader/lower/struct_lit — struct / tuple / array literals and enum-variant folding.
+// vader/lower/struct_lit: struct / tuple / array literals and enum-variant folding.
 //
 
 module "vader/lower"

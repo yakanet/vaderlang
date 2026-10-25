@@ -1,4 +1,4 @@
-// vader/emit/bytecode/retype — rebase a module's type table onto a shared one.
+// vader/emit/bytecode/retype: rebase a module's type table onto a shared one.
 //
 // `BytecodeModule.types` is index-addressed, so two targets that compile the
 // same program can hold the same type at different slots — and one extra type

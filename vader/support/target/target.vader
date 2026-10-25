@@ -1,4 +1,4 @@
-// vader/support/target — the compilation target as a pair, and the `<os>-<arch>` form
+// vader/support/target: the compilation target as a pair, and the `<os>-<arch>` form
 // the command line speaks.
 //
 // The two axes and their asymmetry live in `std/target`, which holds the

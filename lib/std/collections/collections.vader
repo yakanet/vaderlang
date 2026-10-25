@@ -1,4 +1,4 @@
-// std/collections — hash-based mutable collections.
+// std/collections: hash-based mutable collections.
 //
 // Java-inspired API : struct-literal construction + UFCS methods. Method
 // names like `put` / `get` / `len` / `is_empty` are deliberately shared

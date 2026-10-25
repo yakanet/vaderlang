@@ -1,4 +1,4 @@
-// vader/lower/impl_member — impl-member resolution, mangling, Into-coercion and casts.
+// vader/lower/impl_member: impl-member resolution, mangling, Into-coercion and casts.
 //
 
 module "vader/lower"

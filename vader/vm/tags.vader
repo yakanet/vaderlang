@@ -1,4 +1,4 @@
-// vader/vm/tags — the operand tags each pc can see, inferred from the bytecode.
+// vader/vm/tags: the operand tags each pc can see, inferred from the bytecode.
 //
 // Every value the VM holds carries a `StackTag` (`exec.vader`). Some arms test an
 // operand's tag before they read its raw bits (`accepted_tags`). This pass

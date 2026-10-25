@@ -1,4 +1,4 @@
-// vader/support/target/baked — the target constants, as a module the compiler writes.
+// vader/support/target/baked: the target constants, as a module the compiler writes.
 //
 // `VADER_OS` and `VADER_ARCH` cannot be written by hand: their value is decided
 // per build. But they must behave like any other module-level constant — visible

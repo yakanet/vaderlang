@@ -1,4 +1,4 @@
-// vader/lower/optimise/push_cache — mark push loops whose array state can live in locals.
+// vader/lower/optimise/push_cache: mark push loops whose array state can live in locals.
 //
 // `a.push(v)` reads and writes the array through memory every time: the header's
 // `length` and `capacity`, the buffer pointer, and the buffer's own `length`.

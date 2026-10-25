@@ -1,4 +1,4 @@
-// tests/snippets/permission_flags — the aliased operator fallback across ALL
+// tests/snippets/permission_flags: the aliased operator fallback across ALL
 // operator classes.
 //
 // A distinct-over-primitive newtype with NO own impls inherits its backing's

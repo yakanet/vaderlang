@@ -1,4 +1,4 @@
-// vader/front/comptime/check — comptime orchestrator entry point.
+// vader/front/comptime/check: comptime orchestrator entry point.
 //
 // Drives the tree-walk evaluator over every module's `@comptime const`
 // decls in topological order, accumulating values into

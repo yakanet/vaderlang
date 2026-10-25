@@ -1,4 +1,4 @@
-// vader/core/bytecode/intrinsic_manifest — single authority on the `@intrinsic`
+// vader/core/bytecode/intrinsic_manifest: single authority on the `@intrinsic`
 // host-mangle grammar and host-intrinsic identity.
 //
 // Two related jobs, both so the host-mangle grammar lives in ONE place:

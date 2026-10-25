@@ -1,4 +1,4 @@
-// std/core — auto-imported in every Vader program.
+// std/core: auto-imported in every Vader program.
 //
 // Layout :
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,

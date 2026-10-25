@@ -1,4 +1,4 @@
-// tests/fixtures/graph/chain/beta — the leaf of the chain.
+// tests/fixtures/graph/chain/beta: the leaf of the chain.
 
 module "chain/beta"
 

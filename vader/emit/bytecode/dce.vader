@@ -1,4 +1,4 @@
-// vader/emit/bytecode/dce — late EmitterCtx-level prunes.
+// vader/emit/bytecode/dce: late EmitterCtx-level prunes.
 //
 // Hosts `prune_unused_imports` / `prune_unused_functions` / `prune_unused_data` /
 // `prune_unused_globals` / `prune_unused_types`. (There is no

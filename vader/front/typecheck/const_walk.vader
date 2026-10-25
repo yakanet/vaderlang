@@ -1,4 +1,4 @@
-// vader/front/typecheck/const_walk — when each module const is typed, within a walk.
+// vader/front/typecheck/const_walk: when each module const is typed, within a walk.
 //
 // `walk_bodies` types an un-annotated const's value to infer its type. A read that
 // comes before the const's turn types it then (`settle_const_read`), whatever the

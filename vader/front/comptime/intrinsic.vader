@@ -1,4 +1,4 @@
-// vader/front/comptime/intrinsic — comptime evaluator for `@<name>(args)` calls.
+// vader/front/comptime/intrinsic: comptime evaluator for `@<name>(args)` calls.
 //
 // Folds `@size_of`, `@align_of`, `@type_name`, `@type_kind`, `@field_count`,
 // `@variant_count`, `@field_index`, `@satisfies`, `@min` and `@max`. Every other intrinsic

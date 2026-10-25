@@ -1,4 +1,4 @@
-// vader/tools/cli/repl — the `vader` bare invocation.
+// vader/tools/cli/repl: the `vader` bare invocation.
 //
 // A placeholder: with no action given the CLI says so rather than dropping into
 // something half-built. Its own file so the day a real REPL lands, it has

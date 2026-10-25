@@ -1,4 +1,4 @@
-// vader/vm/inline_leaf — inline direct calls to small straight-line leaves before
+// vader/vm/inline_leaf: inline direct calls to small straight-line leaves before
 // the VM prepares a module.
 //
 // A call costs the register VM far more than an arithmetic op: frame records, a

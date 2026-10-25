@@ -1,4 +1,4 @@
-// vader/front/typecheck/check — declaration-time orchestrator.
+// vader/front/typecheck/check: declaration-time orchestrator.
 //
 // Builds the `ImplRegistry` and mints per-decl types. Body walking
 // lives in `orchestrate.vader`.

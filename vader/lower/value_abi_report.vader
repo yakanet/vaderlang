@@ -1,4 +1,4 @@
-// vader/lower/value_abi_report — which composites cross a call in registers, for the report.
+// vader/lower/value_abi_report: which composites cross a call in registers, for the report.
 //
 // A composite small enough crosses a call boundary in registers rather than as a
 // heap object. What a bare `Type` decides (a tuple, a distinct over one, the size

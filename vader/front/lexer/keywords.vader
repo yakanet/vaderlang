@@ -1,4 +1,4 @@
-// vader/front/lexer/keywords — keyword + numeric-suffix tables.
+// vader/front/lexer/keywords: keyword + numeric-suffix tables.
 //
 // A flat `if` chain is fine for 25 entries;
 // a hash table would be overkill at module init time. `lookup_keyword`

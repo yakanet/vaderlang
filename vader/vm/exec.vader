@@ -1,4 +1,4 @@
-// vader/vm/exec — the VM's entry points and the ops it runs on boxed values.
+// vader/vm/exec: the VM's entry points and the ops it runs on boxed values.
 //
 // `exec_entry` (and `exec` / `exec_fn` / `exec_fn_value` over it)
 // hands a `VmState` to the register engine (`reg_exec.vader`). The engine runs

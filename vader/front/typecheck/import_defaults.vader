@@ -1,4 +1,4 @@
-// vader/front/typecheck/import_defaults — carry a default value's name resolutions
+// vader/front/typecheck/import_defaults: carry a default value's name resolutions
 // across a module boundary.
 //
 // `normalize_call_args` fills an omitted argument by splicing the CALLEE's

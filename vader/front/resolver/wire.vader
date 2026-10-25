@@ -1,4 +1,4 @@
-// vader/front/resolver/wire — resolve each ImportBinding symbol to its
+// vader/front/resolver/wire: resolve each ImportBinding symbol to its
 // concrete export target across the module graph.
 //
 // Produces a

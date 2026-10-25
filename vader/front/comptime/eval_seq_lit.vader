@@ -1,4 +1,4 @@
-// vader/front/comptime/eval_seq_lit — `[e0, e1, …]` literal evaluator.
+// vader/front/comptime/eval_seq_lit: `[e0, e1, …]` literal evaluator.
 //
 // Tuples (typed `[T0, T1, …]`) materialise as `StructValue` with
 // synthetic `_0`, `_1`, … field names. Arrays (typed `T[]`)

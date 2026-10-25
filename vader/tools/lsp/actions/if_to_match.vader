@@ -1,4 +1,4 @@
-// vader/tools/lsp/actions/if_to_match — the `if` → `match` rewrite action.
+// vader/tools/lsp/actions/if_to_match: the `if` → `match` rewrite action.
 //
 // The inverse of match→if : an `if / else if / … / else` chain whose every
 // condition discriminates the SAME identifier scrutinee collapses to a `match`.

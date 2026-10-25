@@ -1,4 +1,4 @@
-// vader/tools/cli/cmd_check — type-check without emitting.
+// vader/tools/cli/cmd_check: type-check without emitting.
 //
 // The compensation for compile-time target selection. A body whose `@target`
 // does not match is never resolved or typed, so on any one machine the code for

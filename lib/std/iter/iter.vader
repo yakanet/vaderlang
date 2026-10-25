@@ -1,4 +1,4 @@
-// std/iter — lazy `generator` iterator combinators + terminals.
+// std/iter: lazy `generator` iterator combinators + terminals.
 //
 //   - **Combinators** `map` / `filter` / `take` / `skip` / `indexed` /
 //     `flat_map` / `chain` / `zip` / `window` / `chunked` / `distinct` /

@@ -1,4 +1,4 @@
-// vader/midir/value_return/nullable — the `S | null` half of the value-return
+// vader/midir/value_return/nullable: the `S | null` half of the value-return
 // pass.
 //
 // A `fn(…) -> S | null` whose every `return` builds `S` on the spot or hands

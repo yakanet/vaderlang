@@ -1,4 +1,4 @@
-// std/tty/raw — putting the terminal in raw mode, and reading keys from it.
+// std/tty/raw: putting the terminal in raw mode, and reading keys from it.
 //
 // Split from `tty.vader` because it is a different KIND of thing: the colour
 // helpers decorate a string and change nothing, while these mutate the

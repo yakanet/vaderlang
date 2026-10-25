@@ -1,4 +1,4 @@
-// system/posix — raw POSIX syscalls.
+// system/posix: raw POSIX syscalls.
 
 module "system/posix"
 

@@ -1,4 +1,4 @@
-// tests/vader_lint — end-to-end coverage for `vader lint` (the unused-export
+// tests/vader_lint: end-to-end coverage for `vader lint` (the unused-export
 // lint, W0012). The name-reachability engine (`dead_exports`) is exercised in
 // full here through the native CLI: `load_project` → merge non-stdlib module
 // decls → `dead_exports`. Colocated `vader/front/dead_code` @tests cover the W0007

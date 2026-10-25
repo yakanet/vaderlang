@@ -1,4 +1,4 @@
-// vader/front/virt/virt_reader — shared `.virt` op-stream parsing.
+// vader/front/virt/virt_reader: shared `.virt` op-stream parsing.
 //
 // Holds the per-op line parsers + structured control-flow → linear op-stream
 // wiring (`ParserState`, `wire_control_flow`, `parse_op_line`, every

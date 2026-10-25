@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/completion — `textDocument/completion` handler.
+// vader/tools/lsp/handlers/completion: `textDocument/completion` handler.
 //
 // Tier 1 : scope-aware identifier + keyword completion. Returns every name
 // reachable at the cursor — the file's top-level declarations, the intra-file

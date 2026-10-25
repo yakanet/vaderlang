@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/implementation — `textDocument/implementation` handler.
+// vader/tools/lsp/handlers/implementation: `textDocument/implementation` handler.
 //
 // Where goto-`definition` jumps to a name's single binding, `implementation`
 // answers "and where are its BODIES" — a question that only exists because one

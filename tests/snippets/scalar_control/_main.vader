@@ -1,4 +1,4 @@
-// tests/snippets/scalar_control — control-flow coverage.
+// tests/snippets/scalar_control: control-flow coverage.
 //
 // Exercises the C body walker's structured-control arms (block / loop /
 // if / else / end / br) on the scalar subset: a counted loop whose body

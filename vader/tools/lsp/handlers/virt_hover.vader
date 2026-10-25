@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/virt_hover — `textDocument/hover` over a `.virt` document.
+// vader/tools/lsp/handlers/virt_hover: `textDocument/hover` over a `.virt` document.
 //
 // Hovering the first word of a line — an op or a directive — shows its entry in
 // the text bytecode's reference (`vader/front/virt/ops.md`, read by `op_doc`).

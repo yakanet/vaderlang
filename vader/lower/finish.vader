@@ -1,4 +1,4 @@
-// vader/lower/finish — post-materialization finishing: vtable collection, output assembly.
+// vader/lower/finish: post-materialization finishing (vtable collection, output assembly).
 //
 
 module "vader/lower"

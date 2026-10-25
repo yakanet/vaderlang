@@ -1,4 +1,4 @@
-// vader/lower/dump/dump — `# Lower` snapshot dump.
+// vader/lower/dump/dump: `# Lower` snapshot dump.
 //
 // Walks every in-scope `LoweredModule`, module ids sorted alphabetically, and
 // renders its storage, its declarations as Vader (`body.vader`) and its

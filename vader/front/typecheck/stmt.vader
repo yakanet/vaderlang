@@ -1,4 +1,4 @@
-// vader/front/typecheck/stmt — statement + block + fn-body checking.
+// vader/front/typecheck/stmt: statement + block + fn-body checking.
 //
 // Walks every statement of a fn body, types each one, tracks loop
 // depth + return type via `FnContext`, and writes results into

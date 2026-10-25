@@ -1,4 +1,4 @@
-// vader/lower/for_in — `for x in iter` lowering.
+// vader/lower/for_in: `for x in iter` lowering.
 //
 // The generic slow path desugars `for x in <iter> { body }` into the
 // Iterator step loop :

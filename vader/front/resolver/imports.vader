@@ -1,4 +1,4 @@
-// vader/front/resolver/imports — per-ImportBinding side-table.
+// vader/front/resolver/imports: per-ImportBinding side-table.
 //
 // Captures `(path, imported_name)` for each ImportBinding symbol so
 // the wire pass can resolve each binding to its concrete target in

@@ -1,4 +1,4 @@
-// bench/vm/vm_arr/vm_arr.vader — Indexed read-modify-write over a 1024-element `i32[]`.
+// bench/vm/vm_arr/vm_arr.vader: Indexed read-modify-write over a 1024-element `i32[]`.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

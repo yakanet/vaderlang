@@ -1,4 +1,4 @@
-// vader/lower/generator — the `generator` state-machine desugar.
+// vader/lower/generator: the `generator` state-machine desugar.
 //
 // Called from `decl.vader::lowered_fn_of` for every `generator` fn,
 // generic instance and impl member. Takes the generator body lowered in

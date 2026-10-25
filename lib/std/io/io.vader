@@ -1,4 +1,4 @@
-// std/io — synchronous blocking I/O.
+// std/io: synchronous blocking I/O.
 //
 // MVP scope: stdin/stdout/stderr, file read/write, existence check.
 // No async, no networking, no streaming primitives.

@@ -1,4 +1,4 @@
-// bench/arr_map — map-over-array iterator, its bounds proven.
+// bench/arr_map: map-over-array iterator, its bounds proven.
 //
 // `for x in a.map(square)` fuses to a counter loop over `a[i]` that calls
 // `square`. In a release build the range analysis proves the fused `a[i]` in

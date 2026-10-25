@@ -1,4 +1,4 @@
-// std/math — basic numeric operations and constants.
+// std/math: basic numeric operations and constants.
 
 module "std/math"
 

@@ -1,4 +1,4 @@
-# tools/ci/mingw-clang.ps1 — point the Windows runner's own LLVM at MinGW, and
+# tools/ci/mingw-clang.ps1: point the Windows runner's own LLVM at MinGW, and
 # export it as `CC` for every later step of the job.
 #
 # The image ships LLVM (MSVC-targeting by default) and a MinGW-Builds gcc at

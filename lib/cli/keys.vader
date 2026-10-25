@@ -1,4 +1,4 @@
-// lib/cli/keys — decoding a terminal's byte burst into keypresses.
+// lib/cli/keys: decoding a terminal's byte burst into keypresses.
 //
 // Split from `prompt.vader` because it is the half with no side effects: bytes
 // in, keypresses out, and every case reachable from a unit test. The widgets are

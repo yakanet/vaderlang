@@ -1,4 +1,4 @@
-// vader/front/effects/variance — widened array arguments, checked against their callees.
+// vader/front/effects/variance: widened array arguments, checked against their callees.
 //
 // An array argument may fit its parameter only by widening its element:
 // `Circle[]` into `(Circle | null)[]`. That is sound when no callee can put a

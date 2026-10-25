@@ -1,4 +1,4 @@
-// vader/front/typecheck/field_defaults — the defaults a struct literal fills in.
+// vader/front/typecheck/field_defaults: the defaults a struct literal fills in.
 //
 // A literal that leaves a defaulted field out takes the default's value, and the
 // struct literals inside that default leave fields out in turn : the lowerer fills

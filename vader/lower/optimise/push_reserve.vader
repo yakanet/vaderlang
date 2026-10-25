@@ -1,4 +1,4 @@
-// vader/lower/optimise/push_reserve — create an array at the size a counted loop fills it to.
+// vader/lower/optimise/push_reserve: create an array at the size a counted loop fills it to.
 //
 // `out := []` followed by a loop that runs a known number of times, pushing onto
 // `out` once per turn, grows `out` by doubling: each growth allocates a buffer,

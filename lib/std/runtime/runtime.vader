@@ -1,4 +1,4 @@
-// std/runtime — runtime introspection and controls (GC and scheduler).
+// std/runtime: runtime introspection and controls (GC and scheduler).
 //
 // Lives in std/ rather than a hypothetical internal/ namespace because Vader
 // has no compiler-private visibility tier today and Go-style "runtime"

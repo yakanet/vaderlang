@@ -1,4 +1,4 @@
-// vader/core/bytecode/module — in-memory bytecode module shape, the lingua
+// vader/core/bytecode/module: in-memory bytecode module shape, the lingua
 // franca shared by the bytecode emitter, the VM, and the C emitter.
 //
 // This is the single in-memory module

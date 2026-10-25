@@ -1,4 +1,4 @@
-// vader/front/typecheck/context — shared context threaded through every typecheck pass.
+// vader/front/typecheck/context: shared context threaded through every typecheck pass.
 //
 // `FnContext` is pushed by `check_fn_body` and drives `return` checking plus
 // `Self` substitution inside method bodies.

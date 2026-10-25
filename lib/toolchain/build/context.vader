@@ -1,4 +1,4 @@
-// toolchain/build/context — the build-driver contract.
+// toolchain/build/context: the build-driver contract.
 //
 // `toolchain/build` is the ONE module a project's `build.vader` imports; everything
 // else under `vader/` is compiler implementation. A driver builds a context,

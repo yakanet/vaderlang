@@ -1,4 +1,4 @@
-// fusion_take_exact — `take(n)` pulls exactly `n` items from its source, and
+// fusion_take_exact: `take(n)` pulls exactly `n` items from its source, and
 // `take(0)` none: through `map`, through `flat_map` (whose own loop must stop
 // mid-array), and from a user generator that logs each item it produces.
 //

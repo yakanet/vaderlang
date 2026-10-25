@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/tokens — semantic-token vocabulary.
+// vader/tools/lsp/protocol/tokens: semantic-token vocabulary.
 //
 // The token-type / token-modifier enums, the wire `RawToken`, and the
 // `TOKEN_TYPES` / `TOKEN_MODIFIERS` legend arrays sent to the client on

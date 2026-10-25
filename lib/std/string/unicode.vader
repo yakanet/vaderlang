@@ -1,4 +1,4 @@
-// std/string/unicode — the codepoint side of the UTF-8 codec.
+// std/string/unicode: the codepoint side of the UTF-8 codec.
 //
 // The width a `char` takes once encoded, and UTF-16 surrogates. The encoder, the
 // decoder, the byte classification, `len` and `s[i]` sit in the prelude

@@ -1,4 +1,4 @@
-// tests/snippets/struct_point — stack-struct coverage.
+// tests/snippets/struct_point: stack-struct coverage.
 //
 // Exercises the C body walker's struct ops on stack-allocated structs
 // (escape-proven non-escaping): struct.new_stack (construct), local.field

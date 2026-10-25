@@ -1,4 +1,4 @@
-// vader/emit/virt/operands — what the printed operands of an op point at.
+// vader/emit/virt/operands: what the printed operands of an op point at.
 //
 // `write_op_refs` (dump.vader) prints an op as its name then its operands ; an
 // operand that is a table index is printed from an `OperandRef` saying what it

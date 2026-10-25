@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/virt_inlay_hint — `textDocument/inlayHint` over a `.virt`
+// vader/tools/lsp/handlers/virt_inlay_hint: `textDocument/inlayHint` over a `.virt`
 // document.
 //
 // A plain dump writes table indices (`call 79`, `local.get 1`, `ref.cast 25`).

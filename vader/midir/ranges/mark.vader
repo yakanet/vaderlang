@@ -1,4 +1,4 @@
-// vader/midir/ranges/mark — mark every array access the range analysis proves in bounds.
+// vader/midir/ranges/mark: mark every array access the range analysis proves in bounds.
 //
 // A native build that proves bounds (`proves_bounds`, `vader/pipeline`) runs the
 // range analysis (`verdicts.vader`) on each function as the bytecode

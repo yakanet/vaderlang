@@ -1,4 +1,4 @@
-// vader/front/effects/effect — what a function does below one of its parameters.
+// vader/front/effects/effect: what a function does below one of its parameters.
 //
 // The fact the summary computes for a parameter is a set of accesses: an effect
 // at a path below the parameter. A path is a few steps down from the value the

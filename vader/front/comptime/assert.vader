@@ -1,4 +1,4 @@
-// vader/front/comptime/assert — `@assert(cond)` decl evaluation.
+// vader/front/comptime/assert: `@assert(cond)` decl evaluation.
 //
 // Each top-level `@assert` has its `condition` evaluated through the same
 // tree-walker the `@comptime const` decls use ; a `Bool(false)` result fires

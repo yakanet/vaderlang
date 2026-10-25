@@ -1,4 +1,4 @@
-// vader/front/resolver/substitute_body — full AST clone-with-substitution
+// vader/front/resolver/substitute_body: full AST clone-with-substitution
 // walker for default-method body materialization.
 //
 // `substitute_type_expr` (substitute.vader) only walks type-position

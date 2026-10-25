@@ -1,4 +1,4 @@
-// tests/snippets/union_reference_compare — `===` on a union of references compares
+// tests/snippets/union_reference_compare: `===` on a union of references compares
 // the objects it holds, on both backends.
 //
 // A baked module const is one shared object, so a value read from it is `===`

@@ -1,4 +1,4 @@
-// vader/tools/cli/cmd_graph — the `vader graph` command.
+// vader/tools/cli/cmd_graph: the `vader graph` command.
 //
 // Renders the module import graph of a loaded project. Load + parse is enough:
 // an `import "..."` is syntax, so the graph is exact without resolving a single

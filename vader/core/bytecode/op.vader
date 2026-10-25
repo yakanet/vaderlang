@@ -1,4 +1,4 @@
-// vader/core/bytecode/op — the bytecode op set (the instruction format).
+// vader/core/bytecode/op: the bytecode op set (the instruction format).
 //
 // One variant per supported op kind, plus the `ConstOp` sub-union and the
 // `ConvertTarget` enum. The union grows sprint by sprint in lock-step with the

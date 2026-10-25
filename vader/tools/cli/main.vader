@@ -1,4 +1,4 @@
-// vader/tools/cli/main — entry point of the Vader-in-Vader CLI.
+// vader/tools/cli/main: entry point of the Vader-in-Vader CLI.
 //
 // Dispatches `vader <action>` to one `cmd_*.vader` per action, and holds the
 // argument helpers those share. The command surface itself is `spec.vader`; the

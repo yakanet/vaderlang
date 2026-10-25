@@ -1,4 +1,4 @@
-// vader/front/effects/frozen — the frozen checks of ADR 0053.
+// vader/front/effects/frozen: the frozen checks of ADR 0053.
 //
 // A module constant is frozen, deeply, and so is a view of a string's bytes
 // (`s.bytes()`): nothing modifies them in place. Each use of a frozen value is a

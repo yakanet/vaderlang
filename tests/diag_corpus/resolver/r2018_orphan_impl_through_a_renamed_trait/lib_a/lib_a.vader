@@ -1,4 +1,4 @@
-// snippet/lib_a — owns the type, not the trait.
+// snippet/lib_a: owns the type, not the trait.
 
 module "snippet/lib_a"
 

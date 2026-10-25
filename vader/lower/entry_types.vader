@@ -1,4 +1,4 @@
-// vader/lower/entry_types — type-table accessor for a lowering pass.
+// vader/lower/entry_types: type-table accessor for a lowering pass.
 //
 // Hides the `(TypedProgram,
 // Substitution)` pair behind a single accessor — lower passes call

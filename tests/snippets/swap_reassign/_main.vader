@@ -1,4 +1,4 @@
-// swap_reassign — local-reassignment ordering across a single-use temp.
+// swap_reassign: local-reassignment ordering across a single-use temp.
 //
 // Regression guard for the bytecode-emit `fold_moves` bug: a sequence like
 // `t :: a + b ; a = b ; b = t` (swap / rotate / fibonacci update) must NOT

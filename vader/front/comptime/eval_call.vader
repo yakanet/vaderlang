@@ -1,4 +1,4 @@
-// vader/front/comptime/eval_call — tree-walk interpreter for `simple_fn(args)`
+// vader/front/comptime/eval_call: tree-walk interpreter for `simple_fn(args)`
 // calls at comptime.
 //
 // Covers `@comptime X :: simple_fn(...)` patterns. The interpreter looks

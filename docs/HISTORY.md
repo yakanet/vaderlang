@@ -1,4 +1,4 @@
-# Vader — Implementation history
+# Vader: implementation history
 
 Archive of completed work, moved out of [`TODO.md`](../TODO.md) to keep the live
 roadmap focused on open and in-progress items. Everything here is `[x]` done.

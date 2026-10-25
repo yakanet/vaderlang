@@ -1,4 +1,4 @@
-// vader/core/bytecode/byte_codec — little-endian byte ↔ integer codec.
+// vader/core/bytecode/byte_codec: little-endian byte ↔ integer codec.
 //
 // The reference implementation of the Target ABI memory opcodes' byte
 // semantics (`load_i32` / `store_u8` / … in `vader/vm/exec.vader`) AND the

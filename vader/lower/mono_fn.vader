@@ -1,4 +1,4 @@
-// vader/lower/mono_fn — generic function-instance materialization.
+// vader/lower/mono_fn: generic function-instance materialization.
 //
 
 module "vader/lower"

@@ -1,4 +1,4 @@
-// vader/front/typecheck/fn_value — a generic function named as a value.
+// vader/front/typecheck/fn_value: a generic function named as a value.
 //
 // A name that designates a generic function outside a call (`apply(name_of, 5)`,
 // `xs.map(name_of)`, `h: fn(i32) -> i32: id`) instantiates it against the function

@@ -1,4 +1,4 @@
-// vader/tools/fmt/head — a declaration's head on one line, as `vader fmt` writes it.
+// vader/tools/fmt/head: a declaration's head on one line, as `vader fmt` writes it.
 //
 // The LSP hover shows the signature of the declaration under the cursor. It is
 // rendered here from the parsed declaration, with the printer in `flat` mode : a

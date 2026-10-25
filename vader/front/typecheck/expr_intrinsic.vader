@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_intrinsic — `@size_of(T)` / `@type_name(T)` /
+// vader/front/typecheck/expr_intrinsic: `@size_of(T)` / `@type_name(T)` /
 // etc. typing.
 //
 // Each intrinsic's static return type comes from

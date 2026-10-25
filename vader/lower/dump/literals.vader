@@ -1,4 +1,4 @@
-// vader/lower/dump/literals — the literals of a lowered body, as Vader writes them.
+// vader/lower/dump/literals: the literals of a lowered body, as Vader writes them.
 //
 // A literal of the type a bare one takes in the source (`i32`, `f64`, `char`,
 // `string`, `bool`) prints bare, and so does one written into a slot of its own

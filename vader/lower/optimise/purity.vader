@@ -1,4 +1,4 @@
-// vader/lower/optimise/purity — whether lowered code may run a collection or change
+// vader/lower/optimise/purity: whether lowered code may run a collection or change
 // an array's length.
 //
 // The push cache (`push_cache.vader`) keeps an array's state in locals across a

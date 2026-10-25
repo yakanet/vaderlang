@@ -1,4 +1,4 @@
-// fusion_stage_named_jumps — a user combinator's own `break x` / `continue x`,
+// fusion_stage_named_jumps: a user combinator's own `break x` / `continue x`,
 // written in a loop nested in its `for x in self`: fused, the combinator's loop
 // over its source is the source's code, whose loops carry none of its names.
 // Over an array, over `flat_map` (whose `break` leaves an inlined instance) and

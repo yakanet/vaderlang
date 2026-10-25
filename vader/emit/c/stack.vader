@@ -1,4 +1,4 @@
-// vader/emit/c/stack — operand-stack model for the C body walker.
+// vader/emit/c/stack: operand-stack model for the C body walker.
 //
 // The bytecode is a stack machine ; the C body walker maps it to C
 // statements + expressions by maintaining a virtual operand stack of

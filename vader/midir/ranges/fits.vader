@@ -1,4 +1,4 @@
-// vader/midir/ranges/fits — when the range analysis knows a sum stays within
+// vader/midir/ranges/fits: when the range analysis knows a sum stays within
 // its type.
 //
 // An exact result within the type fits. Past that, an open upper end of a

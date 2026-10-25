@@ -1,4 +1,4 @@
-// vader/front/typecheck/call — CallExpr inference (`f(args)`).
+// vader/front/typecheck/call: CallExpr inference (`f(args)`).
 //
 // Call checking :
 //   1. Recursively check the callee — its type must be `Fn(params,

@@ -1,4 +1,4 @@
-// vader/midir/ranges/verdicts — what the range analysis proves about each array
+// vader/midir/ranges/verdicts: what the range analysis proves about each array
 // access and checked operation of a function.
 //
 // Each site gets a verdict from the state just before it, at the fixed point of

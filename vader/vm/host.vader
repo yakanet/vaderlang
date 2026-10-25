@@ -1,4 +1,4 @@
-// vader/vm/host — host-import surface for the Vader-side VM.
+// vader/vm/host: host-import surface for the Vader-side VM.
 //
 // Every `call.import N` runs through `dispatch_import` here ; per-host
 // arms unwrap the args from the caller stack, invoke the corresponding

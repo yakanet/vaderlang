@@ -1,4 +1,4 @@
-// vader/front/parser/assign_ids — post-parse walker assigning unique IDs.
+// vader/front/parser/assign_ids: post-parse walker assigning unique IDs.
 //
 // Every AST node declares `id: i64 = UNASSIGNED_NODE_ID` so downstream
 // passes can key side-tables (`expr_types`, `expr_kinds`, …) on a stable

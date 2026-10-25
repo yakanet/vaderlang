@@ -1,4 +1,4 @@
-// vader/front/resolver/discover — module index types.
+// vader/front/resolver/discover: module index types.
 //
 // Shared records for module resolution : `DiscoveredModule` (a resolved
 // module's name + folder + file paths) and `FolderBucket` (the per-folder

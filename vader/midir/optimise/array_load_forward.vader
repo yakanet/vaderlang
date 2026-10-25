@@ -1,4 +1,4 @@
-// vader/midir/optimise/array_load_forward — redundant array-load elimination (intra-block).
+// vader/midir/optimise/array_load_forward: redundant array-load elimination (intra-block).
 //
 // Within a basic block, a second read `a[i]` of a slot whose value is already
 // known — from a prior read, or the `a[i] = v` store that just wrote it — is

@@ -1,4 +1,4 @@
-// vader/front/parser/intrinsics — registry of compiler-built `@name(...)` calls.
+// vader/front/parser/intrinsics: registry of compiler-built `@name(...)` calls.
 //
 // Used by the parser to decide whether `@name(...)` in expression
 // position lowers to an `IntrinsicCallExpr` or surfaces P1014 (unknown

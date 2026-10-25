@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_if — IfExpr inference.
+// vader/front/typecheck/expr_if: IfExpr inference.
 //
 // Type of `if cond { then } else { else }` is the union of branch
 // types. Surface T3019 when the condition isn't `bool`-assignable.

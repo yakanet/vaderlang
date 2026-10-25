@@ -1,4 +1,4 @@
-// vader/tools/cli/dump — the `vader dump --stage=<s>` command.
+// vader/tools/cli/dump: the `vader dump --stage=<s>` command.
 //
 // One `run_<stage>_stage` per IR stage, each rendering that stage's own dump
 // format and its diagnostics. Split out of `main.vader` unchanged: it was the

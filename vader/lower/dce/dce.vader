@@ -1,4 +1,4 @@
-// vader/lower/dce/dce — whole-program dead-function elimination.
+// vader/lower/dce/dce: whole-program dead-function elimination.
 //
 // `prune_unreachable_fns` walks the call graph from the program roots
 // (main, `@export` / `@extern`, optionally `@test`, plus every fn when

@@ -1,4 +1,4 @@
-// vader/front/effects — what each function does with what it is lent.
+// vader/front/effects: what each function does with what it is lent.
 //
 // The summary of a function says, per parameter, what the function may do below
 // the value a caller lends it (`effect.vader`): assign a slot, resize an array,

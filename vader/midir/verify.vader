@@ -1,4 +1,4 @@
-// vader/midir/verify — structural self-check of a `CFGProject`.
+// vader/midir/verify: structural self-check of a `CFGProject`.
 //
 // The CFG carries invariants that no type in `cfg.vader` expresses. A
 // `BlockId` is an `i32`, so nothing stops a terminator naming a block that

@@ -1,4 +1,4 @@
-// bench/arr_collect — build an array from a fused iterator chain.
+// bench/arr_collect: build an array from a fused iterator chain.
 //
 // `a.filter(is_odd).map(square).collect()` fuses to one loop over `a[i]` that
 // pushes into the result the lowering minted. That push runs with the array's

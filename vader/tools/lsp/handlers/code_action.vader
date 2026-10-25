@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/code_action — `textDocument/codeAction` handler.
+// vader/tools/lsp/handlers/code_action: `textDocument/codeAction` handler.
 //
 // Builds the enclosing-expression chain under the request's range
 // (`analysis::enclosing_exprs`, innermost first) and runs the code-action

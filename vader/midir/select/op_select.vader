@@ -1,4 +1,4 @@
-// vader/midir/select/op_select — `LoweredBinaryOp` / `LoweredUnaryOp`
+// vader/midir/select/op_select: `LoweredBinaryOp` / `LoweredUnaryOp`
 // → concrete `Op` variant.
 //
 // The bytecode emitter (`emit/bytecode/emit.vader`) calls `binary_op_for` /

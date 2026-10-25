@@ -1,4 +1,4 @@
-// bench/vm/vm_shapes/vm_shapes.vader — `bench/shapes`, scaled down for the VM.
+// bench/vm/vm_shapes/vm_shapes.vader: `bench/shapes`, scaled down for the VM.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

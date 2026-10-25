@@ -1,4 +1,4 @@
-// MowItNow — drive a fleet of automatic lawn mowers across a rectangular grid.
+// MowItNow: drive a fleet of automatic lawn mowers across a rectangular grid.
 //
 // Showcases a broad slice of Vader's surface area:
 //   - enums (`Direction`, `Command`) with dot-shorthand and exhaustive `match`

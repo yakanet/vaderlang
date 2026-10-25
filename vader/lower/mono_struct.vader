@@ -1,4 +1,4 @@
-// vader/lower/mono_struct — generic struct-instance and impl-member materialization.
+// vader/lower/mono_struct: generic struct-instance and impl-member materialization.
 //
 
 module "vader/lower"

@@ -1,4 +1,4 @@
-// tests/vader-sources — shared questions about a tree of `.vader` sources.
+// tests/vader-sources: shared questions about a tree of `.vader` sources.
 //
 // Small on purpose. It exists because two suites ask the same question and the
 // second one got it wrong when it asked alone: `hook_driver` searched for the

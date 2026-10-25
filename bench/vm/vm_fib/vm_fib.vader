@@ -1,4 +1,4 @@
-// bench/vm/vm_fib/vm_fib.vader — Naive doubly recursive Fibonacci: a call and a return per few ops.
+// bench/vm/vm_fib/vm_fib.vader: Naive doubly recursive Fibonacci, a call and a return per few ops.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

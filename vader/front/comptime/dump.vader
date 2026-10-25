@@ -1,5 +1,5 @@
-// vader/front/comptime/dump — `# Comptime` dump, in Markdown: what the comptime pass
-// computed.
+// vader/front/comptime/dump: the `# Comptime` dump, in Markdown, of what the
+// comptime pass computed.
 //
 // Walks every in-scope `EvaluatedProgram`, module ids sorted alphabetically,
 // and renders one list per module :

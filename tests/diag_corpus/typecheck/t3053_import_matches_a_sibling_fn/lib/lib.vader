@@ -1,4 +1,4 @@
-// snippet/lib — exports one fn.
+// snippet/lib: exports one fn.
 
 module "snippet/lib"
 

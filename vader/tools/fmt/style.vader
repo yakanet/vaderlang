@@ -1,4 +1,4 @@
-// vader/tools/fmt/style — formatting constants.
+// vader/tools/fmt/style: formatting constants.
 //
 // No config flags in v1 : every value here is the single canonical choice.
 // Style mirrors the existing stdlib (sampled from `lib/std/core/core.vader`,

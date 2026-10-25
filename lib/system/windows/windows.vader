@@ -1,4 +1,4 @@
-// system/windows — the Win32 calls the standard library needs.
+// system/windows: the Win32 calls the standard library needs.
 //
 // Not the CRT: `_write` would be the shorter road, but it is an emulation layer
 // over these, and going through it means inheriting its buffering and its

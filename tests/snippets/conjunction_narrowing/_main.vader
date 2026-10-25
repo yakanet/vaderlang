@@ -1,4 +1,4 @@
-// conjunction_narrowing — `is T` narrows the scrutinee across a `&&`.
+// conjunction_narrowing: `is T` narrows the scrutinee across a `&&`.
 //
 // Regression for B.4: flow narrowing didn't cross `&&` at typecheck, so
 // `if shape is Circle && shape.radius > 0` failed with T3008 (`shape` stayed

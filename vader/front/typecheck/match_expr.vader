@@ -1,4 +1,4 @@
-// vader/front/typecheck/match_expr — MatchExpr inference.
+// vader/front/typecheck/match_expr: MatchExpr inference.
 //
 // `match scrutinee { p1 -> b1, p2 -> b2 }` types as the join of its arm bodies
 // (`join_branch_types`: their union, a free literal arm repinned to a concrete one).

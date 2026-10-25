@@ -1,4 +1,4 @@
-// vader/front/effects/dump — the summary as `vader dump --stage=effects` prints it.
+// vader/front/effects/dump: the summary as `vader dump --stage=effects` prints it.
 //
 // One block per module in scope, one per function in source order: each access
 // on a line, `<effect> <parameter><path>`, or `none` for a function that only

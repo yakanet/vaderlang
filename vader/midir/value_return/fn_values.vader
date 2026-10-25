@@ -1,4 +1,4 @@
-// vader/midir/value_return/fn_values — keeping a scalarised function reachable
+// vader/midir/value_return/fn_values: keeping a scalarised function reachable
 // as a VALUE.
 //
 // A vtable row, a `fn.ref` and a `fn.addr` all promise ONE signature to a site

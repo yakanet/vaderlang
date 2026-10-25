@@ -1,4 +1,4 @@
-// vader/front/effects/walk_expr — each expression of a body to the slot of its value.
+// vader/front/effects/walk_expr: each expression of a body to the slot of its value.
 //
 // `value` walks an expression for what it does and returns the slot of what it
 // evaluates to: the roots a caller lent that the value may be, or be reached

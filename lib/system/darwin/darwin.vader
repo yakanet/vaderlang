@@ -1,4 +1,4 @@
-// system/darwin — the Darwin calls and layouts the standard library needs.
+// system/darwin: the Darwin calls and layouts the standard library needs.
 //
 // Split from `system/posix` because POSIX does not define these: `struct stat`'s
 // layout is the system's own, and `_NSGetExecutablePath` is Darwin's answer to

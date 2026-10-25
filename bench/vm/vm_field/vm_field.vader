@@ -1,4 +1,4 @@
-// bench/vm/vm_field/vm_field.vader — Struct field reads and writes in a loop.
+// bench/vm/vm_field/vm_field.vader: Struct field reads and writes in a loop.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

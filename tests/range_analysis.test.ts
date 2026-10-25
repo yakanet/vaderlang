@@ -1,4 +1,4 @@
-// tests/range_analysis — `vader dump --stage=ranges`, the range analysis's
+// tests/range_analysis: `vader dump --stage=ranges`, the range analysis's
 // verdict on each array access and checked operation.
 //
 // The fixture holds one function per case; each expectation lists that

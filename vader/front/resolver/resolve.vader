@@ -1,4 +1,4 @@
-// vader/front/resolver/resolve — orchestrator of the resolver passes.
+// vader/front/resolver/resolve: orchestrator of the resolver passes.
 //
 // Two passes compose into one `ResolvedModule` :
 //   1. Top-level minting (`vader/front/resolver/collect.vader`) — one Symbol

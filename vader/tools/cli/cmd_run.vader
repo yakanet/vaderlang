@@ -1,4 +1,4 @@
-// vader/tools/cli/run — the `vader run` command.
+// vader/tools/cli/run: the `vader run` command.
 //
 // Compiles to bytecode and executes it on the embedded VM, forwarding the
 // program's own argv. The one action that stops at bytecode rather than C: it is

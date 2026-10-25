@@ -1,4 +1,4 @@
-// vader/front/typecheck/binary — BinaryExpr inference.
+// vader/front/typecheck/binary: BinaryExpr inference.
 //
 // Each operand
 // is recursively checked ; the result type is derived per `OpKind`

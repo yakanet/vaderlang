@@ -1,4 +1,4 @@
-// vader/tools/lsp/analysis/resolver — cross-file goto-def + hover support.
+// vader/tools/lsp/analysis/resolver: cross-file goto-def + hover support.
 //
 // When a click falls on a name that doesn't resolve in the current
 // document, we look for it where the compiler would : the other files of the

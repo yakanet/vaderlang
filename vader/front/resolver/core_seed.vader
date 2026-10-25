@@ -1,4 +1,4 @@
-// vader/front/resolver/core_seed — std/core symbol seed for body-walker scopes.
+// vader/front/resolver/core_seed: std/core symbol seed for body-walker scopes.
 //
 // The body-walker (`body.vader`) fires R2006 (unresolved identifier) at
 // resolve time. Auto-imported `std/core` names (`Range`, `Display`,

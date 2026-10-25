@@ -1,4 +1,4 @@
-// vader/pipeline/check — the typecheck of a project, and the checks that need it
+// vader/pipeline/check: the typecheck of a project, and the checks that need it
 // settled.
 //
 // Some checks read the whole typed program: the effect summary decides each array

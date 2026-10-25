@@ -1,4 +1,4 @@
-// vader/midir/value_return/value_return — return a small composite in registers, not on the heap.
+// vader/midir/value_return/value_return: return a small composite in registers, not on the heap.
 //
 // A function returning `[char, i64]` allocates a heap object the caller reads
 // twice and drops.

@@ -1,4 +1,4 @@
-// vader/support/profile/profile.vader — per-pass profiler for the self-compile.
+// vader/support/profile/profile.vader: per-pass profiler for the self-compile.
 //
 // Bindings to the runtime profiler (runtime/c/vader_runtime.c). The compiler
 // brackets each pipeline pass with `prof_begin(phase)` / `prof_end(phase)`; the

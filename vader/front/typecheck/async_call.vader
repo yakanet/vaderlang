@@ -1,4 +1,4 @@
-// vader/front/typecheck/async_call — call-site typing for `async fn` calls.
+// vader/front/typecheck/async_call: call-site typing for `async fn` calls.
 //
 // A call to an `async fn -> T` is typed as the erased `Async<T>`. Unlike a
 // generator (which types the call as a concrete `<fn>$State<E>` so method chains

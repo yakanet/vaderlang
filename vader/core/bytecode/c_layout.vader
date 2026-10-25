@@ -1,4 +1,4 @@
-// vader/core/bytecode/c_layout — where a mirrored struct's fields sit in the C type.
+// vader/core/bytecode/c_layout: where a mirrored struct's fields sit in the C type.
 //
 // The native backend never needs this: its shim declares a real C struct and
 // lets `cc` lay it out. The VM cannot — it has no compiler at hand — so it

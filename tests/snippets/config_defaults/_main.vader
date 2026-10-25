@@ -1,4 +1,4 @@
-// tests/snippets/config_defaults — null-coalescing `??` fallbacks.
+// tests/snippets/config_defaults: null-coalescing `??` fallbacks.
 //
 // Exercises every `??` fallback form on both backends : a default value, the
 // divergent `continue` / `break` / `return`, a `{ … }` block, and `??` in

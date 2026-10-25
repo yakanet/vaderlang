@@ -1,4 +1,4 @@
-// vader/pipeline/frontend — the front end as a callable unit.
+// vader/pipeline/frontend: the front end as a callable unit.
 //
 // `load → resolve + typecheck → comptime`, ending in an `EvaluatedPipeline` that
 // carries every table a later stage or an observer needs. Lifted out of

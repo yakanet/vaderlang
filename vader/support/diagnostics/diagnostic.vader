@@ -1,4 +1,4 @@
-// vader/support/diagnostics/diagnostic — structured diagnostic shape consumed by the
+// vader/support/diagnostics/diagnostic: structured diagnostic shape consumed by the
 // terminal renderer and (eventually) the LSP. Carries the Severity /
 // Diagnostic shapes the LSP serialises to JSON.
 //

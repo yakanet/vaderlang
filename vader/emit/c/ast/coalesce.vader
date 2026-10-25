@@ -1,5 +1,5 @@
-// vader/emit/c/ast/coalesce — post-walk operand-temp cleanup: copy elision + slot
-// coalescing, on the statement tree (`ast.vader`).
+// vader/emit/c/ast/coalesce: post-walk operand-temp cleanup (copy elision + slot
+// coalescing), on the statement tree (`ast.vader`).
 //
 // The body walker (`vader/emit/c/walker.vader`) mints a fresh `tN` for every
 // materialised operand and never recycles it, so a function's frame — and its

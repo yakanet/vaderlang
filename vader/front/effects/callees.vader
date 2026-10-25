@@ -1,4 +1,4 @@
-// vader/front/effects/callees — what a call may run, as targets of the fixed point.
+// vader/front/effects/callees: what a call may run, as targets of the fixed point.
 //
 // The typecheck records what each call settles on (`call_sites.vader`, ADR 0056).
 // A function with a body is a node of the call graph. A bodyless one does what

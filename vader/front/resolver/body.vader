@@ -1,4 +1,4 @@
-// vader/front/resolver/body — body-walking resolution.
+// vader/front/resolver/body: body-walking resolution.
 //
 // Extends the top-level decl walker in `resolve.vader` with a full
 // scope-tracking walk over fn bodies, blocks, lambdas, for-loops,

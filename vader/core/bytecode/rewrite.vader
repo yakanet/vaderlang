@@ -1,4 +1,4 @@
-// vader/core/bytecode/rewrite — rewriting a function's op stream: the jump
+// vader/core/bytecode/rewrite: rewriting a function's op stream, the jump
 // table through a PC renumbering, a slot operand through a slot renumbering,
 // and the slot an op touches.
 // Shared by the emitter's peepholes and the VM's inlining and register

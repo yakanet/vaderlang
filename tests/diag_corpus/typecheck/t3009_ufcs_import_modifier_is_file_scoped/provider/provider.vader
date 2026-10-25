@@ -1,4 +1,4 @@
-// snippet/provider — wildcard-imported bare by `_main.vader`, and with a
+// snippet/provider: wildcard-imported bare by `_main.vader`, and with a
 // `{ bump as _ }` modifier by its sibling `other.vader`.
 
 module "snippet/provider"

@@ -1,4 +1,4 @@
-// vader/emit/bytecode/slot_coalesce — coalesce non-overlapping live ranges
+// vader/emit/bytecode/slot_coalesce: coalesce non-overlapping live ranges
 // onto shared physical slots.
 //
 // Runs AFTER propagate + peephole + drop_dead_stores so the per-slot

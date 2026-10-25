@@ -1,4 +1,4 @@
-// W0007 — private top-level declarations never reached from the module's public
+// W0007: private top-level declarations never reached from the module's public
 // surface are dead. Exported decls (public API), the `main` entry, and
 // `@allow_unused`-tagged decls are reachability roots and are never flagged ; a
 // private decl reached from a root (here `greeting`, called by `main`) stays

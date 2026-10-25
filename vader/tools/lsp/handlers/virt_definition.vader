@@ -1,4 +1,4 @@
-// vader/tools/lsp/handlers/virt_definition — `textDocument/definition` over a `.virt`
+// vader/tools/lsp/handlers/virt_definition: `textDocument/definition` over a `.virt`
 // document.
 //
 // An operand that is a table index jumps to the line declaring the entry : `call

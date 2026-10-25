@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_await — AwaitExpr inference (`await e`).
+// vader/front/typecheck/expr_await: AwaitExpr inference (`await e`).
 //
 // `await` is legal only directly inside an `async` fn body. Neither a nested
 // lambda nor a `defer` body is one, so an `await` there trips T3064

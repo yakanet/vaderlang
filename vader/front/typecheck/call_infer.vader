@@ -1,4 +1,4 @@
-// vader/front/typecheck/call_infer — a call to a quantified signature.
+// vader/front/typecheck/call_infer: a call to a quantified signature.
 //
 // Each call instantiates the callee's quantifier afresh : every parameter becomes
 // an `InferVar` of its own, and only those variables bind. A type parameter met in

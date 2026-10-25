@@ -1,4 +1,4 @@
-// vader/tools/cli/spec — the CLI surface, declared once.
+// vader/tools/cli/spec: the CLI surface, declared once.
 //
 // Every action, every flag, every accepted value of an enumerated flag, with the
 // text that documents it. `std/cli` parses from this table and `std/cli/help`

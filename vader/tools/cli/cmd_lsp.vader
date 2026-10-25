@@ -1,4 +1,4 @@
-// vader/tools/cli/lsp — the `vader lsp` command.
+// vader/tools/cli/lsp: the `vader lsp` command.
 //
 // Serves the Language Server Protocol over stdio. The server is `vader/tools/lsp`;
 // this is the CLI entry that hands it the streams.

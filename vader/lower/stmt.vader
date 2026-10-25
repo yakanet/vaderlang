@@ -1,4 +1,4 @@
-// vader/lower/stmt — block + statement lowering: let, return, defer, loops.
+// vader/lower/stmt: block + statement lowering (let, return, defer, loops).
 //
 
 module "vader/lower"

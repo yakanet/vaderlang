@@ -1,4 +1,4 @@
-// vader/vm/reg_translate — verified bytecode → `RegFunction`.
+// vader/vm/reg_translate: verified bytecode → `RegFunction`.
 //
 // The operand stack becomes registers: the value at depth `d` lives in register
 // `slots + d`. Most stack traffic disappears on the way. A `local.get` or a

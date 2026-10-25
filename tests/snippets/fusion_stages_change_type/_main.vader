@@ -1,4 +1,4 @@
-// fusion_stages_change_type — two inlined `map`s whose elements have different
+// fusion_stages_change_type: two inlined `map`s whose elements have different
 // types, `[1, 22, 333].map(to_text).map(text_len)`: each keeps its own slots.
 //
 // The lazy half, the reference, prints first; the fused half must print the

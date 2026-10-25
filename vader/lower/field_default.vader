@@ -1,4 +1,4 @@
-// vader/lower/field_default — the value a struct literal takes for a field it
+// vader/lower/field_default: the value a struct literal takes for a field it
 // leaves out.
 //
 // A default is evaluated at every literal that omits its field, so it is lowered

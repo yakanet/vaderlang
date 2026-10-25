@@ -1,4 +1,4 @@
-// std/numbers — number formatting helpers.
+// std/numbers: number formatting helpers.
 //
 // Lives outside std/core so we can use std/builder for efficient construction.
 // UFCS-callable as `n.to_hex()` once `import "std/numbers"` is in scope.

@@ -1,4 +1,4 @@
-// vader/tools/lsp/analysis/ast_walk — cursor-driven AST position finders.
+// vader/tools/lsp/analysis/ast_walk: cursor-driven AST position finders.
 //
 // Shared "what AST node is under the cursor" traversals, factored out of the
 // individual handlers so hover, typeDefinition, signatureHelp — and the

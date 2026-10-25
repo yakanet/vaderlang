@@ -1,4 +1,4 @@
-// vader/midir/array_shrink — which calls may shorten an array.
+// vader/midir/array_shrink: which calls may shorten an array.
 //
 // The range analysis keeps what it knows of an array's length across an
 // instruction that cannot shorten one (`ranges/transfer.vader`, `transfer`). Only

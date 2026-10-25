@@ -1,4 +1,4 @@
-// vader/lower/dump/names — the qualified names the `# Lower` dump prints.
+// vader/lower/dump/names: the qualified names the `# Lower` dump prints.
 //
 // A declaration the program wrote is named after its module and its source
 // name, `std.io.println<string>` or `std.core.Range<i32>.next` for an impl

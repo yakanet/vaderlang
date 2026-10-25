@@ -1,4 +1,4 @@
-// vader/front/typecheck/seq_lit — SeqLitExpr inference (`[e1, e2, …]`).
+// vader/front/typecheck/seq_lit: SeqLitExpr inference (`[e1, e2, …]`).
 //
 // The parser doesn't commit to "array" or "tuple" ; the typechecker
 // decides via contextual disambiguation against `expected` :

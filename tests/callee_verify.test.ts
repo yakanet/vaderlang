@@ -1,4 +1,4 @@
-// tests/callee_verify — `$VADER_VERIFY_CALLEES`, the lowering's callee choices
+// tests/callee_verify: `$VADER_VERIFY_CALLEES`, the lowering's callee choices
 // against the typecheck's record.
 //
 // The verifier lists each site where the lowering chose another callee than the

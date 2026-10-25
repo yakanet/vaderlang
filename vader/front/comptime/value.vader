@@ -1,4 +1,4 @@
-// vader/front/comptime/value — comptime value IR.
+// vader/front/comptime/value: comptime value IR.
 //
 // Tagged union holding everything the
 // comptime evaluator can produce : primitive ints / floats / bools /

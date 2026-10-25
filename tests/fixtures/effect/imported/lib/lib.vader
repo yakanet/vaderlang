@@ -1,4 +1,4 @@
-// tests/fixtures/effect/imported/lib — a constant and a singleton, reached through
+// tests/fixtures/effect/imported/lib: a constant and a singleton, reached through
 // a namespace alias by `app`.
 
 module "lib"

@@ -1,4 +1,4 @@
-// W0014 — a match arm an earlier arm already covers.
+// W0014: a match arm an earlier arm already covers.
 //
 // Four shapes, because they are found by three different mechanisms: the
 // scrutinee left with nothing (`remaining` empty), an arm after a wildcard,

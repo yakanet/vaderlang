@@ -1,4 +1,4 @@
-// std/char/char.vader — ASCII character classification.
+// std/char/char.vader: ASCII character classification.
 //
 // `fn(char) -> bool` classification predicates, split out of std/string so the
 // codepoint-string API (std/string) and char classification (here) have

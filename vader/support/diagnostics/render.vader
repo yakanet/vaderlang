@@ -1,4 +1,4 @@
-// vader/support/diagnostics/render — the single diagnostic renderer.
+// vader/support/diagnostics/render: the single diagnostic renderer.
 //
 // The one place a `Diagnostic[]` becomes human-readable text, shared by every
 // command (build / run / dump / fmt / dap / bootstrap). Two channels:

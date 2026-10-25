@@ -1,4 +1,4 @@
-// vader/front/typecheck/range_ops — what an operator gives when a range takes part.
+// vader/front/typecheck/range_ops: what an operator gives when a range takes part.
 //
 // An operation between ranges and integer literals is computed over the
 // integers : its result is the range of every value it can take (`h + 1` on

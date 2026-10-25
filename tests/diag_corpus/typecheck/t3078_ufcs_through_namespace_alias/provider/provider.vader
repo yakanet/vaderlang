@@ -1,4 +1,4 @@
-// snippet/provider — reached only through the entry's `P ::` namespace alias.
+// snippet/provider: reached only through the entry's `P ::` namespace alias.
 
 module "snippet/provider"
 

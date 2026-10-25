@@ -1,4 +1,4 @@
-// vader/lower/assign — assignment and index / slice lowering.
+// vader/lower/assign: assignment and index / slice lowering.
 //
 
 module "vader/lower"

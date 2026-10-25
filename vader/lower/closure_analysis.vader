@@ -1,4 +1,4 @@
-// vader/lower/closure_analysis — free-variable walker for closures.
+// vader/lower/closure_analysis: free-variable walker for closures.
 //
 // For every
 // `AST.LambdaExpr` in the project, computes the ordered list of captures —

@@ -1,4 +1,4 @@
-// vader/lower/guard_equals — the `Equals` methods a vtable dispatches to.
+// vader/lower/guard_equals: the `Equals` methods a vtable dispatches to.
 //
 // A virtual call picks its impl from the RECEIVER's tag alone, and hands the other
 // operand over unchecked. An erased `T: Equals` body — a `MutableMap<K, _>`,

@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/line_index — byte ↔ LSP (line, character) conversion.
+// vader/tools/lsp/protocol/line_index: byte ↔ LSP (line, character) conversion.
 //
 // LSP positions are `(line, character)` where `character` is counted in the
 // encoding negotiated at `initialize` (`general.positionEncodings`, LSP 3.17+).

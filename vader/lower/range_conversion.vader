@@ -1,4 +1,4 @@
-// vader/lower/range_conversion — `Hour(x)` and `x in Hour`, a value against
+// vader/lower/range_conversion: `Hour(x)` and `x in Hour`, a value against
 // the bounds of an integer type ; `Weekday(x)` and `x in Weekday`, against the values
 // of an enum ; `char(x)` and `x in char`, against the Unicode scalar values ; and the
 // value a generic instance gets back through a `T` it binds to a range.

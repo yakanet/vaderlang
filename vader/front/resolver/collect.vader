@@ -1,4 +1,4 @@
-// vader/front/resolver/collect — top-level symbol minting pass.
+// vader/front/resolver/collect: top-level symbol minting pass.
 //
 // Walks a Program's top-level decls
 // once and mints one Symbol per name into a `MutableMap`. The same pass

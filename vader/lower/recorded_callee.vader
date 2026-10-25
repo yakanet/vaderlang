@@ -1,4 +1,4 @@
-// vader/lower/recorded_callee — what a call runs, read off the typecheck's record.
+// vader/lower/recorded_callee: what a call runs, read off the typecheck's record.
 //
 // The typecheck files what each call site invokes (`TypedProgram.call_sites`,
 // `vader/front/typecheck/call_sites.vader`). The lowering reads it here instead of

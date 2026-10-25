@@ -1,4 +1,4 @@
-// vader/front/typecheck/enum_pass — variant index resolution for enum decls.
+// vader/front/typecheck/enum_pass: variant index resolution for enum decls.
 //
 // Walks `EnumDecl.variants` and produces the canonical `name → value` map :
 // explicit `= N` values land verbatim ; bare variants take `previous + 1`

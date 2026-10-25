@@ -1,4 +1,4 @@
-// vader/front/parser/dump — AST → JSON pretty-printer for `vader dump --stage=ast`.
+// vader/front/parser/dump: AST → JSON pretty-printer for `vader dump --stage=ast`.
 //
 // Output : a `# AST\n` header, then 2-space-indented JSON. Spans are stripped
 // (they're noisy and span numbers shift across tiny edits) ; ints land as quoted

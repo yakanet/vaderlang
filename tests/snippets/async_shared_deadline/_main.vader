@@ -1,4 +1,4 @@
-// async_shared_deadline — three tasks sleep twice in step, so each round arms
+// async_shared_deadline: three tasks sleep twice in step, so each round arms
 // three timers on one deadline. A probe counts the times `join_all` drives it —
 // once to start, then once per park — and expects 3: one park per round, not
 // one per queued timer.

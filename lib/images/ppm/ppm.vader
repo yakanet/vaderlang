@@ -1,4 +1,4 @@
-// images/ppm/ppm.vader — PPM (Portable Pixmap, P6) encode + decode.
+// images/ppm/ppm.vader: PPM (Portable Pixmap, P6) encode + decode.
 //
 // Converts between a raw byte stream in the binary P6 format and a structured
 // `Ppm` value. P6 is an ASCII header (`P6 width height maxval`) followed by the

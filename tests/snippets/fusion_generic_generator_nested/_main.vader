@@ -1,4 +1,4 @@
-// fusion_generic_generator_nested — one generic generator inlined twice, at
+// fusion_generic_generator_nested: one generic generator inlined twice, at
 // `i32` then at `string`, nested: each instance keeps its own parameter `last`,
 // which the trailing `yield last` reads.
 //

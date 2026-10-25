@@ -1,4 +1,4 @@
-// vader/lower/lower — project-level lowerer orchestrator.
+// vader/lower/lower: project-level lowerer orchestrator.
 //
 // Walks every top-level decl across the project's typed modules, builds a
 // stub `MonoEntry` per non-generic decl, and dispatches to the per-decl-kind

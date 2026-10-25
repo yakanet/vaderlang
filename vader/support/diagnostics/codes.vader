@@ -1,4 +1,4 @@
-// vader/support/diagnostics/codes — typed diagnostic codes shared by every compiler
+// vader/support/diagnostics/codes: typed diagnostic codes shared by every compiler
 // phase (lexer, parser, resolver, typecheck, comptime, lower), the build driver
 // and the IR verifiers.
 //

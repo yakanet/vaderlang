@@ -1,4 +1,4 @@
-// vader/tools/cli/cmd_doctor — the `vader doctor` command.
+// vader/tools/cli/cmd_doctor: the `vader doctor` command.
 //
 // Answers one question: can this toolchain build something here, and if not,
 // which piece is missing. Every check reports the PATH IT TOOK — which library

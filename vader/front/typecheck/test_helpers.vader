@@ -1,4 +1,4 @@
-// vader/front/typecheck/test_helpers — shared AST walker for inline @tests.
+// vader/front/typecheck/test_helpers: shared AST walker for inline @tests.
 //
 // `find_first_in_block` factors out the recursive descent every
 // `infer_*` test block needs to locate the first expression a

@@ -1,4 +1,4 @@
-// tests/fixtures/range/verdicts — one function per case `vader dump --stage=ranges`
+// tests/fixtures/range/verdicts: one function per case `vader dump --stage=ranges`
 // must judge; `tests/range_analysis.test.ts` holds the expected verdicts.
 
 module "verdicts"

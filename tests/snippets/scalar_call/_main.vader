@@ -1,4 +1,4 @@
-// tests/snippets/scalar_call — direct-call coverage.
+// tests/snippets/scalar_call: direct-call coverage.
 //
 // Exercises the C body walker's `call` arm: main calls two helper
 // functions (scalar args + return), the first result threaded as the

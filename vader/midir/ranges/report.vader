@@ -1,4 +1,4 @@
-// vader/midir/ranges/report — the range analysis's verdicts, rendered: one line
+// vader/midir/ranges/report: the range analysis's verdicts, rendered as one line
 // per site for `vader dump --stage=ranges`, and the totals of a whole build for
 // `$VADER_OPT_REPORT` (`verdicts.vader` for the verdicts).
 

@@ -1,4 +1,4 @@
-// vader/front/comptime/evaluated_ast — output shapes of the comptime engine.
+// vader/front/comptime/evaluated_ast: output shapes of the comptime engine.
 //
 // The comptime pass reads a
 // `TypedProject` and produces an `EvaluatedProject` carrying one

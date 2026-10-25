@@ -1,4 +1,4 @@
-// vader/lower/optimise/devirtualize_fn_refs — devirtualize calls through a fn-value local.
+// vader/lower/optimise/devirtualize_fn_refs: devirtualize calls through a fn-value local.
 //
 // A local bound to a CONCRETE callable and used ONLY as a call callee is an alias
 // for that callable. Calling it (`f(x)`) otherwise lowers to an INDIRECT call

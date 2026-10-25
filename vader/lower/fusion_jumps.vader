@@ -1,4 +1,4 @@
-// vader/lower/fusion_jumps — the jumps out of a loop body a fusion splices.
+// vader/lower/fusion_jumps: the jumps out of a loop body a fusion splices.
 //
 // A fused loop keeps no loop of its own: its body is spliced into its producer's
 // code — at each `yield` of an inlined generator, into the counter loop of a

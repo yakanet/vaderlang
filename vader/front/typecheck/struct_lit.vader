@@ -1,4 +1,4 @@
-// vader/front/typecheck/struct_lit — StructLitExpr inference (`Point { x: 1 }`).
+// vader/front/typecheck/struct_lit: StructLitExpr inference (`Point { x: 1 }`).
 //
 // Lowers `type_name` into a `StructType` (T3001 if it isn't one), looks
 // up the struct's fields via `typed.struct_decls`, and checks each item.

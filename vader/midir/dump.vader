@@ -1,4 +1,4 @@
-// vader/midir/dump — pretty-printer for the Mid-IR CFG.
+// vader/midir/dump: pretty-printer for the Mid-IR CFG.
 //
 // Produces a stable, human-readable
 // text rendering used by `vader dump --stage=cfg <file>` and by

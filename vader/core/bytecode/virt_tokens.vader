@@ -1,4 +1,4 @@
-// vader/core/bytecode/virt_tokens — how a `.virt` import line spells a path or a
+// vader/core/bytecode/virt_tokens: how a `.virt` import line spells a path or a
 // C type as one token. The writer (`vader/emit/virt`) encodes, the reader
 // (`vader/front/virt`) decodes.
 

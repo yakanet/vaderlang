@@ -1,4 +1,4 @@
-// vader/vm/value — the `Value` union (the VM's runtime values) plus the
+// vader/vm/value: the `Value` union (the VM's runtime values) plus the
 // projection + type-matching helpers shared across the executor and the
 // host-import dispatcher.
 //

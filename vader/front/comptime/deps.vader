@@ -1,4 +1,4 @@
-// vader/front/comptime/deps — dependency graph for `@comptime` const decls.
+// vader/front/comptime/deps: dependency graph for `@comptime` const decls.
 //
 // Builds a per-module adjacency map
 // from each `@comptime const` decl to the other `@comptime const` decls

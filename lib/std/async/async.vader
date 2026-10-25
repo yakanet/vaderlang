@@ -1,4 +1,4 @@
-// std/async — the cooperative async runtime : `sleep` + the entry run-driver.
+// std/async: the cooperative async runtime, `sleep` and the entry run-driver.
 //
 // Single-threaded, timer-driven. The scheduler state (a virtual clock + a
 // min-heap of wake deadlines) lives in the runtime (native C / VM host), reached

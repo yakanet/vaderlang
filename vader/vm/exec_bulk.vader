@@ -1,4 +1,4 @@
-// vader/vm/exec_bulk — the bulk array / string / buffer opcodes.
+// vader/vm/exec_bulk: the bulk array / string / buffer opcodes.
 //
 // Each runs one op of `apply_boxed` (`exec.vader`) on the operand stack of its
 // frame — bulky and cold: an O(N) body, or one that already allocates.

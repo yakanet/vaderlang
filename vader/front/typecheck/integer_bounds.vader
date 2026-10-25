@@ -1,4 +1,4 @@
-// vader/front/typecheck/integer_bounds — what the bounds of an integer type give.
+// vader/front/typecheck/integer_bounds: what the bounds of an integer type give.
 //
 // `x in Hour` tests an integer against the bounds of an integer type, a range or
 // a primitive, and narrows `x` where it holds (`narrow_value.vader`). `@min(T)`

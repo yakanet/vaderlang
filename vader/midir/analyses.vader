@@ -1,4 +1,4 @@
-// vader/midir/analyses — shared CFG analyses + traversals.
+// vader/midir/analyses: shared CFG analyses + traversals.
 //
 // Pure data — no IO, no diagnostics.
 //

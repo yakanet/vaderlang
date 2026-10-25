@@ -1,4 +1,4 @@
-// std/time — wall-clock and monotonic time, plus arithmetic and ISO 8601.
+// std/time: wall-clock and monotonic time, plus arithmetic and ISO 8601.
 //
 // The two clocks use distinct types so a wall-clock value can never
 // be silently mixed with a monotonic one (their epochs are unrelated).

@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_index — IndexExpr inference (`x[i]`), and `index_route`, the
+// vader/front/typecheck/expr_index: IndexExpr inference (`x[i]`), and `index_route`, the
 // dispatch decision the typecheck and the lowerings share.
 
 module "vader/front/typecheck"

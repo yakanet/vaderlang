@@ -1,4 +1,4 @@
-// vader/lower/opt_report — where an optimisation gave up, and on what.
+// vader/lower/opt_report: where an optimisation gave up, and on what.
 //
 // The optimisation passes under `lower/` are SHAPE RECOGNISERS: each tries to
 // match a form, and returns `null` when it doesn't, falling through to a

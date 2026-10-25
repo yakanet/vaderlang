@@ -1,4 +1,4 @@
-// vader/front/typecheck/type_expr — lower a TypeExpr (AST.Expr in type position)
+// vader/front/typecheck/type_expr: lower a TypeExpr (AST.Expr in type position)
 // to a `Type`.
 //
 // Since `TypeExpr` aliases

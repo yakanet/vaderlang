@@ -3331,7 +3331,7 @@ For each user `@extern` the compiler emits one forward declaration at the top of
 // prototype when there is one.
 extern int32_t add_i32(int32_t, int32_t);
 
-// Shim — bridges the Vader-side ABI to the foreign signature. One per `@extern`,
+// Shim: bridges the Vader-side ABI to the foreign signature. One per `@extern`,
 // named after the declaration's mangled name.
 static int32_t vader_host_snippet$add_i32(int32_t a0, int32_t a1) {
     return add_i32(a0, a1);
@@ -3593,7 +3593,7 @@ replace       :: fn(s: string, old: string, new: string) -> string   // first oc
 replace_all   :: fn(s: string, old: string, new: string) -> string   // every occurrence, literal
 repeat        :: fn(s: string, n: i64) -> string
 
-// Ordering — case-sensitive and case-insensitive lexicographic comparators.
+// Ordering: case-sensitive and case-insensitive lexicographic comparators.
 compare_ascending    :: fn(a: string, b: string) -> bool
 compare_ascending_ci :: fn(a: string, b: string) -> bool
 
@@ -4047,14 +4047,14 @@ none) that one value would hide the difference that matters.
 #### One declaration, several bodies
 
 ```vader
-// path.vader — the declaration. Carries the signature, the export, the doc.
+// path.vader: the declaration. Carries the signature, the export, the doc.
 import "std/string"
 
 /// True iff the path is absolute.
 @target
 export is_absolute :: fn(p: string) -> bool = p.starts_with("/")
 
-// path-windows.vader — a body. Same module; the file name means nothing.
+// path-windows.vader: a body. Same module; the file name means nothing.
 @target(.Windows)
 is_absolute :: fn(p: string) -> bool { /* drive letter, UNC */ }
 ```

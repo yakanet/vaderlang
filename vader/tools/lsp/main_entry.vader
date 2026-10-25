@@ -1,4 +1,4 @@
-// vader/tools/lsp/main_entry — standalone `main` for the LSP binary.
+// vader/tools/lsp/main_entry: standalone `main` for the LSP binary.
 //
 // The unified `vader` CLI (`vader/tools/cli/main.vader`) bundles run / build /
 // fmt / dump / lsp into one binary. For the LSP subcommand we ship a

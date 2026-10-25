@@ -1,4 +1,4 @@
-// vader/tools/dap/main — the `vader dap` server : a Debug Adapter Protocol adapter
+// vader/tools/dap/main: the `vader dap` server, a Debug Adapter Protocol adapter
 // that drives the bytecode VM.
 //
 // F5 in VSCode runs the target `.vader`, its output shows in the Debug Console,

@@ -1,4 +1,4 @@
-// generic_param_over_wide_union — a type parameter left alone in a union
+// generic_param_over_wide_union: a type parameter left alone in a union
 // pattern stands for every variant of the argument the pattern does not name.
 //   - `filter_not_null` (`Iterator<T | null>`) over `(i32 | string | null)[]`
 //     binds `T = i32 | string` and keeps both payload kinds ;

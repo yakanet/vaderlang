@@ -1,4 +1,4 @@
-// vader/tools/cli/test — the `vader test` command.
+// vader/tools/cli/test: the `vader test` command.
 //
 // Discovers `@test` fns under a path, compiles ONE representative per module
 // (so a test sees only that module's own import closure), runs them, and

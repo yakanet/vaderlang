@@ -1,4 +1,4 @@
-// vader/tools/fmt/format — top-level entry points for the formatter.
+// vader/tools/fmt/format: top-level entry points for the formatter.
 
 module "vader/tools/fmt"
 

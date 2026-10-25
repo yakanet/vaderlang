@@ -1,4 +1,4 @@
-// vader/pipeline/comptime_vm/bridge — convert a VM `Value` back into a `ComptimeValue`.
+// vader/pipeline/comptime_vm/bridge: convert a VM `Value` back into a `ComptimeValue`.
 //
 // A deferred `@comptime` decl runs on the VM (`resolve.vader`); this file bridges
 // the resulting runtime `Value` into a `ComptimeValue` for injection into

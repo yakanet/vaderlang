@@ -1,4 +1,4 @@
-// T3084 — the data an enum's variants carry must be a struct.
+// T3084: the data an enum's variants carry must be a struct.
 //
 // A lone header argument is the width when it resolves to an integer (a
 // distinct over one included) and the data when it is a struct ; the quiet

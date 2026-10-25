@@ -1,4 +1,4 @@
-// std/testing — runtime assertions for `@test` functions.
+// std/testing: runtime assertions for `@test` functions.
 //
 // Each helper panics via the `std/abort` host intrinsic `panic` on failure,
 // with a self-explanatory message that names the expected/actual values.

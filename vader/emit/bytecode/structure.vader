@@ -1,4 +1,4 @@
-// vader/emit/bytecode/structure — recover structured control flow from a function's CFG.
+// vader/emit/bytecode/structure: recover structured control flow from a function's CFG.
 //
 // Ramsey, "Beyond Relooper" (ICFP 2022) — the algorithm LLVM's WebAssembly
 // CFGStackify implements too. Every block is emitted exactly once, beneath its

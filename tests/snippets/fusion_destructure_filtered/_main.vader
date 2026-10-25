@@ -1,4 +1,4 @@
-// fusion_destructure_filtered — `for [x, i] in xs.indexed().filter(p)`: the
+// fusion_destructure_filtered: `for [x, i] in xs.indexed().filter(p)`. The
 // fused loop destructures each element of a layered chain, against the same
 // chain bound lazily to a local first.
 

@@ -1,4 +1,4 @@
-// vader/vm/reg_exec — the register engine: runs the `RegFunction`s
+// vader/vm/reg_exec: the register engine, which runs the `RegFunction`s
 // `reg_translate.vader` produced.
 //
 // One register file serves the whole run, in three columns: raw bits, a

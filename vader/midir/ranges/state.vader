@@ -1,4 +1,4 @@
-// vader/midir/ranges/state — what the range analysis knows at one program point.
+// vader/midir/ranges/state: what the range analysis knows at one program point.
 //
 // Per integer local: the interval of its possible values (`intervals.vader`).
 // Between locals: the facts `x - y <= c`, and which local is at most the length

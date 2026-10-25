@@ -1,4 +1,4 @@
-// generic_box_primitives — every primitive as a RAW generic struct field.
+// generic_box_primitives: every primitive as a RAW generic struct field.
 //
 // Under the flavor-based erasure model, a primitive type-argument makes the
 // field land RAW in the struct layout (`Box__i64.v : i64`, not a boxed

@@ -1,4 +1,4 @@
-// vader/lower/coroutine_jumps — a jump through the coroutine block-split.
+// vader/lower/coroutine_jumps: a jump through the coroutine block-split.
 //
 // `coroutine.vader` dissolves a coroutine body into numbered states and
 // compiles a `break` / `continue` / `return` written as a statement into the

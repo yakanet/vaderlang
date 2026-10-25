@@ -1,4 +1,4 @@
-// lib/cli/prompt — interactive prompts: a list, checkboxes, a yes/no, a line.
+// lib/cli/prompt: interactive prompts (a list, checkboxes, a yes/no, a line).
 //
 // The terminal half of `keys.vader`. Everything here that can be tested without
 // a terminal is a separate function that takes a state and returns a string —

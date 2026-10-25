@@ -1,4 +1,4 @@
-// T3083 — control reaches the closing brace with no value to hand back.
+// T3083: control reaches the closing brace with no value to hand back.
 //
 // The sibling case, a body whose trailing expression has the WRONG type, is
 // T3020: `if c { return 7 }` as a whole body was already an error. This closes

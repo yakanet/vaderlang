@@ -1,4 +1,4 @@
-// C4001 — an enum's variant data is baked into a read-only table, so every
+// C4001: an enum's variant data is baked into a read-only table, so every
 // value must be a constant: a call is refused, a literal is quiet.
 
 module "snippet"

@@ -1,4 +1,4 @@
-// tests/snippets/ufcs_primitive_literal — UFCS method-call on a primitive
+// tests/snippets/ufcs_primitive_literal: UFCS method-call on a primitive
 // literal for a free fn whose first param is NOT `self` (`millis(n: i64)`).
 //
 // The typer re-pins the free-int receiver to the fn's first-param type

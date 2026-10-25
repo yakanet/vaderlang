@@ -1,4 +1,4 @@
-// toolchain/build/drive — draining the stream IS the build.
+// toolchain/build/drive: draining the stream IS the build.
 //
 // `messages()` runs the compilation and hands a driver what each stage produced.
 // It lives apart from `context.vader` because it is a different job: that file is

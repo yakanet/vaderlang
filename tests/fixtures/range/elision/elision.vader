@@ -1,4 +1,4 @@
-// tests/fixtures/range/elision/elision — which index checks a build keeps, read
+// tests/fixtures/range/elision/elision: which index checks a build keeps, read
 // from the emitted C by `tests/range_analysis.test.ts`.
 
 module "elision"

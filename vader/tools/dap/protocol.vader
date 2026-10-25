@@ -1,4 +1,4 @@
-// vader/tools/dap/protocol — DAP (Debug Adapter Protocol) message encoding.
+// vader/tools/dap/protocol: DAP (Debug Adapter Protocol) message encoding.
 //
 // DAP rides the SAME `Content-Length\r\n\r\n<json>` framing as LSP, so the
 // transport (`read_frame` / `write_frame` / `poll_pending`)

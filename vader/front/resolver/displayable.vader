@@ -1,4 +1,4 @@
-// vader/front/resolver/displayable — the `Display` an `@displayable` enum is given.
+// vader/front/resolver/displayable: the `Display` an `@displayable` enum is given.
 //
 // The impl is written out as source, parsed, and appended to the enum's own
 // file before node ids are assigned, so every later pass meets an ordinary

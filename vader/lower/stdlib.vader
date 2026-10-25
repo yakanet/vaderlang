@@ -1,4 +1,4 @@
-// vader/lower/stdlib — surface referenced stdlib / intrinsic externs.
+// vader/lower/stdlib: surface referenced stdlib / intrinsic externs.
 //
 
 module "vader/lower"

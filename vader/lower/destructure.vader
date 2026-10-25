@@ -1,4 +1,4 @@
-// vader/lower/destructure — tuple / array destructuring into per-leaf let bindings.
+// vader/lower/destructure: tuple / array destructuring into per-leaf let bindings.
 //
 
 module "vader/lower"

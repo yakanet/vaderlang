@@ -1,4 +1,4 @@
-// tests/fixtures/effect/variance — one call per verdict on a widened array.
+// tests/fixtures/effect/variance: one call per verdict on a widened array.
 //
 // `tests/effect_summary.test.ts` reads the `# variance` section of `vader dump
 // --stage=effects` on this file. Each call of `calls` hands a `Circle[]` (or a

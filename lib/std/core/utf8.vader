@@ -1,4 +1,4 @@
-// std/core/utf8 — a string's codepoints, over its bytes.
+// std/core/utf8: a string's codepoints, over its bytes.
 //
 // The UTF-8 encoder and decoder, the codepoint count `len`, and the codepoint walk
 // behind `s[i]` and `s[lo..<hi]`, written over the four string primitives every

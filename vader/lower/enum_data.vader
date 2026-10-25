@@ -1,4 +1,4 @@
-// vader/lower/enum_data — the tables behind enum variant data.
+// vader/lower/enum_data: the tables behind enum variant data.
 //
 // An enum whose header declares variant data (`enum(Info)`) stores the RANK of
 // its variant (0, 1, 2… in declaration order) and keeps its data in a synthetic

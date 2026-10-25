@@ -1,4 +1,4 @@
-// Self-compile profiler harness — measures where the compiler spends time,
+// Self-compile profiler harness: measures where the compiler spends time,
 // CPU, and memory while compiling ITSELF (`vader/tools/cli/main.vader`).
 //
 // Two complementary layers:

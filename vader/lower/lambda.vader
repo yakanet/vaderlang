@@ -1,4 +1,4 @@
-// vader/lower/lambda — lambda lifting (consumes closure analysis).
+// vader/lower/lambda: lambda lifting (consumes closure analysis).
 //
 // Turns each CAPTURING `LambdaExpr` into :
 //   1. A synthesised top-level fn (the "lifted fn") whose params are

@@ -1,4 +1,4 @@
-// vader/tools/lsp/actions/organize_imports — the `source.organizeImports` action.
+// vader/tools/lsp/actions/organize_imports: the `source.organizeImports` action.
 //
 // Rewrites the file's leading import block into the canonical form : one list,
 // alphabetical by path, and same-path modifier lists (`import "p" { x as y }`)

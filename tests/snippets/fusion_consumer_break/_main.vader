@@ -1,4 +1,4 @@
-// fusion_consumer_break — a `break` in the consumer abandons every inlined
+// fusion_consumer_break: a `break` in the consumer abandons every inlined
 // instance: `flat_map` and `chain` under `find`, `flat_map` and `chain` under a
 // `break`, `take`'s own `break` over `flat_map`, user generators with two
 // `yield`s, a tail `yield`, a generator of a generator — and `break <var>` from an

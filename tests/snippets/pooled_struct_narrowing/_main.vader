@@ -1,4 +1,4 @@
-// tests/snippets/pooled_struct_narrowing — an element of a baked struct array,
+// tests/snippets/pooled_struct_narrowing: an element of a baked struct array,
 // narrowed with `is`.
 //
 // A baked struct names its type in the `.virt` data section, and the VM stamps the

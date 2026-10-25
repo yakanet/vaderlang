@@ -1,4 +1,4 @@
-// fusion_consumer_continue — a `continue` in the consumer resumes the inlined
+// fusion_consumer_continue: a `continue` in the consumer resumes the inlined
 // generator after its `yield`: `indexed`, `take`, a generator with two
 // `yield`s per round, a generator with no loop, `continue y` from an inner loop,
 // `chars().indexed()`, `indexed` in an async fn across an `await`, a

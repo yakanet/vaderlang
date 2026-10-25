@@ -1,4 +1,4 @@
-// vader/emit/virt/dump — `BytecodeModule` → `.virt` text.
+// vader/emit/virt/dump: `BytecodeModule` → `.virt` text.
 //
 // `dump_bytecode` writes the `.virt` form `parse_virt_bc` reads back, data pool
 // included ; `write_virt` is the same with the entry named from the module's

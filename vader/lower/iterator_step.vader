@@ -1,4 +1,4 @@
-// vader/lower/iterator_step — what one `Iterator.next` hands back, and how to
+// vader/lower/iterator_step: what one `Iterator.next` hands back, and how to
 // read it.
 //
 // `for x in it`, the fusion path and the generator state machine all need the

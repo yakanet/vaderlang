@@ -1,4 +1,4 @@
-// std/abort — divergence primitives : panic, todo, unreachable.
+// std/abort: divergence primitives (panic, todo, unreachable).
 //
 // Not part of the auto-imported prelude (std/core) on purpose : a free-fn
 // `@intrinsic` in the prelude perturbs every program's type / string interning

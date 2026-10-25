@@ -1,4 +1,4 @@
-// vader/lower/string_lit — string + interpolation lowering, with Display coercion.
+// vader/lower/string_lit: string + interpolation lowering, with Display coercion.
 //
 // A text-only string literal becomes a single `LoweredStringLit`. A literal with
 // any `${expr}` segment lowers to ONE right-sized byte buffer (`lower_interp_buffer`)

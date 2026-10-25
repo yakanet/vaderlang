@@ -1,4 +1,4 @@
-// bench/vm/vm_str/vm_str.vader — `StringBuilder` appends with `${}` interpolation.
+// bench/vm/vm_str/vm_str.vader: `StringBuilder` appends with `${}` interpolation.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

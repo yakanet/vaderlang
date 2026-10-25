@@ -1,4 +1,4 @@
-// vader/front/typecheck/expr_type_value — `T[]` / `fn(T) -> R` in value
+// vader/front/typecheck/expr_type_value: `T[]` / `fn(T) -> R` in value
 // position.
 //
 // `T[]` and `fn(T) -> R` are type-only syntactic nodes, but they may

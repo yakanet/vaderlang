@@ -1,4 +1,4 @@
-// vader/front/typecheck/guard — a predicate narrows the arguments it is called on.
+// vader/front/typecheck/guard: a predicate narrows the arguments it is called on.
 //
 // An expression-bodied function returning `bool` whose condition narrows its
 // parameters is a guard : `is_weekend :: fn(d: Weekday) -> bool = d >= 5` proves

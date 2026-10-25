@@ -1,4 +1,4 @@
-// vader/front/typecheck/tag_dispatch — a trait member reached through a receiver's tag.
+// vader/front/typecheck/tag_dispatch: a trait member reached through a receiver's tag.
 //
 // A value of a trait, and a union whose every variant implements the trait, call
 // its members at run time through the value's tag : `c.contains(k)`, `k in c`,

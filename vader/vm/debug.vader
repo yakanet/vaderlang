@@ -1,4 +1,4 @@
-// vader/vm/debug — runtime debug/session context for the DAP debugger.
+// vader/vm/debug: runtime debug/session context for the DAP debugger.
 //
 // A `DebugController` is threaded into `exec_entry` (and down to the host-op
 // dispatcher) when a program runs under the step-debugger. It is `null` for

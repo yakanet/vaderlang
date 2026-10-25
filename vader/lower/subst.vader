@@ -1,4 +1,4 @@
-// vader/lower/subst — type substitutions and mangle-suffix helpers.
+// vader/lower/subst: type substitutions and mangle-suffix helpers.
 //
 
 module "vader/lower"

@@ -1,4 +1,4 @@
-// vader/tools/lsp/protocol/json — JSON object-field accessors over `JsonValue`.
+// vader/tools/lsp/protocol/json: JSON object-field accessors over `JsonValue`.
 //
 // Every request handler reaches into the params object the same way :
 // pull a field by key, coerce it to the expected shape, fall back to a

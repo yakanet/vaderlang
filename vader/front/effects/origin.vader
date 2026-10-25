@@ -1,4 +1,4 @@
-// vader/front/effects/origin — why an access is in a set, and the chain it leads down.
+// vader/front/effects/origin: why an access is in a set, and the chain it leads down.
 //
 // Each access of a `ParamEffects` keeps the constraint that first put it there, in
 // two words (`ParamEffects.origins`): a mark of the body, its own write or keep, or

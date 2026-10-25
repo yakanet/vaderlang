@@ -1,4 +1,4 @@
-// bench/vm/vm_map/vm_map.vader — `MutableMap<i32, i32>` inserts and lookups.
+// bench/vm/vm_map/vm_map.vader: `MutableMap<i32, i32>` inserts and lookups.
 //
 // Sized for the VM (`bun bench/run.ts --vm`), not for native code.
 

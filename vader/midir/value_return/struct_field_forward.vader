@@ -1,4 +1,4 @@
-// vader/midir/value_return/struct_field_forward — reads of a freshly built tuple, forwarded.
+// vader/midir/value_return/struct_field_forward: reads of a freshly built tuple, forwarded.
 //
 // The value ABI hands a small composite back in registers, and the caller
 // rebuilds it so every consumer keeps reading `pair._0` / `pair._1` as before —

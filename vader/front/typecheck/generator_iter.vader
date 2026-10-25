@@ -1,4 +1,4 @@
-// vader/front/typecheck/generator_iter — Direction A: a `generator`'s call result is a
+// vader/front/typecheck/generator_iter: a `generator`'s call result is a
 // CONCRETE nominal type implementing `Iterator<U>`, not the erased trait.
 //
 // A `generator fn -> Iterator<U>` returns the honest erased `Iterator<U>` in

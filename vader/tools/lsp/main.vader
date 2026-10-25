@@ -1,4 +1,4 @@
-// vader/tools/lsp/main — LSP event loop.
+// vader/tools/lsp/main: LSP event loop.
 //
 // Reads JSON-RPC frames from stdin in a loop, dispatches on `method`, writes
 // responses to stdout. The dispatch `match` below is the authoritative method

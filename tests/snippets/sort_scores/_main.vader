@@ -1,4 +1,4 @@
-// tests/snippets/sort_scores — monomorphic recursive-generic guard.
+// tests/snippets/sort_scores: monomorphic recursive-generic guard.
 //
 // `std/sort::sort<T>` lowers to the RECURSIVE generic free fn
 // `merge_sort_range<T>`. For an all-primitive arg (T = i32) the mixed-flavor gate

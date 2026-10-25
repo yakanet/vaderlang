@@ -1,4 +1,4 @@
-// fusion_generator_return — a `return` in an inlined generator, or in an inlined
+// fusion_generator_return: a `return` in an inlined generator, or in an inlined
 // user stage, ends that generator and not the consuming function: the code after
 // the consumer's loop still runs, and a consumer that returns a value returns it.
 //

@@ -1,4 +1,4 @@
-// vader/front/typecheck/typed_ast — output shape of the typechecker.
+// vader/front/typecheck/typed_ast: output shape of the typechecker.
 //
 // `TypedProgram` carries the side-tables each typecheck pass produces —
 // expression / local / decl / param types, struct & trait decls, narrowing

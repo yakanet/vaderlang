@@ -1,4 +1,4 @@
-// vader/emit/c/dispatch — trait-method dispatchers for the generated C.
+// vader/emit/c/dispatch: trait-method dispatchers for the generated C.
 //
 // One output feeds virtual dispatch in the generated C: a per-`(trait.method)`
 // dispatcher function (`vader_vt_<key>`) that the `virtual.call` op invokes — a

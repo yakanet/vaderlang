@@ -1,4 +1,4 @@
-// vader/midir/select/type_classify — typecheck `Type` → bytecode shapes.
+// vader/midir/select/type_classify: typecheck `Type` → bytecode shapes.
 //
 // The value type a `Type` is held as, and the key a type is interned under.
 // Read by the bytecode emitter (`vader/emit/bytecode`) and by the `midir`

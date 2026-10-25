@@ -1,4 +1,4 @@
-// std/string_builder — efficient string construction over a list of parts.
+// std/string_builder: efficient string construction over a list of parts.
 //
 // Accumulates string references in a `string[]` : each `append` is an O(1)
 // reference push, no byte copy. The bytes are moved exactly once, in bulk, at
