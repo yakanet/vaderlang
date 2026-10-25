@@ -1,0 +1,7 @@
+module "snippet/zoo"
+
+/// The zoo's word for a number.
+export describe :: fn(n: i32) -> string = "zoo"
+
+/// The zoo's label for a number.
+export label :: fn(n: i32) -> string = "zoo label"

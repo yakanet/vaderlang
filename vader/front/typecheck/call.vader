@@ -113,7 +113,7 @@ pick_overload :: fn(
             best = candidate
             best_rank = rank
             rival = null
-        } else if rank == best_rank && best != null && is_level_rival(best, candidate) {
+        } else if rank == best_rank && best != null && is_rival(best, candidate, typed) {
             rival = candidate
         }
     }
@@ -121,7 +121,7 @@ pick_overload :: fn(
         return initial
     }
     if rival != null {
-        diags.push(ambiguous_overload_error(callee.name, arg0_ty, best, rival, callee.span))
+        diags.push(ambiguity_error(callee.name, arg0_ty, best, rival, callee.span))
     }
     return commit_overload_pick(best, c, typed)
 }
@@ -292,6 +292,33 @@ integer_closeness :: fn(arg0: Type, param0: Type) -> i32 {
 // identical signatures are a redefinition, already T3053 at the declaration.
 is_level_rival :: fn(best: FnCandidate, other: FnCandidate) -> bool =
     best.symbol.module == other.symbol.module && !equals_type(best.ty, other.ty)
+
+// An overload ranked level with `best` that the call cannot tell from it : one of
+// the same module (`is_level_rival`), or of another imported module.
+is_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bool =
+    is_level_rival(best, other) || is_import_rival(best, other, typed)
+
+// Two overloads two imported modules declare : the bare call is R2031, and the
+// method form resolves as the bare call does (SPEC §UFCS). A declaration of the
+// calling module comes first among candidates and wins the tie, and the prelude is
+// never a rival.
+is_import_rival :: fn(best: FnCandidate, other: FnCandidate, typed: TypedProgram) -> bool =
+    best.symbol.module != other.symbol.module
+        && best.symbol.module != typed.resolved.path
+        && best.symbol.module_name != "std/core"
+        && other.symbol.module_name != "std/core"
+
+// T3032 for two overloads ranked level : two of one module differ by type, two of
+// imported modules clash as their bare use would (R2031).
+ambiguity_error :: fn(
+    name: string, arg0: Type, first: FnCandidate, other: FnCandidate, span: Span,
+) -> Diagnostic {
+    if first.symbol.module == other.symbol.module {
+        return ambiguous_overload_error(name, arg0, first, other, span)
+    }
+    modules :: [first.symbol.module_name, other.symbol.module_name]
+    return typecheck_error(.AmbiguousOverload, span, wildcard_clash_detail(name, modules))
+}
 
 ambiguous_overload_error :: fn(
     name: string,

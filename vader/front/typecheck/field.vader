@@ -663,7 +663,7 @@ try_free_fn_ufcs_dispatch :: fn(
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, e.span.start.file, typed) ?? return null
     if free_ufcs.rival != null {
-        diags.push(ambiguous_overload_error(e.field, target_ty, free_ufcs.winner, free_ufcs.rival, e.field_span))
+        diags.push(ambiguity_error(e.field, target_ty, free_ufcs.winner, free_ufcs.rival, e.field_span))
     }
     first_param :: free_ufcs.winner.ty.params[0]
     typed.ufcs_receiver_types[e.id] = first_param
@@ -1673,7 +1673,7 @@ UfcsResult :: struct {
     curried: Type
     /// The winning overload, in the module that declares it.
     winner: FnCandidate
-    /// An overload ranked level with `winner` — see `is_level_rival`.
+    /// An overload ranked level with `winner` — see `is_rival`.
     rival: FnCandidate | null = null
 }
 
@@ -1707,7 +1707,8 @@ try_free_fn_ufcs_with_first :: fn(
             best = UfcsResult { .curried = curried, .winner = candidate }
             best_rank = rank
             rival = null
-        } else if rank == best_rank && same_arity && best != null && is_level_rival(best.winner, candidate) {
+        } else if rank == best_rank && same_arity && best != null
+            && is_rival(best.winner, candidate, typed) {
             rival = candidate
         }
     }

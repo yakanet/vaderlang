@@ -1,0 +1,11 @@
+// Two wildcard imports each export `describe` and `label` for an `i32` : the method
+// form is ambiguous, as the bare call `describe(3)` is R2031. A declaration of this
+// module wins the tie, as `label` shows.
+module "snippet"
+
+import "snippet/farm"
+import "snippet/zoo"
+
+label :: fn(n: i32) -> string = "here"
+
+export shown :: fn() -> string = 3.describe() + 3.label()

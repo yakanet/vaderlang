@@ -1708,7 +1708,10 @@ populate_imported_fn_overloads :: fn(
     // Loop-invariant : the prelude is the same module for every file.
     core :: typed_by_name["std/core"]
     for fw in wildcards {
+        // Filled afresh at each call : the populate runs again once more types are
+        // settled, and a candidate a renamed import shadowed must not come back.
         table :: file_overload_table(entry_typed, fw.file)
+        table.clear()
         // Dedup: a path can appear more than once in one file (re-imported in a
         // `// ---- tests ----` block), and `push_module_exported_fns` would
         // rescan it — idempotent but wasted.
@@ -1784,10 +1787,9 @@ push_renamed_imports :: fn(entry_typed: TypedProgram) -> void {
     }
 }
 
-// Push every fn overload of `from` into `table`, keyed by name (`push_overload`
-// is replace-on-signature). We iterate `fn_overloads` (not `symbols`) so every
-// overload of the same name lands in the bucket. Skips the self case (a module
-// never contributes to its own import table).
+// Push every fn overload of `from` into `table`, keyed by name. We iterate `fn_overloads` (not `symbols`) so every overload of the same name
+// lands in the bucket. Skips the self case (a module never contributes to its
+// own import table).
 //
 // `excluded` holds the source names the importing file's modifier list drops
 // from this path's wildcard. They stay out of `table` but are still typed into
@@ -1854,12 +1856,17 @@ push_module_exported_fns :: fn(
     }
 }
 
-push_overload :: fn(
-    table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate,
-) -> void {
+// Add `ft` to the overloads of `name`. It takes the place of one of the same
+// signature that its own module pushed, or that it shadows : the prelude's always
+// wins, and a renamed import (bound under a name other than its own) shadows the
+// wildcards. One of another module stays beside it, so a call both answer is
+// ambiguous (T3032), as the bare call is R2031.
+push_overload :: fn(table: MutableMap<string, FnCandidate[]>, name: string, ft: FnCandidate) -> void {
+    shadows :: ft.symbol.module_name == "std/core" || ft.symbol.name != name
     bucket :: table.get_or_put_with(name, () -> [])
     for i in 0..<bucket.len() {
-        if type_list_equals(bucket[i].ty.params, ft.ty.params) {
+        same_owner :: shadows || bucket[i].symbol.module == ft.symbol.module
+        if same_owner && type_list_equals(bucket[i].ty.params, ft.ty.params) {
             bucket[i] = ft
             return
         }

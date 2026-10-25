@@ -772,13 +772,7 @@ has_reassignment :: fn(self: ResolveState, syms: Symbol[]) -> bool {
 check_wildcard_ambiguity :: fn(self: ResolveState, name: string, span: Span, s: Symbol) -> void {
     if s.module == self.module_path { return }
     mods :: self.ambiguous[name] ?? return
-    list := ""
-    for i in 0..<mods.len() {
-        if i > 0 { list = list + ", " }
-        list = list + mods[i]
-    }
-    self.diags.push(resolver_error(.AmbiguousWildcardImport, span,
-        "`${name}` is exported by ${list} — qualify it with a namespace import (`Ns :: import \"…\"` then `Ns.${name}`) or destructure the one you mean"))
+    self.diags.push(resolver_error(.AmbiguousWildcardImport, span, wildcard_clash_detail(name, mods)))
 }
 
 walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {

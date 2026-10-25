@@ -77,6 +77,18 @@ export lower_error :: fn(code: LowerCode, primary: Span, detail: string) =
 export hook_error :: fn(code: HookCode, primary: Span, detail: string) =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 
+/// The detail of a name several wildcard-imported modules export, the bare use of
+/// which is R2031 and the method call T3032 : who exports it, and the two ways to
+/// name one.
+///
+/// @param name     the name the use writes.
+/// @param modules  the modules exporting it, as the user names them.
+export wildcard_clash_detail :: fn(name: string, modules: string[]) -> string {
+    exporters :: "`${name}` is exported by ${modules.join(", ")}"
+    via :: "qualify it through a namespace import (`Ns :: import \"...\"`, then `Ns.${name}`)"
+    return "${exporters} ; ${via} or drop one with `{ ${name} as _ }`"
+}
+
 export internal_error :: fn(code: InternalCode, primary: Span, detail: string) =
     new_diagnostic(.Error, CodeInfo(code), primary, detail)
 

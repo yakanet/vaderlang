@@ -1,0 +1,7 @@
+module "snippet/farm"
+
+/// The farm's word for a number.
+export describe :: fn(n: i32) -> string = "farm"
+
+/// The farm's label for a number.
+export label :: fn(n: i32) -> string = "farm label"

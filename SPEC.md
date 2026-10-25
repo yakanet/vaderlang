@@ -2242,7 +2242,7 @@ A field some variants of a union carry and others do not is `T3008` (§ Unions):
 
 #### Import requirement
 
-UFCS resolution obeys the **same import rule as a bare call**: `x.foo()` resolves only against free functions whose owning module the file imports, exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call.
+UFCS resolution obeys the **same import rule as a bare call**: `x.foo()` resolves only against free functions whose owning module the file imports, exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call. Two wildcard-imported modules that both export a `foo` the receiver fits alike make `x.foo()` ambiguous (`T3032`), as `foo(x)` is `R2031`; a `foo` of the calling module wins the tie, and the prelude's is never ambiguous.
 
 "Same rule" includes the **scope**: imports are file-scoped (§11), so `x.foo()` resolves against the imports of **the file it is written in**, never a sibling file's. A `import "p" { foo as _ }` therefore drops `foo` from both call forms in that file, while a sibling that imports `p` bare keeps both.
 

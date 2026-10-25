@@ -1,0 +1,1 @@
+[11:36] error[T3032] ambiguous overload resolution: `describe` is exported by snippet/farm, snippet/zoo ; qualify it through a namespace import (`Ns :: import "..."`, then `Ns.describe`) or drop one with `{ describe as _ }`
