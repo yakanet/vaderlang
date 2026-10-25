@@ -846,11 +846,15 @@ build_type_const :: fn(fn_ctx: FnCtx, e: LoweredTypeConst) -> LocalId | null {
     return dst
 }
 
-// The local `e` reads, as its slot stores it ; any other ident as `build_ident`
-// builds it.
+// The value `e` reads, as it is stored : its local's slot, or what
+// `build_module_ident` builds for an ident with none.
 stored_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
-    slot :: fn_ctx.local_by_sym_id[e.symbol.id] ?? return build_ident(fn_ctx, e)
-    return stored_slot(fn_ctx, slot, e)
+    local :: fn_ctx.local_by_sym_id[e.symbol.id]
+    if local != null {
+        return stored_slot(fn_ctx, local, e)
+    }
+    value :: build_module_ident(fn_ctx, e) ?? return null
+    return stored_slot(fn_ctx, value, e)
 }
 
 // The slot `slot` the ident `e` reads, as it stores it : itself, or, where the read
@@ -864,10 +868,19 @@ stored_slot :: fn(fn_ctx: FnCtx, slot: LocalId, e: LoweredIdent) -> LocalId {
 }
 
 build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
-    slot_opt :: fn_ctx.local_by_sym_id[e.symbol.id]
-    if slot_opt !is null {
-        return read_as(fn_ctx, stored_slot(fn_ctx, slot_opt, e), e.type, e.span)
-    }
+    stored :: stored_ident(fn_ctx, e) ?? return null
+    return read_as(fn_ctx, stored, e.type, e.span)
+}
+
+// The value of an ident with no local in this function, at the type its
+// declaration gives it : a function reference, or a module constant. A constant
+// arrives at its declared type, so a read the typecheck narrowed still takes the
+// variant out of it (`stored_slot`). The `inline_consts` pass routed every
+// non-scalar const either to a synthetic accessor fn (fn-wrap) or to an inlined
+// value. A fn-wrapped const lowers to a 0-arg `call` ; an inline const re-builds
+// its value here. (Scalar consts usually fold in `lower_ident` upstream, but the
+// inline map catches any that didn't.)
+build_module_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     if e.symbol.kind == .Fn {
         dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
         emit(fn_ctx, InstrFnRef {
@@ -875,11 +888,6 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
         })
         return dst
     }
-    // Const references : the `inline_consts` pass routed every non-scalar
-    // const either to a synthetic accessor fn (fn-wrap) or to an inlined
-    // value. A fn-wrapped const lowers to a 0-arg `call` ; an inline const
-    // re-builds its value here. (Scalar consts usually fold in
-    // `lower_ident` upstream, but the inline map catches any that didn't.)
     wrap :: const_accessor(fn_ctx, e)
     if wrap is ConstFnWrap {
         dst :: fresh_tmp(fn_ctx, "const_init", wrap.call_type)

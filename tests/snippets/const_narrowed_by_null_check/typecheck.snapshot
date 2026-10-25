@@ -1,0 +1,28 @@
+# Typecheck
+
+## tests/snippets/const_narrowed_by_null_check
+  FnDecl         first_on_diagonal    :: fn() -> null | Point
+  ConstDecl      FOUND                :: null | Point
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 14:14    RangeExpr      :: Range<i32>
+  expr 15:12    BinaryExpr     :: bool
+  expr 15:12    BinaryExpr     :: i32
+  expr 15:12    IdentExpr      :: i32
+  expr 15:16    IdentExpr      :: i32
+  expr 15:9     IfExpr         :: void
+  expr 16:20    StructLitExpr  :: Point
+  expr 16:33    IdentExpr      :: i32
+  expr 16:41    IdentExpr      :: i32
+  expr 22:10    CallExpr       :: null | Point
+  expr 22:10    IdentExpr      :: fn() -> null | Point
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     IdentExpr      :: null | Point
+  expr 26:17    StringLitExpr  :: string
+  expr 26:29    FieldExpr      :: i32
+  expr 26:29    IdentExpr      :: Point
+  expr 26:41    FieldExpr      :: i32
+  expr 26:41    IdentExpr      :: Point
+  expr 26:9     CallExpr       :: void
+  expr 26:9     IdentExpr      :: fn(T) -> void

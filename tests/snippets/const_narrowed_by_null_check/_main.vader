@@ -1,0 +1,29 @@
+// A module constant set by a call is built again at each read. A null check that
+// narrows the constant reaches the reads after it: the field read below takes the
+// struct out of the union the call returns.
+module "snippet"
+
+import "std/io"
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+first_on_diagonal :: fn() -> Point | null {
+    for i in 1..<4 {
+        if i * i > 3 {
+            return Point { .x = i, .y = i }
+        }
+    }
+    return null
+}
+
+FOUND :: first_on_diagonal()
+
+main :: fn() -> i32 {
+    if FOUND != null {
+        println("found at ${FOUND.x}, ${FOUND.y}")
+    }
+    return 0
+}
