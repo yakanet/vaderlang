@@ -94,22 +94,17 @@ any_leaves_of :: fn(t: Type) -> Type {
         return mk_array(any_leaves_of(t.element))
     }
     if t is UnionType {
-        // Erase THEN dedupe. Every variant that carries no args erases to `Any`,
-        // so a union of N such variants — a type-param's trait bounds, say
-        // `Hash & Equals`, or a many-trait array bound — would otherwise become a
-        // union of N `Any`s, a distinct SHAPE per arity, each one materialised as
-        // its own struct decl under its own, very long, mangle. `Any | Any` is `Any`.
-        new_vars: Type[]: []
-        seen :: MutableSet<string> {}
+        // Erase THEN build the union (`union_of` dedupes). Every variant that
+        // carries no args erases to `Any`, so a union of N such variants — a
+        // type-param's trait bounds, say `Hash & Equals`, or a many-trait array
+        // bound — would otherwise become a union of N `Any`s, a distinct SHAPE per
+        // arity, each one materialised as its own struct decl under its own, very
+        // long, mangle. `Any | Any` is `Any`.
+        erased: Type[]: []
         for v in t.variants {
-            erased :: any_leaves_of(v)
-            key :: canonical_key(erased)
-            if seen.add(key) {
-                new_vars.push(erased)
-            }
+            erased.push(any_leaves_of(v))
         }
-        if new_vars.len() == 1 { return new_vars[0] }
-        return mk_union(new_vars)
+        return union_of(erased)
     }
     if t is TupleType {
         new_elems: Type[]: []

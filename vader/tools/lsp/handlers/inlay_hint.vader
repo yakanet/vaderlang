@@ -334,8 +334,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, ctx: HintCtx, out: JsonValue[]) -> void {
         is AST.SimpleBinding -> {
             ty :: ctx.typed.local_types[sb.name_span.hash()] ?? return
             if ty is UnresolvedType { return }
-            if ty is FreeIntType { return }
-            if ty is FreeFloatType { return }
+            if is_free_numeric(ty)  { return }
             emit_operator_hint(ctx, sb.name_span, ls.value.span, display_type(ty), out)
         }
         _                    -> {}
@@ -448,8 +447,7 @@ emit_discarded_hint :: fn(body: AST.BlockExpr, ctx: HintCtx, out: JsonValue[]) -
 // Whether a hint can name `t` as a value: not void, not `never`, resolved, and
 // not a free literal the let hints also leave out.
 carries_value :: fn(t: Type) -> bool =
-    !is_void(t) && t !is NeverType && t !is UnresolvedType && t !is FreeIntType
-    && t !is FreeFloatType
+    !is_void(t) && t !is NeverType && t !is UnresolvedType && !is_free_numeric(t)
 
 /// Where a fn's return-type hint goes: before the `=` of an expression body,
 /// on the `{` of a block body.
