@@ -1,0 +1,8 @@
+# stdout
+loaded loaded
+loaded
+race: 1
+slow: 42
+runs: [config, slow, warm]
+# exit
+0

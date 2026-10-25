@@ -1,0 +1,51 @@
+// An `async` `@singleton` hands every call one task, the `share` of its body by
+// `std/async`: concurrent awaits and later ones all get the one result, the body
+// runs once, and a `race` that cancels the shared task leaves it to the others.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+
+@singleton
+runs :: fn() -> string[] = []
+
+@singleton
+config :: fn() -> Async<string> {
+    runs().push("config")
+    await sleep(5)
+    return "loaded"
+}
+
+@singleton
+slow :: fn() -> Async<i32> {
+    runs().push("slow")
+    await sleep(50)
+    return 42
+}
+
+@singleton
+warm :: fn() -> Async<void> {
+    runs().push("warm")
+    await sleep(1)
+}
+
+quick :: fn() -> Async<i32> {
+    await sleep(1)
+    return 1
+}
+
+main :: fn() -> i32 {
+    both :: await join_all([config(), config()])
+    println("${both[0]} ${both[1]}")
+    again :: await config()
+    println(again)
+    winner :: await race([quick(), slow()])
+    println("race: ${winner}")
+    late :: await slow()
+    println("slow: ${late}")
+    await warm()
+    await warm()
+    println("runs: ${runs()}")
+    return 0
+}

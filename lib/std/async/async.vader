@@ -89,6 +89,46 @@ export block_on :: fn<T>(root: Async<T>) -> T {
     }
 }
 
+// ---- share ----------------------------------------------------------------
+
+/// The awaitable backing `share` : drives its task until it completes, then hands
+/// that result to every later `resume`. Several awaiters may drive it, each
+/// `resume` advancing the one task. Cancelling it does nothing (`Async`'s
+/// default), since another awaiter may still wait for the result.
+Shared :: struct<T> {
+    task: Async<T>
+    /// What the task's last `resume` returned : `Suspended` until it completes,
+    /// then its result.
+    result: T | Suspended = Suspended {}
+    /// True while a `resume` drives the task. A `resume` arriving then comes from
+    /// inside the task, which awaits itself.
+    running: bool = false
+}
+
+Shared<T> implements Async<T> {
+    resume :: fn(self) -> T | Suspended {
+        if self.result is Suspended {
+            if self.running {
+                panic("a shared task awaits itself")
+            }
+            self.running = true
+            self.result = self.task.resume()
+            self.running = false
+        }
+        return self.result
+    }
+}
+
+/// Share `task` between any number of awaiters : the first `resume` drives it, and
+/// once it completes every later one hands back its result, where a finished
+/// coroutine would answer `Suspended`. Cancelling the shared awaitable leaves the
+/// task to the others. The task an `async` `@singleton` hands every call.
+///
+/// @param task  the awaitable to share.
+/// @return      an awaitable every awaiter may await.
+/// @error       panics when the task awaits its own shared awaitable.
+export share :: fn<T>(task: Async<T>) -> Async<T> = Shared<T> { .task = task }
+
 // ---- wake times -----------------------------------------------------------
 
 // Later than any wake time — the starting point of `earlier`.

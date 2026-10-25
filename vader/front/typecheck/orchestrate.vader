@@ -107,6 +107,14 @@ check_project_modules :: fn(
         typed.impl_tables = impl_tables
         per_module[id] = typed
     }
+    // Before any declaration is checked : T3103 reads it on an `async` singleton.
+    async_runtime :: AsyncRuntime {
+        .run_async_main = async_export(project, "run_async_main"),
+        .share = async_export(project, "share"),
+    }
+    for [_, typed] in per_module {
+        typed.async_runtime = async_runtime
+    }
     // Phase A : register every type alias project-wide. Cross-
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
@@ -1871,21 +1879,18 @@ resolver_imports :: fn(targets: ImportTargetTable) -> MutableMap<i32, Symbol> {
     return out
 }
 
+// The export `name` of `std/async`, or null when the program does not import it.
+async_export :: fn(project: LoadedProject, name: string) -> Symbol | null {
+    id :: find_async_module_id(project) ?? return null
+    loaded :: project.modules[id] ?? return null
+    return loaded.collected.symbols[name]
+}
+
 populate_core_symbols :: fn(
     entry_typed: TypedProgram,
     project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
-    // Resolve `std/async`'s `run_async_main` for the entry (the implicit
-    // async-`main` driver) when the program imports `std/async` — independent of
-    // core, so it survives the core early-returns below.
-    async_id :: find_async_module_id(project)
-    if async_id != null {
-        async_loaded :: project.modules[async_id]
-        if async_loaded != null {
-            entry_typed.run_async_main_symbol = async_loaded.collected.symbols["run_async_main"]
-        }
-    }
     // The baked target constants, BEFORE core's early-returns: a stdlib-less
     // snippet has no `std/core` but still gets `VADER_OS` seeded, and bridging
     // its type must not depend on core being present.

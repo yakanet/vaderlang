@@ -273,8 +273,9 @@ quantifier_of :: fn(params: AST.TypeParam[], resolved: ResolvedModule) -> TypePa
 }
 
 // A `@singleton` function builds one instance for the whole program: an argument or
-// a type argument would ask for one per value, and a body that suspends would let
-// another call see it half built.
+// a type argument would ask for one per value, and a generator for one per run. An
+// `async` body shares its task through `std/async`'s `share`, which the program
+// must import.
 check_singleton_shape :: fn(decl: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[]) -> void {
     detail :: singleton_shape_fault(decl, typed) ?? return
     diags.push(typecheck_error(.MisshapedSingleton, decl.name_span, "`${decl.name}` ${detail}"))
@@ -288,8 +289,8 @@ singleton_shape_fault :: fn(decl: AST.FnDecl, typed: TypedProgram) -> string | n
     if decl.type_params.len() > 0 {
         return "is generic"
     }
-    if fn_is_async(typed, decl) {
-        return "awaits"
+    if fn_is_async(typed, decl) && typed.async_runtime.share == null {
+        return "awaits, but the program does not import `std/async`"
     }
     if fn_is_generator(typed, decl) {
         return "yields"

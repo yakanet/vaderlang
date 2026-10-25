@@ -13,11 +13,14 @@
 //     return instance
 //
 // A `void` singleton runs its body once and keeps no instance, as does one that
-// never returns. The init has an identity of its own, as an extern's import has:
-// a synthetic symbol and mangle, so it never shares a function slot with `f`.
+// never returns. An `async` one keeps the task `std/async`'s `share` makes of the
+// frame its init returns, so every call awaits one run of the body. The init has
+// an identity of its own, as an extern's import has: a synthetic symbol and
+// mangle, so it never shares a function slot with `f`.
 
 module "vader/lower"
 
+import "std/abort"
 import "toolchain/span"
 import "vader/core/mono"
 import "vader/core/symbol"
@@ -40,7 +43,7 @@ READY: i64: 2
 /// @param typed        the module that typed it.
 /// @param subst        its (empty) substitution.
 /// @param fn_decl      a function without parameters or type parameters.
-/// @param return_type  the type of the instance.
+/// @param return_type  its declared return.
 /// @return             the accessor, under `fn_decl`'s identity.
 lower_singleton :: fn(
     project_ctx: LowerProjectCtx,
@@ -56,17 +59,14 @@ lower_singleton :: fn(
         ...entry,
         .mangled = init.name,
         .symbol = init,
+        .is_main = false,
     }
-    project_ctx.synth_decls.push(LoweredFnDecl {
-        .mangled     = init.name,
-        .params      = [],
-        .return_type = return_type,
-        .body        = lower_fn_body(fn_decl, typed, project_ctx, init_entry, subst, return_type),
-        .origin      = init_entry,
-    })
+    init_decl :: lowered_fn_of(fn_decl, typed, project_ctx, init_entry, subst, [], return_type)
+    project_ctx.synth_decls.push(init_decl)
+    instance_type :: init_decl.return_type
     span :: fn_decl.span
     state :: new_global(ctx, "${fn_decl.name}.state", TY_I32, span)
-    instance :: instance_slot(ctx, fn_decl.name, return_type, span)
+    instance :: instance_slot(ctx, fn_decl.name, instance_type, span)
     reentered :: LoweredUnreachable {
         .span   = span,
         .type   = TY_VOID,
@@ -76,17 +76,31 @@ lower_singleton :: fn(
         when_state(state, READY, LoweredReturn { .span = span, .value = instance }),
         when_state(state, STARTED, LoweredExprStmt { .span = span, .expr = reentered }),
         set_global(state, state_value(span, STARTED)),
-        keep_instance(instance, mk_lowered_call(init, [], return_type, span), span),
+        keep_instance(instance, built_instance(ctx, fn_decl, init, instance_type, span), span),
         set_global(state, state_value(span, READY)),
         LoweredReturn { .span = span, .value = instance },
     ]
     return LoweredFnDecl {
         .mangled     = entry.mangled,
         .params      = [],
-        .return_type = return_type,
+        .return_type = instance_type,
         .body        = mk_void_block(stmts, span),
         .origin      = entry,
     }
+}
+
+// What the accessor keeps: the init's result, or for an `async` singleton the task
+// `share` makes of the frame the init returns.
+built_instance :: fn(
+    ctx: FnLowerCtx, fn_decl: AST.FnDecl, init: Symbol, type: Type, span: Span,
+) -> LoweredExpr {
+    frame :: mk_lowered_call(init, [], type, span)
+    if !fn_is_async(ctx.typed, fn_decl) {
+        return frame
+    }
+    share :: ctx.typed.async_runtime.share ?? panic("async singleton without `share`")
+    mangled :: register_fn_instance_mangle(ctx, share, [async_inner_type(type)])
+    return mk_lowered_call(instance_symbol(share, mangled), [frame], type, span)
 }
 
 // Add a global slot of the singleton `ctx` lowers, named `name`, of type `type`,

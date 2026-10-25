@@ -4,7 +4,8 @@
 
 Accepted (2026-10-16). Replaces the module variable (`NAME: T[]!: value`) once the
 six sites of `lib/std` are migrated; follows 0067, where `!` stopped granting
-anything. The form left with the marker (0069).
+anything. The form left with the marker (0069). Amended by 0111 (an `async`
+singleton shares one task) and 0112 (a module constant cannot call a singleton).
 
 ## Context
 

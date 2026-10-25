@@ -1,3 +1,4 @@
-[10:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `empty` is generic
-[13:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `counting` yields
-[7:1] error[T3103] a `@singleton` function takes no parameter and runs straight through: `scaled` takes parameters
+[11:1] error[T3103] the function cannot be a `@singleton`: `empty` is generic
+[14:1] error[T3103] the function cannot be a `@singleton`: `counting` yields
+[27:1] error[T3103] the function cannot be a `@singleton`: `loading` awaits, but the program does not import `std/async`
+[8:1] error[T3103] the function cannot be a `@singleton`: `scaled` takes parameters

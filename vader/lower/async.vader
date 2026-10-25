@@ -238,7 +238,7 @@ async_main_driver :: fn(
     suspended_ty: Type, resume_ty: Type, result_type: Type, span: Span,
 ) -> LoweredBlock {
     async_ty :: mk_trait(async_sym, [result_type])
-    run_sym :: fn_ctx.typed.run_async_main_symbol
+    run_sym :: fn_ctx.typed.async_runtime.run_async_main
     if run_sym != null {
         // Seed `run_async_main`'s materialisation (a synthesised call isn't
         // auto-harvested) and route through it : `return run_async_main(frame)`.

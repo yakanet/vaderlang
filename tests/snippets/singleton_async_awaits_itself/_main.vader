@@ -1,0 +1,20 @@
+// An `async` `@singleton` whose body awaits its own task can never complete: the
+// shared task traps on the `resume` that comes from inside it.
+
+module "snippet"
+
+import "std/async"
+import "std/io"
+
+@singleton
+selfish :: fn() -> Async<i32> {
+    await sleep(1)
+    inner :: await selfish()
+    return inner + 1
+}
+
+main :: fn() -> i32 {
+    value :: await selfish()
+    println("${value}")
+    return 0
+}

@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/singleton_async_awaits_itself
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         selfish              :: fn() -> Async<i32>
+  expr 11:11    CallExpr       :: Async<null>
+  expr 11:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 11:5     AwaitExpr      :: null
+  expr 12:14    AwaitExpr      :: i32
+  expr 12:20    CallExpr       :: Async<i32>
+  expr 12:20    IdentExpr      :: fn() -> Async<i32>
+  expr 13:12    BinaryExpr     :: i32
+  expr 13:12    IdentExpr      :: i32
+  expr 17:14    AwaitExpr      :: i32
+  expr 17:20    CallExpr       :: Async<i32>
+  expr 17:20    IdentExpr      :: fn() -> Async<i32>
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    IdentExpr      :: i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

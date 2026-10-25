@@ -1,0 +1,89 @@
+# Typecheck
+
+## tests/snippets/singleton_async
+  FnDecl         config               :: fn() -> Async<string>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         quick                :: fn() -> Async<i32>
+  FnDecl         runs                 :: fn() -> string[]
+  FnDecl         slow                 :: fn() -> Async<i32>
+  FnDecl         warm                 :: fn() -> Async<void>
+  expr 11:28    SeqLitExpr     :: string[]
+  expr 15:17    StringLitExpr  :: string
+  expr 15:5     CallExpr       :: string[]
+  expr 15:5     CallExpr       :: void
+  expr 15:5     FieldExpr      :: fn(string) -> void
+  expr 15:5     IdentExpr      :: fn() -> string[]
+  expr 16:11    CallExpr       :: Async<null>
+  expr 16:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 16:5     AwaitExpr      :: null
+  expr 17:12    StringLitExpr  :: string
+  expr 22:17    StringLitExpr  :: string
+  expr 22:5     CallExpr       :: string[]
+  expr 22:5     CallExpr       :: void
+  expr 22:5     FieldExpr      :: fn(string) -> void
+  expr 22:5     IdentExpr      :: fn() -> string[]
+  expr 23:11    CallExpr       :: Async<null>
+  expr 23:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 23:5     AwaitExpr      :: null
+  expr 29:17    StringLitExpr  :: string
+  expr 29:5     CallExpr       :: string[]
+  expr 29:5     CallExpr       :: void
+  expr 29:5     FieldExpr      :: fn(string) -> void
+  expr 29:5     IdentExpr      :: fn() -> string[]
+  expr 30:11    CallExpr       :: Async<null>
+  expr 30:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 30:5     AwaitExpr      :: null
+  expr 34:11    CallExpr       :: Async<null>
+  expr 34:11    IdentExpr      :: fn(i64) -> Async<null>
+  expr 34:5     AwaitExpr      :: null
+  expr 39:13    AwaitExpr      :: string[]
+  expr 39:19    CallExpr       :: Async<string[]>
+  expr 39:19    IdentExpr      :: fn(Async<T>[]) -> Async<T[]>
+  expr 39:28    SeqLitExpr     :: Async<string>[]
+  expr 39:29    CallExpr       :: Async<string>
+  expr 39:29    IdentExpr      :: fn() -> Async<string>
+  expr 39:39    CallExpr       :: Async<string>
+  expr 39:39    IdentExpr      :: fn() -> Async<string>
+  expr 40:13    StringLitExpr  :: string
+  expr 40:16    IdentExpr      :: string[]
+  expr 40:16    IndexExpr      :: string
+  expr 40:27    IdentExpr      :: string[]
+  expr 40:27    IndexExpr      :: string
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:14    AwaitExpr      :: string
+  expr 41:20    CallExpr       :: Async<string>
+  expr 41:20    IdentExpr      :: fn() -> Async<string>
+  expr 42:13    IdentExpr      :: string
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void
+  expr 43:15    AwaitExpr      :: i32
+  expr 43:21    CallExpr       :: Async<i32>
+  expr 43:21    IdentExpr      :: fn(Async<T>[]) -> Async<T>
+  expr 43:26    SeqLitExpr     :: Async<i32>[]
+  expr 43:27    CallExpr       :: Async<i32>
+  expr 43:27    IdentExpr      :: fn() -> Async<i32>
+  expr 43:36    CallExpr       :: Async<i32>
+  expr 43:36    IdentExpr      :: fn() -> Async<i32>
+  expr 44:13    StringLitExpr  :: string
+  expr 44:22    IdentExpr      :: i32
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
+  expr 45:13    AwaitExpr      :: i32
+  expr 45:19    CallExpr       :: Async<i32>
+  expr 45:19    IdentExpr      :: fn() -> Async<i32>
+  expr 46:13    StringLitExpr  :: string
+  expr 46:22    IdentExpr      :: i32
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(T) -> void
+  expr 47:11    CallExpr       :: Async<null>
+  expr 47:11    IdentExpr      :: fn() -> Async<void>
+  expr 47:5     AwaitExpr      :: null
+  expr 48:11    CallExpr       :: Async<null>
+  expr 48:11    IdentExpr      :: fn() -> Async<void>
+  expr 48:5     AwaitExpr      :: null
+  expr 49:13    StringLitExpr  :: string
+  expr 49:22    CallExpr       :: string[]
+  expr 49:22    IdentExpr      :: fn() -> string[]
+  expr 49:5     CallExpr       :: void
+  expr 49:5     IdentExpr      :: fn(T) -> void

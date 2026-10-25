@@ -1,6 +1,7 @@
 // A `@singleton` function builds one instance for the whole program: an argument
-// or a type argument would ask for one per value, and a body that suspends would
-// let another call see it half built. T3103, three times.
+// or a type argument would ask for one per value, and a generator for one per run.
+// An `async` body shares its task through `std/async`, which this program does not
+// import. T3103, four times.
 module "snippet"
 
 @singleton
@@ -14,7 +15,22 @@ counting :: fn() -> Iterator<i32> {
     yield 1
 }
 
+Ready :: struct {}
+
+Ready implements Async<i32> {
+    resume :: fn(self) -> i32 | Suspended = 1
+}
+
+ready :: fn() -> Async<i32> = Ready {}
+
+@singleton
+loading :: fn() -> Async<i32> {
+    value :: await ready()
+    return value
+}
+
 main :: fn() -> i32 {
     _ :: counting()
+    _ :: loading()
     return i32(scaled(2).len() + empty<i32>().len())
 }

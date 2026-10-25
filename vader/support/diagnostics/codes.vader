@@ -128,7 +128,7 @@ export TypecheckCode :: enum(CodeInfo) {
     FieldDefaultsFillEachOther      { .id = "T3100", .message = "field defaults cannot fill each other in" },
     CannotWriteTupleElement         { .id = "T3101", .message = "a tuple's element cannot be written" },
     UnsafeArrayWidening             { .id = "T3102", .message = "array argument cannot be widened" },
-    MisshapedSingleton              { .id = "T3103", .message = "a `@singleton` function takes no parameter and runs straight through" },
+    MisshapedSingleton              { .id = "T3103", .message = "the function cannot be a `@singleton`" },
     GenericRecursionGrows           { .id = "T3104", .message = "a generic recursion cannot grow its type argument" },
     TypeArgumentCountMismatch       { .id = "T3105", .message = "wrong number of type arguments" },
     ReturnInDefer                   { .id = "T3106", .message = "`return` is not allowed in a `defer` body" },
