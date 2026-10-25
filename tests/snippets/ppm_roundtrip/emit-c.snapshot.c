@@ -37,7 +37,7 @@ struct vader_struct_images_ppm_ScanInt_t {
     bool f_found;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "/vader_ppm_roundtrip.ppm" "\0"
     "encode failed" "\0"

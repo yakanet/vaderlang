@@ -38,7 +38,7 @@ struct vader_struct___Tuple_i32_i32_3103e027_t {
     int32_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "x" "\0"
     "equal contents, distinct objects: " "\0"

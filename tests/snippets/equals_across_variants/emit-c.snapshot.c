@@ -42,7 +42,7 @@ struct vader_struct_std_collections_MutableMap__snippet_Label___snippet_Point__s
     int64_t f_tombs;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "point" "\0"
     "absent" "\0"

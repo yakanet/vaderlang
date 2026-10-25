@@ -51,7 +51,7 @@ struct vader_struct_std_async_Sleep_t {
     bool f_armed;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "cleanup " "\0"
     "winner: " "\0"

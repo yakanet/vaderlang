@@ -47,7 +47,7 @@ struct vader_struct__Cell_string_t {
     vader_string_t f_value;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "bcdefghijklm" "\0"
     "-" "\0"

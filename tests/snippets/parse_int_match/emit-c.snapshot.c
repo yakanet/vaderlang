@@ -35,7 +35,7 @@ struct vader_struct_std_string_ParseError_t {
     vader_string_t f_msg;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "42" "\0"
     "int ok" "\0"

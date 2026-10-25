@@ -17,7 +17,7 @@ struct vader_struct_std_io_IOError_t {
     int32_t f_code;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "unreadable (" "\0"
     " / " "\0"

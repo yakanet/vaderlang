@@ -49,7 +49,7 @@ struct vader_struct_std_async_Sleep_t {
     bool f_armed;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "defer 1 " "\0"
     "defer 2 " "\0"

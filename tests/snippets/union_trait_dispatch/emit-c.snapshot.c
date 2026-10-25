@@ -142,7 +142,7 @@ struct vader_struct_std_collections_MutableSet__i32_t {
     void* f_inner;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "INT " "\0"
     "STR " "\0"

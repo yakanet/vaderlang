@@ -16,7 +16,7 @@ struct vader_struct_std_core_Buffer_t {
     vader_obj_header_t header;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "chain: expected 1 collection, got " "\0"
     "chain: sum mismatch: got " "\0"

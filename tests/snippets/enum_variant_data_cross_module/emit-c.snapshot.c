@@ -16,7 +16,7 @@ struct vader_struct_snippet_codes_Info_t {
     vader_string_t f_message;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     ": " "\0"
     "a" "\0"

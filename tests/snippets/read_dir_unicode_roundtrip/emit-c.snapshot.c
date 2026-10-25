@@ -22,7 +22,7 @@ struct vader_struct___defer_env_std_io_1_t {
     void* f_cap_0;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "vader_rd_caf\xc3\xa9_\xe6\x97\xa5\xe6\x9c\xac.txt" "\0"
     "/" "\0"

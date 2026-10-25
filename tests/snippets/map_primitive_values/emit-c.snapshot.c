@@ -117,7 +117,7 @@ struct vader_struct_std_collections_MutableMap__string__u8_t {
     int64_t f_tombs;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "x" "\0"
     "y" "\0"

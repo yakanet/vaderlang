@@ -16,7 +16,7 @@ struct vader_struct_snippet_shapes_Node_t {
     int64_t f_id;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "x" "\0" "name=" "\0" " id=" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

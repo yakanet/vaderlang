@@ -54,7 +54,7 @@ struct vader_struct_std_collections_MutableMap__i64__i32_t {
     int64_t f_tombs;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "probe drives: " "\0"
     "async deadlock: a task is suspended with nothing left to wake it" "\0"

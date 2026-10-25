@@ -345,7 +345,7 @@ struct vader_struct_std_collections___gen_state_std_collections_7_t {
     int32_t f_state;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "a" "\0"
     "b" "\0"

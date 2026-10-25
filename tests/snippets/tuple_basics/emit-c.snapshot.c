@@ -47,7 +47,7 @@ struct vader_struct___Tuple_string_i32_4ccf6d4f_t {
     int32_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "answer" "\0"
     "ignored" "\0"

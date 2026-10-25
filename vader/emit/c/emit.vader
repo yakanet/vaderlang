@@ -399,7 +399,7 @@ emit_struct_typedefs :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
 /// VADER_ATOM_EMPTY). A `vader_string_t` is a u32 atom id, so a literal
 /// is referenced by its bare `ctx.atom_ids[i]` at each use site.
 emit_atom_comptime_table :: fn(ctx: EmitCtx, printer: CPrinter) -> void {
-    comment :: ["Compile-time atom table — see docs/ATOM_INTERNING.md."]
+    comment :: ["Compile-time atom table."]
     if ctx.atom_table.len() == 0 {
         // No comptime atoms (no literals, or every literal is ""). A
         // 1-entry placeholder keeps `&vader_atom_comptime_table[0]`

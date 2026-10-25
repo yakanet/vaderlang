@@ -35,7 +35,7 @@ struct vader_struct_std_string_builder_StringBuilder_t {
     void* f_parts;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "five" "\0"
     "a" "\0"

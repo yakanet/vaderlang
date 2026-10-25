@@ -15,7 +15,7 @@ struct vader_struct_snippet_zoo_Dog_t {
     vader_string_t f_name;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "rex" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

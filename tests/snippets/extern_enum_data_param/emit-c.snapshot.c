@@ -15,7 +15,7 @@ struct vader_struct_snippet_status_StatusInfo_t {
     vader_string_t f_reason;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     " " "\0"
     "\n" "\0"

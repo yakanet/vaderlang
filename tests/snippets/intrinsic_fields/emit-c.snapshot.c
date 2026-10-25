@@ -16,7 +16,7 @@ struct vader_struct_std_core_Field_t {
     vader_box_t f_type;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "x" "\0"
     "y" "\0"

@@ -49,7 +49,7 @@ struct vader_struct__Cell_i64_t {
     int64_t f_value;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "index " "\0"
     "pick" "\0"

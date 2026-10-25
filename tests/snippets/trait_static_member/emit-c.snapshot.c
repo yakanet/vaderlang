@@ -44,7 +44,7 @@ struct vader_struct___Tuple_u64_u64_u64_2d035edd_t {
     uint64_t f__2;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "true" "\0"
     "false" "\0"

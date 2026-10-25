@@ -48,7 +48,7 @@ struct vader_struct___Tuple_Struct_snippet_Point_i32_43df0650_t {
     int32_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "a" "\0" " " "\0" "5" "\0" "true" "\0" "false" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

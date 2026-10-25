@@ -279,7 +279,7 @@ struct vader_struct__Cell_i32_t {
     int32_t f_value;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "map.take(" "\0"
     "), pulls: " "\0"

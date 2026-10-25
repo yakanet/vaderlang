@@ -28,7 +28,7 @@ struct vader_struct_snippet_units_Meters_t {
     int32_t f_v;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "nan" "\0"
     "-inf" "\0"

@@ -22,7 +22,7 @@ struct vader_struct_std_io_IOError_t {
     int32_t f_code;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "/vader_default_naming_a_std_constant" "\0"
     "0123456789" "\0"

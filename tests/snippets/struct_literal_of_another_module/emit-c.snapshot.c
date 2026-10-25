@@ -22,7 +22,7 @@ struct vader_struct_snippet_base_Label_t {
     vader_string_t f_text;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "hi" "\0"
     "\n" "\0"

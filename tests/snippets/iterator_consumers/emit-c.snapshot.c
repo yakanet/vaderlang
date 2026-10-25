@@ -327,7 +327,7 @@ struct vader_struct___Tuple_Struct_snippet_Point_u8_3d579548_t {
     uint8_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "stop" "\0"
     " " "\0"

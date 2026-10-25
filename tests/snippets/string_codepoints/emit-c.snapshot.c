@@ -25,7 +25,7 @@ struct vader_struct_std_string_StringChars_t {
     int64_t f_cursor;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "vader" "\0"
     "chars ascii: " "\0"

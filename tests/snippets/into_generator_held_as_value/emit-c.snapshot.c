@@ -85,7 +85,7 @@ struct vader_struct___Tuple_u32_i64_8946832a_t {
     int64_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "h\xc3\xa9llo" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

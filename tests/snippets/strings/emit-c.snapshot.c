@@ -10,7 +10,7 @@ struct vader_struct_std_core_Buffer_t {
     vader_obj_header_t header;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "[hello] [a\nb\tc] [C:\\Users\\path] [line one\nline two\n]" "\0"
     "hello" "\0"

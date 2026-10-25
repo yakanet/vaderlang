@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "env" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

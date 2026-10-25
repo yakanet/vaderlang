@@ -46,7 +46,7 @@ struct vader_struct__Cell_Union_string_u8__t {
     vader_box_t f_value;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "u8 " "\0"
     "text" "\0"

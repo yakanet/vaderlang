@@ -17,7 +17,7 @@ struct vader_struct_std_io_IOError_t {
     int32_t f_code;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] =
     "/vader_h\xc3\xa9llo_zo\xc3\xa9_\xe6\x97\xa5\xe6\x9c\xac.txt" "\0"
     "write failed: " "\0"

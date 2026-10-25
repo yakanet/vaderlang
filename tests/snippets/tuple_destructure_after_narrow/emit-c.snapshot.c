@@ -16,7 +16,7 @@ struct vader_struct___Tuple_i32_i32_3103e027_t {
     int32_t f__1;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "a=" "\0" " b=" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {

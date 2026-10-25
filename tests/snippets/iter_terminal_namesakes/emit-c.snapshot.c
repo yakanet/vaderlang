@@ -34,7 +34,7 @@ struct vader_struct_std_iter___gen_state_std_iter_0_t {
     int32_t f_state;
 };
 
-/* Compile-time atom table — see docs/ATOM_INTERNING.md. */
+/* Compile-time atom table. */
 static const char vader_atom_blob[] = "true" "\0" "false" "\0" "\n" "\0";
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
